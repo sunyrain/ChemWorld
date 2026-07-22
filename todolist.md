@@ -160,40 +160,40 @@ P1 reduces recurrence risk. It should follow the P0 correctness fixes and remain
 
 ### P1.1 One evidence model with explicit artifact roles
 
-- [ ] Define artifact roles: `protocol_input`, `generated_current`, `formal_result`,
+- [x] Define artifact roles: `protocol_input`, `generated_current`, `formal_result`,
   `development_diagnostic`, `fixture`, `superseded`, and `archive`.
-- [ ] Record role, producer, dependencies, source binding, and lifecycle in one machine-readable
+- [x] Record role, producer, dependencies, source binding, and lifecycle in one machine-readable
   manifest/DAG.
-- [ ] Make generation order a topological property of the DAG rather than knowledge distributed
+- [x] Make generation order a topological property of the DAG rather than knowledge distributed
   across scripts and maintainer memory.
-- [ ] Keep formal results and protocol inputs immutable; generated summaries may be refreshed only
+- [x] Keep formal results and protocol inputs immutable; generated summaries may be refreshed only
   by their declared producer.
-- [ ] Split mutable project state from evidence locks/attestations if `configs/current.json` cannot
+- [x] Split mutable project state from evidence locks/attestations if `configs/current.json` cannot
   express these roles without duplicated truth.
-- [ ] Generate human-readable maturity/runtime summaries from the canonical graph rather than
+- [x] Generate human-readable maturity/runtime summaries from the canonical graph rather than
   updating parallel ledgers manually.
 
 Acceptance:
 
-- [ ] One command explains every current artifact's role, producer, dependencies, and freshness.
-- [ ] One command refreshes generated nodes in dependency order and refuses to regenerate immutable
+- [x] One command explains every current artifact's role, producer, dependencies, and freshness.
+- [x] One command refreshes generated nodes in dependency order and refuses to regenerate immutable
   inputs/results.
-- [ ] A missing current artifact, stale digest, role mismatch, or undeclared producer is reported as
+- [x] A missing current artifact, stale digest, role mismatch, or undeclared producer is reported as
   a distinct error.
 
 ### P1.2 Centralize repeated provenance and serialization helpers
 
-- [ ] Introduce one tested internal module for canonical JSON hashing, file hashing, atomic JSON
+- [x] Introduce one tested internal module for canonical JSON hashing, file hashing, atomic JSON
   writes, Git source commit, and tracked-tree dirty detection.
-- [ ] Preserve the existing canonicalization contract and report hashes during migration.
-- [ ] Migrate scripts in small families; do not mechanically rewrite all scripts in one change.
-- [ ] Remove local helper implementations only after their report-schema regression tests pass.
+- [x] Preserve the existing canonicalization contract and report hashes during migration.
+- [x] Migrate scripts in small families; do not mechanically rewrite all scripts in one change.
+- [x] Remove local helper implementations only after their report-schema regression tests pass.
 
 Acceptance:
 
-- [ ] New scripts do not define private copies of the shared helpers.
-- [ ] Migrated reports remain byte/schema compatible unless a versioned schema change is declared.
-- [ ] Provenance tests cover clean, dirty, untracked-only, and evidence-only commit states.
+- [x] New scripts do not define private copies of the shared helpers.
+- [x] Migrated reports remain byte/schema compatible unless a versioned schema change is declared.
+- [x] Provenance tests cover clean, dirty, untracked-only, and evidence-only commit states.
 
 ### P1.3 Resume mechanism-adaptation Agent attribution
 

@@ -1,11 +1,16 @@
-"""Solver and provenance manifests for paper artifacts."""
+"""Canonical artifact I/O, Git provenance, and solver manifests."""
 
 from __future__ import annotations
 
+import hashlib
+import json
 import platform
+import subprocess
 import sys
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from importlib import metadata
+from pathlib import Path
 from typing import Any
 
 from chemworld import __version__
@@ -20,6 +25,109 @@ from chemworld.physchem.solver_backend import (
 from chemworld.tasks import get_task
 
 PROVENANCE_SCHEMA_VERSION = "chemworld-solver-provenance-0.2"
+
+
+def canonical_json_bytes(payload: Any) -> bytes:
+    """Serialize *payload* with the repository's stable hashing contract."""
+
+    return json.dumps(
+        payload,
+        ensure_ascii=False,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def canonical_json_sha256(payload: Any) -> str:
+    """Return the SHA-256 of canonical UTF-8 JSON."""
+
+    return hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
+
+
+def file_sha256(path: Path) -> str:
+    """Return the SHA-256 of a materialized artifact."""
+
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def write_json_atomic(
+    path: Path, payload: Any, *, sort_keys: bool = True
+) -> None:
+    """Write deterministic, human-readable JSON through an adjacent temp file."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp")
+    temporary.write_text(
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=2,
+            sort_keys=sort_keys,
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    temporary.replace(path)
+
+
+def git_source_commit(root: Path) -> str:
+    """Return the repository HEAD bound to an artifact generation run."""
+
+    completed = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return completed.stdout.strip()
+
+
+def git_tracked_tree_dirty(
+    root: Path,
+    *,
+    excluded_paths: Iterable[str] = (),
+    excluded_prefixes: Iterable[str] = (),
+) -> bool:
+    """Report tracked changes outside explicitly declared generated evidence.
+
+    Untracked files are intentionally ignored: source attestations describe the
+    committed tree plus tracked modifications. Callers must enumerate generated
+    outputs they are allowed to refresh without invalidating source provenance.
+    """
+
+    exact = {_normalize_git_path(path) for path in excluded_paths}
+    prefixes = tuple(_normalize_git_prefix(path) for path in excluded_prefixes)
+    completed = subprocess.run(
+        ["git", "status", "--porcelain=v1", "--untracked-files=no"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    for line in completed.stdout.splitlines():
+        if not line:
+            continue
+        path = line[3:]
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        normalized = _normalize_git_path(path)
+        if normalized in exact or any(normalized.startswith(item) for item in prefixes):
+            continue
+        return True
+    return False
+
+
+def _normalize_git_path(path: str) -> str:
+    return path.strip('"').replace("\\", "/")
+
+
+def _normalize_git_prefix(path: str) -> str:
+    normalized = _normalize_git_path(path)
+    return normalized if normalized.endswith("/") else f"{normalized}/"
 
 
 def build_solver_provenance_manifest(
@@ -113,4 +221,13 @@ def _version_or_unavailable(package: str) -> str:
         return "unavailable"
 
 
-__all__ = ["PROVENANCE_SCHEMA_VERSION", "build_solver_provenance_manifest"]
+__all__ = [
+    "PROVENANCE_SCHEMA_VERSION",
+    "build_solver_provenance_manifest",
+    "canonical_json_bytes",
+    "canonical_json_sha256",
+    "file_sha256",
+    "git_source_commit",
+    "git_tracked_tree_dirty",
+    "write_json_atomic",
+]

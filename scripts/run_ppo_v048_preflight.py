@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 import subprocess
@@ -13,6 +12,15 @@ from pathlib import Path
 from time import perf_counter, process_time
 from typing import Any, cast
 
+from chemworld.eval.provenance import (
+    canonical_json_sha256 as _canonical_sha256,
+)
+from chemworld.eval.provenance import (
+    file_sha256 as _file_sha256,
+)
+from chemworld.eval.provenance import (
+    write_json_atomic as _write_json,
+)
 from chemworld.rl.checkpoint_contract import RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION
 from chemworld.rl.environment import build_rl_environment
 from chemworld.rl.evaluation import evaluate_sb3_checkpoint
@@ -97,17 +105,6 @@ class PPOPreflightError(RuntimeError):
     """Raised when execution cannot preserve the preregistered gate."""
 
 
-def _canonical_sha256(payload: Any) -> str:
-    encoded = json.dumps(
-        payload,
-        ensure_ascii=False,
-        allow_nan=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
-
-
 def scientific_contract_sha256(plan: Mapping[str, Any]) -> str:
     """Hash only outcome-relevant settings that an infrastructure re-sign cannot alter."""
 
@@ -123,10 +120,6 @@ def scientific_contract_sha256(plan: Mapping[str, Any]) -> str:
     )
 
 
-def _file_sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
 def _load_object(path: Path, label: str) -> dict[str, Any]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -135,17 +128,6 @@ def _load_object(path: Path, label: str) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise PPOPreflightError(f"{label} must be a JSON object")
     return payload
-
-
-def _write_json(path: Path, payload: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(f".{path.name}.tmp")
-    temporary.write_text(
-        json.dumps(payload, ensure_ascii=False, allow_nan=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-        newline="\n",
-    )
-    temporary.replace(path)
 
 
 def _profile(plan: Mapping[str, Any]) -> Mapping[str, str]:

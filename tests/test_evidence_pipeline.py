@@ -19,6 +19,14 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     node_ids = {node.node_id for node in nodes}
     assert "mechanism_gate_a" in node_ids
     assert not any(node_id.startswith("ncs_") for node_id in node_ids)
+    assert {node.role for node in nodes} <= pipeline["CURRENT_ARTIFACT_ROLES"]
+    assert all(pipeline["_node_producer"](node) for node in nodes)
+    assert all(pipeline["_node_source_binding"](node) for node in nodes)
+    assert all(
+        (node.command is not None)
+        == (pipeline["_node_lifecycle"](node) == "generated")
+        for node in nodes
+    )
 
 
 def test_current_evidence_pipeline_rejects_no_stale_bindings() -> None:
@@ -56,3 +64,45 @@ def test_generated_evidence_paths_do_not_make_source_tree_dirty() -> None:
         "benchmark/releases/chemworld-serious-vnext/manifest.json"
     )
     assert not pipeline["_is_materialized_output_path"]("src/chemworld/data/schema.py")
+
+
+def test_current_evidence_manifest_explains_every_node() -> None:
+    pipeline = _pipeline()
+    manifest = pipeline["current_evidence_manifest"]()
+
+    assert len(manifest["nodes"]) == len(pipeline["NODES"])
+    assert manifest["generation_order"] == [
+        node.node_id for node in pipeline["generation_order"]()
+    ]
+    assert all(
+        {
+            "role",
+            "lifecycle",
+            "producer",
+            "dependencies",
+            "source_binding",
+            "freshness",
+        }
+        <= row.keys()
+        for row in manifest["nodes"]
+    )
+
+
+def test_evidence_node_contract_errors_are_unambiguous() -> None:
+    pipeline = _pipeline()
+    node_type = pipeline["EvidenceNode"]
+    invalid = node_type("missing_producer", "missing.json", "generated_current")
+    assert pipeline["_node_contract_errors"](invalid) == [
+        "generated current artifact has no producer: missing_producer"
+    ]
+
+    node = pipeline["NODES"][0]
+    recorded = {
+        "role": "fixture",
+        "lifecycle": pipeline["_node_lifecycle"](node),
+        "producer": pipeline["_node_producer"](node),
+        "source_binding": pipeline["_node_source_binding"](node),
+    }
+    assert pipeline["_recorded_node_contract_errors"](node, recorded) == [
+        f"registry artifact role mismatch: {node.node_id}"
+    ]

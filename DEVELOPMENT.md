@@ -42,6 +42,11 @@
 因此 evidence-only 提交的 HEAD 比报告中的 `source_commit` 前进一个提交是预期状态，不是 stale evidence。
 一旦第二个提交混入新的源码或协议变化，原证明立即失效，必须重新从新的干净 source commit 生成。
 
+新增或迁移证据脚本必须复用 `chemworld.eval.provenance` 中的 canonical JSON hash、文件 hash、
+原子 JSON 写入与 Git provenance 工具；不要在脚本内复制私有 `_write_json`、`_file_sha256` 或
+tracked-tree 判定。生成节点、不可变输入和正式结果的角色与顺序只在
+`scripts/evidence_pipeline.py` 的 evidence DAG 中声明。
+
 常用检查：
 
 ```bash

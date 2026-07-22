@@ -8,7 +8,6 @@ the current source and protocol state.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import subprocess
 import sys
@@ -21,6 +20,16 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+from chemworld.eval.provenance import (  # noqa: E402
+    canonical_json_sha256 as _canonical_sha256,
+)
+from chemworld.eval.provenance import (  # noqa: E402
+    file_sha256,
+    git_tracked_tree_dirty,
+    write_json_atomic,
+)
+
 CURRENT_REGISTRY = ROOT / "configs/current.json"
 
 
@@ -78,28 +87,28 @@ NODES = (
     EvidenceNode(
         "llm_development_plan",
         "configs/methods/llm_v0.4/llm_development_plan.json",
-        "development_input",
+        "protocol_input",
         ("runtime_affordance",),
     ),
     EvidenceNode(
         "classic_development",
         "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
-        "development_input",
+        "development_diagnostic",
     ),
     EvidenceNode(
         "operation_development",
         "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.1.json",
-        "development_input",
+        "development_diagnostic",
     ),
     EvidenceNode(
         "ppo_preflight",
         "workstreams/benchmark_v1/reports/rl-ppo-v0412-preflight-v0.4.json",
-        "development_input",
+        "development_diagnostic",
     ),
     EvidenceNode(
         "sac_preflight",
         "workstreams/benchmark_v1/reports/rl-sac-v0412-preflight-v0.4.json",
-        "development_input",
+        "development_diagnostic",
     ),
     EvidenceNode(
         "mechanism_protocol",
@@ -115,27 +124,27 @@ NODES = (
     EvidenceNode(
         "mechanism_design_audit",
         "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
-        "development_control",
+        "generated_current",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
         ("scripts/audit_mechanism_adaptation_design.py",),
     ),
     EvidenceNode(
         "mechanism_protocol_report",
         "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
-        "development_input",
+        "development_diagnostic",
         ("mechanism_protocol",),
     ),
     EvidenceNode(
         "mechanism_public_matrix",
         "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json",
-        "development_control",
+        "generated_current",
         ("mechanism_protocol",),
         ("scripts/plan_mechanism_adaptation_matrix.py",),
     ),
     EvidenceNode(
         "mechanism_preflight",
         "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-preflight.json",
-        "development_control",
+        "generated_current",
         (
             "mechanism_gate_a_plan",
             "mechanism_design_audit",
@@ -148,7 +157,7 @@ NODES = (
     EvidenceNode(
         "mechanism_gate_a",
         "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.2.json",
-        "mechanism_gate",
+        "formal_result",
         (
             "mechanism_design_audit",
             "mechanism_gate_a_plan",
@@ -159,52 +168,52 @@ NODES = (
     EvidenceNode(
         "backend_golden_fixture",
         "tests/fixtures/golden/core_scripted_trajectories.json",
-        "distribution_input",
+        "fixture",
     ),
     EvidenceNode(
         "runtime_integration",
         "workstreams/world_foundation/reports/wf-110-runtime-integration.json",
-        "backend_control",
+        "generated_current",
         command=("scripts/audit_vnext_runtime_integration.py",),
     ),
     EvidenceNode(
         "runtime_reachability",
         "workstreams/world_foundation/reports/runtime-reachability-vnext.json",
-        "backend_control",
+        "generated_current",
         ("runtime_integration", "runtime_reachability_protocol"),
         ("scripts/audit_runtime_reachability_vnext.py",),
     ),
     EvidenceNode(
         "state_transition_invariants",
         "workstreams/world_foundation/reports/state-transition-invariants.json",
-        "backend_control",
+        "generated_current",
         ("runtime_integration", "state_transition_protocol"),
         ("scripts/audit_state_transition_invariants.py",),
     ),
     EvidenceNode(
         "public_boundary",
         "workstreams/world_foundation/reports/public-boundary-security-vnext.json",
-        "backend_control",
+        "generated_current",
         ("public_boundary_protocol", "runtime_integration"),
         ("scripts/audit_public_boundary_security_vnext.py",),
     ),
     EvidenceNode(
         "maturity_truth",
         "workstreams/world_foundation/reports/maturity-truth-vnext.json",
-        "backend_control",
+        "generated_current",
         ("maturity_protocol", "runtime_integration", "runtime_reachability"),
         ("scripts/audit_maturity_truth_vnext.py",),
     ),
     EvidenceNode(
         "runtime_affordance",
         "workstreams/benchmark_v1/reports/runtime-domain-affordance-audit-v0.4.json",
-        "development_control",
+        "generated_current",
         command=("scripts/audit_runtime_domain_affordances.py",),
     ),
     EvidenceNode(
         "backend_candidate",
         "workstreams/world_foundation/reports/backend-v0.5.json",
-        "backend_control",
+        "generated_current",
         (
             "runtime_integration",
             "runtime_reachability",
@@ -218,7 +227,7 @@ NODES = (
     EvidenceNode(
         "method_freeze",
         "workstreams/benchmark_v1/reports/method-freeze-v0.4.json",
-        "formal_gate",
+        "generated_current",
         (
             "backend_candidate",
             "classic_development",
@@ -231,7 +240,7 @@ NODES = (
     EvidenceNode(
         "backend_bundle",
         "benchmark/releases/chemworld-serious-vnext/manifest.json",
-        "distribution_bundle",
+        "generated_current",
         (
             "backend_candidate",
             "backend_golden_fixture",
@@ -242,6 +251,58 @@ NODES = (
         ("scripts/build_vnext_backend_candidate.py",),
     ),
 )
+
+
+ARTIFACT_ROLES = frozenset(
+    {
+        "protocol_input",
+        "generated_current",
+        "formal_result",
+        "development_diagnostic",
+        "fixture",
+        "superseded",
+        "archive",
+    }
+)
+CURRENT_ARTIFACT_ROLES = ARTIFACT_ROLES - {"superseded", "archive"}
+
+
+def _node_lifecycle(node: EvidenceNode) -> str:
+    return "generated" if node.command is not None else "immutable"
+
+
+def _node_producer(node: EvidenceNode) -> str:
+    if node.command is not None:
+        return "python " + " ".join(node.command)
+    return {
+        "protocol_input": "maintainer_versioned_input",
+        "formal_result": "frozen_formal_execution",
+        "development_diagnostic": "versioned_development_execution",
+        "fixture": "maintainer_versioned_fixture",
+    }[node.role]
+
+
+def _node_source_binding(node: EvidenceNode) -> str:
+    return {
+        "protocol_input": "content_sha256",
+        "generated_current": "dependencies_and_source_commit",
+        "formal_result": "protocol_plan_and_result_sha256",
+        "development_diagnostic": "content_and_versioned_source_sha256",
+        "fixture": "content_sha256",
+    }[node.role]
+
+
+def _node_contract_errors(node: EvidenceNode) -> list[str]:
+    errors: list[str] = []
+    if node.role not in ARTIFACT_ROLES:
+        errors.append(f"undeclared artifact role: {node.node_id} -> {node.role}")
+    elif node.role not in CURRENT_ARTIFACT_ROLES:
+        errors.append(f"non-current artifact appears in current DAG: {node.node_id}")
+    if node.role == "generated_current" and node.command is None:
+        errors.append(f"generated current artifact has no producer: {node.node_id}")
+    if node.role != "generated_current" and node.command is not None:
+        errors.append(f"immutable artifact declares a generator: {node.node_id}")
+    return errors
 
 
 CURRENT_PATH_RULES = (
@@ -269,7 +330,7 @@ CURRENT_PATH_RULES = (
     ),
     CurrentPathRule(
         ("development_evidence", "classic", "methods"),
-        "development_input",
+        "protocol_input",
         metadata_path=("development_evidence", "classic"),
         expected_state="current",
     ),
@@ -281,7 +342,7 @@ CURRENT_PATH_RULES = (
     ),
     CurrentPathRule(
         ("development_evidence", "operation", "methods"),
-        "development_input",
+        "protocol_input",
         metadata_path=("development_evidence", "operation"),
         expected_state="current",
     ),
@@ -304,15 +365,6 @@ CURRENT_PATH_RULES = (
 )
 
 
-def file_sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _canonical_sha256(value: Any) -> str:
-    encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
-    return hashlib.sha256(encoded).hexdigest()
-
-
 def node_map() -> dict[str, EvidenceNode]:
     nodes = {node.node_id: node for node in NODES}
     if len(nodes) != len(NODES):
@@ -320,6 +372,9 @@ def node_map() -> dict[str, EvidenceNode]:
     paths = [node.path for node in NODES]
     if len(set(paths)) != len(paths):
         raise ValueError("evidence DAG contains duplicate materialized paths")
+    contract_errors = [error for node in NODES for error in _node_contract_errors(node)]
+    if contract_errors:
+        raise ValueError("; ".join(contract_errors))
     return nodes
 
 
@@ -353,6 +408,9 @@ def graph_sha256() -> str:
                 "id": node.node_id,
                 "path": node.path,
                 "role": node.role,
+                "lifecycle": _node_lifecycle(node),
+                "producer": _node_producer(node),
+                "source_binding": _node_source_binding(node),
                 "dependencies": list(node.dependencies),
                 "command": list(node.command) if node.command else None,
             }
@@ -432,8 +490,10 @@ def validate_current_registry_paths(
 
 
 def _run(node: EvidenceNode) -> None:
-    if node.command is None:
+    if _node_lifecycle(node) == "immutable":
         return
+    if node.command is None:  # pragma: no cover - node_map rejects this contract
+        raise RuntimeError(f"generated node has no producer: {node.node_id}")
     command = [sys.executable, *node.command]
     completed = subprocess.run(
         command,
@@ -473,23 +533,14 @@ def _git_tree_dirty() -> bool:
     may change during a DAG refresh without making the source tree itself dirty.
     """
 
-    completed = subprocess.run(
-        ["git", "status", "--porcelain", "--untracked-files=no"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=True,
+    return git_tracked_tree_dirty(
+        ROOT,
+        excluded_paths={
+            "configs/current.json",
+            *(node.path for node in NODES if node.command is not None),
+        },
+        excluded_prefixes=MATERIALIZED_OUTPUT_PREFIXES,
     )
-    changed_source_paths: list[str] = []
-    for line in completed.stdout.splitlines():
-        if not line:
-            continue
-        path = line[3:]
-        if " -> " in path:
-            path = path.split(" -> ", 1)[1]
-        if not _is_materialized_output_path(path):
-            changed_source_paths.append(path)
-    return bool(changed_source_paths)
 
 
 def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
@@ -593,9 +644,13 @@ def _write_current_registry() -> None:
         nodes[node.node_id] = {
             "path": node.path,
             "role": node.role,
+            "lifecycle": _node_lifecycle(node),
+            "producer": _node_producer(node),
+            "source_binding": _node_source_binding(node),
             "dependencies": list(node.dependencies),
             "sha256": file_sha256(path),
             "artifact_state": "current",
+            "freshness": "fresh",
             "gate_state": _node_gate_state(node, payload),
         }
 
@@ -668,9 +723,11 @@ def _write_current_registry() -> None:
         },
     }
     current["state_model"] = {
-        "schema_version": "chemworld-evidence-state-model-0.2",
+        "schema_version": "chemworld-evidence-state-model-0.3",
         "dimensions": {
             "artifact_state": ["current", "stale", "historical", "pending"],
+            "artifact_role": sorted(ARTIFACT_ROLES),
+            "artifact_lifecycle": ["generated", "immutable"],
             "gate_state": ["passed", "blocked", "pending", "not_applicable"],
             "claim_scope": [
                 "backend_control",
@@ -684,6 +741,10 @@ def _write_current_registry() -> None:
             "status is the canonical lifecycle enum and booleans are derived claims",
             "current means regenerated from the declared DAG, not scientifically ready",
             (
+                "generated artifacts have declared commands; protocol inputs, formal results, "
+                "development diagnostics, and fixtures are immutable to DAG refresh"
+            ),
+            (
                 "frozen requires a clean source-attested candidate and is never "
                 "inferred from validation alone"
             ),
@@ -695,7 +756,7 @@ def _write_current_registry() -> None:
         ],
     }
     current["evidence_dag"] = {
-        "schema_version": "chemworld-current-evidence-dag-0.1",
+        "schema_version": "chemworld-current-evidence-dag-0.2",
         "generator": "python scripts/evidence_pipeline.py --refresh",
         "checker": "python scripts/evidence_pipeline.py --check",
         "graph_sha256": graph_sha256(),
@@ -750,7 +811,7 @@ def _write_current_registry() -> None:
             "methods": "configs/methods/classic_v0.4.1/classic_methods.json",
             "report": "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
             "artifact_state": "current",
-            "artifact_roles": ["development_input", "development_diagnostic"],
+            "artifact_roles": ["protocol_input", "development_diagnostic"],
         },
         "operation": {
             "methods": "configs/methods/operation_v0.4.1/operation_methods.json",
@@ -759,7 +820,7 @@ def _write_current_registry() -> None:
                 "operation-baselines-dev-v0.4.1.json"
             ),
             "artifact_state": "current",
-            "artifact_roles": ["development_input", "development_diagnostic"],
+            "artifact_roles": ["protocol_input", "development_diagnostic"],
         },
         "live_llm": {
             "target_version": "v0.4.11",
@@ -818,9 +879,7 @@ def _write_current_registry() -> None:
         "archive_directories_contain_non_current_diagnostics": True,
         "raw_runs_require_a_manifested_retention_decision_before_deletion": True,
     }
-    CURRENT_REGISTRY.write_text(
-        json.dumps(current, indent=2) + "\n", encoding="utf-8"
-    )
+    write_json_atomic(CURRENT_REGISTRY, current, sort_keys=False)
 
 
 def refresh() -> None:
@@ -838,6 +897,63 @@ def _check_bundle(errors: list[str]) -> None:
             errors.append(f"backend bundle artifact is stale: {filename}")
 
 
+def _recorded_node_contract_errors(
+    node: EvidenceNode, recorded: Mapping[str, Any]
+) -> list[str]:
+    errors: list[str] = []
+    if recorded.get("role") != node.role:
+        errors.append(f"registry artifact role mismatch: {node.node_id}")
+    if recorded.get("lifecycle") != _node_lifecycle(node):
+        errors.append(f"registry lifecycle mismatch: {node.node_id}")
+    if recorded.get("producer") != _node_producer(node):
+        errors.append(f"registry producer mismatch: {node.node_id}")
+    if recorded.get("source_binding") != _node_source_binding(node):
+        errors.append(f"registry source binding mismatch: {node.node_id}")
+    return errors
+
+
+def current_evidence_manifest() -> dict[str, Any]:
+    """Explain role, producer, dependencies, binding, and freshness for every node."""
+
+    current = json.loads(CURRENT_REGISTRY.read_text(encoding="utf-8"))
+    recorded_nodes = current.get("evidence_dag", {}).get("nodes", {})
+    rows: list[dict[str, Any]] = []
+    for node in generation_order():
+        path = ROOT / node.path
+        recorded = recorded_nodes.get(node.node_id, {})
+        exists = path.is_file()
+        digest_matches = bool(
+            exists and recorded.get("sha256") == file_sha256(path)
+        )
+        contract_matches = bool(
+            recorded.get("path") == node.path
+            and recorded.get("dependencies") == list(node.dependencies)
+            and not _recorded_node_contract_errors(node, recorded)
+        )
+        rows.append(
+            {
+                "node_id": node.node_id,
+                "path": node.path,
+                "role": node.role,
+                "lifecycle": _node_lifecycle(node),
+                "producer": _node_producer(node),
+                "dependencies": list(node.dependencies),
+                "source_binding": _node_source_binding(node),
+                "freshness": (
+                    "fresh"
+                    if digest_matches and contract_matches
+                    else "stale_or_missing"
+                ),
+            }
+        )
+    return {
+        "schema_version": "chemworld-current-evidence-manifest-0.1",
+        "graph_sha256": graph_sha256(),
+        "generation_order": [node.node_id for node in generation_order()],
+        "nodes": rows,
+    }
+
+
 def check_current_evidence() -> list[str]:
     errors: list[str] = []
     try:
@@ -849,12 +965,22 @@ def check_current_evidence() -> list[str]:
         errors.append("current registry schema version is stale")
     errors.extend(validate_current_registry_paths(current))
     dag = current.get("evidence_dag", {})
+    if dag.get("schema_version") != "chemworld-current-evidence-dag-0.2":
+        errors.append("current registry evidence DAG schema version is stale")
     if dag.get("graph_sha256") != graph_sha256():
         errors.append("current registry evidence graph hash is stale")
     expected_order = [node.node_id for node in ordered]
     if dag.get("generation_order") != expected_order:
         errors.append("current registry generation order is stale")
-    recorded_nodes = dag.get("nodes", {})
+    recorded_nodes_value = dag.get("nodes", {})
+    if not isinstance(recorded_nodes_value, Mapping):
+        errors.append("current registry evidence nodes must be an object")
+        recorded_nodes: Mapping[str, Any] = {}
+    else:
+        recorded_nodes = recorded_nodes_value
+    unexpected_nodes = sorted(set(recorded_nodes) - set(expected_order))
+    if unexpected_nodes:
+        errors.append(f"registry has undeclared evidence nodes: {unexpected_nodes}")
     for node in ordered:
         path = ROOT / node.path
         recorded = recorded_nodes.get(node.node_id, {})
@@ -863,10 +989,13 @@ def check_current_evidence() -> list[str]:
             continue
         if recorded.get("path") != node.path:
             errors.append(f"registry path mismatch: {node.node_id}")
+        errors.extend(_recorded_node_contract_errors(node, recorded))
         if recorded.get("dependencies") != list(node.dependencies):
             errors.append(f"registry dependencies stale: {node.node_id}")
         if recorded.get("sha256") != file_sha256(path):
             errors.append(f"registry digest stale: {node.node_id}")
+        if recorded.get("freshness") != "fresh":
+            errors.append(f"registry freshness state mismatch: {node.node_id}")
 
     from chemworld.eval.live_llm_development import (
         load_runtime_domain_affordance_binding,
@@ -934,6 +1063,7 @@ def parse_args() -> argparse.Namespace:
     mode.add_argument("--refresh", action="store_true")
     mode.add_argument("--check", action="store_true")
     mode.add_argument("--status", action="store_true")
+    mode.add_argument("--explain-evidence", action="store_true")
     return parser.parse_args()
 
 
@@ -941,6 +1071,9 @@ def main() -> int:
     args = parse_args()
     if args.status:
         print(json.dumps(current_status_summary(), indent=2, sort_keys=True))
+        return 0
+    if args.explain_evidence:
+        print(json.dumps(current_evidence_manifest(), indent=2, sort_keys=True))
         return 0
     if args.refresh:
         refresh()
