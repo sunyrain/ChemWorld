@@ -1,20 +1,20 @@
 {
   "artifact_sha256": {
     "tests/fixtures/golden/core_scripted_trajectories.json": "0c1da73dae75431d118ec81cdb21bb1650380034bc52a8276a8ea676f10ff95e",
-    "workstreams/world_foundation/reports/maturity-truth-vnext.json": "c6c3f5e1130b388f16f244a95a80978ca76a6067b9ecc237ece11d238460f59f",
+    "workstreams/world_foundation/reports/maturity-truth-vnext.json": "90ec4e420f7cfe840269a0b61f727e02a4889a43df25f12c4d01632fdd2f7c7d",
     "workstreams/world_foundation/reports/public-boundary-security-vnext.json": "03ad2cadba98a5f7c1d0ed2153e290cefa0a77ddd98a6839d2a113505ed77382",
-    "workstreams/world_foundation/reports/runtime-reachability-vnext.json": "94f31e26f0128578ea792e3fbfcedfcb6d4dae4c89c1c5a03f9ebe4c7310d5ad",
-    "workstreams/world_foundation/reports/state-transition-invariants.json": "0f273b0fd9977abf3c488060c210b07189b2b38da0b66811e51db141242f855c",
+    "workstreams/world_foundation/reports/runtime-reachability-vnext.json": "2a0296d60b45d0e37dd04d36544d74baec96d22ed47a256d0695c5ae28572e20",
+    "workstreams/world_foundation/reports/state-transition-invariants.json": "86b93d8e7ef004059396ee425fd87c5e89f02ef818c977a224c836f9f4f49a37",
     "workstreams/world_foundation/reports/wf-110-runtime-integration.json": "f17877970ee3be797de4f140972d2106fb4a28e4442c20162a5cd9529bdb7b24"
   },
   "backend_contract_validated": true,
-  "backend_freeze_allowed": false,
+  "backend_freeze_allowed": true,
   "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
   "benchmark_claim_allowed": false,
   "checks": {
     "bound_artifacts_complete": true,
     "candidate_claim_boundary": true,
-    "clean_tracked_tree": false,
+    "clean_tracked_tree": true,
     "maturity_truth": true,
     "operation_count_exact": true,
     "protocol_schema": true,
@@ -26,7 +26,7 @@
     "task_count_exact": true,
     "task_maturity_floor": true
   },
-  "clean_release_attestation": "pending_clean_tree",
+  "clean_release_attestation": "passed",
   "limitations": [
     "This freezes a candidate virtual backend contract, not algorithm rankings.",
     "It does not validate predictions for real materials, equipment, or experiments.",
@@ -34,7 +34,7 @@
   ],
   "protocol_sha256": "5333aef55e01c4fe0ab027dbb57ca185811509db3b2f95e5d96e677733b26f97",
   "release_status": "candidate_backend_only",
-  "report_hash": "14d5c404025be578e3935e78ef67285bdfba785bbb2da131af7a2caff1870208",
+  "report_hash": "7cfc1570b351f2b521931a5c21874efe2c4a1159afedf9da43e8ed9d3f49e44a",
   "required_external_gates": [
     ".venv/Scripts/python.exe -m pytest",
     ".venv/Scripts/python.exe -m ruff check .",
@@ -43,9 +43,9 @@
     ".venv/Scripts/python.exe scripts/smoke_test_wheel.py"
   ],
   "schema_version": "chemworld-foundation-backend-freeze-audit-0.1",
-  "source_commit": "39a2630e3e375a047c77e0ef99839a438978c97b",
-  "source_tree_dirty": true,
-  "status": "candidate_backend_validated_dirty_tree",
+  "source_commit": "351680a62f9d27a07632a7690080893d6a20fbdf",
+  "source_tree_dirty": false,
+  "status": "candidate_backend_clean_attested",
   "task_contract_hashes": {
     "electrochemical-conversion": "9cc0c792e171737c5ffd5dc03772dcff724a19ae5c504b7d573257eadfa89d63",
     "equilibrium-characterization": "046067c1c75a57032b3b4307f386b23c706507178856ee20cffa70478cd0e42a",
