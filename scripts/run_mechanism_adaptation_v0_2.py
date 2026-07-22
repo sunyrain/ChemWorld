@@ -22,16 +22,25 @@ from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
     run_gate_a,
     selected_campaign_rows,
 )
+from chemworld.eval.mechanism_adaptation_pilot import (  # noqa: E402
+    build_agent_pilot_report,
+    load_campaigns_from_index,
+)
+from chemworld.eval.provenance import write_json_atomic  # noqa: E402
 
 DEFAULT_GATE_A_REPORT = (
     ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.2.json"
 )
 DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.2.1"
+DEFAULT_PILOT_REPORT = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "mechanism-adaptation-agent-pilot-v0.2.1.json"
+)
 
 
 def _write_json(path: Path, payload: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_json_atomic(path, payload)
 
 
 def _run_gate_a(args: argparse.Namespace) -> int:
@@ -127,6 +136,30 @@ def _run_campaigns(args: argparse.Namespace) -> int:
     return 0
 
 
+def _build_pilot_report(args: argparse.Namespace) -> int:
+    protocol = load_json_object(args.protocol)
+    index_path = args.runtime_root / "campaign-index.json"
+    campaigns = load_campaigns_from_index(index_path, root=ROOT)
+    report = build_agent_pilot_report(protocol, campaigns, root=ROOT, replay=True)
+    _write_json(args.pilot_report, report)
+    print(
+        json.dumps(
+            {
+                "status": report["status"],
+                "gate_0": report["gate_0"]["status"],
+                "gate_b": report["gate_b"]["status"],
+                "gate_c": report["gate_c"]["status"],
+                "gate_d": report["gate_d"]["status"],
+                "gate_e": report["gate_e"]["status"],
+                "output": str(args.pilot_report),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0 if report["gate_0"]["status"] == "passed" else 1
+
+
 def _validate_resumable_campaign(
     path: Path,
     *,
@@ -159,7 +192,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--stage",
-        choices=("gate-a", "campaign"),
+        choices=("gate-a", "campaign", "pilot-report"),
         default="gate-a",
         help="Gate A is environment-only; campaign makes external provider calls.",
     )
@@ -168,6 +201,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", type=Path, default=DEFAULT_GATE_A_REPORT)
     parser.add_argument("--llm-methods", type=Path, default=DEFAULT_LLM_METHODS_PATH)
     parser.add_argument("--runtime-root", type=Path, default=DEFAULT_RUNTIME_ROOT)
+    parser.add_argument("--pilot-report", type=Path, default=DEFAULT_PILOT_REPORT)
     parser.add_argument("--method-id", default="live_llm_b")
     parser.add_argument(
         "--spectrum-disclosure", choices=("assigned", "unassigned", "masked"), default="assigned"
@@ -181,7 +215,11 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    return _run_gate_a(args) if args.stage == "gate-a" else _run_campaigns(args)
+    if args.stage == "gate-a":
+        return _run_gate_a(args)
+    if args.stage == "campaign":
+        return _run_campaigns(args)
+    return _build_pilot_report(args)
 
 
 if __name__ == "__main__":
