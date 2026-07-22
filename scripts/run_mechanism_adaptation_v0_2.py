@@ -132,6 +132,7 @@ def _run_campaigns(args: argparse.Namespace) -> int:
             method_id=args.method_id,
             spectrum_disclosure=args.spectrum_disclosure,
             feedback_condition=args.feedback_condition,
+            progress_callback=_print_campaign_progress,
         )
         _write_json(path, result)
         completed += 1
@@ -152,6 +153,32 @@ def _run_campaigns(args: argparse.Namespace) -> int:
     _write_json(args.runtime_root / "campaign-index.json", index)
     print(json.dumps(index, indent=2, sort_keys=True))
     return 0
+
+
+def _print_campaign_progress(
+    phase: str,
+    record: Any,
+    trace: list[dict[str, Any]],
+) -> None:
+    if record.event_type != "experiment_end" and record.step % 10 != 0:
+        return
+    status = trace[-1].get("status") if trace else None
+    print(
+        json.dumps(
+            {
+                "status": "progress",
+                "phase": phase,
+                "step": record.step,
+                "event_type": record.event_type,
+                "complete_experiment_count": record.method_resources.get(
+                    "complete_experiment_count"
+                ),
+                "leaderboard_score": record.info.get("leaderboard_score"),
+                "decision_status": status,
+            }
+        ),
+        flush=True,
+    )
 
 
 def _build_pilot_report(args: argparse.Namespace) -> int:

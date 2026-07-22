@@ -9,7 +9,7 @@ import itertools
 import json
 import math
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Literal, Protocol
@@ -605,6 +605,9 @@ def run_two_phase_campaign(
     output_root: str | Path,
     campaign_id: str,
     closeout_headroom_per_experiment: int = 6,
+    progress_callback: (
+        Callable[[str, HistoryRecord, list[dict[str, Any]]], None] | None
+    ) = None,
 ) -> dict[str, Any]:
     """Run IID and shifted phases while preserving only the agent's memory."""
 
@@ -637,6 +640,11 @@ def run_two_phase_campaign(
             pre_change_experiments,
         ),
         evaluation_policy="vnext_risk_cost",
+        step_callback=(
+            None
+            if progress_callback is None
+            else lambda record, trace: progress_callback("iid", record, trace)
+        ),
     )
     iid_complete = sum(record.event_type == "experiment_end" for record in iid_history)
     adapter.begin_phase(
@@ -661,6 +669,11 @@ def run_two_phase_campaign(
         ),
         evaluation_policy="vnext_risk_cost",
         world_interventions=tuple(dict(item) for item in shifted_interventions),
+        step_callback=(
+            None
+            if progress_callback is None
+            else lambda record, trace: progress_callback("shifted", record, trace)
+        ),
     )
     return {
         "campaign_id": campaign_id,

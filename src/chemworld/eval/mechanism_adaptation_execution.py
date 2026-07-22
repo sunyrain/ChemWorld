@@ -16,7 +16,7 @@ from __future__ import annotations
 import hashlib
 import itertools
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, cast
@@ -969,6 +969,9 @@ def run_campaign_row(
     method_id: str = "live_llm_b",
     spectrum_disclosure: str = "assigned",
     feedback_condition: FeedbackCondition = "true_feedback",
+    progress_callback: (
+        Callable[[str, Any, list[dict[str, Any]]], None] | None
+    ) = None,
 ) -> dict[str, Any]:
     """Execute one frozen changed/no-change row with a real DeepSeek-backed Agent."""
 
@@ -1001,6 +1004,7 @@ def run_campaign_row(
         shifted_interventions=row["world_interventions"],
         output_root=Path(output_root) / "trajectories",
         campaign_id=campaign_id,
+        progress_callback=progress_callback,
     )
     result.update(
         {
