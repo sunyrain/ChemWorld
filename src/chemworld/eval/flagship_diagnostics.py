@@ -459,38 +459,22 @@ class ContinuingPublicViewAgent(_ContinuingAgentBase):
         instrument: str,
         donor: FeedbackViewPacket | None,
     ) -> tuple[AgentDecisionContext, dict[str, Any]]:
-        condition = self.feedback_condition
-        if condition == "true_feedback" or (
-            condition == "critical_measurement_deleted" and instrument != self.critical_instrument
-        ):
-            return context, public_view
-        if donor is None:
-            transformed_context = replace(
-                context,
-                visible_metrics={},
-                latest_spectra={"has_spectral_packet": False},
-                uncertainty={},
+        transformed_context, transformed_view, source, donor_experiment = (
+            transform_feedback_view(
+                condition=self.feedback_condition,
+                critical_instrument=self.critical_instrument,
+                instrument=instrument,
+                context=context,
+                public_view=public_view,
+                donor=donor,
             )
-            transformed_view = _mask_public_feedback(public_view)
-            source = "masked_no_eligible_donor"
-            donor_experiment = None
-        else:
-            transformed_context = replace(
-                context,
-                visible_metrics=copy.deepcopy(donor.context.visible_metrics),
-                latest_spectra=copy.deepcopy(donor.context.latest_spectra),
-                uncertainty=copy.deepcopy(donor.context.uncertainty),
-            )
-            transformed_view = _replace_public_feedback(
-                public_view,
-                donor.public_view,
-            )
-            source = "iid_permuted" if condition == "permuted_feedback" else "one_event_delayed"
-            donor_experiment = donor.experiment_index
+        )
+        if source == "true_feedback":
+            return transformed_context, transformed_view
         self.feedback_intervention_log.append(
             {
                 "surface": "decision_view",
-                "condition": condition,
+                "condition": self.feedback_condition,
                 "instrument": instrument,
                 "source": source,
                 "donor_experiment_index": donor_experiment,
@@ -504,34 +488,18 @@ class ContinuingPublicViewAgent(_ContinuingAgentBase):
         *,
         donor: FeedbackOutcomePacket | None,
     ) -> tuple[dict[str, float | None], float, dict[str, Any]]:
-        condition = self.feedback_condition
-        if condition == "true_feedback" or (
-            condition == "critical_measurement_deleted"
-            and packet.instrument != self.critical_instrument
-        ):
-            return packet.observation, packet.reward, packet.info
-        if donor is None:
-            observation: dict[str, float | None] = {
-                key: None if value is not None else value
-                for key, value in packet.observation.items()
-            }
-            info = copy.deepcopy(packet.info)
-            info["observed_keys"] = []
-            info["observed_mask"] = dict.fromkeys(info.get("observed_mask", {}), False)
-            info["leaderboard_score"] = None
-            reward = 0.0
-            source = "masked_no_eligible_donor"
-            donor_experiment = None
-        else:
-            observation = copy.deepcopy(donor.observation)
-            info = _replace_outcome_feedback(packet.info, donor.info)
-            reward = donor.reward
-            source = "iid_permuted" if condition == "permuted_feedback" else "one_event_delayed"
-            donor_experiment = donor.experiment_index
+        observation, reward, info, source, donor_experiment = transform_feedback_outcome(
+            condition=self.feedback_condition,
+            critical_instrument=self.critical_instrument,
+            packet=packet,
+            donor=donor,
+        )
+        if source == "true_feedback":
+            return observation, reward, info
         self.feedback_intervention_log.append(
             {
                 "surface": "agent_update",
-                "condition": condition,
+                "condition": self.feedback_condition,
                 "instrument": packet.instrument,
                 "source": source,
                 "donor_experiment_index": donor_experiment,
@@ -541,6 +509,78 @@ class ContinuingPublicViewAgent(_ContinuingAgentBase):
             }
         )
         return observation, reward, info
+
+
+def transform_feedback_view(
+    *,
+    condition: FeedbackCondition,
+    critical_instrument: str,
+    instrument: str,
+    context: AgentDecisionContext,
+    public_view: dict[str, Any],
+    donor: FeedbackViewPacket | None,
+) -> tuple[AgentDecisionContext, dict[str, Any], str, int | None]:
+    """Apply one declared Agent-visible view intervention without changing the world."""
+
+    if condition == "true_feedback" or (
+        condition == "critical_measurement_deleted" and instrument != critical_instrument
+    ):
+        return context, public_view, "true_feedback", None
+    if donor is None:
+        return (
+            replace(
+                context,
+                visible_metrics={},
+                latest_spectra={"has_spectral_packet": False},
+                uncertainty={},
+            ),
+            _mask_public_feedback(public_view),
+            "masked_no_eligible_donor",
+            None,
+        )
+    return (
+        replace(
+            context,
+            visible_metrics=copy.deepcopy(donor.context.visible_metrics),
+            latest_spectra=copy.deepcopy(donor.context.latest_spectra),
+            uncertainty=copy.deepcopy(donor.context.uncertainty),
+        ),
+        _replace_public_feedback(public_view, donor.public_view),
+        "iid_permuted" if condition == "permuted_feedback" else "one_event_delayed",
+        donor.experiment_index,
+    )
+
+
+def transform_feedback_outcome(
+    *,
+    condition: FeedbackCondition,
+    critical_instrument: str,
+    packet: FeedbackOutcomePacket,
+    donor: FeedbackOutcomePacket | None,
+) -> tuple[dict[str, float | None], float, dict[str, Any], str, int | None]:
+    """Apply the matching memory-feedback intervention while retaining lifecycle truth."""
+
+    if condition == "true_feedback" or (
+        condition == "critical_measurement_deleted"
+        and packet.instrument != critical_instrument
+    ):
+        return packet.observation, packet.reward, packet.info, "true_feedback", None
+    if donor is None:
+        observation: dict[str, float | None] = {
+            key: None if value is not None else value for key, value in packet.observation.items()
+        }
+        info = copy.deepcopy(packet.info)
+        info["observed_keys"] = []
+        info["observed_mask"] = dict.fromkeys(info.get("observed_mask", {}), False)
+        info["leaderboard_score"] = None
+        return observation, 0.0, info, "masked_no_eligible_donor", None
+    return (
+        copy.deepcopy(donor.observation),
+        donor.reward,
+        _replace_outcome_feedback(packet.info, donor.info),
+        "iid_permuted" if condition == "permuted_feedback" else "one_event_delayed",
+        donor.experiment_index,
+    )
 
 
 def load_flagship_diagnostic_protocol(
@@ -1635,10 +1675,14 @@ __all__ = [
     "ContinuingHistoryAgent",
     "ContinuingPublicViewAgent",
     "FeedbackCondition",
+    "FeedbackOutcomePacket",
+    "FeedbackViewPacket",
     "analyze_deepseek_campaign",
     "build_flagship_diagnostic_report",
     "load_flagship_diagnostic_protocol",
     "render_flagship_diagnostic_markdown",
     "run_two_phase_campaign",
     "summarize_phase",
+    "transform_feedback_outcome",
+    "transform_feedback_view",
 ]

@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from chemworld.eval.flagship_diagnostics import FeedbackCondition  # noqa: E402
 from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
     DEFAULT_GATE_A_PLAN_PATH,
     DEFAULT_LLM_METHODS_PATH,
@@ -26,6 +27,9 @@ from chemworld.eval.mechanism_adaptation_pilot import (  # noqa: E402
     build_agent_pilot_report,
     load_campaigns_from_index,
 )
+from chemworld.eval.mechanism_feedback_audit import (  # noqa: E402
+    run_local_feedback_audit,
+)
 from chemworld.eval.provenance import write_json_atomic  # noqa: E402
 
 DEFAULT_GATE_A_REPORT = (
@@ -36,6 +40,11 @@ DEFAULT_PILOT_REPORT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
     "mechanism-adaptation-agent-pilot-v0.2.1.json"
+)
+DEFAULT_LOCAL_FEEDBACK_REPORT = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "mechanism-adaptation-local-feedback-v0.2.1.json"
 )
 
 
@@ -92,9 +101,14 @@ def _run_campaigns(args: argparse.Namespace) -> int:
     completed = 0
     reused = 0
     for row in rows:
-        path = summaries / f"{row['pair_id']}--{row['arm']}.json"
+        path = summaries / _campaign_filename(row, args.feedback_condition)
         if args.resume and path.is_file():
-            _validate_resumable_campaign(path, row=row, protocol=protocol)
+            _validate_resumable_campaign(
+                path,
+                row=row,
+                protocol=protocol,
+                feedback_condition=args.feedback_condition,
+            )
             reused += 1
             print(json.dumps({"status": "reused", "path": str(path)}), flush=True)
             continue
@@ -105,6 +119,7 @@ def _run_campaigns(args: argparse.Namespace) -> int:
                     "pair_id": row["pair_id"],
                     "arm": row["arm"],
                     "task_id": row["task_id"],
+                    "feedback_condition": args.feedback_condition,
                 }
             ),
             flush=True,
@@ -116,18 +131,21 @@ def _run_campaigns(args: argparse.Namespace) -> int:
             llm_methods=methods,
             method_id=args.method_id,
             spectrum_disclosure=args.spectrum_disclosure,
+            feedback_condition=args.feedback_condition,
         )
         _write_json(path, result)
         completed += 1
     index = {
-        "schema_version": "chemworld-mechanism-adaptation-campaign-index-0.2",
+        "schema_version": "chemworld-mechanism-adaptation-campaign-index-0.2.1",
         "protocol_id": protocol["protocol_id"],
         "selected_row_count": len(rows),
         "selected_pair_count": len({row["pair_id"] for row in rows}),
         "completed_this_invocation": completed,
         "reused_this_invocation": reused,
+        "feedback_condition": args.feedback_condition,
         "campaign_paths": [
-            str(summaries / f"{row['pair_id']}--{row['arm']}.json") for row in rows
+            str(summaries / _campaign_filename(row, args.feedback_condition))
+            for row in rows
         ],
         "formal_result": False,
     }
@@ -160,11 +178,90 @@ def _build_pilot_report(args: argparse.Namespace) -> int:
     return 0 if report["gate_0"]["status"] == "passed" else 1
 
 
+def _run_local_feedback(args: argparse.Namespace) -> int:
+    protocol = load_json_object(args.protocol)
+    methods = load_json_object(args.llm_methods)
+    campaigns = load_campaigns_from_index(
+        args.runtime_root / "campaign-index.json",
+        root=ROOT,
+    )
+    changed = next(
+        (
+            campaign
+            for campaign in campaigns
+            if campaign.get("matrix_row", {}).get("arm") == "changed"
+        ),
+        None,
+    )
+    if changed is None:
+        raise RuntimeError("local feedback audit requires one changed campaign")
+    iid_records = _load_jsonl_records(changed["iid"]["trajectory_path"])
+    shifted_records = _load_jsonl_records(changed["shifted"]["trajectory_path"])
+    print(
+        json.dumps(
+            {
+                "status": "starting",
+                "stage": "local-feedback",
+                "pair_id": changed["matrix_row"]["pair_id"],
+                "provider_repeats": args.provider_repeats,
+                "condition_count": 4,
+                "external_provider_calls": True,
+            }
+        ),
+        flush=True,
+    )
+    report = run_local_feedback_audit(
+        protocol,
+        changed["matrix_row"],
+        iid_records=iid_records,
+        shifted_records=shifted_records,
+        llm_methods=methods,
+        repository_root=ROOT,
+        method_id=args.method_id,
+        spectrum_disclosure=args.spectrum_disclosure,
+        provider_repeats=args.provider_repeats,
+        target_shifted_experiment=args.target_shifted_experiment,
+    )
+    _write_json(args.local_feedback_report, report)
+    print(
+        json.dumps(
+            {
+                "status": report["status"],
+                "net_local_feedback_effect": report["metrics"]["feedback_effect"][
+                    "net_feedback_effect"
+                ],
+                "provider_billed_cost_usd": report["resources"][
+                    "provider_billed_cost_usd"
+                ],
+                "output": str(args.local_feedback_report),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _load_jsonl_records(raw_path: str) -> list[dict[str, Any]]:
+    path = Path(raw_path)
+    if not path.is_absolute():
+        path = ROOT / path
+    records = [
+        json.loads(line)
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line
+    ]
+    if not records or not all(isinstance(item, dict) for item in records):
+        raise ValueError(f"trajectory is empty or invalid: {path}")
+    return records
+
+
 def _validate_resumable_campaign(
     path: Path,
     *,
     row: dict[str, Any],
     protocol: dict[str, Any],
+    feedback_condition: FeedbackCondition = "true_feedback",
 ) -> None:
     payload = load_json_object(path)
     expected_protocol = hashlib.sha256(
@@ -174,6 +271,9 @@ def _validate_resumable_campaign(
         raise RuntimeError(f"refusing stale campaign protocol binding: {path}")
     if payload.get("matrix_row") != row:
         raise RuntimeError(f"refusing stale campaign matrix-row binding: {path}")
+    observed_condition = payload.get("feedback_condition", "true_feedback")
+    if observed_condition != feedback_condition:
+        raise RuntimeError(f"refusing stale campaign feedback-condition binding: {path}")
     for phase in ("iid", "shifted"):
         phase_payload = payload.get(phase)
         if not isinstance(phase_payload, dict):
@@ -188,11 +288,19 @@ def _validate_resumable_campaign(
             raise RuntimeError(f"resumable campaign trajectory digest is stale: {trajectory_path}")
 
 
+def _campaign_filename(
+    row: dict[str, Any],
+    feedback_condition: FeedbackCondition,
+) -> str:
+    suffix = "" if feedback_condition == "true_feedback" else f"--{feedback_condition}"
+    return f"{row['pair_id']}--{row['arm']}{suffix}.json"
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--stage",
-        choices=("gate-a", "campaign", "pilot-report"),
+        choices=("gate-a", "campaign", "pilot-report", "local-feedback"),
         default="gate-a",
         help="Gate A is environment-only; campaign makes external provider calls.",
     )
@@ -202,13 +310,31 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--llm-methods", type=Path, default=DEFAULT_LLM_METHODS_PATH)
     parser.add_argument("--runtime-root", type=Path, default=DEFAULT_RUNTIME_ROOT)
     parser.add_argument("--pilot-report", type=Path, default=DEFAULT_PILOT_REPORT)
+    parser.add_argument(
+        "--local-feedback-report",
+        type=Path,
+        default=DEFAULT_LOCAL_FEEDBACK_REPORT,
+    )
     parser.add_argument("--method-id", default="live_llm_b")
     parser.add_argument(
         "--spectrum-disclosure", choices=("assigned", "unassigned", "masked"), default="assigned"
     )
+    parser.add_argument(
+        "--feedback-condition",
+        choices=(
+            "true_feedback",
+            "permuted_feedback",
+            "delayed_feedback",
+            "critical_measurement_deleted",
+        ),
+        default="true_feedback",
+        help="Agent-visible feedback intervention; environment state and scoring remain unchanged.",
+    )
     parser.add_argument("--task", action="append")
     parser.add_argument("--pair-id", action="append")
     parser.add_argument("--pair-limit", type=int)
+    parser.add_argument("--provider-repeats", type=int, default=3)
+    parser.add_argument("--target-shifted-experiment", type=int, default=2)
     parser.add_argument("--resume", action="store_true")
     return parser.parse_args()
 
@@ -219,7 +345,9 @@ def main() -> int:
         return _run_gate_a(args)
     if args.stage == "campaign":
         return _run_campaigns(args)
-    return _build_pilot_report(args)
+    if args.stage == "pilot-report":
+        return _build_pilot_report(args)
+    return _run_local_feedback(args)
 
 
 if __name__ == "__main__":

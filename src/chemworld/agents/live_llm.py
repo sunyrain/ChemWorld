@@ -7,6 +7,7 @@ same interaction semantics.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 from collections.abc import Mapping, Sequence
@@ -28,6 +29,7 @@ uncertainty, rationale, and the selected action using exact schema field names.
 """
 
 PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.7"
+PROMPT_STATE_VERSION = "chemworld-live-llm-public-prompt-state-0.1"
 
 _MAX_SPECTRUM_SERIES_POINTS = 64
 
@@ -147,6 +149,58 @@ class LiveLLMAgent(BaseAgent):
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
         del history
         raise RuntimeError("LiveLLMAgent requires the official public-view runner")
+
+    def export_prompt_state(self) -> dict[str, Any]:
+        """Export only public prompt memory for controlled same-prefix branching.
+
+        Provider receipts, usage counters, private reasoning, and hidden environment state
+        are deliberately excluded. The snapshot is bound to the current compact public
+        task contract and can only be restored after ``reset`` on that same contract.
+        """
+
+        return {
+            "schema_version": PROMPT_STATE_VERSION,
+            "task_contract_sha256": _compact_task_contract_sha256(self.task_info),
+            "recent_decisions": copy.deepcopy(to_builtin(self._recent_decisions)),
+            "completed_experiment_memory": copy.deepcopy(
+                to_builtin(self._experiment_memory)
+            ),
+            "current_experiment_operations": copy.deepcopy(
+                to_builtin(self._current_experiment_operations)
+            ),
+            "completed_experiment_count": self._completed_experiment_count,
+            "pending_historical_spectrum_id": self._pending_historical_spectrum_id,
+        }
+
+    def restore_prompt_state(self, state: Mapping[str, Any]) -> None:
+        """Restore a validated public-memory snapshot for a local causal audit branch."""
+
+        if state.get("schema_version") != PROMPT_STATE_VERSION:
+            raise ValueError("unsupported live-LLM prompt-state schema")
+        expected = _compact_task_contract_sha256(self.task_info)
+        if state.get("task_contract_sha256") != expected:
+            raise ValueError("prompt state does not match the active public task contract")
+        recent = state.get("recent_decisions")
+        experiments = state.get("completed_experiment_memory")
+        operations = state.get("current_experiment_operations")
+        if not all(isinstance(item, list) for item in (recent, experiments, operations)):
+            raise ValueError("prompt-state memory fields must be lists")
+        completed = state.get("completed_experiment_count")
+        if isinstance(completed, bool) or not isinstance(completed, int) or completed < 0:
+            raise ValueError("completed_experiment_count must be a non-negative integer")
+        pending = state.get("pending_historical_spectrum_id")
+        if pending is not None and not isinstance(pending, str):
+            raise ValueError("pending historical spectrum ID must be a string or null")
+        self._recent_decisions = copy.deepcopy(recent)[-self.recent_decision_limit :]
+        self._experiment_memory = copy.deepcopy(experiments)[
+            -self.experiment_memory_limit :
+        ]
+        self._current_experiment_operations = copy.deepcopy(operations)
+        self._completed_experiment_count = completed
+        self._pending_historical_spectrum_id = pending
+        self._last_decision = None
+        self._last_context = {}
+        self._last_public_view = {}
 
     def act_with_public_view(
         self,
@@ -817,6 +871,15 @@ def _prompt_memory_decision(decision: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _compact_task_contract_sha256(task_info: dict[str, Any]) -> str:
+    payload = json.dumps(
+        _compact_task_contract(task_info),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def _compact_task_contract(task_info: dict[str, Any]) -> dict[str, Any]:
     """Keep user-facing decision facts without resending backend internals."""
 
@@ -1004,6 +1067,7 @@ def _compact_observation(observation: dict[str, Any]) -> dict[str, Any]:
 
 __all__ = [
     "PROMPT_CONTRACT_VERSION",
+    "PROMPT_STATE_VERSION",
     "SYSTEM_PROMPT",
     "JsonPlannerClientLike",
     "LiveLLMAgent",

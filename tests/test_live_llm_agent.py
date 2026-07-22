@@ -218,6 +218,36 @@ def test_live_llm_consumes_spectra_and_carries_experiment_memory() -> None:
     assert len(agent.agent_trace()) == 1
 
 
+def test_public_prompt_state_round_trip_preserves_prompt_and_rejects_other_task() -> None:
+    source_client = FakeClient([_decision({"operation": "terminate"})])
+    source = LiveLLMAgent(source_client, role_id="live_llm_a")
+    task_info = {"task_id": "flow-reaction-optimization", "budget": 20}
+    source.reset(task_info, seed=7)
+    action = source.act_with_public_view(
+        _context(step=1, previous=None),
+        _public_view(),
+    )
+    source.update(
+        action,
+        {"score": 0.2},
+        0.0,
+        {"observed_keys": ["score"], "constraint_flags": {}},
+    )
+    snapshot = source.export_prompt_state()
+
+    branch_client = FakeClient([_decision({"operation": "terminate"})])
+    branch = LiveLLMAgent(branch_client, role_id="live_llm_a")
+    branch.reset(task_info, seed=7)
+    branch.restore_prompt_state(snapshot)
+    branch.act_with_public_view(_context(step=2, previous="operation_result"), _public_view())
+
+    assert branch_client.prompts[0]["recent_decisions"] == snapshot["recent_decisions"]
+    assert "provider_usage" not in json.dumps(snapshot)
+    branch.reset({"task_id": "another-task", "budget": 20}, seed=7)
+    with pytest.raises(ValueError, match="active public task contract"):
+        branch.restore_prompt_state(snapshot)
+
+
 def test_masked_spectral_ablation_removes_raw_and_processed_spectral_features() -> None:
     client = FakeClient([_decision({"operation": "terminate"})])
     agent = LiveLLMAgent(client, role_id="live_llm_a", spectrum_disclosure="masked")

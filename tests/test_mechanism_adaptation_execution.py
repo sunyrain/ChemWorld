@@ -6,7 +6,10 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from scripts.run_mechanism_adaptation_v0_2 import _validate_resumable_campaign
+from scripts.run_mechanism_adaptation_v0_2 import (
+    _campaign_filename,
+    _validate_resumable_campaign,
+)
 
 from chemworld.eval.mechanism_adaptation_execution import (
     PublicCampaignObservationSession,
@@ -217,3 +220,43 @@ def test_campaign_resume_rejects_a_stale_matrix_row(tmp_path: Path) -> None:
     changed_row["world_seed"] = 999
     with pytest.raises(RuntimeError, match="matrix-row"):
         _validate_resumable_campaign(summary, row=changed_row, protocol=protocol)
+
+
+def test_feedback_campaign_paths_and_resume_bind_the_condition(tmp_path: Path) -> None:
+    protocol = _protocol()
+    row = selected_campaign_rows(protocol, limit=1)[0]
+    assert _campaign_filename(row, "true_feedback") == f"{row['pair_id']}--{row['arm']}.json"
+    assert _campaign_filename(row, "permuted_feedback") == (
+        f"{row['pair_id']}--{row['arm']}--permuted_feedback.json"
+    )
+
+    phases = {}
+    for phase in ("iid", "shifted"):
+        trajectory = tmp_path / f"{phase}.jsonl"
+        trajectory.write_text("{}\n", encoding="utf-8")
+        phases[phase] = {
+            "trajectory_path": str(trajectory),
+            "trajectory_sha256": hashlib.sha256(trajectory.read_bytes()).hexdigest(),
+        }
+    summary = tmp_path / "campaign.json"
+    summary.write_text(
+        json.dumps(
+            {
+                "protocol_sha256": hashlib.sha256(
+                    json.dumps(protocol, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest(),
+                "matrix_row": row,
+                "feedback_condition": "permuted_feedback",
+                **phases,
+            }
+        ),
+        encoding="utf-8",
+    )
+    _validate_resumable_campaign(
+        summary,
+        row=row,
+        protocol=protocol,
+        feedback_condition="permuted_feedback",
+    )
+    with pytest.raises(RuntimeError, match="feedback-condition"):
+        _validate_resumable_campaign(summary, row=row, protocol=protocol)

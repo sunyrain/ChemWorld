@@ -36,6 +36,7 @@ from chemworld.agents.task_recipes import (
 from chemworld.envs.chemworld_env import ChemWorldEnv
 from chemworld.eval.flagship_diagnostics import (
     ContinuingPublicViewAgent,
+    FeedbackCondition,
     run_two_phase_campaign,
 )
 from chemworld.eval.mechanism_adaptation import (
@@ -967,49 +968,30 @@ def run_campaign_row(
     llm_methods: Mapping[str, Any],
     method_id: str = "live_llm_b",
     spectrum_disclosure: str = "assigned",
+    feedback_condition: FeedbackCondition = "true_feedback",
 ) -> dict[str, Any]:
     """Execute one frozen changed/no-change row with a real DeepSeek-backed Agent."""
 
-    method = llm_methods["methods"][method_id]
-    request = method["request_configuration"]
-    client = DeepSeekClient(
-        model=str(method["model_id"]),
-        thinking=bool(request["thinking"]),
-        reasoning_effort=cast(Any, str(request.get("reasoning_effort") or "max")),
-        timeout_s=float(request["timeout_s"]),
-        max_attempts=int(request["max_attempts"]),
-        retry_backoff_s=float(request["retry_backoff_s"]),
-    )
-    definitions = protocol["diagnosis_contract"]["candidate_definitions"]
-    specs = tuple(
-        MechanismCandidateSpec(
-            candidate_id=str(candidate_id),
-            public_definition=str(definitions[candidate_id]),
-        )
-        for candidate_id in row["candidate_ids"]
-    )
-    candidate_label_mode = _parse_candidate_label_mode(row["candidate_label_mode"])
-    agent = MechanismAdaptationLiveLLMAgent(
-        client,
-        role_id=f"mechanism_adaptation_{method_id}",
+    agent = build_mechanism_agent(
+        protocol,
+        row,
+        llm_methods=llm_methods,
+        method_id=method_id,
         spectrum_disclosure=spectrum_disclosure,
-        response_max_tokens=int(request["max_tokens"]),
-        fail_fast_on_unbillable_provider_failure=True,
-        candidate_specs=specs,
-        candidate_label_mode=candidate_label_mode,
-        candidate_order_seed=int(row["candidate_order_seed"]),
-        randomize_candidate_order=True,
     )
     task_id = str(row["task_id"])
     adapter = ContinuingPublicViewAgent(
         agent,
         method_id=method_id,
-        feedback_condition="true_feedback",
+        feedback_condition=feedback_condition,
         critical_instrument=_CRITICAL_INSTRUMENTS[task_id],
     )
     change_time = int(row["phase_reset_after_experiment"])
     horizon = int(row["total_experiment_horizon"])
-    campaign_id = f"{row['pair_id']}--{row['arm']}"
+    condition_suffix = (
+        "" if feedback_condition == "true_feedback" else f"--{feedback_condition}"
+    )
+    campaign_id = f"{row['pair_id']}--{row['arm']}{condition_suffix}"
     result = run_two_phase_campaign(
         task_id=task_id,
         adapter=adapter,
@@ -1028,11 +1010,55 @@ def run_campaign_row(
             "matrix_row": dict(row),
             "truth_id": row["truth_id"],
             "hidden_law_changes": bool(row["hidden_law_changes"]),
+            "feedback_condition": feedback_condition,
             "formal_result": False,
             "agent_weight_updates_performed": False,
         }
     )
     return result
+
+
+def build_mechanism_agent(
+    protocol: Mapping[str, Any],
+    row: Mapping[str, Any],
+    *,
+    llm_methods: Mapping[str, Any],
+    method_id: str = "live_llm_b",
+    spectrum_disclosure: str = "assigned",
+    client: Any | None = None,
+) -> MechanismAdaptationLiveLLMAgent:
+    """Build the exact leakage-resistant Agent used by campaign and local audits."""
+
+    method = llm_methods["methods"][method_id]
+    request = method["request_configuration"]
+    planner = client or DeepSeekClient(
+        model=str(method["model_id"]),
+        thinking=bool(request["thinking"]),
+        reasoning_effort=cast(Any, str(request.get("reasoning_effort") or "max")),
+        timeout_s=float(request["timeout_s"]),
+        max_attempts=int(request["max_attempts"]),
+        retry_backoff_s=float(request["retry_backoff_s"]),
+    )
+    definitions = protocol["diagnosis_contract"]["candidate_definitions"]
+    specs = tuple(
+        MechanismCandidateSpec(
+            candidate_id=str(candidate_id),
+            public_definition=str(definitions[candidate_id]),
+        )
+        for candidate_id in row["candidate_ids"]
+    )
+    candidate_label_mode = _parse_candidate_label_mode(row["candidate_label_mode"])
+    return MechanismAdaptationLiveLLMAgent(
+        planner,
+        role_id=f"mechanism_adaptation_{method_id}",
+        spectrum_disclosure=spectrum_disclosure,
+        response_max_tokens=int(request["max_tokens"]),
+        fail_fast_on_unbillable_provider_failure=True,
+        candidate_specs=specs,
+        candidate_label_mode=candidate_label_mode,
+        candidate_order_seed=int(row["candidate_order_seed"]),
+        randomize_candidate_order=True,
+    )
 
 
 def _parse_candidate_label_mode(value: Any) -> CandidateLabelMode:

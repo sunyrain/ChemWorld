@@ -17,8 +17,10 @@ they must not be copied back into current status.
   frozen public contract; it is not evidence that DeepSeek or another Agent discovers mechanisms.
 - Gate A v0.2 and v0.2.1 results are immutable design-history evidence. They must not be rewritten
   to match v0.2.2.
-- Gates B-E remain pending. No new external-provider mechanism-adaptation campaign has been completed,
-  and no live-LLM v0.4.11 report currently exists.
+- A live-LLM v0.4.11 candidate screen is complete (6/6 cells replay-verified) and supports promotion
+  to a live pilot; it is development evidence, not a formal benchmark result.
+- One complete changed/no-change mechanism-adaptation pilot pair is complete. Gate 0 passed; Gate B
+  is descriptive and adverse, Gate E observed procedural failures, and Gates C-D remain unmeasured.
 - The general formal benchmark remains 0/6 method families ready. Backend validation, Gate A
   identifiability, and formal benchmark readiness are separate state dimensions.
 - There is no active NCS manuscript. The 2026-07-21 draft is archived under
@@ -32,7 +34,7 @@ they must not be copied back into current status.
 - [x] Preserve frozen scientific reports and older live-LLM v0.4.8-v0.4.10 diagnostics.
 - [x] Do not delete a report merely because `configs/current.json` does not reference it.
 - [x] Do not spend external-provider budget until the P0 repository-integrity gate below passes.
-- [ ] Keep `configs/current.json`, this roadmap, active claims, and user-facing status language
+- [x] Keep `configs/current.json`, this roadmap, active claims, and user-facing status language
   consistent in every correction commit.
 
 ## P0 — restore repository truth and portability
