@@ -1,6 +1,6 @@
 {
   "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2.5",
-  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc18",
+  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc19",
   "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
   "formal_benchmark_result": false,
   "purpose": "Two-certificate Gate A: controlled matched identifiability plus a separately executed online-policy-feasible diagnosis certificate.",
@@ -9,7 +9,7 @@
     "required_before_formal_mechanism_claim": true,
     "certificate_schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.4",
     "certificate_scope": "online_policy_feasible_diagnosis",
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.4-rc18.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.4-rc19.json",
     "hidden_change_time": true,
     "change_time_candidates": [
       1,
@@ -30,7 +30,7 @@
     "phase_invariant_action_rule": true,
     "changed_mechanism_states_are_absorbing": true,
     "policy_receives_phase_or_reset_indicator": false,
-    "action_selection": "information_rank_public_recipes_before_held_out_execution_then_apply_one_fixed_phase_invariant_cyclic_schedule",
+    "action_selection": "use_predictive_fit_information_to_select_the_public_recipe_set_before_held_out_execution_then_apply_that_set_in_canonical_frozen_action_library_order_as_one_fixed_phase_invariant_cyclic_schedule",
     "reference_policy": "retain_each_selected_actions_first_observation_together_with_its_global_experiment_index_without_assuming_that_the_hidden_change_has_or_has_not_occurred",
     "evidence_policy": "summarize_each_public_field_as_ever_finite_first_finite_last_finite_and_finite_range; select_eight_whole_field_blocks_from_predictive_fit_samples_only; maintain_absorbing_candidate_by_change_point_hypotheses_only_at_protocol_allowed_change_times; use_absolute_summary_on_first_observation; on_repeats_use_transition_contrast_if_the_hypothesized_change_lies_between_reference_and_current_experiment_otherwise_use_same_mechanism_stable_contrast; apply_preregistered_conservative_likelihood_temperature",
     "no_change_twins_use_evaluator_only_pseudo_change_checkpoint": true,
@@ -62,7 +62,7 @@
     "samples_per_candidate_action": 24,
     "oracle_seed": 41103,
     "variance_floor": 0.0001,
-    "nuisance_seed_namespace_start": 600000000,
+    "nuisance_seed_namespace_start": 700000000,
     "execution_workers": 8,
     "public_feature_encoding": "chemworld-public-experiment-finite-first-last-range-0.1",
     "summary_block_size": 4,
@@ -72,8 +72,8 @@
     "held_out_data_used_for_feature_selection": false,
     "development_calibration": {
       "formal_claim_allowed": false,
-      "parameter_selection_completed_before_rc17_held_out_execution": true,
-      "excluded_from_rc17_held_out": true,
+      "parameter_selection_completed_before_rc19_held_out_execution": true,
+      "excluded_from_rc19_held_out": true,
       "fit_namespaces": [
         300000000,
         400000000
@@ -85,7 +85,7 @@
       ],
       "selected_block_count": 8,
       "selected_likelihood_scale": 0.125,
-      "selection_basis": "The first 8-world-per-family development probe showed 96.875 percent overall accuracy. On one fixed 20-world-per-family reaction development cohort, reducing the likelihood scale from 0.25 to 0.125 increased no-change recall from 17/20 to 19/20 without reducing changed-family recall. A second independent 20-world reaction cohort at 0.125 achieved material 17/20, no-change 20/20, rate-law 20/20, and topology 20/20.",
+      "selection_basis": "The first 8-world-per-family development probe showed 96.875 percent overall accuracy. On one fixed 20-world-per-family reaction development cohort, reducing the likelihood scale from 0.25 to 0.125 increased no-change recall from 17/20 to 19/20 without reducing changed-family recall. A second independent 20-world reaction cohort at 0.125 achieved material 17/20, no-change 20/20, rate-law 20/20, and topology 20/20. RC18 then showed that allowing finite-fit information estimates to order an already selected action set made hidden-change coverage depend on an incidental Monte Carlo ranking. Before RC19 held-out execution, two independent development cohorts verified the task-agnostic correction: predictive information selects the set, while the frozen action-library order determines the phase-invariant cycle.",
       "combined_fixed_scale_reaction_confirmation": {
         "worlds_per_family": 40,
         "material_law_counterfactual_correct": 36,
@@ -94,12 +94,52 @@
         "topology_family_correct": 40,
         "overall_correct": 153,
         "overall_total": 160
+      },
+      "canonical_cycle_order_confirmation": {
+        "policy_action_ids": [
+          "design-00",
+          "design-02",
+          "design-04",
+          "design-05"
+        ],
+        "cohorts": [
+          {
+            "fit_namespace": 400000000,
+            "trial_namespace": 1500000000,
+            "worlds_per_family": 20,
+            "material_law_counterfactual_correct": 18,
+            "no_change_correct": 20,
+            "rate_law_family_correct": 20,
+            "topology_family_correct": 19,
+            "overall_correct": 77,
+            "overall_total": 80
+          },
+          {
+            "fit_namespace": 300000000,
+            "trial_namespace": 1600000000,
+            "worlds_per_family": 20,
+            "material_law_counterfactual_correct": 17,
+            "no_change_correct": 20,
+            "rate_law_family_correct": 20,
+            "topology_family_correct": 20,
+            "overall_correct": 77,
+            "overall_total": 80
+          }
+        ],
+        "combined": {
+          "material_law_counterfactual_correct": 35,
+          "no_change_correct": 40,
+          "rate_law_family_correct": 40,
+          "topology_family_correct": 39,
+          "overall_correct": 154,
+          "overall_total": 160
+        }
       }
     }
   },
   "held_out_certificate": {
     "world_seeds_per_family": 30,
-    "seed_namespace_start": 2900000000,
+    "seed_namespace_start": 3100000000,
     "information_draws_per_batch": 128,
     "execution_workers": 8,
     "budgets": [
@@ -118,10 +158,10 @@
     "decoder_controls_gate": false
   },
   "gate_rule_source": "configs/benchmark/mechanism_adaptation_v0.2.1.json#gates.gate_a",
-  "supersession_reason": "RC16 established that the revised rate-law task is controlled-identifiable and online-identifiable at budget four, but full Gate A failed because the 912-coordinate step-concatenated online trace produced no-change false positives and material-family confusion in reaction-to-crystallization. RC17 preregistered the task-agnostic finite/first/last/range summary, whole-field feature selection, and conservative likelihood temperature, and its online certificate passed on fresh held-out data. That standalone certificate cannot be composed with the finalized Gate A runtime because support for plan schema 0.2.5 was added afterward, changing the bound runtime source-tree hash. RC18 makes no scientific, algorithmic, threshold, action, or budget change; it binds the finalized source tree and uses new fit and held-out namespaces. RC16 and RC17 reports remain immutable.",
+  "supersession_reason": "RC16 established that the revised rate-law task is controlled-identifiable and online-identifiable at budget four, but full Gate A failed because the 912-coordinate step-concatenated online trace produced no-change false positives and material-family confusion in reaction-to-crystallization. RC17 preregistered the task-agnostic finite/first/last/range summary, whole-field feature selection, and conservative likelihood temperature, and its online certificate passed on fresh held-out data. That standalone certificate cannot be composed with the finalized Gate A runtime because support for plan schema 0.2.5 was added afterward, changing the bound runtime source-tree hash. RC18 bound the finalized source tree but failed because reaction material-law recall was 25/30 and its Wilson lower bound was 0.664356. RC17 and RC18 selected the same four reaction actions but cycled them in different finite-fit information orders, making reference coverage depend on incidental Monte Carlo ranking. RC19 retains the physical tasks, action set selection, feature model, thresholds, and budgets, but preregisters canonical frozen-library order for the information-selected action set. Two independent development cohorts produced the same action set and cycle with combined reaction accuracy 154/160 before RC19 received fresh fit and held-out namespaces. All earlier reports remain immutable.",
   "design_validity_precondition": {
     "required": true,
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc18.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc19.json",
     "pass_field": "pass"
   },
   "rate_law_response_certificate": {

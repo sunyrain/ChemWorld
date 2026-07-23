@@ -38,12 +38,12 @@ from chemworld.eval.provenance import (  # noqa: E402
 )
 
 DEFAULT_GATE_A_REPORT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.5-rc18.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.5-rc19.json"
 )
 DEFAULT_ONLINE_POLICY_CERTIFICATE = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-online-policy-certificate-v0.4-rc18.json"
+    "mechanism-adaptation-online-policy-certificate-v0.4-rc19.json"
 )
 DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.2.1"
 DEFAULT_PILOT_REPORT = (

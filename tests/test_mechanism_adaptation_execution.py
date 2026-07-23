@@ -18,6 +18,7 @@ from chemworld.eval.mechanism_adaptation_execution import (
     PublicCampaignObservationSession,
     _advance_online_change_point_hypotheses,
     _balanced_hidden_change_times,
+    _canonical_policy_cycle,
     _online_hypothesis_evidence_channel,
     _select_discriminative_feature_blocks,
     _update_online_change_point_posterior,
@@ -60,6 +61,45 @@ def _paired_gate_a_plan() -> dict[str, object]:
             encoding="utf-8"
         )
     )
+
+
+def test_online_policy_cycle_uses_canonical_order_for_information_selected_set() -> None:
+    canonical = [f"design-{index:02d}" for index in range(6)]
+
+    assert _canonical_policy_cycle(
+        canonical_action_ids=canonical,
+        ranked_action_ids=[
+            "design-05",
+            "design-00",
+            "design-04",
+            "design-02",
+            "design-03",
+            "design-01",
+        ],
+        action_count=4,
+    ) == [
+        "design-00",
+        "design-02",
+        "design-04",
+        "design-05",
+    ]
+
+
+def test_online_policy_cycle_rejects_unknown_or_incomplete_rankings() -> None:
+    canonical = ["design-00", "design-01", "design-02"]
+
+    with pytest.raises(ValueError, match="outside the action library"):
+        _canonical_policy_cycle(
+            canonical_action_ids=canonical,
+            ranked_action_ids=["design-00", "unknown", "design-01"],
+            action_count=2,
+        )
+    with pytest.raises(ValueError, match="do not cover"):
+        _canonical_policy_cycle(
+            canonical_action_ids=canonical,
+            ranked_action_ids=["design-00"],
+            action_count=2,
+        )
 
 
 def test_gate_a_fails_closed_without_online_policy_certificate() -> None:
@@ -170,12 +210,10 @@ def test_gate_a_report_references_online_certificate_without_embedding_trials(
 def test_precomputed_design_audit_must_be_passing_and_hash_bound() -> None:
     protocol = _protocol()
     plan = _paired_gate_a_plan()
-    report = json.loads(
-        (
-            ROOT / "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-design-audit-freeze-rc18.json"
-        ).read_text(encoding="utf-8")
+    report_path = str(
+        protocol["intervention_action_alignment"]["design_audit_report"]  # type: ignore[index]
     )
+    report = json.loads((ROOT / report_path).read_text(encoding="utf-8"))
     validated = validate_precomputed_design_audit(protocol, plan, report)
     assert validated["pass"] is True
 

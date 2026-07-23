@@ -110,6 +110,37 @@ def build_action_library(
     }
 
 
+def _canonical_policy_cycle(
+    *,
+    canonical_action_ids: Sequence[str],
+    ranked_action_ids: Sequence[str],
+    action_count: int,
+) -> list[str]:
+    """Return an information-selected action set in frozen library order.
+
+    Predictive-fit information determines which actions enter the policy, but
+    Monte Carlo ranking noise must not also determine their cyclic execution
+    order.  The latter changes which references exist when a hidden change
+    occurs and is therefore part of the protocol, not an incidental fit
+    outcome.
+    """
+
+    canonical = [str(item) for item in canonical_action_ids]
+    ranked = [str(item) for item in ranked_action_ids]
+    if action_count <= 0 or action_count > len(canonical):
+        raise ValueError("policy action count must be within the action library")
+    if len(set(canonical)) != len(canonical):
+        raise ValueError("canonical action ids must be unique")
+    unknown = sorted(set(ranked) - set(canonical))
+    if unknown:
+        raise ValueError(f"ranked policy actions are outside the action library: {unknown}")
+    ranked_unique = list(dict.fromkeys(ranked))
+    if len(ranked_unique) < action_count:
+        raise ValueError("ranked policy actions do not cover the requested action count")
+    selected = set(ranked_unique[:action_count])
+    return [action_id for action_id in canonical if action_id in selected]
+
+
 def encode_public_experiment_trace(
     trace: Sequence[tuple[Mapping[str, Any], float]],
 ) -> list[float]:
@@ -1288,7 +1319,11 @@ def run_online_policy_certificate(
             ],
             reverse=True,
         )
-        policy_actions = (selected_actions + remaining_actions)[:policy_action_count]
+        policy_actions = _canonical_policy_cycle(
+            canonical_action_ids=action_ids,
+            ranked_action_ids=selected_actions + remaining_actions,
+            action_count=policy_action_count,
+        )
         serialized_actions = {
             action_id: action_library[action_id].tolist() for action_id in action_ids
         }
@@ -1367,6 +1402,10 @@ def run_online_policy_certificate(
             "candidate_ids": candidate_ids,
             "selected_reference_action_ids": selected_actions,
             "online_policy_action_ids": policy_actions,
+            "online_policy_action_set_selection": (
+                "predictive_fit_information_ranked_before_held_out_execution"
+            ),
+            "online_policy_cycle_order": "canonical_frozen_action_library_order",
             "selected_batch_id": selected_batch_id,
             "selected_batch_information_nats": float(batch_information[selected_batch_id]),
             "single_action_information_nats": {
