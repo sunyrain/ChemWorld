@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 from scripts.run_mechanism_adaptation_v0_2 import (
     _campaign_filename,
+    _compact_gate_a_report,
     _validate_resumable_campaign,
     _write_immutable_json,
 )
@@ -15,10 +16,15 @@ from scripts.run_mechanism_adaptation_v0_2 import (
 from chemworld.agents.task_recipes import task_recipe_from_unit_vector
 from chemworld.eval.mechanism_adaptation_execution import (
     PublicCampaignObservationSession,
+    _advance_online_change_point_hypotheses,
+    _balanced_hidden_change_times,
+    _online_hypothesis_evidence_channel,
+    _update_online_change_point_posterior,
     build_action_library,
     canonical_sha256,
     encode_public_experiment_trace,
     gate_a_certificate_decision,
+    gate_a_execution_contract_binding,
     run_gate_a,
     selected_campaign_rows,
     validate_precomputed_design_audit,
@@ -71,15 +77,19 @@ def test_gate_a_fails_closed_without_online_policy_certificate() -> None:
 def test_gate_a_requires_two_bound_passing_certificates() -> None:
     protocol = _protocol()
     plan = _paired_gate_a_plan()
+    execution_binding = gate_a_execution_contract_binding(protocol, plan)
     certificate = {
-        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.1",
+        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.3",
         "certificate_scope": "online_policy_feasible_diagnosis",
         "protocol_sha256": canonical_sha256(protocol),
         "gate_a_plan_sha256": canonical_sha256(plan),
-        "primary_gate_budget": 2,
+        "controlled_matched_primary_budget": 4,
+        "online_policy_gate_budget": 4,
         "hidden_change_time": True,
+        "policy_received_phase_or_reset_indicator": False,
         "uses_actual_available_pre_change_history": True,
         "uses_actual_action_measurement_and_budget_contract": True,
+        "execution_contract_binding_sha256": execution_binding["binding_sha256"],
         "status": "passed",
         "gate_pass": True,
     }
@@ -98,6 +108,17 @@ def test_gate_a_requires_two_bound_passing_certificates() -> None:
             controlled_gate_pass=True,
             online_policy_certificate=stale,
         )
+    stale_execution = dict(
+        certificate,
+        execution_contract_binding_sha256="0" * 64,
+    )
+    with pytest.raises(ValueError, match="execution_contract_binding_sha256"):
+        gate_a_certificate_decision(
+            protocol,
+            plan,
+            controlled_gate_pass=True,
+            online_policy_certificate=stale_execution,
+        )
 
 
 def test_immutable_gate_a_writer_rejects_overwrite(tmp_path: Path) -> None:
@@ -108,6 +129,44 @@ def test_immutable_gate_a_writer_rejects_overwrite(tmp_path: Path) -> None:
     assert json.loads(output.read_text(encoding="utf-8")) == {"version": 1}
 
 
+def test_gate_a_report_references_online_certificate_without_embedding_trials(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    certificate = {
+        "schema_version": "online-0.3",
+        "certificate_scope": "online_policy_feasible_diagnosis",
+        "status": "passed",
+        "gate_pass": True,
+        "certificate_sha256": "a" * 64,
+        "task_reports": {"task": {"trials": [{"large": "payload"}]}},
+    }
+    report = {
+        "certificate_decision": {
+            "online_policy_feasible_certificate": certificate,
+        },
+        "online_policy_feasible_certificate": certificate,
+    }
+    certificate_path = tmp_path / "online.json"
+    certificate_path.write_text(json.dumps(certificate), encoding="utf-8")
+    monkeypatch.setitem(
+        _compact_gate_a_report.__globals__,
+        "ROOT",
+        tmp_path,
+    )
+    compacted = _compact_gate_a_report(
+        report,
+        online_policy_certificate_path=certificate_path,
+    )
+    reference = compacted["certificate_decision"][
+        "online_policy_feasible_certificate"
+    ]
+    assert reference["certificate_sha256"] == canonical_sha256(certificate)
+    assert reference["report"].endswith("online.json")
+    assert "task_reports" not in reference
+    assert compacted["online_policy_feasible_certificate"] == reference
+
+
 def test_precomputed_design_audit_must_be_passing_and_hash_bound() -> None:
     protocol = _protocol()
     plan = _paired_gate_a_plan()
@@ -115,7 +174,7 @@ def test_precomputed_design_audit_must_be_passing_and_hash_bound() -> None:
         (
             ROOT
             / "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-design-audit-freeze-rc7.json"
+            "mechanism-adaptation-design-audit-freeze-rc14.json"
         ).read_text(encoding="utf-8")
     )
     validated = validate_precomputed_design_audit(protocol, plan, report)
@@ -136,6 +195,121 @@ def test_gate_a_action_library_and_public_encoding_are_deterministic() -> None:
         [({"b": np.asarray([np.nan]), "a": np.asarray([2.0])}, 0.5)]
     )
     assert features == [1.0, 2.0, 0.0, 0.0, 1.0, 0.5]
+
+
+def test_online_change_time_assignment_is_deterministic_and_balanced() -> None:
+    first = _balanced_hidden_change_times(
+        [1, 2, 4, 6],
+        trial_count=30,
+        seed=2_100_000_000,
+        task_id="reaction-to-crystallization",
+    )
+    second = _balanced_hidden_change_times(
+        [1, 2, 4, 6],
+        trial_count=30,
+        seed=2_100_000_000,
+        task_id="reaction-to-crystallization",
+    )
+    counts = [first.count(change_time) for change_time in (1, 2, 4, 6)]
+    assert first == second
+    assert max(counts) - min(counts) == 1
+    assert sorted(counts) == [7, 7, 8, 8]
+
+
+@pytest.mark.parametrize(
+    (
+        "hypothesis",
+        "reference_experiment_index",
+        "current_experiment_index",
+        "expected_encoding",
+    ),
+    [
+        (("no_change", None), None, 1, "absolute_trace"),
+        (("rate_law_family", 2), None, 3, "absolute_trace"),
+        (("no_change", None), 1, 3, "stable_contrast"),
+        (("rate_law_family", 2), 1, 3, "transition_contrast"),
+        (("rate_law_family", 2), 3, 4, "stable_contrast"),
+    ],
+)
+def test_online_evidence_channel_respects_reference_age(
+    hypothesis: tuple[str, int | None],
+    reference_experiment_index: int | None,
+    current_experiment_index: int,
+    expected_encoding: str,
+) -> None:
+    candidate_id, channel = _online_hypothesis_evidence_channel(
+        hypothesis,
+        "design-00",
+        reference_experiment_index=reference_experiment_index,
+        current_experiment_index=current_experiment_index,
+    )
+    assert candidate_id == hypothesis[0]
+    assert channel == f"{expected_encoding}\u241fdesign-00"
+
+
+def test_online_hazard_expands_only_protocol_change_points() -> None:
+    posterior = {("no_change", None): 1.0}
+    unchanged = _advance_online_change_point_hypotheses(
+        posterior,
+        change_after_experiment=3,
+        allowed_change_times=[1, 2, 4, 6],
+        candidate_ids=["no_change", "rate_law_family", "topology_family"],
+        hazard=0.25,
+    )
+    assert unchanged == posterior
+
+    expanded = _advance_online_change_point_hypotheses(
+        posterior,
+        change_after_experiment=2,
+        allowed_change_times=[1, 2, 4, 6],
+        candidate_ids=["no_change", "rate_law_family", "topology_family"],
+        hazard=0.25,
+    )
+    assert expanded == {
+        ("no_change", None): 0.75,
+        ("rate_law_family", 2): 0.125,
+        ("topology_family", 2): 0.125,
+    }
+
+
+def test_online_posterior_uses_transition_only_when_reference_predates_change() -> None:
+    posterior = {
+        ("no_change", None): 0.5,
+        ("rate_law_family", 2): 0.5,
+    }
+    predictives = {
+        ("no_change", "stable_contrast\u241fdesign-00"): (
+            np.asarray([0.0]),
+            np.asarray([0.1]),
+        ),
+        ("rate_law_family", "transition_contrast\u241fdesign-00"): (
+            np.asarray([10.0]),
+            np.asarray([0.1]),
+        ),
+        ("rate_law_family", "stable_contrast\u241fdesign-00"): (
+            np.asarray([0.0]),
+            np.asarray([0.1]),
+        ),
+    }
+    transition = _update_online_change_point_posterior(
+        posterior,
+        action_id="design-00",
+        observation=[10.0],
+        reference_experiment_index=1,
+        current_experiment_index=3,
+        predictives=predictives,
+    )
+    assert transition[("rate_law_family", 2)] > 0.999
+
+    stable = _update_online_change_point_posterior(
+        posterior,
+        action_id="design-00",
+        observation=[0.0],
+        reference_experiment_index=3,
+        current_experiment_index=4,
+        predictives=predictives,
+    )
+    assert stable == posterior
 
 
 def test_gate_a_plan_cannot_underfill_the_fixed_decoder_budget() -> None:

@@ -1,15 +1,39 @@
 {
   "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2.4",
-  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc7",
+  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc14",
   "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
   "formal_benchmark_result": false,
   "purpose": "Two-certificate Gate A: controlled matched identifiability plus a separately executed online-policy-feasible diagnosis certificate.",
   "claim_scope": "controlled_and_online_policy_feasible_identifiability",
   "online_policy_feasible_certificate": {
     "required_before_formal_mechanism_claim": true,
-    "certificate_schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.1",
+    "certificate_schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.3",
     "certificate_scope": "online_policy_feasible_diagnosis",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.3-rc14.json",
     "hidden_change_time": true,
+    "change_time_candidates": [
+      1,
+      2,
+      4,
+      6
+    ],
+    "change_time_assignment": "seeded_balanced_and_hidden_from_policy",
+    "post_change_experiment_budget_checkpoints": [
+      2,
+      4
+    ],
+    "online_policy_gate_budget": 4,
+    "controlled_matched_primary_budget": 4,
+    "information_ranking_batch_size": 2,
+    "online_policy_action_count": 4,
+    "change_hazard_per_allowed_change_point": 0.25,
+    "phase_invariant_action_rule": true,
+    "changed_mechanism_states_are_absorbing": true,
+    "policy_receives_phase_or_reset_indicator": false,
+    "action_selection": "information_rank_public_recipes_before_held_out_execution_then_apply_one_fixed_phase_invariant_cyclic_schedule",
+    "reference_policy": "retain_each_selected_actions_first_observation_together_with_its_global_experiment_index_without_assuming_that_the_hidden_change_has_or_has_not_occurred",
+    "evidence_policy": "maintain_absorbing_candidate_by_change_point_hypotheses_only_at_protocol_allowed_change_times; use_absolute_trace_on_first_observation; on_repeats_use_transition_contrast_if_the_hypothesized_change_lies_between_reference_and_current_experiment_otherwise_use_same_mechanism_stable_contrast",
+    "no_change_twins_use_evaluator_only_pseudo_change_checkpoint": true,
     "uses_actual_available_pre_change_history": true,
     "uses_actual_action_measurement_and_budget_contract": true,
     "must_bind_protocol_and_plan_sha256": true,
@@ -24,9 +48,9 @@
   },
   "paired_phase_design": {
     "pre_change_reference_experiments": 2,
-    "post_change_diagnostic_experiments": 2,
+    "post_change_diagnostic_experiments": 4,
     "diagnostic_curve_matches_reference_count_to_budget": true,
-    "budget_interpretation": "The primary budget uses the protocol-available pre-change history. Larger checkpoints use k matched pre-change references and k post-change diagnostics and are non-controlling diagnostic curves.",
+    "budget_interpretation": "Budget 2 is the online-history-aligned stress point with two protocol-available pre-change references. Gate A controls at budget 4; the controlled certificate uses four matched references and four post-change diagnostics, while the online certificate retains the actual two-reference history and receives four post-change experiments.",
     "same_hidden_world_seed_across_phases": true,
     "same_world_seed_reused_across_candidate_twins": true,
     "independent_observation_seed_across_phases": true,
@@ -43,29 +67,29 @@
   },
   "held_out_certificate": {
     "world_seeds_per_family": 30,
-    "seed_namespace_start": 1600000000,
+    "seed_namespace_start": 2300000000,
     "information_draws_per_batch": 128,
     "execution_workers": 8,
     "budgets": [
       2,
       4
     ],
-    "primary_gate_budget": 2
+    "primary_gate_budget": 4
   },
   "public_feature_contract": {
-    "source": "agent-visible numeric observation and reward after every compiled public recipe operation in matched pre-change and post-change phases",
-    "encoding": "post-minus-pre contrasts over sorted flattened finite-masked public values",
+    "source": "agent-visible numeric observation and reward after every compiled public recipe operation in the controlled matched and actual hidden-change campaigns",
+    "encoding": "controlled certificate: matched post-minus-pre batches; online certificate: nuisance-integrated absolute trace on first observation, then a latent reference-time mixture of baseline-to-candidate transition contrasts and same-candidate stable contrasts; all use sorted flattened finite-masked public values",
     "private_truth_fields_included": false,
     "evaluation_only_hidden_outcomes_included": false,
-    "active_action_source": "prior expected information over the frozen two-recipe batches",
-    "fixed_trajectory_action_source": "first two actions in the frozen deterministic action library",
+    "active_action_source": "prior expected information over frozen k-recipe batches at each checkpoint; the online policy pre-ranks four recipes before held-out execution and cycles through them without phase input",
+    "fixed_trajectory_action_source": "first k actions in the frozen deterministic action library",
     "decoder_controls_gate": false
   },
   "gate_rule_source": "configs/benchmark/mechanism_adaptation_v0.2.1.json#gates.gate_a",
-  "supersession_reason": "The prior controlled-matched certificate could populate gate_a_pass without the separately required online-policy-feasible certificate and its plan/report versions shared an overwrite-prone historical path.",
+  "supersession_reason": "RC13 exposed a reference-age error: a repeat whose reference was established after the hidden change was scored with a baseline-to-changed predictive and could turn correct rate-law diagnoses into no-change. RC14 binds a latent change-point decoder, same-mechanism stable contrasts, protocol-only change points, a fixed phase-invariant schedule, and a fresh held-out seed namespace.",
   "design_validity_precondition": {
     "required": true,
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc7.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc14.json",
     "pass_field": "pass"
   },
   "decision_relevance_certificate": {

@@ -185,6 +185,16 @@ def build_report(
         "dynamic_integration_evidence_passed": dynamic_evidence["passed"],
     }
     source_commit, source_tree_dirty = _git_state(repository_root)
+    remaining_gates = [
+        f"resolve failed runtime-reachability check: {check_id}"
+        for check_id, passed in checks.items()
+        if not passed
+    ]
+    if actual_lite_groups:
+        remaining_gates.append(
+            "resolve declared lite upgrade targets before any maturity promotion: "
+            + ", ".join(sorted(actual_lite_groups))
+        )
     report: dict[str, Any] = {
         "schema_version": REPORT_SCHEMA_VERSION,
         "protocol_id": protocol["protocol_id"],
@@ -224,11 +234,7 @@ def build_report(
                 "and reference validation."
             ),
         ],
-        "remaining_gates": [
-            "upgrade reaction_kinetics, reactors, and spectroscopy_instruments",
-            "run state-transition and public-boundary audits",
-            "complete domain coupling probes before changing task maturity labels",
-        ],
+        "remaining_gates": remaining_gates,
         "report_hash": None,
     }
     report["report_hash"] = _report_hash(report)

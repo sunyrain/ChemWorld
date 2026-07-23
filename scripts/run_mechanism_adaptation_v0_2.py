@@ -22,6 +22,7 @@ from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
     load_json_object,
     run_campaign_row,
     run_gate_a,
+    run_online_policy_certificate,
     selected_campaign_rows,
 )
 from chemworld.eval.mechanism_adaptation_pilot import (  # noqa: E402
@@ -31,10 +32,18 @@ from chemworld.eval.mechanism_adaptation_pilot import (  # noqa: E402
 from chemworld.eval.mechanism_feedback_audit import (  # noqa: E402
     run_local_feedback_audit,
 )
-from chemworld.eval.provenance import write_json_atomic  # noqa: E402
+from chemworld.eval.provenance import (  # noqa: E402
+    canonical_json_sha256,
+    write_json_atomic,
+)
 
 DEFAULT_GATE_A_REPORT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc7.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc14.json"
+)
+DEFAULT_ONLINE_POLICY_CERTIFICATE = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "mechanism-adaptation-online-policy-certificate-v0.3-rc14.json"
 )
 DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.2.1"
 DEFAULT_PILOT_REPORT = (
@@ -44,6 +53,25 @@ DEFAULT_PILOT_REPORT = (
 )
 DEFAULT_LOCAL_FEEDBACK_REPORT = (
     DEFAULT_RUNTIME_ROOT / "local-feedback.json"
+)
+_ONLINE_CERTIFICATE_REFERENCE_FIELDS = (
+    "schema_version",
+    "certificate_scope",
+    "status",
+    "gate_pass",
+    "required",
+    "certificate_present",
+    "certificate_sha256",
+    "protocol_sha256",
+    "gate_a_plan_sha256",
+    "execution_contract_binding_sha256",
+    "controlled_matched_primary_budget",
+    "online_policy_gate_budget",
+    "hidden_change_time",
+    "policy_received_phase_or_reset_indicator",
+    "uses_actual_available_pre_change_history",
+    "uses_actual_action_measurement_and_budget_contract",
+    "agent_weight_updates_performed",
 )
 
 
@@ -60,6 +88,49 @@ def _write_immutable_json(path: Path, payload: Any) -> None:
             "select a new versioned --output path"
         )
     write_json_atomic(path, payload)
+
+
+def _compact_gate_a_report(
+    report: Mapping[str, Any],
+    *,
+    online_policy_certificate_path: Path | None,
+) -> dict[str, Any]:
+    """Replace duplicated online trajectories with one hash-bound DAG reference."""
+
+    compacted = dict(report)
+    decision = dict(compacted["certificate_decision"])
+    certificate = dict(decision["online_policy_feasible_certificate"])
+    reference = {
+        field: certificate[field]
+        for field in _ONLINE_CERTIFICATE_REFERENCE_FIELDS
+        if field in certificate
+    }
+    if online_policy_certificate_path is not None:
+        resolved = (
+            online_policy_certificate_path
+            if online_policy_certificate_path.is_absolute()
+            else ROOT / online_policy_certificate_path
+        ).resolve()
+        try:
+            reference["report"] = resolved.relative_to(ROOT).as_posix()
+        except ValueError as error:
+            raise ValueError(
+                "online-policy certificate must be inside the repository"
+            ) from error
+        standalone_certificate = load_json_object(resolved)
+        reference["certificate_sha256"] = canonical_json_sha256(
+            standalone_certificate
+        )
+        reference["certificate_hash_source"] = (
+            "standalone_report_canonical_json"
+        )
+    decision["online_policy_feasible_certificate"] = reference
+    compacted["certificate_decision"] = decision
+    compacted["online_policy_feasible_certificate"] = reference
+    compacted["online_policy_certificate_embedding"] = (
+        "canonical_sha256_bound_dag_reference_only"
+    )
+    return compacted
 
 
 def _run_gate_a(args: argparse.Namespace) -> int:
@@ -95,6 +166,10 @@ def _run_gate_a(args: argparse.Namespace) -> int:
         design_validity_audit=design_validity_audit,
         progress_callback=_print_gate_a_progress,
     )
+    report = _compact_gate_a_report(
+        report,
+        online_policy_certificate_path=args.online_policy_certificate,
+    )
     _write_immutable_json(args.output, report)
     print(
         json.dumps(
@@ -109,6 +184,57 @@ def _run_gate_a(args: argparse.Namespace) -> int:
         )
     )
     return 0 if report["gate_a_pass"] else 1
+
+
+def _run_online_policy_certificate(args: argparse.Namespace) -> int:
+    protocol = load_json_object(args.protocol)
+    plan = load_json_object(args.gate_a_plan)
+    design_audit_path = ROOT / plan["design_validity_precondition"]["report"]
+    design_validity_audit = load_json_object(design_audit_path)
+    print(
+        json.dumps(
+            {
+                "status": "starting",
+                "stage": "online-policy-certificate",
+                "tasks": protocol["design"]["tasks"],
+                "change_time_candidates": plan[
+                    "online_policy_feasible_certificate"
+                ]["change_time_candidates"],
+                "post_change_budget_checkpoints": plan[
+                    "online_policy_feasible_certificate"
+                ]["post_change_experiment_budget_checkpoints"],
+                "online_policy_gate_budget": plan[
+                    "online_policy_feasible_certificate"
+                ]["online_policy_gate_budget"],
+                "external_provider_calls": False,
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    report = run_online_policy_certificate(
+        protocol,
+        plan,
+        design_validity_audit=design_validity_audit,
+        progress_callback=_print_gate_a_progress,
+    )
+    _write_immutable_json(args.online_policy_output, report)
+    print(
+        json.dumps(
+            {
+                "status": report["status"],
+                "gate_pass": report["gate_pass"],
+                "top1_accuracy": report["identifiability_certificate"][
+                    "top1_accuracy"
+                ],
+                "output": str(args.online_policy_output),
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    return 0 if report["gate_pass"] else 1
 
 
 def _print_gate_a_progress(event: Mapping[str, Any]) -> None:
@@ -354,13 +480,24 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--stage",
-        choices=("gate-a", "campaign", "pilot-report", "local-feedback"),
+        choices=(
+            "gate-a",
+            "online-policy-certificate",
+            "campaign",
+            "pilot-report",
+            "local-feedback",
+        ),
         default="gate-a",
         help="Gate A is environment-only; campaign makes external provider calls.",
     )
     parser.add_argument("--protocol", type=Path, default=DEFAULT_PROTOCOL_PATH)
     parser.add_argument("--gate-a-plan", type=Path, default=DEFAULT_GATE_A_PLAN_PATH)
     parser.add_argument("--output", type=Path, default=DEFAULT_GATE_A_REPORT)
+    parser.add_argument(
+        "--online-policy-output",
+        type=Path,
+        default=DEFAULT_ONLINE_POLICY_CERTIFICATE,
+    )
     parser.add_argument(
         "--online-policy-certificate",
         type=Path,
@@ -406,6 +543,8 @@ def main() -> int:
     args = parse_args()
     if args.stage == "gate-a":
         return _run_gate_a(args)
+    if args.stage == "online-policy-certificate":
+        return _run_online_policy_certificate(args)
     if args.stage == "campaign":
         return _run_campaigns(args)
     if args.stage == "pilot-report":

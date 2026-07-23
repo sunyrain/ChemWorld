@@ -133,7 +133,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc7.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc14.json",
         "formal_result",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
     ),
@@ -157,8 +157,19 @@ NODES = (
         ("scripts/check_mechanism_adaptation_protocol.py",),
     ),
     EvidenceNode(
+        "mechanism_online_policy_certificate",
+        "workstreams/flagship_tasks/reports/"
+        "mechanism-adaptation-online-policy-certificate-v0.3-rc14.json",
+        "formal_result",
+        (
+            "mechanism_design_audit",
+            "mechanism_gate_a_plan",
+            "mechanism_protocol",
+        ),
+    ),
+    EvidenceNode(
         "mechanism_gate_a",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc7.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc14.json",
         "formal_result",
         (
             "backend_candidate",
@@ -166,6 +177,7 @@ NODES = (
             "evaluation_contract",
             "mechanism_design_audit",
             "mechanism_gate_a_plan",
+            "mechanism_online_policy_certificate",
             "mechanism_preflight",
             "mechanism_protocol",
             "public_boundary",
@@ -305,6 +317,10 @@ CURRENT_PATH_RULES = (
     CurrentPathRule(("mechanism_adaptation", "protocol"), "protocol_input"),
     CurrentPathRule(("mechanism_adaptation", "preflight_report"), "generated_current"),
     CurrentPathRule(("mechanism_adaptation", "gate_a_plan"), "protocol_input"),
+    CurrentPathRule(
+        ("mechanism_adaptation", "online_policy_certificate_report"),
+        "formal_result",
+    ),
     CurrentPathRule(("mechanism_adaptation", "gate_a_report"), "formal_result"),
     CurrentPathRule(
         ("mechanism_adaptation", "agent_pilot_report"),
@@ -541,6 +557,52 @@ def _gate_a_binding_current(
     )
 
 
+def _online_policy_certificate_binding_current(
+    certificate: Mapping[str, Any],
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+) -> bool:
+    expected_execution = gate_a_execution_contract_binding(protocol, plan)
+    return bool(
+        certificate.get("protocol_sha256") == _canonical_sha256(protocol)
+        and certificate.get("gate_a_plan_sha256") == _canonical_sha256(plan)
+        and certificate.get("protocol_id") == protocol.get("protocol_id")
+        and certificate.get("gate_a_plan_id") == plan.get("plan_id")
+        and certificate.get("execution_contract_binding") == expected_execution
+        and certificate.get("certificate_scope")
+        == "online_policy_feasible_diagnosis"
+    )
+
+
+def _composed_gate_a_binding_current(
+    report: Mapping[str, Any],
+    online_certificate: Mapping[str, Any],
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+) -> bool:
+    decision = report.get("certificate_decision", {})
+    online_reference = (
+        decision.get("online_policy_feasible_certificate", {})
+        if isinstance(decision, Mapping)
+        else {}
+    )
+    return bool(
+        _gate_a_binding_current(report, protocol, plan)
+        and _online_policy_certificate_binding_current(
+            online_certificate,
+            protocol,
+            plan,
+        )
+        and isinstance(online_reference, Mapping)
+        and online_reference.get("report")
+        == node_map()["mechanism_online_policy_certificate"].path
+        and online_reference.get("certificate_sha256")
+        == _canonical_sha256(online_certificate)
+        and "task_reports" not in online_reference
+        and "identifiability_by_post_change_budget" not in online_reference
+    )
+
+
 def _artifact_source_binding_current(
     node: EvidenceNode,
     payload: Mapping[str, Any],
@@ -555,6 +617,23 @@ def _artifact_source_binding_current(
         )
 
         if payload.get("guarded_source_sha256") != guarded_source_sha256(ROOT):
+            return False
+    if node.node_id == "mechanism_online_policy_certificate":
+        protocol = json.loads(
+            (ROOT / node_map()["mechanism_protocol"].path).read_text(
+                encoding="utf-8"
+            )
+        )
+        plan = json.loads(
+            (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
+                encoding="utf-8"
+            )
+        )
+        if not _online_policy_certificate_binding_current(
+            payload,
+            protocol,
+            plan,
+        ):
             return False
     source_commit = payload.get("source_commit")
     if (
@@ -626,19 +705,55 @@ def current_status_summary(
 
 def _write_current_registry() -> None:
     current = json.loads(CURRENT_REGISTRY.read_text(encoding="utf-8"))
-    backend = json.loads((ROOT / node_map()["backend_candidate"].path).read_text())
-    backend_protocol = json.loads((ROOT / node_map()["backend_protocol"].path).read_text())
-    mechanism = json.loads((ROOT / node_map()["mechanism_gate_a"].path).read_text())
-    mechanism_design = json.loads((ROOT / node_map()["mechanism_design_audit"].path).read_text())
-    mechanism_pilot = json.loads((ROOT / node_map()["mechanism_agent_pilot"].path).read_text())
-    mechanism_protocol = json.loads((ROOT / node_map()["mechanism_protocol"].path).read_text())
-    mechanism_plan = json.loads((ROOT / node_map()["mechanism_gate_a_plan"].path).read_text())
-    mechanism_evidence_current = _gate_a_binding_current(
+    backend = json.loads(
+        (ROOT / node_map()["backend_candidate"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    backend_protocol = json.loads(
+        (ROOT / node_map()["backend_protocol"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    mechanism = json.loads(
+        (ROOT / node_map()["mechanism_gate_a"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    mechanism_online = json.loads(
+        (
+            ROOT / node_map()["mechanism_online_policy_certificate"].path
+        ).read_text(encoding="utf-8")
+    )
+    mechanism_design = json.loads(
+        (ROOT / node_map()["mechanism_design_audit"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    mechanism_pilot = json.loads(
+        (ROOT / node_map()["mechanism_agent_pilot"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    mechanism_protocol = json.loads(
+        (ROOT / node_map()["mechanism_protocol"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    mechanism_plan = json.loads(
+        (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    mechanism_evidence_current = _composed_gate_a_binding_current(
         mechanism,
+        mechanism_online,
         mechanism_protocol,
         mechanism_plan,
     )
-    mechanism_gate_a_pass = bool(mechanism_evidence_current and mechanism.get("gate_a_pass"))
+    mechanism_gate_a_pass = bool(
+        mechanism_evidence_current and mechanism.get("gate_a_pass")
+    )
     mechanism_decision = mechanism.get("certificate_decision", {})
     controlled_gate_a_pass = bool(
         mechanism_evidence_current
@@ -840,6 +955,9 @@ def _write_current_registry() -> None:
             and nodes["mechanism_design_audit"]["artifact_state"] == "current"
         ),
         "gate_a_plan": node_map()["mechanism_gate_a_plan"].path,
+        "online_policy_certificate_report": node_map()[
+            "mechanism_online_policy_certificate"
+        ].path,
         "gate_a_report": node_map()["mechanism_gate_a"].path,
         "agent_pilot_report": node_map()["mechanism_agent_pilot"].path,
         "status": mechanism_gate_a_status,
@@ -1007,11 +1125,29 @@ def check_current_evidence() -> list[str]:
     unexpected_nodes = sorted(set(recorded_nodes) - set(expected_order))
     if unexpected_nodes:
         errors.append(f"registry has undeclared evidence nodes: {unexpected_nodes}")
-    binding_protocol = json.loads((ROOT / node_map()["mechanism_protocol"].path).read_text())
-    binding_plan = json.loads((ROOT / node_map()["mechanism_gate_a_plan"].path).read_text())
-    binding_gate_a = json.loads((ROOT / node_map()["mechanism_gate_a"].path).read_text())
-    gate_a_binding_current = _gate_a_binding_current(
+    binding_protocol = json.loads(
+        (ROOT / node_map()["mechanism_protocol"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    binding_plan = json.loads(
+        (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    binding_gate_a = json.loads(
+        (ROOT / node_map()["mechanism_gate_a"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    binding_online = json.loads(
+        (
+            ROOT / node_map()["mechanism_online_policy_certificate"].path
+        ).read_text(encoding="utf-8")
+    )
+    gate_a_binding_current = _composed_gate_a_binding_current(
         binding_gate_a,
+        binding_online,
         binding_protocol,
         binding_plan,
     )
@@ -1061,7 +1197,11 @@ def check_current_evidence() -> list[str]:
 
     from scripts.audit_backend_v05 import validate_report as validate_backend
 
-    backend = json.loads((ROOT / node_map()["backend_candidate"].path).read_text())
+    backend = json.loads(
+        (ROOT / node_map()["backend_candidate"].path).read_text(
+            encoding="utf-8"
+        )
+    )
     errors.extend(f"backend report invalid: {item}" for item in validate_backend(backend))
     if backend.get("backend_contract_validated") is not True and (
         backend.get("status") != "blocked" or backend.get("backend_freeze_allowed")
@@ -1070,17 +1210,60 @@ def check_current_evidence() -> list[str]:
     if backend.get("source_tree_dirty") and backend.get("backend_freeze_allowed"):
         errors.append("dirty source tree is incorrectly recorded as frozen")
 
-    mechanism_protocol = json.loads((ROOT / node_map()["mechanism_protocol"].path).read_text())
-    mechanism_plan = json.loads((ROOT / node_map()["mechanism_gate_a_plan"].path).read_text())
-    mechanism_design = json.loads((ROOT / node_map()["mechanism_design_audit"].path).read_text())
-    mechanism = json.loads((ROOT / node_map()["mechanism_gate_a"].path).read_text())
-    mechanism_pilot = json.loads((ROOT / node_map()["mechanism_agent_pilot"].path).read_text())
+    mechanism_protocol = json.loads(
+        (ROOT / node_map()["mechanism_protocol"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    mechanism_plan = json.loads(
+        (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    mechanism_design = json.loads(
+        (ROOT / node_map()["mechanism_design_audit"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    mechanism_online = json.loads(
+        (
+            ROOT / node_map()["mechanism_online_policy_certificate"].path
+        ).read_text(encoding="utf-8")
+    )
+    mechanism = json.loads(
+        (ROOT / node_map()["mechanism_gate_a"].path).read_text(
+            encoding="utf-8"
+        )
+    )
+    mechanism_pilot = json.loads(
+        (ROOT / node_map()["mechanism_agent_pilot"].path).read_text(
+            encoding="utf-8"
+        )
+    )
     if mechanism_design.get("protocol_sha256") != _canonical_sha256(mechanism_protocol):
         errors.append("mechanism design-audit protocol binding is stale")
     if mechanism_design.get("gate_a_plan_sha256") != _canonical_sha256(mechanism_plan):
         errors.append("mechanism design-audit Gate A plan binding is stale")
     if mechanism_design.get("pass") is not True:
         errors.append("mechanism action/intervention design audit is blocked")
+    if not _online_policy_certificate_binding_current(
+        mechanism_online,
+        mechanism_protocol,
+        mechanism_plan,
+    ):
+        errors.append("mechanism online-policy certificate binding is stale")
+    online_reference = mechanism.get("certificate_decision", {}).get(
+        "online_policy_feasible_certificate",
+        {},
+    )
+    if (
+        not isinstance(online_reference, Mapping)
+        or online_reference.get("report")
+        != node_map()["mechanism_online_policy_certificate"].path
+        or online_reference.get("certificate_sha256")
+        != _canonical_sha256(mechanism_online)
+    ):
+        errors.append("mechanism Gate A online-policy reference is stale")
     if not gate_a_binding_current:
         gate_node = recorded_nodes.get("mechanism_gate_a", {})
         if gate_node.get("gate_state") != "invalidated":

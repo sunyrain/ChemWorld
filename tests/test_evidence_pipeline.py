@@ -18,6 +18,7 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert {node.node_id for node in ordered} == {node.node_id for node in nodes}
     node_ids = {node.node_id for node in nodes}
     assert "mechanism_gate_a" in node_ids
+    assert "mechanism_online_policy_certificate" in node_ids
     assert not any(node_id.startswith("ncs_") for node_id in node_ids)
     assert {node.role for node in nodes} <= pipeline["CURRENT_ARTIFACT_ROLES"]
     assert all(pipeline["_node_producer"](node) for node in nodes)
@@ -46,9 +47,12 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     summary = pipeline["current_status_summary"](current)
     assert summary["backend_candidate"]["contract_validation"] == "passed"
     assert summary["release_attestation"]["status"] == "passed"
-    assert summary["mechanism_gate_a"]["status"] == "gate_a_online_policy_certificate_pending"
+    assert (
+        summary["mechanism_gate_a"]["status"]
+        == "gate_a_passed_remaining_gates_pending"
+    )
     assert summary["mechanism_gate_a"]["evidence_current"] is True
-    assert summary["mechanism_gate_a"]["passed"] is False
+    assert summary["mechanism_gate_a"]["passed"] is True
     assert summary["formal_benchmark"]["status"] == "environment_ready_methods_unfrozen"
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False

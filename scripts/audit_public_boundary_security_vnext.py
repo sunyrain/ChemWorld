@@ -624,6 +624,9 @@ def build_report(protocol: Mapping[str, Any]) -> dict[str, Any]:
     details["public_messages"] = message_details
     adversarial, adversarial_details = _adversarial_probes()
     details["adversarial"] = adversarial_details
+    checks["exploit_matrix_runtime"] = (
+        adversarial_details["exploit_controls_ready"] is True
+    )
     invariance, invariance_details = _invariance_probes()
     details["invariance"] = invariance_details
     with tempfile.TemporaryDirectory(prefix="chemworld-boundary-replay-") as temporary:

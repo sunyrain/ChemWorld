@@ -3,13 +3,61 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
-from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.eval.provenance import (
+    canonical_json_sha256,
+    file_sha256,
+    repository_tree_sha256,
+)
+from chemworld.physchem.mechanism_library import configuration_root
+from chemworld.tasks import get_task
+from chemworld.world.operations import operation_contracts
 
 ONLINE_POLICY_CERTIFICATE_VERSION = (
-    "chemworld-mechanism-adaptation-online-policy-certificate-0.1"
+    "chemworld-mechanism-adaptation-online-policy-certificate-0.3"
 )
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+
+
+def gate_a_execution_contract_binding(
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Bind every Gate A certificate to the runtime semantics it evaluated."""
+
+    config_paths = {
+        "backend_contract": configuration_root() / "foundation/backend_v0.5.json",
+        "evaluation_contract": configuration_root() / "benchmark/evaluation_vnext.json",
+        "public_boundary_contract": (
+            configuration_root() / "foundation/public_boundary_security_vnext.json"
+        ),
+    }
+    binding: dict[str, Any] = {
+        "schema_version": "chemworld-gate-a-execution-binding-0.1",
+        "runtime_source_tree_sha256": repository_tree_sha256(
+            PACKAGE_ROOT,
+            relative_roots=(".",),
+        ),
+        "task_contract_hashes": {
+            str(task_id): get_task(str(task_id)).contract_hash
+            for task_id in protocol["design"]["tasks"]
+        },
+        "operation_contract_sha256": canonical_json_sha256(
+            {
+                key: value.to_dict()
+                for key, value in sorted(operation_contracts().items())
+            }
+        ),
+        "bound_config_sha256": {
+            key: file_sha256(path) for key, path in sorted(config_paths.items())
+        },
+        "protocol_sha256": canonical_json_sha256(protocol),
+        "gate_a_plan_sha256": canonical_json_sha256(plan),
+    }
+    binding["binding_sha256"] = canonical_json_sha256(binding)
+    return binding
 
 
 def gate_a_certificate_decision(
@@ -35,7 +83,15 @@ def gate_a_certificate_decision(
 
     expected_protocol_sha = canonical_json_sha256(protocol)
     expected_plan_sha = canonical_json_sha256(plan)
-    primary_budget = int(plan["held_out_certificate"]["primary_gate_budget"])
+    expected_execution_binding = gate_a_execution_contract_binding(protocol, plan)
+    controlled_primary_budget = int(
+        plan["held_out_certificate"]["primary_gate_budget"]
+    )
+    online_gate_budget = int(requirement["online_policy_gate_budget"])
+    if online_gate_budget != controlled_primary_budget:
+        raise ValueError(
+            "Gate A controlled and online certificates must use an aligned budget"
+        )
     if online_policy_certificate is None:
         online_summary = {
             "schema_version": ONLINE_POLICY_CERTIFICATE_VERSION,
@@ -43,7 +99,8 @@ def gate_a_certificate_decision(
             "gate_pass": False,
             "required": True,
             "certificate_present": False,
-            "primary_gate_budget": primary_budget,
+            "controlled_matched_primary_budget": controlled_primary_budget,
+            "online_policy_gate_budget": online_gate_budget,
         }
     else:
         certificate = dict(online_policy_certificate)
@@ -53,10 +110,15 @@ def gate_a_certificate_decision(
             "certificate_scope": "online_policy_feasible_diagnosis",
             "protocol_sha256": expected_protocol_sha,
             "gate_a_plan_sha256": expected_plan_sha,
-            "primary_gate_budget": primary_budget,
+            "controlled_matched_primary_budget": controlled_primary_budget,
+            "online_policy_gate_budget": online_gate_budget,
             "hidden_change_time": True,
+            "policy_received_phase_or_reset_indicator": False,
             "uses_actual_available_pre_change_history": True,
             "uses_actual_action_measurement_and_budget_contract": True,
+            "execution_contract_binding_sha256": expected_execution_binding[
+                "binding_sha256"
+            ],
         }
         for field, expected in expected_values.items():
             if certificate.get(field) != expected:
@@ -100,4 +162,8 @@ def gate_a_certificate_decision(
     }
 
 
-__all__ = ["ONLINE_POLICY_CERTIFICATE_VERSION", "gate_a_certificate_decision"]
+__all__ = [
+    "ONLINE_POLICY_CERTIFICATE_VERSION",
+    "gate_a_certificate_decision",
+    "gate_a_execution_contract_binding",
+]

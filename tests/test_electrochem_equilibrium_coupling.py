@@ -8,7 +8,7 @@ import pytest
 
 import chemworld.physchem.electrochemistry as electrochemistry_kernel
 import chemworld.runtime.electrochemical_services as runtime_electrochemistry
-from chemworld.foundation import equipment_settings
+from chemworld.foundation import equipment_settings, upsert_equipment_record
 from chemworld.physchem.electrochem_transport import (
     DiffusionLayerSpec,
     diffusion_layer_current_response,
@@ -45,10 +45,24 @@ def _configured_env(
         "current_mA": 75.0,
         "electrolyte_profile": electrolyte_profile,
     }
-    if settings:
-        action.update(settings)
     _observation, _reward, _terminated, _truncated, info = env.step(action)
     assert info["transaction_status"] == "committed", info
+    if settings:
+        state = env.unwrapped._state
+        configured = equipment_settings(
+            state.equipment,
+            "electrochemical_cell",
+        )
+        env.unwrapped._state = state.replace(
+            equipment=upsert_equipment_record(
+                state.equipment,
+                equipment_id="electrochemical_cell",
+                equipment_type="electrochemical_cell",
+                attached_vessel_id=state.vessel_id,
+                status="configured",
+                settings={**configured, **settings},
+            )
+        )
     return env
 
 

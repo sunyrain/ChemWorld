@@ -40,6 +40,7 @@ def test_report_maps_every_task_operation_service_kernel_and_provider() -> None:
 def test_report_identifies_only_the_current_shared_lite_upgrade_targets() -> None:
     report = build_report(load_protocol())
     assert report["lite_upgrade_targets"] == {}
+    assert report["remaining_gates"] == []
     assert report["orphan_runtime_providers"] == []
     assert report["reference_providers_routed"] == []
     assert report["forbidden_runtime_models"] == []

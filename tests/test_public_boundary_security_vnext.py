@@ -130,10 +130,12 @@ def test_report_closes_every_declared_gate_without_sandbox_overclaim() -> None:
     assert report["backend_freeze_allowed"] is True
     assert report["probe_count"] == 35
     assert all(report["checks"].values())
+    assert report["checks"]["exploit_matrix_runtime"] is True
     assert all(all(probes.values()) for probes in report["probe_groups"].values())
     assert report["probe_groups"]["replay"]["trajectory_truncation_rejected"] is True
     assert report["probe_groups"]["replay"]["trajectory_digest_tamper_rejected"] is True
     assert report["details"]["adversarial"]["exploit_probes_revalidated_directly"] is True
+    assert report["details"]["adversarial"]["exploit_controls_ready"] is True
     assert report["probe_groups"]["execution"]["windows_source_process"] is True
     assert report["probe_groups"]["execution"]["independent_process"] is True
     assert report["probe_groups"]["execution"]["clean_wheel_import"] is True
