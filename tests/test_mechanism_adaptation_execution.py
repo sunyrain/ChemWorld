@@ -30,6 +30,7 @@ from chemworld.eval.mechanism_adaptation_execution import (
     validate_precomputed_design_audit,
 )
 from chemworld.eval.mechanism_design_audit import (
+    _audit_intervention_decision_relevance,
     _audit_material_alignment,
     _recipe_field_values,
 )
@@ -174,7 +175,7 @@ def test_precomputed_design_audit_must_be_passing_and_hash_bound() -> None:
         (
             ROOT
             / "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-design-audit-freeze-rc15.json"
+            "mechanism-adaptation-design-audit-freeze-rc16.json"
         ).read_text(encoding="utf-8")
     )
     validated = validate_precomputed_design_audit(protocol, plan, report)
@@ -195,6 +196,45 @@ def test_gate_a_action_library_and_public_encoding_are_deterministic() -> None:
         [({"b": np.asarray([np.nan]), "a": np.asarray([2.0])}, 0.5)]
     )
     assert features == [1.0, 2.0, 0.0, 0.0, 1.0, 0.5]
+
+
+def test_reaction_crystallization_action_library_is_relational() -> None:
+    library = build_action_library(
+        "reaction-to-crystallization",
+        action_count=6,
+        seed=41102,
+    )
+    vectors = list(library.values())
+
+    for coordinate in range(vectors[0].size):
+        values = {float(vector[coordinate]) for vector in vectors[:3]}
+        if coordinate == 5:
+            assert len(values) == 3
+        else:
+            assert len(values) == 1
+
+    differing = np.flatnonzero(vectors[1] != vectors[4]).tolist()
+    assert differing == [4]
+    assert int(vectors[1][4] * 4) == 0
+    assert int(vectors[4][4] * 4) == 2
+    assert np.flatnonzero(vectors[2] != vectors[5]).tolist() == [4]
+
+
+def test_electrochemical_action_library_separates_control_and_material_probes() -> None:
+    library = build_action_library(
+        "electrochemical-conversion",
+        action_count=6,
+        seed=41102,
+    )
+    control_sweep = list(library.values())[:4]
+    assert {float(vector[0]) for vector in control_sweep} == {0.625}
+    assert {float(vector[1]) for vector in control_sweep} == {0.125}
+    assert len({float(vector[3]) for vector in control_sweep}) == 4
+    assert len({float(vector[6]) for vector in control_sweep}) == 4
+
+    material_probes = list(library.values())[4:]
+    assert material_probes[0][0] == pytest.approx(0.125)
+    assert material_probes[1][1] == pytest.approx(0.625)
 
 
 def test_online_change_time_assignment_is_deterministic_and_balanced() -> None:
@@ -388,6 +428,106 @@ def test_current_mechanism_design_has_reachable_covered_targets() -> None:
     assert checks["rate_law_family:semantic_reaction_role_bound"] is True
     assert checks["rate_law_family:declared_rate_law_transform_bound"] is True
     assert checks["rate_law_family:constitutive_domain_parameters_unchanged"] is True
+    assert checks["rate_law_family:rate_law_response_certificate_declared"] is True
+    assert checks["rate_law_family:bounded_frozen_rate_response"] is True
+    assert checks["rate_law_family:frozen_rate_response_crosses_unity"] is True
+    assert checks["rate_law_family:decision_relevance:task_primary"] is True
+    assert checks["rate_law_family:decision_relevance:leaderboard_score"] is True
+    assert checks["rate_law_family:decision_relevance"] is True
+    assert checks["topology_family:explicit_topology_change_contract"] is True
+    assert checks["topology_family:complete_topology_change_contract"] is True
+    assert checks["topology_family:single_declared_topology_channel_added"] is True
+    assert checks["topology_family:semantic_topology_role_bound"] is True
+    assert checks["topology_family:declared_topology_transform_bound"] is True
+    assert checks["topology_family:topology_rate_calibration_bound"] is True
+    assert checks["topology_family:topology_domain_parameters_unchanged"] is True
+    electro_checks = {
+        item["check"]: item["pass"]
+        for item in report["task_reports"]["electrochemical-conversion"]["checks"]
+    }
+    assert (
+        electro_checks[
+            "constitutive_law_family:explicit_constitutive_change_contract"
+        ]
+        is True
+    )
+    assert (
+        electro_checks[
+            "constitutive_law_family:complete_constitutive_change_contract"
+        ]
+        is True
+    )
+    assert (
+        electro_checks["constitutive_law_family:constitutive_network_unchanged"]
+        is True
+    )
+    assert (
+        electro_checks[
+            "constitutive_law_family:declared_constitutive_transform_bound"
+        ]
+        is True
+    )
+    assert (
+        electro_checks["constitutive_law_family:constitutive_calibration_bound"]
+        is True
+    )
+
+
+def test_decision_relevance_rejects_visible_but_policy_irrelevant_shift(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fake_metrics(
+        _task_id,
+        vector,
+        *,
+        seed,
+        observation_seed,
+        interventions,
+        primary_metric,
+    ):
+        del seed, observation_seed, primary_metric
+        action = int(vector[0])
+        baseline = (
+            {"task_primary": 1.0, "leaderboard_score": 1.0}
+            if action == 0
+            else {"task_primary": 0.5, "leaderboard_score": 0.5}
+        )
+        if not interventions:
+            return baseline
+        return {key: value - 0.2 for key, value in baseline.items()}
+
+    monkeypatch.setattr(
+        "chemworld.eval.mechanism_design_audit._execute_recipe_metrics",
+        fake_metrics,
+    )
+    findings: list[dict[str, object]] = []
+    _audit_intervention_decision_relevance(
+        findings,
+        task_id="reaction-to-crystallization",
+        candidate_id="rate_law_family",
+        intervention={
+            "kind": "mechanism_family",
+            "mode": "rate_law_family",
+            "severity": 0.8,
+        },
+        action_library={
+            "action-0": np.asarray([0.0]),
+            "action-1": np.asarray([1.0]),
+        },
+        certificate={
+            "required": True,
+            "required_metric_ids": ["task_primary", "leaderboard_score"],
+            "world_seeds": [0, 1],
+            "minimum_median_max_metric_effect": 0.01,
+            "minimum_median_old_policy_regret": 0.005,
+            "minimum_optimal_action_change_rate": 0.5,
+        },
+        baseline_cache={},
+    )
+    checks = {str(item["check"]): bool(item["pass"]) for item in findings}
+    assert checks["rate_law_family:decision_relevance:task_primary"] is False
+    assert checks["rate_law_family:decision_relevance:leaderboard_score"] is False
+    assert checks["rate_law_family:decision_relevance"] is False
 
 
 def test_design_audit_accepts_both_electrochemical_material_targets() -> None:

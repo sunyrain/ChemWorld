@@ -24,8 +24,61 @@ RateLawReactionRole = Literal[
     "primary_competing_pathway",
     "primary_target_pathway",
 ]
-RateLawTransformId = Literal["arrhenius_form_and_scale_stress_v1"]
-MECHANISM_FAMILY_INTERVENTION_VERSION = "chemworld-mechanism-family-intervention-0.5"
+RateLawTransformId = Literal[
+    "arrhenius_form_and_scale_stress_v1",
+    "catalytic_activity_order_pivot_stress_v1",
+]
+TopologyReactionRole = Literal["primary_target_pathway"]
+TopologyTransformId = Literal["reversible_target_pathway_stress_v1"]
+ConstitutiveTransformId = Literal[
+    "partition_power_response_stress_v1",
+    "electrochemical_response_stress_v1",
+    "equilibrium_activity_response_stress_v1",
+]
+ARRHENIUS_FORM_AND_SCALE_STRESS: RateLawTransformId = "arrhenius_form_and_scale_stress_v1"
+CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS: RateLawTransformId = (
+    "catalytic_activity_order_pivot_stress_v1"
+)
+REVERSIBLE_TARGET_PATHWAY_STRESS: TopologyTransformId = "reversible_target_pathway_stress_v1"
+PARTITION_POWER_RESPONSE_STRESS: ConstitutiveTransformId = "partition_power_response_stress_v1"
+ELECTROCHEMICAL_RESPONSE_STRESS: ConstitutiveTransformId = "electrochemical_response_stress_v1"
+EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS: ConstitutiveTransformId = (
+    "equilibrium_activity_response_stress_v1"
+)
+CONSTITUTIVE_TRANSFORM_CALIBRATION_FIELDS: dict[str, frozenset[str]] = {
+    PARTITION_POWER_RESPONSE_STRESS: frozenset({"partition_coefficient_exponent_at_full_severity"}),
+    ELECTROCHEMICAL_RESPONSE_STRESS: frozenset(
+        {
+            "transfer_asymmetry_multiplier_at_full_severity",
+            "selectivity_decay_multiplier_at_full_severity",
+            "standard_potential_multiplier_at_full_severity",
+        }
+    ),
+    EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS: frozenset(
+        {"activity_coefficient_ratio_at_full_severity"}
+    ),
+}
+CONSTITUTIVE_TASK_TRANSFORMS: dict[str, ConstitutiveTransformId] = {
+    "partition-discovery": PARTITION_POWER_RESPONSE_STRESS,
+    "electrochemical-conversion": ELECTROCHEMICAL_RESPONSE_STRESS,
+    "equilibrium-characterization": EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS,
+}
+RATE_LAW_TRANSFORM_CALIBRATION_FIELDS: dict[str, frozenset[str]] = {
+    ARRHENIUS_FORM_AND_SCALE_STRESS: frozenset(
+        {
+            "reference_temperature_K",
+            "reference_rate_multiplier_at_full_severity",
+            "temperature_exponent_at_full_severity",
+        }
+    ),
+    CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS: frozenset(
+        {
+            "activity_order_at_full_severity",
+            "catalyst_activity_pivot",
+        }
+    ),
+}
+MECHANISM_FAMILY_INTERVENTION_VERSION = "chemworld-mechanism-family-intervention-0.8"
 REACTION_MECHANISM_TASKS = (
     "reaction-to-crystallization",
     "reaction-to-distillation",
@@ -56,10 +109,12 @@ class RateLawFamilyChange:
     """Declarative target and transform for a reaction rate-law intervention."""
 
     reaction_role: RateLawReactionRole = "primary_competing_pathway"
-    transform_id: RateLawTransformId = "arrhenius_form_and_scale_stress_v1"
-    reference_temperature_K: float = 350.0
-    reference_rate_multiplier_at_full_severity: float = 8.0
-    temperature_exponent_at_full_severity: float = 0.75
+    transform_id: RateLawTransformId = ARRHENIUS_FORM_AND_SCALE_STRESS
+    reference_temperature_K: float | None = None
+    reference_rate_multiplier_at_full_severity: float | None = None
+    temperature_exponent_at_full_severity: float | None = None
+    activity_order_at_full_severity: float | None = None
+    catalyst_activity_pivot: float | None = None
 
     def __post_init__(self) -> None:
         if self.reaction_role not in {
@@ -67,37 +122,84 @@ class RateLawFamilyChange:
             "primary_target_pathway",
         }:
             raise ValueError(f"unsupported rate-law reaction role: {self.reaction_role}")
-        if self.transform_id != "arrhenius_form_and_scale_stress_v1":
+        if self.transform_id not in RATE_LAW_TRANSFORM_CALIBRATION_FIELDS:
             raise ValueError(f"unsupported rate-law transform: {self.transform_id}")
+        if self.transform_id == CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS:
+            if any(
+                value is not None
+                for value in (
+                    self.reference_temperature_K,
+                    self.reference_rate_multiplier_at_full_severity,
+                    self.temperature_exponent_at_full_severity,
+                )
+            ):
+                raise ValueError(
+                    "catalytic activity-order stress does not accept Arrhenius calibration"
+                )
+            order = (
+                0.2
+                if self.activity_order_at_full_severity is None
+                else self.activity_order_at_full_severity
+            )
+            if not np.isfinite(order) or order <= 0.0:
+                raise ValueError("catalytic activity order must be finite and positive")
+            activity_pivot = (
+                5.0 if self.catalyst_activity_pivot is None else self.catalyst_activity_pivot
+            )
+            if not np.isfinite(activity_pivot) or activity_pivot <= 0.0:
+                raise ValueError("catalyst activity pivot must be finite and positive")
+            object.__setattr__(self, "activity_order_at_full_severity", float(order))
+            object.__setattr__(
+                self,
+                "catalyst_activity_pivot",
+                float(activity_pivot),
+            )
+            return
         if (
-            not np.isfinite(self.reference_temperature_K)
-            or self.reference_temperature_K <= 0.0
+            self.activity_order_at_full_severity is not None
+            or self.catalyst_activity_pivot is not None
         ):
+            raise ValueError(
+                "Arrhenius form-and-scale stress does not accept activity-order calibration"
+            )
+        reference_temperature = (
+            350.0 if self.reference_temperature_K is None else self.reference_temperature_K
+        )
+        reference_multiplier = (
+            8.0
+            if self.reference_rate_multiplier_at_full_severity is None
+            else self.reference_rate_multiplier_at_full_severity
+        )
+        temperature_exponent = (
+            0.75
+            if self.temperature_exponent_at_full_severity is None
+            else self.temperature_exponent_at_full_severity
+        )
+        if not np.isfinite(reference_temperature) or reference_temperature <= 0.0:
             raise ValueError("rate-law reference temperature must be finite and positive")
-        if (
-            not np.isfinite(self.reference_rate_multiplier_at_full_severity)
-            or self.reference_rate_multiplier_at_full_severity <= 1.0
-        ):
-            raise ValueError(
-                "rate-law reference multiplier must be finite and greater than one"
-            )
-        if (
-            not np.isfinite(self.temperature_exponent_at_full_severity)
-            or self.temperature_exponent_at_full_severity <= 0.0
-        ):
-            raise ValueError(
-                "rate-law temperature exponent must be finite and positive"
-            )
+        if not np.isfinite(reference_multiplier) or reference_multiplier <= 1.0:
+            raise ValueError("rate-law reference multiplier must be finite and greater than one")
+        if not np.isfinite(temperature_exponent) or temperature_exponent <= 0.0:
+            raise ValueError("rate-law temperature exponent must be finite and positive")
+        object.__setattr__(self, "reference_temperature_K", float(reference_temperature))
+        object.__setattr__(
+            self,
+            "reference_rate_multiplier_at_full_severity",
+            float(reference_multiplier),
+        )
+        object.__setattr__(
+            self,
+            "temperature_exponent_at_full_severity",
+            float(temperature_exponent),
+        )
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> RateLawFamilyChange:
-        allowed = {
-            "reaction_role",
-            "transform_id",
-            "reference_temperature_K",
-            "reference_rate_multiplier_at_full_severity",
-            "temperature_exponent_at_full_severity",
-        }
+        transform_id = str(payload.get("transform_id", ARRHENIUS_FORM_AND_SCALE_STRESS))
+        calibration_fields = RATE_LAW_TRANSFORM_CALIBRATION_FIELDS.get(transform_id)
+        if calibration_fields is None:
+            raise ValueError(f"unsupported rate-law transform: {transform_id}")
+        allowed = {"reaction_role", "transform_id", *calibration_fields}
         unknown = sorted(set(payload) - allowed)
         if unknown:
             raise ValueError(f"unknown rate-law change fields: {unknown}")
@@ -108,19 +210,98 @@ class RateLawFamilyChange:
             ),
             transform_id=cast(
                 RateLawTransformId,
-                str(
-                    payload.get(
-                        "transform_id",
-                        "arrhenius_form_and_scale_stress_v1",
-                    )
-                ),
+                transform_id,
             ),
-            reference_temperature_K=float(payload.get("reference_temperature_K", 350.0)),
-            reference_rate_multiplier_at_full_severity=float(
-                payload.get("reference_rate_multiplier_at_full_severity", 8.0)
+            reference_temperature_K=(
+                float(payload["reference_temperature_K"])
+                if "reference_temperature_K" in payload
+                else None
             ),
-            temperature_exponent_at_full_severity=float(
-                payload.get("temperature_exponent_at_full_severity", 0.75)
+            reference_rate_multiplier_at_full_severity=(
+                float(payload["reference_rate_multiplier_at_full_severity"])
+                if "reference_rate_multiplier_at_full_severity" in payload
+                else None
+            ),
+            temperature_exponent_at_full_severity=(
+                float(payload["temperature_exponent_at_full_severity"])
+                if "temperature_exponent_at_full_severity" in payload
+                else None
+            ),
+            activity_order_at_full_severity=(
+                float(payload["activity_order_at_full_severity"])
+                if "activity_order_at_full_severity" in payload
+                else None
+            ),
+            catalyst_activity_pivot=(
+                float(payload["catalyst_activity_pivot"])
+                if "catalyst_activity_pivot" in payload
+                else None
+            ),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "reaction_role": self.reaction_role,
+            "transform_id": self.transform_id,
+        }
+        if self.transform_id == CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS:
+            payload["activity_order_at_full_severity"] = self.activity_order_at_full_severity
+            payload["catalyst_activity_pivot"] = self.catalyst_activity_pivot
+        else:
+            payload.update(
+                {
+                    "reference_temperature_K": self.reference_temperature_K,
+                    "reference_rate_multiplier_at_full_severity": (
+                        self.reference_rate_multiplier_at_full_severity
+                    ),
+                    "temperature_exponent_at_full_severity": (
+                        self.temperature_exponent_at_full_severity
+                    ),
+                }
+            )
+        return payload
+
+
+@dataclass(frozen=True)
+class TopologyFamilyChange:
+    """Declarative target and calibration for a reaction-topology intervention."""
+
+    reaction_role: TopologyReactionRole = "primary_target_pathway"
+    transform_id: TopologyTransformId = REVERSIBLE_TARGET_PATHWAY_STRESS
+    reverse_rate_constant_s_inv_at_full_severity: float = 0.000625
+
+    def __post_init__(self) -> None:
+        if self.reaction_role != "primary_target_pathway":
+            raise ValueError(f"unsupported topology reaction role: {self.reaction_role}")
+        if self.transform_id != REVERSIBLE_TARGET_PATHWAY_STRESS:
+            raise ValueError(f"unsupported topology transform: {self.transform_id}")
+        rate_constant = self.reverse_rate_constant_s_inv_at_full_severity
+        if not np.isfinite(rate_constant) or rate_constant <= 0.0:
+            raise ValueError("topology reverse rate constant must be finite and positive")
+        object.__setattr__(
+            self,
+            "reverse_rate_constant_s_inv_at_full_severity",
+            float(rate_constant),
+        )
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> TopologyFamilyChange:
+        allowed = {
+            "reaction_role",
+            "transform_id",
+            "reverse_rate_constant_s_inv_at_full_severity",
+        }
+        unknown = sorted(set(payload) - allowed)
+        if unknown:
+            raise ValueError(f"unknown topology change fields: {unknown}")
+        required = allowed - set(payload)
+        if required:
+            raise ValueError(f"missing topology change fields: {sorted(required)}")
+        return cls(
+            reaction_role=cast(TopologyReactionRole, str(payload["reaction_role"])),
+            transform_id=cast(TopologyTransformId, str(payload["transform_id"])),
+            reverse_rate_constant_s_inv_at_full_severity=float(
+                payload["reverse_rate_constant_s_inv_at_full_severity"]
             ),
         )
 
@@ -128,14 +309,80 @@ class RateLawFamilyChange:
         return {
             "reaction_role": self.reaction_role,
             "transform_id": self.transform_id,
-            "reference_temperature_K": self.reference_temperature_K,
-            "reference_rate_multiplier_at_full_severity": (
-                self.reference_rate_multiplier_at_full_severity
-            ),
-            "temperature_exponent_at_full_severity": (
-                self.temperature_exponent_at_full_severity
+            "reverse_rate_constant_s_inv_at_full_severity": (
+                self.reverse_rate_constant_s_inv_at_full_severity
             ),
         }
+
+
+@dataclass(frozen=True)
+class ConstitutiveLawFamilyChange:
+    """Declarative transform and calibration for a constitutive-law family."""
+
+    transform_id: ConstitutiveTransformId
+    partition_coefficient_exponent_at_full_severity: float | None = None
+    transfer_asymmetry_multiplier_at_full_severity: float | None = None
+    selectivity_decay_multiplier_at_full_severity: float | None = None
+    standard_potential_multiplier_at_full_severity: float | None = None
+    activity_coefficient_ratio_at_full_severity: float | None = None
+
+    def __post_init__(self) -> None:
+        calibration_fields = CONSTITUTIVE_TRANSFORM_CALIBRATION_FIELDS.get(self.transform_id)
+        if calibration_fields is None:
+            raise ValueError(f"unsupported constitutive-law transform: {self.transform_id}")
+        defaults = {
+            PARTITION_POWER_RESPONSE_STRESS: {
+                "partition_coefficient_exponent_at_full_severity": 1.75,
+            },
+            ELECTROCHEMICAL_RESPONSE_STRESS: {
+                "transfer_asymmetry_multiplier_at_full_severity": 1.4,
+                "selectivity_decay_multiplier_at_full_severity": 3.0,
+                "standard_potential_multiplier_at_full_severity": 1.25,
+            },
+            EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS: {
+                "activity_coefficient_ratio_at_full_severity": 6.0,
+            },
+        }[self.transform_id]
+        all_fields = {
+            field
+            for fields in CONSTITUTIVE_TRANSFORM_CALIBRATION_FIELDS.values()
+            for field in fields
+        }
+        for field_name in all_fields:
+            value = getattr(self, field_name)
+            if field_name not in calibration_fields and value is not None:
+                raise ValueError(f"{self.transform_id} does not accept {field_name}")
+        for field_name in calibration_fields:
+            value = getattr(self, field_name)
+            resolved = defaults[field_name] if value is None else float(value)
+            if not np.isfinite(resolved) or resolved <= 1.0:
+                raise ValueError(f"{field_name} must be finite and greater than one")
+            object.__setattr__(self, field_name, resolved)
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> ConstitutiveLawFamilyChange:
+        transform_id = str(payload.get("transform_id", ""))
+        calibration_fields = CONSTITUTIVE_TRANSFORM_CALIBRATION_FIELDS.get(transform_id)
+        if calibration_fields is None:
+            raise ValueError(f"unsupported constitutive-law transform: {transform_id}")
+        allowed = {"transform_id", *calibration_fields}
+        unknown = sorted(set(payload) - allowed)
+        if unknown:
+            raise ValueError(f"unknown constitutive-law change fields: {unknown}")
+        kwargs = {
+            field_name: (float(payload[field_name]) if field_name in payload else None)
+            for field_name in calibration_fields
+        }
+        return cls(
+            transform_id=cast(ConstitutiveTransformId, transform_id),
+            **kwargs,
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {"transform_id": self.transform_id}
+        for field_name in CONSTITUTIVE_TRANSFORM_CALIBRATION_FIELDS[self.transform_id]:
+            payload[field_name] = getattr(self, field_name)
+        return payload
 
 
 @dataclass(frozen=True)
@@ -143,6 +390,8 @@ class MechanismFamilyIntervention:
     mode: MechanismFamilyMode
     severity: float
     rate_law_change: RateLawFamilyChange | None = None
+    topology_change: TopologyFamilyChange | None = None
+    constitutive_law_change: ConstitutiveLawFamilyChange | None = None
 
     def __post_init__(self) -> None:
         if self.mode not in {
@@ -155,12 +404,23 @@ class MechanismFamilyIntervention:
             raise ValueError("mechanism-family severity must be finite and in (0, 1]")
         if self.mode != "rate_law_family" and self.rate_law_change is not None:
             raise ValueError("rate_law_change is only valid for rate_law_family")
+        if self.mode != "topology_family" and self.topology_change is not None:
+            raise ValueError("topology_change is only valid for topology_family")
+        if self.mode != "constitutive_law_family" and self.constitutive_law_change is not None:
+            raise ValueError("constitutive_law_change is only valid for constitutive_law_family")
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> MechanismFamilyIntervention:
         if payload.get("kind") != "mechanism_family":
             raise ValueError("mechanism intervention kind must be 'mechanism_family'")
-        allowed = {"kind", "mode", "severity", "rate_law_change"}
+        allowed = {
+            "kind",
+            "mode",
+            "severity",
+            "rate_law_change",
+            "topology_change",
+            "constitutive_law_change",
+        }
         unknown = sorted(set(payload) - allowed)
         if unknown:
             raise ValueError(f"unknown mechanism-family intervention fields: {unknown}")
@@ -168,12 +428,31 @@ class MechanismFamilyIntervention:
         rate_law_payload = payload.get("rate_law_change")
         if rate_law_payload is not None and not isinstance(rate_law_payload, dict):
             raise ValueError("rate_law_change must be an object")
+        topology_payload = payload.get("topology_change")
+        if topology_payload is not None and not isinstance(topology_payload, dict):
+            raise ValueError("topology_change must be an object")
+        constitutive_payload = payload.get("constitutive_law_change")
+        if constitutive_payload is not None and not isinstance(
+            constitutive_payload,
+            dict,
+        ):
+            raise ValueError("constitutive_law_change must be an object")
         return cls(
             mode=mode,
             severity=float(payload["severity"]),
             rate_law_change=(
                 RateLawFamilyChange.from_dict(rate_law_payload)
                 if isinstance(rate_law_payload, dict)
+                else None
+            ),
+            topology_change=(
+                TopologyFamilyChange.from_dict(topology_payload)
+                if isinstance(topology_payload, dict)
+                else None
+            ),
+            constitutive_law_change=(
+                ConstitutiveLawFamilyChange.from_dict(constitutive_payload)
+                if isinstance(constitutive_payload, dict)
                 else None
             ),
         )
@@ -186,6 +465,10 @@ class MechanismFamilyIntervention:
         }
         if self.mode == "rate_law_family":
             payload["rate_law_change"] = self.resolved_rate_law_change.to_dict()
+        elif self.mode == "topology_family":
+            payload["topology_change"] = self.resolved_topology_change.to_dict()
+        elif self.constitutive_law_change is not None:
+            payload["constitutive_law_change"] = self.constitutive_law_change.to_dict()
         return payload
 
     @property
@@ -193,6 +476,28 @@ class MechanismFamilyIntervention:
         if self.mode != "rate_law_family":
             raise ValueError("only rate_law_family has a rate-law change contract")
         return self.rate_law_change or RateLawFamilyChange()
+
+    @property
+    def resolved_topology_change(self) -> TopologyFamilyChange:
+        if self.mode != "topology_family":
+            raise ValueError("only topology_family has a topology change contract")
+        return self.topology_change or TopologyFamilyChange()
+
+    def resolved_constitutive_law_change(
+        self,
+        task_id: str,
+    ) -> ConstitutiveLawFamilyChange:
+        if self.mode != "constitutive_law_family":
+            raise ValueError("only constitutive_law_family has a constitutive-law contract")
+        expected_transform = CONSTITUTIVE_TASK_TRANSFORMS.get(task_id)
+        if expected_transform is None:
+            raise ValueError(f"task {task_id!r} has no registered constitutive-law transform")
+        change = self.constitutive_law_change or ConstitutiveLawFamilyChange(expected_transform)
+        if change.transform_id != expected_transform:
+            raise ValueError(
+                f"task {task_id!r} requires {expected_transform!r}, got {change.transform_id!r}"
+            )
+        return change
 
 
 def apply_mechanism_family_intervention(
@@ -214,25 +519,48 @@ def apply_mechanism_family_intervention(
             instance.compiled_mechanism.mechanism_hash,
         )
     )
+    constitutive_change = (
+        intervention.resolved_constitutive_law_change(task_id)
+        if intervention.mode == "constitutive_law_family"
+        else None
+    )
+    resolved_intervention = (
+        replace(
+            intervention,
+            constitutive_law_change=constitutive_change,
+        )
+        if constitutive_change is not None
+        else intervention
+    )
     contract_hash = mechanism_intervention_hash(
         base_mechanism_hash=base_hash,
-        intervention=intervention,
+        intervention=resolved_intervention,
     )
     domain_parameters = dict(instance.parameters.domain_parameters)
-    if intervention.mode == "constitutive_law_family":
-        if task_id == "partition-discovery":
+    if constitutive_change is not None:
+        if constitutive_change.transform_id == PARTITION_POWER_RESPONSE_STRESS:
+            full_exponent = constitutive_change.partition_coefficient_exponent_at_full_severity
+            if full_exponent is None:  # guarded by ConstitutiveLawFamilyChange
+                raise RuntimeError("partition constitutive calibration was not resolved")
             domain_parameters["partition_coefficient_exponent"] = (
-                1.0 + 0.75 * intervention.severity
+                1.0 + (full_exponent - 1.0) * intervention.severity
             )
-        elif task_id == "electrochemical-conversion":
+        elif constitutive_change.transform_id == ELECTROCHEMICAL_RESPONSE_STRESS:
+            transfer = constitutive_change.transfer_asymmetry_multiplier_at_full_severity
+            selectivity = constitutive_change.selectivity_decay_multiplier_at_full_severity
+            potential = constitutive_change.standard_potential_multiplier_at_full_severity
+            if (
+                transfer is None or selectivity is None or potential is None
+            ):  # guarded by ConstitutiveLawFamilyChange
+                raise RuntimeError("electrochemical constitutive calibration was not resolved")
             domain_parameters["electro_transfer_asymmetry_multiplier"] = (
-                1.0 + 0.40 * intervention.severity
+                1.0 + (transfer - 1.0) * intervention.severity
             )
             domain_parameters["electro_selectivity_decay_multiplier"] = (
-                1.0 + 2.00 * intervention.severity
+                1.0 + (selectivity - 1.0) * intervention.severity
             )
             domain_parameters["electro_standard_potential_multiplier"] = (
-                1.0 + 0.25 * intervention.severity
+                1.0 + (potential - 1.0) * intervention.severity
             )
     parameters = replace(
         instance.parameters,
@@ -247,9 +575,18 @@ def apply_mechanism_family_intervention(
         "mechanism_family_intervention_version": MECHANISM_FAMILY_INTERVENTION_VERSION,
         "mechanism_family_intervention_hash": contract_hash,
     }
-    if task_id == "equilibrium-characterization":
+    if constitutive_change is not None:
+        metadata["derived_constitutive_transform_id"] = constitutive_change.transform_id
+        metadata["derived_constitutive_calibration"] = constitutive_change.to_dict()
+    if (
+        constitutive_change is not None
+        and constitutive_change.transform_id == EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS
+    ):
+        activity_ratio = constitutive_change.activity_coefficient_ratio_at_full_severity
+        if activity_ratio is None:  # guarded by ConstitutiveLawFamilyChange
+            raise RuntimeError("equilibrium constitutive calibration was not resolved")
         metadata["equilibrium_activity_coefficient_ratio"] = exp(
-            log(6.0) * intervention.severity
+            log(activity_ratio) * intervention.severity
         )
     return replace(
         instance,
@@ -273,7 +610,11 @@ def derive_mechanism_family(
             intervention.resolved_rate_law_change,
         )
         if intervention.mode == "rate_law_family"
-        else _topology_variant(base, intervention.severity)
+        else _topology_variant(
+            base,
+            intervention.severity,
+            intervention.resolved_topology_change,
+        )
     )
     network = replace(
         network,
@@ -352,43 +693,81 @@ def _rate_law_variant(
     selected_index = _select_rate_law_reaction(
         base,
         reaction_role=change.reaction_role,
+        transform_id=change.transform_id,
     )
     reaction = reactions[selected_index]
     parameters = dict(reaction.rate_law.parameters)
-    reference_temperature = change.reference_temperature_K
-    activity_factor = exp(
-        log(change.reference_rate_multiplier_at_full_severity) * severity
-    )
-    if reaction.rate_law.equation_id == "arrhenius":
-        # A mechanism-family shift must be observable over the task's practical
-        # temperature/concentration range, not merely have a different equation id.
-        # The transform is an explicitly declared operational stress, not a claim
-        # that the synthetic multiplier is a fitted material constant.
-        exponent = change.temperature_exponent_at_full_severity * severity
-        parameters["b"] = exponent
-        parameters["A"] = (
-            float(parameters["A"])
-            * activity_factor
-            / reference_temperature**exponent
+    transform_metadata: dict[str, object]
+    if change.transform_id == CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS:
+        baseline_order = float(parameters.get("activity_order", 1.0))
+        full_severity_order = change.activity_order_at_full_severity
+        activity_pivot = change.catalyst_activity_pivot
+        if full_severity_order is None or activity_pivot is None:  # guarded by RateLawFamilyChange
+            raise RuntimeError("catalytic activity-order calibration was not resolved")
+        shifted_order = baseline_order + severity * (full_severity_order - baseline_order)
+        # Pivot-normalize the Arrhenius scale so the old and new laws cross at
+        # one declared catalyst activity.  This turns an order change into a
+        # relational low-dose/high-dose intervention instead of making every
+        # recipe uniformly faster or slower.
+        order_delta = shifted_order - baseline_order
+        parameters["A"] = float(parameters["A"]) * activity_pivot ** (-order_delta)
+        parameters["activity_order"] = shifted_order
+        reactions[selected_index] = replace(
+            reaction,
+            rate_law=replace(
+                reaction.rate_law,
+                rate_law_id=f"family-{reaction.rate_law.rate_law_id}",
+                parameters=parameters,
+            ),
         )
-        equation_id = "modified_arrhenius"
+        transform_metadata = {
+            "derived_family_baseline_activity_order": baseline_order,
+            "derived_family_activity_order": shifted_order,
+            "derived_family_activity_order_at_full_severity": full_severity_order,
+            "derived_family_catalyst_activity_pivot": activity_pivot,
+            "derived_family_activity_order_scale_multiplier": (activity_pivot ** (-order_delta)),
+        }
     else:
-        exponent = float(parameters.pop("b", 0.0))
-        parameters["A"] = (
-            float(parameters["A"])
-            * reference_temperature**exponent
-            / activity_factor
+        reference_temperature = change.reference_temperature_K
+        reference_multiplier = change.reference_rate_multiplier_at_full_severity
+        temperature_exponent = change.temperature_exponent_at_full_severity
+        if (
+            reference_temperature is None
+            or reference_multiplier is None
+            or temperature_exponent is None
+        ):  # guarded by RateLawFamilyChange
+            raise RuntimeError("Arrhenius form-and-scale calibration was not resolved")
+        activity_factor = exp(log(reference_multiplier) * severity)
+        if reaction.rate_law.equation_id == "arrhenius":
+            # A mechanism-family shift must be observable over the task's practical
+            # temperature/concentration range, not merely have a different equation id.
+            # The transform is an explicitly declared operational stress, not a claim
+            # that the synthetic multiplier is a fitted material constant.
+            exponent = temperature_exponent * severity
+            parameters["b"] = exponent
+            parameters["A"] = (
+                float(parameters["A"]) * activity_factor / reference_temperature**exponent
+            )
+            equation_id = "modified_arrhenius"
+        else:
+            exponent = float(parameters.pop("b", 0.0))
+            parameters["A"] = (
+                float(parameters["A"]) * reference_temperature**exponent / activity_factor
+            )
+            equation_id = "arrhenius"
+        reactions[selected_index] = replace(
+            reaction,
+            rate_law=replace(
+                reaction.rate_law,
+                rate_law_id=f"family-{reaction.rate_law.rate_law_id}",
+                equation_id=equation_id,
+                parameters=parameters,
+            ),
         )
-        equation_id = "arrhenius"
-    reactions[selected_index] = replace(
-        reaction,
-        rate_law=replace(
-            reaction.rate_law,
-            rate_law_id=f"family-{reaction.rate_law.rate_law_id}",
-            equation_id=equation_id,
-            parameters=parameters,
-        ),
-    )
+        transform_metadata = {
+            "derived_family_reference_temperature_K": reference_temperature,
+            "derived_family_reference_rate_multiplier": activity_factor,
+        }
     return replace(
         network,
         network_id=f"{network.network_id}-family",
@@ -399,8 +778,7 @@ def _rate_law_variant(
             "derived_family_target_reaction_id": reaction.reaction_id,
             "derived_family_target_reaction_role": change.reaction_role,
             "derived_family_transform_id": change.transform_id,
-            "derived_family_reference_temperature_K": reference_temperature,
-            "derived_family_reference_rate_multiplier": activity_factor,
+            **transform_metadata,
         },
     )
 
@@ -409,9 +787,15 @@ def _select_rate_law_reaction(
     base: CompiledMechanism,
     *,
     reaction_role: RateLawReactionRole,
+    transform_id: RateLawTransformId,
 ) -> int:
     """Resolve a semantic reaction role without depending on declaration order."""
 
+    supported_equations = (
+        {"catalytic_activity"}
+        if transform_id == CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS
+        else {"arrhenius", "modified_arrhenius"}
+    )
     targets = set(base.score_spec.target_species)
     limiting = base.score_spec.initial_limiting_species
     feed_species = {limiting}
@@ -422,7 +806,7 @@ def _select_rate_law_reaction(
     )
     candidates: list[int] = []
     for index, reaction in enumerate(base.network.reactions):
-        if reaction.rate_law.equation_id not in {"arrhenius", "modified_arrhenius"}:
+        if reaction.rate_law.equation_id not in supported_equations:
             continue
         reactants = set(reaction.reactants)
         products = set(reaction.products)
@@ -440,23 +824,32 @@ def _select_rate_law_reaction(
         reaction_ids = [base.network.reactions[index].reaction_id for index in candidates]
         raise ValueError(
             f"mechanism {base.network.network_id!r} requires exactly one transformable "
-            f"{reaction_role!r} rate law; found {reaction_ids}"
+            f"{reaction_role!r} rate law for {transform_id!r}; found {reaction_ids}"
         )
     return candidates[0]
 
 
-def _topology_variant(base: CompiledMechanism, severity: float) -> ReactionNetworkSpec:
+def _topology_variant(
+    base: CompiledMechanism,
+    severity: float,
+    change: TopologyFamilyChange,
+) -> ReactionNetworkSpec:
     network = base.network
     limiting = base.score_spec.initial_limiting_species
     targets = set(base.score_spec.target_species)
-    forward = next(
-        (
-            reaction
-            for reaction in network.reactions
-            if limiting in reaction.reactants and targets.intersection(reaction.products)
-        ),
-        network.reactions[0],
-    )
+    candidates = [
+        reaction
+        for reaction in network.reactions
+        if limiting in reaction.reactants and targets.intersection(reaction.products)
+    ]
+    if len(candidates) != 1:
+        raise ValueError(
+            f"mechanism {network.network_id!r} requires exactly one "
+            f"{change.reaction_role!r} topology target; found "
+            f"{[reaction.reaction_id for reaction in candidates]}"
+        )
+    forward = candidates[0]
+    reverse_rate_constant = change.reverse_rate_constant_s_inv_at_full_severity * severity
     reverse = ReactionSpec(
         reaction_id="family_reverse_channel",
         equation=f"reverse({forward.equation})",
@@ -467,30 +860,56 @@ def _topology_variant(base: CompiledMechanism, severity: float) -> ReactionNetwo
         rate_law=RateLawSpec(
             rate_law_id="family_reverse_mass_action",
             equation_id="mass_action",
-            parameters={"k": 0.00025 * exp(log(2.0) * severity)},
+            parameters={"k": reverse_rate_constant},
         ),
         delta_h_J_per_mol=-forward.delta_h_J_per_mol,
-        metadata={"derived_family": True},
+        metadata={
+            "derived_family": True,
+            "derived_family_transform_id": change.transform_id,
+            "derived_family_target_reaction_id": forward.reaction_id,
+            "derived_family_target_reaction_role": change.reaction_role,
+        },
     )
     return replace(
         network,
         network_id=f"{network.network_id}-family",
         reactions=(*network.reactions, reverse),
-        metadata={**network.metadata, "derived_family": True},
+        metadata={
+            **network.metadata,
+            "derived_family": True,
+            "derived_family_transform_id": change.transform_id,
+            "derived_family_target_reaction_id": forward.reaction_id,
+            "derived_family_target_reaction_role": change.reaction_role,
+            "derived_family_reverse_rate_constant_s_inv": reverse_rate_constant,
+            "derived_family_reverse_rate_constant_s_inv_at_full_severity": (
+                change.reverse_rate_constant_s_inv_at_full_severity
+            ),
+        },
     )
 
 
 __all__ = [
+    "ARRHENIUS_FORM_AND_SCALE_STRESS",
+    "CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS",
     "CONSTITUTIVE_MECHANISM_TASKS",
+    "CONSTITUTIVE_TASK_TRANSFORMS",
+    "CONSTITUTIVE_TRANSFORM_CALIBRATION_FIELDS",
     "ELECTROCHEMICAL_MECHANISM_TASKS",
+    "ELECTROCHEMICAL_RESPONSE_STRESS",
+    "EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS",
     "EQUILIBRIUM_MECHANISM_TASKS",
     "MECHANISM_FAMILY_INTERVENTION_VERSION",
     "MECHANISM_REACHABLE_TASKS",
     "MECHANISM_TASK_MODES",
     "PARTITION_MECHANISM_TASKS",
+    "PARTITION_POWER_RESPONSE_STRESS",
+    "RATE_LAW_TRANSFORM_CALIBRATION_FIELDS",
     "REACTION_MECHANISM_TASKS",
+    "REVERSIBLE_TARGET_PATHWAY_STRESS",
+    "ConstitutiveLawFamilyChange",
     "MechanismFamilyIntervention",
     "RateLawFamilyChange",
+    "TopologyFamilyChange",
     "apply_mechanism_family_intervention",
     "derive_mechanism_family",
     "mechanism_intervention_hash",

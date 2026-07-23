@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -22,9 +22,19 @@ from chemworld.agents.task_recipes import task_recipe_from_unit_vector
 from chemworld.envs.chemworld_env import ChemWorldEnv
 from chemworld.task_design import SERIOUS_TASK_DESIGNS
 from chemworld.tasks import get_task
+from chemworld.world.mechanism_family import (
+    CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS,
+    CONSTITUTIVE_TASK_TRANSFORMS,
+    CONSTITUTIVE_TRANSFORM_CALIBRATION_FIELDS,
+    ELECTROCHEMICAL_RESPONSE_STRESS,
+    EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS,
+    PARTITION_POWER_RESPONSE_STRESS,
+    RATE_LAW_TRANSFORM_CALIBRATION_FIELDS,
+    REVERSIBLE_TARGET_PATHWAY_STRESS,
+)
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
-DESIGN_AUDIT_SCHEMA_VERSION = "chemworld-mechanism-design-audit-0.2.2"
+DESIGN_AUDIT_SCHEMA_VERSION = "chemworld-mechanism-design-audit-0.2.4"
 
 MATERIAL_FIELD_ACTIONS: dict[str, tuple[str, str]] = {
     "catalyst": ("add_catalyst", "catalyst"),
@@ -34,6 +44,8 @@ MATERIAL_FIELD_ACTIONS: dict[str, tuple[str, str]] = {
 
 _MECHANISM_CONTROL_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {
     "rate_law_family": (
+        ("add_catalyst", "catalyst"),
+        ("add_catalyst", "catalyst_amount_mol"),
         ("heat", "target_temperature_K"),
         ("heat", "duration_s"),
     ),
@@ -73,9 +85,7 @@ def audit_mechanism_design(
 
     findings: list[dict[str, Any]] = []
     task_reports: dict[str, Any] = {}
-    definitions = protocol.get("diagnosis_contract", {}).get(
-        "candidate_definitions", {}
-    )
+    definitions = protocol.get("diagnosis_contract", {}).get("candidate_definitions", {})
     contracts = protocol.get("task_mechanism_contracts", {})
 
     for task_id in protocol.get("design", {}).get("tasks", []):
@@ -90,6 +100,7 @@ def audit_mechanism_design(
         }
         recipe_values = _recipe_field_values(recipes)
         task_findings: list[dict[str, Any]] = []
+        decision_baseline_cache: dict[tuple[int, str], dict[str, float]] = {}
 
         if not action_library:
             _add(
@@ -120,8 +131,7 @@ def audit_mechanism_design(
             _add(
                 task_findings,
                 f"{candidate_id}:single_intervention",
-                isinstance(candidate_interventions, list)
-                and len(candidate_interventions) == 1,
+                isinstance(candidate_interventions, list) and len(candidate_interventions) == 1,
                 "Each certification cell must change exactly one hidden law family.",
             )
             if not isinstance(candidate_interventions, list) or len(candidate_interventions) != 1:
@@ -141,18 +151,29 @@ def audit_mechanism_design(
                     intervention=intervention,
                     recipe_values=recipe_values,
                 )
-                _audit_material_decision_relevance(
-                    task_findings,
-                    task_id=task_id,
-                    candidate_id=candidate_id,
-                    intervention=intervention,
-                    action_library=action_library,
-                    certificate=gate_a_plan.get("decision_relevance_certificate", {}),
-                )
             else:
                 mode = str(intervention.get("mode", ""))
                 if mode == "rate_law_family":
                     _audit_rate_law_alignment(
+                        task_findings,
+                        task_id=task_id,
+                        candidate_id=candidate_id,
+                        intervention=intervention,
+                        recipes=recipes,
+                        response_certificate=gate_a_plan.get(
+                            "rate_law_response_certificate",
+                            {},
+                        ),
+                    )
+                elif mode == "topology_family":
+                    _audit_topology_alignment(
+                        task_findings,
+                        task_id=task_id,
+                        candidate_id=candidate_id,
+                        intervention=intervention,
+                    )
+                elif mode == "constitutive_law_family":
+                    _audit_constitutive_alignment(
                         task_findings,
                         task_id=task_id,
                         candidate_id=candidate_id,
@@ -171,6 +192,15 @@ def audit_mechanism_design(
                     "At least one public control implicated by the hidden law must vary "
                     f"across frozen recipes; varied={varied}.",
                 )
+            _audit_intervention_decision_relevance(
+                task_findings,
+                task_id=task_id,
+                candidate_id=candidate_id,
+                intervention=intervention,
+                action_library=action_library,
+                certificate=gate_a_plan.get("decision_relevance_certificate", {}),
+                baseline_cache=decision_baseline_cache,
+            )
 
         prompt_check = _audit_prompt_boundary(
             task_id=task_id,
@@ -219,6 +249,8 @@ def _audit_rate_law_alignment(
     task_id: str,
     candidate_id: str,
     intervention: Mapping[str, Any],
+    recipes: Mapping[str, Mapping[str, Any]],
+    response_certificate: Mapping[str, Any],
 ) -> None:
     """Prove that a declared semantic pathway, and only that pathway, is changed."""
 
@@ -231,23 +263,27 @@ def _audit_rate_law_alignment(
         "A formal rate-law cell must declare its reaction role, transform, and "
         "calibration instead of selecting a reaction by declaration order.",
     )
-    if not explicit:
+    if not isinstance(change, Mapping):
         return
+    declared_transform_id = str(change.get("transform_id", ""))
     required_fields = {
         "reaction_role",
         "transform_id",
-        "reference_temperature_K",
-        "reference_rate_multiplier_at_full_severity",
-        "temperature_exponent_at_full_severity",
+        *RATE_LAW_TRANSFORM_CALIBRATION_FIELDS.get(
+            declared_transform_id,
+            frozenset(),
+        ),
     }
     missing = sorted(required_fields - set(change))
+    unsupported_transform = declared_transform_id not in RATE_LAW_TRANSFORM_CALIBRATION_FIELDS
     _add(
         findings,
         f"{candidate_id}:complete_rate_law_change_contract",
-        not missing,
-        f"Missing rate-law contract fields: {missing}.",
+        not missing and not unsupported_transform,
+        f"Missing rate-law contract fields: {missing}; "
+        f"unsupported_transform={unsupported_transform}.",
     )
-    if missing:
+    if missing or unsupported_transform:
         return
 
     generator = DefaultScenarioGenerator()
@@ -255,30 +291,29 @@ def _audit_rate_law_alignment(
     changed_reactions: list[str] = []
     target_reaction_id: str | None = None
     target_role: str | None = None
-    transform_id: str | None = None
+    executed_transform_id: str | None = None
     domain_parameters_unchanged = False
+    baseline_rate_law: Any | None = None
+    shifted_rate_law: Any | None = None
     try:
         scenario = get_scenario(task_id)
         baseline = generator.generate(scenario, 0)
         shifted = generator.generate(scenario, 0, (dict(intervention),))
-        changed_reactions = [
-            before.reaction_id
-            for before, after in zip(
-                baseline.compiled_mechanism.network.reactions,
-                shifted.compiled_mechanism.network.reactions,
-                strict=True,
-            )
-            if before.rate_law.to_dict() != after.rate_law.to_dict()
-        ]
+        for before, after in zip(
+            baseline.compiled_mechanism.network.reactions,
+            shifted.compiled_mechanism.network.reactions,
+            strict=True,
+        ):
+            if before.rate_law.to_dict() != after.rate_law.to_dict():
+                changed_reactions.append(before.reaction_id)
+                baseline_rate_law = before.rate_law
+                shifted_rate_law = after.rate_law
         metadata = shifted.compiled_mechanism.network.metadata
-        target_reaction_id = str(
-            metadata.get("derived_family_target_reaction_id", "")
-        )
+        target_reaction_id = str(metadata.get("derived_family_target_reaction_id", ""))
         target_role = str(metadata.get("derived_family_target_reaction_role", ""))
-        transform_id = str(metadata.get("derived_family_transform_id", ""))
+        executed_transform_id = str(metadata.get("derived_family_transform_id", ""))
         domain_parameters_unchanged = (
-            baseline.parameters.domain_parameters
-            == shifted.parameters.domain_parameters
+            baseline.parameters.domain_parameters == shifted.parameters.domain_parameters
         )
     except Exception as exc:  # pragma: no cover - details are returned to the audit
         error = f"{type(exc).__name__}: {exc}"
@@ -286,9 +321,7 @@ def _audit_rate_law_alignment(
     _add(
         findings,
         f"{candidate_id}:single_declared_reaction_changed",
-        error is None
-        and len(changed_reactions) == 1
-        and changed_reactions == [target_reaction_id],
+        error is None and len(changed_reactions) == 1 and changed_reactions == [target_reaction_id],
         "Exactly one rate law must change and it must equal the resolved semantic "
         f"target; changed={changed_reactions}, target={target_reaction_id}, error={error}.",
     )
@@ -302,9 +335,10 @@ def _audit_rate_law_alignment(
     _add(
         findings,
         f"{candidate_id}:declared_rate_law_transform_bound",
-        error is None and transform_id == str(change["transform_id"]),
+        error is None and executed_transform_id == str(change["transform_id"]),
         "The executed mechanism must bind the declared transform; "
-        f"declared={change['transform_id']}, executed={transform_id}, error={error}.",
+        f"declared={change['transform_id']}, "
+        f"executed={executed_transform_id}, error={error}.",
     )
     _add(
         findings,
@@ -313,6 +347,111 @@ def _audit_rate_law_alignment(
         "A reaction rate-law intervention must not also change crystallization or "
         f"other constitutive domain parameters; unchanged={domain_parameters_unchanged}, "
         f"error={error}.",
+    )
+    if str(change["transform_id"]) == CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS:
+        _audit_pivot_rate_law_response(
+            findings,
+            candidate_id=candidate_id,
+            recipes=recipes,
+            response_certificate=response_certificate,
+            baseline_rate_law=baseline_rate_law,
+            shifted_rate_law=shifted_rate_law,
+            error=error,
+        )
+
+
+def _audit_pivot_rate_law_response(
+    findings: list[dict[str, Any]],
+    *,
+    candidate_id: str,
+    recipes: Mapping[str, Mapping[str, Any]],
+    response_certificate: Mapping[str, Any],
+    baseline_rate_law: Any | None,
+    shifted_rate_law: Any | None,
+    error: str | None,
+) -> None:
+    """Require a bounded, sign-crossing response over frozen public doses."""
+
+    declared = (
+        response_certificate.get("required") is True
+        and response_certificate.get("require_crosses_unity") is True
+    )
+    _add(
+        findings,
+        f"{candidate_id}:rate_law_response_certificate_declared",
+        declared,
+        "Pivot-normalized rate-law cells require a preregistered response envelope.",
+    )
+    if not declared:
+        return
+    response_error = error
+    activities: list[float] = []
+    multipliers: list[float] = []
+    try:
+        if baseline_rate_law is None or shifted_rate_law is None:
+            raise ValueError("resolved baseline and shifted rate laws are required")
+        baseline_parameters = baseline_rate_law.parameters
+        shifted_parameters = shifted_rate_law.parameters
+        reference_concentration = float(baseline_parameters["reference_concentration_mol_L"])
+        baseline_order = float(baseline_parameters["activity_order"])
+        shifted_order = float(shifted_parameters["activity_order"])
+        scale_ratio = float(shifted_parameters["A"]) / float(baseline_parameters["A"])
+        for recipe in recipes.values():
+            steps = recipe.get("steps", ())
+            solvent_volume = sum(
+                float(step.get("volume_L", 0.0))
+                for step in steps
+                if step.get("operation") == "add_solvent"
+            )
+            catalyst_amount = sum(
+                float(step.get("catalyst_amount_mol", 0.0))
+                for step in steps
+                if step.get("operation") == "add_catalyst"
+            )
+            if solvent_volume <= 0.0 or catalyst_amount <= 0.0:
+                raise ValueError("each frozen recipe requires positive solvent and catalyst")
+            activity = catalyst_amount / solvent_volume / reference_concentration
+            multiplier = scale_ratio * activity ** (shifted_order - baseline_order)
+            activities.append(float(activity))
+            multipliers.append(float(multiplier))
+        if len({round(value, 12) for value in activities}) < 2 or not all(
+            np.isfinite(value) and value > 0.0 for value in multipliers
+        ):
+            raise ValueError("frozen recipes do not span finite positive rate responses")
+    except Exception as exc:  # pragma: no cover - details are returned to the audit
+        response_error = f"{type(exc).__name__}: {exc}"
+
+    minimum = float(response_certificate["minimum_response_multiplier"])
+    maximum = float(response_certificate["maximum_response_multiplier"])
+    valid_envelope = 0.0 < minimum < 1.0 < maximum
+    bounded = (
+        response_error is None
+        and valid_envelope
+        and bool(multipliers)
+        and min(multipliers) >= minimum
+        and max(multipliers) <= maximum
+    )
+    crosses_unity = (
+        response_error is None
+        and bool(multipliers)
+        and min(multipliers) < 1.0
+        and max(multipliers) > 1.0
+    )
+    _add(
+        findings,
+        f"{candidate_id}:bounded_frozen_rate_response",
+        bounded,
+        "Frozen public catalyst doses must remain inside the preregistered "
+        f"response envelope; activities={activities}, multipliers={multipliers}, "
+        f"bounds=({minimum}, {maximum}), valid_envelope={valid_envelope}, "
+        f"error={response_error}.",
+    )
+    _add(
+        findings,
+        f"{candidate_id}:frozen_rate_response_crosses_unity",
+        crosses_unity,
+        "A pivot-normalized response must make low/high public probes fall on "
+        f"opposite sides of unity; multipliers={multipliers}, error={response_error}.",
     )
 
 
@@ -343,6 +482,135 @@ def _audit_environment_reset(
         error is None,
         "The task must reset under the declared intervention."
         + (f" error={error}" if error else ""),
+    )
+
+
+def _audit_topology_alignment(
+    findings: list[dict[str, Any]],
+    *,
+    task_id: str,
+    candidate_id: str,
+    intervention: Mapping[str, Any],
+) -> None:
+    """Prove that one declared reverse channel, and no other law, is added."""
+
+    change = intervention.get("topology_change")
+    required_fields = {
+        "reaction_role",
+        "transform_id",
+        "reverse_rate_constant_s_inv_at_full_severity",
+    }
+    explicit = isinstance(change, Mapping)
+    _add(
+        findings,
+        f"{candidate_id}:explicit_topology_change_contract",
+        explicit,
+        "A formal topology cell must declare its target role, transform, and "
+        "reverse-channel calibration.",
+    )
+    if not isinstance(change, Mapping):
+        _add(
+            findings,
+            f"{candidate_id}:complete_topology_change_contract",
+            False,
+            "Topology contract must contain exactly the registered fields; declared=None.",
+        )
+        return
+    complete = (
+        set(change) == required_fields
+        and change.get("transform_id") == REVERSIBLE_TARGET_PATHWAY_STRESS
+    )
+    _add(
+        findings,
+        f"{candidate_id}:complete_topology_change_contract",
+        complete,
+        f"Topology contract must contain exactly the registered fields; declared={sorted(change)}.",
+    )
+    if not complete:
+        return
+
+    error: str | None = None
+    existing_unchanged = False
+    added_reaction_ids: list[str] = []
+    target_reaction_id = ""
+    target_role = ""
+    transform_id = ""
+    reverse_rate_constant: float | None = None
+    domain_parameters_unchanged = False
+    try:
+        generator = DefaultScenarioGenerator()
+        scenario = get_scenario(task_id)
+        baseline = generator.generate(scenario, 0)
+        shifted = generator.generate(scenario, 0, (dict(intervention),))
+        baseline_reactions = baseline.compiled_mechanism.network.reactions
+        shifted_reactions = shifted.compiled_mechanism.network.reactions
+        existing_unchanged = all(
+            before.to_dict() == after.to_dict()
+            for before, after in zip(
+                baseline_reactions,
+                shifted_reactions[: len(baseline_reactions)],
+                strict=True,
+            )
+        )
+        added = shifted_reactions[len(baseline_reactions) :]
+        added_reaction_ids = [reaction.reaction_id for reaction in added]
+        metadata = shifted.compiled_mechanism.network.metadata
+        target_reaction_id = str(metadata.get("derived_family_target_reaction_id", ""))
+        target_role = str(metadata.get("derived_family_target_reaction_role", ""))
+        transform_id = str(metadata.get("derived_family_transform_id", ""))
+        reverse_rate_constant = float(
+            cast(
+                Any,
+                metadata["derived_family_reverse_rate_constant_s_inv"],
+            )
+        )
+        domain_parameters_unchanged = (
+            baseline.parameters.domain_parameters == shifted.parameters.domain_parameters
+        )
+    except Exception as exc:  # pragma: no cover - details are returned to the audit
+        error = f"{type(exc).__name__}: {exc}"
+
+    expected_rate_constant = float(change["reverse_rate_constant_s_inv_at_full_severity"]) * float(
+        intervention["severity"]
+    )
+    _add(
+        findings,
+        f"{candidate_id}:single_declared_topology_channel_added",
+        error is None and existing_unchanged and added_reaction_ids == ["family_reverse_channel"],
+        "Existing reactions must remain identical and exactly one declared channel "
+        f"must be added; existing_unchanged={existing_unchanged}, "
+        f"added={added_reaction_ids}, error={error}.",
+    )
+    _add(
+        findings,
+        f"{candidate_id}:semantic_topology_role_bound",
+        error is None and target_role == str(change["reaction_role"]) and bool(target_reaction_id),
+        "Executed topology must bind the declared semantic target; "
+        f"target={target_reaction_id}, role={target_role}, error={error}.",
+    )
+    _add(
+        findings,
+        f"{candidate_id}:declared_topology_transform_bound",
+        error is None and transform_id == str(change["transform_id"]),
+        "Executed topology must bind the declared transform; "
+        f"declared={change['transform_id']}, executed={transform_id}, error={error}.",
+    )
+    _add(
+        findings,
+        f"{candidate_id}:topology_rate_calibration_bound",
+        error is None
+        and reverse_rate_constant is not None
+        and bool(np.isclose(reverse_rate_constant, expected_rate_constant)),
+        "Executed reverse-channel rate must equal severity times the declared "
+        f"full-severity value; expected={expected_rate_constant}, "
+        f"executed={reverse_rate_constant}, error={error}.",
+    )
+    _add(
+        findings,
+        f"{candidate_id}:topology_domain_parameters_unchanged",
+        error is None and domain_parameters_unchanged,
+        "A topology intervention must not also change constitutive domain "
+        f"parameters; unchanged={domain_parameters_unchanged}, error={error}.",
     )
 
 
@@ -412,7 +680,158 @@ def _audit_material_alignment(
     )
 
 
-def _audit_material_decision_relevance(
+def _audit_constitutive_alignment(
+    findings: list[dict[str, Any]],
+    *,
+    task_id: str,
+    candidate_id: str,
+    intervention: Mapping[str, Any],
+) -> None:
+    """Bind a formal constitutive cell to one registered parameter contract."""
+
+    change = intervention.get("constitutive_law_change")
+    explicit = isinstance(change, Mapping)
+    _add(
+        findings,
+        f"{candidate_id}:explicit_constitutive_change_contract",
+        explicit,
+        "A formal constitutive cell must declare its transform and all calibration parameters.",
+    )
+    if not isinstance(change, Mapping):
+        _add(
+            findings,
+            f"{candidate_id}:complete_constitutive_change_contract",
+            False,
+            "Constitutive contract must exactly match the task transform registry; "
+            "declared_fields=None.",
+        )
+        return
+    transform_id = str(change.get("transform_id", ""))
+    calibration_fields = CONSTITUTIVE_TRANSFORM_CALIBRATION_FIELDS.get(
+        transform_id,
+        frozenset(),
+    )
+    required_fields = {"transform_id", *calibration_fields}
+    expected_transform = CONSTITUTIVE_TASK_TRANSFORMS.get(task_id)
+    complete = (
+        bool(calibration_fields)
+        and set(change) == required_fields
+        and transform_id == expected_transform
+    )
+    _add(
+        findings,
+        f"{candidate_id}:complete_constitutive_change_contract",
+        complete,
+        "Constitutive contract must exactly match the task transform registry; "
+        f"expected_transform={expected_transform}, declared_transform={transform_id}, "
+        f"declared_fields={sorted(change) if isinstance(change, Mapping) else None}.",
+    )
+    if not complete:
+        return
+
+    error: str | None = None
+    network_unchanged = False
+    executed_transform = ""
+    changed_domain_parameters: dict[str, float] = {}
+    expected_domain_parameters: dict[str, float] = {}
+    equilibrium_ratio: float | None = None
+    expected_equilibrium_ratio: float | None = None
+    try:
+        generator = DefaultScenarioGenerator()
+        scenario = get_scenario(task_id)
+        baseline = generator.generate(scenario, 0)
+        shifted = generator.generate(scenario, 0, (dict(intervention),))
+        network_unchanged = (
+            baseline.compiled_mechanism.mechanism_hash == shifted.compiled_mechanism.mechanism_hash
+        )
+        executed_transform = str(
+            shifted.initial_state.metadata.get(
+                "derived_constitutive_transform_id",
+                "",
+            )
+        )
+        severity = float(intervention["severity"])
+        if transform_id == ELECTROCHEMICAL_RESPONSE_STRESS:
+            expected_domain_parameters = {
+                "electro_transfer_asymmetry_multiplier": (
+                    1.0
+                    + (float(change["transfer_asymmetry_multiplier_at_full_severity"]) - 1.0)
+                    * severity
+                ),
+                "electro_selectivity_decay_multiplier": (
+                    1.0
+                    + (float(change["selectivity_decay_multiplier_at_full_severity"]) - 1.0)
+                    * severity
+                ),
+                "electro_standard_potential_multiplier": (
+                    1.0
+                    + (float(change["standard_potential_multiplier_at_full_severity"]) - 1.0)
+                    * severity
+                ),
+            }
+        elif transform_id == PARTITION_POWER_RESPONSE_STRESS:
+            expected_domain_parameters = {
+                "partition_coefficient_exponent": (
+                    1.0
+                    + (float(change["partition_coefficient_exponent_at_full_severity"]) - 1.0)
+                    * severity
+                )
+            }
+        elif transform_id == EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS:
+            expected_equilibrium_ratio = (
+                float(change["activity_coefficient_ratio_at_full_severity"]) ** severity
+            )
+            equilibrium_ratio = float(
+                shifted.initial_state.metadata["equilibrium_activity_coefficient_ratio"]
+            )
+        for key in set(baseline.parameters.domain_parameters) | set(
+            shifted.parameters.domain_parameters
+        ):
+            before = float(baseline.parameters.domain_parameters.get(key, 1.0))
+            after = float(shifted.parameters.domain_parameters.get(key, 1.0))
+            if not np.isclose(before, after):
+                changed_domain_parameters[key] = after
+    except Exception as exc:  # pragma: no cover - details are returned to the audit
+        error = f"{type(exc).__name__}: {exc}"
+
+    domain_calibration_bound = (
+        error is None
+        and set(changed_domain_parameters) == set(expected_domain_parameters)
+        and all(
+            np.isclose(changed_domain_parameters[key], expected)
+            for key, expected in expected_domain_parameters.items()
+        )
+    )
+    equilibrium_calibration_bound = expected_equilibrium_ratio is None or (
+        equilibrium_ratio is not None and np.isclose(equilibrium_ratio, expected_equilibrium_ratio)
+    )
+    _add(
+        findings,
+        f"{candidate_id}:constitutive_network_unchanged",
+        error is None and network_unchanged,
+        "A constitutive intervention must not rewrite the reaction network; "
+        f"unchanged={network_unchanged}, error={error}.",
+    )
+    _add(
+        findings,
+        f"{candidate_id}:declared_constitutive_transform_bound",
+        error is None and executed_transform == transform_id,
+        "Executed constitutive transform must equal the declared transform; "
+        f"declared={transform_id}, executed={executed_transform}, error={error}.",
+    )
+    _add(
+        findings,
+        f"{candidate_id}:constitutive_calibration_bound",
+        bool(domain_calibration_bound and equilibrium_calibration_bound),
+        "Exactly the declared constitutive parameters must change to their "
+        f"severity-interpolated values; expected_domain={expected_domain_parameters}, "
+        f"executed_domain={changed_domain_parameters}, "
+        f"expected_equilibrium_ratio={expected_equilibrium_ratio}, "
+        f"executed_equilibrium_ratio={equilibrium_ratio}, error={error}.",
+    )
+
+
+def _audit_intervention_decision_relevance(
     findings: list[dict[str, Any]],
     *,
     task_id: str,
@@ -420,15 +839,16 @@ def _audit_material_decision_relevance(
     intervention: Mapping[str, Any],
     action_library: Mapping[str, np.ndarray],
     certificate: Mapping[str, Any],
+    baseline_cache: dict[tuple[int, str], dict[str, float]],
 ) -> None:
-    """Check that a reachable counterfactual changes consequential decisions."""
+    """Check that every hidden-law change makes adaptation consequential."""
 
     if certificate.get("required") is not True:
         _add(
             findings,
             f"{candidate_id}:decision_relevance_certificate_declared",
             False,
-            "Material counterfactuals require a preregistered decision-relevance certificate.",
+            "Every changed mechanism requires a preregistered decision-relevance certificate.",
         )
         return
     seeds = [int(seed) for seed in certificate.get("world_seeds", ())]
@@ -441,23 +861,38 @@ def _audit_material_decision_relevance(
         )
         return
     primary_metric = SERIOUS_TASK_DESIGNS[task_id].primary_metric
-    max_effects: list[float] = []
-    old_policy_regrets: list[float] = []
-    optimal_changes: list[float] = []
+    required_metric_ids = tuple(
+        str(item) for item in certificate.get("required_metric_ids", ("task_primary",))
+    )
+    supported_metric_ids = {"task_primary", "leaderboard_score"}
+    unsupported = sorted(set(required_metric_ids) - supported_metric_ids)
+    if not required_metric_ids or unsupported:
+        _add(
+            findings,
+            f"{candidate_id}:decision_relevance_metrics",
+            False,
+            "Decision relevance requires supported metric IDs; "
+            f"required={list(required_metric_ids)}, unsupported={unsupported}.",
+        )
+        return
+    baseline_by_seed: dict[int, dict[str, dict[str, float]]] = {}
+    shifted_by_seed: dict[int, dict[str, dict[str, float]]] = {}
     for seed in seeds:
-        baseline = {
-            action_id: _execute_recipe_primary(
-                task_id,
-                vector,
-                seed=seed,
-                observation_seed=1_700_000_000 + seed,
-                interventions=(),
-                primary_metric=primary_metric,
-            )
-            for action_id, vector in action_library.items()
-        }
-        shifted = {
-            action_id: _execute_recipe_primary(
+        baseline_by_seed[seed] = {}
+        shifted_by_seed[seed] = {}
+        for action_id, vector in action_library.items():
+            cache_key = (seed, action_id)
+            if cache_key not in baseline_cache:
+                baseline_cache[cache_key] = _execute_recipe_metrics(
+                    task_id,
+                    vector,
+                    seed=seed,
+                    observation_seed=1_700_000_000 + seed,
+                    interventions=(),
+                    primary_metric=primary_metric,
+                )
+            baseline_by_seed[seed][action_id] = baseline_cache[cache_key]
+            shifted_by_seed[seed][action_id] = _execute_recipe_metrics(
                 task_id,
                 vector,
                 seed=seed,
@@ -465,41 +900,64 @@ def _audit_material_decision_relevance(
                 interventions=(intervention,),
                 primary_metric=primary_metric,
             )
-            for action_id, vector in action_library.items()
-        }
-        baseline_best = max(baseline, key=baseline.__getitem__)
-        shifted_best = max(shifted, key=shifted.__getitem__)
-        max_effects.append(
-            max(abs(shifted[key] - baseline[key]) for key in baseline)
-        )
-        old_policy_regrets.append(
-            max(shifted.values()) - shifted[baseline_best]
-        )
-        optimal_changes.append(float(baseline_best != shifted_best))
-    median_effect = float(np.median(max_effects))
-    median_regret = float(np.median(old_policy_regrets))
-    optimal_change_rate = float(np.mean(optimal_changes))
-    effect_threshold = float(certificate["minimum_median_max_primary_effect"])
+    effect_threshold = float(certificate["minimum_median_max_metric_effect"])
     regret_threshold = float(certificate["minimum_median_old_policy_regret"])
     change_threshold = float(certificate["minimum_optimal_action_change_rate"])
-    passed = median_effect >= effect_threshold and (
-        median_regret >= regret_threshold or optimal_change_rate >= change_threshold
-    )
+    metric_results: dict[str, dict[str, float | bool | str]] = {}
+    for metric_id in required_metric_ids:
+        max_effects: list[float] = []
+        old_policy_regrets: list[float] = []
+        optimal_changes: list[float] = []
+        for seed in seeds:
+            baseline = {
+                action_id: values[metric_id] for action_id, values in baseline_by_seed[seed].items()
+            }
+            shifted = {
+                action_id: values[metric_id] for action_id, values in shifted_by_seed[seed].items()
+            }
+            baseline_best = max(baseline, key=baseline.__getitem__)
+            shifted_best = max(shifted, key=shifted.__getitem__)
+            max_effects.append(max(abs(shifted[key] - baseline[key]) for key in baseline))
+            old_policy_regrets.append(max(shifted.values()) - shifted[baseline_best])
+            optimal_changes.append(float(baseline_best != shifted_best))
+        median_effect = float(np.median(max_effects))
+        median_regret = float(np.median(old_policy_regrets))
+        optimal_change_rate = float(np.mean(optimal_changes))
+        passed = median_effect >= effect_threshold and (
+            median_regret >= regret_threshold or optimal_change_rate >= change_threshold
+        )
+        metric_name = primary_metric if metric_id == "task_primary" else metric_id
+        metric_results[metric_id] = {
+            "metric": metric_name,
+            "median_max_effect": median_effect,
+            "median_old_policy_regret": median_regret,
+            "optimal_action_change_rate": optimal_change_rate,
+            "pass": passed,
+        }
+        _add(
+            findings,
+            f"{candidate_id}:decision_relevance:{metric_id}",
+            passed,
+            (
+                f"metric={metric_name}; median_max_effect={median_effect:.6f}; "
+                f"median_old_policy_regret={median_regret:.6f}; "
+                f"optimal_action_change_rate={optimal_change_rate:.3f}; "
+                f"thresholds=({effect_threshold:.6f}, {regret_threshold:.6f}, "
+                f"{change_threshold:.3f})."
+            ),
+        )
     _add(
         findings,
         f"{candidate_id}:decision_relevance",
-        passed,
+        all(bool(result["pass"]) for result in metric_results.values()),
         (
-            f"primary={primary_metric}; median_max_effect={median_effect:.6f}; "
-            f"median_old_policy_regret={median_regret:.6f}; "
-            f"optimal_action_change_rate={optimal_change_rate:.3f}; "
-            f"thresholds=({effect_threshold:.6f}, {regret_threshold:.6f}, "
-            f"{change_threshold:.3f})."
+            "Every required scientific/utility metric must make the old policy "
+            f"consequentially suboptimal; results={metric_results}."
         ),
     )
 
 
-def _execute_recipe_primary(
+def _execute_recipe_metrics(
     task_id: str,
     vector: np.ndarray,
     *,
@@ -507,7 +965,7 @@ def _execute_recipe_primary(
     observation_seed: int,
     interventions: tuple[Mapping[str, Any], ...],
     primary_metric: str,
-) -> float:
+) -> dict[str, float]:
     task_info = get_task(task_id).to_dict()
     recipe = task_recipe_from_unit_vector(task_info, vector)
     environment = ChemWorldEnv(
@@ -528,10 +986,14 @@ def _execute_recipe_primary(
                 )
         value = info.get("processed_estimate", {}).get(primary_metric)
         if value is None or not np.isfinite(float(value)):
-            raise RuntimeError(
-                f"decision-relevance recipe lacks primary metric {primary_metric}"
-            )
-        return float(value)
+            raise RuntimeError(f"decision-relevance recipe lacks primary metric {primary_metric}")
+        leaderboard_score = info.get("leaderboard_score")
+        if leaderboard_score is None or not np.isfinite(float(leaderboard_score)):
+            raise RuntimeError("decision-relevance recipe lacks finite leaderboard_score")
+        return {
+            "task_primary": float(value),
+            "leaderboard_score": float(leaderboard_score),
+        }
     finally:
         environment.close()
 
@@ -614,9 +1076,7 @@ def _has_preterminal_measurement(recipe: Mapping[str, Any]) -> bool:
 def _collect_keys(value: Any) -> set[str]:
     if isinstance(value, Mapping):
         return {str(key) for key in value} | {
-            nested
-            for item in value.values()
-            for nested in _collect_keys(item)
+            nested for item in value.values() for nested in _collect_keys(item)
         }
     if isinstance(value, list | tuple):
         return {nested for item in value for nested in _collect_keys(item)}

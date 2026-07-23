@@ -173,17 +173,30 @@ class MechanismSpeciesView:
         *,
         limiting_amount_mol: float,
     ) -> dict[str, float]:
-        """Return mechanism-ratio reagent additions for one charge operation."""
+        """Return non-catalytic mechanism-ratio additions for one reagent charge.
+
+        ``initial_amount_policy`` describes a complete mechanism reference charge,
+        which may include catalyst inventory for standalone model initialization.
+        The public runtime exposes catalyst dosing through ``add_catalyst`` as a
+        separate controllable operation, so silently co-charging catalyst here
+        would couple reagent amount to a hidden catalyst dose and double-count
+        recipes that subsequently call ``add_catalyst``.
+        """
 
         reactant = self.reactant_species(state)
         policy = self.mechanism.initial_amount_policy
         reference = float(policy.get(reactant, 0.0))
         if reference <= 0.0:
             return {reactant: limiting_amount_mol}
+        catalyst_species = set(self.catalyst_species)
         return {
             species_id: limiting_amount_mol * float(amount) / reference
             for species_id, amount in policy.items()
-            if amount > 0.0 and species_id in state.species_amounts
+            if (
+                amount > 0.0
+                and species_id in state.species_amounts
+                and species_id not in catalyst_species
+            )
         } or {reactant: limiting_amount_mol}
 
     def truth_values(self, state: WorldState) -> dict[str, float]:

@@ -15,8 +15,10 @@ from chemworld.tasks import get_task
 from chemworld.world.mechanism_family import (
     CONSTITUTIVE_MECHANISM_TASKS,
     REACTION_MECHANISM_TASKS,
+    ConstitutiveLawFamilyChange,
     MechanismFamilyIntervention,
     RateLawFamilyChange,
+    TopologyFamilyChange,
     derive_mechanism_family,
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
@@ -136,6 +138,72 @@ def test_constitutive_family_changes_executed_provider_without_network_rewrite(
     assert float(shifted_observation["_audit_mass_balance_error"][0]) <= 1.0e-8
 
 
+def test_electrochemical_constitutive_change_is_explicit_and_calibrated() -> None:
+    intervention = MechanismFamilyIntervention(
+        "constitutive_law_family",
+        0.8,
+        constitutive_law_change=ConstitutiveLawFamilyChange(
+            transform_id="electrochemical_response_stress_v1",
+            transfer_asymmetry_multiplier_at_full_severity=1.4,
+            selectivity_decay_multiplier_at_full_severity=3.0,
+            standard_potential_multiplier_at_full_severity=1.25,
+        ),
+    )
+    generator = DefaultScenarioGenerator()
+    scenario = get_scenario("electrochemical-conversion")
+    baseline = generator.generate(scenario, 0)
+    shifted = generator.generate(scenario, 0, (intervention.to_dict(),))
+
+    assert shifted.compiled_mechanism.mechanism_hash == (
+        baseline.compiled_mechanism.mechanism_hash
+    )
+    assert shifted.parameters.domain_parameter(
+        "electro_transfer_asymmetry_multiplier"
+    ) == pytest.approx(1.32)
+    assert shifted.parameters.domain_parameter(
+        "electro_selectivity_decay_multiplier"
+    ) == pytest.approx(2.6)
+    assert shifted.parameters.domain_parameter(
+        "electro_standard_potential_multiplier"
+    ) == pytest.approx(1.2)
+    assert (
+        shifted.initial_state.metadata["derived_constitutive_transform_id"]
+        == "electrochemical_response_stress_v1"
+    )
+
+
+def test_electrochemical_constitutive_change_contract_round_trips() -> None:
+    payload = {
+        "kind": "mechanism_family",
+        "mode": "constitutive_law_family",
+        "severity": 0.8,
+        "constitutive_law_change": {
+            "transform_id": "electrochemical_response_stress_v1",
+            "transfer_asymmetry_multiplier_at_full_severity": 1.4,
+            "selectivity_decay_multiplier_at_full_severity": 3.0,
+            "standard_potential_multiplier_at_full_severity": 1.25,
+        },
+    }
+    assert MechanismFamilyIntervention.from_dict(payload).to_dict() == payload
+
+
+def test_constitutive_change_rejects_task_transform_mismatch() -> None:
+    intervention = MechanismFamilyIntervention(
+        "constitutive_law_family",
+        0.8,
+        constitutive_law_change=ConstitutiveLawFamilyChange(
+            transform_id="partition_power_response_stress_v1",
+            partition_coefficient_exponent_at_full_severity=1.75,
+        ),
+    )
+    with pytest.raises(ValueError, match="requires 'electrochemical_response_stress_v1'"):
+        DefaultScenarioGenerator().generate(
+            get_scenario("electrochemical-conversion"),
+            0,
+            (intervention.to_dict(),),
+        )
+
+
 @pytest.mark.parametrize(
     "task_id",
     ["electrochemical-conversion", "equilibrium-characterization"],
@@ -220,6 +288,63 @@ def test_rate_law_family_can_declaratively_target_a_primary_product_pathway() ->
     )
 
 
+def test_catalytic_activity_order_pivot_stress_changes_only_target_pathway() -> None:
+    intervention = MechanismFamilyIntervention(
+        "rate_law_family",
+        0.8,
+        rate_law_change=RateLawFamilyChange(
+            reaction_role="primary_target_pathway",
+            transform_id="catalytic_activity_order_pivot_stress_v1",
+            activity_order_at_full_severity=0.2,
+            catalyst_activity_pivot=5.0,
+        ),
+    )
+    generator = DefaultScenarioGenerator()
+    scenario = get_scenario("reaction-to-crystallization")
+    baseline = generator.generate(scenario, 0)
+    shifted = generator.generate(scenario, 0, (intervention.to_dict(),))
+
+    changed = [
+        (before, after)
+        for before, after in zip(
+            baseline.compiled_mechanism.network.reactions,
+            shifted.compiled_mechanism.network.reactions,
+            strict=True,
+        )
+        if before.rate_law.to_dict() != after.rate_law.to_dict()
+    ]
+    assert len(changed) == 1
+    before, after = changed[0]
+    assert before.reaction_id == after.reaction_id == "target_formation"
+    assert before.rate_law.equation_id == after.rate_law.equation_id == "catalytic_activity"
+    assert before.rate_law.parameters["activity_order"] == pytest.approx(1.0)
+    assert after.rate_law.parameters["activity_order"] == pytest.approx(0.36)
+    assert after.rate_law.parameters["A"] == pytest.approx(
+        before.rate_law.parameters["A"] * 5.0**0.64
+    )
+    scale_ratio = (
+        after.rate_law.parameters["A"] / before.rate_law.parameters["A"]
+    )
+    order_delta = (
+        after.rate_law.parameters["activity_order"]
+        - before.rate_law.parameters["activity_order"]
+    )
+    low_activity_multiplier = scale_ratio * 1.6**order_delta
+    pivot_multiplier = scale_ratio * 5.0**order_delta
+    high_activity_multiplier = scale_ratio * 11.0**order_delta
+    assert 1.0 < low_activity_multiplier < 2.2
+    assert pivot_multiplier == pytest.approx(1.0)
+    assert 0.5 < high_activity_multiplier < 1.0
+    metadata = shifted.compiled_mechanism.network.metadata
+    assert metadata["derived_family_target_reaction_role"] == "primary_target_pathway"
+    assert (
+        metadata["derived_family_transform_id"]
+        == "catalytic_activity_order_pivot_stress_v1"
+    )
+    assert metadata["derived_family_catalyst_activity_pivot"] == pytest.approx(5.0)
+    assert shifted.parameters.domain_parameters == baseline.parameters.domain_parameters
+
+
 def test_explicit_rate_law_change_contract_round_trips() -> None:
     payload = {
         "kind": "mechanism_family",
@@ -231,6 +356,80 @@ def test_explicit_rate_law_change_contract_round_trips() -> None:
             "reference_temperature_K": 350.0,
             "reference_rate_multiplier_at_full_severity": 8.0,
             "temperature_exponent_at_full_severity": 0.75,
+        },
+    }
+    assert MechanismFamilyIntervention.from_dict(payload).to_dict() == payload
+
+
+def test_catalytic_activity_order_pivot_change_contract_round_trips() -> None:
+    payload = {
+        "kind": "mechanism_family",
+        "mode": "rate_law_family",
+        "severity": 0.8,
+        "rate_law_change": {
+            "reaction_role": "primary_target_pathway",
+            "transform_id": "catalytic_activity_order_pivot_stress_v1",
+            "activity_order_at_full_severity": 0.2,
+            "catalyst_activity_pivot": 5.0,
+        },
+    }
+    assert MechanismFamilyIntervention.from_dict(payload).to_dict() == payload
+
+
+def test_rate_law_transform_rejects_irrelevant_calibration_fields() -> None:
+    with pytest.raises(ValueError, match="unknown rate-law change fields"):
+        RateLawFamilyChange.from_dict(
+            {
+                "reaction_role": "primary_target_pathway",
+                "transform_id": "catalytic_activity_order_pivot_stress_v1",
+                "activity_order_at_full_severity": 0.2,
+                "catalyst_activity_pivot": 5.0,
+                "reference_temperature_K": 350.0,
+            }
+        )
+
+
+def test_reversible_target_topology_change_is_explicit_and_calibrated() -> None:
+    intervention = MechanismFamilyIntervention(
+        "topology_family",
+        0.8,
+        topology_change=TopologyFamilyChange(
+            reaction_role="primary_target_pathway",
+            transform_id="reversible_target_pathway_stress_v1",
+            reverse_rate_constant_s_inv_at_full_severity=0.000625,
+        ),
+    )
+    generator = DefaultScenarioGenerator()
+    scenario = get_scenario("reaction-to-crystallization")
+    baseline = generator.generate(scenario, 0)
+    shifted = generator.generate(scenario, 0, (intervention.to_dict(),))
+
+    assert len(shifted.compiled_mechanism.network.reactions) == (
+        len(baseline.compiled_mechanism.network.reactions) + 1
+    )
+    added = shifted.compiled_mechanism.network.reactions[-1]
+    assert added.reaction_id == "family_reverse_channel"
+    assert added.reactants == {"P": 1.0}
+    assert added.products == {"A": 1.0}
+    assert added.rate_law.parameters["k"] == pytest.approx(0.0005)
+    metadata = shifted.compiled_mechanism.network.metadata
+    assert metadata["derived_family_target_reaction_id"] == "target_formation"
+    assert metadata["derived_family_target_reaction_role"] == "primary_target_pathway"
+    assert (
+        metadata["derived_family_transform_id"]
+        == "reversible_target_pathway_stress_v1"
+    )
+
+
+def test_topology_change_contract_round_trips() -> None:
+    payload = {
+        "kind": "mechanism_family",
+        "mode": "topology_family",
+        "severity": 0.8,
+        "topology_change": {
+            "reaction_role": "primary_target_pathway",
+            "transform_id": "reversible_target_pathway_stress_v1",
+            "reverse_rate_constant_s_inv_at_full_severity": 0.000625,
         },
     }
     assert MechanismFamilyIntervention.from_dict(payload).to_dict() == payload

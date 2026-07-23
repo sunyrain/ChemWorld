@@ -12,7 +12,7 @@ from typing import Any
 
 import numpy as np
 
-TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.7"
+TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.8"
 
 # Formal world-family interventions may multiply a configured flow residence
 # time by at most 1.75 (extrapolation severity +1).  Complete-recipe baselines
@@ -23,7 +23,10 @@ FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER = 1.75
 _CONSERVATIVE_BASE_VECTORS = {
     "equilibrium": (0.5, 0.12, 0.12, 0.5),
     "flow": (0.0, 0.15, 0.0, 0.15, 0.70, 0.15, 0.10, 0.12),
-    "electrochemical": (0.0, 0.0, 0.15, 0.30, 0.25, 0.20, 0.35, 0.30, 0.25),
+    # Low substrate inventory with a moderate probe and a longer controlled
+    # electrolysis step.  The former all-low vector drove most public worlds to
+    # a zero-yield plateau and was not a useful diagnostic reference.
+    "electrochemical": (0.625, 0.125, 0.01, 0.286, 0.472, 0.211, 0.254, 0.361, 0.387),
     "partition": (0.0, 0.35, 0.50, 0.0, 0.35, 0.15, 0.65, 0.15),
     "reaction_crystallization": (
         0.10,
@@ -188,6 +191,133 @@ def task_recipe_categorical_coordinates(
 def task_recipe_event_count(task_info: dict[str, Any]) -> int:
     vector = np.full(task_recipe_dimension(task_info), 0.5, dtype=float)
     return len(task_recipe_from_unit_vector(task_info, vector)["steps"])
+
+
+def diagnostic_task_recipe_vectors(
+    task_info: dict[str, Any],
+    *,
+    action_count: int,
+    rng: np.random.Generator,
+) -> tuple[np.ndarray, ...]:
+    """Build a deterministic task-aware diagnostic design in the unit cube.
+
+    Coupled coordinates should not all move together: doing so can confound a
+    physical response with an invalid or zero-performance recipe.  The generic
+    fallback retains broad anchors. Reaction-crystallization tasks use paired
+    catalyst-dose, thermal, and catalyst-identity probes; electrochemical tasks
+    use a reference recipe, a same-material potential sweep, and one probe for
+    each categorical material coordinate.
+    """
+
+    if action_count < 3:
+        raise ValueError("a diagnostic recipe design requires at least three actions")
+    kind = task_recipe_kind(task_info)
+    dimension = task_recipe_dimension(task_info)
+    if kind == "reaction_crystallization":
+        reaction_reference = np.full(dimension, 0.50, dtype=float)
+        # Keep solvent fixed and use catalyst 0 for the kinetic controls.
+        reaction_reference[4] = 0.125
+        reaction_reference[6] = 0.125
+        reaction_vectors: list[np.ndarray] = []
+
+        # A low/mid/high series crosses the formal rate-law activity pivot
+        # while every other process coordinate remains fixed.
+        for catalyst_dose in (0.05, 0.36, 0.90):
+            dose_vector = np.array(reaction_reference, copy=True)
+            dose_vector[5] = catalyst_dose
+            reaction_vectors.append(dose_vector)
+
+        # A thermal perturbation separates catalyst-order response from a
+        # generic temperature/residence response.
+        thermal = np.array(reaction_reference, copy=True)
+        thermal[0] = 0.78
+        thermal[1] = 0.32
+        thermal[5] = 0.36
+        reaction_vectors.append(thermal)
+
+        # Probe the category opposite the reference catalyst while retaining
+        # identical continuous controls.  This creates a true material pair
+        # with the mid-dose reference recipe above.
+        material = np.array(reaction_reference, copy=True)
+        material[4] = 0.625
+        material[5] = 0.36
+        reaction_vectors.append(material)
+
+        # Pair the high-dose reference with the alternative catalyst too; a
+        # material permutation must be able to move the best high-dose policy,
+        # not merely perturb a dominated mid-dose recipe.
+        high_dose_material = np.array(reaction_reference, copy=True)
+        high_dose_material[4] = 0.625
+        high_dose_material[5] = 0.90
+        reaction_vectors.append(high_dose_material)
+
+        while len(reaction_vectors) < action_count:
+            jittered = np.asarray(
+                np.clip(
+                    reaction_reference + rng.normal(0.0, 0.06, size=dimension),
+                    0.0,
+                    1.0,
+                ),
+                dtype=float,
+            )
+            jittered[4] = ((len(reaction_vectors) % 4) + 0.5) / 4.0
+            reaction_vectors.append(jittered)
+        return tuple(reaction_vectors[:action_count])
+
+    if kind != "electrochemical":
+        anchors = [
+            np.full(dimension, 0.15, dtype=float),
+            np.full(dimension, 0.50, dtype=float),
+            np.full(dimension, 0.85, dtype=float),
+        ]
+        return tuple(anchors + [rng.random(dimension) for _ in range(action_count - len(anchors))])
+
+    electro_reference = np.asarray(_CONSERVATIVE_BASE_VECTORS[kind], dtype=float)
+    # Probe-potential and controlled-potential-delta coordinates.  All other
+    # continuous controls remain at the same public reference so this is a
+    # relational diagnostic sweep rather than a correlated random recipe.
+    potential_profiles = (
+        (0.286, 0.254),
+        (0.500, 0.750),
+        (0.650, 0.800),
+        (0.200, 0.500),
+    )
+    electrochemical_vectors: list[np.ndarray] = []
+    for probe_potential, controlled_delta in potential_profiles[:action_count]:
+        potential_vector = np.array(electro_reference, copy=True)
+        potential_vector[3] = probe_potential
+        potential_vector[6] = controlled_delta
+        electrochemical_vectors.append(potential_vector)
+
+    categorical_coordinates = task_recipe_categorical_coordinates(task_info)
+    for coordinate, category_count in categorical_coordinates:
+        if len(electrochemical_vectors) >= action_count:
+            break
+        material_vector = np.array(electro_reference, copy=True)
+        material_vector[3] = 0.400
+        material_vector[6] = 0.720
+        baseline_category = _choice(
+            float(electro_reference[coordinate]),
+            category_count,
+        )
+        alternative = (baseline_category + max(category_count // 2, 1)) % category_count
+        material_vector[coordinate] = (alternative + 0.5) / category_count
+        electrochemical_vectors.append(material_vector)
+
+    while len(electrochemical_vectors) < action_count:
+        random_vector = np.asarray(
+            np.clip(
+                electro_reference + rng.normal(0.0, 0.08, size=dimension),
+                0.0,
+                1.0,
+            ),
+            dtype=float,
+        )
+        for offset, (coordinate, category_count) in enumerate(categorical_coordinates):
+            category = (len(electrochemical_vectors) + offset) % category_count
+            random_vector[coordinate] = (category + 0.5) / category_count
+        electrochemical_vectors.append(random_vector)
+    return tuple(electrochemical_vectors)
 
 
 def _scale(value: float, low: float, high: float) -> float:
@@ -415,6 +545,7 @@ def _equilibrium_steps(values: np.ndarray) -> list[dict[str, Any]]:
 __all__ = [
     "FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER",
     "TASK_RECIPE_SPACE_VERSION",
+    "diagnostic_task_recipe_vectors",
     "sample_conservative_task_recipe",
     "sample_task_recipe",
     "task_recipe_categorical_coordinates",

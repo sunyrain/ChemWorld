@@ -26,7 +26,10 @@ REACTION_STEPS = (
     {"operation": "add_reagent", "amount_mol": 0.010},
     {
         "operation": "add_catalyst",
-        "catalyst_amount_mol": 0.00025,
+        # Explicitly preserve the 0.00035 mol catalyst condition used by this
+        # characterization before catalyst inventory was separated from the
+        # reagent-charge policy.
+        "catalyst_amount_mol": 0.00035,
         "catalyst": 1,
     },
     {

@@ -500,9 +500,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.scenario_instance.initial_state,
             limiting_amount_mol=1.0,
         )
-        reagent_charge_molar_multiplier = sum(
-            amount for species_id, amount in unit_charge.items() if not species_id.startswith("Cat")
-        )
+        reagent_charge_molar_multiplier = sum(unit_charge.values())
         return OperationValidator(
             constitution=self.constitution,
             allowed_operations=self.allowed_operations,

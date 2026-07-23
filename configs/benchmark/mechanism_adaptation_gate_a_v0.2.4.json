@@ -1,6 +1,6 @@
 {
   "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2.4",
-  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc15",
+  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc16",
   "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
   "formal_benchmark_result": false,
   "purpose": "Two-certificate Gate A: controlled matched identifiability plus a separately executed online-policy-feasible diagnosis certificate.",
@@ -9,7 +9,7 @@
     "required_before_formal_mechanism_claim": true,
     "certificate_schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.3",
     "certificate_scope": "online_policy_feasible_diagnosis",
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.3-rc15.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.3-rc16.json",
     "hidden_change_time": true,
     "change_time_candidates": [
       1,
@@ -41,7 +41,7 @@
     "status": "pending_execution"
   },
   "action_library": {
-    "design": "deterministic_unit_hypercube_anchor_and_seeded_uniform",
+    "design": "deterministic_task_aware_relational_diagnostic_design_v1",
     "action_count_per_task": 6,
     "design_seed": 41102,
     "batch_selection": "maximum_prior_expected_information_over_all_two_recipe_combinations"
@@ -67,7 +67,7 @@
   },
   "held_out_certificate": {
     "world_seeds_per_family": 30,
-    "seed_namespace_start": 2300000000,
+    "seed_namespace_start": 2500000000,
     "information_draws_per_batch": 128,
     "execution_workers": 8,
     "budgets": [
@@ -86,23 +86,34 @@
     "decoder_controls_gate": false
   },
   "gate_rule_source": "configs/benchmark/mechanism_adaptation_v0.2.1.json#gates.gate_a",
-  "supersession_reason": "RC15 retains the RC14 latent change-point decoder and fresh held-out seed namespace while replacing order-dependent rate-law targeting with an explicit semantic pathway and transform contract. The design audit now proves the single resolved reaction change and invariance of constitutive domain parameters.",
+  "supersession_reason": "RC16 retains the RC15 two-certificate Gate A structure while making decision relevance fail closed for every changed mechanism and for both the task-primary and leaderboard-score metrics. The reaction rate-law cell now changes the declared target catalytic pathway's activity order, so diagnosis must support a consequential control-policy change rather than merely detect a near-uniform competing-pathway scale shift. Controlled and online certificates use a fresh held-out seed namespace.",
   "design_validity_precondition": {
     "required": true,
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc15.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc16.json",
     "pass_field": "pass"
+  },
+  "rate_law_response_certificate": {
+    "required": true,
+    "minimum_response_multiplier": 0.5,
+    "maximum_response_multiplier": 2.0,
+    "require_crosses_unity": true,
+    "pass_rule": "Every frozen public catalyst-dose response must remain within the declared multiplier envelope and the set must contain responses on both sides of unity."
   },
   "decision_relevance_certificate": {
     "required": true,
+    "required_metric_ids": [
+      "task_primary",
+      "leaderboard_score"
+    ],
     "world_seeds": [
       0,
       1,
       2,
       3
     ],
-    "minimum_median_max_primary_effect": 0.01,
+    "minimum_median_max_metric_effect": 0.01,
     "minimum_median_old_policy_regret": 0.005,
     "minimum_optimal_action_change_rate": 0.5,
-    "pass_rule": "median max primary effect must exceed its threshold and either old-policy regret or optimal-action change rate must exceed its threshold"
+    "pass_rule": "For every required metric, median max effect must exceed its threshold and either old-policy regret or optimal-action change rate must exceed its threshold."
   }
 }

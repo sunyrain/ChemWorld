@@ -794,6 +794,34 @@ def test_reagent_charge_uses_mechanism_initial_amount_policy() -> None:
         env.close()
 
 
+def test_reagent_charge_does_not_implicitly_add_catalyst() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        env.step({"operation": "add_solvent", "volume_L": 0.025, "solvent": 0})
+        _, _, _, _, reagent_info = env.step(
+            {"operation": "add_reagent", "amount_mol": 0.010}
+        )
+        reagent_state = env.unwrapped._state
+
+        assert reagent_info["transaction_status"] == "committed"
+        assert reagent_state.species_amounts["A"] == pytest.approx(0.010)
+        assert reagent_state.species_amounts["Cat_active"] == pytest.approx(0.0)
+
+        _, _, _, _, catalyst_info = env.step(
+            {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.00020,
+                "catalyst": 0,
+            }
+        )
+        catalyst_state = env.unwrapped._state
+        assert catalyst_info["transaction_status"] == "committed"
+        assert catalyst_state.species_amounts["Cat_active"] == pytest.approx(0.00020)
+    finally:
+        env.close()
+
+
 def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() -> None:
     compiled = compile_mechanism_for_scenario("electrochemical-conversion")
     services = ChemWorldDomainServices(

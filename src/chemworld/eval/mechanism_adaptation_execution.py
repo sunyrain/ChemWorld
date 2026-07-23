@@ -30,7 +30,7 @@ from chemworld.agents.mechanism_adaptation_live_llm import (
     MechanismCandidateSpec,
 )
 from chemworld.agents.task_recipes import (
-    task_recipe_dimension,
+    diagnostic_task_recipe_vectors,
     task_recipe_event_count,
     task_recipe_from_unit_vector,
 )
@@ -93,15 +93,13 @@ def build_action_library(
     if action_count < 3:
         raise ValueError("Gate A requires at least three public actions per task")
     task_info = get_task(task_id).to_dict()
-    dimension = task_recipe_dimension(task_info)
-    anchors = [
-        np.full(dimension, 0.15, dtype=float),
-        np.full(dimension, 0.50, dtype=float),
-        np.full(dimension, 0.85, dtype=float),
-    ]
     task_seed = _stable_seed(seed, task_id)
     rng = np.random.default_rng(task_seed)
-    vectors = anchors + [rng.random(dimension) for _ in range(action_count - len(anchors))]
+    vectors = diagnostic_task_recipe_vectors(
+        task_info,
+        action_count=action_count,
+        rng=rng,
+    )
     return {
         f"design-{index:02d}": np.asarray(vector, dtype=float)
         for index, vector in enumerate(vectors)
@@ -265,9 +263,7 @@ def _online_hypothesis_evidence_channel(
     elif (
         candidate_id != "no_change"
         and change_after_experiment is not None
-        and reference_experiment_index
-        <= change_after_experiment
-        < current_experiment_index
+        and reference_experiment_index <= change_after_experiment < current_experiment_index
     ):
         encoding = "transition_contrast"
     else:
@@ -295,16 +291,13 @@ def _advance_online_change_point_hypotheses(
     no_change = ("no_change", None)
     no_change_probability = updated.get(no_change, 0.0)
     updated[no_change] = (1.0 - hazard) * no_change_probability
-    changed_ids = [
-        candidate_id for candidate_id in candidate_ids if candidate_id != "no_change"
-    ]
+    changed_ids = [candidate_id for candidate_id in candidate_ids if candidate_id != "no_change"]
     if not changed_ids:
         raise ValueError("online hidden-change filtering requires changed states")
     for candidate_id in changed_ids:
         hypothesis = (candidate_id, change_after_experiment)
-        updated[hypothesis] = (
-            updated.get(hypothesis, 0.0)
-            + hazard * no_change_probability / len(changed_ids)
+        updated[hypothesis] = updated.get(hypothesis, 0.0) + hazard * no_change_probability / len(
+            changed_ids
         )
     total = sum(updated.values())
     if total <= 0.0:
@@ -326,10 +319,7 @@ def _online_family_posterior(
     total = sum(result.values())
     if total <= 0.0:
         raise ValueError("online family posterior mass vanished")
-    return {
-        candidate_id: probability / total
-        for candidate_id, probability in result.items()
-    }
+    return {candidate_id: probability / total for candidate_id, probability in result.items()}
 
 
 def _online_predictive_lookup(
@@ -384,26 +374,17 @@ def _update_online_change_point_posterior(
         if values.shape != mean.shape:
             raise ValueError("observation dimension does not match online predictive")
         log_likelihood = float(
-            -0.5
-            * np.sum(
-                np.log(2.0 * math.pi * variance)
-                + ((values - mean) ** 2) / variance
-            )
+            -0.5 * np.sum(np.log(2.0 * math.pi * variance) + ((values - mean) ** 2) / variance)
         )
         log_weights[hypothesis] = math.log(float(probability)) + log_likelihood
     if not log_weights:
         raise ValueError("online posterior update has no active hypotheses")
     maximum = max(log_weights.values())
     weights = {
-        hypothesis: math.exp(log_weight - maximum)
-        for hypothesis, log_weight in log_weights.items()
+        hypothesis: math.exp(log_weight - maximum) for hypothesis, log_weight in log_weights.items()
     }
     total = sum(weights.values())
-    return {
-        hypothesis: weight / total
-        for hypothesis, weight in weights.items()
-        if weight > 0.0
-    }
+    return {hypothesis: weight / total for hypothesis, weight in weights.items() if weight > 0.0}
 
 
 def _balanced_hidden_change_times(
@@ -417,10 +398,7 @@ def _balanced_hidden_change_times(
 
     if trial_count <= 0 or not change_times:
         raise ValueError("balanced change-time assignment requires trials and categories")
-    assignments = [
-        int(change_times[index % len(change_times)])
-        for index in range(trial_count)
-    ]
+    assignments = [int(change_times[index % len(change_times)]) for index in range(trial_count)]
     rng = np.random.default_rng(
         _stable_seed(seed, f"{task_id}:online-policy-balanced-change-times")
     )
@@ -432,9 +410,7 @@ def _sample_online_predictive_job(job: Mapping[str, Any]) -> dict[str, list[floa
     """Return absolute, transition, and stable public predictive encodings."""
 
     action_id = str(job["action_id"])
-    action_library = {
-        action_id: np.asarray(job["action_vector"], dtype=float)
-    }
+    action_library = {action_id: np.asarray(job["action_vector"], dtype=float)}
     with PublicCampaignObservationSession(
         task_id=str(job["task_id"]),
         seed=int(job["world_seed"]),
@@ -695,8 +671,7 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     if "no_change" not in candidate_ids:
         raise ValueError("online hidden-change filtering requires a no_change state")
     action_library = {
-        str(key): np.asarray(value, dtype=float)
-        for key, value in job["action_library"].items()
+        str(key): np.asarray(value, dtype=float) for key, value in job["action_library"].items()
     }
     evidence_action_ids = [
         _online_evidence_channel(encoding, action_id)
@@ -714,14 +689,10 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     }
     predictives = _online_predictive_lookup(job["predictives"])
     if set(predictives) != expected_predictive_keys:
-        raise ValueError(
-            "online predictives must cover every candidate/evidence channel"
-        )
+        raise ValueError("online predictives must cover every candidate/evidence channel")
     change_time = int(job["change_time"])
     allowed_change_times = [int(item) for item in job["change_time_candidates"]]
-    post_budgets = sorted(
-        {int(item) for item in job["post_change_budget_checkpoints"]}
-    )
+    post_budgets = sorted({int(item) for item in job["post_change_budget_checkpoints"]})
     if not post_budgets:
         raise ValueError("online policy requires post-change budget checkpoints")
     post_budget = max(post_budgets)
@@ -731,9 +702,7 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     if not 0.0 <= hazard <= 1.0:
         raise ValueError("online policy change hazard must be in [0, 1]")
 
-    hypothesis_posterior: dict[tuple[str, int | None], float] = {
-        ("no_change", None): 1.0
-    }
+    hypothesis_posterior: dict[tuple[str, int | None], float] = {("no_change", None): 1.0}
     family_posterior = _online_family_posterior(
         hypothesis_posterior,
         candidate_ids,
@@ -763,19 +732,17 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
             candidate_ids=candidate_ids,
             hazard=hazard,
         )
-        action_id = reference_action_ids[
-            (experiment_index - 1) % len(reference_action_ids)
-        ]
+        action_id = reference_action_ids[(experiment_index - 1) % len(reference_action_ids)]
 
         observation = np.asarray(session.observe(action_id), dtype=float)
-        first_observation = action_id not in references
         reference = references.get(action_id)
-        reference_experiment_index = None if reference is None else reference[1]
-        evidence = (
-            observation
-            if first_observation
-            else observation - reference[0]
-        )
+        first_observation = reference is None
+        if reference is None:
+            reference_experiment_index = None
+            evidence = observation
+        else:
+            reference_experiment_index = reference[1]
+            evidence = observation - reference[0]
         hypothesis_posterior = _update_online_change_point_posterior(
             hypothesis_posterior,
             action_id=action_id,
@@ -802,12 +769,8 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
                 ),
                 "reference_established": first_observation,
                 "reference_experiment_index": reference_experiment_index,
-                "policy_cycle_position": (
-                    (experiment_index - 1) % len(reference_action_ids)
-                ),
-                "active_change_point_hypothesis_count": len(
-                    hypothesis_posterior
-                ),
+                "policy_cycle_position": ((experiment_index - 1) % len(reference_action_ids)),
+                "active_change_point_hypothesis_count": len(hypothesis_posterior),
                 "posterior": dict(family_posterior),
             }
         )
@@ -845,9 +808,7 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
             )
             post_actions.append(post_updates[-1]["action_id"])
             if phase_index in post_budgets:
-                posterior_by_post_budget[str(phase_index)] = dict(
-                    family_posterior
-                )
+                posterior_by_post_budget[str(phase_index)] = dict(family_posterior)
 
     return {
         "truth_id": str(job["truth_id"]),
@@ -883,13 +844,10 @@ def validate_precomputed_design_audit(
         "protocol_sha256": canonical_sha256(protocol),
         "gate_a_plan_sha256": canonical_sha256(plan),
     }
-    mismatches = [
-        key for key, value in expected.items() if report.get(key) != value
-    ]
+    mismatches = [key for key, value in expected.items() if report.get(key) != value]
     if mismatches:
         raise ValueError(
-            "precomputed mechanism design audit is stale or failed: "
-            + ", ".join(mismatches)
+            "precomputed mechanism design audit is stale or failed: " + ", ".join(mismatches)
         )
     return dict(report)
 
@@ -919,46 +877,31 @@ def run_online_policy_certificate(
         raise ValueError("online policy must not receive a phase or reset indicator")
     change_times = [int(item) for item in requirement["change_time_candidates"]]
     protocol_change_times = {
-        int(item)
-        for item in protocol["design"]["change_after_experiments"]
-        if item != "never"
+        int(item) for item in protocol["design"]["change_after_experiments"] if item != "never"
     }
     if not change_times or not set(change_times).issubset(protocol_change_times):
         raise ValueError("online-policy change times must come from the protocol")
     post_budgets = sorted(
-        {
-            int(item)
-            for item in requirement["post_change_experiment_budget_checkpoints"]
-        }
+        {int(item) for item in requirement["post_change_experiment_budget_checkpoints"]}
     )
     online_gate_budget = int(requirement["online_policy_gate_budget"])
-    controlled_primary_budget = int(
-        plan["held_out_certificate"]["primary_gate_budget"]
-    )
+    controlled_primary_budget = int(plan["held_out_certificate"]["primary_gate_budget"])
     if post_budgets != sorted(
         {int(item) for item in protocol["gates"]["gate_a"]["budget_checkpoints"]}
     ):
-        raise ValueError(
-            "online-policy checkpoints must match the frozen Gate A checkpoints"
-        )
+        raise ValueError("online-policy checkpoints must match the frozen Gate A checkpoints")
     if online_gate_budget not in post_budgets:
         raise ValueError("online-policy gate budget must be a frozen checkpoint")
-    if (
-        int(requirement["controlled_matched_primary_budget"])
-        != controlled_primary_budget
-    ):
+    if int(requirement["controlled_matched_primary_budget"]) != controlled_primary_budget:
         raise ValueError("online plan must bind the controlled primary budget")
     ranking_batch_size = int(requirement["information_ranking_batch_size"])
     if ranking_batch_size != int(protocol["design"]["pre_change_experiments"]):
         raise ValueError(
-            "online-policy information-ranking batch size must equal the "
-            "protocol pre-change budget"
+            "online-policy information-ranking batch size must equal the protocol pre-change budget"
         )
     policy_action_count = int(requirement["online_policy_action_count"])
     if policy_action_count != online_gate_budget:
-        raise ValueError(
-            "online policy action coverage must equal its controlling budget"
-        )
+        raise ValueError("online policy action coverage must equal its controlling budget")
     hazard = float(requirement["change_hazard_per_allowed_change_point"])
     if not 0.0 < hazard < 1.0:
         raise ValueError("online-policy change hazard must be in (0, 1)")
@@ -990,12 +933,8 @@ def run_online_policy_certificate(
     if not design_audit["pass"]:
         raise ValueError("online-policy certificate requires a passing design audit")
 
-    truths_by_budget: dict[int, list[str]] = {
-        budget: [] for budget in post_budgets
-    }
-    predictions_by_budget: dict[int, list[str]] = {
-        budget: [] for budget in post_budgets
-    }
+    truths_by_budget: dict[int, list[str]] = {budget: [] for budget in post_budgets}
+    predictions_by_budget: dict[int, list[str]] = {budget: [] for budget in post_budgets}
     task_reports: dict[str, Any] = {}
     sample_count = int(fit_plan["samples_per_candidate_action"])
     world_seeds_per_family = int(certificate_plan["world_seeds_per_family"])
@@ -1003,9 +942,7 @@ def run_online_policy_certificate(
     qualified_candidates = [
         _qualified_candidate(str(task_id), str(candidate_id))
         for task_id in protocol["design"]["tasks"]
-        for candidate_id in protocol["task_mechanism_contracts"][task_id][
-            "candidate_ids"
-        ]
+        for candidate_id in protocol["task_mechanism_contracts"][task_id]["candidate_ids"]
     ]
 
     for task_index, raw_task_id in enumerate(protocol["design"]["tasks"]):
@@ -1081,9 +1018,7 @@ def run_online_policy_certificate(
             for candidate_id in candidate_ids
             for action_id in action_ids
         }
-        absolute_samples: dict[
-            tuple[str, str], list[Sequence[float]]
-        ] = {
+        absolute_samples: dict[tuple[str, str], list[Sequence[float]]] = {
             (candidate_id, action_id): []
             for candidate_id in candidate_ids
             for action_id in action_ids
@@ -1104,9 +1039,7 @@ def run_online_policy_certificate(
                 f"{task_id}:online-batch-selection",
             ),
         )
-        batch_information = selection_oracle.expected_information_by_action(
-            draws=information_draws
-        )
+        batch_information = selection_oracle.expected_information_by_action(draws=information_draws)
         selected_batch_id = max(
             batch_information,
             key=batch_information.__getitem__,
@@ -1155,9 +1088,7 @@ def run_online_policy_certificate(
                 )
             }
         )
-        evidence_information = online_oracle.expected_information_by_action(
-            draws=information_draws
-        )
+        evidence_information = online_oracle.expected_information_by_action(draws=information_draws)
         selected_actions.sort(
             key=lambda item: evidence_information[
                 _online_evidence_channel("transition_contrast", item)
@@ -1165,9 +1096,7 @@ def run_online_policy_certificate(
             reverse=True,
         )
         remaining_actions = [
-            action_id
-            for action_id in action_ids
-            if action_id not in selected_actions
+            action_id for action_id in action_ids if action_id not in selected_actions
         ]
         remaining_actions.sort(
             key=lambda item: evidence_information[
@@ -1175,12 +1104,9 @@ def run_online_policy_certificate(
             ],
             reverse=True,
         )
-        policy_actions = (
-            selected_actions + remaining_actions
-        )[:policy_action_count]
+        policy_actions = (selected_actions + remaining_actions)[:policy_action_count]
         serialized_actions = {
-            action_id: action_library[action_id].tolist()
-            for action_id in action_ids
+            action_id: action_library[action_id].tolist() for action_id in action_ids
         }
         assigned_change_times = _balanced_hidden_change_times(
             change_times,
@@ -1248,17 +1174,13 @@ def run_online_policy_certificate(
             for budget in post_budgets:
                 truths_by_budget[budget].append(qualified_truth)
                 prediction = row["predictions_by_post_budget"][str(budget)]
-                predictions_by_budget[budget].append(
-                    _qualified_candidate(task_id, str(prediction))
-                )
+                predictions_by_budget[budget].append(_qualified_candidate(task_id, str(prediction)))
         task_reports[task_id] = {
             "candidate_ids": candidate_ids,
             "selected_reference_action_ids": selected_actions,
             "online_policy_action_ids": policy_actions,
             "selected_batch_id": selected_batch_id,
-            "selected_batch_information_nats": float(
-                batch_information[selected_batch_id]
-            ),
+            "selected_batch_information_nats": float(batch_information[selected_batch_id]),
             "single_action_information_nats": {
                 action_id: float(
                     evidence_information[
@@ -1271,8 +1193,7 @@ def run_online_policy_certificate(
                 for action_id in action_ids
             },
             "evidence_channel_information_nats": {
-                key: float(value)
-                for key, value in evidence_information.items()
+                key: float(value) for key, value in evidence_information.items()
             },
             "trials": completed,
         }
@@ -1282,12 +1203,8 @@ def run_online_policy_certificate(
             truths=truths_by_budget[budget],
             predictions=predictions_by_budget[budget],
             candidate_ids=qualified_candidates,
-            overall_lower_bound_threshold=float(
-                gate["overall_top1_wilson_lower_bound"]
-            ),
-            family_recall_lower_bound_threshold=float(
-                gate["per_family_recall_wilson_lower_bound"]
-            ),
+            overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
+            family_recall_lower_bound_threshold=float(gate["per_family_recall_wilson_lower_bound"]),
         )
         for budget in post_budgets
     }
@@ -1317,10 +1234,7 @@ def run_online_policy_certificate(
         "uses_actual_action_measurement_and_budget_contract": True,
         "agent_weight_updates_performed": False,
         "policy": {
-            "type": (
-                "bayesian_latent_change_point_decoder_with_"
-                "information_ranked_fixed_schedule"
-            ),
+            "type": ("bayesian_latent_change_point_decoder_with_information_ranked_fixed_schedule"),
             "change_hazard_per_allowed_change_point": hazard,
             "phase_invariant_action_rule": True,
             "changed_mechanism_states_are_absorbing": True,
@@ -1336,8 +1250,7 @@ def run_online_policy_certificate(
         },
         "identifiability_certificate": certificate,
         "identifiability_by_post_change_budget": {
-            str(budget): value
-            for budget, value in certificates_by_budget.items()
+            str(budget): value for budget, value in certificates_by_budget.items()
         },
         "task_reports": task_reports,
         "interpretation": (
@@ -1379,9 +1292,7 @@ def _run_paired_gate_a(
     certificate_plan = plan["held_out_certificate"]
     phase_plan = plan["paired_phase_design"]
     gate = protocol["gates"]["gate_a"]
-    online_history_aligned_budget = int(
-        phase_plan["pre_change_reference_experiments"]
-    )
+    online_history_aligned_budget = int(phase_plan["pre_change_reference_experiments"])
     protocol_pre_change = int(protocol["design"]["pre_change_experiments"])
     if online_history_aligned_budget != protocol_pre_change:
         raise ValueError("paired Gate A must use the protocol pre-change experiment budget")
@@ -1392,13 +1303,9 @@ def _run_paired_gate_a(
     if primary_budget not in budgets:
         raise ValueError("paired Gate A primary budget must be a frozen checkpoint")
     if online_history_aligned_budget not in budgets:
-        raise ValueError(
-            "paired Gate A must report the online-history-aligned checkpoint"
-        )
+        raise ValueError("paired Gate A must report the online-history-aligned checkpoint")
     if int(action_plan["action_count_per_task"]) < max(budgets):
-        raise ValueError(
-            "paired Gate A action library cannot underfill its largest decoder budget"
-        )
+        raise ValueError("paired Gate A action library cannot underfill its largest decoder budget")
     if (
         len(budgets) > 1
         and phase_plan.get("diagnostic_curve_matches_reference_count_to_budget") is not True
@@ -1511,15 +1418,11 @@ def _run_paired_gate_a(
 
         serialized_actions = {key: vector.tolist() for key, vector in action_library.items()}
         task_trials: dict[str, list[dict[str, Any]]] = {
-            f"{role}_budget_{budget}": []
-            for budget in budgets
-            for role in ("active", "decoder")
+            f"{role}_budget_{budget}": [] for budget in budgets for role in ("active", "decoder")
         }
         budget_designs: dict[str, Any] = {}
         for budget in budgets:
-            oracle_seed = _stable_seed(
-                int(fit_plan["oracle_seed"]), f"{task_id}:budget-{budget}"
-            )
+            oracle_seed = _stable_seed(int(fit_plan["oracle_seed"]), f"{task_id}:budget-{budget}")
             oracle, batches = _fit_paired_batch_oracle(
                 candidate_ids=candidate_ids,
                 action_ids=action_ids,
@@ -1536,9 +1439,7 @@ def _run_paired_gate_a(
             trial_jobs = []
             trial_keys: list[tuple[str, int]] = []
             for candidate_id in candidate_ids:
-                for repeat_index in range(
-                    int(certificate_plan["world_seeds_per_family"])
-                ):
+                for repeat_index in range(int(certificate_plan["world_seeds_per_family"])):
                     world_seed = (
                         int(certificate_plan["seed_namespace_start"])
                         + task_index * 1_000_000
@@ -1553,9 +1454,7 @@ def _run_paired_gate_a(
                             "interventions": contract["interventions"][candidate_id],
                             "candidate_ids": candidate_ids,
                             "batch_ids": list(batches),
-                            "batches": {
-                                key: list(value) for key, value in batches.items()
-                            },
+                            "batches": {key: list(value) for key, value in batches.items()},
                             "active_batch_id": active_batch_id,
                             "decoder_batch_id": decoder_batch_id,
                             "action_library": serialized_actions,
@@ -1602,15 +1501,11 @@ def _run_paired_gate_a(
             budget_designs[str(budget)] = {
                 "matched_pre_change_reference_experiments": budget,
                 "post_change_diagnostic_experiments": budget,
-                "online_history_aligned": (
-                    budget == online_history_aligned_budget
-                ),
+                "online_history_aligned": (budget == online_history_aligned_budget),
                 "active_batch_id": active_batch_id,
                 "active_batch_information_nats": float(information[active_batch_id]),
                 "decoder_batch_id": decoder_batch_id,
-                "batch_information_nats": {
-                    key: float(value) for key, value in information.items()
-                },
+                "batch_information_nats": {key: float(value) for key, value in information.items()},
             }
         task_reports[task_id] = {
             "candidate_ids": candidate_ids,
@@ -1630,9 +1525,7 @@ def _run_paired_gate_a(
             predictions=active_predictions[budget],
             candidate_ids=qualified_candidates,
             overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
-            family_recall_lower_bound_threshold=float(
-                gate["per_family_recall_wilson_lower_bound"]
-            ),
+            family_recall_lower_bound_threshold=float(gate["per_family_recall_wilson_lower_bound"]),
         )
         for budget in budgets
     }
@@ -1642,9 +1535,7 @@ def _run_paired_gate_a(
             predictions=decoder_predictions[budget],
             candidate_ids=qualified_candidates,
             overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
-            family_recall_lower_bound_threshold=float(
-                gate["per_family_recall_wilson_lower_bound"]
-            ),
+            family_recall_lower_bound_threshold=float(gate["per_family_recall_wilson_lower_bound"]),
         )
         for budget in budgets
     }
@@ -1682,20 +1573,14 @@ def _run_paired_gate_a(
             "type": "batch_information_gain_over_matched_pre_post_recipe_contrasts",
             "gate_pass": controlled_gate_pass,
             "primary_budget": primary_budget,
-            "by_budget": {
-                str(budget): active_certificates[budget] for budget in budgets
-            },
+            "by_budget": {str(budget): active_certificates[budget] for budget in budgets},
         },
         "fixed_trajectory_decoder": {
             "controls_gate": False,
-            "by_budget": {
-                str(budget): decoder_certificates[budget] for budget in budgets
-            },
+            "by_budget": {str(budget): decoder_certificates[budget] for budget in budgets},
         },
         "certificate_decision": decision,
-        "online_policy_feasible_certificate": decision[
-            "online_policy_feasible_certificate"
-        ],
+        "online_policy_feasible_certificate": decision["online_policy_feasible_certificate"],
         "gate_a_pass": decision["gate_a_pass"],
         "task_reports": task_reports,
         "interpretation": (
@@ -1954,9 +1839,7 @@ def run_gate_a(
             "by_budget": {str(key): value for key, value in decoder_by_budget.items()},
         },
         "certificate_decision": decision,
-        "online_policy_feasible_certificate": decision[
-            "online_policy_feasible_certificate"
-        ],
+        "online_policy_feasible_certificate": decision["online_policy_feasible_certificate"],
         "gate_a_pass": decision["gate_a_pass"],
         "task_reports": task_reports,
         "interpretation": (

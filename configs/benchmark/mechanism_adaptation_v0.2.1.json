@@ -1,6 +1,6 @@
 {
   "schema_version": "chemworld-mechanism-adaptation-protocol-0.2.1",
-  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-23-freeze-rc2",
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-23-freeze-rc3",
   "status": "frozen_candidate_protocol",
   "benchmark_claim_allowed": false,
   "publication_ready": false,
@@ -88,9 +88,14 @@
       ],
       "candidate_semantics": {
         "rate_law_family": {
-          "operational_target": "upstream_primary_competing_pathway",
-          "transform_scope": "declared_arrhenius_form_and_scale_stress",
+          "operational_target": "upstream_primary_target_catalytic_pathway",
+          "transform_scope": "declared_pivot_normalized_catalytic_activity_order_stress",
           "claim_boundary": "family_level_feedback_adaptation_not_crystallization_kinetics_or_exact_rate_parameter_discovery"
+        },
+        "topology_family": {
+          "operational_target": "upstream_primary_target_pathway",
+          "transform_scope": "declared_reversible_target_pathway_stress",
+          "claim_boundary": "family_level_pathway_graph_adaptation_not_exact_reverse_rate_parameter_discovery"
         }
       },
       "interventions": {
@@ -101,11 +106,10 @@
             "mode": "rate_law_family",
             "severity": 0.8,
             "rate_law_change": {
-              "reaction_role": "primary_competing_pathway",
-              "transform_id": "arrhenius_form_and_scale_stress_v1",
-              "reference_temperature_K": 350.0,
-              "reference_rate_multiplier_at_full_severity": 8.0,
-              "temperature_exponent_at_full_severity": 0.75
+              "reaction_role": "primary_target_pathway",
+              "transform_id": "catalytic_activity_order_pivot_stress_v1",
+              "activity_order_at_full_severity": 0.2,
+              "catalyst_activity_pivot": 5.0
             }
           }
         ],
@@ -113,7 +117,12 @@
           {
             "kind": "mechanism_family",
             "mode": "topology_family",
-            "severity": 0.8
+            "severity": 0.8,
+            "topology_change": {
+              "reaction_role": "primary_target_pathway",
+              "transform_id": "reversible_target_pathway_stress_v1",
+              "reverse_rate_constant_s_inv_at_full_severity": 0.000625
+            }
           }
         ],
         "material_law_counterfactual": [
@@ -121,9 +130,9 @@
             "kind": "material_law_counterfactual",
             "material_field": "catalyst",
             "public_to_baseline": [
-              0,
               2,
               1,
+              0,
               3
             ]
           }
@@ -137,13 +146,26 @@
         "material_law_counterfactual_solvent",
         "material_law_counterfactual_electrolyte_profile"
       ],
+      "candidate_semantics": {
+        "constitutive_law_family": {
+          "operational_target": "coupled_electrochemical_response_laws",
+          "transform_scope": "declared_transfer_selectivity_and_standard_potential_stress",
+          "claim_boundary": "family_level_constitutive_feedback_adaptation_not_exact_electrochemical_parameter_identification"
+        }
+      },
       "interventions": {
         "no_change": [],
         "constitutive_law_family": [
           {
             "kind": "mechanism_family",
             "mode": "constitutive_law_family",
-            "severity": 0.8
+            "severity": 0.8,
+            "constitutive_law_change": {
+              "transform_id": "electrochemical_response_stress_v1",
+              "transfer_asymmetry_multiplier_at_full_severity": 1.4,
+              "selectivity_decay_multiplier_at_full_severity": 3.0,
+              "standard_potential_multiplier_at_full_severity": 1.25
+            }
           }
         ],
         "material_law_counterfactual_solvent": [
@@ -370,6 +392,6 @@
     },
     "minimum_public_choice_count": 2,
     "moved_indices_must_be_covered_by_gate_a_action_library": true,
-    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc15.json"
+    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc16.json"
   }
 }
