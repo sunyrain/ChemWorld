@@ -121,7 +121,8 @@ Current evidence establishes the following boundaries:
   action/intervention audit and controlled matched-identifiability certificate pass at 235/240. The independently
   bound online-policy-feasible certificate reaches 227/240 overall but fails its per-family rule because the reaction
   catalyst-mapping counterfactual is 22/30. Gate A therefore remains false. Agent-level mechanism-discovery claims
-  remain unsupported;
+  remain unsupported. These numbers are the frozen RC20 historical result. The current source binding is invalidated
+  pending RC21 recertification after the diagnostic-design contract was versioned;
 - LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 
 See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.

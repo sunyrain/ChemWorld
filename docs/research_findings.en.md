@@ -34,7 +34,10 @@ but the reaction catalyst-mapping counterfactual reaches only 22/30 and fails th
 so Gate A remains false. The `rate_law_family` reaches 29/30 in both certificates and is not the blocker. RC20 binds that family
 to the upstream primary target pathway through a pivot-normalized catalyst-activity-order stress while proving that
 crystallization constitutive parameters remain unchanged. This supports controlled identifiability, not Agent-level
-mechanism discovery, crystallization-kinetics discovery, or exact rate-parameter identification.
+mechanism discovery, crystallization-kinetics discovery, or exact rate-parameter identification. These figures are
+the frozen historical RC20 result. The current source binding is invalidated pending RC21 recertification after the
+diagnostic-design contract was versioned. Non-formal development curves show a material-family plateau from four
+through twelve experiments, so the next decoder must represent cross-action relational evidence explicitly.
 
 ## Finding 4: current RL evidence diagnoses contracts, not rankings
 

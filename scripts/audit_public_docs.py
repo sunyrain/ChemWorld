@@ -108,6 +108,24 @@ FAILED_GATE_A_STATUS_MARKERS = {
         "22/30",
     ),
 }
+INVALIDATED_GATE_A_STATUS_MARKERS = {
+    "README.md": (
+        "The current source binding is invalidated",
+        "pending RC21 recertification",
+    ),
+    "docs/benchmark_release.md": (
+        "当前源码绑定已失效",
+        "等待 RC21 重新认证",
+    ),
+    "docs/research_findings.md": (
+        "当前源码绑定已失效",
+        "等待 RC21 重新认证",
+    ),
+    "docs/research_findings.en.md": (
+        "The current source binding is invalidated",
+        "pending RC21 recertification",
+    ),
+}
 STALE_GATE_A_STATUS_MARKERS = (
     "online-policy-feasible certificate remains pending",
     "Gate A as a whole remains false",
@@ -153,9 +171,15 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
     gate_a_pass = (
         current.get("mechanism_adaptation", {}).get("gate_a_pass") is True
     )
+    gate_a_invalidated = (
+        current.get("mechanism_adaptation", {}).get("status")
+        == "gate_a_invalidated_recertification_required"
+    )
     expected_status_markers = (
         PASSED_GATE_A_STATUS_MARKERS
         if gate_a_pass
+        else INVALIDATED_GATE_A_STATUS_MARKERS
+        if gate_a_invalidated
         else FAILED_GATE_A_STATUS_MARKERS
     )
     status_surface_missing_markers = _missing_markers(
@@ -169,6 +193,8 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
             STALE_GATE_A_STATUS_MARKERS,
         )
         if gate_a_pass
+        else []
+        if gate_a_invalidated
         else _token_hits(
             [root / relative for relative in FAILED_GATE_A_STATUS_MARKERS],
             root,

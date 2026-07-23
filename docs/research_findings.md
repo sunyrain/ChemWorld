@@ -34,7 +34,9 @@ controlled matched certificate 为 235/240（97.92%）并通过；独立 online-
 因此 Gate A 总状态为 false。`rate_law_family` 在受控与在线证书中均为 29/30，不是当前阻断项。
 RC20 将该 family 绑定为上游目标生成路径的 pivot-normalized catalyst-activity-order stress，并验证
 结晶构成参数不变。该结果只支持受控条件下的可识别性，不证明被评 Agent 已具备机制发现能力，
-也不代表发现了结晶动力学或精确速率参数。
+也不代表发现了结晶动力学或精确速率参数。以上数字是冻结的 RC20 历史结果；诊断设计合同版本化后，
+当前源码绑定已失效，等待 RC21 重新认证。非正式开发曲线显示 material family 在 4–12 步之间仍会
+平台，下一 decoder 需要显式使用跨动作关系证据。
 
 ## 发现四：当前 RL 证据诊断的是合同，不是排名
 

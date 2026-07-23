@@ -35,7 +35,7 @@ Task 是公开且稳定的合同；World 是隐藏规律实例；Scenario 再加
 | 套件 | 回答什么 | 当前边界 |
 | --- | --- | --- |
 | Core | 在已验证环境上开展按 campaign 定义的 Agent 比较 | 仓库不捆绑统一的方法冻结或正式排名结果 |
-| Diagnostic | 可识别性、反馈利用、反事实、适应与自治归因 | RC20 控制匹配证书通过；在线策略可行证书因反应 material family 失败 |
+| Diagnostic | 可识别性、反馈利用、反事实、适应与自治归因 | 历史 RC20：控制匹配通过、在线 material family 失败；当前待 RC21 重认证 |
 | Extended | 环境覆盖、训练、教学和方法开发 | 不自动获得正式排名主张 |
 
 ## 每个任务保留自己的结果
@@ -123,8 +123,9 @@ Agent submission
 World Engine、回放、资源合同和部分确认协议可运行。方法选择、训练、资源匹配和结果冻结由每个评测
 campaign 自行声明，当前仓库不捆绑正式跨方法排名。RC20 action/intervention 设计审计与控制匹配
 可识别性证书已经通过（235/240）；在线策略可行证书总体为 227/240，但反应催化剂映射反事实仅
-22/30，未满足 per-family Wilson 规则，因此 Gate A 整体仍为 false。完整跨方法矩阵、真实 LLM、
-私有泛化和独立 Bridge 证据仍未共同闭合。当前是 benchmark candidate。
+22/30，未满足 per-family Wilson 规则，因此 Gate A 整体仍为 false。这些是 RC20 历史结果；诊断设计
+合同版本化后，当前源码需要 RC21 重新认证。完整跨方法矩阵、真实 LLM、私有泛化和独立 Bridge
+证据仍未共同闭合。当前是 benchmark candidate。
 
 继续阅读：[公平评测协议](benchmark_protocol.md) · [研究发现与证据](benchmark_release.md) ·
 [提交、回放与私有评测](submission.md)

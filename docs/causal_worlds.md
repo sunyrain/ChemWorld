@@ -64,7 +64,7 @@ Seed 通常改变初值、噪声或连续参数抽样，却可能保留同一因
 当前 RC20 决策相关性审计与控制匹配可识别性证书已经通过；在线策略可行证书总体达到 227/240，
 但反应催化剂映射反事实仅识别 22/30，未满足逐 family 规则，因此 Gate A 整体仍为 false。后续仍需
 修复在线诊断策略，并测量 change detection、identification accuracy、recovery experiments 与
-adaptation regret。
+adaptation regret。这些是历史 RC20 结果；当前源码需要 RC21 重新认证。
 
 ## 反事实世界可以检验名称先验
 

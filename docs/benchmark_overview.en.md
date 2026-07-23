@@ -66,7 +66,8 @@ evaluation campaign, and this repository bundles no formal cross-method result. 
 with both solvent and electrolyte-profile electrochemical counterfactuals publicly reachable and decision-relevant.
 RC20 controlled matched identifiability passes at 235/240. The separately bound online-policy-feasible certificate
 reaches 227/240 overall but fails its per-family rule because the reaction catalyst-mapping counterfactual is 22/30.
-Gate A as a whole remains false. Cross-method evaluation, real-LLM evaluation, private generalization, and external
-bridge evidence remain incomplete.
+Gate A as a whole remains false. These are historical RC20 figures; the current source requires RC21 recertification
+after its diagnostic-design contract was versioned. Cross-method evaluation, real-LLM evaluation, private
+generalization, and external bridge evidence remain incomplete.
 
 Next: [Research Findings](research_findings.md) · [Real-world Bridge](real_world_bridge.md)

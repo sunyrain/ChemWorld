@@ -78,6 +78,9 @@ solvent 目标不可达问题；新的四 seed 设计审计确认 reaction catal
 证书：预算 4 的 controlled matched oracle 为 235/240（97.92%）并通过；在线策略可行 oracle 总体为
 227/240（94.58%），但反应催化剂映射反事实仅识别 22/30，未满足逐 family Wilson 下界。
 Gate A 整体因此仍为 false。`rate_law_family` 在两份证书中均为 29/30，不是当前阻断项。
+以上数字是冻结的 RC20 历史结果；诊断设计合同版本化后，当前源码绑定已失效，等待 RC21 重新认证。
+开发诊断进一步表明，单纯把 post-change 预算从 4 增加到 8 或 12，或只补齐材料配对动作，都不能
+消除 material family 平台；下一证书必须显式建模跨动作关系证据。
 
 **支持的结论**：ChemWorld 能执行和回放预注册隐藏规律变化；在冻结候选 family、公共动作、测量
 和四次 post-change 实验预算下，受控 oracle 能完成机制诊断。当前在线 oracle 总体准确率较高，
