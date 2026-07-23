@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import itertools
 import json
 from pathlib import Path
 
@@ -22,13 +23,22 @@ from chemworld.eval.mechanism_adaptation_execution import (
     _advance_online_change_point_hypotheses,
     _balanced_hidden_change_times,
     _canonical_policy_cycle,
+    _declared_relational_action_groups,
+    _declared_relational_reference_actions,
     _dimension_normalized_likelihood_scale,
     _fit_paired_batch_oracle,
     _online_hypothesis_evidence_channel,
+    _online_relational_evidence_channel,
+    _relational_evidence_samples,
+    _relational_reference_priorities,
+    _relationally_covered_batch_ids,
     _sample_paired_contrast_job,
     _select_discriminative_feature_blocks,
     _select_information_maximum,
+    _select_online_reference_action,
+    _select_relational_coverage_actions,
     _update_online_change_point_posterior,
+    _uses_dimension_normalized_likelihood,
     _validate_online_policy_action_count,
     build_action_library,
     canonical_sha256,
@@ -59,7 +69,7 @@ def _protocol() -> dict[str, object]:
 
 def _gate_a_plan() -> dict[str, object]:
     return json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.6.json").read_text(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.7.json").read_text(
             encoding="utf-8"
         )
     )
@@ -67,7 +77,7 @@ def _gate_a_plan() -> dict[str, object]:
 
 def _paired_gate_a_plan() -> dict[str, object]:
     return json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.6.json").read_text(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.7.json").read_text(
             encoding="utf-8"
         )
     )
@@ -158,6 +168,20 @@ def test_likelihood_scale_is_normalized_by_selected_feature_dimension() -> None:
         _dimension_normalized_likelihood_scale(
             effective_dimension_count=2.0,
             selected_feature_dimension=1,
+        )
+
+
+def test_likelihood_normalization_semantics_are_not_schema_version_hardcoded() -> None:
+    assert (
+        _uses_dimension_normalized_likelihood(
+            {"likelihood_normalization": "inverse_selected_feature_dimension"}
+        )
+        is True
+    )
+    assert _uses_dimension_normalized_likelihood({}) is False
+    with pytest.raises(ValueError, match="unsupported likelihood normalization"):
+        _uses_dimension_normalized_likelihood(
+            {"likelihood_normalization": "unknown"}
         )
 
 
@@ -258,7 +282,7 @@ def test_gate_a_requires_two_bound_passing_certificates() -> None:
     plan = _paired_gate_a_plan()
     execution_binding = gate_a_execution_contract_binding(protocol, plan)
     certificate = {
-        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.4",
+        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.5",
         "certificate_scope": "online_policy_feasible_diagnosis",
         "protocol_sha256": canonical_sha256(protocol),
         "gate_a_plan_sha256": canonical_sha256(plan),
@@ -540,6 +564,282 @@ def test_online_evidence_channel_respects_reference_age(
     )
     assert candidate_id == hypothesis[0]
     assert channel == f"{expected_encoding}\u241fdesign-00"
+
+
+@pytest.mark.parametrize(
+    (
+        "hypothesis",
+        "reference_experiment_index",
+        "expected_encoding",
+    ),
+    [
+        (
+            ("no_change", None),
+            1,
+            "relational_stable_contrast",
+        ),
+        (
+            ("rate_law_family", 2),
+            1,
+            "relational_transition_contrast",
+        ),
+        (
+            ("rate_law_family", 2),
+            3,
+            "relational_stable_contrast",
+        ),
+    ],
+)
+def test_online_relational_channel_respects_reference_age(
+    hypothesis: tuple[str, int | None],
+    reference_experiment_index: int,
+    expected_encoding: str,
+) -> None:
+    candidate_id, channel = _online_hypothesis_evidence_channel(
+        hypothesis,
+        "design-04",
+        reference_action_id="design-01",
+        reference_experiment_index=reference_experiment_index,
+        current_experiment_index=3 if reference_experiment_index == 1 else 4,
+    )
+
+    assert candidate_id == hypothesis[0]
+    assert channel == (
+        f"{expected_encoding}\u241fdesign-04\u241fdesign-01"
+    )
+
+
+def test_relational_fit_samples_reuse_aligned_public_fit_worlds() -> None:
+    candidates = ["no_change"]
+    actions = ["design-00", "design-01"]
+    transition = {
+        ("no_change", "design-00"): [[2.0]],
+        ("no_change", "design-01"): [[1.0]],
+    }
+    stable = {
+        ("no_change", "design-00"): [[0.25]],
+        ("no_change", "design-01"): [[0.5]],
+    }
+    absolute = {
+        ("no_change", "design-00"): [[10.0]],
+        ("no_change", "design-01"): [[4.0]],
+    }
+
+    samples = _relational_evidence_samples(
+        candidate_ids=candidates,
+        action_ids=actions,
+        transition_samples=transition,
+        stable_samples=stable,
+        absolute_samples=absolute,
+    )
+
+    assert samples[
+        (
+            "no_change",
+            _online_relational_evidence_channel(
+                "relational_transition_contrast",
+                "design-00",
+                "design-01",
+            ),
+        )
+    ] == [[7.0]]
+    assert samples[
+        (
+            "no_change",
+            _online_relational_evidence_channel(
+                "relational_stable_contrast",
+                "design-00",
+                "design-01",
+            ),
+        )
+    ] == [[6.5]]
+
+
+def test_relational_policy_coverage_is_declared_and_fit_ranked() -> None:
+    canonical = ["design-00", "design-01", "design-02", "design-03"]
+    declarations = {
+        "material-a:0": (
+            ("design-00", "design-01"),
+            ("design-02", "design-03"),
+        ),
+        "material-b:0": (("design-01", "design-02"),),
+    }
+    information: dict[str, float] = {}
+    for current, reference in itertools.permutations(canonical, 2):
+        for encoding in (
+            "relational_transition_contrast",
+            "relational_stable_contrast",
+        ):
+            information[
+                _online_relational_evidence_channel(
+                    encoding,
+                    current,
+                    reference,
+                )
+            ] = 0.1
+    for current, reference in (
+        ("design-00", "design-01"),
+        ("design-01", "design-00"),
+    ):
+        for encoding in (
+            "relational_transition_contrast",
+            "relational_stable_contrast",
+        ):
+            information[
+                _online_relational_evidence_channel(
+                    encoding,
+                    current,
+                    reference,
+                )
+            ] = 0.5
+
+    selected, report = _select_relational_coverage_actions(
+        canonical_action_ids=canonical,
+        declaration_groups=declarations,
+        evidence_information=information,
+        action_count=3,
+    )
+    priorities = _relational_reference_priorities(
+        action_ids=selected,
+        evidence_information=information,
+    )
+    declared_references = _declared_relational_reference_actions(
+        action_ids=selected,
+        selected_groups=report["selected_groups"],
+        evidence_information=information,
+    )
+
+    assert selected == ["design-00", "design-01", "design-02"]
+    assert report["selected_groups"] == {
+        "material-a:0": ["design-00", "design-01"],
+        "material-b:0": ["design-01", "design-02"],
+    }
+    assert priorities["design-00"][0] == "design-01"
+    assert declared_references == {
+        "design-00": ["design-01"],
+        "design-01": ["design-00", "design-02"],
+        "design-02": ["design-01"],
+    }
+
+
+def test_online_reference_uses_relations_only_to_cold_start_an_action() -> None:
+    reference_action_id, source = _select_online_reference_action(
+        action_id="design-02",
+        available_reference_action_ids={"design-00", "design-01"},
+        relational_evidence_enabled=True,
+        declared_relational_references=["design-01"],
+        fit_ranked_relational_references=["design-00", "design-01"],
+    )
+    assert (reference_action_id, source) == ("design-01", "declared_relational")
+
+    reference_action_id, source = _select_online_reference_action(
+        action_id="design-02",
+        available_reference_action_ids={"design-00", "design-01", "design-02"},
+        relational_evidence_enabled=True,
+        declared_relational_references=["design-01"],
+        fit_ranked_relational_references=["design-00", "design-01"],
+    )
+    assert (reference_action_id, source) == ("design-02", "same_action_temporal")
+
+
+def test_relational_coverage_ranks_only_the_direction_the_cycle_can_execute() -> None:
+    canonical = ["design-00", "design-01", "design-02", "design-03"]
+    declarations = {
+        "material-a:0": (
+            ("design-00", "design-01"),
+            ("design-02", "design-03"),
+        ),
+        "material-b:0": (("design-01", "design-02"),),
+    }
+    information: dict[str, float] = {}
+    for current, reference in itertools.permutations(canonical, 2):
+        for encoding in (
+            "relational_transition_contrast",
+            "relational_stable_contrast",
+        ):
+            information[
+                _online_relational_evidence_channel(
+                    encoding,
+                    current,
+                    reference,
+                )
+            ] = 0.1
+
+    # This high score is in the impossible cold-start direction: design-00 is
+    # visited before design-01 in the frozen canonical cycle.
+    for encoding in (
+        "relational_transition_contrast",
+        "relational_stable_contrast",
+    ):
+        information[
+            _online_relational_evidence_channel(
+                encoding,
+                "design-00",
+                "design-01",
+            )
+        ] = 0.9
+        information[
+            _online_relational_evidence_channel(
+                encoding,
+                "design-03",
+                "design-02",
+            )
+        ] = 0.5
+
+    selected, report = _select_relational_coverage_actions(
+        canonical_action_ids=canonical,
+        declaration_groups=declarations,
+        evidence_information=information,
+        action_count=3,
+    )
+
+    assert selected == ["design-01", "design-02", "design-03"]
+    assert report["selected_groups"]["material-a:0"] == [
+        "design-02",
+        "design-03",
+    ]
+
+
+def test_controlled_batch_must_close_every_declared_relation() -> None:
+    batches = {
+        "a+b": ("a", "b"),
+        "a+b+c": ("a", "b", "c"),
+        "a+c+d": ("a", "c", "d"),
+        "b+c+d": ("b", "c", "d"),
+    }
+    declarations = {
+        "material-a:0": (("a", "b"), ("c", "d")),
+        "material-b:0": (("b", "c"),),
+    }
+
+    assert _relationally_covered_batch_ids(
+        batches=batches,
+        declaration_groups=declarations,
+    ) == ["a+b+c", "b+c+d"]
+
+
+def test_v2_relational_declarations_are_derived_without_task_specific_selection() -> None:
+    protocol = _protocol()
+    for task_id in protocol["design"]["tasks"]:  # type: ignore[index]
+        contract = protocol["task_mechanism_contracts"][task_id]  # type: ignore[index]
+        action_library = build_action_library(
+            task_id,
+            action_count=6,
+            seed=41102,
+            design_id=DIAGNOSTIC_RECIPE_DESIGN_V2,
+        )
+        declarations = _declared_relational_action_groups(
+            task_id=task_id,
+            contract=contract,
+            action_library=action_library,
+        )
+        expected_count = sum(
+            intervention.get("kind") == "material_law_counterfactual"
+            for interventions in contract["interventions"].values()
+            for intervention in interventions
+        )
+        assert len(declarations) == expected_count
+        assert all(declarations.values())
 
 
 def test_online_hazard_expands_only_protocol_change_points() -> None:

@@ -1,0 +1,152 @@
+{
+  "schema_version": "chemworld-mechanism-adaptation-relational-diagnosis-development-0.1",
+  "status": "method_frozen_formal_execution_not_started",
+  "formal_claim_allowed": false,
+  "rc20_formal_evidence_modified": false,
+  "purpose": "Close the RC20 material-family diagnosis gap without changing the physical tasks, interventions, formal budget, or gate thresholds.",
+  "final_method_contract": {
+    "action_design": "deterministic_task_aware_relational_diagnostic_design_v2",
+    "relation_group_source": "declared material interventions plus public same-condition recipes",
+    "task_or_material_name_hardcoding": false,
+    "predictive_fit_only_feature_and_action_selection": true,
+    "held_out_outcomes_used_for_selection": false,
+    "online_reference_rule": "cross-action relations cold-start an action only until its own temporal reference exists",
+    "likelihood_channel_count_per_experiment": 1,
+    "controlled_primary_batch_closes_every_declared_relation": true,
+    "formal_primary_budget": 4,
+    "formal_fit_samples_per_candidate_action": 12,
+    "formal_information_draws_per_batch": 64
+  },
+  "rejected_development_variants": [
+    {
+      "variant": "persistent_declared_relation_priority",
+      "fit_namespace": 790000000,
+      "trial_namespace": 2400000000,
+      "worlds_per_family": 20,
+      "reason_rejected": "Repeated reuse of the same cross-action reference increased no-change false positives and reduced reaction material recall to 13/20 at budget 4."
+    },
+    {
+      "variant": "controlled_information_ranking_without_relation_closure",
+      "fit_namespace": 850000000,
+      "trial_namespace": 3000000000,
+      "worlds_per_family": 20,
+      "selected_reaction_primary_batch": "design-00+design-03+design-04+design-05",
+      "complete_declared_relation_present": false,
+      "reaction_material_correct": 15,
+      "reaction_material_total": 20,
+      "reason_rejected": "A relation-capable library does not guarantee that the controlling active batch executes a complete relation."
+    }
+  ],
+  "final_online_development": {
+    "fit_namespace": 830000000,
+    "trial_namespace": 2800000000,
+    "worlds_per_family": 20,
+    "post_change_budget_checkpoints": [
+      2,
+      4,
+      8
+    ],
+    "budget_4": {
+      "overall_correct": 153,
+      "overall_total": 160,
+      "overall_accuracy": 0.95625,
+      "reaction_to_crystallization": {
+        "material_law_counterfactual": [
+          17,
+          20
+        ],
+        "no_change": [
+          19,
+          20
+        ],
+        "rate_law_family": [
+          19,
+          20
+        ],
+        "topology_family": [
+          18,
+          20
+        ]
+      },
+      "electrochemical_conversion": {
+        "constitutive_law_family": [
+          20,
+          20
+        ],
+        "material_law_counterfactual_electrolyte_profile": [
+          20,
+          20
+        ],
+        "material_law_counterfactual_solvent": [
+          20,
+          20
+        ],
+        "no_change": [
+          20,
+          20
+        ]
+      },
+      "formal_gate_pass": false,
+      "interpretation": "This n=20 development cohort supports method freeze. It cannot adjudicate the formal per-family Wilson rule, which is reserved for the preregistered n=30 cohort."
+    },
+    "budget_8": {
+      "overall_correct": 153,
+      "overall_total": 160,
+      "interpretation": "No aggregate improvement over budget 4; extra rounds alone are not treated as the solution."
+    }
+  },
+  "final_controlled_development": {
+    "reaction_to_crystallization": {
+      "fit_namespace": 870000000,
+      "trial_namespace": 3200000000,
+      "worlds_per_family": 20,
+      "selected_primary_batch": "design-00+design-01+design-04+design-05",
+      "selected_batch_closes_declared_relation": true,
+      "family_correct": {
+        "material_law_counterfactual": [
+          17,
+          20
+        ],
+        "no_change": [
+          20,
+          20
+        ],
+        "rate_law_family": [
+          20,
+          20
+        ],
+        "topology_family": [
+          18,
+          20
+        ]
+      }
+    },
+    "electrochemical_conversion": {
+      "fit_namespace": 890000000,
+      "trial_namespace": 3400000000,
+      "worlds_per_family": 10,
+      "selected_primary_batch": "design-02+design-03+design-04+design-05",
+      "selected_batch_closes_all_declared_relations": true,
+      "overall_correct": 40,
+      "overall_total": 40,
+      "eligible_batch_information_spread_nats": 0.0024434790833771647,
+      "minimum_required_spread_nats": 0.001
+    }
+  },
+  "formal_freeze": {
+    "plan": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.7.json",
+    "fit_namespace": 1100000000,
+    "held_out_namespace": 3600000000,
+    "worlds_per_family": 30,
+    "development_namespaces_reused": false,
+    "status": "pending_design_audit_and_execution"
+  },
+  "conclusion": {
+    "physical_task_redesign_required": false,
+    "rate_law_task_design_is_blocker": false,
+    "material_relation_representation_was_a_harness_blocker": true,
+    "controlled_relation_selection_was_a_harness_blocker": true,
+    "method_frozen": true,
+    "formal_result_known": false
+  }
+}

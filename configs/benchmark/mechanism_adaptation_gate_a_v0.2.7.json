@@ -1,0 +1,210 @@
+{
+  "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2.7",
+  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-24-freeze-rc21",
+  "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
+  "formal_benchmark_result": false,
+  "purpose": "Two-certificate Gate A with declared relational coverage in both the controlled primary batch and the hidden-change online policy.",
+  "claim_scope": "controlled_and_online_policy_feasible_identifiability",
+  "online_policy_feasible_certificate": {
+    "required_before_formal_mechanism_claim": true,
+    "certificate_schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.5",
+    "certificate_scope": "online_policy_feasible_diagnosis",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.5-rc21.json",
+    "hidden_change_time": true,
+    "change_time_candidates": [
+      1,
+      2,
+      4,
+      6
+    ],
+    "change_time_assignment": "seeded_balanced_and_hidden_from_policy",
+    "post_change_experiment_budget_checkpoints": [
+      2,
+      4
+    ],
+    "online_policy_gate_budget": 4,
+    "controlled_matched_primary_budget": 4,
+    "information_ranking_batch_size": 2,
+    "online_policy_action_count": 4,
+    "change_hazard_per_allowed_change_point": 0.25,
+    "phase_invariant_action_rule": true,
+    "changed_mechanism_states_are_absorbing": true,
+    "policy_receives_phase_or_reset_indicator": false,
+    "declared_relational_action_coverage": true,
+    "one_likelihood_channel_per_experiment": true,
+    "action_selection": "derive same-condition relation groups from every declared material intervention; select one fit-ranked realizable group per declaration; fill the four-action policy set using predictive-fit-only information; execute the final set in canonical order without phase input",
+    "reference_policy": "retain each selected action's first observation and global experiment index; a cross-action relation may cold-start an action only while that action has no same-action reference; all later evidence for that action uses its own temporal reference",
+    "evidence_policy": "select eight whole public-summary blocks per evidence channel from predictive-fit samples only; use exactly one absolute, same-action temporal, or cross-action relational likelihood channel per experiment; choose transition versus stable semantics from the latent change-point hypothesis and reference age; never expose phase, reset, or hidden truth",
+    "no_change_twins_use_evaluator_only_pseudo_change_checkpoint": true,
+    "uses_actual_available_pre_change_history": true,
+    "uses_actual_action_measurement_and_budget_contract": true,
+    "must_bind_protocol_and_plan_sha256": true,
+    "controls_full_gate_a": true,
+    "status": "pending_execution"
+  },
+  "action_library": {
+    "design": "deterministic_task_aware_relational_diagnostic_design_v2",
+    "action_count_per_task": 6,
+    "design_seed": 41102,
+    "batch_selection": "fit-only information ranking subject to declared relational coverage at the controlled primary budget"
+  },
+  "paired_phase_design": {
+    "pre_change_reference_experiments": 2,
+    "post_change_diagnostic_experiments": 4,
+    "diagnostic_curve_matches_reference_count_to_budget": true,
+    "budget_interpretation": "Budget 2 is the online-history-aligned stress point. Gate A controls at budget 4 with four matched references and four diagnostics in the controlled certificate and the actual two-reference history plus four post-change experiments in the online certificate.",
+    "same_hidden_world_seed_across_phases": true,
+    "same_world_seed_reused_across_candidate_twins": true,
+    "independent_observation_seed_across_phases": true,
+    "same_recipe_batch_replayed_after_reset": true,
+    "public_contrast_encoding": "post_minus_pre_same_recipe",
+    "batch_is_selected_before_held_out_outcomes": true,
+    "controlled_primary_declared_relational_action_coverage": true
+  },
+  "candidate_predictive_fit": {
+    "samples_per_candidate_action": 12,
+    "oracle_seed": 41103,
+    "variance_floor": 0.0001,
+    "nuisance_seed_namespace_start": 1100000000,
+    "execution_workers": 8,
+    "public_feature_encoding": "chemworld-public-experiment-finite-first-last-range-0.1",
+    "summary_block_size": 4,
+    "controlled_discriminative_block_count": 8,
+    "controlled_primary_information_minimum_spread_nats": 0.001,
+    "online_discriminative_block_count": 8,
+    "online_batch_information_minimum_spread_nats": 0.001,
+    "likelihood_normalization": "inverse_selected_feature_dimension",
+    "likelihood_effective_dimension_count": 1.0,
+    "feature_selection": "per_evidence_channel_max_between_candidate_to_pooled_within_candidate_variance_ratio_over_whole_summary_blocks",
+    "held_out_data_used_for_feature_selection": false,
+    "online_relational_evidence_enabled": true,
+    "development_calibration": {
+      "formal_claim_allowed": false,
+      "parameter_selection_completed_before_rc21_held_out_execution": true,
+      "excluded_from_rc21_held_out": true,
+      "fit_namespaces": [
+        700000000,
+        750000000,
+        790000000,
+        810000000,
+        830000000,
+        850000000,
+        870000000,
+        890000000
+      ],
+      "trial_namespaces": [
+        2100000000,
+        2200000000,
+        2400000000,
+        2600000000,
+        2800000000,
+        3000000000,
+        3200000000,
+        3400000000
+      ],
+      "final_online_development": {
+        "fit_namespace": 830000000,
+        "trial_namespace": 2800000000,
+        "worlds_per_family": 20,
+        "budget_4_overall_correct": 153,
+        "budget_4_overall_total": 160,
+        "reaction_family_correct": {
+          "material_law_counterfactual": 17,
+          "no_change": 19,
+          "rate_law_family": 19,
+          "topology_family": 18
+        },
+        "electrochemical_family_correct": {
+          "constitutive_law_family": 20,
+          "material_law_counterfactual_electrolyte_profile": 20,
+          "material_law_counterfactual_solvent": 20,
+          "no_change": 20
+        },
+        "interpretation": "The n=20 development cohort supports method freeze but cannot satisfy every formal Wilson lower bound; no formal claim is made."
+      },
+      "controlled_relational_coverage_development": {
+        "unconstrained_negative_control": {
+          "fit_namespace": 850000000,
+          "trial_namespace": 3000000000,
+          "worlds_per_family": 20,
+          "reaction_material_correct": 15,
+          "reaction_material_total": 20,
+          "selected_primary_batch": "design-00+design-03+design-04+design-05",
+          "complete_declared_relation_present": false
+        },
+        "reaction_after_generic_coverage": {
+          "fit_namespace": 870000000,
+          "trial_namespace": 3200000000,
+          "worlds_per_family": 20,
+          "selected_primary_batch": "design-00+design-01+design-04+design-05",
+          "family_correct": {
+            "material_law_counterfactual": 17,
+            "no_change": 20,
+            "rate_law_family": 20,
+            "topology_family": 18
+          }
+        },
+        "electrochemical_after_generic_coverage": {
+          "fit_namespace": 890000000,
+          "trial_namespace": 3400000000,
+          "worlds_per_family": 10,
+          "selected_primary_batch": "design-02+design-03+design-04+design-05",
+          "overall_correct": 40,
+          "overall_total": 40
+        }
+      },
+      "selection_basis": "RC20 failed the online reaction material family because its evidence model had no cross-action relational channel. RC21 development added task-agnostic relation groups, fit-only cross-action predictives, one likelihood channel per experiment, and cold-start-only relational reference use. A separate controlled development negative control showed that library availability alone did not force the active batch to close a material relation, so the final primary controlled selector also requires one complete public relation per declared material intervention. All development namespaces are excluded from formal RC21."
+    }
+  },
+  "held_out_certificate": {
+    "world_seeds_per_family": 30,
+    "seed_namespace_start": 3600000000,
+    "information_draws_per_batch": 64,
+    "execution_workers": 8,
+    "budgets": [
+      2,
+      4
+    ],
+    "primary_gate_budget": 4
+  },
+  "public_feature_contract": {
+    "source": "agent-visible numeric observation and reward after every compiled public recipe operation in the controlled matched and actual hidden-change campaigns",
+    "encoding": "Each experiment is summarized into four-value blocks per sorted public scalar. Controlled primary batches must close every declared material relation and use matched post-minus-pre summaries. Online evidence uses one absolute, same-action temporal, or cold-start cross-action relational channel, with transition/stable semantics selected by latent reference age. Every feature and action ranking uses predictive-fit samples only.",
+    "private_truth_fields_included": false,
+    "evaluation_only_hidden_outcomes_included": false,
+    "active_action_source": "fit-only information ranking constrained by declared relation coverage at the controlled primary budget; online selection uses the same declarations and a fixed canonical cycle",
+    "fixed_trajectory_action_source": "first k actions in the frozen deterministic action library",
+    "decoder_controls_gate": false
+  },
+  "gate_rule_source": "configs/benchmark/mechanism_adaptation_v0.2.1.json#gates.gate_a",
+  "supersession_reason": "RC21 supersedes RC20 after the diagnostic action design was versioned. It retains the physical tasks, interventions, budgets, thresholds, no-change controls, feature blocks, and dimension-normalized likelihood. It adds explicit task-agnostic relational evidence and requires actual relation closure in the controlled primary batch. RC20 and all development evidence remain immutable and non-controlling.",
+  "design_validity_precondition": {
+    "required": true,
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc21.json",
+    "pass_field": "pass"
+  },
+  "rate_law_response_certificate": {
+    "required": true,
+    "minimum_response_multiplier": 0.5,
+    "maximum_response_multiplier": 2.0,
+    "require_crosses_unity": true,
+    "pass_rule": "Every frozen public catalyst-dose response must remain within the declared multiplier envelope and the set must contain responses on both sides of unity."
+  },
+  "decision_relevance_certificate": {
+    "required": true,
+    "required_metric_ids": [
+      "task_primary",
+      "leaderboard_score"
+    ],
+    "world_seeds": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "minimum_median_max_metric_effect": 0.01,
+    "minimum_median_old_policy_regret": 0.005,
+    "minimum_optimal_action_change_rate": 0.5,
+    "pass_rule": "For every required metric, median max effect must exceed its threshold and either old-policy regret or optimal-action change rate must exceed its threshold."
+  }
+}

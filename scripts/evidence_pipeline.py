@@ -127,13 +127,13 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_gate_a_plan",
-        "configs/benchmark/mechanism_adaptation_gate_a_v0.2.6.json",
+        "configs/benchmark/mechanism_adaptation_gate_a_v0.2.7.json",
         "protocol_input",
         ("mechanism_protocol",),
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc20.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc21.json",
         "formal_result",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
     ),

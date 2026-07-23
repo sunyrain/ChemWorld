@@ -17,7 +17,7 @@ import hashlib
 import itertools
 import json
 import math
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Collection, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, cast
@@ -47,7 +47,10 @@ from chemworld.eval.mechanism_adaptation import (
     identifiability_certificate,
     validate_mechanism_adaptation_protocol,
 )
-from chemworld.eval.mechanism_design_audit import audit_mechanism_design
+from chemworld.eval.mechanism_design_audit import (
+    audit_mechanism_design,
+    material_relational_action_groups,
+)
 from chemworld.eval.mechanism_gate_decision import (
     ONLINE_POLICY_CERTIFICATE_VERSION,
     gate_a_certificate_decision,
@@ -62,11 +65,11 @@ from chemworld.tasks import get_task
 
 DEFAULT_PROTOCOL_PATH = configuration_root() / "benchmark/mechanism_adaptation_v0.2.1.json"
 DEFAULT_GATE_A_PLAN_PATH = (
-    configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.2.6.json"
+    configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.2.7.json"
 )
 DEFAULT_LLM_METHODS_PATH = configuration_root() / "methods/llm_v0.4/llm_methods.json"
 EXECUTION_SCHEMA_VERSION = "chemworld-mechanism-adaptation-execution-0.2"
-GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.2.6"
+GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.2.7"
 PUBLIC_EXPERIMENT_FEATURE_ENCODING_VERSION = (
     "chemworld-public-experiment-finite-first-last-range-0.1"
 )
@@ -355,10 +358,28 @@ def _online_evidence_channel(encoding: str, action_id: str) -> str:
     return f"{encoding}\u241f{action_id}"
 
 
+def _online_relational_evidence_channel(
+    encoding: str,
+    action_id: str,
+    reference_action_id: str,
+) -> str:
+    """Name one ordered cross-action contrast without task-specific semantics."""
+
+    if encoding not in {
+        "relational_transition_contrast",
+        "relational_stable_contrast",
+    }:
+        raise ValueError(f"unsupported online relational evidence encoding: {encoding}")
+    if action_id == reference_action_id:
+        raise ValueError("relational evidence requires two distinct public actions")
+    return f"{encoding}\u241f{action_id}\u241f{reference_action_id}"
+
+
 def _online_hypothesis_evidence_channel(
     hypothesis: tuple[str, int | None],
     action_id: str,
     *,
+    reference_action_id: str | None = None,
     reference_experiment_index: int | None,
     current_experiment_index: int,
 ) -> tuple[str, str]:
@@ -367,15 +388,30 @@ def _online_hypothesis_evidence_channel(
     candidate_id, change_after_experiment = hypothesis
     if reference_experiment_index is None:
         encoding = "absolute_trace"
+        channel = _online_evidence_channel(encoding, action_id)
     elif (
         candidate_id != "no_change"
         and change_after_experiment is not None
         and reference_experiment_index <= change_after_experiment < current_experiment_index
     ):
-        encoding = "transition_contrast"
+        if reference_action_id is not None and reference_action_id != action_id:
+            channel = _online_relational_evidence_channel(
+                "relational_transition_contrast",
+                action_id,
+                reference_action_id,
+            )
+        else:
+            channel = _online_evidence_channel("transition_contrast", action_id)
     else:
-        encoding = "stable_contrast"
-    return candidate_id, _online_evidence_channel(encoding, action_id)
+        if reference_action_id is not None and reference_action_id != action_id:
+            channel = _online_relational_evidence_channel(
+                "relational_stable_contrast",
+                action_id,
+                reference_action_id,
+            )
+        else:
+            channel = _online_evidence_channel("stable_contrast", action_id)
+    return candidate_id, channel
 
 
 def _advance_online_change_point_hypotheses(
@@ -445,6 +481,346 @@ def _online_predictive_lookup(
             np.maximum(variance, 1e-12),
         )
     return predictives
+
+
+def _relational_evidence_samples(
+    *,
+    candidate_ids: Sequence[str],
+    action_ids: Sequence[str],
+    transition_samples: Mapping[tuple[str, str], Sequence[Sequence[float]]],
+    stable_samples: Mapping[tuple[str, str], Sequence[Sequence[float]]],
+    absolute_samples: Mapping[tuple[str, str], Sequence[Sequence[float]]],
+) -> dict[tuple[str, str], list[list[float]]]:
+    """Derive ordered cross-action contrasts from nuisance-aligned fit samples.
+
+    For a current action ``a`` and an earlier reference action ``b``, the
+    transition channel models ``post(a) - pre(b)`` while the stable channel
+    models ``post(a) - post_reference(b)``.  The component arrays are reconstructed
+    from the already sampled absolute and same-action contrasts, so enabling
+    relational evidence does not create a second fit namespace or inspect held-out
+    outcomes.
+    """
+
+    result: dict[tuple[str, str], list[list[float]]] = {}
+    for candidate_id in candidate_ids:
+        for action_id in action_ids:
+            current_absolute = absolute_samples[(candidate_id, action_id)]
+            for reference_action_id in action_ids:
+                if reference_action_id == action_id:
+                    continue
+                reference_absolute = absolute_samples[(candidate_id, reference_action_id)]
+                reference_transition = transition_samples[
+                    (candidate_id, reference_action_id)
+                ]
+                reference_stable = stable_samples[(candidate_id, reference_action_id)]
+                sample_count = len(current_absolute)
+                if (
+                    len(reference_absolute) != sample_count
+                    or len(reference_transition) != sample_count
+                    or len(reference_stable) != sample_count
+                ):
+                    raise ValueError("relational fit samples are not nuisance-aligned")
+                transition_rows: list[list[float]] = []
+                stable_rows: list[list[float]] = []
+                for current, reference_post, delta, stable_delta in zip(
+                    current_absolute,
+                    reference_absolute,
+                    reference_transition,
+                    reference_stable,
+                    strict=True,
+                ):
+                    current_values = np.asarray(current, dtype=float)
+                    reference_post_values = np.asarray(reference_post, dtype=float)
+                    transition_values = np.asarray(delta, dtype=float)
+                    stable_values = np.asarray(stable_delta, dtype=float)
+                    if not (
+                        current_values.shape
+                        == reference_post_values.shape
+                        == transition_values.shape
+                        == stable_values.shape
+                    ):
+                        raise ValueError("relational fit sample dimensions are inconsistent")
+                    reference_pre = reference_post_values - transition_values
+                    reference_stable_post = reference_post_values - stable_values
+                    transition_rows.append((current_values - reference_pre).tolist())
+                    stable_rows.append(
+                        (current_values - reference_stable_post).tolist()
+                    )
+                result[
+                    (
+                        candidate_id,
+                        _online_relational_evidence_channel(
+                            "relational_transition_contrast",
+                            action_id,
+                            reference_action_id,
+                        ),
+                    )
+                ] = transition_rows
+                result[
+                    (
+                        candidate_id,
+                        _online_relational_evidence_channel(
+                            "relational_stable_contrast",
+                            action_id,
+                            reference_action_id,
+                        ),
+                    )
+                ] = stable_rows
+    return result
+
+
+def _declared_relational_action_groups(
+    *,
+    task_id: str,
+    contract: Mapping[str, Any],
+    action_library: Mapping[str, np.ndarray],
+) -> dict[str, tuple[tuple[str, ...], ...]]:
+    """Resolve every declared material intervention to same-condition public groups."""
+
+    task_info = get_task(task_id).to_dict()
+    recipes = {
+        action_id: task_recipe_from_unit_vector(task_info, vector)
+        for action_id, vector in action_library.items()
+    }
+    declarations: dict[str, tuple[tuple[str, ...], ...]] = {}
+    interventions = contract.get("interventions", {})
+    if not isinstance(interventions, Mapping):
+        raise ValueError("task intervention contract must be an object")
+    for candidate_id, raw_items in interventions.items():
+        if not isinstance(raw_items, Sequence) or isinstance(raw_items, str | bytes):
+            raise ValueError("candidate interventions must be a sequence")
+        for index, raw_intervention in enumerate(raw_items):
+            if not isinstance(raw_intervention, Mapping):
+                raise ValueError("candidate intervention must be an object")
+            if raw_intervention.get("kind") != "material_law_counterfactual":
+                continue
+            groups = material_relational_action_groups(
+                recipes,
+                intervention=raw_intervention,
+            )
+            declaration_id = f"{candidate_id}:{index}"
+            if not groups:
+                raise ValueError(
+                    "relational online evidence requires a same-condition public "
+                    f"action group for {task_id}/{declaration_id}"
+                )
+            declarations[declaration_id] = groups
+    return declarations
+
+
+def _relation_channel_information(
+    evidence_information: Mapping[str, float],
+    *,
+    action_id: str,
+    reference_action_id: str,
+) -> float:
+    """Use the weaker fit-only channel as a robust unknown-change-time score."""
+
+    transition = float(
+        evidence_information[
+            _online_relational_evidence_channel(
+                "relational_transition_contrast",
+                action_id,
+                reference_action_id,
+            )
+        ]
+    )
+    stable = float(
+        evidence_information[
+            _online_relational_evidence_channel(
+                "relational_stable_contrast",
+                action_id,
+                reference_action_id,
+            )
+        ]
+    )
+    return min(transition, stable)
+
+
+def _select_relational_coverage_actions(
+    *,
+    canonical_action_ids: Sequence[str],
+    declaration_groups: Mapping[str, Sequence[Sequence[str]]],
+    evidence_information: Mapping[str, float],
+    action_count: int,
+) -> tuple[list[str], dict[str, Any]]:
+    """Select one fit-ranked public relation group per declared intervention."""
+
+    canonical = [str(item) for item in canonical_action_ids]
+    canonical_position = {
+        action_id: index for index, action_id in enumerate(canonical)
+    }
+    if not declaration_groups:
+        return [], {
+            "required": False,
+            "declarations": {},
+            "selected_groups": {},
+            "selected_action_ids": [],
+        }
+    declaration_ids = sorted(declaration_groups)
+    choices = [tuple(tuple(str(item) for item in group) for group in declaration_groups[key])
+               for key in declaration_ids]
+    candidates: list[
+        tuple[float, int, tuple[str, ...], tuple[tuple[str, ...], ...]]
+    ] = []
+    for selected_groups in itertools.product(*choices):
+        selected_set = {
+            action_id for group in selected_groups for action_id in group
+        }
+        if len(selected_set) > action_count:
+            continue
+        score = 0.0
+        for group in selected_groups:
+            unknown_actions = sorted(set(group) - set(canonical))
+            if unknown_actions:
+                raise ValueError(
+                    "relational action group contains unknown actions: "
+                    + ", ".join(unknown_actions)
+                )
+            ordered_scores = [
+                _relation_channel_information(
+                    evidence_information,
+                    action_id=action_id,
+                    reference_action_id=reference_action_id,
+                )
+                for action_id, reference_action_id in itertools.permutations(group, 2)
+                if canonical_position[reference_action_id]
+                < canonical_position[action_id]
+            ]
+            if not ordered_scores:
+                raise ValueError(
+                    "a relational action group requires at least two distinct actions "
+                    "with a realizable canonical cold-start direction"
+                )
+            score += max(ordered_scores)
+        ordered_actions = tuple(item for item in canonical if item in selected_set)
+        candidates.append(
+            (-score, len(selected_set), ordered_actions, selected_groups)
+        )
+    if not candidates:
+        raise ValueError(
+            "online policy action count cannot cover every declared relational intervention"
+        )
+    _negative_score, _size, selected_actions, selected_groups = min(candidates)
+    return list(selected_actions), {
+        "required": True,
+        "declarations": {
+            key: [list(group) for group in declaration_groups[key]]
+            for key in declaration_ids
+        },
+        "selected_groups": {
+            key: list(group)
+            for key, group in zip(declaration_ids, selected_groups, strict=True)
+        },
+        "selected_action_ids": list(selected_actions),
+        "selection_rule": (
+            "one_group_per_declared_material_intervention_maximizing_the_minimum_of_"
+            "transition_and_stable_fit_only_information_in_a_canonical_cold_start_"
+            "direction_then_minimizing_action_union"
+        ),
+    }
+
+
+def _relationally_covered_batch_ids(
+    *,
+    batches: Mapping[str, Sequence[str]],
+    declaration_groups: Mapping[str, Sequence[Sequence[str]]],
+) -> list[str]:
+    """Return controlled batches that close one public relation per declaration."""
+
+    eligible: list[str] = []
+    for batch_id, raw_action_ids in batches.items():
+        action_ids = {str(item) for item in raw_action_ids}
+        covers_all = all(
+            any(
+                {str(item) for item in group}.issubset(action_ids)
+                for group in groups
+            )
+            for groups in declaration_groups.values()
+        )
+        if covers_all:
+            eligible.append(str(batch_id))
+    return sorted(eligible)
+
+
+def _relational_reference_priorities(
+    *,
+    action_ids: Sequence[str],
+    evidence_information: Mapping[str, float],
+) -> dict[str, list[str]]:
+    """Pre-rank ordered relation references using fit-only information."""
+
+    result: dict[str, list[str]] = {}
+    for action_id in action_ids:
+        result[str(action_id)] = sorted(
+            (str(item) for item in action_ids if item != action_id),
+            key=lambda reference_action_id: (
+                -_relation_channel_information(
+                    evidence_information,
+                    action_id=str(action_id),
+                    reference_action_id=reference_action_id,
+                ),
+                reference_action_id,
+            ),
+        )
+    return result
+
+
+def _declared_relational_reference_actions(
+    *,
+    action_ids: Sequence[str],
+    selected_groups: Mapping[str, Sequence[str]],
+    evidence_information: Mapping[str, float],
+) -> dict[str, list[str]]:
+    """Prioritize exact declared intervention partners within the policy set."""
+
+    policy_actions = {str(item) for item in action_ids}
+    by_action: dict[str, set[str]] = {
+        str(action_id): set() for action_id in action_ids
+    }
+    for raw_group in selected_groups.values():
+        group = [str(item) for item in raw_group]
+        if not set(group).issubset(policy_actions):
+            raise ValueError("selected relational group is outside the policy action set")
+        for action_id, reference_action_id in itertools.permutations(group, 2):
+            by_action[action_id].add(reference_action_id)
+    return {
+        action_id: sorted(
+            references,
+            key=lambda reference_action_id: (
+                -_relation_channel_information(
+                    evidence_information,
+                    action_id=action_id,
+                    reference_action_id=reference_action_id,
+                ),
+                reference_action_id,
+            ),
+        )
+        for action_id, references in by_action.items()
+    }
+
+
+def _select_online_reference_action(
+    *,
+    action_id: str,
+    available_reference_action_ids: Collection[str],
+    relational_evidence_enabled: bool,
+    declared_relational_references: Sequence[str],
+    fit_ranked_relational_references: Sequence[str],
+) -> tuple[str | None, str]:
+    """Choose one non-duplicated evidence reference for the current experiment."""
+
+    available = {str(item) for item in available_reference_action_ids}
+    if action_id in available:
+        return action_id, "same_action_temporal"
+    if relational_evidence_enabled:
+        for reference_action_id in declared_relational_references:
+            if reference_action_id in available:
+                return str(reference_action_id), "declared_relational"
+        for reference_action_id in fit_ranked_relational_references:
+            if reference_action_id in available:
+                return str(reference_action_id), "fit_ranked_relational"
+    return None, "absolute"
 
 
 def _select_discriminative_feature_blocks(
@@ -596,11 +972,27 @@ def _dimension_normalized_likelihood_scale(
     return float(effective_dimension_count / selected_feature_dimension)
 
 
+def _uses_dimension_normalized_likelihood(
+    fit_plan: Mapping[str, Any],
+) -> bool:
+    """Resolve likelihood semantics from the declared contract, not a plan version."""
+
+    normalization = fit_plan.get("likelihood_normalization")
+    if normalization is None:
+        return False
+    if normalization != "inverse_selected_feature_dimension":
+        raise ValueError(
+            f"unsupported likelihood normalization contract: {normalization!r}"
+        )
+    return True
+
+
 def _update_online_change_point_posterior(
     posterior: Mapping[tuple[str, int | None], float],
     *,
     action_id: str,
     observation: Sequence[float],
+    reference_action_id: str | None = None,
     reference_experiment_index: int | None,
     current_experiment_index: int,
     predictives: Mapping[
@@ -622,6 +1014,7 @@ def _update_online_change_point_posterior(
         predictive_key = _online_hypothesis_evidence_channel(
             hypothesis,
             action_id,
+            reference_action_id=reference_action_id,
             reference_experiment_index=reference_experiment_index,
             current_experiment_index=current_experiment_index,
         )
@@ -957,6 +1350,10 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     action_library = {
         str(key): np.asarray(value, dtype=float) for key, value in job["action_library"].items()
     }
+    raw_relational_evidence = job.get("relational_evidence_enabled", False)
+    if not isinstance(raw_relational_evidence, bool):
+        raise ValueError("online trial relational evidence flag must be boolean")
+    relational_evidence_enabled = raw_relational_evidence
     evidence_action_ids = [
         _online_evidence_channel(encoding, action_id)
         for action_id in action_ids
@@ -966,6 +1363,22 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
             "absolute_trace",
         )
     ]
+    if relational_evidence_enabled:
+        evidence_action_ids.extend(
+            _online_relational_evidence_channel(
+                encoding,
+                action_id,
+                reference_action_id,
+            )
+            for action_id, reference_action_id in itertools.permutations(
+                action_ids,
+                2,
+            )
+            for encoding in (
+                "relational_transition_contrast",
+                "relational_stable_contrast",
+            )
+        )
     expected_predictive_keys = {
         (candidate_id, action_id)
         for candidate_id in candidate_ids
@@ -980,6 +1393,49 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     }
     if set(feature_indices) != set(evidence_action_ids):
         raise ValueError("online feature selection must cover every evidence channel")
+    relational_reference_priority = {
+        str(action_id): [str(item) for item in raw_priority]
+        for action_id, raw_priority in job.get(
+            "relational_reference_priority",
+            {},
+        ).items()
+    }
+    declared_relational_reference_actions = {
+        str(action_id): [str(item) for item in raw_references]
+        for action_id, raw_references in job.get(
+            "declared_relational_reference_actions",
+            {},
+        ).items()
+    }
+    if relational_evidence_enabled:
+        if set(relational_reference_priority) != set(reference_action_ids):
+            raise ValueError(
+                "relational reference priorities must cover every policy action"
+            )
+        if set(declared_relational_reference_actions) != set(reference_action_ids):
+            raise ValueError(
+                "declared relational references must cover every policy action"
+            )
+        for action_id, priority in relational_reference_priority.items():
+            if (
+                len(priority) != len(reference_action_ids) - 1
+                or set(priority) != set(reference_action_ids) - {action_id}
+            ):
+                raise ValueError(
+                    "relational reference priority must order every other policy action"
+                )
+            declared_references = declared_relational_reference_actions[action_id]
+            if (
+                len(declared_references) != len(set(declared_references))
+                or not set(declared_references).issubset(
+                    set(reference_action_ids) - {action_id}
+                )
+            ):
+                raise ValueError(
+                    "declared relational references must be unique other policy actions"
+                )
+    elif relational_reference_priority or declared_relational_reference_actions:
+        raise ValueError("legacy online evidence cannot declare relational references")
     likelihood_scale = float(job["likelihood_scale"])
     change_time = int(job["change_time"])
     allowed_change_times = [int(item) for item in job["change_time_candidates"]]
@@ -1026,9 +1482,27 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
         action_id = reference_action_ids[(experiment_index - 1) % len(reference_action_ids)]
 
         observation = np.asarray(session.observe(action_id), dtype=float)
-        reference = references.get(action_id)
-        first_observation = reference is None
+        first_observation = action_id not in references
+        reference_action_id, reference_source = _select_online_reference_action(
+            action_id=action_id,
+            available_reference_action_ids=references,
+            relational_evidence_enabled=relational_evidence_enabled,
+            declared_relational_references=declared_relational_reference_actions.get(
+                action_id,
+                (),
+            ),
+            fit_ranked_relational_references=relational_reference_priority.get(
+                action_id,
+                (),
+            ),
+        )
+        reference = (
+            references.get(reference_action_id)
+            if reference_action_id is not None
+            else None
+        )
         if reference is None:
+            reference_action_id = None
             reference_experiment_index = None
             evidence = observation
         else:
@@ -1038,6 +1512,7 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
             hypothesis_posterior,
             action_id=action_id,
             observation=evidence.tolist(),
+            reference_action_id=reference_action_id,
             reference_experiment_index=reference_experiment_index,
             current_experiment_index=experiment_index,
             predictives=predictives,
@@ -1057,11 +1532,15 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
                 "action_id": action_id,
                 "evidence_encoding": (
                     "latent_mixture_absolute"
-                    if first_observation
+                    if reference_action_id is None
+                    else "latent_mixture_relational_transition_or_stable_contrast"
+                    if reference_action_id != action_id
                     else "latent_mixture_transition_or_stable_contrast"
                 ),
                 "reference_established": first_observation,
+                "reference_action_id": reference_action_id,
                 "reference_experiment_index": reference_experiment_index,
+                "reference_source": reference_source,
                 "policy_cycle_position": ((experiment_index - 1) % len(reference_action_ids)),
                 "active_change_point_hypothesis_count": len(hypothesis_posterior),
                 "posterior": dict(family_posterior),
@@ -1212,8 +1691,27 @@ def run_online_policy_certificate(
     if feature_block_size != PUBLIC_EXPERIMENT_FEATURE_BLOCK_SIZE:
         raise ValueError("online public-feature block-size contract is unsupported")
     discriminative_block_count = int(fit_plan["online_discriminative_block_count"])
+    raw_relational_evidence = fit_plan.get(
+        "online_relational_evidence_enabled",
+        False,
+    )
+    if not isinstance(raw_relational_evidence, bool):
+        raise ValueError("online relational evidence flag must be boolean")
+    relational_evidence_enabled = raw_relational_evidence
+    if relational_evidence_enabled:
+        if requirement.get("declared_relational_action_coverage") is not True:
+            raise ValueError(
+                "relational online evidence requires declared action-group coverage"
+            )
+        if requirement.get("one_likelihood_channel_per_experiment") is not True:
+            raise ValueError(
+                "relational online evidence must use one likelihood channel per experiment"
+            )
     selected_feature_dimension = discriminative_block_count * feature_block_size
-    if plan.get("schema_version") == "chemworld-mechanism-adaptation-gate-a-plan-0.2.6":
+    dimension_normalized_likelihood = _uses_dimension_normalized_likelihood(
+        fit_plan
+    )
+    if dimension_normalized_likelihood:
         likelihood_effective_dimension_count = float(
             fit_plan["likelihood_effective_dimension_count"]
         )
@@ -1249,14 +1747,13 @@ def run_online_policy_certificate(
         not np.isfinite(online_batch_information_minimum_spread)
         or online_batch_information_minimum_spread < 0.0
         or (
-            plan.get("schema_version")
-            == "chemworld-mechanism-adaptation-gate-a-plan-0.2.6"
+            dimension_normalized_likelihood
             and online_batch_information_minimum_spread == 0.0
         )
     ):
         raise ValueError(
             "online batch information minimum spread must be nonnegative "
-            "and positive for plan schema 0.2.6"
+            "and positive for dimension-normalized likelihoods"
         )
     action_libraries = {
         str(task_id): build_action_library(
@@ -1388,6 +1885,33 @@ def run_online_policy_certificate(
                 "absolute_trace",
             )
         ]
+        relational_samples: dict[
+            tuple[str, str],
+            list[list[float]],
+        ] = {}
+        if relational_evidence_enabled:
+            relational_samples = _relational_evidence_samples(
+                candidate_ids=candidate_ids,
+                action_ids=action_ids,
+                transition_samples=transition_samples,
+                stable_samples=stable_samples,
+                absolute_samples=absolute_samples,
+            )
+            evidence_action_ids.extend(
+                _online_relational_evidence_channel(
+                    encoding,
+                    action_id,
+                    reference_action_id,
+                )
+                for action_id, reference_action_id in itertools.permutations(
+                    action_ids,
+                    2,
+                )
+                for encoding in (
+                    "relational_transition_contrast",
+                    "relational_stable_contrast",
+                )
+            )
         evidence_samples = {
             (
                 candidate_id,
@@ -1409,6 +1933,7 @@ def run_online_policy_certificate(
                 "absolute_trace",
             )
         }
+        evidence_samples.update(relational_samples)
         feature_indices, feature_selection_report = _select_discriminative_feature_blocks(
             evidence_samples,
             candidate_ids=candidate_ids,
@@ -1488,10 +2013,51 @@ def run_online_policy_certificate(
                 item,
             ),
         )
+        relational_coverage_actions: list[str] = []
+        relational_coverage_report: dict[str, Any] = {
+            "required": False,
+            "declarations": {},
+            "selected_groups": {},
+            "selected_action_ids": [],
+        }
+        if relational_evidence_enabled:
+            declaration_groups = _declared_relational_action_groups(
+                task_id=task_id,
+                contract=contract,
+                action_library=action_library,
+            )
+            (
+                relational_coverage_actions,
+                relational_coverage_report,
+            ) = _select_relational_coverage_actions(
+                canonical_action_ids=action_ids,
+                declaration_groups=declaration_groups,
+                evidence_information=evidence_information,
+                action_count=policy_action_count,
+            )
         policy_actions = _canonical_policy_cycle(
             canonical_action_ids=action_ids,
-            ranked_action_ids=selected_actions + remaining_actions,
+            ranked_action_ids=(
+                relational_coverage_actions + selected_actions + remaining_actions
+            ),
             action_count=policy_action_count,
+        )
+        relational_reference_priority = (
+            _relational_reference_priorities(
+                action_ids=policy_actions,
+                evidence_information=evidence_information,
+            )
+            if relational_evidence_enabled
+            else {}
+        )
+        declared_relational_reference_actions = (
+            _declared_relational_reference_actions(
+                action_ids=policy_actions,
+                selected_groups=relational_coverage_report["selected_groups"],
+                evidence_information=evidence_information,
+            )
+            if relational_evidence_enabled
+            else {}
         )
         serialized_actions = {
             action_id: action_library[action_id].tolist() for action_id in action_ids
@@ -1530,6 +2096,11 @@ def run_online_policy_certificate(
                         "feature_indices": {
                             key: list(value) for key, value in feature_indices.items()
                         },
+                        "relational_evidence_enabled": relational_evidence_enabled,
+                        "relational_reference_priority": relational_reference_priority,
+                        "declared_relational_reference_actions": (
+                            declared_relational_reference_actions
+                        ),
                         "likelihood_scale": online_likelihood_scale,
                         "pre_observation_seed": _stable_seed(
                             world_seed,
@@ -1575,6 +2146,13 @@ def run_online_policy_certificate(
                 "predictive_fit_information_ranked_before_held_out_execution"
             ),
             "online_policy_cycle_order": "canonical_frozen_action_library_order",
+            "relational_evidence_enabled": relational_evidence_enabled,
+            "relational_coverage": relational_coverage_report,
+            "relational_reference_priority": relational_reference_priority,
+            "declared_relational_reference_actions": (
+                declared_relational_reference_actions
+            ),
+            "one_likelihood_channel_per_experiment": True,
             "selected_batch_id": selected_batch_id,
             "selected_batch_information_nats": float(batch_information[selected_batch_id]),
             "batch_information_nats": {
@@ -1655,6 +2233,8 @@ def run_online_policy_certificate(
             "changed_mechanism_states_are_absorbing": True,
             "allowed_change_points_only": True,
             "reference_age_aware_likelihoods": True,
+            "cross_action_relational_likelihoods": relational_evidence_enabled,
+            "one_likelihood_channel_per_experiment": True,
             "information_ranking_batch_size": ranking_batch_size,
             "online_policy_action_count": policy_action_count,
             "post_change_experiment_budget_checkpoints": post_budgets,
@@ -1685,9 +2265,17 @@ def run_online_policy_certificate(
         "interpretation": (
             "An evaluator-side Bayesian latent change-point decoder executed a "
             "pre-ranked, phase-invariant cycle of public complete-recipe experiments. "
-            "It received no phase-change signal and selected transition-versus-stable "
-            "contrast likelihoods from each reference's establishment time under the "
-            "frozen post-change experiment budget."
+            "It received no phase-change signal and selected exactly one absolute, "
+            "same-action temporal"
+            + (
+                ", or fit-ranked cross-action relational"
+                if relational_evidence_enabled
+                else ""
+            )
+            + " likelihood channel per experiment. Transition-versus-stable "
+            "semantics were selected "
+            "from each reference's establishment time under the frozen post-change "
+            "experiment budget."
         ),
         "publication_ready": False,
     }
@@ -1727,7 +2315,10 @@ def _run_paired_gate_a(
     feature_block_size = int(fit_plan["summary_block_size"])
     if feature_block_size != PUBLIC_EXPERIMENT_FEATURE_BLOCK_SIZE:
         raise ValueError("controlled public-feature block-size contract is unsupported")
-    if plan.get("schema_version") == "chemworld-mechanism-adaptation-gate-a-plan-0.2.6":
+    dimension_normalized_likelihood = _uses_dimension_normalized_likelihood(
+        fit_plan
+    )
+    if dimension_normalized_likelihood:
         controlled_block_count = int(fit_plan["controlled_discriminative_block_count"])
         likelihood_effective_dimension_count = float(
             fit_plan["likelihood_effective_dimension_count"]
@@ -1764,14 +2355,13 @@ def _run_paired_gate_a(
         not np.isfinite(controlled_information_minimum_spread)
         or controlled_information_minimum_spread < 0.0
         or (
-            plan.get("schema_version")
-            == "chemworld-mechanism-adaptation-gate-a-plan-0.2.6"
+            dimension_normalized_likelihood
             and controlled_information_minimum_spread == 0.0
         )
     ):
         raise ValueError(
             "controlled primary information minimum spread must be nonnegative "
-            "and positive for plan schema 0.2.6"
+            "and positive for dimension-normalized likelihoods"
         )
     if fixed_controlled_likelihood_scale is None:
         _dimension_normalized_likelihood_scale(
@@ -1805,6 +2395,17 @@ def _run_paired_gate_a(
         raise ValueError("paired Gate A requires independent phase observation seeds")
     if phase_plan.get("public_contrast_encoding") != "post_minus_pre_same_recipe":
         raise ValueError("unsupported paired Gate A public contrast encoding")
+    raw_controlled_relational_coverage = phase_plan.get(
+        "controlled_primary_declared_relational_action_coverage",
+        False,
+    )
+    if not isinstance(raw_controlled_relational_coverage, bool):
+        raise ValueError(
+            "controlled primary relational coverage flag must be boolean"
+        )
+    controlled_relational_coverage_required = (
+        raw_controlled_relational_coverage
+    )
 
     action_libraries = {
         str(task_id): build_action_library(
@@ -1855,6 +2456,15 @@ def _run_paired_gate_a(
                 candidate_union.append(candidate_id)
         action_library = action_libraries[task_id]
         action_ids = list(action_library)
+        controlled_relational_declarations = (
+            _declared_relational_action_groups(
+                task_id=task_id,
+                contract=contract,
+                action_library=action_library,
+            )
+            if controlled_relational_coverage_required
+            else {}
+        )
         fit_world_seeds = [
             int(fit_plan["nuisance_seed_namespace_start"]) + task_index * 1_000_000 + index
             for index in range(sample_count)
@@ -1953,8 +2563,31 @@ def _run_paired_gate_a(
             information = oracle.expected_information_by_action(
                 draws=int(certificate_plan["information_draws_per_batch"])
             )
+            relationally_covered_batch_ids = (
+                _relationally_covered_batch_ids(
+                    batches=batches,
+                    declaration_groups=controlled_relational_declarations,
+                )
+                if controlled_relational_coverage_required
+                else list(batches)
+            )
+            eligible_relational_batch_ids = (
+                relationally_covered_batch_ids
+                if controlled_relational_coverage_required
+                and budget == primary_budget
+                else list(batches)
+            )
+            if not eligible_relational_batch_ids:
+                raise ValueError(
+                    f"{task_id} controlled primary budget cannot cover every "
+                    "declared relational intervention"
+                )
+            selection_information = {
+                batch_id: information[batch_id]
+                for batch_id in eligible_relational_batch_ids
+            }
             active_batch_id, information_diagnostics = _select_information_maximum(
-                information,
+                selection_information,
                 minimum_spread_nats=(
                     controlled_information_minimum_spread
                     if budget == primary_budget
@@ -2040,6 +2673,25 @@ def _run_paired_gate_a(
                 "active_batch_id": active_batch_id,
                 "active_batch_information_nats": float(information[active_batch_id]),
                 "batch_information_diagnostics": information_diagnostics,
+                "declared_relational_coverage": {
+                    "required": (
+                        controlled_relational_coverage_required
+                        and budget == primary_budget
+                    ),
+                    "declarations": {
+                        key: [list(group) for group in groups]
+                        for key, groups in controlled_relational_declarations.items()
+                    },
+                    "relationally_covered_batch_ids": (
+                        relationally_covered_batch_ids
+                    ),
+                    "selection_eligible_batch_ids": (
+                        eligible_relational_batch_ids
+                    ),
+                    "selected_batch_covers_all_declarations": (
+                        active_batch_id in relationally_covered_batch_ids
+                    ),
+                },
                 "decoder_batch_id": decoder_batch_id,
                 "batch_information_nats": {key: float(value) for key, value in information.items()},
             }
@@ -2062,6 +2714,9 @@ def _run_paired_gate_a(
             ),
             "controlled_primary_information_minimum_spread_nats": (
                 controlled_information_minimum_spread
+            ),
+            "controlled_primary_declared_relational_action_coverage": (
+                controlled_relational_coverage_required
             ),
             "controlled_feature_selection": controlled_feature_selection,
             "budget_designs": budget_designs,
@@ -2165,6 +2820,7 @@ def run_gate_a(
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.4",
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.5",
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.6",
+        "chemworld-mechanism-adaptation-gate-a-plan-0.2.7",
     }:
         return _run_paired_gate_a(
             protocol,

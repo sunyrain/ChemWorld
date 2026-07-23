@@ -19,7 +19,7 @@ from chemworld.eval.mechanism_design_audit import audit_mechanism_design
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc20.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc21.json"
 )
 
 

@@ -231,7 +231,7 @@ def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed(
     )
     assert validate_mechanism_adaptation_protocol(protocol) == []
     gate_a_plan = json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.6.json").read_text(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.7.json").read_text(
             encoding="utf-8"
         )
     )

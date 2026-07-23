@@ -15,7 +15,7 @@ from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import get_task
 from chemworld.world.operations import operation_contracts
 
-ONLINE_POLICY_CERTIFICATE_VERSION = "chemworld-mechanism-adaptation-online-policy-certificate-0.4"
+ONLINE_POLICY_CERTIFICATE_VERSION = "chemworld-mechanism-adaptation-online-policy-certificate-0.5"
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 
 
