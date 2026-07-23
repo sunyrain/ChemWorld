@@ -173,7 +173,7 @@ def test_precomputed_design_audit_must_be_passing_and_hash_bound() -> None:
     report = json.loads(
         (
             ROOT / "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-design-audit-freeze-rc17.json"
+            "mechanism-adaptation-design-audit-freeze-rc18.json"
         ).read_text(encoding="utf-8")
     )
     validated = validate_precomputed_design_audit(protocol, plan, report)
