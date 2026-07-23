@@ -576,7 +576,7 @@ def test_design_audit_accepts_both_electrochemical_material_targets() -> None:
     )
 
 
-def test_design_audit_accepts_reaction_solvent_as_an_alternative_target() -> None:
+def test_design_audit_rejects_uncovered_reaction_solvent_alternative() -> None:
     protocol = _protocol()
     plan = _paired_gate_a_plan()
     intervention = protocol["task_mechanism_contracts"]["reaction-to-crystallization"][
@@ -598,7 +598,15 @@ def test_design_audit_accepts_reaction_solvent_as_an_alternative_target() -> Non
         recipe_values=_recipe_field_values(recipes),
     )
     assert findings
-    assert all(item["pass"] for item in findings)
+    by_check = {str(item["check"]): item for item in findings}
+    assert by_check["material_law_counterfactual:supported_material_field"]["pass"] is True
+    assert by_check["material_law_counterfactual:public_operation_allowed"]["pass"] is True
+    assert by_check["material_law_counterfactual:moved_indices_publicly_reachable"][
+        "pass"
+    ] is True
+    assert by_check["material_law_counterfactual:moved_indices_recipe_covered"][
+        "pass"
+    ] is False
 
 
 def test_campaign_selection_never_splits_changed_no_change_pairs() -> None:
