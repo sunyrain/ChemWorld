@@ -19,6 +19,7 @@ from chemworld.eval.mechanism_adaptation_execution import (
     _advance_online_change_point_hypotheses,
     _balanced_hidden_change_times,
     _online_hypothesis_evidence_channel,
+    _select_discriminative_feature_blocks,
     _update_online_change_point_posterior,
     build_action_library,
     canonical_sha256,
@@ -80,7 +81,7 @@ def test_gate_a_requires_two_bound_passing_certificates() -> None:
     plan = _paired_gate_a_plan()
     execution_binding = gate_a_execution_contract_binding(protocol, plan)
     certificate = {
-        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.3",
+        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.4",
         "certificate_scope": "online_policy_feasible_diagnosis",
         "protocol_sha256": canonical_sha256(protocol),
         "gate_a_plan_sha256": canonical_sha256(plan),
@@ -159,9 +160,7 @@ def test_gate_a_report_references_online_certificate_without_embedding_trials(
         report,
         online_policy_certificate_path=certificate_path,
     )
-    reference = compacted["certificate_decision"][
-        "online_policy_feasible_certificate"
-    ]
+    reference = compacted["certificate_decision"]["online_policy_feasible_certificate"]
     assert reference["certificate_sha256"] == canonical_sha256(certificate)
     assert reference["report"].endswith("online.json")
     assert "task_reports" not in reference
@@ -173,9 +172,8 @@ def test_precomputed_design_audit_must_be_passing_and_hash_bound() -> None:
     plan = _paired_gate_a_plan()
     report = json.loads(
         (
-            ROOT
-            / "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-design-audit-freeze-rc16.json"
+            ROOT / "workstreams/flagship_tasks/reports/"
+            "mechanism-adaptation-design-audit-freeze-rc17.json"
         ).read_text(encoding="utf-8")
     )
     validated = validate_precomputed_design_audit(protocol, plan, report)
@@ -195,7 +193,58 @@ def test_gate_a_action_library_and_public_encoding_are_deterministic() -> None:
     features = encode_public_experiment_trace(
         [({"b": np.asarray([np.nan]), "a": np.asarray([2.0])}, 0.5)]
     )
-    assert features == [1.0, 2.0, 0.0, 0.0, 1.0, 0.5]
+    assert features == [
+        1.0,
+        2.0,
+        2.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.5,
+        0.5,
+        0.0,
+    ]
+
+
+def test_public_encoding_summarizes_time_without_growing_with_step_count() -> None:
+    one_step = encode_public_experiment_trace([({"signal": np.asarray([2.0])}, 0.5)])
+    three_steps = encode_public_experiment_trace(
+        [
+            ({"signal": np.asarray([2.0])}, 0.5),
+            ({"signal": np.asarray([4.0])}, 0.0),
+            ({"signal": np.asarray([3.0])}, 1.0),
+        ]
+    )
+
+    assert len(one_step) == len(three_steps) == 8
+    assert three_steps[:4] == [1.0, 2.0, 3.0, 2.0]
+    assert three_steps[4:] == [1.0, 0.5, 1.0, 1.0]
+
+
+def test_online_feature_selection_uses_fit_samples_and_whole_blocks() -> None:
+    samples = {
+        ("no_change", "transition_contrast\u241fdesign-00"): [
+            [0.0, 0.0, 0.0, 0.0, -1.0 + 0.1 * index, 0.0, 0.0, 0.0] for index in range(4)
+        ],
+        ("rate_law_family", "transition_contrast\u241fdesign-00"): [
+            [0.0, 0.0, 0.0, 0.0, 1.0 + 0.1 * index, 0.0, 0.0, 0.0] for index in range(4)
+        ],
+    }
+    indices, report = _select_discriminative_feature_blocks(
+        samples,
+        candidate_ids=["no_change", "rate_law_family"],
+        evidence_action_ids=["transition_contrast\u241fdesign-00"],
+        block_size=4,
+        block_count=1,
+        variance_floor=1.0e-4,
+    )
+
+    channel = "transition_contrast\u241fdesign-00"
+    assert indices[channel] == (4, 5, 6, 7)
+    assert report[channel]["selected_block_indices"] == [1]
 
 
 def test_reaction_crystallization_action_library_is_relational() -> None:
@@ -445,32 +494,11 @@ def test_current_mechanism_design_has_reachable_covered_targets() -> None:
         item["check"]: item["pass"]
         for item in report["task_reports"]["electrochemical-conversion"]["checks"]
     }
-    assert (
-        electro_checks[
-            "constitutive_law_family:explicit_constitutive_change_contract"
-        ]
-        is True
-    )
-    assert (
-        electro_checks[
-            "constitutive_law_family:complete_constitutive_change_contract"
-        ]
-        is True
-    )
-    assert (
-        electro_checks["constitutive_law_family:constitutive_network_unchanged"]
-        is True
-    )
-    assert (
-        electro_checks[
-            "constitutive_law_family:declared_constitutive_transform_bound"
-        ]
-        is True
-    )
-    assert (
-        electro_checks["constitutive_law_family:constitutive_calibration_bound"]
-        is True
-    )
+    assert electro_checks["constitutive_law_family:explicit_constitutive_change_contract"] is True
+    assert electro_checks["constitutive_law_family:complete_constitutive_change_contract"] is True
+    assert electro_checks["constitutive_law_family:constitutive_network_unchanged"] is True
+    assert electro_checks["constitutive_law_family:declared_constitutive_transform_bound"] is True
+    assert electro_checks["constitutive_law_family:constitutive_calibration_bound"] is True
 
 
 def test_decision_relevance_rejects_visible_but_policy_irrelevant_shift(

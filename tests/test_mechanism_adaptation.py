@@ -180,10 +180,12 @@ def test_gaussian_oracle_supports_active_and_fixed_trajectory_diagnosis() -> Non
         action_ids=("uninformative", "diagnostic"),
         sample_public_observation=sample,
         samples_per_candidate=64,
+        likelihood_scale=0.25,
         seed=3,
     )
     oracle.fit_predictives()
     exported = oracle.export_predictives()
+    assert {item["likelihood_scale"] for item in exported.values()} == {0.25}
     reloaded = GaussianMechanismOracle(
         candidate_ids=("no_change", "shift"),
         action_ids=("uninformative", "diagnostic"),
@@ -225,9 +227,7 @@ def test_identifiability_certificate_uses_confidence_bounds() -> None:
 
 def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed() -> None:
     protocol = json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(
-            encoding="utf-8"
-        )
+        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(encoding="utf-8")
     )
     assert validate_mechanism_adaptation_protocol(protocol) == []
     gate_a_plan = json.loads(
@@ -290,9 +290,7 @@ def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed(
 
 def test_every_v0_2_1_intervention_is_instantiable_by_the_current_environment() -> None:
     protocol = json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(
-            encoding="utf-8"
-        )
+        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(encoding="utf-8")
     )
     for task_id, contract in protocol["task_mechanism_contracts"].items():
         for interventions in contract["interventions"].values():

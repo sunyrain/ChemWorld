@@ -27,7 +27,7 @@ REQUIRED_IMPLEMENTATION_ARTIFACTS = (
     "scripts/plan_mechanism_adaptation_matrix.py",
     "tests/test_mechanism_adaptation.py",
     "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json",
-    "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc16.json",
+    "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc17.json",
 )
 
 
@@ -40,7 +40,7 @@ def build_mechanism_adaptation_preflight(
     validation_errors = validate_mechanism_adaptation_protocol(protocol)
     design_audit_path = (
         ROOT / "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-design-audit-freeze-rc16.json"
+        "mechanism-adaptation-design-audit-freeze-rc17.json"
     )
     gate_a_plan_path = configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.2.4.json"
     gate_a_plan = json.loads(gate_a_plan_path.read_text(encoding="utf-8"))

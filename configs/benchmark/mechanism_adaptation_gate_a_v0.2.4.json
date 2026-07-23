@@ -1,15 +1,15 @@
 {
-  "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2.4",
-  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc16",
+  "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2.5",
+  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc17",
   "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
   "formal_benchmark_result": false,
   "purpose": "Two-certificate Gate A: controlled matched identifiability plus a separately executed online-policy-feasible diagnosis certificate.",
   "claim_scope": "controlled_and_online_policy_feasible_identifiability",
   "online_policy_feasible_certificate": {
     "required_before_formal_mechanism_claim": true,
-    "certificate_schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.3",
+    "certificate_schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.4",
     "certificate_scope": "online_policy_feasible_diagnosis",
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.3-rc16.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.4-rc17.json",
     "hidden_change_time": true,
     "change_time_candidates": [
       1,
@@ -32,7 +32,7 @@
     "policy_receives_phase_or_reset_indicator": false,
     "action_selection": "information_rank_public_recipes_before_held_out_execution_then_apply_one_fixed_phase_invariant_cyclic_schedule",
     "reference_policy": "retain_each_selected_actions_first_observation_together_with_its_global_experiment_index_without_assuming_that_the_hidden_change_has_or_has_not_occurred",
-    "evidence_policy": "maintain_absorbing_candidate_by_change_point_hypotheses_only_at_protocol_allowed_change_times; use_absolute_trace_on_first_observation; on_repeats_use_transition_contrast_if_the_hypothesized_change_lies_between_reference_and_current_experiment_otherwise_use_same_mechanism_stable_contrast",
+    "evidence_policy": "summarize_each_public_field_as_ever_finite_first_finite_last_finite_and_finite_range; select_eight_whole_field_blocks_from_predictive_fit_samples_only; maintain_absorbing_candidate_by_change_point_hypotheses_only_at_protocol_allowed_change_times; use_absolute_summary_on_first_observation; on_repeats_use_transition_contrast_if_the_hypothesized_change_lies_between_reference_and_current_experiment_otherwise_use_same_mechanism_stable_contrast; apply_preregistered_conservative_likelihood_temperature",
     "no_change_twins_use_evaluator_only_pseudo_change_checkpoint": true,
     "uses_actual_available_pre_change_history": true,
     "uses_actual_action_measurement_and_budget_contract": true,
@@ -62,12 +62,44 @@
     "samples_per_candidate_action": 24,
     "oracle_seed": 41103,
     "variance_floor": 0.0001,
-    "nuisance_seed_namespace_start": 100000000,
-    "execution_workers": 8
+    "nuisance_seed_namespace_start": 500000000,
+    "execution_workers": 8,
+    "public_feature_encoding": "chemworld-public-experiment-finite-first-last-range-0.1",
+    "summary_block_size": 4,
+    "online_discriminative_block_count": 8,
+    "online_likelihood_scale": 0.125,
+    "feature_selection": "per_evidence_channel_max_between_candidate_to_pooled_within_candidate_variance_ratio_over_whole_summary_blocks",
+    "held_out_data_used_for_feature_selection": false,
+    "development_calibration": {
+      "formal_claim_allowed": false,
+      "parameter_selection_completed_before_rc17_held_out_execution": true,
+      "excluded_from_rc17_held_out": true,
+      "fit_namespaces": [
+        300000000,
+        400000000
+      ],
+      "trial_namespaces": [
+        1400000000,
+        1500000000,
+        1600000000
+      ],
+      "selected_block_count": 8,
+      "selected_likelihood_scale": 0.125,
+      "selection_basis": "The first 8-world-per-family development probe showed 96.875 percent overall accuracy. On one fixed 20-world-per-family reaction development cohort, reducing the likelihood scale from 0.25 to 0.125 increased no-change recall from 17/20 to 19/20 without reducing changed-family recall. A second independent 20-world reaction cohort at 0.125 achieved material 17/20, no-change 20/20, rate-law 20/20, and topology 20/20.",
+      "combined_fixed_scale_reaction_confirmation": {
+        "worlds_per_family": 40,
+        "material_law_counterfactual_correct": 36,
+        "no_change_correct": 39,
+        "rate_law_family_correct": 38,
+        "topology_family_correct": 40,
+        "overall_correct": 153,
+        "overall_total": 160
+      }
+    }
   },
   "held_out_certificate": {
     "world_seeds_per_family": 30,
-    "seed_namespace_start": 2500000000,
+    "seed_namespace_start": 2700000000,
     "information_draws_per_batch": 128,
     "execution_workers": 8,
     "budgets": [
@@ -78,7 +110,7 @@
   },
   "public_feature_contract": {
     "source": "agent-visible numeric observation and reward after every compiled public recipe operation in the controlled matched and actual hidden-change campaigns",
-    "encoding": "controlled certificate: matched post-minus-pre batches; online certificate: nuisance-integrated absolute trace on first observation, then a latent reference-time mixture of baseline-to-candidate transition contrasts and same-candidate stable contrasts; all use sorted flattened finite-masked public values",
+    "encoding": "Each complete public experiment is summarized task-agnostically into four-value blocks (ever finite, first finite, last finite, finite range) for every sorted public observation scalar and reward. The controlled certificate uses matched post-minus-pre summary batches. The online certificate selects eight whole summary blocks per evidence channel from predictive-fit samples only, uses absolute summaries on first observations, and then a latent reference-time mixture of baseline-to-candidate transition contrasts and same-candidate stable contrasts with likelihood scale 0.125.",
     "private_truth_fields_included": false,
     "evaluation_only_hidden_outcomes_included": false,
     "active_action_source": "prior expected information over frozen k-recipe batches at each checkpoint; the online policy pre-ranks four recipes before held-out execution and cycles through them without phase input",
@@ -86,10 +118,10 @@
     "decoder_controls_gate": false
   },
   "gate_rule_source": "configs/benchmark/mechanism_adaptation_v0.2.1.json#gates.gate_a",
-  "supersession_reason": "RC16 retains the RC15 two-certificate Gate A structure while making decision relevance fail closed for every changed mechanism and for both the task-primary and leaderboard-score metrics. The reaction rate-law cell now changes the declared target catalytic pathway's activity order, so diagnosis must support a consequential control-policy change rather than merely detect a near-uniform competing-pathway scale shift. Controlled and online certificates use a fresh held-out seed namespace.",
+  "supersession_reason": "RC16 established that the revised rate-law task is controlled-identifiable and online-identifiable at budget four, but full Gate A failed because the 912-coordinate step-concatenated online trace produced no-change false positives and material-family confusion in reaction-to-crystallization. RC17 leaves all physical interventions and public recipes unchanged. It replaces temporal pseudo-replication with a task-agnostic finite/first/last/range summary, selects whole public-field blocks from predictive-fit samples only, applies a development-calibrated conservative likelihood temperature, and uses a fresh fit and held-out seed namespace. RC16 negative reports remain immutable.",
   "design_validity_precondition": {
     "required": true,
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc16.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc17.json",
     "pass_field": "pass"
   },
   "rate_law_response_certificate": {

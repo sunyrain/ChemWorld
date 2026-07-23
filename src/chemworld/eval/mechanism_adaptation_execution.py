@@ -65,7 +65,11 @@ DEFAULT_GATE_A_PLAN_PATH = (
 )
 DEFAULT_LLM_METHODS_PATH = configuration_root() / "methods/llm_v0.4/llm_methods.json"
 EXECUTION_SCHEMA_VERSION = "chemworld-mechanism-adaptation-execution-0.2"
-GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.2.4"
+GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.2.5"
+PUBLIC_EXPERIMENT_FEATURE_ENCODING_VERSION = (
+    "chemworld-public-experiment-finite-first-last-range-0.1"
+)
+PUBLIC_EXPERIMENT_FEATURE_BLOCK_SIZE = 4
 
 _CRITICAL_INSTRUMENTS = {
     "reaction-to-crystallization": "hplc",
@@ -109,30 +113,57 @@ def build_action_library(
 def encode_public_experiment_trace(
     trace: Sequence[tuple[Mapping[str, Any], float]],
 ) -> list[float]:
-    """Encode only agent-visible numeric observation/reward packets.
+    """Summarize one public experiment without pseudo-replicating state snapshots.
 
-    Each scalar contributes a finite-value mask and a value.  This keeps the feature
-    dimension fixed when an instrument does not release a metric and avoids using a
-    sentinel that could be confused with a physical value.
+    The environment returns a fixed public observation after every operation.  Most
+    state fields persist across several later operations, so concatenating every
+    snapshot makes one physical signal appear as many independent Gaussian features.
+    For each public scalar this encoder emits one fixed four-value block:
+
+    ``ever_finite, first_finite, last_finite, finite_range``.
+
+    The same block is emitted for the public reward sequence.  No task names, hidden
+    truth, operation labels, evaluator-only outcomes, or hand-selected metrics enter
+    the representation.
     """
 
-    features: list[float] = []
-    for observation, reward in trace:
-        for key in sorted(observation):
-            raw = np.asarray(observation[key], dtype=float).reshape(-1)
-            finite = np.isfinite(raw)
-            features.extend(finite.astype(float).tolist())
-            features.extend(np.where(finite, raw, 0.0).astype(float).tolist())
-        reward_value = float(reward)
-        features.extend(
-            [
-                float(np.isfinite(reward_value)),
-                reward_value if np.isfinite(reward_value) else 0.0,
-            ]
-        )
-    if not features:
+    if not trace:
         raise ValueError("a public experiment trace cannot be empty")
+    observations = [observation for observation, _reward in trace]
+    keys = sorted(observations[0])
+    if any(sorted(observation) != keys for observation in observations[1:]):
+        raise ValueError("public observation keys changed within one experiment")
+
+    features: list[float] = []
+    for key in keys:
+        arrays = [
+            np.asarray(observation[key], dtype=float).reshape(-1) for observation in observations
+        ]
+        shapes = {array.shape for array in arrays}
+        if len(shapes) != 1:
+            raise ValueError(
+                f"public observation field {key!r} changed shape within one experiment"
+            )
+        stacked = np.stack(arrays, axis=0)
+        for column in stacked.T:
+            features.extend(_finite_series_summary(column))
+
+    rewards = np.asarray([float(reward) for _observation, reward in trace])
+    features.extend(_finite_series_summary(rewards))
     return features
+
+
+def _finite_series_summary(values: np.ndarray) -> list[float]:
+    finite_values = np.asarray(values, dtype=float).reshape(-1)
+    finite_values = finite_values[np.isfinite(finite_values)]
+    if finite_values.size == 0:
+        return [0.0, 0.0, 0.0, 0.0]
+    return [
+        1.0,
+        float(finite_values[0]),
+        float(finite_values[-1]),
+        float(np.max(finite_values) - np.min(finite_values)),
+    ]
 
 
 class PublicCampaignObservationSession:
@@ -340,6 +371,90 @@ def _online_predictive_lookup(
     return predictives
 
 
+def _select_discriminative_feature_blocks(
+    samples: Mapping[tuple[str, str], Sequence[Sequence[float]]],
+    *,
+    candidate_ids: Sequence[str],
+    evidence_action_ids: Sequence[str],
+    block_size: int,
+    block_count: int,
+    variance_floor: float,
+) -> tuple[dict[str, tuple[int, ...]], dict[str, dict[str, Any]]]:
+    """Select high-signal public feature blocks using predictive-fit samples only.
+
+    Selection is task-agnostic.  For each evidence channel, blocks are ranked by the
+    largest between-candidate to pooled-within-candidate variance ratio among their
+    coordinates.  Held-out observations never participate in selection.
+    """
+
+    if block_size <= 0 or block_count <= 0:
+        raise ValueError("online feature block dimensions must be positive")
+    if not np.isfinite(variance_floor) or variance_floor <= 0.0:
+        raise ValueError("online feature selection variance floor must be positive")
+    feature_indices: dict[str, tuple[int, ...]] = {}
+    reports: dict[str, dict[str, Any]] = {}
+    for evidence_action_id in evidence_action_ids:
+        candidate_arrays: list[np.ndarray] = []
+        for candidate_id in candidate_ids:
+            values = np.asarray(
+                samples[(str(candidate_id), str(evidence_action_id))],
+                dtype=float,
+            )
+            if values.ndim != 2 or values.shape[0] < 4:
+                raise ValueError(
+                    "online feature selection requires at least four samples "
+                    "per candidate/evidence channel"
+                )
+            candidate_arrays.append(values)
+        dimensions = {array.shape[1] for array in candidate_arrays}
+        if len(dimensions) != 1:
+            raise ValueError("online feature selection dimensions are inconsistent")
+        dimension = dimensions.pop()
+        if dimension % block_size != 0:
+            raise ValueError("public feature dimension is not divisible by the declared block size")
+        available_blocks = dimension // block_size
+        if block_count > available_blocks:
+            raise ValueError("requested online feature blocks exceed the public feature dimension")
+
+        candidate_means = np.stack(
+            [np.mean(array, axis=0) for array in candidate_arrays],
+            axis=0,
+        )
+        within_variance = np.mean(
+            np.stack(
+                [np.var(array, axis=0, ddof=1) for array in candidate_arrays],
+                axis=0,
+            ),
+            axis=0,
+        )
+        between_variance = np.var(candidate_means, axis=0, ddof=0)
+        coordinate_scores = between_variance / np.maximum(
+            within_variance,
+            variance_floor,
+        )
+        block_scores = np.max(
+            coordinate_scores.reshape(available_blocks, block_size),
+            axis=1,
+        )
+        ranked_blocks = sorted(
+            range(available_blocks),
+            key=lambda index: (-float(block_scores[index]), index),
+        )
+        selected_blocks = tuple(sorted(ranked_blocks[:block_count]))
+        selected_indices = tuple(
+            block * block_size + offset for block in selected_blocks for offset in range(block_size)
+        )
+        feature_indices[str(evidence_action_id)] = selected_indices
+        reports[str(evidence_action_id)] = {
+            "available_block_count": available_blocks,
+            "selected_block_count": block_count,
+            "selected_block_indices": list(selected_blocks),
+            "selected_block_scores": [float(block_scores[index]) for index in selected_blocks],
+            "selected_feature_indices": list(selected_indices),
+        }
+    return feature_indices, reports
+
+
 def _update_online_change_point_posterior(
     posterior: Mapping[tuple[str, int | None], float],
     *,
@@ -351,10 +466,14 @@ def _update_online_change_point_posterior(
         tuple[str, str],
         tuple[np.ndarray, np.ndarray],
     ],
+    feature_indices: Mapping[str, Sequence[int]] | None = None,
+    likelihood_scale: float = 1.0,
 ) -> dict[tuple[str, int | None], float]:
     """Apply reference-age-aware public likelihoods without reviving zero states."""
 
     values = np.asarray(observation, dtype=float).reshape(-1)
+    if not np.isfinite(likelihood_scale) or likelihood_scale <= 0.0:
+        raise ValueError("online likelihood scale must be finite and positive")
     log_weights: dict[tuple[str, int | None], float] = {}
     for hypothesis, probability in posterior.items():
         if probability <= 0.0:
@@ -371,10 +490,31 @@ def _update_online_change_point_posterior(
             raise ValueError(
                 "online predictives do not cover the latent evidence channel"
             ) from error
-        if values.shape != mean.shape:
+        selected_values = values
+        if feature_indices is not None:
+            try:
+                indices = np.asarray(
+                    feature_indices[predictive_key[1]],
+                    dtype=int,
+                )
+            except KeyError as error:
+                raise ValueError(
+                    "online feature selection does not cover the evidence channel"
+                ) from error
+            if (
+                indices.ndim != 1
+                or indices.size == 0
+                or np.any(indices < 0)
+                or np.any(indices >= values.size)
+            ):
+                raise ValueError("online selected feature indices are invalid")
+            selected_values = values[indices]
+        if selected_values.shape != mean.shape:
             raise ValueError("observation dimension does not match online predictive")
         log_likelihood = float(
-            -0.5 * np.sum(np.log(2.0 * math.pi * variance) + ((values - mean) ** 2) / variance)
+            -0.5
+            * likelihood_scale
+            * np.sum(np.log(2.0 * math.pi * variance) + ((selected_values - mean) ** 2) / variance)
         )
         log_weights[hypothesis] = math.log(float(probability)) + log_likelihood
     if not log_weights:
@@ -690,6 +830,13 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     predictives = _online_predictive_lookup(job["predictives"])
     if set(predictives) != expected_predictive_keys:
         raise ValueError("online predictives must cover every candidate/evidence channel")
+    feature_indices = {
+        str(key): tuple(int(index) for index in value)
+        for key, value in job["feature_indices"].items()
+    }
+    if set(feature_indices) != set(evidence_action_ids):
+        raise ValueError("online feature selection must cover every evidence channel")
+    likelihood_scale = float(job["likelihood_scale"])
     change_time = int(job["change_time"])
     allowed_change_times = [int(item) for item in job["change_time_candidates"]]
     post_budgets = sorted({int(item) for item in job["post_change_budget_checkpoints"]})
@@ -750,6 +897,8 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
             reference_experiment_index=reference_experiment_index,
             current_experiment_index=experiment_index,
             predictives=predictives,
+            feature_indices=feature_indices,
+            likelihood_scale=likelihood_scale,
         )
         family_posterior = _online_family_posterior(
             hypothesis_posterior,
@@ -910,6 +1059,24 @@ def run_online_policy_certificate(
     fit_plan = plan["candidate_predictive_fit"]
     certificate_plan = plan["held_out_certificate"]
     gate = protocol["gates"]["gate_a"]
+    feature_encoding = str(fit_plan["public_feature_encoding"])
+    if feature_encoding != PUBLIC_EXPERIMENT_FEATURE_ENCODING_VERSION:
+        raise ValueError("online public-feature encoding contract is unsupported")
+    feature_block_size = int(fit_plan["summary_block_size"])
+    if feature_block_size != PUBLIC_EXPERIMENT_FEATURE_BLOCK_SIZE:
+        raise ValueError("online public-feature block-size contract is unsupported")
+    discriminative_block_count = int(fit_plan["online_discriminative_block_count"])
+    online_likelihood_scale = float(fit_plan["online_likelihood_scale"])
+    maximum_likelihood_scale = 1.0 / feature_block_size
+    if (
+        not np.isfinite(online_likelihood_scale)
+        or online_likelihood_scale <= 0.0
+        or online_likelihood_scale > maximum_likelihood_scale
+    ):
+        raise ValueError(
+            "online likelihood scale must be positive and no greater than one "
+            "effective contribution per public summary block"
+        )
     action_libraries = {
         str(task_id): build_action_library(
             str(task_id),
@@ -1054,40 +1221,57 @@ def run_online_policy_certificate(
                 "absolute_trace",
             )
         ]
+        evidence_samples = {
+            (
+                candidate_id,
+                _online_evidence_channel(encoding, action_id),
+            ): (
+                transition_samples[(candidate_id, action_id)]
+                if encoding == "transition_contrast"
+                else (
+                    stable_samples[(candidate_id, action_id)]
+                    if encoding == "stable_contrast"
+                    else absolute_samples[(candidate_id, action_id)]
+                )
+            )
+            for candidate_id in candidate_ids
+            for action_id in action_ids
+            for encoding in (
+                "transition_contrast",
+                "stable_contrast",
+                "absolute_trace",
+            )
+        }
+        feature_indices, feature_selection_report = _select_discriminative_feature_blocks(
+            evidence_samples,
+            candidate_ids=candidate_ids,
+            evidence_action_ids=evidence_action_ids,
+            block_size=feature_block_size,
+            block_count=discriminative_block_count,
+            variance_floor=float(fit_plan["variance_floor"]),
+        )
+        reduced_evidence_samples = {
+            key: [
+                np.asarray(sample, dtype=float)[
+                    np.asarray(feature_indices[key[1]], dtype=int)
+                ].tolist()
+                for sample in samples
+            ]
+            for key, samples in evidence_samples.items()
+        }
         online_oracle = GaussianMechanismOracle(
             candidate_ids=candidate_ids,
             action_ids=evidence_action_ids,
             sample_public_observation=_unreachable_sample,
             samples_per_candidate=4,
             variance_floor=float(fit_plan["variance_floor"]),
+            likelihood_scale=online_likelihood_scale,
             seed=_stable_seed(
                 int(fit_plan["oracle_seed"]),
                 f"{task_id}:online-policy",
             ),
         )
-        online_oracle.fit_predictives_from_samples(
-            {
-                (
-                    candidate_id,
-                    _online_evidence_channel(encoding, action_id),
-                ): (
-                    transition_samples[(candidate_id, action_id)]
-                    if encoding == "transition_contrast"
-                    else (
-                        stable_samples[(candidate_id, action_id)]
-                        if encoding == "stable_contrast"
-                        else absolute_samples[(candidate_id, action_id)]
-                    )
-                )
-                for candidate_id in candidate_ids
-                for action_id in action_ids
-                for encoding in (
-                    "transition_contrast",
-                    "stable_contrast",
-                    "absolute_trace",
-                )
-            }
-        )
+        online_oracle.fit_predictives_from_samples(reduced_evidence_samples)
         evidence_information = online_oracle.expected_information_by_action(draws=information_draws)
         selected_actions.sort(
             key=lambda item: evidence_information[
@@ -1139,6 +1323,10 @@ def run_online_policy_certificate(
                         "reference_action_ids": policy_actions,
                         "action_library": serialized_actions,
                         "predictives": online_oracle.export_predictives(),
+                        "feature_indices": {
+                            key: list(value) for key, value in feature_indices.items()
+                        },
+                        "likelihood_scale": online_likelihood_scale,
                         "pre_observation_seed": _stable_seed(
                             world_seed,
                             "online-policy:pre",
@@ -1195,6 +1383,11 @@ def run_online_policy_certificate(
             "evidence_channel_information_nats": {
                 key: float(value) for key, value in evidence_information.items()
             },
+            "public_feature_encoding": feature_encoding,
+            "public_feature_block_size": feature_block_size,
+            "online_discriminative_block_count": discriminative_block_count,
+            "online_likelihood_scale": online_likelihood_scale,
+            "feature_selection": feature_selection_report,
             "trials": completed,
         }
 
@@ -1244,6 +1437,10 @@ def run_online_policy_certificate(
             "online_policy_action_count": policy_action_count,
             "post_change_experiment_budget_checkpoints": post_budgets,
             "online_policy_gate_budget": online_gate_budget,
+            "public_feature_encoding": feature_encoding,
+            "public_feature_block_size": feature_block_size,
+            "online_discriminative_block_count": discriminative_block_count,
+            "online_likelihood_scale": online_likelihood_scale,
             "action_selection": requirement["action_selection"],
             "reference_policy": requirement["reference_policy"],
             "evidence_policy": requirement["evidence_policy"],

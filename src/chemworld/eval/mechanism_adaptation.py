@@ -334,14 +334,19 @@ class GaussianCandidatePredictive:
     action_id: str
     mean: np.ndarray
     variance: np.ndarray
+    likelihood_scale: float = 1.0
 
     def log_likelihood(self, observation: Sequence[float]) -> float:
         values = np.asarray(observation, dtype=float).reshape(-1)
         if values.shape != self.mean.shape:
             raise ValueError("observation dimension does not match predictive model")
+        if not math.isfinite(self.likelihood_scale) or self.likelihood_scale <= 0.0:
+            raise ValueError("predictive likelihood scale must be finite and positive")
         variance = np.maximum(self.variance, 1e-12)
         return float(
-            -0.5 * np.sum(np.log(2.0 * math.pi * variance) + ((values - self.mean) ** 2) / variance)
+            -0.5
+            * self.likelihood_scale
+            * np.sum(np.log(2.0 * math.pi * variance) + ((values - self.mean) ** 2) / variance)
         )
 
 
@@ -362,6 +367,7 @@ class GaussianMechanismOracle:
         sample_public_observation: Callable[[str, str, int], Sequence[float]],
         samples_per_candidate: int = 128,
         variance_floor: float = 1e-6,
+        likelihood_scale: float = 1.0,
         seed: int = 0,
     ) -> None:
         if len(set(candidate_ids)) < 2:
@@ -375,6 +381,9 @@ class GaussianMechanismOracle:
         self._sample = sample_public_observation
         self.samples_per_candidate = int(samples_per_candidate)
         self.variance_floor = float(variance_floor)
+        self.likelihood_scale = float(likelihood_scale)
+        if not math.isfinite(self.likelihood_scale) or self.likelihood_scale <= 0.0:
+            raise ValueError("oracle likelihood scale must be finite and positive")
         self.seed = int(seed)
         uniform = 1.0 / len(self.candidate_ids)
         self.posterior = dict.fromkeys(self.candidate_ids, uniform)
@@ -389,8 +398,7 @@ class GaussianMechanismOracle:
             for candidate_id in self.candidate_ids:
                 seeds = rng.integers(0, np.iinfo(np.int32).max, size=self.samples_per_candidate)
                 sample_groups[(candidate_id, action_id)] = [
-                    self._sample(candidate_id, action_id, int(sample_seed))
-                    for sample_seed in seeds
+                    self._sample(candidate_id, action_id, int(sample_seed)) for sample_seed in seeds
                 ]
         self.fit_predictives_from_samples(sample_groups)
 
@@ -417,6 +425,7 @@ class GaussianMechanismOracle:
                 action_id=action_id,
                 mean=np.mean(values, axis=0),
                 variance=np.maximum(np.var(values, axis=0, ddof=1), self.variance_floor),
+                likelihood_scale=self.likelihood_scale,
             )
         self._predictives = fitted
 
@@ -430,6 +439,7 @@ class GaussianMechanismOracle:
                 "action_id": action_id,
                 "mean": predictive.mean.tolist(),
                 "variance": predictive.variance.tolist(),
+                "likelihood_scale": predictive.likelihood_scale,
             }
             for (candidate_id, action_id), predictive in self._predictives.items()
         }
@@ -446,6 +456,7 @@ class GaussianMechanismOracle:
                 action_id=action_id,
                 mean=np.asarray(item["mean"], dtype=float),
                 variance=np.asarray(item["variance"], dtype=float),
+                likelihood_scale=float(item.get("likelihood_scale", self.likelihood_scale)),
             )
         expected = {
             (candidate_id, action_id)
@@ -456,8 +467,7 @@ class GaussianMechanismOracle:
             raise ValueError("loaded predictives must exactly cover candidate/action pairs")
         dimensions = {predictive.mean.shape for predictive in fitted.values()}
         if len(dimensions) != 1 or any(
-            predictive.mean.shape != predictive.variance.shape
-            for predictive in fitted.values()
+            predictive.mean.shape != predictive.variance.shape for predictive in fitted.values()
         ):
             raise ValueError("loaded predictive dimensions are inconsistent")
         self._predictives = fitted
@@ -699,13 +709,8 @@ def validate_mechanism_adaptation_protocol(protocol: Mapping[str, Any]) -> list[
     if not isinstance(reporting, Mapping):
         errors.append("reporting must be an object")
     else:
-        if (
-            reporting.get("statistical_unit")
-            != "physical_cell_cluster_with_provider_repeat_nested"
-        ):
-            errors.append(
-                "statistical_unit must cluster physical cells and nest provider repeats"
-            )
+        if reporting.get("statistical_unit") != "physical_cell_cluster_with_provider_repeat_nested":
+            errors.append("statistical_unit must cluster physical cells and nest provider repeats")
         if reporting.get("provider_repeats") != "nested_technical_replicates":
             errors.append("provider repeats must be nested technical replicates")
 
@@ -757,9 +762,10 @@ def validate_mechanism_adaptation_protocol(protocol: Mapping[str, Any]) -> list[
                     if candidate_id == "no_change":
                         continue
                     candidate_interventions = interventions.get(candidate_id)
-                    if not isinstance(candidate_interventions, list) or len(
-                        candidate_interventions
-                    ) != 1:
+                    if (
+                        not isinstance(candidate_interventions, list)
+                        or len(candidate_interventions) != 1
+                    ):
                         errors.append(
                             "changed candidates must declare exactly one intervention: "
                             f"{task_id}/{candidate_id}"
@@ -767,9 +773,7 @@ def validate_mechanism_adaptation_protocol(protocol: Mapping[str, Any]) -> list[
                         continue
                     intervention = candidate_interventions[0]
                     if not isinstance(intervention, Mapping):
-                        errors.append(
-                            f"intervention must be an object: {task_id}/{candidate_id}"
-                        )
+                        errors.append(f"intervention must be an object: {task_id}/{candidate_id}")
                         continue
                     if intervention.get("kind") == "material_law_counterfactual":
                         material_field = intervention.get("material_field")
@@ -914,9 +918,7 @@ def evaluate_protocol_gates(
         isinstance(certificate_decision, Mapping)
         and certificate_decision.get("controlled_matched_gate_pass") is True
     )
-    if isinstance(identifiability, Mapping) and not isinstance(
-        certificate_decision, Mapping
-    ):
+    if isinstance(identifiability, Mapping) and not isinstance(certificate_decision, Mapping):
         controlled_gate_pass = identifiability.get("controlled_matched_gate_pass") is True
     online_policy_certificate = (
         identifiability.get("online_policy_feasible_certificate")

@@ -15,9 +15,7 @@ from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import get_task
 from chemworld.world.operations import operation_contracts
 
-ONLINE_POLICY_CERTIFICATE_VERSION = (
-    "chemworld-mechanism-adaptation-online-policy-certificate-0.3"
-)
+ONLINE_POLICY_CERTIFICATE_VERSION = "chemworld-mechanism-adaptation-online-policy-certificate-0.4"
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -45,10 +43,7 @@ def gate_a_execution_contract_binding(
             for task_id in protocol["design"]["tasks"]
         },
         "operation_contract_sha256": canonical_json_sha256(
-            {
-                key: value.to_dict()
-                for key, value in sorted(operation_contracts().items())
-            }
+            {key: value.to_dict() for key, value in sorted(operation_contracts().items())}
         ),
         "bound_config_sha256": {
             key: file_sha256(path) for key, path in sorted(config_paths.items())
@@ -76,22 +71,19 @@ def gate_a_certificate_decision(
     """
 
     requirement = plan.get("online_policy_feasible_certificate")
-    if not isinstance(requirement, Mapping) or requirement.get(
-        "required_before_formal_mechanism_claim"
-    ) is not True:
+    if (
+        not isinstance(requirement, Mapping)
+        or requirement.get("required_before_formal_mechanism_claim") is not True
+    ):
         raise ValueError("Gate A plan must require an online-policy-feasible certificate")
 
     expected_protocol_sha = canonical_json_sha256(protocol)
     expected_plan_sha = canonical_json_sha256(plan)
     expected_execution_binding = gate_a_execution_contract_binding(protocol, plan)
-    controlled_primary_budget = int(
-        plan["held_out_certificate"]["primary_gate_budget"]
-    )
+    controlled_primary_budget = int(plan["held_out_certificate"]["primary_gate_budget"])
     online_gate_budget = int(requirement["online_policy_gate_budget"])
     if online_gate_budget != controlled_primary_budget:
-        raise ValueError(
-            "Gate A controlled and online certificates must use an aligned budget"
-        )
+        raise ValueError("Gate A controlled and online certificates must use an aligned budget")
     if online_policy_certificate is None:
         online_summary = {
             "schema_version": ONLINE_POLICY_CERTIFICATE_VERSION,
@@ -116,9 +108,7 @@ def gate_a_certificate_decision(
             "policy_received_phase_or_reset_indicator": False,
             "uses_actual_available_pre_change_history": True,
             "uses_actual_action_measurement_and_budget_contract": True,
-            "execution_contract_binding_sha256": expected_execution_binding[
-                "binding_sha256"
-            ],
+            "execution_contract_binding_sha256": expected_execution_binding["binding_sha256"],
         }
         for field, expected in expected_values.items():
             if certificate.get(field) != expected:
