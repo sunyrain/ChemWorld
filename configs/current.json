@@ -35,12 +35,12 @@
     "online_policy_certificate_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.4-rc20.json",
     "gate_a_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.6-rc20.json",
     "agent_pilot_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-agent-pilot-v0.2.1.json",
-    "status": "gate_a_failed_online_policy_certificate",
+    "status": "gate_a_invalidated_recertification_required",
     "gate_a_pass": false,
-    "gate_a_evidence_current": true,
+    "gate_a_evidence_current": false,
     "gate_a_certificate_status": {
-      "controlled_matched_identifiability": "passed",
-      "online_policy_feasible_diagnosis": "failed"
+      "controlled_matched_identifiability": "invalidated",
+      "online_policy_feasible_diagnosis": "invalidated"
     },
     "new_external_provider_runs_completed": false,
     "agent_pilot_gate_status": {
@@ -50,7 +50,7 @@
       "gate_d": "not_evaluated",
       "gate_e": "pilot_protocol_failure_observed"
     },
-    "agent_pilot_evidence_current": true,
+    "agent_pilot_evidence_current": false,
     "agent_weight_updates_performed": false,
     "publication_ready": false
   },
@@ -58,8 +58,12 @@
     "status": "current_evidence_coherent_worktree_clean",
     "current_evidence_coherent": true,
     "tracked_source_tree_dirty": false,
-    "stale_binding_count": 0,
-    "stale_binding_ids": [],
+    "stale_binding_count": 3,
+    "stale_binding_ids": [
+      "mechanism_agent_pilot",
+      "mechanism_gate_a",
+      "mechanism_online_policy_certificate"
+    ],
     "blockers": [
       {
         "id": "mechanism_gates_remaining",
@@ -125,7 +129,7 @@
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
     "graph_sha256": "810234d15a78d0e093795159a09613c234b2c687c801063d469cea28d240b30c",
-    "repository_source_sha256": "36d16b01e55c961cc708e17fb03a6f76eeaec2f74ff549f0b5e5c9d73a455746",
+    "repository_source_sha256": "3a603c0a12af8f2678c1b3667d9d4261797d1fee254a70573f7a8130423f64bf",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -271,7 +275,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "0616b606dd08c84d49e60935f8567f2a901cf4333943b9063fc5d5dd30a6b9e0",
+        "sha256": "f4d444b3a598abf6c3f2ad9294708e64fbf357d73abf9d6a0777bd7b5d813820",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -393,7 +397,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "72c03206ca5db112c85d65c8409837dc8ff86459e1b8b20da051e827135fdddb",
+        "sha256": "ddae751c8348a3d826b6865c9395eb7b172c7b3f9b2ea4ae0e3fe6311d10150d",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -408,7 +412,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "2f97caff34e8f5037adf4ffbaff91c8d324fb310051d186e75344bb065eef6ae",
+        "sha256": "9b304d5f87bfb4712324ee8e22d5c3256486306f3b1ab2c09d6a77f4e55639b0",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -424,7 +428,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "61d569952235f362fdf278ca5d9c1acb92e1cdfe676a29c3063fa5e016b62088",
+        "sha256": "fd18a04b05f7cc15057e02211773ac9f90a0c18d3ac9c24ee5f23809b1bc3342",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -458,7 +462,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "332c68e85033e533500b0af483b4200d1433f117229e0f01f56e924c54764402",
+        "sha256": "9f89c4f9e88f4778c309754c0725fd57b1524ef99f3d371a45d87eba2ae3a2eb",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -475,9 +479,9 @@
           "mechanism_protocol"
         ],
         "sha256": "e129d47df4fbd2a5922b2d40213e21b4e6422ebf019f1e6fbbab3cd165a41e30",
-        "artifact_state": "current",
-        "freshness": "fresh",
-        "gate_state": "passed"
+        "artifact_state": "stale",
+        "freshness": "stale_dependency_binding",
+        "gate_state": "invalidated"
       },
       "mechanism_preflight": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-preflight.json",
@@ -491,7 +495,7 @@
           "mechanism_protocol",
           "mechanism_public_matrix"
         ],
-        "sha256": "3266f3deed5c3a49d588af1fcd219acb6c8977742f66b8c7ed98e55b2ad556ac",
+        "sha256": "48420c516eaae3fe8af0f113ebe271f6e6cfd8962b8af717f7022af285fb79de",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -515,9 +519,9 @@
           "score_replay_contract"
         ],
         "sha256": "47826a3e3bf4949c19ec261dc2fc07b590c1ddabe1e24e74b0c143961c58b222",
-        "artifact_state": "current",
-        "freshness": "fresh",
-        "gate_state": "blocked"
+        "artifact_state": "stale",
+        "freshness": "stale_dependency_binding",
+        "gate_state": "invalidated"
       },
       "mechanism_agent_pilot": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-agent-pilot-v0.2.1.json",
@@ -531,9 +535,9 @@
           "mechanism_protocol"
         ],
         "sha256": "5607623e17b793a542479ed5fd66a70ff38d34ae2b3d9e1f8d06d329b8e86664",
-        "artifact_state": "current",
-        "freshness": "fresh",
-        "gate_state": "not_applicable"
+        "artifact_state": "stale",
+        "freshness": "stale_dependency_binding",
+        "gate_state": "invalidated"
       }
     }
   },
@@ -581,7 +585,7 @@
   "completeness_model": {
     "structural": "implemented_by_design_and_subject_to_runtime_controls",
     "evaluation": "contracts_defined_empirical_closure_pending",
-    "attribution": "controlled_identifiability_passed_online_policy_certificate_failed",
+    "attribution": "gate_a_recertification_required_after_public_contract_change",
     "chemical_coverage": "selected_bounded_archetypes_not_exhaustive",
     "physical_fidelity": "model_card_bounded_not_universal_digital_twin"
   },
@@ -598,7 +602,7 @@
         "reaction-to-crystallization",
         "electrochemical-conversion"
       ],
-      "status": "online_policy_certificate_failed"
+      "status": "gate_a_recertification_required"
     },
     "extended": {
       "role": "environment_coverage_training_and_demonstration",
