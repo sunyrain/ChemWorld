@@ -116,6 +116,20 @@ def test_gate_state_is_not_conflated_with_artifact_validity() -> None:
         )
         == "blocked"
     )
+    assert (
+        pipeline["_node_gate_state"](
+            formal_nodes["mechanism_online_policy_certificate"],
+            {"gate_pass": False},
+        )
+        == "blocked"
+    )
+    assert (
+        pipeline["_node_gate_state"](
+            formal_nodes["mechanism_online_policy_certificate"],
+            {"gate_pass": True},
+        )
+        == "passed"
+    )
 
 
 def test_evidence_node_contract_errors_are_unambiguous() -> None:

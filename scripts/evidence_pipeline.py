@@ -653,8 +653,10 @@ def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
         return "not_applicable"
     if node.node_id == "backend_candidate":
         return "passed" if payload.get("backend_contract_validated") else "blocked"
+    if "gate_pass" in payload:
+        return "passed" if payload.get("gate_pass") is True else "blocked"
     if node.node_id == "mechanism_gate_a":
-        return "passed" if payload.get("gate_a_pass") else "blocked"
+        return "passed" if payload.get("gate_a_pass") is True else "blocked"
     if node.node_id == "mechanism_design_audit":
         return "passed" if payload.get("pass") else "blocked"
     if payload.get("passed") is False or payload.get("controls_ready") is False:
