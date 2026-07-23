@@ -28,7 +28,6 @@ from chemworld.eval.mechanism_adaptation_execution import (
     _dimension_normalized_likelihood_scale,
     _fit_paired_batch_oracle,
     _online_hypothesis_evidence_channel,
-    _online_policy_rollout_recognition_from_samples,
     _online_relational_evidence_channel,
     _relational_evidence_samples,
     _relational_reference_priorities,
@@ -38,7 +37,6 @@ from chemworld.eval.mechanism_adaptation_execution import (
     _select_information_maximum,
     _select_online_reference_action,
     _select_relational_coverage_actions,
-    _select_robust_policy_batch,
     _update_online_change_point_posterior,
     _uses_dimension_normalized_likelihood,
     _validate_online_policy_action_count,
@@ -155,137 +153,6 @@ def test_information_maximum_is_deterministic_and_rejects_saturation() -> None:
             minimum_spread_nats=1.0e-3,
             context="test batch",
         )
-
-
-def test_robust_policy_batch_protects_the_weakest_candidate() -> None:
-    selected, report = _select_robust_policy_batch(
-        information_nats={
-            "aggregate-winner": 1.20,
-            "robust-winner": 1.05,
-            "ineligible": 1.30,
-        },
-        candidate_recall={
-            "aggregate-winner": {"a": 1.0, "b": 1.0, "c": 0.25},
-            "robust-winner": {"a": 0.90, "b": 0.85, "c": 0.80},
-            "ineligible": {"a": 1.0, "b": 1.0, "c": 1.0},
-        },
-        eligible_batch_ids=("aggregate-winner", "robust-winner"),
-        candidate_ids=("a", "b", "c"),
-        context="test robust batch",
-    )
-
-    assert selected == "robust-winner"
-    assert report["selected_metrics"]["minimum_candidate_recall"] == pytest.approx(0.80)
-    assert "minimum_candidate_conditional_recognition" in report["selection_rule"]
-
-
-def test_robust_policy_batch_can_protect_clustered_change_time_success() -> None:
-    candidate_units = (
-        "material@all_change_times",
-        "material@1",
-        "material@2",
-        "no_change@all_change_times",
-        "no_change@1",
-        "no_change@2",
-    )
-    selected, _report = _select_robust_policy_batch(
-        information_nats={
-            "spread-errors": 1.20,
-            "cluster-robust": 1.00,
-        },
-        candidate_recall={
-            "spread-errors": {
-                "material@all_change_times": 0.70,
-                "material@1": 0.90,
-                "material@2": 0.90,
-                "no_change@all_change_times": 1.00,
-                "no_change@1": 1.00,
-                "no_change@2": 1.00,
-            },
-            "cluster-robust": {
-                "material@all_change_times": 0.85,
-                "material@1": 0.85,
-                "material@2": 0.85,
-                "no_change@all_change_times": 0.95,
-                "no_change@1": 0.95,
-                "no_change@2": 0.95,
-            },
-        },
-        eligible_batch_ids=("spread-errors", "cluster-robust"),
-        candidate_ids=candidate_units,
-        context="test clustered robust batch",
-    )
-
-    assert selected == "cluster-robust"
-
-
-def test_sample_rollout_scores_reference_age_aware_online_filter() -> None:
-    candidates = ("no_change", "shift")
-    action = "design-00"
-    channels = {
-        encoding: f"{encoding}\u241f{action}"
-        for encoding in ("absolute_trace", "transition_contrast", "stable_contrast")
-    }
-    evidence_samples = {
-        (candidate, channel): [
-            [2.0 if candidate == "shift" and encoding != "stable_contrast" else 0.0]
-            for _ in range(4)
-        ]
-        for candidate in candidates
-        for encoding, channel in channels.items()
-    }
-    predictives = {
-        (candidate, channel): (
-            np.asarray(
-                [
-                    2.0
-                    if candidate == "shift" and encoding != "stable_contrast"
-                    else 0.0
-                ]
-            ),
-            np.asarray([0.01]),
-        )
-        for candidate in candidates
-        for encoding, channel in channels.items()
-    }
-
-    result = _online_policy_rollout_recognition_from_samples(
-        candidate_ids=candidates,
-        policy_action_ids=(action,),
-        change_times=(1,),
-        post_change_budget=1,
-        hazard=0.5,
-        evidence_samples=evidence_samples,
-        predictives=predictives,
-        feature_indices=dict.fromkeys(channels.values(), (0,)),
-        likelihood_scale=1.0,
-        relational_evidence_enabled=False,
-        relational_reference_priority={},
-        declared_relational_reference_actions={},
-    )
-
-    assert result["candidate_recall"] == {"no_change": 1.0, "shift": 1.0}
-    assert result["candidate_change_time_recall"] == {
-        "no_change@1": 1.0,
-        "shift@1": 1.0,
-    }
-    assert result["candidate_correct_count"] == {
-        "no_change": 4,
-        "shift": 4,
-    }
-    assert result["candidate_total_count"] == {
-        "no_change": 4,
-        "shift": 4,
-    }
-    assert result["candidate_recall_interval"]["shift"][0] > 0.50
-    assert result["candidate_all_change_times_correct_count"] == {
-        "no_change": 4,
-        "shift": 4,
-    }
-    assert result["candidate_all_change_times_total_count"] == {
-        "no_change": 4,
-        "shift": 4,
-    }
 
 
 def test_likelihood_scale_is_normalized_by_selected_feature_dimension() -> None:
@@ -855,7 +722,7 @@ def test_relational_policy_coverage_is_declared_and_fit_ranked() -> None:
     }
 
 
-def test_online_reference_precedence_is_explicit_and_phase_invariant() -> None:
+def test_online_reference_uses_relations_only_to_cold_start_an_action() -> None:
     reference_action_id, source = _select_online_reference_action(
         action_id="design-02",
         available_reference_action_ids={"design-00", "design-01"},
@@ -873,19 +740,6 @@ def test_online_reference_precedence_is_explicit_and_phase_invariant() -> None:
         fit_ranked_relational_references=["design-00", "design-01"],
     )
     assert (reference_action_id, source) == ("design-02", "same_action_temporal")
-
-    reference_action_id, source = _select_online_reference_action(
-        action_id="design-02",
-        available_reference_action_ids={"design-00", "design-01", "design-02"},
-        relational_evidence_enabled=True,
-        declared_relational_references=["design-01"],
-        fit_ranked_relational_references=["design-00", "design-01"],
-        declared_relational_precedence=True,
-    )
-    assert (reference_action_id, source) == (
-        "design-01",
-        "declared_relational",
-    )
 
 
 def test_relational_coverage_ranks_only_the_direction_the_cycle_can_execute() -> None:
