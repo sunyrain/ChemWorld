@@ -1806,6 +1806,7 @@ def run_gate_a(
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.2",
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.3",
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.4",
+        "chemworld-mechanism-adaptation-gate-a-plan-0.2.5",
     }:
         return _run_paired_gate_a(
             protocol,
