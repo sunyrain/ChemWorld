@@ -29,18 +29,16 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     )
 
 
-def test_current_evidence_pipeline_reports_only_declared_recertification_blocker() -> None:
+def test_current_evidence_pipeline_records_current_online_policy_failure() -> None:
     pipeline = _pipeline()
     current = json.loads(pipeline["CURRENT_REGISTRY"].read_text(encoding="utf-8"))
 
     assert (
         current["mechanism_adaptation"]["status"]
-        == "gate_a_invalidated_recertification_required"
+        == "gate_a_failed_online_policy_certificate"
     )
-    assert current["mechanism_adaptation"]["gate_a_evidence_current"] is False
-    assert pipeline["check_current_evidence"]() == [
-        "mechanism online-policy certificate binding is stale"
-    ]
+    assert current["mechanism_adaptation"]["gate_a_evidence_current"] is True
+    assert pipeline["check_current_evidence"]() == []
 
 
 def test_current_state_model_separates_validation_freeze_and_publication() -> None:
@@ -59,7 +57,7 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
         summary["mechanism_gate_a"]["status"]
         == current["mechanism_adaptation"]["status"]
     )
-    assert summary["mechanism_gate_a"]["evidence_current"] is False
+    assert summary["mechanism_gate_a"]["evidence_current"] is True
     assert summary["mechanism_gate_a"]["passed"] is False
     assert summary["formal_benchmark"]["status"] == "environment_ready_methods_unfrozen"
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False

@@ -58,12 +58,12 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     assert registry["mechanism_adaptation"]["gate_a_pass"] is False
     assert registry["mechanism_adaptation"][
         "online_policy_certificate_report"
-    ].endswith("mechanism-adaptation-online-policy-certificate-v0.4-rc20.json")
+    ].endswith("mechanism-adaptation-online-policy-certificate-v0.5-rc21.json")
     assert registry["mechanism_adaptation"]["gate_a_certificate_status"] == {
-        "controlled_matched_identifiability": "invalidated",
-        "online_policy_feasible_diagnosis": "invalidated",
+        "controlled_matched_identifiability": "passed",
+        "online_policy_feasible_diagnosis": "failed",
     }
-    assert registry["mechanism_adaptation"]["gate_a_evidence_current"] is False
+    assert registry["mechanism_adaptation"]["gate_a_evidence_current"] is True
     assert registry["mechanism_adaptation"]["agent_weight_updates_performed"] is False
     assert registry["mechanism_adaptation"]["agent_pilot_gate_status"] == {
         "gate_0": "passed",

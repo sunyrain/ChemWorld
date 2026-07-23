@@ -159,7 +159,7 @@ NODES = (
     EvidenceNode(
         "mechanism_online_policy_certificate",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-online-policy-certificate-v0.4-rc20.json",
+        "mechanism-adaptation-online-policy-certificate-v0.5-rc21.json",
         "formal_result",
         (
             "mechanism_design_audit",
@@ -169,7 +169,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_gate_a",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.6-rc20.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.7-rc21.json",
         "formal_result",
         (
             "backend_candidate",
