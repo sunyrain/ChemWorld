@@ -133,7 +133,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc6.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc7.json",
         "formal_result",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
     ),
@@ -158,7 +158,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_gate_a",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc6.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc7.json",
         "formal_result",
         (
             "backend_candidate",
@@ -570,6 +570,8 @@ def _artifact_source_binding_current(
 
 
 def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
+    if node.role in {"protocol_input", "development_diagnostic", "fixture"}:
+        return "not_applicable"
     if node.node_id == "backend_candidate":
         return "passed" if payload.get("backend_contract_validated") else "blocked"
     if node.node_id == "mechanism_gate_a":

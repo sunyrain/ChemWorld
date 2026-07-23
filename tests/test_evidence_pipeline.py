@@ -87,6 +87,27 @@ def test_current_evidence_manifest_explains_every_node() -> None:
     )
 
 
+def test_gate_state_is_not_conflated_with_artifact_validity() -> None:
+    pipeline = _pipeline()
+
+    for node in pipeline["NODES"]:
+        if node.role in {"protocol_input", "development_diagnostic", "fixture"}:
+            assert pipeline["_node_gate_state"](node, {}) == "not_applicable"
+    formal_nodes = {node.node_id: node for node in pipeline["NODES"]}
+    assert (
+        pipeline["_node_gate_state"](
+            formal_nodes["mechanism_design_audit"], {"pass": True}
+        )
+        == "passed"
+    )
+    assert (
+        pipeline["_node_gate_state"](
+            formal_nodes["mechanism_gate_a"], {"gate_a_pass": False}
+        )
+        == "blocked"
+    )
+
+
 def test_evidence_node_contract_errors_are_unambiguous() -> None:
     pipeline = _pipeline()
     node_type = pipeline["EvidenceNode"]

@@ -230,8 +230,14 @@ def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed(
         )
     )
     assert validate_mechanism_adaptation_protocol(protocol) == []
-    result = evaluate_protocol_gates(protocol, {})
-    assert result["publication_ready"] is False
+    gate_a_plan = json.loads(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    result = evaluate_protocol_gates(protocol, {}, gate_a_plan=gate_a_plan)
+    assert "publication_ready" not in result
+    assert result["gate_a_certificate_decision"]["gate_a_pass"] is False
     assert result["missing_or_failed_gates"] == [
         "gate_0",
         "gate_a",
@@ -240,6 +246,22 @@ def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed(
         "gate_d",
         "gate_e",
     ]
+
+    legacy_shortcut = evaluate_protocol_gates(
+        protocol,
+        {
+            "gate_a": {
+                "active_oracle": {"gate_pass": True},
+                "fixed_trajectory_decoder": {"gate_pass": True},
+            }
+        },
+        gate_a_plan=gate_a_plan,
+    )
+    assert legacy_shortcut["gates"]["gate_a"] is False
+    assert (
+        legacy_shortcut["gate_a_certificate_decision"]["status"]
+        == "gate_a_failed_controlled_matched_certificate"
+    )
     matrix = build_paired_campaign_matrix(protocol)
     changed_candidate_count = sum(
         len(contract["candidate_ids"]) - 1

@@ -90,7 +90,16 @@ def test_baseline_report_private_signature_and_paper_artifact(tmp_path: Path) ->
         ).read_text(encoding="utf-8")
     )
     assert release_checklist["items"][0]["id"] == "task_contracts"
-    assert release_checklist["ready_for_public_claim"] is True
+    assert release_checklist["artifact_bundle_complete"] is True
+    assert release_checklist["claim_status_source"] == "configs/current.json"
+    assert release_checklist["claim_status"]["formal_results_present"] is False
+    assert release_checklist["claim_status"]["benchmark_claim_allowed"] is False
+    assert release_checklist["publication_ready"] is False
+    assert release_checklist["formal_publication_claim_allowed"] is False
+    assert "ready_for_public_claim" not in release_checklist
+    assert (
+        tmp_path / "paper_artifact" / "manifests" / "current_status.json"
+    ).exists()
 
 
 def test_release_artifact_cli_commands(tmp_path: Path, capsys) -> None:

@@ -43,7 +43,7 @@ pytestmark = pytest.mark.skipif(
 def _reference_module(module_name: str, repo_names: tuple[str, ...] | None = None):
     try:
         return import_reference_module(module_name, repo_names=repo_names)
-    except Exception as exc:
+    except ModuleNotFoundError as exc:
         pytest.skip(f"optional reference module {module_name!r} is unavailable: {exc}")
 
 

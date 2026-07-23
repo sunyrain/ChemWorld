@@ -19,6 +19,8 @@ from typing import Any, Literal
 
 import numpy as np
 
+from chemworld.eval.mechanism_gate_decision import gate_a_certificate_decision
+
 MECHANISM_ADAPTATION_ANALYSIS_VERSION = "chemworld-mechanism-adaptation-analysis-0.2"
 
 REQUIRED_GATE_IDS = ("gate_0", "gate_a", "gate_b", "gate_c", "gate_d", "gate_e")
@@ -885,8 +887,15 @@ def build_paired_campaign_matrix(
 def evaluate_protocol_gates(
     protocol: Mapping[str, Any],
     evidence: Mapping[str, Any],
+    *,
+    gate_a_plan: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Evaluate frozen gates conservatively; absent evidence can never pass."""
+    """Evaluate protocol gates without independently redefining Gate A.
+
+    Gate A is always composed by the authoritative two-certificate decision helper.
+    The legacy active-oracle-plus-decoder shortcut is deliberately not accepted.
+    Absent evidence can never pass.
+    """
 
     protocol_errors = validate_mechanism_adaptation_protocol(protocol)
     if protocol_errors:
@@ -896,15 +905,36 @@ def evaluate_protocol_gates(
     gate_0 = bool(isinstance(integrity, Mapping) and integrity.get("all_required_checks_pass"))
 
     identifiability = evidence.get("gate_a")
-    active = identifiability.get("active_oracle") if isinstance(identifiability, Mapping) else None
-    decoder = (
-        identifiability.get("fixed_trajectory_decoder")
+    certificate_decision = (
+        identifiability.get("certificate_decision")
         if isinstance(identifiability, Mapping)
         else None
     )
-    gate_a = bool(
-        isinstance(active, Mapping) and active.get("gate_pass") and isinstance(decoder, Mapping)
+    controlled_gate_pass = bool(
+        isinstance(certificate_decision, Mapping)
+        and certificate_decision.get("controlled_matched_gate_pass") is True
     )
+    if isinstance(identifiability, Mapping) and not isinstance(
+        certificate_decision, Mapping
+    ):
+        controlled_gate_pass = identifiability.get("controlled_matched_gate_pass") is True
+    online_policy_certificate = (
+        identifiability.get("online_policy_feasible_certificate")
+        if isinstance(identifiability, Mapping)
+        else None
+    )
+    if not (
+        isinstance(online_policy_certificate, Mapping)
+        and online_policy_certificate.get("certificate_present", True) is True
+    ):
+        online_policy_certificate = None
+    gate_a_decision = gate_a_certificate_decision(
+        protocol,
+        gate_a_plan,
+        controlled_gate_pass=controlled_gate_pass,
+        online_policy_certificate=online_policy_certificate,
+    )
+    gate_a = gate_a_decision["gate_a_pass"] is True
 
     detection = evidence.get("gate_b")
     gate_b = bool(
@@ -950,7 +980,7 @@ def evaluate_protocol_gates(
     return {
         "gates": results,
         "all_gates_pass": all(results.values()),
-        "publication_ready": all(results.values()),
+        "gate_a_certificate_decision": gate_a_decision,
         "missing_or_failed_gates": [key for key, passed in results.items() if not passed],
     }
 

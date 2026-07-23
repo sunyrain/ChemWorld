@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from chemworld.eval.baseline_report import generate_baseline_report
 from chemworld.eval.provenance import build_solver_provenance_manifest
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.verify import verify_records
+from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.schemas import ACTION_SCHEMA, RECIPE_SCHEMA, TRAJECTORY_SCHEMA
 from chemworld.tasks import get_task, get_task_card
 from chemworld.world import list_scenarios, world_law_spec
@@ -131,11 +133,17 @@ def create_paper_artifact(
         json.dumps(replay_manifest, indent=2, sort_keys=True),
         encoding="utf-8",
     )
+    claim_status = _load_current_claim_status()
+    (manifest_dir / "current_status.json").write_text(
+        json.dumps(claim_status, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     release_checklist = _build_release_checklist(
         task_ids=task_ids,
         agents=agents,
         seeds=seeds,
         verification=verification,
+        claim_status=claim_status,
     )
     (manifest_dir / "release_checklist.json").write_text(
         json.dumps(release_checklist, indent=2, sort_keys=True),
@@ -222,6 +230,10 @@ def create_paper_artifact(
         ),
         "release_checklist": str(root / "release_checklist.md"),
         "replay_verified": verification["verified"],
+        "artifact_bundle_complete": release_checklist["artifact_bundle_complete"],
+        "formal_publication_claim_allowed": release_checklist[
+            "formal_publication_claim_allowed"
+        ],
     }
     (root / "artifact_summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True),
@@ -267,6 +279,7 @@ def _build_release_checklist(
     agents: list[str],
     seeds: list[int],
     verification: dict[str, Any],
+    claim_status: Mapping[str, Any],
 ) -> dict[str, Any]:
     items = [
         {
@@ -295,20 +308,36 @@ def _build_release_checklist(
             "evidence": "manifests/solver_provenance_manifest.json",
         },
         {
+            "id": "current_status",
+            "status": "included",
+            "evidence": "manifests/current_status.json",
+        },
+        {
             "id": "release_limitations",
             "status": "included",
             "evidence": "limitations.md",
         },
     ]
+    artifact_bundle_complete = all(
+        item["status"] in {"included", "verified"} for item in items
+    )
+    formal_publication_claim_allowed = bool(
+        artifact_bundle_complete
+        and claim_status["formal_results_present"] is True
+        and claim_status["benchmark_claim_allowed"] is True
+        and claim_status["publication_ready"] is True
+    )
     return {
-        "schema_version": "chemworld-release-checklist-0.1",
+        "schema_version": "chemworld-release-checklist-0.2",
         "tasks": task_ids,
         "agents": agents,
         "seeds": seeds,
         "items": items,
-        "ready_for_public_claim": all(
-            item["status"] in {"included", "verified"} for item in items
-        ),
+        "artifact_bundle_complete": artifact_bundle_complete,
+        "claim_status_source": "configs/current.json",
+        "claim_status": dict(claim_status),
+        "publication_ready": claim_status["publication_ready"],
+        "formal_publication_claim_allowed": formal_publication_claim_allowed,
     }
 
 
@@ -324,11 +353,50 @@ def _release_checklist_markdown(checklist: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
-            f"Ready for public claim: `{checklist['ready_for_public_claim']}`",
+            f"Artifact bundle complete: `{checklist['artifact_bundle_complete']}`",
+            f"Current publication status: `{checklist['claim_status']['publication_status']}`",
+            f"Publication ready: `{checklist['publication_ready']}`",
+            (
+                "Formal publication claim allowed: "
+                f"`{checklist['formal_publication_claim_allowed']}`"
+            ),
             "",
         ]
     )
     return "\n".join(lines)
+
+
+def _load_current_claim_status() -> dict[str, Any]:
+    """Read the canonical registry and expose only claim-relevant status fields."""
+
+    registry_path = configuration_root() / "current.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    if not isinstance(registry, Mapping):
+        raise ValueError("configs/current.json must contain a JSON object")
+    formal = registry.get("formal_evaluation")
+    publication = registry.get("publication")
+    if not isinstance(formal, Mapping) or not isinstance(publication, Mapping):
+        raise ValueError(
+            "configs/current.json must define formal_evaluation and publication states"
+        )
+    boolean_fields = {
+        "formal_results_present": formal.get("formal_results_present"),
+        "benchmark_claim_allowed": formal.get("benchmark_claim_allowed"),
+        "publication_ready": publication.get("publication_ready"),
+    }
+    invalid = [key for key, value in boolean_fields.items() if not isinstance(value, bool)]
+    if invalid:
+        raise ValueError(
+            "configs/current.json claim fields must be boolean: " + ", ".join(invalid)
+        )
+    return {
+        "registry_schema_version": registry.get("schema_version"),
+        "formal_evaluation_status": formal.get("status"),
+        "formal_results_present": boolean_fields["formal_results_present"],
+        "benchmark_claim_allowed": boolean_fields["benchmark_claim_allowed"],
+        "publication_status": publication.get("status"),
+        "publication_ready": boolean_fields["publication_ready"],
+    }
 
 
 def _limitations_markdown(task_contracts: list[dict[str, Any]]) -> str:
@@ -408,6 +476,7 @@ def _required_artifact_files() -> list[str]:
         "baseline_report/baseline_report.json",
         "dataset_examples/dataset_card.json",
         "manifests/replay_manifest.json",
+        "manifests/current_status.json",
         "manifests/solver_provenance_manifest.json",
         "manifests/release_manifest.json",
         "limitations.md",
