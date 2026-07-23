@@ -79,51 +79,48 @@ PASSED_GATE_A_STATUS_MARKERS = {
     ),
     "docs/benchmark_release.md": (
         "Gate A 整体因此通过",
-        "237/240",
     ),
     "docs/research_findings.md": (
         "Gate A 总状态为 true",
-        "237/240",
     ),
     "docs/research_findings.en.md": (
         "so Gate A is true",
-        "237/240 (98.75%)",
     ),
 }
 FAILED_GATE_A_STATUS_MARKERS = {
     "README.md": (
         "Gate A therefore remains false",
-        "22/30",
+        "23/30",
     ),
     "docs/benchmark_release.md": (
-        "反应催化剂映射反事实仅识别 22/30",
-        "Gate A 整体因此仍为 false",
+        "`rate_law_family` 仅为 23/30",
+        "Gate A 整体仍为 false",
     ),
     "docs/research_findings.md": (
-        "Gate A 总状态为 false",
-        "22/30",
+        "Gate A 仍为 false",
+        "23/30",
     ),
     "docs/research_findings.en.md": (
-        "so Gate A remains false",
-        "22/30",
+        "Gate A remains false",
+        "23/30",
     ),
 }
 INVALIDATED_GATE_A_STATUS_MARKERS = {
     "README.md": (
         "The current source binding is invalidated",
-        "pending RC21 recertification",
+        "pending source-bound recertification",
     ),
     "docs/benchmark_release.md": (
         "当前源码绑定已失效",
-        "等待 RC21 重新认证",
+        "等待新的源码绑定认证",
     ),
     "docs/research_findings.md": (
         "当前源码绑定已失效",
-        "等待 RC21 重新认证",
+        "等待新的源码绑定认证",
     ),
     "docs/research_findings.en.md": (
         "The current source binding is invalidated",
-        "pending RC21 recertification",
+        "pending source-bound recertification",
     ),
 }
 STALE_GATE_A_STATUS_MARKERS = (
