@@ -30,8 +30,8 @@ against a pre-registered practical threshold of 0.020000, so the all-task claim 
 Nine task–mode controls establish deterministic execution, local response separation, bounded response,
 conservation, and replay. At the preregistered four-experiment budget, the RC20 controlled matched oracle reaches
 235/240 (97.92%) and passes. The separately bound online-policy-feasible oracle reaches 227/240 (94.58%) overall,
-but the reaction catalyst-mapping counterfactual reaches only 22/30 and fails the per-family Wilson rule, so Gate A
-remains false. The `rate_law_family` reaches 29/30 in both certificates and is not the blocker. RC20 binds that family
+but the reaction catalyst-mapping counterfactual reaches only 22/30 and fails the per-family Wilson rule,
+so Gate A remains false. The `rate_law_family` reaches 29/30 in both certificates and is not the blocker. RC20 binds that family
 to the upstream primary target pathway through a pivot-normalized catalyst-activity-order stress while proving that
 crystallization constitutive parameters remain unchanged. This supports controlled identifiability, not Agent-level
 mechanism discovery, crystallization-kinetics discovery, or exact rate-parameter identification.

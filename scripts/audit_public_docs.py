@@ -71,7 +71,6 @@ ENGLISH_NAV_TARGETS = (
 README_BOUNDARY_MARKERS = (
     "campaign",
     "no formal cross-method result",
-    "gate a now establishes environment-level identifiability",
     "agent-level mechanism-discovery claims remain unsupported",
 )
 PASSED_GATE_A_STATUS_MARKERS = {
@@ -89,6 +88,24 @@ PASSED_GATE_A_STATUS_MARKERS = {
     "docs/research_findings.en.md": (
         "so Gate A is true",
         "237/240 (98.75%)",
+    ),
+}
+FAILED_GATE_A_STATUS_MARKERS = {
+    "README.md": (
+        "Gate A therefore remains false",
+        "22/30",
+    ),
+    "docs/benchmark_release.md": (
+        "反应催化剂映射反事实仅识别 22/30",
+        "Gate A 整体因此仍为 false",
+    ),
+    "docs/research_findings.md": (
+        "Gate A 总状态为 false",
+        "22/30",
+    ),
+    "docs/research_findings.en.md": (
+        "so Gate A remains false",
+        "22/30",
     ),
 }
 STALE_GATE_A_STATUS_MARKERS = (
@@ -136,10 +153,14 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
     gate_a_pass = (
         current.get("mechanism_adaptation", {}).get("gate_a_pass") is True
     )
-    status_surface_missing_markers = (
-        _missing_markers(root, PASSED_GATE_A_STATUS_MARKERS)
+    expected_status_markers = (
+        PASSED_GATE_A_STATUS_MARKERS
         if gate_a_pass
-        else {}
+        else FAILED_GATE_A_STATUS_MARKERS
+    )
+    status_surface_missing_markers = _missing_markers(
+        root,
+        expected_status_markers,
     )
     status_surface_stale_markers = (
         _token_hits(
@@ -148,7 +169,15 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
             STALE_GATE_A_STATUS_MARKERS,
         )
         if gate_a_pass
-        else []
+        else _token_hits(
+            [root / relative for relative in FAILED_GATE_A_STATUS_MARKERS],
+            root,
+            tuple(
+                marker
+                for markers in PASSED_GATE_A_STATUS_MARKERS.values()
+                for marker in markers
+            ),
+        )
     )
 
     mkdocs = (root / "mkdocs.yml").read_text(encoding="utf-8")

@@ -49,10 +49,10 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert summary["release_attestation"]["status"] == "passed"
     assert (
         summary["mechanism_gate_a"]["status"]
-        == "gate_a_passed_remaining_gates_pending"
+        == "gate_a_failed_online_policy_certificate"
     )
     assert summary["mechanism_gate_a"]["evidence_current"] is True
-    assert summary["mechanism_gate_a"]["passed"] is True
+    assert summary["mechanism_gate_a"]["passed"] is False
     assert summary["formal_benchmark"]["status"] == "environment_ready_methods_unfrozen"
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False
