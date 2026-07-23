@@ -1,10 +1,10 @@
 {
-  "check_count": 39,
+  "check_count": 45,
   "failure_count": 0,
   "failures": [],
-  "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc14",
+  "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc15",
   "gate_a_plan_path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json",
-  "gate_a_plan_sha256": "46ff4270a47f3a3486e408c743493a5b65e6dd529f10f57c7a2006d9a4e49414",
+  "gate_a_plan_sha256": "63b6e16631e65d3dcb24ebbedf8d99b317121c44e67f68217b02ec891262fbde",
   "interpretation": "A pass means each frozen hidden target is publicly manipulable, covered by the Gate A recipes, observable before termination, instantiable, and absent from the mechanism-Agent prompt. It does not establish identifiability.",
   "material_field_action_contract": {
     "catalyst": {
@@ -21,10 +21,10 @@
     }
   },
   "pass": true,
-  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-freeze-rc1",
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-23-freeze-rc2",
   "protocol_path": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
-  "protocol_sha256": "c6d93ec82f07e8e995d42e7120b2d78377cd668aca56b8857781ac48ba63f38a",
-  "schema_version": "chemworld-mechanism-design-audit-0.2.1",
+  "protocol_sha256": "cc7b777811ffeab241ebc733e85f04013e14ebd5e96756aa0a2bf67164c90fa6",
+  "schema_version": "chemworld-mechanism-design-audit-0.2.2",
   "status": "passed",
   "task_reports": {
     "electrochemical-conversion": {
@@ -235,6 +235,36 @@
         {
           "check": "rate_law_family:environment_instantiation",
           "detail": "The task must reset under the declared intervention.",
+          "pass": true
+        },
+        {
+          "check": "rate_law_family:explicit_rate_law_change_contract",
+          "detail": "A formal rate-law cell must declare its reaction role, transform, and calibration instead of selecting a reaction by declaration order.",
+          "pass": true
+        },
+        {
+          "check": "rate_law_family:complete_rate_law_change_contract",
+          "detail": "Missing rate-law contract fields: [].",
+          "pass": true
+        },
+        {
+          "check": "rate_law_family:single_declared_reaction_changed",
+          "detail": "Exactly one rate law must change and it must equal the resolved semantic target; changed=['side_formation'], target=side_formation, error=None.",
+          "pass": true
+        },
+        {
+          "check": "rate_law_family:semantic_reaction_role_bound",
+          "detail": "The executed mechanism must bind the declared reaction role; declared=primary_competing_pathway, executed=primary_competing_pathway, error=None.",
+          "pass": true
+        },
+        {
+          "check": "rate_law_family:declared_rate_law_transform_bound",
+          "detail": "The executed mechanism must bind the declared transform; declared=arrhenius_form_and_scale_stress_v1, executed=arrhenius_form_and_scale_stress_v1, error=None.",
+          "pass": true
+        },
+        {
+          "check": "rate_law_family:constitutive_domain_parameters_unchanged",
+          "detail": "A reaction rate-law intervention must not also change crystallization or other constitutive domain parameters; unchanged=True, error=None.",
           "pass": true
         },
         {

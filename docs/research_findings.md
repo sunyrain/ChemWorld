@@ -26,11 +26,14 @@
 早期 Safe-GP 确证在四个任务上改善目标并满足安全/成本规则，但 flow effect 低于预注册实用阈值，
 所以整体主张仍然失败。ChemWorld 将这种边界失败保留为结果，而不是事后放宽阈值。
 
-## 发现三：规律变化可执行，但预算内在线识别尚未闭合
+## 发现三：预算 4 的环境可识别性已闭合，Agent 归因仍开放
 
 当前 material、mechanism 与 constitutive-law counterfactual 均由隐藏世界执行。Gate A 的 controlled matched
-certificate 已通过；两次实验预算下 active oracle top-1 accuracy 为 98.33%，fixed decoder 为 99.17%。
-online-policy-feasible certificate 尚未执行，因此 Gate A 总状态仍为 false，也不能据此声称 Agent 已具备机制发现能力。
+certificate 与独立 online-policy-feasible certificate 均已通过。预算 4 下 controlled oracle 为
+235/240（97.92%），online oracle 为 237/240（98.75%），Gate A 总状态为 true。预算 2 的在线结果
+为 91.25%，保留为严苛压力点。RC15 还把 reaction rate-law 显式绑定为上游主竞争路径的
+form-and-scale stress，并验证结晶构成参数不变。该结论证明环境在冻结预算下可识别，不证明被评
+Agent 已具备机制发现能力，也不代表发现了结晶动力学或精确速率参数。
 
 ## 发现四：当前 RL 证据诊断的是合同，不是排名
 

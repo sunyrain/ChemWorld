@@ -1,6 +1,6 @@
 {
   "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2.4",
-  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc14",
+  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc15",
   "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
   "formal_benchmark_result": false,
   "purpose": "Two-certificate Gate A: controlled matched identifiability plus a separately executed online-policy-feasible diagnosis certificate.",
@@ -9,7 +9,7 @@
     "required_before_formal_mechanism_claim": true,
     "certificate_schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.3",
     "certificate_scope": "online_policy_feasible_diagnosis",
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.3-rc14.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.3-rc15.json",
     "hidden_change_time": true,
     "change_time_candidates": [
       1,
@@ -86,10 +86,10 @@
     "decoder_controls_gate": false
   },
   "gate_rule_source": "configs/benchmark/mechanism_adaptation_v0.2.1.json#gates.gate_a",
-  "supersession_reason": "RC13 exposed a reference-age error: a repeat whose reference was established after the hidden change was scored with a baseline-to-changed predictive and could turn correct rate-law diagnoses into no-change. RC14 binds a latent change-point decoder, same-mechanism stable contrasts, protocol-only change points, a fixed phase-invariant schedule, and a fresh held-out seed namespace.",
+  "supersession_reason": "RC15 retains the RC14 latent change-point decoder and fresh held-out seed namespace while replacing order-dependent rate-law targeting with an explicit semantic pathway and transform contract. The design audit now proves the single resolved reaction change and invariance of constitutive domain parameters.",
   "design_validity_precondition": {
     "required": true,
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc14.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc15.json",
     "pass_field": "pass"
   },
   "decision_relevance_certificate": {

@@ -22,8 +22,9 @@ from chemworld.agents.task_recipes import task_recipe_from_unit_vector
 from chemworld.envs.chemworld_env import ChemWorldEnv
 from chemworld.task_design import SERIOUS_TASK_DESIGNS
 from chemworld.tasks import get_task
+from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
-DESIGN_AUDIT_SCHEMA_VERSION = "chemworld-mechanism-design-audit-0.2.1"
+DESIGN_AUDIT_SCHEMA_VERSION = "chemworld-mechanism-design-audit-0.2.2"
 
 MATERIAL_FIELD_ACTIONS: dict[str, tuple[str, str]] = {
     "catalyst": ("add_catalyst", "catalyst"),
@@ -150,6 +151,13 @@ def audit_mechanism_design(
                 )
             else:
                 mode = str(intervention.get("mode", ""))
+                if mode == "rate_law_family":
+                    _audit_rate_law_alignment(
+                        task_findings,
+                        task_id=task_id,
+                        candidate_id=candidate_id,
+                        intervention=intervention,
+                    )
                 controls = _MECHANISM_CONTROL_GROUPS.get(mode, ())
                 varied = [
                     {"operation": operation, "field": field}
@@ -203,6 +211,109 @@ def audit_mechanism_design(
             "from the mechanism-Agent prompt. It does not establish identifiability."
         ),
     }
+
+
+def _audit_rate_law_alignment(
+    findings: list[dict[str, Any]],
+    *,
+    task_id: str,
+    candidate_id: str,
+    intervention: Mapping[str, Any],
+) -> None:
+    """Prove that a declared semantic pathway, and only that pathway, is changed."""
+
+    change = intervention.get("rate_law_change")
+    explicit = isinstance(change, Mapping)
+    _add(
+        findings,
+        f"{candidate_id}:explicit_rate_law_change_contract",
+        explicit,
+        "A formal rate-law cell must declare its reaction role, transform, and "
+        "calibration instead of selecting a reaction by declaration order.",
+    )
+    if not explicit:
+        return
+    required_fields = {
+        "reaction_role",
+        "transform_id",
+        "reference_temperature_K",
+        "reference_rate_multiplier_at_full_severity",
+        "temperature_exponent_at_full_severity",
+    }
+    missing = sorted(required_fields - set(change))
+    _add(
+        findings,
+        f"{candidate_id}:complete_rate_law_change_contract",
+        not missing,
+        f"Missing rate-law contract fields: {missing}.",
+    )
+    if missing:
+        return
+
+    generator = DefaultScenarioGenerator()
+    error: str | None = None
+    changed_reactions: list[str] = []
+    target_reaction_id: str | None = None
+    target_role: str | None = None
+    transform_id: str | None = None
+    domain_parameters_unchanged = False
+    try:
+        scenario = get_scenario(task_id)
+        baseline = generator.generate(scenario, 0)
+        shifted = generator.generate(scenario, 0, (dict(intervention),))
+        changed_reactions = [
+            before.reaction_id
+            for before, after in zip(
+                baseline.compiled_mechanism.network.reactions,
+                shifted.compiled_mechanism.network.reactions,
+                strict=True,
+            )
+            if before.rate_law.to_dict() != after.rate_law.to_dict()
+        ]
+        metadata = shifted.compiled_mechanism.network.metadata
+        target_reaction_id = str(
+            metadata.get("derived_family_target_reaction_id", "")
+        )
+        target_role = str(metadata.get("derived_family_target_reaction_role", ""))
+        transform_id = str(metadata.get("derived_family_transform_id", ""))
+        domain_parameters_unchanged = (
+            baseline.parameters.domain_parameters
+            == shifted.parameters.domain_parameters
+        )
+    except Exception as exc:  # pragma: no cover - details are returned to the audit
+        error = f"{type(exc).__name__}: {exc}"
+
+    _add(
+        findings,
+        f"{candidate_id}:single_declared_reaction_changed",
+        error is None
+        and len(changed_reactions) == 1
+        and changed_reactions == [target_reaction_id],
+        "Exactly one rate law must change and it must equal the resolved semantic "
+        f"target; changed={changed_reactions}, target={target_reaction_id}, error={error}.",
+    )
+    _add(
+        findings,
+        f"{candidate_id}:semantic_reaction_role_bound",
+        error is None and target_role == str(change["reaction_role"]),
+        "The executed mechanism must bind the declared reaction role; "
+        f"declared={change['reaction_role']}, executed={target_role}, error={error}.",
+    )
+    _add(
+        findings,
+        f"{candidate_id}:declared_rate_law_transform_bound",
+        error is None and transform_id == str(change["transform_id"]),
+        "The executed mechanism must bind the declared transform; "
+        f"declared={change['transform_id']}, executed={transform_id}, error={error}.",
+    )
+    _add(
+        findings,
+        f"{candidate_id}:constitutive_domain_parameters_unchanged",
+        error is None and domain_parameters_unchanged,
+        "A reaction rate-law intervention must not also change crystallization or "
+        f"other constitutive domain parameters; unchanged={domain_parameters_unchanged}, "
+        f"error={error}.",
+    )
 
 
 def _audit_environment_reset(

@@ -133,7 +133,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc14.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc15.json",
         "formal_result",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
     ),
@@ -159,7 +159,7 @@ NODES = (
     EvidenceNode(
         "mechanism_online_policy_certificate",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-online-policy-certificate-v0.3-rc14.json",
+        "mechanism-adaptation-online-policy-certificate-v0.3-rc15.json",
         "formal_result",
         (
             "mechanism_design_audit",
@@ -169,7 +169,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_gate_a",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc14.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc15.json",
         "formal_result",
         (
             "backend_candidate",

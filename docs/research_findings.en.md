@@ -25,12 +25,17 @@ Outcome alone was therefore insufficient.
 A frozen Safe-GP confirmation improved all four objectives and passed safety/cost rules. The flow effect was 0.018752
 against a pre-registered practical threshold of 0.020000, so the all-task claim remained failed.
 
-## Finding 3: world shifts are executable; budgeted identification is still open
+## Finding 3: environment identifiability closes at budget four; Agent attribution remains open
 
 Nine task–mode controls establish deterministic execution, local response separation, bounded response,
 conservation, and replay. The current action/intervention audit establishes decision relevance for each material
-counterfactual, and the controlled matched-identifiability certificate passes. The online-policy-feasible certificate
-remains pending, so Gate A as a whole remains false and Agent-level identification claims remain closed.
+counterfactual. At the preregistered four-experiment budget, the controlled matched oracle reaches 235/240 (97.92%)
+and the separately bound online-policy-feasible oracle reaches 237/240 (98.75%); all eight task–family cells pass
+their Wilson lower-bound rule, so Gate A is true. The two-experiment online result remains a stress point at 91.25%.
+RC15 also binds the reaction rate-law cell to a declared upstream primary competing pathway and an explicit
+form-and-scale stress, while proving that crystallization constitutive parameters remain unchanged. This establishes
+environment-level identifiability, not Agent-level mechanism discovery, crystallization-kinetics discovery, or exact
+rate-parameter identification.
 
 ## Finding 4: current RL evidence diagnoses contracts, not rankings
 

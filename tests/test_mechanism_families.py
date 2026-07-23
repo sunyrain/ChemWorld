@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import gymnasium as gym
 import numpy as np
 import pytest
@@ -13,6 +15,9 @@ from chemworld.tasks import get_task
 from chemworld.world.mechanism_family import (
     CONSTITUTIVE_MECHANISM_TASKS,
     REACTION_MECHANISM_TASKS,
+    MechanismFamilyIntervention,
+    RateLawFamilyChange,
+    derive_mechanism_family,
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
@@ -152,3 +157,100 @@ def test_zero_intervention_preserves_frozen_mechanism() -> None:
     assert empty.compiled_mechanism.mechanism_hash == base.compiled_mechanism.mechanism_hash
     assert empty.parameters.world_id == base.parameters.world_id
     assert empty.parameters.domain_parameter("partition_coefficient_exponent") == 1.0
+
+
+@pytest.mark.parametrize(
+    ("task_id", "expected_reaction_id"),
+    [
+        ("reaction-to-crystallization", "side_formation"),
+        ("reaction-to-distillation", "ether_side_reaction"),
+        ("flow-reaction-optimization", "side_high_temperature"),
+    ],
+)
+def test_default_rate_law_family_binds_the_primary_competing_pathway(
+    task_id: str,
+    expected_reaction_id: str,
+) -> None:
+    generator = DefaultScenarioGenerator()
+    scenario = get_scenario(task_id)
+    base = generator.generate(scenario, 0)
+    shifted = generator.generate(scenario, 0, (_intervention("rate_law_family"),))
+
+    changed_reactions = [
+        before.reaction_id
+        for before, after in zip(
+            base.compiled_mechanism.network.reactions,
+            shifted.compiled_mechanism.network.reactions,
+            strict=True,
+        )
+        if before.rate_law.to_dict() != after.rate_law.to_dict()
+    ]
+    metadata = shifted.compiled_mechanism.network.metadata
+    assert changed_reactions == [expected_reaction_id]
+    assert metadata["derived_family_target_reaction_id"] == expected_reaction_id
+    assert (
+        metadata["derived_family_target_reaction_role"]
+        == "primary_competing_pathway"
+    )
+    assert (
+        metadata["derived_family_transform_id"]
+        == "arrhenius_form_and_scale_stress_v1"
+    )
+    assert shifted.parameters.domain_parameters == base.parameters.domain_parameters
+
+
+def test_rate_law_family_can_declaratively_target_a_primary_product_pathway() -> None:
+    intervention = MechanismFamilyIntervention(
+        "rate_law_family",
+        0.8,
+        rate_law_change=RateLawFamilyChange(
+            reaction_role="primary_target_pathway",
+        ),
+    )
+    shifted = DefaultScenarioGenerator().generate(
+        get_scenario("flow-reaction-optimization"),
+        0,
+        (intervention.to_dict(),),
+    )
+    assert (
+        shifted.compiled_mechanism.network.metadata[
+            "derived_family_target_reaction_id"
+        ]
+        == "target_exothermic"
+    )
+
+
+def test_explicit_rate_law_change_contract_round_trips() -> None:
+    payload = {
+        "kind": "mechanism_family",
+        "mode": "rate_law_family",
+        "severity": 0.8,
+        "rate_law_change": {
+            "reaction_role": "primary_competing_pathway",
+            "transform_id": "arrhenius_form_and_scale_stress_v1",
+            "reference_temperature_K": 350.0,
+            "reference_rate_multiplier_at_full_severity": 8.0,
+            "temperature_exponent_at_full_severity": 0.75,
+        },
+    }
+    assert MechanismFamilyIntervention.from_dict(payload).to_dict() == payload
+
+
+def test_rate_law_role_resolution_is_independent_of_reaction_declaration_order() -> None:
+    compiled = DefaultScenarioGenerator().generate(
+        get_scenario("reaction-to-crystallization"),
+        0,
+    ).compiled_mechanism
+    reordered_network = replace(
+        compiled.network,
+        reactions=tuple(reversed(compiled.network.reactions)),
+    )
+    reordered = replace(compiled, network=reordered_network)
+    shifted = derive_mechanism_family(
+        reordered,
+        MechanismFamilyIntervention("rate_law_family", 0.8),
+    )
+    assert (
+        shifted.network.metadata["derived_family_target_reaction_id"]
+        == "side_formation"
+    )

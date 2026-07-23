@@ -182,16 +182,16 @@
       "certificate_hash_source": "standalone_report_canonical_json",
       "certificate_present": true,
       "certificate_scope": "online_policy_feasible_diagnosis",
-      "certificate_sha256": "f293c7d3bf135a4bb3735ffedbd17beb83a487122d08b67d2bc3639eea619c51",
+      "certificate_sha256": "89d314a6e68d45134d09369c5c2f0b9a29be2032996e038bc31b63b3412c472b",
       "controlled_matched_primary_budget": 4,
-      "execution_contract_binding_sha256": "85974e707578ae584ec2c3abcd33e9c3045b914fa66b6f3788f0e81a67a6ca09",
-      "gate_a_plan_sha256": "46ff4270a47f3a3486e408c743493a5b65e6dd529f10f57c7a2006d9a4e49414",
+      "execution_contract_binding_sha256": "414fa0dcc904d8d3c7ae3153361c88791e5bece1b0acf343d13d262bc1cceac4",
+      "gate_a_plan_sha256": "63b6e16631e65d3dcb24ebbedf8d99b317121c44e67f68217b02ec891262fbde",
       "gate_pass": true,
       "hidden_change_time": true,
       "online_policy_gate_budget": 4,
       "policy_received_phase_or_reset_indicator": false,
-      "protocol_sha256": "c6d93ec82f07e8e995d42e7120b2d78377cd668aca56b8857781ac48ba63f38a",
-      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.3-rc14.json",
+      "protocol_sha256": "cc7b777811ffeab241ebc733e85f04013e14ebd5e96756aa0a2bf67164c90fa6",
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.3-rc15.json",
       "required": true,
       "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.3",
       "status": "passed",
@@ -207,12 +207,12 @@
     "status": "gate_a_passed"
   },
   "design_validity_audit": {
-    "check_count": 39,
+    "check_count": 45,
     "failure_count": 0,
     "failures": [],
-    "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc14",
+    "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc15",
     "gate_a_plan_path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json",
-    "gate_a_plan_sha256": "46ff4270a47f3a3486e408c743493a5b65e6dd529f10f57c7a2006d9a4e49414",
+    "gate_a_plan_sha256": "63b6e16631e65d3dcb24ebbedf8d99b317121c44e67f68217b02ec891262fbde",
     "interpretation": "A pass means each frozen hidden target is publicly manipulable, covered by the Gate A recipes, observable before termination, instantiable, and absent from the mechanism-Agent prompt. It does not establish identifiability.",
     "material_field_action_contract": {
       "catalyst": {
@@ -229,10 +229,10 @@
       }
     },
     "pass": true,
-    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-freeze-rc1",
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-23-freeze-rc2",
     "protocol_path": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
-    "protocol_sha256": "c6d93ec82f07e8e995d42e7120b2d78377cd668aca56b8857781ac48ba63f38a",
-    "schema_version": "chemworld-mechanism-design-audit-0.2.1",
+    "protocol_sha256": "cc7b777811ffeab241ebc733e85f04013e14ebd5e96756aa0a2bf67164c90fa6",
+    "schema_version": "chemworld-mechanism-design-audit-0.2.2",
     "status": "passed",
     "task_reports": {
       "electrochemical-conversion": {
@@ -446,6 +446,36 @@
             "pass": true
           },
           {
+            "check": "rate_law_family:explicit_rate_law_change_contract",
+            "detail": "A formal rate-law cell must declare its reaction role, transform, and calibration instead of selecting a reaction by declaration order.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:complete_rate_law_change_contract",
+            "detail": "Missing rate-law contract fields: [].",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:single_declared_reaction_changed",
+            "detail": "Exactly one rate law must change and it must equal the resolved semantic target; changed=['side_formation'], target=side_formation, error=None.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:semantic_reaction_role_bound",
+            "detail": "The executed mechanism must bind the declared reaction role; declared=primary_competing_pathway, executed=primary_competing_pathway, error=None.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:declared_rate_law_transform_bound",
+            "detail": "The executed mechanism must bind the declared transform; declared=arrhenius_form_and_scale_stress_v1, executed=arrhenius_form_and_scale_stress_v1, error=None.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:constitutive_domain_parameters_unchanged",
+            "detail": "A reaction rate-law intervention must not also change crystallization or other constitutive domain parameters; unchanged=True, error=None.",
+            "pass": true
+          },
+          {
             "check": "rate_law_family:diagnostic_control_variation",
             "detail": "At least one public control implicated by the hidden law must vary across frozen recipes; varied=[{'operation': 'heat', 'field': 'target_temperature_K'}, {'operation': 'heat', 'field': 'duration_s'}].",
             "pass": true
@@ -601,16 +631,16 @@
   },
   "environment_role": "agent_capability_evaluation_and_training_environment",
   "execution_contract_binding": {
-    "binding_sha256": "85974e707578ae584ec2c3abcd33e9c3045b914fa66b6f3788f0e81a67a6ca09",
+    "binding_sha256": "414fa0dcc904d8d3c7ae3153361c88791e5bece1b0acf343d13d262bc1cceac4",
     "bound_config_sha256": {
       "backend_contract": "3fc6f0680e038d3db550f0f54019ae18ae70eccde3f441b4c2ceb485b6e9b727",
       "evaluation_contract": "1069c9bd7292bcd59f0b31b343fdf48f68ecb224a582c97d9ae8cade56340219",
       "public_boundary_contract": "80128f6e4673c2f79d1f85bc6817de857deccffc2bbcb415193d5382aed37f62"
     },
-    "gate_a_plan_sha256": "46ff4270a47f3a3486e408c743493a5b65e6dd529f10f57c7a2006d9a4e49414",
+    "gate_a_plan_sha256": "63b6e16631e65d3dcb24ebbedf8d99b317121c44e67f68217b02ec891262fbde",
     "operation_contract_sha256": "3ceda79416eb8a5c7e494feebc72f0a1832ea20e51b0dd39647d62af7ac0c8a7",
-    "protocol_sha256": "c6d93ec82f07e8e995d42e7120b2d78377cd668aca56b8857781ac48ba63f38a",
-    "runtime_source_tree_sha256": "b6bd8792f961460a83c2535cfce5b6d318bccd2ababd55cad98d39c7caab44ac",
+    "protocol_sha256": "cc7b777811ffeab241ebc733e85f04013e14ebd5e96756aa0a2bf67164c90fa6",
+    "runtime_source_tree_sha256": "3066ce0c4262f1265a31a94c5159cf2fe2e003fac45d02a74a70272ddea2f343",
     "schema_version": "chemworld-gate-a-execution-binding-0.1",
     "task_contract_hashes": {
       "electrochemical-conversion": "45b6cdbaf1f9c7fc313e1589f37b17bde9fd678d40e0bd98e64a62622ecac494",
@@ -782,8 +812,8 @@
   },
   "formal_benchmark_result": false,
   "gate_a_pass": true,
-  "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc14",
-  "gate_a_plan_sha256": "46ff4270a47f3a3486e408c743493a5b65e6dd529f10f57c7a2006d9a4e49414",
+  "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc15",
+  "gate_a_plan_sha256": "63b6e16631e65d3dcb24ebbedf8d99b317121c44e67f68217b02ec891262fbde",
   "interpretation": "The primary checkpoint establishes controlled identifiability from an online-history-aligned matched pre/post public recipe budget. Larger checkpoints are diagnostic curves with equally sized matched reference sets; they do not establish online-policy-feasible mechanism discovery. Full Gate A requires a separately bound online-policy-feasible certificate.",
   "nuisance_integration": {
     "fit_and_certificate_seed_namespaces_disjoint": true,
@@ -799,16 +829,16 @@
     "certificate_hash_source": "standalone_report_canonical_json",
     "certificate_present": true,
     "certificate_scope": "online_policy_feasible_diagnosis",
-    "certificate_sha256": "f293c7d3bf135a4bb3735ffedbd17beb83a487122d08b67d2bc3639eea619c51",
+    "certificate_sha256": "89d314a6e68d45134d09369c5c2f0b9a29be2032996e038bc31b63b3412c472b",
     "controlled_matched_primary_budget": 4,
-    "execution_contract_binding_sha256": "85974e707578ae584ec2c3abcd33e9c3045b914fa66b6f3788f0e81a67a6ca09",
-    "gate_a_plan_sha256": "46ff4270a47f3a3486e408c743493a5b65e6dd529f10f57c7a2006d9a4e49414",
+    "execution_contract_binding_sha256": "414fa0dcc904d8d3c7ae3153361c88791e5bece1b0acf343d13d262bc1cceac4",
+    "gate_a_plan_sha256": "63b6e16631e65d3dcb24ebbedf8d99b317121c44e67f68217b02ec891262fbde",
     "gate_pass": true,
     "hidden_change_time": true,
     "online_policy_gate_budget": 4,
     "policy_received_phase_or_reset_indicator": false,
-    "protocol_sha256": "c6d93ec82f07e8e995d42e7120b2d78377cd668aca56b8857781ac48ba63f38a",
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.3-rc14.json",
+    "protocol_sha256": "cc7b777811ffeab241ebc733e85f04013e14ebd5e96756aa0a2bf67164c90fa6",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.3-rc15.json",
     "required": true,
     "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.3",
     "status": "passed",
@@ -828,8 +858,8 @@
     "same_world_seed_reused_across_candidate_twins": true
   },
   "primary_gate_budget": 4,
-  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-freeze-rc1",
-  "protocol_sha256": "c6d93ec82f07e8e995d42e7120b2d78377cd668aca56b8857781ac48ba63f38a",
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-23-freeze-rc2",
+  "protocol_sha256": "cc7b777811ffeab241ebc733e85f04013e14ebd5e96756aa0a2bf67164c90fa6",
   "public_feature_contract": {
     "active_action_source": "prior expected information over frozen k-recipe batches at each checkpoint; the online policy pre-ranks four recipes before held-out execution and cycles through them without phase input",
     "decoder_controls_gate": false,

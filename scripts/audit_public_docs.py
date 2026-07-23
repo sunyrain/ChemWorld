@@ -71,8 +71,33 @@ ENGLISH_NAV_TARGETS = (
 README_BOUNDARY_MARKERS = (
     "campaign",
     "no formal cross-method result",
+    "gate a now establishes environment-level identifiability",
+    "agent-level mechanism-discovery claims remain unsupported",
+)
+PASSED_GATE_A_STATUS_MARKERS = {
+    "README.md": (
+        "Gate A now establishes environment-level identifiability",
+    ),
+    "docs/benchmark_release.md": (
+        "Gate A 整体因此通过",
+        "237/240",
+    ),
+    "docs/research_findings.md": (
+        "Gate A 总状态为 true",
+        "237/240",
+    ),
+    "docs/research_findings.en.md": (
+        "so Gate A is true",
+        "237/240 (98.75%)",
+    ),
+}
+STALE_GATE_A_STATUS_MARKERS = (
     "online-policy-feasible certificate remains pending",
-    "agent-level mechanism-discovery claims are not yet supported",
+    "Gate A as a whole remains false",
+    "online-policy-feasible certificate 尚未执行",
+    "Gate A 总状态仍为 false",
+    "在线策略可行证书待完成",
+    "Gate A 整体仍为 false",
 )
 
 
@@ -105,6 +130,26 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         for relative in RESULT_PAGES
         if "pre-v0.5" not in (root / relative).read_text(encoding="utf-8").lower()
     ]
+    current = json.loads(
+        (root / "configs/current.json").read_text(encoding="utf-8")
+    )
+    gate_a_pass = (
+        current.get("mechanism_adaptation", {}).get("gate_a_pass") is True
+    )
+    status_surface_missing_markers = (
+        _missing_markers(root, PASSED_GATE_A_STATUS_MARKERS)
+        if gate_a_pass
+        else {}
+    )
+    status_surface_stale_markers = (
+        _token_hits(
+            [root / relative for relative in PASSED_GATE_A_STATUS_MARKERS],
+            root,
+            STALE_GATE_A_STATUS_MARKERS,
+        )
+        if gate_a_pass
+        else []
+    )
 
     mkdocs = (root / "mkdocs.yml").read_text(encoding="utf-8")
     mkdocs_config = yaml.safe_load(mkdocs)
@@ -212,6 +257,10 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
             )
             for marker in README_BOUNDARY_MARKERS
         ),
+        "research_status_matches_current_registry": (
+            not status_surface_missing_markers
+            and not status_surface_stale_markers
+        ),
     }
     return {
         "schema_version": "chemworld-public-docs-audit-0.4",
@@ -225,6 +274,8 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         "missing_current_markers": missing_current_markers,
         "missing_history_boundaries": missing_history_boundaries,
         "missing_narrative_markers": missing_narrative_markers,
+        "status_surface_missing_markers": status_surface_missing_markers,
+        "status_surface_stale_markers": status_surface_stale_markers,
         "navigation_checks": nav_checks,
         "unlisted_public_pages": unlisted_public_pages,
         "missing_navigation_targets": missing_nav_targets,

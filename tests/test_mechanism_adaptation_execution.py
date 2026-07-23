@@ -174,7 +174,7 @@ def test_precomputed_design_audit_must_be_passing_and_hash_bound() -> None:
         (
             ROOT
             / "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-design-audit-freeze-rc14.json"
+            "mechanism-adaptation-design-audit-freeze-rc15.json"
         ).read_text(encoding="utf-8")
     )
     validated = validate_precomputed_design_audit(protocol, plan, report)
@@ -378,6 +378,16 @@ def test_current_mechanism_design_has_reachable_covered_targets() -> None:
     report = _structural_design_report()
     assert report["pass"] is True
     assert report["failure_count"] == 0
+    checks = {
+        item["check"]: item["pass"]
+        for item in report["task_reports"]["reaction-to-crystallization"]["checks"]
+    }
+    assert checks["rate_law_family:explicit_rate_law_change_contract"] is True
+    assert checks["rate_law_family:complete_rate_law_change_contract"] is True
+    assert checks["rate_law_family:single_declared_reaction_changed"] is True
+    assert checks["rate_law_family:semantic_reaction_role_bound"] is True
+    assert checks["rate_law_family:declared_rate_law_transform_bound"] is True
+    assert checks["rate_law_family:constitutive_domain_parameters_unchanged"] is True
 
 
 def test_design_audit_accepts_both_electrochemical_material_targets() -> None:

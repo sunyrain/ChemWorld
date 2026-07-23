@@ -14,6 +14,9 @@ def test_public_documentation_is_user_facing_and_matches_v05_truth() -> None:
     assert report["checks"]["no_unimplemented_cli"] is True
     assert report["checks"]["task_truth_matches_v05_protocol"] is True
     assert report["checks"]["pre_v05_results_marked_diagnostic"] is True
+    assert report["checks"]["research_status_matches_current_registry"] is True
+    assert report["status_surface_missing_markers"] == {}
+    assert report["status_surface_stale_markers"] == []
     assert report["missing_task_hashes"] == {}
 
 

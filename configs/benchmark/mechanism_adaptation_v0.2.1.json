@@ -1,6 +1,6 @@
 {
   "schema_version": "chemworld-mechanism-adaptation-protocol-0.2.1",
-  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-freeze-rc1",
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-23-freeze-rc2",
   "status": "frozen_candidate_protocol",
   "benchmark_claim_allowed": false,
   "publication_ready": false,
@@ -70,7 +70,7 @@
     "derived_diagnostics_returned_to_agent": false,
     "candidate_definitions": {
       "no_change": "The hidden physical-chemistry law and public-to-hidden material mapping are unchanged; only allowed nuisance and observation noise vary.",
-      "rate_law_family": "Reaction-rate dependence on public state or control variables changes while task topology and public action semantics remain fixed.",
+      "rate_law_family": "The rate dependence of a declared reaction-pathway role changes while task topology and public action semantics remain fixed; this family denotes operational form-and-scale adaptation, not exact parameter identification.",
       "topology_family": "The active reaction or transport pathway graph changes while public action semantics remain fixed.",
       "constitutive_law_family": "A constitutive relation such as electrochemical response or transport dependence changes while public action semantics remain fixed.",
       "material_law_counterfactual": "Public material labels and actions remain fixed but their hidden effect mapping is permuted or replaced.",
@@ -86,13 +86,27 @@
         "topology_family",
         "material_law_counterfactual"
       ],
+      "candidate_semantics": {
+        "rate_law_family": {
+          "operational_target": "upstream_primary_competing_pathway",
+          "transform_scope": "declared_arrhenius_form_and_scale_stress",
+          "claim_boundary": "family_level_feedback_adaptation_not_crystallization_kinetics_or_exact_rate_parameter_discovery"
+        }
+      },
       "interventions": {
         "no_change": [],
         "rate_law_family": [
           {
             "kind": "mechanism_family",
             "mode": "rate_law_family",
-            "severity": 0.8
+            "severity": 0.8,
+            "rate_law_change": {
+              "reaction_role": "primary_competing_pathway",
+              "transform_id": "arrhenius_form_and_scale_stress_v1",
+              "reference_temperature_K": 350.0,
+              "reference_rate_multiplier_at_full_severity": 8.0,
+              "temperature_exponent_at_full_severity": 0.75
+            }
           }
         ],
         "topology_family": [
@@ -356,6 +370,6 @@
     },
     "minimum_public_choice_count": 2,
     "moved_indices_must_be_covered_by_gate_a_action_library": true,
-    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc14.json"
+    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc15.json"
   }
 }

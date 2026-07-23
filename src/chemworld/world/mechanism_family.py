@@ -20,7 +20,12 @@ MechanismFamilyMode = Literal[
     "topology_family",
     "constitutive_law_family",
 ]
-MECHANISM_FAMILY_INTERVENTION_VERSION = "chemworld-mechanism-family-intervention-0.4"
+RateLawReactionRole = Literal[
+    "primary_competing_pathway",
+    "primary_target_pathway",
+]
+RateLawTransformId = Literal["arrhenius_form_and_scale_stress_v1"]
+MECHANISM_FAMILY_INTERVENTION_VERSION = "chemworld-mechanism-family-intervention-0.5"
 REACTION_MECHANISM_TASKS = (
     "reaction-to-crystallization",
     "reaction-to-distillation",
@@ -47,9 +52,97 @@ MECHANISM_TASK_MODES: dict[str, tuple[MechanismFamilyMode, ...]] = {
 
 
 @dataclass(frozen=True)
+class RateLawFamilyChange:
+    """Declarative target and transform for a reaction rate-law intervention."""
+
+    reaction_role: RateLawReactionRole = "primary_competing_pathway"
+    transform_id: RateLawTransformId = "arrhenius_form_and_scale_stress_v1"
+    reference_temperature_K: float = 350.0
+    reference_rate_multiplier_at_full_severity: float = 8.0
+    temperature_exponent_at_full_severity: float = 0.75
+
+    def __post_init__(self) -> None:
+        if self.reaction_role not in {
+            "primary_competing_pathway",
+            "primary_target_pathway",
+        }:
+            raise ValueError(f"unsupported rate-law reaction role: {self.reaction_role}")
+        if self.transform_id != "arrhenius_form_and_scale_stress_v1":
+            raise ValueError(f"unsupported rate-law transform: {self.transform_id}")
+        if (
+            not np.isfinite(self.reference_temperature_K)
+            or self.reference_temperature_K <= 0.0
+        ):
+            raise ValueError("rate-law reference temperature must be finite and positive")
+        if (
+            not np.isfinite(self.reference_rate_multiplier_at_full_severity)
+            or self.reference_rate_multiplier_at_full_severity <= 1.0
+        ):
+            raise ValueError(
+                "rate-law reference multiplier must be finite and greater than one"
+            )
+        if (
+            not np.isfinite(self.temperature_exponent_at_full_severity)
+            or self.temperature_exponent_at_full_severity <= 0.0
+        ):
+            raise ValueError(
+                "rate-law temperature exponent must be finite and positive"
+            )
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> RateLawFamilyChange:
+        allowed = {
+            "reaction_role",
+            "transform_id",
+            "reference_temperature_K",
+            "reference_rate_multiplier_at_full_severity",
+            "temperature_exponent_at_full_severity",
+        }
+        unknown = sorted(set(payload) - allowed)
+        if unknown:
+            raise ValueError(f"unknown rate-law change fields: {unknown}")
+        return cls(
+            reaction_role=cast(
+                RateLawReactionRole,
+                str(payload.get("reaction_role", "primary_competing_pathway")),
+            ),
+            transform_id=cast(
+                RateLawTransformId,
+                str(
+                    payload.get(
+                        "transform_id",
+                        "arrhenius_form_and_scale_stress_v1",
+                    )
+                ),
+            ),
+            reference_temperature_K=float(payload.get("reference_temperature_K", 350.0)),
+            reference_rate_multiplier_at_full_severity=float(
+                payload.get("reference_rate_multiplier_at_full_severity", 8.0)
+            ),
+            temperature_exponent_at_full_severity=float(
+                payload.get("temperature_exponent_at_full_severity", 0.75)
+            ),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "reaction_role": self.reaction_role,
+            "transform_id": self.transform_id,
+            "reference_temperature_K": self.reference_temperature_K,
+            "reference_rate_multiplier_at_full_severity": (
+                self.reference_rate_multiplier_at_full_severity
+            ),
+            "temperature_exponent_at_full_severity": (
+                self.temperature_exponent_at_full_severity
+            ),
+        }
+
+
+@dataclass(frozen=True)
 class MechanismFamilyIntervention:
     mode: MechanismFamilyMode
     severity: float
+    rate_law_change: RateLawFamilyChange | None = None
 
     def __post_init__(self) -> None:
         if self.mode not in {
@@ -60,22 +153,46 @@ class MechanismFamilyIntervention:
             raise ValueError(f"unsupported mechanism-family mode: {self.mode}")
         if not np.isfinite(self.severity) or not 0.0 < self.severity <= 1.0:
             raise ValueError("mechanism-family severity must be finite and in (0, 1]")
+        if self.mode != "rate_law_family" and self.rate_law_change is not None:
+            raise ValueError("rate_law_change is only valid for rate_law_family")
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> MechanismFamilyIntervention:
         if payload.get("kind") != "mechanism_family":
             raise ValueError("mechanism intervention kind must be 'mechanism_family'")
+        allowed = {"kind", "mode", "severity", "rate_law_change"}
+        unknown = sorted(set(payload) - allowed)
+        if unknown:
+            raise ValueError(f"unknown mechanism-family intervention fields: {unknown}")
+        mode = cast(MechanismFamilyMode, str(payload["mode"]))
+        rate_law_payload = payload.get("rate_law_change")
+        if rate_law_payload is not None and not isinstance(rate_law_payload, dict):
+            raise ValueError("rate_law_change must be an object")
         return cls(
-            mode=cast(MechanismFamilyMode, str(payload["mode"])),
+            mode=mode,
             severity=float(payload["severity"]),
+            rate_law_change=(
+                RateLawFamilyChange.from_dict(rate_law_payload)
+                if isinstance(rate_law_payload, dict)
+                else None
+            ),
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "kind": "mechanism_family",
             "mode": self.mode,
             "severity": self.severity,
         }
+        if self.mode == "rate_law_family":
+            payload["rate_law_change"] = self.resolved_rate_law_change.to_dict()
+        return payload
+
+    @property
+    def resolved_rate_law_change(self) -> RateLawFamilyChange:
+        if self.mode != "rate_law_family":
+            raise ValueError("only rate_law_family has a rate-law change contract")
+        return self.rate_law_change or RateLawFamilyChange()
 
 
 def apply_mechanism_family_intervention(
@@ -150,7 +267,11 @@ def derive_mechanism_family(
             "constitutive-law families modify executed world laws, not ReactionNetworkSpec"
         )
     network = (
-        _rate_law_variant(base.network, intervention.severity)
+        _rate_law_variant(
+            base,
+            intervention.severity,
+            intervention.resolved_rate_law_change,
+        )
         if intervention.mode == "rate_law_family"
         else _topology_variant(base, intervention.severity)
     )
@@ -221,28 +342,29 @@ def mechanism_intervention_hash(
     ).hexdigest()
 
 
-def _rate_law_variant(network: ReactionNetworkSpec, severity: float) -> ReactionNetworkSpec:
+def _rate_law_variant(
+    base: CompiledMechanism,
+    severity: float,
+    change: RateLawFamilyChange,
+) -> ReactionNetworkSpec:
+    network = base.network
     reactions = list(network.reactions)
-    selected_index = next(
-        (
-            index
-            for index, reaction in enumerate(reactions)
-            if reaction.rate_law.equation_id in {"arrhenius", "modified_arrhenius"}
-        ),
-        None,
+    selected_index = _select_rate_law_reaction(
+        base,
+        reaction_role=change.reaction_role,
     )
-    if selected_index is None:
-        raise ValueError(f"mechanism {network.network_id!r} has no transformable rate law")
     reaction = reactions[selected_index]
     parameters = dict(reaction.rate_law.parameters)
-    reference_temperature = 350.0
+    reference_temperature = change.reference_temperature_K
+    activity_factor = exp(
+        log(change.reference_rate_multiplier_at_full_severity) * severity
+    )
     if reaction.rate_law.equation_id == "arrhenius":
         # A mechanism-family shift must be observable over the task's practical
         # temperature/concentration range, not merely have a different equation id.
-        # The activity factor is deliberately bounded (<= 8) and calibrated by
-        # the multi-seed response audit rather than interpreted as real chemistry.
-        exponent = 0.75 * severity
-        activity_factor = exp(log(8.0) * severity)
+        # The transform is an explicitly declared operational stress, not a claim
+        # that the synthetic multiplier is a fitted material constant.
+        exponent = change.temperature_exponent_at_full_severity * severity
         parameters["b"] = exponent
         parameters["A"] = (
             float(parameters["A"])
@@ -252,7 +374,6 @@ def _rate_law_variant(network: ReactionNetworkSpec, severity: float) -> Reaction
         equation_id = "modified_arrhenius"
     else:
         exponent = float(parameters.pop("b", 0.0))
-        activity_factor = exp(log(8.0) * severity)
         parameters["A"] = (
             float(parameters["A"])
             * reference_temperature**exponent
@@ -261,7 +382,8 @@ def _rate_law_variant(network: ReactionNetworkSpec, severity: float) -> Reaction
         equation_id = "arrhenius"
     reactions[selected_index] = replace(
         reaction,
-        rate_law=RateLawSpec(
+        rate_law=replace(
+            reaction.rate_law,
             rate_law_id=f"family-{reaction.rate_law.rate_law_id}",
             equation_id=equation_id,
             parameters=parameters,
@@ -271,8 +393,56 @@ def _rate_law_variant(network: ReactionNetworkSpec, severity: float) -> Reaction
         network,
         network_id=f"{network.network_id}-family",
         reactions=tuple(reactions),
-        metadata={**network.metadata, "derived_family": True},
+        metadata={
+            **network.metadata,
+            "derived_family": True,
+            "derived_family_target_reaction_id": reaction.reaction_id,
+            "derived_family_target_reaction_role": change.reaction_role,
+            "derived_family_transform_id": change.transform_id,
+            "derived_family_reference_temperature_K": reference_temperature,
+            "derived_family_reference_rate_multiplier": activity_factor,
+        },
     )
+
+
+def _select_rate_law_reaction(
+    base: CompiledMechanism,
+    *,
+    reaction_role: RateLawReactionRole,
+) -> int:
+    """Resolve a semantic reaction role without depending on declaration order."""
+
+    targets = set(base.score_spec.target_species)
+    limiting = base.score_spec.initial_limiting_species
+    feed_species = {limiting}
+    feed_species.update(
+        species_id
+        for species_id, roles in base.species_roles.items()
+        if any("reactant" in role for role in roles)
+    )
+    candidates: list[int] = []
+    for index, reaction in enumerate(base.network.reactions):
+        if reaction.rate_law.equation_id not in {"arrhenius", "modified_arrhenius"}:
+            continue
+        reactants = set(reaction.reactants)
+        products = set(reaction.products)
+        if reaction_role == "primary_target_pathway":
+            matches = bool(reactants & feed_species) and bool(products & targets)
+        else:
+            matches = (
+                bool(reactants & feed_species)
+                and not bool(reactants & targets)
+                and not bool(products & targets)
+            )
+        if matches:
+            candidates.append(index)
+    if len(candidates) != 1:
+        reaction_ids = [base.network.reactions[index].reaction_id for index in candidates]
+        raise ValueError(
+            f"mechanism {base.network.network_id!r} requires exactly one transformable "
+            f"{reaction_role!r} rate law; found {reaction_ids}"
+        )
+    return candidates[0]
 
 
 def _topology_variant(base: CompiledMechanism, severity: float) -> ReactionNetworkSpec:
@@ -320,6 +490,7 @@ __all__ = [
     "PARTITION_MECHANISM_TASKS",
     "REACTION_MECHANISM_TASKS",
     "MechanismFamilyIntervention",
+    "RateLawFamilyChange",
     "apply_mechanism_family_intervention",
     "derive_mechanism_family",
     "mechanism_intervention_hash",
