@@ -13,7 +13,10 @@ from scripts.run_mechanism_adaptation_v0_2 import (
     _write_immutable_json,
 )
 
-from chemworld.agents.task_recipes import task_recipe_from_unit_vector
+from chemworld.agents.task_recipes import (
+    DIAGNOSTIC_RECIPE_DESIGN_V2,
+    task_recipe_from_unit_vector,
+)
 from chemworld.eval.mechanism_adaptation_execution import (
     PublicCampaignObservationSession,
     _advance_online_change_point_hypotheses,
@@ -26,6 +29,7 @@ from chemworld.eval.mechanism_adaptation_execution import (
     _select_discriminative_feature_blocks,
     _select_information_maximum,
     _update_online_change_point_posterior,
+    _validate_online_policy_action_count,
     build_action_library,
     canonical_sha256,
     encode_public_experiment_trace,
@@ -39,6 +43,8 @@ from chemworld.eval.mechanism_design_audit import (
     _audit_intervention_decision_relevance,
     _audit_material_alignment,
     _recipe_field_values,
+    audit_mechanism_design,
+    material_relational_action_groups,
 )
 from chemworld.tasks import get_task
 
@@ -104,6 +110,14 @@ def test_online_policy_cycle_rejects_unknown_or_incomplete_rankings() -> None:
             ranked_action_ids=["design-00"],
             action_count=2,
         )
+
+
+def test_online_policy_action_set_can_cycle_below_gate_budget() -> None:
+    _validate_online_policy_action_count(action_count=4, gate_budget=12)
+    with pytest.raises(ValueError, match="positive and no greater"):
+        _validate_online_policy_action_count(action_count=0, gate_budget=12)
+    with pytest.raises(ValueError, match="positive and no greater"):
+        _validate_online_policy_action_count(action_count=13, gate_budget=12)
 
 
 def test_information_maximum_is_deterministic_and_rejects_saturation() -> None:
@@ -447,6 +461,37 @@ def test_electrochemical_action_library_separates_control_and_material_probes() 
     assert material_probes[1][1] == pytest.approx(0.625)
 
 
+def test_v2_electrochemical_action_library_has_shared_material_reference() -> None:
+    library = build_action_library(
+        "electrochemical-conversion",
+        action_count=6,
+        seed=41102,
+        design_id=DIAGNOSTIC_RECIPE_DESIGN_V2,
+    )
+    vectors = list(library.values())
+
+    assert np.flatnonzero(vectors[3] != vectors[4]).tolist() == [0]
+    assert np.flatnonzero(vectors[3] != vectors[5]).tolist() == [1]
+
+    protocol = _protocol()
+    interventions = protocol["task_mechanism_contracts"][  # type: ignore[index]
+        "electrochemical-conversion"
+    ]["interventions"]
+    task_info = get_task("electrochemical-conversion").to_dict()
+    recipes = {
+        action_id: task_recipe_from_unit_vector(task_info, vector)
+        for action_id, vector in library.items()
+    }
+    assert material_relational_action_groups(
+        recipes,
+        intervention=interventions["material_law_counterfactual_electrolyte_profile"][0],
+    ) == (("design-03", "design-04"),)
+    assert material_relational_action_groups(
+        recipes,
+        intervention=interventions["material_law_counterfactual_solvent"][0],
+    ) == (("design-03", "design-05"),)
+
+
 def test_online_change_time_assignment_is_deterministic_and_balanced() -> None:
     first = _balanced_hidden_change_times(
         [1, 2, 4, 6],
@@ -610,6 +655,7 @@ def _action_libraries(protocol: dict[str, object], plan: dict[str, object]):
             task_id,
             action_count=int(action_plan["action_count_per_task"]),
             seed=int(action_plan["design_seed"]),
+            design_id=str(action_plan["design"]),
         )
         for task_id in protocol["design"]["tasks"]
     }
@@ -660,6 +706,34 @@ def test_current_mechanism_design_has_reachable_covered_targets() -> None:
     assert electro_checks["constitutive_law_family:constitutive_network_unchanged"] is True
     assert electro_checks["constitutive_law_family:declared_constitutive_transform_bound"] is True
     assert electro_checks["constitutive_law_family:constitutive_calibration_bound"] is True
+
+
+def test_v2_mechanism_design_requires_exact_material_relational_pairs() -> None:
+    protocol = _protocol()
+    plan = _gate_a_plan()
+    plan["action_library"]["design"] = DIAGNOSTIC_RECIPE_DESIGN_V2
+    report = audit_mechanism_design(
+        protocol,
+        plan,
+        action_libraries=_action_libraries(protocol, plan),
+    )
+
+    assert report["pass"] is True
+    for task_id, candidate_ids in {
+        "reaction-to-crystallization": ("material_law_counterfactual",),
+        "electrochemical-conversion": (
+            "material_law_counterfactual_solvent",
+            "material_law_counterfactual_electrolyte_profile",
+        ),
+    }.items():
+        checks = {
+            item["check"]: item["pass"]
+            for item in report["task_reports"][task_id]["checks"]
+        }
+        for candidate_id in candidate_ids:
+            assert checks[
+                f"{candidate_id}:moved_indices_relational_pair_covered"
+            ] is True
 
 
 def test_decision_relevance_rejects_visible_but_policy_irrelevant_shift(
@@ -756,7 +830,9 @@ def test_design_audit_rejects_uncovered_reaction_solvent_alternative() -> None:
         task_id="reaction-to-crystallization",
         candidate_id="material_law_counterfactual",
         intervention=intervention,
+        recipes=recipes,
         recipe_values=_recipe_field_values(recipes),
+        require_relational_pair=False,
     )
     assert findings
     by_check = {str(item["check"]): item for item in findings}

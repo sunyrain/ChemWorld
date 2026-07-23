@@ -18,7 +18,10 @@ from chemworld.agents.mechanism_adaptation_live_llm import (
     MechanismAdaptationLiveLLMAgent,
     MechanismCandidateSpec,
 )
-from chemworld.agents.task_recipes import task_recipe_from_unit_vector
+from chemworld.agents.task_recipes import (
+    DIAGNOSTIC_RECIPE_DESIGN_V2,
+    task_recipe_from_unit_vector,
+)
 from chemworld.envs.chemworld_env import ChemWorldEnv
 from chemworld.task_design import SERIOUS_TASK_DESIGNS
 from chemworld.tasks import get_task
@@ -149,7 +152,12 @@ def audit_mechanism_design(
                     task_id=task_id,
                     candidate_id=candidate_id,
                     intervention=intervention,
+                    recipes=recipes,
                     recipe_values=recipe_values,
+                    require_relational_pair=(
+                        gate_a_plan.get("action_library", {}).get("design")
+                        == DIAGNOSTIC_RECIPE_DESIGN_V2
+                    ),
                 )
             else:
                 mode = str(intervention.get("mode", ""))
@@ -620,7 +628,9 @@ def _audit_material_alignment(
     task_id: str,
     candidate_id: str,
     intervention: Mapping[str, Any],
+    recipes: Mapping[str, Mapping[str, Any]],
     recipe_values: Mapping[tuple[str, str], set[Any]],
+    require_relational_pair: bool,
 ) -> None:
     field = str(intervention.get("material_field", ""))
     action_contract = MATERIAL_FIELD_ACTIONS.get(field)
@@ -678,6 +688,93 @@ def _audit_material_alignment(
         "Frozen Gate A recipes must exercise every moved index; "
         f"moved={sorted(moved)}, covered={sorted(covered, key=str)}.",
     )
+    if require_relational_pair:
+        relational_groups = material_relational_action_groups(
+            recipes,
+            intervention=intervention,
+        )
+        _add(
+            findings,
+            f"{candidate_id}:moved_indices_relational_pair_covered",
+            bool(relational_groups),
+            "A relational counterfactual requires at least one public recipe "
+            "group that differs only in the target material field and covers "
+            f"all moved indices; groups={relational_groups}.",
+        )
+
+
+def material_relational_action_groups(
+    recipes: Mapping[str, Mapping[str, Any]],
+    *,
+    intervention: Mapping[str, Any],
+) -> tuple[tuple[str, ...], ...]:
+    """Return exact same-condition recipe groups covering one material permutation."""
+
+    field = str(intervention.get("material_field", ""))
+    action_contract = MATERIAL_FIELD_ACTIONS.get(field)
+    permutation = intervention.get("public_to_baseline")
+    if action_contract is None or not isinstance(permutation, list):
+        return ()
+    operation, public_field = action_contract
+    moved = {
+        index
+        for index, baseline_index in enumerate(permutation)
+        if index != baseline_index
+    }
+    if not moved:
+        return ()
+
+    by_signature: dict[str, list[tuple[str, Any]]] = {}
+    for action_id, recipe in recipes.items():
+        raw_steps = recipe.get("steps")
+        if not isinstance(raw_steps, list):
+            continue
+        target_steps = [
+            step
+            for step in raw_steps
+            if isinstance(step, Mapping)
+            and step.get("operation") == operation
+            and public_field in step
+        ]
+        if not target_steps:
+            continue
+        target_values = {step[public_field] for step in target_steps}
+        if len(target_values) != 1:
+            continue
+        value = next(iter(target_values))
+        normalized_steps: list[dict[str, Any]] = []
+        for raw_step in raw_steps:
+            if not isinstance(raw_step, Mapping):
+                normalized_steps = []
+                break
+            step = dict(raw_step)
+            if step.get("operation") == operation:
+                step.pop(public_field, None)
+            normalized_steps.append(step)
+        if not normalized_steps:
+            continue
+        signature = json.dumps(
+            normalized_steps,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        by_signature.setdefault(signature, []).append((str(action_id), value))
+
+    groups: list[tuple[str, ...]] = []
+    for entries in by_signature.values():
+        covered = {value for _, value in entries}
+        if moved <= covered:
+            groups.append(
+                tuple(
+                    sorted(
+                        action_id
+                        for action_id, value in entries
+                        if value in moved
+                    )
+                )
+            )
+    return tuple(sorted(set(groups)))
 
 
 def _audit_constitutive_alignment(
@@ -1095,4 +1192,5 @@ __all__ = [
     "DESIGN_AUDIT_SCHEMA_VERSION",
     "MATERIAL_FIELD_ACTIONS",
     "audit_mechanism_design",
+    "material_relational_action_groups",
 ]

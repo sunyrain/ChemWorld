@@ -1,0 +1,217 @@
+{
+  "schema_version": "chemworld-mechanism-online-diagnosis-development-0.1",
+  "status": "development_diagnostic_complete",
+  "formal_claim_allowed": false,
+  "controls_gate_a": false,
+  "rc20_formal_evidence_modified": false,
+  "source_commit_before_development": "c4264e376aac4090add0604caf321d5f38f88259",
+  "task_id": "reaction-to-crystallization",
+  "purpose": "Determine whether the failed RC20 online material-family certificate is primarily caused by action-set relational coverage, post-change experiment budget, or the online evidence representation.",
+  "fixed_across_diagnostics": {
+    "candidate_predictive_samples_per_action": 24,
+    "worlds_per_family": 20,
+    "change_time_candidates": [
+      1,
+      2,
+      4,
+      6
+    ],
+    "likelihood_normalization": "one_effective_dimension_divided_by_selected_feature_dimension",
+    "public_feature_encoding": "chemworld-public-experiment-finite-first-last-range-0.1",
+    "hidden_change_time": true,
+    "policy_receives_phase_or_reset_indicator": false
+  },
+  "diagnostics": [
+    {
+      "diagnostic_id": "single_relational_group_budget_4",
+      "fit_namespace_start": 500000000,
+      "trial_namespace_start": 1700000000,
+      "post_change_gate_budget": 4,
+      "action_design": "deterministic_task_aware_relational_diagnostic_design_v2",
+      "online_action_ids": [
+        "design-00",
+        "design-02",
+        "design-03",
+        "design-05"
+      ],
+      "result_correct_by_family": {
+        "material_law_counterfactual": 12,
+        "no_change": 20,
+        "rate_law_family": 20,
+        "topology_family": 19
+      },
+      "overall_correct": 71,
+      "overall_total": 80,
+      "interpretation": "Requiring one exact material pair did not repair material diagnosis."
+    },
+    {
+      "diagnostic_id": "maximum_relational_groups_budget_4",
+      "fit_namespace_start": 500000000,
+      "trial_namespace_start": 1700000000,
+      "post_change_gate_budget": 4,
+      "action_design": "deterministic_task_aware_relational_diagnostic_design_v2",
+      "online_action_ids": [
+        "design-01",
+        "design-02",
+        "design-04",
+        "design-05"
+      ],
+      "result_correct_by_family": {
+        "material_law_counterfactual": 15,
+        "no_change": 18,
+        "rate_law_family": 17,
+        "topology_family": 20
+      },
+      "overall_correct": 70,
+      "overall_total": 80,
+      "interpretation": "Closing both mid/high material pairs improved material recall but traded away rate-law and no-change accuracy."
+    },
+    {
+      "diagnostic_id": "pivot_bracketing_relational_groups_budget_4_rejected",
+      "fit_namespace_start": 500000000,
+      "trial_namespace_start": 1700000000,
+      "post_change_gate_budget": 4,
+      "action_design": "development_only_low_high_material_pairs_not_retained",
+      "online_action_ids": [
+        "design-00",
+        "design-02",
+        "design-04",
+        "design-05"
+      ],
+      "result_correct_by_family": {
+        "material_law_counterfactual": 10,
+        "no_change": 20,
+        "rate_law_family": 19,
+        "topology_family": 20
+      },
+      "overall_correct": 69,
+      "overall_total": 80,
+      "interpretation": "Moving the second material pair below the rate-law pivot restored rate-law accuracy but materially worsened mapping diagnosis; the recipe change was reverted."
+    },
+    {
+      "diagnostic_id": "historical_action_set_budget_8",
+      "fit_namespace_start": 500000000,
+      "trial_namespace_start": 1800000000,
+      "post_change_gate_budget": 8,
+      "action_design": "deterministic_task_aware_relational_diagnostic_design_v1",
+      "online_action_ids": [
+        "design-00",
+        "design-03",
+        "design-04",
+        "design-05"
+      ],
+      "result_correct_by_family": {
+        "material_law_counterfactual": 17,
+        "no_change": 20,
+        "rate_law_family": 20,
+        "topology_family": 19
+      },
+      "overall_correct": 76,
+      "overall_total": 80,
+      "interpretation": "Eight experiments improve the material point estimate, but 17/20 has a Wilson lower bound below the preregistered 0.70 family threshold."
+    },
+    {
+      "diagnostic_id": "historical_action_set_budget_curve",
+      "fit_namespace_start": 500000000,
+      "trial_namespace_start": 1900000000,
+      "action_design": "deterministic_task_aware_relational_diagnostic_design_v1",
+      "online_action_ids": [
+        "design-00",
+        "design-03",
+        "design-04",
+        "design-05"
+      ],
+      "correct_by_budget_and_family": {
+        "2": {
+          "material_law_counterfactual": 5,
+          "no_change": 18,
+          "rate_law_family": 9,
+          "topology_family": 10
+        },
+        "4": {
+          "material_law_counterfactual": 15,
+          "no_change": 20,
+          "rate_law_family": 20,
+          "topology_family": 20
+        },
+        "8": {
+          "material_law_counterfactual": 15,
+          "no_change": 20,
+          "rate_law_family": 20,
+          "topology_family": 19
+        },
+        "12": {
+          "material_law_counterfactual": 15,
+          "no_change": 20,
+          "rate_law_family": 20,
+          "topology_family": 20
+        }
+      },
+      "interpretation": "The material family reaches a hard plateau after four experiments; more repeats of the same fixed cycle do not add usable mapping evidence."
+    },
+    {
+      "diagnostic_id": "closed_relational_action_set_budget_curve",
+      "fit_namespace_start": 600000000,
+      "trial_namespace_start": 2000000000,
+      "action_design": "deterministic_task_aware_relational_diagnostic_design_v2",
+      "online_action_ids": [
+        "design-01",
+        "design-02",
+        "design-04",
+        "design-05"
+      ],
+      "correct_by_budget_and_family": {
+        "2": {
+          "material_law_counterfactual": 9,
+          "no_change": 19,
+          "rate_law_family": 10,
+          "topology_family": 11
+        },
+        "4": {
+          "material_law_counterfactual": 16,
+          "no_change": 19,
+          "rate_law_family": 16,
+          "topology_family": 19
+        },
+        "8": {
+          "material_law_counterfactual": 16,
+          "no_change": 20,
+          "rate_law_family": 16,
+          "topology_family": 18
+        },
+        "12": {
+          "material_law_counterfactual": 16,
+          "no_change": 20,
+          "rate_law_family": 16,
+          "topology_family": 18
+        }
+      },
+      "interpretation": "Strict pair closure also plateaus and trades away other family information. Pair availability alone is not equivalent to relational evidence use."
+    }
+  ],
+  "posterior_underflow_check": {
+    "source_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.4-rc20.json",
+    "failed_material_trials_inspected": 8,
+    "material_family_posterior_range_at_budget_4": [
+      0.0184396674235351,
+      0.425448004124437
+    ],
+    "underflow_or_zero_mass_observed": false,
+    "interpretation": "The plateau is not caused by floating-point deletion of the material hypothesis."
+  },
+  "conclusion": {
+    "rate_law_task_design_is_blocker": false,
+    "post_change_budget_4_is_stressful": true,
+    "budget_increase_alone_is_sufficient": false,
+    "material_pair_availability_alone_is_sufficient": false,
+    "primary_remaining_issue": "The online decoder models per-action absolute and same-action temporal contrasts but has no explicit cross-action relational evidence channel for public material mappings."
+  },
+  "required_next_decoder_contract": [
+    "Derive relation groups only from declared material interventions and public same-condition recipes; do not hard-code task or material names.",
+    "Fit cross-action relational predictive distributions from predictive-fit seeds only, preserving shared-world pairing.",
+    "Integrate relational evidence with latent change-time hypotheses without using phase or reset indicators.",
+    "Prevent double-counting of the same observation across absolute, temporal, and relational channels through an explicit joint or conservative likelihood contract.",
+    "Retain no-change twins and report the full 2/4/8/12 adaptation curve.",
+    "Validate on new development namespaces before preregistering a new formal plan and fresh held-out namespaces."
+  ]
+}

@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from chemworld.agents.task_recipes import DIAGNOSTIC_RECIPE_DESIGN_V1
 from chemworld.eval.mechanism_adaptation_execution import (
     DEFAULT_GATE_A_PLAN_PATH,
     DEFAULT_PROTOCOL_PATH,
@@ -34,6 +35,9 @@ def build_report(
             str(task_id),
             action_count=int(action_plan["action_count_per_task"]),
             seed=int(action_plan["design_seed"]),
+            design_id=str(
+                action_plan.get("design", DIAGNOSTIC_RECIPE_DESIGN_V1)
+            ),
         )
         for task_id in protocol["design"]["tasks"]
     }

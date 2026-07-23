@@ -13,6 +13,14 @@ from typing import Any
 import numpy as np
 
 TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.8"
+DIAGNOSTIC_RECIPE_DESIGN_V1 = "deterministic_task_aware_relational_diagnostic_design_v1"
+DIAGNOSTIC_RECIPE_DESIGN_V2 = "deterministic_task_aware_relational_diagnostic_design_v2"
+DIAGNOSTIC_RECIPE_DESIGNS = frozenset(
+    {
+        DIAGNOSTIC_RECIPE_DESIGN_V1,
+        DIAGNOSTIC_RECIPE_DESIGN_V2,
+    }
+)
 
 # Formal world-family interventions may multiply a configured flow residence
 # time by at most 1.75 (extrapolation severity +1).  Complete-recipe baselines
@@ -198,6 +206,7 @@ def diagnostic_task_recipe_vectors(
     *,
     action_count: int,
     rng: np.random.Generator,
+    design_id: str = DIAGNOSTIC_RECIPE_DESIGN_V1,
 ) -> tuple[np.ndarray, ...]:
     """Build a deterministic task-aware diagnostic design in the unit cube.
 
@@ -209,6 +218,8 @@ def diagnostic_task_recipe_vectors(
     each categorical material coordinate.
     """
 
+    if design_id not in DIAGNOSTIC_RECIPE_DESIGNS:
+        raise ValueError(f"unsupported diagnostic recipe design: {design_id}")
     if action_count < 3:
         raise ValueError("a diagnostic recipe design requires at least three actions")
     kind = task_recipe_kind(task_info)
@@ -283,19 +294,41 @@ def diagnostic_task_recipe_vectors(
         (0.200, 0.500),
     )
     electrochemical_vectors: list[np.ndarray] = []
-    for probe_potential, controlled_delta in potential_profiles[:action_count]:
+    potential_profile_limit = (
+        min(action_count, 3)
+        if design_id == DIAGNOSTIC_RECIPE_DESIGN_V2
+        else action_count
+    )
+    for probe_potential, controlled_delta in potential_profiles[:potential_profile_limit]:
         potential_vector = np.array(electro_reference, copy=True)
         potential_vector[3] = probe_potential
         potential_vector[6] = controlled_delta
         electrochemical_vectors.append(potential_vector)
 
     categorical_coordinates = task_recipe_categorical_coordinates(task_info)
+    if (
+        design_id == DIAGNOSTIC_RECIPE_DESIGN_V2
+        and len(electrochemical_vectors) < action_count
+    ):
+        # Every categorical intervention needs a shared, same-condition
+        # reference.  Without it, two alternative-material probes may differ
+        # in multiple categorical fields and cannot isolate either mapping.
+        material_reference = np.array(electro_reference, copy=True)
+        material_reference[3] = 0.400
+        material_reference[6] = 0.720
+        electrochemical_vectors.append(material_reference)
+
     for coordinate, category_count in categorical_coordinates:
         if len(electrochemical_vectors) >= action_count:
             break
-        material_vector = np.array(electro_reference, copy=True)
-        material_vector[3] = 0.400
-        material_vector[6] = 0.720
+        material_vector = (
+            np.array(material_reference, copy=True)
+            if design_id == DIAGNOSTIC_RECIPE_DESIGN_V2
+            else np.array(electro_reference, copy=True)
+        )
+        if design_id == DIAGNOSTIC_RECIPE_DESIGN_V1:
+            material_vector[3] = 0.400
+            material_vector[6] = 0.720
         baseline_category = _choice(
             float(electro_reference[coordinate]),
             category_count,
@@ -543,6 +576,9 @@ def _equilibrium_steps(values: np.ndarray) -> list[dict[str, Any]]:
 
 
 __all__ = [
+    "DIAGNOSTIC_RECIPE_DESIGNS",
+    "DIAGNOSTIC_RECIPE_DESIGN_V1",
+    "DIAGNOSTIC_RECIPE_DESIGN_V2",
     "FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER",
     "TASK_RECIPE_SPACE_VERSION",
     "diagnostic_task_recipe_vectors",

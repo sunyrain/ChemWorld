@@ -30,6 +30,7 @@ from chemworld.agents.mechanism_adaptation_live_llm import (
     MechanismCandidateSpec,
 )
 from chemworld.agents.task_recipes import (
+    DIAGNOSTIC_RECIPE_DESIGN_V1,
     diagnostic_task_recipe_vectors,
     task_recipe_event_count,
     task_recipe_from_unit_vector,
@@ -91,6 +92,7 @@ def build_action_library(
     *,
     action_count: int,
     seed: int,
+    design_id: str = DIAGNOSTIC_RECIPE_DESIGN_V1,
 ) -> dict[str, np.ndarray]:
     """Return a deterministic bounded set of public complete-recipe designs."""
 
@@ -103,6 +105,7 @@ def build_action_library(
         task_info,
         action_count=action_count,
         rng=rng,
+        design_id=design_id,
     )
     return {
         f"design-{index:02d}": np.asarray(vector, dtype=float)
@@ -139,6 +142,20 @@ def _canonical_policy_cycle(
         raise ValueError("ranked policy actions do not cover the requested action count")
     selected = set(ranked_unique[:action_count])
     return [action_id for action_id in canonical if action_id in selected]
+
+
+def _validate_online_policy_action_count(
+    *,
+    action_count: int,
+    gate_budget: int,
+) -> None:
+    """Allow a fixed phase-invariant action set to cycle over a longer horizon."""
+
+    if action_count <= 0 or action_count > gate_budget:
+        raise ValueError(
+            "online policy action coverage must be positive and no greater "
+            "than its controlling budget"
+        )
 
 
 def encode_public_experiment_trace(
@@ -1176,8 +1193,10 @@ def run_online_policy_certificate(
             "online-policy information-ranking batch size must equal the protocol pre-change budget"
         )
     policy_action_count = int(requirement["online_policy_action_count"])
-    if policy_action_count != online_gate_budget:
-        raise ValueError("online policy action coverage must equal its controlling budget")
+    _validate_online_policy_action_count(
+        action_count=policy_action_count,
+        gate_budget=online_gate_budget,
+    )
     hazard = float(requirement["change_hazard_per_allowed_change_point"])
     if not 0.0 < hazard < 1.0:
         raise ValueError("online-policy change hazard must be in (0, 1)")
@@ -1244,6 +1263,9 @@ def run_online_policy_certificate(
             str(task_id),
             action_count=int(action_plan["action_count_per_task"]),
             seed=int(action_plan["design_seed"]),
+            design_id=str(
+                action_plan.get("design", DIAGNOSTIC_RECIPE_DESIGN_V1)
+            ),
         )
         for task_id in protocol["design"]["tasks"]
     }
@@ -1789,6 +1811,9 @@ def _run_paired_gate_a(
             str(task_id),
             action_count=int(action_plan["action_count_per_task"]),
             seed=int(action_plan["design_seed"]),
+            design_id=str(
+                action_plan.get("design", DIAGNOSTIC_RECIPE_DESIGN_V1)
+            ),
         )
         for task_id in protocol["design"]["tasks"]
     }
@@ -2172,6 +2197,9 @@ def run_gate_a(
             str(task_id),
             action_count=int(action_plan["action_count_per_task"]),
             seed=int(action_plan["design_seed"]),
+            design_id=str(
+                action_plan.get("design", DIAGNOSTIC_RECIPE_DESIGN_V1)
+            ),
         )
         for task_id in protocol["design"]["tasks"]
     }
