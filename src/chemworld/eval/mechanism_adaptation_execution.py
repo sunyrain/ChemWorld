@@ -17,6 +17,7 @@ import hashlib
 import itertools
 import json
 import math
+from collections import Counter
 from collections.abc import Callable, Collection, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
@@ -46,6 +47,7 @@ from chemworld.eval.mechanism_adaptation import (
     build_paired_campaign_matrix,
     identifiability_certificate,
     validate_mechanism_adaptation_protocol,
+    wilson_interval,
 )
 from chemworld.eval.mechanism_design_audit import (
     audit_mechanism_design,
@@ -74,6 +76,10 @@ PUBLIC_EXPERIMENT_FEATURE_ENCODING_VERSION = (
     "chemworld-public-experiment-finite-first-last-range-0.1"
 )
 PUBLIC_EXPERIMENT_FEATURE_BLOCK_SIZE = 4
+ONLINE_POLICY_SET_SELECTION_LEGACY = "reference_batch_plus_relational_coverage_v1"
+ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT = (
+    "joint_independent_validation_reference_age_rollout_then_information_v3"
+)
 
 _CRITICAL_INSTRUMENTS = {
     "reaction-to-crystallization": "hplc",
@@ -569,6 +575,109 @@ def _relational_evidence_samples(
     return result
 
 
+def _assemble_online_evidence_samples(
+    *,
+    candidate_ids: Sequence[str],
+    action_ids: Sequence[str],
+    sample_keys: Sequence[tuple[str, str]],
+    sample_results: Sequence[Mapping[str, Sequence[float]]],
+    relational_evidence_enabled: bool,
+) -> tuple[
+    dict[tuple[str, str], list[Sequence[float]]],
+    dict[tuple[str, str], list[Sequence[float]]],
+    dict[tuple[str, str], list[Sequence[float]]],
+    dict[tuple[str, str], list[Sequence[float]]],
+]:
+    """Assemble nuisance-aligned online evidence from one declared cohort.
+
+    The helper is shared by predictive fitting and policy-set validation so the
+    two cohorts use exactly the same public encodings while remaining disjoint
+    at the world-seed level.
+    """
+
+    if len(sample_keys) != len(sample_results):
+        raise ValueError("online predictive sample keys and results must align")
+    expected_keys = {
+        (str(candidate_id), str(action_id))
+        for candidate_id in candidate_ids
+        for action_id in action_ids
+    }
+    transition_samples: dict[tuple[str, str], list[Sequence[float]]] = {
+        key: [] for key in expected_keys
+    }
+    stable_samples: dict[tuple[str, str], list[Sequence[float]]] = {
+        key: [] for key in expected_keys
+    }
+    absolute_samples: dict[tuple[str, str], list[Sequence[float]]] = {
+        key: [] for key in expected_keys
+    }
+    for raw_key, values in zip(sample_keys, sample_results, strict=True):
+        key = (str(raw_key[0]), str(raw_key[1]))
+        if key not in expected_keys:
+            raise ValueError("online predictive result contains an undeclared key")
+        transition_samples[key].append(values["transition_contrast"])
+        stable_samples[key].append(values["stable_contrast"])
+        absolute_samples[key].append(values["absolute_trace"])
+
+    sample_counts = {
+        len(samples)
+        for collection in (
+            transition_samples,
+            stable_samples,
+            absolute_samples,
+        )
+        for samples in collection.values()
+    }
+    if len(sample_counts) != 1 or not sample_counts or sample_counts == {0}:
+        raise ValueError(
+            "online predictive samples must be non-empty and nuisance-aligned"
+        )
+
+    evidence_samples: dict[
+        tuple[str, str],
+        list[Sequence[float]],
+    ] = {
+        (
+            candidate_id,
+            _online_evidence_channel(encoding, action_id),
+        ): (
+            transition_samples[(candidate_id, action_id)]
+            if encoding == "transition_contrast"
+            else (
+                stable_samples[(candidate_id, action_id)]
+                if encoding == "stable_contrast"
+                else absolute_samples[(candidate_id, action_id)]
+            )
+        )
+        for candidate_id in candidate_ids
+        for action_id in action_ids
+        for encoding in (
+            "transition_contrast",
+            "stable_contrast",
+            "absolute_trace",
+        )
+    }
+    if relational_evidence_enabled:
+        relational_samples = _relational_evidence_samples(
+            candidate_ids=candidate_ids,
+            action_ids=action_ids,
+            transition_samples=transition_samples,
+            stable_samples=stable_samples,
+            absolute_samples=absolute_samples,
+        )
+        for key, rows in relational_samples.items():
+            evidence_samples[key] = [
+                list(row)
+                for row in rows
+            ]
+    return (
+        transition_samples,
+        stable_samples,
+        absolute_samples,
+        evidence_samples,
+    )
+
+
 def _declared_relational_action_groups(
     *,
     task_id: str,
@@ -807,10 +916,15 @@ def _select_online_reference_action(
     relational_evidence_enabled: bool,
     declared_relational_references: Sequence[str],
     fit_ranked_relational_references: Sequence[str],
+    declared_relational_precedence: bool = False,
 ) -> tuple[str | None, str]:
     """Choose one non-duplicated evidence reference for the current experiment."""
 
     available = {str(item) for item in available_reference_action_ids}
+    if relational_evidence_enabled and declared_relational_precedence:
+        for reference_action_id in declared_relational_references:
+            if reference_action_id in available:
+                return str(reference_action_id), "declared_relational"
     if action_id in available:
         return action_id, "same_action_temporal"
     if relational_evidence_enabled:
@@ -952,6 +1066,84 @@ def _select_information_maximum(
     return selected, report
 
 
+def _select_robust_policy_batch(
+    *,
+    information_nats: Mapping[str, float],
+    candidate_recall: Mapping[str, Mapping[str, float]],
+    eligible_batch_ids: Sequence[str],
+    candidate_ids: Sequence[str],
+    context: str,
+) -> tuple[str, dict[str, Any]]:
+    """Select a complete policy set without sacrificing the weakest candidate.
+
+    All inputs are predictive-fit diagnostics.  Selection is lexicographic:
+    maximize the minimum candidate-conditional recognition rate, then the mean
+    recognition rate, then mutual information, and finally the batch ID.  This
+    prevents an aggregate-information optimum from silently dropping the only
+    actions that distinguish one mechanism family.
+    """
+
+    candidates = tuple(str(item) for item in candidate_ids)
+    if not candidates or len(candidates) != len(set(candidates)):
+        raise ValueError(f"{context} candidate IDs must be non-empty and unique")
+    eligible = tuple(sorted({str(item) for item in eligible_batch_ids}))
+    if not eligible:
+        raise ValueError(f"{context} has no eligible policy batches")
+    unknown_information = set(eligible) - set(information_nats)
+    unknown_recognition = set(eligible) - set(candidate_recall)
+    if unknown_information or unknown_recognition:
+        raise ValueError(
+            f"{context} diagnostics do not cover eligible batches: "
+            f"information={sorted(unknown_information)}, "
+            f"recognition={sorted(unknown_recognition)}"
+        )
+
+    metrics: dict[str, dict[str, Any]] = {}
+    for batch_id in eligible:
+        recalls = {
+            str(candidate_id): float(value)
+            for candidate_id, value in candidate_recall[batch_id].items()
+        }
+        if set(recalls) != set(candidates):
+            raise ValueError(
+                f"{context} candidate recognition must exactly cover candidates "
+                f"for {batch_id}"
+            )
+        if not all(np.isfinite(value) and 0.0 <= value <= 1.0 for value in recalls.values()):
+            raise ValueError(
+                f"{context} candidate recognition must be finite and in [0, 1]"
+            )
+        information = float(information_nats[batch_id])
+        if not np.isfinite(information):
+            raise ValueError(f"{context} information ranking contains non-finite values")
+        metrics[batch_id] = {
+            "candidate_recall": recalls,
+            "minimum_candidate_recall": min(recalls.values()),
+            "mean_candidate_recall": float(np.mean(list(recalls.values()))),
+            "information_nats": information,
+        }
+
+    selected = min(
+        eligible,
+        key=lambda batch_id: (
+            -metrics[batch_id]["minimum_candidate_recall"],
+            -metrics[batch_id]["mean_candidate_recall"],
+            -metrics[batch_id]["information_nats"],
+            batch_id,
+        ),
+    )
+    return selected, {
+        "eligible_batch_count": len(eligible),
+        "selection_rule": (
+            "maximize_minimum_candidate_conditional_recognition_then_mean_"
+            "candidate_recognition_then_mutual_information_then_lexicographic_batch_id"
+        ),
+        "selected_batch_id": selected,
+        "selected_metrics": metrics[selected],
+        "batch_metrics": metrics,
+    }
+
+
 def _dimension_normalized_likelihood_scale(
     *,
     effective_dimension_count: float,
@@ -1061,6 +1253,221 @@ def _update_online_change_point_posterior(
     return {hypothesis: weight / total for hypothesis, weight in weights.items() if weight > 0.0}
 
 
+def _online_policy_rollout_recognition_from_samples(
+    *,
+    candidate_ids: Sequence[str],
+    policy_action_ids: Sequence[str],
+    change_times: Sequence[int],
+    post_change_budget: int,
+    hazard: float,
+    evidence_samples: Mapping[tuple[str, str], Sequence[Sequence[float]]],
+    predictives: Mapping[tuple[str, str], tuple[np.ndarray, np.ndarray]],
+    feature_indices: Mapping[str, Sequence[int]],
+    likelihood_scale: float,
+    relational_evidence_enabled: bool,
+    relational_reference_priority: Mapping[str, Sequence[str]],
+    declared_relational_reference_actions: Mapping[str, Sequence[str]],
+    declared_relational_reference_precedence: bool = False,
+) -> dict[str, Any]:
+    """Replay the actual online filter over nuisance-aligned public sample rows.
+
+    One rollout index uses the same fitted nuisance world across every action
+    and evidence channel.  Selection therefore scores the frozen action cycle,
+    cold-start references, latent change-time hazard, and reference-age channel
+    semantics together instead of treating a complete batch as one simultaneous
+    transition contrast.
+    """
+
+    candidates = tuple(str(item) for item in candidate_ids)
+    policy_actions = tuple(str(item) for item in policy_action_ids)
+    allowed_change_times = tuple(int(item) for item in change_times)
+    if not candidates or "no_change" not in candidates:
+        raise ValueError("online rollout requires a declared no_change candidate")
+    if not policy_actions or len(policy_actions) != len(set(policy_actions)):
+        raise ValueError("online rollout policy actions must be non-empty and unique")
+    if not allowed_change_times or post_change_budget <= 0:
+        raise ValueError("online rollout requires change times and a post-change budget")
+    if not 0.0 < hazard < 1.0:
+        raise ValueError("online rollout hazard must be in (0, 1)")
+    sample_counts = {len(samples) for samples in evidence_samples.values()}
+    if len(sample_counts) != 1 or not sample_counts:
+        raise ValueError("online rollout evidence samples must align by nuisance world")
+    sample_count = sample_counts.pop()
+    if sample_count < 4:
+        raise ValueError("online rollout requires at least four nuisance worlds")
+
+    correct_by_candidate: Counter[str] = Counter()
+    total_by_candidate: Counter[str] = Counter()
+    correct_by_candidate_time: Counter[str] = Counter()
+    total_by_candidate_time: Counter[str] = Counter()
+    correct_by_candidate_world = {
+        (candidate_id, sample_index): True
+        for candidate_id in candidates
+        for sample_index in range(sample_count)
+    }
+    for truth_id in candidates:
+        for change_time in allowed_change_times:
+            for sample_index in range(sample_count):
+                posterior: dict[tuple[str, int | None], float] = {
+                    ("no_change", None): 1.0
+                }
+                references: dict[str, int] = {}
+                horizon = change_time + post_change_budget
+                for experiment_index in range(1, horizon + 1):
+                    posterior = _advance_online_change_point_hypotheses(
+                        posterior,
+                        change_after_experiment=experiment_index - 1,
+                        allowed_change_times=allowed_change_times,
+                        candidate_ids=candidates,
+                        hazard=hazard,
+                    )
+                    action_id = policy_actions[
+                        (experiment_index - 1) % len(policy_actions)
+                    ]
+                    first_observation = action_id not in references
+                    reference_action_id, _reference_source = (
+                        _select_online_reference_action(
+                            action_id=action_id,
+                            available_reference_action_ids=references,
+                            relational_evidence_enabled=relational_evidence_enabled,
+                            declared_relational_references=(
+                                declared_relational_reference_actions.get(
+                                    action_id,
+                                    (),
+                                )
+                            ),
+                            fit_ranked_relational_references=(
+                                relational_reference_priority.get(action_id, ())
+                            ),
+                            declared_relational_precedence=(
+                                declared_relational_reference_precedence
+                            ),
+                        )
+                    )
+                    reference_experiment_index = (
+                        references.get(reference_action_id)
+                        if reference_action_id is not None
+                        else None
+                    )
+                    actual_hypothesis = (
+                        (truth_id, change_time)
+                        if truth_id != "no_change"
+                        and experiment_index > change_time
+                        else ("no_change", None)
+                    )
+                    actual_predictive_key = _online_hypothesis_evidence_channel(
+                        actual_hypothesis,
+                        action_id,
+                        reference_action_id=reference_action_id,
+                        reference_experiment_index=reference_experiment_index,
+                        current_experiment_index=experiment_index,
+                    )
+                    try:
+                        observation = evidence_samples[actual_predictive_key][
+                            sample_index
+                        ]
+                    except KeyError as error:
+                        raise ValueError(
+                            "online rollout evidence does not cover the actual channel"
+                        ) from error
+                    posterior = _update_online_change_point_posterior(
+                        posterior,
+                        action_id=action_id,
+                        observation=observation,
+                        reference_action_id=reference_action_id,
+                        reference_experiment_index=reference_experiment_index,
+                        current_experiment_index=experiment_index,
+                        predictives=predictives,
+                        feature_indices=feature_indices,
+                        likelihood_scale=likelihood_scale,
+                    )
+                    if first_observation:
+                        references[action_id] = experiment_index
+                family_posterior = _online_family_posterior(
+                    posterior,
+                    candidates,
+                )
+                prediction = max(
+                    family_posterior,
+                    key=family_posterior.__getitem__,
+                )
+                key = f"{truth_id}@{change_time}"
+                correct = prediction == truth_id
+                correct_by_candidate[truth_id] += int(correct)
+                total_by_candidate[truth_id] += 1
+                correct_by_candidate_time[key] += int(correct)
+                total_by_candidate_time[key] += 1
+                correct_by_candidate_world[(truth_id, sample_index)] &= correct
+
+    all_time_correct_by_candidate = {
+        candidate_id: sum(
+            correct_by_candidate_world[(candidate_id, sample_index)]
+            for sample_index in range(sample_count)
+        )
+        for candidate_id in candidates
+    }
+
+    return {
+        "fit_world_count": sample_count,
+        "candidate_recall": {
+            candidate_id: correct_by_candidate[candidate_id]
+            / total_by_candidate[candidate_id]
+            for candidate_id in candidates
+        },
+        "candidate_recall_interval": {
+            candidate_id: list(
+                wilson_interval(
+                    correct_by_candidate[candidate_id],
+                    total_by_candidate[candidate_id],
+                )
+            )
+            for candidate_id in candidates
+        },
+        "candidate_correct_count": {
+            candidate_id: correct_by_candidate[candidate_id]
+            for candidate_id in candidates
+        },
+        "candidate_total_count": {
+            candidate_id: total_by_candidate[candidate_id]
+            for candidate_id in candidates
+        },
+        "candidate_all_change_times_recall": {
+            candidate_id: all_time_correct_by_candidate[candidate_id]
+            / sample_count
+            for candidate_id in candidates
+        },
+        "candidate_all_change_times_recall_interval": {
+            candidate_id: list(
+                wilson_interval(
+                    all_time_correct_by_candidate[candidate_id],
+                    sample_count,
+                )
+            )
+            for candidate_id in candidates
+        },
+        "candidate_all_change_times_correct_count": {
+            candidate_id: all_time_correct_by_candidate[candidate_id]
+            for candidate_id in candidates
+        },
+        "candidate_all_change_times_total_count": dict.fromkeys(
+            candidates,
+            sample_count,
+        ),
+        "candidate_change_time_recall": {
+            key: correct_by_candidate_time[key] / total_by_candidate_time[key]
+            for key in sorted(total_by_candidate_time)
+        },
+        "candidate_change_time_correct_count": {
+            key: correct_by_candidate_time[key]
+            for key in sorted(total_by_candidate_time)
+        },
+        "candidate_change_time_total_count": {
+            key: total_by_candidate_time[key]
+            for key in sorted(total_by_candidate_time)
+        },
+    }
+
+
 def _balanced_hidden_change_times(
     change_times: Sequence[int],
     *,
@@ -1078,6 +1485,54 @@ def _balanced_hidden_change_times(
     )
     rng.shuffle(assignments)
     return assignments
+
+
+def _online_predictive_jobs(
+    *,
+    task_id: str,
+    candidate_ids: Sequence[str],
+    action_ids: Sequence[str],
+    world_seeds: Sequence[int],
+    interventions: Mapping[str, Any],
+    action_library: Mapping[str, np.ndarray],
+    cohort_label: str,
+) -> tuple[list[tuple[str, str]], list[dict[str, Any]]]:
+    """Build aligned public predictive jobs for one fit or validation cohort."""
+
+    if not cohort_label:
+        raise ValueError("online predictive cohort label must be non-empty")
+    keys: list[tuple[str, str]] = []
+    jobs: list[dict[str, Any]] = []
+    for candidate_id in candidate_ids:
+        if candidate_id not in interventions:
+            raise ValueError(
+                f"online predictive interventions omit candidate {candidate_id!r}"
+            )
+        for action_id in action_ids:
+            for world_seed in world_seeds:
+                keys.append((str(candidate_id), str(action_id)))
+                jobs.append(
+                    {
+                        "task_id": task_id,
+                        "world_seed": int(world_seed),
+                        "interventions": interventions[candidate_id],
+                        "action_id": str(action_id),
+                        "action_vector": action_library[action_id].tolist(),
+                        "pre_observation_seed": _stable_seed(
+                            int(world_seed),
+                            f"{cohort_label}:{action_id}:pre",
+                        ),
+                        "stable_reference_observation_seed": _stable_seed(
+                            int(world_seed),
+                            f"{cohort_label}:{action_id}:stable-reference",
+                        ),
+                        "post_observation_seed": _stable_seed(
+                            int(world_seed),
+                            f"{cohort_label}:{action_id}:post",
+                        ),
+                    }
+                )
+    return keys, jobs
 
 
 def _sample_online_predictive_job(job: Mapping[str, Any]) -> dict[str, list[float]]:
@@ -1354,6 +1809,24 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(raw_relational_evidence, bool):
         raise ValueError("online trial relational evidence flag must be boolean")
     relational_evidence_enabled = raw_relational_evidence
+    raw_declared_relational_precedence = job.get(
+        "declared_relational_reference_precedence",
+        False,
+    )
+    if not isinstance(raw_declared_relational_precedence, bool):
+        raise ValueError(
+            "declared relational reference precedence flag must be boolean"
+        )
+    declared_relational_reference_precedence = (
+        raw_declared_relational_precedence
+    )
+    if (
+        declared_relational_reference_precedence
+        and not relational_evidence_enabled
+    ):
+        raise ValueError(
+            "declared relational reference precedence requires relational evidence"
+        )
     evidence_action_ids = [
         _online_evidence_channel(encoding, action_id)
         for action_id in action_ids
@@ -1494,6 +1967,9 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
             fit_ranked_relational_references=relational_reference_priority.get(
                 action_id,
                 (),
+            ),
+            declared_relational_precedence=(
+                declared_relational_reference_precedence
             ),
         )
         reference = (
@@ -1676,6 +2152,25 @@ def run_online_policy_certificate(
         action_count=policy_action_count,
         gate_budget=online_gate_budget,
     )
+    policy_set_selection = str(
+        requirement.get(
+            "policy_set_selection",
+            ONLINE_POLICY_SET_SELECTION_LEGACY,
+        )
+    )
+    if policy_set_selection not in {
+        ONLINE_POLICY_SET_SELECTION_LEGACY,
+        ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT,
+    }:
+        raise ValueError(
+            f"unsupported online policy-set selection contract: {policy_set_selection!r}"
+        )
+    selection_batch_size = (
+        policy_action_count
+        if policy_set_selection
+        == ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT
+        else ranking_batch_size
+    )
     hazard = float(requirement["change_hazard_per_allowed_change_point"])
     if not 0.0 < hazard < 1.0:
         raise ValueError("online-policy change hazard must be in (0, 1)")
@@ -1684,6 +2179,52 @@ def run_online_policy_certificate(
     fit_plan = plan["candidate_predictive_fit"]
     certificate_plan = plan["held_out_certificate"]
     gate = protocol["gates"]["gate_a"]
+    selection_validation_sample_count = 0
+    selection_validation_namespace_start: int | None = None
+    selection_validation_family_lower_bound = 0.0
+    if policy_set_selection == ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT:
+        raw_selection_validation = fit_plan.get(
+            "online_policy_selection_validation"
+        )
+        if not isinstance(raw_selection_validation, Mapping):
+            raise ValueError(
+                "validated rollout policy selection requires an explicit "
+                "online_policy_selection_validation object"
+            )
+        selection_validation_sample_count = int(
+            raw_selection_validation["samples_per_candidate_action"]
+        )
+        if selection_validation_sample_count < 16:
+            raise ValueError(
+                "validated rollout policy selection requires at least 16 "
+                "validation worlds per candidate/action"
+            )
+        selection_validation_namespace_start = int(
+            raw_selection_validation["nuisance_seed_namespace_start"]
+        )
+        if selection_validation_namespace_start < 0:
+            raise ValueError(
+                "policy-selection validation namespace must be non-negative"
+            )
+        if (
+            raw_selection_validation.get(
+                "held_out_certificate_outcomes_used",
+            )
+            is not False
+        ):
+            raise ValueError(
+                "policy-selection validation must explicitly exclude held-out "
+                "certificate outcomes"
+            )
+        selection_validation_family_lower_bound = float(
+            raw_selection_validation[
+                "minimum_all_change_times_family_recall_wilson_lower_bound"
+            ]
+        )
+        if not 0.0 <= selection_validation_family_lower_bound <= 1.0:
+            raise ValueError(
+                "policy-selection validation family lower bound must be in [0, 1]"
+            )
     feature_encoding = str(fit_plan["public_feature_encoding"])
     if feature_encoding != PUBLIC_EXPERIMENT_FEATURE_ENCODING_VERSION:
         raise ValueError("online public-feature encoding contract is unsupported")
@@ -1698,6 +2239,33 @@ def run_online_policy_certificate(
     if not isinstance(raw_relational_evidence, bool):
         raise ValueError("online relational evidence flag must be boolean")
     relational_evidence_enabled = raw_relational_evidence
+    raw_declared_relational_precedence = requirement.get(
+        "declared_relational_reference_precedence",
+        False,
+    )
+    if not isinstance(raw_declared_relational_precedence, bool):
+        raise ValueError(
+            "online declared relational reference precedence must be boolean"
+        )
+    declared_relational_reference_precedence = (
+        raw_declared_relational_precedence
+    )
+    if (
+        declared_relational_reference_precedence
+        and not relational_evidence_enabled
+    ):
+        raise ValueError(
+            "declared relational reference precedence requires relational evidence"
+        )
+    if (
+        policy_set_selection
+        == ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT
+        and not declared_relational_reference_precedence
+    ):
+        raise ValueError(
+            "validated rollout policy selection requires declared relational "
+            "reference precedence"
+        )
     if relational_evidence_enabled:
         if requirement.get("declared_relational_action_coverage") is not True:
             raise ValueError(
@@ -1721,7 +2289,7 @@ def run_online_policy_certificate(
         )
         online_batch_likelihood_scale = _dimension_normalized_likelihood_scale(
             effective_dimension_count=likelihood_effective_dimension_count,
-            selected_feature_dimension=selected_feature_dimension * ranking_batch_size,
+            selected_feature_dimension=selected_feature_dimension * selection_batch_size,
         )
     else:
         likelihood_effective_dimension_count = float(selected_feature_dimension)
@@ -1766,6 +2334,15 @@ def run_online_policy_certificate(
         )
         for task_id in protocol["design"]["tasks"]
     }
+    _emit_gate_a_progress(
+        progress_callback,
+        event="design_validity_audit_started",
+        source=(
+            "runtime"
+            if design_validity_audit is None
+            else "precomputed"
+        ),
+    )
     if design_validity_audit is None:
         design_audit = audit_mechanism_design(
             protocol,
@@ -1778,6 +2355,16 @@ def run_online_policy_certificate(
             plan,
             design_validity_audit,
         )
+    _emit_gate_a_progress(
+        progress_callback,
+        event="design_validity_audit_completed",
+        source=(
+            "runtime"
+            if design_validity_audit is None
+            else "precomputed"
+        ),
+        passed=design_audit["pass"] is True,
+    )
     if not design_audit["pass"]:
         raise ValueError("online-policy certificate requires a passing design audit")
 
@@ -1806,33 +2393,15 @@ def run_online_policy_certificate(
             + index
             for index in range(sample_count)
         ]
-        fit_keys: list[tuple[str, str]] = []
-        fit_jobs: list[dict[str, Any]] = []
-        for candidate_id in candidate_ids:
-            for action_id in action_ids:
-                for world_seed in fit_world_seeds:
-                    fit_keys.append((candidate_id, action_id))
-                    fit_jobs.append(
-                        {
-                            "task_id": task_id,
-                            "world_seed": world_seed,
-                            "interventions": contract["interventions"][candidate_id],
-                            "action_id": action_id,
-                            "action_vector": action_library[action_id].tolist(),
-                            "pre_observation_seed": _stable_seed(
-                                world_seed,
-                                f"online-policy:{action_id}:fit-pre",
-                            ),
-                            "stable_reference_observation_seed": _stable_seed(
-                                world_seed,
-                                f"online-policy:{action_id}:fit-stable-reference",
-                            ),
-                            "post_observation_seed": _stable_seed(
-                                world_seed,
-                                f"online-policy:{action_id}:fit-post",
-                            ),
-                        }
-                    )
+        fit_keys, fit_jobs = _online_predictive_jobs(
+            task_id=task_id,
+            candidate_ids=candidate_ids,
+            action_ids=action_ids,
+            world_seeds=fit_world_seeds,
+            interventions=contract["interventions"],
+            action_library=action_library,
+            cohort_label="online-policy-fit",
+        )
         _emit_gate_a_progress(
             progress_callback,
             event="online_predictive_fit_started",
@@ -1850,31 +2419,18 @@ def run_online_policy_certificate(
             task_id=task_id,
             job_count=len(fit_jobs),
         )
-        transition_samples: dict[
-            tuple[str, str],
-            list[Sequence[float]],
-        ] = {
-            (candidate_id, action_id): []
-            for candidate_id in candidate_ids
-            for action_id in action_ids
-        }
-        stable_samples: dict[
-            tuple[str, str],
-            list[Sequence[float]],
-        ] = {
-            (candidate_id, action_id): []
-            for candidate_id in candidate_ids
-            for action_id in action_ids
-        }
-        absolute_samples: dict[tuple[str, str], list[Sequence[float]]] = {
-            (candidate_id, action_id): []
-            for candidate_id in candidate_ids
-            for action_id in action_ids
-        }
-        for key, values in zip(fit_keys, fit_results, strict=True):
-            transition_samples[key].append(values["transition_contrast"])
-            stable_samples[key].append(values["stable_contrast"])
-            absolute_samples[key].append(values["absolute_trace"])
+        (
+            _transition_samples,
+            _stable_samples,
+            _absolute_samples,
+            evidence_samples,
+        ) = _assemble_online_evidence_samples(
+            candidate_ids=candidate_ids,
+            action_ids=action_ids,
+            sample_keys=fit_keys,
+            sample_results=fit_results,
+            relational_evidence_enabled=relational_evidence_enabled,
+        )
 
         evidence_action_ids = [
             _online_evidence_channel(encoding, action_id)
@@ -1885,18 +2441,7 @@ def run_online_policy_certificate(
                 "absolute_trace",
             )
         ]
-        relational_samples: dict[
-            tuple[str, str],
-            list[list[float]],
-        ] = {}
         if relational_evidence_enabled:
-            relational_samples = _relational_evidence_samples(
-                candidate_ids=candidate_ids,
-                action_ids=action_ids,
-                transition_samples=transition_samples,
-                stable_samples=stable_samples,
-                absolute_samples=absolute_samples,
-            )
             evidence_action_ids.extend(
                 _online_relational_evidence_channel(
                     encoding,
@@ -1912,28 +2457,6 @@ def run_online_policy_certificate(
                     "relational_stable_contrast",
                 )
             )
-        evidence_samples = {
-            (
-                candidate_id,
-                _online_evidence_channel(encoding, action_id),
-            ): (
-                transition_samples[(candidate_id, action_id)]
-                if encoding == "transition_contrast"
-                else (
-                    stable_samples[(candidate_id, action_id)]
-                    if encoding == "stable_contrast"
-                    else absolute_samples[(candidate_id, action_id)]
-                )
-            )
-            for candidate_id in candidate_ids
-            for action_id in action_ids
-            for encoding in (
-                "transition_contrast",
-                "stable_contrast",
-                "absolute_trace",
-            )
-        }
-        evidence_samples.update(relational_samples)
         feature_indices, feature_selection_report = _select_discriminative_feature_blocks(
             evidence_samples,
             candidate_ids=candidate_ids,
@@ -1965,7 +2488,7 @@ def run_online_policy_certificate(
             candidate_ids=candidate_ids,
             action_ids=action_ids,
             per_action_samples=reduced_transition_samples,
-            batch_size=ranking_batch_size,
+            batch_size=selection_batch_size,
             variance_floor=float(fit_plan["variance_floor"]),
             likelihood_scale=online_batch_likelihood_scale,
             seed=_stable_seed(
@@ -1974,12 +2497,6 @@ def run_online_policy_certificate(
             ),
         )
         batch_information = selection_oracle.expected_information_by_action(draws=information_draws)
-        selected_batch_id, batch_information_diagnostics = _select_information_maximum(
-            batch_information,
-            minimum_spread_nats=online_batch_information_minimum_spread,
-            context=f"{task_id} online batch",
-        )
-        selected_actions = list(batches[selected_batch_id])
         online_oracle = GaussianMechanismOracle(
             candidate_ids=candidate_ids,
             action_ids=evidence_action_ids,
@@ -1994,53 +2511,383 @@ def run_online_policy_certificate(
         )
         online_oracle.fit_predictives_from_samples(reduced_evidence_samples)
         evidence_information = online_oracle.expected_information_by_action(draws=information_draws)
-        selected_actions.sort(
-            key=lambda item: (
-                -evidence_information[
-                    _online_evidence_channel("transition_contrast", item)
-                ],
-                item,
-            ),
-        )
-        remaining_actions = [
-            action_id for action_id in action_ids if action_id not in selected_actions
-        ]
-        remaining_actions.sort(
-            key=lambda item: (
-                -evidence_information[
-                    _online_evidence_channel("transition_contrast", item)
-                ],
-                item,
-            ),
-        )
-        relational_coverage_actions: list[str] = []
-        relational_coverage_report: dict[str, Any] = {
-            "required": False,
-            "declarations": {},
-            "selected_groups": {},
-            "selected_action_ids": [],
-        }
+        declaration_groups: dict[str, tuple[tuple[str, ...], ...]] = {}
         if relational_evidence_enabled:
             declaration_groups = _declared_relational_action_groups(
                 task_id=task_id,
                 contract=contract,
                 action_library=action_library,
             )
+        policy_selection_evidence_samples = evidence_samples
+        policy_selection_sample_source = "predictive_fit_same_cohort"
+        policy_selection_world_seeds: list[int] = []
+        if (
+            policy_set_selection
+            == ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT
+        ):
+            if selection_validation_namespace_start is None:
+                raise RuntimeError(
+                    "policy-selection validation namespace was not initialized"
+                )
+            policy_selection_world_seeds = [
+                selection_validation_namespace_start
+                + task_index * 1_000_000
+                + index
+                for index in range(selection_validation_sample_count)
+            ]
+            controlled_fit_world_seeds = {
+                int(fit_plan["nuisance_seed_namespace_start"])
+                + task_index * 1_000_000
+                + index
+                for index in range(sample_count)
+            }
+            certificate_world_seeds = {
+                int(certificate_plan["seed_namespace_start"])
+                + 100_000_000
+                + task_index * 1_000_000
+                + index
+                for index in range(world_seeds_per_family)
+            }
+            validation_seed_set = set(policy_selection_world_seeds)
+            overlapping_namespaces = {
+                "controlled_fit": validation_seed_set
+                & controlled_fit_world_seeds,
+                "online_predictive_fit": validation_seed_set
+                & set(fit_world_seeds),
+                "held_out_certificate": validation_seed_set
+                & certificate_world_seeds,
+            }
+            collisions = {
+                key: sorted(values)
+                for key, values in overlapping_namespaces.items()
+                if values
+            }
+            if collisions:
+                raise ValueError(
+                    "policy-selection validation worlds overlap another Gate A "
+                    f"cohort: {collisions}"
+                )
+            validation_keys, validation_jobs = _online_predictive_jobs(
+                task_id=task_id,
+                candidate_ids=candidate_ids,
+                action_ids=action_ids,
+                world_seeds=policy_selection_world_seeds,
+                interventions=contract["interventions"],
+                action_library=action_library,
+                cohort_label="online-policy-selection-validation",
+            )
+            _emit_gate_a_progress(
+                progress_callback,
+                event="online_policy_selection_validation_started",
+                task_id=task_id,
+                job_count=len(validation_jobs),
+            )
+            validation_results = _execute_jobs(
+                _sample_online_predictive_job,
+                validation_jobs,
+                workers=int(fit_plan.get("execution_workers", 1)),
+            )
+            _emit_gate_a_progress(
+                progress_callback,
+                event="online_policy_selection_validation_completed",
+                task_id=task_id,
+                job_count=len(validation_jobs),
+            )
             (
-                relational_coverage_actions,
-                relational_coverage_report,
-            ) = _select_relational_coverage_actions(
+                _validation_transition_samples,
+                _validation_stable_samples,
+                _validation_absolute_samples,
+                policy_selection_evidence_samples,
+            ) = _assemble_online_evidence_samples(
+                candidate_ids=candidate_ids,
+                action_ids=action_ids,
+                sample_keys=validation_keys,
+                sample_results=validation_results,
+                relational_evidence_enabled=relational_evidence_enabled,
+            )
+            policy_selection_sample_source = (
+                "independent_policy_selection_validation_cohort"
+            )
+        relational_coverage_report: dict[str, Any] = {
+            "required": False,
+            "declarations": {},
+            "selected_groups": {},
+            "selected_action_ids": [],
+        }
+        batch_candidate_recognition: dict[str, dict[str, float]] = {}
+        policy_set_selection_report: dict[str, Any]
+        policy_selection_validation_report: dict[str, Any] = {
+            "required": False,
+            "pass": True,
+        }
+        if (
+            policy_set_selection
+            == ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT
+        ):
+            eligible_batch_ids = (
+                _relationally_covered_batch_ids(
+                    batches=batches,
+                    declaration_groups=declaration_groups,
+                )
+                if relational_evidence_enabled
+                else sorted(batches)
+            )
+            eligible_information = {
+                batch_id: batch_information[batch_id]
+                for batch_id in eligible_batch_ids
+            }
+            information_maximum_batch_id, batch_information_diagnostics = (
+                _select_information_maximum(
+                    eligible_information,
+                    minimum_spread_nats=online_batch_information_minimum_spread,
+                    context=f"{task_id} online eligible policy batch",
+                )
+            )
+            predictive_lookup = _online_predictive_lookup(
+                online_oracle.export_predictives()
+            )
+            rollout_by_batch: dict[str, dict[str, Any]] = {}
+            batch_coverage_reports: dict[str, dict[str, Any]] = {}
+            for batch_id in eligible_batch_ids:
+                batch_policy_actions = _canonical_policy_cycle(
+                    canonical_action_ids=action_ids,
+                    ranked_action_ids=batches[batch_id],
+                    action_count=policy_action_count,
+                )
+                batch_coverage_report: dict[str, Any] = {
+                    "required": False,
+                    "declarations": {},
+                    "selected_groups": {},
+                    "selected_action_ids": [],
+                }
+                if relational_evidence_enabled:
+                    covered_declarations = {
+                        declaration_id: [
+                            group
+                            for group in groups
+                            if set(group).issubset(batch_policy_actions)
+                        ]
+                        for declaration_id, groups in declaration_groups.items()
+                    }
+                    if any(not groups for groups in covered_declarations.values()):
+                        raise RuntimeError(
+                            "eligible rollout batch lost declared relational coverage"
+                        )
+                    _, batch_coverage_report = (
+                        _select_relational_coverage_actions(
+                            canonical_action_ids=action_ids,
+                            declaration_groups=covered_declarations,
+                            evidence_information=evidence_information,
+                            action_count=policy_action_count,
+                        )
+                    )
+                batch_reference_priority = (
+                    _relational_reference_priorities(
+                        action_ids=batch_policy_actions,
+                        evidence_information=evidence_information,
+                    )
+                    if relational_evidence_enabled
+                    else {}
+                )
+                batch_declared_references = (
+                    _declared_relational_reference_actions(
+                        action_ids=batch_policy_actions,
+                        selected_groups=batch_coverage_report["selected_groups"],
+                        evidence_information=evidence_information,
+                    )
+                    if relational_evidence_enabled
+                    else {}
+                )
+                rollout_by_batch[batch_id] = (
+                    _online_policy_rollout_recognition_from_samples(
+                        candidate_ids=candidate_ids,
+                        policy_action_ids=batch_policy_actions,
+                        change_times=change_times,
+                        post_change_budget=online_gate_budget,
+                        hazard=hazard,
+                        evidence_samples=policy_selection_evidence_samples,
+                        predictives=predictive_lookup,
+                        feature_indices=feature_indices,
+                        likelihood_scale=online_likelihood_scale,
+                        relational_evidence_enabled=relational_evidence_enabled,
+                        relational_reference_priority=batch_reference_priority,
+                        declared_relational_reference_actions=(
+                            batch_declared_references
+                        ),
+                        declared_relational_reference_precedence=(
+                            declared_relational_reference_precedence
+                        ),
+                    )
+                )
+                batch_coverage_reports[batch_id] = batch_coverage_report
+            expanded_candidate_ids = [
+                label
+                for candidate_id in candidate_ids
+                for label in (
+                    f"{candidate_id}@all_change_times",
+                    *(
+                        f"{candidate_id}@{change_time}"
+                        for change_time in change_times
+                    ),
+                )
+            ]
+            (
+                selected_batch_id,
+                robust_selection_report,
+            ) = _select_robust_policy_batch(
+                information_nats=batch_information,
+                candidate_recall={
+                    batch_id: {
+                        **{
+                            f"{candidate_id}@all_change_times": recall
+                            for candidate_id, recall in rollout[
+                                "candidate_all_change_times_recall"
+                            ].items()
+                        },
+                        **rollout["candidate_change_time_recall"],
+                    }
+                    for batch_id, rollout in rollout_by_batch.items()
+                },
+                eligible_batch_ids=eligible_batch_ids,
+                candidate_ids=expanded_candidate_ids,
+                context=(
+                    f"{task_id} online independent-validation rollout "
+                    "policy batch"
+                ),
+            )
+            selected_actions = list(batches[selected_batch_id])
+            policy_actions = _canonical_policy_cycle(
                 canonical_action_ids=action_ids,
-                declaration_groups=declaration_groups,
-                evidence_information=evidence_information,
+                ranked_action_ids=selected_actions,
                 action_count=policy_action_count,
             )
-        policy_actions = _canonical_policy_cycle(
-            canonical_action_ids=action_ids,
-            ranked_action_ids=(
-                relational_coverage_actions + selected_actions + remaining_actions
-            ),
-            action_count=policy_action_count,
+            relational_coverage_report = batch_coverage_reports[
+                selected_batch_id
+            ]
+            if relational_evidence_enabled:
+                relational_coverage_report["policy_batch_id"] = selected_batch_id
+                relational_coverage_report["coverage_source"] = (
+                    "selected_joint_policy_batch"
+                )
+            batch_candidate_recognition = {
+                batch_id: rollout["candidate_recall"]
+                for batch_id, rollout in rollout_by_batch.items()
+            }
+            selected_rollout = rollout_by_batch[selected_batch_id]
+            family_lower_bounds = {
+                candidate_id: float(interval[0])
+                for candidate_id, interval in selected_rollout[
+                    "candidate_all_change_times_recall_interval"
+                ].items()
+            }
+            validation_pass = all(
+                lower_bound
+                >= selection_validation_family_lower_bound
+                for lower_bound in family_lower_bounds.values()
+            )
+            policy_selection_validation_report = {
+                "required": True,
+                "pass": validation_pass,
+                "sample_source": policy_selection_sample_source,
+                "world_seed_namespace_start": (
+                    selection_validation_namespace_start
+                ),
+                "worlds_per_candidate_action": (
+                    selection_validation_sample_count
+                ),
+                "held_out_certificate_outcomes_used": False,
+                "minimum_all_change_times_family_recall_wilson_lower_bound": (
+                    selection_validation_family_lower_bound
+                ),
+                "selected_batch_all_change_times_family_recall_lower_bounds": (
+                    family_lower_bounds
+                ),
+            }
+            policy_set_selection_report = {
+                "mode": policy_set_selection,
+                "selection_batch_size": selection_batch_size,
+                "sample_source": policy_selection_sample_source,
+                "selection_worlds_per_candidate_action": (
+                    selection_validation_sample_count
+                ),
+                "selection_robustness_units": (
+                    "candidate_all_change_times_world_cluster_and_"
+                    "candidate_change_time"
+                ),
+                "information_maximum_batch_id": information_maximum_batch_id,
+                **robust_selection_report,
+                "selected_rollout": selected_rollout,
+                "batch_rollout": rollout_by_batch,
+            }
+        else:
+            selected_batch_id, batch_information_diagnostics = (
+                _select_information_maximum(
+                    batch_information,
+                    minimum_spread_nats=online_batch_information_minimum_spread,
+                    context=f"{task_id} online batch",
+                )
+            )
+            selected_actions = list(batches[selected_batch_id])
+            selected_actions.sort(
+                key=lambda item: (
+                    -evidence_information[
+                        _online_evidence_channel("transition_contrast", item)
+                    ],
+                    item,
+                ),
+            )
+            remaining_actions = [
+                action_id for action_id in action_ids if action_id not in selected_actions
+            ]
+            remaining_actions.sort(
+                key=lambda item: (
+                    -evidence_information[
+                        _online_evidence_channel("transition_contrast", item)
+                    ],
+                    item,
+                ),
+            )
+            relational_coverage_actions: list[str] = []
+            if relational_evidence_enabled:
+                (
+                    relational_coverage_actions,
+                    relational_coverage_report,
+                ) = _select_relational_coverage_actions(
+                    canonical_action_ids=action_ids,
+                    declaration_groups=declaration_groups,
+                    evidence_information=evidence_information,
+                    action_count=policy_action_count,
+                )
+            policy_actions = _canonical_policy_cycle(
+                canonical_action_ids=action_ids,
+                ranked_action_ids=(
+                    relational_coverage_actions
+                    + selected_actions
+                    + remaining_actions
+                ),
+                action_count=policy_action_count,
+            )
+            policy_set_selection_report = {
+                "mode": policy_set_selection,
+                "selection_batch_size": selection_batch_size,
+                "candidate_recognition_draws_per_batch": None,
+                "selection_rule": (
+                    "information_ranked_reference_batch_then_declared_relational_"
+                    "coverage_then_single_action_information_fill"
+                ),
+                "selected_batch_id": selected_batch_id,
+            }
+        _emit_gate_a_progress(
+            progress_callback,
+            event="online_policy_set_selected",
+            task_id=task_id,
+            selection_mode=policy_set_selection,
+            selected_batch_id=selected_batch_id,
+            policy_action_ids=policy_actions,
+            validation_required=policy_selection_validation_report[
+                "required"
+            ],
+            validation_passed=policy_selection_validation_report["pass"],
         )
         relational_reference_priority = (
             _relational_reference_priorities(
@@ -2097,6 +2944,9 @@ def run_online_policy_certificate(
                             key: list(value) for key, value in feature_indices.items()
                         },
                         "relational_evidence_enabled": relational_evidence_enabled,
+                        "declared_relational_reference_precedence": (
+                            declared_relational_reference_precedence
+                        ),
                         "relational_reference_priority": relational_reference_priority,
                         "declared_relational_reference_actions": (
                             declared_relational_reference_actions
@@ -2142,11 +2992,16 @@ def run_online_policy_certificate(
             "candidate_ids": candidate_ids,
             "selected_reference_action_ids": selected_actions,
             "online_policy_action_ids": policy_actions,
-            "online_policy_action_set_selection": (
-                "predictive_fit_information_ranked_before_held_out_execution"
+            "online_policy_action_set_selection": policy_set_selection,
+            "policy_set_selection": policy_set_selection_report,
+            "policy_set_selection_validation": (
+                policy_selection_validation_report
             ),
             "online_policy_cycle_order": "canonical_frozen_action_library_order",
             "relational_evidence_enabled": relational_evidence_enabled,
+            "declared_relational_reference_precedence": (
+                declared_relational_reference_precedence
+            ),
             "relational_coverage": relational_coverage_report,
             "relational_reference_priority": relational_reference_priority,
             "declared_relational_reference_actions": (
@@ -2159,6 +3014,7 @@ def run_online_policy_certificate(
                 key: float(value) for key, value in batch_information.items()
             },
             "batch_information_diagnostics": batch_information_diagnostics,
+            "batch_candidate_recognition": batch_candidate_recognition,
             "single_action_information_nats": {
                 action_id: float(
                     evidence_information[
@@ -2203,12 +3059,22 @@ def run_online_policy_certificate(
     }
     certificate = certificates_by_budget[online_gate_budget]
     execution_binding = gate_a_execution_contract_binding(protocol, plan)
-    gate_pass = certificate["gate_pass"] is True
+    policy_selection_validation_pass = all(
+        task_report["policy_set_selection_validation"]["pass"] is True
+        for task_report in task_reports.values()
+    )
+    gate_pass = (
+        certificate["gate_pass"] is True
+        and policy_selection_validation_pass
+    )
     return {
         "schema_version": ONLINE_POLICY_CERTIFICATE_VERSION,
         "certificate_scope": "online_policy_feasible_diagnosis",
         "status": "passed" if gate_pass else "failed",
         "gate_pass": gate_pass,
+        "policy_set_selection_validation_pass": (
+            policy_selection_validation_pass
+        ),
         "formal_benchmark_result": False,
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": canonical_sha256(protocol),
@@ -2234,8 +3100,38 @@ def run_online_policy_certificate(
             "allowed_change_points_only": True,
             "reference_age_aware_likelihoods": True,
             "cross_action_relational_likelihoods": relational_evidence_enabled,
+            "declared_relational_reference_precedence": (
+                declared_relational_reference_precedence
+            ),
             "one_likelihood_channel_per_experiment": True,
             "information_ranking_batch_size": ranking_batch_size,
+            "policy_set_selection": policy_set_selection,
+            "policy_set_selection_batch_size": selection_batch_size,
+            "policy_set_selection_validation": {
+                "required": (
+                    policy_set_selection
+                    == ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT
+                ),
+                "sample_source": (
+                    "independent_policy_selection_validation_cohort"
+                    if policy_set_selection
+                    == ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT
+                    else None
+                ),
+                "worlds_per_candidate_action": (
+                    selection_validation_sample_count
+                    if policy_set_selection
+                    == ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT
+                    else None
+                ),
+                "minimum_all_change_times_family_recall_wilson_lower_bound": (
+                    selection_validation_family_lower_bound
+                    if policy_set_selection
+                    == ONLINE_POLICY_SET_SELECTION_VALIDATED_ROLLOUT
+                    else None
+                ),
+                "held_out_certificate_outcomes_used": False,
+            },
             "online_policy_action_count": policy_action_count,
             "post_change_experiment_budget_checkpoints": post_budgets,
             "online_policy_gate_budget": online_gate_budget,
