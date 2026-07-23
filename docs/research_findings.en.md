@@ -25,19 +25,28 @@ Outcome alone was therefore insufficient.
 A frozen Safe-GP confirmation improved all four objectives and passed safety/cost rules. The flow effect was 0.018752
 against a pre-registered practical threshold of 0.020000, so the all-task claim remained failed.
 
-## Finding 3: controlled identifiability passes; the online material family still fails
+## Finding 3: controlled identifiability passes; the fixed four-action online certificate does not
 
 Nine task–mode controls establish deterministic execution, local response separation, bounded response,
-conservation, and replay. At the preregistered four-experiment budget, the RC20 controlled matched oracle reaches
-235/240 (97.92%) and passes. The separately bound online-policy-feasible oracle reaches 227/240 (94.58%) overall,
-but the reaction catalyst-mapping counterfactual reaches only 22/30 and fails the per-family Wilson rule,
-so Gate A remains false. The `rate_law_family` reaches 29/30 in both certificates and is not the blocker. RC20 binds that family
-to the upstream primary target pathway through a pivot-normalized catalyst-activity-order stress while proving that
-crystallization constitutive parameters remain unchanged. This supports controlled identifiability, not Agent-level
-mechanism discovery, crystallization-kinetics discovery, or exact rate-parameter identification. These figures are
-the frozen historical RC20 result. The current source binding is invalidated pending RC21 recertification after the
-diagnostic-design contract was versioned. Non-formal development curves show a material-family plateau from four
-through twelve experiments, so the next decoder must represent cross-action relational evidence explicitly.
+conservation, and replay. At the preregistered four-experiment budget, the source-bound RC21 controlled matched
+oracle reaches 239/240 (99.58%) and passes. The separately bound online-policy-feasible oracle reaches 230/240
+(95.83%) overall, but the reaction `rate_law_family` reaches only 23/30, with a Wilson lower bound of 0.5907, so
+Gate A remains false. The same family reaches 30/30 in the controlled certificate; the reaction material family
+reaches 29/30 in both certificates.
+
+This family is an upstream, pivot-normalized catalyst-activity-order stress on the primary target pathway—not a
+crystal nucleation or growth rate law. The design audit proves that only the `target_formation` rate law changes
+and that crystallization constitutive parameters remain fixed. RC22-d then evaluated all eleven admissible
+four-action sets using disjoint fit, policy-selection-validation, and development-trial namespaces. Every set
+failed world-clustered selection validation; the best weakest-family result was 16/24. The selected set obtained
+20/20 for rate law, 20/20 for no change, 18/20 for topology, and 12/20 for material mapping in non-controlling
+development trials; all four electrochemical families obtained 20/20. RC22-d does not control Gate A and did not
+trigger a formal RC22 run. It localizes the remaining problem to a fixed four-action, single-reference,
+single-likelihood online decoder that cannot robustly combine temporal and cross-action relational evidence—not
+to physical non-identifiability of the reaction rate-law task.
+
+These results support environment-level identifiability diagnostics, not Agent-level mechanism discovery,
+crystallization-kinetics discovery, or exact rate-parameter identification.
 
 ## Finding 4: current RL evidence diagnoses contracts, not rankings
 

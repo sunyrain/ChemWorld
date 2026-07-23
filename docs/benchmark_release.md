@@ -72,19 +72,25 @@ benchmark 排名。
 
 这些控制本身不等于在相同动作、测量和实验预算下可以识别候选 family。机制 v0.2.1 修复了原电化学
 solvent 目标不可达问题；新的四 seed 设计审计确认 reaction catalyst、electrochemical solvent 和
-`electrolyte_profile` 反事实均具有决策相关性。RC20 进一步把反应速率律单元显式绑定为“上游目标生成
-路径的 pivot-normalized catalyst-activity-order stress”，并证明只有该反应速率律改变，结晶和其它
-构成参数保持不变。动作—干预设计审计全部通过。RC20 在全新平衡 held-out cohort 上完成了两张独立
-证书：预算 4 的 controlled matched oracle 为 235/240（97.92%）并通过；在线策略可行 oracle 总体为
-227/240（94.58%），但反应催化剂映射反事实仅识别 22/30，未满足逐 family Wilson 下界。
-Gate A 整体因此仍为 false。`rate_law_family` 在两份证书中均为 29/30，不是当前阻断项。
-以上数字是冻结的 RC20 历史结果；诊断设计合同版本化后，当前源码绑定已失效，等待 RC21 重新认证。
-开发诊断进一步表明，单纯把 post-change 预算从 4 增加到 8 或 12，或只补齐材料配对动作，都不能
-消除 material family 平台；下一证书必须显式建模跨动作关系证据。
+`electrolyte_profile` 反事实均具有决策相关性。反应速率律单元被显式绑定为“上游目标生成路径的
+pivot-normalized catalyst-activity-order stress”，并证明只有 `target_formation` 速率律改变，
+结晶和其它构成参数保持不变。动作—干预设计审计全部通过。
+
+当前源码绑定的 RC21 在全新平衡 held-out cohort 上完成了两张独立证书：预算 4 的 controlled matched
+oracle 为 239/240（99.58%）并通过；在线策略可行 oracle 总体为 230/240（95.83%），但反应
+`rate_law_family` 仅为 23/30，Wilson 下界 0.5907，未满足逐 family 规则。该 family 在受控证书中为
+30/30，反应 material family 在两份证书中均为 29/30，因此 Gate A 整体仍为 false。
+
+非控制性的 RC22-d 开发诊断使用相互独立的 fit、policy-selection validation 与 trial namespace，
+检查全部 11 个合规四动作集合。所有集合均未通过按 world 聚类的 validation，最佳最弱 family 为
+16/24；所选集合的实际开发结果为 rate-law 20/20、no-change 20/20、topology 18/20、material
+mapping 12/20，电化学四类均为 20/20。该结果没有启动或替代正式 RC22。它表明当前固定四动作、
+单 reference/单 likelihood decoder 尚不能稳定合并时间与跨动作关系证据；阻断项不是 rate-law
+物理任务本身，也不能仅靠重复同一固定周期或补齐材料配对来消除。
 
 **支持的结论**：ChemWorld 能执行和回放预注册隐藏规律变化；在冻结候选 family、公共动作、测量
-和四次 post-change 实验预算下，受控 oracle 能完成机制诊断。当前在线 oracle 总体准确率较高，
-但尚不能可靠诊断早期发生的反应催化剂映射变化。
+和四次 post-change 实验预算下，受控 oracle 能完成机制诊断。当前固定策略在线 oracle 总体准确率
+较高，但尚不能对所有 change-time 同时稳定区分 rate-law、topology 与 material mapping。
 
 **不支持的结论**：Gate A 是环境可识别性证书，不是被评 Agent 的能力结果。该反应单元也不是
 “结晶速率律发现”或精确动力学参数辨识。尚不能声称 Agent 会识别这些变化、恢复性能、迁移到未见

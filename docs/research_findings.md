@@ -26,17 +26,25 @@
 早期 Safe-GP 确证在四个任务上改善目标并满足安全/成本规则，但 flow effect 低于预注册实用阈值，
 所以整体主张仍然失败。ChemWorld 将这种边界失败保留为结果，而不是事后放宽阈值。
 
-## 发现三：受控可识别性通过，在线 material family 仍失败
+## 发现三：受控可识别性通过，固定四动作在线证书仍未通过
 
-当前 material、mechanism 与 constitutive-law counterfactual 均由隐藏世界执行。RC20 在预算 4 下的
-controlled matched certificate 为 235/240（97.92%）并通过；独立 online-policy-feasible certificate
-总体为 227/240（94.58%），但反应催化剂映射反事实仅识别 22/30，未满足逐 family Wilson 规则，
-因此 Gate A 总状态为 false。`rate_law_family` 在受控与在线证书中均为 29/30，不是当前阻断项。
-RC20 将该 family 绑定为上游目标生成路径的 pivot-normalized catalyst-activity-order stress，并验证
-结晶构成参数不变。该结果只支持受控条件下的可识别性，不证明被评 Agent 已具备机制发现能力，
-也不代表发现了结晶动力学或精确速率参数。以上数字是冻结的 RC20 历史结果；诊断设计合同版本化后，
-当前源码绑定已失效，等待 RC21 重新认证。非正式开发曲线显示 material family 在 4–12 步之间仍会
-平台，下一 decoder 需要显式使用跨动作关系证据。
+当前 material、mechanism 与 constitutive-law counterfactual 均由隐藏世界执行。源码绑定的 RC21
+正式结果在预算 4 下给出：controlled matched certificate 为 239/240（99.58%）并通过；独立
+online-policy-feasible certificate 为 230/240（95.83%），但反应 `rate_law_family` 仅识别
+23/30，其 Wilson 下界为 0.5907，因而 Gate A 仍为 false。同一 family 在受控证书中为 30/30；
+反应 material family 在受控与在线证书中均为 29/30。
+
+该 rate-law family 绑定的是上游目标生成路径的 pivot-normalized catalyst-activity-order stress，
+不是结晶成核或生长速率律；设计审计证明只有 `target_formation` 的速率律改变，结晶构成参数不变。
+RC22-d 又以独立 fit、policy-selection validation 和开发 trial namespace 检查了所有 11 个合规
+四动作集合。所有集合都未通过按 world 聚类的 selection validation；最佳集合的最弱 family 仅为
+16/24。所选集合在 20 worlds/family 的非控制性开发 trial 中得到：rate-law 20/20、no-change
+20/20、topology 18/20、material mapping 12/20；电化学四类均为 20/20。该开发结果不控制 Gate A，
+也没有触发 RC22 正式运行。它说明当前阻断来自固定四动作、单 reference/单 likelihood 在线 decoder
+不能同时稳定利用时间与跨动作关系证据，而不是反应 rate-law 物理任务不可识别。
+
+这些结果只支持环境级可识别性诊断，不证明被评 Agent 已具备机制发现能力，也不代表发现了结晶动力学
+或精确速率参数。
 
 ## 发现四：当前 RL 证据诊断的是合同，不是排名
 
