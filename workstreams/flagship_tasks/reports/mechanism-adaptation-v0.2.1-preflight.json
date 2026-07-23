@@ -3,7 +3,7 @@
     {
       "exists": true,
       "path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json",
-      "sha256": "87cc1a3b7f051e542c82cc13a43d91ca15cc70ebae927ab256a2e8a8b4cc0c55"
+      "sha256": "818f6d1b565a607bf92007d4a44bb2320a197aaa75a8bbbc7823376f837738cf"
     },
     {
       "exists": true,
@@ -13,7 +13,12 @@
     {
       "exists": true,
       "path": "src/chemworld/eval/mechanism_adaptation.py",
-      "sha256": "e6385d252c143e0794a0a45bf295f095a70aeae6ae18c6fb6b05582d84d11f7b"
+      "sha256": "8357ffa5d5b2233fda06e22b860194672c6801511324163349b8a24a2d534976"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/eval/mechanism_gate_decision.py",
+      "sha256": "9d6e36a64d620de370143289c454ec3b6bfaa44cf2bc1f04784b5c4b95121c42"
     },
     {
       "exists": true,
@@ -23,17 +28,17 @@
     {
       "exists": true,
       "path": "src/chemworld/eval/mechanism_adaptation_execution.py",
-      "sha256": "0e9981fad6fd087fe951445e64cbcd630257556d5936b7e3a15d420a35f2d91f"
+      "sha256": "32ee75ff9b6eb9d6cb689833ce2eb02718c483de9c336d27375038383b571f1b"
     },
     {
       "exists": true,
       "path": "scripts/audit_mechanism_adaptation_design.py",
-      "sha256": "d06a4bcef20c7cca9d2fb0bf26d0bdb102df476161a3d09aa3dd127e0329e4ff"
+      "sha256": "68d86eb75fa31596b5c5dd275be1fcd5e2a1af7e191936d04f21fb2fcab03904"
     },
     {
       "exists": true,
       "path": "scripts/run_mechanism_adaptation_v0_2.py",
-      "sha256": "0120b82c494cbab6935afb0240b625eecb05d96ef08a10421a3694a82da36af2"
+      "sha256": "8d75c3d682802df7fc9f35fcaf2244c2241059bf56567638bc5eb3066cc9e7f8"
     },
     {
       "exists": true,
@@ -43,26 +48,26 @@
     {
       "exists": true,
       "path": "tests/test_mechanism_adaptation.py",
-      "sha256": "3efda36fb6e7cae2c67b35dd4b02be827d085f081da4c0a68071759a4a0acda0"
+      "sha256": "78006000b12f7c57e9651eeba2c0f56eddc0988e27690b659ae08e207bf95de1"
     },
     {
       "exists": true,
       "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json",
-      "sha256": "a453d6ae7adf54bd2625de107326362d3e39df42ddfc08bdde3b7414e9e20b8d"
+      "sha256": "381a2b17d40bac951cc775e2813f33a607875300f359eb03b53d36dc04771838"
     },
     {
       "exists": true,
-      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc6.json",
-      "sha256": "b2579588c4dc995d242996807446d3364189d71bcd5d66397a789126054146fd"
+      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc7.json",
+      "sha256": "7c161f563846fed912d0dc671639674fca5e0e2b12724c9c40152663eb6313a1"
     }
   ],
   "design_validity_audit": {
     "check_count": 39,
     "failure_count": 0,
     "failures": [],
-    "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc6",
+    "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-23-freeze-rc7",
     "gate_a_plan_path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json",
-    "gate_a_plan_sha256": "4fdc14407d3be80cc2ab351e8bd84b72e4da34ef39e3330b7a23b49e77defc87",
+    "gate_a_plan_sha256": "791611d845d8624610f1191dc6cfbdca6238a26d4907750c178055994d81db4b",
     "interpretation": "A pass means each frozen hidden target is publicly manipulable, covered by the Gate A recipes, observable before termination, instantiable, and absent from the mechanism-Agent prompt. It does not establish identifiability.",
     "material_field_action_contract": {
       "catalyst": {
@@ -81,7 +86,7 @@
     "pass": true,
     "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-freeze-rc1",
     "protocol_path": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
-    "protocol_sha256": "3024b4a8bfcbb3f5f56a36fdf5278e0303f6c53c18b8a29aae1f3aa23f772590",
+    "protocol_sha256": "92bb8a70f1a6ab60f354749d04a7865bc8428b8641a8eddb1affa07fcfab9eed",
     "schema_version": "chemworld-mechanism-design-audit-0.2.1",
     "status": "passed",
     "task_reports": {
@@ -461,6 +466,25 @@
   "external_empirical_run_completed": false,
   "gate_evaluator_without_evidence": {
     "all_gates_pass": false,
+    "gate_a_certificate_decision": {
+      "controlled_matched_gate_pass": false,
+      "gate_a_pass": false,
+      "online_policy_feasible_certificate": {
+        "certificate_present": false,
+        "gate_pass": false,
+        "primary_gate_budget": 2,
+        "required": true,
+        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.1",
+        "status": "pending_execution"
+      },
+      "online_policy_feasible_gate_pass": false,
+      "required_certificates": [
+        "controlled_matched_identifiability",
+        "online_policy_feasible_diagnosis"
+      ],
+      "schema_version": "chemworld-mechanism-adaptation-gate-a-decision-0.1",
+      "status": "gate_a_failed_controlled_matched_certificate"
+    },
     "gates": {
       "gate_0": false,
       "gate_a": false,
@@ -476,8 +500,7 @@
       "gate_c",
       "gate_d",
       "gate_e"
-    ],
-    "publication_ready": false
+    ]
   },
   "implementation_complete": true,
   "interpretation": "There are no unresolved method-freeze choices when blocker_count is zero. The remaining work is execution of the frozen external multi-seed/provider matrix, not an unmade protocol decision.",
@@ -485,7 +508,7 @@
   "method_freeze_decision_blockers": [],
   "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-freeze-rc1",
   "protocol_path": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
-  "protocol_sha256": "4476f1b926b6ce2686e063edde2357b154e8554527e8ebf3ef99eeef1d04d074",
+  "protocol_sha256": "a2a93ae885b9a7830554c8d67d291791998a63f4b09bf0321d60a36092667eeb",
   "publication_ready": false,
   "schema_version": "chemworld-mechanism-adaptation-preflight-0.2",
   "status": "protocol_complete_empirical_execution_pending"
