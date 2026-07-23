@@ -1,950 +1,308 @@
-"""Compact physical-chemistry primitives for ChemWorld world-law modules."""
+# ruff: noqa: SIM905 -- compact declarative lazy-export table
+"""Lazy public facade for ChemWorld physical-chemistry primitives.
 
-from chemworld.physchem.chromatography_methods import (
-    ChromatographyMethodReport,
-    DetectorResponseCalibrationResult,
-    EmpiricalChromatographyAnalyteSpec,
-    evaluate_chromatography_method,
-    fit_detector_response_calibration,
-    gc_linear_retention_index,
-    peak_shape_status,
-)
-from chemworld.physchem.component_registry import (
-    COMPONENT_REGISTRY_SCHEMA_VERSION,
-    ComponentIdentityRegistry,
-    curated_component_registry,
-)
-from chemworld.physchem.crystallization_units import (
-    CoolingCrystallizationResult,
-    CrystallizationKineticsSpec,
-    CrystallizationStepReport,
-    CrystalSizeDistribution,
-    SolubilityCurveSpec,
-    cooling_crystallization,
-)
-from chemworld.physchem.curated_properties import (
-    CuratedPropertyCase,
-    curated_components,
-    curated_property_case_map,
-    curated_property_cases,
-    curated_property_correlations,
-    curated_property_package,
-    list_curated_property_packages,
-)
-from chemworld.physchem.curated_property_cards import curated_property_model_cards
-from chemworld.physchem.data_conflicts import (
-    DATA_PROVENANCE_CARD_SCHEMA_VERSION,
-    ComponentDataConflictReport,
-    DataConflictFinding,
-    DatasetProvenanceCard,
-    DataSourceProvenance,
-    audit_component_data_conflicts,
-    build_dataset_provenance_card,
-)
-from chemworld.physchem.data_foundation_cards import data_foundation_model_cards
-from chemworld.physchem.electrochem_control import (
-    ControlOperationLog,
-    ControlTracePoint,
-    ElectrochemicalControlExecution,
-    ElectrochemicalControlLimits,
-    ElectrochemicalControlRecipe,
-    ElectrochemicalControlSegment,
-    execute_electrochemical_control_recipe,
-    verify_electrochemical_control_replay,
-)
-from chemworld.physchem.electrochem_double_layer import (
-    DoubleLayerRCSpec,
-    DoubleLayerTracePoint,
-    DoubleLayerTransientResult,
-    simulate_double_layer_current_step,
-    simulate_double_layer_potential_step,
-)
-from chemworld.physchem.electrochem_transport import (
-    DiffusionLayerSpec,
-    MassTransferLimitedCurrentResult,
-    diffusion_layer_current_response,
-)
-from chemworld.physchem.electrochemical_scenarios import (
-    ElectrochemicalHiddenParameters,
-    ElectrochemicalModelBundle,
-    ElectrochemicalScenarioCard,
-    ElectrochemicalScenarioInstance,
-    HiddenParameterRange,
-    RedoxMetadata,
-    SideReactionAssessment,
-    assess_side_reaction_thresholds,
-    electrochemical_scenario_cards,
-    generate_electrochemical_scenario,
-)
-from chemworld.physchem.electrochemistry import (
-    FARADAY_C_PER_MOL,
-    ElectrodeReactionSpec,
-    ElectrolysisResult,
-    ElectrolyteResistanceSpec,
-    OhmicDropResult,
-    butler_volmer_current,
-    electrolyte_resistance_ohm,
-    equilibrium_potential_from_delta_g,
-    faradaic_extent_mol,
-    nernst_potential,
-    ohmic_drop,
-    reaction_quotient_from_activities,
-    reaction_quotient_log_from_activities,
-    run_electrolysis,
-)
-from chemworld.physchem.electrochemistry_cards import electrochemistry_model_cards
-from chemworld.physchem.elements import (
-    ElementSpec,
-    atom_fractions,
-    element_matrix,
-    hill_formula,
-    mass_fractions_from_formula,
-    molecular_weight,
-    parse_formula,
-)
-from chemworld.physchem.eos import (
-    BinaryInteractionProvenance,
-    CubicEOSSpec,
-    CubicPureParameters,
-    CubicResidualProperties,
-    EOSComponentSpec,
-    EOSMixtureParameters,
-    EOSState,
-    RootCandidateDiagnostic,
-    RootGovernanceReport,
-    VolumeTranslationReport,
-    VolumeTranslationSpec,
-    binary_interaction_provenance_map,
-    cubic_ab,
-    cubic_compressibility_roots,
-    cubic_departure_log_argument,
-    cubic_fugacity_coefficients,
-    cubic_mixture_parameters,
-    cubic_pure_parameters,
-    cubic_residual_properties,
-    cubic_root_governance_report,
-    cubic_root_selection_policy,
-    evaluate_cubic_eos,
-    evaluate_volume_translated_cubic_eos,
-    ideal_gas_molar_volume,
-    ideal_gas_pressure,
-    ideal_gas_state,
-    mixture_volume_translation,
-    select_cubic_root,
-    translated_cubic_compressibility_roots,
-    validate_binary_interaction_provenance,
-)
-from chemworld.physchem.eos_cards import eos_model_cards
-from chemworld.physchem.equilibrium import (
-    ActivityModelSpec,
-    AzeotropeScanPoint,
-    AzeotropeScanStatus,
-    BinaryAzeotropeDiagnosticReport,
-    FlashResult,
-    GammaPhiKValueReport,
-    LLEPhaseStabilityDiagnostic,
-    LLEStageResult,
-    RachfordRiceDiagnosticReport,
-    UNIQUACActivityReport,
-    VLETemperatureReport,
-    activity_coefficients,
-    binary_azeotrope_diagnostic_report,
-    bubble_pressure_pa,
-    bubble_temperature_report,
-    dew_pressure_pa,
-    dew_temperature_report,
-    flash_isothermal,
-    gamma_phi_k_value_report,
-    liquid_liquid_split,
-    lle_phase_stability_diagnostic,
-    rachford_rice_diagnostic_report,
-    rachford_rice_vapor_fraction,
-    raoult_k_values,
-    uniquac_activity_report,
-)
-from chemworld.physchem.equilibrium_cards import activity_model_cards
-from chemworld.physchem.equilibrium_chemistry import (
-    AcidBaseResult,
-    ChargeBalanceResult,
-    EquilibriumReactionSpec,
-    EquilibriumResult,
-    EquilibriumSystemSpec,
-    GibbsMinimizationDiagnostic,
-    GibbsMinimizationResult,
-    GibbsMinimizationSpec,
-    GibbsSpeciesSpec,
-    PHObservationResult,
-    PrecipitationHookResult,
-    PrecipitationResult,
-    SolubilityProductSpec,
-    apply_precipitation_hooks,
-    aqueous_ph_observation,
-    balance_charge_by_adjusting_ion,
-    diagnose_gibbs_minimization,
-    equilibrium_constant_vant_hoff,
-    ionic_strength,
-    ionic_strength_from_amounts,
-    net_charge_equivalents,
-    precipitate_if_supersaturated,
-    reaction_extent_bounds,
-    reaction_quotient,
-    reaction_quotient_log,
-    solid_solubility_mole_fraction,
-    solve_gibbs_minimization,
-    solve_mass_action_equilibrium,
-    solve_monoprotic_acid_base,
-    solve_reaction_extent,
-    water_ion_product,
-)
-from chemworld.physchem.equilibrium_chemistry_cards import equilibrium_chemistry_model_cards
-from chemworld.physchem.equipment_spec_cards import equipment_spec_model_cards
-from chemworld.physchem.equipment_specs import (
-    EquipmentCardSpec,
-    EquipmentConstraintCheck,
-    EquipmentConstraintReport,
-    EquipmentConstraintSpec,
-    column_equipment_card,
-    condenser_equipment_card,
-    evaluate_equipment_constraints,
-    heat_exchanger_equipment_card,
-    mixer_equipment_card,
-    pump_equipment_card,
-    vessel_equipment_card,
-)
-from chemworld.physchem.extraction_units import (
-    DistributionCoefficientModelSpec,
-    ExtractionStageReport,
-    ExtractionTrainResult,
-    activity_corrected_extraction_train,
-)
-from chemworld.physchem.flash_cards import flash_unit_model_cards
-from chemworld.physchem.flash_units import TPFlashUnitResult, tp_flash_with_energy_balance
-from chemworld.physchem.heat_transfer_units import (
-    EquipmentHeatTransferResult,
-    FoulingEvolutionSpec,
-    HeatTransferEquipmentSpec,
-    PhaseChangeBoundarySpec,
-    equipment_heat_transfer,
-)
-from chemworld.physchem.mass_spectrometry import (
-    FragmentIonResult,
-    FragmentIonSpec,
-    IsotopeEnvelopePeak,
-    MassSpectrumAnalyteSpec,
-    MassSpectrumReport,
-    isotope_envelope,
-    simulate_mass_spectrum,
-)
-from chemworld.physchem.maturity import (
-    MaturityLevel,
-    ModelCard,
-    ModelCardTemplate,
-    ModuleMaturity,
-    TaskMaturitySpec,
-    ValidationEvidence,
-    model_card_template_map,
-    model_card_templates,
-    validate_model_card,
-    validate_task_maturity_policy,
-)
-from chemworld.physchem.mechanism_library import (
-    MECHANISM_SCENARIO_SCHEMA_VERSION,
-    MechanismLibraryValidationReport,
-    MechanismScenarioCard,
-    get_mechanism_card,
-    list_mechanism_cards,
-    list_mechanism_paths,
-    load_library_mechanism,
-    mechanism_library_root,
-    mechanism_scenario_library_path,
-    repository_root,
-    validate_mechanism_library,
-)
-from chemworld.physchem.nmr import (
-    NMRStickLine,
-    ProtonNMRMethodSpec,
-    ProtonNMRReport,
-    ProtonNMRSignalResult,
-    ProtonNMRSignalSpec,
-    simulate_proton_nmr,
-)
-from chemworld.physchem.properties import (
-    STANDARD_PRESSURE_PA,
-    ComponentPropertyPackage,
-    MixtureEnthalpyLedger,
-    MixtureTransportLedger,
-    MixtureVolumeLedger,
-    MolarVolumeReport,
-    PhaseEnthalpyReport,
-    PhaseTransitionSpec,
-    PropertyEvaluation,
-    PureSaturationReport,
-    TransportPropertyReport,
-    VaporPressureReport,
-    binary_gas_diffusivity_fuller_report,
-    density_to_molar_volume_m3_mol,
-    evaluate_correlation,
-    gas_mixture_effective_diffusivity_ledger,
-    gas_thermal_conductivity_dippr9b_report,
-    heat_capacity_report,
-    ideal_gas_molar_volume_report,
-    liquid_mixture_thermal_conductivity_dippr9h_ledger,
-    mixture_density,
-    mixture_enthalpy_ledger,
-    mixture_molar_volume_ledger,
-    mixture_viscosity_log_rule,
-    molar_volume_report,
-    molar_volume_to_density_kg_m3,
-    normal_boiling_point_report,
-    phase_path_enthalpy_report,
-    phase_sensible_enthalpy_report,
-    phase_transition_enthalpy,
-    pure_saturation_pressure_report,
-    pure_saturation_temperature_report,
-    second_virial_coefficient_report,
-    sensible_enthalpy_change,
-    thermal_diffusivity_report,
-    thermal_hazard_proxy,
-    transport_property_report,
-    vapor_pressure_report,
-    vapor_pressure_temperature_derivative,
-    virial_gas_molar_volume_report,
-    volatility_risk_from_psat,
-    wilke_gas_mixture_viscosity_ledger,
-)
-from chemworld.physchem.property_cards import property_correlation_model_cards
-from chemworld.physchem.reaction_network import (
-    R_J_PER_MOL_K,
-    BatchIntegrationResult,
-    RateLawSpec,
-    ReactionNetworkSpec,
-    ReactionODEReferenceCase,
-    ReactionODEReferenceResult,
-    ReactionSensitivityEntry,
-    ReactionSensitivityReport,
-    ReactionSpec,
-    SpeciesSpec,
-    ThermochemicalDetailedBalanceResult,
-    cantera_comparable_reaction_cases,
-    effective_third_body_concentration,
-    evaluate_rate_law,
-    evaluate_reaction_ode_reference_case,
-    falloff_reduced_pressure,
-    finite_difference_reaction_sensitivities,
-    integrate_reaction_ode_reference_case,
-    kinetic_sensitivity_parameter_candidates,
-    lindemann_falloff_rate_constant,
-    load_mechanism,
-    parse_reaction_equation,
-    perturb_network_parameters,
-    prefixed_arrhenius_params,
-    reverse_rate_constant_from_equilibrium,
-    thermochemical_concentration_equilibrium_constant,
-    thermochemical_detailed_balance,
-    third_body_efficiencies,
-    troe_broadening_factor,
-    troe_falloff_rate_constant,
-)
-from chemworld.physchem.reaction_network_cards import reaction_kinetics_model_cards
-from chemworld.physchem.reactor_cards import reactor_model_cards
-from chemworld.physchem.reactors import (
-    BatchReactorModel,
-    CSTRFlowProgram,
-    CSTRModel,
-    CSTRMultiplicityResult,
-    CSTRMultiplicitySpec,
-    CSTRSteadyStatePoint,
-    DynamicBatchReactorModel,
-    FeedStreamSpec,
-    HeatTransferSpec,
-    JacketTemperatureProgram,
-    PFRGeometrySpec,
-    PFRModel,
-    ReactorResult,
-    ReactorState,
-    SamplingEventSpec,
-    SemiBatchFeedSpec,
-    SemiBatchReactorModel,
-    cstr_multiple_steady_state_reference_case,
-    solve_cstr_multiple_steady_states,
-)
-from chemworld.physchem.reference_validation import (
-    ReferenceBackendSpec,
-    ReferenceBackendStatus,
-    ReferenceComparison,
-    ReferenceToleranceProfile,
-    ReferenceValidationReport,
-    compare_scalar,
-    import_reference_module,
-    reference_backend_context,
-    reference_backend_specs,
-    reference_backend_status,
-    reference_repo_paths,
-    reference_repo_roots,
-    reference_repos_root,
-    reference_tolerance_profiles,
-    reference_validation_report,
-    skipped_reference_backends,
-    summarize_reference_comparisons,
-    write_reference_validation_report,
-)
-from chemworld.physchem.safety_cards import safety_envelope_model_cards
-from chemworld.physchem.safety_envelope import (
-    RunawayStateInput,
-    SafetyEnvelopeAssessment,
-    SafetyEnvelopeSpec,
-    arrhenius_heat_generation_slope,
-    assess_safety_envelope,
-)
-from chemworld.physchem.separation_cards import separation_model_cards
-from chemworld.physchem.separations import (
-    FUGDistillationReport,
-    FUGDistillationSpec,
-    SeparationLedger,
-    SeparationResult,
-    crystallize,
-    downstream_score,
-    dry_solid,
-    evaporation_flash,
-    fenske_minimum_stages,
-    fenske_underwood_gilliland_sizing,
-    filter_cake,
-    gilliland_eduljee_stage_estimate,
-    liquid_liquid_extraction,
-    underwood_minimum_reflux_binary,
-    vle_shortcut_distillation,
-)
-from chemworld.physchem.specs import (
-    ComponentConflictPolicy,
-    ComponentConflictResolution,
-    ComponentFieldCandidate,
-    ComponentProvenance,
-    ComponentSpec,
-    ComponentUncertainty,
-    MixtureSpec,
-    PropertyCorrelation,
-    component_alias_index,
-    mass_fractions_from_mole_fractions,
-    mole_fractions_from_mass_fractions,
-    normalize_component_token,
-    property_equation_contracts,
-    resolve_component_field_conflict,
-    resolve_component_identifier,
-    supported_property_equations,
-)
-from chemworld.physchem.spectroscopy import (
-    BeerLambertBandSpec,
-    BeerLambertCalibrationResult,
-    CalibrationCurve,
-    ChromatographyCalibrationResult,
-    ChromatographyMethodSpec,
-    InstrumentSignalSpec,
-    IRBandAssignmentReport,
-    IRFunctionalGroupBandSpec,
-    SpectralFeatureSpec,
-    SpectralMeasurement,
-    assign_ir_functional_group_bands,
-    beer_lambert_absorbance,
-    build_signal_spec,
-    build_signal_spec_from_card,
-    chromatographic_baseline_peak_width,
-    chromatographic_resolution,
-    chromatographic_retention_factor,
-    chromatographic_retention_time,
-    chromatographic_theoretical_plates,
-    default_feature_specs,
-    detect_peak_overlap,
-    fit_beer_lambert_calibration,
-    fit_chromatography_calibration,
-    generate_beer_lambert_calibration,
-    synthesize_signal,
-    synthesize_signal_from_card,
-)
-from chemworld.physchem.spectroscopy_cards import spectroscopy_model_cards
-from chemworld.physchem.thermochemistry import (
-    NASA7SpeciesThermo,
-    NASA7TemperatureSegment,
-    ReactionThermoResult,
-    SpeciesThermoState,
-    equilibrium_constant_from_delta_g,
-    reaction_thermochemistry,
-)
-from chemworld.physchem.thermochemistry_cards import thermochemistry_model_cards
-from chemworld.physchem.transport import (
-    FlowResult,
-    FluidState,
-    FrictionFactorResult,
-    HeatExchangerResult,
-    HeatTransferResult,
-    NusseltCorrelationResult,
-    PackedBedResult,
-    PipeSpec,
-    TwoPhasePressureDropResult,
-    counterflow_effectiveness,
-    darcy_friction_factor,
-    darcy_friction_factor_details,
-    flow_regime,
-    heat_exchanger_counterflow,
-    homogeneous_two_phase_pressure_drop,
-    internal_heat_transfer_coefficient,
-    jacket_heat_transfer,
-    mixing_power,
-    nusselt_internal_flow,
-    nusselt_internal_flow_details,
-    overall_heat_transfer_coefficient,
-    packed_bed_pressure_drop_ergun,
-    peclet_heat_number,
-    pipe_pressure_drop,
-    prandtl_number,
-    pump_work,
-    reynolds_number,
-)
-from chemworld.physchem.transport_cards import transport_model_cards
-from chemworld.physchem.two_phase_flow import (
-    LockhartMartinelliPressureDropResult,
-    lockhart_martinelli_pressure_drop,
-)
+Concrete implementations live in focused submodules. Public symbols are
+resolved on first access so importing :mod:`chemworld.physchem` does not
+eagerly initialize every model family and optional reference dependency.
+"""
 
-__all__ = [
-    "COMPONENT_REGISTRY_SCHEMA_VERSION",
-    "DATA_PROVENANCE_CARD_SCHEMA_VERSION",
-    "FARADAY_C_PER_MOL",
-    "MECHANISM_SCENARIO_SCHEMA_VERSION",
-    "R_J_PER_MOL_K",
-    "STANDARD_PRESSURE_PA",
-    "AcidBaseResult",
-    "ActivityModelSpec",
-    "AzeotropeScanPoint",
-    "AzeotropeScanStatus",
-    "BatchIntegrationResult",
-    "BatchReactorModel",
-    "BeerLambertBandSpec",
-    "BeerLambertCalibrationResult",
-    "BinaryAzeotropeDiagnosticReport",
-    "BinaryInteractionProvenance",
-    "CSTRFlowProgram",
-    "CSTRModel",
-    "CSTRMultiplicityResult",
-    "CSTRMultiplicitySpec",
-    "CSTRSteadyStatePoint",
-    "CalibrationCurve",
-    "ChargeBalanceResult",
-    "ChromatographyCalibrationResult",
-    "ChromatographyMethodReport",
-    "ChromatographyMethodSpec",
-    "ComponentConflictPolicy",
-    "ComponentConflictResolution",
-    "ComponentDataConflictReport",
-    "ComponentFieldCandidate",
-    "ComponentIdentityRegistry",
-    "ComponentPropertyPackage",
-    "ComponentProvenance",
-    "ComponentSpec",
-    "ComponentUncertainty",
-    "ControlOperationLog",
-    "ControlTracePoint",
-    "CoolingCrystallizationResult",
-    "CrystalSizeDistribution",
-    "CrystallizationKineticsSpec",
-    "CrystallizationStepReport",
-    "CubicEOSSpec",
-    "CubicPureParameters",
-    "CubicResidualProperties",
-    "CuratedPropertyCase",
-    "DataConflictFinding",
-    "DataSourceProvenance",
-    "DatasetProvenanceCard",
-    "DetectorResponseCalibrationResult",
-    "DiffusionLayerSpec",
-    "DistributionCoefficientModelSpec",
-    "DoubleLayerRCSpec",
-    "DoubleLayerTracePoint",
-    "DoubleLayerTransientResult",
-    "DynamicBatchReactorModel",
-    "EOSComponentSpec",
-    "EOSMixtureParameters",
-    "EOSState",
-    "ElectrochemicalControlExecution",
-    "ElectrochemicalControlLimits",
-    "ElectrochemicalControlRecipe",
-    "ElectrochemicalControlSegment",
-    "ElectrochemicalHiddenParameters",
-    "ElectrochemicalModelBundle",
-    "ElectrochemicalScenarioCard",
-    "ElectrochemicalScenarioInstance",
-    "ElectrodeReactionSpec",
-    "ElectrolysisResult",
-    "ElectrolyteResistanceSpec",
-    "ElementSpec",
-    "EmpiricalChromatographyAnalyteSpec",
-    "EquilibriumReactionSpec",
-    "EquilibriumResult",
-    "EquilibriumSystemSpec",
-    "EquipmentCardSpec",
-    "EquipmentConstraintCheck",
-    "EquipmentConstraintReport",
-    "EquipmentConstraintSpec",
-    "EquipmentHeatTransferResult",
-    "ExtractionStageReport",
-    "ExtractionTrainResult",
-    "FUGDistillationReport",
-    "FUGDistillationSpec",
-    "FeedStreamSpec",
-    "FlashResult",
-    "FlowResult",
-    "FluidState",
-    "FoulingEvolutionSpec",
-    "FragmentIonResult",
-    "FragmentIonSpec",
-    "FrictionFactorResult",
-    "GammaPhiKValueReport",
-    "GibbsMinimizationDiagnostic",
-    "GibbsMinimizationResult",
-    "GibbsMinimizationSpec",
-    "GibbsSpeciesSpec",
-    "HeatExchangerResult",
-    "HeatTransferEquipmentSpec",
-    "HeatTransferResult",
-    "HeatTransferSpec",
-    "HiddenParameterRange",
-    "IRBandAssignmentReport",
-    "IRFunctionalGroupBandSpec",
-    "InstrumentSignalSpec",
-    "IsotopeEnvelopePeak",
-    "JacketTemperatureProgram",
-    "LLEPhaseStabilityDiagnostic",
-    "LLEStageResult",
-    "LockhartMartinelliPressureDropResult",
-    "MassSpectrumAnalyteSpec",
-    "MassSpectrumReport",
-    "MassTransferLimitedCurrentResult",
-    "MaturityLevel",
-    "MechanismLibraryValidationReport",
-    "MechanismScenarioCard",
-    "MixtureEnthalpyLedger",
-    "MixtureSpec",
-    "MixtureTransportLedger",
-    "MixtureVolumeLedger",
-    "ModelCard",
-    "ModelCardTemplate",
-    "ModuleMaturity",
-    "MolarVolumeReport",
-    "NASA7SpeciesThermo",
-    "NASA7TemperatureSegment",
-    "NMRStickLine",
-    "NusseltCorrelationResult",
-    "OhmicDropResult",
-    "PFRGeometrySpec",
-    "PFRModel",
-    "PHObservationResult",
-    "PackedBedResult",
-    "PhaseChangeBoundarySpec",
-    "PhaseEnthalpyReport",
-    "PhaseTransitionSpec",
-    "PipeSpec",
-    "PrecipitationHookResult",
-    "PrecipitationResult",
-    "PropertyCorrelation",
-    "PropertyEvaluation",
-    "ProtonNMRMethodSpec",
-    "ProtonNMRReport",
-    "ProtonNMRSignalResult",
-    "ProtonNMRSignalSpec",
-    "PureSaturationReport",
-    "RachfordRiceDiagnosticReport",
-    "RateLawSpec",
-    "ReactionNetworkSpec",
-    "ReactionODEReferenceCase",
-    "ReactionODEReferenceResult",
-    "ReactionSensitivityEntry",
-    "ReactionSensitivityReport",
-    "ReactionSpec",
-    "ReactionThermoResult",
-    "ReactorResult",
-    "ReactorState",
-    "RedoxMetadata",
-    "ReferenceBackendSpec",
-    "ReferenceBackendStatus",
-    "ReferenceComparison",
-    "ReferenceToleranceProfile",
-    "ReferenceValidationReport",
-    "RootCandidateDiagnostic",
-    "RootGovernanceReport",
-    "RunawayStateInput",
-    "SafetyEnvelopeAssessment",
-    "SafetyEnvelopeSpec",
-    "SamplingEventSpec",
-    "SemiBatchFeedSpec",
-    "SemiBatchReactorModel",
-    "SeparationLedger",
-    "SeparationResult",
-    "SideReactionAssessment",
-    "SolubilityCurveSpec",
-    "SolubilityProductSpec",
-    "SpeciesSpec",
-    "SpeciesThermoState",
-    "SpectralFeatureSpec",
-    "SpectralMeasurement",
-    "TPFlashUnitResult",
-    "TaskMaturitySpec",
-    "ThermochemicalDetailedBalanceResult",
-    "TransportPropertyReport",
-    "TwoPhasePressureDropResult",
-    "UNIQUACActivityReport",
-    "VLETemperatureReport",
-    "ValidationEvidence",
-    "VaporPressureReport",
-    "VolumeTranslationReport",
-    "VolumeTranslationSpec",
-    "activity_coefficients",
-    "activity_corrected_extraction_train",
-    "activity_model_cards",
-    "apply_precipitation_hooks",
-    "aqueous_ph_observation",
-    "arrhenius_heat_generation_slope",
-    "assess_safety_envelope",
-    "assess_side_reaction_thresholds",
-    "assign_ir_functional_group_bands",
-    "atom_fractions",
-    "audit_component_data_conflicts",
-    "balance_charge_by_adjusting_ion",
-    "beer_lambert_absorbance",
-    "binary_azeotrope_diagnostic_report",
-    "binary_gas_diffusivity_fuller_report",
-    "binary_interaction_provenance_map",
-    "bubble_pressure_pa",
-    "bubble_temperature_report",
-    "build_dataset_provenance_card",
-    "build_signal_spec",
-    "build_signal_spec_from_card",
-    "butler_volmer_current",
-    "cantera_comparable_reaction_cases",
-    "chromatographic_baseline_peak_width",
-    "chromatographic_resolution",
-    "chromatographic_retention_factor",
-    "chromatographic_retention_time",
-    "chromatographic_theoretical_plates",
-    "column_equipment_card",
-    "compare_scalar",
-    "component_alias_index",
-    "condenser_equipment_card",
-    "cooling_crystallization",
-    "counterflow_effectiveness",
-    "crystallize",
-    "cstr_multiple_steady_state_reference_case",
-    "cubic_ab",
-    "cubic_compressibility_roots",
-    "cubic_departure_log_argument",
-    "cubic_fugacity_coefficients",
-    "cubic_mixture_parameters",
-    "cubic_pure_parameters",
-    "cubic_residual_properties",
-    "cubic_root_governance_report",
-    "cubic_root_selection_policy",
-    "curated_component_registry",
-    "curated_components",
-    "curated_property_case_map",
-    "curated_property_cases",
-    "curated_property_correlations",
-    "curated_property_model_cards",
-    "curated_property_package",
-    "darcy_friction_factor",
-    "darcy_friction_factor_details",
-    "data_foundation_model_cards",
-    "default_feature_specs",
-    "density_to_molar_volume_m3_mol",
-    "detect_peak_overlap",
-    "dew_pressure_pa",
-    "dew_temperature_report",
-    "diagnose_gibbs_minimization",
-    "diffusion_layer_current_response",
-    "downstream_score",
-    "dry_solid",
-    "effective_third_body_concentration",
-    "electrochemical_scenario_cards",
-    "electrochemistry_model_cards",
-    "electrolyte_resistance_ohm",
-    "element_matrix",
-    "eos_model_cards",
-    "equilibrium_chemistry_model_cards",
-    "equilibrium_constant_from_delta_g",
-    "equilibrium_constant_vant_hoff",
-    "equilibrium_potential_from_delta_g",
-    "equipment_heat_transfer",
-    "equipment_spec_model_cards",
-    "evaluate_chromatography_method",
-    "evaluate_correlation",
-    "evaluate_cubic_eos",
-    "evaluate_equipment_constraints",
-    "evaluate_rate_law",
-    "evaluate_reaction_ode_reference_case",
-    "evaluate_volume_translated_cubic_eos",
-    "evaporation_flash",
-    "execute_electrochemical_control_recipe",
-    "falloff_reduced_pressure",
-    "faradaic_extent_mol",
-    "fenske_minimum_stages",
-    "fenske_underwood_gilliland_sizing",
-    "filter_cake",
-    "finite_difference_reaction_sensitivities",
-    "fit_beer_lambert_calibration",
-    "fit_chromatography_calibration",
-    "fit_detector_response_calibration",
-    "flash_isothermal",
-    "flash_unit_model_cards",
-    "flow_regime",
-    "gamma_phi_k_value_report",
-    "gas_mixture_effective_diffusivity_ledger",
-    "gas_thermal_conductivity_dippr9b_report",
-    "gc_linear_retention_index",
-    "generate_beer_lambert_calibration",
-    "generate_electrochemical_scenario",
-    "get_mechanism_card",
-    "gilliland_eduljee_stage_estimate",
-    "heat_capacity_report",
-    "heat_exchanger_counterflow",
-    "heat_exchanger_equipment_card",
-    "hill_formula",
-    "homogeneous_two_phase_pressure_drop",
-    "ideal_gas_molar_volume",
-    "ideal_gas_molar_volume_report",
-    "ideal_gas_pressure",
-    "ideal_gas_state",
-    "import_reference_module",
-    "integrate_reaction_ode_reference_case",
-    "internal_heat_transfer_coefficient",
-    "ionic_strength",
-    "ionic_strength_from_amounts",
-    "isotope_envelope",
-    "jacket_heat_transfer",
-    "kinetic_sensitivity_parameter_candidates",
-    "lindemann_falloff_rate_constant",
-    "liquid_liquid_extraction",
-    "liquid_liquid_split",
-    "liquid_mixture_thermal_conductivity_dippr9h_ledger",
-    "list_curated_property_packages",
-    "list_mechanism_cards",
-    "list_mechanism_paths",
-    "lle_phase_stability_diagnostic",
-    "load_library_mechanism",
-    "load_mechanism",
-    "lockhart_martinelli_pressure_drop",
-    "mass_fractions_from_formula",
-    "mass_fractions_from_mole_fractions",
-    "mechanism_library_root",
-    "mechanism_scenario_library_path",
-    "mixer_equipment_card",
-    "mixing_power",
-    "mixture_density",
-    "mixture_enthalpy_ledger",
-    "mixture_molar_volume_ledger",
-    "mixture_viscosity_log_rule",
-    "mixture_volume_translation",
-    "model_card_template_map",
-    "model_card_templates",
-    "molar_volume_report",
-    "molar_volume_to_density_kg_m3",
-    "mole_fractions_from_mass_fractions",
-    "molecular_weight",
-    "nernst_potential",
-    "net_charge_equivalents",
-    "normal_boiling_point_report",
-    "normalize_component_token",
-    "nusselt_internal_flow",
-    "nusselt_internal_flow_details",
-    "ohmic_drop",
-    "overall_heat_transfer_coefficient",
-    "packed_bed_pressure_drop_ergun",
-    "parse_formula",
-    "parse_reaction_equation",
-    "peak_shape_status",
-    "peclet_heat_number",
-    "perturb_network_parameters",
-    "phase_path_enthalpy_report",
-    "phase_sensible_enthalpy_report",
-    "phase_transition_enthalpy",
-    "pipe_pressure_drop",
-    "prandtl_number",
-    "precipitate_if_supersaturated",
-    "prefixed_arrhenius_params",
-    "property_correlation_model_cards",
-    "property_equation_contracts",
-    "pump_equipment_card",
-    "pump_work",
-    "pure_saturation_pressure_report",
-    "pure_saturation_temperature_report",
-    "rachford_rice_diagnostic_report",
-    "rachford_rice_vapor_fraction",
-    "raoult_k_values",
-    "reaction_extent_bounds",
-    "reaction_kinetics_model_cards",
-    "reaction_quotient",
-    "reaction_quotient_from_activities",
-    "reaction_quotient_log",
-    "reaction_quotient_log_from_activities",
-    "reaction_thermochemistry",
-    "reactor_model_cards",
-    "reference_backend_context",
-    "reference_backend_specs",
-    "reference_backend_status",
-    "reference_repo_paths",
-    "reference_repo_roots",
-    "reference_repos_root",
-    "reference_tolerance_profiles",
-    "reference_validation_report",
-    "repository_root",
-    "resolve_component_field_conflict",
-    "resolve_component_identifier",
-    "reverse_rate_constant_from_equilibrium",
-    "reynolds_number",
-    "run_electrolysis",
-    "safety_envelope_model_cards",
-    "second_virial_coefficient_report",
-    "select_cubic_root",
-    "sensible_enthalpy_change",
-    "separation_model_cards",
-    "simulate_double_layer_current_step",
-    "simulate_double_layer_potential_step",
-    "simulate_mass_spectrum",
-    "simulate_proton_nmr",
-    "skipped_reference_backends",
-    "solid_solubility_mole_fraction",
-    "solve_cstr_multiple_steady_states",
-    "solve_gibbs_minimization",
-    "solve_mass_action_equilibrium",
-    "solve_monoprotic_acid_base",
-    "solve_reaction_extent",
-    "spectroscopy_model_cards",
-    "summarize_reference_comparisons",
-    "supported_property_equations",
-    "synthesize_signal",
-    "synthesize_signal_from_card",
-    "thermal_diffusivity_report",
-    "thermal_hazard_proxy",
-    "thermochemical_concentration_equilibrium_constant",
-    "thermochemical_detailed_balance",
-    "thermochemistry_model_cards",
-    "third_body_efficiencies",
-    "tp_flash_with_energy_balance",
-    "translated_cubic_compressibility_roots",
-    "transport_model_cards",
-    "transport_property_report",
-    "troe_broadening_factor",
-    "troe_falloff_rate_constant",
-    "underwood_minimum_reflux_binary",
-    "uniquac_activity_report",
-    "validate_binary_interaction_provenance",
-    "validate_mechanism_library",
-    "validate_model_card",
-    "validate_task_maturity_policy",
-    "vapor_pressure_report",
-    "vapor_pressure_temperature_derivative",
-    "verify_electrochemical_control_replay",
-    "vessel_equipment_card",
-    "virial_gas_molar_volume_report",
-    "vle_shortcut_distillation",
-    "volatility_risk_from_psat",
-    "water_ion_product",
-    "wilke_gas_mixture_viscosity_ledger",
-    "write_reference_validation_report",
-]
+from __future__ import annotations
+
+from importlib import import_module
+from typing import Any
+
+_MODULE_EXPORTS: dict[str, list[str]] = {
+    "component_registry": (
+        'COMPONENT_REGISTRY_SCHEMA_VERSION ComponentIdentityRegistry '
+        'curated_component_registry'
+    ).split(),
+    "data_conflicts": (
+        'DATA_PROVENANCE_CARD_SCHEMA_VERSION ComponentDataConflictReport '
+        'DataConflictFinding DataSourceProvenance DatasetProvenanceCard '
+        'audit_component_data_conflicts build_dataset_provenance_card'
+    ).split(),
+    "electrochemistry": (
+        'FARADAY_C_PER_MOL ElectrodeReactionSpec ElectrolysisResult '
+        'ElectrolyteResistanceSpec OhmicDropResult butler_volmer_current '
+        'electrolyte_resistance_ohm equilibrium_potential_from_delta_g faradaic_extent_mol '
+        'nernst_potential ohmic_drop reaction_quotient_from_activities '
+        'reaction_quotient_log_from_activities run_electrolysis'
+    ).split(),
+    "mechanism_library": (
+        'MECHANISM_SCENARIO_SCHEMA_VERSION MechanismLibraryValidationReport '
+        'MechanismScenarioCard get_mechanism_card list_mechanism_cards list_mechanism_paths '
+        'load_library_mechanism mechanism_library_root mechanism_scenario_library_path '
+        'repository_root validate_mechanism_library'
+    ).split(),
+    "reaction_network": (
+        'R_J_PER_MOL_K BatchIntegrationResult RateLawSpec ReactionNetworkSpec '
+        'ReactionODEReferenceCase ReactionODEReferenceResult ReactionSensitivityEntry '
+        'ReactionSensitivityReport ReactionSpec SpeciesSpec '
+        'ThermochemicalDetailedBalanceResult cantera_comparable_reaction_cases '
+        'effective_third_body_concentration evaluate_rate_law '
+        'evaluate_reaction_ode_reference_case falloff_reduced_pressure '
+        'finite_difference_reaction_sensitivities integrate_reaction_ode_reference_case '
+        'kinetic_sensitivity_parameter_candidates lindemann_falloff_rate_constant '
+        'load_mechanism parse_reaction_equation perturb_network_parameters '
+        'prefixed_arrhenius_params reverse_rate_constant_from_equilibrium '
+        'thermochemical_concentration_equilibrium_constant thermochemical_detailed_balance '
+        'third_body_efficiencies troe_broadening_factor troe_falloff_rate_constant'
+    ).split(),
+    "properties": (
+        'STANDARD_PRESSURE_PA ComponentPropertyPackage MixtureEnthalpyLedger '
+        'MixtureTransportLedger MixtureVolumeLedger MolarVolumeReport PhaseEnthalpyReport '
+        'PhaseTransitionSpec PropertyEvaluation PureSaturationReport '
+        'TransportPropertyReport VaporPressureReport binary_gas_diffusivity_fuller_report '
+        'density_to_molar_volume_m3_mol evaluate_correlation '
+        'gas_mixture_effective_diffusivity_ledger gas_thermal_conductivity_dippr9b_report '
+        'heat_capacity_report ideal_gas_molar_volume_report '
+        'liquid_mixture_thermal_conductivity_dippr9h_ledger mixture_density '
+        'mixture_enthalpy_ledger mixture_molar_volume_ledger mixture_viscosity_log_rule '
+        'molar_volume_report molar_volume_to_density_kg_m3 normal_boiling_point_report '
+        'phase_path_enthalpy_report phase_sensible_enthalpy_report '
+        'phase_transition_enthalpy pure_saturation_pressure_report '
+        'pure_saturation_temperature_report second_virial_coefficient_report '
+        'sensible_enthalpy_change thermal_diffusivity_report thermal_hazard_proxy '
+        'transport_property_report vapor_pressure_report '
+        'vapor_pressure_temperature_derivative virial_gas_molar_volume_report '
+        'volatility_risk_from_psat wilke_gas_mixture_viscosity_ledger'
+    ).split(),
+    "equilibrium_chemistry": (
+        'AcidBaseResult ChargeBalanceResult EquilibriumReactionSpec EquilibriumResult '
+        'EquilibriumSystemSpec GibbsMinimizationDiagnostic GibbsMinimizationResult '
+        'GibbsMinimizationSpec GibbsSpeciesSpec PHObservationResult PrecipitationHookResult '
+        'PrecipitationResult SolubilityProductSpec apply_precipitation_hooks '
+        'aqueous_ph_observation balance_charge_by_adjusting_ion diagnose_gibbs_minimization '
+        'equilibrium_constant_vant_hoff ionic_strength ionic_strength_from_amounts '
+        'net_charge_equivalents precipitate_if_supersaturated reaction_extent_bounds '
+        'reaction_quotient reaction_quotient_log solid_solubility_mole_fraction '
+        'solve_gibbs_minimization solve_mass_action_equilibrium solve_monoprotic_acid_base '
+        'solve_reaction_extent water_ion_product'
+    ).split(),
+    "equilibrium": (
+        'ActivityModelSpec AzeotropeScanPoint AzeotropeScanStatus '
+        'BinaryAzeotropeDiagnosticReport FlashResult GammaPhiKValueReport '
+        'LLEPhaseStabilityDiagnostic LLEStageResult RachfordRiceDiagnosticReport '
+        'UNIQUACActivityReport VLETemperatureReport activity_coefficients '
+        'binary_azeotrope_diagnostic_report bubble_pressure_pa bubble_temperature_report '
+        'dew_pressure_pa dew_temperature_report flash_isothermal gamma_phi_k_value_report '
+        'liquid_liquid_split lle_phase_stability_diagnostic rachford_rice_diagnostic_report '
+        'rachford_rice_vapor_fraction raoult_k_values uniquac_activity_report'
+    ).split(),
+    "reactors": (
+        'BatchReactorModel CSTRFlowProgram CSTRModel CSTRMultiplicityResult '
+        'CSTRMultiplicitySpec CSTRSteadyStatePoint DynamicBatchReactorModel FeedStreamSpec '
+        'HeatTransferSpec JacketTemperatureProgram PFRGeometrySpec PFRModel ReactorResult '
+        'ReactorState SamplingEventSpec SemiBatchFeedSpec SemiBatchReactorModel '
+        'cstr_multiple_steady_state_reference_case solve_cstr_multiple_steady_states'
+    ).split(),
+    "spectroscopy": (
+        'BeerLambertBandSpec BeerLambertCalibrationResult CalibrationCurve '
+        'ChromatographyCalibrationResult ChromatographyMethodSpec IRBandAssignmentReport '
+        'IRFunctionalGroupBandSpec InstrumentSignalSpec SpectralFeatureSpec '
+        'SpectralMeasurement assign_ir_functional_group_bands beer_lambert_absorbance '
+        'build_signal_spec build_signal_spec_from_card chromatographic_baseline_peak_width '
+        'chromatographic_resolution chromatographic_retention_factor '
+        'chromatographic_retention_time chromatographic_theoretical_plates '
+        'default_feature_specs detect_peak_overlap fit_beer_lambert_calibration '
+        'fit_chromatography_calibration generate_beer_lambert_calibration synthesize_signal '
+        'synthesize_signal_from_card'
+    ).split(),
+    "eos": (
+        'BinaryInteractionProvenance CubicEOSSpec CubicPureParameters '
+        'CubicResidualProperties EOSComponentSpec EOSMixtureParameters EOSState '
+        'RootCandidateDiagnostic RootGovernanceReport VolumeTranslationReport '
+        'VolumeTranslationSpec binary_interaction_provenance_map cubic_ab '
+        'cubic_compressibility_roots cubic_departure_log_argument '
+        'cubic_fugacity_coefficients cubic_mixture_parameters cubic_pure_parameters '
+        'cubic_residual_properties cubic_root_governance_report cubic_root_selection_policy '
+        'evaluate_cubic_eos evaluate_volume_translated_cubic_eos ideal_gas_molar_volume '
+        'ideal_gas_pressure ideal_gas_state mixture_volume_translation select_cubic_root '
+        'translated_cubic_compressibility_roots validate_binary_interaction_provenance'
+    ).split(),
+    "chromatography_methods": (
+        'ChromatographyMethodReport DetectorResponseCalibrationResult '
+        'EmpiricalChromatographyAnalyteSpec evaluate_chromatography_method '
+        'fit_detector_response_calibration gc_linear_retention_index peak_shape_status'
+    ).split(),
+    "specs": (
+        'ComponentConflictPolicy ComponentConflictResolution ComponentFieldCandidate '
+        'ComponentProvenance ComponentSpec ComponentUncertainty MixtureSpec '
+        'PropertyCorrelation component_alias_index mass_fractions_from_mole_fractions '
+        'mole_fractions_from_mass_fractions normalize_component_token '
+        'property_equation_contracts resolve_component_field_conflict '
+        'resolve_component_identifier supported_property_equations'
+    ).split(),
+    "electrochem_control": (
+        'ControlOperationLog ControlTracePoint ElectrochemicalControlExecution '
+        'ElectrochemicalControlLimits ElectrochemicalControlRecipe '
+        'ElectrochemicalControlSegment execute_electrochemical_control_recipe '
+        'verify_electrochemical_control_replay'
+    ).split(),
+    "crystallization_units": (
+        'CoolingCrystallizationResult CrystalSizeDistribution CrystallizationKineticsSpec '
+        'CrystallizationStepReport SolubilityCurveSpec cooling_crystallization'
+    ).split(),
+    "curated_properties": (
+        'CuratedPropertyCase curated_components curated_property_case_map '
+        'curated_property_cases curated_property_correlations curated_property_package '
+        'list_curated_property_packages'
+    ).split(),
+    "electrochem_transport": (
+        'DiffusionLayerSpec MassTransferLimitedCurrentResult '
+        'diffusion_layer_current_response'
+    ).split(),
+    "extraction_units": (
+        'DistributionCoefficientModelSpec ExtractionStageReport ExtractionTrainResult '
+        'activity_corrected_extraction_train'
+    ).split(),
+    "electrochem_double_layer": (
+        'DoubleLayerRCSpec DoubleLayerTracePoint DoubleLayerTransientResult '
+        'simulate_double_layer_current_step simulate_double_layer_potential_step'
+    ).split(),
+    "electrochemical_scenarios": (
+        'ElectrochemicalHiddenParameters ElectrochemicalModelBundle '
+        'ElectrochemicalScenarioCard ElectrochemicalScenarioInstance HiddenParameterRange '
+        'RedoxMetadata SideReactionAssessment assess_side_reaction_thresholds '
+        'electrochemical_scenario_cards generate_electrochemical_scenario'
+    ).split(),
+    "elements": (
+        'ElementSpec atom_fractions element_matrix hill_formula mass_fractions_from_formula '
+        'molecular_weight parse_formula'
+    ).split(),
+    "equipment_specs": (
+        'EquipmentCardSpec EquipmentConstraintCheck EquipmentConstraintReport '
+        'EquipmentConstraintSpec column_equipment_card condenser_equipment_card '
+        'evaluate_equipment_constraints heat_exchanger_equipment_card mixer_equipment_card '
+        'pump_equipment_card vessel_equipment_card'
+    ).split(),
+    "heat_transfer_units": (
+        'EquipmentHeatTransferResult FoulingEvolutionSpec HeatTransferEquipmentSpec '
+        'PhaseChangeBoundarySpec equipment_heat_transfer'
+    ).split(),
+    "separations": (
+        'FUGDistillationReport FUGDistillationSpec SeparationLedger SeparationResult '
+        'crystallize downstream_score dry_solid evaporation_flash fenske_minimum_stages '
+        'fenske_underwood_gilliland_sizing filter_cake gilliland_eduljee_stage_estimate '
+        'liquid_liquid_extraction underwood_minimum_reflux_binary vle_shortcut_distillation'
+    ).split(),
+    "transport": (
+        'FlowResult FluidState FrictionFactorResult HeatExchangerResult HeatTransferResult '
+        'NusseltCorrelationResult PackedBedResult PipeSpec TwoPhasePressureDropResult '
+        'counterflow_effectiveness darcy_friction_factor darcy_friction_factor_details '
+        'flow_regime heat_exchanger_counterflow homogeneous_two_phase_pressure_drop '
+        'internal_heat_transfer_coefficient jacket_heat_transfer mixing_power '
+        'nusselt_internal_flow nusselt_internal_flow_details '
+        'overall_heat_transfer_coefficient packed_bed_pressure_drop_ergun '
+        'peclet_heat_number pipe_pressure_drop prandtl_number pump_work reynolds_number'
+    ).split(),
+    "mass_spectrometry": (
+        'FragmentIonResult FragmentIonSpec IsotopeEnvelopePeak MassSpectrumAnalyteSpec '
+        'MassSpectrumReport isotope_envelope simulate_mass_spectrum'
+    ).split(),
+    "two_phase_flow": (
+        'LockhartMartinelliPressureDropResult lockhart_martinelli_pressure_drop'
+    ).split(),
+    "maturity": (
+        'MaturityLevel ModelCard ModelCardTemplate ModuleMaturity TaskMaturitySpec '
+        'ValidationEvidence model_card_template_map model_card_templates '
+        'validate_model_card validate_task_maturity_policy'
+    ).split(),
+    "thermochemistry": (
+        'NASA7SpeciesThermo NASA7TemperatureSegment ReactionThermoResult SpeciesThermoState '
+        'equilibrium_constant_from_delta_g reaction_thermochemistry'
+    ).split(),
+    "nmr": (
+        'NMRStickLine ProtonNMRMethodSpec ProtonNMRReport ProtonNMRSignalResult '
+        'ProtonNMRSignalSpec simulate_proton_nmr'
+    ).split(),
+    "reference_validation": (
+        'ReferenceBackendSpec ReferenceBackendStatus ReferenceComparison '
+        'ReferenceToleranceProfile ReferenceValidationReport compare_scalar '
+        'import_reference_module reference_backend_context reference_backend_specs '
+        'reference_backend_status reference_repo_paths reference_repo_roots '
+        'reference_repos_root reference_tolerance_profiles reference_validation_report '
+        'skipped_reference_backends summarize_reference_comparisons '
+        'write_reference_validation_report'
+    ).split(),
+    "safety_envelope": (
+        'RunawayStateInput SafetyEnvelopeAssessment SafetyEnvelopeSpec '
+        'arrhenius_heat_generation_slope assess_safety_envelope'
+    ).split(),
+    "flash_units": (
+        'TPFlashUnitResult tp_flash_with_energy_balance'
+    ).split(),
+    "equilibrium_cards": (
+        'activity_model_cards'
+    ).split(),
+    "curated_property_cards": (
+        'curated_property_model_cards'
+    ).split(),
+    "data_foundation_cards": (
+        'data_foundation_model_cards'
+    ).split(),
+    "electrochemistry_cards": (
+        'electrochemistry_model_cards'
+    ).split(),
+    "eos_cards": (
+        'eos_model_cards'
+    ).split(),
+    "equilibrium_chemistry_cards": (
+        'equilibrium_chemistry_model_cards'
+    ).split(),
+    "equipment_spec_cards": (
+        'equipment_spec_model_cards'
+    ).split(),
+    "flash_cards": (
+        'flash_unit_model_cards'
+    ).split(),
+    "property_cards": (
+        'property_correlation_model_cards'
+    ).split(),
+    "reaction_network_cards": (
+        'reaction_kinetics_model_cards'
+    ).split(),
+    "reactor_cards": (
+        'reactor_model_cards'
+    ).split(),
+    "safety_cards": (
+        'safety_envelope_model_cards'
+    ).split(),
+    "separation_cards": (
+        'separation_model_cards'
+    ).split(),
+    "spectroscopy_cards": (
+        'spectroscopy_model_cards'
+    ).split(),
+    "thermochemistry_cards": (
+        'thermochemistry_model_cards'
+    ).split(),
+    "transport_cards": (
+        'transport_model_cards'
+    ).split(),
+}
+_EXPORTS = {
+    name: module_name
+    for module_name, names in _MODULE_EXPORTS.items()
+    for name in names
+}
+__all__ = tuple(_EXPORTS)
+
+
+def __getattr__(name: str) -> Any:
+    """Load one public symbol from its owning module and cache it locally."""
+
+    try:
+        module_name = _EXPORTS[name]
+    except KeyError as exc:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from exc
+    module = import_module(f"{__name__}.{module_name}")
+    value = getattr(module, name)
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> list[str]:
+    """Expose lazy public names to interactive discovery."""
+
+    return sorted(set(globals()) | set(__all__))

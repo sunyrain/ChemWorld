@@ -64,7 +64,8 @@ class LLMPlannerAgent(RecipeSequenceMixin, BaseAgent):
 
     def complete(self, prompt: str) -> str:
         raise NotImplementedError(
-            "LLMPlannerAgent is an adapter. Implement complete() or use ReplayLLMAgent."
+            "LLMPlannerAgent is an adapter. Implement complete() or use "
+            "LLMCompletionReplayAgent."
         )
 
     def manifest(self) -> dict[str, Any]:
@@ -78,10 +79,10 @@ class LLMPlannerAgent(RecipeSequenceMixin, BaseAgent):
         return manifest
 
 
-class ReplayLLMAgent(LLMPlannerAgent):
-    """Replay cached LLM decisions from a JSONL file for deterministic evaluation."""
+class LLMCompletionReplayAgent(LLMPlannerAgent):
+    """Replay cached planner completions before recipe expansion."""
 
-    name = "llm_replay"
+    name = "llm_completion_replay"
 
     def __init__(
         self,

@@ -116,3 +116,11 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 addopts = "--cov=chemworld --cov-report=term-missing"
 testpaths = ["tests"]
+markers = [
+  "fast: deterministic unit or focused contract test suitable for local iteration",
+  "slow: integration, subprocess, notebook, wheel, or exhaustive audit test",
+  "current: test of the active runtime, schema, protocol, or evidence surface",
+  "history: compatibility or migration-boundary test for an older artifact version",
+  "rl: reinforcement-learning adapter, checkpoint, training, or evaluation test",
+  "reference: optional or in-repository physical-chemistry reference validation",
+]

@@ -7,6 +7,14 @@ from typing import Any
 
 TRAJECTORY_SCHEMA_VERSION = "chemworld-trajectory-0.2"
 LEGACY_TRAJECTORY_SCHEMA_VERSIONS = ("chemworld-trajectory-0.1",)
+TRAJECTORY_COMPATIBILITY_ALIASES = (
+    "benchmark_task_id",
+    "observation",
+    "reward",
+    "agent_view",
+    "leaderboard_score",
+)
+TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION = "chemworld-trajectory-0.3"
 SUPPORTED_TRAJECTORY_SCHEMA_VERSIONS = (
     *LEGACY_TRAJECTORY_SCHEMA_VERSIONS,
     TRAJECTORY_SCHEMA_VERSION,

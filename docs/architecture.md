@@ -125,7 +125,8 @@ Campaign
 
 Trajectory v0.1 曾把带 split/objective/seed 的运行标识写入 `task_id`，把真正任务名写入
 `benchmark_task_id`。v0.2 起 `task_id` 恢复为稳定任务合同标识，`run_id` 保存运行标识；
-`benchmark_task_id` 暂时作为兼容别名保留。
+`benchmark_task_id` 暂时作为兼容别名保留；v0.2 writer 对五个 v0.1 别名的双写将在
+`chemworld-trajectory-0.3` 移除，旧 trajectory 的只读支持不受该 writer 截止版本影响。
 
 ## 三类结果必须分开
 
@@ -138,6 +139,7 @@ Trajectory v0.2 固定三个顶层字段：
 | `evaluation_outcome` | 评价器使用的真实 reward/终点和 scoring contract 绑定 | 否 |
 
 旧字段 `observation`、`reward`、`agent_view` 和 `leaderboard_score` 在 v0.2 中继续作为兼容别名，但新分析
+必须使用三层结果字段；连同 `benchmark_task_id` 的兼容双写将在 `chemworld-trajectory-0.3` 停止。
 不得把它们混称为一个 `outcome`。历史 v0.1 轨迹仍可读取；新写出的轨迹统一使用 v0.2。
 
 ## 完整性怎样表述

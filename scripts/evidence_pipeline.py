@@ -23,6 +23,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from chemworld.data.schema import (  # noqa: E402
+    TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION,
+    TRAJECTORY_COMPATIBILITY_ALIASES,
+)
 from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
     gate_a_execution_contract_binding,
 )
@@ -129,7 +133,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc5.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc6.json",
         "formal_result",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
     ),
@@ -154,7 +158,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_gate_a",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc5.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc6.json",
         "formal_result",
         (
             "backend_candidate",
@@ -715,13 +719,10 @@ def _write_current_registry() -> None:
         "benchmark_cell": ["task", "scenario", "agent", "seed"],
         "trajectory_schema_version": TRAJECTORY_SCHEMA_VERSION,
         "outcome_layers": list(OUTCOME_LAYER_FIELDS),
-        "trajectory_compatibility_aliases": [
-            "benchmark_task_id",
-            "observation",
-            "reward",
-            "agent_view",
-            "leaderboard_score",
-        ],
+        "trajectory_compatibility_aliases": list(TRAJECTORY_COMPATIBILITY_ALIASES),
+        "trajectory_alias_write_removal_version": (
+            TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION
+        ),
     }
     current["completeness_model"] = {
         "structural": "implemented_by_design_and_subject_to_runtime_controls",

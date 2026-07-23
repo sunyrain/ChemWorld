@@ -5,6 +5,10 @@ import json
 import pytest
 
 from chemworld.data.logging import load_jsonl
+from chemworld.data.schema import (
+    TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION,
+    TRAJECTORY_COMPATIBILITY_ALIASES,
+)
 from chemworld.data.validation import validate_records
 from chemworld.eval.runner import make_agent, run_agent
 
@@ -42,6 +46,15 @@ def test_trajectory_records_include_instrument_signal_layers(tmp_path) -> None:
     records = load_jsonl(path)
     validate_records(records)
     assert records[0]["schema_version"] == "chemworld-trajectory-0.2"
+    assert TRAJECTORY_COMPATIBILITY_ALIASES == (
+        "benchmark_task_id",
+        "observation",
+        "reward",
+        "agent_view",
+        "leaderboard_score",
+    )
+    assert TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION == "chemworld-trajectory-0.3"
+    assert all(alias in records[0] for alias in TRAJECTORY_COMPATIBILITY_ALIASES)
     assert records[0]["task_id"] == records[0]["benchmark_task_id"]
     assert records[0]["run_id"].endswith(":seed-2")
     assert records[0]["environment_outcome"]["observation"] == records[0]["observation"]

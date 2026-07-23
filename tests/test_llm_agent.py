@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from chemworld.agents.llm import LLMReplayAgent, ReplayLLMAgent
+from chemworld.agents.llm import LLMCompletionReplayAgent, LLMReplayAgent
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.metrics import evaluate_records
 from chemworld.eval.runner import run_agent
@@ -17,7 +17,7 @@ PUBLIC_REPLAY_FIXTURE = (
 )
 
 
-def test_replay_llm_agent_executes_event_sequence(tmp_path) -> None:
+def test_completion_replay_agent_executes_event_sequence(tmp_path) -> None:
     replay_path = tmp_path / "llm_replay.jsonl"
     replay_path.write_text(
         json.dumps(
@@ -38,7 +38,7 @@ def test_replay_llm_agent_executes_event_sequence(tmp_path) -> None:
 
     history = run_agent(
         env_id="ChemWorld",
-        agent=ReplayLLMAgent(replay_path),
+        agent=LLMCompletionReplayAgent(replay_path),
         world_split="public-dev",
         budget=6,
         objective="balanced",
@@ -48,6 +48,8 @@ def test_replay_llm_agent_executes_event_sequence(tmp_path) -> None:
     assert len(history) == 6
     assert history[0].action["operation"] == "add_solvent"
     assert history[-1].action == {"operation": "measure", "instrument": "final_assay"}
+    assert LLMCompletionReplayAgent(replay_path).name == "llm_completion_replay"
+    assert LLMReplayAgent(PUBLIC_REPLAY_FIXTURE).name == "llm_replay"
 
 
 def test_public_llm_replay_fixture_is_deterministic_baseline(tmp_path) -> None:

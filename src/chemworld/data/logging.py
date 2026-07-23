@@ -11,7 +11,11 @@ from typing import Any
 import numpy as np
 
 from chemworld import __version__
-from chemworld.data.schema import TRAJECTORY_SCHEMA_VERSION
+from chemworld.data.schema import (
+    TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION,
+    TRAJECTORY_COMPATIBILITY_ALIASES,
+    TRAJECTORY_SCHEMA_VERSION,
+)
 
 
 def to_builtin(value: Any) -> Any:
@@ -46,6 +50,9 @@ def action_payload(action: dict[str, Any]) -> dict[str, Any]:
 
 class TrajectoryLogger:
     """Append-only JSONL logger for benchmark trajectories."""
+
+    compatibility_aliases = TRAJECTORY_COMPATIBILITY_ALIASES
+    compatibility_alias_write_removal_version = TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION
 
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
@@ -155,8 +162,6 @@ class TrajectoryLogger:
             ),
             "task_id": stable_task_id,
             "env_id": task_info["env_id"],
-            # Kept as a compatibility alias for trajectory v0.1 consumers.
-            "benchmark_task_id": task_info.get("task_id"),
             "world_split": task_info["world_split"],
             "world_provider": task_info.get("world_provider"),
             "objective": task_info["objective"],
@@ -209,10 +214,6 @@ class TrajectoryLogger:
             "environment_outcome": resolved_environment_outcome,
             "agent_visible_observation": resolved_agent_visible_observation,
             "evaluation_outcome": resolved_evaluation_outcome,
-            # v0.1 aliases remain materialized while readers migrate to the three
-            # outcome layers above.
-            "observation": observation_payload,
-            "reward": float(reward),
             "terminated": bool(terminated),
             "truncated": bool(truncated),
             "constraint_flags": to_builtin(info.get("constraint_flags", {})),
@@ -230,15 +231,26 @@ class TrajectoryLogger:
             "measurement_cost": float(info.get("measurement_cost", 0.0)),
             "sample_consumed": float(info.get("sample_consumed", 0.0)),
             "observed_reward": float(info.get("observed_reward", reward)),
-            "leaderboard_score": to_builtin(info.get("leaderboard_score")),
             "reward_source": info.get("reward_source"),
             "agent_metadata": to_builtin(agent_metadata),
-            "agent_view": to_builtin(agent_view or {}),
             "agent_trace": to_builtin(agent_trace or []),
             "method_resources": to_builtin(method_resources or {}),
             "timestamp": datetime.now(UTC).isoformat(),
             "explanation": explanation or {},
         }
+        # The v0.2 writer materializes these five v0.1 aliases only through this
+        # bounded compatibility block. New readers must use the three outcome
+        # layers; alias writes end at TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION.
+        compatibility_aliases = {
+            "benchmark_task_id": task_info.get("task_id"),
+            "observation": observation_payload,
+            "reward": float(reward),
+            "agent_view": to_builtin(agent_view or {}),
+            "leaderboard_score": to_builtin(info.get("leaderboard_score")),
+        }
+        if tuple(compatibility_aliases) != self.compatibility_aliases:
+            raise RuntimeError("trajectory compatibility alias contract drifted")
+        payload.update(compatibility_aliases)
         self._handle.write(json.dumps(payload, sort_keys=True) + "\n")
         self._handle.flush()
 

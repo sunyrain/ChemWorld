@@ -95,7 +95,8 @@ The canonical benchmark cell is **Task × Scenario × Agent × Seed**.
 
 Trajectory v0.1 stored a seed-specific run label in `task_id` and the stable task in `benchmark_task_id`. In v0.2,
 `task_id` is the stable task-contract identifier and `run_id` carries the execution label. `benchmark_task_id` remains
-a compatibility alias.
+a compatibility alias. The v0.2 writer stops materializing all five v0.1 aliases in
+`chemworld-trajectory-0.3`; read-only support for old trajectories is a separate policy.
 
 ## Three outcome layers
 
@@ -108,7 +109,9 @@ Trajectory v0.2 fixes three top-level fields:
 | `evaluation_outcome` | The true evaluation endpoint/reward and scoring-contract binding |
 
 Feedback ablations may change only `agent_visible_observation`; they must not rewrite the environment or evaluation
-outcomes. The v0.1 aliases `observation`, `reward`, `agent_view`, and `leaderboard_score` remain during migration.
+outcomes. The v0.1 aliases `observation`, `reward`, `agent_view`, and `leaderboard_score` remain during migration, but
+new analysis must use the three outcome layers. Their writer compatibility, together with `benchmark_task_id`, ends
+at `chemworld-trajectory-0.3`.
 
 ## Bounded completeness
 

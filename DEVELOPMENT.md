@@ -30,5 +30,9 @@ does not retrain hosted models or modify their weights.
 6. Check `git status --short` before committing; never add `api.md`, `.env`, private seeds, or raw
    provider responses.
 
+For selective validation, use the centrally assigned pytest taxonomy, for example
+`pytest -m "fast and current"`, `pytest -m rl`, or `pytest -m reference`. Compatibility-boundary
+tests use `history`; integration, notebook, wheel, and exhaustive audit tests use `slow`.
+
 Generated evidence must distinguish environment validation from Agent performance. A passing backend
 check does not imply a method result, benchmark ranking, or publication claim.

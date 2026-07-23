@@ -22,6 +22,7 @@ RESULT_PAGES = (
     "docs/baseline_reference.md",
     "docs/safety_cost.md",
     "docs/world_model_learning.md",
+    "docs/research_findings.md",
     "docs/research_findings.en.md",
     "docs/limitations.md",
 )
@@ -48,6 +49,7 @@ REQUIRED_NARRATIVE_MARKERS = {
     "docs/benchmark_overview.md": ("适应需要自己的指标", "不同 Agent Track 分开报告"),
     "docs/real_world_bridge.md": ("验证路线", "Transfer advantage", "Shadow Mode"),
     "docs/index.en.md": ("Give experimental intelligence its own world engine", "Causal Worlds"),
+    "docs/research_findings.md": ("发现五", "benchmark candidate"),
     "docs/research_findings.en.md": ("Finding 4", "benchmark candidate"),
 }
 NAV_GROUPS = (

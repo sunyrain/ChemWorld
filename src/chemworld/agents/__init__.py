@@ -27,9 +27,9 @@ from chemworld.agents.live_llm import LiveLLMAgent
 from chemworld.agents.llm import (
     CodexSubagentOnlineAgent,
     CodexSubagentReplayAgent,
+    LLMCompletionReplayAgent,
     LLMPlannerAgent,
     LLMReplayAgent,
-    ReplayLLMAgent,
     ToolUsingLLMStubAgent,
 )
 from chemworld.agents.random import RandomAgent, RandomRecipeAgent
@@ -49,6 +49,7 @@ __all__ = [
     "GreedyLocalAgent",
     "HistoryRecord",
     "InteractionCapabilities",
+    "LLMCompletionReplayAgent",
     "LLMPlannerAgent",
     "LLMReplayAgent",
     "LatinHypercubeAgent",
@@ -57,7 +58,6 @@ __all__ = [
     "RandomAgent",
     "RandomForestEIAgent",
     "RandomRecipeAgent",
-    "ReplayLLMAgent",
     "SafetyConstrainedBOAgent",
     "ScriptedChemistryAgent",
     "StructuredGaussianProcessBOAgent",

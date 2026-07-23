@@ -131,7 +131,9 @@ provider 超时、空响应、JSON 修复和重试都是真实消耗。正式运
 ## 不联网也能测试 Harness
 
 `ToolUsingLLMStubAgent` 用确定性规则检查 tool use、validator、memory 与 replay 管线；
-`LLMReplayAgent` 则重放已经保存的 Action trace。
+`LLMReplayAgent`（method id `llm_replay`）重放已经保存的 Action trace；
+`LLMCompletionReplayAgent`（method id `llm_completion_replay`）则重放 recipe planner 的缓存 JSON completion。
+两者处于不同抽象层，不共享方法身份。
 
 ```bash
 python examples/demo_llm_replay_harness.py
