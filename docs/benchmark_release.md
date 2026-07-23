@@ -72,15 +72,16 @@ benchmark 排名。
 
 这些控制本身不等于在相同动作、测量和实验预算下可以识别候选 family。机制 v0.2.1 修复了原电化学
 solvent 目标不可达问题；新的四 seed 设计审计确认 reaction catalyst、electrochemical solvent 和
-`electrolyte_profile` 反事实均具有决策相关性。RC15 进一步把反应速率律单元显式绑定为“上游主竞争
-路径的 Arrhenius form-and-scale stress”，不再按反应声明顺序选择目标，并证明只有该反应速率律改变，
-结晶和其它构成参数保持不变。45 项设计检查全部通过。RC15 在全新平衡 held-out cohort 上完成了两张
-独立证书：预算 4 的 controlled matched oracle 为 235/240（97.92%），在线策略可行 oracle 为
-237/240（98.75%），全部八个任务—family 单元满足预注册 Wilson 下界。Gate A 整体因此通过。
+`electrolyte_profile` 反事实均具有决策相关性。RC20 进一步把反应速率律单元显式绑定为“上游目标生成
+路径的 pivot-normalized catalyst-activity-order stress”，并证明只有该反应速率律改变，结晶和其它
+构成参数保持不变。动作—干预设计审计全部通过。RC20 在全新平衡 held-out cohort 上完成了两张独立
+证书：预算 4 的 controlled matched oracle 为 235/240（97.92%）并通过；在线策略可行 oracle 总体为
+227/240（94.58%），但反应催化剂映射反事实仅识别 22/30，未满足逐 family Wilson 下界。Gate A
+整体因此仍为 false。`rate_law_family` 在两份证书中均为 29/30，不是当前阻断项。
 
 **支持的结论**：ChemWorld 能执行和回放预注册隐藏规律变化；在冻结候选 family、公共动作、测量
-和四次 post-change 实验预算下，受控 oracle 与不接收 phase/change-time 信号的在线 oracle 均能
-完成机制诊断。两次实验预算仍作为严苛压力点报告，不控制 Gate A。
+和四次 post-change 实验预算下，受控 oracle 能完成机制诊断。当前在线 oracle 总体准确率较高，
+但尚不能可靠诊断早期发生的反应催化剂映射变化。
 
 **不支持的结论**：Gate A 是环境可识别性证书，不是被评 Agent 的能力结果。该反应单元也不是
 “结晶速率律发现”或精确动力学参数辨识。尚不能声称 Agent 会识别这些变化、恢复性能、迁移到未见
@@ -133,7 +134,7 @@ rationale，不请求或保存私有逐字思维链。
 | --- | --- |
 | ChemWorld 提供预算受限、部分可观测、可回放的虚拟实验合同 | 支持 |
 | 六任务拥有可执行、局部可分离并可回放的机理/构成律控制 | 支持 Control-validated 层 |
-| 冻结候选 family 在预算 4 下可识别 | 支持 Control-validated Gate A；不外推到未见 family 或 Agent 能力 |
+| 冻结候选 family 在预算 4 下可识别 | controlled 条件下支持；online Gate A 因 reaction material family 失败，不支持完整环境级闭合 |
 | Safe-GP 在确认切片中满足四任务 safety/cost 规则 | 支持有限切片 |
 | Safe-GP 通过完整四任务优越性规则 | 不支持 |
 | 100,000 步 SAC 工程链可执行 | 支持工程诊断，不支持排名 |

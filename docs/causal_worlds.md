@@ -61,9 +61,10 @@ Seed 通常改变初值、噪声或连续参数抽样，却可能保留同一因
 9 个任务—模式组合，验证确定性、局部响应分离、响应不过强和过程守恒。
 
 这些是**世界控制证据**，不证明候选 family 在给定实验预算内可识别，也不代表 Agent 已经学会适应。
-当前四 seed 决策相关性审计与控制匹配可识别性证书已经通过；在线策略可行证书仍待完成，因此
-Gate A 整体仍为 false。完成该证书后，仍需测量 change detection、identification accuracy、recovery
-experiments 与 adaptation regret。
+当前 RC20 决策相关性审计与控制匹配可识别性证书已经通过；在线策略可行证书总体达到 227/240，
+但反应催化剂映射反事实仅识别 22/30，未满足逐 family 规则，因此 Gate A 整体仍为 false。后续仍需
+修复在线诊断策略，并测量 change detection、identification accuracy、recovery experiments 与
+adaptation regret。
 
 ## 反事实世界可以检验名称先验
 

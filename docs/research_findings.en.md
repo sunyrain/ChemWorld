@@ -25,17 +25,16 @@ Outcome alone was therefore insufficient.
 A frozen Safe-GP confirmation improved all four objectives and passed safety/cost rules. The flow effect was 0.018752
 against a pre-registered practical threshold of 0.020000, so the all-task claim remained failed.
 
-## Finding 3: environment identifiability closes at budget four; Agent attribution remains open
+## Finding 3: controlled identifiability passes; the online material family still fails
 
 Nine task–mode controls establish deterministic execution, local response separation, bounded response,
-conservation, and replay. The current action/intervention audit establishes decision relevance for each material
-counterfactual. At the preregistered four-experiment budget, the controlled matched oracle reaches 235/240 (97.92%)
-and the separately bound online-policy-feasible oracle reaches 237/240 (98.75%); all eight task–family cells pass
-their Wilson lower-bound rule, so Gate A is true. The two-experiment online result remains a stress point at 91.25%.
-RC15 also binds the reaction rate-law cell to a declared upstream primary competing pathway and an explicit
-form-and-scale stress, while proving that crystallization constitutive parameters remain unchanged. This establishes
-environment-level identifiability, not Agent-level mechanism discovery, crystallization-kinetics discovery, or exact
-rate-parameter identification.
+conservation, and replay. At the preregistered four-experiment budget, the RC20 controlled matched oracle reaches
+235/240 (97.92%) and passes. The separately bound online-policy-feasible oracle reaches 227/240 (94.58%) overall,
+but the reaction catalyst-mapping counterfactual reaches only 22/30 and fails the per-family Wilson rule, so Gate A
+remains false. The `rate_law_family` reaches 29/30 in both certificates and is not the blocker. RC20 binds that family
+to the upstream primary target pathway through a pivot-normalized catalyst-activity-order stress while proving that
+crystallization constitutive parameters remain unchanged. This supports controlled identifiability, not Agent-level
+mechanism discovery, crystallization-kinetics discovery, or exact rate-parameter identification.
 
 ## Finding 4: current RL evidence diagnoses contracts, not rankings
 

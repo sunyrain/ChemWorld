@@ -154,6 +154,6 @@ protocol feature, not a completed current result.
 ## Current boundary
 
 The candidate backend and replay controls are operational. Method and result freezes are campaign-owned rather than
-repository-wide. The controlled matched-identifiability certificate passes, but mechanism Gate A remains false until
-the online-policy-feasible certificate passes; external Bridge evidence is absent. Documentation and scientific claims
-must follow `configs/current.json` rather than infer readiness from software availability.
+repository-wide. RC20 controlled matched identifiability passes at 235/240, but its online-policy-feasible certificate
+fails the per-family rule: the reaction catalyst-mapping counterfactual is 22/30. Mechanism Gate A therefore remains
+false; external Bridge evidence is absent. Documentation and scientific claims must follow `configs/current.json`.

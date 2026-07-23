@@ -116,12 +116,12 @@ Current evidence establishes the following boundaries:
 
 - executable mechanism and constitutive-law shifts are control-validated. The freeze candidate makes both `solvent`
   and `electrolyte_profile` selectable electrochemical counterfactual coordinates and removes world/mechanism identity
-  from Agent-visible messages. Reaction rate-law cells bind a declared upstream competing pathway and an explicit
-  form-and-scale stress; they do not modify or claim discovery of crystallization kinetics. The RC15
-  action/intervention design audit and controlled matched-identifiability certificate pass. The separately bound
-  online-policy-feasible certificate also passes at the preregistered four-experiment budget, so
-  Gate A now establishes environment-level identifiability. Agent-level mechanism-discovery claims remain unsupported
-  until the paired Agent attribution gates are completed;
+  from Agent-visible messages. Reaction rate-law cells bind the upstream primary target pathway and a pivot-normalized
+  catalyst-activity-order stress; they do not modify or claim discovery of crystallization kinetics. The RC20
+  action/intervention audit and controlled matched-identifiability certificate pass at 235/240. The independently
+  bound online-policy-feasible certificate reaches 227/240 overall but fails its per-family rule because the reaction
+  catalyst-mapping counterfactual is 22/30. Gate A therefore remains false. Agent-level mechanism-discovery claims
+  remain unsupported;
 - LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 
 See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.

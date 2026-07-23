@@ -770,11 +770,19 @@ def _write_current_registry() -> None:
         and isinstance(online_certificate, Mapping)
         and online_certificate.get("gate_pass") is True
     )
+    online_gate_a_failed = bool(
+        mechanism_evidence_current
+        and isinstance(online_certificate, Mapping)
+        and online_certificate.get("certificate_present") is True
+        and online_certificate.get("status") == "failed"
+    )
     mechanism_gate_a_status = (
         "gate_a_passed_remaining_gates_pending"
         if mechanism_gate_a_pass
         else "gate_a_invalidated_recertification_required"
         if not mechanism_evidence_current
+        else "gate_a_failed_online_policy_certificate"
+        if controlled_gate_a_pass and online_gate_a_failed
         else "gate_a_online_policy_certificate_pending"
         if controlled_gate_a_pass and not online_gate_a_pass
         else "gate_a_controlled_certificate_failed"
@@ -847,6 +855,10 @@ def _write_current_registry() -> None:
         "attribution": (
             "gate_a_identifiability_passed_remaining_agent_attribution_gates_pending"
             if mechanism_gate_a_pass
+            else "controlled_identifiability_passed_online_policy_certificate_failed"
+            if controlled_gate_a_pass
+            and online_gate_a_failed
+            and mechanism_evidence_current
             else "controlled_identifiability_passed_online_policy_certificate_pending"
             if controlled_gate_a_pass and mechanism_evidence_current
             else "gate_a_recertification_required_after_public_contract_change"
@@ -867,6 +879,10 @@ def _write_current_registry() -> None:
             "status": (
                 "gate_a_passed"
                 if mechanism_gate_a_pass
+                else "online_policy_certificate_failed"
+                if controlled_gate_a_pass
+                and online_gate_a_failed
+                and mechanism_evidence_current
                 else "online_policy_certificate_pending"
                 if controlled_gate_a_pass and mechanism_evidence_current
                 else "gate_a_recertification_required"
