@@ -61,11 +61,11 @@ from chemworld.tasks import get_task
 
 DEFAULT_PROTOCOL_PATH = configuration_root() / "benchmark/mechanism_adaptation_v0.2.1.json"
 DEFAULT_GATE_A_PLAN_PATH = (
-    configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.2.4.json"
+    configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.2.6.json"
 )
 DEFAULT_LLM_METHODS_PATH = configuration_root() / "methods/llm_v0.4/llm_methods.json"
 EXECUTION_SCHEMA_VERSION = "chemworld-mechanism-adaptation-execution-0.2"
-GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.2.5"
+GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.2.6"
 PUBLIC_EXPERIMENT_FEATURE_ENCODING_VERSION = (
     "chemworld-public-experiment-finite-first-last-range-0.1"
 )
@@ -272,6 +272,17 @@ def _sample_paired_contrast_job(job: Mapping[str, Any]) -> list[float]:
     """Return post-minus-pre public traces for one matched recipe batch."""
 
     action_ids = [str(item) for item in job["action_ids"]]
+    raw_feature_indices = job.get("feature_indices")
+    feature_indices = (
+        None
+        if raw_feature_indices is None
+        else {
+            str(action_id): np.asarray(indices, dtype=int)
+            for action_id, indices in cast(Mapping[str, Sequence[int]], raw_feature_indices).items()
+        }
+    )
+    if feature_indices is not None and not set(action_ids).issubset(feature_indices):
+        raise ValueError("paired contrast feature selection must cover every batch action")
     action_library = {
         str(key): np.asarray(value, dtype=float) for key, value in job["action_library"].items()
     }
@@ -295,9 +306,26 @@ def _sample_paired_contrast_job(job: Mapping[str, Any]) -> list[float]:
         post = [
             np.asarray(post_session.observe(action_id), dtype=float) for action_id in action_ids
         ]
-    return np.concatenate(
-        [post_values - pre_values for pre_values, post_values in zip(pre, post, strict=True)]
-    ).tolist()
+    contrasts: list[np.ndarray] = []
+    for action_id, pre_values, post_values in zip(action_ids, pre, post, strict=True):
+        contrast = post_values - pre_values
+        if feature_indices is not None:
+            try:
+                indices = feature_indices[action_id]
+            except KeyError as error:
+                raise ValueError(
+                    "paired contrast feature selection must cover every batch action"
+                ) from error
+            if (
+                indices.ndim != 1
+                or indices.size == 0
+                or np.any(indices < 0)
+                or np.any(indices >= contrast.size)
+            ):
+                raise ValueError("paired contrast selected feature indices are invalid")
+            contrast = contrast[indices]
+        contrasts.append(contrast)
+    return np.concatenate(contrasts).tolist()
 
 
 def _online_evidence_channel(encoding: str, action_id: str) -> str:
@@ -484,6 +512,71 @@ def _select_discriminative_feature_blocks(
             "selected_feature_indices": list(selected_indices),
         }
     return feature_indices, reports
+
+
+def _select_information_maximum(
+    values: Mapping[str, float],
+    *,
+    minimum_spread_nats: float,
+    context: str,
+) -> tuple[str, dict[str, Any]]:
+    """Select a deterministic EIG maximum and fail closed on a saturated ranking."""
+
+    if not values:
+        raise ValueError(f"{context} information ranking is empty")
+    if not np.isfinite(minimum_spread_nats) or minimum_spread_nats < 0.0:
+        raise ValueError(f"{context} minimum information spread must be finite and nonnegative")
+    normalized = {str(key): float(value) for key, value in values.items()}
+    if not all(np.isfinite(value) for value in normalized.values()):
+        raise ValueError(f"{context} information ranking contains non-finite values")
+    minimum = min(normalized.values())
+    maximum = max(normalized.values())
+    spread = maximum - minimum
+    unique_at_12dp = len({round(value, 12) for value in normalized.values()})
+    non_saturated = spread >= minimum_spread_nats and (
+        minimum_spread_nats == 0.0 or unique_at_12dp > 1
+    )
+    report = {
+        "candidate_count": len(normalized),
+        "minimum_nats": minimum,
+        "maximum_nats": maximum,
+        "spread_nats": spread,
+        "minimum_required_spread_nats": minimum_spread_nats,
+        "unique_values_at_12_decimal_places": unique_at_12dp,
+        "non_saturated": non_saturated,
+        "tie_break": "maximum_information_then_lexicographic_action_id",
+    }
+    if not non_saturated:
+        raise ValueError(
+            f"{context} information ranking is saturated: "
+            f"spread={spread}, required={minimum_spread_nats}, "
+            f"unique_at_12dp={unique_at_12dp}"
+        )
+    selected = min(
+        normalized,
+        key=lambda item: (-normalized[item], item),
+    )
+    return selected, report
+
+
+def _dimension_normalized_likelihood_scale(
+    *,
+    effective_dimension_count: float,
+    selected_feature_dimension: int,
+) -> float:
+    """Average correlated diagonal evidence over its selected feature dimension."""
+
+    if (
+        not np.isfinite(effective_dimension_count)
+        or effective_dimension_count <= 0.0
+        or selected_feature_dimension <= 0
+        or effective_dimension_count > selected_feature_dimension
+    ):
+        raise ValueError(
+            "likelihood normalization requires a positive effective dimension "
+            "no greater than the selected feature dimension"
+        )
+    return float(effective_dimension_count / selected_feature_dimension)
 
 
 def _update_online_change_point_posterior(
@@ -738,6 +831,7 @@ def _fit_paired_batch_oracle(
     batch_size: int,
     variance_floor: float,
     seed: int,
+    likelihood_scale: float = 1.0,
 ) -> tuple[GaussianMechanismOracle, dict[str, tuple[str, ...]]]:
     """Fit batch predictives from nuisance-aligned per-action contrast samples."""
 
@@ -771,6 +865,7 @@ def _fit_paired_batch_oracle(
         sample_public_observation=_unreachable_sample,
         samples_per_candidate=4,
         variance_floor=variance_floor,
+        likelihood_scale=likelihood_scale,
         seed=seed,
     )
     oracle.fit_predictives_from_samples(batch_samples)
@@ -810,6 +905,7 @@ def _execute_paired_gate_a_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
                     "post_observation_seed": _stable_seed(
                         int(job["world_seed"]), f"gate-a-v0.2.2:{batch_id}:post"
                     ),
+                    "feature_indices": job.get("feature_indices"),
                 }
             )
         oracle.reset_posterior()
@@ -1097,16 +1193,51 @@ def run_online_policy_certificate(
     if feature_block_size != PUBLIC_EXPERIMENT_FEATURE_BLOCK_SIZE:
         raise ValueError("online public-feature block-size contract is unsupported")
     discriminative_block_count = int(fit_plan["online_discriminative_block_count"])
-    online_likelihood_scale = float(fit_plan["online_likelihood_scale"])
+    selected_feature_dimension = discriminative_block_count * feature_block_size
+    if plan.get("schema_version") == "chemworld-mechanism-adaptation-gate-a-plan-0.2.6":
+        likelihood_effective_dimension_count = float(
+            fit_plan["likelihood_effective_dimension_count"]
+        )
+        online_likelihood_scale = _dimension_normalized_likelihood_scale(
+            effective_dimension_count=likelihood_effective_dimension_count,
+            selected_feature_dimension=selected_feature_dimension,
+        )
+        online_batch_likelihood_scale = _dimension_normalized_likelihood_scale(
+            effective_dimension_count=likelihood_effective_dimension_count,
+            selected_feature_dimension=selected_feature_dimension * ranking_batch_size,
+        )
+    else:
+        likelihood_effective_dimension_count = float(selected_feature_dimension)
+        online_likelihood_scale = float(fit_plan["online_likelihood_scale"])
+        online_batch_likelihood_scale = online_likelihood_scale
+    online_batch_information_minimum_spread = float(
+        fit_plan.get("online_batch_information_minimum_spread_nats", 0.0)
+    )
     maximum_likelihood_scale = 1.0 / feature_block_size
     if (
         not np.isfinite(online_likelihood_scale)
         or online_likelihood_scale <= 0.0
         or online_likelihood_scale > maximum_likelihood_scale
+        or not np.isfinite(online_batch_likelihood_scale)
+        or online_batch_likelihood_scale <= 0.0
+        or online_batch_likelihood_scale > maximum_likelihood_scale
     ):
         raise ValueError(
             "online likelihood scale must be positive and no greater than one "
             "effective contribution per public summary block"
+        )
+    if (
+        not np.isfinite(online_batch_information_minimum_spread)
+        or online_batch_information_minimum_spread < 0.0
+        or (
+            plan.get("schema_version")
+            == "chemworld-mechanism-adaptation-gate-a-plan-0.2.6"
+            and online_batch_information_minimum_spread == 0.0
+        )
+    ):
+        raise ValueError(
+            "online batch information minimum spread must be nonnegative "
+            "and positive for plan schema 0.2.6"
         )
     action_libraries = {
         str(task_id): build_action_library(
@@ -1226,23 +1357,6 @@ def run_online_policy_certificate(
             stable_samples[key].append(values["stable_contrast"])
             absolute_samples[key].append(values["absolute_trace"])
 
-        selection_oracle, batches = _fit_paired_batch_oracle(
-            candidate_ids=candidate_ids,
-            action_ids=action_ids,
-            per_action_samples=transition_samples,
-            batch_size=ranking_batch_size,
-            variance_floor=float(fit_plan["variance_floor"]),
-            seed=_stable_seed(
-                int(fit_plan["oracle_seed"]),
-                f"{task_id}:online-batch-selection",
-            ),
-        )
-        batch_information = selection_oracle.expected_information_by_action(draws=information_draws)
-        selected_batch_id = max(
-            batch_information,
-            key=batch_information.__getitem__,
-        )
-        selected_actions = list(batches[selected_batch_id])
         evidence_action_ids = [
             _online_evidence_channel(encoding, action_id)
             for action_id in action_ids
@@ -1290,6 +1404,35 @@ def run_online_policy_certificate(
             ]
             for key, samples in evidence_samples.items()
         }
+        reduced_transition_samples = {
+            (candidate_id, action_id): reduced_evidence_samples[
+                (
+                    candidate_id,
+                    _online_evidence_channel("transition_contrast", action_id),
+                )
+            ]
+            for candidate_id in candidate_ids
+            for action_id in action_ids
+        }
+        selection_oracle, batches = _fit_paired_batch_oracle(
+            candidate_ids=candidate_ids,
+            action_ids=action_ids,
+            per_action_samples=reduced_transition_samples,
+            batch_size=ranking_batch_size,
+            variance_floor=float(fit_plan["variance_floor"]),
+            likelihood_scale=online_batch_likelihood_scale,
+            seed=_stable_seed(
+                int(fit_plan["oracle_seed"]),
+                f"{task_id}:online-batch-selection",
+            ),
+        )
+        batch_information = selection_oracle.expected_information_by_action(draws=information_draws)
+        selected_batch_id, batch_information_diagnostics = _select_information_maximum(
+            batch_information,
+            minimum_spread_nats=online_batch_information_minimum_spread,
+            context=f"{task_id} online batch",
+        )
+        selected_actions = list(batches[selected_batch_id])
         online_oracle = GaussianMechanismOracle(
             candidate_ids=candidate_ids,
             action_ids=evidence_action_ids,
@@ -1305,19 +1448,23 @@ def run_online_policy_certificate(
         online_oracle.fit_predictives_from_samples(reduced_evidence_samples)
         evidence_information = online_oracle.expected_information_by_action(draws=information_draws)
         selected_actions.sort(
-            key=lambda item: evidence_information[
-                _online_evidence_channel("transition_contrast", item)
-            ],
-            reverse=True,
+            key=lambda item: (
+                -evidence_information[
+                    _online_evidence_channel("transition_contrast", item)
+                ],
+                item,
+            ),
         )
         remaining_actions = [
             action_id for action_id in action_ids if action_id not in selected_actions
         ]
         remaining_actions.sort(
-            key=lambda item: evidence_information[
-                _online_evidence_channel("transition_contrast", item)
-            ],
-            reverse=True,
+            key=lambda item: (
+                -evidence_information[
+                    _online_evidence_channel("transition_contrast", item)
+                ],
+                item,
+            ),
         )
         policy_actions = _canonical_policy_cycle(
             canonical_action_ids=action_ids,
@@ -1408,6 +1555,10 @@ def run_online_policy_certificate(
             "online_policy_cycle_order": "canonical_frozen_action_library_order",
             "selected_batch_id": selected_batch_id,
             "selected_batch_information_nats": float(batch_information[selected_batch_id]),
+            "batch_information_nats": {
+                key: float(value) for key, value in batch_information.items()
+            },
+            "batch_information_diagnostics": batch_information_diagnostics,
             "single_action_information_nats": {
                 action_id: float(
                     evidence_information[
@@ -1426,6 +1577,16 @@ def run_online_policy_certificate(
             "public_feature_block_size": feature_block_size,
             "online_discriminative_block_count": discriminative_block_count,
             "online_likelihood_scale": online_likelihood_scale,
+            "online_batch_likelihood_scale": online_batch_likelihood_scale,
+            "likelihood_effective_dimension_count": (
+                likelihood_effective_dimension_count
+            ),
+            "selected_feature_dimension_per_evidence_channel": (
+                selected_feature_dimension
+            ),
+            "online_batch_information_minimum_spread_nats": (
+                online_batch_information_minimum_spread
+            ),
             "feature_selection": feature_selection_report,
             "trials": completed,
         }
@@ -1480,6 +1641,16 @@ def run_online_policy_certificate(
             "public_feature_block_size": feature_block_size,
             "online_discriminative_block_count": discriminative_block_count,
             "online_likelihood_scale": online_likelihood_scale,
+            "online_batch_likelihood_scale": online_batch_likelihood_scale,
+            "likelihood_effective_dimension_count": (
+                likelihood_effective_dimension_count
+            ),
+            "selected_feature_dimension_per_evidence_channel": (
+                selected_feature_dimension
+            ),
+            "online_batch_information_minimum_spread_nats": (
+                online_batch_information_minimum_spread
+            ),
             "action_selection": requirement["action_selection"],
             "reference_policy": requirement["reference_policy"],
             "evidence_policy": requirement["evidence_policy"],
@@ -1528,6 +1699,63 @@ def _run_paired_gate_a(
     certificate_plan = plan["held_out_certificate"]
     phase_plan = plan["paired_phase_design"]
     gate = protocol["gates"]["gate_a"]
+    feature_encoding = str(fit_plan["public_feature_encoding"])
+    if feature_encoding != PUBLIC_EXPERIMENT_FEATURE_ENCODING_VERSION:
+        raise ValueError("controlled public-feature encoding contract is unsupported")
+    feature_block_size = int(fit_plan["summary_block_size"])
+    if feature_block_size != PUBLIC_EXPERIMENT_FEATURE_BLOCK_SIZE:
+        raise ValueError("controlled public-feature block-size contract is unsupported")
+    if plan.get("schema_version") == "chemworld-mechanism-adaptation-gate-a-plan-0.2.6":
+        controlled_block_count = int(fit_plan["controlled_discriminative_block_count"])
+        likelihood_effective_dimension_count = float(
+            fit_plan["likelihood_effective_dimension_count"]
+        )
+        fixed_controlled_likelihood_scale: float | None = None
+        controlled_information_minimum_spread = float(
+            fit_plan["controlled_primary_information_minimum_spread_nats"]
+        )
+    else:
+        controlled_block_count = int(fit_plan["online_discriminative_block_count"])
+        likelihood_effective_dimension_count = float(
+            controlled_block_count * feature_block_size
+        )
+        fixed_controlled_likelihood_scale = float(fit_plan["online_likelihood_scale"])
+        controlled_information_minimum_spread = 0.0
+    selected_feature_dimension_per_action = controlled_block_count * feature_block_size
+    maximum_likelihood_scale = 1.0 / feature_block_size
+    if (
+        controlled_block_count <= 0
+        or (
+            fixed_controlled_likelihood_scale is not None
+            and (
+                not np.isfinite(fixed_controlled_likelihood_scale)
+                or fixed_controlled_likelihood_scale <= 0.0
+                or fixed_controlled_likelihood_scale > maximum_likelihood_scale
+            )
+        )
+    ):
+        raise ValueError(
+            "controlled evidence requires positive whole-block selection and a "
+            "likelihood scale no greater than one effective contribution per block"
+        )
+    if (
+        not np.isfinite(controlled_information_minimum_spread)
+        or controlled_information_minimum_spread < 0.0
+        or (
+            plan.get("schema_version")
+            == "chemworld-mechanism-adaptation-gate-a-plan-0.2.6"
+            and controlled_information_minimum_spread == 0.0
+        )
+    ):
+        raise ValueError(
+            "controlled primary information minimum spread must be nonnegative "
+            "and positive for plan schema 0.2.6"
+        )
+    if fixed_controlled_likelihood_scale is None:
+        _dimension_normalized_likelihood_scale(
+            effective_dimension_count=likelihood_effective_dimension_count,
+            selected_feature_dimension=selected_feature_dimension_per_action,
+        )
     online_history_aligned_budget = int(phase_plan["pre_change_reference_experiments"])
     protocol_pre_change = int(protocol["design"]["pre_change_experiments"])
     if online_history_aligned_budget != protocol_pre_change:
@@ -1651,6 +1879,25 @@ def _run_paired_gate_a(
         }
         for key, values in zip(fit_keys, fit_results, strict=True):
             per_action_samples[key].append(values)
+        controlled_feature_indices, controlled_feature_selection = (
+            _select_discriminative_feature_blocks(
+                per_action_samples,
+                candidate_ids=candidate_ids,
+                evidence_action_ids=action_ids,
+                block_size=feature_block_size,
+                block_count=controlled_block_count,
+                variance_floor=float(fit_plan["variance_floor"]),
+            )
+        )
+        reduced_per_action_samples = {
+            key: [
+                np.asarray(sample, dtype=float)[
+                    np.asarray(controlled_feature_indices[key[1]], dtype=int)
+                ].tolist()
+                for sample in samples
+            ]
+            for key, samples in per_action_samples.items()
+        }
 
         serialized_actions = {key: vector.tolist() for key, vector in action_library.items()}
         task_trials: dict[str, list[dict[str, Any]]] = {
@@ -1659,18 +1906,37 @@ def _run_paired_gate_a(
         budget_designs: dict[str, Any] = {}
         for budget in budgets:
             oracle_seed = _stable_seed(int(fit_plan["oracle_seed"]), f"{task_id}:budget-{budget}")
+            controlled_likelihood_scale = (
+                fixed_controlled_likelihood_scale
+                if fixed_controlled_likelihood_scale is not None
+                else _dimension_normalized_likelihood_scale(
+                    effective_dimension_count=likelihood_effective_dimension_count,
+                    selected_feature_dimension=(
+                        selected_feature_dimension_per_action * budget
+                    ),
+                )
+            )
             oracle, batches = _fit_paired_batch_oracle(
                 candidate_ids=candidate_ids,
                 action_ids=action_ids,
-                per_action_samples=per_action_samples,
+                per_action_samples=reduced_per_action_samples,
                 batch_size=budget,
                 variance_floor=float(fit_plan["variance_floor"]),
+                likelihood_scale=controlled_likelihood_scale,
                 seed=oracle_seed,
             )
             information = oracle.expected_information_by_action(
                 draws=int(certificate_plan["information_draws_per_batch"])
             )
-            active_batch_id = max(information, key=information.__getitem__)
+            active_batch_id, information_diagnostics = _select_information_maximum(
+                information,
+                minimum_spread_nats=(
+                    controlled_information_minimum_spread
+                    if budget == primary_budget
+                    else 0.0
+                ),
+                context=f"{task_id} controlled budget {budget}",
+            )
             decoder_batch_id = _paired_action_id(action_ids[:budget])
             trial_jobs = []
             trial_keys: list[tuple[str, int]] = []
@@ -1695,6 +1961,10 @@ def _run_paired_gate_a(
                             "decoder_batch_id": decoder_batch_id,
                             "action_library": serialized_actions,
                             "predictives": oracle.export_predictives(),
+                            "feature_indices": {
+                                key: list(value)
+                                for key, value in controlled_feature_indices.items()
+                            },
                             "variance_floor": float(fit_plan["variance_floor"]),
                             "oracle_seed": oracle_seed,
                         }
@@ -1738,14 +2008,37 @@ def _run_paired_gate_a(
                 "matched_pre_change_reference_experiments": budget,
                 "post_change_diagnostic_experiments": budget,
                 "online_history_aligned": (budget == online_history_aligned_budget),
+                "likelihood_scale": controlled_likelihood_scale,
+                "selected_feature_dimension": (
+                    selected_feature_dimension_per_action * budget
+                ),
                 "active_batch_id": active_batch_id,
                 "active_batch_information_nats": float(information[active_batch_id]),
+                "batch_information_diagnostics": information_diagnostics,
                 "decoder_batch_id": decoder_batch_id,
                 "batch_information_nats": {key: float(value) for key, value in information.items()},
             }
         task_reports[task_id] = {
             "candidate_ids": candidate_ids,
             "action_library": serialized_actions,
+            "controlled_public_feature_encoding": feature_encoding,
+            "controlled_public_feature_block_size": feature_block_size,
+            "controlled_discriminative_block_count": controlled_block_count,
+            "controlled_likelihood_normalization": (
+                "inverse_selected_feature_dimension"
+                if fixed_controlled_likelihood_scale is None
+                else "legacy_fixed_scale"
+            ),
+            "likelihood_effective_dimension_count": (
+                likelihood_effective_dimension_count
+            ),
+            "selected_feature_dimension_per_action": (
+                selected_feature_dimension_per_action
+            ),
+            "controlled_primary_information_minimum_spread_nats": (
+                controlled_information_minimum_spread
+            ),
+            "controlled_feature_selection": controlled_feature_selection,
             "budget_designs": budget_designs,
             "trials": task_trials,
         }
@@ -1846,6 +2139,7 @@ def run_gate_a(
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.3",
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.4",
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.5",
+        "chemworld-mechanism-adaptation-gate-a-plan-0.2.6",
     }:
         return _run_paired_gate_a(
             protocol,

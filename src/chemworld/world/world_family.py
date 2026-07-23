@@ -16,7 +16,7 @@ from chemworld.world.scenario import ScenarioInstance
 ShiftMode = Literal["interpolation", "extrapolation", "composition", "observation_noise"]
 TargetKind = Literal["domain_parameter", "world_parameter", "initial_state"]
 
-WORLD_FAMILY_INTERVENTION_VERSION = "chemworld-world-family-intervention-0.1"
+WORLD_FAMILY_INTERVENTION_VERSION = "chemworld-world-family-intervention-0.2"
 
 
 @dataclass(frozen=True)
@@ -111,7 +111,7 @@ WORLD_AXIS_REGISTRY: dict[str, WorldAxisSpec] = {
         _axis(
             "reaction-to-crystallization",
             "crystallization.kinetic-profile",
-            "kinetic profile",
+            "primary nucleation-rate scale",
             "domain_parameter",
             ("crystallization_nucleation_multiplier",),
             "Changes primary nucleation while retaining the same population-balance law.",
@@ -119,10 +119,11 @@ WORLD_AXIS_REGISTRY: dict[str, WorldAxisSpec] = {
         _axis(
             "reaction-to-crystallization",
             "crystallization.solubility-cooling-profile",
-            "solubility and cooling profile",
+            "crystallization solubility regime",
             "domain_parameter",
             ("crystallization_solubility_multiplier",),
-            "Changes the bounded van't Hoff solubility response.",
+            "Changes the bounded van't Hoff solubility scale; the public cooling "
+            "trajectory remains an Agent-controlled probe.",
         ),
         _axis(
             "reaction-to-distillation",
@@ -158,11 +159,12 @@ WORLD_AXIS_REGISTRY: dict[str, WorldAxisSpec] = {
         ),
         _axis(
             "electrochemical-conversion",
-            "electrochem.redox-kinetics",
-            "redox kinetics",
+            "electrochem.selectivity-kinetics",
+            "overpotential-selectivity response",
             "domain_parameter",
-            ("electro_exchange_current_multiplier",),
-            "Changes exchange-current density without changing the electrode law.",
+            ("electro_selectivity_decay_multiplier",),
+            "Changes the selectivity penalty induced by overpotential while retaining "
+            "the same electrode and transport laws.",
         ),
         _axis(
             "electrochemical-conversion",
@@ -182,11 +184,12 @@ WORLD_AXIS_REGISTRY: dict[str, WorldAxisSpec] = {
         ),
         _axis(
             "equilibrium-characterization",
-            "equilibrium.solubility-product",
-            "solubility-product regime",
+            "equilibrium.activity-coefficient-regime",
+            "solution nonideality regime",
             "initial_state",
-            ("hidden_equilibrium_ksp",),
-            "Changes the hidden Ksp on a logarithmic scale.",
+            ("equilibrium_activity_coefficient_ratio",),
+            "Changes the hidden activity-coefficient ratio while retaining the same "
+            "acid-base and precipitation solver laws.",
         ),
     )
 }
@@ -248,15 +251,12 @@ def apply_axis_interventions(
                 metadata["hidden_equilibrium_pka"]
             ) + _additive_shift(intervention.mode, intervention.severity, 0.45, 1.2)
             state = state.replace(metadata=metadata)
-        elif intervention.axis_id == "equilibrium.solubility-product":
+        elif intervention.axis_id == "equilibrium.activity-coefficient-regime":
             metadata = dict(state.metadata)
-            log_ksp = log(float(metadata["hidden_equilibrium_ksp"]), 10.0)
-            log_ksp += _additive_shift(intervention.mode, intervention.severity, 0.35, 1.0)
-            metadata["hidden_equilibrium_ksp"] = 10.0**log_ksp
+            metadata["equilibrium_activity_coefficient_ratio"] = float(
+                metadata.get("equilibrium_activity_coefficient_ratio", 1.0)
+            ) * _effect_multiplier(intervention.mode, intervention.severity)
             state = state.replace(metadata=metadata)
-        elif intervention.axis_id == "electrochem.redox-kinetics":
-            factor = _redox_multiplier(intervention.mode, intervention.severity)
-            domain["electro_exchange_current_multiplier"] *= factor
         else:
             factor = _effect_multiplier(intervention.mode, intervention.severity)
             for key in spec.target_keys:
@@ -295,16 +295,6 @@ def _effect_multiplier(mode: ShiftMode, severity: float) -> float:
 
 def _noise_multiplier(severity: float) -> float:
     return exp(log(3.0) * severity)
-
-
-def _redox_multiplier(mode: ShiftMode, severity: float) -> float:
-    # Exchange-current density is a log-scale material/interface property.  A
-    # tenfold extrapolation remains current-setpoint-limited in the public
-    # electrochemical task and therefore produces no observable intervention.
-    # The wider extrapolation span crosses that kinetic boundary while keeping
-    # interpolation and composition shifts substantially narrower.
-    span = 5.0 if mode in {"interpolation", "composition"} else 25.0
-    return exp(log(span) * severity)
 
 
 def _additive_shift(

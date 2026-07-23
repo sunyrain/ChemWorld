@@ -15,6 +15,8 @@ from chemworld.tasks import SERIOUS_TASK_IDS, get_task
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 from chemworld.world.world_family import WORLD_AXIS_REGISTRY, AxisIntervention, axes_for_task
 
+MINIMUM_NORMALIZED_AXIS_RESPONSE = 5.0e-3
+
 
 def _intervention(axis_id: str, mode: str = "extrapolation", severity: float = 1.0) -> dict:
     return {"axis_id": axis_id, "mode": mode, "severity": severity}
@@ -28,8 +30,7 @@ def _run_midpoint_recipe(
 ) -> tuple[float, dict]:
     kwargs = get_task(task_id).env_kwargs(seed=0)
     if axis_id is not None:
-        severity = -1.0 if axis_id == "electrochem.redox-kinetics" else 1.0
-        kwargs["world_interventions"] = [_intervention(axis_id, mode=mode, severity=severity)]
+        kwargs["world_interventions"] = [_intervention(axis_id, mode=mode, severity=1.0)]
     env = gym.make("ChemWorld", **kwargs)
     try:
         env.reset(seed=0)
@@ -95,7 +96,13 @@ def test_each_axis_changes_a_real_task_response(task_id: str, axis_id: str) -> N
         for field in compared_fields
         if base_observation.get(field) is not None
     )
-    assert max(changes) > 1.0e-8, (task_id, axis_id, base_score, shifted_score)
+    assert max(changes) >= MINIMUM_NORMALIZED_AXIS_RESPONSE, (
+        task_id,
+        axis_id,
+        base_score,
+        shifted_score,
+        changes,
+    )
 
 
 def test_axis_cannot_be_applied_to_another_task() -> None:
@@ -104,7 +111,7 @@ def test_axis_cannot_be_applied_to_another_task() -> None:
         DefaultScenarioGenerator().generate(
             scenario,
             0,
-            (_intervention("electrochem.redox-kinetics"),),
+            (_intervention("electrochem.selectivity-kinetics"),),
         )
 
 

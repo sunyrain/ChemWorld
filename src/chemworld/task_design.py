@@ -9,80 +9,112 @@ from chemworld.physchem.maturity import MaturityLevel
 from chemworld.tasks import SERIOUS_TASK_IDS, TaskSpec, get_task
 from chemworld.world.operations import PUBLIC_OBSERVATION_KEYS
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
+from chemworld.world.world_family import WORLD_AXIS_REGISTRY, axes_for_task
 
-TASK_DESIGN_VERSION = "chemworld-serious-task-design-0.3"
+TASK_DESIGN_VERSION = "chemworld-serious-task-design-0.4"
+
+
+def _generalization_contract(
+    axis_id: str,
+    *,
+    hidden_drivers: tuple[str, ...],
+    evaluation: str,
+) -> dict[str, Any]:
+    """Bind scientific annotations to the executable world-axis registry."""
+
+    axis = WORLD_AXIS_REGISTRY[axis_id]
+    return {
+        "axis_id": axis.axis_id,
+        "label": axis.label,
+        "target_kind": axis.target_kind,
+        "runtime_target_keys": axis.target_keys,
+        "hidden_drivers": hidden_drivers,
+        "evaluation": evaluation,
+    }
+
+
+def _generalization_axis_labels(task_id: str) -> tuple[str, ...]:
+    return tuple(axis.label for axis in axes_for_task(task_id))
+
+
 SERIOUS_GENERALIZATION_CONTRACTS: dict[str, tuple[dict[str, Any], ...]] = {
     "partition-discovery": (
-        {
-            "label": "distribution coefficient",
-            "hidden_drivers": ("solvent family", "partition-law seed"),
-            "evaluation": "frozen-seed stratification and private-salt shift",
-        },
-        {
-            "label": "phase-volume ratio",
-            "hidden_drivers": ("aqueous volume", "organic volume"),
-            "evaluation": "task-recipe response-surface audit",
-        },
+        _generalization_contract(
+            "partition.distribution-coefficient",
+            hidden_drivers=("solvent family", "partition-law seed"),
+            evaluation="frozen-seed stratification and private-salt shift",
+        ),
+        _generalization_contract(
+            "partition.phase-volume-ratio",
+            hidden_drivers=("effective organic-to-aqueous contact-volume ratio",),
+            evaluation="task-recipe response-surface audit",
+        ),
     ),
     "reaction-to-crystallization": (
-        {
-            "label": "kinetic profile",
-            "hidden_drivers": ("rate constants", "catalyst and solvent effects"),
-            "evaluation": "frozen-seed stratification and private-salt shift",
-        },
-        {
-            "label": "solubility and cooling profile",
-            "hidden_drivers": ("solubility curve", "cooling duration and endpoint"),
-            "evaluation": "task-recipe response-surface audit",
-        },
+        _generalization_contract(
+            "crystallization.kinetic-profile",
+            hidden_drivers=(
+                "primary nucleation coefficient",
+                "supersaturation and seed/cooling interaction",
+            ),
+            evaluation="frozen-axis response-surface audit",
+        ),
+        _generalization_contract(
+            "crystallization.solubility-cooling-profile",
+            hidden_drivers=(
+                "reference solubility scale",
+                "temperature-dependent solubility response",
+            ),
+            evaluation="task-recipe response-surface audit",
+        ),
     ),
     "reaction-to-distillation": (
-        {
-            "label": "relative volatility",
-            "hidden_drivers": ("VLE policy", "temperature and reflux"),
-            "evaluation": "frozen-seed stratification and response-surface audit",
-        },
-        {
-            "label": "reaction selectivity",
-            "hidden_drivers": ("rate constants", "catalyst and solvent effects"),
-            "evaluation": "frozen-seed stratification and private-salt shift",
-        },
+        _generalization_contract(
+            "distillation.relative-volatility",
+            hidden_drivers=("relative-volatility scale", "temperature and reflux response"),
+            evaluation="frozen-seed stratification and response-surface audit",
+        ),
+        _generalization_contract(
+            "distillation.reaction-selectivity",
+            hidden_drivers=("catalyst effects", "solvent effects"),
+            evaluation="frozen-seed stratification and private-salt shift",
+        ),
     ),
     "flow-reaction-optimization": (
-        {
-            "label": "reaction kinetics",
-            "hidden_drivers": ("rate constants", "activation energies"),
-            "evaluation": "frozen-seed stratification and private-salt shift",
-        },
-        {
-            "label": "residence time and thermal boundary",
-            "hidden_drivers": ("flow rate", "residence time", "heat transfer"),
-            "evaluation": "task-recipe response-surface audit",
-        },
+        _generalization_contract(
+            "flow.reaction-kinetics",
+            hidden_drivers=("compiled PFR reaction-rate scale",),
+            evaluation="frozen-seed stratification and private-salt shift",
+        ),
+        _generalization_contract(
+            "flow.residence-thermal-boundary",
+            hidden_drivers=("residence-time calibration", "wall heat-transfer strength"),
+            evaluation="task-recipe response-surface audit",
+        ),
     ),
     "electrochemical-conversion": (
-        {
-            "label": "redox kinetics",
-            "hidden_drivers": ("redox scenario seed", "potential and current"),
-            "evaluation": "frozen-seed stratification and private-salt shift",
-        },
-        {
-            "label": "mass-transfer and resistance regime",
-            "hidden_drivers": ("transport policy", "cell resistance"),
-            "evaluation": "task-recipe response-surface audit",
-        },
+        _generalization_contract(
+            "electrochem.selectivity-kinetics",
+            hidden_drivers=("overpotential-selectivity sensitivity",),
+            evaluation="frozen-seed stratification and private-salt shift",
+        ),
+        _generalization_contract(
+            "electrochem.mass-transfer-resistance",
+            hidden_drivers=("electrolyte resistance", "contact resistance"),
+            evaluation="task-recipe response-surface audit",
+        ),
     ),
     "equilibrium-characterization": (
-        {
-            "label": "acid-base constants",
-            "hidden_drivers": ("hidden pKa", "solution composition"),
-            "evaluation": "frozen-seed stratification and private-salt shift",
-        },
-        {
-            "label": "solubility-product regime",
-            "hidden_drivers": ("hidden Ksp", "concentration"),
-            "evaluation": "task-recipe response-surface audit",
-        },
+        _generalization_contract(
+            "equilibrium.acid-base-constants",
+            hidden_drivers=("hidden pKa", "solution composition"),
+            evaluation="frozen-seed stratification and private-salt shift",
+        ),
+        _generalization_contract(
+            "equilibrium.activity-coefficient-regime",
+            hidden_drivers=("hidden activity-coefficient ratio", "solution concentration"),
+            evaluation="task-recipe response-surface audit",
+        ),
     ),
 }
 EXECUTABLE_EVALUATION_METRICS = frozenset(
@@ -196,6 +228,21 @@ def review_task_design(
     missing_declared_metrics = sorted(declared_metrics - success_metrics)
     maturity = task.kernel_maturity.lowest_level
     generalization_contract = SERIOUS_GENERALIZATION_CONTRACTS.get(task.task_id, ())
+    executable_axes = axes_for_task(task.task_id)
+    executable_axes_by_id = {axis.axis_id: axis for axis in executable_axes}
+    declared_axis_ids = tuple(str(item.get("axis_id", "")) for item in generalization_contract)
+    runtime_axis_binding_valid = (
+        len(declared_axis_ids) == len(set(declared_axis_ids))
+        and set(declared_axis_ids) == set(executable_axes_by_id)
+        and all(
+            item.get("label") == executable_axes_by_id[str(item["axis_id"])].label
+            and item.get("target_kind") == executable_axes_by_id[str(item["axis_id"])].target_kind
+            and tuple(item.get("runtime_target_keys", ()))
+            == executable_axes_by_id[str(item["axis_id"])].target_keys
+            for item in generalization_contract
+            if str(item.get("axis_id", "")) in executable_axes_by_id
+        )
+    )
     checks = (
         TaskDesignCheck(
             "identity",
@@ -276,6 +323,14 @@ def review_task_design(
             "generalization axes require hidden drivers and an executable audit mode",
         ),
         TaskDesignCheck(
+            "generalization_runtime_binding",
+            runtime_axis_binding_valid,
+            "generalization contracts must bind every executable world axis exactly once "
+            "with matching labels, target kinds, and runtime target keys; "
+            f"declared={list(declared_axis_ids)}, "
+            f"executable={list(executable_axes_by_id)}",
+        ),
+        TaskDesignCheck(
             "evidence_plan",
             len(design.required_evidence) >= 3,
             "task design requires baseline, replay, and failure-analysis evidence",
@@ -317,7 +372,7 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
         capability_claim="active phase-equilibrium characterization under a budget",
         primary_metric="product_in_organic",
         secondary_metrics=("phase_ratio", "product_in_aqueous"),
-        generalization_axes=("distribution coefficient", "phase-volume ratio"),
+        generalization_axes=_generalization_axis_labels("partition-discovery"),
         required_baselines=_COMMON_BASELINES,
         required_evidence=_COMMON_EVIDENCE,
         anti_gaming_checks=_COMMON_ANTI_GAMING,
@@ -334,7 +389,7 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
             "crystal_csd_quality",
             "crystal_fines_fraction",
         ),
-        generalization_axes=("kinetic profile", "solubility and cooling profile"),
+        generalization_axes=_generalization_axis_labels("reaction-to-crystallization"),
         required_baselines=_COMMON_BASELINES,
         required_evidence=_COMMON_EVIDENCE,
         anti_gaming_checks=(
@@ -349,7 +404,7 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
         capability_claim="reaction-distillation trade-off reasoning",
         primary_metric="distillate_purity",
         secondary_metrics=("score", "distillate_recovery", "solvent_loss"),
-        generalization_axes=("relative volatility", "reaction selectivity"),
+        generalization_axes=_generalization_axis_labels("reaction-to-distillation"),
         required_baselines=_COMMON_BASELINES,
         required_evidence=_COMMON_EVIDENCE,
         anti_gaming_checks=_COMMON_ANTI_GAMING,
@@ -360,7 +415,7 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
         capability_claim="geometry-aware continuous-flow optimization",
         primary_metric="flow_conversion",
         secondary_metrics=("score", "yield", "safety_risk"),
-        generalization_axes=("reaction kinetics", "residence time and thermal boundary"),
+        generalization_axes=_generalization_axis_labels("flow-reaction-optimization"),
         required_baselines=_COMMON_BASELINES,
         required_evidence=_COMMON_EVIDENCE,
         anti_gaming_checks=_COMMON_ANTI_GAMING,
@@ -384,7 +439,7 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
             "precipitation_signal",
             "safety_risk",
         ),
-        generalization_axes=("redox kinetics", "mass-transfer and resistance regime"),
+        generalization_axes=_generalization_axis_labels("electrochemical-conversion"),
         required_baselines=_COMMON_BASELINES,
         required_evidence=_COMMON_EVIDENCE,
         anti_gaming_checks=(
@@ -407,7 +462,7 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
             "precipitation_signal",
             "equilibrium_residual",
         ),
-        generalization_axes=("acid-base constants", "solubility-product regime"),
+        generalization_axes=_generalization_axis_labels("equilibrium-characterization"),
         required_baselines=_COMMON_BASELINES,
         required_evidence=_COMMON_EVIDENCE,
         anti_gaming_checks=_COMMON_ANTI_GAMING,
@@ -444,6 +499,7 @@ def serious_task_readiness_manifest() -> dict[str, Any]:
                     {
                         **axis,
                         "hidden_drivers": list(axis["hidden_drivers"]),
+                        "runtime_target_keys": list(axis["runtime_target_keys"]),
                     }
                     for axis in SERIOUS_GENERALIZATION_CONTRACTS[task_id]
                 ],

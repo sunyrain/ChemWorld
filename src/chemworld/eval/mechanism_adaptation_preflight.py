@@ -16,7 +16,7 @@ from chemworld.physchem.mechanism_library import configuration_root
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_PROTOCOL = configuration_root() / "benchmark/mechanism_adaptation_v0.2.1.json"
 REQUIRED_IMPLEMENTATION_ARTIFACTS = (
-    "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json",
+    "configs/benchmark/mechanism_adaptation_gate_a_v0.2.6.json",
     "src/chemworld/agents/mechanism_adaptation_live_llm.py",
     "src/chemworld/eval/mechanism_adaptation.py",
     "src/chemworld/eval/mechanism_gate_decision.py",
@@ -41,7 +41,7 @@ def build_mechanism_adaptation_preflight(
         protocol["intervention_action_alignment"]["design_audit_report"]
     )
     design_audit_path = ROOT / design_audit_relative
-    gate_a_plan_path = configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.2.4.json"
+    gate_a_plan_path = configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.2.6.json"
     gate_a_plan = json.loads(gate_a_plan_path.read_text(encoding="utf-8"))
     design_audit = (
         json.loads(design_audit_path.read_text(encoding="utf-8"))

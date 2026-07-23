@@ -19,8 +19,12 @@ from chemworld.eval.mechanism_adaptation_execution import (
     _advance_online_change_point_hypotheses,
     _balanced_hidden_change_times,
     _canonical_policy_cycle,
+    _dimension_normalized_likelihood_scale,
+    _fit_paired_batch_oracle,
     _online_hypothesis_evidence_channel,
+    _sample_paired_contrast_job,
     _select_discriminative_feature_blocks,
+    _select_information_maximum,
     _update_online_change_point_posterior,
     build_action_library,
     canonical_sha256,
@@ -49,7 +53,7 @@ def _protocol() -> dict[str, object]:
 
 def _gate_a_plan() -> dict[str, object]:
     return json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json").read_text(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.6.json").read_text(
             encoding="utf-8"
         )
     )
@@ -57,7 +61,7 @@ def _gate_a_plan() -> dict[str, object]:
 
 def _paired_gate_a_plan() -> dict[str, object]:
     return json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json").read_text(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.6.json").read_text(
             encoding="utf-8"
         )
     )
@@ -100,6 +104,125 @@ def test_online_policy_cycle_rejects_unknown_or_incomplete_rankings() -> None:
             ranked_action_ids=["design-00"],
             action_count=2,
         )
+
+
+def test_information_maximum_is_deterministic_and_rejects_saturation() -> None:
+    selected, report = _select_information_maximum(
+        {
+            "design-02": 0.9,
+            "design-01": 1.1,
+            "design-00": 1.1,
+        },
+        minimum_spread_nats=0.05,
+        context="test batch",
+    )
+
+    assert selected == "design-00"
+    assert report["spread_nats"] == pytest.approx(0.2)
+    assert report["non_saturated"] is True
+    with pytest.raises(ValueError, match="saturated"):
+        _select_information_maximum(
+            {
+                "design-00": 1.3862943611198906,
+                "design-01": 1.3862943611198906,
+            },
+            minimum_spread_nats=1.0e-3,
+            context="test batch",
+        )
+
+
+def test_likelihood_scale_is_normalized_by_selected_feature_dimension() -> None:
+    assert _dimension_normalized_likelihood_scale(
+        effective_dimension_count=1.0,
+        selected_feature_dimension=32,
+    ) == pytest.approx(1.0 / 32.0)
+    assert _dimension_normalized_likelihood_scale(
+        effective_dimension_count=1.0,
+        selected_feature_dimension=128,
+    ) == pytest.approx(1.0 / 128.0)
+    with pytest.raises(ValueError, match="effective dimension"):
+        _dimension_normalized_likelihood_scale(
+            effective_dimension_count=2.0,
+            selected_feature_dimension=1,
+        )
+
+
+def test_paired_batch_oracle_exports_conservative_likelihood_scale() -> None:
+    samples = {
+        (candidate, action): [
+            [float(candidate_index + action_index + repeat), float(repeat)]
+            for repeat in range(4)
+        ]
+        for candidate_index, candidate in enumerate(("no_change", "changed"))
+        for action_index, action in enumerate(("design-00", "design-01"))
+    }
+
+    oracle, batches = _fit_paired_batch_oracle(
+        candidate_ids=("no_change", "changed"),
+        action_ids=("design-00", "design-01"),
+        per_action_samples=samples,
+        batch_size=2,
+        variance_floor=1.0e-4,
+        likelihood_scale=0.125,
+        seed=7,
+    )
+
+    assert batches == {"design-00+design-01": ("design-00", "design-01")}
+    assert {
+        item["likelihood_scale"]
+        for item in oracle.export_predictives().values()
+    } == {0.125}
+
+
+def test_paired_contrast_feature_selection_must_cover_batch_actions() -> None:
+    with pytest.raises(ValueError, match="cover every batch action"):
+        _sample_paired_contrast_job(
+            {
+                "task_id": "reaction-to-crystallization",
+                "world_seed": 1,
+                "interventions": (),
+                "action_ids": ["design-00"],
+                "action_library": {
+                    "design-00": build_action_library(
+                        "reaction-to-crystallization",
+                        action_count=6,
+                        seed=41102,
+                    )["design-00"].tolist()
+                },
+                "pre_observation_seed": 2,
+                "post_observation_seed": 3,
+                "feature_indices": {},
+            }
+        )
+
+
+def test_paired_contrast_feature_selection_preserves_declared_coordinates() -> None:
+    action_id = "design-00"
+    action_vector = build_action_library(
+        "reaction-to-crystallization",
+        action_count=6,
+        seed=41102,
+    )[action_id].tolist()
+    job = {
+        "task_id": "reaction-to-crystallization",
+        "world_seed": 11,
+        "interventions": (),
+        "action_ids": [action_id],
+        "action_library": {action_id: action_vector},
+        "pre_observation_seed": 12,
+        "post_observation_seed": 13,
+    }
+
+    full = _sample_paired_contrast_job(job)
+    selected_indices = [0, 1, len(full) - 2, len(full) - 1]
+    selected = _sample_paired_contrast_job(
+        {
+            **job,
+            "feature_indices": {action_id: selected_indices},
+        }
+    )
+
+    assert selected == [full[index] for index in selected_indices]
 
 
 def test_gate_a_fails_closed_without_online_policy_certificate() -> None:

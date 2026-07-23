@@ -127,13 +127,13 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_gate_a_plan",
-        "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json",
+        "configs/benchmark/mechanism_adaptation_gate_a_v0.2.6.json",
         "protocol_input",
         ("mechanism_protocol",),
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc19.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc20.json",
         "formal_result",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
     ),
@@ -159,7 +159,7 @@ NODES = (
     EvidenceNode(
         "mechanism_online_policy_certificate",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-online-policy-certificate-v0.4-rc19.json",
+        "mechanism-adaptation-online-policy-certificate-v0.4-rc20.json",
         "formal_result",
         (
             "mechanism_design_audit",
@@ -169,7 +169,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_gate_a",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.5-rc19.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.6-rc20.json",
         "formal_result",
         (
             "backend_candidate",

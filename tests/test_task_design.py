@@ -5,20 +5,21 @@ from dataclasses import replace
 from chemworld.physchem.maturity import MaturityLevel, ModuleMaturity, TaskMaturitySpec
 from chemworld.schemas import validate_task_schema
 from chemworld.task_design import (
+    SERIOUS_GENERALIZATION_CONTRACTS,
     SERIOUS_TASK_DESIGNS,
     SeriousTaskDesign,
     review_task_design,
     serious_task_readiness_manifest,
 )
 from chemworld.tasks import SERIOUS_TASK_IDS, get_task
+from chemworld.world.world_family import axes_for_task
 
 
 def test_serious_task_designs_cover_frozen_suite() -> None:
     assert tuple(SERIOUS_TASK_DESIGNS) == SERIOUS_TASK_IDS
     assert all(not get_task(task_id).kernel_maturity.proxy_allowed for task_id in SERIOUS_TASK_IDS)
     assert all(
-        validate_task_schema(get_task(task_id).to_dict()).valid
-        for task_id in SERIOUS_TASK_IDS
+        validate_task_schema(get_task(task_id).to_dict()).valid for task_id in SERIOUS_TASK_IDS
     )
 
 
@@ -34,6 +35,30 @@ def test_serious_task_contracts_pass_machine_readable_review() -> None:
         assert review["benchmark_ready"] is False
         assert review["empirical_status"] == "candidate"
         assert all(check["passed"] for check in review["checks"])
+
+
+def test_generalization_contracts_bind_executable_world_axes() -> None:
+    for task_id in SERIOUS_TASK_IDS:
+        declared = {
+            str(item["axis_id"]): item for item in SERIOUS_GENERALIZATION_CONTRACTS[task_id]
+        }
+        executable = {axis.axis_id: axis for axis in axes_for_task(task_id)}
+
+        assert set(declared) == set(executable)
+        for axis_id, axis in executable.items():
+            contract = declared[axis_id]
+            assert contract["label"] == axis.label
+            assert contract["target_kind"] == axis.target_kind
+            assert tuple(contract["runtime_target_keys"]) == axis.target_keys
+
+    crystallization = {
+        str(item["axis_id"]): item
+        for item in SERIOUS_GENERALIZATION_CONTRACTS["reaction-to-crystallization"]
+    }
+    nucleation = crystallization["crystallization.kinetic-profile"]
+    assert nucleation["label"] == "primary nucleation-rate scale"
+    assert tuple(nucleation["runtime_target_keys"]) == ("crystallization_nucleation_multiplier",)
+    assert "rate constants" not in nucleation["hidden_drivers"]
 
 
 def test_serious_task_review_rejects_proxy_and_unimplemented_metric() -> None:
