@@ -1,6 +1,6 @@
 # ChemWorld RC27 正式执行修正说明
 
-状态：`pre-execution requalification required`
+状态：`pre-execution qualified; formal cohorts not yet consumed`
 
 RC26 完成 A3 后，A2 在任何 A2 job 或 seed 被消费前被
 `unsupported paired Gate A public contrast encoding` fail-closed 拦截。原因是正式计划自
@@ -19,3 +19,8 @@ RC27：
 
 RC26 A3 报告作为 superseded formal attempt 原样保留，不在 RC27 中复用、比较或解释。
 RC27 必须重新运行完整 A3 和 A2。
+
+正式启动前，冻结提交 `96d266502f89eb822b7e64a3c6330a63e07a7967`
+已在 clean detached worktree 中通过 qualification check、A2/A3 零作业入口验证及
+60 项 mechanism release/execution 集成测试。可复核环境与测试哈希见
+`reports/mechanism-adaptation-clean-detached-attestation-v0.1-rc27.json`。
