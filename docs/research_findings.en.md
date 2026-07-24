@@ -45,6 +45,14 @@ trigger a formal RC22 run. It localizes the remaining problem to a fixed four-ac
 single-likelihood online decoder that cannot robustly combine temporal and cross-action relational evidence—not
 to physical non-identifiability of the reaction rate-law task.
 
+A subsequent non-certificate screening at only four worlds per family also rejected a naive myopic
+posterior-EIG plus one-step reference-acquisition policy. It generated history-dependent action paths but often
+repeated one locally high-information action. Reaction diagnosis reached only 10/16 (rate law 3/4, topology 4/4,
+material 1/4, and no change 2/4), while electrochemistry reached 16/16. This low-power screen cannot estimate a
+formal pass rate, and its implementation was not retained. It only establishes that a future adaptive method must
+jointly plan reference coverage, temporal evidence, and cross-action relations, then pass independent selection
+validation before preregistration.
+
 These results support environment-level identifiability diagnostics, not Agent-level mechanism discovery,
 crystallization-kinetics discovery, or exact rate-parameter identification.
 

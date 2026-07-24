@@ -43,6 +43,12 @@ RC22-d 又以独立 fit、policy-selection validation 和开发 trial namespace 
 也没有触发 RC22 正式运行。它说明当前阻断来自固定四动作、单 reference/单 likelihood 在线 decoder
 不能同时稳定利用时间与跨动作关系证据，而不是反应 rate-law 物理任务不可识别。
 
+随后一个未进入证书、仅 4 worlds/family 的小规模开发筛查又否决了朴素的 “myopic posterior-EIG
+与一步 reference acquisition” 策略：它虽然产生了不同动作路径，但经常重复同一个局部高信息动作；
+反应任务仅识别 10/16（rate-law 3/4、topology 4/4、material 1/4、no-change 2/4），而电化学为
+16/16。该低功效筛查不能估计正式通过率，相关实现也未保留；它只说明未来自适应方法必须显式联合
+规划 reference coverage、时间证据与跨动作关系，并在独立 selection validation 通过后才能预注册。
+
 这些结果只支持环境级可识别性诊断，不证明被评 Agent 已具备机制发现能力，也不代表发现了结晶动力学
 或精确速率参数。
 
