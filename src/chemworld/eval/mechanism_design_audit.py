@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import itertools
 import json
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from typing import Any, cast
 
 import numpy as np
@@ -38,7 +38,7 @@ from chemworld.world.mechanism_family import (
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
-DESIGN_AUDIT_SCHEMA_VERSION = "chemworld-mechanism-design-audit-0.2.4"
+DESIGN_AUDIT_SCHEMA_VERSION = "chemworld-mechanism-design-audit-0.2.5"
 
 MATERIAL_FIELD_ACTIONS: dict[str, tuple[str, str]] = {
     "catalyst": ("add_catalyst", "catalyst"),
@@ -258,6 +258,51 @@ def audit_mechanism_design(
                 candidate_id=candidate_id,
             )
 
+        controlled_coverage_required = (
+            gate_a_plan.get("paired_phase_design", {}).get(
+                "controlled_primary_declared_relational_action_coverage"
+            )
+            is True
+        )
+        controlled_coverage: dict[str, Any] = {
+            "required": controlled_coverage_required,
+        }
+        if controlled_coverage_required:
+            primary_budget = int(
+                gate_a_plan.get("held_out_certificate", {}).get(
+                    "primary_gate_budget",
+                    0,
+                )
+            )
+            try:
+                declarations = declared_relational_action_groups(
+                    recipes=recipes,
+                    contract=contract,
+                )
+                controlled_coverage = relational_coverage_witness(
+                    declaration_groups=declarations,
+                    action_ids=list(action_library),
+                    budget=primary_budget,
+                )
+                controlled_coverage["required"] = True
+                coverage_error = None
+            except (TypeError, ValueError) as exc:
+                coverage_error = f"{type(exc).__name__}: {exc}"
+                controlled_coverage = {
+                    "required": True,
+                    "budget": primary_budget,
+                    "feasible": False,
+                    "error": coverage_error,
+                }
+            _add(
+                task_findings,
+                "controlled_primary_relational_coverage_feasible",
+                controlled_coverage.get("feasible") is True,
+                "The controlled primary budget must contain one complete public "
+                "action group for every declared relation before any formal trial "
+                f"is scheduled; coverage={controlled_coverage}, error={coverage_error}.",
+            )
+
         prompt_check = _audit_prompt_boundary(
             task_id=task_id,
             task_info=task_info,
@@ -268,6 +313,7 @@ def audit_mechanism_design(
         findings.extend({"task_id": task_id, **item} for item in task_findings)
         task_reports[task_id] = {
             "action_count": len(action_library),
+            "controlled_primary_relational_coverage": controlled_coverage,
             "recipe_field_values": {
                 f"{operation}.{field}": sorted(values, key=str)
                 for (operation, field), values in sorted(recipe_values.items())
@@ -304,6 +350,132 @@ def audit_mechanism_design(
             "the Gate A recipes, observable before termination, instantiable, and absent "
             "from the mechanism-Agent prompt. It does not establish identifiability."
         ),
+    }
+
+
+def declared_relational_action_groups(
+    *,
+    recipes: Mapping[str, Mapping[str, Any]],
+    contract: Mapping[str, Any],
+) -> dict[str, tuple[tuple[str, ...], ...]]:
+    """Resolve every declared intervention relation to public action groups."""
+
+    declarations: dict[str, tuple[tuple[str, ...], ...]] = {}
+    interventions = contract.get("interventions", {})
+    diagnostic_relations = contract.get("diagnostic_relations", {})
+    if not isinstance(interventions, Mapping):
+        raise ValueError("task intervention contract must be an object")
+    if not isinstance(diagnostic_relations, Mapping):
+        raise ValueError("task diagnostic_relations must be an object")
+    for candidate_id, raw_items in interventions.items():
+        if not isinstance(raw_items, Sequence) or isinstance(raw_items, str | bytes):
+            raise ValueError("candidate interventions must be a sequence")
+        for index, raw_intervention in enumerate(raw_items):
+            if not isinstance(raw_intervention, Mapping):
+                raise ValueError("candidate intervention must be an object")
+            if raw_intervention.get("kind") == "material_law_counterfactual":
+                groups = material_relational_action_groups(
+                    recipes,
+                    intervention=raw_intervention,
+                )
+            else:
+                raw_relation = diagnostic_relations.get(candidate_id)
+                if raw_relation is None:
+                    continue
+                if not isinstance(raw_relation, Mapping):
+                    raise ValueError("diagnostic_relation must be an object")
+                groups = mechanism_relational_action_groups(
+                    recipes,
+                    relation=raw_relation,
+                )
+            declaration_id = f"{candidate_id}:{index}"
+            if not groups:
+                raise ValueError(
+                    "relational evidence requires a declared public action group "
+                    f"for {declaration_id}"
+                )
+            declarations[declaration_id] = groups
+    return declarations
+
+
+def relational_coverage_witness(
+    *,
+    declaration_groups: Mapping[str, Sequence[Sequence[str]]],
+    action_ids: Sequence[str],
+    budget: int,
+) -> dict[str, Any]:
+    """Find the smallest action union closing one group per declaration."""
+
+    if budget < 1:
+        raise ValueError("relational coverage budget must be positive")
+    canonical = [str(item) for item in action_ids]
+    canonical_set = set(canonical)
+    declaration_ids = sorted(str(item) for item in declaration_groups)
+    if not declaration_ids:
+        return {
+            "budget": budget,
+            "declaration_count": 0,
+            "minimum_distinct_actions": 0,
+            "feasible": True,
+            "selected_groups": {},
+            "selected_action_ids": [],
+        }
+    choices: list[tuple[tuple[str, ...], ...]] = []
+    for declaration_id in declaration_ids:
+        raw_groups = declaration_groups[declaration_id]
+        groups = tuple(
+            tuple(dict.fromkeys(str(action_id) for action_id in raw_group))
+            for raw_group in raw_groups
+        )
+        if not groups or any(len(group) < 2 for group in groups):
+            raise ValueError(
+                f"declared relation {declaration_id} has no valid action group"
+            )
+        unknown = sorted(
+            {
+                action_id
+                for group in groups
+                for action_id in group
+                if action_id not in canonical_set
+            }
+        )
+        if unknown:
+            raise ValueError(
+                f"declared relation {declaration_id} references unknown actions: "
+                + ", ".join(unknown)
+            )
+        choices.append(groups)
+
+    candidates: list[
+        tuple[int, tuple[str, ...], tuple[tuple[str, ...], ...]]
+    ] = []
+    for selected_groups in itertools.product(*choices):
+        selected_set = {
+            action_id
+            for group in selected_groups
+            for action_id in group
+        }
+        ordered_actions = tuple(
+            action_id for action_id in canonical if action_id in selected_set
+        )
+        candidates.append(
+            (len(ordered_actions), ordered_actions, selected_groups)
+        )
+    minimum_size, selected_actions, selected_groups = min(candidates)
+    return {
+        "budget": budget,
+        "declaration_count": len(declaration_ids),
+        "minimum_distinct_actions": minimum_size,
+        "feasible": minimum_size <= budget,
+        "selected_groups": {
+            declaration_id: list(group)
+            for declaration_id, group in zip(
+                declaration_ids,
+                selected_groups,
+                strict=True,
+            )
+        },
+        "selected_action_ids": list(selected_actions),
     }
 
 
@@ -1331,6 +1503,8 @@ __all__ = [
     "DESIGN_AUDIT_SCHEMA_VERSION",
     "MATERIAL_FIELD_ACTIONS",
     "audit_mechanism_design",
+    "declared_relational_action_groups",
     "material_relational_action_groups",
     "mechanism_relational_action_groups",
+    "relational_coverage_witness",
 ]

@@ -1,4 +1,4 @@
-"""Run the targeted RC27 release qualification without consuming formal cohorts."""
+"""Run the targeted RC28 release qualification without consuming formal cohorts."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ from chemworld.eval.trial_store import (  # noqa: E402
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-release-qualification-v0.1-rc27.json"
+    "mechanism-adaptation-release-qualification-v0.1-rc28.json"
 )
 TARGETED_TESTS = (
     "tests/test_prompt_context.py",
@@ -85,21 +85,21 @@ def _source_binding_command(source_commit: str) -> list[str]:
         "--",
         "src/chemworld",
         "scripts",
-        "configs/benchmark/mechanism_adaptation_v0.3.0_rc27.json",
+        "configs/benchmark/mechanism_adaptation_v0.3.0_rc28.json",
         "configs/benchmark/"
-        "mechanism_adaptation_gate_a_v0.3.0_rc27.json",
+        "mechanism_adaptation_gate_a_v0.3.0_rc28.json",
         "configs/benchmark/"
-        "mechanism_adaptation_participant_preregistration_rc27.json",
+        "mechanism_adaptation_participant_preregistration_rc28.json",
         "configs/methods/llm_v0.4/llm_methods_rc25.json",
         "configs/methods/llm_v0.4/llm_methods.json",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc27.json",
+        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc28.json",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-design-audit-freeze-rc27.json",
+        "mechanism-adaptation-design-audit-freeze-rc28.json",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-sample-size-audit-v0.3.0-rc27.json",
+        "mechanism-adaptation-sample-size-audit-v0.3.0-rc28.json",
         "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc27.json",
+        "confirmatory-task-semantics-audit-rc28.json",
         *TARGETED_TESTS,
     ]
 
@@ -165,7 +165,7 @@ def _development_sentinel(
             action_library=selected,
             experiment_horizon=1,
             observation_seed=seed + 1,
-            observation_noise_namespace="rc27-release-qualification",
+            observation_noise_namespace="rc28-release-qualification",
         ) as session:
             traces.append(session.observe(action_id))
             operation_noise = session.observation_noise_audit[0][
@@ -204,7 +204,7 @@ def _development_sentinel(
         experiment_memory=[],
         recent_decisions=[],
     )
-    with tempfile.TemporaryDirectory(prefix="chemworld-rc27-qualification-") as raw:
+    with tempfile.TemporaryDirectory(prefix="chemworld-rc28-qualification-") as raw:
         store = ConfirmatoryTrialStore(Path(raw) / "trial-store")
         jobs = [{"value": 1}, {"value": 2}]
         keys = [
@@ -277,7 +277,7 @@ def build_qualification(
     semantics = load_json_object(
         ROOT
         / "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc27.json"
+        "confirmatory-task-semantics-audit-rc28.json"
     )
     source_binding = _run(_source_binding_command(source_commit))
     static_errors = validate_diagnostic_relation_graph(
@@ -330,7 +330,7 @@ def build_qualification(
     )
     payload = {
         "schema_version": "chemworld-mechanism-release-qualification-0.1",
-        "release_candidate": "rc27",
+        "release_candidate": "rc28",
         "status": "passed" if qualified else "failed",
         "qualified": qualified,
         "formal_result": False,
@@ -376,8 +376,8 @@ def validate_recorded_qualification(
         "chemworld-mechanism-release-qualification-0.1"
     ):
         errors.append("unexpected release qualification schema")
-    if report.get("release_candidate") != "rc27":
-        errors.append("release candidate is not rc27")
+    if report.get("release_candidate") != "rc28":
+        errors.append("release candidate is not rc28")
     if report.get("status") != "passed" or report.get("qualified") is not True:
         errors.append("release qualification did not pass")
     for field in (
@@ -440,7 +440,7 @@ def validate_recorded_qualification(
     semantics = load_json_object(
         ROOT
         / "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc27.json"
+        "confirmatory-task-semantics-audit-rc28.json"
     )
     if sample_size.get("pass") is not True:
         current_static_errors.append("current sample-size audit did not pass")

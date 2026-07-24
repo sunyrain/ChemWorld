@@ -43,34 +43,34 @@ from chemworld.eval.provenance import (  # noqa: E402
 )
 
 DEFAULT_GATE_A_REPORT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc27.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc28.json"
 )
 DEFAULT_ONLINE_ATTAINABILITY_CERTIFICATE = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-online-attainability-certificate-v0.9-rc27.json"
+    "mechanism-adaptation-online-attainability-certificate-v0.9-rc28.json"
 )
-DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.3.0-rc27"
+DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.3.0-rc28"
 DEFAULT_TRIAL_STORE_ROOT = DEFAULT_RUNTIME_ROOT / "confirmatory-trials"
 DEFAULT_A3_STRUCTURAL_RECEIPT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-a3-structural-receipt-v0.1-rc27.json"
+    "mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json"
 )
 DEFAULT_A2_STRUCTURAL_RECEIPT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-a2-structural-receipt-v0.1-rc27.json"
+    "mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json"
 )
 DEFAULT_RELEASE_QUALIFICATION = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-release-qualification-v0.1-rc27.json"
+    "mechanism-adaptation-release-qualification-v0.1-rc28.json"
 )
 DEFAULT_PUBLIC_DECISION = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-public-decision-v0.1-rc27.json"
+    "mechanism-adaptation-public-decision-v0.1-rc28.json"
 )
 DEFAULT_PILOT_REPORT = (
     ROOT

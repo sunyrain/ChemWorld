@@ -55,8 +55,8 @@ from chemworld.eval.mechanism_adaptation import (
 )
 from chemworld.eval.mechanism_design_audit import (
     audit_mechanism_design,
-    material_relational_action_groups,
-    mechanism_relational_action_groups,
+    declared_relational_action_groups,
+    relational_coverage_witness,
 )
 from chemworld.eval.mechanism_gate_decision import (
     ONLINE_ATTAINABILITY_CERTIFICATE_VERSION,
@@ -82,11 +82,11 @@ from chemworld.providers.deepseek import DeepSeekClient
 from chemworld.tasks import get_task
 
 DEFAULT_PROTOCOL_PATH = (
-    configuration_root() / "benchmark/mechanism_adaptation_v0.3.0_rc27.json"
+    configuration_root() / "benchmark/mechanism_adaptation_v0.3.0_rc28.json"
 )
 DEFAULT_GATE_A_PLAN_PATH = (
     configuration_root()
-    / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
+    / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json"
 )
 DEFAULT_LLM_METHODS_PATH = (
     configuration_root() / "methods/llm_v0.4/llm_methods_rc25.json"
@@ -702,42 +702,15 @@ def _declared_relational_action_groups(
         action_id: task_recipe_from_unit_vector(task_info, vector)
         for action_id, vector in action_library.items()
     }
-    declarations: dict[str, tuple[tuple[str, ...], ...]] = {}
-    interventions = contract.get("interventions", {})
-    diagnostic_relations = contract.get("diagnostic_relations", {})
-    if not isinstance(interventions, Mapping):
-        raise ValueError("task intervention contract must be an object")
-    if not isinstance(diagnostic_relations, Mapping):
-        raise ValueError("task diagnostic_relations must be an object")
-    for candidate_id, raw_items in interventions.items():
-        if not isinstance(raw_items, Sequence) or isinstance(raw_items, str | bytes):
-            raise ValueError("candidate interventions must be a sequence")
-        for index, raw_intervention in enumerate(raw_items):
-            if not isinstance(raw_intervention, Mapping):
-                raise ValueError("candidate intervention must be an object")
-            if raw_intervention.get("kind") == "material_law_counterfactual":
-                groups = material_relational_action_groups(
-                    recipes,
-                    intervention=raw_intervention,
-                )
-            else:
-                raw_relation = diagnostic_relations.get(candidate_id)
-                if raw_relation is None:
-                    continue
-                if not isinstance(raw_relation, Mapping):
-                    raise ValueError("diagnostic_relation must be an object")
-                groups = mechanism_relational_action_groups(
-                    recipes,
-                    relation=raw_relation,
-                )
-            declaration_id = f"{candidate_id}:{index}"
-            if not groups:
-                raise ValueError(
-                    "relational online evidence requires a declared public "
-                    f"action group for {task_id}/{declaration_id}"
-                )
-            declarations[declaration_id] = groups
-    return declarations
+    try:
+        return declared_relational_action_groups(
+            recipes=recipes,
+            contract=contract,
+        )
+    except ValueError as exc:
+        raise ValueError(
+            f"invalid declared relational action groups for {task_id}: {exc}"
+        ) from exc
 
 
 def _relation_channel_information(
@@ -4318,6 +4291,24 @@ def _run_paired_gate_a(
         )
         for task_id in protocol["design"]["tasks"]
     }
+    if controlled_relational_coverage_required:
+        for task_id, action_library in action_libraries.items():
+            declarations = _declared_relational_action_groups(
+                task_id=task_id,
+                contract=protocol["task_mechanism_contracts"][task_id],
+                action_library=action_library,
+            )
+            coverage = relational_coverage_witness(
+                declaration_groups=declarations,
+                action_ids=list(action_library),
+                budget=primary_budget,
+            )
+            if coverage["feasible"] is not True:
+                raise ValueError(
+                    f"{task_id} controlled primary budget {primary_budget} "
+                    "cannot cover every declared relational intervention; "
+                    f"minimum distinct actions={coverage['minimum_distinct_actions']}"
+                )
     if design_validity_audit is None:
         _emit_gate_a_progress(progress_callback, event="design_audit_started")
         design_audit = audit_mechanism_design(

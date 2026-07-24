@@ -6,10 +6,13 @@ from pathlib import Path
 import pytest
 
 from chemworld.eval.mechanism_adaptation_execution import (
+    _declared_relational_action_groups,
     _validate_paired_public_contrast_encoding,
+    build_action_library,
     load_json_object,
     load_protocol_object,
 )
+from chemworld.eval.mechanism_design_audit import relational_coverage_witness
 from chemworld.eval.mechanism_release import (
     build_metric_embargo_receipt,
     build_public_gate_a_decision,
@@ -57,24 +60,65 @@ def test_formal_receipt_counts_match_frozen_job_matrices() -> None:
         run_name="mechanism_adaptation_runner",
     )
     protocol = load_protocol_object(
-        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc27.json"
+        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc28.json"
     )
     plan = load_json_object(
         ROOT
-        / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
+        / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json"
     )
 
     assert runner["_expected_a3_receipt_count"](protocol, plan) == 2016
-    assert runner["_expected_a2_receipt_count"](protocol, plan) == 3456
+    assert runner["_expected_a2_receipt_count"](protocol, plan) == 4896
 
 
 def test_formal_paired_contrast_encoding_is_accepted() -> None:
     plan = load_json_object(
         ROOT
-        / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
+        / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json"
     )
 
     _validate_paired_public_contrast_encoding(plan["paired_phase_design"])
+
+
+def test_primary_budget_covers_every_declared_relation_before_scheduling() -> None:
+    protocol = load_protocol_object(
+        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc28.json"
+    )
+    plan = load_json_object(
+        ROOT
+        / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json"
+    )
+    expected_minimum = {
+        "reaction-to-crystallization": 4,
+        "electrochemical-conversion": 5,
+    }
+    for task_id, minimum in expected_minimum.items():
+        action_library = build_action_library(
+            task_id,
+            action_count=plan["action_library"]["action_count_per_task"],
+            seed=plan["action_library"]["design_seed"],
+            design_id=plan["action_library"]["design"],
+        )
+        declarations = _declared_relational_action_groups(
+            task_id=task_id,
+            contract=protocol["task_mechanism_contracts"][task_id],
+            action_library=action_library,
+        )
+        witness = relational_coverage_witness(
+            declaration_groups=declarations,
+            action_ids=list(action_library),
+            budget=plan["held_out_certificate"]["primary_gate_budget"],
+        )
+        assert witness["minimum_distinct_actions"] == minimum
+        assert witness["feasible"] is True
+
+    impossible_electrochemical_budget = relational_coverage_witness(
+        declaration_groups=declarations,
+        action_ids=list(action_library),
+        budget=4,
+    )
+    assert impossible_electrochemical_budget["minimum_distinct_actions"] == 5
+    assert impossible_electrochemical_budget["feasible"] is False
 
 
 def test_public_decision_requires_both_complete_receipts() -> None:

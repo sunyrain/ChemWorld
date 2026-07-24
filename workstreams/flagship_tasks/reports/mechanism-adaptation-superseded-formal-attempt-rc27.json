@@ -1,0 +1,37 @@
+{
+  "schema_version": "chemworld-superseded-formal-attempt-0.1",
+  "release_candidate": "rc27",
+  "status": "superseded_by_rc28",
+  "scientific_metrics_disclosed": false,
+  "reuse_in_rc28_allowed": false,
+  "a3": {
+    "status": "structurally_complete_superseded",
+    "expected_trial_count": 2016,
+    "observed_completed_trial_count": 2016,
+    "trial_manifest_count": 4,
+    "structural_receipt": "workstreams/flagship_tasks/reports/mechanism-adaptation-a3-structural-receipt-v0.1-rc27.json",
+    "structural_receipt_file_sha256": "5f7806ed975ad894c4103668bfc91755176e665da9272cbc76b6813926db5d42",
+    "raw_report_size_bytes": 257798620,
+    "raw_report_file_sha256": "ca53aa0f90a56ffe47a0869120a6ab1c8d2bc79c4f535d991e7c3e99149e2d78",
+    "raw_report_canonical_sha256": "5f0e4086b50b3f6ca6c376784b269161d5ee9c492723e6d7c1a87954a7ec9779"
+  },
+  "a2": {
+    "status": "failed_closed_before_electrochemical_budget_4_scheduler",
+    "expected_trial_count": 3456,
+    "observed_completed_trial_count": 2736,
+    "completed_partitions": {
+      "reaction-to-crystallization/predictive-fit": 288,
+      "reaction-to-crystallization/certificate-budget-2": 720,
+      "reaction-to-crystallization/certificate-budget-4": 720,
+      "electrochemical-conversion/predictive-fit": 288,
+      "electrochemical-conversion/certificate-budget-2": 720
+    },
+    "unstarted_partition": {
+      "electrochemical-conversion/certificate-budget-4": 720
+    },
+    "raw_report_created": false,
+    "structural_receipt_created": false,
+    "failure": "electrochemical-conversion controlled primary budget cannot cover every declared relational intervention"
+  },
+  "supersession_reason": "The electrochemical candidate set requires a three-action constitutive low/pivot/high relation plus separate solvent and electrolyte-profile counterfactual pairs sharing the pivot, for a minimum union of five distinct actions. RC27 primary budget 4 was infeasible. RC28 adds a static relation-union feasibility certificate before scheduling and uses k=5 as the primary controlled certificate while retaining k=2 and k=4 as diagnostic checkpoints."
+}
