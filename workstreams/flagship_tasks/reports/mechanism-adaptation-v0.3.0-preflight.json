@@ -1,0 +1,914 @@
+{
+  "artifacts": [
+    {
+      "exists": true,
+      "path": "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json",
+      "sha256": "5caa1eb30f847e906080f4d4d652ec198777cafe2a48051d93dcabceeb2eee61"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/agents/mechanism_adaptation_live_llm.py",
+      "sha256": "ff56c36f3f5eb4adb8fc24e968b76ca724eaa685e12d4f703f9dca858fa757a7"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/eval/mechanism_adaptation.py",
+      "sha256": "2dbcd78e4e82d8607d897ffe3426731c57827ec5f00d71151f5a095417fcf08c"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/eval/flagship_semantics_audit.py",
+      "sha256": "4a56998ef66d1f1afe78776e4cba40110c2724b099cec72f0aef133a6cba95e9"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/eval/mechanism_gate_decision.py",
+      "sha256": "15df8c3c3c947d587ec3b19189e6a681f5b7f34afc50f70cf9d26e6896c9a818"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/eval/mechanism_design_audit.py",
+      "sha256": "f9875eb44f532cbafeb91c11d7159b3877bb50ac59d4e6b32d61c32d1e39edb0"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/eval/mechanism_relation_graph.py",
+      "sha256": "6177ad60cf06edfc3f1b916d6621393971167f1de0a8dc1ccca0fdd672108095"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/eval/mechanism_adaptation_execution.py",
+      "sha256": "fea5ce74a8919de1b47470a5a7d7d12723d2bc5e2a833cc50671cf79875269b5"
+    },
+    {
+      "exists": true,
+      "path": "scripts/audit_mechanism_adaptation_design.py",
+      "sha256": "44ace507104fbcc95e20c1c8e7a8631d615f374125d012732a1fbc889fa2c331"
+    },
+    {
+      "exists": true,
+      "path": "scripts/audit_flagship_experiment_semantics.py",
+      "sha256": "d2ee4928f5b44231efa7e7e8f916fab79d20267b22aabd4b08540e9178b0628b"
+    },
+    {
+      "exists": true,
+      "path": "scripts/build_mechanism_diagnostic_relation_graph.py",
+      "sha256": "885205637eabd016b90735bd8cee397d93a9c4c315635ab6196a17b4b510d836"
+    },
+    {
+      "exists": true,
+      "path": "scripts/run_mechanism_adaptation.py",
+      "sha256": "f3b53f416c621ae9d5900319bb26826f5e94efb457681c7a5facf46ab6ec72e9"
+    },
+    {
+      "exists": true,
+      "path": "scripts/plan_mechanism_adaptation_matrix.py",
+      "sha256": "2a96b77e14df3757b7c742d5422e92b72fb20253cf5d914302d4be59e65a87ad"
+    },
+    {
+      "exists": true,
+      "path": "tests/test_mechanism_adaptation.py",
+      "sha256": "8e756a86274cd970d2d6905c34c5bfaddb0298dd86aa217aab7874380bf886fe"
+    },
+    {
+      "exists": true,
+      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-public-matrix.json",
+      "sha256": "eeb58cc3332d96065bb9556c410dd2ef0a5e31d7fbc713092fd6226c8547a864"
+    },
+    {
+      "exists": true,
+      "path": "workstreams/flagship_tasks/reports/flagship-experiment-semantics-audit-rc23.json",
+      "sha256": "9f132fbb6489b966f753acd4a9a7706682fb7a4f3ccf0a1235594dcb4c338354"
+    },
+    {
+      "exists": true,
+      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc23.json",
+      "sha256": "d126327feb90eef30b5b6cf4424d464c4b5d18d03ae51533a756868c8ad88a32"
+    },
+    {
+      "exists": true,
+      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc23.json",
+      "sha256": "2a4da92b7d793d4c2d71aeacf2564c2ebf44a5e13b402d93c2f2dd34f06ba855"
+    }
+  ],
+  "design_validity_audit": {
+    "check_count": 81,
+    "diagnostic_relation_graph_path": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc23.json",
+    "diagnostic_relation_graph_sha256": "9aa9aa02ab7c9c9bf86359c1bfc990b42686f9edfdcb41d74e55da15320d23b4",
+    "failure_count": 0,
+    "failures": [],
+    "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-24-redesign-rc23",
+    "gate_a_plan_path": "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json",
+    "gate_a_plan_sha256": "bf1cd84f1e727887a8d1e6229ddbabb0ce7b92dba1d123907712c3415f2b93b4",
+    "interpretation": "A pass means each frozen hidden target is publicly manipulable, covered by the Gate A recipes, observable before termination, instantiable, and absent from the mechanism-Agent prompt. It does not establish identifiability.",
+    "material_field_action_contract": {
+      "catalyst": {
+        "operation": "add_catalyst",
+        "public_field": "catalyst"
+      },
+      "electrolyte_profile": {
+        "operation": "set_potential",
+        "public_field": "electrolyte_profile"
+      },
+      "solvent": {
+        "operation": "add_solvent",
+        "public_field": "solvent"
+      }
+    },
+    "pass": true,
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc23",
+    "protocol_path": "configs/benchmark/mechanism_adaptation_v0.3.0.json",
+    "protocol_sha256": "db73df0febc8da300d85896dd2580d1bb90fcbf18f0cf5eadbdf1205b3c002b1",
+    "schema_version": "chemworld-mechanism-design-audit-0.2.4",
+    "status": "passed",
+    "task_reports": {
+      "electrochemical-conversion": {
+        "action_count": 6,
+        "checks": [
+          {
+            "check": "diagnostic_measurement_present",
+            "detail": "Every frozen recipe must contain a public measurement before termination.",
+            "pass": true
+          },
+          {
+            "check": "no_change:empty_intervention",
+            "detail": "The no-change twin must have no hidden intervention.",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:explicit_constitutive_change_contract",
+            "detail": "A formal constitutive cell must declare its transform and all calibration parameters.",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:complete_constitutive_change_contract",
+            "detail": "Constitutive contract must exactly match the task transform registry; expected_transform=electrochemical_response_stress_v1, declared_transform=electrochemical_response_stress_v1, declared_fields=['selectivity_decay_multiplier_at_full_severity', 'standard_potential_multiplier_at_full_severity', 'transfer_asymmetry_multiplier_at_full_severity', 'transform_id'].",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:constitutive_network_unchanged",
+            "detail": "A constitutive intervention must not rewrite the reaction network; unchanged=True, error=None.",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:declared_constitutive_transform_bound",
+            "detail": "Executed constitutive transform must equal the declared transform; declared=electrochemical_response_stress_v1, executed=electrochemical_response_stress_v1, error=None.",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:constitutive_calibration_bound",
+            "detail": "Exactly the declared constitutive parameters must change to their severity-interpolated values; expected_domain={\"electro_selectivity_decay_multiplier\": 2.6, \"electro_standard_potential_multiplier\": 1.2, \"electro_transfer_asymmetry_multiplier\": 1.3199999999999998}, executed_domain={\"electro_selectivity_decay_multiplier\": 2.6, \"electro_standard_potential_multiplier\": 1.2, \"electro_transfer_asymmetry_multiplier\": 1.3199999999999998}, expected_equilibrium_ratio=None, executed_equilibrium_ratio=None, error=None.",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:diagnostic_control_variation",
+            "detail": "At least one public control implicated by the hidden law must vary across frozen recipes; varied=[{'operation': 'set_potential', 'field': 'potential_V'}, {'operation': 'set_potential', 'field': 'current_mA'}, {'operation': 'set_potential', 'field': 'electrolyte_profile'}].",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:declared_diagnostic_relation_covered",
+            "detail": "The calibrated online track requires at least one same-background public action group for every declared mechanism relation; groups=(('design-00', 'design-01', 'design-02'), ('design-00', 'design-01', 'design-03'), ('design-00', 'design-02', 'design-03'), ('design-01', 'design-02', 'design-03')).",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:decision_relevance:task_primary",
+            "detail": "metric=selective_product_yield; median_max_effect=0.025669; median_old_policy_regret=0.007445; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:decision_relevance:leaderboard_score",
+            "detail": "metric=leaderboard_score; median_max_effect=0.439019; median_old_policy_regret=0.176314; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:decision_relevance",
+            "detail": "Every required scientific/utility metric must make the old policy consequentially suboptimal; results={'task_primary': {'metric': 'selective_product_yield', 'median_max_effect': 0.02566907670163988, 'median_old_policy_regret': 0.007444646028042588, 'optimal_action_change_rate': 1.0, 'pass': True}, 'leaderboard_score': {'metric': 'leaderboard_score', 'median_max_effect': 0.4390189127638373, 'median_old_policy_regret': 0.17631380750573322, 'optimal_action_change_rate': 1.0, 'pass': True}}.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:supported_material_field",
+            "detail": "Supported material targets are ['catalyst', 'electrolyte_profile', 'solvent'].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:public_operation_allowed",
+            "detail": "add_solvent.solvent must be available to the Agent in electrochemical-conversion.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:public_choice_cardinality",
+            "detail": "A relational counterfactual needs at least two public choices; choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:moved_indices_publicly_reachable",
+            "detail": "All moved public indices must be legal; moved=[0, 2], choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:moved_indices_recipe_covered",
+            "detail": "Frozen Gate A recipes must exercise every moved index; moved=[0, 2], covered=[0, 2].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:moved_indices_relational_pair_covered",
+            "detail": "A relational counterfactual requires at least one public recipe group that differs only in the target material field and covers all moved indices; groups=(('design-03', 'design-05'),).",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:decision_relevance:task_primary",
+            "detail": "metric=selective_product_yield; median_max_effect=0.031290; median_old_policy_regret=0.030745; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:decision_relevance:leaderboard_score",
+            "detail": "metric=leaderboard_score; median_max_effect=0.468806; median_old_policy_regret=0.467381; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:decision_relevance",
+            "detail": "Every required scientific/utility metric must make the old policy consequentially suboptimal; results={'task_primary': {'metric': 'selective_product_yield', 'median_max_effect': 0.0312898630564562, 'median_old_policy_regret': 0.0307454764211522, 'optimal_action_change_rate': 1.0, 'pass': True}, 'leaderboard_score': {'metric': 'leaderboard_score', 'median_max_effect': 0.4688058173374957, 'median_old_policy_regret': 0.4673808173374957, 'optimal_action_change_rate': 1.0, 'pass': True}}.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:supported_material_field",
+            "detail": "Supported material targets are ['catalyst', 'electrolyte_profile', 'solvent'].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:public_operation_allowed",
+            "detail": "set_potential.electrolyte_profile must be available to the Agent in electrochemical-conversion.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:public_choice_cardinality",
+            "detail": "A relational counterfactual needs at least two public choices; choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:moved_indices_publicly_reachable",
+            "detail": "All moved public indices must be legal; moved=[0, 2], choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:moved_indices_recipe_covered",
+            "detail": "Frozen Gate A recipes must exercise every moved index; moved=[0, 2], covered=[0, 2].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:moved_indices_relational_pair_covered",
+            "detail": "A relational counterfactual requires at least one public recipe group that differs only in the target material field and covers all moved indices; groups=(('design-03', 'design-04'),).",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:decision_relevance:task_primary",
+            "detail": "metric=selective_product_yield; median_max_effect=0.031626; median_old_policy_regret=0.031168; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:decision_relevance:leaderboard_score",
+            "detail": "metric=leaderboard_score; median_max_effect=0.473928; median_old_policy_regret=0.473928; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:decision_relevance",
+            "detail": "Every required scientific/utility metric must make the old policy consequentially suboptimal; results={'task_primary': {'metric': 'selective_product_yield', 'median_max_effect': 0.03162646187600335, 'median_old_policy_regret': 0.031168147036661913, 'optimal_action_change_rate': 1.0, 'pass': True}, 'leaderboard_score': {'metric': 'leaderboard_score', 'median_max_effect': 0.47392752277744327, 'median_old_policy_regret': 0.47392752277744327, 'optimal_action_change_rate': 1.0, 'pass': True}}.",
+            "pass": true
+          },
+          {
+            "check": "private_truth_absent_from_agent_prompt",
+            "detail": "Forbidden intervention keys in prompt=[].",
+            "pass": true
+          }
+        ],
+        "pass": true,
+        "recipe_field_values": {
+          "add_reagent.amount_mol": [
+            0.00327
+          ],
+          "add_solvent.solvent": [
+            0,
+            2
+          ],
+          "add_solvent.volume_L": [
+            0.025
+          ],
+          "electrolyze.duration_s": [
+            1577.1000000000001,
+            331.91999999999996
+          ],
+          "measure.instrument": [
+            "final_assay",
+            "ph_meter",
+            "uvvis"
+          ],
+          "set_potential.current_mA": [
+            21.877999999999997,
+            50.4
+          ],
+          "set_potential.electrolyte_profile": [
+            0,
+            2
+          ],
+          "set_potential.potential_V": [
+            0.8216,
+            0.89,
+            0.95,
+            1.04,
+            1.10236,
+            1.1432,
+            1.2349999999999999,
+            1.3780000000000001
+          ]
+        }
+      },
+      "reaction-to-crystallization": {
+        "action_count": 6,
+        "checks": [
+          {
+            "check": "diagnostic_measurement_present",
+            "detail": "Every frozen recipe must contain a public measurement before termination.",
+            "pass": true
+          },
+          {
+            "check": "no_change:empty_intervention",
+            "detail": "The no-change twin must have no hidden intervention.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:explicit_rate_law_change_contract",
+            "detail": "A formal rate-law cell must declare its reaction role, transform, and calibration instead of selecting a reaction by declaration order.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:complete_rate_law_change_contract",
+            "detail": "Missing rate-law contract fields: []; unsupported_transform=False.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:single_declared_reaction_changed",
+            "detail": "Exactly one rate law must change and it must equal the resolved semantic target; changed=['target_formation'], target=target_formation, error=None.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:semantic_reaction_role_bound",
+            "detail": "The executed mechanism must bind the declared reaction role; declared=primary_target_pathway, executed=primary_target_pathway, error=None.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:declared_rate_law_transform_bound",
+            "detail": "The executed mechanism must bind the declared transform; declared=catalytic_activity_order_pivot_stress_v1, executed=catalytic_activity_order_pivot_stress_v1, error=None.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:constitutive_domain_parameters_unchanged",
+            "detail": "A reaction rate-law intervention must not also change crystallization or other constitutive domain parameters; unchanged=True, error=None.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:rate_law_response_certificate_declared",
+            "detail": "Pivot-normalized rate-law cells require a preregistered response envelope.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:bounded_frozen_rate_response",
+            "detail": "Frozen public catalyst doses must remain inside the preregistered response envelope; activities=[2.0700000000000003, 4.984000000000001, 10.06, 4.984000000000001, 4.984000000000001, 10.06], multipliers=[1.7584085293740113, 1.0020533891292474, 0.6392608311466849, 1.0020533891292474, 1.0020533891292474, 0.6392608311466849], bounds=(0.5, 2.0), valid_envelope=True, error=None.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:frozen_rate_response_crosses_unity",
+            "detail": "A pivot-normalized response must make low/high public probes fall on opposite sides of unity; multipliers=[1.7584085293740113, 1.0020533891292474, 0.6392608311466849, 1.0020533891292474, 1.0020533891292474, 0.6392608311466849], error=None.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:diagnostic_control_variation",
+            "detail": "At least one public control implicated by the hidden law must vary across frozen recipes; varied=[{'operation': 'add_catalyst', 'field': 'catalyst'}, {'operation': 'add_catalyst', 'field': 'catalyst_amount_mol'}, {'operation': 'heat', 'field': 'target_temperature_K'}, {'operation': 'heat', 'field': 'duration_s'}].",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:declared_diagnostic_relation_covered",
+            "detail": "The calibrated online track requires at least one same-background public action group for every declared mechanism relation; groups=(('design-00', 'design-01', 'design-02'),).",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:decision_relevance:task_primary",
+            "detail": "metric=crystal_yield; median_max_effect=0.215264; median_old_policy_regret=0.033642; optimal_action_change_rate=0.750; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:decision_relevance:leaderboard_score",
+            "detail": "metric=leaderboard_score; median_max_effect=0.125308; median_old_policy_regret=0.008335; optimal_action_change_rate=0.500; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:decision_relevance",
+            "detail": "Every required scientific/utility metric must make the old policy consequentially suboptimal; results={'task_primary': {'metric': 'crystal_yield', 'median_max_effect': 0.21526434824775625, 'median_old_policy_regret': 0.03364183003001897, 'optimal_action_change_rate': 0.75, 'pass': True}, 'leaderboard_score': {'metric': 'leaderboard_score', 'median_max_effect': 0.12530785019640345, 'median_old_policy_regret': 0.008334675081460213, 'optimal_action_change_rate': 0.5, 'pass': True}}.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:explicit_topology_change_contract",
+            "detail": "A formal topology cell must declare its target role, transform, and reverse-channel calibration.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:complete_topology_change_contract",
+            "detail": "Topology contract must contain exactly the registered fields; declared=['reaction_role', 'reverse_rate_constant_s_inv_at_full_severity', 'transform_id'].",
+            "pass": true
+          },
+          {
+            "check": "topology_family:single_declared_topology_channel_added",
+            "detail": "Existing reactions must remain identical and exactly one declared channel must be added; existing_unchanged=True, added=['family_reverse_channel'], error=None.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:semantic_topology_role_bound",
+            "detail": "Executed topology must bind the declared semantic target; target=target_formation, role=primary_target_pathway, error=None.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:declared_topology_transform_bound",
+            "detail": "Executed topology must bind the declared transform; declared=reversible_target_pathway_stress_v1, executed=reversible_target_pathway_stress_v1, error=None.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:topology_rate_calibration_bound",
+            "detail": "Executed reverse-channel rate must equal severity times the declared full-severity value; expected=0.0005, executed=0.0005, error=None.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:topology_domain_parameters_unchanged",
+            "detail": "A topology intervention must not also change constitutive domain parameters; unchanged=True, error=None.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:diagnostic_control_variation",
+            "detail": "At least one public control implicated by the hidden law must vary across frozen recipes; varied=[{'operation': 'add_catalyst', 'field': 'catalyst'}, {'operation': 'heat', 'field': 'target_temperature_K'}].",
+            "pass": true
+          },
+          {
+            "check": "topology_family:declared_diagnostic_relation_covered",
+            "detail": "The calibrated online track requires at least one same-background public action group for every declared mechanism relation; groups=(('design-00', 'design-01'), ('design-00', 'design-02'), ('design-00', 'design-03'), ('design-01', 'design-02'), ('design-01', 'design-03'), ('design-02', 'design-03'), ('design-04', 'design-05')).",
+            "pass": true
+          },
+          {
+            "check": "topology_family:decision_relevance:task_primary",
+            "detail": "metric=crystal_yield; median_max_effect=0.427589; median_old_policy_regret=0.002142; optimal_action_change_rate=0.500; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "topology_family:decision_relevance:leaderboard_score",
+            "detail": "metric=leaderboard_score; median_max_effect=0.225990; median_old_policy_regret=0.009372; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "topology_family:decision_relevance",
+            "detail": "Every required scientific/utility metric must make the old policy consequentially suboptimal; results={'task_primary': {'metric': 'crystal_yield', 'median_max_effect': 0.4275894297957581, 'median_old_policy_regret': 0.0021416493994037, 'optimal_action_change_rate': 0.5, 'pass': True}, 'leaderboard_score': {'metric': 'leaderboard_score', 'median_max_effect': 0.22598992498925255, 'median_old_policy_regret': 0.00937229320935859, 'optimal_action_change_rate': 1.0, 'pass': True}}.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:supported_material_field",
+            "detail": "Supported material targets are ['catalyst', 'electrolyte_profile', 'solvent'].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:public_operation_allowed",
+            "detail": "add_catalyst.catalyst must be available to the Agent in reaction-to-crystallization.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:public_choice_cardinality",
+            "detail": "A relational counterfactual needs at least two public choices; choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:moved_indices_publicly_reachable",
+            "detail": "All moved public indices must be legal; moved=[0, 2], choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:moved_indices_recipe_covered",
+            "detail": "Frozen Gate A recipes must exercise every moved index; moved=[0, 2], covered=[0, 2].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:moved_indices_relational_pair_covered",
+            "detail": "A relational counterfactual requires at least one public recipe group that differs only in the target material field and covers all moved indices; groups=(('design-01', 'design-04'), ('design-02', 'design-05')).",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:decision_relevance:task_primary",
+            "detail": "metric=crystal_yield; median_max_effect=0.299551; median_old_policy_regret=0.107784; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:decision_relevance:leaderboard_score",
+            "detail": "metric=leaderboard_score; median_max_effect=0.164861; median_old_policy_regret=0.025902; optimal_action_change_rate=0.500; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:decision_relevance",
+            "detail": "Every required scientific/utility metric must make the old policy consequentially suboptimal; results={'task_primary': {'metric': 'crystal_yield', 'median_max_effect': 0.29955133828498837, 'median_old_policy_regret': 0.10778372280894083, 'optimal_action_change_rate': 1.0, 'pass': True}, 'leaderboard_score': {'metric': 'leaderboard_score', 'median_max_effect': 0.16486051591096773, 'median_old_policy_regret': 0.025902333100924824, 'optimal_action_change_rate': 0.5, 'pass': True}}.",
+            "pass": true
+          },
+          {
+            "check": "private_truth_absent_from_agent_prompt",
+            "detail": "Forbidden intervention keys in prompt=[].",
+            "pass": true
+          }
+        ],
+        "pass": true,
+        "recipe_field_values": {
+          "add_catalyst.catalyst": [
+            0,
+            2
+          ],
+          "add_catalyst.catalyst_amount_mol": [
+            0.00010350000000000001,
+            0.00024920000000000004,
+            0.0005030000000000001
+          ],
+          "add_reagent.amount_mol": [
+            0.0165
+          ],
+          "add_solvent.solvent": [
+            0
+          ],
+          "add_solvent.volume_L": [
+            0.025
+          ],
+          "cool_crystallize.duration_s": [
+            7500.0
+          ],
+          "cool_crystallize.target_temperature_K": [
+            292.5
+          ],
+          "heat.duration_s": [
+            2916.0,
+            4050.0
+          ],
+          "heat.stirring_speed_rpm": [
+            675.0
+          ],
+          "heat.target_temperature_K": [
+            378.15,
+            403.34999999999997
+          ],
+          "measure.instrument": [
+            "final_assay",
+            "hplc"
+          ],
+          "seed_crystals.seed_mass_g": [
+            0.008
+          ]
+        }
+      }
+    }
+  },
+  "design_validity_audit_pass": true,
+  "diagnostic_relation_graph": {
+    "graph_id": "chemworld-mechanism-adaptation-diagnostic-relations-v0.3.0-rc23",
+    "graph_sha256": "9aa9aa02ab7c9c9bf86359c1bfc990b42686f9edfdcb41d74e55da15320d23b4",
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc23",
+    "protocol_sha256": "db73df0febc8da300d85896dd2580d1bb90fcbf18f0cf5eadbdf1205b3c002b1",
+    "relation_count": 3,
+    "relations": [
+      {
+        "candidate_id": "constitutive_law_family",
+        "candidate_signatures": {
+          "constitutive_law_family": "changed_transfer_asymmetry_selectivity_decay_and_standard_potential_response",
+          "no_change": "baseline_potential_response_shape"
+        },
+        "controlled_background": "all_remaining_recipe_operations_fields_and_order",
+        "minimum_distinct_actions": 3,
+        "observable_channels": [
+          "uvvis_conversion",
+          "uvvis_selectivity",
+          "task_primary_score"
+        ],
+        "relation_declaration_sha256": "d2a09f06abc7405b55a656c8f13f62b8287e562c19a2ae48ef1db4a8e7105e4a",
+        "relation_id": "same_material_potential_response_shape",
+        "required_levels": [
+          "low",
+          "pivot",
+          "high"
+        ],
+        "task_contract_hash": "45b6cdbaf1f9c7fc313e1589f37b17bde9fd678d40e0bd98e64a62622ecac494",
+        "task_id": "electrochemical-conversion",
+        "varied_fields": [
+          {
+            "field": "potential_V",
+            "operation": "set_potential"
+          },
+          {
+            "field": "current_mA",
+            "operation": "set_potential"
+          }
+        ]
+      },
+      {
+        "candidate_id": "rate_law_family",
+        "candidate_signatures": {
+          "no_change": "baseline_catalyst_dose_response_shape",
+          "rate_law_family": "changed_catalyst_activity_order_around_frozen_pivot"
+        },
+        "controlled_background": "all_remaining_recipe_operations_fields_and_order",
+        "minimum_distinct_actions": 3,
+        "observable_channels": [
+          "hplc_yield",
+          "hplc_selectivity",
+          "task_primary_score"
+        ],
+        "relation_declaration_sha256": "66fea81e799c7eccdc984e491d8a5e94924329b969c2b6b198e94b0f90499578",
+        "relation_id": "same_background_catalyst_dose_response_shape",
+        "required_levels": [
+          "low",
+          "pivot",
+          "high"
+        ],
+        "task_contract_hash": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416",
+        "task_id": "reaction-to-crystallization",
+        "varied_fields": [
+          {
+            "field": "catalyst_amount_mol",
+            "operation": "add_catalyst"
+          }
+        ]
+      },
+      {
+        "candidate_id": "topology_family",
+        "candidate_signatures": {
+          "no_change": "baseline_forward_pathway_response",
+          "topology_family": "reversible_target_pathway_response"
+        },
+        "controlled_background": "all_remaining_recipe_operations_fields_and_order",
+        "minimum_distinct_actions": 2,
+        "observable_channels": [
+          "hplc_yield",
+          "hplc_selectivity",
+          "task_primary_score"
+        ],
+        "relation_declaration_sha256": "1aeda79604a04a4807d94285f18fcd27090f7637d5b4c635106239be0d0fb1ad",
+        "relation_id": "same_material_process_response",
+        "required_levels": [
+          "at_least_two_distinct_process_settings"
+        ],
+        "task_contract_hash": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416",
+        "task_id": "reaction-to-crystallization",
+        "varied_fields": [
+          {
+            "field": "catalyst_amount_mol",
+            "operation": "add_catalyst"
+          },
+          {
+            "field": "target_temperature_K",
+            "operation": "heat"
+          },
+          {
+            "field": "duration_s",
+            "operation": "heat"
+          }
+        ]
+      }
+    ],
+    "schema_version": "chemworld-diagnostic-relation-graph-0.1",
+    "status": "frozen_protocol_input",
+    "task_contract_hashes": {
+      "electrochemical-conversion": "45b6cdbaf1f9c7fc313e1589f37b17bde9fd678d40e0bd98e64a62622ecac494",
+      "reaction-to-crystallization": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416"
+    }
+  },
+  "empirical_gate_status": {
+    "gate_0": "not_evaluated",
+    "gate_a": "not_evaluated",
+    "gate_b": "not_evaluated",
+    "gate_c": "not_evaluated",
+    "gate_d": "not_evaluated",
+    "gate_e": "not_evaluated"
+  },
+  "external_empirical_run_completed": false,
+  "flagship_experiment_semantics_audit": {
+    "check_count": 18,
+    "checks": [
+      {
+        "check": "protocol_schema_valid",
+        "detail": "validation_errors=[]",
+        "pass": true
+      },
+      {
+        "check": "formal_flagship_task_scope_explicit",
+        "detail": "formal_protocol_tasks=('reaction-to-crystallization', 'electrochemical-conversion'); registered_flagship_tasks=('reaction-to-crystallization', 'electrochemical-conversion')",
+        "pass": true
+      },
+      {
+        "check": "a3_true_no_change_condition",
+        "detail": "The calibrated truth support must contain never, 6, 8, and 10.",
+        "pass": true
+      },
+      {
+        "check": "a3_no_change_campaigns_are_matched",
+        "detail": "paired_cell_count=900; matrix_error=None",
+        "pass": true
+      },
+      {
+        "check": "a3_changed_and_no_change_twins_share_statistical_cluster",
+        "detail": "paired_cell_count=900; each changed/no-change pair must contribute one dependent cluster",
+        "pass": true
+      },
+      {
+        "check": "reference_has_structural_and_predictive_layers",
+        "detail": "reference_basis=universal_structural_relation_coverage_and_held_out_predictive_adequacy",
+        "pass": true
+      },
+      {
+        "check": "reference_is_universal_not_truth_conditioned",
+        "detail": "reference_scope=universal_all_declared_candidate_families_without_truth_conditioning",
+        "pass": true
+      },
+      {
+        "check": "conditional_and_end_to_end_metrics_both_frozen",
+        "detail": "primary_metrics=['change_detection_auroc', 'change_detection_sensitivity', 'change_probability_brier_score', 'detection_delay', 'end_to_end_reference_detection_attribution_success', 'family_attribution_conditional_on_reference_sufficiency', 'no_change_false_positive_rate', 'p_attribution_given_detection_and_reference', 'p_detection_given_reference', 'p_reference_sufficient', 'reference_acquisition_pass_rate', 'reference_predictive_standardized_error']",
+        "pass": true
+      },
+      {
+        "check": "agent_timing_and_certificate_blinded",
+        "detail": "hidden_agent_fields=['change_after_experiments', 'evaluator_pseudo_checkpoint', 'minimum_stable_prefix_experiments', 'post_change_checkpoint', 'reference_sufficiency_certificate', 'truth_change_time']",
+        "pass": true
+      },
+      {
+        "check": "changepoint_index_semantics_frozen",
+        "detail": "tau_is_completed_old_world_experiment_count; tau=6 means experiments 1-6 use the old world and experiment 7 is the first experiment eligible to use the changed world",
+        "pass": true
+      },
+      {
+        "check": "development_a2_a3_private_cohorts_disjoint",
+        "detail": "seed_namespaces={'development': 1100000000, 'a2_certification': 3800000000, 'a3_certification': 3900000000, 'private_confirmation': 4100000000}",
+        "pass": true
+      },
+      {
+        "check": "a3_pass_criteria_frozen_before_execution",
+        "detail": "criteria=['change_decision_probability_threshold', 'confidence_level', 'detection_checkpoint_experiments_after_change', 'maximum_change_probability_brier_score', 'maximum_no_change_false_positive_rate_cluster_bootstrap_upper_bound', 'minimum_attribution_given_detection_and_reference_cluster_bootstrap_lower_bound', 'minimum_change_detection_auroc_cluster_bootstrap_lower_bound', 'minimum_changed_detection_recall_cluster_bootstrap_lower_bound', 'minimum_end_to_end_success_rate_cluster_bootstrap_lower_bound', 'minimum_reference_acquisition_rate_wilson_lower_bound']",
+        "pass": true
+      },
+      {
+        "check": "feedback_local_causal_pairing",
+        "detail": "Local feedback sensitivity changes only the final feedback packet.",
+        "pass": true
+      },
+      {
+        "check": "feedback_campaign_pairing",
+        "detail": "Full-campaign utility uses matched world, state, prompt, and model settings.",
+        "pass": true
+      },
+      {
+        "check": "recovery_world_effect_and_adaptation_decomposed",
+        "detail": "Recovery separates world effect, frozen policy, adaptive policy, and oracle.",
+        "pass": true
+      },
+      {
+        "check": "autonomy_and_assisted_science_both_reported",
+        "detail": "Procedural autonomy cannot be hidden by assisted closeout.",
+        "pass": true
+      },
+      {
+        "check": "diagnostic_relation_graph_frozen_and_bound",
+        "detail": "graph_sha256=9aa9aa02ab7c9c9bf86359c1bfc990b42686f9edfdcb41d74e55da15320d23b4; relation_count=3",
+        "pass": true
+      },
+      {
+        "check": "publication_claim_fails_closed_before_empirical_gates",
+        "detail": "Design validation cannot enable a benchmark or publication claim.",
+        "pass": true
+      }
+    ],
+    "claim_boundary": "A pass certifies protocol semantics and frozen controls only. It does not certify A2, A3, a hosted Agent, or publication readiness.",
+    "failure_count": 0,
+    "failures": [],
+    "formal_flagship_task_ids": [
+      "reaction-to-crystallization",
+      "electrochemical-conversion"
+    ],
+    "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-24-redesign-rc23",
+    "gate_a_plan_sha256": "bf1cd84f1e727887a8d1e6229ddbabb0ce7b92dba1d123907712c3415f2b93b4",
+    "pass": true,
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc23",
+    "protocol_sha256": "db73df0febc8da300d85896dd2580d1bb90fcbf18f0cf5eadbdf1205b3c002b1",
+    "schema_version": "chemworld-flagship-semantics-audit-0.1",
+    "scope": "all mechanism-adaptation flagship experiment components: integrity, identifiability, change detection, feedback causality, recovery, and autonomy",
+    "status": "passed"
+  },
+  "gate_evaluator_without_evidence": {
+    "all_gates_pass": false,
+    "gate_a_certificate_decision": {
+      "a1_physical_intervention_validity_pass": true,
+      "a2_controlled_matched_certificate_present": false,
+      "a2_controlled_matched_identifiability_pass": false,
+      "a3_calibrated_online_change_identifiability_pass": false,
+      "controlled_matched_gate_pass": false,
+      "gate_a_pass": false,
+      "online_policy_feasible_certificate": {
+        "certificate_present": false,
+        "controlled_matched_primary_budget": 4,
+        "gate_pass": false,
+        "online_policy_gate_budget": 4,
+        "required": true,
+        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.7",
+        "status": "pending_execution"
+      },
+      "online_policy_feasible_gate_pass": false,
+      "required_certificates": [
+        "a1_physical_intervention_validity",
+        "a2_controlled_matched_identifiability",
+        "a3_calibrated_online_change_identifiability"
+      ],
+      "schema_version": "chemworld-mechanism-adaptation-gate-a-decision-0.2",
+      "status": "gate_a_blocked_controlled_matched_certificate_pending"
+    },
+    "gates": {
+      "gate_0": false,
+      "gate_a": false,
+      "gate_b": false,
+      "gate_c": false,
+      "gate_d": false,
+      "gate_e": false
+    },
+    "missing_or_failed_gates": [
+      "gate_0",
+      "gate_a",
+      "gate_b",
+      "gate_c",
+      "gate_d",
+      "gate_e"
+    ]
+  },
+  "implementation_complete": true,
+  "interpretation": "There are no unresolved method-freeze choices when blocker_count is zero. A1 design validity may be complete while A2 controlled and A3 calibrated online certificates remain explicitly pending. Agent/provider campaigns remain separate later gates.",
+  "method_freeze_decision_blocker_count": 0,
+  "method_freeze_decision_blockers": [],
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc23",
+  "protocol_path": "configs/benchmark/mechanism_adaptation_v0.3.0.json",
+  "protocol_sha256": "db73df0febc8da300d85896dd2580d1bb90fcbf18f0cf5eadbdf1205b3c002b1",
+  "protocol_source_sha256": "08c454f48f144517ea0e8bfba1fc2d5626b12c9a8cd070bbff6fbb365b315772",
+  "publication_ready": false,
+  "schema_version": "chemworld-mechanism-adaptation-preflight-0.2",
+  "status": "protocol_complete_empirical_execution_pending"
+}

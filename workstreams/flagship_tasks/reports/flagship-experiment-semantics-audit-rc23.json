@@ -1,0 +1,110 @@
+{
+  "check_count": 18,
+  "checks": [
+    {
+      "check": "protocol_schema_valid",
+      "detail": "validation_errors=[]",
+      "pass": true
+    },
+    {
+      "check": "formal_flagship_task_scope_explicit",
+      "detail": "formal_protocol_tasks=('reaction-to-crystallization', 'electrochemical-conversion'); registered_flagship_tasks=('reaction-to-crystallization', 'electrochemical-conversion')",
+      "pass": true
+    },
+    {
+      "check": "a3_true_no_change_condition",
+      "detail": "The calibrated truth support must contain never, 6, 8, and 10.",
+      "pass": true
+    },
+    {
+      "check": "a3_no_change_campaigns_are_matched",
+      "detail": "paired_cell_count=900; matrix_error=None",
+      "pass": true
+    },
+    {
+      "check": "a3_changed_and_no_change_twins_share_statistical_cluster",
+      "detail": "paired_cell_count=900; each changed/no-change pair must contribute one dependent cluster",
+      "pass": true
+    },
+    {
+      "check": "reference_has_structural_and_predictive_layers",
+      "detail": "reference_basis=universal_structural_relation_coverage_and_held_out_predictive_adequacy",
+      "pass": true
+    },
+    {
+      "check": "reference_is_universal_not_truth_conditioned",
+      "detail": "reference_scope=universal_all_declared_candidate_families_without_truth_conditioning",
+      "pass": true
+    },
+    {
+      "check": "conditional_and_end_to_end_metrics_both_frozen",
+      "detail": "primary_metrics=['change_detection_auroc', 'change_detection_sensitivity', 'change_probability_brier_score', 'detection_delay', 'end_to_end_reference_detection_attribution_success', 'family_attribution_conditional_on_reference_sufficiency', 'no_change_false_positive_rate', 'p_attribution_given_detection_and_reference', 'p_detection_given_reference', 'p_reference_sufficient', 'reference_acquisition_pass_rate', 'reference_predictive_standardized_error']",
+      "pass": true
+    },
+    {
+      "check": "agent_timing_and_certificate_blinded",
+      "detail": "hidden_agent_fields=['change_after_experiments', 'evaluator_pseudo_checkpoint', 'minimum_stable_prefix_experiments', 'post_change_checkpoint', 'reference_sufficiency_certificate', 'truth_change_time']",
+      "pass": true
+    },
+    {
+      "check": "changepoint_index_semantics_frozen",
+      "detail": "tau_is_completed_old_world_experiment_count; tau=6 means experiments 1-6 use the old world and experiment 7 is the first experiment eligible to use the changed world",
+      "pass": true
+    },
+    {
+      "check": "development_a2_a3_private_cohorts_disjoint",
+      "detail": "seed_namespaces={'development': 1100000000, 'a2_certification': 3800000000, 'a3_certification': 3900000000, 'private_confirmation': 4100000000}",
+      "pass": true
+    },
+    {
+      "check": "a3_pass_criteria_frozen_before_execution",
+      "detail": "criteria=['change_decision_probability_threshold', 'confidence_level', 'detection_checkpoint_experiments_after_change', 'maximum_change_probability_brier_score', 'maximum_no_change_false_positive_rate_cluster_bootstrap_upper_bound', 'minimum_attribution_given_detection_and_reference_cluster_bootstrap_lower_bound', 'minimum_change_detection_auroc_cluster_bootstrap_lower_bound', 'minimum_changed_detection_recall_cluster_bootstrap_lower_bound', 'minimum_end_to_end_success_rate_cluster_bootstrap_lower_bound', 'minimum_reference_acquisition_rate_wilson_lower_bound']",
+      "pass": true
+    },
+    {
+      "check": "feedback_local_causal_pairing",
+      "detail": "Local feedback sensitivity changes only the final feedback packet.",
+      "pass": true
+    },
+    {
+      "check": "feedback_campaign_pairing",
+      "detail": "Full-campaign utility uses matched world, state, prompt, and model settings.",
+      "pass": true
+    },
+    {
+      "check": "recovery_world_effect_and_adaptation_decomposed",
+      "detail": "Recovery separates world effect, frozen policy, adaptive policy, and oracle.",
+      "pass": true
+    },
+    {
+      "check": "autonomy_and_assisted_science_both_reported",
+      "detail": "Procedural autonomy cannot be hidden by assisted closeout.",
+      "pass": true
+    },
+    {
+      "check": "diagnostic_relation_graph_frozen_and_bound",
+      "detail": "graph_sha256=9aa9aa02ab7c9c9bf86359c1bfc990b42686f9edfdcb41d74e55da15320d23b4; relation_count=3",
+      "pass": true
+    },
+    {
+      "check": "publication_claim_fails_closed_before_empirical_gates",
+      "detail": "Design validation cannot enable a benchmark or publication claim.",
+      "pass": true
+    }
+  ],
+  "claim_boundary": "A pass certifies protocol semantics and frozen controls only. It does not certify A2, A3, a hosted Agent, or publication readiness.",
+  "failure_count": 0,
+  "failures": [],
+  "formal_flagship_task_ids": [
+    "reaction-to-crystallization",
+    "electrochemical-conversion"
+  ],
+  "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-24-redesign-rc23",
+  "gate_a_plan_sha256": "bf1cd84f1e727887a8d1e6229ddbabb0ce7b92dba1d123907712c3415f2b93b4",
+  "pass": true,
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc23",
+  "protocol_sha256": "db73df0febc8da300d85896dd2580d1bb90fcbf18f0cf5eadbdf1205b3c002b1",
+  "schema_version": "chemworld-flagship-semantics-audit-0.1",
+  "scope": "all mechanism-adaptation flagship experiment components: integrity, identifiability, change detection, feedback causality, recovery, and autonomy",
+  "status": "passed"
+}
