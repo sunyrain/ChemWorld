@@ -100,6 +100,7 @@ def _source_binding_command(source_commit: str) -> list[str]:
         "mechanism-adaptation-sample-size-audit-v0.3.0-rc25.json",
         "workstreams/flagship_tasks/reports/"
         "confirmatory-task-semantics-audit-rc25.json",
+        *TARGETED_TESTS,
     ]
 
 

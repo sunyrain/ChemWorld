@@ -59,12 +59,16 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     assert registry["mechanism_adaptation"][
         "online_attainability_certificate_report"
     ].endswith(
-        "mechanism-adaptation-online-attainability-certificate-v0.8-rc24-pending.json"
+        "mechanism-adaptation-online-attainability-certificate-v0.9-rc25-pending.json"
     )
+    assert registry["mechanism_adaptation"]["release_qualification_pass"] is True
+    assert registry["mechanism_adaptation"][
+        "participant_preregistration_candidate"
+    ].endswith("mechanism_adaptation_participant_preregistration_rc25.json")
     assert registry["mechanism_adaptation"]["semantics_audit_pass"] is True
     assert registry["mechanism_adaptation"][
         "semantics_audit_report"
-    ].endswith("confirmatory-task-semantics-audit-rc24.json")
+    ].endswith("confirmatory-task-semantics-audit-rc25.json")
     assert registry["mechanism_adaptation"]["gate_a_certificate_status"] == {
         "a1_physical_intervention_validity": "passed",
         "a2_controlled_matched_identifiability": "pending_execution",
