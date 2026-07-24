@@ -64,7 +64,7 @@ RC21 还暴露了一个更基础的协议问题：`change_time=1` 虽然在实�
 checkpoint。RC24 将 A3 明确为冻结 reference diagnostic policy 的 online attainability；
 reference certificate 使用关系闭合和 campaign 内 pre-change cross-fitting，changed 与 never
 分开定义分母，并在 `k={1,2,4,8}` 报告时序检测。A2/A3/private 每个任务/family 冻结 180 个独立
-world cluster。确认性任务语义审计 25/25、物理设计审计 81/81 通过，但 A2/A3 仍需新的未触碰
+world cluster。确认性任务语义审计 25/25、物理设计审计 83/83 通过，但 RC28 A2/A3 仍需新的未触碰
 cohort；RC21/RC22-d/RC23 不能升级为 v0.3 确证证据。
 
 这些结果只支持环境级可识别性诊断，不证明被评 Agent 已具备机制发现能力，也不代表发现了结晶动力学

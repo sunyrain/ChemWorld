@@ -95,14 +95,16 @@ mapping 12/20，电化学四类均为 20/20。该结果没有启动或替代正�
 策略只看到总 horizon，不看到前缀、时间支持或证书状态。A3 认证冻结 reference policy 的 online
 attainability，不认证参赛 Agent。Reference certificate 要求关系闭合、campaign 内 pre-change
 cross-fitting 和参考新鲜度；changed 与 never 使用不同分母。Development、A2、A3 与 private
-confirmation cohort 互不重叠。确认性任务语义审计 25/25、物理设计审计 81/81 已通过；该重构不改变
+confirmation cohort 互不重叠。确认性任务语义审计 25/25、物理设计审计 83/83 已通过；新增两项
+检查证明每个任务的 primary controlled budget 能在调度前闭合全部声明关系。该重构不改变
 RC21 历史结果，也不能在新的 untouched cohort
 执行前产生 v0.3 正式结论。
 
-RC27 保留上述科学设计、阈值和 cohort 规模，仅硬化执行语义：正式 trial 使用 write-once receipt
+RC28 保留上述 A3 科学设计、阈值和 cohort 规模；A2 保留 `k={2,4}` 诊断点并新增最小可行
+`k=5` primary certificate，同时硬化执行语义：正式 trial 使用 write-once receipt
 与 missing-only resume；changed/never 在共同语义坐标上使用 keyed observation noise；A3 指标在 A2
 完成前保持 embargo；Private confirmation 拆为环境证书复现 Private-E 与 participant-Agent 复现
-Private-A。A2 的 2/4 次配对诊断预算不再与 A3 的六次旧世界参照前缀混为同一个预算条件。
+Private-A。A2 的 2/4/5 次配对诊断预算不再与 A3 的六次旧世界参照前缀混为同一个预算条件。
 
 使用 RC21 原始 fit/trial seed 和同一固定策略的非控制性 `k={1,2,4,8}` 延长曲线进一步得到：
 反应总体为 53/120、77/120、111/120、112/120，rate-law 为 0/30、10/30、23/30、23/30。

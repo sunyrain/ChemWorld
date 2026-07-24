@@ -114,14 +114,16 @@ validation, clean-release attestation, formal-evaluation readiness, and publicat
 
 Current evidence establishes the following boundaries:
 
-- executable mechanism and constitutive-law shifts are control-validated. RC27 defines A3 as online attainability by
+- executable mechanism and constitutive-law shifts are control-validated. RC28 defines A3 as online attainability by
   one frozen reference diagnostic policy rather than performance of any participant Agent. It freezes true no-change
   campaigns, time-resolved `k={1,2,4,8}` detection, right-censored delay, relation-closure reference sufficiency,
   within-campaign pre-change cross-fitting, task/family intersection gates, 180 independent world clusters per family,
-  and one hash-bound preregistration manifest. RC27 retains the RC25/RC26 scientific design and additionally freezes write-once trial receipts, missing-only
+  and one hash-bound preregistration manifest. RC28 retains the RC27 online design and adds a pre-scheduler
+  relation-union feasibility certificate: A2 reports `k={2,4,5}`, with the mathematically minimal relation-closing
+  `k=5` as its primary controlled certificate. It also freezes write-once trial receipts, missing-only
   resume, semantic-coordinate observation noise, split Private-E/Private-A confirmation, and a compact
   decision-first Agent prompt capped at an estimated 1,500 tokens. The confirmatory-task semantic audit passes 25/25 and the physical
-  action/intervention audit passes 81/81. A2 and A3 remain pending, Gate A remains false, and participant-Agent
+  action/intervention audit passes 83/83. A2 and A3 remain pending, Gate A remains false, and participant-Agent
   mechanism-discovery claims remain unsupported;
 - LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 

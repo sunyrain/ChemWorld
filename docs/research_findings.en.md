@@ -70,8 +70,8 @@ Gate A3 as online attainability of a reference diagnostic policy with truth supp
 number of completed old-world experiments. Reference sufficiency uses relation closure and within-campaign
 pre-change cross-fitting. Changed and never use separate denominators, and detection is reported at
 `k={1,2,4,8}`. A2, A3, and private confirmation each freeze 180 independent world clusters per task/family.
-The confirmatory-task semantics audit passes 25/25 and the physical design audit passes 81/81, but a new untouched
-A2/A3 execution is still required. RC21, RC22-d, and RC23 cannot be promoted into v0.3 confirmatory evidence.
+The confirmatory-task semantics audit passes 25/25 and the physical design audit passes 83/83, but a new untouched
+RC28 A2/A3 execution is still required. RC21, RC22-d, and RC23 cannot be promoted into v0.3 confirmatory evidence.
 
 These results support environment-level identifiability diagnostics, not Agent-level mechanism discovery,
 crystallization-kinetics discovery, or exact rate-parameter identification.

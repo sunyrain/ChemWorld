@@ -87,8 +87,8 @@ Task 是公开且稳定的合同；World 是隐藏规律实例；Scenario 再加
 机制理解还需要分开三层证据：Agent 声明了什么（Declared）、能否预测未执行干预（Predictive）、
 以及判断是否改变实验并改善结果（Actionable）。当前 v0.3 将静态当前世界识别、旧世界 reference
 acquisition、校准后的变化检测与归因、以及恢复分开；RC24 将 A3 限定为冻结 reference policy 的
-online attainability，RC27 在不改变科学阈值的前提下补齐 write-once receipt、keyed noise、
-metric embargo 与发布资格，并继续要求关系闭合、campaign 内 cross-fitting、时序检测与
+online attainability，RC28 在不改变 A3 科学阈值的前提下补齐 primary controlled budget 的
+关系并集可行性证书、write-once receipt、keyed noise、metric embargo 与发布资格，并继续要求关系闭合、campaign 内 cross-fitting、时序检测与
 任务/family 分层交集。
 独立 Agent 反事实预测探针仍属于后续协议，不能由机制标签准确率替代。
 

@@ -22,8 +22,8 @@ Showcase 卡片不是确认性证据；确认性任务也不必出现在首页�
 | 状态 | 当前值 |
 | --- | --- |
 | Environment design candidate | passed |
-| Semantic protocol audit | passed，RC27 25/25 |
-| A1 physical validity | passed，RC27 81/81 设计检查 |
+| Semantic protocol audit | passed，RC28 25/25 |
+| A1 physical validity | passed，RC28 83/83 设计检查（含关系预算可行性） |
 | A2 controlled identifiability | pending |
 | A3 online attainability | pending |
 | Participant-Agent Gates B–E | pending |
@@ -135,7 +135,7 @@ T_D = min{k : p(change) >= 0.5}
 
 ## 样本量与独立性
 
-正式 RC27 沿用 RC24–RC26 的科学设计并冻结为：
+正式 RC28 沿用 RC27 的世界、cohort 与统计设计并冻结为：
 
 - A2、A3、Private-E 和 Private-A：每个任务/家族各 180 个独立 world-seed cluster；
 - 每个 changed family 在 `τ={6,8,10}` 上严格平衡为每个时点 60 个 cluster；
@@ -162,12 +162,16 @@ cluster-bootstrap 规则的概率分别约为 0.978 和 0.808。真实 reference
 Agent 看不到 reset 或 instance 标识。自适应策略在 post-change 后可能选择不同动作，因此不要求两臂
 拥有完全相同的后续噪声坐标集合；只要求所有共同坐标的噪声 key 一致。
 
-## RC27 的执行硬化与 Agent 上下文
+## RC28 的关系预算证书、执行硬化与 Agent 上下文
 
-RC27 不改变 RC24–RC26 的 family、预算、阈值或 changepoint。它保留 RC25/RC26 的正式执行硬化，
-并修正 A3 结构收据的计数公式：576 个 predictive-fit 单元与 1,440 个在线 trial
-合计为 2,016，不能再次乘以 180-world 因子；同时增加零 trial 的 production-entry
-validator，保证正式 A2/A3 组合配置在消费 seed 前能够到达首个 job scheduler。除此之外：
+RC27 的正式执行暴露出一个此前设计审计未覆盖的矛盾：电化学任务要同时闭合 constitutive
+low/pivot/high、solvent pair 与 electrolyte-profile pair，最少需要 5 个不同动作，primary
+budget=4 不可行。RC28 保留 A2 的 `k=2`、`k=4` 诊断点，并新增最小可行的 `k=5` 作为 primary
+certificate；A3 的 `k={1,2,4,8}`、online horizon=8 与 reference policy 不变。83 项设计审计
+现在为每个任务生成关系并集最小覆盖 witness，并在任何 formal scheduler 前验证预算可行性。
+
+RC28 同时保留 RC25–RC27 的执行硬化：A3 的 576 个 predictive-fit 单元与 1,440 个在线 trial
+合计为 2,016 个 receipts；A2 在三个 checkpoint 下合计为 4,896 个 receipts。除此之外：
 
 - 每个 `task × truth × world cluster × changepoint × arm` 只允许一个 write-once terminal receipt；
 - 基础设施失败进入独立 attempt ledger，恢复时只补缺失 trial，不重跑已完成单元；
@@ -208,7 +212,7 @@ Pooled micro-average 仅作补充，不能用一个容易任务掩盖另一个�
 
 启动 A2/A3 前，唯一控制文件是：
 
-`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc27.json`
+`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc28.json`
 
 它绑定 source commit、protocol/plan/relation/scorer hash、cohort namespace、样本量、reference-policy
 版本、阈值、checkpoint、bootstrap、分层规则、失败处理、排除、停止规则和 private unseal 条件。
@@ -216,12 +220,12 @@ Pooled micro-average 仅作补充，不能用一个容易任务掩盖另一个�
 
 ## 可审计入口
 
-- 协议：`configs/benchmark/mechanism_adaptation_v0.3.0_rc27.json`
-- Gate A 计划：`configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json`
-- 预注册：`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc27.json`
-- 样本量审计：`mechanism-adaptation-sample-size-audit-v0.3.0-rc27.json`
-- 诊断关系图：`mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc27.json`
-- 统一语义审计：`confirmatory-task-semantics-audit-rc27.json`
-- 发布资格：`mechanism-adaptation-release-qualification-v0.1-rc27.json`
-- Participant-Agent 预注册候选：`configs/benchmark/mechanism_adaptation_participant_preregistration_rc27.json`
+- 协议：`configs/benchmark/mechanism_adaptation_v0.3.0_rc28.json`
+- Gate A 计划：`configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json`
+- 预注册：`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc28.json`
+- 样本量审计：`mechanism-adaptation-sample-size-audit-v0.3.0-rc28.json`
+- 诊断关系图：`mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc28.json`
+- 统一语义审计：`confirmatory-task-semantics-audit-rc28.json`
+- 发布资格：`mechanism-adaptation-release-qualification-v0.1-rc28.json`
+- Participant-Agent 预注册候选：`configs/benchmark/mechanism_adaptation_participant_preregistration_rc28.json`
 - 当前状态真源：`configs/current.json`
