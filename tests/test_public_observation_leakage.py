@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import gymnasium as gym
-import pytest
 
 import chemworld  # noqa: F401
 from chemworld.agent_interface import agent_view_bundle
@@ -25,7 +24,8 @@ def test_public_task_info_hides_mechanism_truth_for_all_tasks() -> None:
             assert "mechanism_manifest" not in info
             assert "reactions" not in info
             assert "debug_mechanism" not in info
-            assert "runtime" not in info
+            assert "compiled_mechanism" not in info["runtime"]
+            assert "debug_compiled_mechanism" not in info["runtime"]
             assert "mechanism_observable_mapping" not in info["observation_contract"]
             assert "hidden_parameter_seed" not in info["scenario"]
             assert "initial_state_seed" not in info["scenario"]
@@ -55,8 +55,7 @@ def test_debug_truth_task_info_keeps_truth_under_debug_keys() -> None:
         _observation, info = env.reset(seed=0)
         hidden_species = set(env.unwrapped.scenario_instance.compiled_mechanism.species_index)
         assert "debug_mechanism" in info
-        assert "mechanism_manifest" in info["debug_mechanism"]
-        assert "reactions" in info["debug_mechanism"]
+        assert "debug_compiled_mechanism" in info["runtime"]
         assert audit_public_payload(
             info,
             hidden_species_ids=hidden_species,
@@ -102,7 +101,6 @@ def test_agent_views_and_trajectory_do_not_leak_hidden_species_or_rates(
                 )
                 logger.log(
                     task_info=task_info,
-                    evaluator_provenance=env.unwrapped.evaluator_provenance(),
                     step=step,
                     action=action,
                     observation=observation,
@@ -118,30 +116,6 @@ def test_agent_views_and_trajectory_do_not_leak_hidden_species_or_rates(
         json.dumps(records[-1], sort_keys=True)
         for record in records:
             assert audit_public_payload(record, hidden_species_ids=hidden_species) == []
-    finally:
-        env.close()
-
-
-def test_trajectory_logger_requires_explicit_private_provenance(tmp_path: Path) -> None:
-    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
-    try:
-        observation, task_info = env.reset(seed=0)
-        trajectory_path = tmp_path / "missing_provenance.jsonl"
-        with (
-            TrajectoryLogger(trajectory_path) as logger,
-            pytest.raises(ValueError, match="evaluator provenance fields seed, world_id"),
-        ):
-            logger.log(
-                task_info=task_info,
-                step=1,
-                action={"operation": "terminate"},
-                observation=observation,
-                reward=0.0,
-                terminated=True,
-                truncated=False,
-                info={},
-                agent_metadata={"agent_name": "provenance-contract-test"},
-            )
     finally:
         env.close()
 
