@@ -43,6 +43,12 @@ RC22-d 又以独立 fit、policy-selection validation 和开发 trial namespace 
 也没有触发 RC22 正式运行。它说明当前阻断来自固定四动作、单 reference/单 likelihood 在线 decoder
 不能同时稳定利用时间与跨动作关系证据，而不是反应 rate-law 物理任务不可识别。
 
+使用 RC21 原始 fit/trial seed、相同固定策略和相同公开观测合同的非控制性预算延长又给出了
+`k={1,2,4,8}` 曲线。反应任务总体分别为 53/120、77/120、111/120 和 112/120；rate-law 分别为
+0/30、10/30、23/30 和 23/30。k=4 精确复现 RC21，k=8 只把 no-change 从 29/30 提高到 30/30，
+rate-law 的 Wilson 下界仍为 0.5907。该开发诊断复用了正式 seed，不能成为新的确证结果；它排除了
+“只要把同一固定周期从四步延长到八步就能闭环”的解释，说明额外轮次没有提供新的辨识关系。
+
 随后一个未进入证书、仅 4 worlds/family 的小规模开发筛查又否决了朴素的 “myopic posterior-EIG
 与一步 reference acquisition” 策略：它虽然产生了不同动作路径，但经常重复同一个局部高信息动作；
 反应任务仅识别 10/16（rate-law 3/4、topology 4/4、material 1/4、no-change 2/4），而电化学为

@@ -45,6 +45,14 @@ trigger a formal RC22 run. It localizes the remaining problem to a fixed four-ac
 single-likelihood online decoder that cannot robustly combine temporal and cross-action relational evidence—not
 to physical non-identifiability of the reaction rate-law task.
 
+A non-controlling budget extension then reused the exact RC21 fit/trial seeds, fixed policy, and public observation
+contract to evaluate `k={1,2,4,8}`. Reaction accuracy was 53/120, 77/120, 111/120, and 112/120, while rate-law
+recall was 0/30, 10/30, 23/30, and 23/30. The k=4 checkpoint exactly reproduced RC21; k=8 only improved no change
+from 29/30 to 30/30, leaving the rate-law Wilson lower bound at 0.5907. Because this diagnostic reused formal
+seeds, it cannot become new confirmatory evidence. It rules out the claim that simply extending the same fixed
+cycle from four to eight steps closes the gap: the extra rounds add repeated evidence, not a new identifying
+relation.
+
 A subsequent non-certificate screening at only four worlds per family also rejected a naive myopic
 posterior-EIG plus one-step reference-acquisition policy. It generated history-dependent action paths but often
 repeated one locally high-information action. Reaction diagnosis reached only 10/16 (rate law 3/4, topology 4/4,
