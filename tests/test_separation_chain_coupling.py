@@ -29,7 +29,11 @@ def _reaction_and_contact_actions(
             "duration_s": 1500.0,
             "stirring_speed_rpm": 720.0,
         },
-        {"operation": "wait", "duration_s": 900.0},
+        {
+            "operation": "wait",
+            "duration_s": 900.0,
+            "stirring_speed_rpm": 720.0,
+        },
         {"operation": "quench"},
         {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012},
         {

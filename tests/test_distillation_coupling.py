@@ -31,7 +31,11 @@ def _prepare_feed() -> gym.Env:
             "duration_s": 1500.0,
             "stirring_speed_rpm": 720.0,
         },
-        {"operation": "wait", "duration_s": 900.0},
+        {
+            "operation": "wait",
+            "duration_s": 900.0,
+            "stirring_speed_rpm": 720.0,
+        },
         {"operation": "evaporate", "target_temperature_K": 335.0, "duration_s": 600.0},
     )
     for action in actions:
