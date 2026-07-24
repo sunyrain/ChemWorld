@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import runpy
+from pathlib import Path
 
 
 def _pipeline() -> dict[str, object]:
@@ -90,6 +91,38 @@ def test_generated_evidence_paths_do_not_make_source_tree_dirty() -> None:
         "benchmark/releases/deprecated-copy/manifest.json"
     )
     assert not pipeline["_is_materialized_output_path"]("src/chemworld/data/schema.py")
+
+
+def test_generated_json_line_endings_are_normalized_before_hashing(
+    tmp_path: Path,
+) -> None:
+    pipeline = _pipeline()
+    node_type = pipeline["EvidenceNode"]
+    output = tmp_path / "report.json"
+    output.write_bytes(b'{\r\n  "status": "passed"\r\n}\r\n')
+    original_root = pipeline["ROOT"]
+    original_nodes = pipeline["NODES"]
+    try:
+        pipeline["_normalize_materialized_json_line_endings"].__globals__["ROOT"] = (
+            tmp_path
+        )
+        pipeline["_normalize_materialized_json_line_endings"].__globals__["NODES"] = (
+            node_type(
+                "report",
+                "report.json",
+                "generated_current",
+                command=("generator.py",),
+            ),
+        )
+        pipeline["_normalize_materialized_json_line_endings"]()
+    finally:
+        pipeline["_normalize_materialized_json_line_endings"].__globals__["ROOT"] = (
+            original_root
+        )
+        pipeline["_normalize_materialized_json_line_endings"].__globals__["NODES"] = (
+            original_nodes
+        )
+    assert output.read_bytes() == b'{\n  "status": "passed"\n}\n'
 
 
 def test_current_evidence_manifest_explains_every_node() -> None:

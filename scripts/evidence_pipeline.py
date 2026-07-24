@@ -609,6 +609,21 @@ def _git_tree_dirty() -> bool:
     )
 
 
+def _normalize_materialized_json_line_endings() -> None:
+    """Make byte-level evidence hashes stable across Git's Windows checkout rules."""
+
+    for node in NODES:
+        if node.command is None:
+            continue
+        path = ROOT / node.path
+        if path.suffix.lower() != ".json" or not path.is_file():
+            continue
+        payload = path.read_bytes()
+        normalized = payload.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        if normalized != payload:
+            path.write_bytes(normalized)
+
+
 def _repository_source_sha256() -> str:
     """Fingerprint executable source independently from generated artifacts."""
 
@@ -1289,6 +1304,7 @@ def refresh() -> None:
             source_commit=source_commit,
             source_tree_dirty=source_tree_dirty,
         )
+    _normalize_materialized_json_line_endings()
     if _git_head() != source_commit or _git_tree_dirty() != source_tree_dirty:
         raise RuntimeError("source inputs changed during evidence refresh")
     _write_current_registry()
