@@ -76,6 +76,33 @@ RUFF_TARGETS = (
 )
 
 
+def _source_binding_command(source_commit: str) -> list[str]:
+    return [
+        "git",
+        "diff",
+        "--exit-code",
+        source_commit,
+        "--",
+        "src/chemworld",
+        "scripts",
+        "configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json",
+        "configs/benchmark/"
+        "mechanism_adaptation_gate_a_v0.3.0_rc25.json",
+        "configs/benchmark/"
+        "mechanism_adaptation_participant_preregistration_rc25.json",
+        "configs/methods/llm_v0.4/llm_methods_rc25.json",
+        "configs/methods/llm_v0.4/llm_methods.json",
+        "workstreams/flagship_tasks/reports/"
+        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc25.json",
+        "workstreams/flagship_tasks/reports/"
+        "mechanism-adaptation-design-audit-freeze-rc25.json",
+        "workstreams/flagship_tasks/reports/"
+        "mechanism-adaptation-sample-size-audit-v0.3.0-rc25.json",
+        "workstreams/flagship_tasks/reports/"
+        "confirmatory-task-semantics-audit-rc25.json",
+    ]
+
+
 def _git(*args: str) -> str:
     return subprocess.run(
         ["git", *args],
@@ -251,32 +278,7 @@ def build_qualification(
         / "workstreams/flagship_tasks/reports/"
         "confirmatory-task-semantics-audit-rc25.json"
     )
-    source_binding = _run(
-        [
-            "git",
-            "diff",
-            "--exit-code",
-            source_commit,
-            "--",
-            "src/chemworld",
-            "scripts",
-            "configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json",
-            "configs/benchmark/"
-            "mechanism_adaptation_gate_a_v0.3.0_rc25.json",
-            "configs/benchmark/"
-            "mechanism_adaptation_participant_preregistration_rc25.json",
-            "configs/methods/llm_v0.4/llm_methods_rc25.json",
-            "configs/methods/llm_v0.4/llm_methods.json",
-            "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc25.json",
-            "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-design-audit-freeze-rc25.json",
-            "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-sample-size-audit-v0.3.0-rc25.json",
-            "workstreams/flagship_tasks/reports/"
-            "confirmatory-task-semantics-audit-rc25.json",
-        ]
-    )
+    source_binding = _run(_source_binding_command(source_commit))
     static_errors = validate_diagnostic_relation_graph(
         protocol,
         plan,
@@ -352,6 +354,101 @@ def build_qualification(
     return payload
 
 
+def validate_recorded_qualification(
+    report: dict[str, Any],
+    *,
+    protocol_path: Path,
+    plan_path: Path,
+    expected_source_commit: str | None,
+) -> list[str]:
+    """Validate immutable receipts without rerunning nondeterministic commands."""
+
+    errors: list[str] = []
+    protocol = load_protocol_object(protocol_path)
+    plan = load_json_object(plan_path)
+    recorded_hash = report.get("qualification_sha256")
+    unsigned = dict(report)
+    unsigned.pop("qualification_sha256", None)
+    if recorded_hash != canonical_json_sha256(unsigned):
+        errors.append("qualification_sha256 does not match the recorded payload")
+    if report.get("schema_version") != (
+        "chemworld-mechanism-release-qualification-0.1"
+    ):
+        errors.append("unexpected release qualification schema")
+    if report.get("release_candidate") != "rc25":
+        errors.append("release candidate is not rc25")
+    if report.get("status") != "passed" or report.get("qualified") is not True:
+        errors.append("release qualification did not pass")
+    for field in (
+        "formal_result",
+        "full_repository_test_run",
+        "formal_cohorts_consumed",
+    ):
+        if report.get(field) is not False:
+            errors.append(f"{field} must remain false")
+    if report.get("protocol_sha256") != canonical_json_sha256(protocol):
+        errors.append("protocol hash drift")
+    if report.get("gate_a_plan_sha256") != canonical_json_sha256(plan):
+        errors.append("Gate A plan hash drift")
+    source_commit = report.get("source_commit")
+    if not isinstance(source_commit, str) or not source_commit:
+        errors.append("missing source_commit")
+    else:
+        if (
+            expected_source_commit is not None
+            and expected_source_commit != source_commit
+        ):
+            errors.append("requested source commit differs from recorded receipt")
+        source_binding = _run(_source_binding_command(source_commit))
+        if not source_binding["passed"]:
+            errors.append("qualified source paths drifted from source_commit")
+        ancestor = _run(
+            ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"]
+        )
+        if not ancestor["passed"]:
+            errors.append("source_commit is not an ancestor of HEAD")
+    for field in ("source_binding", "ruff", "targeted_tests"):
+        if report.get(field, {}).get("passed") is not True:
+            errors.append(f"recorded {field} receipt did not pass")
+    sentinel = report.get("development_end_to_end_sentinel", {})
+    if sentinel.get("passed") is not True:
+        errors.append("recorded development sentinel did not pass")
+    if sentinel.get("formal_result") is not False:
+        errors.append("development sentinel is incorrectly marked formal")
+    if sentinel.get("formal_a2_or_a3_seed_consumed") is not False:
+        errors.append("development sentinel consumed a formal seed")
+    artifact_checks = report.get("artifact_checks", {})
+    if not artifact_checks or not all(artifact_checks.values()):
+        errors.append("one or more recorded static artifact checks failed")
+    relation_graph = load_json_object(
+        ROOT / plan["diagnostic_relation_graph"]["report"]
+    )
+    current_static_errors = validate_diagnostic_relation_graph(
+        protocol,
+        plan,
+        relation_graph,
+    )
+    design_audit = load_json_object(
+        ROOT / plan["design_validity_precondition"]["report"]
+    )
+    try:
+        validate_precomputed_design_audit(protocol, plan, design_audit)
+    except ValueError as error:
+        current_static_errors.append(str(error))
+    sample_size = load_json_object(ROOT / plan["sample_size_audit"]["report"])
+    semantics = load_json_object(
+        ROOT
+        / "workstreams/flagship_tasks/reports/"
+        "confirmatory-task-semantics-audit-rc25.json"
+    )
+    if sample_size.get("pass") is not True:
+        current_static_errors.append("current sample-size audit did not pass")
+    if semantics.get("pass") is not True:
+        current_static_errors.append("current semantic audit did not pass")
+    errors.extend(current_static_errors)
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--protocol", type=Path, default=DEFAULT_PROTOCOL_PATH)
@@ -361,20 +458,28 @@ def main() -> int:
     parser.add_argument("--skip-tests", action="store_true")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
-    source_commit = args.source_commit or _git("rev-parse", "HEAD")
-    report = build_qualification(
-        protocol_path=args.protocol,
-        plan_path=args.plan,
-        source_commit=source_commit,
-        run_tests=not args.skip_tests,
-    )
     if args.check:
         if not args.output.is_file():
             raise SystemExit(f"missing release qualification: {args.output}")
-        recorded = json.loads(args.output.read_text(encoding="utf-8"))
-        if recorded != report:
-            raise SystemExit("release qualification is stale")
+        report = json.loads(args.output.read_text(encoding="utf-8"))
+        errors = validate_recorded_qualification(
+            report,
+            protocol_path=args.protocol,
+            plan_path=args.plan,
+            expected_source_commit=args.source_commit,
+        )
+        if errors:
+            raise SystemExit(
+                "release qualification is invalid:\n- " + "\n- ".join(errors)
+            )
     else:
+        source_commit = args.source_commit or _git("rev-parse", "HEAD")
+        report = build_qualification(
+            protocol_path=args.protocol,
+            plan_path=args.plan,
+            source_commit=source_commit,
+            run_tests=not args.skip_tests,
+        )
         if args.output.exists():
             raise SystemExit(
                 "release qualification is immutable; select a new output"
