@@ -1,6 +1,6 @@
 # ChemWorld RC25 确认性实验计划与执行 TODO
 
-状态：`execution planning`  
+状态：`release-qualified; formal A2/A3 pending`
 适用协议：`chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc25`  
 控制文件：`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc25.json`  
 原则：本文只安排执行，不修改 RC25 的世界、阈值、统计定义、cohort 或 scorer。
@@ -90,7 +90,7 @@ schema、hash、单元完整性和资源状态 receipt，不生成或查看 fami
 - [x] `P0-03` 设计审计 81/81 通过。
 - [x] `P0-04` 确认性任务语义审计 25/25 通过。
 - [x] `P0-05` 样本量审计通过，选择 180 independent clusters/family。
-- [x] `P0-06` evidence DAG 31 节点、0 stale。
+- [x] `P0-06` evidence DAG 33 节点、0 stale。
 - [ ] `P0-07` 在正式运行机器上确认 `git status --short` 为空。
 - [ ] `P0-08` 运行 preregistration `--check`，保存 stdout 和 exit code。
 - [ ] `P0-09` 运行 evidence DAG `--check`，保存 stdout 和 exit code。
@@ -120,21 +120,21 @@ development namespace，不能消费 A2、A3 或 private seeds。
 
 ### 0.3 新增运行资格护栏
 
-- [ ] `P0-17` 在冻结 commit 上运行一套覆盖 A2/A3 全部生产代码路径的正式 release qualification suite；继续不做无关的全仓测试。
+- [x] `P0-17` 在冻结 commit 上运行一套覆盖 A2/A3 全部生产代码路径的正式 release qualification suite；继续不做无关的全仓测试。
 - [ ] `P0-18` 从 clean detached checkout 或构建 wheel 安装后运行一次端到端集成测试，并保存环境锁定文件与不可变 release tag。
-- [ ] `P0-19` 将 trial 唯一键固定为 `task × truth × world_cluster × changepoint × arm`，验证写一次 receipt、基础设施失败 attempt ledger 和 missing-only resume。
-- [ ] `P0-20` 将 decision script、bootstrap、table generator、censoring、failure/exclusion aggregation 和 pass/fail state machine 纳入 preregistration hash。
-- [ ] `P0-21` 仅使用 development sentinel namespace 完成端到端 dry run，验证最终表格可从 trial manifest 重建。
+- [x] `P0-19` 将 trial 唯一键固定为 `task × truth × world_cluster × changepoint × arm`，验证写一次 receipt、基础设施失败 attempt ledger 和 missing-only resume。
+- [x] `P0-20` 将 decision script、bootstrap、table generator、censoring、failure/exclusion aggregation 和 pass/fail state machine 纳入 preregistration hash。
+- [x] `P0-21` 仅使用 development sentinel namespace 完成端到端 dry run，验证最终表格可从 trial manifest 重建。
 
-开发性实现试验已放在 `workstreams/flagship_tasks/prototypes/`，当前结果为：
+RC25 已将原型能力收束到生产路径并删除临时 prototype：
 
-- 6 个 synthetic trial 中人为制造 1 次进程中断；恢复只补 1 个缺失单元，最终 0 重复、0 遗漏，并保留 1 条基础设施失败 attempt；
-- keyed-noise 的共同 HPLC 观测在分叉路径加入额外 PAT 测量后仍得到相同 noise key 和数值；
-- metric-embargo receipt 只公开 hash、schema 和单元完整性，不公开 A2/A3 科学指标；
-- Participant-Agent 合成冗余 HPLC 输入从 115,346 bytes 压缩到 3,764 bytes，保守估算 941 tokens，未传原始数组和审计元数据。
+- release qualification 在冻结 commit 上完成 112 项定向测试，未运行全仓测试；
+- write-once receipt、attempt ledger、missing-only resume 和结构完整 manifest 已进入正式 runner；
+- keyed noise 按语义坐标配对，策略分叉后仅比较共同坐标，pre-change 坐标必须完全一致；
+- metric-embargo receipt 只公开 hash、schema、单元完整性与资源状态，不提前公开 A2/A3 科学指标；
+- Participant-Agent 决策输入采用 `chemworld-compact-decision-context-0.2`；开发哨兵约 520/1500 tokens，未传原始谱图数组和审计元数据。
 
-以上均为 `formal_result=false` 的开发哨兵，不代表 `P0-17` 至 `P0-21` 已完成，
-也不允许据此启动正式 cohort。
+以上仍为 `formal_result=false` 的运行资格证据，不是 A2/A3 科学结果，也不允许据此解封 private cohort。
 
 ## 5. Phase 1：执行 A3 online attainability
 
@@ -280,15 +280,15 @@ Gate A 的解释：
 本节不影响 A2/A3；它约束 Gate B–E 的 LLM 输入。直接采用新的分层表示，
 不把旧冗余表示作为正式 A/B 条件。
 
-- [ ] `AG-P01` 每轮默认 prompt 只包含任务目标、当前实验/预算、最新可见指标、活动约束、测量摘要、历史最佳、最近两次实验和合法动作签名。
-- [ ] `AG-P02` 原始谱图数组、replicate curves、重复 observation views、完整历史、constitution checks、Git/provider/ledger 元数据不得进入默认决策上下文。
+- [x] `AG-P01` 每轮默认 prompt 只包含任务目标、当前实验/预算、最新可见指标、活动约束、测量摘要、历史最佳、最近两次实验和合法动作签名。
+- [x] `AG-P02` 原始谱图数组、replicate curves、重复 observation views、完整历史、constitution checks、Git/provider/ledger 元数据不得进入默认决策上下文。
 - [ ] `AG-P03` 完整谱图、动作 schema 和历史实验只能通过 public ID 按需请求；请求和返回均进入轨迹。
-- [ ] `AG-P04` 默认提示采用硬 token 上限；开发原型为保守估算 1,500 tokens，正式值和 provider tokenizer 校准须在 participant preregistration 中冻结。
-- [ ] `AG-P05` 超限必须显式失败或按固定优先级缩减可选摘要；不得静默删除当前指标、活动约束、合法动作必需参数或输出契约。
-- [ ] `AG-P06` 输出仅要求 action、expected effect、diagnostic target、expected information gain、预声明 belief-update rule、Gate B 所需的 `p(change)`/family belief、uncertainty 和可选 detail request。
-- [ ] `AG-P07` 不要求模型每步重复 evidence/rationale/diagnostic rationale/information-value/spectrum-interpretation 等语义重叠字段。
-- [ ] `AG-P08` 机制概率必须与可检查的预声明更新规则共同输出；不把叙述性“手调概率”视作严格 Bayesian update。
-- [ ] `AG-P09` trajectory 继续保留完整公开 observation、原始谱图、prompt hash 和 provider receipt；prompt 精简不得降低审计与复现能力。
+- [x] `AG-P04` 默认提示采用硬 token 上限；开发原型为保守估算 1,500 tokens，正式值和 provider tokenizer 校准须在 participant preregistration 中冻结。
+- [x] `AG-P05` 超限必须显式失败或按固定优先级缩减可选摘要；不得静默删除当前指标、活动约束、合法动作必需参数或输出契约。
+- [x] `AG-P06` 输出仅要求 action、expected effect、diagnostic target、expected information gain、预声明 belief-update rule、Gate B 所需的 `p(change)`/family belief、uncertainty 和可选 detail request。
+- [x] `AG-P07` 不要求模型每步重复 evidence/rationale/diagnostic rationale/information-value/spectrum-interpretation 等语义重叠字段。
+- [x] `AG-P08` 机制概率必须与可检查的预声明更新规则共同输出；不把叙述性“手调概率”视作严格 Bayesian update。
+- [x] `AG-P09` trajectory 继续保留完整公开 observation、原始谱图、prompt hash 和 provider receipt；prompt 精简不得降低审计与复现能力。
 - [ ] `AG-P10` 正式执行前记录每步 provider-reported prompt tokens、压缩层级和 on-demand retrieval；不得用日志 JSON 字节数冒充实际模型输入量。
 
 ### 8.2 Gate B：变化检测
