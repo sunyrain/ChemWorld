@@ -24,8 +24,7 @@ def test_public_task_info_hides_mechanism_truth_for_all_tasks() -> None:
             assert "mechanism_manifest" not in info
             assert "reactions" not in info
             assert "debug_mechanism" not in info
-            assert "compiled_mechanism" not in info["runtime"]
-            assert "debug_compiled_mechanism" not in info["runtime"]
+            assert "runtime" not in info
             assert "mechanism_observable_mapping" not in info["observation_contract"]
             assert "hidden_parameter_seed" not in info["scenario"]
             assert "initial_state_seed" not in info["scenario"]
@@ -55,7 +54,8 @@ def test_debug_truth_task_info_keeps_truth_under_debug_keys() -> None:
         _observation, info = env.reset(seed=0)
         hidden_species = set(env.unwrapped.scenario_instance.compiled_mechanism.species_index)
         assert "debug_mechanism" in info
-        assert "debug_compiled_mechanism" in info["runtime"]
+        assert "mechanism_manifest" in info["debug_mechanism"]
+        assert "reactions" in info["debug_mechanism"]
         assert audit_public_payload(
             info,
             hidden_species_ids=hidden_species,
@@ -71,6 +71,10 @@ def test_agent_views_and_trajectory_do_not_leak_hidden_species_or_rates(
     env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
     try:
         observation, task_info = env.reset(seed=0)
+        evaluator_logging_task_info = {
+            **task_info,
+            **env.unwrapped.evaluator_provenance(),
+        }
         hidden_species = set(env.unwrapped.scenario_instance.compiled_mechanism.species_index)
         actions = [
             {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
@@ -100,7 +104,7 @@ def test_agent_views_and_trajectory_do_not_leak_hidden_species_or_rates(
                     for check in info["constitution_checks"]
                 )
                 logger.log(
-                    task_info=task_info,
+                    task_info=evaluator_logging_task_info,
                     step=step,
                     action=action,
                     observation=observation,

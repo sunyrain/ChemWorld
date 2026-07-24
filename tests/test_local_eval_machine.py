@@ -94,6 +94,11 @@ def test_local_eval_machine_demo(tmp_path: Path) -> None:
     assert payload["summary"]["verified_count"] == 1
     assert payload["summary"]["failed_verifications"] == []
     assert json.loads(verification.read_text(encoding="utf-8"))["verified"]
+    first_record = json.loads(
+        trajectory.read_text(encoding="utf-8").splitlines()[0]
+    )
+    assert first_record["seed"] == 0
+    assert first_record["world_id"]
 
 
 def test_local_eval_machine_manual_validate_run_summarize(tmp_path: Path) -> None:
