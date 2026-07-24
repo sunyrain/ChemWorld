@@ -117,7 +117,7 @@ def _development_sentinel(
         plan["release_qualification"]["development_seed_namespace_start"]
     )
     task_id = "electrochemical-conversion"
-    library = build_action_library(task_id, action_count=1, seed=41102)
+    library = build_action_library(task_id, action_count=3, seed=41102)
     action_id = next(iter(library))
     selected = {action_id: library[action_id]}
     noise_keys: list[str] = []
