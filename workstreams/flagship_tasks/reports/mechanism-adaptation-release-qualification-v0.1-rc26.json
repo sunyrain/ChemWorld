@@ -1,0 +1,153 @@
+{
+  "artifact_checks": {
+    "design_audit": true,
+    "diagnostic_relation_graph": true,
+    "sample_size_audit": true,
+    "semantic_protocol_audit": true
+  },
+  "development_end_to_end_sentinel": {
+    "formal_a2_or_a3_seed_consumed": false,
+    "formal_result": false,
+    "paired_noise_key_bundle_match": true,
+    "paired_trace_lengths": [
+      152,
+      152
+    ],
+    "passed": true,
+    "prompt_cap": 1500,
+    "prompt_estimated_tokens": 520,
+    "raw_arrays_in_prompt": false,
+    "resume_results": [
+      {
+        "square": 1,
+        "value": 1
+      },
+      {
+        "square": 4,
+        "value": 2
+      }
+    ],
+    "seed_namespace_start": 970000000,
+    "task_id": "electrochemical-conversion",
+    "trial_manifest": {
+      "complete": true,
+      "completed_count": 2,
+      "duplicate_count": 0,
+      "expected_count": 2,
+      "infrastructure_attempt_count": 0,
+      "invalid_receipts": [],
+      "manifest_sha256": "9843a4e5a85e7d1e8b8c79a85ad8930d43811fec3d154a019f76f7d1b08dfaf2",
+      "missing_trial_key_sha256": [],
+      "recovered_infrastructure_failure_count": 0,
+      "schema_version": "chemworld-confirmatory-trial-manifest-0.1",
+      "unexpected_trial_key_sha256": []
+    }
+  },
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "formal_cohorts_consumed": false,
+  "formal_result": false,
+  "full_repository_test_run": false,
+  "gate_a_plan_sha256": "9c062d586933fb5bcfdf8eea15710e908a07385fd82006d9e933dd68282e2da6",
+  "head_at_qualification": "ca5cb985628ae60b531eea0f127af0c576676421",
+  "protocol_sha256": "63ea6d38abdaa87785690ad1b5acb0be0d9977ce17fbdb29fd9d60c6ffad82db",
+  "qualification_sha256": "370c2b2e983ed5cc40b0ba895e79988d2bca3b9261ed35b9a6f4e6b5cc1d1396",
+  "qualified": true,
+  "release_candidate": "rc26",
+  "ruff": {
+    "command": [
+      "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+      "-m",
+      "ruff",
+      "check",
+      "scripts/run_mechanism_adaptation.py",
+      "scripts/qualify_mechanism_adaptation_release.py",
+      "src/chemworld/agents/prompt_context.py",
+      "src/chemworld/agents/live_llm.py",
+      "src/chemworld/agents/diagnostic_live_llm.py",
+      "src/chemworld/agents/mechanism_adaptation_live_llm.py",
+      "src/chemworld/agents/interaction.py",
+      "src/chemworld/envs/observation_noise.py",
+      "src/chemworld/envs/chemworld_env.py",
+      "src/chemworld/envs/reports.py",
+      "src/chemworld/eval/trial_store.py",
+      "src/chemworld/eval/mechanism_release.py",
+      "src/chemworld/eval/mechanism_adaptation_execution.py",
+      "src/chemworld/eval/mechanism_preregistration.py"
+    ],
+    "exit_code": 0,
+    "passed": true,
+    "stderr_tail": "",
+    "stdout_tail": "All checks passed!\n",
+    "wall_time_s": 0.047
+  },
+  "schema_version": "chemworld-mechanism-release-qualification-0.1",
+  "source_binding": {
+    "command": [
+      "git",
+      "diff",
+      "--exit-code",
+      "ca5cb985628ae60b531eea0f127af0c576676421",
+      "--",
+      "src/chemworld",
+      "scripts",
+      "configs/benchmark/mechanism_adaptation_v0.3.0_rc26.json",
+      "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json",
+      "configs/benchmark/mechanism_adaptation_participant_preregistration_rc26.json",
+      "configs/methods/llm_v0.4/llm_methods_rc25.json",
+      "configs/methods/llm_v0.4/llm_methods.json",
+      "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc26.json",
+      "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc26.json",
+      "workstreams/flagship_tasks/reports/mechanism-adaptation-sample-size-audit-v0.3.0-rc26.json",
+      "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc26.json",
+      "tests/test_prompt_context.py",
+      "tests/test_trial_store.py",
+      "tests/test_keyed_observation_noise.py",
+      "tests/test_mechanism_release.py",
+      "tests/test_live_llm_agent.py",
+      "tests/test_agent_interaction_contract.py",
+      "tests/test_agent_interaction.py",
+      "tests/test_flagship_mechanism_diagnostics.py",
+      "tests/test_mechanism_adaptation.py",
+      "tests/test_mechanism_adaptation_execution.py",
+      "tests/test_mechanism_preregistration.py"
+    ],
+    "exit_code": 0,
+    "passed": true,
+    "stderr_tail": "",
+    "stdout_tail": "",
+    "wall_time_s": 0.015
+  },
+  "source_commit": "ca5cb985628ae60b531eea0f127af0c576676421",
+  "static_errors": [],
+  "status": "passed",
+  "targeted_tests": {
+    "command": [
+      "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-o",
+      "addopts=",
+      "-q",
+      "tests/test_prompt_context.py",
+      "tests/test_trial_store.py",
+      "tests/test_keyed_observation_noise.py",
+      "tests/test_mechanism_release.py",
+      "tests/test_live_llm_agent.py",
+      "tests/test_agent_interaction_contract.py",
+      "tests/test_agent_interaction.py",
+      "tests/test_flagship_mechanism_diagnostics.py",
+      "tests/test_mechanism_adaptation.py",
+      "tests/test_mechanism_adaptation_execution.py",
+      "tests/test_mechanism_preregistration.py",
+      "--tb=short"
+    ],
+    "exit_code": 0,
+    "passed": true,
+    "stderr_tail": "",
+    "stdout_tail": "........................................................................ [ 63%]\n.........................................                                [100%]\n113 passed in 154.02s (0:02:34)\n",
+    "wall_time_s": 154.375
+  }
+}
