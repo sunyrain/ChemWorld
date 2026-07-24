@@ -1,0 +1,248 @@
+{
+  "analysis_artifacts": {
+    "bootstrap_estimands_tables_and_right_censoring": "src/chemworld/eval/mechanism_adaptation_execution.py",
+    "decision_and_readiness_state_machine": "src/chemworld/eval/mechanism_release.py",
+    "trial_identity_resume_and_reason_domains": "src/chemworld/eval/trial_store.py"
+  },
+  "certification_subjects": {
+    "a1": "physical_world_and_intervention_contract",
+    "a2": "controlled_oracle_and_decoder",
+    "a3": "frozen_reference_diagnostic_policy",
+    "gates_b_to_e": "participant_agent"
+  },
+  "cohorts": {
+    "a2_certification": {
+      "role": "controlled_static_identifiability_only",
+      "seed_namespace_start": 3800000000,
+      "world_seeds_per_family": 180
+    },
+    "a3_certification": {
+      "role": "calibrated_online_change_only",
+      "seed_namespace_start": 3900000000,
+      "world_seeds_per_family": 180
+    },
+    "cross_cohort_world_seed_reuse_allowed": false,
+    "development": {
+      "formal_claim_allowed": false,
+      "role": "predictive_fit_action_and_threshold_development",
+      "seed_namespace_start": 1100000000
+    },
+    "private_agent_confirmation": {
+      "must_not_be_used_for_method_or_statistics_revision": true,
+      "role": "final_untouched_participant_agent_replication_only",
+      "seed_namespace_start": 4300000000,
+      "world_seeds_per_family": 180
+    },
+    "private_environment_confirmation": {
+      "must_not_be_used_for_threshold_or_protocol_revision": true,
+      "role": "final_untouched_environment_certificate_replication_only",
+      "seed_namespace_start": 4100000000,
+      "world_seeds_per_family": 180
+    }
+  },
+  "diagnostic_relation_graph": {
+    "graph_sha256": "97ddee0483b3593c6fa2d0526769004f7ce32c9b529f1dc25cc910823138bffe",
+    "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc27.json",
+    "relation_count": 3
+  },
+  "execution_handling": {
+    "a3_metric_embargo": "after A3 execution disclose only schema, bindings, hashes, completeness, resource state, and integrity counts until A2 is complete",
+    "duplicate_rule": "any duplicate terminal trial key is an integrity failure",
+    "exclusions": "only preregistered integrity failures, all reason-coded before outcome aggregation",
+    "formal_entry_validation": "production protocol and plan must reach the first A2 and A3 trial scheduler under a zero-job sentinel before any formal cohort is consumed",
+    "incomplete_campaign": "retain as protocol failure for autonomous scoring; right-censor time-to-event outcomes at the frozen horizon",
+    "infrastructure_failure_receipt": "append_only_attempt_ledger_not_a_scientific_outcome",
+    "invalid_action": "retain as an Agent action and apply the environment's frozen invalid-action consequence",
+    "joint_a2_a3_release": "one immutable public decision artifact after both structural receipts and release qualification pass",
+    "private_confirmation_unseal": "Private-E may run only after the immutable public A2/A3 decision; Private-A additionally requires a frozen participant method roster, prompt, scaffold, runner, statistics, exclusions, and cost contract",
+    "provider_failure": "exclude only from belief-response metrics when a reason-coded provider receipt proves no valid completion; retain and separately report provider-failure rate; never replace with a successful retry silently",
+    "reason_domains": [
+      "scientific",
+      "infrastructure",
+      "provider",
+      "protocol"
+    ],
+    "resume_rule": "resume_only_manifest_declared_trial_keys_without_terminal_receipts",
+    "stopping_rule": "fixed manifest-declared campaign matrix; no optional stopping on interim A2 or A3 results",
+    "structural_receipt_expected_count": "sum of predictive-fit and formal certificate leaf-manifest expected counts; each formal world cluster is counted exactly once",
+    "terminal_scientific_receipt": "write_once_atomic_json",
+    "trial_identity": "task_id x truth_family x world_cluster x changepoint x arm"
+  },
+  "gate_a_plan": {
+    "canonical_sha256": "9b8ced32b6833c3c249c99e68fe5e6187b352549f30c2eccfa1a24811ac970d2",
+    "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-25-formal-entry-fix-rc27",
+    "source_path": "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
+  },
+  "manifest_id": "chemworld-mechanism-adaptation-v0.3.0-rc27-preregistration",
+  "manifest_sha256": "f942d8d56837c14da162bd10646ae7a54a34d64336caf3ed9f28769c26a24bfb",
+  "mutation_rule": "Any change to a bound hash, threshold, cohort, seed count, scorer, policy, exclusion, or stopping rule creates a new protocol RC and cannot reinterpret results collected under this manifest.",
+  "observation_noise": {
+    "coordinate": [
+      "namespace",
+      "base_observation_seed",
+      "experiment_index",
+      "operation_type",
+      "instrument",
+      "replicate_index"
+    ],
+    "mode": "keyed_semantic_coordinate",
+    "pairing_check": "noise keys must match for every semantic coordinate shared by truth twins; adaptive post-change paths need not have identical coordinate sets",
+    "pre_change_check": "truth twins must have identical pre-change semantic coordinate sets",
+    "sequential_rng_position_used": false
+  },
+  "paired_no_change_control": {
+    "campaign_metadata_invariant_across_checkpoint": true,
+    "common_random_numbers_across_changed_no_change_twins": true,
+    "identical_reset_rule_across_changed_no_change_twins": true,
+    "pseudo_checkpoint_has_runtime_side_effect": false,
+    "reset_or_instance_identifier_agent_visible": false,
+    "same_hidden_world_seed_across_phases": true,
+    "same_world_seed_reused_across_candidate_twins": true
+  },
+  "participant_prompt_contract": {
+    "default_estimated_token_cap": 1500,
+    "default_exclusions": [
+      "raw numeric spectra arrays",
+      "replicate curves",
+      "duplicate observation views",
+      "complete history",
+      "constitution checks",
+      "Git, provider, request, and ledger metadata"
+    ],
+    "on_demand_public_detail": [
+      "historical spectrum by public spectrum_id"
+    ],
+    "representation": "chemworld-compact-decision-context-0.2",
+    "required_information": [
+      "task objective and lifecycle",
+      "current compact experiment state and remaining budget",
+      "latest scalar metrics and processed measurement summary",
+      "active constraint flags",
+      "historical best and two recent experiment summaries",
+      "legal action parameter signatures"
+    ],
+    "response_contract": [
+      "action",
+      "expected_effect",
+      "diagnostic_target",
+      "expected_information_gain",
+      "belief_update_rule",
+      "uncertainty",
+      "optional_historical_spectrum_request"
+    ]
+  },
+  "private_confirmation_unseal_condition": "Private-E may run only after the immutable public A2/A3 decision; Private-A additionally requires a frozen participant method roster, prompt, scaffold, runner, statistics, exclusions, and cost contract",
+  "protocol": {
+    "canonical_sha256": "5d535ac606b7bf76c0a101541c5797b511f43a007ffaeff98b8a9b74ff577545",
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-25-formal-entry-fix-rc27",
+    "source_path": "configs/benchmark/mechanism_adaptation_v0.3.0_rc27.json"
+  },
+  "publication_ready": false,
+  "reference_policy": {
+    "action_count_per_task": 6,
+    "action_design": "deterministic_task_aware_relational_diagnostic_design_v2",
+    "action_design_seed": 41102,
+    "certificate_basis": "relation_closure_not_recipe_id_closure",
+    "predictive_reference": {
+      "all_observed_reference_actions_must_have_predictive_checks": true,
+      "cross_fitting": "leave_one_experiment_out_within_campaign_pre_change_only",
+      "maximum_mean_standardized_squared_error": 4.0,
+      "maximum_per_action_mean_standardized_squared_error": 9.0,
+      "maximum_reference_age_experiments": 5,
+      "post_change_observations_allowed": false,
+      "source": "development freezes features, predictive family, and thresholds; each A3 campaign estimates nuisance reference parameters from its own pre-change observations by leave-one-experiment-out cross-fitting",
+      "truth_family_allowed": false
+    },
+    "version": "chemworld-mechanism-adaptation-online-attainability-certificate-0.9"
+  },
+  "release_candidate": "rc27",
+  "release_qualification": {
+    "development_seed_namespace_start": 970000000,
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-release-qualification-v0.1-rc27.json",
+    "required_before_formal_a2_or_a3": true,
+    "requires_clean_source_binding": true,
+    "requires_development_namespace_end_to_end_trial": true,
+    "requires_replay_and_manifest_reconstruction": true,
+    "requires_targeted_tests": true
+  },
+  "sample_size": {
+    "audit_path": "workstreams/flagship_tasks/reports/mechanism-adaptation-sample-size-audit-v0.3.0-rc27.json",
+    "audit_sha256": "2b3dd57fe8e839ad66f65f9576ef1b2855fb16b753c6565e1b110ed96e507309",
+    "clusters_per_changed_family_per_change_time": 60,
+    "independent_world_clusters_per_family": 180,
+    "no_change_clusters_per_task": 180,
+    "provider_repeats_are_independent_samples": false,
+    "provider_repeats_per_paired_cell": 5
+  },
+  "schema_version": "chemworld-mechanism-preregistration-0.1",
+  "scorer": {
+    "source_bundle_sha256": "20366a8df7b3561eaef7e873cd3d1f1f5d7350b187979dbddd639cc5d936d339",
+    "source_file_sha256": {
+      "src/chemworld/agents/prompt_context.py": "be009b12680ce7d07909e7c563336e35310698a86f188701471ba8777e17b97a",
+      "src/chemworld/envs/observation_noise.py": "009ae86890d4810cb856ec6df453afb9d80ea4049ae58b7b1d12e89bcd64343f",
+      "src/chemworld/eval/mechanism_adaptation.py": "729d3043f58e55ce5e134a56b771d6d2e65813d7d486ff64e2ddc31d004c59b4",
+      "src/chemworld/eval/mechanism_adaptation_execution.py": "9c281e58fe4fd6269e10e2ecca5591699b72a0d536f87fd6bac499fbc57b2a97",
+      "src/chemworld/eval/mechanism_design_audit.py": "742802bdbbc36f985b7ae1b9d593121d145c42b42d27d39cdbe39eb6857b563b",
+      "src/chemworld/eval/mechanism_gate_decision.py": "da634ce8247905e65a33339a8c27da43c76ad42c2c493b18b3155cd3ae89155c",
+      "src/chemworld/eval/mechanism_relation_graph.py": "f558e30ff21163f83c0f87ebb470cdcaea6df0e0111aad3ab26e46118ad614d2",
+      "src/chemworld/eval/mechanism_release.py": "a0046160379495009104361ac7704c4af72b1b50ff07fe0d696e3bb7e79a9c84",
+      "src/chemworld/eval/trial_store.py": "324f90048550605449c75987d9cdab9717c260f434ad166b73c44ba1c8fd64fe"
+    }
+  },
+  "source_commit": "fd172bc011a29e20885255adb5ae8c440a5af7ee",
+  "state_at_lock": {
+    "a1_physical_validity": "passed",
+    "a2_controlled_identifiability": "pending",
+    "a3_online_attainability": "pending",
+    "benchmark_ready": false,
+    "environment_design_candidate": "passed",
+    "evidence_complete": false,
+    "participant_agent_gates_b_to_e": "pending",
+    "private_agent_confirmation": "sealed",
+    "private_environment_confirmation": "sealed",
+    "publication_ready": false,
+    "semantic_protocol_audit": "passed"
+  },
+  "statistics": {
+    "aggregation_rule": "intersection_of_overall_each_task_and_each_declared_changed_family",
+    "brier_aggregation": "equal-weight mean across k={1,2,4,8} after equal weighting of changed and never classes",
+    "cluster_bootstrap_draws": 5000,
+    "cluster_bootstrap_seed_rule": "stable_hash_of_a3_namespace_metric_task_family_and_checkpoint",
+    "cluster_unit": "task_id_and_world_seed",
+    "confidence_level": 0.95,
+    "multiple_comparison_policy": "holm_for_confirmatory_family",
+    "pooled_micro_average_controls_gate": false,
+    "provider_repeat_role": "nested_technical_replicate",
+    "thresholds": {
+      "maximum_integrated_mean_change_probability_brier_score": 0.2,
+      "maximum_no_change_false_positive_rate_cluster_bootstrap_upper_bound": 0.1,
+      "minimum_attribution_given_detection_and_reference_cluster_bootstrap_lower_bound": 0.8,
+      "minimum_change_detection_auroc_cluster_bootstrap_lower_bound": 0.8,
+      "minimum_changed_detection_recall_cluster_bootstrap_lower_bound": 0.8,
+      "minimum_end_to_end_success_rate_cluster_bootstrap_lower_bound": 0.7,
+      "minimum_reference_acquisition_rate_wilson_lower_bound": 0.8
+    }
+  },
+  "status": "locked_before_a2_a3_execution",
+  "stopping_rule": "fixed manifest-declared campaign matrix; no optional stopping on interim A2 or A3 results",
+  "timing": {
+    "changepoint_semantics": "tau_is_completed_old_world_experiment_count",
+    "decision_threshold": 0.5,
+    "detection_event": "first checkpoint-relative experiment k where p(change)>=0.5",
+    "post_change_checkpoints": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "primary_post_change_checkpoint": 8,
+    "total_experiment_horizon": 18,
+    "truth_change_time_support": [
+      "never",
+      6,
+      8,
+      10
+    ],
+    "undetected_campaign_handling": "right_censored_at_k_8"
+  }
+}
