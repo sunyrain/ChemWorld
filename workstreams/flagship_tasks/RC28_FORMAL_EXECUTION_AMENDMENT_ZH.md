@@ -1,6 +1,6 @@
 # ChemWorld RC28 正式执行修正说明
 
-状态：`pre-execution requalification required`
+状态：`pre-execution qualified; formal cohorts not yet consumed`
 
 RC27 A3 完整生成 2,016/2,016 个 terminal receipts。A2 在完整生成
 2,736 个 receipts 后、首个电化学 budget-4 trial 被调度前 fail-closed：
@@ -27,3 +27,8 @@ RC28 以通用关系并集最小覆盖证书修复设计审计与正式入口：
 
 RC27 的 A3 与部分 A2 作为 superseded formal attempt 原样保留，不在 RC28
 中复用、比较或解释。RC28 必须重新运行完整 A3 与 A2。
+
+正式启动前，冻结提交 `6573c62d777a51305c66f58e9b27f5fefb9e060d`
+已在 clean detached worktree 中通过 qualification check、A2/A3 零作业入口验证及
+61 项 mechanism release/execution 集成测试。可复核环境与测试哈希见
+`reports/mechanism-adaptation-clean-detached-attestation-v0.1-rc28.json`。

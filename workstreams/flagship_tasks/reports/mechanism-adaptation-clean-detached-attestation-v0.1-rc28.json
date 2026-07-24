@@ -1,0 +1,43 @@
+{
+  "schema_version": "chemworld-clean-detached-execution-attestation-0.1",
+  "release_candidate": "rc28",
+  "status": "passed",
+  "formal_result": false,
+  "formal_cohorts_consumed": false,
+  "tested_commit": "6573c62d777a51305c66f58e9b27f5fefb9e060d",
+  "checkout_mode": "git_worktree_detached_clean",
+  "checkout_path_recorded": false,
+  "release_qualification_check": {
+    "status": "passed",
+    "report_file_sha256": "0dd0d69f12998bd2038512dee7c8be0dc7614606cfeb3ed8448ab525ca7d884e",
+    "qualification_sha256": "83a1c82db31f12f7caa7c8036da4c5688c0665d5fd6afe6081a74375b6153c99"
+  },
+  "formal_entry_validation": {
+    "status": "passed",
+    "validated_entries": [
+      "a3",
+      "a2"
+    ],
+    "static_relational_budget_feasibility_checked_before_scheduler": true,
+    "formal_trials_consumed": 0
+  },
+  "integration_test": {
+    "command": "python -m pytest -o addopts= -q tests/test_mechanism_release.py tests/test_mechanism_adaptation_execution.py --tb=short",
+    "status": "passed",
+    "passed_count": 61,
+    "wall_time_s": 150.36,
+    "stdout_sha256": "8a4e18953aee667efaf7bdd582eb44ed65c5e5bcf03834fa2d7ceb3380100110",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows 11",
+    "dependency_count": 155,
+    "pip_freeze_sha256": "485950ca161e5336c387ca03ea1fe03265d0965753f3fcead48c8f7756682205",
+    "cpu_logical": 32,
+    "cpu_physical": 16,
+    "memory_total_gib": 61.65,
+    "timezone": "Asia/Shanghai"
+  },
+  "completed_at": "2026-07-25T06:44:36.9894492+08:00"
+}
