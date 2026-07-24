@@ -1353,6 +1353,7 @@ def test_v2_mechanism_design_requires_exact_material_relational_pairs() -> None:
     protocol = _protocol()
     plan = _gate_a_plan()
     plan["action_library"]["design"] = DIAGNOSTIC_RECIPE_DESIGN_V2
+    plan["held_out_certificate"]["primary_gate_budget"] = 5
     report = audit_mechanism_design(
         protocol,
         plan,
@@ -1375,6 +1376,7 @@ def test_v2_mechanism_design_requires_exact_material_relational_pairs() -> None:
             assert checks[
                 f"{candidate_id}:moved_indices_relational_pair_covered"
             ] is True
+        assert checks["controlled_primary_relational_coverage_feasible"] is True
 
 
 def test_decision_relevance_rejects_visible_but_policy_irrelevant_shift(
