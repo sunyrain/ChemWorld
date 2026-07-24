@@ -99,7 +99,7 @@ confirmation cohort 互不重叠。确认性任务语义审计 25/25、物理设
 RC21 历史结果，也不能在新的 untouched cohort
 执行前产生 v0.3 正式结论。
 
-RC26 保留上述科学设计、阈值和 cohort 规模，仅硬化执行语义：正式 trial 使用 write-once receipt
+RC27 保留上述科学设计、阈值和 cohort 规模，仅硬化执行语义：正式 trial 使用 write-once receipt
 与 missing-only resume；changed/never 在共同语义坐标上使用 keyed observation noise；A3 指标在 A2
 完成前保持 embargo；Private confirmation 拆为环境证书复现 Private-E 与 participant-Agent 复现
 Private-A。A2 的 2/4 次配对诊断预算不再与 A3 的六次旧世界参照前缀混为同一个预算条件。

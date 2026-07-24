@@ -26,16 +26,16 @@ from chemworld.eval.mechanism_preregistration import (  # noqa: E402
 from chemworld.eval.provenance import write_json_atomic  # noqa: E402
 
 DEFAULT_PROTOCOL = (
-    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc26.json"
+    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc27.json"
 )
 DEFAULT_PLAN = (
     ROOT
-    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json"
+    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
 )
 DEFAULT_OUTPUT = (
     ROOT
     / "configs/benchmark/"
-    "mechanism-adaptation-preregistration-v0.3.0-rc26.json"
+    "mechanism-adaptation-preregistration-v0.3.0-rc27.json"
 )
 
 

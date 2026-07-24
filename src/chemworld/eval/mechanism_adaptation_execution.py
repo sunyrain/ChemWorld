@@ -82,11 +82,11 @@ from chemworld.providers.deepseek import DeepSeekClient
 from chemworld.tasks import get_task
 
 DEFAULT_PROTOCOL_PATH = (
-    configuration_root() / "benchmark/mechanism_adaptation_v0.3.0_rc26.json"
+    configuration_root() / "benchmark/mechanism_adaptation_v0.3.0_rc27.json"
 )
 DEFAULT_GATE_A_PLAN_PATH = (
     configuration_root()
-    / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json"
+    / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
 )
 DEFAULT_LLM_METHODS_PATH = (
     configuration_root() / "methods/llm_v0.4/llm_methods_rc25.json"
@@ -4147,6 +4147,19 @@ def _emit_gate_a_progress(
         callback({"stage": "gate-a", "event": event, **details})
 
 
+def _validate_paired_public_contrast_encoding(
+    phase_plan: Mapping[str, Any],
+) -> None:
+    """Accept the frozen same-recipe encoding and its relational extension."""
+
+    supported = {
+        "post_minus_pre_same_recipe",
+        "post_minus_pre_same_recipe_or_declared_same_background_relation",
+    }
+    if phase_plan.get("public_contrast_encoding") not in supported:
+        raise ValueError("unsupported paired Gate A public contrast encoding")
+
+
 def _run_paired_gate_a(
     protocol: Mapping[str, Any],
     plan: Mapping[str, Any],
@@ -4281,8 +4294,7 @@ def _run_paired_gate_a(
         raise ValueError("paired Gate A requires the same hidden-world seed across phases")
     if phase_plan.get("independent_observation_seed_across_phases") is not True:
         raise ValueError("paired Gate A requires independent phase observation seeds")
-    if phase_plan.get("public_contrast_encoding") != "post_minus_pre_same_recipe":
-        raise ValueError("unsupported paired Gate A public contrast encoding")
+    _validate_paired_public_contrast_encoding(phase_plan)
     raw_controlled_relational_coverage = phase_plan.get(
         "controlled_primary_declared_relational_action_coverage",
         False,

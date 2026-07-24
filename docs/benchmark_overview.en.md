@@ -70,7 +70,7 @@ fails the reaction rate-law family at 23/30. RC24 of version 0.3 supersedes that
 not always provide an adequate old-world reference and A3 previously blurred benchmark attainability with
 participant-Agent evaluation. RC24 freezes a reference diagnostic policy, first-class no-change, relation closure,
 within-campaign cross-fitting, time-resolved detection, 180 independent clusters per family, and task/family
-intersection gates. RC26 preserves those scientific definitions while adding write-once receipts,
+intersection gates. RC27 preserves those scientific definitions while adding write-once receipts,
 semantic-coordinate noise, metric embargo, and release qualification. The confirmatory-task semantics audit passes
 25/25 and the physical design audit passes 81/81;
 these remain design evidence, not a confirmatory run. Gate A stays false until new untouched A2/A3 certificates

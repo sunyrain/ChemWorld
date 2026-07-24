@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from chemworld.eval.mechanism_adaptation_execution import (
+    _validate_paired_public_contrast_encoding,
     load_json_object,
     load_protocol_object,
 )
@@ -56,15 +57,24 @@ def test_formal_receipt_counts_match_frozen_job_matrices() -> None:
         run_name="mechanism_adaptation_runner",
     )
     protocol = load_protocol_object(
-        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc26.json"
+        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc27.json"
     )
     plan = load_json_object(
         ROOT
-        / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json"
+        / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
     )
 
     assert runner["_expected_a3_receipt_count"](protocol, plan) == 2016
     assert runner["_expected_a2_receipt_count"](protocol, plan) == 3456
+
+
+def test_formal_paired_contrast_encoding_is_accepted() -> None:
+    plan = load_json_object(
+        ROOT
+        / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
+    )
+
+    _validate_paired_public_contrast_encoding(plan["paired_phase_design"])
 
 
 def test_public_decision_requires_both_complete_receipts() -> None:

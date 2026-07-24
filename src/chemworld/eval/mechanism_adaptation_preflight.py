@@ -28,11 +28,11 @@ from chemworld.physchem.mechanism_library import configuration_root
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_PROTOCOL = (
     configuration_root()
-    / "benchmark/mechanism_adaptation_v0.3.0_rc26.json"
+    / "benchmark/mechanism_adaptation_v0.3.0_rc27.json"
 )
 REQUIRED_IMPLEMENTATION_ARTIFACTS = (
-    "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json",
-    "configs/benchmark/mechanism_adaptation_participant_preregistration_rc26.json",
+    "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json",
+    "configs/benchmark/mechanism_adaptation_participant_preregistration_rc27.json",
     "src/chemworld/agents/mechanism_adaptation_live_llm.py",
     "src/chemworld/eval/mechanism_adaptation.py",
     "src/chemworld/eval/confirmatory_task_semantics_audit.py",
@@ -52,7 +52,7 @@ REQUIRED_IMPLEMENTATION_ARTIFACTS = (
     "scripts/plan_mechanism_adaptation_matrix.py",
     "tests/test_mechanism_adaptation.py",
     "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-public-matrix.json",
-    "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc26.json",
+    "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc27.json",
 )
 
 
@@ -65,7 +65,7 @@ def build_mechanism_adaptation_preflight(
     validation_errors = validate_mechanism_adaptation_protocol(protocol)
     gate_a_plan_path = (
         configuration_root()
-        / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json"
+        / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
     )
     gate_a_plan = load_json_object(gate_a_plan_path)
     design_audit_relative = str(
@@ -121,7 +121,7 @@ def build_mechanism_adaptation_preflight(
     semantics_path = (
         ROOT
         / "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc26.json"
+        "confirmatory-task-semantics-audit-rc27.json"
     )
     semantics = (
         json.loads(semantics_path.read_text(encoding="utf-8"))
@@ -240,7 +240,7 @@ def build_mechanism_adaptation_pending_gate_state(
     protocol = load_mechanism_adaptation_protocol(protocol_path)
     gate_a_plan_path = (
         configuration_root()
-        / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json"
+        / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
     )
     plan = load_json_object(gate_a_plan_path)
     design_path = ROOT / plan["design_validity_precondition"]["report"]
@@ -308,7 +308,7 @@ def build_mechanism_adaptation_pending_gate_state(
         **decision["online_attainability_certificate"],
         "report": (
             "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-online-attainability-certificate-v0.9-rc26-pending.json"
+            "mechanism-adaptation-online-attainability-certificate-v0.9-rc27-pending.json"
         ),
         "certificate_sha256": _canonical_sha256(online_state),
         "certificate_hash_source": "standalone_pending_state_canonical_json",

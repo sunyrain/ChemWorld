@@ -1,6 +1,9 @@
 # ChemWorld RC26 正式执行修正说明
 
-状态：`pre-execution correction; no formal cohort consumed`
+状态：`superseded by RC27 after A3; A2 consumed zero trials`
+
+> RC26 A3 已完整执行，但 A2 在首个 job 前因 runner/plan contrast 字面值不一致而
+> fail-closed。RC26 A3 不在 RC27 中复用或解释；正式结论以 RC27 为准。
 
 RC26 只修正 RC25 A3 metric-embargo 结构收据的期望计数。RC25 将
 `world_seeds_per_family=180` 在已经展开 task × candidate × world 的基础上再次相乘，

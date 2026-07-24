@@ -29,16 +29,16 @@ from chemworld.eval.provenance import (  # noqa: E402
 )
 
 DEFAULT_PROTOCOL = (
-    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc26.json"
+    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc27.json"
 )
 DEFAULT_PLAN = (
     ROOT
-    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json"
+    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json"
 )
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-sample-size-audit-v0.3.0-rc26.json"
+    "mechanism-adaptation-sample-size-audit-v0.3.0-rc27.json"
 )
 
 

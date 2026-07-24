@@ -123,26 +123,26 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_protocol",
-        "configs/benchmark/mechanism_adaptation_v0.3.0_rc26.json",
+        "configs/benchmark/mechanism_adaptation_v0.3.0_rc27.json",
         "protocol_input",
     ),
     EvidenceNode(
         "mechanism_gate_a_plan",
-        "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json",
+        "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json",
         "protocol_input",
         ("mechanism_protocol",),
     ),
     EvidenceNode(
         "mechanism_participant_preregistration_candidate",
         "configs/benchmark/"
-        "mechanism_adaptation_participant_preregistration_rc26.json",
+        "mechanism_adaptation_participant_preregistration_rc27.json",
         "protocol_input",
         ("live_llm_methods", "mechanism_gate_a_plan", "mechanism_protocol"),
     ),
     EvidenceNode(
         "mechanism_diagnostic_relation_graph",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc26.json",
+        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc27.json",
         "generated_current",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
         ("scripts/build_mechanism_diagnostic_relation_graph.py",),
@@ -150,7 +150,7 @@ NODES = (
     EvidenceNode(
         "mechanism_sample_size_audit",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-sample-size-audit-v0.3.0-rc26.json",
+        "mechanism-adaptation-sample-size-audit-v0.3.0-rc27.json",
         "generated_current",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
         ("scripts/audit_mechanism_adaptation_sample_size.py",),
@@ -158,7 +158,7 @@ NODES = (
     EvidenceNode(
         "mechanism_preregistration",
         "configs/benchmark/"
-        "mechanism-adaptation-preregistration-v0.3.0-rc26.json",
+        "mechanism-adaptation-preregistration-v0.3.0-rc27.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -174,7 +174,7 @@ NODES = (
     EvidenceNode(
         "mechanism_confirmatory_task_semantics_audit",
         "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc26.json",
+        "confirmatory-task-semantics-audit-rc27.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -186,7 +186,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc26.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc27.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -199,7 +199,7 @@ NODES = (
     EvidenceNode(
         "mechanism_release_qualification",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-release-qualification-v0.1-rc26.json",
+        "mechanism-adaptation-release-qualification-v0.1-rc27.json",
         "generated_current",
         (
             "mechanism_design_audit",
@@ -237,7 +237,7 @@ NODES = (
     EvidenceNode(
         "mechanism_online_attainability_certificate",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-online-attainability-certificate-v0.9-rc26-pending.json",
+        "mechanism-adaptation-online-attainability-certificate-v0.9-rc27-pending.json",
         "generated_current",
         (
             "mechanism_design_audit",
@@ -254,7 +254,7 @@ NODES = (
     EvidenceNode(
         "mechanism_gate_a",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-gate-a-v0.3.0-rc26-pending.json",
+        "mechanism-adaptation-gate-a-v0.3.0-rc27-pending.json",
         "generated_current",
         (
             "backend_candidate",

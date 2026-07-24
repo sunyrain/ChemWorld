@@ -26,8 +26,8 @@ API compatibility; they no longer define the scientific taxonomy.
 | State | Current value |
 | --- | --- |
 | Environment design candidate | passed |
-| Semantic protocol audit | passed, RC26 25/25 |
-| A1 physical validity | passed, RC26 81/81 design checks |
+| Semantic protocol audit | passed, RC27 25/25 |
+| A1 physical validity | passed, RC27 81/81 design checks |
 | A2 controlled identifiability | pending |
 | A3 online attainability | pending |
 | Participant-Agent Gates B–E | pending |
@@ -139,7 +139,7 @@ ever crossed, so a later posterior decline cannot erase an earlier false alarm.
 
 ## Sample size and independence
 
-RC26 preserves the RC24/RC25 scientific design and freezes:
+RC27 preserves the RC24–RC26 scientific design and freezes:
 
 - 180 independent world-seed clusters per task/family in A2, A3, Private-E, and Private-A;
 - exactly 60 clusters per `τ∈{6,8,10}` for each changed family;
@@ -162,13 +162,15 @@ paths may have different coordinate sets; every coordinate shared by both arms
 must still have the same key. The pseudo-checkpoint has no runtime side effect,
 and no reset or instance signal reaches the policy.
 
-## RC26 execution hardening and Agent context
+## RC27 execution hardening and Agent context
 
-RC26 does not change the RC24/RC25 families, budgets, thresholds, or
-changepoints. It retains the RC25 execution hardening and corrects the A3
+RC27 does not change the RC24–RC26 families, budgets, thresholds, or
+changepoints. It retains the RC25/RC26 execution hardening and corrects the A3
 structural-receipt count: 576 predictive-fit jobs plus 1,440 online trials
 equal 2,016 receipts and must not be multiplied by the 180-world factor again.
-It also adds
+It also adds a zero-trial production-entry validator so the formal A2/A3
+composition must reach its first job scheduler before a formal seed is consumed,
+plus
 write-once trial receipts, missing-only resume, a separate infrastructure-attempt
 ledger, semantic-coordinate observation noise, an A3 metric embargo until A2
 finishes, one joint A2/A3 decision artifact, and separate Private-E and Private-A
@@ -211,7 +213,7 @@ A semantic-audit pass is not an empirical Gate C–E pass.
 
 Before A2/A3, the sole controlling file is:
 
-`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc26.json`
+`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc27.json`
 
 It binds source commit, protocol/plan/relation/scorer hashes, cohort namespaces,
 sample size, reference-policy version, thresholds, checkpoints, bootstrap,
@@ -221,12 +223,12 @@ results.
 
 ## Audit entry points
 
-- Protocol: `configs/benchmark/mechanism_adaptation_v0.3.0_rc26.json`
-- Gate A plan: `configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json`
-- Preregistration: `configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc26.json`
-- Sample-size audit: `mechanism-adaptation-sample-size-audit-v0.3.0-rc26.json`
-- Relation graph: `mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc26.json`
-- Semantic audit: `confirmatory-task-semantics-audit-rc26.json`
-- Release qualification: `mechanism-adaptation-release-qualification-v0.1-rc26.json`
-- Participant-Agent preregistration candidate: `configs/benchmark/mechanism_adaptation_participant_preregistration_rc26.json`
+- Protocol: `configs/benchmark/mechanism_adaptation_v0.3.0_rc27.json`
+- Gate A plan: `configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc27.json`
+- Preregistration: `configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc27.json`
+- Sample-size audit: `mechanism-adaptation-sample-size-audit-v0.3.0-rc27.json`
+- Relation graph: `mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc27.json`
+- Semantic audit: `confirmatory-task-semantics-audit-rc27.json`
+- Release qualification: `mechanism-adaptation-release-qualification-v0.1-rc27.json`
+- Participant-Agent preregistration candidate: `configs/benchmark/mechanism_adaptation_participant_preregistration_rc27.json`
 - Current-state source: `configs/current.json`
