@@ -5,6 +5,10 @@
 首页只突出四个研究核心世界；探索任务、教学切片和软件回归任务仍然保留，但不与旗舰任务共享同一
 视觉层级，也不因为“能运行”就自动进入正式排名。
 
+这里的四个世界是 **research showcase worlds**。当前机制适应确认协议中的 formal flagship
+execution tasks 是 `reaction-to-crystallization` 与 `electrochemical-conversion`。展示层与确认性
+实验层是两个正交集合，详细状态见[旗舰实验与冻结状态](flagship_experiments.md)。
+
 ## 能力地图
 
 ```text

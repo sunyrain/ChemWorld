@@ -1,4 +1,4 @@
-"""Run Gate A or resumable paired campaigns for mechanism adaptation v0.2.1+."""
+"""Run Gate A or resumable paired campaigns for the active mechanism protocol."""
 
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
     DEFAULT_LLM_METHODS_PATH,
     DEFAULT_PROTOCOL_PATH,
     load_json_object,
+    load_protocol_object,
     run_campaign_row,
     run_gate_a,
     run_online_policy_certificate,
@@ -38,14 +39,14 @@ from chemworld.eval.provenance import (  # noqa: E402
 )
 
 DEFAULT_GATE_A_REPORT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.7-rc21.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc23.json"
 )
 DEFAULT_ONLINE_POLICY_CERTIFICATE = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-online-policy-certificate-v0.5-rc21.json"
+    "mechanism-adaptation-online-policy-certificate-v0.7-rc23.json"
 )
-DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.2.1"
+DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.3.0"
 DEFAULT_PILOT_REPORT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
@@ -134,7 +135,7 @@ def _compact_gate_a_report(
 
 
 def _run_gate_a(args: argparse.Namespace) -> int:
-    protocol = load_json_object(args.protocol)
+    protocol = load_protocol_object(args.protocol)
     plan = load_json_object(args.gate_a_plan)
     design_audit_path = ROOT / plan["design_validity_precondition"]["report"]
     design_validity_audit = load_json_object(design_audit_path)
@@ -187,7 +188,7 @@ def _run_gate_a(args: argparse.Namespace) -> int:
 
 
 def _run_online_policy_certificate(args: argparse.Namespace) -> int:
-    protocol = load_json_object(args.protocol)
+    protocol = load_protocol_object(args.protocol)
     plan = load_json_object(args.gate_a_plan)
     design_audit_path = ROOT / plan["design_validity_precondition"]["report"]
     design_validity_audit = load_json_object(design_audit_path)
@@ -242,7 +243,7 @@ def _print_gate_a_progress(event: Mapping[str, Any]) -> None:
 
 
 def _run_campaigns(args: argparse.Namespace) -> int:
-    protocol = load_json_object(args.protocol)
+    protocol = load_protocol_object(args.protocol)
     methods = load_json_object(args.llm_methods)
     rows = selected_campaign_rows(
         protocol,
@@ -335,7 +336,7 @@ def _print_campaign_progress(
 
 
 def _build_pilot_report(args: argparse.Namespace) -> int:
-    protocol = load_json_object(args.protocol)
+    protocol = load_protocol_object(args.protocol)
     index_path = args.runtime_root / "campaign-index.json"
     campaigns = load_campaigns_from_index(index_path, root=ROOT)
     report = build_agent_pilot_report(protocol, campaigns, root=ROOT, replay=True)
@@ -359,7 +360,7 @@ def _build_pilot_report(args: argparse.Namespace) -> int:
 
 
 def _run_local_feedback(args: argparse.Namespace) -> int:
-    protocol = load_json_object(args.protocol)
+    protocol = load_protocol_object(args.protocol)
     methods = load_json_object(args.llm_methods)
     campaigns = load_campaigns_from_index(
         args.runtime_root / "campaign-index.json",

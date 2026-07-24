@@ -58,12 +58,26 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     assert registry["mechanism_adaptation"]["gate_a_pass"] is False
     assert registry["mechanism_adaptation"][
         "online_policy_certificate_report"
-    ].endswith("mechanism-adaptation-online-policy-certificate-v0.5-rc21.json")
+    ].endswith(
+        "mechanism-adaptation-online-policy-certificate-v0.7-rc23-pending.json"
+    )
+    assert registry["mechanism_adaptation"]["semantics_audit_pass"] is True
+    assert registry["mechanism_adaptation"][
+        "semantics_audit_report"
+    ].endswith("flagship-experiment-semantics-audit-rc23.json")
     assert registry["mechanism_adaptation"]["gate_a_certificate_status"] == {
-        "controlled_matched_identifiability": "passed",
-        "online_policy_feasible_diagnosis": "failed",
+        "a1_physical_intervention_validity": "passed",
+        "a2_controlled_matched_identifiability": "pending_execution",
+        "a3_calibrated_online_change_identifiability": "pending_execution",
     }
-    assert registry["mechanism_adaptation"]["gate_a_evidence_current"] is True
+    assert registry["mechanism_adaptation"]["status"] == "gate_a_execution_pending"
+    assert (
+        registry["mechanism_adaptation"]["gate_a_evidence_current"]
+        is (
+            registry["evidence_dag"]["nodes"]["mechanism_gate_a"]["artifact_state"]
+            == "current"
+        )
+    )
     assert registry["mechanism_adaptation"]["agent_weight_updates_performed"] is False
     assert registry["mechanism_adaptation"]["agent_pilot_gate_status"] == {
         "gate_0": "passed",

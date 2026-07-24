@@ -42,19 +42,29 @@ from chemworld.eval.flagship_diagnostics import (
     run_two_phase_campaign,
 )
 from chemworld.eval.mechanism_adaptation import (
+    PRIMARY_CHANGE_TRACK_ID,
     GaussianMechanismOracle,
     build_paired_campaign_matrix,
+    change_detection_summary,
+    evaluation_track,
     identifiability_certificate,
+    load_mechanism_adaptation_protocol,
+    reference_sufficiency_certificate,
     validate_mechanism_adaptation_protocol,
+    wilson_interval,
 )
 from chemworld.eval.mechanism_design_audit import (
     audit_mechanism_design,
     material_relational_action_groups,
+    mechanism_relational_action_groups,
 )
 from chemworld.eval.mechanism_gate_decision import (
     ONLINE_POLICY_CERTIFICATE_VERSION,
     gate_a_certificate_decision,
     gate_a_execution_contract_binding,
+)
+from chemworld.eval.mechanism_relation_graph import (
+    validate_diagnostic_relation_graph,
 )
 from chemworld.eval.provenance import (
     canonical_json_sha256 as canonical_sha256,
@@ -63,13 +73,13 @@ from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.providers.deepseek import DeepSeekClient
 from chemworld.tasks import get_task
 
-DEFAULT_PROTOCOL_PATH = configuration_root() / "benchmark/mechanism_adaptation_v0.2.1.json"
+DEFAULT_PROTOCOL_PATH = configuration_root() / "benchmark/mechanism_adaptation_v0.3.0.json"
 DEFAULT_GATE_A_PLAN_PATH = (
-    configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.2.7.json"
+    configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.3.0.json"
 )
 DEFAULT_LLM_METHODS_PATH = configuration_root() / "methods/llm_v0.4/llm_methods.json"
 EXECUTION_SCHEMA_VERSION = "chemworld-mechanism-adaptation-execution-0.2"
-GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.2.7"
+GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.3.0"
 PUBLIC_EXPERIMENT_FEATURE_ENCODING_VERSION = (
     "chemworld-public-experiment-finite-first-last-range-0.1"
 )
@@ -88,6 +98,12 @@ def load_json_object(path: str | Path) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError(f"expected a JSON object: {path}")
     return payload
+
+
+def load_protocol_object(path: str | Path) -> dict[str, Any]:
+    """Load a resolved, hash-pinned mechanism-adaptation protocol."""
+
+    return load_mechanism_adaptation_protocol(path)
 
 
 def build_action_library(
@@ -420,7 +436,7 @@ def _advance_online_change_point_hypotheses(
     change_after_experiment: int,
     allowed_change_times: Sequence[int],
     candidate_ids: Sequence[str],
-    hazard: float,
+    hazard: float | Mapping[str, float],
 ) -> dict[tuple[str, int | None], float]:
     """Expand only protocol-allowed, absorbing latent change-point states."""
 
@@ -431,16 +447,24 @@ def _advance_online_change_point_hypotheses(
     }
     if change_after_experiment not in set(allowed_change_times):
         return updated
+    point_hazard = (
+        float(hazard[str(change_after_experiment)])
+        if isinstance(hazard, Mapping)
+        else float(hazard)
+    )
+    if not 0.0 <= point_hazard <= 1.0:
+        raise ValueError("online change-point hazard must be in [0, 1]")
     no_change = ("no_change", None)
     no_change_probability = updated.get(no_change, 0.0)
-    updated[no_change] = (1.0 - hazard) * no_change_probability
+    updated[no_change] = (1.0 - point_hazard) * no_change_probability
     changed_ids = [candidate_id for candidate_id in candidate_ids if candidate_id != "no_change"]
     if not changed_ids:
         raise ValueError("online hidden-change filtering requires changed states")
     for candidate_id in changed_ids:
         hypothesis = (candidate_id, change_after_experiment)
-        updated[hypothesis] = updated.get(hypothesis, 0.0) + hazard * no_change_probability / len(
-            changed_ids
+        updated[hypothesis] = (
+            updated.get(hypothesis, 0.0)
+            + point_hazard * no_change_probability / len(changed_ids)
         )
     total = sum(updated.values())
     if total <= 0.0:
@@ -575,7 +599,7 @@ def _declared_relational_action_groups(
     contract: Mapping[str, Any],
     action_library: Mapping[str, np.ndarray],
 ) -> dict[str, tuple[tuple[str, ...], ...]]:
-    """Resolve every declared material intervention to same-condition public groups."""
+    """Resolve every declared diagnostic relation to public action groups."""
 
     task_info = get_task(task_id).to_dict()
     recipes = {
@@ -584,24 +608,36 @@ def _declared_relational_action_groups(
     }
     declarations: dict[str, tuple[tuple[str, ...], ...]] = {}
     interventions = contract.get("interventions", {})
+    diagnostic_relations = contract.get("diagnostic_relations", {})
     if not isinstance(interventions, Mapping):
         raise ValueError("task intervention contract must be an object")
+    if not isinstance(diagnostic_relations, Mapping):
+        raise ValueError("task diagnostic_relations must be an object")
     for candidate_id, raw_items in interventions.items():
         if not isinstance(raw_items, Sequence) or isinstance(raw_items, str | bytes):
             raise ValueError("candidate interventions must be a sequence")
         for index, raw_intervention in enumerate(raw_items):
             if not isinstance(raw_intervention, Mapping):
                 raise ValueError("candidate intervention must be an object")
-            if raw_intervention.get("kind") != "material_law_counterfactual":
-                continue
-            groups = material_relational_action_groups(
-                recipes,
-                intervention=raw_intervention,
-            )
+            if raw_intervention.get("kind") == "material_law_counterfactual":
+                groups = material_relational_action_groups(
+                    recipes,
+                    intervention=raw_intervention,
+                )
+            else:
+                raw_relation = diagnostic_relations.get(candidate_id)
+                if raw_relation is None:
+                    continue
+                if not isinstance(raw_relation, Mapping):
+                    raise ValueError("diagnostic_relation must be an object")
+                groups = mechanism_relational_action_groups(
+                    recipes,
+                    relation=raw_relation,
+                )
             declaration_id = f"{candidate_id}:{index}"
             if not groups:
                 raise ValueError(
-                    "relational online evidence requires a same-condition public "
+                    "relational online evidence requires a declared public "
                     f"action group for {task_id}/{declaration_id}"
                 )
             declarations[declaration_id] = groups
@@ -714,7 +750,7 @@ def _select_relational_coverage_actions(
         },
         "selected_action_ids": list(selected_actions),
         "selection_rule": (
-            "one_group_per_declared_material_intervention_maximizing_the_minimum_of_"
+            "one_group_per_declared_diagnostic_relation_maximizing_the_minimum_of_"
             "transition_and_stable_fit_only_information_in_a_canonical_cold_start_"
             "direction_then_minimizing_action_union"
         ),
@@ -1080,6 +1116,495 @@ def _balanced_hidden_change_times(
     return assignments
 
 
+def _reference_predictive_adequacy(
+    *,
+    observations: Sequence[tuple[str, np.ndarray]],
+    required_action_ids: Sequence[str],
+    predictives: Mapping[tuple[str, str], tuple[np.ndarray, np.ndarray]],
+    feature_indices: Mapping[str, Sequence[int]],
+    maximum_mean_standardized_squared_error: float,
+    maximum_per_action_mean_standardized_squared_error: float,
+) -> dict[str, Any]:
+    """Score held-out old-world observations against fit-only baseline predictives."""
+
+    if (
+        maximum_mean_standardized_squared_error <= 0.0
+        or maximum_per_action_mean_standardized_squared_error <= 0.0
+    ):
+        raise ValueError("predictive-adequacy thresholds must be positive")
+    required = {str(item) for item in required_action_ids}
+    by_action: dict[str, list[float]] = {action_id: [] for action_id in required}
+    dimension_count = 0
+    squared_standardized_error = 0.0
+    log_score = 0.0
+    for raw_action_id, raw_observation in observations:
+        action_id = str(raw_action_id)
+        channel = _online_evidence_channel("absolute_trace", action_id)
+        try:
+            mean, variance = predictives[("no_change", channel)]
+            indices = np.asarray(feature_indices[channel], dtype=int)
+        except KeyError as error:
+            raise ValueError(
+                "reference predictive check is missing a baseline action channel"
+            ) from error
+        observation = np.asarray(raw_observation, dtype=float)
+        selected = observation[indices]
+        if selected.shape != mean.shape or mean.shape != variance.shape:
+            raise ValueError("reference predictive check dimensions are inconsistent")
+        residual_squared = ((selected - mean) ** 2) / variance
+        action_msse = float(np.mean(residual_squared))
+        by_action.setdefault(action_id, []).append(action_msse)
+        squared_standardized_error += float(np.sum(residual_squared))
+        log_score += float(
+            -0.5
+            * np.sum(
+                np.log(2.0 * math.pi * variance)
+                + residual_squared
+            )
+        )
+        dimension_count += int(selected.size)
+    action_msse = {
+        action_id: float(np.mean(values))
+        for action_id, values in sorted(by_action.items())
+        if values
+    }
+    all_actions_checked = set(action_msse) == required
+    mean_msse = (
+        squared_standardized_error / dimension_count
+        if dimension_count
+        else math.inf
+    )
+    max_action_msse = max(action_msse.values(), default=math.inf)
+    checks = {
+        "all_policy_actions_have_held_out_predictive_checks": all_actions_checked,
+        "mean_standardized_squared_error_within_limit": (
+            math.isfinite(mean_msse)
+            and mean_msse <= maximum_mean_standardized_squared_error
+        ),
+        "per_action_standardized_squared_error_within_limit": (
+            math.isfinite(max_action_msse)
+            and max_action_msse
+            <= maximum_per_action_mean_standardized_squared_error
+        ),
+    }
+    passed = all(checks.values())
+    return {
+        "schema_version": "chemworld-reference-predictive-adequacy-0.1",
+        "status": "passed" if passed else "failed",
+        "pass": passed,
+        "source": (
+            "held_out_pre_change_public_observations_against_fit_only_"
+            "no_change_predictives"
+        ),
+        "observation_count": len(observations),
+        "selected_feature_dimension_count": dimension_count,
+        "mean_standardized_squared_error": mean_msse,
+        "maximum_action_mean_standardized_squared_error": max_action_msse,
+        "mean_predictive_log_score_per_dimension": (
+            log_score / dimension_count if dimension_count else None
+        ),
+        "action_mean_standardized_squared_error": action_msse,
+        "thresholds": {
+            "maximum_mean_standardized_squared_error": (
+                maximum_mean_standardized_squared_error
+            ),
+            "maximum_per_action_mean_standardized_squared_error": (
+                maximum_per_action_mean_standardized_squared_error
+            ),
+        },
+        "checks": checks,
+    }
+
+
+def _cluster_bootstrap_metric_interval(
+    *,
+    cluster_ids: Sequence[str],
+    statistic: Callable[[list[int]], float],
+    seed: int,
+    draws: int = 2_000,
+    confidence: float = 0.95,
+) -> tuple[float, float]:
+    """Bootstrap a row-level statistic at the independent-world cluster level."""
+
+    if not cluster_ids:
+        raise ValueError("cluster bootstrap requires at least one row")
+    if draws <= 0:
+        raise ValueError("cluster bootstrap draws must be positive")
+    if not 0.0 < confidence < 1.0:
+        raise ValueError("cluster bootstrap confidence must be in (0, 1)")
+    rows_by_cluster: dict[str, list[int]] = {}
+    for index, cluster_id in enumerate(cluster_ids):
+        rows_by_cluster.setdefault(str(cluster_id), []).append(index)
+    clusters = sorted(rows_by_cluster)
+    rng = np.random.default_rng(seed)
+    estimates: list[float] = []
+    for _ in range(draws):
+        sampled_clusters = rng.choice(clusters, size=len(clusters), replace=True)
+        sampled_indices = [
+            row_index
+            for cluster_id in sampled_clusters
+            for row_index in rows_by_cluster[str(cluster_id)]
+        ]
+        estimate = float(statistic(sampled_indices))
+        if not math.isfinite(estimate):
+            raise ValueError("cluster bootstrap statistic must be finite")
+        estimates.append(estimate)
+    tail = (1.0 - confidence) / 2.0
+    return (
+        float(np.quantile(estimates, tail)),
+        float(np.quantile(estimates, 1.0 - tail)),
+    )
+
+
+def _binary_rate(
+    labels: Sequence[bool],
+    predictions: Sequence[bool],
+    *,
+    positive_label: bool,
+) -> float:
+    """Return the positive prediction rate inside one truth class."""
+
+    if len(labels) != len(predictions):
+        raise ValueError("binary labels and predictions must have equal length")
+    selected = [
+        bool(prediction)
+        for label, prediction in zip(labels, predictions, strict=True)
+        if bool(label) is positive_label
+    ]
+    if not selected:
+        raise ValueError("binary rate requires the requested truth class")
+    return float(np.mean(selected))
+
+
+def _binary_auroc_for_indices(
+    labels: Sequence[bool],
+    scores: Sequence[float],
+    indices: Sequence[int],
+) -> float:
+    """Compute tie-aware AUROC over a resampled set of row indices."""
+
+    positive_scores = [float(scores[index]) for index in indices if labels[index]]
+    negative_scores = [float(scores[index]) for index in indices if not labels[index]]
+    if not positive_scores or not negative_scores:
+        raise ValueError("AUROC requires both changed and no-change rows")
+    pairwise_credit = sum(
+        1.0 if positive > negative else 0.5 if positive == negative else 0.0
+        for positive in positive_scores
+        for negative in negative_scores
+    )
+    return pairwise_credit / (len(positive_scores) * len(negative_scores))
+
+
+def _online_capability_chain_summary(
+    *,
+    trials: Sequence[Mapping[str, Any]],
+    post_change_budget: int,
+    frozen_criteria: Mapping[str, Any],
+    bootstrap_seed: int,
+) -> dict[str, Any]:
+    """Report conditional and end-to-end A3 capability without dropping R failures."""
+
+    if not trials:
+        raise ValueError("online capability-chain summary requires trials")
+    threshold = float(
+        frozen_criteria["change_decision_probability_threshold"]
+    )
+    reference_pass = [
+        row["reference_sufficiency_certificate"]["pass"] is True
+        for row in trials
+    ]
+    cluster_reference: dict[str, bool] = {}
+    for row, passed in zip(trials, reference_pass, strict=True):
+        cluster_id = str(row["statistical_cluster_id"])
+        previous = cluster_reference.setdefault(cluster_id, passed)
+        if previous != passed:
+            raise ValueError(
+                "paired candidate arms disagree on reference sufficiency"
+            )
+    reference_hits = sum(cluster_reference.values())
+    reference_cluster_count = len(cluster_reference)
+    reference_interval = wilson_interval(
+        reference_hits,
+        reference_cluster_count,
+    )
+    qualified = [
+        row for row, passed in zip(trials, reference_pass, strict=True) if passed
+    ]
+    changed: list[bool] = []
+    probabilities: list[float] = []
+    delays: list[int | None] = []
+    qualified_cluster_ids: list[str] = []
+    detected_changed_rows: list[Mapping[str, Any]] = []
+    end_to_end_hits = 0
+    for row, reference_sufficient in zip(
+        trials,
+        reference_pass,
+        strict=True,
+    ):
+        truth_id = str(row["truth_id"])
+        truth_changed = truth_id != "no_change"
+        posterior = row["posterior_by_post_budget"][str(post_change_budget)]
+        change_probability = 1.0 - float(posterior["no_change"])
+        predicted_family = str(row["predictions_by_post_budget"][str(post_change_budget)])
+        detected = change_probability >= threshold
+        if reference_sufficient:
+            changed.append(truth_changed)
+            probabilities.append(change_probability)
+            qualified_cluster_ids.append(str(row["statistical_cluster_id"]))
+            detection_delay = next(
+                (
+                    int(update["phase_local_experiment_index"])
+                    for update in row["post_change_updates"]
+                    if int(update["phase_local_experiment_index"])
+                    <= post_change_budget
+                    and 1.0 - float(update["posterior"]["no_change"])
+                    >= threshold
+                ),
+                None,
+            )
+            delays.append(detection_delay if truth_changed else None)
+            if truth_changed and detected:
+                detected_changed_rows.append(row)
+        correct_state_decision = detected is truth_changed
+        correct_family = (
+            predicted_family == truth_id
+            if truth_changed
+            else predicted_family == "no_change"
+        )
+        if reference_sufficient and correct_state_decision and correct_family:
+            end_to_end_hits += 1
+
+    if qualified and any(changed) and not all(changed):
+        detection = change_detection_summary(
+            changed=changed,
+            probabilities=probabilities,
+            detection_delays=delays,
+            threshold=threshold,
+            bootstrap_seed=bootstrap_seed,
+        )
+        detection["sensitivity_cluster_bootstrap_interval"] = list(
+            _cluster_bootstrap_metric_interval(
+                cluster_ids=qualified_cluster_ids,
+                seed=bootstrap_seed + 1,
+                statistic=lambda indices: _binary_rate(
+                    [changed[index] for index in indices],
+                    [
+                        probabilities[index] >= threshold
+                        for index in indices
+                    ],
+                    positive_label=True,
+                ),
+            )
+        )
+        detection["false_positive_rate_cluster_bootstrap_interval"] = list(
+            _cluster_bootstrap_metric_interval(
+                cluster_ids=qualified_cluster_ids,
+                seed=bootstrap_seed + 2,
+                statistic=lambda indices: _binary_rate(
+                    [changed[index] for index in indices],
+                    [
+                        probabilities[index] >= threshold
+                        for index in indices
+                    ],
+                    positive_label=False,
+                ),
+            )
+        )
+        detection["auroc_cluster_bootstrap_interval"] = list(
+            _cluster_bootstrap_metric_interval(
+                cluster_ids=qualified_cluster_ids,
+                seed=bootstrap_seed + 3,
+                statistic=lambda indices: _binary_auroc_for_indices(
+                    changed,
+                    probabilities,
+                    indices,
+                ),
+            )
+        )
+    else:
+        detection = {
+            "status": "not_evaluable_without_reference_sufficient_both_class_trials",
+            "campaign_count": len(qualified),
+        }
+    attribution_hits = sum(
+        str(row["predictions_by_post_budget"][str(post_change_budget)])
+        == str(row["truth_id"])
+        for row in detected_changed_rows
+    )
+    attribution_interval = (
+        wilson_interval(attribution_hits, len(detected_changed_rows))
+        if detected_changed_rows
+        else (0.0, 1.0)
+    )
+    attribution_cluster_interval = (
+        _cluster_bootstrap_metric_interval(
+            cluster_ids=[
+                str(row["statistical_cluster_id"])
+                for row in detected_changed_rows
+            ],
+            seed=bootstrap_seed + 4,
+            statistic=lambda indices: float(
+                np.mean(
+                    [
+                        str(
+                            detected_changed_rows[index][
+                                "predictions_by_post_budget"
+                            ][str(post_change_budget)]
+                        )
+                        == str(detected_changed_rows[index]["truth_id"])
+                        for index in indices
+                    ]
+                )
+            ),
+        )
+        if detected_changed_rows
+        else (0.0, 1.0)
+    )
+    end_to_end_interval = wilson_interval(end_to_end_hits, len(trials))
+    end_to_end_values: list[bool] = []
+    for row, reference_sufficient in zip(
+        trials,
+        reference_pass,
+        strict=True,
+    ):
+        truth_id = str(row["truth_id"])
+        posterior = row["posterior_by_post_budget"][str(post_change_budget)]
+        detected = 1.0 - float(posterior["no_change"]) >= threshold
+        prediction = str(
+            row["predictions_by_post_budget"][str(post_change_budget)]
+        )
+        truth_changed = truth_id != "no_change"
+        end_to_end_values.append(
+            reference_sufficient
+            and detected is truth_changed
+            and prediction == truth_id
+        )
+    end_to_end_cluster_interval = _cluster_bootstrap_metric_interval(
+        cluster_ids=[str(row["statistical_cluster_id"]) for row in trials],
+        seed=bootstrap_seed + 5,
+        statistic=lambda indices: float(
+            np.mean([end_to_end_values[index] for index in indices])
+        ),
+    )
+    criteria = {
+        "reference_acquisition_rate": (
+            reference_interval[0]
+            >= float(
+                frozen_criteria[
+                    "minimum_reference_acquisition_rate_wilson_lower_bound"
+                ]
+            )
+        ),
+        "changed_detection_recall": (
+            isinstance(
+                detection.get("sensitivity_cluster_bootstrap_interval"),
+                Sequence,
+            )
+            and float(
+                detection["sensitivity_cluster_bootstrap_interval"][0]
+            )
+            >= float(
+                frozen_criteria[
+                    "minimum_changed_detection_recall_cluster_bootstrap_lower_bound"
+                ]
+            )
+        ),
+        "no_change_false_positive_rate": (
+            isinstance(
+                detection.get(
+                    "false_positive_rate_cluster_bootstrap_interval"
+                ),
+                Sequence,
+            )
+            and float(
+                detection[
+                    "false_positive_rate_cluster_bootstrap_interval"
+                ][1]
+            )
+            <= float(
+                frozen_criteria[
+                    "maximum_no_change_false_positive_rate_cluster_bootstrap_upper_bound"
+                ]
+            )
+        ),
+        "change_detection_auroc": (
+            isinstance(
+                detection.get("auroc_cluster_bootstrap_interval"),
+                Sequence,
+            )
+            and float(detection["auroc_cluster_bootstrap_interval"][0])
+            >= float(
+                frozen_criteria[
+                    "minimum_change_detection_auroc_cluster_bootstrap_lower_bound"
+                ]
+            )
+        ),
+        "change_probability_brier_score": (
+            isinstance(detection.get("brier_score"), (int, float))
+            and float(detection["brier_score"])
+            <= float(
+                frozen_criteria["maximum_change_probability_brier_score"]
+            )
+        ),
+        "attribution_given_detection_and_reference": (
+            bool(detected_changed_rows)
+            and attribution_cluster_interval[0]
+            >= float(
+                frozen_criteria[
+                    "minimum_attribution_given_detection_and_reference_cluster_bootstrap_lower_bound"
+                ]
+            )
+        ),
+        "end_to_end_online_success": (
+            end_to_end_cluster_interval[0]
+            >= float(
+                frozen_criteria[
+                    "minimum_end_to_end_success_rate_cluster_bootstrap_lower_bound"
+                ]
+            )
+        ),
+    }
+    gate_pass = all(criteria.values())
+    return {
+        "schema_version": "chemworld-online-capability-chain-0.1",
+        "status": "passed" if gate_pass else "failed",
+        "gate_pass": gate_pass,
+        "post_change_budget": post_change_budget,
+        "trial_count": len(trials),
+        "statistical_cluster_count": reference_cluster_count,
+        "statistical_unit": (
+            "task_id_and_world_seed; candidate truth arms sharing the same "
+            "stable-prefix world are one resampling cluster"
+        ),
+        "p_reference_sufficient": (
+            reference_hits / reference_cluster_count
+        ),
+        "reference_sufficient_interval": list(reference_interval),
+        "change_detection_conditional_on_reference": detection,
+        "p_attribution_given_detection_and_reference": (
+            attribution_hits / len(detected_changed_rows)
+            if detected_changed_rows
+            else None
+        ),
+        "attribution_given_detection_and_reference_interval": list(
+            attribution_interval
+        ),
+        "attribution_given_detection_and_reference_cluster_bootstrap_interval": list(
+            attribution_cluster_interval
+        ),
+        "p_end_to_end_reference_detection_attribution_success": (
+            end_to_end_hits / len(trials)
+        ),
+        "end_to_end_success_interval": list(end_to_end_interval),
+        "end_to_end_success_cluster_bootstrap_interval": list(
+            end_to_end_cluster_interval
+        ),
+        "reference_acquisition_failures_retained_in_end_to_end_denominator": True,
+        "frozen_criteria": dict(frozen_criteria),
+        "criteria_pass": criteria,
+    }
+
+
 def _sample_online_predictive_job(job: Mapping[str, Any]) -> dict[str, list[float]]:
     """Return absolute, transition, and stable public predictive encodings."""
 
@@ -1440,14 +1965,33 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     change_time = int(job["change_time"])
     allowed_change_times = [int(item) for item in job["change_time_candidates"]]
     post_budgets = sorted({int(item) for item in job["post_change_budget_checkpoints"]})
+    minimum_reference_experiments = int(job["minimum_reference_experiments"])
+    enforce_reference_sufficiency = bool(
+        job.get("enforce_reference_sufficiency", False)
+    )
     if not post_budgets:
         raise ValueError("online policy requires post-change budget checkpoints")
     post_budget = max(post_budgets)
-    hazard = float(job["change_hazard"])
-    if change_time <= 0 or post_budget <= 0:
+    raw_hazards = job["change_hazards"]
+    if not isinstance(raw_hazards, Mapping):
+        raise ValueError("online policy change hazards must be a mapping")
+    hazards = {str(key): float(value) for key, value in raw_hazards.items()}
+    if (
+        change_time <= 0
+        or minimum_reference_experiments <= 0
+        or post_budget <= 0
+        or (
+            enforce_reference_sufficiency
+            and change_time < minimum_reference_experiments
+        )
+    ):
         raise ValueError("online policy trial horizons must be positive")
-    if not 0.0 <= hazard <= 1.0:
-        raise ValueError("online policy change hazard must be in [0, 1]")
+    if set(hazards) != {str(item) for item in allowed_change_times} or any(
+        not 0.0 < value <= 1.0 for value in hazards.values()
+    ):
+        raise ValueError(
+            "online policy change hazards must cover every allowed point"
+        )
 
     hypothesis_posterior: dict[tuple[str, int | None], float] = {("no_change", None): 1.0}
     family_posterior = _online_family_posterior(
@@ -1459,6 +2003,7 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     pre_updates: list[dict[str, Any]] = []
     post_actions: list[str] = []
     post_updates: list[dict[str, Any]] = []
+    pre_observations: list[tuple[str, np.ndarray]] = []
     posterior_by_post_budget: dict[str, dict[str, float]] = {}
     experiment_index = 0
 
@@ -1467,6 +2012,7 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
         *,
         phase_index: int,
         update_sink: list[dict[str, Any]],
+        refresh_old_world_reference: bool,
     ) -> None:
         nonlocal experiment_index
         nonlocal hypothesis_posterior
@@ -1477,7 +2023,7 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
             change_after_experiment=experiment_index - 1,
             allowed_change_times=allowed_change_times,
             candidate_ids=candidate_ids,
-            hazard=hazard,
+            hazard=hazards,
         )
         action_id = reference_action_ids[(experiment_index - 1) % len(reference_action_ids)]
 
@@ -1523,8 +2069,10 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
             hypothesis_posterior,
             candidate_ids,
         )
-        if first_observation:
+        if first_observation or refresh_old_world_reference:
             references[action_id] = (observation, experiment_index)
+        if refresh_old_world_reference:
+            pre_observations.append((action_id, observation))
         update_sink.append(
             {
                 "experiment_index": experiment_index,
@@ -1560,10 +2108,55 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
                 pre_session,
                 phase_index=phase_index,
                 update_sink=pre_updates,
+                refresh_old_world_reference=True,
             )
             pre_actions.append(pre_updates[-1]["action_id"])
 
     actual_pre_change_reference_ids = list(references)
+    predictive_contract = job["reference_predictive_adequacy"]
+    if not isinstance(predictive_contract, Mapping):
+        raise ValueError("online trial requires predictive reference criteria")
+    predictive_adequacy = _reference_predictive_adequacy(
+        observations=pre_observations,
+        required_action_ids=reference_action_ids,
+        predictives=predictives,
+        feature_indices=feature_indices,
+        maximum_mean_standardized_squared_error=float(
+            predictive_contract[
+                "maximum_mean_standardized_squared_error"
+            ]
+        ),
+        maximum_per_action_mean_standardized_squared_error=float(
+            predictive_contract[
+                "maximum_per_action_mean_standardized_squared_error"
+            ]
+        ),
+    )
+    reference_ages = {
+        action_id: change_time - reference_index
+        for action_id, (_observation, reference_index) in references.items()
+    }
+    reference_certificate = reference_sufficiency_certificate(
+        pre_change_action_ids=pre_actions,
+        required_reference_action_ids=reference_action_ids,
+        declared_relation_groups={
+            str(key): value
+            for key, value in job["declared_relation_groups"].items()
+        },
+        minimum_reference_experiments=minimum_reference_experiments,
+        predictive_information_non_saturated=bool(
+            job["predictive_information_non_saturated"]
+        ),
+        predictive_adequacy=predictive_adequacy,
+        universal_candidate_family_scope=(
+            job.get("reference_scope")
+            == "universal_all_declared_candidate_families_without_truth_conditioning"
+        ),
+        maximum_reference_age_experiments=int(
+            predictive_contract["maximum_reference_age_experiments"]
+        ),
+        observed_reference_ages=reference_ages,
+    )
     with PublicCampaignObservationSession(
         task_id=str(job["task_id"]),
         seed=int(job["world_seed"]),
@@ -1577,17 +2170,32 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
                 post_session,
                 phase_index=phase_index,
                 update_sink=post_updates,
+                refresh_old_world_reference=False,
             )
             post_actions.append(post_updates[-1]["action_id"])
             if phase_index in post_budgets:
                 posterior_by_post_budget[str(phase_index)] = dict(family_posterior)
 
     return {
+        "task_id": str(job["task_id"]),
         "truth_id": str(job["truth_id"]),
         "world_seed": int(job["world_seed"]),
+        "statistical_cluster_id": (
+            f"{job['task_id']}:{int(job['world_seed'])}"
+        ),
         "change_time": change_time,
+        "truth_change_time": (
+            "never" if str(job["truth_id"]) == "no_change" else change_time
+        ),
+        "evaluator_pseudo_checkpoint": (
+            change_time if str(job["truth_id"]) == "no_change" else None
+        ),
         "policy_received_change_time": False,
+        "policy_received_change_time_support": False,
+        "policy_received_minimum_stable_prefix": False,
+        "policy_received_reference_certificate": False,
         "actual_pre_change_experiment_count": change_time,
+        "reference_sufficiency_certificate": reference_certificate,
         "pre_change_reference_action_ids": actual_pre_change_reference_ids,
         "all_observation_reference_action_ids": list(references),
         "pre_change_actions": pre_actions,
@@ -1615,6 +2223,9 @@ def validate_precomputed_design_audit(
         "gate_a_plan_id": plan.get("plan_id"),
         "protocol_sha256": canonical_sha256(protocol),
         "gate_a_plan_sha256": canonical_sha256(plan),
+        "diagnostic_relation_graph_sha256": plan[
+            "diagnostic_relation_graph"
+        ]["expected_graph_sha256"],
     }
     mismatches = [key for key, value in expected.items() if report.get(key) != value]
     if mismatches:
@@ -1647,12 +2258,55 @@ def run_online_policy_certificate(
         raise ValueError("online-policy changed states must be absorbing")
     if requirement.get("policy_receives_phase_or_reset_indicator") is not False:
         raise ValueError("online policy must not receive a phase or reset indicator")
+    for private_field in (
+        "policy_receives_reference_certificate",
+        "policy_receives_change_time_support",
+        "policy_receives_minimum_stable_prefix",
+    ):
+        if requirement.get(private_field) is not False:
+            raise ValueError(f"online policy visibility contract requires {private_field}=false")
+    if requirement.get("no_change_condition_included") is not True:
+        raise ValueError("Gate A3 must include a first-class no-change condition")
+    track_id = str(
+        requirement.get("evaluation_track_id", PRIMARY_CHANGE_TRACK_ID)
+    )
+    if protocol.get("schema_version") == "chemworld-mechanism-adaptation-protocol-0.3.0":
+        track = evaluation_track(protocol, track_id)
+        if track_id != PRIMARY_CHANGE_TRACK_ID:
+            raise ValueError("Gate A3 must use the calibrated online change track")
+        if track.get("controls_gate_a3") is not True:
+            raise ValueError("calibrated online change track must control Gate A3")
+        minimum_reference_experiments = int(
+            track["minimum_stable_prefix_experiments"]
+        )
+        protocol_timing = track
+    else:
+        protocol_timing = protocol["design"]
+        minimum_reference_experiments = int(
+            protocol_timing["pre_change_experiments"]
+        )
     change_times = [int(item) for item in requirement["change_time_candidates"]]
+    truth_change_time_support = requirement.get("truth_change_time_support")
+    if truth_change_time_support != ["never", *change_times]:
+        raise ValueError(
+            "Gate A3 truth change-time support must be never plus the numeric points"
+        )
     protocol_change_times = {
-        int(item) for item in protocol["design"]["change_after_experiments"] if item != "never"
+        int(item)
+        for item in protocol_timing["change_after_experiments"]
+        if item != "never"
     }
     if not change_times or not set(change_times).issubset(protocol_change_times):
         raise ValueError("online-policy change times must come from the protocol")
+    if min(change_times) < minimum_reference_experiments:
+        raise ValueError(
+            "Gate A3 change times cannot precede the stable reference prefix"
+        )
+    if (
+        requirement.get("changepoint_semantics")
+        != "tau_is_completed_old_world_experiment_count"
+    ):
+        raise ValueError("Gate A3 must freeze completed-experiment changepoint semantics")
     post_budgets = sorted(
         {int(item) for item in requirement["post_change_experiment_budget_checkpoints"]}
     )
@@ -1667,18 +2321,125 @@ def run_online_policy_certificate(
     if int(requirement["controlled_matched_primary_budget"]) != controlled_primary_budget:
         raise ValueError("online plan must bind the controlled primary budget")
     ranking_batch_size = int(requirement["information_ranking_batch_size"])
-    if ranking_batch_size != int(protocol["design"]["pre_change_experiments"]):
+    if (
+        protocol.get("schema_version")
+        == "chemworld-mechanism-adaptation-protocol-0.3.0"
+        and not 1 <= ranking_batch_size <= minimum_reference_experiments
+    ):
+        raise ValueError(
+            "online information-ranking batch must fit inside the stable prefix"
+        )
+    if (
+        protocol.get("schema_version")
+        != "chemworld-mechanism-adaptation-protocol-0.3.0"
+        and ranking_batch_size != minimum_reference_experiments
+    ):
         raise ValueError(
             "online-policy information-ranking batch size must equal the protocol pre-change budget"
         )
     policy_action_count = int(requirement["online_policy_action_count"])
     _validate_online_policy_action_count(
         action_count=policy_action_count,
-        gate_budget=online_gate_budget,
+        gate_budget=(
+            minimum_reference_experiments
+            if protocol.get("schema_version")
+            == "chemworld-mechanism-adaptation-protocol-0.3.0"
+            else online_gate_budget
+        ),
     )
-    hazard = float(requirement["change_hazard_per_allowed_change_point"])
-    if not 0.0 < hazard < 1.0:
-        raise ValueError("online-policy change hazard must be in (0, 1)")
+    if protocol.get("schema_version") == "chemworld-mechanism-adaptation-protocol-0.3.0":
+        if requirement.get("all_declared_relations_required_before_change") is not True:
+            raise ValueError("Gate A3 must require all declared diagnostic relations")
+        if requirement.get("all_policy_actions_required_before_change") is not True:
+            raise ValueError("Gate A3 must require every policy action before change")
+    raw_hazards = requirement.get("change_hazard_by_allowed_change_point")
+    if not isinstance(raw_hazards, Mapping):
+        raise ValueError("Gate A3 must freeze a hazard for every allowed change point")
+    hazards = {str(key): float(value) for key, value in raw_hazards.items()}
+    if set(hazards) != {str(item) for item in change_times} or any(
+        not 0.0 < value <= 1.0 for value in hazards.values()
+    ):
+        raise ValueError("Gate A3 change hazards do not match its numeric support")
+    remaining_no_change_mass = 1.0
+    prior_mass: list[float] = []
+    for change_time in change_times:
+        point_hazard = hazards[str(change_time)]
+        prior_mass.append(remaining_no_change_mass * point_hazard)
+        remaining_no_change_mass *= 1.0 - point_hazard
+    prior_mass.append(remaining_no_change_mass)
+    if max(prior_mass) - min(prior_mass) > 1e-12:
+        raise ValueError(
+            "Gate A3 hazards must give never and each numeric change time equal prior mass"
+        )
+
+    predictive_reference_contract = requirement.get(
+        "reference_predictive_adequacy"
+    )
+    if not isinstance(predictive_reference_contract, Mapping):
+        raise ValueError("Gate A3 must freeze predictive reference criteria")
+    frozen_pass_criteria = requirement.get("frozen_pass_criteria")
+    if not isinstance(frozen_pass_criteria, Mapping):
+        raise ValueError("Gate A3 must freeze pass criteria before execution")
+    probability_criteria = (
+        "change_decision_probability_threshold",
+        "minimum_reference_acquisition_rate_wilson_lower_bound",
+        "minimum_changed_detection_recall_cluster_bootstrap_lower_bound",
+        "maximum_no_change_false_positive_rate_cluster_bootstrap_upper_bound",
+        "minimum_change_detection_auroc_cluster_bootstrap_lower_bound",
+        "maximum_change_probability_brier_score",
+        "minimum_attribution_given_detection_and_reference_cluster_bootstrap_lower_bound",
+        "minimum_end_to_end_success_rate_cluster_bootstrap_lower_bound",
+    )
+    if any(
+        not 0.0 <= float(frozen_pass_criteria[field]) <= 1.0
+        for field in probability_criteria
+    ):
+        raise ValueError("Gate A3 frozen probability criteria must be in [0, 1]")
+    if (
+        float(predictive_reference_contract["maximum_mean_standardized_squared_error"])
+        <= 0.0
+        or float(
+            predictive_reference_contract[
+                "maximum_per_action_mean_standardized_squared_error"
+            ]
+        )
+        <= 0.0
+    ):
+        raise ValueError("Gate A3 predictive reference thresholds must be positive")
+    cohort_partition = plan.get("cohort_partition")
+    if not isinstance(cohort_partition, Mapping):
+        raise ValueError("Gate A plan must declare disjoint cohort partitions")
+    cohort_namespaces = {
+        str(cohort_id): int(cohort["seed_namespace_start"])
+        for cohort_id, cohort in cohort_partition.items()
+        if isinstance(cohort, Mapping) and "seed_namespace_start" in cohort
+    }
+    required_cohorts = {
+        "development",
+        "a2_certification",
+        "a3_certification",
+        "private_confirmation",
+    }
+    if (
+        set(cohort_namespaces) != required_cohorts
+        or len(set(cohort_namespaces.values())) != len(cohort_namespaces)
+        or cohort_partition.get("cross_cohort_world_seed_reuse_allowed") is not False
+    ):
+        raise ValueError("Gate A cohort namespaces must be complete and disjoint")
+    if int(requirement["seed_namespace_start"]) != cohort_namespaces["a3_certification"]:
+        raise ValueError("online certificate must use only the A3 cohort namespace")
+    graph_contract = plan.get("diagnostic_relation_graph")
+    if not isinstance(graph_contract, Mapping):
+        raise ValueError("Gate A plan must bind a diagnostic relation graph")
+    graph_path = configuration_root().parent / str(graph_contract["report"])
+    relation_graph = load_json_object(graph_path)
+    graph_errors = validate_diagnostic_relation_graph(
+        protocol,
+        plan,
+        relation_graph,
+    )
+    if graph_errors:
+        raise ValueError("invalid diagnostic relation graph: " + "; ".join(graph_errors))
 
     action_plan = plan["action_library"]
     fit_plan = plan["candidate_predictive_fit"]
@@ -1783,9 +2544,17 @@ def run_online_policy_certificate(
 
     truths_by_budget: dict[int, list[str]] = {budget: [] for budget in post_budgets}
     predictions_by_budget: dict[int, list[str]] = {budget: [] for budget in post_budgets}
+    sufficient_truths_by_budget: dict[int, list[str]] = {
+        budget: [] for budget in post_budgets
+    }
+    sufficient_predictions_by_budget: dict[int, list[str]] = {
+        budget: [] for budget in post_budgets
+    }
+    all_online_trials: list[dict[str, Any]] = []
     task_reports: dict[str, Any] = {}
     sample_count = int(fit_plan["samples_per_candidate_action"])
-    world_seeds_per_family = int(certificate_plan["world_seeds_per_family"])
+    world_seeds_per_family = int(requirement["world_seeds_per_family"])
+    a3_seed_namespace_start = int(requirement["seed_namespace_start"])
     information_draws = int(certificate_plan["information_draws_per_batch"])
     qualified_candidates = [
         _qualified_candidate(str(task_id), str(candidate_id))
@@ -2065,14 +2834,14 @@ def run_online_policy_certificate(
         assigned_change_times = _balanced_hidden_change_times(
             change_times,
             trial_count=world_seeds_per_family,
-            seed=int(certificate_plan["seed_namespace_start"]),
+            seed=a3_seed_namespace_start,
             task_id=task_id,
         )
         trial_jobs: list[dict[str, Any]] = []
         for candidate_id in candidate_ids:
             for repeat_index in range(world_seeds_per_family):
                 world_seed = (
-                    int(certificate_plan["seed_namespace_start"])
+                    a3_seed_namespace_start
                     + 100_000_000
                     + task_index * 1_000_000
                     + repeat_index
@@ -2086,7 +2855,14 @@ def run_online_policy_certificate(
                         "change_time": change_time,
                         "change_time_candidates": change_times,
                         "post_change_budget_checkpoints": post_budgets,
-                        "change_hazard": hazard,
+                        "minimum_reference_experiments": (
+                            minimum_reference_experiments
+                        ),
+                        "enforce_reference_sufficiency": (
+                            protocol.get("schema_version")
+                            == "chemworld-mechanism-adaptation-protocol-0.3.0"
+                        ),
+                        "change_hazards": hazards,
                         "interventions": contract["interventions"][candidate_id],
                         "candidate_ids": candidate_ids,
                         "action_ids": action_ids,
@@ -2100,6 +2876,14 @@ def run_online_policy_certificate(
                         "relational_reference_priority": relational_reference_priority,
                         "declared_relational_reference_actions": (
                             declared_relational_reference_actions
+                        ),
+                        "declared_relation_groups": declaration_groups,
+                        "predictive_information_non_saturated": (
+                            batch_information_diagnostics["non_saturated"]
+                        ),
+                        "reference_scope": requirement["reference_scope"],
+                        "reference_predictive_adequacy": (
+                            predictive_reference_contract
                         ),
                         "likelihood_scale": online_likelihood_scale,
                         "pre_observation_seed": _stable_seed(
@@ -2121,8 +2905,9 @@ def run_online_policy_certificate(
         completed = _execute_jobs(
             _execute_online_policy_trial_job,
             trial_jobs,
-            workers=int(certificate_plan.get("execution_workers", 1)),
+            workers=int(requirement.get("execution_workers", 1)),
         )
+        all_online_trials.extend(completed)
         _emit_gate_a_progress(
             progress_callback,
             event="online_certificate_trials_completed",
@@ -2130,6 +2915,9 @@ def run_online_policy_certificate(
             job_count=len(trial_jobs),
         )
         for row in completed:
+            row_reference_certificate = dict(
+                row["reference_sufficiency_certificate"]
+            )
             qualified_truth = _qualified_candidate(
                 task_id,
                 str(row["truth_id"]),
@@ -2137,11 +2925,39 @@ def run_online_policy_certificate(
             for budget in post_budgets:
                 truths_by_budget[budget].append(qualified_truth)
                 prediction = row["predictions_by_post_budget"][str(budget)]
-                predictions_by_budget[budget].append(_qualified_candidate(task_id, str(prediction)))
+                qualified_prediction = _qualified_candidate(
+                    task_id,
+                    str(prediction),
+                )
+                predictions_by_budget[budget].append(qualified_prediction)
+                if row_reference_certificate["pass"] is True:
+                    sufficient_truths_by_budget[budget].append(qualified_truth)
+                    sufficient_predictions_by_budget[budget].append(
+                        qualified_prediction
+                    )
         task_reports[task_id] = {
             "candidate_ids": candidate_ids,
             "selected_reference_action_ids": selected_actions,
             "online_policy_action_ids": policy_actions,
+            "minimum_stable_prefix_experiments": minimum_reference_experiments,
+            "reference_sufficient_candidate_arm_count": sum(
+                row["reference_sufficiency_certificate"]["pass"] is True
+                for row in completed
+            ),
+            "reference_candidate_arm_count": len(completed),
+            "reference_statistical_cluster_count": len(
+                {
+                    str(row["statistical_cluster_id"])
+                    for row in completed
+                }
+            ),
+            "reference_sufficient_cluster_count": len(
+                {
+                    str(row["statistical_cluster_id"])
+                    for row in completed
+                    if row["reference_sufficiency_certificate"]["pass"] is True
+                }
+            ),
             "online_policy_action_set_selection": (
                 "predictive_fit_information_ranked_before_held_out_execution"
             ),
@@ -2191,7 +3007,7 @@ def run_online_policy_certificate(
             "trials": completed,
         }
 
-    certificates_by_budget = {
+    unstratified_certificates_by_budget = {
         budget: identifiability_certificate(
             truths=truths_by_budget[budget],
             predictions=predictions_by_budget[budget],
@@ -2201,12 +3017,117 @@ def run_online_policy_certificate(
         )
         for budget in post_budgets
     }
+    reference_pass_by_cluster: dict[str, bool] = {}
+    for row in all_online_trials:
+        cluster_id = str(row["statistical_cluster_id"])
+        passed = row["reference_sufficiency_certificate"]["pass"] is True
+        previous = reference_pass_by_cluster.setdefault(cluster_id, passed)
+        if previous != passed:
+            raise ValueError(
+                "paired candidate arms disagree on reference sufficiency"
+            )
+    sufficient_trial_count = sum(reference_pass_by_cluster.values())
+    reference_trial_count = len(reference_pass_by_cluster)
+    reference_interval = (
+        wilson_interval(sufficient_trial_count, reference_trial_count)
+        if reference_trial_count
+        else (0.0, 1.0)
+    )
+    minimum_reference_lower_bound = float(
+        frozen_pass_criteria[
+            "minimum_reference_acquisition_rate_wilson_lower_bound"
+        ]
+    )
+    reference_gate_pass = (
+        reference_trial_count > 0
+        and reference_interval[0] >= minimum_reference_lower_bound
+    )
+    reference_acquisition_certificate = {
+        "schema_version": "chemworld-reference-acquisition-summary-0.2",
+        "status": "passed" if reference_gate_pass else "failed",
+        "gate_pass": reference_gate_pass,
+        "required_wilson_lower_bound": minimum_reference_lower_bound,
+        "statistical_unit": (
+            "task_id_and_world_seed; candidate truth arms sharing the same "
+            "stable-prefix world contribute one reference-acquisition outcome"
+        ),
+        "statistical_cluster_count": reference_trial_count,
+        "sufficient_cluster_count": sufficient_trial_count,
+        "pass_rate": (
+            sufficient_trial_count / reference_trial_count
+            if reference_trial_count
+            else 0.0
+        ),
+        "pass_rate_interval": list(reference_interval),
+        "minimum_stable_prefix_experiments": minimum_reference_experiments,
+        "failure_interpretation": (
+            "excluded from conditional mechanism-attribution denominator but retained "
+            "as failure in the end-to-end online-success denominator"
+        ),
+    }
+    capability_chain_by_budget = {
+        budget: _online_capability_chain_summary(
+            trials=all_online_trials,
+            post_change_budget=budget,
+            frozen_criteria=frozen_pass_criteria,
+            bootstrap_seed=_stable_seed(
+                a3_seed_namespace_start,
+                f"online-capability-chain:{budget}",
+            ),
+        )
+        for budget in post_budgets
+    }
+    if protocol.get("schema_version") != "chemworld-mechanism-adaptation-protocol-0.3.0":
+        certificates_by_budget = unstratified_certificates_by_budget
+    elif sufficient_trial_count:
+        certificates_by_budget = {
+            budget: identifiability_certificate(
+                truths=sufficient_truths_by_budget[budget],
+                predictions=sufficient_predictions_by_budget[budget],
+                candidate_ids=qualified_candidates,
+                overall_lower_bound_threshold=float(
+                    gate["overall_top1_wilson_lower_bound"]
+                ),
+                family_recall_lower_bound_threshold=float(
+                    gate["per_family_recall_wilson_lower_bound"]
+                ),
+            )
+            for budget in post_budgets
+        }
+    else:
+        certificates_by_budget = {
+            budget: {
+                "gate_pass": False,
+                "status": "not_evaluable_without_reference_sufficient_trials",
+                "sample_count": 0,
+            }
+            for budget in post_budgets
+        }
     certificate = certificates_by_budget[online_gate_budget]
+    capability_certificate = capability_chain_by_budget[online_gate_budget]
     execution_binding = gate_a_execution_contract_binding(protocol, plan)
-    gate_pass = certificate["gate_pass"] is True
+    gate_pass = (
+        certificate["gate_pass"] is True
+        and capability_certificate["gate_pass"] is True
+        and (
+        reference_acquisition_certificate["gate_pass"] is True
+        or protocol.get("schema_version")
+        != "chemworld-mechanism-adaptation-protocol-0.3.0"
+        )
+    )
     return {
-        "schema_version": ONLINE_POLICY_CERTIFICATE_VERSION,
-        "certificate_scope": "online_policy_feasible_diagnosis",
+        "schema_version": str(
+            requirement.get(
+                "certificate_schema_version",
+                ONLINE_POLICY_CERTIFICATE_VERSION,
+            )
+        ),
+        "certificate_scope": (
+            "calibrated_online_change_identifiability"
+            if protocol.get("schema_version")
+            == "chemworld-mechanism-adaptation-protocol-0.3.0"
+            else "online_policy_feasible_diagnosis"
+        ),
         "status": "passed" if gate_pass else "failed",
         "gate_pass": gate_pass,
         "formal_benchmark_result": False,
@@ -2219,16 +3140,24 @@ def run_online_policy_certificate(
         "controlled_matched_primary_budget": controlled_primary_budget,
         "online_policy_gate_budget": online_gate_budget,
         "post_change_experiment_budget_checkpoints": post_budgets,
+        "evaluation_track_id": track_id,
+        "minimum_stable_prefix_experiments": minimum_reference_experiments,
         "hidden_change_time": True,
         "policy_received_change_time": False,
+        "policy_received_change_time_support": False,
+        "policy_received_minimum_stable_prefix": False,
+        "policy_received_reference_certificate": False,
         "policy_received_phase_or_reset_indicator": False,
         "change_time_candidates": change_times,
+        "truth_change_time_support": ["never", *change_times],
+        "changepoint_semantics": "tau_is_completed_old_world_experiment_count",
         "uses_actual_available_pre_change_history": True,
         "uses_actual_action_measurement_and_budget_contract": True,
         "agent_weight_updates_performed": False,
         "policy": {
             "type": ("bayesian_latent_change_point_decoder_with_information_ranked_fixed_schedule"),
-            "change_hazard_per_allowed_change_point": hazard,
+            "change_hazard_by_allowed_change_point": hazards,
+            "terminal_no_change_prior_mass": prior_mass[-1],
             "phase_invariant_action_rule": True,
             "changed_mechanism_states_are_absorbing": True,
             "allowed_change_points_only": True,
@@ -2237,6 +3166,9 @@ def run_online_policy_certificate(
             "one_likelihood_channel_per_experiment": True,
             "information_ranking_batch_size": ranking_batch_size,
             "online_policy_action_count": policy_action_count,
+            "reference_sufficiency_basis": (
+                "universal_structural_relation_coverage_and_held_out_predictive_adequacy"
+            ),
             "post_change_experiment_budget_checkpoints": post_budgets,
             "online_policy_gate_budget": online_gate_budget,
             "public_feature_encoding": feature_encoding,
@@ -2257,15 +3189,28 @@ def run_online_policy_certificate(
             "reference_policy": requirement["reference_policy"],
             "evidence_policy": requirement["evidence_policy"],
         },
+        "reference_acquisition_certificate": reference_acquisition_certificate,
+        "online_capability_chain_certificate": capability_certificate,
+        "online_capability_chain_by_post_change_budget": {
+            str(budget): value
+            for budget, value in capability_chain_by_budget.items()
+        },
         "identifiability_certificate": certificate,
         "identifiability_by_post_change_budget": {
             str(budget): value for budget, value in certificates_by_budget.items()
         },
+        "unstratified_identifiability_by_post_change_budget": {
+            str(budget): value
+            for budget, value in unstratified_certificates_by_budget.items()
+        },
         "task_reports": task_reports,
         "interpretation": (
-            "An evaluator-side Bayesian latent change-point decoder executed a "
-            "pre-ranked, phase-invariant cycle of public complete-recipe experiments. "
-            "It received no phase-change signal and selected exactly one absolute, "
+            "Gate A3 first certifies that the phase-invariant policy acquired a "
+            "sufficient old-world reference before scoring calibrated change "
+            "attribution. Trials without that prerequisite are reported as reference "
+            "acquisition failures rather than Agent mechanism errors. An evaluator-side "
+            "Bayesian latent change-point decoder received no phase-change signal and "
+            "selected exactly one absolute, "
             "same-action temporal"
             + (
                 ", or fit-ranked cross-action relational"
@@ -2752,6 +3697,7 @@ def _run_paired_gate_a(
     decision = gate_a_certificate_decision(
         protocol,
         plan,
+        physical_intervention_validity_pass=design_audit["pass"] is True,
         controlled_gate_pass=controlled_gate_pass,
         online_policy_certificate=online_policy_certificate,
     )
@@ -3019,6 +3965,7 @@ def run_gate_a(
     decision = gate_a_certificate_decision(
         protocol,
         plan,
+        physical_intervention_validity_pass=design_audit["pass"] is True,
         controlled_gate_pass=bool(primary_active["gate_pass"]),
         online_policy_certificate=online_policy_certificate,
     )

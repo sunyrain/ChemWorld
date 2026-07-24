@@ -18,6 +18,7 @@ from chemworld.eval.mechanism_adaptation import (
     OutcomeLayers,
     active_oracle_diagnosis,
     build_paired_campaign_matrix,
+    build_static_world_identification_matrix,
     campaign_autonomy_status,
     change_detection_summary,
     conditional_changed_family_distribution,
@@ -27,12 +28,17 @@ from chemworld.eval.mechanism_adaptation import (
     feedback_effect_summary,
     fixed_trajectory_decode,
     identifiability_certificate,
+    load_mechanism_adaptation_protocol,
     operation_aware_action_distance,
     recovery_decomposition,
     validate_mechanism_adaptation_protocol,
 )
 from chemworld.eval.mechanism_adaptation_preflight import (
     build_mechanism_adaptation_preflight,
+)
+from chemworld.eval.mechanism_relation_graph import (
+    build_diagnostic_relation_graph,
+    validate_diagnostic_relation_graph,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -225,13 +231,13 @@ def test_identifiability_certificate_uses_confidence_bounds() -> None:
     assert certificate["top1_accuracy_interval"][0] > 0.95
 
 
-def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed() -> None:
-    protocol = json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(encoding="utf-8")
+def test_v0_3_protocol_separates_tracks_and_does_not_pretend_gates_passed() -> None:
+    protocol = load_mechanism_adaptation_protocol(
+        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0.json"
     )
     assert validate_mechanism_adaptation_protocol(protocol) == []
     gate_a_plan = json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.7.json").read_text(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json").read_text(
             encoding="utf-8"
         )
     )
@@ -253,6 +259,7 @@ def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed(
             "gate_a": {
                 "active_oracle": {"gate_pass": True},
                 "fixed_trajectory_decoder": {"gate_pass": True},
+                "design_validity_audit": {"pass": True},
             }
         },
         gate_a_plan=gate_a_plan,
@@ -260,7 +267,7 @@ def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed(
     assert legacy_shortcut["gates"]["gate_a"] is False
     assert (
         legacy_shortcut["gate_a_certificate_decision"]["status"]
-        == "gate_a_failed_controlled_matched_certificate"
+        == "gate_a_blocked_controlled_matched_certificate_pending"
     )
     matrix = build_paired_campaign_matrix(protocol)
     changed_candidate_count = sum(
@@ -268,7 +275,10 @@ def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed(
         for contract in protocol["task_mechanism_contracts"].values()
     )
     change_time_count = sum(
-        item != "never" for item in protocol["design"]["change_after_experiments"]
+        item != "never"
+        for item in protocol["evaluation_tracks"]["calibrated_online_change"][
+            "change_after_experiments"
+        ]
     )
     expected_rows = (
         changed_candidate_count
@@ -278,19 +288,64 @@ def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed(
         * len(protocol["design"]["candidate_order_seeds"])
         * 2
     )
-    assert len(matrix) == expected_rows == 2400
+    assert len(matrix) == expected_rows == 1800
     pair_ids = {row["pair_id"] for row in matrix}
     assert len(pair_ids) == expected_rows // 2
     for pair_id in pair_ids:
         arms = [row for row in matrix if row["pair_id"] == pair_id]
         assert {row["arm"] for row in arms} == {"changed", "no_change_twin"}
+        assert {
+            row["truth_change_time"] for row in arms
+        } == {"never", arms[0]["phase_reset_after_experiment"]}
+        no_change = next(row for row in arms if row["arm"] == "no_change_twin")
+        assert (
+            no_change["evaluator_pseudo_checkpoint"]
+            == no_change["phase_reset_after_experiment"]
+        )
         assert len({row["world_seed"] for row in arms}) == 1
         assert len({row["candidate_order_seed"] for row in arms}) == 1
+        assert len({row["statistical_cluster_id"] for row in arms}) == 1
+
+    static_rows = build_static_world_identification_matrix(
+        protocol,
+        world_seeds=[0],
+    )
+    assert len(static_rows) == 80
+    assert all(row["hidden_law_changes"] is False for row in static_rows)
+    assert all(row["change_probability_defined"] is False for row in static_rows)
+    assert {
+        row["evaluation_track_id"] for row in static_rows
+    } == {"static_world_identification"}
+
+    calibrated = protocol["evaluation_tracks"]["calibrated_online_change"]
+    assert calibrated["truth_change_time_support"] == ["never", 6, 8, 10]
+    assert calibrated["agent_visible_timing_contract"]["visible"] == [
+        "total_experiment_horizon",
+        "world_may_remain_stable_or_change_at_an_unspecified_time",
+    ]
+    assert "minimum_stable_prefix_experiments" in calibrated[
+        "agent_visible_timing_contract"
+    ]["hidden"]
+
+    graph = build_diagnostic_relation_graph(protocol)
+    assert graph["relation_count"] == 3
+    assert validate_diagnostic_relation_graph(
+        protocol,
+        gate_a_plan,
+        graph,
+    ) == []
+    cohort_namespaces = {
+        cohort["seed_namespace_start"]
+        for cohort in gate_a_plan["cohort_partition"].values()
+        if isinstance(cohort, dict)
+        and "seed_namespace_start" in cohort
+    }
+    assert len(cohort_namespaces) == 4
 
 
-def test_every_v0_2_1_intervention_is_instantiable_by_the_current_environment() -> None:
-    protocol = json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(encoding="utf-8")
+def test_every_v0_3_intervention_is_instantiable_by_the_current_environment() -> None:
+    protocol = load_mechanism_adaptation_protocol(
+        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0.json"
     )
     for task_id, contract in protocol["task_mechanism_contracts"].items():
         for interventions in contract["interventions"].values():
@@ -306,7 +361,7 @@ def test_every_v0_2_1_intervention_is_instantiable_by_the_current_environment() 
                 environment.close()
 
 
-def test_v0_2_1_preflight_separates_method_freeze_from_external_execution() -> None:
+def test_v0_3_preflight_separates_method_freeze_from_external_execution() -> None:
     report = build_mechanism_adaptation_preflight()
     assert report["implementation_complete"] is True
     assert report["design_validity_audit_pass"] is True

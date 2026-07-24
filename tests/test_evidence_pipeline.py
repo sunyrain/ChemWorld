@@ -19,6 +19,8 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     node_ids = {node.node_id for node in nodes}
     assert "mechanism_gate_a" in node_ids
     assert "mechanism_online_policy_certificate" in node_ids
+    assert "mechanism_diagnostic_relation_graph" in node_ids
+    assert "mechanism_flagship_semantics_audit" in node_ids
     assert not any(node_id.startswith("ncs_") for node_id in node_ids)
     assert {node.role for node in nodes} <= pipeline["CURRENT_ARTIFACT_ROLES"]
     assert all(pipeline["_node_producer"](node) for node in nodes)
@@ -29,15 +31,25 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     )
 
 
-def test_current_evidence_pipeline_records_current_online_policy_failure() -> None:
+def test_current_evidence_pipeline_records_new_gate_a_execution_as_pending() -> None:
     pipeline = _pipeline()
     current = json.loads(pipeline["CURRENT_REGISTRY"].read_text(encoding="utf-8"))
 
+    mechanism = current["mechanism_adaptation"]
+    assert mechanism["status"] == "gate_a_execution_pending"
+    assert mechanism["gate_a_pass"] is False
+    assert mechanism["gate_a_certificate_status"] == {
+        "a1_physical_intervention_validity": "passed",
+        "a2_controlled_matched_identifiability": "pending_execution",
+        "a3_calibrated_online_change_identifiability": "pending_execution",
+    }
     assert (
-        current["mechanism_adaptation"]["status"]
-        == "gate_a_failed_online_policy_certificate"
+        mechanism["gate_a_evidence_current"]
+        is (
+            current["evidence_dag"]["nodes"]["mechanism_gate_a"]["artifact_state"]
+            == "current"
+        )
     )
-    assert current["mechanism_adaptation"]["gate_a_evidence_current"] is True
     assert pipeline["check_current_evidence"]() == []
 
 
@@ -57,7 +69,10 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
         summary["mechanism_gate_a"]["status"]
         == current["mechanism_adaptation"]["status"]
     )
-    assert summary["mechanism_gate_a"]["evidence_current"] is True
+    assert (
+        summary["mechanism_gate_a"]["evidence_current"]
+        is current["mechanism_adaptation"]["gate_a_evidence_current"]
+    )
     assert summary["mechanism_gate_a"]["passed"] is False
     assert summary["formal_benchmark"]["status"] == "environment_ready_methods_unfrozen"
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False

@@ -6,6 +6,9 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from chemworld.eval.mechanism_relation_graph import (
+    build_diagnostic_relation_graph,
+)
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
@@ -15,7 +18,7 @@ from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import get_task
 from chemworld.world.operations import operation_contracts
 
-ONLINE_POLICY_CERTIFICATE_VERSION = "chemworld-mechanism-adaptation-online-policy-certificate-0.5"
+ONLINE_POLICY_CERTIFICATE_VERSION = "chemworld-mechanism-adaptation-online-policy-certificate-0.7"
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -50,6 +53,9 @@ def gate_a_execution_contract_binding(
         },
         "protocol_sha256": canonical_json_sha256(protocol),
         "gate_a_plan_sha256": canonical_json_sha256(plan),
+        "diagnostic_relation_graph_sha256": (
+            build_diagnostic_relation_graph(protocol)["graph_sha256"]
+        ),
     }
     binding["binding_sha256"] = canonical_json_sha256(binding)
     return binding
@@ -59,15 +65,19 @@ def gate_a_certificate_decision(
     protocol: Mapping[str, Any],
     plan: Mapping[str, Any],
     *,
+    physical_intervention_validity_pass: bool,
     controlled_gate_pass: bool,
+    controlled_certificate_present: bool = True,
     online_policy_certificate: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Compose Gate A from its two independently bound certificates.
+    """Compose Gate A1/A2/A3 from independently bound certificates.
 
-    The controlled matched oracle establishes that the public experiment contract
+    A1 establishes that the declared intervention changes the intended physical law.
+    The A2 controlled matched oracle establishes that the public experiment contract
     contains diagnostic information. It is not a substitute for demonstrating that
-    an online policy can select and use diagnostic experiments under the same budget.
-    Missing, stale, or malformed online-policy evidence therefore fails closed.
+    an A3 online policy can first acquire a sufficient old-world reference and then
+    use diagnostic experiments under the same budget. Missing, stale, or malformed
+    evidence therefore fails closed.
     """
 
     requirement = plan.get("online_policy_feasible_certificate")
@@ -84,9 +94,21 @@ def gate_a_certificate_decision(
     online_gate_budget = int(requirement["online_policy_gate_budget"])
     if online_gate_budget != controlled_primary_budget:
         raise ValueError("Gate A controlled and online certificates must use an aligned budget")
+    expected_certificate_version = str(
+        requirement.get(
+            "certificate_schema_version",
+            ONLINE_POLICY_CERTIFICATE_VERSION,
+        )
+    )
+    expected_certificate_scope = str(
+        requirement.get(
+            "certificate_scope",
+            "online_policy_feasible_diagnosis",
+        )
+    )
     if online_policy_certificate is None:
         online_summary = {
-            "schema_version": ONLINE_POLICY_CERTIFICATE_VERSION,
+            "schema_version": expected_certificate_version,
             "status": "pending_execution",
             "gate_pass": False,
             "required": True,
@@ -98,18 +120,37 @@ def gate_a_certificate_decision(
         certificate = dict(online_policy_certificate)
         errors: list[str] = []
         expected_values = {
-            "schema_version": ONLINE_POLICY_CERTIFICATE_VERSION,
-            "certificate_scope": "online_policy_feasible_diagnosis",
+            "schema_version": expected_certificate_version,
+            "certificate_scope": expected_certificate_scope,
             "protocol_sha256": expected_protocol_sha,
             "gate_a_plan_sha256": expected_plan_sha,
             "controlled_matched_primary_budget": controlled_primary_budget,
             "online_policy_gate_budget": online_gate_budget,
             "hidden_change_time": True,
+            "policy_received_change_time_support": False,
+            "policy_received_minimum_stable_prefix": False,
+            "policy_received_reference_certificate": False,
             "policy_received_phase_or_reset_indicator": False,
             "uses_actual_available_pre_change_history": True,
             "uses_actual_action_measurement_and_budget_contract": True,
             "execution_contract_binding_sha256": expected_execution_binding["binding_sha256"],
         }
+        if "evaluation_track_id" in requirement:
+            expected_values["evaluation_track_id"] = requirement[
+                "evaluation_track_id"
+            ]
+        if "minimum_stable_prefix_experiments" in requirement:
+            expected_values["minimum_stable_prefix_experiments"] = int(
+                requirement["minimum_stable_prefix_experiments"]
+            )
+        if "truth_change_time_support" in requirement:
+            expected_values["truth_change_time_support"] = requirement[
+                "truth_change_time_support"
+            ]
+        if "changepoint_semantics" in requirement:
+            expected_values["changepoint_semantics"] = requirement[
+                "changepoint_semantics"
+            ]
         for field, expected in expected_values.items():
             if certificate.get(field) != expected:
                 errors.append(f"{field} must equal {expected!r}")
@@ -119,6 +160,43 @@ def gate_a_certificate_decision(
         expected_status = "passed" if gate_pass is True else "failed"
         if certificate.get("status") != expected_status:
             errors.append(f"status must equal {expected_status!r}")
+        if expected_certificate_scope == "calibrated_online_change_identifiability":
+            reference_certificate = certificate.get(
+                "reference_acquisition_certificate"
+            )
+            if not isinstance(reference_certificate, Mapping):
+                errors.append(
+                    "reference_acquisition_certificate must be present for calibrated "
+                    "online change"
+                )
+            elif not isinstance(reference_certificate.get("gate_pass"), bool):
+                errors.append(
+                    "reference_acquisition_certificate.gate_pass must be boolean"
+                )
+            elif (
+                gate_pass is True
+                and reference_certificate.get("gate_pass") is not True
+            ):
+                errors.append(
+                    "a passing calibrated certificate requires reference acquisition"
+                )
+            capability_certificate = certificate.get(
+                "online_capability_chain_certificate"
+            )
+            if not isinstance(capability_certificate, Mapping):
+                errors.append(
+                    "online_capability_chain_certificate must be present for calibrated "
+                    "online change"
+                )
+            elif not isinstance(capability_certificate.get("gate_pass"), bool):
+                errors.append(
+                    "online_capability_chain_certificate.gate_pass must be boolean"
+                )
+            elif gate_pass is True and capability_certificate.get("gate_pass") is not True:
+                errors.append(
+                    "a passing calibrated certificate requires the end-to-end "
+                    "capability chain"
+                )
         if errors:
             raise ValueError("invalid online-policy-feasible certificate: " + "; ".join(errors))
         online_summary = {
@@ -129,9 +207,20 @@ def gate_a_certificate_decision(
         }
 
     online_gate_pass = online_summary["gate_pass"] is True
-    combined_pass = bool(controlled_gate_pass and online_gate_pass)
+    physical_gate_pass = bool(physical_intervention_validity_pass)
+    controlled_present = bool(controlled_certificate_present)
+    combined_pass = bool(
+        physical_gate_pass
+        and controlled_present
+        and controlled_gate_pass
+        and online_gate_pass
+    )
     if combined_pass:
         status = "gate_a_passed"
+    elif not physical_gate_pass:
+        status = "gate_a_failed_physical_intervention_validity"
+    elif not controlled_present:
+        status = "gate_a_blocked_controlled_matched_certificate_pending"
     elif not controlled_gate_pass:
         status = "gate_a_failed_controlled_matched_certificate"
     elif online_summary["certificate_present"] is not True:
@@ -139,12 +228,19 @@ def gate_a_certificate_decision(
     else:
         status = "gate_a_failed_online_policy_certificate"
     return {
-        "schema_version": "chemworld-mechanism-adaptation-gate-a-decision-0.1",
+        "schema_version": "chemworld-mechanism-adaptation-gate-a-decision-0.2",
         "status": status,
         "required_certificates": [
-            "controlled_matched_identifiability",
-            "online_policy_feasible_diagnosis",
+            "a1_physical_intervention_validity",
+            "a2_controlled_matched_identifiability",
+            "a3_calibrated_online_change_identifiability",
         ],
+        "a1_physical_intervention_validity_pass": physical_gate_pass,
+        "a2_controlled_matched_identifiability_pass": bool(
+            controlled_gate_pass
+        ),
+        "a2_controlled_matched_certificate_present": controlled_present,
+        "a3_calibrated_online_change_identifiability_pass": online_gate_pass,
         "controlled_matched_gate_pass": bool(controlled_gate_pass),
         "online_policy_feasible_gate_pass": online_gate_pass,
         "online_policy_feasible_certificate": online_summary,

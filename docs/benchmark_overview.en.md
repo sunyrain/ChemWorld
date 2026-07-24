@@ -47,8 +47,9 @@ None substitutes for another.
 Change detection, mechanism identification, recovery experiments, adaptation regret, transfer advantage, and
 constraint cost during adaptation describe how agents respond when old assumptions fail.
 
-Mechanism evidence is also factorized into **Declared**, **Predictive**, and **Actionable** layers. Mechanism v0.2.1
-mainly covers declaration and action diagnostics; an independent counterfactual-prediction probe remains future work.
+Mechanism evidence is factorized into **Declared**, **Predictive**, and **Actionable** layers. Version 0.3 additionally
+separates static current-world identification, old-world reference acquisition, calibrated change detection and
+attribution, and adaptive recovery. A world initialized in a changed family is not scored as an observed transition.
 
 Trajectory v0.2 separately records `environment_outcome`, `agent_visible_observation`, and `evaluation_outcome`.
 Feedback permutations may alter only the visible layer. Local paired-prefix tests ask whether feedback changes behavior;
@@ -64,10 +65,12 @@ submission → trajectory validation → deterministic replay
 The current Engine and replay controls are operational. Method selection, training, and result freezes belong to each
 evaluation campaign, and this repository bundles no formal cross-method result. The action/intervention audit passes
 with both solvent and electrolyte-profile electrochemical counterfactuals publicly reachable and decision-relevant.
-RC20 controlled matched identifiability passes at 235/240. The separately bound online-policy-feasible certificate
-reaches 227/240 overall but fails its per-family rule because the reaction catalyst-mapping counterfactual is 22/30.
-Gate A as a whole remains false. These are historical RC20 figures; the current source requires RC21 recertification
-after its diagnostic-design contract was versioned. Cross-method evaluation, real-LLM evaluation, private
-generalization, and external bridge evidence remain incomplete.
+Historical RC21 controlled matched identifiability passes at 239/240, while its fixed four-action online certificate
+fails the reaction rate-law family at 23/30. RC23 of version 0.3 supersedes that protocol because early changes did not
+always provide an adequate old-world reference. It freezes a first-class no-change state, two-layer reference
+adequacy, end-to-end denominators, timing blindness, disjoint cohorts, and a hashed diagnostic relation graph. The
+flagship semantics audit passes 18/18 and the physical design audit passes 81/81; these remain design evidence, not a
+confirmatory run. Gate A stays false until new untouched A2/A3 certificates pass. Cross-method evaluation, real-LLM
+evaluation, private generalization, and external bridge evidence remain incomplete.
 
 Next: [Research Findings](research_findings.md) · [Real-world Bridge](real_world_bridge.md)

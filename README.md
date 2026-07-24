@@ -114,15 +114,13 @@ validation, clean-release attestation, formal-evaluation readiness, and publicat
 
 Current evidence establishes the following boundaries:
 
-- executable mechanism and constitutive-law shifts are control-validated. The freeze candidate makes both `solvent`
-  and `electrolyte_profile` selectable electrochemical counterfactual coordinates and removes world/mechanism identity
-  from Agent-visible messages. Reaction rate-law cells bind the upstream primary target pathway and a pivot-normalized
-  catalyst-activity-order stress; they do not modify or claim discovery of crystallization kinetics. The source-bound
-  RC21 action/intervention audit and controlled matched-identifiability certificate pass at 239/240. The independently
-  bound online-policy-feasible certificate reaches 230/240 overall but fails its per-family rule because the reaction
-  `rate_law_family` is 23/30. Gate A therefore remains false. A non-controlling RC22 development diagnostic found that
-  no admissible fixed four-action set passed independent world-clustered validation, so no RC22 formal run was started.
-  Agent-level mechanism-discovery claims remain unsupported;
+- executable mechanism and constitutive-law shifts are control-validated. RC23 freezes true no-change campaigns,
+  completed-experiment changepoint semantics, timing blindness, disjoint development/A2/A3/private cohorts, a
+  versioned diagnostic-relation graph, and a two-layer reference certificate that requires both universal relation
+  coverage and held-out old-world predictive adequacy. The unified flagship semantic audit passes 18/18 and the
+  action/intervention design audit passes 81/81. A2 and A3 remain pending on fresh untouched cohorts, Gate A remains
+  false, and RC21/RC22 development results cannot be promoted to v0.3 evidence. Agent-level mechanism-discovery claims
+  remain unsupported;
 - LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 
 See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.
@@ -135,6 +133,7 @@ See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/)
 | Read the normative system model | [System Model](https://sunyrain.github.io/ChemWorld/architecture/) |
 | See how causal worlds change | [Causal Worlds](https://sunyrain.github.io/ChemWorld/causal_worlds/) |
 | Explore flagship tasks | [Worlds](https://sunyrain.github.io/ChemWorld/worlds/) |
+| Inspect flagship experiment freeze status | [Flagship Experiments](https://sunyrain.github.io/ChemWorld/flagship_experiments/) |
 | Choose an agent interaction level | [Agent Tracks](https://sunyrain.github.io/ChemWorld/agent_tracks/) |
 | Build an agent | [Getting Started](https://sunyrain.github.io/ChemWorld/getting_started/) |
 | Design an evaluation | [Benchmark Design](https://sunyrain.github.io/ChemWorld/benchmark_overview/) |

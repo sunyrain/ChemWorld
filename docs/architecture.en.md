@@ -135,7 +135,8 @@ The normative boundary is:
 - **Core** is the six-serious-task agent-comparison environment. Its environment contract is ready, while methods,
   resources, and results remain unfrozen.
 - **Diagnostic** contains identifiability, no-change, feedback branching, counterfactual, adaptation-decomposition,
-  and autonomy protocols. Mechanism v0.2.1 currently starts with crystallization and electrochemistry.
+  and autonomy protocols. Mechanism v0.3 starts with crystallization and electrochemistry and separates static,
+  calibrated-change, uncalibrated-stress, and recovery tracks.
 - **Extended** contains the remaining registered tasks, training uses, and demonstrations. Coverage does not grant a
   formal ranking claim.
 
@@ -148,13 +149,16 @@ requires a new protocol version and revalidation, and prior results cannot be ca
 2. **Predictive:** a testable prediction for an unexecuted intervention;
 3. **Actionable:** a belief that changes experiment choice and improves recovery or regret under a fixed budget.
 
-Mechanism v0.2.1 primarily covers declared and action diagnostics. An independent predictive probe is a future
-protocol feature, not a completed current result.
+Mechanism v0.3 requires explicit old-world reference acquisition before calibrated change attribution. RC23 makes
+`never` a first-class truth state, certifies both structural and held-out predictive reference sufficiency, blinds
+the Agent to prefix and changepoint support, and separates development, A2, A3, and private-confirmation cohorts.
+Static current-world identification and early uncalibrated nonstationarity remain separate, non-gating diagnostics.
+An independent Agent counterfactual-prediction probe is still a future result rather than completed evidence.
 
 ## Current boundary
 
 The candidate backend and replay controls are operational. Method and result freezes are campaign-owned rather than
-repository-wide. RC20 controlled matched identifiability passes at 235/240, but its online-policy-feasible certificate
-fails the per-family rule: the reaction catalyst-mapping counterfactual is 22/30. Mechanism Gate A therefore remains
-false. Those figures are historical; the current source binding is invalidated pending RC21 recertification.
-External Bridge evidence is absent. Documentation and scientific claims must follow `configs/current.json`.
+repository-wide. Historical RC21 controlled matched identifiability passes at 239/240, but the online rate-law family
+is 23/30. Version 0.3 treats that result as evidence that reference acquisition and attribution were confounded, not
+as a physical-kernel failure. Gate A remains false pending a fresh calibrated A3 execution. External Bridge evidence
+is absent. Documentation and scientific claims must follow `configs/current.json`.

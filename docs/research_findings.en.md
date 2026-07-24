@@ -61,6 +61,19 @@ formal pass rate, and its implementation was not retained. It only establishes t
 jointly plan reference coverage, temporal evidence, and cross-action relations, then pass independent selection
 validation before preregistration.
 
+RC21 also exposed a more basic protocol error. Although `change_time=1` technically executes one old-world
+experiment, that experiment usually lies near the weak-signal rate-law pivot and does not establish the response
+reference needed to say what changed from what. Version 0.3 therefore separates static current-world
+identification, early uncalibrated nonstationarity, and calibrated online change attribution. The static track
+never reports change probability. `change_time={0,1,2,4}` remains a non-controlling stress track. RC23 freezes
+Gate A3 truth support as `never/6/8/10`, with `tau` defined only as the number of completed old-world experiments.
+The Agent sees neither the earliest change point, support, reference-certificate state, nor evaluator checkpoint.
+Reference sufficiency now requires universal relation coverage, held-out old-world predictive adequacy, and bounded
+reference age. Reference failures stay in the end-to-end denominator while being excluded only from conditional
+attribution. Development, A2, A3, and private confirmation use disjoint cohorts. The flagship semantics audit passes
+18/18 and the physical design audit passes 81/81, but a new untouched A2/A3 execution is still required. RC21 and
+RC22-d cannot be promoted into v0.3 confirmatory evidence.
+
 These results support environment-level identifiability diagnostics, not Agent-level mechanism discovery,
 crystallization-kinetics discovery, or exact rate-parameter identification.
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from scripts.run_mechanism_adaptation_v0_2 import (
+from scripts.run_mechanism_adaptation import (
     _campaign_filename,
     _compact_gate_a_report,
     _validate_resumable_campaign,
@@ -18,6 +18,10 @@ from chemworld.agents.task_recipes import (
     DIAGNOSTIC_RECIPE_DESIGN_V2,
     task_recipe_from_unit_vector,
 )
+from chemworld.eval.mechanism_adaptation import (
+    load_mechanism_adaptation_protocol,
+    reference_sufficiency_certificate,
+)
 from chemworld.eval.mechanism_adaptation_execution import (
     PublicCampaignObservationSession,
     _advance_online_change_point_hypotheses,
@@ -27,8 +31,10 @@ from chemworld.eval.mechanism_adaptation_execution import (
     _declared_relational_reference_actions,
     _dimension_normalized_likelihood_scale,
     _fit_paired_batch_oracle,
+    _online_capability_chain_summary,
     _online_hypothesis_evidence_channel,
     _online_relational_evidence_channel,
+    _reference_predictive_adequacy,
     _relational_evidence_samples,
     _relational_reference_priorities,
     _relationally_covered_batch_ids,
@@ -62,14 +68,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _protocol() -> dict[str, object]:
-    return json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(encoding="utf-8")
+    return load_mechanism_adaptation_protocol(
+        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0.json"
     )
 
 
 def _gate_a_plan() -> dict[str, object]:
     return json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.7.json").read_text(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json").read_text(
             encoding="utf-8"
         )
     )
@@ -77,7 +83,7 @@ def _gate_a_plan() -> dict[str, object]:
 
 def _paired_gate_a_plan() -> dict[str, object]:
     return json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.7.json").read_text(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json").read_text(
             encoding="utf-8"
         )
     )
@@ -128,6 +134,230 @@ def test_online_policy_action_set_can_cycle_below_gate_budget() -> None:
         _validate_online_policy_action_count(action_count=0, gate_budget=12)
     with pytest.raises(ValueError, match="positive and no greater"):
         _validate_online_policy_action_count(action_count=13, gate_budget=12)
+
+
+def test_reference_sufficiency_is_a_separate_fail_closed_prerequisite() -> None:
+    relations = {
+        "rate_law": [
+            ["design-00", "design-01", "design-02"],
+        ],
+        "material": [
+            ["design-01", "design-04"],
+        ],
+    }
+    sufficient = reference_sufficiency_certificate(
+        pre_change_action_ids=[f"design-{index:02d}" for index in range(6)],
+        required_reference_action_ids=[f"design-{index:02d}" for index in range(6)],
+        declared_relation_groups=relations,
+        minimum_reference_experiments=6,
+        predictive_information_non_saturated=True,
+        predictive_adequacy={"pass": True, "status": "passed"},
+        universal_candidate_family_scope=True,
+        maximum_reference_age_experiments=5,
+        observed_reference_ages={
+            f"design-{index:02d}": 5 - index for index in range(6)
+        },
+    )
+    assert sufficient["pass"] is True
+    assert sufficient["structural_sufficiency"]["pass"] is True
+    assert sufficient["predictive_sufficiency"]["pass"] is True
+
+    early_change = reference_sufficiency_certificate(
+        pre_change_action_ids=["design-00"],
+        required_reference_action_ids=[f"design-{index:02d}" for index in range(6)],
+        declared_relation_groups=relations,
+        minimum_reference_experiments=6,
+        predictive_information_non_saturated=True,
+        predictive_adequacy={"pass": True, "status": "passed"},
+        universal_candidate_family_scope=True,
+        maximum_reference_age_experiments=5,
+        observed_reference_ages={"design-00": 0},
+    )
+    assert early_change["pass"] is False
+    assert (
+        early_change["structural_sufficiency"]["checks"][
+            "required_reference_actions_observed"
+        ]
+        is False
+    )
+    assert (
+        early_change["structural_sufficiency"]["relation_coverage"][
+            "material"
+        ]["covered"]
+        is False
+    )
+
+    predictively_inadequate = reference_sufficiency_certificate(
+        pre_change_action_ids=[f"design-{index:02d}" for index in range(6)],
+        required_reference_action_ids=[f"design-{index:02d}" for index in range(6)],
+        declared_relation_groups=relations,
+        minimum_reference_experiments=6,
+        predictive_information_non_saturated=True,
+        predictive_adequacy={"pass": False, "status": "failed"},
+        universal_candidate_family_scope=True,
+        maximum_reference_age_experiments=5,
+        observed_reference_ages={
+            f"design-{index:02d}": 5 - index for index in range(6)
+        },
+    )
+    assert predictively_inadequate["pass"] is False
+    assert predictively_inadequate["structural_sufficiency"]["pass"] is True
+    assert predictively_inadequate["predictive_sufficiency"]["pass"] is False
+
+
+def test_reference_predictive_adequacy_uses_held_out_standardized_error() -> None:
+    action_ids = ["design-00", "design-01"]
+    predictives = {
+        (
+            "no_change",
+            f"absolute_trace\u241f{action_id}",
+        ): (np.asarray([0.0]), np.asarray([1.0]))
+        for action_id in action_ids
+    }
+    feature_indices = {
+        f"absolute_trace\u241f{action_id}": [0]
+        for action_id in action_ids
+    }
+    adequate = _reference_predictive_adequacy(
+        observations=[
+            ("design-00", np.asarray([1.0])),
+            ("design-01", np.asarray([-1.0])),
+        ],
+        required_action_ids=action_ids,
+        predictives=predictives,
+        feature_indices=feature_indices,
+        maximum_mean_standardized_squared_error=4.0,
+        maximum_per_action_mean_standardized_squared_error=9.0,
+    )
+    assert adequate["pass"] is True
+
+    inadequate = _reference_predictive_adequacy(
+        observations=[
+            ("design-00", np.asarray([10.0])),
+            ("design-01", np.asarray([-10.0])),
+        ],
+        required_action_ids=action_ids,
+        predictives=predictives,
+        feature_indices=feature_indices,
+        maximum_mean_standardized_squared_error=4.0,
+        maximum_per_action_mean_standardized_squared_error=9.0,
+    )
+    assert inadequate["pass"] is False
+
+
+def test_capability_chain_retains_reference_failure_in_end_to_end_denominator() -> None:
+    def trial(
+        truth_id: str,
+        *,
+        cluster_id: str,
+        reference_pass: bool,
+        no_change_probability: float,
+    ) -> dict:
+        posterior = {
+            "no_change": no_change_probability,
+            "rate_law_family": 1.0 - no_change_probability,
+        }
+        return {
+            "truth_id": truth_id,
+            "statistical_cluster_id": cluster_id,
+            "reference_sufficiency_certificate": {"pass": reference_pass},
+            "posterior_by_post_budget": {"4": posterior},
+            "predictions_by_post_budget": {
+                "4": max(posterior, key=posterior.__getitem__)
+            },
+            "post_change_updates": [
+                {
+                    "phase_local_experiment_index": 1,
+                    "posterior": posterior,
+                }
+            ],
+        }
+
+    criteria = {
+        "change_decision_probability_threshold": 0.5,
+        "minimum_reference_acquisition_rate_wilson_lower_bound": 0.0,
+        "minimum_changed_detection_recall_cluster_bootstrap_lower_bound": 0.0,
+        "maximum_no_change_false_positive_rate_cluster_bootstrap_upper_bound": 1.0,
+        "minimum_change_detection_auroc_cluster_bootstrap_lower_bound": 0.0,
+        "maximum_change_probability_brier_score": 1.0,
+        "minimum_attribution_given_detection_and_reference_cluster_bootstrap_lower_bound": 0.0,
+        "minimum_end_to_end_success_rate_cluster_bootstrap_lower_bound": 0.0,
+        "confidence_level": 0.95,
+        "detection_checkpoint_experiments_after_change": 4,
+    }
+    summary = _online_capability_chain_summary(
+        trials=[
+            trial(
+                "rate_law_family",
+                cluster_id="task:1",
+                reference_pass=True,
+                no_change_probability=0.1,
+            ),
+            trial(
+                "no_change",
+                cluster_id="task:1",
+                reference_pass=True,
+                no_change_probability=0.9,
+            ),
+            trial(
+                "rate_law_family",
+                cluster_id="task:2",
+                reference_pass=False,
+                no_change_probability=0.1,
+            ),
+            trial(
+                "no_change",
+                cluster_id="task:2",
+                reference_pass=False,
+                no_change_probability=0.9,
+            ),
+        ],
+        post_change_budget=4,
+        frozen_criteria=criteria,
+        bootstrap_seed=7,
+    )
+    assert summary["p_reference_sufficient"] == 0.5
+    assert (
+        summary["p_end_to_end_reference_detection_attribution_success"]
+        == 0.5
+    )
+    assert summary["statistical_cluster_count"] == 2
+    assert (
+        summary[
+            "reference_acquisition_failures_retained_in_end_to_end_denominator"
+        ]
+        is True
+    )
+
+
+def test_v0_3_relations_cover_rate_shape_and_both_electrochemical_materials() -> None:
+    protocol = _protocol()
+    plan = _gate_a_plan()
+    by_task = {}
+    for task_id in protocol["design"]["tasks"]:
+        library = build_action_library(
+            task_id,
+            action_count=plan["action_library"]["action_count_per_task"],
+            seed=plan["action_library"]["design_seed"],
+            design_id=plan["action_library"]["design"],
+        )
+        by_task[task_id] = _declared_relational_action_groups(
+            task_id=task_id,
+            contract=protocol["task_mechanism_contracts"][task_id],
+            action_library=library,
+        )
+
+    reaction = by_task["reaction-to-crystallization"]
+    assert reaction["rate_law_family:0"] == (
+        ("design-00", "design-01", "design-02"),
+    )
+    electrochemical = by_task["electrochemical-conversion"]
+    assert electrochemical[
+        "material_law_counterfactual_solvent:0"
+    ]
+    assert electrochemical[
+        "material_law_counterfactual_electrolyte_profile:0"
+    ]
 
 
 def test_information_maximum_is_deterministic_and_rejects_saturation() -> None:
@@ -269,6 +499,7 @@ def test_gate_a_fails_closed_without_online_policy_certificate() -> None:
     decision = gate_a_certificate_decision(
         protocol,
         plan,
+        physical_intervention_validity_pass=True,
         controlled_gate_pass=True,
     )
     assert decision["status"] == "gate_a_blocked_online_policy_certificate_pending"
@@ -277,28 +508,42 @@ def test_gate_a_fails_closed_without_online_policy_certificate() -> None:
     assert decision["gate_a_pass"] is False
 
 
-def test_gate_a_requires_two_bound_passing_certificates() -> None:
+def test_gate_a_requires_three_bound_passing_certificates() -> None:
     protocol = _protocol()
     plan = _paired_gate_a_plan()
     execution_binding = gate_a_execution_contract_binding(protocol, plan)
     certificate = {
-        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.5",
-        "certificate_scope": "online_policy_feasible_diagnosis",
+        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.7",
+        "certificate_scope": "calibrated_online_change_identifiability",
         "protocol_sha256": canonical_sha256(protocol),
         "gate_a_plan_sha256": canonical_sha256(plan),
         "controlled_matched_primary_budget": 4,
         "online_policy_gate_budget": 4,
+        "evaluation_track_id": "calibrated_online_change",
+        "minimum_stable_prefix_experiments": 6,
         "hidden_change_time": True,
+        "truth_change_time_support": ["never", 6, 8, 10],
+        "changepoint_semantics": "tau_is_completed_old_world_experiment_count",
+        "policy_received_change_time_support": False,
+        "policy_received_minimum_stable_prefix": False,
+        "policy_received_reference_certificate": False,
         "policy_received_phase_or_reset_indicator": False,
         "uses_actual_available_pre_change_history": True,
         "uses_actual_action_measurement_and_budget_contract": True,
         "execution_contract_binding_sha256": execution_binding["binding_sha256"],
+        "reference_acquisition_certificate": {
+            "gate_pass": True,
+        },
+        "online_capability_chain_certificate": {
+            "gate_pass": True,
+        },
         "status": "passed",
         "gate_pass": True,
     }
     decision = gate_a_certificate_decision(
         protocol,
         plan,
+        physical_intervention_validity_pass=True,
         controlled_gate_pass=True,
         online_policy_certificate=certificate,
     )
@@ -308,6 +553,7 @@ def test_gate_a_requires_two_bound_passing_certificates() -> None:
         gate_a_certificate_decision(
             protocol,
             plan,
+            physical_intervention_validity_pass=True,
             controlled_gate_pass=True,
             online_policy_certificate=stale,
         )
@@ -319,6 +565,7 @@ def test_gate_a_requires_two_bound_passing_certificates() -> None:
         gate_a_certificate_decision(
             protocol,
             plan,
+            physical_intervention_validity_pass=True,
             controlled_gate_pass=True,
             online_policy_certificate=stale_execution,
         )
@@ -833,12 +1080,12 @@ def test_v2_relational_declarations_are_derived_without_task_specific_selection(
             contract=contract,
             action_library=action_library,
         )
-        expected_count = sum(
-            intervention.get("kind") == "material_law_counterfactual"
-            for interventions in contract["interventions"].values()
-            for intervention in interventions
-        )
-        assert len(declarations) == expected_count
+        expected_declaration_ids = {
+            f"{candidate_id}:0"
+            for candidate_id in contract["candidate_ids"]
+            if candidate_id != "no_change"
+        }
+        assert set(declarations) == expected_declaration_ids
         assert all(declarations.values())
 
 
@@ -865,6 +1112,34 @@ def test_online_hazard_expands_only_protocol_change_points() -> None:
         ("rate_law_family", 2): 0.125,
         ("topology_family", 2): 0.125,
     }
+
+
+def test_calibrated_hazard_keeps_never_as_an_equal_first_class_state() -> None:
+    posterior: dict[tuple[str, int | None], float] = {
+        ("no_change", None): 1.0
+    }
+    hazards = {"6": 0.25, "8": 1.0 / 3.0, "10": 0.5}
+    for experiment_count in range(11):
+        posterior = _advance_online_change_point_hypotheses(
+            posterior,
+            change_after_experiment=experiment_count,
+            allowed_change_times=[6, 8, 10],
+            candidate_ids=[
+                "no_change",
+                "rate_law_family",
+                "topology_family",
+            ],
+            hazard=hazards,
+        )
+        if experiment_count == 5:
+            assert posterior == {("no_change", None): 1.0}
+    assert posterior[("no_change", None)] == pytest.approx(0.25)
+    for change_time in (6, 8, 10):
+        assert sum(
+            probability
+            for (_family, hypothesis_time), probability in posterior.items()
+            if hypothesis_time == change_time
+        ) == pytest.approx(0.25)
 
 
 def test_online_posterior_uses_transition_only_when_reference_predates_change() -> None:

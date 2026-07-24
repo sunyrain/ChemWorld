@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -14,21 +15,39 @@ from chemworld.eval.mechanism_adaptation_execution import (
     build_action_library,
     canonical_sha256,
     load_json_object,
+    load_protocol_object,
 )
 from chemworld.eval.mechanism_design_audit import audit_mechanism_design
+from chemworld.eval.mechanism_relation_graph import (
+    validate_diagnostic_relation_graph,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc21.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc23.json"
 )
 
 
 def build_report(
     protocol_path: Path = DEFAULT_PROTOCOL_PATH,
     plan_path: Path = DEFAULT_GATE_A_PLAN_PATH,
+    *,
+    progress_callback: Callable[[Mapping[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
-    protocol = load_json_object(protocol_path)
+    protocol = load_protocol_object(protocol_path)
     plan = load_json_object(plan_path)
+    relation_graph_path = ROOT / plan["diagnostic_relation_graph"]["report"]
+    relation_graph = load_json_object(relation_graph_path)
+    relation_graph_errors = validate_diagnostic_relation_graph(
+        protocol,
+        plan,
+        relation_graph,
+    )
+    if relation_graph_errors:
+        raise ValueError(
+            "invalid diagnostic relation graph: "
+            + "; ".join(relation_graph_errors)
+        )
     action_plan = plan["action_library"]
     action_libraries = {
         str(task_id): build_action_library(
@@ -45,6 +64,7 @@ def build_report(
         protocol,
         plan,
         action_libraries=action_libraries,
+        progress_callback=progress_callback,
     )
     report.update(
         {
@@ -52,6 +72,12 @@ def build_report(
             "protocol_sha256": canonical_sha256(protocol),
             "gate_a_plan_path": plan_path.resolve().relative_to(ROOT).as_posix(),
             "gate_a_plan_sha256": canonical_sha256(plan),
+            "diagnostic_relation_graph_path": (
+                relation_graph_path.resolve().relative_to(ROOT).as_posix()
+            ),
+            "diagnostic_relation_graph_sha256": relation_graph[
+                "graph_sha256"
+            ],
         }
     )
     return report
@@ -68,18 +94,29 @@ def main() -> int:
         help="Run the audit without rewriting its report.",
     )
     args = parser.parse_args()
-    report = build_report(args.protocol, args.plan)
-    if not args.check:
-        if args.output.exists():
+    report = build_report(
+        args.protocol,
+        args.plan,
+        progress_callback=lambda event: print(
+            json.dumps(dict(event), sort_keys=True),
+            flush=True,
+        ),
+    )
+    if args.output.exists():
+        recorded = json.loads(args.output.read_text(encoding="utf-8"))
+        if recorded != report:
             raise FileExistsError(
-                f"refusing to overwrite immutable design audit: {args.output}; "
-                "select a new versioned --output path"
+                f"immutable design audit differs from current execution: "
+                f"{args.output}; select a new versioned --output path"
             )
+    elif not args.check:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(
             json.dumps(report, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
         )
+    else:
+        raise FileNotFoundError(f"missing immutable design audit: {args.output}")
     print(json.dumps({"status": report["status"], "failures": report["failures"]}))
     return 0 if report["pass"] else 1
 

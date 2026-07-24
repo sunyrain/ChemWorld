@@ -14,6 +14,7 @@ import json
 import math
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from statistics import NormalDist
 from typing import Any, Literal
 
@@ -21,9 +22,16 @@ import numpy as np
 
 from chemworld.eval.mechanism_gate_decision import gate_a_certificate_decision
 
-MECHANISM_ADAPTATION_ANALYSIS_VERSION = "chemworld-mechanism-adaptation-analysis-0.2"
+MECHANISM_ADAPTATION_ANALYSIS_VERSION = "chemworld-mechanism-adaptation-analysis-0.3"
 
 REQUIRED_GATE_IDS = ("gate_0", "gate_a", "gate_b", "gate_c", "gate_d", "gate_e")
+REQUIRED_EVALUATION_TRACK_IDS = (
+    "static_world_identification",
+    "calibrated_online_change",
+    "uncalibrated_nonstationarity",
+    "adaptive_recovery",
+)
+PRIMARY_CHANGE_TRACK_ID = "calibrated_online_change"
 
 AutonomyStatus = Literal[
     "fully_autonomous_campaign",
@@ -31,6 +39,89 @@ AutonomyStatus = Literal[
     "assisted_campaign",
     "incomplete_campaign",
 ]
+
+
+def load_mechanism_adaptation_protocol(path: str | Path) -> dict[str, Any]:
+    """Load a full protocol or one hash-pinned versioned composition.
+
+    The composition form lets a new scientific design reuse stable task and data
+    contracts without copying hundreds of lines.  It is deliberately constrained:
+    one relative, hash-pinned base; explicit dotted-path removals; and one recursive
+    override object.
+    """
+
+    source = Path(path)
+    raw = json.loads(source.read_text(encoding="utf-8"))
+    if not isinstance(raw, dict):
+        raise ValueError(f"mechanism-adaptation protocol must be an object: {source}")
+    if (
+        raw.get("schema_version")
+        != "chemworld-mechanism-adaptation-protocol-composition-0.1"
+    ):
+        return raw
+    extends = raw.get("extends")
+    expected_base_sha = str(raw.get("base_sha256", "")).lower()
+    overrides = raw.get("overrides")
+    remove_paths = raw.get("remove_paths", [])
+    if (
+        not isinstance(extends, str)
+        or not extends
+        or not isinstance(overrides, Mapping)
+        or not isinstance(remove_paths, list)
+    ):
+        raise ValueError("invalid mechanism-adaptation protocol composition")
+    base_path = (source.parent / extends).resolve()
+    if source.parent.resolve() not in base_path.parents:
+        raise ValueError("composed protocol base must stay inside the protocol directory")
+    observed_base_sha = hashlib.sha256(base_path.read_bytes()).hexdigest()
+    if observed_base_sha != expected_base_sha:
+        raise ValueError(
+            "composed protocol base hash mismatch: "
+            f"expected {expected_base_sha}, observed {observed_base_sha}"
+        )
+    base = load_mechanism_adaptation_protocol(base_path)
+    resolved = _deep_merge_protocol(base, overrides)
+    for raw_path in remove_paths:
+        if not isinstance(raw_path, str) or not raw_path:
+            raise ValueError("protocol remove_paths must contain dotted strings")
+        _remove_protocol_path(resolved, raw_path)
+    resolved["protocol_composition"] = {
+        "schema_version": raw["schema_version"],
+        "source": source.name,
+        "extends": base_path.name,
+        "base_sha256": observed_base_sha,
+        "remove_paths": list(remove_paths),
+    }
+    return resolved
+
+
+def _deep_merge_protocol(
+    base: Mapping[str, Any],
+    overrides: Mapping[str, Any],
+) -> dict[str, Any]:
+    result = dict(base)
+    for key, value in overrides.items():
+        if isinstance(value, Mapping) and isinstance(result.get(key), Mapping):
+            result[str(key)] = _deep_merge_protocol(
+                result[str(key)],
+                value,
+            )
+        else:
+            result[str(key)] = value
+    return result
+
+
+def _remove_protocol_path(protocol: dict[str, Any], dotted_path: str) -> None:
+    parts = dotted_path.split(".")
+    target: dict[str, Any] = protocol
+    for part in parts[:-1]:
+        value = target.get(part)
+        if not isinstance(value, dict):
+            raise ValueError(f"protocol removal path does not exist: {dotted_path}")
+        target = value
+    if parts[-1] not in target:
+        raise ValueError(f"protocol removal path does not exist: {dotted_path}")
+    del target[parts[-1]]
 
 
 @dataclass(frozen=True)
@@ -90,6 +181,129 @@ def conditional_changed_family_distribution(
     return {key: value / mass for key, value in changed.items()}
 
 
+def evaluation_track(
+    protocol: Mapping[str, Any],
+    track_id: str = PRIMARY_CHANGE_TRACK_ID,
+) -> Mapping[str, Any]:
+    """Return one declared evaluation track from a v0.3 protocol."""
+
+    tracks = protocol.get("evaluation_tracks")
+    if not isinstance(tracks, Mapping):
+        raise ValueError("protocol must declare evaluation_tracks")
+    track = tracks.get(track_id)
+    if not isinstance(track, Mapping):
+        raise ValueError(f"protocol does not declare evaluation track {track_id!r}")
+    return track
+
+
+def reference_sufficiency_certificate(
+    *,
+    pre_change_action_ids: Sequence[str],
+    required_reference_action_ids: Sequence[str],
+    declared_relation_groups: Mapping[str, Sequence[Sequence[str]]],
+    minimum_reference_experiments: int,
+    predictive_information_non_saturated: bool,
+    predictive_adequacy: Mapping[str, Any],
+    universal_candidate_family_scope: bool,
+    maximum_reference_age_experiments: int,
+    observed_reference_ages: Mapping[str, int],
+) -> dict[str, Any]:
+    """Certify that an online history contains a usable old-world reference.
+
+    The certificate is deliberately task-agnostic.  Mechanism-specific requirements
+    enter only through declarative public action groups.  A trial is not treated as a
+    mechanism-attribution failure when this prerequisite is absent; instead reference
+    acquisition fails closed as its own Gate A3 component.
+    """
+
+    observed = [str(item) for item in pre_change_action_ids]
+    required = [str(item) for item in required_reference_action_ids]
+    if minimum_reference_experiments <= 0:
+        raise ValueError("minimum reference experiments must be positive")
+    if not required or len(required) != len(set(required)):
+        raise ValueError("required reference actions must be non-empty and unique")
+    required_set = set(required)
+    observed_set = set(observed)
+    relation_coverage: dict[str, Any] = {}
+    for declaration_id, raw_groups in sorted(declared_relation_groups.items()):
+        groups = [
+            tuple(str(action_id) for action_id in group)
+            for group in raw_groups
+        ]
+        if not groups or any(len(group) < 2 for group in groups):
+            raise ValueError(
+                "declared diagnostic relations must contain groups of at least two actions"
+            )
+        covered_groups = [
+            list(group) for group in groups if set(group).issubset(observed_set)
+        ]
+        relation_coverage[str(declaration_id)] = {
+            "covered": bool(covered_groups),
+            "covered_groups": covered_groups,
+            "declared_groups": [list(group) for group in groups],
+        }
+    structural_checks = {
+        "minimum_reference_experiments_met": (
+            len(observed) >= minimum_reference_experiments
+        ),
+        "required_reference_actions_observed": required_set.issubset(observed_set),
+        "declared_relations_observed": all(
+            item["covered"] for item in relation_coverage.values()
+        ),
+        "universal_candidate_family_scope": bool(
+            universal_candidate_family_scope
+        ),
+        "predictive_information_non_saturated": bool(
+            predictive_information_non_saturated
+        ),
+    }
+    predictive_pass = predictive_adequacy.get("pass")
+    if not isinstance(predictive_pass, bool):
+        raise ValueError("predictive adequacy must provide a boolean pass field")
+    ages = {str(key): int(value) for key, value in observed_reference_ages.items()}
+    if not set(ages).issubset(required_set) or any(
+        value < 0 for value in ages.values()
+    ):
+        raise ValueError(
+            "reference ages must be non-negative required-action entries"
+        )
+    age_pass = (
+        maximum_reference_age_experiments >= 0
+        and required_set.issubset(ages)
+        and max(ages.values(), default=0) <= maximum_reference_age_experiments
+    )
+    predictive_checks = {
+        "held_out_old_world_predictive_adequacy": predictive_pass,
+        "reference_age_within_frozen_limit": age_pass,
+    }
+    structural_pass = all(structural_checks.values())
+    passed = structural_pass and all(predictive_checks.values())
+    return {
+        "schema_version": "chemworld-reference-sufficiency-certificate-0.2",
+        "status": "passed" if passed else "failed",
+        "pass": passed,
+        "scope": "universal_all_declared_candidate_families_without_truth_conditioning",
+        "minimum_reference_experiments": minimum_reference_experiments,
+        "actual_reference_experiments": len(observed),
+        "required_reference_action_ids": required,
+        "observed_reference_action_ids": list(dict.fromkeys(observed)),
+        "structural_sufficiency": {
+            "pass": structural_pass,
+            "relation_coverage": relation_coverage,
+            "checks": structural_checks,
+        },
+        "predictive_sufficiency": {
+            **dict(predictive_adequacy),
+            "pass": predictive_pass and age_pass,
+            "maximum_reference_age_experiments": (
+                maximum_reference_age_experiments
+            ),
+            "observed_reference_ages": ages,
+            "checks": predictive_checks,
+        },
+    }
+
+
 def categorical_entropy(distribution: Mapping[str, float], *, normalized: bool = False) -> float:
     """Return categorical entropy in nats, optionally divided by log(cardinality)."""
 
@@ -145,6 +359,8 @@ def change_detection_summary(
     probabilities: Sequence[float],
     detection_delays: Sequence[int | None],
     threshold: float = 0.5,
+    bootstrap_seed: int = 0,
+    bootstrap_draws: int = 2000,
 ) -> dict[str, Any]:
     """Score change campaigns together with their required no-change twins."""
 
@@ -173,14 +389,27 @@ def change_detection_summary(
         for label, estimate, delay in zip(labels, predicted, detection_delays, strict=True)
         if label and estimate and delay is not None
     ]
+    sensitivity_interval = wilson_interval(true_positive, positives)
+    false_positive_interval = wilson_interval(false_positive, negatives)
+    auroc = _binary_auroc(labels, scores)
     return {
         "campaign_count": len(labels),
         "changed_count": positives,
         "no_change_twin_count": negatives,
         "threshold": threshold,
         "sensitivity": true_positive / positives,
+        "sensitivity_interval": list(sensitivity_interval),
         "false_positive_rate": false_positive / negatives,
-        "auroc": _binary_auroc(labels, scores),
+        "false_positive_rate_interval": list(false_positive_interval),
+        "auroc": auroc,
+        "auroc_interval": list(
+            binary_auroc_bootstrap_interval(
+                changed=labels,
+                probabilities=scores,
+                seed=bootstrap_seed,
+                draws=bootstrap_draws,
+            )
+        ),
         "brier_score": sum(
             (score - (1.0 if label else 0.0)) ** 2
             for label, score in zip(labels, scores, strict=True)
@@ -190,6 +419,43 @@ def change_detection_summary(
         "detected_changed_count": len(observed_delays),
         "right_censored_changed_count": positives - len(observed_delays),
     }
+
+
+def binary_auroc_bootstrap_interval(
+    *,
+    changed: Sequence[bool],
+    probabilities: Sequence[float],
+    seed: int,
+    draws: int = 2000,
+    confidence: float = 0.95,
+) -> tuple[float, float]:
+    """Return a deterministic stratified percentile interval for binary AUROC."""
+
+    labels = np.asarray([bool(item) for item in changed], dtype=bool)
+    scores = np.asarray([float(item) for item in probabilities], dtype=float)
+    if labels.ndim != 1 or scores.shape != labels.shape or labels.size == 0:
+        raise ValueError("AUROC bootstrap labels and scores must be aligned")
+    if not labels.any() or labels.all():
+        raise ValueError("AUROC bootstrap requires both classes")
+    if draws <= 0 or not 0.0 < confidence < 1.0:
+        raise ValueError("AUROC bootstrap draws and confidence are invalid")
+    positive = np.flatnonzero(labels)
+    negative = np.flatnonzero(~labels)
+    rng = np.random.default_rng(int(seed))
+    estimates = np.empty(draws, dtype=float)
+    for index in range(draws):
+        selected_positive = rng.choice(positive, size=positive.size, replace=True)
+        selected_negative = rng.choice(negative, size=negative.size, replace=True)
+        selected = np.concatenate((selected_positive, selected_negative))
+        estimates[index] = _binary_auroc(
+            labels[selected].tolist(),
+            scores[selected].tolist(),
+        )
+    tail = (1.0 - confidence) / 2.0
+    return (
+        float(np.quantile(estimates, tail)),
+        float(np.quantile(estimates, 1.0 - tail)),
+    )
 
 
 def declared_distribution_update(
@@ -689,21 +955,200 @@ def validate_mechanism_adaptation_protocol(protocol: Mapping[str, Any]) -> list[
         elif not gate.get("pass_rule"):
             errors.append(f"{gate_id} must freeze a pass_rule")
 
+    schema_version = protocol.get("schema_version")
     design = protocol.get("design")
     if not isinstance(design, Mapping):
         errors.append("design must be an object")
     else:
-        if design.get("post_change_checkpoints") != [1, 2, 4, 8]:
-            errors.append("post_change_checkpoints must equal [1, 2, 4, 8]")
-        changepoints = design.get("change_after_experiments")
-        if not isinstance(changepoints, list) or "never" not in changepoints:
-            errors.append("change_after_experiments must include the no-change twin 'never'")
-        if int(design.get("total_experiment_horizon", 0) or 0) < 8:
-            errors.append("total_experiment_horizon must be at least eight")
+        if schema_version == "chemworld-mechanism-adaptation-protocol-0.3.0":
+            legacy_change_fields = {
+                "pre_change_experiments",
+                "change_after_experiments",
+                "post_change_checkpoints",
+                "total_experiment_horizon",
+            } & set(design)
+            if legacy_change_fields:
+                errors.append(
+                    "v0.3 change timing belongs to evaluation_tracks, not design: "
+                    + ", ".join(sorted(legacy_change_fields))
+                )
+        else:
+            if design.get("post_change_checkpoints") != [1, 2, 4, 8]:
+                errors.append("post_change_checkpoints must equal [1, 2, 4, 8]")
+            changepoints = design.get("change_after_experiments")
+            if not isinstance(changepoints, list) or "never" not in changepoints:
+                errors.append("change_after_experiments must include the no-change twin 'never'")
+            if int(design.get("total_experiment_horizon", 0) or 0) < 8:
+                errors.append("total_experiment_horizon must be at least eight")
         repeat_count = int(design.get("provider_repeats_per_paired_cell", 0) or 0)
         order_seeds = design.get("candidate_order_seeds")
         if not isinstance(order_seeds, list) or len(order_seeds) != repeat_count:
             errors.append("candidate_order_seeds must match provider repeat count")
+
+    if schema_version == "chemworld-mechanism-adaptation-protocol-0.3.0":
+        tracks = protocol.get("evaluation_tracks")
+        if not isinstance(tracks, Mapping):
+            errors.append("v0.3 requires evaluation_tracks")
+        elif set(tracks) != set(REQUIRED_EVALUATION_TRACK_IDS):
+            errors.append(
+                "evaluation_tracks must exactly declare "
+                + ", ".join(REQUIRED_EVALUATION_TRACK_IDS)
+            )
+        else:
+            static = tracks["static_world_identification"]
+            if (
+                not isinstance(static, Mapping)
+                or static.get("world_initialization") != "candidate_world_from_start"
+                or static.get("change_detection_claim_allowed") is not False
+            ):
+                errors.append(
+                    "static_world_identification must identify the initialized current "
+                    "world without a change-detection claim"
+                )
+
+            calibrated = tracks[PRIMARY_CHANGE_TRACK_ID]
+            if not isinstance(calibrated, Mapping):
+                errors.append("calibrated_online_change must be an object")
+            else:
+                minimum_prefix = int(
+                    calibrated.get("minimum_stable_prefix_experiments", 0) or 0
+                )
+                checkpoints = calibrated.get("post_change_checkpoints")
+                changepoints = calibrated.get("change_after_experiments")
+                numeric_changepoints = (
+                    [int(item) for item in changepoints if item != "never"]
+                    if isinstance(changepoints, list)
+                    else []
+                )
+                if minimum_prefix <= 0:
+                    errors.append(
+                        "calibrated_online_change requires a positive stable prefix"
+                    )
+                if checkpoints != [1, 2, 4, 8]:
+                    errors.append(
+                        "calibrated_online_change post_change_checkpoints must equal "
+                        "[1, 2, 4, 8]"
+                    )
+                if (
+                    not isinstance(changepoints, list)
+                    or "never" not in changepoints
+                    or not numeric_changepoints
+                ):
+                    errors.append(
+                        "calibrated_online_change must include hidden change times and never"
+                    )
+                if calibrated.get("truth_change_time_support") != changepoints:
+                    errors.append(
+                        "calibrated truth_change_time_support must exactly match "
+                        "change_after_experiments"
+                    )
+                if (
+                    calibrated.get("changepoint_semantics")
+                    != "tau_is_completed_old_world_experiment_count; tau=6 means "
+                    "experiments 1-6 use the old world and experiment 7 is the first "
+                    "experiment eligible to use the changed world"
+                ):
+                    errors.append(
+                        "calibrated changepoint semantics must freeze the completed "
+                        "old-world experiment-count convention"
+                    )
+                elif min(numeric_changepoints) < minimum_prefix:
+                    errors.append(
+                        "calibrated change times cannot precede the stable reference prefix"
+                    )
+                horizon = int(calibrated.get("total_experiment_horizon", 0) or 0)
+                maximum_checkpoint = max(checkpoints or [0])
+                if (
+                    numeric_changepoints
+                    and horizon
+                    < max(numeric_changepoints) + maximum_checkpoint
+                ):
+                    errors.append(
+                        "calibrated horizon must cover the latest change plus final checkpoint"
+                    )
+                sufficiency = calibrated.get("reference_sufficiency")
+                if not isinstance(sufficiency, Mapping):
+                    errors.append(
+                        "calibrated_online_change requires reference_sufficiency"
+                    )
+                else:
+                    if (
+                        sufficiency.get("basis")
+                        != "universal_structural_relation_coverage_and_held_out_predictive_adequacy"
+                    ):
+                        errors.append(
+                            "reference sufficiency must combine universal structural "
+                            "coverage and held-out predictive adequacy"
+                        )
+                    if (
+                        sufficiency.get("scope")
+                        != "universal_all_declared_candidate_families_without_truth_conditioning"
+                    ):
+                        errors.append(
+                            "reference sufficiency must be universal and independent "
+                            "of the realized hidden family"
+                        )
+                    if sufficiency.get("all_policy_actions_observed") is not True:
+                        errors.append(
+                            "reference sufficiency must require every policy action"
+                        )
+                    if sufficiency.get("all_declared_relations_observed") is not True:
+                        errors.append(
+                            "reference sufficiency must require every declared relation"
+                        )
+                    if (
+                        sufficiency.get("held_out_old_world_predictive_check_required")
+                        is not True
+                    ):
+                        errors.append(
+                            "reference sufficiency must require held-out old-world "
+                            "predictive adequacy"
+                        )
+                timing_contract = calibrated.get("agent_visible_timing_contract")
+                if not isinstance(timing_contract, Mapping):
+                    errors.append(
+                        "calibrated online change requires an Agent-visible timing contract"
+                    )
+                else:
+                    hidden_timing = set(timing_contract.get("hidden", []))
+                    required_hidden = {
+                        "minimum_stable_prefix_experiments",
+                        "change_after_experiments",
+                        "truth_change_time",
+                        "evaluator_pseudo_checkpoint",
+                        "reference_sufficiency_certificate",
+                        "post_change_checkpoint",
+                    }
+                    if not required_hidden.issubset(hidden_timing):
+                        errors.append(
+                            "Agent-visible timing contract leaks or omits private "
+                            "calibrated timing fields"
+                        )
+
+            stress = tracks["uncalibrated_nonstationarity"]
+            if not isinstance(stress, Mapping):
+                errors.append("uncalibrated_nonstationarity must be an object")
+            else:
+                stress_times = stress.get("change_after_experiments")
+                if (
+                    not isinstance(stress_times, list)
+                    or 0 not in stress_times
+                    or stress.get("controls_publication_gate") is not False
+                    or stress.get("ordinary_change_detection_claim_allowed") is not False
+                ):
+                    errors.append(
+                        "uncalibrated_nonstationarity must retain time zero as a "
+                        "non-gating current-world/joint-inference stress case"
+                    )
+
+            recovery = tracks["adaptive_recovery"]
+            if (
+                not isinstance(recovery, Mapping)
+                or recovery.get("source_change_track") != PRIMARY_CHANGE_TRACK_ID
+            ):
+                errors.append(
+                    "adaptive_recovery must consume the calibrated online change track"
+                )
 
     reporting = protocol.get("reporting")
     if not isinstance(reporting, Mapping):
@@ -748,6 +1193,7 @@ def validate_mechanism_adaptation_protocol(protocol: Mapping[str, Any]) -> list[
                 continue
             candidates = raw_contract.get("candidate_ids")
             interventions = raw_contract.get("interventions")
+            diagnostic_relations = raw_contract.get("diagnostic_relations", {})
             if not isinstance(candidates, list) or "no_change" not in candidates:
                 errors.append(f"task candidates must include no_change: {task_id}")
                 continue
@@ -786,13 +1232,55 @@ def validate_mechanism_adaptation_protocol(protocol: Mapping[str, Any]) -> list[
                                 "unsupported material counterfactual field: "
                                 f"{task_id}/{candidate_id}/{material_field}"
                             )
+                    elif schema_version == "chemworld-mechanism-adaptation-protocol-0.3.0":
+                        relation = (
+                            diagnostic_relations.get(candidate_id)
+                            if isinstance(diagnostic_relations, Mapping)
+                            else None
+                        )
+                        if not isinstance(relation, Mapping):
+                            errors.append(
+                                "v0.3 mechanism interventions require a diagnostic "
+                                f"relation: {task_id}/{candidate_id}"
+                            )
+                        else:
+                            varied_fields = relation.get("varied_fields")
+                            if (
+                                relation.get("relation_graph_version")
+                                != "chemworld-diagnostic-relation-graph-0.1"
+                                or not isinstance(varied_fields, list)
+                                or not varied_fields
+                                or int(
+                                    relation.get("minimum_distinct_actions", 0)
+                                    or 0
+                                )
+                                < 2
+                                or relation.get("controlled_background")
+                                != "all_remaining_recipe_operations_fields_and_order"
+                                or not isinstance(
+                                    relation.get("observable_channels"),
+                                    list,
+                                )
+                                or not relation.get("observable_channels")
+                                or not isinstance(
+                                    relation.get("candidate_signatures"),
+                                    Mapping,
+                                )
+                            ):
+                                errors.append(
+                                    "invalid diagnostic relation: "
+                                    f"{task_id}/{candidate_id}"
+                                )
 
-    if protocol.get("schema_version") == "chemworld-mechanism-adaptation-protocol-0.2.1":
+    if protocol.get("schema_version") in {
+        "chemworld-mechanism-adaptation-protocol-0.2.1",
+        "chemworld-mechanism-adaptation-protocol-0.3.0",
+    }:
         alignment = protocol.get("intervention_action_alignment")
         if not isinstance(alignment, Mapping) or not alignment.get("required"):
-            errors.append("v0.2.1 requires intervention_action_alignment")
+            errors.append("v0.2.1+ requires intervention_action_alignment")
         elif not alignment.get("moved_indices_must_be_covered_by_gate_a_action_library"):
-            errors.append("v0.2.1 must require Gate A coverage of moved material indices")
+            errors.append("v0.2.1+ must require Gate A coverage of moved material indices")
 
     return errors
 
@@ -801,6 +1289,7 @@ def build_paired_campaign_matrix(
     protocol: Mapping[str, Any],
     *,
     world_seeds: Sequence[int] | None = None,
+    track_id: str | None = None,
 ) -> list[dict[str, Any]]:
     """Expand the frozen changed/no-change twin confirmatory matrix."""
 
@@ -812,7 +1301,26 @@ def build_paired_campaign_matrix(
     seeds = list(world_seeds or design["public_development_seeds"])
     if not seeds or len(set(seeds)) != len(seeds):
         raise ValueError("world seeds must be non-empty and unique")
-    change_times = [int(item) for item in design["change_after_experiments"] if item != "never"]
+    if protocol.get("schema_version") == "chemworld-mechanism-adaptation-protocol-0.3.0":
+        selected_track_id = track_id or PRIMARY_CHANGE_TRACK_ID
+        track = evaluation_track(protocol, selected_track_id)
+        if track.get("kind") not in {
+            "calibrated_hidden_change",
+            "uncalibrated_hidden_nonstationarity",
+        }:
+            raise ValueError(
+                "paired campaign matrices require a calibrated or uncalibrated "
+                "change track"
+            )
+        timing = track
+    else:
+        if track_id is not None:
+            raise ValueError("legacy protocols do not declare evaluation tracks")
+        selected_track_id = "legacy_paired_change"
+        timing = design
+    change_times = [
+        int(item) for item in timing["change_after_experiments"] if item != "never"
+    ]
     label_modes = list(protocol["diagnosis_contract"]["candidate_label_modes"])
     order_seeds = [int(item) for item in design["candidate_order_seeds"]]
     rows: list[dict[str, Any]] = []
@@ -828,6 +1336,7 @@ def build_paired_campaign_matrix(
                         for repeat_id, order_seed in enumerate(order_seeds):
                             physical_cell_payload = {
                                 "protocol_id": protocol["protocol_id"],
+                                "evaluation_track_id": selected_track_id,
                                 "task_id": task_id,
                                 "phase_reset_after_experiment": change_time,
                                 "candidate_label_mode": label_mode,
@@ -842,6 +1351,7 @@ def build_paired_campaign_matrix(
                             ).hexdigest()[:20]
                             pair_payload = {
                                 "protocol_id": protocol["protocol_id"],
+                                "evaluation_track_id": selected_track_id,
                                 "task_id": task_id,
                                 "changed_truth_id": truth_id,
                                 "phase_reset_after_experiment": change_time,
@@ -863,12 +1373,20 @@ def build_paired_campaign_matrix(
                                     {
                                         **pair_payload,
                                         "pair_id": pair_id,
-                                        "statistical_cluster_id": (
-                                            f"{physical_cell_id}:{arm_truth}"
-                                        ),
+                                        "statistical_cluster_id": physical_cell_id,
                                         "technical_repeat_id": repeat_id,
                                         "arm": arm,
                                         "truth_id": arm_truth,
+                                        "truth_change_time": (
+                                            change_time
+                                            if arm == "changed"
+                                            else "never"
+                                        ),
+                                        "evaluator_pseudo_checkpoint": (
+                                            None
+                                            if arm == "changed"
+                                            else change_time
+                                        ),
                                         "candidate_ids": candidates,
                                         "world_interventions": (
                                             interventions[truth_id]
@@ -877,14 +1395,82 @@ def build_paired_campaign_matrix(
                                         ),
                                         "hidden_law_changes": arm == "changed",
                                         "agent_memory_preserved_across_phase_reset": True,
-                                        "total_experiment_horizon": design[
+                                        "total_experiment_horizon": timing[
                                             "total_experiment_horizon"
                                         ],
-                                        "post_change_checkpoints": design[
+                                        "post_change_checkpoints": timing[
                                             "post_change_checkpoints"
                                         ],
+                                        "ordinary_change_detection_claim_allowed": (
+                                            timing.get(
+                                                "ordinary_change_detection_claim_allowed",
+                                                True,
+                                            )
+                                            is True
+                                        ),
                                     }
                                 )
+    return rows
+
+
+def build_static_world_identification_matrix(
+    protocol: Mapping[str, Any],
+    *,
+    world_seeds: Sequence[int] | None = None,
+) -> list[dict[str, Any]]:
+    """Expand worlds initialized in one candidate family without inventing a change."""
+
+    errors = validate_mechanism_adaptation_protocol(protocol)
+    if errors:
+        raise ValueError("invalid mechanism-adaptation protocol: " + "; ".join(errors))
+    if protocol.get("schema_version") != "chemworld-mechanism-adaptation-protocol-0.3.0":
+        raise ValueError("static world identification requires a v0.3 protocol")
+    track = evaluation_track(protocol, "static_world_identification")
+    design = protocol["design"]
+    seeds = list(world_seeds or design["public_development_seeds"])
+    if not seeds or len(set(seeds)) != len(seeds):
+        raise ValueError("world seeds must be non-empty and unique")
+    checkpoints = [int(item) for item in track["experiment_budget_checkpoints"]]
+    rows: list[dict[str, Any]] = []
+    for task_id, contract in protocol["task_mechanism_contracts"].items():
+        candidates = list(contract["candidate_ids"])
+        for truth_id in candidates:
+            for label_mode in protocol["diagnosis_contract"]["candidate_label_modes"]:
+                for world_seed in seeds:
+                    for repeat_id, order_seed in enumerate(
+                        design["candidate_order_seeds"]
+                    ):
+                        payload = {
+                            "protocol_id": protocol["protocol_id"],
+                            "evaluation_track_id": "static_world_identification",
+                            "task_id": task_id,
+                            "truth_id": truth_id,
+                            "candidate_label_mode": label_mode,
+                            "world_seed": int(world_seed),
+                            "provider_repeat_id": repeat_id,
+                            "candidate_order_seed": int(order_seed),
+                        }
+                        row_id = hashlib.sha256(
+                            json.dumps(
+                                payload,
+                                sort_keys=True,
+                                separators=(",", ":"),
+                            ).encode("utf-8")
+                        ).hexdigest()[:20]
+                        rows.append(
+                            {
+                                **payload,
+                                "row_id": row_id,
+                                "candidate_ids": candidates,
+                                "world_interventions": contract["interventions"][
+                                    truth_id
+                                ],
+                                "hidden_law_changes": False,
+                                "change_probability_defined": False,
+                                "current_world_identification_only": True,
+                                "experiment_budget_checkpoints": checkpoints,
+                            }
+                        )
     return rows
 
 
@@ -918,8 +1504,29 @@ def evaluate_protocol_gates(
         isinstance(certificate_decision, Mapping)
         and certificate_decision.get("controlled_matched_gate_pass") is True
     )
+    controlled_certificate_present = bool(
+        isinstance(certificate_decision, Mapping)
+        and certificate_decision.get(
+            "a2_controlled_matched_certificate_present",
+            True,
+        )
+        is True
+    )
+    physical_intervention_validity_pass = bool(
+        isinstance(certificate_decision, Mapping)
+        and certificate_decision.get("a1_physical_intervention_validity_pass")
+        is True
+    )
     if isinstance(identifiability, Mapping) and not isinstance(certificate_decision, Mapping):
         controlled_gate_pass = identifiability.get("controlled_matched_gate_pass") is True
+        controlled_certificate_present = (
+            "controlled_matched_gate_pass" in identifiability
+        )
+        design_validity = identifiability.get("design_validity_audit")
+        physical_intervention_validity_pass = bool(
+            isinstance(design_validity, Mapping)
+            and design_validity.get("pass") is True
+        )
     online_policy_certificate = (
         identifiability.get("online_policy_feasible_certificate")
         if isinstance(identifiability, Mapping)
@@ -933,7 +1540,11 @@ def evaluate_protocol_gates(
     gate_a_decision = gate_a_certificate_decision(
         protocol,
         gate_a_plan,
+        physical_intervention_validity_pass=(
+            physical_intervention_validity_pass
+        ),
         controlled_gate_pass=controlled_gate_pass,
+        controlled_certificate_present=controlled_certificate_present,
         online_policy_certificate=online_policy_certificate,
     )
     gate_a = gate_a_decision["gate_a_pass"] is True
@@ -1024,12 +1635,16 @@ def _interval_upper(value: Any) -> float:
 
 __all__ = [
     "MECHANISM_ADAPTATION_ANALYSIS_VERSION",
+    "PRIMARY_CHANGE_TRACK_ID",
+    "REQUIRED_EVALUATION_TRACK_IDS",
     "AutonomyStatus",
     "GaussianCandidatePredictive",
     "GaussianMechanismOracle",
     "OutcomeLayers",
     "active_oracle_diagnosis",
+    "binary_auroc_bootstrap_interval",
     "build_paired_campaign_matrix",
+    "build_static_world_identification_matrix",
     "campaign_autonomy_status",
     "categorical_entropy",
     "change_detection_summary",
@@ -1037,15 +1652,18 @@ __all__ = [
     "declared_change_probability",
     "declared_distribution_update",
     "evaluate_protocol_gates",
+    "evaluation_track",
     "feedback_effect_summary",
     "fixed_trajectory_decode",
     "identifiability_certificate",
     "js_divergence",
     "kl_divergence",
+    "load_mechanism_adaptation_protocol",
     "multiclass_brier",
     "normalized_distribution",
     "operation_aware_action_distance",
     "recovery_decomposition",
+    "reference_sufficiency_certificate",
     "validate_mechanism_adaptation_protocol",
     "wilson_interval",
 ]

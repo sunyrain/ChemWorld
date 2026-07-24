@@ -41,7 +41,7 @@ Extended 表示证据角色。
 | 套件 | 作用 | 当前范围 |
 | --- | --- | --- |
 | Core | Agent 比较环境 | 六个 serious task；方法与结果尚未冻结 |
-| Diagnostic | 可识别性、no-change、反馈、反事实、适应和自治归因 | 机制 v0.2.1 等分解协议 |
+| Diagnostic | 可识别性、no-change、反馈、反事实、适应和自治归因 | 机制 v0.3 等分轨协议 |
 | Extended | 训练、教学、覆盖展示和方法开发 | 其余已注册任务与 demos |
 
 当前 Core 的六个任务是：

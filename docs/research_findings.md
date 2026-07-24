@@ -55,6 +55,17 @@ rate-law 的 Wilson 下界仍为 0.5907。该开发诊断复用了正式 seed，
 16/16。该低功效筛查不能估计正式通过率，相关实现也未保留；它只说明未来自适应方法必须显式联合
 规划 reference coverage、时间证据与跨动作关系，并在独立 selection validation 通过后才能预注册。
 
+RC21 还暴露了一个更基础的协议问题：`change_time=1` 虽然在实现上表示先执行一个旧世界实验，
+但该实验通常落在 rate-law 的弱信号枢轴附近，不能形成足以解释“从什么变成什么”的响应基线。
+因此 v0.3 不再把静态世界识别、早期无校准非平稳性和有基线的在线变化归因混在同一个 Gate。
+静态轨只识别当前世界；`change_time={0,1,2,4}` 被保留为非控制性压力轨；控制 Gate A3 的校准轨
+使用 `truth_change_time={never,6,8,10}`。`τ=6` 唯一表示前六个完整实验属于旧世界，第七个实验
+开始才可能变化；Agent 不知道最早变化位置、候选时间、reference certificate 或 evaluator
+checkpoint。RC23 reference certificate 同时要求通用关系覆盖和 held-out 旧世界预测充分性，并将
+reference failure 保留在端到端成功率分母中。Development、A2、A3 与 private confirmation 使用
+四个不重叠 cohort。RC23 旗舰语义审计 18/18、物理设计审计 81/81 通过，但 A2/A3 仍需新的未触碰
+cohort；RC21/RC22-d 不能升级为 v0.3 确证证据。
+
 这些结果只支持环境级可识别性诊断，不证明被评 Agent 已具备机制发现能力，也不代表发现了结晶动力学
 或精确速率参数。
 

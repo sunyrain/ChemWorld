@@ -1,0 +1,338 @@
+{
+  "schema_version": "chemworld-mechanism-adaptation-protocol-composition-0.1",
+  "extends": "mechanism_adaptation_v0.2.1.json",
+  "base_sha256": "51160d5edf9e690f45303695800374e62961f07ad65ee7f1704f665436fd3f70",
+  "remove_paths": [
+    "design.pre_change_experiments",
+    "design.total_experiment_horizon",
+    "design.change_after_experiments",
+    "design.post_change_checkpoints"
+  ],
+  "overrides": {
+    "schema_version": "chemworld-mechanism-adaptation-protocol-0.3.0",
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc23",
+    "status": "implemented_candidate_protocol_execution_pending",
+    "research_question": "Can a world-model Agent first establish a predictive reference for a stable physical-chemistry world, then detect and attribute a hidden law change and recover performance under separately declared reference and post-change budgets?",
+    "design": {
+      "same_budget_for_all_conditions": false,
+      "budget_semantics": "reference acquisition and post-change diagnosis are separate declared resources; static identification and uncalibrated nonstationarity do not control the calibrated change gate"
+    },
+    "evaluation_tracks": {
+      "static_world_identification": {
+        "kind": "static_current_world_identification",
+        "world_initialization": "candidate_world_from_start",
+        "experiment_budget_checkpoints": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "change_probability_defined": false,
+        "change_detection_claim_allowed": false,
+        "controls_publication_gate": false,
+        "primary_metrics": [
+          "current_world_family_top1",
+          "current_world_brier_score",
+          "predictive_log_loss",
+          "diagnostic_action_efficiency"
+        ]
+      },
+      "calibrated_online_change": {
+        "kind": "calibrated_hidden_change",
+        "controls_gate_a3": true,
+        "minimum_stable_prefix_experiments": 6,
+        "changepoint_semantics": "tau_is_completed_old_world_experiment_count; tau=6 means experiments 1-6 use the old world and experiment 7 is the first experiment eligible to use the changed world",
+        "change_after_experiments": [
+          "never",
+          6,
+          8,
+          10
+        ],
+        "truth_change_time_support": [
+          "never",
+          6,
+          8,
+          10
+        ],
+        "total_experiment_horizon": 18,
+        "post_change_checkpoints": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "change_time_assignment": "seeded_balanced_and_hidden_from_policy",
+        "no_change_condition": "same hidden world before and after an evaluator-only matched pseudo-checkpoint",
+        "policy_receives_phase_or_reset_indicator": false,
+        "agent_visible_timing_contract": {
+          "visible": [
+            "total_experiment_horizon",
+            "world_may_remain_stable_or_change_at_an_unspecified_time"
+          ],
+          "hidden": [
+            "minimum_stable_prefix_experiments",
+            "change_after_experiments",
+            "truth_change_time",
+            "evaluator_pseudo_checkpoint",
+            "reference_sufficiency_certificate",
+            "post_change_checkpoint"
+          ]
+        },
+        "agent_memory_preserved_across_reset": true,
+        "no_change_twins_receive_matched_reset": true,
+        "ordinary_change_detection_claim_allowed": true,
+        "reference_sufficiency": {
+          "basis": "universal_structural_relation_coverage_and_held_out_predictive_adequacy",
+          "scope": "universal_all_declared_candidate_families_without_truth_conditioning",
+          "minimum_reference_experiments": 6,
+          "all_policy_actions_observed": true,
+          "all_declared_relations_observed": true,
+          "matched_background_required": true,
+          "held_out_old_world_predictive_check_required": true,
+          "predictive_information_ranking_must_be_non_saturated": true,
+          "insufficient_reference_handling": "fail_reference_acquisition_component; exclude only from conditional attribution denominator; retain as failure in end_to_end_online_success"
+        },
+        "primary_metrics": [
+          "reference_acquisition_pass_rate",
+          "reference_predictive_standardized_error",
+          "change_detection_sensitivity",
+          "no_change_false_positive_rate",
+          "change_detection_auroc",
+          "change_probability_brier_score",
+          "detection_delay",
+          "family_attribution_conditional_on_reference_sufficiency",
+          "p_reference_sufficient",
+          "p_detection_given_reference",
+          "p_attribution_given_detection_and_reference",
+          "end_to_end_reference_detection_attribution_success"
+        ]
+      },
+      "uncalibrated_nonstationarity": {
+        "kind": "uncalibrated_hidden_nonstationarity",
+        "change_after_experiments": [
+          0,
+          1,
+          2,
+          4
+        ],
+        "total_experiment_horizon": 12,
+        "post_change_checkpoints": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "controls_publication_gate": false,
+        "ordinary_change_detection_claim_allowed": false,
+        "claim_scope": "current_world_identification_predictive_fit_and_joint_initial_world_current_world_change_time_inference_only",
+        "structurally_unidentifiable_cells": "retained_and_reported_not_relabelled_as_agent_change_detection_failures"
+      },
+      "adaptive_recovery": {
+        "kind": "performance_recovery_after_calibrated_change",
+        "source_change_track": "calibrated_online_change",
+        "mechanism_attribution_scored_separately": true,
+        "comparators": [
+          "pre_change_policy_open_loop_replay",
+          "frozen_no_update_policy",
+          "adaptive_policy",
+          "diagnosis_oracle"
+        ],
+        "primary_metrics": [
+          "new_world_intrinsic_effect",
+          "adaptation_gain_vs_frozen_no_update",
+          "mechanism_conditioned_adaptation_gain",
+          "performance_recovery_curve",
+          "cumulative_regret",
+          "normalized_recovery",
+          "recovery_experiment_count",
+          "recovery_cost",
+          "recovery_risk"
+        ]
+      }
+    },
+    "diagnosis_contract": {
+      "change_probability_scope": "calibrated_online_change_only",
+      "static_world_output": "current_world_family_distribution",
+      "uncalibrated_output": "joint_initial_world_current_world_change_time_distribution",
+      "reference_source_must_be_declared": true,
+      "allowed_reference_sources": [
+        "within_campaign_stable_prefix",
+        "protocol_supplied_reference",
+        "explicit_external_pretraining_prior"
+      ]
+    },
+    "task_mechanism_contracts": {
+      "reaction-to-crystallization": {
+        "interventions": {
+          "rate_law_family": [
+            {
+              "kind": "mechanism_family",
+              "mode": "rate_law_family",
+              "severity": 0.8,
+              "rate_law_change": {
+                "reaction_role": "primary_target_pathway",
+                "transform_id": "catalytic_activity_order_pivot_stress_v1",
+                "activity_order_at_full_severity": 0.2,
+                "catalyst_activity_pivot": 5.0
+              }
+            }
+          ],
+          "topology_family": [
+            {
+              "kind": "mechanism_family",
+              "mode": "topology_family",
+              "severity": 0.8,
+              "topology_change": {
+                "reaction_role": "primary_target_pathway",
+                "transform_id": "reversible_target_pathway_stress_v1",
+                "reverse_rate_constant_s_inv_at_full_severity": 0.000625
+              }
+            }
+          ]
+        },
+        "diagnostic_relations": {
+          "rate_law_family": {
+            "relation_id": "same_background_catalyst_dose_response_shape",
+            "relation_graph_version": "chemworld-diagnostic-relation-graph-0.1",
+            "varied_fields": [
+              {
+                "operation": "add_catalyst",
+                "field": "catalyst_amount_mol"
+              }
+            ],
+            "controlled_background": "all_remaining_recipe_operations_fields_and_order",
+            "required_levels": [
+              "low",
+              "pivot",
+              "high"
+            ],
+            "observable_channels": [
+              "hplc_yield",
+              "hplc_selectivity",
+              "task_primary_score"
+            ],
+            "candidate_signatures": {
+              "no_change": "baseline_catalyst_dose_response_shape",
+              "rate_law_family": "changed_catalyst_activity_order_around_frozen_pivot"
+            },
+            "minimum_distinct_actions": 3
+          },
+          "topology_family": {
+            "relation_id": "same_material_process_response",
+            "relation_graph_version": "chemworld-diagnostic-relation-graph-0.1",
+            "varied_fields": [
+              {
+                "operation": "add_catalyst",
+                "field": "catalyst_amount_mol"
+              },
+              {
+                "operation": "heat",
+                "field": "target_temperature_K"
+              },
+              {
+                "operation": "heat",
+                "field": "duration_s"
+              }
+            ],
+            "controlled_background": "all_remaining_recipe_operations_fields_and_order",
+            "required_levels": [
+              "at_least_two_distinct_process_settings"
+            ],
+            "observable_channels": [
+              "hplc_yield",
+              "hplc_selectivity",
+              "task_primary_score"
+            ],
+            "candidate_signatures": {
+              "no_change": "baseline_forward_pathway_response",
+              "topology_family": "reversible_target_pathway_response"
+            },
+            "minimum_distinct_actions": 2
+          }
+        }
+      },
+      "electrochemical-conversion": {
+        "interventions": {
+          "constitutive_law_family": [
+            {
+              "kind": "mechanism_family",
+              "mode": "constitutive_law_family",
+              "severity": 0.8,
+              "constitutive_law_change": {
+                "transform_id": "electrochemical_response_stress_v1",
+                "transfer_asymmetry_multiplier_at_full_severity": 1.4,
+                "selectivity_decay_multiplier_at_full_severity": 3.0,
+                "standard_potential_multiplier_at_full_severity": 1.25
+              }
+            }
+          ]
+        },
+        "diagnostic_relations": {
+          "constitutive_law_family": {
+            "relation_id": "same_material_potential_response_shape",
+            "relation_graph_version": "chemworld-diagnostic-relation-graph-0.1",
+            "varied_fields": [
+              {
+                "operation": "set_potential",
+                "field": "potential_V"
+              },
+              {
+                "operation": "set_potential",
+                "field": "current_mA"
+              }
+            ],
+            "controlled_background": "all_remaining_recipe_operations_fields_and_order",
+            "required_levels": [
+              "low",
+              "pivot",
+              "high"
+            ],
+            "observable_channels": [
+              "uvvis_conversion",
+              "uvvis_selectivity",
+              "task_primary_score"
+            ],
+            "candidate_signatures": {
+              "no_change": "baseline_potential_response_shape",
+              "constitutive_law_family": "changed_transfer_asymmetry_selectivity_decay_and_standard_potential_response"
+            },
+            "minimum_distinct_actions": 3
+          }
+        }
+      }
+    },
+    "gates": {
+      "gate_a": {
+        "name": "physical_validity_controlled_identifiability_and_calibrated_online_identifiability",
+        "required_systems": [
+          "a1_physical_intervention_validity",
+          "a2_controlled_matched_identifiability",
+          "a3_calibrated_online_change_identifiability"
+        ],
+        "budget_checkpoints": [
+          2,
+          4
+        ],
+        "a3_required_components": [
+          "universal_structural_reference_sufficiency",
+          "held_out_old_world_predictive_adequacy",
+          "changed_world_detection",
+          "no_change_specificity",
+          "conditional_family_attribution",
+          "end_to_end_online_success"
+        ],
+        "pass_rule": "A1 physical intervention validity, A2 controlled matched identifiability, and all frozen A3 reference, detection, no-change, attribution, and end-to-end criteria must pass; static and uncalibrated tracks cannot satisfy or fail A3"
+      },
+      "gate_b": {
+        "evaluation_track": "calibrated_online_change",
+        "pass_rule": "on the calibrated track only, paired no-change twins are included, false-positive rate <= 0.10, and AUROC lower confidence bound >= 0.80"
+      }
+    },
+    "publication_claim_rule": {
+      "failed_gate_interpretation": "separate physical validity, reference acquisition, calibrated detection, mechanism attribution, and recovery failures; do not infer Agent incapacity from structurally or operationally uncalibrated cells"
+    },
+    "intervention_action_alignment": {
+      "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc23.json"
+    }
+  }
+}

@@ -7,8 +7,9 @@ before an identifiability certificate or provider campaign is allowed to run.
 
 from __future__ import annotations
 
+import itertools
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import Any, cast
 
 import numpy as np
@@ -83,6 +84,7 @@ def audit_mechanism_design(
     gate_a_plan: Mapping[str, Any],
     *,
     action_libraries: Mapping[str, Mapping[str, np.ndarray]],
+    progress_callback: Callable[[Mapping[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Audit reachability, recipe coverage, observability, and prompt secrecy."""
 
@@ -93,9 +95,15 @@ def audit_mechanism_design(
 
     for task_id in protocol.get("design", {}).get("tasks", []):
         task_id = str(task_id)
+        _emit_progress(
+            progress_callback,
+            event="task_started",
+            task_id=task_id,
+        )
         task_info = get_task(task_id).to_dict()
         contract = contracts.get(task_id, {})
         interventions = contract.get("interventions", {})
+        diagnostic_relations = contract.get("diagnostic_relations", {})
         action_library = action_libraries.get(task_id, {})
         recipes = {
             action_id: task_recipe_from_unit_vector(task_info, vector)
@@ -139,6 +147,12 @@ def audit_mechanism_design(
             )
             if not isinstance(candidate_interventions, list) or len(candidate_interventions) != 1:
                 continue
+            _emit_progress(
+                progress_callback,
+                event="candidate_started",
+                task_id=task_id,
+                candidate_id=candidate_id,
+            )
             intervention = candidate_interventions[0]
             _audit_environment_reset(
                 task_findings,
@@ -200,6 +214,34 @@ def audit_mechanism_design(
                     "At least one public control implicated by the hidden law must vary "
                     f"across frozen recipes; varied={varied}.",
                 )
+                raw_relation = (
+                    diagnostic_relations.get(candidate_id)
+                    if isinstance(diagnostic_relations, Mapping)
+                    else None
+                )
+                require_relation = (
+                    gate_a_plan.get("online_policy_feasible_certificate", {}).get(
+                        "all_declared_relations_required_before_change"
+                    )
+                    is True
+                )
+                if require_relation:
+                    relation_groups = (
+                        mechanism_relational_action_groups(
+                            recipes,
+                            relation=raw_relation,
+                        )
+                        if isinstance(raw_relation, Mapping)
+                        else ()
+                    )
+                    _add(
+                        task_findings,
+                        f"{candidate_id}:declared_diagnostic_relation_covered",
+                        bool(relation_groups),
+                        "The calibrated online track requires at least one "
+                        "same-background public action group for every declared "
+                        f"mechanism relation; groups={relation_groups}.",
+                    )
             _audit_intervention_decision_relevance(
                 task_findings,
                 task_id=task_id,
@@ -208,6 +250,12 @@ def audit_mechanism_design(
                 action_library=action_library,
                 certificate=gate_a_plan.get("decision_relevance_certificate", {}),
                 baseline_cache=decision_baseline_cache,
+            )
+            _emit_progress(
+                progress_callback,
+                event="candidate_completed",
+                task_id=task_id,
+                candidate_id=candidate_id,
             )
 
         prompt_check = _audit_prompt_boundary(
@@ -227,6 +275,14 @@ def audit_mechanism_design(
             "checks": task_findings,
             "pass": all(item["pass"] for item in task_findings),
         }
+        _emit_progress(
+            progress_callback,
+            event="task_completed",
+            task_id=task_id,
+            failure_count=sum(
+                item["pass"] is not True for item in task_findings
+            ),
+        )
 
     failures = [item for item in findings if not item["pass"]]
     return {
@@ -777,6 +833,77 @@ def material_relational_action_groups(
     return tuple(sorted(set(groups)))
 
 
+def mechanism_relational_action_groups(
+    recipes: Mapping[str, Mapping[str, Any]],
+    *,
+    relation: Mapping[str, Any],
+) -> tuple[tuple[str, ...], ...]:
+    """Derive same-background mechanism probes from declared public controls."""
+
+    raw_controls = relation.get("varied_fields", relation.get("control_fields"))
+    if not isinstance(raw_controls, list):
+        raise ValueError("diagnostic relation varied_fields must be a list")
+    controls: set[tuple[str, str]] = set()
+    for raw_control in raw_controls:
+        if not isinstance(raw_control, Mapping):
+            raise ValueError("diagnostic relation varied fields must be objects")
+        operation = str(raw_control.get("operation", ""))
+        field = str(raw_control.get("field", ""))
+        if not operation or not field:
+            raise ValueError(
+                "diagnostic relation varied fields require operation and field"
+            )
+        controls.add((operation, field))
+    minimum_actions = int(relation.get("minimum_distinct_actions", 0) or 0)
+    if not controls or minimum_actions < 2:
+        raise ValueError(
+            "diagnostic relations require controls and at least two distinct actions"
+        )
+
+    by_background: dict[str, list[tuple[str, tuple[Any, ...]]]] = {}
+    ordered_controls = sorted(controls)
+    for action_id, recipe in recipes.items():
+        raw_steps = recipe.get("steps")
+        if not isinstance(raw_steps, list):
+            continue
+        normalized_steps: list[dict[str, Any]] = []
+        values: dict[tuple[str, str], Any] = {}
+        valid = True
+        for raw_step in raw_steps:
+            if not isinstance(raw_step, Mapping):
+                valid = False
+                break
+            step = dict(raw_step)
+            operation = str(step.get("operation", ""))
+            for control_operation, field in controls:
+                if operation == control_operation and field in step:
+                    values[(control_operation, field)] = step.pop(field)
+            normalized_steps.append(step)
+        if not valid or set(values) != controls:
+            continue
+        signature = json.dumps(
+            normalized_steps,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        by_background.setdefault(signature, []).append(
+            (
+                str(action_id),
+                tuple(values[control] for control in ordered_controls),
+            )
+        )
+
+    groups: set[tuple[str, ...]] = set()
+    for members in by_background.values():
+        members = sorted(members)
+        for subset in itertools.combinations(members, minimum_actions):
+            if len({values for _action_id, values in subset}) < minimum_actions:
+                continue
+            groups.add(tuple(action_id for action_id, _values in subset))
+    return tuple(sorted(groups))
+
+
 def _audit_constitutive_alignment(
     findings: list[dict[str, Any]],
     *,
@@ -881,8 +1008,9 @@ def _audit_constitutive_alignment(
             equilibrium_ratio = float(
                 shifted.initial_state.metadata["equilibrium_activity_coefficient_ratio"]
             )
-        for key in set(baseline.parameters.domain_parameters) | set(
-            shifted.parameters.domain_parameters
+        for key in sorted(
+            set(baseline.parameters.domain_parameters)
+            | set(shifted.parameters.domain_parameters)
         ):
             before = float(baseline.parameters.domain_parameters.get(key, 1.0))
             after = float(shifted.parameters.domain_parameters.get(key, 1.0))
@@ -921,8 +1049,9 @@ def _audit_constitutive_alignment(
         f"{candidate_id}:constitutive_calibration_bound",
         bool(domain_calibration_bound and equilibrium_calibration_bound),
         "Exactly the declared constitutive parameters must change to their "
-        f"severity-interpolated values; expected_domain={expected_domain_parameters}, "
-        f"executed_domain={changed_domain_parameters}, "
+        "severity-interpolated values; "
+        f"expected_domain={json.dumps(expected_domain_parameters, sort_keys=True)}, "
+        f"executed_domain={json.dumps(changed_domain_parameters, sort_keys=True)}, "
         f"expected_equilibrium_ratio={expected_equilibrium_ratio}, "
         f"executed_equilibrium_ratio={equilibrium_ratio}, error={error}.",
     )
@@ -1188,9 +1317,20 @@ def _add(findings: list[dict[str, Any]], check: str, passed: bool, detail: str) 
     findings.append(_finding(check, passed, detail))
 
 
+def _emit_progress(
+    callback: Callable[[Mapping[str, Any]], None] | None,
+    *,
+    event: str,
+    **details: Any,
+) -> None:
+    if callback is not None:
+        callback({"stage": "mechanism_design_audit", "event": event, **details})
+
+
 __all__ = [
     "DESIGN_AUDIT_SCHEMA_VERSION",
     "MATERIAL_FIELD_ACTIONS",
     "audit_mechanism_design",
     "material_relational_action_groups",
+    "mechanism_relational_action_groups",
 ]
