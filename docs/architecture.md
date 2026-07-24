@@ -177,9 +177,11 @@ evaluation contract 决定；改变范围需要新的协议版本和重新验证
 3. **Actionable**：判断实际改变下一实验，并在固定预算内改善恢复或 regret。
 
 当前机制 v0.3 要求先建立并认证旧世界参考，再评价变化检测与 family attribution。RC24 将 A3
-定义为冻结 reference diagnostic policy 的 online attainability，而不是参赛 Agent 的能力；`never`
+定义为冻结 reference policy 的 online attainability；RC25 保持该科学定义，并增加不可变 trial
+receipt、missing-only resume、语义坐标噪声与联合发布状态机。
+`never`
 是一等真值，reference 使用关系闭合与 campaign 内 pre-change cross-fitting，并向策略隐藏稳定前缀、
-changepoint support 与证书状态；Development、A2、A3 和 private confirmation cohort 相互独立。
+changepoint support 与证书状态；Development、A2、A3、Private-E 和 Private-A cohort 相互独立。
 初始化即处于某个候选 family 的世界只进入静态当前世界识别；早期无校准变化进入非控制性压力轨。
 独立 Agent predictive probe 仍是后续结果，不能追溯性写成已完成证据。
 

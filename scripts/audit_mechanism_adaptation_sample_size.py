@@ -20,21 +20,25 @@ from chemworld.eval.mechanism_adaptation import (  # noqa: E402
     load_mechanism_adaptation_protocol,
     wilson_interval,
 )
+from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
+    load_json_object,
+)
 from chemworld.eval.provenance import (  # noqa: E402
     canonical_json_sha256,
     write_json_atomic,
 )
 
 DEFAULT_PROTOCOL = (
-    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0.json"
+    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json"
 )
 DEFAULT_PLAN = (
-    ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json"
+    ROOT
+    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json"
 )
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-sample-size-audit-v0.3.0-rc24.json"
+    "mechanism-adaptation-sample-size-audit-v0.3.0-rc25.json"
 )
 
 
@@ -228,9 +232,16 @@ def build_sample_size_audit(
                 ]
             )
             == int(
-                plan["cohort_partition"]["private_confirmation"][
-                    "world_seeds_per_family"
-                ]
+                plan["cohort_partition"].get(
+                    "private_environment_confirmation",
+                    plan["cohort_partition"].get("private_confirmation"),
+                )["world_seeds_per_family"]
+            )
+            == int(
+                plan["cohort_partition"].get(
+                    "private_agent_confirmation",
+                    plan["cohort_partition"].get("private_confirmation"),
+                )["world_seeds_per_family"]
             )
         ),
         "balanced_changepoint_allocation_is_exact": (
@@ -316,7 +327,7 @@ def main() -> None:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     protocol = load_mechanism_adaptation_protocol(args.protocol)
-    plan = json.loads(args.plan.read_text(encoding="utf-8"))
+    plan = load_json_object(args.plan)
     report = build_sample_size_audit(protocol, plan)
     if args.check:
         if not args.output.is_file():

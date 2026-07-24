@@ -29,6 +29,7 @@ from chemworld.data.schema import (  # noqa: E402
 )
 from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
     gate_a_execution_contract_binding,
+    load_json_object,
 )
 from chemworld.eval.provenance import (  # noqa: E402
     canonical_json_sha256 as _canonical_sha256,
@@ -117,24 +118,31 @@ NODES = (
     ),
     EvidenceNode(
         "live_llm_methods",
-        "configs/methods/llm_v0.4/llm_methods.json",
+        "configs/methods/llm_v0.4/llm_methods_rc25.json",
         "protocol_input",
     ),
     EvidenceNode(
         "mechanism_protocol",
-        "configs/benchmark/mechanism_adaptation_v0.3.0.json",
+        "configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json",
         "protocol_input",
     ),
     EvidenceNode(
         "mechanism_gate_a_plan",
-        "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json",
+        "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json",
         "protocol_input",
         ("mechanism_protocol",),
     ),
     EvidenceNode(
+        "mechanism_participant_preregistration_candidate",
+        "configs/benchmark/"
+        "mechanism_adaptation_participant_preregistration_rc25.json",
+        "protocol_input",
+        ("live_llm_methods", "mechanism_gate_a_plan", "mechanism_protocol"),
+    ),
+    EvidenceNode(
         "mechanism_diagnostic_relation_graph",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc24.json",
+        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc25.json",
         "generated_current",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
         ("scripts/build_mechanism_diagnostic_relation_graph.py",),
@@ -142,7 +150,7 @@ NODES = (
     EvidenceNode(
         "mechanism_sample_size_audit",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-sample-size-audit-v0.3.0-rc24.json",
+        "mechanism-adaptation-sample-size-audit-v0.3.0-rc25.json",
         "generated_current",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
         ("scripts/audit_mechanism_adaptation_sample_size.py",),
@@ -150,7 +158,7 @@ NODES = (
     EvidenceNode(
         "mechanism_preregistration",
         "configs/benchmark/"
-        "mechanism-adaptation-preregistration-v0.3.0-rc24.json",
+        "mechanism-adaptation-preregistration-v0.3.0-rc25.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -166,7 +174,7 @@ NODES = (
     EvidenceNode(
         "mechanism_confirmatory_task_semantics_audit",
         "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc24.json",
+        "confirmatory-task-semantics-audit-rc25.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -178,7 +186,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc24.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc25.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -187,6 +195,21 @@ NODES = (
             "mechanism_protocol",
         ),
         ("scripts/audit_mechanism_adaptation_design.py",),
+    ),
+    EvidenceNode(
+        "mechanism_release_qualification",
+        "workstreams/flagship_tasks/reports/"
+        "mechanism-adaptation-release-qualification-v0.1-rc25.json",
+        "generated_current",
+        (
+            "mechanism_design_audit",
+            "mechanism_confirmatory_task_semantics_audit",
+            "mechanism_gate_a_plan",
+            "mechanism_preregistration",
+            "mechanism_protocol",
+            "mechanism_sample_size_audit",
+        ),
+        ("scripts/qualify_mechanism_adaptation_release.py", "--check"),
     ),
     EvidenceNode(
         "mechanism_public_matrix",
@@ -206,6 +229,7 @@ NODES = (
             "mechanism_protocol",
             "mechanism_public_matrix",
             "mechanism_preregistration",
+            "mechanism_release_qualification",
             "mechanism_sample_size_audit",
         ),
         ("scripts/check_mechanism_adaptation_protocol.py",),
@@ -213,7 +237,7 @@ NODES = (
     EvidenceNode(
         "mechanism_online_attainability_certificate",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-online-attainability-certificate-v0.8-rc24-pending.json",
+        "mechanism-adaptation-online-attainability-certificate-v0.9-rc25-pending.json",
         "generated_current",
         (
             "mechanism_design_audit",
@@ -222,6 +246,7 @@ NODES = (
             "mechanism_gate_a_plan",
             "mechanism_preregistration",
             "mechanism_protocol",
+            "mechanism_release_qualification",
             "mechanism_sample_size_audit",
         ),
         ("scripts/check_mechanism_adaptation_protocol.py",),
@@ -229,7 +254,7 @@ NODES = (
     EvidenceNode(
         "mechanism_gate_a",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-gate-a-v0.3.0-rc24-pending.json",
+        "mechanism-adaptation-gate-a-v0.3.0-rc25-pending.json",
         "generated_current",
         (
             "backend_candidate",
@@ -243,6 +268,7 @@ NODES = (
             "mechanism_preflight",
             "mechanism_preregistration",
             "mechanism_protocol",
+            "mechanism_release_qualification",
             "public_boundary",
             "score_replay_contract",
         ),
@@ -406,6 +432,14 @@ CURRENT_PATH_RULES = (
     CurrentPathRule(
         ("mechanism_adaptation", "preregistration_manifest"),
         "generated_current",
+    ),
+    CurrentPathRule(
+        ("mechanism_adaptation", "release_qualification_report"),
+        "generated_current",
+    ),
+    CurrentPathRule(
+        ("mechanism_adaptation", "participant_preregistration_candidate"),
+        "protocol_input",
     ),
 )
 
@@ -737,10 +771,8 @@ def _artifact_source_binding_current(
         protocol = load_mechanism_adaptation_protocol(
             ROOT / node_map()["mechanism_protocol"].path
         )
-        plan = json.loads(
-            (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
-                encoding="utf-8"
-            )
+        plan = load_json_object(
+            ROOT / node_map()["mechanism_gate_a_plan"].path
         )
         if validate_diagnostic_relation_graph(protocol, plan, payload):
             return False
@@ -752,10 +784,8 @@ def _artifact_source_binding_current(
         protocol = load_mechanism_adaptation_protocol(
             ROOT / node_map()["mechanism_protocol"].path
         )
-        plan = json.loads(
-            (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
-                encoding="utf-8"
-            )
+        plan = load_json_object(
+            ROOT / node_map()["mechanism_gate_a_plan"].path
         )
         if (
             payload.get("pass") is not True
@@ -776,10 +806,8 @@ def _artifact_source_binding_current(
         protocol = load_mechanism_adaptation_protocol(
             ROOT / node_map()["mechanism_protocol"].path
         )
-        plan = json.loads(
-            (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
-                encoding="utf-8"
-            )
+        plan = load_json_object(
+            ROOT / node_map()["mechanism_gate_a_plan"].path
         )
         relation_graph = json.loads(
             (
@@ -809,13 +837,30 @@ def _artifact_source_binding_current(
         protocol = load_mechanism_adaptation_protocol(
             ROOT / node_map()["mechanism_protocol"].path
         )
-        plan = json.loads(
-            (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
-                encoding="utf-8"
-            )
+        plan = load_json_object(
+            ROOT / node_map()["mechanism_gate_a_plan"].path
         )
         if (
             payload.get("pass") is not True
+            or payload.get("protocol_sha256") != _canonical_sha256(protocol)
+            or payload.get("gate_a_plan_sha256") != _canonical_sha256(plan)
+        ):
+            return False
+    if node.node_id == "mechanism_release_qualification":
+        from chemworld.eval.mechanism_adaptation import (
+            load_mechanism_adaptation_protocol,
+        )
+
+        protocol = load_mechanism_adaptation_protocol(
+            ROOT / node_map()["mechanism_protocol"].path
+        )
+        plan = load_json_object(
+            ROOT / node_map()["mechanism_gate_a_plan"].path
+        )
+        if (
+            payload.get("qualified") is not True
+            or payload.get("formal_result") is not False
+            or payload.get("formal_cohorts_consumed") is not False
             or payload.get("protocol_sha256") != _canonical_sha256(protocol)
             or payload.get("gate_a_plan_sha256") != _canonical_sha256(plan)
         ):
@@ -828,10 +873,8 @@ def _artifact_source_binding_current(
         protocol = load_mechanism_adaptation_protocol(
             ROOT / node_map()["mechanism_protocol"].path
         )
-        plan = json.loads(
-            (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
-                encoding="utf-8"
-            )
+        plan = load_json_object(
+            ROOT / node_map()["mechanism_gate_a_plan"].path
         )
         if not _online_attainability_certificate_binding_current(
             payload,
@@ -863,6 +906,8 @@ def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
         return "passed" if payload.get("gate_a_pass") is True else "blocked"
     if node.node_id == "mechanism_design_audit":
         return "passed" if payload.get("pass") else "blocked"
+    if node.node_id == "mechanism_release_qualification":
+        return "passed" if payload.get("qualified") else "blocked"
     if payload.get("passed") is False or payload.get("controls_ready") is False:
         return "blocked"
     return "passed"
@@ -945,13 +990,16 @@ def _write_current_registry() -> None:
             encoding="utf-8"
         )
     )
+    mechanism_release_qualification = json.loads(
+        (
+            ROOT / node_map()["mechanism_release_qualification"].path
+        ).read_text(encoding="utf-8")
+    )
     mechanism_protocol = load_mechanism_adaptation_protocol(
         ROOT / node_map()["mechanism_protocol"].path
     )
-    mechanism_plan = json.loads(
-        (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
-            encoding="utf-8"
-        )
+    mechanism_plan = load_json_object(
+        ROOT / node_map()["mechanism_gate_a_plan"].path
     )
     mechanism_evidence_current = _composed_gate_a_binding_current(
         mechanism,
@@ -1204,6 +1252,17 @@ def _write_current_registry() -> None:
         "preregistration_manifest": node_map()[
             "mechanism_preregistration"
         ].path,
+        "release_qualification_report": node_map()[
+            "mechanism_release_qualification"
+        ].path,
+        "release_qualification_pass": bool(
+            mechanism_release_qualification.get("qualified") is True
+            and nodes["mechanism_release_qualification"]["artifact_state"]
+            == "current"
+        ),
+        "participant_preregistration_candidate": node_map()[
+            "mechanism_participant_preregistration_candidate"
+        ].path,
         "gate_a_plan": node_map()["mechanism_gate_a_plan"].path,
         "online_attainability_certificate_report": node_map()[
             "mechanism_online_attainability_certificate"
@@ -1257,6 +1316,8 @@ def _write_current_registry() -> None:
         "agent_pilot_evidence_current": False,
         "agent_pilot_protocol_version": "historical_v0.2.1",
         "agent_weight_updates_performed": False,
+        "benchmark_ready": False,
+        "evidence_complete": False,
         "publication_ready": False,
     }
     current.pop("development_evidence", None)
@@ -1397,10 +1458,8 @@ def check_current_evidence() -> list[str]:
     binding_protocol = load_mechanism_adaptation_protocol(
         ROOT / node_map()["mechanism_protocol"].path
     )
-    binding_plan = json.loads(
-        (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
-            encoding="utf-8"
-        )
+    binding_plan = load_json_object(
+        ROOT / node_map()["mechanism_gate_a_plan"].path
     )
     binding_gate_a = json.loads(
         (ROOT / node_map()["mechanism_gate_a"].path).read_text(
@@ -1480,10 +1539,8 @@ def check_current_evidence() -> list[str]:
     mechanism_protocol = load_mechanism_adaptation_protocol(
         ROOT / node_map()["mechanism_protocol"].path
     )
-    mechanism_plan = json.loads(
-        (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
-            encoding="utf-8"
-        )
+    mechanism_plan = load_json_object(
+        ROOT / node_map()["mechanism_gate_a_plan"].path
     )
     mechanism_design = json.loads(
         (ROOT / node_map()["mechanism_design_audit"].path).read_text(

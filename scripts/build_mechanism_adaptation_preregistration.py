@@ -16,6 +16,9 @@ if str(SRC) not in sys.path:
 from chemworld.eval.mechanism_adaptation import (  # noqa: E402
     load_mechanism_adaptation_protocol,
 )
+from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
+    load_json_object,
+)
 from chemworld.eval.mechanism_preregistration import (  # noqa: E402
     build_mechanism_preregistration,
     validate_mechanism_preregistration,
@@ -23,15 +26,16 @@ from chemworld.eval.mechanism_preregistration import (  # noqa: E402
 from chemworld.eval.provenance import write_json_atomic  # noqa: E402
 
 DEFAULT_PROTOCOL = (
-    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0.json"
+    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json"
 )
 DEFAULT_PLAN = (
-    ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json"
+    ROOT
+    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json"
 )
 DEFAULT_OUTPUT = (
     ROOT
     / "configs/benchmark/"
-    "mechanism-adaptation-preregistration-v0.3.0-rc24.json"
+    "mechanism-adaptation-preregistration-v0.3.0-rc25.json"
 )
 
 
@@ -70,9 +74,11 @@ def _source_commit_binding_errors(
     )
     if ancestor_check.returncode != 0:
         return ["preregistration source_commit is not an ancestor of HEAD"]
+    release_candidate = str(plan["plan_id"]).rsplit("-", 1)[-1]
     bound_paths = [
         "src/chemworld",
         "scripts/run_mechanism_adaptation.py",
+        "scripts/qualify_mechanism_adaptation_release.py",
         "scripts/audit_mechanism_adaptation_design.py",
         "scripts/audit_mechanism_adaptation_sample_size.py",
         "scripts/build_mechanism_diagnostic_relation_graph.py",
@@ -81,6 +87,14 @@ def _source_commit_binding_errors(
         str(plan["diagnostic_relation_graph"]["report"]),  # type: ignore[index]
         str(plan["sample_size_audit"]["report"]),  # type: ignore[index]
         str(plan["design_validity_precondition"]["report"]),  # type: ignore[index]
+        (
+            "workstreams/flagship_tasks/reports/"
+            f"confirmatory-task-semantics-audit-{release_candidate}.json"
+        ),
+        (
+            "configs/benchmark/"
+            "mechanism_adaptation_participant_preregistration_rc25.json"
+        ),
     ]
     source_diff = subprocess.run(
         ["git", "diff", "--quiet", source_commit, "--", *bound_paths],
@@ -112,7 +126,7 @@ def main() -> None:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     protocol = load_mechanism_adaptation_protocol(args.protocol)
-    plan = json.loads(args.plan.read_text(encoding="utf-8"))
+    plan = load_json_object(args.plan)
     graph = json.loads(
         (ROOT / plan["diagnostic_relation_graph"]["report"]).read_text(
             encoding="utf-8"

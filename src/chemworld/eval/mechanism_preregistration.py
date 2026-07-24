@@ -13,12 +13,23 @@ from chemworld.eval.provenance import (
 )
 
 PREREGISTRATION_VERSION = "chemworld-mechanism-preregistration-0.1"
-SCORER_SOURCE_PATHS = (
+LEGACY_SCORER_SOURCE_PATHS = (
     "src/chemworld/eval/mechanism_adaptation.py",
     "src/chemworld/eval/mechanism_adaptation_execution.py",
     "src/chemworld/eval/mechanism_gate_decision.py",
     "src/chemworld/eval/mechanism_design_audit.py",
     "src/chemworld/eval/mechanism_relation_graph.py",
+)
+SCORER_SOURCE_PATHS = (
+    "src/chemworld/agents/prompt_context.py",
+    "src/chemworld/envs/observation_noise.py",
+    "src/chemworld/eval/mechanism_adaptation.py",
+    "src/chemworld/eval/mechanism_adaptation_execution.py",
+    "src/chemworld/eval/mechanism_gate_decision.py",
+    "src/chemworld/eval/mechanism_design_audit.py",
+    "src/chemworld/eval/mechanism_release.py",
+    "src/chemworld/eval/mechanism_relation_graph.py",
+    "src/chemworld/eval/trial_store.py",
 )
 
 
@@ -41,33 +52,54 @@ def build_mechanism_preregistration(
 
     if re.fullmatch(r"[0-9a-f]{40}", source_commit) is None:
         raise ValueError("source_commit must be a full lowercase Git commit SHA")
-    scorer_files = {
-        relative: file_sha256(repository_root / relative)
-        for relative in SCORER_SOURCE_PATHS
-    }
     requirement = plan["online_attainability_certificate"]
     criteria = requirement["frozen_pass_criteria"]
     calibrated = protocol["evaluation_tracks"]["calibrated_online_change"]
+    release_candidate_match = re.search(
+        r"(rc[0-9]+)$",
+        str(plan["plan_id"]),
+    )
+    if release_candidate_match is None:
+        raise ValueError("plan_id must end in an RC identifier")
+    release_candidate = release_candidate_match.group(1)
+    scorer_paths = (
+        LEGACY_SCORER_SOURCE_PATHS
+        if release_candidate == "rc24"
+        else SCORER_SOURCE_PATHS
+    )
+    scorer_files = {
+        relative: file_sha256(repository_root / relative)
+        for relative in scorer_paths
+    }
+    protocol_source = str(
+        protocol.get("protocol_composition", {}).get(
+            "source",
+            "mechanism_adaptation_v0.3.0.json",
+        )
+    )
+    plan_source = str(
+        plan.get("plan_composition", {}).get(
+            "source",
+            "mechanism_adaptation_gate_a_v0.3.0.json",
+        )
+    )
     manifest: dict[str, Any] = {
         "schema_version": PREREGISTRATION_VERSION,
         "manifest_id": (
-            "chemworld-mechanism-adaptation-v0.3.0-rc24-preregistration"
+            f"chemworld-mechanism-adaptation-v0.3.0-{release_candidate}-"
+            "preregistration"
         ),
         "status": "locked_before_a2_a3_execution",
         "source_commit": source_commit,
         "protocol": {
             "protocol_id": protocol["protocol_id"],
             "canonical_sha256": canonical_json_sha256(protocol),
-            "source_path": (
-                "configs/benchmark/mechanism_adaptation_v0.3.0.json"
-            ),
+            "source_path": f"configs/benchmark/{protocol_source}",
         },
         "gate_a_plan": {
             "plan_id": plan["plan_id"],
             "canonical_sha256": canonical_json_sha256(plan),
-            "source_path": (
-                "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json"
-            ),
+            "source_path": f"configs/benchmark/{plan_source}",
         },
         "diagnostic_relation_graph": {
             "path": plan["diagnostic_relation_graph"]["report"],
@@ -192,6 +224,28 @@ def build_mechanism_preregistration(
         ),
         "publication_ready": False,
     }
+    if release_candidate != "rc24":
+        manifest["release_candidate"] = release_candidate
+        manifest["observation_noise"] = protocol.get(
+            "paired_observation_noise"
+        )
+        manifest["participant_prompt_contract"] = protocol.get(
+            "participant_agent_prompt_contract"
+        )
+        manifest["release_qualification"] = plan.get(
+            "release_qualification"
+        )
+        manifest["analysis_artifacts"] = {
+            "decision_and_readiness_state_machine": (
+                "src/chemworld/eval/mechanism_release.py"
+            ),
+            "bootstrap_estimands_tables_and_right_censoring": (
+                "src/chemworld/eval/mechanism_adaptation_execution.py"
+            ),
+            "trial_identity_resume_and_reason_domains": (
+                "src/chemworld/eval/trial_store.py"
+            ),
+        }
     manifest["manifest_sha256"] = _manifest_sha256(manifest)
     return manifest
 

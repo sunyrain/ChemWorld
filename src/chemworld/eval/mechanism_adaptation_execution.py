@@ -72,15 +72,25 @@ from chemworld.eval.mechanism_relation_graph import (
 from chemworld.eval.provenance import (
     canonical_json_sha256 as canonical_sha256,
 )
+from chemworld.eval.trial_store import (
+    ConfirmatoryTrialKey,
+    ConfirmatoryTrialStore,
+    execute_jobs_resumable,
+)
 from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.providers.deepseek import DeepSeekClient
 from chemworld.tasks import get_task
 
-DEFAULT_PROTOCOL_PATH = configuration_root() / "benchmark/mechanism_adaptation_v0.3.0.json"
-DEFAULT_GATE_A_PLAN_PATH = (
-    configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.3.0.json"
+DEFAULT_PROTOCOL_PATH = (
+    configuration_root() / "benchmark/mechanism_adaptation_v0.3.0_rc25.json"
 )
-DEFAULT_LLM_METHODS_PATH = configuration_root() / "methods/llm_v0.4/llm_methods.json"
+DEFAULT_GATE_A_PLAN_PATH = (
+    configuration_root()
+    / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json"
+)
+DEFAULT_LLM_METHODS_PATH = (
+    configuration_root() / "methods/llm_v0.4/llm_methods_rc25.json"
+)
 EXECUTION_SCHEMA_VERSION = "chemworld-mechanism-adaptation-execution-0.2"
 GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.3.0"
 PUBLIC_EXPERIMENT_FEATURE_ENCODING_VERSION = (
@@ -97,10 +107,74 @@ _CRITICAL_INSTRUMENTS = {
 def load_json_object(path: str | Path) -> dict[str, Any]:
     """Load a JSON object and reject ambiguous non-object roots."""
 
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    source = Path(path)
+    payload = json.loads(source.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError(f"expected a JSON object: {path}")
+    if payload.get("schema_version") == "chemworld-json-composition-0.1":
+        extends = payload.get("extends")
+        expected_base_sha = str(payload.get("base_sha256", "")).lower()
+        overrides = payload.get("overrides")
+        remove_paths = payload.get("remove_paths", [])
+        if (
+            not isinstance(extends, str)
+            or not extends
+            or not isinstance(overrides, Mapping)
+            or not isinstance(remove_paths, list)
+        ):
+            raise ValueError("invalid JSON composition")
+        base_path = (source.parent / extends).resolve()
+        if source.parent.resolve() not in base_path.parents:
+            raise ValueError("JSON composition base must stay in its source directory")
+        observed_base_sha = hashlib.sha256(base_path.read_bytes()).hexdigest()
+        if observed_base_sha != expected_base_sha:
+            raise ValueError(
+                "JSON composition base hash mismatch: "
+                f"expected {expected_base_sha}, observed {observed_base_sha}"
+            )
+        resolved = _deep_merge_json(load_json_object(base_path), overrides)
+        for raw_path in remove_paths:
+            if not isinstance(raw_path, str) or not raw_path:
+                raise ValueError("JSON composition remove_paths must be dotted strings")
+            _remove_json_path(resolved, raw_path)
+        resolved["plan_composition"] = {
+            "schema_version": payload["schema_version"],
+            "source": source.name,
+            "extends": base_path.name,
+            "base_sha256": observed_base_sha,
+            "remove_paths": list(remove_paths),
+        }
+        return resolved
     return payload
+
+
+def _deep_merge_json(
+    base: Mapping[str, Any],
+    overrides: Mapping[str, Any],
+) -> dict[str, Any]:
+    result = dict(base)
+    for key, value in overrides.items():
+        if isinstance(value, Mapping) and isinstance(result.get(key), Mapping):
+            result[str(key)] = _deep_merge_json(
+                cast(Mapping[str, Any], result[str(key)]),
+                value,
+            )
+        else:
+            result[str(key)] = value
+    return result
+
+
+def _remove_json_path(payload: dict[str, Any], dotted_path: str) -> None:
+    parts = dotted_path.split(".")
+    target = payload
+    for part in parts[:-1]:
+        value = target.get(part)
+        if not isinstance(value, dict):
+            raise ValueError(f"JSON composition removal path missing: {dotted_path}")
+        target = value
+    if parts[-1] not in target:
+        raise ValueError(f"JSON composition removal path missing: {dotted_path}")
+    del target[parts[-1]]
 
 
 def load_protocol_object(path: str | Path) -> dict[str, Any]:
@@ -248,6 +322,8 @@ class PublicCampaignObservationSession:
         action_library: Mapping[str, np.ndarray],
         experiment_horizon: int,
         observation_seed: int | None = None,
+        observation_noise_mode: str = "keyed",
+        observation_noise_namespace: str = "mechanism-adaptation-confirmatory",
     ) -> None:
         if experiment_horizon <= 0:
             raise ValueError("experiment_horizon must be positive")
@@ -261,9 +337,12 @@ class PublicCampaignObservationSession:
             episode_mode_override="campaign",
             budget_override=(per_experiment + 1) * int(experiment_horizon),
             observation_seed_override=observation_seed,
+            observation_noise_mode=observation_noise_mode,
+            observation_noise_namespace=observation_noise_namespace,
             world_interventions=tuple(dict(item) for item in interventions),
         )
         self.environment.reset(seed=int(seed))
+        self.observation_noise_audit: list[dict[str, Any]] = []
 
     def observe(self, action_id: str) -> list[float]:
         try:
@@ -272,13 +351,27 @@ class PublicCampaignObservationSession:
             raise ValueError(f"unknown public action ID: {action_id}") from error
         recipe = task_recipe_from_unit_vector(self.task_info, vector)
         trace: list[tuple[Mapping[str, Any], float]] = []
+        operation_noise: list[dict[str, Any]] = []
         experiment_ended = False
         for action in recipe["steps"]:
             observation, reward, _terminated, _truncated, info = self.environment.step(action)
             trace.append((observation, float(reward)))
+            operation_noise.append(
+                self.environment.observation_noise_provenance()
+            )
             experiment_ended = bool(info.get("experiment_ended"))
         if not experiment_ended or info.get("transaction_status") != "committed":
             raise RuntimeError("compiled Gate A recipe did not produce a committed experiment")
+        self.observation_noise_audit.append(
+            {
+                "experiment_index": len(self.observation_noise_audit),
+                "action_id": action_id,
+                "operation_noise": operation_noise,
+                "operation_noise_bundle_sha256": canonical_sha256(
+                    operation_noise
+                ),
+            }
+        )
         return encode_public_experiment_trace(trace)
 
     def close(self) -> None:
@@ -2360,6 +2453,7 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
                 refresh_old_world_reference=True,
             )
             pre_actions.append(pre_updates[-1]["action_id"])
+        pre_noise_audit = list(pre_session.observation_noise_audit)
 
     actual_pre_change_reference_ids = list(references)
     predictive_contract = job["reference_predictive_adequacy"]
@@ -2424,6 +2518,17 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
             post_actions.append(post_updates[-1]["action_id"])
             if phase_index in post_budgets:
                 posterior_by_post_budget[str(phase_index)] = dict(family_posterior)
+        post_noise_audit = list(post_session.observation_noise_audit)
+
+    observation_noise_audit = {
+        "schema_version": "chemworld-mechanism-paired-noise-audit-0.1",
+        "mode": "keyed",
+        "pre_change": pre_noise_audit,
+        "post_checkpoint": post_noise_audit,
+    }
+    observation_noise_audit["bundle_sha256"] = canonical_sha256(
+        observation_noise_audit
+    )
 
     return {
         "task_id": str(job["task_id"]),
@@ -2444,6 +2549,8 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
             "same_pre_change_observation_seed_across_truth_twins": True,
             "same_post_checkpoint_observation_seed_across_truth_twins": True,
             "common_random_numbers_across_truth_twins": True,
+            "keyed_observation_noise": True,
+            "sequential_rng_position_used_for_pairing": False,
             "identical_pre_post_session_boundary": True,
             "pseudo_checkpoint_runtime_side_effect": False,
             "reset_or_instance_identifier_exposed_to_policy": False,
@@ -2460,6 +2567,7 @@ def _execute_online_policy_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
         "post_change_actions": post_actions,
         "pre_change_updates": pre_updates,
         "post_change_updates": post_updates,
+        "observation_noise_audit": observation_noise_audit,
         "predictions_by_post_budget": {
             budget: max(posterior, key=posterior.__getitem__)
             for budget, posterior in posterior_by_post_budget.items()
@@ -2493,12 +2601,141 @@ def validate_precomputed_design_audit(
     return dict(report)
 
 
+def _validate_release_qualification(
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+    repository_root: Path,
+) -> dict[str, Any] | None:
+    contract = plan.get("release_qualification")
+    if contract is None:
+        return None
+    if (
+        not isinstance(contract, Mapping)
+        or contract.get("required_before_formal_a2_or_a3") is not True
+        or not isinstance(contract.get("report"), str)
+    ):
+        raise ValueError("invalid release-qualification contract")
+    report = load_json_object(repository_root / str(contract["report"]))
+    expected = {
+        "qualified": True,
+        "protocol_sha256": canonical_sha256(protocol),
+        "gate_a_plan_sha256": canonical_sha256(plan),
+        "formal_result": False,
+        "formal_cohorts_consumed": False,
+    }
+    mismatches = [
+        key for key, value in expected.items() if report.get(key) != value
+    ]
+    if mismatches:
+        raise ValueError(
+            "mechanism release qualification is missing, failed, or stale: "
+            + ", ".join(mismatches)
+        )
+    return report
+
+
+def _validate_frozen_registration(
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+    repository_root: Path,
+) -> None:
+    graph_contract = plan.get("diagnostic_relation_graph")
+    sample_contract = plan.get("sample_size_audit")
+    preregistration_contract = plan.get("preregistration")
+    if not all(
+        isinstance(item, Mapping)
+        for item in (
+            graph_contract,
+            sample_contract,
+            preregistration_contract,
+        )
+    ):
+        raise ValueError(
+            "formal execution requires graph, sample-size, and "
+            "preregistration contracts"
+        )
+    graph = load_json_object(
+        repository_root / str(graph_contract["report"])  # type: ignore[index]
+    )
+    graph_errors = validate_diagnostic_relation_graph(protocol, plan, graph)
+    if graph_errors:
+        raise ValueError(
+            "invalid diagnostic relation graph: " + "; ".join(graph_errors)
+        )
+    sample_size = load_json_object(
+        repository_root / str(sample_contract["report"])  # type: ignore[index]
+    )
+    if sample_size.get("pass") is not True:
+        raise ValueError("formal execution sample-size audit is missing or failed")
+    preregistration = load_json_object(
+        repository_root / str(preregistration_contract["manifest"])  # type: ignore[index]
+    )
+    errors = validate_mechanism_preregistration(
+        preregistration,
+        repository_root=repository_root,
+        protocol=protocol,
+        plan=plan,
+        relation_graph=graph,
+        sample_size_audit=sample_size,
+    )
+    if errors:
+        raise ValueError(
+            "invalid mechanism-adaptation preregistration: "
+            + "; ".join(errors)
+        )
+
+
+def _paired_noise_coordinate_map(
+    noise_audit: Mapping[str, Any],
+) -> dict[str, str]:
+    """Index truth-invariant noise keys by shared semantic coordinates."""
+
+    indexed: dict[str, str] = {}
+    for phase in ("pre_change", "post_checkpoint"):
+        experiments = noise_audit.get(phase)
+        if not isinstance(experiments, list):
+            raise ValueError("paired-noise audit phase must be a list")
+        for experiment in experiments:
+            if not isinstance(experiment, Mapping):
+                raise ValueError("paired-noise experiment entry must be an object")
+            operation_noise = experiment.get("operation_noise")
+            if not isinstance(operation_noise, list):
+                raise ValueError("paired-noise operation list is missing")
+            for operation_slot, provenance in enumerate(operation_noise):
+                if (
+                    not isinstance(provenance, Mapping)
+                    or provenance.get("mode") != "keyed"
+                    or provenance.get("sequential_rng_position_used") is not False
+                    or not isinstance(provenance.get("noise_key_sha256"), str)
+                    or not isinstance(provenance.get("coordinate"), Mapping)
+                ):
+                    raise ValueError(
+                        "paired execution requires keyed semantic noise provenance"
+                    )
+                coordinate = {
+                    "phase": phase,
+                    "experiment_slot": experiment.get("experiment_index"),
+                    "operation_slot": operation_slot,
+                    "coordinate": provenance["coordinate"],
+                }
+                coordinate_id = f"{phase}:{canonical_sha256(coordinate)}"
+                noise_key = str(provenance["noise_key_sha256"])
+                previous = indexed.setdefault(coordinate_id, noise_key)
+                if previous != noise_key:
+                    raise ValueError(
+                        "one trial reused a semantic noise coordinate with two keys"
+                    )
+    return indexed
+
+
 def run_online_attainability_certificate(
     protocol: Mapping[str, Any],
     plan: Mapping[str, Any],
     *,
     design_validity_audit: Mapping[str, Any] | None = None,
     progress_callback: Callable[[Mapping[str, Any]], None] | None = None,
+    trial_store_root: Path | None = None,
+    resume: bool = False,
 ) -> dict[str, Any]:
     """Execute the frozen reference policy's online-attainability certificate.
 
@@ -2509,6 +2746,11 @@ def run_online_attainability_certificate(
     errors = validate_mechanism_adaptation_protocol(protocol)
     if errors:
         raise ValueError("invalid mechanism-adaptation protocol: " + "; ".join(errors))
+    _validate_release_qualification(
+        protocol,
+        plan,
+        configuration_root().parent,
+    )
     requirement = plan.get("online_attainability_certificate")
     if not isinstance(requirement, Mapping):
         raise ValueError("Gate A plan has no online-attainability certificate contract")
@@ -2750,14 +2992,21 @@ def run_online_attainability_certificate(
         for cohort_id, cohort in cohort_partition.items()
         if isinstance(cohort, Mapping) and "seed_namespace_start" in cohort
     }
-    required_cohorts = {
+    legacy_cohorts = {
         "development",
         "a2_certification",
         "a3_certification",
         "private_confirmation",
     }
+    split_private_cohorts = {
+        "development",
+        "a2_certification",
+        "a3_certification",
+        "private_environment_confirmation",
+        "private_agent_confirmation",
+    }
     if (
-        set(cohort_namespaces) != required_cohorts
+        set(cohort_namespaces) not in (legacy_cohorts, split_private_cohorts)
         or len(set(cohort_namespaces.values())) != len(cohort_namespaces)
         or cohort_partition.get("cross_cohort_world_seed_reuse_allowed") is not False
     ):
@@ -2832,7 +3081,6 @@ def run_online_attainability_certificate(
             "invalid mechanism-adaptation preregistration: "
             + "; ".join(preregistration_errors)
         )
-
     action_plan = plan["action_library"]
     fit_plan = plan["candidate_predictive_fit"]
     certificate_plan = plan["held_out_certificate"]
@@ -2943,6 +3191,7 @@ def run_online_attainability_certificate(
         budget: [] for budget in post_budgets
     }
     all_online_trials: list[dict[str, Any]] = []
+    online_trial_manifests: dict[str, dict[str, Any]] = {}
     task_reports: dict[str, Any] = {}
     sample_count = int(fit_plan["samples_per_candidate_action"])
     world_seeds_per_family = int(requirement["world_seeds_per_family"])
@@ -3000,11 +3249,40 @@ def run_online_attainability_certificate(
             task_id=task_id,
             job_count=len(fit_jobs),
         )
-        fit_results = _execute_jobs(
-            _sample_online_predictive_job,
-            fit_jobs,
-            workers=int(fit_plan.get("execution_workers", 1)),
-        )
+        if trial_store_root is None:
+            fit_results = _execute_jobs(
+                _sample_online_predictive_job,
+                fit_jobs,
+                workers=int(fit_plan.get("execution_workers", 1)),
+            )
+        else:
+            online_fit_keys = [
+                ConfirmatoryTrialKey(
+                    task_id=task_id,
+                    truth_family=candidate_id,
+                    world_cluster=str(job["world_seed"]),
+                    changepoint="predictive_fit",
+                    arm=f"online_action:{job['action_id']}",
+                )
+                for (candidate_id, _action_id), job in zip(
+                    fit_keys,
+                    fit_jobs,
+                    strict=True,
+                )
+            ]
+            fit_results, fit_manifest = execute_jobs_resumable(
+                _sample_online_predictive_job,
+                fit_jobs,
+                online_fit_keys,
+                workers=int(fit_plan.get("execution_workers", 1)),
+                store=ConfirmatoryTrialStore(
+                    Path(trial_store_root) / task_id / "predictive-fit"
+                ),
+                resume=resume,
+            )
+            online_trial_manifests.setdefault(task_id, {})[
+                "predictive_fit"
+            ] = fit_manifest
         _emit_gate_a_progress(
             progress_callback,
             event="online_predictive_fit_completed",
@@ -3294,11 +3572,40 @@ def run_online_attainability_certificate(
             task_id=task_id,
             job_count=len(trial_jobs),
         )
-        completed = _execute_jobs(
-            _execute_online_policy_trial_job,
-            trial_jobs,
-            workers=int(requirement.get("execution_workers", 1)),
-        )
+        trial_keys = [
+            ConfirmatoryTrialKey(
+                task_id=task_id,
+                truth_family=str(job["truth_id"]),
+                world_cluster=str(job["world_seed"]),
+                changepoint=(
+                    "never"
+                    if str(job["truth_id"]) == "no_change"
+                    else int(job["change_time"])
+                ),
+                arm="online_reference_policy",
+            )
+            for job in trial_jobs
+        ]
+        if trial_store_root is None:
+            completed = _execute_jobs(
+                _execute_online_policy_trial_job,
+                trial_jobs,
+                workers=int(requirement.get("execution_workers", 1)),
+            )
+        else:
+            completed, task_trial_manifest = execute_jobs_resumable(
+                _execute_online_policy_trial_job,
+                trial_jobs,
+                trial_keys,
+                workers=int(requirement.get("execution_workers", 1)),
+                store=ConfirmatoryTrialStore(
+                    Path(trial_store_root) / task_id
+                ),
+                resume=resume,
+            )
+            online_trial_manifests.setdefault(task_id, {})[
+                "certificate"
+            ] = task_trial_manifest
         all_online_trials.extend(completed)
         _emit_gate_a_progress(
             progress_callback,
@@ -3410,6 +3717,10 @@ def run_online_attainability_certificate(
         for budget in post_budgets
     }
     reference_pass_by_cluster: dict[str, bool] = {}
+    noise_coordinates_by_cluster: dict[str, dict[str, str]] = {}
+    pre_noise_signatures_by_cluster: dict[str, set[str]] = {}
+    noise_pairing_mismatches: list[str] = []
+    pre_signature_mismatches: list[str] = []
     for row in all_online_trials:
         cluster_id = str(row["statistical_cluster_id"])
         passed = row["reference_sufficiency_certificate"]["pass"] is True
@@ -3418,6 +3729,79 @@ def run_online_attainability_certificate(
             raise ValueError(
                 "paired candidate arms disagree on reference sufficiency"
             )
+        noise_audit = row.get("observation_noise_audit")
+        if not isinstance(noise_audit, Mapping) or not isinstance(
+            noise_audit.get("bundle_sha256"),
+            str,
+        ):
+            raise ValueError("online trial lacks keyed-noise provenance")
+        coordinate_map = _paired_noise_coordinate_map(noise_audit)
+        cluster_coordinates = noise_coordinates_by_cluster.setdefault(
+            cluster_id,
+            {},
+        )
+        for coordinate, noise_key in coordinate_map.items():
+            previous_noise_key = cluster_coordinates.setdefault(
+                coordinate,
+                noise_key,
+            )
+            if previous_noise_key != noise_key:
+                noise_pairing_mismatches.append(
+                    f"{cluster_id}:{coordinate}"
+                )
+        pre_signatures = {
+            coordinate
+            for coordinate in coordinate_map
+            if coordinate.startswith("pre_change:")
+        }
+        previous_pre_signatures = pre_noise_signatures_by_cluster.setdefault(
+            cluster_id,
+            pre_signatures,
+        )
+        if previous_pre_signatures != pre_signatures:
+            pre_signature_mismatches.append(cluster_id)
+    keyed_noise_pairing_audit = {
+        "schema_version": "chemworld-keyed-noise-pairing-audit-0.1",
+        "statistical_cluster_count": len(noise_coordinates_by_cluster),
+        "shared_coordinate_key_mismatch_count": len(
+            set(noise_pairing_mismatches)
+        ),
+        "shared_coordinate_key_mismatches": sorted(
+            set(noise_pairing_mismatches)
+        ),
+        "pre_change_signature_set_mismatch_count": len(
+            set(pre_signature_mismatches)
+        ),
+        "pre_change_signature_set_mismatch_cluster_ids": sorted(
+            set(pre_signature_mismatches)
+        ),
+        "paired_noise_keys_match_on_shared_semantic_coordinates": (
+            not noise_pairing_mismatches
+        ),
+        "pre_change_noise_coordinate_sets_match_across_truth_twins": (
+            not pre_signature_mismatches
+        ),
+        "post_change_policy_divergence_may_change_coordinate_sets": True,
+        "sequential_rng_position_used_for_pairing": False,
+        "gate_precondition_pass": (
+            not noise_pairing_mismatches and not pre_signature_mismatches
+        ),
+    }
+    trial_manifests_complete = (
+        None
+        if trial_store_root is None
+        else (
+            len(online_trial_manifests) == len(task_reports)
+            and all(
+                len(task_manifests) == 2
+                and all(
+                    manifest["complete"] is True
+                    for manifest in task_manifests.values()
+                )
+                for task_manifests in online_trial_manifests.values()
+            )
+        )
+    )
     sufficient_trial_count = sum(reference_pass_by_cluster.values())
     reference_trial_count = len(reference_pass_by_cluster)
     reference_interval = (
@@ -3606,6 +3990,8 @@ def run_online_attainability_certificate(
         and capability_certificate["gate_pass"] is True
         and task_intersection_pass
         and family_intersection_pass
+        and keyed_noise_pairing_audit["gate_precondition_pass"] is True
+        and trial_manifests_complete is not False
         and (
             reference_acquisition_certificate["gate_pass"] is True
             or protocol.get("schema_version")
@@ -3692,6 +4078,9 @@ def run_online_attainability_certificate(
             "evidence_policy": requirement["evidence_policy"],
         },
         "reference_acquisition_certificate": reference_acquisition_certificate,
+        "keyed_noise_pairing_audit": keyed_noise_pairing_audit,
+        "trial_manifests": online_trial_manifests,
+        "trial_manifests_complete": trial_manifests_complete,
         "online_capability_chain_certificate": capability_certificate,
         "online_capability_chain_by_post_change_budget": {
             str(budget): value
@@ -3765,12 +4154,25 @@ def _run_paired_gate_a(
     online_attainability_certificate: Mapping[str, Any] | None = None,
     design_validity_audit: Mapping[str, Any] | None = None,
     progress_callback: Callable[[Mapping[str, Any]], None] | None = None,
+    trial_store_root: Path | None = None,
+    resume: bool = False,
 ) -> dict[str, Any]:
     """Run the pre/post paired controlled certificate and compose full Gate A."""
 
     errors = validate_mechanism_adaptation_protocol(protocol)
     if errors:
         raise ValueError("invalid mechanism-adaptation protocol: " + "; ".join(errors))
+    release_qualification = _validate_release_qualification(
+        protocol,
+        plan,
+        configuration_root().parent,
+    )
+    if release_qualification is not None:
+        _validate_frozen_registration(
+            protocol,
+            plan,
+            configuration_root().parent,
+        )
     action_plan = plan["action_library"]
     fit_plan = plan["candidate_predictive_fit"]
     certificate_plan = plan["held_out_certificate"]
@@ -3836,7 +4238,16 @@ def _run_paired_gate_a(
             selected_feature_dimension=selected_feature_dimension_per_action,
         )
     online_history_aligned_budget = int(phase_plan["pre_change_reference_experiments"])
-    protocol_pre_change = int(protocol["design"]["pre_change_experiments"])
+    if protocol.get("schema_version") == (
+        "chemworld-mechanism-adaptation-protocol-0.3.0"
+    ):
+        protocol_pre_change = int(
+            protocol["evaluation_tracks"]["calibrated_online_change"][
+                "minimum_stable_prefix_experiments"
+            ]
+        )
+    else:
+        protocol_pre_change = int(protocol["design"]["pre_change_experiments"])
     if online_history_aligned_budget != protocol_pre_change:
         raise ValueError("paired Gate A must use the protocol pre-change experiment budget")
     budgets = [int(item) for item in certificate_plan["budgets"]]
@@ -3851,7 +4262,11 @@ def _run_paired_gate_a(
     primary_budget = int(certificate_plan["primary_gate_budget"])
     if primary_budget not in budgets:
         raise ValueError("paired Gate A primary budget must be a frozen checkpoint")
-    if online_history_aligned_budget not in budgets:
+    if (
+        protocol.get("schema_version")
+        != "chemworld-mechanism-adaptation-protocol-0.3.0"
+        and online_history_aligned_budget not in budgets
+    ):
         raise ValueError("paired Gate A must report the online-history-aligned checkpoint")
     if int(action_plan["action_count_per_task"]) < max(budgets):
         raise ValueError("paired Gate A action library cannot underfill its largest decoder budget")
@@ -3919,6 +4334,7 @@ def _run_paired_gate_a(
     decoder_predictions: dict[int, list[str]] = {budget: [] for budget in budgets}
     candidate_union: list[str] = []
     sample_count = int(fit_plan["samples_per_candidate_action"])
+    controlled_trial_manifests: dict[str, dict[str, Any]] = {}
 
     for task_index, task_id in enumerate(protocol["design"]["tasks"]):
         task_id = str(task_id)
@@ -3969,11 +4385,41 @@ def _run_paired_gate_a(
             task_id=task_id,
             job_count=len(fit_jobs),
         )
-        fit_results = _execute_jobs(
-            _sample_paired_contrast_job,
-            fit_jobs,
-            workers=int(fit_plan.get("execution_workers", 1)),
-        )
+        if trial_store_root is None:
+            fit_results = _execute_jobs(
+                _sample_paired_contrast_job,
+                fit_jobs,
+                workers=int(fit_plan.get("execution_workers", 1)),
+            )
+            fit_manifest = None
+        else:
+            fit_trial_keys = [
+                ConfirmatoryTrialKey(
+                    task_id=task_id,
+                    truth_family=candidate_id,
+                    world_cluster=str(job["world_seed"]),
+                    changepoint="predictive_fit",
+                    arm=f"action:{job['action_ids'][0]}",
+                )
+                for (candidate_id, _action_id), job in zip(
+                    fit_keys,
+                    fit_jobs,
+                    strict=True,
+                )
+            ]
+            fit_results, fit_manifest = execute_jobs_resumable(
+                _sample_paired_contrast_job,
+                fit_jobs,
+                fit_trial_keys,
+                workers=int(fit_plan.get("execution_workers", 1)),
+                store=ConfirmatoryTrialStore(
+                    Path(trial_store_root) / task_id / "predictive-fit"
+                ),
+                resume=resume,
+            )
+            controlled_trial_manifests.setdefault(task_id, {})[
+                "predictive_fit"
+            ] = fit_manifest
         _emit_gate_a_progress(
             progress_callback,
             event="predictive_fit_completed",
@@ -4107,11 +4553,38 @@ def _run_paired_gate_a(
                 budget=budget,
                 job_count=len(trial_jobs),
             )
-            completed_trials = _execute_jobs(
-                _execute_paired_gate_a_trial_job,
-                trial_jobs,
-                workers=int(certificate_plan.get("execution_workers", 1)),
-            )
+            confirmatory_keys = [
+                ConfirmatoryTrialKey(
+                    task_id=task_id,
+                    truth_family=str(job["truth_id"]),
+                    world_cluster=str(job["world_seed"]),
+                    changepoint="not_applicable",
+                    arm=f"controlled_budget_{budget}_active_and_decoder",
+                )
+                for job in trial_jobs
+            ]
+            if trial_store_root is None:
+                completed_trials = _execute_jobs(
+                    _execute_paired_gate_a_trial_job,
+                    trial_jobs,
+                    workers=int(certificate_plan.get("execution_workers", 1)),
+                )
+            else:
+                completed_trials, certificate_manifest = execute_jobs_resumable(
+                    _execute_paired_gate_a_trial_job,
+                    trial_jobs,
+                    confirmatory_keys,
+                    workers=int(certificate_plan.get("execution_workers", 1)),
+                    store=ConfirmatoryTrialStore(
+                        Path(trial_store_root)
+                        / task_id
+                        / f"certificate-budget-{budget}"
+                    ),
+                    resume=resume,
+                )
+                controlled_trial_manifests.setdefault(task_id, {})[
+                    f"certificate_budget_{budget}"
+                ] = certificate_manifest
             _emit_gate_a_progress(
                 progress_callback,
                 event="certificate_trials_completed",
@@ -4138,7 +4611,10 @@ def _run_paired_gate_a(
             budget_designs[str(budget)] = {
                 "matched_pre_change_reference_experiments": budget,
                 "post_change_diagnostic_experiments": budget,
-                "online_history_aligned": (budget == online_history_aligned_budget),
+                "controlled_matched_pre_post_budget": True,
+                "matches_a3_minimum_reference_prefix": (
+                    budget == online_history_aligned_budget
+                ),
                 "likelihood_scale": controlled_likelihood_scale,
                 "selected_feature_dimension": (
                     selected_feature_dimension_per_action * budget
@@ -4185,6 +4661,7 @@ def _run_paired_gate_a(
             "selected_feature_dimension_per_action": (
                 selected_feature_dimension_per_action
             ),
+            "trial_manifests": controlled_trial_manifests.get(task_id, {}),
             "controlled_primary_information_minimum_spread_nats": (
                 controlled_information_minimum_spread
             ),
@@ -4221,7 +4698,25 @@ def _run_paired_gate_a(
         )
         for budget in budgets
     }
-    controlled_gate_pass = bool(active_certificates[primary_budget]["gate_pass"])
+    controlled_manifests_complete = (
+        None
+        if trial_store_root is None
+        else (
+            len(controlled_trial_manifests) == len(task_reports)
+            and all(
+                len(task_manifests) == len(budgets) + 1
+                and all(
+                    manifest["complete"] is True
+                    for manifest in task_manifests.values()
+                )
+                for task_manifests in controlled_trial_manifests.values()
+            )
+        )
+    )
+    controlled_gate_pass = bool(
+        active_certificates[primary_budget]["gate_pass"]
+        and controlled_manifests_complete is not False
+    )
     decision = gate_a_certificate_decision(
         protocol,
         plan,
@@ -4252,6 +4747,8 @@ def _run_paired_gate_a(
             "fit_and_certificate_seed_namespaces_disjoint": True,
         },
         "primary_gate_budget": primary_budget,
+        "trial_manifests": controlled_trial_manifests,
+        "trial_manifests_complete": controlled_manifests_complete,
         "active_oracle": {
             "type": "batch_information_gain_over_matched_pre_post_recipe_contrasts",
             "gate_pass": controlled_gate_pass,
@@ -4267,11 +4764,10 @@ def _run_paired_gate_a(
         "gate_a_pass": decision["gate_a_pass"],
         "task_reports": task_reports,
         "interpretation": (
-            "The primary checkpoint establishes controlled identifiability from an "
-            "online-history-aligned matched pre/post public recipe budget. Larger "
-            "checkpoints are diagnostic curves with equally sized matched reference sets; "
-            "they do not establish online-attainable mechanism discovery. Full Gate A "
-            "requires a separately bound online-attainability certificate."
+            "A2 establishes controlled identifiability from equally sized matched "
+            "pre/post public recipe budgets. It does not establish online change "
+            "discovery. Full Gate A separately requires A3 online attainability by "
+            "the frozen reference diagnostic policy after a sufficient old-world prefix."
         ),
         "candidate_family_names": candidate_union,
         "publication_ready": False,
@@ -4285,6 +4781,8 @@ def run_gate_a(
     online_attainability_certificate: Mapping[str, Any] | None = None,
     design_validity_audit: Mapping[str, Any] | None = None,
     progress_callback: Callable[[Mapping[str, Any]], None] | None = None,
+    trial_store_root: Path | None = None,
+    resume: bool = False,
 ) -> dict[str, Any]:
     """Run the frozen active-oracle and fixed-decoder identifiability checks."""
 
@@ -4295,6 +4793,7 @@ def run_gate_a(
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.5",
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.6",
         "chemworld-mechanism-adaptation-gate-a-plan-0.2.7",
+        "chemworld-mechanism-adaptation-gate-a-plan-0.3.0",
     }:
         return _run_paired_gate_a(
             protocol,
@@ -4302,6 +4801,8 @@ def run_gate_a(
             online_attainability_certificate=online_attainability_certificate,
             design_validity_audit=design_validity_audit,
             progress_callback=progress_callback,
+            trial_store_root=trial_store_root,
+            resume=resume,
         )
     errors = validate_mechanism_adaptation_protocol(protocol)
     if errors:

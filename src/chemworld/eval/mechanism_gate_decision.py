@@ -19,7 +19,7 @@ from chemworld.tasks import get_task
 from chemworld.world.operations import operation_contracts
 
 ONLINE_ATTAINABILITY_CERTIFICATE_VERSION = (
-    "chemworld-mechanism-adaptation-online-attainability-certificate-0.8"
+    "chemworld-mechanism-adaptation-online-attainability-certificate-0.9"
 )
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 

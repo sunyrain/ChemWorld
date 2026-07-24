@@ -9,7 +9,7 @@ from typing import Any
 from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.live_llm import LiveLLMAgent
 
-DIAGNOSTIC_PROMPT_VERSION = "chemworld-mechanism-diagnostic-prompt-0.2"
+DIAGNOSTIC_PROMPT_VERSION = "chemworld-mechanism-diagnostic-prompt-0.3"
 
 
 class MechanismDiagnosticLiveLLMAgent(LiveLLMAgent):
@@ -58,8 +58,8 @@ class MechanismDiagnosticLiveLLMAgent(LiveLLMAgent):
             "required_fields": [
                 "mechanism_belief",
                 "change_probability",
-                "expected_information_gain",
-                "diagnostic_measurement_rationale",
+                "base.expected_information_gain",
+                "base.diagnostic_target",
             ],
         }
         payload.update(
@@ -113,12 +113,8 @@ class MechanismDiagnosticLiveLLMAgent(LiveLLMAgent):
         payload["required_json_shape"]["diagnostic_report"] = {
             "mechanism_belief": dict.fromkeys(self.mechanism_candidates, "probability from 0 to 1"),
             "change_probability": "number from 0 to 1",
-            "expected_information_gain": "number from 0 to 1",
-            "diagnostic_measurement_rationale": (
-                "concise statement of which hypotheses the action distinguishes"
-            ),
         }
-        return json.dumps(payload, ensure_ascii=False, sort_keys=True)
+        return self._serialize_extended_prompt(payload)
 
     def _normalize_decision(
         self,
@@ -151,20 +147,14 @@ class MechanismDiagnosticLiveLLMAgent(LiveLLMAgent):
             diagnostic.get("change_probability"),
             "change_probability",
         )
-        expected_information_gain = _probability(
-            diagnostic.get("expected_information_gain"),
-            "expected_information_gain",
-        )
-        rationale = str(diagnostic.get("diagnostic_measurement_rationale") or "").strip()
-        if not rationale:
-            raise ValueError("diagnostic_measurement_rationale must be non-empty")
         decision.update(
             {
                 "mechanism_belief": belief,
                 "mechanism_prediction": max(belief, key=belief.__getitem__),
                 "change_probability": change_probability,
-                "expected_information_gain": expected_information_gain,
-                "diagnostic_measurement_rationale": rationale,
+                "diagnostic_measurement_rationale": decision[
+                    "diagnostic_target"
+                ],
             }
         )
         return decision
@@ -181,9 +171,8 @@ class MechanismDiagnosticLiveLLMAgent(LiveLLMAgent):
                 "mechanism_belief": dict.fromkeys(self.mechanism_candidates, uniform),
                 "mechanism_prediction": "no_change",
                 "change_probability": 0.5,
-                "expected_information_gain": 0.0,
                 "diagnostic_measurement_rationale": (
-                    "No diagnostic forecast was available because the model decision failed."
+                    decision["diagnostic_target"]
                 ),
             }
         )

@@ -12,6 +12,7 @@ from chemworld.eval.mechanism_adaptation import (
     load_mechanism_adaptation_protocol,
     validate_mechanism_adaptation_protocol,
 )
+from chemworld.eval.mechanism_adaptation_execution import load_json_object
 from chemworld.eval.mechanism_gate_decision import (
     gate_a_certificate_decision,
     gate_a_execution_contract_binding,
@@ -25,9 +26,13 @@ from chemworld.eval.mechanism_relation_graph import (
 from chemworld.physchem.mechanism_library import configuration_root
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_PROTOCOL = configuration_root() / "benchmark/mechanism_adaptation_v0.3.0.json"
+DEFAULT_PROTOCOL = (
+    configuration_root()
+    / "benchmark/mechanism_adaptation_v0.3.0_rc25.json"
+)
 REQUIRED_IMPLEMENTATION_ARTIFACTS = (
-    "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json",
+    "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json",
+    "configs/benchmark/mechanism_adaptation_participant_preregistration_rc25.json",
     "src/chemworld/agents/mechanism_adaptation_live_llm.py",
     "src/chemworld/eval/mechanism_adaptation.py",
     "src/chemworld/eval/confirmatory_task_semantics_audit.py",
@@ -35,16 +40,19 @@ REQUIRED_IMPLEMENTATION_ARTIFACTS = (
     "src/chemworld/eval/mechanism_design_audit.py",
     "src/chemworld/eval/mechanism_relation_graph.py",
     "src/chemworld/eval/mechanism_adaptation_execution.py",
+    "src/chemworld/eval/mechanism_release.py",
+    "src/chemworld/eval/trial_store.py",
     "scripts/audit_mechanism_adaptation_design.py",
     "scripts/audit_confirmatory_task_semantics.py",
     "scripts/build_mechanism_diagnostic_relation_graph.py",
     "scripts/build_mechanism_adaptation_preregistration.py",
     "scripts/audit_mechanism_adaptation_sample_size.py",
     "scripts/run_mechanism_adaptation.py",
+    "scripts/qualify_mechanism_adaptation_release.py",
     "scripts/plan_mechanism_adaptation_matrix.py",
     "tests/test_mechanism_adaptation.py",
     "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-public-matrix.json",
-    "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc24.json",
+    "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc25.json",
 )
 
 
@@ -55,12 +63,15 @@ def build_mechanism_adaptation_preflight(
 
     protocol = load_mechanism_adaptation_protocol(protocol_path)
     validation_errors = validate_mechanism_adaptation_protocol(protocol)
+    gate_a_plan_path = (
+        configuration_root()
+        / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json"
+    )
+    gate_a_plan = load_json_object(gate_a_plan_path)
     design_audit_relative = str(
-        protocol["intervention_action_alignment"]["design_audit_report"]
+        gate_a_plan["design_validity_precondition"]["report"]
     )
     design_audit_path = ROOT / design_audit_relative
-    gate_a_plan_path = configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.3.0.json"
-    gate_a_plan = json.loads(gate_a_plan_path.read_text(encoding="utf-8"))
     relation_graph_path = ROOT / gate_a_plan["diagnostic_relation_graph"]["report"]
     relation_graph = (
         json.loads(relation_graph_path.read_text(encoding="utf-8"))
@@ -110,7 +121,7 @@ def build_mechanism_adaptation_preflight(
     semantics_path = (
         ROOT
         / "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc24.json"
+        "confirmatory-task-semantics-audit-rc25.json"
     )
     semantics = (
         json.loads(semantics_path.read_text(encoding="utf-8"))
@@ -229,9 +240,9 @@ def build_mechanism_adaptation_pending_gate_state(
     protocol = load_mechanism_adaptation_protocol(protocol_path)
     gate_a_plan_path = (
         configuration_root()
-        / "benchmark/mechanism_adaptation_gate_a_v0.3.0.json"
+        / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json"
     )
-    plan = json.loads(gate_a_plan_path.read_text(encoding="utf-8"))
+    plan = load_json_object(gate_a_plan_path)
     design_path = ROOT / plan["design_validity_precondition"]["report"]
     design = (
         json.loads(design_path.read_text(encoding="utf-8"))
@@ -297,7 +308,7 @@ def build_mechanism_adaptation_pending_gate_state(
         **decision["online_attainability_certificate"],
         "report": (
             "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-online-attainability-certificate-v0.8-rc24-pending.json"
+            "mechanism-adaptation-online-attainability-certificate-v0.9-rc25-pending.json"
         ),
         "certificate_sha256": _canonical_sha256(online_state),
         "certificate_hash_source": "standalone_pending_state_canonical_json",

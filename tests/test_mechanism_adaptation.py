@@ -392,6 +392,7 @@ def test_v0_3_preflight_separates_method_freeze_from_external_execution() -> Non
 def test_v0_2_agent_defines_randomizes_and_anonymizes_candidates_without_derived_leakage() -> None:
     agent = _agent(label_mode="anonymous")
     prompt = json.loads(agent._build_prompt(_context(), {"tool_json": {}}))
+    assert agent._last_prompt_estimated_tokens <= 1500
     candidates = prompt["mechanism_diagnostic_contract"]["candidates"]
     assert {item["label"] for item in candidates} == {"H1", "H2"}
     assert all(item["definition"] for item in candidates)

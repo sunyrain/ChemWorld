@@ -197,13 +197,22 @@ def audit_confirmatory_task_semantics(
     add(
         "development_a2_a3_private_cohorts_disjoint",
         set(cohort_namespaces)
-        == {
-            "development",
-            "a2_certification",
-            "a3_certification",
-            "private_confirmation",
-        }
-        and len(set(cohort_namespaces.values())) == 4
+        in (
+            {
+                "development",
+                "a2_certification",
+                "a3_certification",
+                "private_confirmation",
+            },
+            {
+                "development",
+                "a2_certification",
+                "a3_certification",
+                "private_environment_confirmation",
+                "private_agent_confirmation",
+            },
+        )
+        and len(set(cohort_namespaces.values())) == len(cohort_namespaces)
         and partitions["cross_cohort_world_seed_reuse_allowed"] is False,
         f"seed_namespaces={cohort_namespaces}",
     )

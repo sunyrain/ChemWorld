@@ -18,14 +18,22 @@ from chemworld.eval.confirmatory_task_semantics_audit import (  # noqa: E402
 from chemworld.eval.mechanism_adaptation import (  # noqa: E402
     load_mechanism_adaptation_protocol,
 )
+from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
+    load_json_object,
+)
 from chemworld.eval.provenance import write_json_atomic  # noqa: E402
 
-DEFAULT_PROTOCOL = ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0.json"
-DEFAULT_PLAN = ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json"
+DEFAULT_PROTOCOL = (
+    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json"
+)
+DEFAULT_PLAN = (
+    ROOT
+    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json"
+)
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "confirmatory-task-semantics-audit-rc24.json"
+    "confirmatory-task-semantics-audit-rc25.json"
 )
 
 
@@ -37,7 +45,7 @@ def main() -> None:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     protocol = load_mechanism_adaptation_protocol(args.protocol)
-    plan = json.loads(args.plan.read_text(encoding="utf-8"))
+    plan = load_json_object(args.plan)
     graph_path = ROOT / plan["diagnostic_relation_graph"]["report"]
     graph = json.loads(graph_path.read_text(encoding="utf-8"))
     report = audit_confirmatory_task_semantics(protocol, plan, graph)

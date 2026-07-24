@@ -13,6 +13,11 @@ import gymnasium as gym
 import numpy as np
 
 from chemworld.action_codec import ActionCodec
+from chemworld.envs.observation_noise import (
+    ObservationNoiseCoordinate,
+    keyed_noise_provenance,
+    keyed_observation_rng,
+)
 from chemworld.envs.reports import (
     annotate_constitution_rollback,
     build_constitution_summary,
@@ -73,6 +78,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         episode_mode_override: str | None = None,
         safety_limit_override: float | None = None,
         observation_seed_override: int | None = None,
+        observation_noise_mode: str = "sequential",
+        observation_noise_namespace: str = "chemworld-default-observation",
         world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
         debug_truth: bool = False,
         render_mode: str | None = None,
@@ -97,6 +104,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             or not 0.0 < float(safety_limit_override) <= 1.0
         ):
             raise ValueError("safety_limit_override must be finite and in (0, 1]")
+        if observation_noise_mode not in {"sequential", "keyed"}:
+            raise ValueError("observation_noise_mode must be sequential or keyed")
+        if not observation_noise_namespace.strip():
+            raise ValueError("observation_noise_namespace must be non-empty")
 
         self.world_split = world_split
         self.budget = budget
@@ -106,6 +117,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.observation_seed_override = (
             None if observation_seed_override is None else int(observation_seed_override)
         )
+        self.observation_noise_mode = observation_noise_mode
+        self.observation_noise_namespace = observation_noise_namespace
         self.debug_truth = debug_truth
         self.world_interventions = tuple(world_interventions or ())
         self.render_mode = render_mode
@@ -174,6 +187,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             ),
         )
         self._rng = np.random.default_rng(self._observation_seed(seed))
+        self._observation_occurrences: dict[tuple[int, str, str], int] = {}
+        self._last_observation_noise_provenance: dict[str, Any] = {
+            "mode": self.observation_noise_mode,
+            "status": "not_observed",
+        }
         self._step_count = 0
         self._experiment_index = 0
         self._operation_id = 0
@@ -198,6 +216,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         if seed is not None:
             self.seed = seed
         self._rng = np.random.default_rng(self._observation_seed(self.seed))
+        self._observation_occurrences = {}
+        self._last_observation_noise_provenance = {
+            "mode": self.observation_noise_mode,
+            "status": "not_observed",
+        }
         if options and options.get("scenario_id"):
             self.scenario_spec = get_scenario(str(options["scenario_id"]), split=self.world_split)
         self.scenario_instance = self.scenario_generator.generate(
@@ -283,9 +306,44 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         observation_checks: list[dict[str, object]] = []
         observation_rng_state = deepcopy(self._rng.bit_generator.state)
+        observation_rng = self._rng
+        noise_counter_key: tuple[int, str, str] | None = None
+        noise_provenance: dict[str, Any] = {
+            "mode": self.observation_noise_mode,
+            "status": "not_observed",
+        }
         if operation_committed:
+            if self.observation_noise_mode == "keyed":
+                operation_type = str(action.get("operation") or "unknown")
+                instrument = str(operation_record.instrument or action.get("instrument") or "none")
+                noise_counter_key = (
+                    self._experiment_index,
+                    operation_type,
+                    instrument,
+                )
+                replicate_index = self._observation_occurrences.get(
+                    noise_counter_key,
+                    0,
+                )
+                coordinate = ObservationNoiseCoordinate(
+                    namespace=self.observation_noise_namespace,
+                    base_observation_seed=self._observation_seed(self.seed),
+                    experiment_index=self._experiment_index,
+                    operation_type=operation_type,
+                    instrument=instrument,
+                    replicate_index=replicate_index,
+                )
+                observation_rng = keyed_observation_rng(coordinate)
+                noise_provenance = {
+                    **keyed_noise_provenance(coordinate),
+                    "status": "candidate",
+                }
             try:
-                observation = self.observation_kernel.observe(self._state, action, self._rng)
+                observation = self.observation_kernel.observe(
+                    self._state,
+                    action,
+                    observation_rng,
+                )
             except (ArithmeticError, ValueError):
                 self._rng.bit_generator.state = observation_rng_state
                 validation = self._domain_failure_validation(
@@ -303,6 +361,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 preconditions_passed = False
                 operation_committed = False
                 observation = self.observation_kernel.failed_observation()
+                noise_provenance["status"] = "rolled_back"
             else:
                 candidate_observation_report = self.constitution.check_observation(
                     observation,
@@ -310,6 +369,12 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 )
                 if candidate_observation_report.passed:
                     observation_checks = candidate_observation_report.to_list()
+                    noise_provenance["status"] = "committed"
+                    if noise_counter_key is not None:
+                        self._observation_occurrences[noise_counter_key] = (
+                            self._observation_occurrences.get(noise_counter_key, 0)
+                            + 1
+                        )
                 else:
                     # Observation generation is part of the atomic public
                     # transition.  A non-finite, leaking, or internally
@@ -333,8 +398,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     preconditions_passed = False
                     operation_committed = False
                     observation = self.observation_kernel.failed_observation()
+                    noise_provenance["status"] = "rolled_back"
         else:
             observation = self.observation_kernel.failed_observation()
+        self._last_observation_noise_provenance = deepcopy(noise_provenance)
         if not observation_checks:
             observation_checks = self.constitution.check_observation(
                 observation,
@@ -442,6 +509,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         """Return private replay identity for the official evaluator/logger."""
 
         return build_evaluator_provenance(self)
+
+    def observation_noise_provenance(self) -> dict[str, Any]:
+        """Return evaluator-only noise identity for the most recent transition."""
+
+        return deepcopy(self._last_observation_noise_provenance)
 
     def task_prompt(self) -> dict[str, Any]:
         from chemworld.agent_interface import task_prompt

@@ -16,7 +16,7 @@ from chemworld.eval.mechanism_adaptation import (
     normalized_distribution,
 )
 
-MECHANISM_ADAPTATION_PROMPT_VERSION = "chemworld-mechanism-adaptation-prompt-0.3"
+MECHANISM_ADAPTATION_PROMPT_VERSION = "chemworld-mechanism-adaptation-prompt-0.4"
 
 CandidateLabelMode = Literal["semantic", "anonymous"]
 
@@ -158,15 +158,11 @@ class MechanismAdaptationLiveLLMAgent(MechanismDiagnosticLiveLLMAgent):
             "mechanism_distribution": dict.fromkeys(
                 self._public_to_internal, "probability from 0 to 1"
             ),
-            "declared_information_value": "number from 0 to 1",
-            "diagnostic_rationale": (
-                "which candidate definitions the selected action distinguishes"
-            ),
         }
         payload["recent_decisions"] = [
             self._sanitized_memory_item(item) for item in payload.get("recent_decisions", [])
         ]
-        return json.dumps(payload, ensure_ascii=False, sort_keys=True)
+        return self._serialize_extended_prompt(payload)
 
     def _normalize_decision(
         self,
@@ -193,19 +189,16 @@ class MechanismAdaptationLiveLLMAgent(MechanismDiagnosticLiveLLMAgent):
         internal_distribution = {
             self._public_to_internal[public]: value for public, value in public_distribution.items()
         }
-        declared_value = _bounded_probability(
-            report.get("declared_information_value"),
-            "declared_information_value",
-        )
-        rationale = str(report.get("diagnostic_rationale") or "").strip()
-        if not rationale:
-            raise ValueError("diagnostic_rationale must be non-empty")
         decision.update(
             {
                 "mechanism_distribution": internal_distribution,
                 "public_mechanism_distribution": public_distribution,
-                "declared_information_value": declared_value,
-                "diagnostic_measurement_rationale": rationale,
+                "declared_information_value": decision[
+                    "expected_information_gain"
+                ],
+                "diagnostic_measurement_rationale": decision[
+                    "diagnostic_target"
+                ],
             }
         )
         return decision
@@ -278,16 +271,6 @@ class MechanismAdaptationLiveLLMAgent(MechanismDiagnosticLiveLLMAgent):
             "system_fingerprint",
         }
         return {str(key): value for key, value in item.items() if key not in blocked}
-
-
-def _bounded_probability(value: Any, field: str) -> float:
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        raise ValueError(f"{field} must be numeric")
-    result = float(value)
-    if not 0.0 <= result <= 1.0:
-        raise ValueError(f"{field} must be in [0, 1]")
-    return result
-
 
 __all__ = [
     "MECHANISM_ADAPTATION_PROMPT_VERSION",

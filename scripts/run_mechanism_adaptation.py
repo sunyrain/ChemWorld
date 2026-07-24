@@ -33,20 +33,45 @@ from chemworld.eval.mechanism_adaptation_pilot import (  # noqa: E402
 from chemworld.eval.mechanism_feedback_audit import (  # noqa: E402
     run_local_feedback_audit,
 )
+from chemworld.eval.mechanism_release import (  # noqa: E402
+    build_metric_embargo_receipt,
+    build_public_gate_a_decision,
+)
 from chemworld.eval.provenance import (  # noqa: E402
     canonical_json_sha256,
     write_json_atomic,
 )
 
 DEFAULT_GATE_A_REPORT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc24.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc25.json"
 )
 DEFAULT_ONLINE_ATTAINABILITY_CERTIFICATE = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-online-attainability-certificate-v0.8-rc24.json"
+    "mechanism-adaptation-online-attainability-certificate-v0.9-rc25.json"
 )
-DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.3.0"
+DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.3.0-rc25"
+DEFAULT_TRIAL_STORE_ROOT = DEFAULT_RUNTIME_ROOT / "confirmatory-trials"
+DEFAULT_A3_STRUCTURAL_RECEIPT = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "mechanism-adaptation-a3-structural-receipt-v0.1-rc25.json"
+)
+DEFAULT_A2_STRUCTURAL_RECEIPT = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "mechanism-adaptation-a2-structural-receipt-v0.1-rc25.json"
+)
+DEFAULT_RELEASE_QUALIFICATION = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "mechanism-adaptation-release-qualification-v0.1-rc25.json"
+)
+DEFAULT_PUBLIC_DECISION = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "mechanism-adaptation-public-decision-v0.1-rc25.json"
+)
 DEFAULT_PILOT_REPORT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
@@ -168,12 +193,20 @@ def _run_gate_a(args: argparse.Namespace) -> int:
         online_attainability_certificate=online_attainability_certificate,
         design_validity_audit=design_validity_audit,
         progress_callback=_print_gate_a_progress,
+        trial_store_root=args.trial_store_root / "a2",
+        resume=args.resume,
     )
     report = _compact_gate_a_report(
         report,
         online_attainability_certificate_path=args.online_attainability_certificate,
     )
     _write_immutable_json(args.output, report)
+    a2_receipt = build_metric_embargo_receipt(
+        report,
+        stage="a2",
+        expected_trial_count=_expected_a2_receipt_count(protocol, plan),
+    )
+    _write_immutable_json(args.a2_structural_receipt, a2_receipt)
     print(
         json.dumps(
             {
@@ -181,6 +214,7 @@ def _run_gate_a(args: argparse.Namespace) -> int:
                 "gate_a_pass": report["gate_a_pass"],
                 "primary_gate_budget": report["primary_gate_budget"],
                 "output": str(args.output),
+                "structural_receipt": str(args.a2_structural_receipt),
             },
             indent=2,
             sort_keys=True,
@@ -220,24 +254,116 @@ def _run_online_attainability_certificate(args: argparse.Namespace) -> int:
         plan,
         design_validity_audit=design_validity_audit,
         progress_callback=_print_gate_a_progress,
+        trial_store_root=args.trial_store_root / "a3",
+        resume=args.resume,
     )
     _write_immutable_json(args.online_attainability_output, report)
+    a3_receipt = build_metric_embargo_receipt(
+        report,
+        stage="a3",
+        expected_trial_count=_expected_a3_receipt_count(protocol, plan),
+    )
+    _write_immutable_json(args.a3_structural_receipt, a3_receipt)
     print(
         json.dumps(
             {
-                "status": report["status"],
-                "gate_pass": report["gate_pass"],
-                "top1_accuracy": report["identifiability_certificate"][
-                    "top1_accuracy"
+                "status": "structural_receipt_complete",
+                "metric_embargo": "active",
+                "scientific_metrics_disclosed": False,
+                "structurally_complete": a3_receipt[
+                    "structurally_complete"
                 ],
                 "output": str(args.online_attainability_output),
+                "structural_receipt": str(args.a3_structural_receipt),
             },
             indent=2,
             sort_keys=True,
         ),
         flush=True,
     )
-    return 0 if report["gate_pass"] else 1
+    return 0 if a3_receipt["structurally_complete"] else 2
+
+
+def _build_public_decision(args: argparse.Namespace) -> int:
+    gate_a_report = load_json_object(args.output)
+    a3_report = load_json_object(args.online_attainability_output)
+    a2_receipt = load_json_object(args.a2_structural_receipt)
+    a3_receipt = load_json_object(args.a3_structural_receipt)
+    qualification = load_json_object(args.release_qualification)
+    decision = build_public_gate_a_decision(
+        gate_a_report,
+        a3_report=a3_report,
+        a2_structural_receipt=a2_receipt,
+        a3_structural_receipt=a3_receipt,
+        release_qualification=qualification,
+    )
+    _write_immutable_json(args.public_decision_output, decision)
+    print(
+        json.dumps(
+            {
+                "status": "joint_a2_a3_decision_released",
+                "gate_a_pass": decision["gate_a_pass"],
+                "go_no_go_branch": decision["go_no_go"]["branch"],
+                "benchmark_ready": decision["readiness"][
+                    "benchmark_ready"
+                ],
+                "output": str(args.public_decision_output),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _expected_a3_receipt_count(
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+) -> int:
+    per_family = int(
+        plan["online_attainability_certificate"]["world_seeds_per_family"]
+    )
+    candidate_arms = sum(
+        len(
+            protocol["task_mechanism_contracts"][str(task_id)][
+                "candidate_ids"
+            ]
+        )
+        * per_family
+        for task_id in protocol["design"]["tasks"]
+    )
+    fit_samples = int(
+        plan["candidate_predictive_fit"]["samples_per_candidate_action"]
+    )
+    action_count = int(plan["action_library"]["action_count_per_task"])
+    return candidate_arms * (
+        per_family + fit_samples * action_count
+    )
+
+
+def _expected_a2_receipt_count(
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+) -> int:
+    action_count = int(plan["action_library"]["action_count_per_task"])
+    fit_samples = int(
+        plan["candidate_predictive_fit"]["samples_per_candidate_action"]
+    )
+    certificate_samples = int(
+        plan["held_out_certificate"]["world_seeds_per_family"]
+    )
+    budget_count = len(plan["held_out_certificate"]["budgets"])
+    candidate_arms = sum(
+        len(
+            protocol["task_mechanism_contracts"][str(task_id)][
+                "candidate_ids"
+            ]
+        )
+        for task_id in protocol["design"]["tasks"]
+    )
+    return candidate_arms * (
+        action_count * fit_samples + certificate_samples * budget_count
+    )
 
 
 def _print_gate_a_progress(event: Mapping[str, Any]) -> None:
@@ -486,6 +612,7 @@ def parse_args() -> argparse.Namespace:
         choices=(
             "gate-a",
             "online-attainability-certificate",
+            "public-decision",
             "campaign",
             "pilot-report",
             "local-feedback",
@@ -512,6 +639,31 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--llm-methods", type=Path, default=DEFAULT_LLM_METHODS_PATH)
     parser.add_argument("--runtime-root", type=Path, default=DEFAULT_RUNTIME_ROOT)
+    parser.add_argument(
+        "--trial-store-root",
+        type=Path,
+        default=DEFAULT_TRIAL_STORE_ROOT,
+    )
+    parser.add_argument(
+        "--a3-structural-receipt",
+        type=Path,
+        default=DEFAULT_A3_STRUCTURAL_RECEIPT,
+    )
+    parser.add_argument(
+        "--a2-structural-receipt",
+        type=Path,
+        default=DEFAULT_A2_STRUCTURAL_RECEIPT,
+    )
+    parser.add_argument(
+        "--release-qualification",
+        type=Path,
+        default=DEFAULT_RELEASE_QUALIFICATION,
+    )
+    parser.add_argument(
+        "--public-decision-output",
+        type=Path,
+        default=DEFAULT_PUBLIC_DECISION,
+    )
     parser.add_argument("--pilot-report", type=Path, default=DEFAULT_PILOT_REPORT)
     parser.add_argument(
         "--local-feedback-report",
@@ -548,6 +700,8 @@ def main() -> int:
         return _run_gate_a(args)
     if args.stage == "online-attainability-certificate":
         return _run_online_attainability_certificate(args)
+    if args.stage == "public-decision":
+        return _build_public_decision(args)
     if args.stage == "campaign":
         return _run_campaigns(args)
     if args.stage == "pilot-report":

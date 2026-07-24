@@ -1,0 +1,19 @@
+{
+  "schema_version": "chemworld-json-composition-0.1",
+  "extends": "llm_methods.json",
+  "base_sha256": "9913fead5f6f8de2839e4b9f5d7a6a7f112196e616968b4ccad76e96a6ea590e",
+  "remove_paths": [],
+  "overrides": {
+    "schema_version": "chemworld-live-llm-method-freeze-candidate-0.4.4",
+    "freeze_id": "chemworld-live-llm-rc25-compact-context-candidate",
+    "benchmark_claim_allowed": false,
+    "interaction_contract": {
+      "prompt_representation": "chemworld-compact-decision-context-0.2",
+      "prompt_estimated_token_cap_per_decision": 1500,
+      "raw_numeric_arrays_in_default_prompt": false,
+      "duplicate_observation_views_in_default_prompt": false,
+      "response_contract": "chemworld-live-llm-operation-json-0.8",
+      "belief_update_rule_required": true
+    }
+  }
+}

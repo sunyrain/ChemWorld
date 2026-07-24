@@ -22,12 +22,15 @@ Showcase 卡片不是确认性证据；确认性任务也不必出现在首页�
 | 状态 | 当前值 |
 | --- | --- |
 | Environment design candidate | passed |
-| Semantic protocol audit | passed，RC24 25/25 |
-| A1 physical validity | passed，RC24 81/81 设计检查 |
+| Semantic protocol audit | passed，RC25 25/25 |
+| A1 physical validity | passed，RC25 81/81 设计检查 |
 | A2 controlled identifiability | pending |
 | A3 online attainability | pending |
 | Participant-Agent Gates B–E | pending |
-| Private confirmation | sealed |
+| Private-E environment confirmation | sealed |
+| Private-A participant-Agent confirmation | sealed |
+| Benchmark ready | `false` |
+| Evidence complete | `false` |
 | Publication ready | `false` |
 
 25 项语义检查和 81 项设计检查是两份审计中的检查项，不代表 106 份独立科学证据。当前已经具备可执行、
@@ -132,9 +135,9 @@ T_D = min{k : p(change) >= 0.5}
 
 ## 样本量与独立性
 
-正式 RC24 冻结为：
+正式 RC25 沿用 RC24 的科学设计并冻结为：
 
-- A2、A3 和 private confirmation：每个任务/家族各 180 个独立 world-seed cluster；
+- A2、A3、Private-E 和 Private-A：每个任务/家族各 180 个独立 world-seed cluster；
 - 每个 changed family 在 `τ={6,8,10}` 上严格平衡为每个时点 60 个 cluster；
 - 每个任务有 180 个 `never` cluster；
 - provider repeat 为每个配对 cell 5 次，但只作为嵌套技术重复，不作为独立样本；
@@ -151,12 +154,28 @@ cluster-bootstrap 规则的概率分别约为 0.978 和 0.808。真实 reference
 
 - 初始状态和 world seed；
 - pre/post session 边界与 reset 规则；
-- action schedule；
-- 相同的 observation-noise key，即 common random numbers；
+- 完全相同的 pre-change action schedule；
+- 每个共同语义坐标上的相同 observation-noise key，即 common random numbers；
 - checkpoint 前后的 metadata 结构。
 
 两臂唯一允许的差别是是否施加隐藏物理规律变化。Evaluator pseudo-checkpoint 没有 runtime side effect，
-Agent 看不到 reset 或 instance 标识。
+Agent 看不到 reset 或 instance 标识。自适应策略在 post-change 后可能选择不同动作，因此不要求两臂
+拥有完全相同的后续噪声坐标集合；只要求所有共同坐标的噪声 key 一致。
+
+## RC25 的执行硬化与 Agent 上下文
+
+RC25 不改变 RC24 的 family、预算、阈值或 changepoint，而是修复正式执行层：
+
+- 每个 `task × truth × world cluster × changepoint × arm` 只允许一个 write-once terminal receipt；
+- 基础设施失败进入独立 attempt ledger，恢复时只补缺失 trial，不重跑已完成单元；
+- A3 先运行时只公开结构完整性 receipt；A2 完成后才一次性发布联合 A2/A3 决策和科学表；
+- 观测噪声由实验号、操作、仪器和 replicate 的语义坐标派生，不再依赖分支路径消耗了多少 RNG；
+- Private confirmation 拆成环境复现 Private-E 与 Agent 矩阵复现 Private-A。
+
+Participant-Agent 的默认决策 prompt 使用 `chemworld-compact-decision-context-0.2`，保守估算上限为
+1,500 tokens。它只包含当前决策所需的任务、生命周期、预算、指标、测量摘要、约束、短期记忆和
+动作参数签名；完整谱图数组、replicate 曲线、重复 observation view、constitution checks 与
+Git/provider/ledger 元数据只进入审计轨迹。历史谱图可通过公开 `spectrum_id` 按需获取。
 
 ## 分层通过规则
 
@@ -186,7 +205,7 @@ Pooled micro-average 仅作补充，不能用一个容易任务掩盖另一个�
 
 启动 A2/A3 前，唯一控制文件是：
 
-`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc24.json`
+`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc25.json`
 
 它绑定 source commit、protocol/plan/relation/scorer hash、cohort namespace、样本量、reference-policy
 版本、阈值、checkpoint、bootstrap、分层规则、失败处理、排除、停止规则和 private unseal 条件。
@@ -194,10 +213,12 @@ Pooled micro-average 仅作补充，不能用一个容易任务掩盖另一个�
 
 ## 可审计入口
 
-- 协议：`configs/benchmark/mechanism_adaptation_v0.3.0.json`
-- Gate A 计划：`configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json`
-- 预注册：`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc24.json`
-- 样本量审计：`mechanism-adaptation-sample-size-audit-v0.3.0-rc24.json`
-- 诊断关系图：`mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc24.json`
-- 统一语义审计：`confirmatory-task-semantics-audit-rc24.json`
+- 协议：`configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json`
+- Gate A 计划：`configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json`
+- 预注册：`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc25.json`
+- 样本量审计：`mechanism-adaptation-sample-size-audit-v0.3.0-rc25.json`
+- 诊断关系图：`mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc25.json`
+- 统一语义审计：`confirmatory-task-semantics-audit-rc25.json`
+- 发布资格：`mechanism-adaptation-release-qualification-v0.1-rc25.json`
+- Participant-Agent 预注册候选：`configs/benchmark/mechanism_adaptation_participant_preregistration_rc25.json`
 - 当前状态真源：`configs/current.json`

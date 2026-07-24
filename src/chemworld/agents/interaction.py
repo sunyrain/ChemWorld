@@ -7,7 +7,7 @@ from typing import Any, Literal
 
 from chemworld.data.logging import to_builtin
 
-INTERACTION_CONTRACT_VERSION = "chemworld-agent-interaction-0.1"
+INTERACTION_CONTRACT_VERSION = "chemworld-agent-interaction-0.2"
 
 DecisionScope = Literal["experiment_recipe", "operation"]
 AdaptationSource = Literal[
@@ -50,12 +50,12 @@ class DecisionAuditRecord:
     """Concise public decision evidence; never a private chain-of-thought field."""
 
     action: dict[str, Any]
-    evidence: tuple[str, ...]
-    hypothesis: str
+    expected_effect: str
+    diagnostic_target: str
+    expected_information_gain: float
+    belief_update_rule: dict[str, str]
     uncertainty: float | None
-    rationale: str
     adaptation_source: AdaptationSource
-    spectrum_interpretation: str = ""
     requested_historical_spectrum_id: str | None = None
     status: Literal["provided", "not_provided"] = "provided"
 
@@ -72,6 +72,12 @@ class DecisionAuditRecord:
             raise ValueError("unsupported decision audit status")
         if self.uncertainty is not None and not 0.0 <= self.uncertainty <= 1.0:
             raise ValueError("decision uncertainty must be in [0, 1]")
+        if not 0.0 <= self.expected_information_gain <= 1.0:
+            raise ValueError("expected information gain must be in [0, 1]")
+        if set(self.belief_update_rule) != {"if_supported", "if_not_supported"} or not all(
+            str(value).strip() for value in self.belief_update_rule.values()
+        ):
+            raise ValueError("belief update rule requires two non-empty branches")
         if self.requested_historical_spectrum_id is not None and (
             not isinstance(self.requested_historical_spectrum_id, str)
             or not self.requested_historical_spectrum_id.strip()
@@ -79,22 +85,25 @@ class DecisionAuditRecord:
             raise ValueError("requested historical spectrum ID must be non-empty or null")
         if self.status == "provided" and (
             not self.action.get("operation")
-            or not self.evidence
-            or not self.hypothesis
-            or not self.rationale
+            or not self.expected_effect
+            or not self.diagnostic_target
         ):
             raise ValueError(
-                "provided decision audits require action, evidence, hypothesis, and rationale"
+                "provided decision audits require action, expected effect, and diagnostic target"
             )
 
     @classmethod
     def unavailable(cls, action: dict[str, Any]) -> DecisionAuditRecord:
         return cls(
             action=dict(action),
-            evidence=(),
-            hypothesis="",
+            expected_effect="",
+            diagnostic_target="",
+            expected_information_gain=0.0,
+            belief_update_rule={
+                "if_supported": "not provided",
+                "if_not_supported": "not provided",
+            },
             uncertainty=None,
-            rationale="",
             adaptation_source="none",
             status="not_provided",
         )
@@ -111,22 +120,44 @@ class DecisionAuditRecord:
         payload_action = payload.get("action", action)
         if not isinstance(payload_action, dict) or payload_action != action:
             raise ValueError("decision audit action must match the selected action")
-        evidence = payload.get("evidence", ())
-        if not isinstance(evidence, list | tuple):
-            raise ValueError("decision audit evidence must be a list")
         raw_spectrum_request = payload.get("request_historical_spectrum_id")
         if raw_spectrum_request is not None and not isinstance(raw_spectrum_request, str):
             raise ValueError("requested historical spectrum ID must be a string or null")
+        expected_effect = str(
+            payload.get("expected_effect") or payload.get("hypothesis") or ""
+        )
+        diagnostic_target = str(
+            payload.get("diagnostic_target") or payload.get("rationale") or ""
+        )
+        raw_information_gain = payload.get("expected_information_gain", 0.0)
+        if isinstance(raw_information_gain, bool) or not isinstance(
+            raw_information_gain,
+            int | float,
+        ):
+            raise ValueError("expected_information_gain must be numeric")
+        raw_rule = payload.get("belief_update_rule")
+        if raw_rule is None:
+            belief_update_rule = {
+                "if_supported": "increase support for the stated expectation",
+                "if_not_supported": "decrease support and select a follow-up",
+            }
+        elif isinstance(raw_rule, dict):
+            belief_update_rule = {
+                "if_supported": str(raw_rule.get("if_supported") or ""),
+                "if_not_supported": str(raw_rule.get("if_not_supported") or ""),
+            }
+        else:
+            raise ValueError("belief_update_rule must be an object")
         return cls(
             action=dict(action),
-            evidence=tuple(str(item) for item in evidence),
-            hypothesis=str(payload.get("hypothesis", "")),
+            expected_effect=expected_effect,
+            diagnostic_target=diagnostic_target,
+            expected_information_gain=float(raw_information_gain),
+            belief_update_rule=belief_update_rule,
             uncertainty=(
                 None if payload.get("uncertainty") is None else float(payload["uncertainty"])
             ),
-            rationale=str(payload.get("rationale", "")),
             adaptation_source=str(payload.get("adaptation_source", "none")),  # type: ignore[arg-type]
-            spectrum_interpretation=str(payload.get("spectrum_interpretation", "")),
             requested_historical_spectrum_id=raw_spectrum_request,
             status=str(payload.get("status", "provided")),  # type: ignore[arg-type]
         )

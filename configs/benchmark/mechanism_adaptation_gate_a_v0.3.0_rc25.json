@@ -1,0 +1,62 @@
+{
+  "schema_version": "chemworld-json-composition-0.1",
+  "extends": "mechanism_adaptation_gate_a_v0.3.0.json",
+  "base_sha256": "812da465d15fbd3cca380724d91aec9993cf21415f8deafd0dc66f19c0b327fe",
+  "remove_paths": [
+    "cohort_partition.private_confirmation"
+  ],
+  "overrides": {
+    "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-25-execution-hardening-rc25",
+    "protocol": "configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json",
+    "online_attainability_certificate": {
+      "certificate_schema_version": "chemworld-mechanism-adaptation-online-attainability-certificate-0.9",
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-attainability-certificate-v0.9-rc25.json",
+      "observation_noise_contract": "keyed semantic coordinates; shared coordinates have identical keys across truth twins, while adaptive post-change coordinate sets may diverge",
+      "trial_receipt_contract": "write-once terminal scientific receipts plus append-only infrastructure attempts and missing-only resume",
+      "metric_embargo": "structural receipt only until A2 is complete"
+    },
+    "paired_phase_design": {
+      "pre_change_reference_experiments": 6,
+      "diagnostic_curve_matches_reference_count_to_budget": true,
+      "budget_interpretation": "A2 uses equally sized matched pre/post diagnostic budgets at k={2,4}; A3 separately requires at least six old-world experiments and relation closure before online detection is scored."
+    },
+    "cohort_partition": {
+      "private_environment_confirmation": {
+        "role": "final_untouched_environment_certificate_replication_only",
+        "seed_namespace_start": 4100000000,
+        "world_seeds_per_family": 180,
+        "must_not_be_used_for_threshold_or_protocol_revision": true
+      },
+      "private_agent_confirmation": {
+        "role": "final_untouched_participant_agent_replication_only",
+        "seed_namespace_start": 4300000000,
+        "world_seeds_per_family": 180,
+        "must_not_be_used_for_method_or_statistics_revision": true
+      },
+      "cross_cohort_world_seed_reuse_allowed": false
+    },
+    "diagnostic_relation_graph": {
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc25.json",
+      "expected_graph_sha256": "9fd18e4128851d79f47f229a156594e0e556d385f597ec8dc359e2f21b44d39e"
+    },
+    "supersession_reason": "RC25 preserves the frozen RC24 scientific worlds, families, budgets, thresholds, changepoints, reference policy, and statistics while hardening formal execution with write-once trial receipts, missing-only resume, keyed semantic noise pairing, A3 metric embargo, a joint A2/A3 decision, compact participant prompts, split Private-E/Private-A tracks, and release qualification.",
+    "design_validity_precondition": {
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc25.json"
+    },
+    "sample_size_audit": {
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-sample-size-audit-v0.3.0-rc25.json"
+    },
+    "preregistration": {
+      "manifest": "configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc25.json"
+    },
+    "release_qualification": {
+      "required_before_formal_a2_or_a3": true,
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-release-qualification-v0.1-rc25.json",
+      "development_seed_namespace_start": 970000000,
+      "requires_clean_source_binding": true,
+      "requires_targeted_tests": true,
+      "requires_development_namespace_end_to_end_trial": true,
+      "requires_replay_and_manifest_reconstruction": true
+    }
+  }
+}

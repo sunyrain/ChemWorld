@@ -99,6 +99,11 @@ confirmation cohort 互不重叠。确认性任务语义审计 25/25、物理设
 RC21 历史结果，也不能在新的 untouched cohort
 执行前产生 v0.3 正式结论。
 
+RC25 保留上述科学设计、阈值和 cohort 规模，仅硬化执行语义：正式 trial 使用 write-once receipt
+与 missing-only resume；changed/never 在共同语义坐标上使用 keyed observation noise；A3 指标在 A2
+完成前保持 embargo；Private confirmation 拆为环境证书复现 Private-E 与 participant-Agent 复现
+Private-A。A2 的 2/4 次配对诊断预算不再与 A3 的六次旧世界参照前缀混为同一个预算条件。
+
 使用 RC21 原始 fit/trial seed 和同一固定策略的非控制性 `k={1,2,4,8}` 延长曲线进一步得到：
 反应总体为 53/120、77/120、111/120、112/120，rate-law 为 0/30、10/30、23/30、23/30。
 k=4 精确复现 RC21；k=8 仅把 no-change 从 29/30 提高到 30/30，rate-law Wilson 下界仍为
@@ -140,8 +145,12 @@ family，或适应现实机理；这些结论仍由 Gate B–E 和正式配对 p
 **Evidence level：Control-validated protocol**
 
 LLM Harness 已具备逐操作决策、跨实验记忆、按需谱图、token/费用/重试账本，以及 assigned/masked
-信息条件。系统只保留公开 evidence、hypothesis、uncertainty、spectrum interpretation 和简短
-rationale，不请求或保存私有逐字思维链。
+信息条件。默认输入已切换到 `chemworld-compact-decision-context-0.2`：只传当前任务、生命周期、
+预算、标量指标、处理后的测量摘要、约束、短期记忆和合法动作参数签名，保守估算上限为 1,500
+tokens。原始谱图数组、replicate 曲线、重复 observation view、constitution checks 与
+Git/provider/ledger 元数据仍保留在审计轨迹中，但不进入默认决策 prompt。输出要求可检验的
+expected effect、diagnostic target、information-gain forecast 和条件式 belief-update rule，不请求或
+保存私有逐字思维链。
 
 当前没有真实 provider 轨迹。Fake client、stub 和 replay 只能证明协议工作，不能证明模型使用了
 谱图、形成了正确机理或优于其它方法。

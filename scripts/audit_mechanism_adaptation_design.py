@@ -24,7 +24,9 @@ from chemworld.eval.mechanism_relation_graph import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc24.json"
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "mechanism-adaptation-design-audit-freeze-rc25.json"
 )
 
 

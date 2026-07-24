@@ -26,12 +26,15 @@ API compatibility; they no longer define the scientific taxonomy.
 | State | Current value |
 | --- | --- |
 | Environment design candidate | passed |
-| Semantic protocol audit | passed, RC24 25/25 |
-| A1 physical validity | passed, RC24 81/81 design checks |
+| Semantic protocol audit | passed, RC25 25/25 |
+| A1 physical validity | passed, RC25 81/81 design checks |
 | A2 controlled identifiability | pending |
 | A3 online attainability | pending |
 | Participant-Agent Gates B–E | pending |
-| Private confirmation | sealed |
+| Private-E environment confirmation | sealed |
+| Private-A participant-Agent confirmation | sealed |
+| Benchmark ready | `false` |
+| Evidence complete | `false` |
 | Publication ready | `false` |
 
 The 25 semantic checks and 81 design checks are audit checks, not 106 independent
@@ -136,9 +139,9 @@ ever crossed, so a later posterior decline cannot erase an earlier false alarm.
 
 ## Sample size and independence
 
-RC24 freezes:
+RC25 preserves the RC24 scientific design and freezes:
 
-- 180 independent world-seed clusters per task/family in A2, A3, and private confirmation;
+- 180 independent world-seed clusters per task/family in A2, A3, Private-E, and Private-A;
 - exactly 60 clusters per `τ∈{6,8,10}` for each changed family;
 - 180 `never` clusters per task;
 - five provider repeats per paired cell as nested technical repeats, not independent samples; and
@@ -153,10 +156,27 @@ success is only 0.85; the audit states that limitation explicitly.
 ## Strictly paired no-change controls
 
 Each changed/never twin shares initial state, world seed, pre/post session
-boundary, reset rule, action schedule, observation-noise key (common random
-numbers), and checkpoint-adjacent metadata. The only permitted difference is
-whether the hidden physical-law intervention is applied. The pseudo-checkpoint
-has no runtime side effect, and no reset or instance signal reaches the policy.
+boundary, reset rule, the complete pre-change action schedule, and the
+observation-noise key on every shared semantic coordinate. Adaptive post-change
+paths may have different coordinate sets; every coordinate shared by both arms
+must still have the same key. The pseudo-checkpoint has no runtime side effect,
+and no reset or instance signal reaches the policy.
+
+## RC25 execution hardening and Agent context
+
+RC25 does not change families, budgets, thresholds, or changepoints. It adds
+write-once trial receipts, missing-only resume, a separate infrastructure-attempt
+ledger, semantic-coordinate observation noise, an A3 metric embargo until A2
+finishes, one joint A2/A3 decision artifact, and separate Private-E and Private-A
+confirmation tracks.
+
+Participant Agents receive `chemworld-compact-decision-context-0.2` under a
+conservative 1,500-token estimate cap. The default prompt contains the task and
+lifecycle, current budget and metrics, processed measurement summary, active
+constraints, short memory, and legal parameter signatures. Raw spectrum arrays,
+replicate curves, duplicate observation views, constitution checks, and
+Git/provider/ledger metadata remain in audit artifacts, not the decision prompt.
+Historical spectra are available on demand by public `spectrum_id`.
 
 ## Stratified gate rule
 
@@ -187,7 +207,7 @@ A semantic-audit pass is not an empirical Gate C–E pass.
 
 Before A2/A3, the sole controlling file is:
 
-`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc24.json`
+`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc25.json`
 
 It binds source commit, protocol/plan/relation/scorer hashes, cohort namespaces,
 sample size, reference-policy version, thresholds, checkpoints, bootstrap,
@@ -197,10 +217,12 @@ results.
 
 ## Audit entry points
 
-- Protocol: `configs/benchmark/mechanism_adaptation_v0.3.0.json`
-- Gate A plan: `configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json`
-- Preregistration: `configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc24.json`
-- Sample-size audit: `mechanism-adaptation-sample-size-audit-v0.3.0-rc24.json`
-- Relation graph: `mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc24.json`
-- Semantic audit: `confirmatory-task-semantics-audit-rc24.json`
+- Protocol: `configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json`
+- Gate A plan: `configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json`
+- Preregistration: `configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc25.json`
+- Sample-size audit: `mechanism-adaptation-sample-size-audit-v0.3.0-rc25.json`
+- Relation graph: `mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc25.json`
+- Semantic audit: `confirmatory-task-semantics-audit-rc25.json`
+- Release qualification: `mechanism-adaptation-release-qualification-v0.1-rc25.json`
+- Participant-Agent preregistration candidate: `configs/benchmark/mechanism_adaptation_participant_preregistration_rc25.json`
 - Current-state source: `configs/current.json`

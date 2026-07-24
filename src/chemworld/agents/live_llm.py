@@ -16,22 +16,25 @@ from typing import Any, Literal, Protocol, cast
 from chemworld.agent_interface import experiment_lifecycle_contract
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabilities
+from chemworld.agents.prompt_context import (
+    DEFAULT_PROMPT_TOKEN_ESTIMATE_CAP,
+    PROMPT_CONTEXT_VERSION,
+    build_decision_prompt,
+    serialize_prompt_payload,
+)
 from chemworld.data.logging import to_builtin
 
 SpectrumDisclosure = Literal["assigned", "unassigned", "masked"]
 
 SYSTEM_PROMPT = """You are an operation-level agent in the ChemWorld causal world-model environment.
-Use only the supplied public task contract, observations, spectra, memory, and action schemas.
-Choose exactly one next operation and return exactly one JSON object. Never claim hidden
-chemical identities or hidden simulator state. Do not provide private chain-of-thought.
-Provide only a concise public audit: evidence, spectrum interpretation, hypothesis,
-uncertainty, rationale, and the selected action using exact schema field names.
+Use only the compact public decision state and legal action signatures. Choose exactly one
+next operation and return one JSON object. Never claim hidden identities or simulator state.
+Do not provide private chain-of-thought. Declare only the expected effect, diagnostic target,
+information-value forecast, conditional belief-update rule, uncertainty, and exact action.
 """
 
-PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.7"
+PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.8"
 PROMPT_STATE_VERSION = "chemworld-live-llm-public-prompt-state-0.1"
-
-_MAX_SPECTRUM_SERIES_POINTS = 64
 
 _PURE_SPECTRAL_PACKET_KINDS = {
     "gc_chromatogram",
@@ -104,6 +107,7 @@ class LiveLLMAgent(BaseAgent):
         recent_decision_limit: int = 4,
         experiment_memory_limit: int = 4,
         response_max_tokens: int | None = None,
+        prompt_token_estimate_cap: int = DEFAULT_PROMPT_TOKEN_ESTIMATE_CAP,
         fail_fast_on_unbillable_provider_failure: bool = False,
     ) -> None:
         if spectrum_disclosure not in {"assigned", "unassigned", "masked"}:
@@ -114,6 +118,8 @@ class LiveLLMAgent(BaseAgent):
             raise ValueError("memory limits must be positive")
         if response_max_tokens is not None and response_max_tokens <= 0:
             raise ValueError("response_max_tokens must be positive")
+        if prompt_token_estimate_cap < 500:
+            raise ValueError("prompt_token_estimate_cap must be at least 500")
         self.client = client
         self.role_id = role_id
         self.spectrum_disclosure = spectrum_disclosure
@@ -124,6 +130,7 @@ class LiveLLMAgent(BaseAgent):
             if response_max_tokens is not None
             else (8000 if bool(getattr(client, "thinking", False)) else 2000)
         )
+        self.prompt_token_estimate_cap = int(prompt_token_estimate_cap)
         self.fail_fast_on_unbillable_provider_failure = bool(
             fail_fast_on_unbillable_provider_failure
         )
@@ -145,6 +152,8 @@ class LiveLLMAgent(BaseAgent):
         self._retry_count = 0
         self._system_fingerprints: set[str] = set()
         self._provider_attempt_records: list[dict[str, Any]] = []
+        self._last_prompt_estimated_tokens = 0
+        self._maximum_prompt_estimated_tokens = 0
 
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
         del history
@@ -371,13 +380,15 @@ class LiveLLMAgent(BaseAgent):
             return None
         return {
             "action": dict(self._last_decision["action"]),
-            "evidence": list(self._last_decision["evidence"]),
-            "spectrum_interpretation": str(
-                self._last_decision["spectrum_interpretation"]
+            "expected_effect": str(self._last_decision["expected_effect"]),
+            "diagnostic_target": str(self._last_decision["diagnostic_target"]),
+            "expected_information_gain": float(
+                self._last_decision["expected_information_gain"]
             ),
-            "hypothesis": str(self._last_decision["hypothesis"]),
+            "belief_update_rule": dict(
+                self._last_decision["belief_update_rule"]
+            ),
             "uncertainty": float(self._last_decision["uncertainty"]),
-            "rationale": str(self._last_decision["rationale"]),
             "request_historical_spectrum_id": self._last_decision.get(
                 "request_historical_spectrum_id"
             ),
@@ -409,7 +420,12 @@ class LiveLLMAgent(BaseAgent):
                 "requires_online_model": True,
                 "provider_model": self.client.model,
                 "prompt_contract_version": PROMPT_CONTRACT_VERSION,
+                "prompt_context_version": PROMPT_CONTEXT_VERSION,
                 "prompt_hash": _prompt_hash(),
+                "prompt_token_estimate_cap": self.prompt_token_estimate_cap,
+                "prompt_context_policy": (
+                    "decision_first_no_raw_arrays_with_explicit_hard_cap"
+                ),
                 "spectrum_disclosure": self.spectrum_disclosure,
                 "historical_spectrum_access": (
                     "explicit_request_by_public_spectrum_id_delivered_next_decision"
@@ -462,6 +478,10 @@ class LiveLLMAgent(BaseAgent):
                         else None
                     ),
                     "max_tokens": self.response_max_tokens,
+                    "prompt_token_estimate_cap": self.prompt_token_estimate_cap,
+                    "maximum_prompt_estimated_tokens": (
+                        self._maximum_prompt_estimated_tokens
+                    ),
                     "logical_decisions": self._logical_decision_count,
                     "spectrum_disclosure": self.spectrum_disclosure,
                 },
@@ -535,38 +555,34 @@ class LiveLLMAgent(BaseAgent):
             tool_json,
             condition=self.spectrum_disclosure,
         )
-        supplied_context = _compact_prompt_spectra(supplied_context)
-        prompt_payload = {
-            "instruction": (
-                "Choose exactly one next operation. Use observations and experiment memory "
-                "to distinguish exploration, exploitation, replication, and measurement. "
-                "If a public spectrum is supplied, identify only visible axes/features and "
-                "state how they affect the decision; never invent peaks or identities. A "
-                "spectrum is newly measured only when observation_provenance."
-                "current_spectral_packet is true; catalog entries and retained metrics are "
-                "historical. A "
-                "historical packet is supplied only after requesting its public spectrum_id "
-                "in the preceding decision. The harness will not repair, terminate, or assay "
-                "on your behalf."
-            ),
-            "task_contract": _compact_task_contract(self.task_info),
-            "decision_context": to_builtin(supplied_context),
-            "public_tool_view": _compact_tool_view(tool_json),
-            "completed_experiment_memory": to_builtin(self._experiment_memory),
-            "recent_decisions": to_builtin(self._recent_decisions),
-            "required_json_shape": {
-                "action": {"operation": "exact operation plus required fields"},
-                "evidence": ["short public observation or supplied spectral feature"],
-                "spectrum_interpretation": "supported concise reading or no spectrum available",
-                "hypothesis": "short testable expectation",
-                "uncertainty": "number from 0 to 1",
-                "rationale": "concise evidence-to-action justification",
-                "request_historical_spectrum_id": (
-                    "optional public spectrum_id to retrieve for the next decision, or null"
-                ),
-            },
-        }
-        return json.dumps(prompt_payload, ensure_ascii=False, sort_keys=True)
+        packet = build_decision_prompt(
+            task_contract=_compact_task_contract(self.task_info),
+            decision_context=supplied_context,
+            tool_json=tool_json,
+            experiment_memory=self._experiment_memory,
+            recent_decisions=self._recent_decisions,
+            max_estimated_tokens=self.prompt_token_estimate_cap,
+        )
+        self._last_prompt_estimated_tokens = packet.estimated_tokens
+        self._maximum_prompt_estimated_tokens = max(
+            self._maximum_prompt_estimated_tokens,
+            packet.estimated_tokens,
+        )
+        return packet.text
+
+    def _serialize_extended_prompt(self, payload: Mapping[str, Any]) -> str:
+        """Recheck the hard cap after a diagnostic subclass extends the contract."""
+
+        packet = serialize_prompt_payload(
+            payload,
+            max_estimated_tokens=self.prompt_token_estimate_cap,
+        )
+        self._last_prompt_estimated_tokens = packet.estimated_tokens
+        self._maximum_prompt_estimated_tokens = max(
+            self._maximum_prompt_estimated_tokens,
+            packet.estimated_tokens,
+        )
+        return packet.text
 
     def _normalize_decision(
         self,
@@ -578,18 +594,44 @@ class LiveLLMAgent(BaseAgent):
         action = raw_action if isinstance(raw_action, dict) else None
         if not action or not action.get("operation"):
             raise ValueError("model decision is missing action.operation")
-        evidence_raw = payload.get("evidence")
-        evidence = (
-            [str(item) for item in evidence_raw[:6] if str(item).strip()]
-            if isinstance(evidence_raw, list)
-            else []
-        )
-        if not evidence:
-            raise ValueError("model decision is missing public evidence")
-        hypothesis = str(payload.get("hypothesis") or "").strip()
-        rationale = str(payload.get("rationale") or "").strip()
-        if not hypothesis or not rationale:
-            raise ValueError("model decision is missing hypothesis or rationale")
+        expected_effect = str(
+            payload.get("expected_effect") or payload.get("hypothesis") or ""
+        ).strip()
+        diagnostic_target = str(
+            payload.get("diagnostic_target") or payload.get("rationale") or ""
+        ).strip()
+        if not expected_effect or not diagnostic_target:
+            raise ValueError(
+                "model decision is missing expected_effect or diagnostic_target"
+            )
+        raw_information_gain = payload.get("expected_information_gain", 0.0)
+        if isinstance(raw_information_gain, bool) or not isinstance(
+            raw_information_gain,
+            int | float,
+        ):
+            raise ValueError("expected_information_gain must be numeric")
+        information_gain = float(raw_information_gain)
+        if not 0.0 <= information_gain <= 1.0:
+            raise ValueError("expected_information_gain must be in [0, 1]")
+        raw_update_rule = payload.get("belief_update_rule")
+        if raw_update_rule is None and (
+            payload.get("hypothesis") is not None or payload.get("rationale") is not None
+        ):
+            update_rule = {
+                "if_supported": "increase support for the stated hypothesis",
+                "if_not_supported": "decrease support and choose a discriminating follow-up",
+            }
+        elif isinstance(raw_update_rule, Mapping):
+            update_rule = {
+                "if_supported": str(raw_update_rule.get("if_supported") or "").strip(),
+                "if_not_supported": str(
+                    raw_update_rule.get("if_not_supported") or ""
+                ).strip(),
+            }
+        else:
+            raise ValueError("belief_update_rule must be an object")
+        if not all(update_rule.values()):
+            raise ValueError("belief_update_rule requires both conditional branches")
         raw_uncertainty = payload.get("uncertainty")
         if isinstance(raw_uncertainty, bool) or not isinstance(raw_uncertainty, int | float):
             raise ValueError("model decision uncertainty must be numeric")
@@ -608,15 +650,17 @@ class LiveLLMAgent(BaseAgent):
         self._pending_historical_spectrum_id = spectrum_request
         return {
             "action": to_builtin(action),
-            "evidence": evidence,
-            "spectrum_interpretation": str(
-                payload.get("spectrum_interpretation") or "No spectrum available."
-            ),
-            "hypothesis": hypothesis,
+            "expected_effect": expected_effect,
+            "diagnostic_target": diagnostic_target,
+            "expected_information_gain": information_gain,
+            "belief_update_rule": update_rule,
             "uncertainty": uncertainty,
-            "rationale": rationale,
             "request_historical_spectrum_id": spectrum_request,
             "adaptation_source": self._adaptation_source(context),
+            "prompt_context_version": PROMPT_CONTEXT_VERSION,
+            "prompt_estimated_tokens": int(
+                getattr(self, "_last_prompt_estimated_tokens", 0)
+            ),
         }
 
     def _failure_decision(
@@ -628,13 +672,20 @@ class LiveLLMAgent(BaseAgent):
         self._pending_historical_spectrum_id = None
         return {
             "action": {"operation": "model_failure"},
-            "evidence": [f"Provider or structured-output failure: {error_kind}."],
-            "spectrum_interpretation": "Unavailable because no valid model decision was returned.",
-            "hypothesis": "No executable hypothesis was produced.",
+            "expected_effect": "No executable expectation was produced.",
+            "diagnostic_target": (
+                f"Provider or structured-output failure: {error_kind}."
+            ),
+            "expected_information_gain": 0.0,
+            "belief_update_rule": {
+                "if_supported": "not available",
+                "if_not_supported": "retain failure as an invalid operation",
+            },
             "uncertainty": 1.0,
-            "rationale": "Retain the failed decision as an invalid operation for fair evaluation.",
             "request_historical_spectrum_id": None,
             "adaptation_source": self._adaptation_source(context),
+            "prompt_context_version": PROMPT_CONTEXT_VERSION,
+            "prompt_estimated_tokens": self._last_prompt_estimated_tokens,
             "provider_attempts": max(int(getattr(error, "attempts", 1)), 1),
             "status": "model_failure",
             "error_type": error_kind,
@@ -871,11 +922,11 @@ def _prompt_memory_decision(decision: dict[str, Any]) -> dict[str, Any]:
         key: to_builtin(decision[key])
         for key in (
             "action",
-            "evidence",
-            "spectrum_interpretation",
-            "hypothesis",
+            "expected_effect",
+            "diagnostic_target",
+            "expected_information_gain",
+            "belief_update_rule",
             "uncertainty",
-            "rationale",
             "request_historical_spectrum_id",
             "adaptation_source",
             "status",
@@ -929,145 +980,6 @@ def _compact_task_contract(task_info: dict[str, Any]) -> dict[str, Any]:
     if "task_goal" not in compact and compact.get("description"):
         compact["task_goal"] = compact["description"]
     return compact
-
-
-def _compact_tool_view(tool_json: dict[str, Any]) -> dict[str, Any]:
-    """Retain exact affordances without duplicating decision-context evidence."""
-
-    compact: dict[str, Any] = {
-        key: to_builtin(tool_json[key])
-        for key in (
-            "task",
-            "uncertainty",
-            "cost",
-            "cost_components",
-            "constraints",
-        )
-        if key in tool_json
-    }
-    observation = tool_json.get("observation")
-    if isinstance(observation, dict):
-        compact["observation"] = _compact_observation(observation)
-    actions = tool_json.get("available_actions")
-    if isinstance(actions, list):
-        compact["available_actions"] = [
-            _compact_action_affordance(item) for item in actions if isinstance(item, dict)
-        ]
-    return compact
-
-
-def _compact_prompt_spectra(context: dict[str, Any]) -> dict[str, Any]:
-    """Bound dense spectral transport while keeping peaks, axes, and public features.
-
-    The full public packet remains in the trajectory and UI artifacts.  Only the JSON
-    sent to the provider is compacted: primary numeric curves are uniformly sampled,
-    replicate curves become numeric summaries, and all peak/assignment tables remain
-    available.  ``build_decision_context`` already copies current and requested spectra
-    from the tool view, so the tool-view copy is deliberately omitted above.
-    """
-
-    compact = to_builtin(context)
-    latest = compact.get("latest_spectra")
-    if (
-        isinstance(latest, dict)
-        and "has_spectral_packet" in latest
-        and not latest["has_spectral_packet"]
-    ):
-        latest["raw_signal"] = {}
-        latest["processed_estimate"] = {}
-        latest["uncertainty"] = {}
-    for key in ("latest_spectra", "requested_historical_spectrum"):
-        value = compact.get(key)
-        if isinstance(value, dict) and value:
-            compact[key] = _compact_spectral_payload(value)
-    return compact
-
-
-def _compact_spectral_payload(payload: Any, *, field: str = "") -> Any:
-    if isinstance(payload, dict):
-        return {
-            str(key): _compact_spectral_payload(value, field=str(key))
-            for key, value in payload.items()
-        }
-    if isinstance(payload, list):
-        if field == "replicate_signals" and all(
-            isinstance(item, list) and _is_numeric_series(item) for item in payload
-        ):
-            return {
-                "representation": "summary_only",
-                "replicate_count": len(payload),
-                "summaries": [_numeric_series_summary(item) for item in payload],
-            }
-        if _is_numeric_series(payload):
-            return _compact_numeric_series(payload)
-        return [_compact_spectral_payload(item) for item in payload]
-    if isinstance(payload, float):
-        return _round_public_float(payload)
-    return to_builtin(payload)
-
-
-def _is_numeric_series(values: list[Any]) -> bool:
-    return bool(values) and all(
-        not isinstance(value, bool) and isinstance(value, int | float) for value in values
-    )
-
-
-def _compact_numeric_series(values: list[Any]) -> list[Any] | dict[str, Any]:
-    rounded = [_round_public_float(float(value)) for value in values]
-    if len(rounded) <= _MAX_SPECTRUM_SERIES_POINTS:
-        return rounded
-    last = len(rounded) - 1
-    indices = sorted(
-        {
-            round(position * last / (_MAX_SPECTRUM_SERIES_POINTS - 1))
-            for position in range(_MAX_SPECTRUM_SERIES_POINTS)
-        }
-    )
-    return {
-        "representation": "uniform_index_sample",
-        "original_point_count": len(rounded),
-        "sample_indices": indices,
-        "values": [rounded[index] for index in indices],
-    }
-
-
-def _numeric_series_summary(values: list[Any]) -> dict[str, Any]:
-    numeric = [float(value) for value in values]
-    return {
-        "point_count": len(numeric),
-        "minimum": _round_public_float(min(numeric)),
-        "maximum": _round_public_float(max(numeric)),
-        "mean": _round_public_float(sum(numeric) / len(numeric)),
-    }
-
-
-def _round_public_float(value: float) -> float:
-    return float(f"{value:.8g}")
-
-
-def _compact_action_affordance(action: dict[str, Any]) -> dict[str, Any]:
-    schema = action.get("schema")
-    public_schema = (
-        {
-            key: to_builtin(schema[key])
-            for key in (
-                "schema_version",
-                "operation",
-                "required_fields",
-                "fields",
-                "constraints",
-            )
-            if key in schema
-        }
-        if isinstance(schema, dict)
-        else {}
-    )
-    return {
-        "operation": action.get("operation"),
-        "valid": bool(action.get("valid", False)),
-        "invalid_reasons": to_builtin(action.get("invalid_reasons", [])),
-        "schema": public_schema,
-    }
 
 
 def _compact_observation(observation: dict[str, Any]) -> dict[str, Any]:

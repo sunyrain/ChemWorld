@@ -1,0 +1,117 @@
+{
+  "schema_version": "chemworld-mechanism-adaptation-protocol-composition-0.1",
+  "extends": "mechanism_adaptation_v0.3.0.json",
+  "base_sha256": "70b65e17fb5e53887dab4737026c8f5273e72594641e9e1e7a5d690e48e4877a",
+  "remove_paths": [
+    "protocol_state_machine.private_confirmation"
+  ],
+  "overrides": {
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-25-execution-hardening-rc25",
+    "status": "release_qualification_pending_a2_a3_execution",
+    "execution_handling": {
+      "trial_identity": "task_id x truth_family x world_cluster x changepoint x arm",
+      "terminal_scientific_receipt": "write_once_atomic_json",
+      "infrastructure_failure_receipt": "append_only_attempt_ledger_not_a_scientific_outcome",
+      "resume_rule": "resume_only_manifest_declared_trial_keys_without_terminal_receipts",
+      "duplicate_rule": "any duplicate terminal trial key is an integrity failure",
+      "reason_domains": [
+        "scientific",
+        "infrastructure",
+        "provider",
+        "protocol"
+      ],
+      "a3_metric_embargo": "after A3 execution disclose only schema, bindings, hashes, completeness, resource state, and integrity counts until A2 is complete",
+      "joint_a2_a3_release": "one immutable public decision artifact after both structural receipts and release qualification pass",
+      "private_confirmation_unseal": "Private-E may run only after the immutable public A2/A3 decision; Private-A additionally requires a frozen participant method roster, prompt, scaffold, runner, statistics, exclusions, and cost contract"
+    },
+    "paired_observation_noise": {
+      "mode": "keyed_semantic_coordinate",
+      "coordinate": [
+        "namespace",
+        "base_observation_seed",
+        "experiment_index",
+        "operation_type",
+        "instrument",
+        "replicate_index"
+      ],
+      "sequential_rng_position_used": false,
+      "pairing_check": "noise keys must match for every semantic coordinate shared by truth twins; adaptive post-change paths need not have identical coordinate sets",
+      "pre_change_check": "truth twins must have identical pre-change semantic coordinate sets"
+    },
+    "participant_agent_prompt_contract": {
+      "representation": "chemworld-compact-decision-context-0.2",
+      "default_estimated_token_cap": 1500,
+      "required_information": [
+        "task objective and lifecycle",
+        "current compact experiment state and remaining budget",
+        "latest scalar metrics and processed measurement summary",
+        "active constraint flags",
+        "historical best and two recent experiment summaries",
+        "legal action parameter signatures"
+      ],
+      "default_exclusions": [
+        "raw numeric spectra arrays",
+        "replicate curves",
+        "duplicate observation views",
+        "complete history",
+        "constitution checks",
+        "Git, provider, request, and ledger metadata"
+      ],
+      "on_demand_public_detail": [
+        "historical spectrum by public spectrum_id"
+      ],
+      "response_contract": [
+        "action",
+        "expected_effect",
+        "diagnostic_target",
+        "expected_information_gain",
+        "belief_update_rule",
+        "uncertainty",
+        "optional_historical_spectrum_request"
+      ]
+    },
+    "confirmation_tracks": {
+      "private_environment_confirmation": {
+        "short_name": "Private-E",
+        "subject": "environment A2/A3 replication",
+        "seed_namespace_start": 4100000000,
+        "status": "sealed"
+      },
+      "private_agent_confirmation": {
+        "short_name": "Private-A",
+        "subject": "participant Agent matrix replication",
+        "seed_namespace_start": 4300000000,
+        "status": "sealed"
+      },
+      "cross_track_seed_reuse_allowed": false
+    },
+    "cohort_partition": {
+      "private_environment_confirmation": {
+        "role": "final_untouched_environment_certificate_replication_only",
+        "seed_namespace_start": 4100000000,
+        "world_seeds_per_family": 180,
+        "must_not_be_used_for_threshold_or_protocol_revision": true
+      },
+      "private_agent_confirmation": {
+        "role": "final_untouched_participant_agent_replication_only",
+        "seed_namespace_start": 4300000000,
+        "world_seeds_per_family": 180,
+        "must_not_be_used_for_method_prompt_scaffold_or_statistics_revision": true
+      },
+      "cross_cohort_world_seed_reuse_allowed": false
+    },
+    "protocol_state_machine": {
+      "environment_design_candidate": "passed",
+      "semantic_protocol_audit": "passed",
+      "a1_physical_validity": "passed",
+      "a2_controlled_identifiability": "pending",
+      "a3_online_attainability": "pending",
+      "participant_agent_gates_b_to_e": "pending",
+      "private_environment_confirmation": "sealed",
+      "private_agent_confirmation": "sealed",
+      "benchmark_ready": false,
+      "evidence_complete": false,
+      "publication_ready": false
+    }
+  }
+}

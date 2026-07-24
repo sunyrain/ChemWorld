@@ -20,11 +20,13 @@ from chemworld.eval.mechanism_relation_graph import (  # noqa: E402
 )
 from chemworld.eval.provenance import write_json_atomic  # noqa: E402
 
-DEFAULT_PROTOCOL = ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0.json"
+DEFAULT_PROTOCOL = (
+    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json"
+)
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc24.json"
+    "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc25.json"
 )
 
 

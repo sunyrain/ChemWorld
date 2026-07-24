@@ -21,11 +21,14 @@ from chemworld.eval.verify import verify_records
 def _decision(action: dict[str, Any], *, evidence: str = "public measurement") -> dict[str, Any]:
     return {
         "action": action,
-        "evidence": [evidence],
-        "spectrum_interpretation": "One supplied public peak changed amplitude.",
-        "hypothesis": "The next operation will test the observed response.",
+        "expected_effect": "The next operation will test the observed response.",
+        "diagnostic_target": evidence,
+        "expected_information_gain": 0.25,
+        "belief_update_rule": {
+            "if_supported": "increase support for the stated expectation",
+            "if_not_supported": "decrease support and choose a follow-up",
+        },
         "uncertainty": 0.4,
-        "rationale": "Use the public response to choose one reproducible operation.",
     }
 
 
@@ -198,18 +201,17 @@ def test_live_llm_consumes_spectra_and_carries_experiment_memory() -> None:
         _public_view(),
     )
 
-    assert client.prompts[0]["decision_context"]["latest_spectra"][
-        "has_spectral_packet"
-    ]
-    assert client.prompts[1]["completed_experiment_memory"][0]["score"] == 0.2
-    assert client.prompts[1]["completed_experiment_memory"][0]["operation_sequence"] == [
-        {"operation": "terminate"}
-    ]
-    assert "recent_decisions" not in client.prompts[1]["completed_experiment_memory"][0]
+    measurement = client.prompts[0]["decision_state"]["latest_measurement"]
+    assert measurement["available"] is True
+    assert measurement["peaks"] == [{"center": 420.0}]
+    memory = client.prompts[1]["experiment_memory"]
+    assert memory["historical_best"]["score"] == 0.2
+    assert memory["historical_best"]["operations"] == ["terminate"]
+    assert "recent_decisions" not in memory["historical_best"]
     assert client.prompts[1]["recent_decisions"] == []
     assert agent.decision_audit()["adaptation_source"] == "spectrum"  # type: ignore[index]
-    assert agent.decision_audit()["spectrum_interpretation"] == (  # type: ignore[index]
-        "One supplied public peak changed amplitude."
+    assert agent.decision_audit()["diagnostic_target"] == (  # type: ignore[index]
+        "public measurement"
     )
     usage = agent.method_resource_usage()
     assert usage["model_call_count"] == 4
@@ -241,7 +243,9 @@ def test_public_prompt_state_round_trip_preserves_prompt_and_rejects_other_task(
     branch.restore_prompt_state(snapshot)
     branch.act_with_public_view(_context(step=2, previous="operation_result"), _public_view())
 
-    assert branch_client.prompts[0]["recent_decisions"] == snapshot["recent_decisions"]
+    recent = branch_client.prompts[0]["recent_decisions"]
+    assert recent[0]["action"] == {"operation": "terminate"}
+    assert "outcome" not in recent[0]
     assert "provider_usage" not in json.dumps(snapshot)
     branch.reset({"task_id": "another-task", "budget": 20}, seed=7)
     with pytest.raises(ValueError, match="active public task contract"):
@@ -256,16 +260,17 @@ def test_masked_spectral_ablation_removes_raw_and_processed_spectral_features() 
     agent.act_with_public_view(_context(step=1, previous=None), _public_view())
 
     prompt = client.prompts[0]
-    assert prompt["decision_context"]["latest_spectra"] == {
+    assert prompt["decision_state"]["latest_measurement"] == {
         "spectrum_condition": "masked",
         "available": False,
     }
-    assert prompt["decision_context"]["observation_provenance"][
+    assert prompt["decision_state"]["observation_provenance"][
         "current_spectral_packet"
     ] is False
-    assert "raw_signal" not in prompt["public_tool_view"]
-    assert "processed_estimate" not in prompt["public_tool_view"]
-    assert "lab_report" not in prompt["public_tool_view"]
+    assert "intensity" not in json.dumps(prompt)
+    assert prompt["context_manifest"]["raw_numeric_arrays"] == (
+        "audit_only_not_supplied"
+    )
     assert agent.interaction_capabilities().consumes_spectra is False
 
 
@@ -284,8 +289,8 @@ def test_retained_processed_estimate_is_not_claimed_as_fresh_spectrum() -> None:
     agent.act_with_public_view(context, _public_view())
 
     prompt = client.prompts[0]
-    assert prompt["decision_context"]["latest_spectra"]["processed_estimate"] == {}
-    assert prompt["decision_context"]["observation_provenance"][
+    assert prompt["decision_state"]["latest_measurement"] == {"available": False}
+    assert prompt["decision_state"]["observation_provenance"][
         "current_spectral_packet"
     ] is False
     assert agent.decision_audit()["adaptation_source"] == "none"  # type: ignore[index]
@@ -311,17 +316,13 @@ def test_masked_ablation_preserves_non_spectral_composite_evidence() -> None:
     )
 
     prompt = client.prompts[0]
-    latest = prompt["decision_context"]["latest_spectra"]
-    assert latest["raw_signal"] == {
-        "kind": "final_assay_packet",
+    latest = prompt["decision_state"]["latest_measurement"]
+    assert latest["non_spectral_estimate"] == {
         "mass_balance": {"process_mass_balance_error": 0.0},
         "energy_efficiency": 0.72,
+        "kind": "final_assay_packet",
     }
     assert latest["processed_estimate"] == {"yield": 0.41}
-    tool_view = prompt["public_tool_view"]
-    assert tool_view["constraints"] == {"unsafe": False}
-    assert tool_view["cost"] == 0.2
-    assert "lab_report" not in tool_view
 
 
 def test_unassigned_condition_preserves_curve_but_removes_identity() -> None:
@@ -341,9 +342,9 @@ def test_unassigned_condition_preserves_curve_but_removes_identity() -> None:
     agent.act_with_public_view(context, public_view)
 
     prompt = client.prompts[0]
-    peak = prompt["decision_context"]["latest_spectra"]["raw_signal"]["peaks"][0]
+    peak = prompt["decision_state"]["latest_measurement"]["peaks"][0]
     assert peak == {"center": 420.0, "assignment": "unassigned"}
-    assert prompt["decision_context"]["latest_spectra"]["processed_estimate"][
+    assert prompt["decision_state"]["latest_measurement"]["processed_estimate"][
         "peak_count"
     ] == 1
     assert agent.interaction_capabilities().consumes_spectra is True
@@ -437,11 +438,13 @@ def test_dense_spectrum_is_bounded_without_losing_peaks_or_full_artifact() -> No
 
     agent.act_with_public_view(context, public_view)
 
-    packet = client.prompts[0]["decision_context"]["latest_spectra"]["raw_signal"]
+    packet = client.prompts[0]["decision_state"]["latest_measurement"]
     assert packet["peaks"] == [{"center": 0.12, "assignment": "target"}]
-    assert packet["time_min"]["original_point_count"] == 241
-    assert len(packet["time_min"]["values"]) == 64
-    assert packet["replicate_signals"]["representation"] == "summary_only"
+    assert "time_min" not in packet
+    assert "replicate_signals" not in packet
+    assert client.prompts[0]["context_manifest"]["raw_numeric_arrays"] == (
+        "audit_only_not_supplied"
+    )
     assert public_view["tool_json"]["raw_signal"]["time_min"] == raw_curve
 
 
@@ -486,29 +489,29 @@ def test_official_runner_ledgers_live_usage_and_replays_trajectory(tmp_path: Pat
     assert records[-1]["explanation"]["decision_audit"]["status"] == "provided"
     assert all(len(record["agent_trace"]) == 1 for record in records)
     prompt = client.prompts[0]
-    assert len(json.dumps(prompt)) < 20_000
-    assert prompt["task_contract"]["method_budget_contract"] == {
+    assert len(json.dumps(prompt)) < 6_000
+    assert prompt["task"]["method_budget_contract"] == {
         "operation_limit": 4,
         "complete_experiment_limit": 4,
     }
-    lifecycle = prompt["task_contract"]["experiment_lifecycle"]
+    lifecycle = prompt["task"]["experiment_lifecycle"]
     assert "does not by itself complete" in lifecycle["terminate_effect"]
     assert "instrument=final_assay" in lifecycle["final_assay_precondition"]
     assert "fresh experiment" in lifecycle["final_assay_effect"]
-    assert prompt["task_contract"]["termination_policy"] == "budget"
-    assert prompt["task_contract"]["success_metrics"] == [
+    assert prompt["task"]["termination_policy"] == "budget"
+    assert prompt["task"]["success_metrics"] == [
         "score",
         "flow_conversion",
         "yield",
         "safety_risk",
     ]
-    assert client.prompts[3]["decision_context"]["decision_stage"] == (
+    assert client.prompts[3]["decision_state"]["stage"] == (
         "experiment_closeout"
     )
-    assert "recommended_strategy" not in prompt["task_contract"]
-    assert "runtime" not in prompt["task_contract"]
-    assert "world_law" not in prompt["task_contract"]
-    assert "constitution" not in prompt["task_contract"]
+    assert "recommended_strategy" not in prompt["task"]
+    assert "runtime" not in prompt["task"]
+    assert "world_law" not in prompt["task"]
+    assert "constitution" not in prompt["task"]
 
 
 def test_official_runner_delivers_only_explicitly_requested_historical_spectrum(
@@ -550,19 +553,21 @@ def test_official_runner_delivers_only_explicitly_requested_historical_spectrum(
         },
     )
 
-    assert client.prompts[2]["decision_context"]["historical_spectrum_catalog"] == []
-    catalog = client.prompts[3]["decision_context"]["historical_spectrum_catalog"]
+    assert client.prompts[2]["on_demand_detail"]["historical_spectrum_catalog"] == []
+    catalog = client.prompts[3]["on_demand_detail"]["historical_spectrum_catalog"]
     assert [item["spectrum_id"] for item in catalog] == ["spectrum-e001-s0003"]
-    assert not client.prompts[3]["decision_context"]["requested_historical_spectrum"]
-    retrieved = client.prompts[4]["decision_context"]["requested_historical_spectrum"]
-    assert retrieved["status"] == "retrieved"
+    assert not client.prompts[3]["decision_state"][
+        "requested_historical_measurement"
+    ]["available"]
+    retrieved = client.prompts[4]["decision_state"][
+        "requested_historical_measurement"
+    ]
+    assert retrieved["available"] is True
     assert retrieved["spectrum_id"] == "spectrum-e001-s0003"
-    assert retrieved["raw_signal"]["kind"] == "hplc_chromatogram"
+    assert retrieved["kind"] == "hplc_chromatogram"
     records = load_jsonl(trajectory)
     request_audit = records[3]["explanation"]["decision_audit"]
-    assert request_audit["spectrum_interpretation"] == (
-        "One supplied public peak changed amplitude."
-    )
+    assert request_audit["diagnostic_target"] == "public measurement"
     assert request_audit["requested_historical_spectrum_id"] == (
         "spectrum-e001-s0003"
     )
@@ -612,11 +617,11 @@ def test_official_runner_marks_spectrum_historical_after_control_operation(
         },
     )
 
-    after_measurement = client.prompts[3]["decision_context"]
+    after_measurement = client.prompts[3]["decision_state"]
     assert after_measurement["observation_provenance"]["current_spectral_packet"] is True
-    assert after_measurement["latest_spectra"]["raw_signal"]
+    assert after_measurement["latest_measurement"]["available"] is True
 
-    after_heat = client.prompts[4]["decision_context"]
+    after_heat = client.prompts[4]["decision_state"]
     assert after_heat["observation_provenance"] == {
         "current_event_type": "operation_result",
         "current_spectral_packet": False,
@@ -624,9 +629,10 @@ def test_official_runner_marks_spectrum_historical_after_control_operation(
         "latest_spectrum_measurement_step": 3,
         "operations_since_latest_spectrum": 1,
     }
-    assert after_heat["latest_spectra"]["raw_signal"] == {}
-    assert after_heat["latest_spectra"]["processed_estimate"] == {}
-    assert after_heat["historical_spectrum_catalog"][0]["spectrum_id"] == (
+    assert after_heat["latest_measurement"] == {"available": False}
+    assert client.prompts[4]["on_demand_detail"][
+        "historical_spectrum_catalog"
+    ][0]["spectrum_id"] == (
         "spectrum-e001-s0003"
     )
-    assert not after_heat["requested_historical_spectrum"]
+    assert not after_heat["requested_historical_measurement"]["available"]
