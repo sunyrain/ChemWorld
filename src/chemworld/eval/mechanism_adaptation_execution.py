@@ -82,11 +82,11 @@ from chemworld.providers.deepseek import DeepSeekClient
 from chemworld.tasks import get_task
 
 DEFAULT_PROTOCOL_PATH = (
-    configuration_root() / "benchmark/mechanism_adaptation_v0.3.0_rc25.json"
+    configuration_root() / "benchmark/mechanism_adaptation_v0.3.0_rc26.json"
 )
 DEFAULT_GATE_A_PLAN_PATH = (
     configuration_root()
-    / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json"
+    / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json"
 )
 DEFAULT_LLM_METHODS_PATH = (
     configuration_root() / "methods/llm_v0.4/llm_methods_rc25.json"

@@ -24,16 +24,16 @@ from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
 from chemworld.eval.provenance import write_json_atomic  # noqa: E402
 
 DEFAULT_PROTOCOL = (
-    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json"
+    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc26.json"
 )
 DEFAULT_PLAN = (
     ROOT
-    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json"
+    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json"
 )
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "confirmatory-task-semantics-audit-rc25.json"
+    "confirmatory-task-semantics-audit-rc26.json"
 )
 
 

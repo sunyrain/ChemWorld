@@ -14,11 +14,11 @@ from chemworld.eval.mechanism_preregistration import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_PATH = (
-    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc25.json"
+    ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc26.json"
 )
 PLAN_PATH = (
     ROOT
-    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc25.json"
+    / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json"
 )
 
 
@@ -43,7 +43,7 @@ def _bound_inputs() -> tuple[dict, dict, dict, dict, dict]:
     return protocol, plan, relation_graph, sample_size, manifest
 
 
-def test_rc25_sample_size_audit_uses_independent_world_clusters() -> None:
+def test_rc26_sample_size_audit_uses_independent_world_clusters() -> None:
     _protocol, plan, _graph, sample_size, _manifest = _bound_inputs()
 
     assert sample_size["pass"] is True
@@ -60,7 +60,7 @@ def test_rc25_sample_size_audit_uses_independent_world_clusters() -> None:
     )
 
 
-def test_rc25_preregistration_is_current_and_hash_bound() -> None:
+def test_rc26_preregistration_is_current_and_hash_bound() -> None:
     protocol, plan, relation_graph, sample_size, manifest = _bound_inputs()
 
     assert (
@@ -80,11 +80,11 @@ def test_rc25_preregistration_is_current_and_hash_bound() -> None:
     )
     assert manifest["certification_subjects"]["gates_b_to_e"] == "participant_agent"
     assert manifest["statistics"]["pooled_micro_average_controls_gate"] is False
-    assert manifest["release_candidate"] == "rc25"
+    assert manifest["release_candidate"] == "rc26"
     assert manifest["observation_noise"]["mode"] == "keyed_semantic_coordinate"
 
 
-def test_rc25_preregistration_rejects_threshold_drift() -> None:
+def test_rc26_preregistration_rejects_threshold_drift() -> None:
     protocol, plan, relation_graph, sample_size, manifest = _bound_inputs()
     changed_plan = copy.deepcopy(plan)
     changed_plan["online_attainability_certificate"][

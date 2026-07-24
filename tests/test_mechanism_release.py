@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+import runpy
+from pathlib import Path
+
 import pytest
 
+from chemworld.eval.mechanism_adaptation_execution import (
+    load_json_object,
+    load_protocol_object,
+)
 from chemworld.eval.mechanism_release import (
     build_metric_embargo_receipt,
     build_public_gate_a_decision,
     derive_readiness,
     gate_a_go_no_go,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _manifest() -> dict[str, object]:
@@ -39,6 +48,23 @@ def test_metric_embargo_receipt_discloses_only_structure() -> None:
     assert receipt["structurally_complete"] is True
     assert receipt["scientific_metrics_disclosed"] is False
     assert "secret_scientific_metric" not in receipt
+
+
+def test_formal_receipt_counts_match_frozen_job_matrices() -> None:
+    runner = runpy.run_path(
+        ROOT / "scripts" / "run_mechanism_adaptation.py",
+        run_name="mechanism_adaptation_runner",
+    )
+    protocol = load_protocol_object(
+        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc26.json"
+    )
+    plan = load_json_object(
+        ROOT
+        / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json"
+    )
+
+    assert runner["_expected_a3_receipt_count"](protocol, plan) == 2016
+    assert runner["_expected_a2_receipt_count"](protocol, plan) == 3456
 
 
 def test_public_decision_requires_both_complete_receipts() -> None:

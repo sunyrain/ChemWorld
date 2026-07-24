@@ -1,6 +1,10 @@
 # ChemWorld RC25 确认性实验计划与执行 TODO
 
-状态：`release-qualified; formal A2/A3 pending`
+状态：`superseded before formal execution by RC26`
+
+> RC25 未消费任何正式 A2、A3 或 private seed。正式执行必须使用
+> `RC26_FORMAL_EXECUTION_AMENDMENT_ZH.md` 及 RC26 默认配置；不得再运行本文中的
+> RC25 输出路径。
 适用协议：`chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc25`  
 控制文件：`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc25.json`  
 原则：本文只安排执行，不修改 RC25 的世界、阈值、统计定义、cohort 或 scorer。

@@ -43,34 +43,34 @@ from chemworld.eval.provenance import (  # noqa: E402
 )
 
 DEFAULT_GATE_A_REPORT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc25.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc26.json"
 )
 DEFAULT_ONLINE_ATTAINABILITY_CERTIFICATE = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-online-attainability-certificate-v0.9-rc25.json"
+    "mechanism-adaptation-online-attainability-certificate-v0.9-rc26.json"
 )
-DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.3.0-rc25"
+DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.3.0-rc26"
 DEFAULT_TRIAL_STORE_ROOT = DEFAULT_RUNTIME_ROOT / "confirmatory-trials"
 DEFAULT_A3_STRUCTURAL_RECEIPT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-a3-structural-receipt-v0.1-rc25.json"
+    "mechanism-adaptation-a3-structural-receipt-v0.1-rc26.json"
 )
 DEFAULT_A2_STRUCTURAL_RECEIPT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-a2-structural-receipt-v0.1-rc25.json"
+    "mechanism-adaptation-a2-structural-receipt-v0.1-rc26.json"
 )
 DEFAULT_RELEASE_QUALIFICATION = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-release-qualification-v0.1-rc25.json"
+    "mechanism-adaptation-release-qualification-v0.1-rc26.json"
 )
 DEFAULT_PUBLIC_DECISION = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-public-decision-v0.1-rc25.json"
+    "mechanism-adaptation-public-decision-v0.1-rc26.json"
 )
 DEFAULT_PILOT_REPORT = (
     ROOT
@@ -323,20 +323,19 @@ def _expected_a3_receipt_count(
     per_family = int(
         plan["online_attainability_certificate"]["world_seeds_per_family"]
     )
-    candidate_arms = sum(
+    candidate_count = sum(
         len(
             protocol["task_mechanism_contracts"][str(task_id)][
                 "candidate_ids"
             ]
         )
-        * per_family
         for task_id in protocol["design"]["tasks"]
     )
     fit_samples = int(
         plan["candidate_predictive_fit"]["samples_per_candidate_action"]
     )
     action_count = int(plan["action_library"]["action_count_per_task"])
-    return candidate_arms * (
+    return candidate_count * (
         per_family + fit_samples * action_count
     )
 

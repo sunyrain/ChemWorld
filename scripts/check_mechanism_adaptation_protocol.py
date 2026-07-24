@@ -19,12 +19,12 @@ DEFAULT_OUTPUT = (
 DEFAULT_ONLINE_STATE_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-online-attainability-certificate-v0.9-rc25-pending.json"
+    "mechanism-adaptation-online-attainability-certificate-v0.9-rc26-pending.json"
 )
 DEFAULT_GATE_A_STATE_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-gate-a-v0.3.0-rc25-pending.json"
+    "mechanism-adaptation-gate-a-v0.3.0-rc26-pending.json"
 )
 
 

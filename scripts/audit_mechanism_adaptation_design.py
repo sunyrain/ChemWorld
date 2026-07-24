@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-design-audit-freeze-rc25.json"
+    "mechanism-adaptation-design-audit-freeze-rc26.json"
 )
 
 

@@ -1,0 +1,105 @@
+{
+  "schema_version": "chemworld-participant-agent-preregistration-candidate-0.1",
+  "preregistration_id": "chemworld-mechanism-adaptation-participant-candidate-rc26",
+  "status": "candidate_requires_gate_a_and_method_freeze",
+  "formal_result": false,
+  "environment_protocol": "configs/benchmark/mechanism_adaptation_v0.3.0_rc26.json",
+  "gate_a_plan": "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc26.json",
+  "method_freeze": "configs/methods/llm_v0.4/llm_methods_rc25.json",
+  "evaluation_subject": "participant_agent_backend_x_scaffold",
+  "gate_a_is_not_redefined_per_participant": true,
+  "backend_scaffold_matrix": {
+    "backend_axis": [
+      "deepseek-v4-pro",
+      "deepseek-v4-flash"
+    ],
+    "scaffold_axis": [
+      {
+        "scaffold_id": "direct_operation_controller",
+        "status": "implemented_baseline",
+        "provider_calls_per_operation": 1
+      },
+      {
+        "scaffold_id": "stateful_planning_agent",
+        "status": "future_separate_method_not_required_for_rc26_gate_a",
+        "provider_calls_per_operation": "must_be_frozen_before_formal_use"
+      }
+    ],
+    "report_backend_effect_at_fixed_scaffold": true,
+    "report_scaffold_effect_at_fixed_backend": true,
+    "do_not_conflate_backend_and_scaffold": true
+  },
+  "prompt_contract": {
+    "representation_version": "chemworld-compact-decision-context-0.2",
+    "estimated_token_cap_per_decision": 1500,
+    "raw_numeric_spectrum_arrays_in_default_prompt": false,
+    "duplicate_observation_views_in_default_prompt": false,
+    "historical_spectrum_access": "public_id_on_demand",
+    "required_response_contract": "chemworld-live-llm-operation-json-0.8"
+  },
+  "gate_b": {
+    "checkpoints_after_change": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "change_probability_threshold": 0.5,
+    "undetected_handling": "right_censored_at_k_8",
+    "changed_and_never_denominators_separate": true
+  },
+  "gate_c": {
+    "local_same_prefix_reaction_test": true,
+    "full_campaign_utility_test": true,
+    "conditions": [
+      "true_feedback",
+      "permuted_feedback",
+      "delayed_feedback",
+      "critical_measurement_deleted"
+    ],
+    "behavior_sensitivity_and_utility_are_separate_estimands": true
+  },
+  "gate_d": {
+    "comparators": [
+      "adaptive_participant",
+      "frozen_policy",
+      "iid_action_replay",
+      "diagnosis_oracle"
+    ],
+    "minimum_oracle_gap": "must_be_frozen_after_development_sample_size_audit_before_formal_execution",
+    "noninformative_gap_cells": "retain_count_and_report_not_post_hoc_exclude"
+  },
+  "gate_e": {
+    "autonomous_score": "no_harness_closeout",
+    "assisted_scientific_score": "separate_secondary_estimand",
+    "assisted_history_may_enter_later_autonomous_context": false
+  },
+  "resource_reporting": {
+    "equal_physical_experiment_budget_primary": true,
+    "report_provider_calls": true,
+    "report_input_output_tokens": true,
+    "report_billed_cost_usd": true,
+    "report_wall_time": true,
+    "report_retries": true,
+    "report_subagent_usage": true,
+    "report_performance_cost_pareto": true
+  },
+  "statistical_unit": "world_cluster",
+  "provider_repeat_role": "nested_technical_replicate",
+  "sample_size": {
+    "status": "pending_independent_gate_b_to_e_power_audit",
+    "formal_execution_allowed": false
+  },
+  "private_agent_confirmation": {
+    "short_name": "Private-A",
+    "seed_namespace_start": 4300000000,
+    "status": "sealed",
+    "unseal_requires": [
+      "immutable public A2/A3 decision",
+      "frozen participant method roster",
+      "frozen prompt and scaffold",
+      "frozen runner statistics exclusions and cost contract"
+    ]
+  },
+  "publication_ready": false
+}
