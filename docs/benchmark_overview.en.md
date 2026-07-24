@@ -66,11 +66,13 @@ The current Engine and replay controls are operational. Method selection, traini
 evaluation campaign, and this repository bundles no formal cross-method result. The action/intervention audit passes
 with both solvent and electrolyte-profile electrochemical counterfactuals publicly reachable and decision-relevant.
 Historical RC21 controlled matched identifiability passes at 239/240, while its fixed four-action online certificate
-fails the reaction rate-law family at 23/30. RC23 of version 0.3 supersedes that protocol because early changes did not
-always provide an adequate old-world reference. It freezes a first-class no-change state, two-layer reference
-adequacy, end-to-end denominators, timing blindness, disjoint cohorts, and a hashed diagnostic relation graph. The
-flagship semantics audit passes 18/18 and the physical design audit passes 81/81; these remain design evidence, not a
-confirmatory run. Gate A stays false until new untouched A2/A3 certificates pass. Cross-method evaluation, real-LLM
+fails the reaction rate-law family at 23/30. RC24 of version 0.3 supersedes that protocol because early changes did
+not always provide an adequate old-world reference and A3 previously blurred benchmark attainability with
+participant-Agent evaluation. RC24 freezes a reference diagnostic policy, first-class no-change, relation closure,
+within-campaign cross-fitting, time-resolved detection, 180 independent clusters per family, and task/family
+intersection gates. The confirmatory-task semantics audit passes 25/25 and the physical design audit passes 81/81;
+these remain design evidence, not a confirmatory run. Gate A stays false until new untouched A2/A3 certificates
+pass. Cross-method evaluation, real-LLM
 evaluation, private generalization, and external bridge evidence remain incomplete.
 
 Next: [Research Findings](research_findings.md) · [Real-world Bridge](real_world_bridge.md)

@@ -217,12 +217,17 @@ def reference_sufficiency_certificate(
     """
 
     observed = [str(item) for item in pre_change_action_ids]
-    required = [str(item) for item in required_reference_action_ids]
+    reference_policy_actions = [
+        str(item) for item in required_reference_action_ids
+    ]
     if minimum_reference_experiments <= 0:
         raise ValueError("minimum reference experiments must be positive")
-    if not required or len(required) != len(set(required)):
-        raise ValueError("required reference actions must be non-empty and unique")
-    required_set = set(required)
+    if (
+        not reference_policy_actions
+        or len(reference_policy_actions) != len(set(reference_policy_actions))
+    ):
+        raise ValueError("reference-policy actions must be non-empty and unique")
+    policy_action_set = set(reference_policy_actions)
     observed_set = set(observed)
     relation_coverage: dict[str, Any] = {}
     for declaration_id, raw_groups in sorted(declared_relation_groups.items()):
@@ -246,7 +251,6 @@ def reference_sufficiency_certificate(
         "minimum_reference_experiments_met": (
             len(observed) >= minimum_reference_experiments
         ),
-        "required_reference_actions_observed": required_set.issubset(observed_set),
         "declared_relations_observed": all(
             item["covered"] for item in relation_coverage.values()
         ),
@@ -257,11 +261,21 @@ def reference_sufficiency_certificate(
             predictive_information_non_saturated
         ),
     }
+    diagnostics = {
+        "canonical_witness_action_set_completed": (
+            policy_action_set.issubset(observed_set)
+        ),
+        "interpretation": (
+            "The frozen policy's canonical actions are a reproducible witness set, "
+            "not a certificate requirement. Pass/fail is controlled by relation "
+            "closure, predictive adequacy, reference age, and minimum experiment count."
+        ),
+    }
     predictive_pass = predictive_adequacy.get("pass")
     if not isinstance(predictive_pass, bool):
         raise ValueError("predictive adequacy must provide a boolean pass field")
     ages = {str(key): int(value) for key, value in observed_reference_ages.items()}
-    if not set(ages).issubset(required_set) or any(
+    if not set(ages).issubset(policy_action_set) or any(
         value < 0 for value in ages.values()
     ):
         raise ValueError(
@@ -269,7 +283,7 @@ def reference_sufficiency_certificate(
         )
     age_pass = (
         maximum_reference_age_experiments >= 0
-        and required_set.issubset(ages)
+        and observed_set.issubset(ages)
         and max(ages.values(), default=0) <= maximum_reference_age_experiments
     )
     predictive_checks = {
@@ -279,18 +293,20 @@ def reference_sufficiency_certificate(
     structural_pass = all(structural_checks.values())
     passed = structural_pass and all(predictive_checks.values())
     return {
-        "schema_version": "chemworld-reference-sufficiency-certificate-0.2",
+        "schema_version": "chemworld-reference-sufficiency-certificate-0.3",
         "status": "passed" if passed else "failed",
         "pass": passed,
         "scope": "universal_all_declared_candidate_families_without_truth_conditioning",
         "minimum_reference_experiments": minimum_reference_experiments,
         "actual_reference_experiments": len(observed),
-        "required_reference_action_ids": required,
+        "reference_policy_action_ids": reference_policy_actions,
         "observed_reference_action_ids": list(dict.fromkeys(observed)),
         "structural_sufficiency": {
             "pass": structural_pass,
+            "certificate_basis": "relation_closure_not_recipe_id_closure",
             "relation_coverage": relation_coverage,
             "checks": structural_checks,
+            "diagnostics": diagnostics,
         },
         "predictive_sufficiency": {
             **dict(predictive_adequacy),
@@ -358,17 +374,30 @@ def change_detection_summary(
     changed: Sequence[bool],
     probabilities: Sequence[float],
     detection_delays: Sequence[int | None],
+    detections: Sequence[bool] | None = None,
     threshold: float = 0.5,
+    right_censor_time: int | None = None,
     bootstrap_seed: int = 0,
     bootstrap_draws: int = 2000,
 ) -> dict[str, Any]:
-    """Score change campaigns together with their required no-change twins."""
+    """Score time-indexed change events and checkpoint probabilities.
+
+    ``probabilities`` are the frozen-checkpoint scores used for AUROC and Brier.
+    ``detections`` may separately declare whether the threshold was crossed at
+    any time up to that checkpoint.  This distinction prevents a transient
+    false alarm from disappearing merely because the terminal posterior later
+    falls below the decision threshold.
+    """
 
     aligned = len(changed) == len(probabilities) == len(detection_delays)
     if not changed or not aligned:
         raise ValueError("change labels, probabilities, and delays must be non-empty and aligned")
+    if detections is not None and len(detections) != len(changed):
+        raise ValueError("detection events must align with change labels")
     if not 0.0 <= threshold <= 1.0:
         raise ValueError("threshold must be in [0, 1]")
+    if right_censor_time is not None and right_censor_time <= 0:
+        raise ValueError("right-censor time must be positive")
     labels = [bool(item) for item in changed]
     scores = [float(item) for item in probabilities]
     if any(not math.isfinite(item) or not 0.0 <= item <= 1.0 for item in scores):
@@ -377,7 +406,11 @@ def change_detection_summary(
     negatives = len(labels) - positives
     if positives == 0 or negatives == 0:
         raise ValueError("change detection requires changed and no-change campaigns")
-    predicted = [score >= threshold for score in scores]
+    predicted = (
+        [bool(item) for item in detections]
+        if detections is not None
+        else [score >= threshold for score in scores]
+    )
     true_positive = sum(
         label and estimate for label, estimate in zip(labels, predicted, strict=True)
     )
@@ -388,6 +421,22 @@ def change_detection_summary(
         int(delay)
         for label, estimate, delay in zip(labels, predicted, detection_delays, strict=True)
         if label and estimate and delay is not None
+    ]
+    if any(delay <= 0 for delay in observed_delays):
+        raise ValueError("observed detection delays must be positive")
+    if right_censor_time is None:
+        right_censor_time = max(observed_delays, default=None)
+    changed_time_to_event = [
+        {
+            "duration": (
+                int(delay)
+                if estimate and delay is not None
+                else right_censor_time
+            ),
+            "event_observed": bool(estimate and delay is not None),
+        }
+        for label, estimate, delay in zip(labels, predicted, detection_delays, strict=True)
+        if label
     ]
     sensitivity_interval = wilson_interval(true_positive, positives)
     false_positive_interval = wilson_interval(false_positive, negatives)
@@ -415,9 +464,15 @@ def change_detection_summary(
             for label, score in zip(labels, scores, strict=True)
         )
         / len(labels),
-        "mean_detection_delay": _mean(observed_delays),
+        "detection_delay_event_definition": (
+            "first checkpoint-relative experiment k with p(change)>=threshold"
+        ),
+        "detection_delay_handling": "right_censored",
+        "right_censor_time": right_censor_time,
+        "observed_event_mean_detection_delay": _mean(observed_delays),
         "detected_changed_count": len(observed_delays),
         "right_censored_changed_count": positives - len(observed_delays),
+        "changed_time_to_event": changed_time_to_event,
     }
 
 
@@ -1088,9 +1143,13 @@ def validate_mechanism_adaptation_protocol(protocol: Mapping[str, Any]) -> list[
                             "reference sufficiency must be universal and independent "
                             "of the realized hidden family"
                         )
-                    if sufficiency.get("all_policy_actions_observed") is not True:
+                    if (
+                        sufficiency.get("relation_closure_controls_certificate")
+                        is not True
+                    ):
                         errors.append(
-                            "reference sufficiency must require every policy action"
+                            "reference sufficiency must be controlled by relation "
+                            "closure rather than a canonical recipe-ID checklist"
                         )
                     if sufficiency.get("all_declared_relations_observed") is not True:
                         errors.append(
@@ -1491,6 +1550,7 @@ def evaluate_protocol_gates(
     if protocol_errors:
         raise ValueError("invalid mechanism-adaptation protocol: " + "; ".join(protocol_errors))
     gates = protocol["gates"]
+    schema_version = protocol.get("schema_version")
     integrity = evidence.get("gate_0")
     gate_0 = bool(isinstance(integrity, Mapping) and integrity.get("all_required_checks_pass"))
 
@@ -1527,16 +1587,16 @@ def evaluate_protocol_gates(
             isinstance(design_validity, Mapping)
             and design_validity.get("pass") is True
         )
-    online_policy_certificate = (
-        identifiability.get("online_policy_feasible_certificate")
+    online_attainability_certificate = (
+        identifiability.get("online_attainability_certificate")
         if isinstance(identifiability, Mapping)
         else None
     )
     if not (
-        isinstance(online_policy_certificate, Mapping)
-        and online_policy_certificate.get("certificate_present", True) is True
+        isinstance(online_attainability_certificate, Mapping)
+        and online_attainability_certificate.get("certificate_present", True) is True
     ):
-        online_policy_certificate = None
+        online_attainability_certificate = None
     gate_a_decision = gate_a_certificate_decision(
         protocol,
         gate_a_plan,
@@ -1545,19 +1605,93 @@ def evaluate_protocol_gates(
         ),
         controlled_gate_pass=controlled_gate_pass,
         controlled_certificate_present=controlled_certificate_present,
-        online_policy_certificate=online_policy_certificate,
+        online_attainability_certificate=online_attainability_certificate,
     )
     gate_a = gate_a_decision["gate_a_pass"] is True
 
     detection = evidence.get("gate_b")
-    gate_b = bool(
-        isinstance(detection, Mapping)
-        and int(detection.get("no_change_twin_count", 0)) > 0
-        and float(detection.get("false_positive_rate", math.inf))
-        <= float(gates["gate_b"]["maximum_no_change_false_positive_rate"])
-        and _interval_lower(detection.get("auroc_interval"))
-        >= float(gates["gate_b"]["minimum_auroc_lower_confidence_bound"])
-    )
+    if (
+        schema_version
+        == "chemworld-mechanism-adaptation-protocol-0.3.0"
+    ):
+        task_detection = (
+            detection.get("task_reports")
+            if isinstance(detection, Mapping)
+            else None
+        )
+        family_detection = (
+            detection.get("family_reports")
+            if isinstance(detection, Mapping)
+            else None
+        )
+        expected_families = {
+            f"{task_id}:{candidate_id}"
+            for task_id, contract in protocol[
+                "task_mechanism_contracts"
+            ].items()
+            for candidate_id in contract["candidate_ids"]
+            if candidate_id != "no_change"
+        }
+        gate_b = bool(
+            isinstance(detection, Mapping)
+            and detection.get("evaluation_subject") == "participant_agent"
+            and detection.get("checkpoints_experiments_after_change")
+            == [1, 2, 4, 8]
+            and detection.get("delay_handling") == "right_censored_at_k_8"
+            and float(detection.get("fpr_horizon", math.inf))
+            <= float(
+                gates["gate_b"][
+                    "maximum_no_change_false_positive_rate"
+                ]
+            )
+            and _interval_lower(detection.get("auroc_interval"))
+            >= float(
+                gates["gate_b"][
+                    "minimum_auroc_lower_confidence_bound"
+                ]
+            )
+            and float(
+                detection.get(
+                    "integrated_mean_change_probability_brier_score",
+                    math.inf,
+                )
+            )
+            <= float(
+                gates["gate_b"]["maximum_integrated_mean_brier_score"]
+            )
+            and isinstance(task_detection, Mapping)
+            and set(task_detection) == set(protocol["design"]["tasks"])
+            and all(
+                isinstance(item, Mapping)
+                and item.get("gate_pass") is True
+                for item in task_detection.values()
+            )
+            and isinstance(family_detection, Mapping)
+            and set(family_detection) == expected_families
+            and all(
+                isinstance(item, Mapping)
+                and item.get("gate_pass") is True
+                for item in family_detection.values()
+            )
+            and isinstance(detection.get("macro_average"), Mapping)
+            and detection["macro_average"].get("gate_pass") is True
+            and detection.get("pooled_micro_average_controls_gate") is False
+        )
+    else:
+        gate_b = bool(
+            isinstance(detection, Mapping)
+            and int(detection.get("no_change_twin_count", 0)) > 0
+            and float(detection.get("false_positive_rate", math.inf))
+            <= float(
+                gates["gate_b"]["maximum_no_change_false_positive_rate"]
+            )
+            and _interval_lower(detection.get("auroc_interval"))
+            >= float(
+                gates["gate_b"][
+                    "minimum_auroc_lower_confidence_bound"
+                ]
+            )
+        )
 
     feedback = evidence.get("gate_c")
     gate_c = bool(

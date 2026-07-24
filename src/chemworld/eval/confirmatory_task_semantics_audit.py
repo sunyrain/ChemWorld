@@ -1,4 +1,4 @@
-"""Fail-closed semantic audit for every flagship experiment component."""
+"""Fail-closed semantic audit for every confirmatory benchmark component."""
 
 from __future__ import annotations
 
@@ -13,17 +13,19 @@ from chemworld.eval.mechanism_relation_graph import (
     validate_diagnostic_relation_graph,
 )
 from chemworld.eval.provenance import canonical_json_sha256
-from chemworld.tasks import FLAGSHIP_TASK_IDS
+from chemworld.tasks import CONFIRMATORY_BENCHMARK_TASK_IDS
 
-FLAGSHIP_SEMANTICS_AUDIT_VERSION = "chemworld-flagship-semantics-audit-0.1"
+CONFIRMATORY_TASK_SEMANTICS_AUDIT_VERSION = (
+    "chemworld-confirmatory-task-semantics-audit-0.2"
+)
 
 
-def audit_flagship_experiment_semantics(
+def audit_confirmatory_task_semantics(
     protocol: Mapping[str, Any],
     plan: Mapping[str, Any],
     relation_graph: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Audit controls, denominators, blinding, cohorts, and frozen decisions."""
+    """Audit controls, estimands, blinding, cohorts, and frozen decisions."""
 
     checks: list[dict[str, Any]] = []
 
@@ -38,16 +40,30 @@ def audit_flagship_experiment_semantics(
     )
     protocol_tasks = tuple(str(item) for item in protocol["design"]["tasks"])
     add(
-        "formal_flagship_task_scope_explicit",
-        set(protocol_tasks) == set(FLAGSHIP_TASK_IDS),
+        "confirmatory_benchmark_task_scope_explicit",
+        set(protocol_tasks) == set(CONFIRMATORY_BENCHMARK_TASK_IDS),
         (
             f"formal_protocol_tasks={protocol_tasks}; "
-            f"registered_flagship_tasks={FLAGSHIP_TASK_IDS}"
+            f"registered_confirmatory_tasks={CONFIRMATORY_BENCHMARK_TASK_IDS}"
         ),
     )
 
     calibrated = protocol["evaluation_tracks"]["calibrated_online_change"]
-    requirement = plan["online_policy_feasible_certificate"]
+    requirement = plan["online_attainability_certificate"]
+    add(
+        "a3_certifies_reference_policy_attainability_not_participant_agent",
+        requirement.get("scientific_name")
+        == "A3_online_attainability_certificate"
+        and requirement.get("certification_subject")
+        == "frozen_reference_diagnostic_policy"
+        and requirement.get("participant_agent_evaluation") is False
+        and protocol["gates"]["gate_b"].get("evaluation_subject")
+        == "participant_agent",
+        (
+            f"a3_subject={requirement.get('certification_subject')}; "
+            f"gate_b_subject={protocol['gates']['gate_b'].get('evaluation_subject')}"
+        ),
+    )
     add(
         "a3_true_no_change_condition",
         calibrated["truth_change_time_support"] == ["never", 6, 8, 10]
@@ -84,12 +100,27 @@ def audit_flagship_experiment_semantics(
             "each changed/no-change pair must contribute one dependent cluster"
         ),
     )
+    pairing = plan["paired_phase_design"]
+    add(
+        "a3_no_change_twins_match_runtime_and_noise_stream",
+        pairing.get("common_random_numbers_across_changed_no_change_twins")
+        is True
+        and pairing.get("identical_reset_rule_across_changed_no_change_twins")
+        is True
+        and pairing.get("reset_or_instance_identifier_agent_visible") is False
+        and pairing.get("pseudo_checkpoint_has_runtime_side_effect") is False
+        and pairing.get("campaign_metadata_invariant_across_checkpoint") is True,
+        "Changed/never twins differ only by the hidden physical-law intervention.",
+    )
 
     reference = calibrated["reference_sufficiency"]
     add(
         "reference_has_structural_and_predictive_layers",
         reference["basis"]
         == "universal_structural_relation_coverage_and_held_out_predictive_adequacy"
+        and reference["relation_closure_controls_certificate"] is True
+        and reference["canonical_witness_action_set_controls_certificate"]
+        is False
         and reference["all_declared_relations_observed"] is True
         and reference["held_out_old_world_predictive_check_required"] is True,
         f"reference_basis={reference['basis']}",
@@ -101,17 +132,38 @@ def audit_flagship_experiment_semantics(
         and requirement["reference_scope"] == reference["scope"],
         f"reference_scope={reference['scope']}",
     )
+    predictive_reference = requirement["reference_predictive_adequacy"]
+    add(
+        "reference_predictive_check_is_within_campaign_cross_fitted",
+        predictive_reference.get("cross_fitting")
+        == "leave_one_experiment_out_within_campaign_pre_change_only"
+        and predictive_reference.get("post_change_observations_allowed")
+        is False
+        and predictive_reference.get("truth_family_allowed") is False,
+        str(predictive_reference.get("source")),
+    )
     primary_metrics = set(calibrated["primary_metrics"])
     add(
         "conditional_and_end_to_end_metrics_both_frozen",
         {
             "family_attribution_conditional_on_reference_sufficiency",
             "p_reference_sufficient",
-            "p_detection_given_reference",
-            "p_attribution_given_detection_and_reference",
-            "end_to_end_reference_detection_attribution_success",
+            "p_detection_given_reference_and_changed",
+            "p_attribution_given_detection_reference_and_changed",
+            "end_to_end_reference_detection_attribution_given_changed",
+            "p_no_false_alarm_given_reference_and_never",
+            "fpr_horizon_given_never",
         }.issubset(primary_metrics),
         f"primary_metrics={sorted(primary_metrics)}",
+    )
+    add(
+        "changed_and_never_estimands_are_separate",
+        "p_attribution_given_detection_reference_and_changed"
+        in primary_metrics
+        and "p_no_false_alarm_given_reference_and_never"
+        in primary_metrics
+        and "fpr_horizon_given_never" in primary_metrics,
+        "Attribution is defined only for changed campaigns; never controls false alarms.",
     )
 
     hidden_timing = set(calibrated["agent_visible_timing_contract"]["hidden"])
@@ -163,11 +215,56 @@ def audit_flagship_experiment_semantics(
             "minimum_changed_detection_recall_cluster_bootstrap_lower_bound",
             "maximum_no_change_false_positive_rate_cluster_bootstrap_upper_bound",
             "minimum_change_detection_auroc_cluster_bootstrap_lower_bound",
-            "maximum_change_probability_brier_score",
+            "maximum_integrated_mean_change_probability_brier_score",
             "minimum_attribution_given_detection_and_reference_cluster_bootstrap_lower_bound",
             "minimum_end_to_end_success_rate_cluster_bootstrap_lower_bound",
         }.issubset(frozen_criteria),
         f"criteria={sorted(frozen_criteria)}",
+    )
+    add(
+        "time_resolved_detection_and_right_censoring_frozen",
+        frozen_criteria.get(
+            "detection_checkpoint_experiments_after_change"
+        )
+        == [1, 2, 4, 8]
+        and frozen_criteria.get(
+            "primary_detection_checkpoint_experiments_after_change"
+        )
+        == 8
+        and frozen_criteria.get("undetected_campaign_handling")
+        == "right_censored_at_k_8"
+        and "equal-weight mean"
+        in str(
+            frozen_criteria.get(
+                "change_probability_brier_aggregation"
+            )
+        ),
+        "AUROC, Brier, recall, horizon FPR, and delay use frozen relative checkpoints.",
+    )
+    add(
+        "a3_gate_intersects_tasks_and_families",
+        frozen_criteria.get("gate_aggregation")
+        == "intersection_of_overall_each_task_and_each_declared_changed_family"
+        and frozen_criteria.get("pooled_micro_average_controls_gate")
+        is False,
+        str(frozen_criteria.get("gate_aggregation")),
+    )
+    sample_size = plan.get("sample_size_audit")
+    preregistration = plan.get("preregistration")
+    add(
+        "sample_size_and_preregistration_declared",
+        isinstance(sample_size, Mapping)
+        and sample_size.get("required") is True
+        and int(sample_size.get("recommended_world_seeds_per_family", 0))
+        == int(requirement["world_seeds_per_family"])
+        and isinstance(preregistration, Mapping)
+        and preregistration.get("required_before_a2_or_a3_execution")
+        is True,
+        (
+            f"world_seeds_per_family={requirement['world_seeds_per_family']}; "
+            "manifest="
+            f"{preregistration.get('manifest') if isinstance(preregistration, Mapping) else None}"
+        ),
     )
 
     feedback = protocol["paired_feedback_design"]
@@ -231,16 +328,16 @@ def audit_flagship_experiment_semantics(
 
     failures = [item for item in checks if not item["pass"]]
     return {
-        "schema_version": FLAGSHIP_SEMANTICS_AUDIT_VERSION,
+        "schema_version": CONFIRMATORY_TASK_SEMANTICS_AUDIT_VERSION,
         "status": "passed" if not failures else "failed",
         "pass": not failures,
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": canonical_json_sha256(protocol),
         "gate_a_plan_id": plan["plan_id"],
         "gate_a_plan_sha256": canonical_json_sha256(plan),
-        "formal_flagship_task_ids": list(protocol_tasks),
+        "confirmatory_benchmark_task_ids": list(protocol_tasks),
         "scope": (
-            "all mechanism-adaptation flagship experiment components: "
+            "all mechanism-adaptation confirmatory benchmark components: "
             "integrity, identifiability, change detection, feedback causality, "
             "recovery, and autonomy"
         ),
@@ -250,12 +347,12 @@ def audit_flagship_experiment_semantics(
         "checks": checks,
         "claim_boundary": (
             "A pass certifies protocol semantics and frozen controls only. It does "
-            "not certify A2, A3, a hosted Agent, or publication readiness."
+            "not certify A2, A3, any participant Agent, or publication readiness."
         ),
     }
 
 
 __all__ = [
-    "FLAGSHIP_SEMANTICS_AUDIT_VERSION",
-    "audit_flagship_experiment_semantics",
+    "CONFIRMATORY_TASK_SEMANTICS_AUDIT_VERSION",
+    "audit_confirmatory_task_semantics",
 ]

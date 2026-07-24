@@ -59,7 +59,7 @@ def build_diagnostic_relation_graph(
     payload: dict[str, Any] = {
         "schema_version": DIAGNOSTIC_RELATION_GRAPH_VERSION,
         "graph_id": (
-            "chemworld-mechanism-adaptation-diagnostic-relations-v0.3.0-rc23"
+            "chemworld-mechanism-adaptation-diagnostic-relations-v0.3.0-rc24"
         ),
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": canonical_json_sha256(protocol),

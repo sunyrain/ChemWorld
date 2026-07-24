@@ -4,8 +4,8 @@ import copy
 import json
 from pathlib import Path
 
-from chemworld.eval.flagship_semantics_audit import (
-    audit_flagship_experiment_semantics,
+from chemworld.eval.confirmatory_task_semantics_audit import (
+    audit_confirmatory_task_semantics,
 )
 from chemworld.eval.mechanism_adaptation import (
     load_mechanism_adaptation_protocol,
@@ -32,27 +32,27 @@ def _inputs() -> tuple[dict, dict, dict]:
     return protocol, plan, graph
 
 
-def test_current_flagship_semantics_audit_covers_every_gate_component() -> None:
+def test_current_confirmatory_task_semantics_audit_covers_every_gate_component() -> None:
     protocol, plan, graph = _inputs()
-    report = audit_flagship_experiment_semantics(protocol, plan, graph)
+    report = audit_confirmatory_task_semantics(protocol, plan, graph)
 
     assert report["pass"] is True
     assert report["failure_count"] == 0
-    assert report["check_count"] == 18
-    assert report["formal_flagship_task_ids"] == [
+    assert report["check_count"] == 25
+    assert report["confirmatory_benchmark_task_ids"] == [
         "reaction-to-crystallization",
         "electrochemical-conversion",
     ]
 
 
-def test_flagship_semantics_audit_rejects_missing_no_change_truth() -> None:
+def test_confirmatory_task_semantics_audit_rejects_missing_no_change_truth() -> None:
     protocol, plan, graph = _inputs()
     broken = copy.deepcopy(protocol)
     broken["evaluation_tracks"]["calibrated_online_change"][
         "truth_change_time_support"
     ] = [6, 8, 10]
 
-    report = audit_flagship_experiment_semantics(broken, plan, graph)
+    report = audit_confirmatory_task_semantics(broken, plan, graph)
 
     assert report["pass"] is False
     failed = {item["check"] for item in report["failures"]}

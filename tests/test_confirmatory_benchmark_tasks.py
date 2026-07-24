@@ -14,7 +14,7 @@ from chemworld.agents.task_recipes import (
 )
 from chemworld.rl.rewards import PublicBehaviorTracker, reward_contract
 from chemworld.task_design import SERIOUS_TASK_DESIGNS, review_task_design
-from chemworld.tasks import FLAGSHIP_TASK_IDS, get_task
+from chemworld.tasks import CONFIRMATORY_BENCHMARK_TASK_IDS, get_task
 
 EXPECTED_METRICS = {
     "reaction-to-crystallization": {
@@ -68,12 +68,12 @@ def _run_midpoint(task_id: str, *, seed: int = 0) -> tuple[dict, PublicBehaviorT
     return final_info, tracker
 
 
-def test_flagship_scope_is_exactly_the_two_integrated_tasks() -> None:
-    assert FLAGSHIP_TASK_IDS == (
+def test_confirmatory_scope_is_exactly_the_two_integrated_tasks() -> None:
+    assert CONFIRMATORY_BENCHMARK_TASK_IDS == (
         "reaction-to-crystallization",
         "electrochemical-conversion",
     )
-    for task_id in FLAGSHIP_TASK_IDS:
+    for task_id in CONFIRMATORY_BENCHMARK_TASK_IDS:
         task = get_task(task_id)
         assert "flagship" in task.tags
         assert "closed-loop" in task.tags
@@ -84,8 +84,10 @@ def test_flagship_scope_is_exactly_the_two_integrated_tasks() -> None:
         assert contract["behavioral_completion"]["ordered_flagship_milestones"] is True
 
 
-@pytest.mark.parametrize("task_id", FLAGSHIP_TASK_IDS)
-def test_midpoint_flagship_recipe_completes_physics_and_behavior_contract(task_id: str) -> None:
+@pytest.mark.parametrize("task_id", CONFIRMATORY_BENCHMARK_TASK_IDS)
+def test_midpoint_confirmatory_recipe_completes_physics_and_behavior_contract(
+    task_id: str,
+) -> None:
     final_info, tracker = _run_midpoint(task_id)
     assert final_info["experiment_ended"] is True
     assert final_info["leaderboard_score"] is not None

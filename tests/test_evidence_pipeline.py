@@ -18,9 +18,9 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert {node.node_id for node in ordered} == {node.node_id for node in nodes}
     node_ids = {node.node_id for node in nodes}
     assert "mechanism_gate_a" in node_ids
-    assert "mechanism_online_policy_certificate" in node_ids
+    assert "mechanism_online_attainability_certificate" in node_ids
     assert "mechanism_diagnostic_relation_graph" in node_ids
-    assert "mechanism_flagship_semantics_audit" in node_ids
+    assert "mechanism_confirmatory_task_semantics_audit" in node_ids
     assert not any(node_id.startswith("ncs_") for node_id in node_ids)
     assert {node.role for node in nodes} <= pipeline["CURRENT_ARTIFACT_ROLES"]
     assert all(pipeline["_node_producer"](node) for node in nodes)
@@ -41,7 +41,7 @@ def test_current_evidence_pipeline_records_new_gate_a_execution_as_pending() -> 
     assert mechanism["gate_a_certificate_status"] == {
         "a1_physical_intervention_validity": "passed",
         "a2_controlled_matched_identifiability": "pending_execution",
-        "a3_calibrated_online_change_identifiability": "pending_execution",
+        "a3_online_attainability": "pending_execution",
     }
     assert (
         mechanism["gate_a_evidence_current"]
@@ -133,14 +133,14 @@ def test_gate_state_is_not_conflated_with_artifact_validity() -> None:
     )
     assert (
         pipeline["_node_gate_state"](
-            formal_nodes["mechanism_online_policy_certificate"],
+            formal_nodes["mechanism_online_attainability_certificate"],
             {"gate_pass": False},
         )
         == "blocked"
     )
     assert (
         pipeline["_node_gate_state"](
-            formal_nodes["mechanism_online_policy_certificate"],
+            formal_nodes["mechanism_online_attainability_certificate"],
             {"gate_pass": True},
         )
         == "passed"

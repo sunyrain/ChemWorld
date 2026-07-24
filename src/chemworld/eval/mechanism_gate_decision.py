@@ -18,7 +18,9 @@ from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import get_task
 from chemworld.world.operations import operation_contracts
 
-ONLINE_POLICY_CERTIFICATE_VERSION = "chemworld-mechanism-adaptation-online-policy-certificate-0.7"
+ONLINE_ATTAINABILITY_CERTIFICATE_VERSION = (
+    "chemworld-mechanism-adaptation-online-attainability-certificate-0.8"
+)
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -68,45 +70,44 @@ def gate_a_certificate_decision(
     physical_intervention_validity_pass: bool,
     controlled_gate_pass: bool,
     controlled_certificate_present: bool = True,
-    online_policy_certificate: Mapping[str, Any] | None = None,
+    online_attainability_certificate: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Compose Gate A1/A2/A3 from independently bound certificates.
 
     A1 establishes that the declared intervention changes the intended physical law.
     The A2 controlled matched oracle establishes that the public experiment contract
     contains diagnostic information. It is not a substitute for demonstrating that
-    an A3 online policy can first acquire a sufficient old-world reference and then
-    use diagnostic experiments under the same budget. Missing, stale, or malformed
-    evidence therefore fails closed.
+    a frozen A3 reference diagnostic policy can first acquire a sufficient
+    old-world reference and then diagnose a hidden change online. A3 certifies
+    benchmark attainability, not any participant Agent; those Agents are evaluated
+    only in Gates B--E. Missing, stale, or malformed evidence fails closed.
     """
 
-    requirement = plan.get("online_policy_feasible_certificate")
+    requirement = plan.get("online_attainability_certificate")
     if (
         not isinstance(requirement, Mapping)
         or requirement.get("required_before_formal_mechanism_claim") is not True
     ):
-        raise ValueError("Gate A plan must require an online-policy-feasible certificate")
+        raise ValueError("Gate A plan must require an online-attainability certificate")
 
     expected_protocol_sha = canonical_json_sha256(protocol)
     expected_plan_sha = canonical_json_sha256(plan)
     expected_execution_binding = gate_a_execution_contract_binding(protocol, plan)
     controlled_primary_budget = int(plan["held_out_certificate"]["primary_gate_budget"])
     online_gate_budget = int(requirement["online_policy_gate_budget"])
-    if online_gate_budget != controlled_primary_budget:
-        raise ValueError("Gate A controlled and online certificates must use an aligned budget")
     expected_certificate_version = str(
         requirement.get(
             "certificate_schema_version",
-            ONLINE_POLICY_CERTIFICATE_VERSION,
+            ONLINE_ATTAINABILITY_CERTIFICATE_VERSION,
         )
     )
     expected_certificate_scope = str(
         requirement.get(
             "certificate_scope",
-            "online_policy_feasible_diagnosis",
+            "online_attainability_of_frozen_reference_diagnostic_policy",
         )
     )
-    if online_policy_certificate is None:
+    if online_attainability_certificate is None:
         online_summary = {
             "schema_version": expected_certificate_version,
             "status": "pending_execution",
@@ -115,9 +116,11 @@ def gate_a_certificate_decision(
             "certificate_present": False,
             "controlled_matched_primary_budget": controlled_primary_budget,
             "online_policy_gate_budget": online_gate_budget,
+            "certification_subject": "frozen_reference_diagnostic_policy",
+            "participant_agent_evaluation": False,
         }
     else:
-        certificate = dict(online_policy_certificate)
+        certificate = dict(online_attainability_certificate)
         errors: list[str] = []
         expected_values = {
             "schema_version": expected_certificate_version,
@@ -126,6 +129,8 @@ def gate_a_certificate_decision(
             "gate_a_plan_sha256": expected_plan_sha,
             "controlled_matched_primary_budget": controlled_primary_budget,
             "online_policy_gate_budget": online_gate_budget,
+            "certification_subject": "frozen_reference_diagnostic_policy",
+            "participant_agent_evaluation": False,
             "hidden_change_time": True,
             "policy_received_change_time_support": False,
             "policy_received_minimum_stable_prefix": False,
@@ -160,7 +165,10 @@ def gate_a_certificate_decision(
         expected_status = "passed" if gate_pass is True else "failed"
         if certificate.get("status") != expected_status:
             errors.append(f"status must equal {expected_status!r}")
-        if expected_certificate_scope == "calibrated_online_change_identifiability":
+        if (
+            expected_certificate_scope
+            == "online_attainability_of_frozen_reference_diagnostic_policy"
+        ):
             reference_certificate = certificate.get(
                 "reference_acquisition_certificate"
             )
@@ -198,7 +206,10 @@ def gate_a_certificate_decision(
                     "capability chain"
                 )
         if errors:
-            raise ValueError("invalid online-policy-feasible certificate: " + "; ".join(errors))
+            raise ValueError(
+                "invalid online-attainability certificate: "
+                + "; ".join(errors)
+            )
         online_summary = {
             **certificate,
             "required": True,
@@ -224,32 +235,32 @@ def gate_a_certificate_decision(
     elif not controlled_gate_pass:
         status = "gate_a_failed_controlled_matched_certificate"
     elif online_summary["certificate_present"] is not True:
-        status = "gate_a_blocked_online_policy_certificate_pending"
+        status = "gate_a_blocked_online_attainability_certificate_pending"
     else:
-        status = "gate_a_failed_online_policy_certificate"
+        status = "gate_a_failed_online_attainability_certificate"
     return {
-        "schema_version": "chemworld-mechanism-adaptation-gate-a-decision-0.2",
+        "schema_version": "chemworld-mechanism-adaptation-gate-a-decision-0.3",
         "status": status,
         "required_certificates": [
             "a1_physical_intervention_validity",
             "a2_controlled_matched_identifiability",
-            "a3_calibrated_online_change_identifiability",
+            "a3_online_attainability_frozen_reference_diagnostic_policy",
         ],
         "a1_physical_intervention_validity_pass": physical_gate_pass,
         "a2_controlled_matched_identifiability_pass": bool(
             controlled_gate_pass
         ),
         "a2_controlled_matched_certificate_present": controlled_present,
-        "a3_calibrated_online_change_identifiability_pass": online_gate_pass,
+        "a3_online_attainability_pass": online_gate_pass,
         "controlled_matched_gate_pass": bool(controlled_gate_pass),
-        "online_policy_feasible_gate_pass": online_gate_pass,
-        "online_policy_feasible_certificate": online_summary,
+        "online_attainability_gate_pass": online_gate_pass,
+        "online_attainability_certificate": online_summary,
         "gate_a_pass": combined_pass,
     }
 
 
 __all__ = [
-    "ONLINE_POLICY_CERTIFICATE_VERSION",
+    "ONLINE_ATTAINABILITY_CERTIFICATE_VERSION",
     "gate_a_certificate_decision",
     "gate_a_execution_contract_binding",
 ]

@@ -1,4 +1,4 @@
-"""Generate the unified semantic audit for all flagship experiment components."""
+"""Generate the unified semantic audit for confirmatory benchmark components."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from chemworld.eval.flagship_semantics_audit import (  # noqa: E402
-    audit_flagship_experiment_semantics,
+from chemworld.eval.confirmatory_task_semantics_audit import (  # noqa: E402
+    audit_confirmatory_task_semantics,
 )
 from chemworld.eval.mechanism_adaptation import (  # noqa: E402
     load_mechanism_adaptation_protocol,
@@ -25,7 +25,7 @@ DEFAULT_PLAN = ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "flagship-experiment-semantics-audit-rc23.json"
+    "confirmatory-task-semantics-audit-rc24.json"
 )
 
 
@@ -40,13 +40,13 @@ def main() -> None:
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
     graph_path = ROOT / plan["diagnostic_relation_graph"]["report"]
     graph = json.loads(graph_path.read_text(encoding="utf-8"))
-    report = audit_flagship_experiment_semantics(protocol, plan, graph)
+    report = audit_confirmatory_task_semantics(protocol, plan, graph)
     if args.check:
         if not args.output.is_file():
-            raise SystemExit(f"missing flagship semantics audit: {args.output}")
+            raise SystemExit(f"missing confirmatory-task semantics audit: {args.output}")
         recorded = json.loads(args.output.read_text(encoding="utf-8"))
         if recorded != report:
-            raise SystemExit("flagship experiment semantics audit is stale")
+            raise SystemExit("confirmatory-task semantics audit is stale")
     else:
         write_json_atomic(args.output, report)
     print(

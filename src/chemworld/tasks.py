@@ -28,10 +28,14 @@ from chemworld.world.scenario import get_scenario_card
 
 WORLD_LAW_ID = WORLD_FAMILY_VERSION
 TASK_CONTRACT_VERSION = "chemworld-task-contract-1.1"
-FLAGSHIP_TASK_IDS = (
+CONFIRMATORY_BENCHMARK_TASK_IDS = (
     "reaction-to-crystallization",
     "electrochemical-conversion",
 )
+# Compatibility alias for pre-RC24 callers. Public documentation and new code use
+# ``CONFIRMATORY_BENCHMARK_TASK_IDS`` so these tasks are not confused with the
+# platform-breadth Showcase Worlds.
+FLAGSHIP_TASK_IDS = CONFIRMATORY_BENCHMARK_TASK_IDS
 CORE_TASK_IDS = (
     "reaction-to-assay",
     "reaction-to-purification",
@@ -870,12 +874,24 @@ def list_serious_task_cards() -> list[dict[str, Any]]:
     return [task.to_card() for task in list_serious_tasks()]
 
 
+def list_confirmatory_benchmark_tasks() -> list[TaskSpec]:
+    return [get_task(task_id) for task_id in CONFIRMATORY_BENCHMARK_TASK_IDS]
+
+
+def list_confirmatory_benchmark_task_cards() -> list[dict[str, Any]]:
+    return [task.to_card() for task in list_confirmatory_benchmark_tasks()]
+
+
 def list_flagship_tasks() -> list[TaskSpec]:
-    return [get_task(task_id) for task_id in FLAGSHIP_TASK_IDS]
+    """Compatibility alias for :func:`list_confirmatory_benchmark_tasks`."""
+
+    return list_confirmatory_benchmark_tasks()
 
 
 def list_flagship_task_cards() -> list[dict[str, Any]]:
-    return [task.to_card() for task in list_flagship_tasks()]
+    """Compatibility alias for :func:`list_confirmatory_benchmark_task_cards`."""
+
+    return list_confirmatory_benchmark_task_cards()
 
 
 def task_maturity_manifest(task_ids: tuple[str, ...] | None = None) -> dict[str, Any]:

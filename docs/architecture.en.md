@@ -149,9 +149,10 @@ requires a new protocol version and revalidation, and prior results cannot be ca
 2. **Predictive:** a testable prediction for an unexecuted intervention;
 3. **Actionable:** a belief that changes experiment choice and improves recovery or regret under a fixed budget.
 
-Mechanism v0.3 requires explicit old-world reference acquisition before calibrated change attribution. RC23 makes
-`never` a first-class truth state, certifies both structural and held-out predictive reference sufficiency, blinds
-the Agent to prefix and changepoint support, and separates development, A2, A3, and private-confirmation cohorts.
+Mechanism v0.3 requires explicit old-world reference acquisition before calibrated change attribution. RC24 defines
+A3 as online attainability of a frozen reference diagnostic policy rather than participant-Agent performance. It
+makes `never` first-class, uses relation closure and within-campaign pre-change cross-fitting for reference
+sufficiency, blinds the policy to prefix and changepoint support, and separates all formal cohorts.
 Static current-world identification and early uncalibrated nonstationarity remain separate, non-gating diagnostics.
 An independent Agent counterfactual-prediction probe is still a future result rather than completed evidence.
 

@@ -71,7 +71,7 @@ ENGLISH_NAV_TARGETS = (
 README_BOUNDARY_MARKERS = (
     "campaign",
     "no formal cross-method result",
-    "agent-level mechanism-discovery claims remain unsupported",
+    "mechanism-discovery claims remain unsupported",
 )
 PASSED_GATE_A_STATUS_MARKERS = {
     "README.md": (
@@ -89,20 +89,20 @@ PASSED_GATE_A_STATUS_MARKERS = {
 }
 FAILED_GATE_A_STATUS_MARKERS = {
     "README.md": (
-        "Gate A therefore remains false",
-        "23/30",
+        "A2 and A3 remain pending",
+        "Gate A remains false",
     ),
     "docs/benchmark_release.md": (
-        "`rate_law_family` 仅为 23/30",
+        "A2、A3 与 private",
         "Gate A 整体仍为 false",
     ),
     "docs/research_findings.md": (
+        "A2/A3 仍需新的未触碰",
         "Gate A 仍为 false",
-        "23/30",
     ),
     "docs/research_findings.en.md": (
+        "A2/A3 execution is still required",
         "Gate A remains false",
-        "23/30",
     ),
 }
 INVALIDATED_GATE_A_STATUS_MARKERS = {

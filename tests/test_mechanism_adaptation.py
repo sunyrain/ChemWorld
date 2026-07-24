@@ -119,12 +119,30 @@ def test_change_detection_requires_and_scores_no_change_twins() -> None:
     assert result["false_positive_rate"] == 0.0
     assert result["auroc"] == 1.0
     assert result["no_change_twin_count"] == 2
+    assert result["detection_delay_handling"] == "right_censored"
     with pytest.raises(ValueError, match="changed and no-change"):
         change_detection_summary(
             changed=[True],
             probabilities=[0.9],
             detection_delays=[1],
         )
+
+
+def test_change_detection_distinguishes_ever_alarm_from_checkpoint_score() -> None:
+    result = change_detection_summary(
+        changed=[True, False],
+        probabilities=[0.4, 0.1],
+        detections=[True, True],
+        detection_delays=[2, None],
+        right_censor_time=4,
+    )
+
+    assert result["sensitivity"] == 1.0
+    assert result["false_positive_rate"] == 1.0
+    assert result["brier_score"] == pytest.approx(0.185)
+    assert result["changed_time_to_event"] == [
+        {"duration": 2, "event_observed": True}
+    ]
 
 
 def test_feedback_action_recovery_and_autonomy_decompositions() -> None:

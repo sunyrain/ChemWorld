@@ -134,30 +134,55 @@ NODES = (
     EvidenceNode(
         "mechanism_diagnostic_relation_graph",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc23.json",
+        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc24.json",
         "generated_current",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
         ("scripts/build_mechanism_diagnostic_relation_graph.py",),
     ),
     EvidenceNode(
-        "mechanism_flagship_semantics_audit",
+        "mechanism_sample_size_audit",
         "workstreams/flagship_tasks/reports/"
-        "flagship-experiment-semantics-audit-rc23.json",
+        "mechanism-adaptation-sample-size-audit-v0.3.0-rc24.json",
+        "generated_current",
+        ("mechanism_gate_a_plan", "mechanism_protocol"),
+        ("scripts/audit_mechanism_adaptation_sample_size.py",),
+    ),
+    EvidenceNode(
+        "mechanism_preregistration",
+        "configs/benchmark/"
+        "mechanism-adaptation-preregistration-v0.3.0-rc24.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
             "mechanism_gate_a_plan",
             "mechanism_protocol",
+            "mechanism_sample_size_audit",
         ),
-        ("scripts/audit_flagship_experiment_semantics.py",),
+        (
+            "scripts/build_mechanism_adaptation_preregistration.py",
+            "--check",
+        ),
     ),
     EvidenceNode(
-        "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc23.json",
+        "mechanism_confirmatory_task_semantics_audit",
+        "workstreams/flagship_tasks/reports/"
+        "confirmatory-task-semantics-audit-rc24.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
-            "mechanism_flagship_semantics_audit",
+            "mechanism_gate_a_plan",
+            "mechanism_preregistration",
+            "mechanism_protocol",
+        ),
+        ("scripts/audit_confirmatory_task_semantics.py",),
+    ),
+    EvidenceNode(
+        "mechanism_design_audit",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc24.json",
+        "generated_current",
+        (
+            "mechanism_diagnostic_relation_graph",
+            "mechanism_confirmatory_task_semantics_audit",
             "mechanism_gate_a_plan",
             "mechanism_protocol",
         ),
@@ -177,30 +202,34 @@ NODES = (
         (
             "mechanism_gate_a_plan",
             "mechanism_design_audit",
-            "mechanism_flagship_semantics_audit",
+            "mechanism_confirmatory_task_semantics_audit",
             "mechanism_protocol",
             "mechanism_public_matrix",
+            "mechanism_preregistration",
+            "mechanism_sample_size_audit",
         ),
         ("scripts/check_mechanism_adaptation_protocol.py",),
     ),
     EvidenceNode(
-        "mechanism_online_policy_certificate",
+        "mechanism_online_attainability_certificate",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-online-policy-certificate-v0.7-rc23-pending.json",
+        "mechanism-adaptation-online-attainability-certificate-v0.8-rc24-pending.json",
         "generated_current",
         (
             "mechanism_design_audit",
             "mechanism_diagnostic_relation_graph",
-            "mechanism_flagship_semantics_audit",
+            "mechanism_confirmatory_task_semantics_audit",
             "mechanism_gate_a_plan",
+            "mechanism_preregistration",
             "mechanism_protocol",
+            "mechanism_sample_size_audit",
         ),
         ("scripts/check_mechanism_adaptation_protocol.py",),
     ),
     EvidenceNode(
         "mechanism_gate_a",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-gate-a-v0.3.0-rc23-pending.json",
+        "mechanism-adaptation-gate-a-v0.3.0-rc24-pending.json",
         "generated_current",
         (
             "backend_candidate",
@@ -208,10 +237,11 @@ NODES = (
             "evaluation_contract",
             "mechanism_design_audit",
             "mechanism_diagnostic_relation_graph",
-            "mechanism_flagship_semantics_audit",
+            "mechanism_confirmatory_task_semantics_audit",
             "mechanism_gate_a_plan",
-            "mechanism_online_policy_certificate",
+            "mechanism_online_attainability_certificate",
             "mechanism_preflight",
+            "mechanism_preregistration",
             "mechanism_protocol",
             "public_boundary",
             "score_replay_contract",
@@ -352,7 +382,7 @@ CURRENT_PATH_RULES = (
     CurrentPathRule(("mechanism_adaptation", "preflight_report"), "generated_current"),
     CurrentPathRule(("mechanism_adaptation", "gate_a_plan"), "protocol_input"),
     CurrentPathRule(
-        ("mechanism_adaptation", "online_policy_certificate_report"),
+        ("mechanism_adaptation", "online_attainability_certificate_report"),
         "generated_current",
     ),
     CurrentPathRule(("mechanism_adaptation", "gate_a_report"), "generated_current"),
@@ -367,6 +397,14 @@ CURRENT_PATH_RULES = (
     ),
     CurrentPathRule(
         ("mechanism_adaptation", "diagnostic_relation_graph_report"),
+        "generated_current",
+    ),
+    CurrentPathRule(
+        ("mechanism_adaptation", "sample_size_audit_report"),
+        "generated_current",
+    ),
+    CurrentPathRule(
+        ("mechanism_adaptation", "preregistration_manifest"),
         "generated_current",
     ),
 )
@@ -599,13 +637,13 @@ def _gate_a_binding_current(
     )
 
 
-def _online_policy_certificate_binding_current(
+def _online_attainability_certificate_binding_current(
     certificate: Mapping[str, Any],
     protocol: Mapping[str, Any],
     plan: Mapping[str, Any],
 ) -> bool:
     expected_execution = gate_a_execution_contract_binding(protocol, plan)
-    requirement = plan.get("online_policy_feasible_certificate", {})
+    requirement = plan.get("online_attainability_certificate", {})
     return bool(
         certificate.get("protocol_sha256") == _canonical_sha256(protocol)
         and certificate.get("gate_a_plan_sha256") == _canonical_sha256(plan)
@@ -616,6 +654,9 @@ def _online_policy_certificate_binding_current(
         == requirement.get("certificate_scope")
         and certificate.get("schema_version")
         == requirement.get("certificate_schema_version")
+        and certificate.get("certification_subject")
+        == "frozen_reference_diagnostic_policy"
+        and certificate.get("participant_agent_evaluation") is False
         and certificate.get("truth_change_time_support")
         == requirement.get("truth_change_time_support")
         and certificate.get("changepoint_semantics")
@@ -634,20 +675,20 @@ def _composed_gate_a_binding_current(
 ) -> bool:
     decision = report.get("certificate_decision", {})
     online_reference = (
-        decision.get("online_policy_feasible_certificate", {})
+        decision.get("online_attainability_certificate", {})
         if isinstance(decision, Mapping)
         else {}
     )
     return bool(
         _gate_a_binding_current(report, protocol, plan)
-        and _online_policy_certificate_binding_current(
+        and _online_attainability_certificate_binding_current(
             online_certificate,
             protocol,
             plan,
         )
         and isinstance(online_reference, Mapping)
         and online_reference.get("report")
-        == node_map()["mechanism_online_policy_certificate"].path
+        == node_map()["mechanism_online_attainability_certificate"].path
         and online_reference.get("certificate_sha256")
         == _canonical_sha256(online_certificate)
         and "task_reports" not in online_reference
@@ -688,7 +729,64 @@ def _artifact_source_binding_current(
         )
         if validate_diagnostic_relation_graph(protocol, plan, payload):
             return False
-    if node.node_id == "mechanism_flagship_semantics_audit":
+    if node.node_id == "mechanism_sample_size_audit":
+        from chemworld.eval.mechanism_adaptation import (
+            load_mechanism_adaptation_protocol,
+        )
+
+        protocol = load_mechanism_adaptation_protocol(
+            ROOT / node_map()["mechanism_protocol"].path
+        )
+        plan = json.loads(
+            (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
+                encoding="utf-8"
+            )
+        )
+        if (
+            payload.get("pass") is not True
+            or payload.get("protocol_sha256")
+            != _canonical_sha256(protocol)
+            or payload.get("gate_a_plan_sha256")
+            != _canonical_sha256(plan)
+        ):
+            return False
+    if node.node_id == "mechanism_preregistration":
+        from chemworld.eval.mechanism_adaptation import (
+            load_mechanism_adaptation_protocol,
+        )
+        from chemworld.eval.mechanism_preregistration import (
+            validate_mechanism_preregistration,
+        )
+
+        protocol = load_mechanism_adaptation_protocol(
+            ROOT / node_map()["mechanism_protocol"].path
+        )
+        plan = json.loads(
+            (ROOT / node_map()["mechanism_gate_a_plan"].path).read_text(
+                encoding="utf-8"
+            )
+        )
+        relation_graph = json.loads(
+            (
+                ROOT
+                / node_map()["mechanism_diagnostic_relation_graph"].path
+            ).read_text(encoding="utf-8")
+        )
+        sample_size = json.loads(
+            (
+                ROOT / node_map()["mechanism_sample_size_audit"].path
+            ).read_text(encoding="utf-8")
+        )
+        if validate_mechanism_preregistration(
+            payload,
+            repository_root=ROOT,
+            protocol=protocol,
+            plan=plan,
+            relation_graph=relation_graph,
+            sample_size_audit=sample_size,
+        ):
+            return False
+    if node.node_id == "mechanism_confirmatory_task_semantics_audit":
         from chemworld.eval.mechanism_adaptation import (
             load_mechanism_adaptation_protocol,
         )
@@ -707,7 +805,7 @@ def _artifact_source_binding_current(
             or payload.get("gate_a_plan_sha256") != _canonical_sha256(plan)
         ):
             return False
-    if node.node_id == "mechanism_online_policy_certificate":
+    if node.node_id == "mechanism_online_attainability_certificate":
         from chemworld.eval.mechanism_adaptation import (
             load_mechanism_adaptation_protocol,
         )
@@ -720,7 +818,7 @@ def _artifact_source_binding_current(
                 encoding="utf-8"
             )
         )
-        if not _online_policy_certificate_binding_current(
+        if not _online_attainability_certificate_binding_current(
             payload,
             protocol,
             plan,
@@ -819,7 +917,7 @@ def _write_current_registry() -> None:
     )
     mechanism_online = json.loads(
         (
-            ROOT / node_map()["mechanism_online_policy_certificate"].path
+            ROOT / node_map()["mechanism_online_attainability_certificate"].path
         ).read_text(encoding="utf-8")
     )
     mechanism_design = json.loads(
@@ -856,7 +954,7 @@ def _write_current_registry() -> None:
         and mechanism_decision.get("controlled_matched_gate_pass") is True
     )
     online_certificate = (
-        mechanism_decision.get("online_policy_feasible_certificate", {})
+        mechanism_decision.get("online_attainability_certificate", {})
         if isinstance(mechanism_decision, Mapping)
         else {}
     )
@@ -878,13 +976,13 @@ def _write_current_registry() -> None:
         if mechanism.get("status")
         in {
             "gate_a_blocked_controlled_matched_certificate_pending",
-            "gate_a_blocked_online_policy_certificate_pending",
+            "gate_a_blocked_online_attainability_certificate_pending",
         }
         else "gate_a_invalidated_recertification_required"
         if not mechanism_evidence_current
-        else "gate_a_failed_online_policy_certificate"
+        else "gate_a_failed_online_attainability_certificate"
         if controlled_gate_a_pass and online_gate_a_failed
-        else "gate_a_online_policy_certificate_pending"
+        else "gate_a_online_attainability_certificate_pending"
         if controlled_gate_a_pass and not online_gate_a_pass
         else "gate_a_controlled_certificate_failed"
     )
@@ -958,11 +1056,11 @@ def _write_current_registry() -> None:
             if mechanism_gate_a_pass
             else "v0_3_reference_calibrated_gate_a_execution_pending"
             if mechanism_gate_a_status == "gate_a_execution_pending"
-            else "controlled_identifiability_passed_online_policy_certificate_failed"
+            else "controlled_identifiability_passed_online_attainability_failed"
             if controlled_gate_a_pass
             and online_gate_a_failed
             and mechanism_evidence_current
-            else "controlled_identifiability_passed_online_policy_certificate_pending"
+            else "controlled_identifiability_passed_online_attainability_pending"
             if controlled_gate_a_pass and mechanism_evidence_current
             else "gate_a_recertification_required_after_public_contract_change"
         ),
@@ -984,11 +1082,11 @@ def _write_current_registry() -> None:
                 if mechanism_gate_a_pass
                 else "gate_a_execution_pending"
                 if mechanism_gate_a_status == "gate_a_execution_pending"
-                else "online_policy_certificate_failed"
+                else "online_attainability_failed"
                 if controlled_gate_a_pass
                 and online_gate_a_failed
                 and mechanism_evidence_current
-                else "online_policy_certificate_pending"
+                else "online_attainability_pending"
                 if controlled_gate_a_pass and mechanism_evidence_current
                 else "gate_a_recertification_required"
             ),
@@ -1076,21 +1174,30 @@ def _write_current_registry() -> None:
             and nodes["mechanism_design_audit"]["artifact_state"] == "current"
         ),
         "semantics_audit_report": node_map()[
-            "mechanism_flagship_semantics_audit"
+            "mechanism_confirmatory_task_semantics_audit"
         ].path,
         "semantics_audit_pass": bool(
-            nodes["mechanism_flagship_semantics_audit"]["gate_state"]
+            nodes["mechanism_confirmatory_task_semantics_audit"]["gate_state"]
             == "passed"
         ),
         "diagnostic_relation_graph_report": node_map()[
             "mechanism_diagnostic_relation_graph"
         ].path,
+        "sample_size_audit_report": node_map()[
+            "mechanism_sample_size_audit"
+        ].path,
+        "preregistration_manifest": node_map()[
+            "mechanism_preregistration"
+        ].path,
         "gate_a_plan": node_map()["mechanism_gate_a_plan"].path,
-        "online_policy_certificate_report": node_map()[
-            "mechanism_online_policy_certificate"
+        "online_attainability_certificate_report": node_map()[
+            "mechanism_online_attainability_certificate"
         ].path,
         "gate_a_report": node_map()["mechanism_gate_a"].path,
         "agent_pilot_report": node_map()["mechanism_agent_pilot"].path,
+        "protocol_state_machine": dict(
+            mechanism_protocol["protocol_state_machine"]
+        ),
         "status": mechanism_gate_a_status,
         "gate_a_pass": mechanism_gate_a_pass,
         "gate_a_evidence_current": bool(
@@ -1112,7 +1219,7 @@ def _write_current_registry() -> None:
                 if not mechanism_evidence_current
                 else "failed"
             ),
-            "a3_calibrated_online_change_identifiability": (
+            "a3_online_attainability": (
                 "passed"
                 if online_gate_a_pass
                 else "pending_execution"
@@ -1286,7 +1393,7 @@ def check_current_evidence() -> list[str]:
     )
     binding_online = json.loads(
         (
-            ROOT / node_map()["mechanism_online_policy_certificate"].path
+            ROOT / node_map()["mechanism_online_attainability_certificate"].path
         ).read_text(encoding="utf-8")
     )
     gate_a_binding_current = _composed_gate_a_binding_current(
@@ -1369,7 +1476,7 @@ def check_current_evidence() -> list[str]:
     )
     mechanism_online = json.loads(
         (
-            ROOT / node_map()["mechanism_online_policy_certificate"].path
+            ROOT / node_map()["mechanism_online_attainability_certificate"].path
         ).read_text(encoding="utf-8")
     )
     mechanism = json.loads(
@@ -1388,20 +1495,20 @@ def check_current_evidence() -> list[str]:
         errors.append("mechanism design-audit Gate A plan binding is stale")
     if mechanism_design.get("pass") is not True:
         errors.append("mechanism action/intervention design audit is blocked")
-    if not _online_policy_certificate_binding_current(
+    if not _online_attainability_certificate_binding_current(
         mechanism_online,
         mechanism_protocol,
         mechanism_plan,
     ):
         errors.append("mechanism online-policy certificate binding is stale")
     online_reference = mechanism.get("certificate_decision", {}).get(
-        "online_policy_feasible_certificate",
+        "online_attainability_certificate",
         {},
     )
     if (
         not isinstance(online_reference, Mapping)
         or online_reference.get("report")
-        != node_map()["mechanism_online_policy_certificate"].path
+        != node_map()["mechanism_online_attainability_certificate"].path
         or online_reference.get("certificate_sha256")
         != _canonical_sha256(mechanism_online)
     ):

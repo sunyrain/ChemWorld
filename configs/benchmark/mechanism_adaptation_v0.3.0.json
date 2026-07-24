@@ -6,16 +6,19 @@
     "design.pre_change_experiments",
     "design.total_experiment_horizon",
     "design.change_after_experiments",
-    "design.post_change_checkpoints"
+    "design.post_change_checkpoints",
+    "gates.gate_a.budget_checkpoints"
   ],
   "overrides": {
     "schema_version": "chemworld-mechanism-adaptation-protocol-0.3.0",
-    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc23",
-    "status": "implemented_candidate_protocol_execution_pending",
-    "research_question": "Can a world-model Agent first establish a predictive reference for a stable physical-chemistry world, then detect and attribute a hidden law change and recover performance under separately declared reference and post-change budgets?",
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc24",
+    "status": "preregistered_candidate_protocol_a2_a3_execution_pending",
+    "research_question": "Is the benchmark online-attainable by a frozen compliant reference diagnostic policy, and how well do separately evaluated participant Agents detect, attribute, and adapt to a hidden physical-law change after building an old-world reference?",
     "design": {
       "same_budget_for_all_conditions": false,
-      "budget_semantics": "reference acquisition and post-change diagnosis are separate declared resources; static identification and uncalibrated nonstationarity do not control the calibrated change gate"
+      "budget_semantics": "reference acquisition and post-change diagnosis are separate declared resources; static identification and uncalibrated nonstationarity do not control the calibrated change gate",
+      "minimum_private_world_seed_count_per_family": 180,
+      "provider_repeats_per_paired_cell": 5
     },
     "evaluation_tracks": {
       "static_world_identification": {
@@ -85,10 +88,12 @@
           "basis": "universal_structural_relation_coverage_and_held_out_predictive_adequacy",
           "scope": "universal_all_declared_candidate_families_without_truth_conditioning",
           "minimum_reference_experiments": 6,
-          "all_policy_actions_observed": true,
+          "relation_closure_controls_certificate": true,
+          "canonical_witness_action_set_controls_certificate": false,
           "all_declared_relations_observed": true,
           "matched_background_required": true,
           "held_out_old_world_predictive_check_required": true,
+          "predictive_check": "development-frozen structure with leave-one-experiment-out nuisance calibration from the current campaign pre-change observations only",
           "predictive_information_ranking_must_be_non_saturated": true,
           "insufficient_reference_handling": "fail_reference_acquisition_component; exclude only from conditional attribution denominator; retain as failure in end_to_end_online_success"
         },
@@ -98,13 +103,16 @@
           "change_detection_sensitivity",
           "no_change_false_positive_rate",
           "change_detection_auroc",
-          "change_probability_brier_score",
-          "detection_delay",
+          "change_probability_brier_by_checkpoint",
+          "integrated_mean_change_probability_brier_score",
+          "right_censored_threshold_crossing_detection_delay",
           "family_attribution_conditional_on_reference_sufficiency",
           "p_reference_sufficient",
-          "p_detection_given_reference",
-          "p_attribution_given_detection_and_reference",
-          "end_to_end_reference_detection_attribution_success"
+          "p_detection_given_reference_and_changed",
+          "p_attribution_given_detection_reference_and_changed",
+          "end_to_end_reference_detection_attribution_given_changed",
+          "p_no_false_alarm_given_reference_and_never",
+          "fpr_horizon_given_never"
         ]
       },
       "uncalibrated_nonstationarity": {
@@ -303,16 +311,23 @@
     },
     "gates": {
       "gate_a": {
-        "name": "physical_validity_controlled_identifiability_and_calibrated_online_identifiability",
+        "name": "physical_validity_controlled_identifiability_and_online_attainability",
         "required_systems": [
           "a1_physical_intervention_validity",
           "a2_controlled_matched_identifiability",
-          "a3_calibrated_online_change_identifiability"
+          "a3_online_attainability_frozen_reference_diagnostic_policy"
         ],
-        "budget_checkpoints": [
+        "a2_controlled_budget_checkpoints": [
           2,
           4
         ],
+        "a3_online_checkpoint_experiments_after_change": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "a3_primary_checkpoint_experiments_after_change": 8,
         "a3_required_components": [
           "universal_structural_reference_sufficiency",
           "held_out_old_world_predictive_adequacy",
@@ -321,18 +336,51 @@
           "conditional_family_attribution",
           "end_to_end_online_success"
         ],
-        "pass_rule": "A1 physical intervention validity, A2 controlled matched identifiability, and all frozen A3 reference, detection, no-change, attribution, and end-to-end criteria must pass; static and uncalibrated tracks cannot satisfy or fail A3"
+        "aggregation_rule": "intersection of overall, every confirmatory task, and every declared changed family; pooled micro-average is supplemental",
+        "pass_rule": "A1 physical intervention validity, A2 controlled matched identifiability, and all frozen A3 reference-policy attainability criteria must pass overall, per task, and per changed family; static and uncalibrated tracks and participant-Agent results cannot satisfy or fail A3"
       },
       "gate_b": {
         "evaluation_track": "calibrated_online_change",
-        "pass_rule": "on the calibrated track only, paired no-change twins are included, false-positive rate <= 0.10, and AUROC lower confidence bound >= 0.80"
+        "evaluation_subject": "participant_agent",
+        "checkpoints_experiments_after_change": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "decision_threshold": 0.5,
+        "maximum_integrated_mean_brier_score": 0.2,
+        "detection_event": "first k where participant Agent p(change)>=0.5",
+        "undetected_campaign_handling": "right_censored_at_k_8",
+        "brier_primary": "equal-weight mean across k={1,2,4,8} after equal weighting of changed and never classes",
+        "no_change_metric": "FPR_horizon=P(ever alarms within eight post-pseudo-checkpoint experiments|never)",
+        "aggregation_rule": "intersection of every confirmatory task and every declared changed family; macro-average also required; pooled micro-average supplemental",
+        "pass_rule": "on the calibrated track only, participant Agents are scored with strictly paired no-change twins; frozen checkpoint metrics, integrated Brier, horizon FPR, right-censored delay, and task/family intersection rules control Gate B"
       }
+    },
+    "execution_handling": {
+      "incomplete_campaign": "retain as protocol failure for autonomous scoring; right-censor time-to-event outcomes at the frozen horizon",
+      "provider_failure": "exclude only from belief-response metrics when a reason-coded provider receipt proves no valid completion; retain and separately report provider-failure rate; never replace with a successful retry silently",
+      "invalid_action": "retain as an Agent action and apply the environment's frozen invalid-action consequence",
+      "exclusions": "only preregistered integrity failures, all reason-coded before outcome aggregation",
+      "stopping_rule": "fixed manifest-declared campaign matrix; no optional stopping on interim A2 or A3 results",
+      "private_confirmation_unseal": "only after the public A2 and A3 decision artifact is immutable; private results cannot revise thresholds, policy, scorer, or exclusions"
+    },
+    "protocol_state_machine": {
+      "environment_design_candidate": "passed",
+      "semantic_protocol_audit": "passed",
+      "a1_physical_validity": "passed",
+      "a2_controlled_identifiability": "pending",
+      "a3_online_attainability": "pending",
+      "participant_agent_gates_b_to_e": "pending",
+      "private_confirmation": "sealed",
+      "publication_ready": false
     },
     "publication_claim_rule": {
       "failed_gate_interpretation": "separate physical validity, reference acquisition, calibrated detection, mechanism attribution, and recovery failures; do not infer Agent incapacity from structurally or operationally uncalibrated cells"
     },
     "intervention_action_alignment": {
-      "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc23.json"
+      "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc24.json"
     }
   }
 }

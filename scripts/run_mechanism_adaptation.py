@@ -23,7 +23,7 @@ from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
     load_protocol_object,
     run_campaign_row,
     run_gate_a,
-    run_online_policy_certificate,
+    run_online_attainability_certificate,
     selected_campaign_rows,
 )
 from chemworld.eval.mechanism_adaptation_pilot import (  # noqa: E402
@@ -39,12 +39,12 @@ from chemworld.eval.provenance import (  # noqa: E402
 )
 
 DEFAULT_GATE_A_REPORT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc23.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc24.json"
 )
-DEFAULT_ONLINE_POLICY_CERTIFICATE = (
+DEFAULT_ONLINE_ATTAINABILITY_CERTIFICATE = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-online-policy-certificate-v0.7-rc23.json"
+    "mechanism-adaptation-online-attainability-certificate-v0.8-rc24.json"
 )
 DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.3.0"
 DEFAULT_PILOT_REPORT = (
@@ -60,6 +60,8 @@ _ONLINE_CERTIFICATE_REFERENCE_FIELDS = (
     "certificate_scope",
     "status",
     "gate_pass",
+    "certification_subject",
+    "participant_agent_evaluation",
     "required",
     "certificate_present",
     "certificate_sha256",
@@ -94,29 +96,29 @@ def _write_immutable_json(path: Path, payload: Any) -> None:
 def _compact_gate_a_report(
     report: Mapping[str, Any],
     *,
-    online_policy_certificate_path: Path | None,
+    online_attainability_certificate_path: Path | None,
 ) -> dict[str, Any]:
     """Replace duplicated online trajectories with one hash-bound DAG reference."""
 
     compacted = dict(report)
     decision = dict(compacted["certificate_decision"])
-    certificate = dict(decision["online_policy_feasible_certificate"])
+    certificate = dict(decision["online_attainability_certificate"])
     reference = {
         field: certificate[field]
         for field in _ONLINE_CERTIFICATE_REFERENCE_FIELDS
         if field in certificate
     }
-    if online_policy_certificate_path is not None:
+    if online_attainability_certificate_path is not None:
         resolved = (
-            online_policy_certificate_path
-            if online_policy_certificate_path.is_absolute()
-            else ROOT / online_policy_certificate_path
+            online_attainability_certificate_path
+            if online_attainability_certificate_path.is_absolute()
+            else ROOT / online_attainability_certificate_path
         ).resolve()
         try:
             reference["report"] = resolved.relative_to(ROOT).as_posix()
         except ValueError as error:
             raise ValueError(
-                "online-policy certificate must be inside the repository"
+                "online-attainability certificate must be inside the repository"
             ) from error
         standalone_certificate = load_json_object(resolved)
         reference["certificate_sha256"] = canonical_json_sha256(
@@ -125,10 +127,10 @@ def _compact_gate_a_report(
         reference["certificate_hash_source"] = (
             "standalone_report_canonical_json"
         )
-    decision["online_policy_feasible_certificate"] = reference
+    decision["online_attainability_certificate"] = reference
     compacted["certificate_decision"] = decision
-    compacted["online_policy_feasible_certificate"] = reference
-    compacted["online_policy_certificate_embedding"] = (
+    compacted["online_attainability_certificate"] = reference
+    compacted["online_attainability_certificate_embedding"] = (
         "canonical_sha256_bound_dag_reference_only"
     )
     return compacted
@@ -139,10 +141,10 @@ def _run_gate_a(args: argparse.Namespace) -> int:
     plan = load_json_object(args.gate_a_plan)
     design_audit_path = ROOT / plan["design_validity_precondition"]["report"]
     design_validity_audit = load_json_object(design_audit_path)
-    online_policy_certificate = (
+    online_attainability_certificate = (
         None
-        if args.online_policy_certificate is None
-        else load_json_object(args.online_policy_certificate)
+        if args.online_attainability_certificate is None
+        else load_json_object(args.online_attainability_certificate)
     )
     print(
         json.dumps(
@@ -163,13 +165,13 @@ def _run_gate_a(args: argparse.Namespace) -> int:
     report = run_gate_a(
         protocol,
         plan,
-        online_policy_certificate=online_policy_certificate,
+        online_attainability_certificate=online_attainability_certificate,
         design_validity_audit=design_validity_audit,
         progress_callback=_print_gate_a_progress,
     )
     report = _compact_gate_a_report(
         report,
-        online_policy_certificate_path=args.online_policy_certificate,
+        online_attainability_certificate_path=args.online_attainability_certificate,
     )
     _write_immutable_json(args.output, report)
     print(
@@ -187,7 +189,7 @@ def _run_gate_a(args: argparse.Namespace) -> int:
     return 0 if report["gate_a_pass"] else 1
 
 
-def _run_online_policy_certificate(args: argparse.Namespace) -> int:
+def _run_online_attainability_certificate(args: argparse.Namespace) -> int:
     protocol = load_protocol_object(args.protocol)
     plan = load_json_object(args.gate_a_plan)
     design_audit_path = ROOT / plan["design_validity_precondition"]["report"]
@@ -196,16 +198,16 @@ def _run_online_policy_certificate(args: argparse.Namespace) -> int:
         json.dumps(
             {
                 "status": "starting",
-                "stage": "online-policy-certificate",
+                "stage": "online-attainability-certificate",
                 "tasks": protocol["design"]["tasks"],
                 "change_time_candidates": plan[
-                    "online_policy_feasible_certificate"
+                    "online_attainability_certificate"
                 ]["change_time_candidates"],
                 "post_change_budget_checkpoints": plan[
-                    "online_policy_feasible_certificate"
+                    "online_attainability_certificate"
                 ]["post_change_experiment_budget_checkpoints"],
                 "online_policy_gate_budget": plan[
-                    "online_policy_feasible_certificate"
+                    "online_attainability_certificate"
                 ]["online_policy_gate_budget"],
                 "external_provider_calls": False,
             },
@@ -213,13 +215,13 @@ def _run_online_policy_certificate(args: argparse.Namespace) -> int:
         ),
         flush=True,
     )
-    report = run_online_policy_certificate(
+    report = run_online_attainability_certificate(
         protocol,
         plan,
         design_validity_audit=design_validity_audit,
         progress_callback=_print_gate_a_progress,
     )
-    _write_immutable_json(args.online_policy_output, report)
+    _write_immutable_json(args.online_attainability_output, report)
     print(
         json.dumps(
             {
@@ -228,7 +230,7 @@ def _run_online_policy_certificate(args: argparse.Namespace) -> int:
                 "top1_accuracy": report["identifiability_certificate"][
                     "top1_accuracy"
                 ],
-                "output": str(args.online_policy_output),
+                "output": str(args.online_attainability_output),
             },
             indent=2,
             sort_keys=True,
@@ -483,7 +485,7 @@ def parse_args() -> argparse.Namespace:
         "--stage",
         choices=(
             "gate-a",
-            "online-policy-certificate",
+            "online-attainability-certificate",
             "campaign",
             "pilot-report",
             "local-feedback",
@@ -495,16 +497,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gate-a-plan", type=Path, default=DEFAULT_GATE_A_PLAN_PATH)
     parser.add_argument("--output", type=Path, default=DEFAULT_GATE_A_REPORT)
     parser.add_argument(
-        "--online-policy-output",
+        "--online-attainability-output",
         type=Path,
-        default=DEFAULT_ONLINE_POLICY_CERTIFICATE,
+        default=DEFAULT_ONLINE_ATTAINABILITY_CERTIFICATE,
     )
     parser.add_argument(
-        "--online-policy-certificate",
+        "--online-attainability-certificate",
         type=Path,
         default=None,
         help=(
-            "Separately generated, protocol/plan-bound online-policy-feasible Gate A "
+            "Separately generated, protocol/plan-bound online-attainability Gate A "
             "certificate. Omission leaves full Gate A fail-closed and pending."
         ),
     )
@@ -544,8 +546,8 @@ def main() -> int:
     args = parse_args()
     if args.stage == "gate-a":
         return _run_gate_a(args)
-    if args.stage == "online-policy-certificate":
-        return _run_online_policy_certificate(args)
+    if args.stage == "online-attainability-certificate":
+        return _run_online_attainability_certificate(args)
     if args.stage == "campaign":
         return _run_campaigns(args)
     if args.stage == "pilot-report":

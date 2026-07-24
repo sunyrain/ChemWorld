@@ -220,7 +220,7 @@ def audit_mechanism_design(
                     else None
                 )
                 require_relation = (
-                    gate_a_plan.get("online_policy_feasible_certificate", {}).get(
+                    gate_a_plan.get("online_attainability_certificate", {}).get(
                         "all_declared_relations_required_before_change"
                     )
                     is True

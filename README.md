@@ -114,13 +114,13 @@ validation, clean-release attestation, formal-evaluation readiness, and publicat
 
 Current evidence establishes the following boundaries:
 
-- executable mechanism and constitutive-law shifts are control-validated. RC23 freezes true no-change campaigns,
-  completed-experiment changepoint semantics, timing blindness, disjoint development/A2/A3/private cohorts, a
-  versioned diagnostic-relation graph, and a two-layer reference certificate that requires both universal relation
-  coverage and held-out old-world predictive adequacy. The unified flagship semantic audit passes 18/18 and the
-  action/intervention design audit passes 81/81. A2 and A3 remain pending on fresh untouched cohorts, Gate A remains
-  false, and RC21/RC22 development results cannot be promoted to v0.3 evidence. Agent-level mechanism-discovery claims
-  remain unsupported;
+- executable mechanism and constitutive-law shifts are control-validated. RC24 defines A3 as online attainability by
+  one frozen reference diagnostic policy rather than performance of any participant Agent. It freezes true no-change
+  campaigns, time-resolved `k={1,2,4,8}` detection, right-censored delay, relation-closure reference sufficiency,
+  within-campaign pre-change cross-fitting, task/family intersection gates, 180 independent world clusters per family,
+  and one hash-bound preregistration manifest. The confirmatory-task semantic audit passes 25/25 and the physical
+  action/intervention audit passes 81/81. A2 and A3 remain pending, Gate A remains false, and participant-Agent
+  mechanism-discovery claims remain unsupported;
 - LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 
 See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.
@@ -132,8 +132,8 @@ See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/)
 | Understand the research thesis | [Why ChemWorld](https://sunyrain.github.io/ChemWorld/vision/) |
 | Read the normative system model | [System Model](https://sunyrain.github.io/ChemWorld/architecture/) |
 | See how causal worlds change | [Causal Worlds](https://sunyrain.github.io/ChemWorld/causal_worlds/) |
-| Explore flagship tasks | [Worlds](https://sunyrain.github.io/ChemWorld/worlds/) |
-| Inspect flagship experiment freeze status | [Flagship Experiments](https://sunyrain.github.io/ChemWorld/flagship_experiments/) |
+| Explore Showcase Worlds | [Worlds](https://sunyrain.github.io/ChemWorld/worlds/) |
+| Inspect Confirmatory Benchmark Tasks | [Confirmatory Tasks](https://sunyrain.github.io/ChemWorld/flagship_experiments/) |
 | Choose an agent interaction level | [Agent Tracks](https://sunyrain.github.io/ChemWorld/agent_tracks/) |
 | Build an agent | [Getting Started](https://sunyrain.github.io/ChemWorld/getting_started/) |
 | Design an evaluation | [Benchmark Design](https://sunyrain.github.io/ChemWorld/benchmark_overview/) |

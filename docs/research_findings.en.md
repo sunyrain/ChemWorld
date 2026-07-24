@@ -65,14 +65,13 @@ RC21 also exposed a more basic protocol error. Although `change_time=1` technica
 experiment, that experiment usually lies near the weak-signal rate-law pivot and does not establish the response
 reference needed to say what changed from what. Version 0.3 therefore separates static current-world
 identification, early uncalibrated nonstationarity, and calibrated online change attribution. The static track
-never reports change probability. `change_time={0,1,2,4}` remains a non-controlling stress track. RC23 freezes
-Gate A3 truth support as `never/6/8/10`, with `tau` defined only as the number of completed old-world experiments.
-The Agent sees neither the earliest change point, support, reference-certificate state, nor evaluator checkpoint.
-Reference sufficiency now requires universal relation coverage, held-out old-world predictive adequacy, and bounded
-reference age. Reference failures stay in the end-to-end denominator while being excluded only from conditional
-attribution. Development, A2, A3, and private confirmation use disjoint cohorts. The flagship semantics audit passes
-18/18 and the physical design audit passes 81/81, but a new untouched A2/A3 execution is still required. RC21 and
-RC22-d cannot be promoted into v0.3 confirmatory evidence.
+never reports change probability. `change_time={0,1,2,4}` remains a non-controlling stress track. RC24 freezes
+Gate A3 as online attainability of a reference diagnostic policy with truth support `never/6/8/10`; `tau` is the
+number of completed old-world experiments. Reference sufficiency uses relation closure and within-campaign
+pre-change cross-fitting. Changed and never use separate denominators, and detection is reported at
+`k={1,2,4,8}`. A2, A3, and private confirmation each freeze 180 independent world clusters per task/family.
+The confirmatory-task semantics audit passes 25/25 and the physical design audit passes 81/81, but a new untouched
+A2/A3 execution is still required. RC21, RC22-d, and RC23 cannot be promoted into v0.3 confirmatory evidence.
 
 These results support environment-level identifiability diagnostics, not Agent-level mechanism discovery,
 crystallization-kinetics discovery, or exact rate-parameter identification.

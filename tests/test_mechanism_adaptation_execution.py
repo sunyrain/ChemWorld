@@ -176,7 +176,13 @@ def test_reference_sufficiency_is_a_separate_fail_closed_prerequisite() -> None:
     assert early_change["pass"] is False
     assert (
         early_change["structural_sufficiency"]["checks"][
-            "required_reference_actions_observed"
+            "minimum_reference_experiments_met"
+        ]
+        is False
+    )
+    assert (
+        early_change["structural_sufficiency"]["diagnostics"][
+            "canonical_witness_action_set_completed"
         ]
         is False
     )
@@ -203,6 +209,47 @@ def test_reference_sufficiency_is_a_separate_fail_closed_prerequisite() -> None:
     assert predictively_inadequate["pass"] is False
     assert predictively_inadequate["structural_sufficiency"]["pass"] is True
     assert predictively_inadequate["predictive_sufficiency"]["pass"] is False
+
+
+def test_reference_certificate_uses_relation_closure_not_recipe_id_closure() -> None:
+    certificate = reference_sufficiency_certificate(
+        pre_change_action_ids=[
+            "design-00",
+            "design-01",
+            "design-02",
+            "design-00",
+            "design-01",
+            "design-02",
+        ],
+        required_reference_action_ids=[
+            f"design-{index:02d}" for index in range(6)
+        ],
+        declared_relation_groups={
+            "rate_law": [["design-00", "design-01", "design-02"]]
+        },
+        minimum_reference_experiments=6,
+        predictive_information_non_saturated=True,
+        predictive_adequacy={"pass": True, "status": "passed"},
+        universal_candidate_family_scope=True,
+        maximum_reference_age_experiments=5,
+        observed_reference_ages={
+            "design-00": 2,
+            "design-01": 1,
+            "design-02": 0,
+        },
+    )
+
+    assert certificate["pass"] is True
+    assert (
+        certificate["structural_sufficiency"]["certificate_basis"]
+        == "relation_closure_not_recipe_id_closure"
+    )
+    assert (
+        certificate["structural_sufficiency"]["diagnostics"][
+            "canonical_witness_action_set_completed"
+        ]
+        is False
+    )
 
 
 def test_reference_predictive_adequacy_uses_held_out_standardized_error() -> None:
@@ -279,11 +326,12 @@ def test_capability_chain_retains_reference_failure_in_end_to_end_denominator() 
         "minimum_changed_detection_recall_cluster_bootstrap_lower_bound": 0.0,
         "maximum_no_change_false_positive_rate_cluster_bootstrap_upper_bound": 1.0,
         "minimum_change_detection_auroc_cluster_bootstrap_lower_bound": 0.0,
-        "maximum_change_probability_brier_score": 1.0,
+        "maximum_integrated_mean_change_probability_brier_score": 1.0,
         "minimum_attribution_given_detection_and_reference_cluster_bootstrap_lower_bound": 0.0,
         "minimum_end_to_end_success_rate_cluster_bootstrap_lower_bound": 0.0,
         "confidence_level": 0.95,
-        "detection_checkpoint_experiments_after_change": 4,
+        "detection_checkpoint_experiments_after_change": [4],
+        "cluster_bootstrap_draws": 2000,
     }
     summary = _online_capability_chain_summary(
         trials=[
@@ -322,6 +370,19 @@ def test_capability_chain_retains_reference_failure_in_end_to_end_denominator() 
         == 0.5
     )
     assert summary["statistical_cluster_count"] == 2
+    assert (
+        summary["changed_campaigns"][
+            "p_reference_detection_attribution_given_changed"
+        ]
+        == 0.5
+    )
+    assert (
+        summary["no_change_campaigns"][
+            "p_no_false_alarm_given_reference_and_never"
+        ]
+        == 1.0
+    )
+    assert summary["no_change_campaigns"]["attribution_defined"] is False
     assert (
         summary[
             "reference_acquisition_failures_retained_in_end_to_end_denominator"
@@ -493,7 +554,7 @@ def test_paired_contrast_feature_selection_preserves_declared_coordinates() -> N
     assert selected == [full[index] for index in selected_indices]
 
 
-def test_gate_a_fails_closed_without_online_policy_certificate() -> None:
+def test_gate_a_fails_closed_without_online_attainability_certificate() -> None:
     protocol = _protocol()
     plan = _paired_gate_a_plan()
     decision = gate_a_certificate_decision(
@@ -502,9 +563,12 @@ def test_gate_a_fails_closed_without_online_policy_certificate() -> None:
         physical_intervention_validity_pass=True,
         controlled_gate_pass=True,
     )
-    assert decision["status"] == "gate_a_blocked_online_policy_certificate_pending"
+    assert (
+        decision["status"]
+        == "gate_a_blocked_online_attainability_certificate_pending"
+    )
     assert decision["controlled_matched_gate_pass"] is True
-    assert decision["online_policy_feasible_gate_pass"] is False
+    assert decision["online_attainability_gate_pass"] is False
     assert decision["gate_a_pass"] is False
 
 
@@ -513,12 +577,14 @@ def test_gate_a_requires_three_bound_passing_certificates() -> None:
     plan = _paired_gate_a_plan()
     execution_binding = gate_a_execution_contract_binding(protocol, plan)
     certificate = {
-        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.7",
-        "certificate_scope": "calibrated_online_change_identifiability",
+        "schema_version": "chemworld-mechanism-adaptation-online-attainability-certificate-0.8",
+        "certificate_scope": "online_attainability_of_frozen_reference_diagnostic_policy",
         "protocol_sha256": canonical_sha256(protocol),
         "gate_a_plan_sha256": canonical_sha256(plan),
         "controlled_matched_primary_budget": 4,
-        "online_policy_gate_budget": 4,
+        "online_policy_gate_budget": 8,
+        "certification_subject": "frozen_reference_diagnostic_policy",
+        "participant_agent_evaluation": False,
         "evaluation_track_id": "calibrated_online_change",
         "minimum_stable_prefix_experiments": 6,
         "hidden_change_time": True,
@@ -545,7 +611,7 @@ def test_gate_a_requires_three_bound_passing_certificates() -> None:
         plan,
         physical_intervention_validity_pass=True,
         controlled_gate_pass=True,
-        online_policy_certificate=certificate,
+        online_attainability_certificate=certificate,
     )
     assert decision["gate_a_pass"] is True
     stale = dict(certificate, gate_a_plan_sha256="0" * 64)
@@ -555,7 +621,7 @@ def test_gate_a_requires_three_bound_passing_certificates() -> None:
             plan,
             physical_intervention_validity_pass=True,
             controlled_gate_pass=True,
-            online_policy_certificate=stale,
+            online_attainability_certificate=stale,
         )
     stale_execution = dict(
         certificate,
@@ -567,7 +633,7 @@ def test_gate_a_requires_three_bound_passing_certificates() -> None:
             plan,
             physical_intervention_validity_pass=True,
             controlled_gate_pass=True,
-            online_policy_certificate=stale_execution,
+            online_attainability_certificate=stale_execution,
         )
 
 
@@ -585,7 +651,7 @@ def test_gate_a_report_references_online_certificate_without_embedding_trials(
 ) -> None:
     certificate = {
         "schema_version": "online-0.3",
-        "certificate_scope": "online_policy_feasible_diagnosis",
+        "certificate_scope": "online_attainability_of_frozen_reference_diagnostic_policy",
         "status": "passed",
         "gate_pass": True,
         "certificate_sha256": "a" * 64,
@@ -593,9 +659,9 @@ def test_gate_a_report_references_online_certificate_without_embedding_trials(
     }
     report = {
         "certificate_decision": {
-            "online_policy_feasible_certificate": certificate,
+            "online_attainability_certificate": certificate,
         },
-        "online_policy_feasible_certificate": certificate,
+        "online_attainability_certificate": certificate,
     }
     certificate_path = tmp_path / "online.json"
     certificate_path.write_text(json.dumps(certificate), encoding="utf-8")
@@ -606,13 +672,13 @@ def test_gate_a_report_references_online_certificate_without_embedding_trials(
     )
     compacted = _compact_gate_a_report(
         report,
-        online_policy_certificate_path=certificate_path,
+        online_attainability_certificate_path=certificate_path,
     )
-    reference = compacted["certificate_decision"]["online_policy_feasible_certificate"]
+    reference = compacted["certificate_decision"]["online_attainability_certificate"]
     assert reference["certificate_sha256"] == canonical_sha256(certificate)
     assert reference["report"].endswith("online.json")
     assert "task_reports" not in reference
-    assert compacted["online_policy_feasible_certificate"] == reference
+    assert compacted["online_attainability_certificate"] == reference
 
 
 def test_precomputed_design_audit_must_be_passing_and_hash_bound() -> None:

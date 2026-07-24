@@ -1,13 +1,13 @@
-# 旗舰世界与任务
+# Showcase Worlds 与任务
 
 > **任务不是功能清单，而是不同实验推理能力的压力测试。**
 
-首页只突出四个研究核心世界；探索任务、教学切片和软件回归任务仍然保留，但不与旗舰任务共享同一
+首页只突出四个研究核心世界；探索任务、教学切片和软件回归任务仍然保留，但不与确认性任务共享同一
 视觉层级，也不因为“能运行”就自动进入正式排名。
 
-这里的四个世界是 **research showcase worlds**。当前机制适应确认协议中的 formal flagship
-execution tasks 是 `reaction-to-crystallization` 与 `electrochemical-conversion`。展示层与确认性
-实验层是两个正交集合，详细状态见[旗舰实验与冻结状态](flagship_experiments.md)。
+这里的四个世界是 **Showcase Worlds**。当前机制适应协议中的 **Confirmatory Benchmark Tasks**
+是 `reaction-to-crystallization` 与 `electrochemical-conversion`。展示层与确认性实验层是两个
+正交集合，详细状态见[确认性基准任务与状态](flagship_experiments.md)。
 
 ## 能力地图
 

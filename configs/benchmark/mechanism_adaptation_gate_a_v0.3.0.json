@@ -1,15 +1,19 @@
 {
   "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.3.0",
-  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-24-redesign-rc23",
+  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-24-redesign-rc24",
   "protocol": "configs/benchmark/mechanism_adaptation_v0.3.0.json",
   "formal_benchmark_result": false,
-  "purpose": "Three-part Gate A: physical intervention validity, controlled matched identifiability, and reference-sufficient calibrated online change identifiability.",
-  "claim_scope": "physical_validity_controlled_identifiability_and_calibrated_online_identifiability",
-  "online_policy_feasible_certificate": {
+  "purpose": "Three-part Gate A: physical intervention validity, controlled matched identifiability, and online attainability by one frozen reference diagnostic policy.",
+  "claim_scope": "benchmark_validity_and_online_attainability_not_participant_agent_performance",
+  "online_attainability_certificate": {
+    "scientific_name": "A3_online_attainability_certificate",
+    "certification_subject": "frozen_reference_diagnostic_policy",
+    "participant_agent_evaluation": false,
+    "participant_agent_gate": "gate_b_through_gate_e",
     "required_before_formal_mechanism_claim": true,
-    "certificate_schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.7",
-    "certificate_scope": "calibrated_online_change_identifiability",
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.7-rc23.json",
+    "certificate_schema_version": "chemworld-mechanism-adaptation-online-attainability-certificate-0.8",
+    "certificate_scope": "online_attainability_of_frozen_reference_diagnostic_policy",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-attainability-certificate-v0.8-rc24.json",
     "evaluation_track_id": "calibrated_online_change",
     "minimum_stable_prefix_experiments": 6,
     "hidden_change_time": true,
@@ -27,10 +31,12 @@
     "changepoint_semantics": "tau_is_completed_old_world_experiment_count",
     "change_time_assignment": "seeded_balanced_and_hidden_from_policy",
     "post_change_experiment_budget_checkpoints": [
+      1,
       2,
-      4
+      4,
+      8
     ],
-    "online_policy_gate_budget": 4,
+    "online_policy_gate_budget": 8,
     "controlled_matched_primary_budget": 4,
     "information_ranking_batch_size": 4,
     "online_policy_action_count": 6,
@@ -50,36 +56,53 @@
       "world_may_remain_stable_or_change_at_an_unspecified_time"
     ],
     "no_change_condition_included": true,
-    "no_change_condition_semantics": "same hidden world with an evaluator-only matched pseudo-checkpoint and independently sampled observation noise",
+    "no_change_condition_semantics": "same hidden world, reset rule, action schedule, and common-random-number observation stream as its changed twin, with an evaluator-only pseudo-checkpoint that has no runtime effect",
     "declared_relational_action_coverage": true,
     "all_declared_relations_required_before_change": true,
-    "all_policy_actions_required_before_change": true,
+    "relation_closure_controls_reference_certificate": true,
+    "canonical_witness_action_set_controls_reference_certificate": false,
     "one_likelihood_channel_per_experiment": true,
     "action_selection": "derive public same-background diagnostic relation groups for every declared material or mechanism intervention; choose a fit-ranked covering set and complete the phase-invariant policy by predictive information without hidden phase input",
-    "reference_policy": "use the phase-invariant schedule without receiving prefix boundaries; evaluator certifies universal relation coverage and held-out old-world predictive adequacy, refreshes old-world action references only while the world is still stable, and never exposes certificate state to the policy",
+    "reference_policy": "use the frozen phase-invariant diagnostic schedule without receiving prefix boundaries; evaluator certifies relation closure and within-campaign cross-fitted old-world predictive adequacy, refreshes old-world action references only while the world is still stable, and never exposes certificate state to the policy",
     "evidence_policy": "use predictive-fit-selected public summary blocks and exactly one absolute, temporal, or declared relational likelihood channel per experiment; score attribution only on reference-sufficient traces",
     "no_change_twins_use_evaluator_only_pseudo_change_checkpoint": true,
     "reference_scope": "universal_all_declared_candidate_families_without_truth_conditioning",
     "reference_predictive_adequacy": {
-      "source": "held_out_pre_change_public_observations_scored_against_fit_only_no_change_predictives",
+      "source": "development freezes features, predictive family, and thresholds; each A3 campaign estimates nuisance reference parameters from its own pre-change observations by leave-one-experiment-out cross-fitting",
+      "cross_fitting": "leave_one_experiment_out_within_campaign_pre_change_only",
+      "post_change_observations_allowed": false,
+      "truth_family_allowed": false,
       "maximum_mean_standardized_squared_error": 4.0,
       "maximum_per_action_mean_standardized_squared_error": 9.0,
-      "all_policy_actions_must_have_predictive_checks": true,
+      "all_observed_reference_actions_must_have_predictive_checks": true,
       "maximum_reference_age_experiments": 5
     },
     "frozen_pass_criteria": {
       "confidence_level": 0.95,
+      "cluster_bootstrap_draws": 5000,
+      "cluster_bootstrap_seed_rule": "stable_hash_of_a3_namespace_metric_task_family_and_checkpoint",
       "change_decision_probability_threshold": 0.5,
+      "detection_event": "first checkpoint-relative experiment k where p(change)>=0.5",
+      "detection_checkpoint_experiments_after_change": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "primary_detection_checkpoint_experiments_after_change": 8,
+      "undetected_campaign_handling": "right_censored_at_k_8",
       "minimum_reference_acquisition_rate_wilson_lower_bound": 0.8,
       "minimum_changed_detection_recall_cluster_bootstrap_lower_bound": 0.8,
       "maximum_no_change_false_positive_rate_cluster_bootstrap_upper_bound": 0.1,
       "minimum_change_detection_auroc_cluster_bootstrap_lower_bound": 0.8,
-      "maximum_change_probability_brier_score": 0.2,
+      "maximum_integrated_mean_change_probability_brier_score": 0.2,
+      "change_probability_brier_aggregation": "equal-weight mean across k={1,2,4,8} after equal weighting of changed and never classes",
       "minimum_attribution_given_detection_and_reference_cluster_bootstrap_lower_bound": 0.8,
       "minimum_end_to_end_success_rate_cluster_bootstrap_lower_bound": 0.7,
-      "detection_checkpoint_experiments_after_change": 4
+      "gate_aggregation": "intersection_of_overall_each_task_and_each_declared_changed_family",
+      "pooled_micro_average_controls_gate": false
     },
-    "world_seeds_per_family": 30,
+    "world_seeds_per_family": 180,
     "seed_namespace_start": 3900000000,
     "execution_workers": 8,
     "uses_actual_available_pre_change_history": true,
@@ -98,10 +121,15 @@
     "pre_change_reference_experiments": 6,
     "post_change_diagnostic_experiments": 4,
     "diagnostic_curve_matches_reference_count_to_budget": false,
-    "budget_interpretation": "Six stable-prefix experiments establish the complete six-action public reference design; the separately declared post-change Gate A3 budget remains four experiments.",
+    "budget_interpretation": "Six stable-prefix experiments provide a canonical relation-closing witness for the frozen reference policy; the certificate is based on relation closure rather than recipe IDs, and the time-resolved A3 horizon is eight post-change experiments.",
     "same_hidden_world_seed_across_phases": true,
     "same_world_seed_reused_across_candidate_twins": true,
     "independent_observation_seed_across_phases": true,
+    "common_random_numbers_across_changed_no_change_twins": true,
+    "identical_reset_rule_across_changed_no_change_twins": true,
+    "reset_or_instance_identifier_agent_visible": false,
+    "pseudo_checkpoint_has_runtime_side_effect": false,
+    "campaign_metadata_invariant_across_checkpoint": true,
     "same_recipe_batch_replayed_after_reset": true,
     "public_contrast_encoding": "post_minus_pre_same_recipe_or_declared_same_background_relation",
     "batch_is_selected_before_held_out_outcomes": true,
@@ -131,7 +159,7 @@
   },
   "held_out_certificate": {
     "cohort_role": "a2_controlled_static_certification_only",
-    "world_seeds_per_family": 30,
+    "world_seeds_per_family": 180,
     "seed_namespace_start": 3800000000,
     "information_draws_per_batch": 64,
     "execution_workers": 8,
@@ -150,17 +178,17 @@
     "a2_certification": {
       "role": "controlled_static_identifiability_only",
       "seed_namespace_start": 3800000000,
-      "world_seeds_per_family": 30
+      "world_seeds_per_family": 180
     },
     "a3_certification": {
       "role": "calibrated_online_change_only",
       "seed_namespace_start": 3900000000,
-      "world_seeds_per_family": 30
+      "world_seeds_per_family": 180
     },
     "private_confirmation": {
       "role": "final_untouched_confirmation_only",
       "seed_namespace_start": 4100000000,
-      "world_seeds_per_family": 30,
+      "world_seeds_per_family": 180,
       "must_not_be_used_for_threshold_or_protocol_revision": true
     },
     "cross_cohort_world_seed_reuse_allowed": false
@@ -176,18 +204,31 @@
   },
   "diagnostic_relation_graph": {
     "schema_version": "chemworld-diagnostic-relation-graph-0.1",
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc23.json",
-    "expected_graph_sha256": "9aa9aa02ab7c9c9bf86359c1bfc990b42686f9edfdcb41d74e55da15320d23b4",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc24.json",
+    "expected_graph_sha256": "2ba4dd698f4ffc4aaf489717cd2b809246ab0c546ec225802130866abadadc11",
     "must_bind_protocol_sha256": true,
     "must_bind_task_contract_hashes": true,
     "must_enter_evidence_dag": true
   },
   "gate_rule_source": "configs/benchmark/mechanism_adaptation_v0.3.0.json#gates.gate_a",
-  "supersession_reason": "RC23 supersedes the unexecuted RC22 candidate by freezing first-class no-change scoring, predictive reference adequacy, end-to-end capability-chain metrics, cohort separation, changepoint semantics, timing blindness, and a versioned diagnostic relation graph. RC21 remains immutable historical evidence and cannot control v0.3.",
+  "supersession_reason": "RC24 supersedes the unexecuted RC23 candidate by defining A3 as online attainability of a frozen reference diagnostic policy, separating changed and never estimands, freezing time-resolved detection and integrated Brier scoring, adding within-campaign cross-fitted reference adequacy, task/family intersection gates, paired common-random-number controls, a power audit, and one preregistration manifest. RC23 and earlier remain immutable development history.",
   "design_validity_precondition": {
     "required": true,
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc23.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc24.json",
     "pass_field": "pass"
+  },
+  "sample_size_audit": {
+    "required": true,
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-sample-size-audit-v0.3.0-rc24.json",
+    "recommended_world_seeds_per_family": 180,
+    "minimum_power_at_true_reference_success_0.90": 0.8,
+    "changepoint_allocation": "balanced_60_per_tau_for_each_changed_family"
+  },
+  "preregistration": {
+    "required_before_a2_or_a3_execution": true,
+    "manifest": "configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc24.json",
+    "immutable_after_first_a2_or_a3_result": true,
+    "private_confirmation_unseal_requires_public_a2_a3_decision": true
   },
   "rate_law_response_certificate": {
     "required": true,

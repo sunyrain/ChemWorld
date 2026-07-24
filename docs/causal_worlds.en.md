@@ -44,7 +44,7 @@ recipes, nine task–mode combinations establish determinism, local response sep
 conservation, and replay. These controls do not establish candidate-family identification under a fixed budget.
 The former Gate A result is non-binding because the action, metric, and public-information contracts changed. The
 current four-seed decision-relevance audit passes for reaction catalyst, electrochemical solvent, and electrolyte
-counterfactuals, but this is only a design precondition. Controlled matched and online-policy-feasible
-identifiability must be recertified before any Agent-adaptation interpretation.
+counterfactuals, but this is only a design precondition. Controlled matched identifiability and frozen-policy
+online attainability must be recertified before any participant-Agent adaptation interpretation.
 
 Next: [Benchmark](benchmark_overview.md) · [Research Findings](research_findings.md)

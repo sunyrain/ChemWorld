@@ -16,6 +16,9 @@ from chemworld.eval.mechanism_gate_decision import (
     gate_a_certificate_decision,
     gate_a_execution_contract_binding,
 )
+from chemworld.eval.mechanism_preregistration import (
+    validate_mechanism_preregistration,
+)
 from chemworld.eval.mechanism_relation_graph import (
     validate_diagnostic_relation_graph,
 )
@@ -27,19 +30,21 @@ REQUIRED_IMPLEMENTATION_ARTIFACTS = (
     "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json",
     "src/chemworld/agents/mechanism_adaptation_live_llm.py",
     "src/chemworld/eval/mechanism_adaptation.py",
-    "src/chemworld/eval/flagship_semantics_audit.py",
+    "src/chemworld/eval/confirmatory_task_semantics_audit.py",
     "src/chemworld/eval/mechanism_gate_decision.py",
     "src/chemworld/eval/mechanism_design_audit.py",
     "src/chemworld/eval/mechanism_relation_graph.py",
     "src/chemworld/eval/mechanism_adaptation_execution.py",
     "scripts/audit_mechanism_adaptation_design.py",
-    "scripts/audit_flagship_experiment_semantics.py",
+    "scripts/audit_confirmatory_task_semantics.py",
     "scripts/build_mechanism_diagnostic_relation_graph.py",
+    "scripts/build_mechanism_adaptation_preregistration.py",
+    "scripts/audit_mechanism_adaptation_sample_size.py",
     "scripts/run_mechanism_adaptation.py",
     "scripts/plan_mechanism_adaptation_matrix.py",
     "tests/test_mechanism_adaptation.py",
     "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-public-matrix.json",
-    "workstreams/flagship_tasks/reports/flagship-experiment-semantics-audit-rc23.json",
+    "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc24.json",
 )
 
 
@@ -67,10 +72,45 @@ def build_mechanism_adaptation_preflight(
         if relation_graph
         else ["diagnostic relation graph is missing"]
     )
+    sample_size_path = ROOT / gate_a_plan["sample_size_audit"]["report"]
+    sample_size = (
+        json.loads(sample_size_path.read_text(encoding="utf-8"))
+        if sample_size_path.is_file()
+        else {}
+    )
+    sample_size_errors = []
+    if (
+        sample_size.get("pass") is not True
+        or sample_size.get("protocol_sha256")
+        != _canonical_sha256(protocol)
+        or sample_size.get("gate_a_plan_sha256")
+        != _canonical_sha256(gate_a_plan)
+    ):
+        sample_size_errors.append(
+            "sample-size audit is missing, failed, or stale"
+        )
+    preregistration_path = ROOT / gate_a_plan["preregistration"]["manifest"]
+    preregistration = (
+        json.loads(preregistration_path.read_text(encoding="utf-8"))
+        if preregistration_path.is_file()
+        else {}
+    )
+    preregistration_errors = (
+        validate_mechanism_preregistration(
+            preregistration,
+            repository_root=ROOT,
+            protocol=protocol,
+            plan=gate_a_plan,
+            relation_graph=relation_graph,
+            sample_size_audit=sample_size,
+        )
+        if preregistration
+        else ["preregistration manifest is missing"]
+    )
     semantics_path = (
         ROOT
         / "workstreams/flagship_tasks/reports/"
-        "flagship-experiment-semantics-audit-rc23.json"
+        "confirmatory-task-semantics-audit-rc24.json"
     )
     semantics = (
         json.loads(semantics_path.read_text(encoding="utf-8"))
@@ -85,7 +125,7 @@ def build_mechanism_adaptation_preflight(
         != _canonical_sha256(gate_a_plan)
     ):
         semantics_errors.append(
-            "flagship experiment semantics audit is missing, failed, or stale"
+            "confirmatory-task semantics audit is missing, failed, or stale"
         )
     design_audit = (
         json.loads(design_audit_path.read_text(encoding="utf-8"))
@@ -102,6 +142,8 @@ def build_mechanism_adaptation_preflight(
         *REQUIRED_IMPLEMENTATION_ARTIFACTS,
         design_audit_relative,
         str(gate_a_plan["diagnostic_relation_graph"]["report"]),
+        str(gate_a_plan["sample_size_audit"]["report"]),
+        str(gate_a_plan["preregistration"]["manifest"]),
     )
     for relative in required_artifacts:
         path = ROOT / relative
@@ -125,6 +167,8 @@ def build_mechanism_adaptation_preflight(
         not validation_errors
         and not relation_graph_errors
         and not semantics_errors
+        and not sample_size_errors
+        and not preregistration_errors
         and design_audit_pass
         and all(item["exists"] for item in artifacts)
     )
@@ -141,16 +185,23 @@ def build_mechanism_adaptation_preflight(
         ),
         "implementation_complete": implementation_complete,
         "method_freeze_decision_blocker_count": (
-            len(validation_errors) + len(relation_graph_errors)
+            len(validation_errors)
+            + len(relation_graph_errors)
             + len(semantics_errors)
+            + len(sample_size_errors)
+            + len(preregistration_errors)
         ),
         "method_freeze_decision_blockers": [
             *validation_errors,
             *relation_graph_errors,
             *semantics_errors,
+            *sample_size_errors,
+            *preregistration_errors,
         ],
         "diagnostic_relation_graph": relation_graph,
-        "flagship_experiment_semantics_audit": semantics,
+        "confirmatory_task_semantics_audit": semantics,
+        "sample_size_audit": sample_size,
+        "preregistration_manifest": preregistration,
         "design_validity_audit_pass": design_audit_pass,
         "design_validity_audit": design_audit,
         "external_empirical_run_completed": False,
@@ -163,9 +214,9 @@ def build_mechanism_adaptation_preflight(
         "artifacts": artifacts,
         "interpretation": (
             "There are no unresolved method-freeze choices when blocker_count is zero. "
-            "A1 design validity may be complete while A2 controlled and A3 calibrated "
-            "online certificates remain explicitly pending. Agent/provider campaigns "
-            "remain separate later gates."
+            "A1 design validity may be complete while A2 controlled and A3 online-"
+            "attainability certificates remain explicitly pending. Participant Agent/"
+            "provider campaigns remain separate Gates B--E."
         ),
     }
 
@@ -188,13 +239,15 @@ def build_mechanism_adaptation_pending_gate_state(
         else {}
     )
     binding = gate_a_execution_contract_binding(protocol, plan)
-    requirement = plan["online_policy_feasible_certificate"]
+    requirement = plan["online_attainability_certificate"]
     online_state = {
         "schema_version": requirement["certificate_schema_version"],
         "certificate_scope": requirement["certificate_scope"],
         "status": "pending_execution",
         "gate_pass": False,
         "formal_benchmark_result": False,
+        "certification_subject": "frozen_reference_diagnostic_policy",
+        "participant_agent_evaluation": False,
         "certificate_present": False,
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": _canonical_sha256(protocol),
@@ -241,15 +294,15 @@ def build_mechanism_adaptation_pending_gate_state(
         controlled_certificate_present=False,
     )
     online_reference = {
-        **decision["online_policy_feasible_certificate"],
+        **decision["online_attainability_certificate"],
         "report": (
             "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-online-policy-certificate-v0.7-rc23-pending.json"
+            "mechanism-adaptation-online-attainability-certificate-v0.8-rc24-pending.json"
         ),
         "certificate_sha256": _canonical_sha256(online_state),
         "certificate_hash_source": "standalone_pending_state_canonical_json",
     }
-    decision["online_policy_feasible_certificate"] = online_reference
+    decision["online_attainability_certificate"] = online_reference
     gate_state = {
         "schema_version": "chemworld-mechanism-adaptation-gate-a-report-0.3.0",
         "status": decision["status"],
@@ -269,12 +322,13 @@ def build_mechanism_adaptation_pending_gate_state(
             "gate_pass": False,
             "certificate_present": False,
         },
-        "online_policy_feasible_certificate": online_reference,
+        "online_attainability_certificate": online_reference,
         "gate_a_pass": False,
         "publication_ready": False,
         "interpretation": (
             "A1 design validity is recorded separately. A2 controlled and A3 "
-            "calibrated online certificates have not been executed for v0.3."
+            "online attainability of the frozen reference diagnostic policy have "
+            "not been executed for v0.3; participant Agents remain Gates B--E."
         ),
     }
     return online_state, gate_state

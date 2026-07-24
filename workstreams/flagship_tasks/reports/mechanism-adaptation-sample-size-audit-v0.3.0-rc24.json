@@ -1,0 +1,172 @@
+{
+  "audit_sha256": "40c8dfd13c843ae2bc1d070fd805500e162792dc8be6a8f7c34046af302b15b6",
+  "change_time_support": [
+    6,
+    8,
+    10
+  ],
+  "changed_families_by_task": {
+    "electrochemical-conversion": [
+      "constitutive_law_family",
+      "material_law_counterfactual_solvent",
+      "material_law_counterfactual_electrolyte_profile"
+    ],
+    "reaction-to-crystallization": [
+      "rate_law_family",
+      "topology_family",
+      "material_law_counterfactual"
+    ]
+  },
+  "checks": {
+    "balanced_changepoint_allocation_is_exact": true,
+    "power_at_true_changed_recall_0_90_is_at_least_0_80": true,
+    "power_at_true_fpr_0_05_is_at_least_0_80": true,
+    "power_at_true_reference_success_0_90_is_at_least_0_80": true,
+    "provider_repeats_are_nested_not_independent_clusters": true,
+    "selected_cluster_count_matches_all_a2_a3_private_declarations": true
+  },
+  "clusters_per_changed_family_per_change_time": 60,
+  "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-24-redesign-rc24",
+  "gate_a_plan_sha256": "f6f9bf62d22b583d061673998505dd6a6e13b06975cc9cc1bc48e8686d07d6eb",
+  "limitations": [
+    "Power at a true reference success rate of 0.85 remains substantially lower because 0.85 is close to the frozen 0.80 confidence-bound threshold.",
+    "The audit assesses independent world clusters, not the much larger number of experiment arms or provider completions."
+  ],
+  "no_change_clusters_per_task": 180,
+  "pass": true,
+  "planning_method": {
+    "auroc": "Hanley-McNeil half-width approximation for planning only; formal inference remains the frozen cluster bootstrap",
+    "binary_cluster_metrics": "exact binomial power against the percentile interval induced by resampling independent binary world clusters",
+    "reference": "exact binomial power against Wilson lower bound"
+  },
+  "planning_rows": [
+    {
+      "auroc_planning_half_width": {
+        "0.8": 0.11307472117423636,
+        "0.85": 0.09926688095777508
+      },
+      "changed_recall_cluster_bootstrap_pass_probability": {
+        "0.85": 0.15140060732360866,
+        "0.9": 0.41135123955950553
+      },
+      "independent_world_clusters_per_family": 30,
+      "no_change_fpr_cluster_bootstrap_pass_probability": {
+        "0.05": 0.5535420754317856,
+        "0.1": 0.18369501919260367
+      },
+      "reference_wilson_pass_probability": {
+        "0.85": 0.048028898626027924,
+        "0.9": 0.18369501919260367
+      },
+      "zero_false_alarm_wilson_upper_bound": 0.11351339317396873
+    },
+    {
+      "auroc_planning_half_width": {
+        "0.8": 0.07953961717132188,
+        "0.85": 0.06979370498624861
+      },
+      "changed_recall_cluster_bootstrap_pass_probability": {
+        "0.85": 0.3046979071923325,
+        "0.9": 0.7515532861269184
+      },
+      "independent_world_clusters_per_family": 60,
+      "no_change_fpr_cluster_bootstrap_pass_probability": {
+        "0.05": 0.41743576866016574,
+        "0.1": 0.05304508181599274
+      },
+      "reference_wilson_pass_probability": {
+        "0.85": 0.09679850872691863,
+        "0.9": 0.437165870737127
+      },
+      "zero_false_alarm_wilson_upper_bound": 0.06017185214208983
+    },
+    {
+      "auroc_planning_half_width": {
+        "0.8": 0.061481667833290087,
+        "0.85": 0.053937981202341
+      },
+      "changed_recall_cluster_bootstrap_pass_probability": {
+        "0.85": 0.34742500176746177,
+        "0.9": 0.87612320740067
+      },
+      "independent_world_clusters_per_family": 100,
+      "no_change_fpr_cluster_bootstrap_pass_probability": {
+        "0.05": 0.6159991279561384,
+        "0.1": 0.057576886487033956
+      },
+      "reference_wilson_pass_probability": {
+        "0.85": 0.24730158968309318,
+        "0.9": 0.801821112640433
+      },
+      "zero_false_alarm_wilson_upper_bound": 0.03699349820698566
+    },
+    {
+      "auroc_planning_half_width": {
+        "0.8": 0.05609524448419331,
+        "0.85": 0.0492100775745679
+      },
+      "changed_recall_cluster_bootstrap_pass_probability": {
+        "0.85": 0.3604204202494721,
+        "0.9": 0.9101315800248103
+      },
+      "independent_world_clusters_per_family": 120,
+      "no_change_fpr_cluster_bootstrap_pass_probability": {
+        "0.05": 0.7475864372702554,
+        "0.1": 0.07839919944511242
+      },
+      "reference_wilson_pass_probability": {
+        "0.85": 0.26730815157094007,
+        "0.9": 0.856031305252998
+      },
+      "zero_false_alarm_wilson_upper_bound": 0.031019166418703472
+    },
+    {
+      "auroc_planning_half_width": {
+        "0.8": 0.045761289961143786,
+        "0.85": 0.04014126807421291
+      },
+      "changed_recall_cluster_bootstrap_pass_probability": {
+        "0.85": 0.4680990784670393,
+        "0.9": 0.9782401627219949
+      },
+      "independent_world_clusters_per_family": 180,
+      "no_change_fpr_cluster_bootstrap_pass_probability": {
+        "0.05": 0.8080507241219007,
+        "0.1": 0.04630109374554642
+      },
+      "reference_wilson_pass_probability": {
+        "0.85": 0.38562573606108846,
+        "0.9": 0.9637600229552128
+      },
+      "zero_false_alarm_wilson_upper_bound": 0.020895497921613042
+    }
+  ],
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc24",
+  "protocol_sha256": "5e20f7e8a12c53ecdbe1479eae3af963d81b83099bc1422459bcd086de5792b5",
+  "provider_repeat_role": "nested_technical_replicate",
+  "provider_repeats_per_paired_cell": 5,
+  "schema_version": "chemworld-mechanism-sample-size-audit-0.1",
+  "selected_design": {
+    "auroc_planning_half_width": {
+      "0.8": 0.045761289961143786,
+      "0.85": 0.04014126807421291
+    },
+    "changed_recall_cluster_bootstrap_pass_probability": {
+      "0.85": 0.4680990784670393,
+      "0.9": 0.9782401627219949
+    },
+    "independent_world_clusters_per_family": 180,
+    "no_change_fpr_cluster_bootstrap_pass_probability": {
+      "0.05": 0.8080507241219007,
+      "0.1": 0.04630109374554642
+    },
+    "reference_wilson_pass_probability": {
+      "0.85": 0.38562573606108846,
+      "0.9": 0.9637600229552128
+    },
+    "zero_false_alarm_wilson_upper_bound": 0.020895497921613042
+  },
+  "selected_independent_world_clusters_per_family": 180,
+  "statistical_unit": "task_id_and_world_seed_cluster",
+  "status": "passed"
+}

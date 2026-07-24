@@ -1,0 +1,112 @@
+{
+  "graph_id": "chemworld-mechanism-adaptation-diagnostic-relations-v0.3.0-rc24",
+  "graph_sha256": "2ba4dd698f4ffc4aaf489717cd2b809246ab0c546ec225802130866abadadc11",
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc24",
+  "protocol_sha256": "5e20f7e8a12c53ecdbe1479eae3af963d81b83099bc1422459bcd086de5792b5",
+  "relation_count": 3,
+  "relations": [
+    {
+      "candidate_id": "constitutive_law_family",
+      "candidate_signatures": {
+        "constitutive_law_family": "changed_transfer_asymmetry_selectivity_decay_and_standard_potential_response",
+        "no_change": "baseline_potential_response_shape"
+      },
+      "controlled_background": "all_remaining_recipe_operations_fields_and_order",
+      "minimum_distinct_actions": 3,
+      "observable_channels": [
+        "uvvis_conversion",
+        "uvvis_selectivity",
+        "task_primary_score"
+      ],
+      "relation_declaration_sha256": "d2a09f06abc7405b55a656c8f13f62b8287e562c19a2ae48ef1db4a8e7105e4a",
+      "relation_id": "same_material_potential_response_shape",
+      "required_levels": [
+        "low",
+        "pivot",
+        "high"
+      ],
+      "task_contract_hash": "45b6cdbaf1f9c7fc313e1589f37b17bde9fd678d40e0bd98e64a62622ecac494",
+      "task_id": "electrochemical-conversion",
+      "varied_fields": [
+        {
+          "field": "potential_V",
+          "operation": "set_potential"
+        },
+        {
+          "field": "current_mA",
+          "operation": "set_potential"
+        }
+      ]
+    },
+    {
+      "candidate_id": "rate_law_family",
+      "candidate_signatures": {
+        "no_change": "baseline_catalyst_dose_response_shape",
+        "rate_law_family": "changed_catalyst_activity_order_around_frozen_pivot"
+      },
+      "controlled_background": "all_remaining_recipe_operations_fields_and_order",
+      "minimum_distinct_actions": 3,
+      "observable_channels": [
+        "hplc_yield",
+        "hplc_selectivity",
+        "task_primary_score"
+      ],
+      "relation_declaration_sha256": "66fea81e799c7eccdc984e491d8a5e94924329b969c2b6b198e94b0f90499578",
+      "relation_id": "same_background_catalyst_dose_response_shape",
+      "required_levels": [
+        "low",
+        "pivot",
+        "high"
+      ],
+      "task_contract_hash": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416",
+      "task_id": "reaction-to-crystallization",
+      "varied_fields": [
+        {
+          "field": "catalyst_amount_mol",
+          "operation": "add_catalyst"
+        }
+      ]
+    },
+    {
+      "candidate_id": "topology_family",
+      "candidate_signatures": {
+        "no_change": "baseline_forward_pathway_response",
+        "topology_family": "reversible_target_pathway_response"
+      },
+      "controlled_background": "all_remaining_recipe_operations_fields_and_order",
+      "minimum_distinct_actions": 2,
+      "observable_channels": [
+        "hplc_yield",
+        "hplc_selectivity",
+        "task_primary_score"
+      ],
+      "relation_declaration_sha256": "1aeda79604a04a4807d94285f18fcd27090f7637d5b4c635106239be0d0fb1ad",
+      "relation_id": "same_material_process_response",
+      "required_levels": [
+        "at_least_two_distinct_process_settings"
+      ],
+      "task_contract_hash": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416",
+      "task_id": "reaction-to-crystallization",
+      "varied_fields": [
+        {
+          "field": "catalyst_amount_mol",
+          "operation": "add_catalyst"
+        },
+        {
+          "field": "target_temperature_K",
+          "operation": "heat"
+        },
+        {
+          "field": "duration_s",
+          "operation": "heat"
+        }
+      ]
+    }
+  ],
+  "schema_version": "chemworld-diagnostic-relation-graph-0.1",
+  "status": "frozen_protocol_input",
+  "task_contract_hashes": {
+    "electrochemical-conversion": "45b6cdbaf1f9c7fc313e1589f37b17bde9fd678d40e0bd98e64a62622ecac494",
+    "reaction-to-crystallization": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416"
+  }
+}

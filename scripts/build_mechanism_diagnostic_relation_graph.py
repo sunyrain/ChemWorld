@@ -24,7 +24,7 @@ DEFAULT_PROTOCOL = ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0.json"
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc23.json"
+    "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc24.json"
 )
 
 
