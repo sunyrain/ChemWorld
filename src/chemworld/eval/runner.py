@@ -180,8 +180,6 @@ def run_agent(
             )
             if key in method_resource_limits
         }
-    logging_task_info = {**task_info, **evaluator_provenance}
-
     # The default policy RNG is public and deliberately unrelated to hidden
     # world generation. Formal methods may still supply an explicitly bound
     # private method seed.
@@ -335,7 +333,8 @@ def run_agent(
                 agent_trace = agent_trace_factory() if callable(agent_trace_factory) else []
                 if logger is not None:
                     logger.log(
-                        task_info=logging_task_info,
+                        task_info=task_info,
+                        evaluator_provenance=evaluator_provenance,
                         step=step,
                         action=action,
                         observation=obs_json,
@@ -434,7 +433,8 @@ def run_agent(
             agent_trace = agent_trace_factory() if callable(agent_trace_factory) else []
             if logger is not None:
                 logger.log(
-                    task_info=logging_task_info,
+                    task_info=task_info,
+                    evaluator_provenance=evaluator_provenance,
                     step=step,
                     action=action,
                     observation=obs_json,

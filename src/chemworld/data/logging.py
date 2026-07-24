@@ -73,6 +73,7 @@ class TrajectoryLogger:
         self,
         *,
         task_info: dict[str, Any],
+        evaluator_provenance: dict[str, Any] | None = None,
         step: int,
         action: dict[str, Any],
         observation: dict[str, Any],
@@ -89,6 +90,31 @@ class TrajectoryLogger:
         agent_visible_observation: dict[str, Any] | None = None,
         evaluation_outcome: dict[str, Any] | None = None,
     ) -> None:
+        logging_task_info = dict(task_info)
+        if evaluator_provenance is not None:
+            conflicting_fields = sorted(
+                key
+                for key, value in evaluator_provenance.items()
+                if key in logging_task_info
+                and to_builtin(logging_task_info[key]) != to_builtin(value)
+            )
+            if conflicting_fields:
+                fields = ", ".join(conflicting_fields)
+                raise ValueError(
+                    "task_info conflicts with evaluator_provenance for "
+                    f"trajectory identity fields: {fields}"
+                )
+            logging_task_info.update(evaluator_provenance)
+        missing_provenance = [
+            key for key in ("seed", "world_id") if logging_task_info.get(key) is None
+        ]
+        if missing_provenance:
+            fields = ", ".join(missing_provenance)
+            raise ValueError(
+                "trajectory logging requires evaluator provenance fields "
+                f"{fields}; pass evaluator_provenance=env.evaluator_provenance()"
+            )
+        task_info = logging_task_info
         observation_payload = observation_to_json(observation)
         stable_task_id = str(task_info.get("task_id") or task_info["env_id"])
         run_id = (

@@ -359,7 +359,6 @@ def run_smoke_audit(
     env = gym.make("ChemWorld", task_id=task_id, seed=seed)
     observation, task_info = env.reset(seed=seed)
     evaluator_provenance = env.unwrapped.evaluator_provenance()
-    logging_task_info = {**task_info, **evaluator_provenance}
     agent = ScriptedChemistryAgent()
     agent.reset(task_info, seed)
     trajectory_path = output_dir / "trajectories" / f"{task_id}_seed{seed}.jsonl"
@@ -443,7 +442,8 @@ def run_smoke_audit(
                         findings[: max(0, 5 - len(public_leakage_examples))]
                     )
             logger.log(
-                task_info=logging_task_info,
+                task_info=task_info,
+                evaluator_provenance=evaluator_provenance,
                 step=step + 1,
                 action=action,
                 observation=observation,

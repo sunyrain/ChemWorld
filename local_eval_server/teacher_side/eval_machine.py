@@ -443,6 +443,7 @@ def run_trajectory(
     env = gym.make("ChemWorld", task_id=task_id, seed=seed)
     observation, task_info = env.reset(seed=seed)
     base_env: Any = env.unwrapped
+    evaluator_provenance = base_env.evaluator_provenance()
     hidden_species = set(base_env.scenario_instance.compiled_mechanism.species_index)
     policy = HarnessPolicy(
         message_limit_bytes=int(config["public_message_limit_bytes"]),
@@ -502,6 +503,7 @@ def run_trajectory(
                 )
                 logger.log(
                     task_info=task_info,
+                    evaluator_provenance=evaluator_provenance,
                     step=step,
                     action=action,
                     observation=observation,
