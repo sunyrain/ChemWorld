@@ -34,3 +34,7 @@ go/no-go 规则和报告要求。正式命令使用 runner 的 RC26 默认值：
 
 正式 trial store 为 `runs/mechanism-adaptation-v0.3.0-rc26/confirmatory-trials/`；
 所有重启只能加 `--resume`，不得删除 terminal receipt 后重跑。
+
+正式启动前的 clean detached checkout 已通过 qualification `--check` 以及 59 项
+mechanism release/execution 集成测试；环境与结果哈希见
+`reports/mechanism-adaptation-clean-detached-attestation-v0.1-rc26.json`。
