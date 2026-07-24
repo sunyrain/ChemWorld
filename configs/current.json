@@ -29,22 +29,34 @@
   "mechanism_adaptation": {
     "protocol": "configs/benchmark/mechanism_adaptation_v0.3.0.json",
     "preflight_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-preflight.json",
-    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc23.json",
+    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc24.json",
     "design_audit_pass": true,
-    "semantics_audit_report": "workstreams/flagship_tasks/reports/flagship-experiment-semantics-audit-rc23.json",
+    "semantics_audit_report": "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc24.json",
     "semantics_audit_pass": true,
-    "diagnostic_relation_graph_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc23.json",
+    "diagnostic_relation_graph_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc24.json",
+    "sample_size_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-sample-size-audit-v0.3.0-rc24.json",
+    "preregistration_manifest": "configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc24.json",
     "gate_a_plan": "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json",
-    "online_policy_certificate_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.7-rc23-pending.json",
-    "gate_a_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc23-pending.json",
+    "online_attainability_certificate_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-attainability-certificate-v0.8-rc24-pending.json",
+    "gate_a_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc24-pending.json",
     "agent_pilot_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-agent-pilot-v0.2.1.json",
+    "protocol_state_machine": {
+      "environment_design_candidate": "passed",
+      "semantic_protocol_audit": "passed",
+      "a1_physical_validity": "passed",
+      "a2_controlled_identifiability": "pending",
+      "a3_online_attainability": "pending",
+      "participant_agent_gates_b_to_e": "pending",
+      "private_confirmation": "sealed",
+      "publication_ready": false
+    },
     "status": "gate_a_execution_pending",
     "gate_a_pass": false,
     "gate_a_evidence_current": true,
     "gate_a_certificate_status": {
       "a1_physical_intervention_validity": "passed",
       "a2_controlled_matched_identifiability": "pending_execution",
-      "a3_calibrated_online_change_identifiability": "pending_execution"
+      "a3_online_attainability": "pending_execution"
     },
     "new_external_provider_runs_completed": false,
     "agent_pilot_gate_status": {
@@ -129,8 +141,8 @@
     "schema_version": "chemworld-current-evidence-dag-0.3",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "1034d8c0782a2ff9a56a4d9d82cbb3d5197cd51532e1dd5334bac95ec9f48860",
-    "repository_source_sha256": "402e25e56a74c1f031cd40db62ca5110300f369647077ad2db3001900ce91dec",
+    "graph_sha256": "b9b17d7d826d5e2eb7dde800f72882afbdf3e236a1d165471a5e0c0a748d4051",
+    "repository_source_sha256": "ff858ed3e03b81199f33bebadc6be4a23180747fbbc4f4defc67d62a9c844d19",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -155,10 +167,12 @@
       "state_transition_invariants",
       "maturity_truth",
       "mechanism_diagnostic_relation_graph",
+      "mechanism_sample_size_audit",
       "backend_candidate",
-      "mechanism_flagship_semantics_audit",
+      "mechanism_preregistration",
+      "mechanism_confirmatory_task_semantics_audit",
       "mechanism_design_audit",
-      "mechanism_online_policy_certificate",
+      "mechanism_online_attainability_certificate",
       "mechanism_preflight",
       "mechanism_gate_a"
     ],
@@ -242,7 +256,7 @@
         "producer": "maintainer_versioned_input",
         "source_binding": "content_sha256",
         "dependencies": [],
-        "sha256": "08c454f48f144517ea0e8bfba1fc2d5626b12c9a8cd070bbff6fbb365b315772",
+        "sha256": "70b65e17fb5e53887dab4737026c8f5273e72594641e9e1e7a5d690e48e4877a",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "not_applicable"
@@ -278,7 +292,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "200fcbe2a329eb20b309ed9286323adecbcd84009abe109552a11599fe7ddec2",
+        "sha256": "cb042e9f93c53ca26d17f1121f7951dc4c1d64dddf0416d462d4a433e88c66f4",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -366,7 +380,7 @@
         "dependencies": [
           "mechanism_protocol"
         ],
-        "sha256": "5caa1eb30f847e906080f4d4d652ec198777cafe2a48051d93dcabceeb2eee61",
+        "sha256": "812da465d15fbd3cca380724d91aec9993cf21415f8deafd0dc66f19c0b327fe",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "not_applicable"
@@ -380,7 +394,7 @@
         "dependencies": [
           "mechanism_protocol"
         ],
-        "sha256": "eeb58cc3332d96065bb9556c410dd2ef0a5e31d7fbc713092fd6226c8547a864",
+        "sha256": "9e4a5cd423200ed005a4fafe29927b0dbd03212a025c2ceea51a78f60032d74b",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -414,7 +428,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "20a4f3d3d1798e2047b41536c707c7ed7d3d7e1d1730bb7e739ba303bd1a02fb",
+        "sha256": "aff75d32b7f21576dc94f083900c5bfaf53928ab873ce48c158b2b55d931f068",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -429,7 +443,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "b70fe303961493d8e90621e1bd6aadd652b8a5c59d691c7e5d0fedfe30996c8a",
+        "sha256": "32d5eb03209edd298642709a302692ec89f8be2ffbdd7f553653a27ab411213c",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -445,13 +459,13 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "b457a900b2d6dadee412d213d629a12a4b981374bb77b098d9139569abe71822",
+        "sha256": "a274d7044b2c1fdd792651a867729661e90d036b9435d1cce86150aa80d96141",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
       },
       "mechanism_diagnostic_relation_graph": {
-        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc23.json",
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc24.json",
         "role": "generated_current",
         "lifecycle": "generated",
         "producer": "python scripts/build_mechanism_diagnostic_relation_graph.py",
@@ -460,7 +474,22 @@
           "mechanism_gate_a_plan",
           "mechanism_protocol"
         ],
-        "sha256": "2a4da92b7d793d4c2d71aeacf2564c2ebf44a5e13b402d93c2f2dd34f06ba855",
+        "sha256": "3c88f32c4bb81b1641e9a344cdfef7d82bf43632a74aa282c368f721af190f0f",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
+      "mechanism_sample_size_audit": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-sample-size-audit-v0.3.0-rc24.json",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_mechanism_adaptation_sample_size.py",
+        "source_binding": "dependencies_and_source_commit",
+        "dependencies": [
+          "mechanism_gate_a_plan",
+          "mechanism_protocol"
+        ],
+        "sha256": "755a485230ca32d5cc20bd9d47f84974b76105861579acc91db11c8a69d5eb77",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -479,46 +508,64 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "3ca26a2f6ecc81a00ba1f68a6af63ae83624d9a4a31f3d1c4af44d712a1d35cf",
+        "sha256": "865a4245e4c42bd9f52b67ede4a7b146033673526d8d4f2bc2a2e934c2e45a37",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
       },
-      "mechanism_flagship_semantics_audit": {
-        "path": "workstreams/flagship_tasks/reports/flagship-experiment-semantics-audit-rc23.json",
+      "mechanism_preregistration": {
+        "path": "configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc24.json",
         "role": "generated_current",
         "lifecycle": "generated",
-        "producer": "python scripts/audit_flagship_experiment_semantics.py",
+        "producer": "python scripts/build_mechanism_adaptation_preregistration.py --check",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "mechanism_diagnostic_relation_graph",
           "mechanism_gate_a_plan",
+          "mechanism_protocol",
+          "mechanism_sample_size_audit"
+        ],
+        "sha256": "84ed9c206414b4324c19b258e43cdec62765373412b639ac5f78201f99708aea",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
+      "mechanism_confirmatory_task_semantics_audit": {
+        "path": "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc24.json",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_confirmatory_task_semantics.py",
+        "source_binding": "dependencies_and_source_commit",
+        "dependencies": [
+          "mechanism_diagnostic_relation_graph",
+          "mechanism_gate_a_plan",
+          "mechanism_preregistration",
           "mechanism_protocol"
         ],
-        "sha256": "9f132fbb6489b966f753acd4a9a7706682fb7a4f3ccf0a1235594dcb4c338354",
+        "sha256": "794636bfbf381cf7ec81aebc718ed942db0384bdac9eb88f7423160c07e95c01",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
       },
       "mechanism_design_audit": {
-        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc23.json",
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc24.json",
         "role": "generated_current",
         "lifecycle": "generated",
         "producer": "python scripts/audit_mechanism_adaptation_design.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "mechanism_diagnostic_relation_graph",
-          "mechanism_flagship_semantics_audit",
+          "mechanism_confirmatory_task_semantics_audit",
           "mechanism_gate_a_plan",
           "mechanism_protocol"
         ],
-        "sha256": "d126327feb90eef30b5b6cf4424d464c4b5d18d03ae51533a756868c8ad88a32",
+        "sha256": "061483ade86391ea464be83f6edabf930d280e596e361964e22a5d1839e88ef2",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
       },
-      "mechanism_online_policy_certificate": {
-        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-policy-certificate-v0.7-rc23-pending.json",
+      "mechanism_online_attainability_certificate": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-attainability-certificate-v0.8-rc24-pending.json",
         "role": "generated_current",
         "lifecycle": "generated",
         "producer": "python scripts/check_mechanism_adaptation_protocol.py",
@@ -526,11 +573,13 @@
         "dependencies": [
           "mechanism_design_audit",
           "mechanism_diagnostic_relation_graph",
-          "mechanism_flagship_semantics_audit",
+          "mechanism_confirmatory_task_semantics_audit",
           "mechanism_gate_a_plan",
-          "mechanism_protocol"
+          "mechanism_preregistration",
+          "mechanism_protocol",
+          "mechanism_sample_size_audit"
         ],
-        "sha256": "68f5f90330b3439531c98dc45bcd1ce06aff230c3a978f7f7aa61fe029533df8",
+        "sha256": "ff9def6fee51c3bedf38e75a11c89781fa463ff84dc81c53920971fb3a21849c",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "blocked"
@@ -544,17 +593,19 @@
         "dependencies": [
           "mechanism_gate_a_plan",
           "mechanism_design_audit",
-          "mechanism_flagship_semantics_audit",
+          "mechanism_confirmatory_task_semantics_audit",
           "mechanism_protocol",
-          "mechanism_public_matrix"
+          "mechanism_public_matrix",
+          "mechanism_preregistration",
+          "mechanism_sample_size_audit"
         ],
-        "sha256": "6876556fb21e94bb7e83eef400f2b80419644dd814f5b38200cb2cec57b59d0d",
+        "sha256": "a4d484813cbdb51b69c6a72b69886761dc94f9bf157d8ae7f1956937b7e222dd",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
       },
       "mechanism_gate_a": {
-        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc23-pending.json",
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc24-pending.json",
         "role": "generated_current",
         "lifecycle": "generated",
         "producer": "python scripts/check_mechanism_adaptation_protocol.py",
@@ -565,15 +616,16 @@
           "evaluation_contract",
           "mechanism_design_audit",
           "mechanism_diagnostic_relation_graph",
-          "mechanism_flagship_semantics_audit",
+          "mechanism_confirmatory_task_semantics_audit",
           "mechanism_gate_a_plan",
-          "mechanism_online_policy_certificate",
+          "mechanism_online_attainability_certificate",
           "mechanism_preflight",
+          "mechanism_preregistration",
           "mechanism_protocol",
           "public_boundary",
           "score_replay_contract"
         ],
-        "sha256": "e7e96ac62c1ed4d6a86c5eb72c5abe6c6db979c99cb6d00fd959288591ae1b76",
+        "sha256": "19d9c6a7c9782b19a36de1fd7a89584a95a8bfef7957e5631d41f346b2260041",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "blocked"

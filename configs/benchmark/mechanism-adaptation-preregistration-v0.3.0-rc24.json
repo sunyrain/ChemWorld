@@ -1,0 +1,159 @@
+{
+  "certification_subjects": {
+    "a1": "physical_world_and_intervention_contract",
+    "a2": "controlled_oracle_and_decoder",
+    "a3": "frozen_reference_diagnostic_policy",
+    "gates_b_to_e": "participant_agent"
+  },
+  "cohorts": {
+    "a2_certification": {
+      "role": "controlled_static_identifiability_only",
+      "seed_namespace_start": 3800000000,
+      "world_seeds_per_family": 180
+    },
+    "a3_certification": {
+      "role": "calibrated_online_change_only",
+      "seed_namespace_start": 3900000000,
+      "world_seeds_per_family": 180
+    },
+    "cross_cohort_world_seed_reuse_allowed": false,
+    "development": {
+      "formal_claim_allowed": false,
+      "role": "predictive_fit_action_and_threshold_development",
+      "seed_namespace_start": 1100000000
+    },
+    "private_confirmation": {
+      "must_not_be_used_for_threshold_or_protocol_revision": true,
+      "role": "final_untouched_confirmation_only",
+      "seed_namespace_start": 4100000000,
+      "world_seeds_per_family": 180
+    }
+  },
+  "diagnostic_relation_graph": {
+    "graph_sha256": "2ba4dd698f4ffc4aaf489717cd2b809246ab0c546ec225802130866abadadc11",
+    "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc24.json",
+    "relation_count": 3
+  },
+  "execution_handling": {
+    "exclusions": "only preregistered integrity failures, all reason-coded before outcome aggregation",
+    "incomplete_campaign": "retain as protocol failure for autonomous scoring; right-censor time-to-event outcomes at the frozen horizon",
+    "invalid_action": "retain as an Agent action and apply the environment's frozen invalid-action consequence",
+    "private_confirmation_unseal": "only after the public A2 and A3 decision artifact is immutable; private results cannot revise thresholds, policy, scorer, or exclusions",
+    "provider_failure": "exclude only from belief-response metrics when a reason-coded provider receipt proves no valid completion; retain and separately report provider-failure rate; never replace with a successful retry silently",
+    "stopping_rule": "fixed manifest-declared campaign matrix; no optional stopping on interim A2 or A3 results"
+  },
+  "gate_a_plan": {
+    "canonical_sha256": "f6f9bf62d22b583d061673998505dd6a6e13b06975cc9cc1bc48e8686d07d6eb",
+    "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-24-redesign-rc24",
+    "source_path": "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json"
+  },
+  "manifest_id": "chemworld-mechanism-adaptation-v0.3.0-rc24-preregistration",
+  "manifest_sha256": "53d176f362420945035511db799c069de91fe8a20b3035da04eca144f6d367c4",
+  "mutation_rule": "Any change to a bound hash, threshold, cohort, seed count, scorer, policy, exclusion, or stopping rule creates a new protocol RC and cannot reinterpret results collected under this manifest.",
+  "paired_no_change_control": {
+    "campaign_metadata_invariant_across_checkpoint": true,
+    "common_random_numbers_across_changed_no_change_twins": true,
+    "identical_reset_rule_across_changed_no_change_twins": true,
+    "pseudo_checkpoint_has_runtime_side_effect": false,
+    "reset_or_instance_identifier_agent_visible": false,
+    "same_hidden_world_seed_across_phases": true,
+    "same_world_seed_reused_across_candidate_twins": true
+  },
+  "private_confirmation_unseal_condition": "only after the public A2 and A3 decision artifact is immutable; private results cannot revise thresholds, policy, scorer, or exclusions",
+  "protocol": {
+    "canonical_sha256": "5e20f7e8a12c53ecdbe1479eae3af963d81b83099bc1422459bcd086de5792b5",
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-24-redesign-rc24",
+    "source_path": "configs/benchmark/mechanism_adaptation_v0.3.0.json"
+  },
+  "publication_ready": false,
+  "reference_policy": {
+    "action_count_per_task": 6,
+    "action_design": "deterministic_task_aware_relational_diagnostic_design_v2",
+    "action_design_seed": 41102,
+    "certificate_basis": "relation_closure_not_recipe_id_closure",
+    "predictive_reference": {
+      "all_observed_reference_actions_must_have_predictive_checks": true,
+      "cross_fitting": "leave_one_experiment_out_within_campaign_pre_change_only",
+      "maximum_mean_standardized_squared_error": 4.0,
+      "maximum_per_action_mean_standardized_squared_error": 9.0,
+      "maximum_reference_age_experiments": 5,
+      "post_change_observations_allowed": false,
+      "source": "development freezes features, predictive family, and thresholds; each A3 campaign estimates nuisance reference parameters from its own pre-change observations by leave-one-experiment-out cross-fitting",
+      "truth_family_allowed": false
+    },
+    "version": "chemworld-mechanism-adaptation-online-attainability-certificate-0.8"
+  },
+  "sample_size": {
+    "audit_path": "workstreams/flagship_tasks/reports/mechanism-adaptation-sample-size-audit-v0.3.0-rc24.json",
+    "audit_sha256": "40c8dfd13c843ae2bc1d070fd805500e162792dc8be6a8f7c34046af302b15b6",
+    "clusters_per_changed_family_per_change_time": 60,
+    "independent_world_clusters_per_family": 180,
+    "no_change_clusters_per_task": 180,
+    "provider_repeats_are_independent_samples": false,
+    "provider_repeats_per_paired_cell": 5
+  },
+  "schema_version": "chemworld-mechanism-preregistration-0.1",
+  "scorer": {
+    "source_bundle_sha256": "ee21eb5074904d8fb77f824806258ff4dd46f9d51db1ad1edbda61edc1bf3777",
+    "source_file_sha256": {
+      "src/chemworld/eval/mechanism_adaptation.py": "729d3043f58e55ce5e134a56b771d6d2e65813d7d486ff64e2ddc31d004c59b4",
+      "src/chemworld/eval/mechanism_adaptation_execution.py": "6edf5ec6f0c970410410c6c6b04da1e219b542eb15a3c08f9d8877b5ac02ac4c",
+      "src/chemworld/eval/mechanism_design_audit.py": "742802bdbbc36f985b7ae1b9d593121d145c42b42d27d39cdbe39eb6857b563b",
+      "src/chemworld/eval/mechanism_gate_decision.py": "a397a60f1764fb8bca6ae5c6c762fed52fc8768520096e38641faf5ebec4d221",
+      "src/chemworld/eval/mechanism_relation_graph.py": "f558e30ff21163f83c0f87ebb470cdcaea6df0e0111aad3ab26e46118ad614d2"
+    }
+  },
+  "source_commit": "954910589538f3bc16ce4e0fae26784dec96de07",
+  "state_at_lock": {
+    "a1_physical_validity": "passed",
+    "a2_controlled_identifiability": "pending",
+    "a3_online_attainability": "pending",
+    "environment_design_candidate": "passed",
+    "participant_agent_gates_b_to_e": "pending",
+    "private_confirmation": "sealed",
+    "publication_ready": false,
+    "semantic_protocol_audit": "passed"
+  },
+  "statistics": {
+    "aggregation_rule": "intersection_of_overall_each_task_and_each_declared_changed_family",
+    "brier_aggregation": "equal-weight mean across k={1,2,4,8} after equal weighting of changed and never classes",
+    "cluster_bootstrap_draws": 5000,
+    "cluster_bootstrap_seed_rule": "stable_hash_of_a3_namespace_metric_task_family_and_checkpoint",
+    "cluster_unit": "task_id_and_world_seed",
+    "confidence_level": 0.95,
+    "multiple_comparison_policy": "holm_for_confirmatory_family",
+    "pooled_micro_average_controls_gate": false,
+    "provider_repeat_role": "nested_technical_replicate",
+    "thresholds": {
+      "maximum_integrated_mean_change_probability_brier_score": 0.2,
+      "maximum_no_change_false_positive_rate_cluster_bootstrap_upper_bound": 0.1,
+      "minimum_attribution_given_detection_and_reference_cluster_bootstrap_lower_bound": 0.8,
+      "minimum_change_detection_auroc_cluster_bootstrap_lower_bound": 0.8,
+      "minimum_changed_detection_recall_cluster_bootstrap_lower_bound": 0.8,
+      "minimum_end_to_end_success_rate_cluster_bootstrap_lower_bound": 0.7,
+      "minimum_reference_acquisition_rate_wilson_lower_bound": 0.8
+    }
+  },
+  "status": "locked_before_a2_a3_execution",
+  "stopping_rule": "fixed manifest-declared campaign matrix; no optional stopping on interim A2 or A3 results",
+  "timing": {
+    "changepoint_semantics": "tau_is_completed_old_world_experiment_count",
+    "decision_threshold": 0.5,
+    "detection_event": "first checkpoint-relative experiment k where p(change)>=0.5",
+    "post_change_checkpoints": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "primary_post_change_checkpoint": 8,
+    "total_experiment_horizon": 18,
+    "truth_change_time_support": [
+      "never",
+      6,
+      8,
+      10
+    ],
+    "undetected_campaign_handling": "right_censored_at_k_8"
+  }
+}
