@@ -21,10 +21,12 @@
     "task_contract_version": "chemworld-task-contract-1.1"
   },
   "formal_evaluation": {
-    "status": "environment_ready_methods_unfrozen",
+    "status": "environment_gate_a_certified_methods_unfrozen",
     "formal_results_present": false,
     "benchmark_claim_allowed": false,
-    "interpretation": "ChemWorld supplies the evaluation runtime; method selection, training, and result freezes belong to each evaluation campaign."
+    "environment_certificate_results_present": true,
+    "environment_benchmark_readiness_claim_allowed": true,
+    "interpretation": "Formal A1/A2/A3 environment certificates passed. Participant-Agent methods and Gates B-E remain unfrozen/unexecuted, so no Agent performance claim is enabled."
   },
   "mechanism_adaptation": {
     "protocol": "configs/benchmark/mechanism_adaptation_v0.3.0_rc28.json",
@@ -40,29 +42,50 @@
     "release_qualification_pass": true,
     "participant_preregistration_candidate": "configs/benchmark/mechanism_adaptation_participant_preregistration_rc28.json",
     "gate_a_plan": "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json",
-    "online_attainability_certificate_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-attainability-certificate-v0.9-rc28-pending.json",
-    "gate_a_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc28-pending.json",
+    "a2_structural_receipt": "workstreams/flagship_tasks/reports/mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json",
+    "a3_structural_receipt": "workstreams/flagship_tasks/reports/mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json",
+    "public_decision_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-public-decision-v0.1-rc28.json",
     "agent_pilot_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-agent-pilot-v0.2.1.json",
     "protocol_state_machine": {
       "environment_design_candidate": "passed",
       "semantic_protocol_audit": "passed",
       "a1_physical_validity": "passed",
-      "a2_controlled_identifiability": "pending",
-      "a3_online_attainability": "pending",
-      "participant_agent_gates_b_to_e": "pending",
+      "a2_controlled_identifiability": "passed",
+      "a3_online_attainability": "passed",
+      "participant_agent_gates_b_to_e": "pending_method_freeze",
       "publication_ready": false,
-      "private_environment_confirmation": "sealed",
-      "private_agent_confirmation": "sealed",
-      "benchmark_ready": false,
+      "private_environment_confirmation": "eligible_not_executed",
+      "private_agent_confirmation": "sealed_pending_participant_freeze",
+      "benchmark_ready": true,
       "evidence_complete": false
     },
-    "status": "gate_a_execution_pending",
-    "gate_a_pass": false,
+    "status": "gate_a_passed_remaining_gates_pending",
+    "gate_a_pass": true,
     "gate_a_evidence_current": true,
     "gate_a_certificate_status": {
       "a1_physical_intervention_validity": "passed",
-      "a2_controlled_matched_identifiability": "pending_execution",
-      "a3_online_attainability": "pending_execution"
+      "a2_controlled_matched_identifiability": "passed",
+      "a3_online_attainability": "passed"
+    },
+    "formal_gate_a_result": {
+      "decision_sha256": "6d6c08ed73e4fa5df3414447554bc75e050db3d195c18be78aaeef88627391ff",
+      "go_no_go_branch": "a2_a3_passed",
+      "a2": {
+        "completed_trials": 4896,
+        "primary_budget": 5,
+        "active_oracle_top1_accuracy": 0.9826388888888888,
+        "fixed_decoder_top1_accuracy": 0.9826388888888888
+      },
+      "a3": {
+        "completed_trials": 2016,
+        "reference_sufficient_rate": 0.9916666666666667,
+        "change_detection_sensitivity": 0.9934640522875817,
+        "change_detection_auroc": 0.9990166001040939,
+        "no_change_false_positive_rate": 0.028011204481792718,
+        "integrated_mean_brier": 0.02633332051457221,
+        "conditional_attribution": 0.9802631578947368,
+        "end_to_end_success": 0.9657407407407408
+      }
     },
     "new_external_provider_runs_completed": false,
     "agent_pilot_gate_status": {
@@ -75,7 +98,7 @@
     "agent_pilot_evidence_current": false,
     "agent_pilot_protocol_version": "historical_v0.2.1",
     "agent_weight_updates_performed": false,
-    "benchmark_ready": false,
+    "benchmark_ready": true,
     "evidence_complete": false,
     "publication_ready": false
   },
@@ -90,7 +113,6 @@
         "id": "mechanism_gates_remaining",
         "scope": "mechanism_benchmark",
         "gates": [
-          "gate_a",
           "gate_b",
           "gate_c",
           "gate_d",
@@ -115,6 +137,7 @@
         "formal_result",
         "generated_current",
         "protocol_input",
+        "release_attestation",
         "superseded"
       ],
       "artifact_lifecycle": [
@@ -149,8 +172,8 @@
     "schema_version": "chemworld-current-evidence-dag-0.3",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "c743769e0519337d105043c884b402d4ab91072700e07fb938f0b56fb56a0cf0",
-    "repository_source_sha256": "c629f89c82093c32d287caac8fa82501c284fd41fa0af4c9431f5189ef611883",
+    "graph_sha256": "7240c5eeb3e80f76261d93fff9ce6a5ef72d15b9f926b0bc3aac9556054448ee",
+    "repository_source_sha256": "22f1bf671d62825012c798a08e3c01b93bc286b83946a8d95afcdf229d044e2c",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -182,9 +205,10 @@
       "mechanism_confirmatory_task_semantics_audit",
       "mechanism_design_audit",
       "mechanism_release_qualification",
-      "mechanism_online_attainability_certificate",
+      "mechanism_a2_structural_receipt",
+      "mechanism_a3_structural_receipt",
       "mechanism_preflight",
-      "mechanism_gate_a"
+      "mechanism_public_gate_a_decision"
     ],
     "nodes": {
       "backend_golden_fixture": {
@@ -302,7 +326,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "d4e9dd0230437f04f7200fc52839e4bd224c8340116030ef222f94814c682196",
+        "sha256": "0355ec5d0d421871fce8a4cd42a944784e749e961434a5417fe3d64360e810b7",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -438,7 +462,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "d18dd130f9a60e467c1ac4506fe88131dac5c1168001351af069e5d2e13522d8",
+        "sha256": "de197d500dd6433122c0e258d70e3df7d6745adc7e5e4364eb6aac7cf6dbc7f5",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -453,7 +477,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "d4567592a696608526f798d768b02a728cd46ad8281a76c42b4ebc663ded48f8",
+        "sha256": "28acb23d3509ac8b63c729c6f3de834dd7870120abcf7c2fd49b1945f5147fcc",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -469,7 +493,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "255c7e50cd53b5d587edfb3b47026f05ffb0e658d6687731e66ccfaf8ab668c2",
+        "sha256": "0a86e24de97036a5699ecc04f3efac73aaefe8449a57643555924e6a5391e351",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -534,7 +558,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "2ca95a8392ac5edda90fa67eead60863beadcff57e933c81b6169a606a04f681",
+        "sha256": "3211f0667ccc0bd89daf16d6d7f94dcdbca10122972003e14a7eb1c8a2bc626f",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -592,10 +616,10 @@
       },
       "mechanism_release_qualification": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-release-qualification-v0.1-rc28.json",
-        "role": "generated_current",
-        "lifecycle": "generated",
-        "producer": "python scripts/qualify_mechanism_adaptation_release.py --check",
-        "source_binding": "dependencies_and_source_commit",
+        "role": "release_attestation",
+        "lifecycle": "immutable",
+        "producer": "frozen_release_qualification",
+        "source_binding": "preregistered_source_commit_and_protocol_plan_sha256",
         "dependencies": [
           "mechanism_design_audit",
           "mechanism_confirmatory_task_semantics_audit",
@@ -609,26 +633,41 @@
         "freshness": "fresh",
         "gate_state": "passed"
       },
-      "mechanism_online_attainability_certificate": {
-        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-attainability-certificate-v0.9-rc28-pending.json",
-        "role": "generated_current",
-        "lifecycle": "generated",
-        "producer": "python scripts/check_mechanism_adaptation_protocol.py",
-        "source_binding": "dependencies_and_source_commit",
+      "mechanism_a2_structural_receipt": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
         "dependencies": [
           "mechanism_design_audit",
-          "mechanism_diagnostic_relation_graph",
-          "mechanism_confirmatory_task_semantics_audit",
           "mechanism_gate_a_plan",
           "mechanism_preregistration",
           "mechanism_protocol",
-          "mechanism_release_qualification",
-          "mechanism_sample_size_audit"
+          "mechanism_release_qualification"
         ],
-        "sha256": "8b8ab643622df1a85af13ee8256603a6bc0f0cbf93a379269bd444b3dd815a9b",
+        "sha256": "5a5e268b80260ebb7e5e0c9f7a1791d0bd11f2c066139bd957831aa3bcdf982a",
         "artifact_state": "current",
         "freshness": "fresh",
-        "gate_state": "blocked"
+        "gate_state": "passed"
+      },
+      "mechanism_a3_structural_receipt": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
+        "dependencies": [
+          "mechanism_design_audit",
+          "mechanism_gate_a_plan",
+          "mechanism_preregistration",
+          "mechanism_protocol",
+          "mechanism_release_qualification"
+        ],
+        "sha256": "c3945e02ccea374503932810d2fce3d23fb331343df995c10b5f7d68c64c9b8a",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
       },
       "mechanism_preflight": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-preflight.json",
@@ -646,37 +685,33 @@
           "mechanism_release_qualification",
           "mechanism_sample_size_audit"
         ],
-        "sha256": "79e44b2ed989881999321138af722460c5b11a9097558144b27258b4ec4a6078",
+        "sha256": "86c9bf64b604840ee2435fa4375f30a2e9ea7e152f6e65756cb5be5ee2894333",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
       },
-      "mechanism_gate_a": {
-        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.3.0-rc28-pending.json",
-        "role": "generated_current",
-        "lifecycle": "generated",
-        "producer": "python scripts/check_mechanism_adaptation_protocol.py",
-        "source_binding": "dependencies_and_source_commit",
+      "mechanism_public_gate_a_decision": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-public-decision-v0.1-rc28.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
         "dependencies": [
-          "backend_candidate",
-          "backend_protocol",
-          "evaluation_contract",
+          "mechanism_a2_structural_receipt",
+          "mechanism_a3_structural_receipt",
           "mechanism_design_audit",
           "mechanism_diagnostic_relation_graph",
           "mechanism_confirmatory_task_semantics_audit",
           "mechanism_gate_a_plan",
-          "mechanism_online_attainability_certificate",
-          "mechanism_preflight",
           "mechanism_preregistration",
           "mechanism_protocol",
           "mechanism_release_qualification",
-          "public_boundary",
-          "score_replay_contract"
+          "mechanism_sample_size_audit"
         ],
-        "sha256": "227b3bad38732bd1753789f955545638a17fd8d4732902ca7c7bb6a749dff570",
+        "sha256": "3aa2cc3b0512ec7a31155da19cfb1ef1a9f9c49b9d5829f6418d65f316792e31",
         "artifact_state": "current",
         "freshness": "fresh",
-        "gate_state": "blocked"
+        "gate_state": "passed"
       }
     }
   },
@@ -724,7 +759,7 @@
   "completeness_model": {
     "structural": "implemented_by_design_and_subject_to_runtime_controls",
     "evaluation": "contracts_defined_empirical_closure_pending",
-    "attribution": "v0_3_reference_calibrated_gate_a_execution_pending",
+    "attribution": "gate_a_identifiability_passed_remaining_agent_attribution_gates_pending",
     "chemical_coverage": "selected_bounded_archetypes_not_exhaustive",
     "physical_fidelity": "model_card_bounded_not_universal_digital_twin"
   },
@@ -741,7 +776,7 @@
         "reaction-to-crystallization",
         "electrochemical-conversion"
       ],
-      "status": "gate_a_execution_pending"
+      "status": "gate_a_passed"
     },
     "extended": {
       "role": "environment_coverage_training_and_demonstration",
