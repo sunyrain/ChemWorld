@@ -25,13 +25,13 @@ Outcome alone was therefore insufficient.
 A frozen Safe-GP confirmation improved all four objectives and passed safety/cost rules. The flow effect was 0.018752
 against a pre-registered practical threshold of 0.020000, so the all-task claim remained failed.
 
-## Finding 3: controlled identifiability passes; the fixed four-action online certificate does not
+## Finding 3: the historical four-action certificate failed; calibrated RC28 Gate A passes
 
 Nine task–mode controls establish deterministic execution, local response separation, bounded response,
 conservation, and replay. At the preregistered four-experiment budget, the source-bound RC21 controlled matched
 oracle reaches 239/240 (99.58%) and passes. The separately bound online-policy-feasible oracle reaches 230/240
 (95.83%) overall, but the reaction `rate_law_family` reaches only 23/30, with a Wilson lower bound of 0.5907, so
-Gate A remains false. The same family reaches 30/30 in the controlled certificate; the reaction material family
+historical RC21 Gate A remained false. The same family reaches 30/30 in the controlled certificate; the reaction material family
 reaches 29/30 in both certificates.
 
 This family is an upstream, pivot-normalized catalyst-activity-order stress on the primary target pathway—not a
@@ -70,8 +70,24 @@ Gate A3 as online attainability of a reference diagnostic policy with truth supp
 number of completed old-world experiments. Reference sufficiency uses relation closure and within-campaign
 pre-change cross-fitting. Changed and never use separate denominators, and detection is reported at
 `k={1,2,4,8}`. A2, A3, and private confirmation each freeze 180 independent world clusters per task/family.
-The confirmatory-task semantics audit passes 25/25 and the physical design audit passes 83/83, but a new untouched
-RC28 A2/A3 execution is still required. RC21, RC22-d, and RC23 cannot be promoted into v0.3 confirmatory evidence.
+After the confirmatory-task semantics audit passed 25/25 and the physical
+design audit passed 83/83, any formal conclusion still had to come from a new
+untouched RC28 cohort. RC21, RC22-d, and RC23 cannot be promoted into v0.3
+confirmatory evidence.
+
+RC28 subsequently executed untouched formal cohorts under the calibrated
+protocol. A2 completed 4,896/4,896 receipts and passed at the primary
+five-experiment budget: active-oracle and fixed-decoder top-1 accuracy were
+both 98.26% (95% CI 97.45–98.82), with every task/family intersection passing.
+A3 completed 2,016/2,016 receipts. By `k=8`, the frozen reference policy reached
+99.17% reference sufficiency, 99.35% changed detection recall, 0.9990 AUROC,
+2.80% conditional no-change FPR, 98.03% conditional attribution, and 96.57%
+end-to-end success. The joint decision is `gate_a_pass=true` and
+`benchmark_ready=true`.
+
+This new result resolves the environment-attainability question, not the
+participant-Agent question. Gates B–E, Private-E/Private-A, cross-method
+provider results, and publication evidence remain incomplete.
 
 These results support environment-level identifiability diagnostics, not Agent-level mechanism discovery,
 crystallization-kinetics discovery, or exact rate-parameter identification.

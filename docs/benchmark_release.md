@@ -97,14 +97,20 @@ attainability，不认证参赛 Agent。Reference certificate 要求关系闭合
 cross-fitting 和参考新鲜度；changed 与 never 使用不同分母。Development、A2、A3 与 private
 confirmation cohort 互不重叠。确认性任务语义审计 25/25、物理设计审计 83/83 已通过；新增两项
 检查证明每个任务的 primary controlled budget 能在调度前闭合全部声明关系。该重构不改变
-RC21 历史结果，也不能在新的 untouched cohort
-执行前产生 v0.3 正式结论。
+RC21 历史结果。RC28 随后在新的 untouched cohort 上完成正式 A2/A3。
 
 RC28 保留上述 A3 科学设计、阈值和 cohort 规模；A2 保留 `k={2,4}` 诊断点并新增最小可行
 `k=5` primary certificate，同时硬化执行语义：正式 trial 使用 write-once receipt
 与 missing-only resume；changed/never 在共同语义坐标上使用 keyed observation noise；A3 指标在 A2
 完成前保持 embargo；Private confirmation 拆为环境证书复现 Private-E 与 participant-Agent 复现
 Private-A。A2 的 2/4/5 次配对诊断预算不再与 A3 的六次旧世界参照前缀混为同一个预算条件。
+
+RC28 正式运行完成 A2 4,896/4,896 和 A3 2,016/2,016 receipts，联合公开决策为
+`gate_a_pass=true`、`benchmark_ready=true`。A2 主预算 `k=5` 下 active oracle 与 fixed decoder
+top-1 均为 98.26%（95% CI 97.45–98.82），所有 task/family 交集通过。A3 在 `k=8` 的 reference
+sufficiency、changed recall、AUROC、条件归因和端到端成功率分别为 99.17%、99.35%、0.9990、
+98.03% 和 96.57%；条件 no-change FPR 为 2.80%，未条件化 horizon FPR 为 3.33%。完整分任务、
+分 family 和 `k={1,2,4,8}` 表见 [确认性基准任务](flagship_experiments.md)。
 
 使用 RC21 原始 fit/trial seed 和同一固定策略的非控制性 `k={1,2,4,8}` 延长曲线进一步得到：
 反应总体为 53/120、77/120、111/120、112/120，rate-law 为 0/30、10/30、23/30、23/30。
@@ -119,12 +125,14 @@ acquisition 策略：反应任务仅为 10/16（rate-law 3/4、topology 4/4、ma
 通过独立 selection validation。
 
 **支持的结论**：ChemWorld 能执行和回放预注册隐藏规律变化；在冻结候选 family、公共动作、测量
-和四次 post-change 实验预算下，受控 oracle 能完成机制诊断。当前固定策略在线 oracle 总体准确率
-较高，但尚不能对所有 change-time 同时稳定区分 rate-law、topology 与 material mapping。
+和五次 controlled 诊断预算下，受控 oracle 与固定 decoder 均能完成机制家族诊断。冻结 reference
+policy 能在未知变化时点与真值时先建立旧世界参照，再以较低 no-change 假阳性率检测变化并归因
+family。A1/A2/A3 环境前置证书已经通过。
 
 **不支持的结论**：Gate A 是环境可识别性证书，不是被评 Agent 的能力结果。该反应单元也不是
-“结晶速率律发现”或精确动力学参数辨识。尚不能声称 Agent 会识别这些变化、恢复性能、迁移到未见
-family，或适应现实机理；这些结论仍由 Gate B–E 和正式配对 provider 矩阵控制。
+“结晶速率律发现”或精确动力学参数辨识。仍不能声称 DeepSeek 或其他 participant Agent 会识别
+这些变化、恢复性能、迁移到未见 family，或适应现实机理；这些结论仍由尚未冻结和执行的 Gate B–E
+及正式配对 provider 矩阵控制。
 
 ## Finding 4：现有 RL 结果首先暴露了动作与训练合同问题
 

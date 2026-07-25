@@ -250,9 +250,11 @@ Safe-GP 改善目标并通过安全与成本规则，但一个任务未达到预
 
 ### 环境变化不等于 Agent 会适应
 
-隐藏机理与构成律变化具有可执行、守恒和回放控制，RC20 控制匹配可识别性证书已经通过；在线策略
-可行证书总体达到 227/240，但反应催化剂映射反事实仅识别 22/30，因此 Gate A 整体仍未通过，
-Agent 的识别与迁移解释保持关闭。这些是历史 RC20 结果；当前源码需要 RC21 重新认证。
+RC28 已在未触碰 cohort 上完成正式环境证书：A2 4,896/4,896、A3 2,016/2,016 receipts，
+五实验主预算的受控识别 top-1 为 98.26%，在线 reference policy 到 `k=8` 的端到端成功率为
+96.57%，因此 `gate_a_pass=true`、`benchmark_ready=true`。这证明 benchmark 在冻结条件下可求解，
+不证明 DeepSeek 或其他 Agent 会适应；Participant-Agent Gates B–E、Private confirmation 和
+跨 provider 方法矩阵仍待独立冻结与执行。
 
 </div>
 

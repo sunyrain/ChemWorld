@@ -26,12 +26,12 @@
 早期 Safe-GP 确证在四个任务上改善目标并满足安全/成本规则，但 flow effect 低于预注册实用阈值，
 所以整体主张仍然失败。ChemWorld 将这种边界失败保留为结果，而不是事后放宽阈值。
 
-## 发现三：受控可识别性通过，固定四动作在线证书仍未通过
+## 发现三：历史四动作在线证书失败；校准后的 RC28 Gate A 通过
 
 当前 material、mechanism 与 constitutive-law counterfactual 均由隐藏世界执行。源码绑定的 RC21
 正式结果在预算 4 下给出：controlled matched certificate 为 239/240（99.58%）并通过；独立
 online-policy-feasible certificate 为 230/240（95.83%），但反应 `rate_law_family` 仅识别
-23/30，其 Wilson 下界为 0.5907，因而 Gate A 仍为 false。同一 family 在受控证书中为 30/30；
+23/30，其 Wilson 下界为 0.5907，因而历史 RC21 Gate A 仍为 false。同一 family 在受控证书中为 30/30；
 反应 material family 在受控与在线证书中均为 29/30。
 
 该 rate-law family 绑定的是上游目标生成路径的 pivot-normalized catalyst-activity-order stress，
@@ -64,8 +64,18 @@ RC21 还暴露了一个更基础的协议问题：`change_time=1` 虽然在实�
 checkpoint。RC24 将 A3 明确为冻结 reference diagnostic policy 的 online attainability；
 reference certificate 使用关系闭合和 campaign 内 pre-change cross-fitting，changed 与 never
 分开定义分母，并在 `k={1,2,4,8}` 报告时序检测。A2/A3/private 每个任务/family 冻结 180 个独立
-world cluster。确认性任务语义审计 25/25、物理设计审计 83/83 通过，但 RC28 A2/A3 仍需新的未触碰
-cohort；RC21/RC22-d/RC23 不能升级为 v0.3 确证证据。
+world cluster。确认性任务语义审计 25/25、物理设计审计 83/83 通过后，正式结论仍必须来自新的
+RC28 未触碰 cohort；RC21/RC22-d/RC23 不能升级为 v0.3 确证证据。
+
+RC28 随后按校准协议在未触碰正式 cohort 上完成执行。A2 生成 4,896/4,896 receipts，并在五实验
+主预算通过：active oracle 与 fixed decoder top-1 均为 98.26%（95% CI 97.45–98.82），所有
+task/family 交集通过。A3 生成 2,016/2,016 receipts；到 `k=8`，冻结 reference policy 的参照充分率、
+changed 检测召回率、AUROC、条件 no-change FPR、条件归因率和端到端成功率分别为 99.17%、
+99.35%、0.9990、2.80%、98.03% 和 96.57%。联合决策为 `gate_a_pass=true`、
+`benchmark_ready=true`。
+
+该新结果解决的是环境在线可达性问题，不是 participant Agent 能力问题。Gate B–E、
+Private-E/Private-A、跨方法 provider 结果和发表证据仍未完成。
 
 这些结果只支持环境级可识别性诊断，不证明被评 Agent 已具备机制发现能力，也不代表发现了结晶动力学
 或精确速率参数。

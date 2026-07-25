@@ -150,7 +150,7 @@ ChemWorld 不声称穷尽化学空间、精确模拟全部材料体系或替代�
 | --- | --- | --- |
 | 结构完整性 | 隐藏世界—行动—状态演化—测量—反馈—下一实验链条闭合 | 按设计实现，并持续接受运行时控制 |
 | 评测完整性 | 结果、约束、资源、适应和自主性均有分开的评价合同 | 合同已定义，正式跨方法实证尚未闭合 |
-| 归因完整性 | 能区分不可识别、实验选择、反馈利用、行动恢复和生命周期失败 | 诊断协议已定义，机制 Gate A 仍阻塞 |
+| 归因完整性 | 能区分不可识别、实验选择、反馈利用、行动恢复和生命周期失败 | 环境 Gate A 已通过，Participant-Agent Gates B–E 待冻结执行 |
 
 因此规范边界句是：
 
@@ -207,5 +207,7 @@ changepoint support 与证书状态；Development、A2、A3、Private-E 和 Priv
 | 能把结果、反馈、评价和自治拆开 | 自报机制概率等于模型内部理解 |
 | 可被外部训练器使用 | ChemWorld 本身是一种训练算法 |
 
-当前候选后端和回放控制可运行；正式方法冻结仍阻塞，机制 Gate A 尚未通过，外部 Bridge 证据未完成。
-任何论文或 README 状态句都必须服从 `configs/current.json`，不能从软件功能自动升级成科学结论。
+当前候选后端和回放控制可运行；RC28 环境 Gate A 已通过并允许声称 benchmark prerequisites
+成立。Participant-Agent 方法、Gate B–E、Private-E/Private-A 和外部 Bridge 证据仍未完成。
+任何论文或 README 状态句都必须服从 `configs/current.json`，不能把环境可达性自动升级成 Agent
+能力或发表就绪结论。

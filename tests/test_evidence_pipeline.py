@@ -18,8 +18,9 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert len({node.path for node in nodes}) == len(nodes)
     assert {node.node_id for node in ordered} == {node.node_id for node in nodes}
     node_ids = {node.node_id for node in nodes}
-    assert "mechanism_gate_a" in node_ids
-    assert "mechanism_online_attainability_certificate" in node_ids
+    assert "mechanism_a2_structural_receipt" in node_ids
+    assert "mechanism_a3_structural_receipt" in node_ids
+    assert "mechanism_public_gate_a_decision" in node_ids
     assert "mechanism_diagnostic_relation_graph" in node_ids
     assert "mechanism_confirmatory_task_semantics_audit" in node_ids
     assert not any(node_id.startswith("ncs_") for node_id in node_ids)
@@ -32,22 +33,24 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     )
 
 
-def test_current_evidence_pipeline_records_new_gate_a_execution_as_pending() -> None:
+def test_current_evidence_pipeline_records_formal_gate_a_pass() -> None:
     pipeline = _pipeline()
     current = json.loads(pipeline["CURRENT_REGISTRY"].read_text(encoding="utf-8"))
 
     mechanism = current["mechanism_adaptation"]
-    assert mechanism["status"] == "gate_a_execution_pending"
-    assert mechanism["gate_a_pass"] is False
+    assert mechanism["status"] == "gate_a_passed_remaining_gates_pending"
+    assert mechanism["gate_a_pass"] is True
     assert mechanism["gate_a_certificate_status"] == {
         "a1_physical_intervention_validity": "passed",
-        "a2_controlled_matched_identifiability": "pending_execution",
-        "a3_online_attainability": "pending_execution",
+        "a2_controlled_matched_identifiability": "passed",
+        "a3_online_attainability": "passed",
     }
     assert (
         mechanism["gate_a_evidence_current"]
         is (
-            current["evidence_dag"]["nodes"]["mechanism_gate_a"]["artifact_state"]
+            current["evidence_dag"]["nodes"]["mechanism_public_gate_a_decision"][
+                "artifact_state"
+            ]
             == "current"
         )
     )
@@ -74,8 +77,11 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
         summary["mechanism_gate_a"]["evidence_current"]
         is current["mechanism_adaptation"]["gate_a_evidence_current"]
     )
-    assert summary["mechanism_gate_a"]["passed"] is False
-    assert summary["formal_benchmark"]["status"] == "environment_ready_methods_unfrozen"
+    assert summary["mechanism_gate_a"]["passed"] is True
+    assert (
+        summary["formal_benchmark"]["status"]
+        == "environment_gate_a_certified_methods_unfrozen"
+    )
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False
 
@@ -160,21 +166,22 @@ def test_gate_state_is_not_conflated_with_artifact_validity() -> None:
     )
     assert (
         pipeline["_node_gate_state"](
-            formal_nodes["mechanism_gate_a"], {"gate_a_pass": False}
+            formal_nodes["mechanism_public_gate_a_decision"],
+            {"gate_a_pass": False},
         )
         == "blocked"
     )
     assert (
         pipeline["_node_gate_state"](
-            formal_nodes["mechanism_online_attainability_certificate"],
-            {"gate_pass": False},
+            formal_nodes["mechanism_a2_structural_receipt"],
+            {"structurally_complete": False},
         )
         == "blocked"
     )
     assert (
         pipeline["_node_gate_state"](
-            formal_nodes["mechanism_online_attainability_certificate"],
-            {"gate_pass": True},
+            formal_nodes["mechanism_a3_structural_receipt"],
+            {"structurally_complete": True},
         )
         == "passed"
     )

@@ -60,11 +60,11 @@ Seed 通常改变初值、噪声或连续参数抽样，却可能保留同一因
 任务已建立实际 Provider 消费的机理或构成律族；低层控制审计在 5 个世界、5 个固定探针 recipe 上检查
 9 个任务—模式组合，验证确定性、局部响应分离、响应不过强和过程守恒。
 
-这些是**世界控制证据**，不证明候选 family 在给定实验预算内可识别，也不代表 Agent 已经学会适应。
-当前 RC20 决策相关性审计与控制匹配可识别性证书已经通过；在线策略可行证书总体达到 227/240，
-但反应催化剂映射反事实仅识别 22/30，未满足逐 family 规则，因此 Gate A 整体仍为 false。后续仍需
-修复在线诊断策略，并测量 change detection、identification accuracy、recovery experiments 与
-adaptation regret。这些是历史 RC20 结果；当前源码需要 RC21 重新认证。
+世界控制证据本身不证明候选 family 在给定预算内可识别，也不代表 Agent 已经学会适应。RC28 因此
+另行完成正式环境证书：A2 五实验主预算 top-1 为 98.26%，A3 冻结 reference policy 到 `k=8` 的
+端到端成功率为 96.57%，所有任务与 changed family 交集通过，`gate_a_pass=true`。这证明冻结
+benchmark 可在线求解；后续仍需用独立冻结的 Participant-Agent Gates B–E 测量 Agent 自身的
+change detection、feedback use、recovery 与 autonomy。
 
 ## 反事实世界可以检验名称先验
 

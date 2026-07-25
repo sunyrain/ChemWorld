@@ -53,13 +53,34 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     assert registry["project"]["environment_updates_agent_weights"] is False
     assert registry["formal_evaluation"]["formal_results_present"] is False
     assert registry["formal_evaluation"]["benchmark_claim_allowed"] is False
+    assert (
+        registry["formal_evaluation"]["environment_certificate_results_present"]
+        is True
+    )
+    assert (
+        registry["formal_evaluation"][
+            "environment_benchmark_readiness_claim_allowed"
+        ]
+        is True
+    )
     assert registry["mechanism_adaptation"]["publication_ready"] is False
     assert registry["mechanism_adaptation"]["new_external_provider_runs_completed"] is False
-    assert registry["mechanism_adaptation"]["gate_a_pass"] is False
+    assert registry["mechanism_adaptation"]["gate_a_pass"] is True
+    assert registry["mechanism_adaptation"]["benchmark_ready"] is True
     assert registry["mechanism_adaptation"][
-        "online_attainability_certificate_report"
+        "a2_structural_receipt"
     ].endswith(
-        "mechanism-adaptation-online-attainability-certificate-v0.9-rc28-pending.json"
+        "mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json"
+    )
+    assert registry["mechanism_adaptation"][
+        "a3_structural_receipt"
+    ].endswith(
+        "mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json"
+    )
+    assert registry["mechanism_adaptation"][
+        "public_decision_report"
+    ].endswith(
+        "mechanism-adaptation-public-decision-v0.1-rc28.json"
     )
     assert registry["mechanism_adaptation"]["release_qualification_pass"] is True
     assert registry["mechanism_adaptation"][
@@ -71,14 +92,19 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     ].endswith("confirmatory-task-semantics-audit-rc28.json")
     assert registry["mechanism_adaptation"]["gate_a_certificate_status"] == {
         "a1_physical_intervention_validity": "passed",
-        "a2_controlled_matched_identifiability": "pending_execution",
-        "a3_online_attainability": "pending_execution",
+        "a2_controlled_matched_identifiability": "passed",
+        "a3_online_attainability": "passed",
     }
-    assert registry["mechanism_adaptation"]["status"] == "gate_a_execution_pending"
+    assert (
+        registry["mechanism_adaptation"]["status"]
+        == "gate_a_passed_remaining_gates_pending"
+    )
     assert (
         registry["mechanism_adaptation"]["gate_a_evidence_current"]
         is (
-            registry["evidence_dag"]["nodes"]["mechanism_gate_a"]["artifact_state"]
+            registry["evidence_dag"]["nodes"][
+                "mechanism_public_gate_a_decision"
+            ]["artifact_state"]
             == "current"
         )
     )

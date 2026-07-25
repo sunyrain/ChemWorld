@@ -1501,9 +1501,16 @@ def test_campaign_selection_never_splits_changed_no_change_pairs() -> None:
 def test_current_registry_does_not_promote_method_development_to_environment_evidence() -> None:
     current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
     assert "development_evidence" not in current
-    assert current["formal_evaluation"]["status"] == "environment_ready_methods_unfrozen"
+    assert (
+        current["formal_evaluation"]["status"]
+        == "environment_gate_a_certified_methods_unfrozen"
+    )
     assert current["formal_evaluation"]["formal_results_present"] is False
     assert current["formal_evaluation"]["benchmark_claim_allowed"] is False
+    assert (
+        current["formal_evaluation"]["environment_certificate_results_present"]
+        is True
+    )
 
 
 def test_campaign_resume_rejects_a_stale_matrix_row(tmp_path: Path) -> None:

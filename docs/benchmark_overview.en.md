@@ -73,9 +73,13 @@ within-campaign cross-fitting, time-resolved detection, 180 independent clusters
 intersection gates. RC28 preserves those A3 scientific definitions while adding a minimum relation-union
 feasibility certificate for the primary controlled budget, write-once receipts, semantic-coordinate noise,
 metric embargo, and release qualification. The confirmatory-task semantics audit passes
-25/25 and the physical design audit passes 83/83;
-these remain design evidence, not a confirmatory run. Gate A stays false until new untouched A2/A3 certificates
-pass. Cross-method evaluation, real-LLM
-evaluation, private generalization, and external bridge evidence remain incomplete.
+25/25 and the physical design audit passes 83/83. RC28 then completed 4,896/4,896
+A2 receipts and 2,016/2,016 A3 receipts on the untouched formal cohorts. The
+joint decision is `gate_a_pass=true` and `benchmark_ready=true`: controlled
+top-1 accuracy is 98.26% at the primary five-experiment budget, and the online
+reference policy reaches 96.57% end-to-end success by `k=8` with 2.80%
+conditional no-change FPR. These are environment attainability results, not
+participant-Agent results. Cross-method evaluation, real-LLM evaluation,
+private confirmation, and external bridge evidence remain incomplete.
 
 Next: [Research Findings](research_findings.md) · [Real-world Bridge](real_world_bridge.md)

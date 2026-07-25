@@ -122,7 +122,8 @@ ChemWorld distinguishes:
 - **evaluation completeness:** outcomes, constraints, resources, adaptation, and autonomy have explicit contracts, but
   formal cross-method evidence remains incomplete;
 - **attribution completeness:** diagnostics are designed to separate under-identifiability, experiment choice,
-  feedback use, recovery, and lifecycle failure, but mechanism Gate A remains blocked.
+  feedback use, recovery, and lifecycle failure. Environment Gate A has passed;
+  participant-Agent Gates B–E remain to be frozen and executed.
 
 The normative boundary is:
 
@@ -161,5 +162,7 @@ An independent Agent counterfactual-prediction probe is still a future result ra
 The candidate backend and replay controls are operational. Method and result freezes are campaign-owned rather than
 repository-wide. Historical RC21 controlled matched identifiability passes at 239/240, but the online rate-law family
 is 23/30. Version 0.3 treats that result as evidence that reference acquisition and attribution were confounded, not
-as a physical-kernel failure. Gate A remains false pending a fresh calibrated A3 execution. External Bridge evidence
-is absent. Documentation and scientific claims must follow `configs/current.json`.
+as a physical-kernel failure. Formal RC28 A2/A3 now pass, establishing
+`gate_a_pass=true` and `benchmark_ready=true`. Participant-Agent methods,
+Gates B–E, Private-E/Private-A, and External Bridge evidence remain incomplete.
+Documentation and scientific claims must follow `configs/current.json`.

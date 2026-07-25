@@ -43,9 +43,10 @@ seed。
 质量守恒要求。这些阈值只证明干预可执行且不会被固定探针完全淹没，不证明候选 family 在相同动作、
 测量和实验预算下可识别，也不应解释为真实化学常数或物理精度验证。冻结候选版已将电化学
 `solvent` 与 `electrolyte_profile` 都变为公开可选的反事实坐标，并移除了 Agent 可见消息中的世界/机理
-身份字段。RC20 动作—干预设计审计与控制匹配可识别性证书已通过；在线策略可行证书总体达到
-227/240，但反应催化剂映射反事实仅识别 22/30，未满足逐 family 规则，因此 Gate A 整体仍为 false。
-这些是历史 RC20 结果；诊断设计合同版本化后，当前源码需要 RC21 重新认证。
+身份字段。历史 RC20 暴露了在线 reference 与 attribution 混淆；RC28 将参照建立、no-change、
+时序检测和 family 交集重新冻结后，在未触碰 cohort 上完成 A2/A3。五实验主预算的 active oracle
+与 fixed decoder top-1 均为 98.26%，A3 `k=8` 端到端成功率为 96.57%，因此环境 Gate A 已通过。
+该证书不评价 Participant Agent。
 
 ## Agent 能看到什么
 

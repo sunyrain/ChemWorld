@@ -124,12 +124,12 @@ Agent submission
 
 ## 当前状态
 
-World Engine、回放、资源合同和部分确认协议可运行。方法选择、训练、资源匹配和结果冻结由每个评测
-campaign 自行声明，当前仓库不捆绑正式跨方法排名。RC20 action/intervention 设计审计与控制匹配
-可识别性证书已经通过（235/240）；在线策略可行证书总体为 227/240，但反应催化剂映射反事实仅
-22/30，未满足 per-family Wilson 规则，因此 Gate A 整体仍为 false。这些是 RC20 历史结果；诊断设计
-合同版本化后，当前源码需要 RC21 重新认证。完整跨方法矩阵、真实 LLM、私有泛化和独立 Bridge
-证据仍未共同闭合。当前是 benchmark candidate。
+World Engine、回放、资源合同和环境确认协议可运行。方法选择、训练、资源匹配和结果冻结由每个评测
+campaign 自行声明，当前仓库不捆绑正式跨方法排名。RC28 已在未触碰 cohort 上完成 A2
+4,896/4,896 与 A3 2,016/2,016 receipts，联合决策为 `gate_a_pass=true`、
+`benchmark_ready=true`；五实验主预算受控识别 top-1 为 98.26%，A3 `k=8` 端到端成功率为
+96.57%。完整跨方法矩阵、真实 LLM、Participant-Agent Gates B–E、私有确认和独立 Bridge 证据仍未
+共同闭合，因此这是环境前置条件通过的 benchmark candidate，不是已完成的 Agent 排名 release。
 
 继续阅读：[公平评测协议](benchmark_protocol.md) · [研究发现与证据](benchmark_release.md) ·
 [提交、回放与私有评测](submission.md)

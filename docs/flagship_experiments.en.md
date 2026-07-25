@@ -28,18 +28,72 @@ API compatibility; they no longer define the scientific taxonomy.
 | Environment design candidate | passed |
 | Semantic protocol audit | passed, RC28 25/25 |
 | A1 physical validity | passed, RC28 83/83 design checks, including relational-budget feasibility |
-| A2 controlled identifiability | pending |
-| A3 online attainability | pending |
-| Participant-Agent Gates B–E | pending |
-| Private-E environment confirmation | sealed |
-| Private-A participant-Agent confirmation | sealed |
-| Benchmark ready | `false` |
+| A2 controlled identifiability | **passed**, 4,896/4,896 receipts |
+| A3 online attainability | **passed**, 2,016/2,016 receipts |
+| Participant-Agent Gates B–E | pending method/runner freeze |
+| Private-E environment confirmation | eligible, not yet executed |
+| Private-A participant-Agent confirmation | sealed pending participant freeze |
+| Benchmark ready | `true` |
 | Evidence complete | `false` |
 | Publication ready | `false` |
 
-The 25 semantic checks and 81 design checks are audit checks, not 106 independent
-pieces of scientific evidence. The protocol is executable and preregistrable,
-but no new A2/A3 confirmatory result exists yet.
+The 25 semantic checks and 83 design checks are audit checks, not 108 independent
+pieces of scientific evidence. RC28 completed formal A2/A3 and released both
+results in one joint decision: `gate_a_pass=true` and `benchmark_ready=true`.
+This certifies the environment's physical validity, budgeted identifiability,
+and online attainability prerequisites. It does not mean that DeepSeek or any
+other participant Agent passed Gates B–E, and it does not make
+`evidence_complete` or `publication_ready` true.
+
+## RC28 formal Gate A results
+
+### A2: controlled identifiability within budget
+
+Each budget contains 1,440 task × truth × world-cluster units. The frozen
+primary budget is `k=5`:
+
+| Budget | Active-oracle top-1 (95% CI) | Fixed-decoder top-1 (95% CI) | Family intersection |
+| --- | --- | --- | --- |
+| 2 | 93.75% (92.38–94.89) | 94.44% (93.14–95.51) | fail |
+| 4 | 98.47% (97.70–98.99) | 95.35% (94.13–96.32) | decoder fail |
+| **5 (primary)** | **98.26% (97.45–98.82)** | **98.26% (97.45–98.82)** | **pass** |
+
+The active oracle already attained high sampled-cohort accuracy at `k=4`, but
+four electrochemical actions cannot provide a complete structural witness for
+the five-action relation union, and the fixed decoder's family intersection
+still failed. The formal certificate therefore remains correctly bound to
+`k=5`; the favorable `k=4` oracle result cannot retroactively redefine the
+primary gate.
+
+At `k=5`, recall was 100% for the electrochemical constitutive, solvent-map,
+electrolyte-profile-map, and no-change truths. Reaction-to-crystallization
+recall was 98.33% for rate law, 98.89% for topology, 88.89% for material
+mapping, and 100% for no change. The weakest material-map 95% lower bound was
+83.46%, above the frozen 70% family bound.
+
+### A3: online reference, detection, and attribution
+
+The frozen reference policy receives no change time, minimum stable prefix,
+truth, or reference certificate. Its overall adaptation curve is:
+
+| Post-change k | Detection recall | AUROC | Conditional FPR | Mean Brier | Conditional attribution | End-to-end success |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 83.10% | 0.9703 | 0.84% | 0.0641 | 88.65% | 73.06% |
+| 2 | 93.46% | 0.9965 | 1.12% | 0.0446 | 95.50% | 88.52% |
+| 4 | 98.88% | 0.9987 | 1.96% | 0.0331 | 97.54% | 95.65% |
+| **8** | **99.35%** | **0.9990** | **2.80%** | **0.0263** | **98.03%** | **96.57%** |
+
+The table's FPR is conditional on a sufficient reference; the unconditional
+no-change horizon FPR was 3.33%. Overall reference sufficiency was 99.17%, and
+the observed-event mean delay was 1.233 post-change experiments. At `k=8`,
+end-to-end success was 98.33% for electrochemical conversion and 94.81% for
+reaction-to-crystallization. All six changed families passed separately; the
+weakest was the reaction-to-crystallization material map at 93.33%.
+
+These numbers certify benchmark attainability demonstrated by the frozen
+reference diagnostic policy, not participant-Agent capability. Gates B–E
+require an independently frozen method, prompt, runner, sample size, and
+provider-cost contract.
 
 ## What A1, A2, and A3 certify
 
@@ -235,5 +289,8 @@ results.
 - Relation graph: `mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc28.json`
 - Semantic audit: `confirmatory-task-semantics-audit-rc28.json`
 - Release qualification: `mechanism-adaptation-release-qualification-v0.1-rc28.json`
+- A2 structural receipt: `mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json`
+- A3 structural receipt: `mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json`
+- Joint public decision: `mechanism-adaptation-public-decision-v0.1-rc28.json`
 - Participant-Agent preregistration candidate: `configs/benchmark/mechanism_adaptation_participant_preregistration_rc28.json`
 - Current-state source: `configs/current.json`

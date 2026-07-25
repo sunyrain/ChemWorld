@@ -24,17 +24,60 @@ Showcase 卡片不是确认性证据；确认性任务也不必出现在首页�
 | Environment design candidate | passed |
 | Semantic protocol audit | passed，RC28 25/25 |
 | A1 physical validity | passed，RC28 83/83 设计检查（含关系预算可行性） |
-| A2 controlled identifiability | pending |
-| A3 online attainability | pending |
-| Participant-Agent Gates B–E | pending |
-| Private-E environment confirmation | sealed |
-| Private-A participant-Agent confirmation | sealed |
-| Benchmark ready | `false` |
+| A2 controlled identifiability | **passed**，4,896/4,896 receipts |
+| A3 online attainability | **passed**，2,016/2,016 receipts |
+| Participant-Agent Gates B–E | pending method/runner freeze |
+| Private-E environment confirmation | eligible，尚未执行 |
+| Private-A participant-Agent confirmation | sealed，等待 participant freeze |
+| Benchmark ready | `true` |
 | Evidence complete | `false` |
 | Publication ready | `false` |
 
-25 项语义检查和 81 项设计检查是两份审计中的检查项，不代表 106 份独立科学证据。当前已经具备可执行、
-可预注册的协议，但尚无新的 A2/A3 确认性结果。
+25 项语义检查和 83 项设计检查是两份审计中的检查项，不代表 108 份独立科学证据。RC28 已完成正式
+A2/A3，并于同一联合决策中解封结果：`gate_a_pass=true`、`benchmark_ready=true`。这只表示环境的
+物理有效性、预算内可识别性和在线可达性前置条件已通过；它不表示 DeepSeek 或其他 participant Agent
+已经通过 Gate B–E，也不使 `evidence_complete` 或 `publication_ready` 自动变为 true。
+
+## RC28 正式 Gate A 结果
+
+### A2：预算内受控可识别性
+
+每个预算包含 1,440 个 task × truth × world-cluster 单元。冻结的主预算是 `k=5`：
+
+| 预算 | Active oracle top-1（95% CI） | Fixed decoder top-1（95% CI） | family 交集 |
+| --- | --- | --- | --- |
+| 2 | 93.75%（92.38–94.89） | 94.44%（93.14–95.51） | fail |
+| 4 | 98.47%（97.70–98.99） | 95.35%（94.13–96.32） | decoder fail |
+| **5（primary）** | **98.26%（97.45–98.82）** | **98.26%（97.45–98.82）** | **pass** |
+
+`k=4` 的 active oracle 在该 cohort 上已经能得到高准确率，但电化学五动作关系并集不能在四动作内形成
+完整结构见证，而且 fixed decoder 的 family 交集仍未通过。因此正式证书仍正确绑定 `k=5`，不能事后
+把较好的 `k=4` oracle 结果改成主门槛。
+
+在 `k=5`，电化学的 constitutive、solvent mapping、electrolyte-profile mapping 和 no-change
+召回率均为 100%。反应–结晶的 rate-law、topology、material mapping 和 no-change 召回率分别为
+98.33%、98.89%、88.89% 和 100%；最弱的 material mapping 95% 下界仍为 83.46%，高于冻结的
+70% family 下界。
+
+### A3：在线参照、检测与归因
+
+冻结 reference policy 不接收变化时点、最短稳定前缀、真值或 reference certificate。总体适应曲线为：
+
+| post-change k | 检测 recall | AUROC | 条件 FPR | mean Brier | 条件归因 | 端到端成功 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 83.10% | 0.9703 | 0.84% | 0.0641 | 88.65% | 73.06% |
+| 2 | 93.46% | 0.9965 | 1.12% | 0.0446 | 95.50% | 88.52% |
+| 4 | 98.88% | 0.9987 | 1.96% | 0.0331 | 97.54% | 95.65% |
+| **8** | **99.35%** | **0.9990** | **2.80%** | **0.0263** | **98.03%** | **96.57%** |
+
+这里的 FPR 是在 reference sufficient 条件下计算；未条件化的 no-change horizon FPR 为 3.33%。
+总体 reference sufficient rate 为 99.17%，检测到事件的平均延迟为 1.233 个 post-change 实验。
+`k=8` 时电化学和反应–结晶的端到端成功率分别为 98.33% 和 94.81%；六个 changed family 均单独
+通过，最弱的是反应–结晶 material mapping（93.33% 端到端成功）。
+
+这些数字认证的是冻结 reference diagnostic policy 所证明的 benchmark attainability，而不是
+participant Agent 的能力。后者必须使用独立冻结的方法、prompt、runner、样本量和 provider 成本契约
+进入 Gate B–E。
 
 ## A1、A2、A3 分别认证什么
 
@@ -227,5 +270,8 @@ Pooled micro-average 仅作补充，不能用一个容易任务掩盖另一个�
 - 诊断关系图：`mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc28.json`
 - 统一语义审计：`confirmatory-task-semantics-audit-rc28.json`
 - 发布资格：`mechanism-adaptation-release-qualification-v0.1-rc28.json`
+- A2 结构回执：`mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json`
+- A3 结构回执：`mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json`
+- 联合公开决策：`mechanism-adaptation-public-decision-v0.1-rc28.json`
 - Participant-Agent 预注册候选：`configs/benchmark/mechanism_adaptation_participant_preregistration_rc28.json`
 - 当前状态真源：`configs/current.json`
