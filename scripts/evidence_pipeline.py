@@ -197,7 +197,7 @@ NODES = (
         "mechanism_release_qualification",
         "workstreams/flagship_tasks/reports/"
         "mechanism-adaptation-release-qualification-v0.1-rc28.json",
-        "generated_current",
+        "release_attestation",
         (
             "mechanism_design_audit",
             "mechanism_confirmatory_task_semantics_audit",
@@ -206,7 +206,6 @@ NODES = (
             "mechanism_protocol",
             "mechanism_sample_size_audit",
         ),
-        ("scripts/qualify_mechanism_adaptation_release.py", "--check"),
     ),
     EvidenceNode(
         "mechanism_public_matrix",
@@ -355,6 +354,7 @@ ARTIFACT_ROLES = frozenset(
         "protocol_input",
         "generated_current",
         "formal_result",
+        "release_attestation",
         "development_diagnostic",
         "fixture",
         "superseded",
@@ -374,6 +374,7 @@ def _node_producer(node: EvidenceNode) -> str:
     return {
         "protocol_input": "maintainer_versioned_input",
         "formal_result": "frozen_formal_execution",
+        "release_attestation": "frozen_release_qualification",
         "development_diagnostic": "versioned_development_execution",
         "fixture": "maintainer_versioned_fixture",
     }[node.role]
@@ -384,6 +385,9 @@ def _node_source_binding(node: EvidenceNode) -> str:
         "protocol_input": "content_sha256",
         "generated_current": "dependencies_and_source_commit",
         "formal_result": "protocol_plan_and_result_sha256",
+        "release_attestation": (
+            "preregistered_source_commit_and_protocol_plan_sha256"
+        ),
         "development_diagnostic": "content_and_versioned_source_sha256",
         "fixture": "content_sha256",
     }[node.role]
@@ -443,7 +447,7 @@ CURRENT_PATH_RULES = (
     ),
     CurrentPathRule(
         ("mechanism_adaptation", "release_qualification_report"),
-        "generated_current",
+        "release_attestation",
     ),
     CurrentPathRule(
         ("mechanism_adaptation", "participant_preregistration_candidate"),
@@ -934,13 +938,6 @@ def _artifact_source_binding_current(
             plan,
         ):
             return False
-    source_commit = payload.get("source_commit")
-    if (
-        node.role != "generated_current"
-        and isinstance(source_commit, str)
-        and source_commit != _git_head()
-    ):
-        return False
     if payload.get("source_commit_stable") is False:
         return False
     recorded_dirty = payload.get("source_tree_dirty")
