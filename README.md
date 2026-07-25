@@ -125,8 +125,8 @@ Current evidence establishes the following boundaries:
   decision-first Agent prompt capped at an estimated 1,500 tokens. The confirmatory-task semantic audit passes 25/25 and the physical
   action/intervention audit passes 83/83. Formal RC28 completed A2 at 4,896/4,896 receipts and A3 at
   2,016/2,016 receipts; the joint decision is `gate_a_pass=true` and `benchmark_ready=true`. This certifies
-  environment attainability, while participant-Agent Gates B–E remain unfrozen and mechanism-discovery claims
-  for DeepSeek or any other Agent remain unsupported;
+  environment attainability. Gate A now establishes environment-level identifiability, while participant-Agent
+  Gates B–E remain unfrozen; mechanism-discovery claims remain unsupported for DeepSeek or any other Agent;
 - LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 
 See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.

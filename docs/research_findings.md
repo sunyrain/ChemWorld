@@ -72,7 +72,7 @@ RC28 随后按校准协议在未触碰正式 cohort 上完成执行。A2 生成 
 task/family 交集通过。A3 生成 2,016/2,016 receipts；到 `k=8`，冻结 reference policy 的参照充分率、
 changed 检测召回率、AUROC、条件 no-change FPR、条件归因率和端到端成功率分别为 99.17%、
 99.35%、0.9990、2.80%、98.03% 和 96.57%。联合决策为 `gate_a_pass=true`、
-`benchmark_ready=true`。
+`benchmark_ready=true`，Gate A 总状态为 true。
 
 该新结果解决的是环境在线可达性问题，不是 participant Agent 能力问题。Gate B–E、
 Private-E/Private-A、跨方法 provider 结果和发表证据仍未完成。

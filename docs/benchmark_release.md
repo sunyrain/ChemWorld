@@ -79,7 +79,7 @@ pivot-normalized catalyst-activity-order stress”，并证明只有 `target_for
 当前源码绑定的 RC21 在全新平衡 held-out cohort 上完成了两张独立证书：预算 4 的 controlled matched
 oracle 为 239/240（99.58%）并通过；在线策略可行 oracle 总体为 230/240（95.83%），但反应
 `rate_law_family` 仅为 23/30，Wilson 下界 0.5907，未满足逐 family 规则。该 family 在受控证书中为
-30/30，反应 material family 在两份证书中均为 29/30，因此 Gate A 整体仍为 false。
+30/30，反应 material family 在两份证书中均为 29/30，因此 RC21 未通过 Gate A。
 
 非控制性的 RC22-d 开发诊断使用相互独立的 fit、policy-selection validation 与 trial namespace，
 检查全部 11 个合规四动作集合。所有集合均未通过按 world 聚类的 validation，最佳最弱 family 为
@@ -106,7 +106,7 @@ RC28 保留上述 A3 科学设计、阈值和 cohort 规模；A2 保留 `k={2,4}
 Private-A。A2 的 2/4/5 次配对诊断预算不再与 A3 的六次旧世界参照前缀混为同一个预算条件。
 
 RC28 正式运行完成 A2 4,896/4,896 和 A3 2,016/2,016 receipts，联合公开决策为
-`gate_a_pass=true`、`benchmark_ready=true`。A2 主预算 `k=5` 下 active oracle 与 fixed decoder
+`gate_a_pass=true`、`benchmark_ready=true`，Gate A 整体因此通过。A2 主预算 `k=5` 下 active oracle 与 fixed decoder
 top-1 均为 98.26%（95% CI 97.45–98.82），所有 task/family 交集通过。A3 在 `k=8` 的 reference
 sufficiency、changed recall、AUROC、条件归因和端到端成功率分别为 99.17%、99.35%、0.9990、
 98.03% 和 96.57%；条件 no-change FPR 为 2.80%，未条件化 horizon FPR 为 3.33%。完整分任务、

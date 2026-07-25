@@ -83,7 +83,7 @@ A3 completed 2,016/2,016 receipts. By `k=8`, the frozen reference policy reached
 99.17% reference sufficiency, 99.35% changed detection recall, 0.9990 AUROC,
 2.80% conditional no-change FPR, 98.03% conditional attribution, and 96.57%
 end-to-end success. The joint decision is `gate_a_pass=true` and
-`benchmark_ready=true`.
+`benchmark_ready=true`, so Gate A is true.
 
 This new result resolves the environment-attainability question, not the
 participant-Agent question. Gates B–E, Private-E/Private-A, cross-method
