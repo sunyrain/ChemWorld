@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -627,7 +655,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -655,7 +683,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1203,6 +1231,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1481,7 +1537,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2080,6 +2136,17 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
+        三层结果字段
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         导出一份数据集
       
     </span>
@@ -2099,7 +2166,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         示例
@@ -2121,7 +2188,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         发布前检查
@@ -2280,34 +2347,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2364,6 +2403,17 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
+        三层结果字段
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         导出一份数据集
       
     </span>
@@ -2383,7 +2433,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         示例
@@ -2405,7 +2455,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         发布前检查
@@ -2454,7 +2504,7 @@
 <tbody>
 <tr>
 <td>trajectory JSONL</td>
-<td>每一步 action、observation、reward、termination、info、contract hash 和 replay metadata</td>
+<td>每一步 action、三层 outcome、termination、contract hash 和 replay metadata</td>
 </tr>
 <tr>
 <td>agent view</td>
@@ -2474,7 +2524,37 @@
 </tr>
 </tbody>
 </table>
-<h2 id="_3">导出一份数据集<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h2 id="_3">三层结果字段<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>Trajectory v0.2 不再把物理结果、Agent 反馈和正式评价混称为 <code>outcome</code>：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>environment_outcome</code></td>
+<td>世界/运行时实际产生的 observation、事务、状态摘要、仪器和资源后果</td>
+</tr>
+<tr>
+<td><code>agent_visible_observation</code></td>
+<td>当前反馈条件真正释放给 Agent 的 observation、标准视图与 observed reward</td>
+</tr>
+<tr>
+<td><code>evaluation_outcome</code></td>
+<td>真实 online reward、final score、reward source 与 scoring contract 绑定</td>
+</tr>
+</tbody>
+</table>
+<p>反馈延迟、删除或置换实验只能修改 <code>agent_visible_observation</code>；另外两层必须保持与同一 world seed、动作和
+真实执行配对。<code>observation</code>、<code>reward</code>、<code>agent_view</code>、<code>leaderboard_score</code> 和 <code>benchmark_task_id</code> 暂时作为
+v0.1 兼容别名保留。</p>
+<p>v0.2 中 <code>task_id</code> 是稳定 Task Contract 标识，<code>run_id</code> 是带执行上下文的运行标识；<code>campaign_id</code> 对应
+一个 Agent 在一个 <code>Task × Scenario × Seed</code> 上的研究运行。读取历史 v0.1 数据时，稳定任务名仍从
+<code>benchmark_task_id</code> 获取。</p>
+<h2 id="_4">导出一份数据集<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>chemworld<span class="w"> </span>datasets<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--submission<span class="w"> </span>runs/example_submission/trajectories/tool_stub.jsonl<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--format<span class="w"> </span>jsonl<span class="w"> </span><span class="se">\</span>
@@ -2533,7 +2613,7 @@ chemworld<span class="w"> </span>datasets<span class="w"> </span>card<span class
 </tbody>
 </table>
 <p>这些字段只来自 public observation、task prompt、validator result 和 agent 自己的公开行为摘要，不允许读取 hidden ledgers、rate constants、private scenario 参数或 debug truth。</p>
-<h2 id="_4">示例<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h2 id="_5">示例<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>运行：</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/demo_dataset_agent_trace_export.py
 </code></pre></div>
@@ -2556,9 +2636,10 @@ chemworld<span class="w"> </span>datasets<span class="w"> </span>card<span class
 <li>known limitations。</li>
 </ul>
 <p>公开发布数据集前，应检查 dataset card 中的 privacy 字段，尤其是 human pilot trajectory、explanation 文本和 agent metadata。</p>
-<h2 id="_5">发布前检查<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<h2 id="_6">发布前检查<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <ul>
 <li>每条 trajectory 必须通过 schema validation。</li>
+<li>新生成数据应使用 <code>chemworld-trajectory-0.2</code>；v0.1 只作为历史读取兼容。</li>
 <li>每个公开 dataset 应能追溯到 task id、scenario id、mechanism hash、seed、commit hash 和生成命令。</li>
 <li><code>agent_view</code> 与 <code>agent_trace</code> 必须是 public-facing；不能泄露 hidden species id、hidden amounts、rate constants 或 private-eval 参数。</li>
 <li>replay verification 不通过的数据集不能作为 benchmark artifact 发布。</li>
@@ -2600,7 +2681,7 @@ chemworld<span class="w"> </span>datasets<span class="w"> </span>card<span class
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -627,7 +655,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -655,7 +683,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1203,6 +1231,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1481,7 +1537,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2249,6 +2305,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        浏览六个研究任务 Demo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2311,34 +2378,6 @@
     
   
     伦理与数据
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
   
 
     
@@ -2486,6 +2525,17 @@
     <span class="md-ellipsis">
       
         运行端到端闭环 Notebook
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        浏览六个研究任务 Demo
       
     </span>
   </a>
@@ -2664,6 +2714,53 @@ debug 信息塞进同一页。</p>
 </tbody>
 </table>
 <p>它们不是最高分策略，而是可验证流程模板：每份都包含 planning、execution、spectra、metrics 和 reflection。</p>
+<h2 id="demo">浏览六个研究任务 Demo<a class="headerlink" href="#demo" title="Permanent link">&para;</a></h2>
+<p><code>notebooks/task_demos/</code> 一一覆盖当前六个 serious research tasks。与上面的流程教学不同，这组 Demo
+把操作看作干预、把测量看作公开反馈，重点展示同一干预在不同隐藏规律下产生的可观测差异。</p>
+<table>
+<thead>
+<tr>
+<th>Notebook</th>
+<th>Task</th>
+<th>World-model 观察重点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>01_partition_discovery.ipynb</code></td>
+<td><code>partition-discovery</code></td>
+<td>分配构成律与相条件响应</td>
+</tr>
+<tr>
+<td><code>02_reaction_crystallization.ipynb</code></td>
+<td><code>reaction-to-crystallization</code></td>
+<td>上游动力学到下游结晶的耦合传播</td>
+</tr>
+<tr>
+<td><code>03_reaction_distillation.ipynb</code></td>
+<td><code>reaction-to-distillation</code></td>
+<td>隐藏反应通道与馏分反馈</td>
+</tr>
+<tr>
+<td><code>04_flow_reaction.ipynb</code></td>
+<td><code>flow-reaction-optimization</code></td>
+<td>流量、停留时间、温度与速率律</td>
+</tr>
+<tr>
+<td><code>05_electrochemical_conversion.ipynb</code></td>
+<td><code>electrochemical-conversion</code></td>
+<td>诊断反馈与电化学构成律</td>
+</tr>
+<tr>
+<td><code>06_equilibrium_characterization.ipynb</code></td>
+<td><code>equilibrium-characterization</code></td>
+<td>浓度探针与非理想平衡响应</td>
+</tr>
+</tbody>
+</table>
+<p>每份 notebook 都读取公开 task card，使用任务自身的 recipe adapter 生成三组候选干预，展示完整测量
+轨迹，并执行一次 World A/World B 配对控制。配对条件由教学代码构造；Agent-facing 数据不会包含
+隐藏机理名称、参数或 hidden state。这些 notebook 展示环境能力，不实现或要求特定训练算法。</p>
 <h2 id="_7">完成十二天教程<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
 <p>课程应先让学生理解 <code>reset</code>、<code>step</code>、<code>info</code> 和 <code>constraint_flags</code>，再逐步引入
 reaction、separation、spectroscopy、world-model learning 和 tool-agent planning。</p>
@@ -2704,7 +2801,7 @@ reaction、separation、spectroscopy、world-model learning 和 tool-agent plann
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

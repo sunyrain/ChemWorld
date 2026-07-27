@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A replayable causal virtual chemistry laboratory for training and evaluating experimental agents.">
+        <meta name="description" content="A replayable causal physical-chemistry environment for training and evaluating experimental agents.">
       
       
       
@@ -465,10 +465,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#core-bench-lab-bridge" class="md-nav__link">
+  <a href="#system-layers-and-product-surfaces" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core, Bench, Lab, Bridge
+        System layers and product surfaces
       
     </span>
   </a>
@@ -527,6 +527,34 @@
     
   
     Causal Worlds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Model
   
 
     
@@ -609,6 +637,34 @@
     
   
     Benchmark Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Confirmatory Benchmark Tasks
   
 
     
@@ -799,10 +855,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#core-bench-lab-bridge" class="md-nav__link">
+  <a href="#system-layers-and-product-surfaces" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core, Bench, Lab, Bridge
+        System layers and product surfaces
       
     </span>
   </a>
@@ -836,6 +892,13 @@
 <p>Experimental competence grows through interaction, yet real chemistry cannot supply failures at the scale, speed,
 or safety profile available to language or game agents. ChemWorld therefore builds controlled causal worlds in
 which experimental strategy can be trained, compared, and falsified.</p>
+<blockquote>
+<p><strong>ChemWorld unifies a physical causal world substrate, an experimental interaction runtime, and task/evaluation
+contracts so that search, execution, identification, and adaptation can be studied as one experimental-intelligence
+problem.</strong></p>
+</blockquote>
+<p>The agent, trainer, and model weights remain outside these layers. ChemWorld may provide training interactions or
+evaluate a fixed-weight model, but the environment does not update agent weights or maintain its internal world model.</p>
 <h2 id="what-static-data-leaves-out">What static data leaves out<a class="headerlink" href="#what-static-data-leaves-out" title="Permanent link">&para;</a></h2>
 <p>Existing data can test factual knowledge and outcome prediction. It does not fully test whether an agent can:</p>
 <ul>
@@ -856,8 +919,32 @@ which experimental strategy can be trained, compared, and falsified.</p>
 Even a detailed simulator may teach simulator-specific shortcuts. ChemWorld keeps the public experimental contract
 stable while changing hidden causal rules, allowing adaptation itself to become the object of study.</p>
 <p>Meaningful virtual worlds still require conservation, causal coupling, partial observability, declared domains, and
-replay. The Core targets decision and causal validity before universal numerical fidelity.</p>
-<h2 id="core-bench-lab-bridge">Core, Bench, Lab, Bridge<a class="headerlink" href="#core-bench-lab-bridge" title="Permanent link">&para;</a></h2>
+replay. The Engine targets decision and causal validity before universal numerical fidelity.</p>
+<h2 id="system-layers-and-product-surfaces">System layers and product surfaces<a class="headerlink" href="#system-layers-and-product-surfaces" title="Permanent link">&para;</a></h2>
+<p>The normative system has three layers:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Physical Causal World Substrate</td>
+<td>What hidden physical worlds can exist, change, and produce outcomes?</td>
+</tr>
+<tr>
+<td>Experimental Interaction Runtime</td>
+<td>How does an agent execute experiments, measurements, failures, and lifecycle actions?</td>
+</tr>
+<tr>
+<td>Task and Evaluation Contract</td>
+<td>What must be achieved, what is visible, what is budgeted, and how is performance evaluated?</td>
+</tr>
+</tbody>
+</table>
+<p>Engine, Bench, Lab, and Bridge are user-facing product surfaces rather than architectural layers:</p>
 <table>
 <thead>
 <tr>
@@ -868,8 +955,8 @@ replay. The Core targets decision and causal validity before universal numerical
 </thead>
 <tbody>
 <tr>
-<td>ChemWorld Engine / Core</td>
-<td>Worlds, transitions, instruments, interventions, replay</td>
+<td>ChemWorld Engine</td>
+<td>World substrate, runtime, instruments, interventions, replay</td>
 <td>Operational and evolving</td>
 </tr>
 <tr>
@@ -889,6 +976,8 @@ replay. The Core targets decision and causal validity before universal numerical
 </tr>
 </tbody>
 </table>
+<p>ChemWorld targets structural completeness of the interaction stack across selected physical-chemistry archetypes;
+chemical coverage and numerical fidelity are bounded and explicitly declared, not exhaustive.</p>
 <p>Next: <a href="../experimental_intelligence/">Experimental Intelligence</a> · <a href="../causal_worlds/">Causal Worlds</a></p>
 
 
@@ -927,7 +1016,7 @@ replay. The Core targets decision and causal validity before universal numerical
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · Causal virtual experimental worlds, not instructions for physical laboratory work
+      ChemWorld · Mechanistic world models and agent evaluation, not instructions for physical laboratory work
     </div>
   
   

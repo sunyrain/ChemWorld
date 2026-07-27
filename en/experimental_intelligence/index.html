@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A replayable causal virtual chemistry laboratory for training and evaluating experimental agents.">
+        <meta name="description" content="A replayable causal physical-chemistry environment for training and evaluating experimental agents.">
       
       
       
@@ -493,6 +493,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#declared-predictive-and-actionable-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declared, predictive, and actionable evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#memory-operates-at-two-scales" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -538,6 +549,34 @@
     
   
     Causal Worlds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Model
   
 
     
@@ -620,6 +659,34 @@
     
   
     Benchmark Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Confirmatory Benchmark Tasks
   
 
     
@@ -810,6 +877,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#declared-predictive-and-actionable-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declared, predictive, and actionable evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#memory-operates-at-two-scales" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -858,6 +936,9 @@
 <p>Experimental intelligence turns knowledge into falsifiable action. An agent must identify what remains unknown,
 choose operations or measurements that can resolve it, revise explanations when evidence disagrees, and keep moving
 under safety, cost, and time constraints.</p>
+<p>Formally, it is the capacity to acquire evidence, construct and revise actionable world models, and adapt decisions
+through constrained interaction with partially observed physical systems. A world model may reside in weights,
+context, external memory, an explicit belief state, or a surrogate. ChemWorld neither prescribes nor updates it.</p>
 <h2 id="six-capabilities">Six capabilities<a class="headerlink" href="#six-capabilities" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -900,6 +981,16 @@ channel most likely to reduce decision-relevant uncertainty.</p>
 <p>Invalid preconditions, uninformative measurements, unsafe proposals, and poor hypotheses are recorded rather than
 silently repaired. Recovery quality—recognizing the failure, selecting a corrective step, and avoiding repetition—is
 an experimental capability.</p>
+<h2 id="declared-predictive-and-actionable-evidence">Declared, predictive, and actionable evidence<a class="headerlink" href="#declared-predictive-and-actionable-evidence" title="Permanent link">&para;</a></h2>
+<p>Mechanism understanding is not a single label-accuracy score:</p>
+<ol>
+<li><strong>Declared:</strong> the agent reports a mechanism distribution or change probability;</li>
+<li><strong>Predictive:</strong> it predicts the result of an unexecuted intervention;</li>
+<li><strong>Actionable:</strong> that judgment changes the next experiment and improves recovery or regret.</li>
+</ol>
+<p>The evidence chain is declaration → counterfactual prediction → action change → task recovery. Current mechanism
+protocols mainly cover declaration and action diagnostics; an independent predictive probe remains future protocol
+work.</p>
 <h2 id="memory-operates-at-two-scales">Memory operates at two scales<a class="headerlink" href="#memory-operates-at-two-scales" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Within an experiment: what has entered the vessel and what conditions it has experienced.</li>
@@ -950,7 +1041,7 @@ guess fails.</strong></p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · Causal virtual experimental worlds, not instructions for physical laboratory work
+      ChemWorld · Mechanistic world models and agent evaluation, not instructions for physical laboratory work
     </div>
   
   

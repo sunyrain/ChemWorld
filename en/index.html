@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A replayable causal virtual chemistry laboratory for training and evaluating experimental agents.">
+        <meta name="description" content="A replayable causal physical-chemistry environment for training and evaluating experimental agents.">
       
       
       
@@ -354,6 +354,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#current-formal-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current formal evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#why-a-world-engine" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -536,6 +547,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -605,6 +644,34 @@
     
   
     Benchmark Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Confirmatory Benchmark Tasks
   
 
     
@@ -762,6 +829,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#current-formal-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current formal evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#why-a-world-engine" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -829,7 +907,7 @@
 <p><span class="cw-eyebrow">A causal world engine for experimental intelligence</span></p>
 <h1 id="give-experimental-intelligence-its-own-world-engine">Give experimental intelligence its own world engine<a class="headerlink" href="#give-experimental-intelligence-its-own-world-engine" title="Permanent link">&para;</a></h1>
 <p><strong>Static benchmarks ask what a model knows. ChemWorld asks how it experiments when the answer is hidden.</strong></p>
-<p>ChemWorld is a replayable causal virtual laboratory. Under partial observability, finite budgets, and operational
+<p>ChemWorld is a replayable causal world-model environment. Under partial observability, finite budgets, and operational
 constraints, agents choose operations and measurements, form hypotheses, and revise strategies from evidence.
 Hidden kinetics, phase behavior, and process rules can change while the public task remains stable, so memorizing one
 optimal recipe is not enough.</p>
@@ -846,6 +924,23 @@ making scalable, comparable, and falsifiable.</p>
   <span class="cw-pill">BO · RL · LLM · World Models</span>
 </div>
 </section>
+<h2 id="current-formal-evidence">Current formal evidence<a class="headerlink" href="#current-formal-evidence" title="Permanent link">&para;</a></h2>
+<p>Two fixed-world scientific-optimization campaigns are now complete for
+<code>gpt-5.6-sol high</code>. Across five world seeds and 20 complete experiments per
+seed, blind final means were 0.3902 for electrochemical conversion and 0.4829
+for reaction-to-crystallization. The strongest classic baselines reached
+0.4798 and 0.5324; per-world comparisons were two wins against three losses
+and zero wins against five losses. None of the ten final syntheses produced
+positive paired gain. Every exploration, predictive, and blind-validation
+experiment replayed exactly.</p>
+<p>These results measure static optimization and final scientific synthesis.
+Fixed-world S0 is the current research priority. Hidden world changes and
+mechanism replacement are deferred until a realistic drift model and separate
+research question are established.</p>
+<p>Separately, all 15 complete-experiment adapters pass executable midpoint
+smokes with zero dead coordinates and zero unresolved formalization blockers.
+Only the two confirmatory tasks received costly formal model evaluations in
+this release.</p>
 <h2 id="why-a-world-engine">Why a world engine<a class="headerlink" href="#why-a-world-engine" title="Permanent link">&para;</a></h2>
 <p>Real chemical experiments are slow, costly, and risk-bearing. Static datasets test knowledge and prediction, but not
 whether an agent selects an informative experiment, interprets failure, manages resources, or adapts when its model is
@@ -884,7 +979,8 @@ recover when the rules change.</p>
 <ul>
 <li><strong>Campaign Design:</strong> choose the next complete experiment—BO, safe BO, active learning, recipe-level LLMs.</li>
 <li><strong>Procedure Execution:</strong> choose the next operation—hierarchical RL, state machines, operation-level LLMs.</li>
-<li><strong>Process Control:</strong> continuously adjust equipment settings—SAC, MPC, system identification, world-model control.</li>
+<li><strong>Process Control:</strong> choose bounded equipment setpoints and process-control actions—SAC, MPC, system
+  identification, world-model control. This is not a claim of universal high-frequency continuous control.</li>
 </ul>
 <p>World-model adaptation cuts across all three: infer the current world from history and recover quickly after a shift.</p>
 <h2 id="start-here">Start here<a class="headerlink" href="#start-here" title="Permanent link">&para;</a></h2>
@@ -926,7 +1022,8 @@ recover when the rules change.</p>
 <a href="https://sunyrain.github.io/ChemWorld/getting_started/">Chinese technical documentation</a>.</p>
 <blockquote>
 <p>Research status: benchmark candidate. Engine and replay controls are operational; formal cross-method adaptation,
-private evaluation, and external bridging remain incomplete.</p>
+private evaluation, and external bridging remain incomplete. RC28 Gate A passed on its frozen source, but its
+current source binding is stale and current <code>benchmark_ready=false</code> pending recertification.</p>
 </blockquote>
 
 
@@ -965,7 +1062,7 @@ private evaluation, and external bridging remain incomplete.</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · Causal virtual experimental worlds, not instructions for physical laboratory work
+      ChemWorld · Mechanistic world models and agent evaluation, not instructions for physical laboratory work
     </div>
   
   

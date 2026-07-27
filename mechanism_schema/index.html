@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -627,7 +655,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -655,7 +683,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1203,6 +1231,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1483,7 +1539,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2280,34 +2336,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2466,9 +2494,15 @@
 上下文，缺失或篡改时失败关闭。正式泛化实验按机理族划分 Train、Dev 和 Bench，而不是只换随机
 seed。</p>
 <h2 id="_4">当前已经验证了什么<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<p>六个研究任务都已有实际 provider 消费的机理或构成律族。控制审计使用 5 个世界和 5 个代表性配方，
-共检查 9 个任务—模式组合。全部组合满足确定性、行为可辨识、90 分位响应不过强和质量守恒要求。
-这些阈值服务于 benchmark 可辨识性，不应解释为真实化学常数或物理精度验证。</p>
+<p>六个研究任务都已有实际 provider 消费的机理或构成律族。控制审计使用 5 个世界和 5 个固定探针配方，
+共检查 9 个任务—模式组合。全部组合满足确定性、固定探针下的局部响应分离、90 分位响应不过强和
+质量守恒要求。这些阈值只证明干预可执行且不会被固定探针完全淹没，不证明候选 family 在相同动作、
+测量和实验预算下可识别，也不应解释为真实化学常数或物理精度验证。冻结候选版已将电化学
+<code>solvent</code> 与 <code>electrolyte_profile</code> 都变为公开可选的反事实坐标，并移除了 Agent 可见消息中的世界/机理
+身份字段。历史 RC20 暴露了在线 reference 与 attribution 混淆；RC28 将参照建立、no-change、
+时序检测和 family 交集重新冻结后，在未触碰 cohort 上完成 A2/A3。五实验主预算的 active oracle
+与 fixed decoder top-1 均为 98.26%，A3 <code>k=8</code> 端到端成功率为 96.57%，因此冻结源码上的环境
+Gate A 通过。当前源码绑定 stale，当前 <code>benchmark_ready=false</code>；该历史证书不评价 Participant Agent。</p>
 <h2 id="agent">Agent 能看到什么<a class="headerlink" href="#agent" title="Permanent link">&para;</a></h2>
 <p>Agent 可以获得任务目标、合法操作、公开材料标签、测量结果和必要约束；不能获得隐藏 species amount、
 rate constant、partition coefficient、机理族标签、私有扰动幅度或 debug truth。解释模型可提出假设，
@@ -2516,7 +2550,7 @@ family 迁移评测。</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

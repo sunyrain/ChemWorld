@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -627,7 +655,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -655,7 +683,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1203,6 +1231,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1483,7 +1539,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2236,34 +2292,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2348,8 +2376,8 @@
 
 
 <h1 id="_1">场景如何生成<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>Scenario 是一次 reset 得到的世界实例。它把任务合同转成具体初态、隐藏参数与公开条件，决定 Agent
-是在适应新情况，还是只记住一个固定案例。</p>
+<p>Scenario 是一个 Task 与隐藏 World 的具体组合，再加入初态、干预计划、reset/反馈条件和 seed。一次
+reset 实例化该 Scenario；它决定 Agent 是在适应新规律，还是只面对同一世界中的随机变化。</p>
 <h2 id="scenario">Scenario 合同应说明<a class="headerlink" href="#scenario" title="Permanent link">&para;</a></h2>
 <ul>
 <li>哪些参数对 Agent 可见，哪些保持隐藏；</li>
@@ -2404,7 +2432,7 @@ smoke test，但不应被包装成泛化 benchmark。</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

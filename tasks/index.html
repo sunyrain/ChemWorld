@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -629,7 +657,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -657,7 +685,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1296,6 +1324,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1572,7 +1628,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2256,34 +2312,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2391,7 +2419,7 @@
 
 <h1 id="_1">选择任务<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <p>ChemWorld 当前提供 15 个任务。它们共享 World Law
-<code>chemworld-physical-chemistry-v0.4</code> 和 Task Contract <code>chemworld-task-contract-0.6</code>，并由
+<code>chemworld-physical-chemistry-v0.5</code> 和 Task Contract <code>chemworld-task-contract-1.1</code>，并由
 <code>chemworld-physical-chemistry-v0.5-candidate</code> 后端候选冻结绑定。</p>
 <div class="admonition info">
 <p class="admonition-title">当前统一事实</p>
@@ -2399,6 +2427,17 @@
 <code>proxy_allowed=false</code>。这表示窄适用域内已有参考、失败域、守恒、运行时与回放证据；它不表示真实
 化学预测、工业验证或完整 benchmark 排名已经成立。</p>
 </div>
+<div class="admonition info">
+<p class="admonition-title">15 任务设计矩阵</p>
+<p>全部任务的决策尺度、完整实验配方、物理坐标、操作序列、测量槽位、reward、安全边界和正式证据状态
+已汇总到本轮机器可读设计矩阵。两个确认性任务已完成正式 S0；其余 13 个任务完成设计合同，
+本轮不要求昂贵模型实验。</p>
+</div>
+<p>配方清理同时删除了 <code>equilibrium-characterization</code> 一个从未进入任何操作的死坐标，现在为 3 维。
+两个确认性任务向 LLM 暴露具名物理量而非归一化向量。三个纯化任务现在使用 16 个独立控制，覆盖
+反应、萃取、分相、洗涤、干燥、浓缩和转移；蒸馏的蒸发/蒸馏温度与时间已拆成四个独立控制。
+15 个中点配方均已端到端执行，死坐标和未解决正式化 blocker 均为 0。该检查是设计 smoke，不能替代
+其余 13 个任务尚未进行的正式模型实验。</p>
 <h2 id="_2">从研究问题开始<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2461,91 +2500,91 @@ hash 不一致时，旧轨迹不能被静默解释为当前结果。</p>
 <tbody>
 <tr>
 <td><code>electrochemical-conversion</code></td>
-<td><code>9f86e8550be9f8de98f4152104ef981c075697bf8cf378f040f5af4593235d09</code></td>
+<td><code>d21bed11c4c0e4c9d0bf95ebc8dcc07dc355774e3095c93c27b775b036a71e96</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>equilibrium-characterization</code></td>
-<td><code>64393d1da00e28101f71246ef13c1b69e03b0b213542e97afcb1add8f52eaa62</code></td>
+<td><code>77e1c30cd83e1a09363cef3ea58b1ddefb415bb1d790d6d63a3c519f45325917</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>flow-reaction-optimization</code></td>
-<td><code>aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9</code></td>
+<td><code>697a5956fd3ad242b78144c6fd11e6d3ca5335c493336d5b9cacb13decefc16b</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>low-budget-characterization</code></td>
-<td><code>3d8bb180e63016b49b0f2c09694ad4f2d965d8096c9c615d021c987204283a29</code></td>
+<td><code>2cd44cd76937b9e95a9ae4282994a540f4d390b3f9a59c963ca60ff2db72706b</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>partition-discovery</code></td>
-<td><code>ce378e7bc5e725ed266db2bb639194c05f5f615ba0795b158c3c976cc787117e</code></td>
+<td><code>efa54ba1ab6c5c40c0bdc77f57b2234487a58d98ed5043f273496ef103b6599e</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>public-private-generalization</code></td>
-<td><code>d2a07d58a7c09d317239794eb5757fdcd5ea68514fc531bd2ece6436b08aa3fd</code></td>
+<td><code>bf092340dfcbb59fe261a7e73b3042449d57858a60f73d3b19336f15b627e8b8</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>purity-yield-tradeoff</code></td>
-<td><code>931d1c9c2364888a9cf390557614f78c042d3e166a8ae495d57cd1fdacd1ee0f</code></td>
+<td><code>2d2ab14c61e90b87c1c530f74b9e6fbf0c82966199d78e99ec755ba5ba208e76</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>reaction-mechanism-explanation</code></td>
-<td><code>4b69716dcd93cc32eb82beb335fea7f53062e5785496daecfc1530ddcdc39006</code></td>
+<td><code>097bd39293eae4063dc84ed0af299935aefce5c391183944302431d5d6c93f6e</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>reaction-optimization-standard</code></td>
-<td><code>0c80793551675a61dbde5f3e2456929e6e6c92574ca2f3d5fa967a97ddcdb1a5</code></td>
+<td><code>c7a5bee5dffa318f30097f745a043ca1c6521f4b5770e48023c067206bd6c902</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>reaction-safety-constrained</code></td>
-<td><code>780ac2c552c7652b1afb8581d76bb2884bb99a334f7b85dffe73cf4c35834263</code></td>
+<td><code>a7a705dc87bce6684aa8022439c4cb256486df875bbce9a624111e51047bd102</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>reaction-to-assay</code></td>
-<td><code>395402a224b27cdbd070470ab1d0131e01c3bd472b773170bdcf4ba4f5a1bc96</code></td>
+<td><code>afb93071e7571ec58206a4eb62170e39c7982bd15f0dd12db97ceb08f42df49b</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>reaction-to-crystallization</code></td>
-<td><code>f15de7356ab11588028bb0add31b3461e9b90bf273de6dcdb4e123ce6b2f65ac</code></td>
+<td><code>a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>reaction-to-distillation</code></td>
-<td><code>939b171d164139699d94c78250a937ab637be201f23bd62fddc47a864becaba7</code></td>
+<td><code>49e465bce0c5d2fd4a8f73d298cf9d4d2d37c2ca0605aaf6caaab8a9358bff74</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>reaction-to-purification</code></td>
-<td><code>ee5d6b82178abeaaa6975680f2a469cbdad43f6b655bb65d6e437294a55e052d</code></td>
+<td><code>17dd0ecbb478790013f511f373cbc3ca9c9489240b1dce0e35c84bfcd3a661e0</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>tool-agent-planning</code></td>
-<td><code>9752398c5b05a0d3a20df7df811ebb59e46a1c7f1e52ab6340fed9c5526c3ee9</code></td>
+<td><code>2d0309f3ad1bef65d2f1cf65d8ef778d980143305bfb201df26a713f944b5aba</code></td>
 <td><code>reference_validated</code></td>
 <td><code>false</code></td>
 </tr>
@@ -2612,7 +2651,7 @@ chemworld<span class="w"> </span>tasks<span class="w"> </span>card<span class="w
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

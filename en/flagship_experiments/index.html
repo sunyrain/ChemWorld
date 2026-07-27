@@ -1,0 +1,1817 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A replayable causal physical-chemistry environment for training and evaluating experimental agents.">
+      
+      
+      
+        <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/en/flagship_experiments/">
+      
+      
+        <link rel="prev" href="../benchmark_overview/">
+      
+      
+        <link rel="next" href="../research_findings/">
+      
+      
+        
+          <link rel="alternate" href="../../flagship_experiments/" hreflang="zh">
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Confirmatory Benchmark Tasks - ChemWorld</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/language-switch.css">
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/site.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#confirmatory-benchmark-tasks-design-preregistration-and-status" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../" title="ChemWorld" class="md-header__button md-logo" aria-label="ChemWorld" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ChemWorld
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Confirmatory Benchmark Tasks
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="cyan"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="cyan"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../flagship_experiments/" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/sunyrain/ChemWorld" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sunyrain/ChemWorld
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="ChemWorld" class="md-nav__button md-logo" aria-label="ChemWorld" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ChemWorld
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sunyrain/ChemWorld" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sunyrain/ChemWorld
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Thesis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research Thesis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why ChemWorld
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experimental_intelligence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experimental Intelligence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../causal_worlds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Causal Worlds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation & Evidence
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Evaluation & Evidence
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Confirmatory Benchmark Tasks
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Confirmatory Benchmark Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#2026-07-27-formal-static-s0-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-07-27 formal static-S0 results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optimization-designs-across-all-15-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimization designs across all 15 tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-orthogonal-sets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two orthogonal sets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current state machine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rc28-formal-gate-a-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RC28 formal Gate A results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RC28 formal Gate A results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a2-controlled-identifiability-within-budget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2: controlled identifiability within budget
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a3-online-reference-detection-and-attribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3: online reference, detection, and attribution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a1-a2-and-a3-certify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What A1, A2, and A3 certify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calibrated-online-change-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calibrated online-change semantics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a3-reference-sufficiency-is-not-a-six-id-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3 reference sufficiency is not a six-ID checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#predictive-adequacy-avoids-circular-certification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Predictive adequacy avoids circular certification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changed-and-never-use-different-denominators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed and never use different denominators
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#time-resolved-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time-resolved detection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-size-and-independence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample size and independence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strictly-paired-no-change-controls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strictly paired no-change controls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rc28-relational-budget-certificate-execution-hardening-and-agent-context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RC28 relational-budget certificate, execution hardening, and Agent context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stratified-gate-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stratified gate rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence-boundary-for-gates-be" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence boundary for Gates B–E
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#single-preregistration-entry-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single preregistration entry point
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#audit-entry-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Audit entry points
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From Simulation to Reality
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    From Simulation to Reality
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../real_world_bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Real-world Bridge
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#2026-07-27-formal-static-s0-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-07-27 formal static-S0 results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optimization-designs-across-all-15-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimization designs across all 15 tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-orthogonal-sets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two orthogonal sets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current state machine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rc28-formal-gate-a-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RC28 formal Gate A results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RC28 formal Gate A results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a2-controlled-identifiability-within-budget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A2: controlled identifiability within budget
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a3-online-reference-detection-and-attribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3: online reference, detection, and attribution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a1-a2-and-a3-certify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What A1, A2, and A3 certify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calibrated-online-change-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calibrated online-change semantics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a3-reference-sufficiency-is-not-a-six-id-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A3 reference sufficiency is not a six-ID checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#predictive-adequacy-avoids-circular-certification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Predictive adequacy avoids circular certification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changed-and-never-use-different-denominators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed and never use different denominators
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#time-resolved-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time-resolved detection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-size-and-independence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample size and independence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strictly-paired-no-change-controls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strictly paired no-change controls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rc28-relational-budget-certificate-execution-hardening-and-agent-context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RC28 relational-budget certificate, execution hardening, and Agent context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stratified-gate-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stratified gate rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence-boundary-for-gates-be" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence boundary for Gates B–E
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#single-preregistration-entry-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single preregistration entry point
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#audit-entry-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Audit entry points
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="confirmatory-benchmark-tasks-design-preregistration-and-status">Confirmatory Benchmark Tasks: Design, Preregistration, and Status<a class="headerlink" href="#confirmatory-benchmark-tasks-design-preregistration-and-status" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Showcase Worlds demonstrate platform breadth; Confirmatory Benchmark Tasks carry confirmatory claims. They are no longer described by the same “flagship” label.</strong></p>
+</blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Current source binding</p>
+<p>RC28 Gate A formally passed on its frozen source. The 2026-07-27 static-S0
+and task-contract updates changed the current source fingerprint. The RC28
+numbers remain historical formal results, but their current binding is
+stale and <code>benchmark_ready=false</code> until recertification.</p>
+</div>
+<h2 id="2026-07-27-formal-static-s0-results">2026-07-27 formal static-S0 results<a class="headerlink" href="#2026-07-27-formal-static-s0-results" title="Permanent link">&para;</a></h2>
+<p>Both confirmatory tasks have completed five-world formal evaluations with
+<code>gpt-5.6-sol high</code> under the same static scientific-optimization design. Each
+world has 20 complete exploration experiments, one separate final synthesis,
+three frozen predictive interventions, three paired blind incumbent
+replicates, and three paired blind recommendation replicates. Every physical
+experiment replayed exactly.</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th style="text-align: right;">LLM blind mean, 95% CI</th>
+<th style="text-align: right;">Best classic calibration mean</th>
+<th style="text-align: right;">Paired LLM − classic, 95% CI</th>
+<th style="text-align: right;">World wins</th>
+<th style="text-align: right;">Predictive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Electrochemical Conversion</td>
+<td style="text-align: right;">0.3902 [0.1732, 0.6072]</td>
+<td style="text-align: right;">RF-EI 0.4798</td>
+<td style="text-align: right;">-0.0896 [-0.2896, 0.1104]</td>
+<td style="text-align: right;">2 win / 3 loss</td>
+<td style="text-align: right;">29/45 (64.4%)</td>
+</tr>
+<tr>
+<td>Reaction to Crystallization</td>
+<td style="text-align: right;">0.4829 [0.4326, 0.5332]</td>
+<td style="text-align: right;">GP-EI 0.5324</td>
+<td style="text-align: right;">-0.0495 [-0.0933, -0.0056]</td>
+<td style="text-align: right;">0 win / 5 loss</td>
+<td style="text-align: right;">20/45 (44.4%)</td>
+</tr>
+</tbody>
+</table>
+<p>The statistical unit is the world seed. Five algorithm seeds are averaged
+within each world before comparison. Intervals are two-sided 95% Student-t
+descriptive intervals over five world clusters. The best classic calibration
+family is selected from six candidates by aggregate blind mean, so these are
+not preregistered superiority tests.</p>
+<p><img alt="Static-S0 blind final scores by world" src="../assets/images/static-s0-blind-scores-v0.1.png" /></p>
+<p>All ten best exploration points occurred after experiment 10, so the
+20-experiment budget supplied material search opportunity. From experiment 8
+to experiment 20, mean LLM best-so-far increased from 0.3749 to 0.4297 in
+electrochemistry and from 0.4311 to 0.4911 in crystallization.</p>
+<p><img alt="Static-S0 optimization curves" src="../assets/images/static-s0-optimization-curves-v0.1.png" /></p>
+<p>The model can improve a fixed-world process, but its cross-world reliability
+and world understanding remain below structured black-box optimizers. All ten
+final submissions were tested methods: eight had zero paired gain, two had
+small negative gain, and none improved the incumbent. Separate final synthesis
+therefore provides an explicit submission and explanation interface, but has
+not yet demonstrated better experimental conditions.</p>
+<p>Static S0 is the current research priority: closed-loop optimization in a
+fixed but unknown system. The RC28 material below is a historical environment
+identifiability certificate on frozen source, not the current participant
+roadmap. Hidden changepoints, mechanism replacement, and world-change
+experiments are deferred until they have a realistic drift model and a
+separate research question.</p>
+<h2 id="optimization-designs-across-all-15-tasks">Optimization designs across all 15 tasks<a class="headerlink" href="#optimization-designs-across-all-15-tasks" title="Permanent link">&para;</a></h2>
+<p>The other 13 tasks do not require costly model runs in this release, but their
+optimization designs are more than registry entries. All 15 tasks now have a
+versioned complete-experiment adapter, physical coordinate schema, fixed
+measurement slots, final-assay feedback, and safety/cost boundaries. The
+generator perturbs every coordinate and executes the midpoint recipe at world
+seed 0: 15/15 pass, with zero dead coordinates and zero unresolved
+formalization blockers.</p>
+<p>The three purification tasks use 16 independent controls and 22 compiled
+operations spanning reaction, extraction, phase separation, washing, drying,
+concentration, and transfer. Distillation uses 13 controls, with evaporation
+and distillation temperature/time independently adjustable. This is executable
+design evidence, not a formal ranking on the 13 non-confirmatory tasks.</p>
+<h2 id="two-orthogonal-sets">Two orthogonal sets<a class="headerlink" href="#two-orthogonal-sets" title="Permanent link">&para;</a></h2>
+<p>The homepage presents four <strong>Showcase Worlds</strong>: partition discovery,
+reaction-to-crystallization, reaction-to-distillation, and flow-reaction
+optimization. They demonstrate the experimental-reasoning and physical-chemistry
+feedback supported by ChemWorld.</p>
+<p>The mechanism-adaptation protocol currently has two <strong>Confirmatory Benchmark
+Tasks</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Confirmatory task</th>
+<th>Hidden change families</th>
+<th>Intervenable diagnostic coordinates</th>
+<th>Main observations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reaction to Crystallization</td>
+<td>rate law, reaction topology, catalyst mapping</td>
+<td>catalyst dose, temperature/time, catalyst choice</td>
+<td>HPLC, final assay, task score</td>
+</tr>
+<tr>
+<td>Electrochemical Conversion</td>
+<td>constitutive law, solvent mapping, electrolyte-profile mapping</td>
+<td>potential, current, time, solvent, electrolyte profile</td>
+<td>UV-Vis, final assay, task score</td>
+</tr>
+</tbody>
+</table>
+<p>A showcase card is not confirmatory evidence, and a confirmatory task need not be
+one of the four homepage cards. Some internal <code>flagship</code> identifiers remain for
+API compatibility; they no longer define the scientific taxonomy.</p>
+<h2 id="current-state-machine">Current state machine<a class="headerlink" href="#current-state-machine" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Current value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Environment design candidate</td>
+<td>passed</td>
+</tr>
+<tr>
+<td>Semantic protocol audit</td>
+<td>historical RC28 passed, 25/25; current binding stale</td>
+</tr>
+<tr>
+<td>A1 physical validity</td>
+<td>historical RC28 passed, 83/83 design checks; current binding stale</td>
+</tr>
+<tr>
+<td>A2 controlled identifiability</td>
+<td>historical RC28 <strong>passed</strong>, 4,896/4,896 receipts; current binding stale</td>
+</tr>
+<tr>
+<td>A3 online attainability</td>
+<td>historical RC28 <strong>passed</strong>, 2,016/2,016 receipts; current binding stale</td>
+</tr>
+<tr>
+<td>Static-S0 Participant Agent</td>
+<td>five-seed formal execution and replay complete for both confirmatory tasks</td>
+</tr>
+<tr>
+<td>Mechanism-adaptation Participant Gates B–E</td>
+<td>deferred research extension; Flash Direct/Stateful S1/S2 each achieved 0/4 autonomous completion, formal matrix not started</td>
+</tr>
+<tr>
+<td>Private-E environment confirmation</td>
+<td>eligible, not yet executed</td>
+</tr>
+<tr>
+<td>Private-A participant-Agent confirmation</td>
+<td>sealed pending participant freeze</td>
+</tr>
+<tr>
+<td>Benchmark ready</td>
+<td><code>false</code>, pending current-source Gate A recertification</td>
+</tr>
+<tr>
+<td>Evidence complete</td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td>Publication ready</td>
+<td><code>false</code></td>
+</tr>
+</tbody>
+</table>
+<p>The 25 semantic checks and 83 design checks are audit checks, not 108 independent
+pieces of scientific evidence. RC28 completed formal A2/A3 on its frozen source and released both
+results in one joint decision: <code>gate_a_pass=true</code> and <code>benchmark_ready=true</code>.
+This certifies that source's physical validity, budgeted identifiability,
+and online attainability prerequisites. It does not mean that DeepSeek or any
+other participant Agent passed Gates B–E, and it does not make
+<code>evidence_complete</code> or <code>publication_ready</code> true.</p>
+<h2 id="rc28-formal-gate-a-results">RC28 formal Gate A results<a class="headerlink" href="#rc28-formal-gate-a-results" title="Permanent link">&para;</a></h2>
+<h3 id="a2-controlled-identifiability-within-budget">A2: controlled identifiability within budget<a class="headerlink" href="#a2-controlled-identifiability-within-budget" title="Permanent link">&para;</a></h3>
+<p>Each budget contains 1,440 task × truth × world-cluster units. The frozen
+primary budget is <code>k=5</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Budget</th>
+<th>Active-oracle top-1 (95% CI)</th>
+<th>Fixed-decoder top-1 (95% CI)</th>
+<th>Family intersection</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>93.75% (92.38–94.89)</td>
+<td>94.44% (93.14–95.51)</td>
+<td>fail</td>
+</tr>
+<tr>
+<td>4</td>
+<td>98.47% (97.70–98.99)</td>
+<td>95.35% (94.13–96.32)</td>
+<td>decoder fail</td>
+</tr>
+<tr>
+<td><strong>5 (primary)</strong></td>
+<td><strong>98.26% (97.45–98.82)</strong></td>
+<td><strong>98.26% (97.45–98.82)</strong></td>
+<td><strong>pass</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The active oracle already attained high sampled-cohort accuracy at <code>k=4</code>, but
+four electrochemical actions cannot provide a complete structural witness for
+the five-action relation union, and the fixed decoder's family intersection
+still failed. The formal certificate therefore remains correctly bound to
+<code>k=5</code>; the favorable <code>k=4</code> oracle result cannot retroactively redefine the
+primary gate.</p>
+<p>A post-run overlap audit found that all 25 <code>k=5</code> oracle and decoder errors
+coincide. This is not prediction-field copying: the two electrochemical
+five-action batches differ. For Reaction to Crystallization, however, the
+information maximum is exactly the fixed first-five-action batch, so all 720
+trials reuse the same paired contrast. The fixed decoder has always had
+<code>controls_gate=false</code>; it is an auxiliary consistency check, not a second
+fully independent A2 replication certificate.</p>
+<p>At <code>k=5</code>, recall was 100% for the electrochemical constitutive, solvent-map,
+electrolyte-profile-map, and no-change truths. Reaction-to-crystallization
+recall was 98.33% for rate law, 98.89% for topology, 88.89% for material
+mapping, and 100% for no change. The weakest material-map 95% lower bound was
+83.46%, above the frozen 70% family bound.</p>
+<h3 id="a3-online-reference-detection-and-attribution">A3: online reference, detection, and attribution<a class="headerlink" href="#a3-online-reference-detection-and-attribution" title="Permanent link">&para;</a></h3>
+<p>The frozen reference policy receives no change time, minimum stable prefix,
+truth, or reference certificate. Its overall adaptation curve is:</p>
+<table>
+<thead>
+<tr>
+<th>Post-change k</th>
+<th>Detection recall</th>
+<th>AUROC</th>
+<th>Conditional FPR</th>
+<th>Mean Brier</th>
+<th>Conditional attribution</th>
+<th>End-to-end success</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>83.10%</td>
+<td>0.9703</td>
+<td>0.84%</td>
+<td>0.0641</td>
+<td>88.65%</td>
+<td>73.06%</td>
+</tr>
+<tr>
+<td>2</td>
+<td>93.46%</td>
+<td>0.9965</td>
+<td>1.12%</td>
+<td>0.0446</td>
+<td>95.50%</td>
+<td>88.52%</td>
+</tr>
+<tr>
+<td>4</td>
+<td>98.88%</td>
+<td>0.9987</td>
+<td>1.96%</td>
+<td>0.0331</td>
+<td>97.54%</td>
+<td>95.65%</td>
+</tr>
+<tr>
+<td><strong>8</strong></td>
+<td><strong>99.35%</strong></td>
+<td><strong>0.9990</strong></td>
+<td><strong>2.80%</strong></td>
+<td><strong>0.0263</strong></td>
+<td><strong>98.03%</strong></td>
+<td><strong>96.57%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The table's FPR is conditional on a sufficient reference; the unconditional
+no-change horizon FPR was 3.33%. Overall reference sufficiency was 99.17%, and
+the observed-event mean delay was 1.233 post-change experiments. At <code>k=8</code>,
+end-to-end success was 98.33% for electrochemical conversion and 94.81% for
+reaction-to-crystallization. All six changed families passed separately; the
+weakest was the reaction-to-crystallization material map at 93.33%.</p>
+<p>These numbers certify benchmark attainability demonstrated by the frozen
+reference diagnostic policy, not participant-Agent capability. Gates B–E
+require an independently frozen method, prompt, runner, sample size, and
+provider-cost contract.</p>
+<h2 id="what-a1-a2-and-a3-certify">What A1, A2, and A3 certify<a class="headerlink" href="#what-a1-a2-and-a3-certify" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Certification subject</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A1</td>
+<td>physical world and hidden intervention</td>
+<td>Is the change real, single-axis, reachable, and visible in public observations?</td>
+</tr>
+<tr>
+<td>A2</td>
+<td>controlled oracle/decoder</td>
+<td>Are candidate families distinguishable under controlled, budget-matched experiments?</td>
+</tr>
+<tr>
+<td>A3</td>
+<td>frozen reference diagnostic policy</td>
+<td>Can one compliant online policy build a reference, detect a hidden change, and identify its family without receiving change time or truth?</td>
+</tr>
+<tr>
+<td>Gates B–E</td>
+<td>evaluated participant Agent</td>
+<td>Detection, feedback use, adaptation/recovery, and procedural autonomy</td>
+</tr>
+</tbody>
+</table>
+<p>A DeepSeek, Claude, or other participant failure therefore cannot redefine A3
+or make the environment automatically “unidentifiable.” A3 is formally the
+<strong>Online attainability certificate</strong>. Participant Agents begin at Gate B.</p>
+<h2 id="calibrated-online-change-semantics">Calibrated online-change semantics<a class="headerlink" href="#calibrated-online-change-semantics" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>truth change time ∈ {never, 6, 8, 10}
+total experiment horizon = 18
+relative checkpoints k ∈ {1, 2, 4, 8}
+</code></pre></div>
+<p><code>τ=6</code> means exactly that the first six complete experiments use the old world;
+experiment 7 is the first eligible changed-world experiment. The policy sees
+only the total horizon and that the world may remain stable or change at an
+unspecified time. The minimum stable prefix, candidate change times, truth,
+reference certificate, pseudo-checkpoint, and relative checkpoint are hidden.</p>
+<p><code>never</code> is a first-class truth state. Its evaluator pseudo-checkpoint creates no
+runtime event and changes no instance identifier, metadata, reset rule, or
+random-number stream.</p>
+<h2 id="a3-reference-sufficiency-is-not-a-six-id-checklist">A3 reference sufficiency is not a six-ID checklist<a class="headerlink" href="#a3-reference-sufficiency-is-not-a-six-id-checklist" title="Permanent link">&para;</a></h2>
+<p>The frozen six-action recipe is a reproducible <strong>canonical witness set</strong>, not
+the only valid answer. The certificate is based on <strong>relation closure</strong>:</p>
+<ul>
+<li>varied fields and controlled backgrounds satisfy the declared relation;</li>
+<li>rate-law or constitutive-law low/pivot/high levels are formed;</li>
+<li>topology and material-map same-background contrasts are closed;</li>
+<li>observable signatures have non-saturated fit information; and</li>
+<li>reference age remains inside the frozen limit.</li>
+</ul>
+<p>A future policy may use different continuous doses or scan points. It does not
+fail merely because it did not call <code>design-00</code> through <code>design-05</code>, provided
+that it closes the same relations and passes predictive adequacy.</p>
+<h2 id="predictive-adequacy-avoids-circular-certification">Predictive adequacy avoids circular certification<a class="headerlink" href="#predictive-adequacy-avoids-circular-certification" title="Permanent link">&para;</a></h2>
+<p>Development data freeze only the feature encoding, predictive family, action
+selection rule, and thresholds. Each A3 campaign estimates nuisance reference
+parameters from its own pre-change observations using leave-one-experiment-out
+cross-fitting. A held-out old-world observation cannot fit its own parameters;
+post-change observations and the realized family label are prohibited.
+Standardized error, predictive log score, and 95% prediction-interval coverage
+are retained.</p>
+<h2 id="changed-and-never-use-different-denominators">Changed and never use different denominators<a class="headerlink" href="#changed-and-never-use-different-denominators" title="Permanent link">&para;</a></h2>
+<p>Let <code>R</code> denote reference sufficiency, <code>D_change</code> a change alarm, and <code>A</code> correct
+family attribution.</p>
+<p>Changed campaigns report:</p>
+<div class="highlight"><pre><span></span><code>P(R | changed)
+P(D_change | R, changed)
+P(A | D_change, R, changed)
+P(R ∧ D_change ∧ A | changed)
+</code></pre></div>
+<p>No-change campaigns report:</p>
+<div class="highlight"><pre><span></span><code>P(R | never)
+P(no false alarm | R, never)
+FPR_horizon = P(ever alarms within the eight-experiment window | never)
+</code></pre></div>
+<p>Attribution is undefined for <code>never</code>, so no never row enters an attribution
+denominator. Reference failures leave only the conditional attribution
+denominator and remain failures in the changed end-to-end rate.</p>
+<h2 id="time-resolved-detection">Time-resolved detection<a class="headerlink" href="#time-resolved-detection" title="Permanent link">&para;</a></h2>
+<p>Recall(k), AUROC(k), Brier(k), and matched no-change FPR(k) are reported at
+<code>k={1,2,4,8}</code>. The primary Brier score first weights changed and never equally,
+then averages the four checkpoints equally.</p>
+<div class="highlight"><pre><span></span><code>T_D = min{k : p(change) &gt;= 0.5}
+</code></pre></div>
+<p>A changed campaign not detected by <code>k=8</code> is right-censored. It is not assigned
+8 or infinity and is not deleted. Horizon FPR records whether a threshold was
+ever crossed, so a later posterior decline cannot erase an earlier false alarm.</p>
+<h2 id="sample-size-and-independence">Sample size and independence<a class="headerlink" href="#sample-size-and-independence" title="Permanent link">&para;</a></h2>
+<p>RC28 preserves the RC27 worlds, cohorts, and statistical design and freezes:</p>
+<ul>
+<li>180 independent world-seed clusters per task/family in A2, A3, Private-E, and Private-A;</li>
+<li>exactly 60 clusters per <code>τ∈{6,8,10}</code> for each changed family;</li>
+<li>180 <code>never</code> clusters per task;</li>
+<li>five provider repeats per paired cell as nested technical repeats, not independent samples; and</li>
+<li><code>task_id + world_seed</code> as the cluster-bootstrap unit.</li>
+</ul>
+<p>With 30 clusters and true reference success 0.90, the probability of satisfying
+the Wilson lower-bound rule is only about 0.18. At 180 clusters it is about
+0.964. Under true recall 0.90 and FPR 0.05, the frozen cluster-bootstrap pass
+probabilities are about 0.978 and 0.808. Power remains limited if true reference
+success is only 0.85; the audit states that limitation explicitly.</p>
+<h2 id="strictly-paired-no-change-controls">Strictly paired no-change controls<a class="headerlink" href="#strictly-paired-no-change-controls" title="Permanent link">&para;</a></h2>
+<p>Each changed/never twin shares initial state, world seed, pre/post session
+boundary, reset rule, the complete pre-change action schedule, and the
+observation-noise key on every shared semantic coordinate. Adaptive post-change
+paths may have different coordinate sets; every coordinate shared by both arms
+must still have the same key. The pseudo-checkpoint has no runtime side effect,
+and no reset or instance signal reaches the policy.</p>
+<h2 id="rc28-relational-budget-certificate-execution-hardening-and-agent-context">RC28 relational-budget certificate, execution hardening, and Agent context<a class="headerlink" href="#rc28-relational-budget-certificate-execution-hardening-and-agent-context" title="Permanent link">&para;</a></h2>
+<p>RC27 formal execution exposed a design-audit gap: the electrochemical task needs
+five distinct actions to close the constitutive low/pivot/high relation and the
+separate solvent and electrolyte-profile pairs. A primary budget of four is
+therefore impossible. RC28 retains the diagnostic A2 checkpoints <code>k={2,4}</code> and
+adds the minimal feasible <code>k=5</code> primary certificate. A3 remains unchanged at
+<code>k={1,2,4,8}</code> with an eight-experiment horizon. The 83-check design audit now
+records a minimum relation-union witness per task and validates it before any
+formal scheduler.</p>
+<p>RC28 retains the earlier execution hardening: 576 A3 predictive-fit jobs plus
+1,440 online trials equal 2,016 receipts, while the three A2 checkpoints produce
+4,896 receipts. It also retains
+write-once trial receipts, missing-only resume, a separate infrastructure-attempt
+ledger, semantic-coordinate observation noise, an A3 metric embargo until A2
+finishes, one joint A2/A3 decision artifact, and separate Private-E and Private-A
+confirmation tracks.</p>
+<p>Participant Agents receive <code>chemworld-compact-decision-context-0.3</code>. Fifty
+worst-legal offline fixtures set the development caps: a shared 2,050-token
+environment view, 3,600 total estimated tokens for Direct, and 4,150 for
+Stateful v0.4. The default prompt contains the task and lifecycle, current budget and metrics, processed measurement summary, active
+constraints, short memory, and legal parameter signatures. Raw spectrum arrays,
+replicate curves, duplicate observation views, constitution checks, and
+Git/provider/ledger metadata remain in audit artifacts, not the decision prompt.
+Historical spectra are available on demand by public <code>spectrum_id</code>.</p>
+<h2 id="stratified-gate-rule">Stratified gate rule<a class="headerlink" href="#stratified-gate-rule" title="Permanent link">&para;</a></h2>
+<p>A3 uses an intersection:</p>
+<ol>
+<li>overall pass;</li>
+<li>Reaction to Crystallization pass;</li>
+<li>Electrochemical Conversion pass;</li>
+<li>every changed family pass; and</li>
+<li>macro-average pass.</li>
+</ol>
+<p>The pooled micro-average is supplemental. An easy task or family cannot conceal
+a locally unattainable one.</p>
+<h2 id="evidence-boundary-for-gates-be">Evidence boundary for Gates B–E<a class="headerlink" href="#evidence-boundary-for-gates-be" title="Permanent link">&para;</a></h2>
+<p>The current design audit found no Gate C–E prerequisite confusion analogous to
+the old A3 error, but their <strong>empirical validity remains untested</strong>:</p>
+<ul>
+<li>Gate B evaluates participant-Agent temporal detection and calibration;</li>
+<li>Gate C must still validate identical-prefix feedback pairs and provider noise;</li>
+<li>Gate D must still validate frozen, adaptive, and oracle policy definitions; and</li>
+<li>Gate E must still establish that assisted history does not contaminate later autonomous runs.</li>
+</ul>
+<p>A semantic-audit pass is not an empirical Gate C–E pass.</p>
+<p>The first formal experiment uses a four-cell <code>2×2</code> factorial design: Pro and
+Flash backends each run direct reactive and stateful scientific scaffolds.
+This estimates backend, scaffold, and interaction effects while requiring
+only one new stateful scientific scaffold. ReAct and planning-memory are
+deferred to targeted ablations or supplements and do not block the first
+formal run. The current <code>live_llm_a/live_llm_b</code> pilot changes backend,
+thinking configuration, and controller role simultaneously, so it cannot
+estimate a clean backend or scaffold effect.</p>
+<h2 id="single-preregistration-entry-point">Single preregistration entry point<a class="headerlink" href="#single-preregistration-entry-point" title="Permanent link">&para;</a></h2>
+<p>Before A2/A3, the sole controlling file is:</p>
+<p><code>configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc28.json</code></p>
+<p>It binds source commit, protocol/plan/relation/scorer hashes, cohort namespaces,
+sample size, reference-policy version, thresholds, checkpoints, bootstrap,
+stratification, failure handling, exclusions, stopping, and private-unseal
+conditions. Any bound change creates a new RC and cannot reinterpret existing
+results.</p>
+<h2 id="audit-entry-points">Audit entry points<a class="headerlink" href="#audit-entry-points" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Protocol: <code>configs/benchmark/mechanism_adaptation_v0.3.0_rc28.json</code></li>
+<li>Gate A plan: <code>configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json</code></li>
+<li>Preregistration: <code>configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc28.json</code></li>
+<li>Sample-size audit: <code>mechanism-adaptation-sample-size-audit-v0.3.0-rc28.json</code></li>
+<li>Relation graph: <code>mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc28.json</code></li>
+<li>Semantic audit: <code>confirmatory-task-semantics-audit-rc28.json</code></li>
+<li>Release qualification: <code>mechanism-adaptation-release-qualification-v0.1-rc28.json</code></li>
+<li>A2 structural receipt: <code>mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json</code></li>
+<li>A3 structural receipt: <code>mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json</code></li>
+<li>Joint public decision: <code>mechanism-adaptation-public-decision-v0.1-rc28.json</code></li>
+<li>Participant-Agent preregistration candidate: <code>configs/benchmark/mechanism_adaptation_participant_preregistration_rc28.json</code></li>
+<li>Gate A post-run audit: <code>RC28_GATE_A_POSTRUN_SANITY_AUDIT_ZH.md</code></li>
+<li>Participant formal experiment plan: <code>RC28_PARTICIPANT_FORMAL_EXPERIMENT_PLAN_AND_TODO_ZH.md</code></li>
+<li>Stateful Scientific implementation specification: <code>STATEFUL_SCIENTIFIC_AGENT_V0_1_SPEC_ZH.md</code></li>
+<li>Current-state source: <code>configs/current.json</code></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      ChemWorld · Mechanistic world models and agent evaluation, not instructions for physical laboratory work
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.top", "navigation.tracking", "toc.follow", "search.highlight", "search.suggest", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../assets/javascripts/navigation-v7.js"></script>
+      
+    
+  </body>
+</html>

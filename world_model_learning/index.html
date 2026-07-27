@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -627,7 +655,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -655,7 +683,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1351,6 +1379,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1627,7 +1683,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2311,34 +2367,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2509,6 +2537,9 @@
 </blockquote>
 <p>ChemWorld 不只是把实验写成一个 Gym API。它将部分观测、混合动作、长程流程和 world-family shift
 放进同一训练问题，用于研究 model-free、model-based 与快速适应方法。</p>
+<p>这里的 world model 属于 Agent：它可以编码在模型权重、上下文、显式 belief、replay buffer 或外部
+surrogate 中。ChemWorld 提供世界和反馈，但不维护该模型，也不会在评测 campaign 中替 Agent 更新
+权重。</p>
 <h2 id="pomdp">为什么这是 POMDP<a class="headerlink" href="#pomdp" title="Permanent link">&para;</a></h2>
 <p>当前 observation 只包含任务允许公开的测量和过程摘要。速率律、隐藏组成、相行为参数和世界标签
 都不可见；同一条读数可能对应多种机制解释。</p>
@@ -2589,9 +2620,10 @@ policy 或 planner—controller 分解更符合接口结构。</p>
 <p>Dreamer、TD-MPC、PEARL、VariBAD 或 RL² 等名称代表可能的研究家族，不表示仓库已经实现或验证这些
 具体算法。</p>
 <h2 id="_3">学习器可以使用哪些数据<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
-<p>公开 trajectory 提供：Action、observation、reward、constraint flags、instrument readings、任务合同、
-公开 scenario metadata 与 Agent 自己的历史。隐藏 state、oracle mechanism 和 private-eval 参数不属于
-输入。</p>
+<p>公开 trajectory v0.2 分开提供 Action、<code>environment_outcome</code>、<code>agent_visible_observation</code>、
+<code>evaluation_outcome</code>、constraint flags、instrument readings、任务合同、公开 scenario metadata 与 Agent
+自己的历史。训练输入只能使用协议允许的 Agent 可见层；环境结果层和评价层用于监督、回放或分析时
+必须遵守相应信息合同。隐藏 state、oracle mechanism 和 private-eval 参数不属于 Agent 输入。</p>
 <p>可以训练的辅助目标包括：</p>
 <ul>
 <li>下一步公开 observation；</li>
@@ -2684,7 +2716,7 @@ family 上测量 recovery 与 adaptation regret。</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

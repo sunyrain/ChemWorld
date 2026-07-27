@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A replayable causal virtual chemistry laboratory for training and evaluating experimental agents.">
+        <meta name="description" content="A replayable causal physical-chemistry environment for training and evaluating experimental agents.">
       
       
       
         <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/en/benchmark_overview/">
       
       
-        <link rel="prev" href="../causal_worlds/">
+        <link rel="prev" href="../architecture/">
       
       
-        <link rel="next" href="../research_findings/">
+        <link rel="next" href="../flagship_experiments/">
       
       
         
@@ -447,6 +447,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -581,6 +609,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#suite-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suite roles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#six-reporting-axes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -628,6 +667,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Confirmatory Benchmark Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -788,6 +855,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#suite-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suite roles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#six-reporting-axes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -864,6 +942,14 @@ different physical tasks and interaction levels into a single intelligence score
 </code></pre></div>
 <p>Campaign Design compares complete experiments. Procedure Execution and Process Control additionally require operation,
 measurement, and control-frequency accounting.</p>
+<p>Each campaign is one canonical <strong>Task × Scenario × Agent × Seed</strong> cell. A Task is a stable public contract; a World is
+a hidden physical-law instance; a Scenario adds initial state, intervention, reset/feedback condition, and seed.</p>
+<h2 id="suite-roles">Suite roles<a class="headerlink" href="#suite-roles" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Core:</strong> campaign-defined Agent comparisons on the validated environment; no repository-wide method result is bundled.</li>
+<li><strong>Diagnostic:</strong> identifiability, feedback use, counterfactual, adaptation, and autonomy attribution.</li>
+<li><strong>Extended:</strong> environment coverage, training, teaching, and method development without an automatic ranking claim.</li>
+</ul>
 <h2 id="six-reporting-axes">Six reporting axes<a class="headerlink" href="#six-reporting-axes" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Task-specific outcome and practical effect threshold.</li>
@@ -881,12 +967,38 @@ None substitutes for another.</p>
 <h2 id="adaptation-metrics">Adaptation metrics<a class="headerlink" href="#adaptation-metrics" title="Permanent link">&para;</a></h2>
 <p>Change detection, mechanism identification, recovery experiments, adaptation regret, transfer advantage, and
 constraint cost during adaptation describe how agents respond when old assumptions fail.</p>
+<p>Mechanism evidence is factorized into <strong>Declared</strong>, <strong>Predictive</strong>, and <strong>Actionable</strong> layers. Version 0.3 additionally
+separates static current-world identification, old-world reference acquisition, calibrated change detection and
+attribution, and adaptive recovery. A world initialized in a changed family is not scored as an observed transition.</p>
+<p>Trajectory v0.2 separately records <code>environment_outcome</code>, <code>agent_visible_observation</code>, and <code>evaluation_outcome</code>.
+Feedback permutations may alter only the visible layer. Local paired-prefix tests ask whether feedback changes behavior;
+full campaigns ask whether that change improves utility.</p>
 <h2 id="trust-chain">Trust chain<a class="headerlink" href="#trust-chain" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>submission → trajectory validation → deterministic replay
 → metric recomputation → constraint/resource audit → verified result
 </code></pre></div>
-<p>The current Engine and replay controls are operational. The complete cross-method adaptation matrix, multi-seed RL,
-real-LLM evaluation, private generalization, and external bridge evidence remain incomplete.</p>
+<p>The current Engine and replay controls are operational. Method selection, training, and result freezes belong to each
+evaluation campaign. The repository now bundles a formal fixed-world LLM-versus-classic comparison on two
+confirmatory tasks, but no completed cross-method mechanism-adaptation ranking. On the frozen RC28 source, the
+action/intervention audit passed with both solvent and electrolyte-profile electrochemical counterfactuals publicly
+reachable and decision-relevant.
+Historical RC21 controlled matched identifiability passes at 239/240, while its fixed four-action online certificate
+fails the reaction rate-law family at 23/30. RC24 of version 0.3 supersedes that protocol because early changes did
+not always provide an adequate old-world reference and A3 previously blurred benchmark attainability with
+participant-Agent evaluation. RC24 freezes a reference diagnostic policy, first-class no-change, relation closure,
+within-campaign cross-fitting, time-resolved detection, 180 independent clusters per family, and task/family
+intersection gates. RC28 preserves those A3 scientific definitions while adding a minimum relation-union
+feasibility certificate for the primary controlled budget, write-once receipts, semantic-coordinate noise,
+metric embargo, and release qualification. On that frozen source, the confirmatory-task semantics audit passed
+25/25 and the physical design audit passed 83/83. RC28 then completed 4,896/4,896
+A2 receipts and 2,016/2,016 A3 receipts on the untouched formal cohorts. The
+historical joint decision was <code>gate_a_pass=true</code> and <code>benchmark_ready=true</code>: controlled
+top-1 accuracy is 98.26% at the primary five-experiment budget, and the online
+reference policy reaches 96.57% end-to-end success by <code>k=8</code> with 2.80%
+conditional no-change FPR. These are environment attainability results, not
+participant-Agent results. The current binding is stale and current
+<code>benchmark_ready=false</code>. Mechanism-adaptation cross-method evaluation, private
+confirmation, and external bridge evidence remain incomplete.</p>
 <p>Next: <a href="../research_findings/">Research Findings</a> · <a href="../real_world_bridge/">Real-world Bridge</a></p>
 
 
@@ -925,7 +1037,7 @@ real-LLM evaluation, private generalization, and external bridge evidence remain
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · Causal virtual experimental worlds, not instructions for physical laboratory work
+      ChemWorld · Mechanistic world models and agent evaluation, not instructions for physical laboratory work
     </div>
   
   

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -428,6 +428,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -435,7 +463,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -753,7 +781,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -781,7 +809,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1329,6 +1357,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1605,7 +1661,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2289,34 +2345,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2465,8 +2493,17 @@
 <li>Agent 只能通过公开操作、测量、成本、约束和历史记录与环境交互；</li>
 <li>正式运行使用显式领域 provider，轨迹可以 digest 校验、确定性回放和指标重算；</li>
 <li>经典、RL 和 LLM 方法可以进入同一实验与资源账本；</li>
-<li>六任务的机理/构成律干预通过可执行性、可辨识性、非灾难性和守恒控制；</li>
+<li>15 个完整实验适配器均通过死坐标检查和中点端到端执行；这证明设计可执行，不证明其余 13 个任务
+  上的模型性能；</li>
+<li>六任务的机理/构成律干预具有可执行、守恒和回放控制；两个确认性任务的 RC28 A1/A2/A3 环境证书
+  在其冻结源码上通过，五实验受控识别 top-1 为 98.26%，在线端到端成功率为 96.57%；当前源码指纹
+  已变化，因此该绑定为 stale，<code>benchmark_ready=false</code>，等待重新认证；</li>
 <li>当前经典确认切片揭示了目标改善、风险控制与最小实质效应之间的冲突。</li>
+<li>当前静态 S0 已在两个确认性任务上完成五 seed 正式运行；电化学 LLM 盲最终均值为 0.3902
+  （95% world-cluster CI [0.1732, 0.6072]），反应–结晶为 0.4829（[0.4326, 0.5332]）；
+  逐 world 相对最强经典家族分别为 2 胜 3 负和 0 胜 5 负，且 Predictive/Declared 世界理解仍弱；</li>
+<li>十次独立 final synthesis 均选择已测试条件，8/10 零增益、2/10 轻微负增益、0/10 正增益；当前
+  证据不支持最终综合能够优于探索 incumbent。</li>
 </ul>
 <h2 id="_3">哪些说法会越过证据<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2475,9 +2512,14 @@
 <li>明确的运行路由等于全部物理模块达到专业模拟精度；</li>
 <li>Safe-GP 已通过完整四任务优越性规则；</li>
 <li>单 seed SAC 开发结果代表 RL 性能或最佳 checkpoint；</li>
-<li>fake client、stub 或 replay 代表真实 LLM 性能；</li>
+<li>fake client、stub 或 replay 代表真实 LLM 性能；正式 S0 的真实 provider 结果只覆盖冻结的两个
+  固定世界优化任务；</li>
+<li>环境 Gate A 通过等于 DeepSeek 或其他 Participant Agent 通过 Gates B–E；</li>
 <li>公开世界结果证明跨机理、私有世界或现实实验泛化；</li>
 <li>当前候选包是正式发表级 benchmark release。</li>
+<li>15/15 设计 smoke 等于 15 个任务都已有正式算法实验或排名；</li>
+<li>五个 sampled worlds、每 world 一条 LLM 轨迹，足以估计普适模型效应或现实化学泛化；</li>
+<li>从六个候选经典家族中按总体盲均值选择最佳家族后，描述性区间等于预注册优越性检验。</li>
 </ul>
 <h2 id="_4">如何理解模型精度<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2499,8 +2541,11 @@
 与计算资源合同重新运行；负结果同样必须保留。</p>
 <h2 id="_6">如何理解机理与迁移<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <p>机理干预会改变实际执行的反应网络或领域构成律，并绑定 opaque hash 和精确回放上下文。这证明环境
-能产生可审计的因果变化，但不证明 Agent 能识别机理、迁移策略或在现实实验中保持排名。真正的训练
-环境主张需要 Train→未见 Bench/Bridge 的等预算对照，并允许结果为负。</p>
+能产生可审计的因果变化，但不证明相同动作、测量和预算足以区分所有候选，更不证明 Agent 能识别
+机理、迁移策略或在现实实验中保持排名。冻结候选版同时开放电化学 <code>solvent</code> 和
+<code>electrolyte_profile</code> 反事实目标，并隐藏 evaluator provenance；因此旧证书不再绑定当前合同，完整机制
+识别解释保持关闭，直到新 Gate A 在相同动作、测量和预算下重新通过。
+真正的训练环境主张需要 Train→未见 Bench/Bridge 的等预算对照，并允许结果为负。</p>
 <h2 id="llm">如何理解 LLM 记录<a class="headerlink" href="#llm" title="Permanent link">&para;</a></h2>
 <p>真实 LLM 运行必须记录模型、请求参数、token、费用、重试、失败和谱图披露条件。assigned/masked
 消融保持非谱图公开证据不变。系统不请求或保存私有逐字 chain-of-thought；结构化 evidence、hypothesis、
@@ -2546,7 +2591,7 @@ uncertainty 和 rationale 足以进行公开审计，但不能证明模型内部
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

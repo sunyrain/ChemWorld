@@ -10,17 +10,17 @@
       
       
       
-        <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/en/research_findings/">
+        <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/en/architecture/">
       
       
-        <link rel="prev" href="../flagship_experiments/">
+        <link rel="prev" href="../causal_worlds/">
       
       
-        <link rel="next" href="../real_world_bridge/">
+        <link rel="next" href="../benchmark_overview/">
       
       
         
-          <link rel="alternate" href="../../research_findings/" hreflang="zh">
+          <link rel="alternate" href="../../architecture/" hreflang="zh">
         
           <link rel="alternate" href="./" hreflang="en">
         
@@ -31,7 +31,7 @@
     
     
       
-        <title>Research Findings - ChemWorld</title>
+        <title>System Model - ChemWorld</title>
       
     
     
@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#research-findings" class="md-skip">
+        <a href="#chemworld-system-model" class="md-skip">
           Skip to content
         </a>
       
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Research Findings
+              System Model
             
           </span>
         </div>
@@ -169,7 +169,7 @@
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../research_findings/" hreflang="zh" class="md-select__link">
+            <a href="../../architecture/" hreflang="zh" class="md-select__link">
               中文
             </a>
           </li>
@@ -320,18 +320,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -352,7 +354,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -451,10 +453,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Model
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -470,6 +499,136 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#layer-responsibilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#physical-causal-worlds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Physical causal worlds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#experimental-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experimental runtime
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-and-evaluation-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task and evaluation contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canonical-entities-and-identifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Canonical entities and identifiers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#three-outcome-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three outcome layers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bounded-completeness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounded completeness
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-diagnostic-and-extended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core, Diagnostic, and Extended
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mechanism-understanding-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism-understanding evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -486,20 +645,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -520,7 +677,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -591,37 +748,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Research Findings
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
         
   
   
@@ -637,114 +767,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#new-finding-fixed-world-optimization-works-better-than-explicit-mechanism-understanding" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        New finding: fixed-world optimization works better than explicit mechanism understanding
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#design-finding-all-15-tasks-need-executable-complete-experiments" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design finding: all 15 tasks need executable complete experiments
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#evidence-levels" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Evidence levels
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#finding-1-objective-gains-can-hide-risk-regressions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Finding 1: objective gains can hide risk regressions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#finding-2-strict-rules-preserve-meaningful-failures" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Finding 2: strict rules preserve meaningful failures
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#finding-3-the-historical-four-action-certificate-failed-calibrated-rc28-gate-a-passes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Finding 3: the historical four-action certificate failed; calibrated RC28 Gate A passes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#finding-4-current-rl-evidence-diagnoses-contracts-not-rankings" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Finding 4: current RL evidence diagnoses contracts, not rankings
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#finding-5-llm-evidence-use-requires-causal-ablation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Finding 5: LLM evidence use requires causal ablation
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -866,10 +888,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#new-finding-fixed-world-optimization-works-better-than-explicit-mechanism-understanding" class="md-nav__link">
+  <a href="#layer-responsibilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        New finding: fixed-world optimization works better than explicit mechanism understanding
+        Layer responsibilities
       
     </span>
   </a>
@@ -877,10 +899,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#design-finding-all-15-tasks-need-executable-complete-experiments" class="md-nav__link">
+  <a href="#physical-causal-worlds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Design finding: all 15 tasks need executable complete experiments
+        Physical causal worlds
       
     </span>
   </a>
@@ -888,10 +910,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#evidence-levels" class="md-nav__link">
+  <a href="#experimental-runtime" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Evidence levels
+        Experimental runtime
       
     </span>
   </a>
@@ -899,10 +921,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#finding-1-objective-gains-can-hide-risk-regressions" class="md-nav__link">
+  <a href="#task-and-evaluation-contract" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Finding 1: objective gains can hide risk regressions
+        Task and evaluation contract
       
     </span>
   </a>
@@ -910,10 +932,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#finding-2-strict-rules-preserve-meaningful-failures" class="md-nav__link">
+  <a href="#canonical-entities-and-identifiers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Finding 2: strict rules preserve meaningful failures
+        Canonical entities and identifiers
       
     </span>
   </a>
@@ -921,10 +943,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#finding-3-the-historical-four-action-certificate-failed-calibrated-rc28-gate-a-passes" class="md-nav__link">
+  <a href="#three-outcome-layers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Finding 3: the historical four-action certificate failed; calibrated RC28 Gate A passes
+        Three outcome layers
       
     </span>
   </a>
@@ -932,10 +954,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#finding-4-current-rl-evidence-diagnoses-contracts-not-rankings" class="md-nav__link">
+  <a href="#bounded-completeness" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Finding 4: current RL evidence diagnoses contracts, not rankings
+        Bounded completeness
       
     </span>
   </a>
@@ -943,10 +965,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#finding-5-llm-evidence-use-requires-causal-ablation" class="md-nav__link">
+  <a href="#core-diagnostic-and-extended" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Finding 5: LLM evidence use requires causal ablation
+        Core, Diagnostic, and Extended
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mechanism-understanding-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism-understanding evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current boundary
       
     </span>
   </a>
@@ -973,164 +1017,221 @@
   
 
 
-<h1 id="research-findings">Research Findings<a class="headerlink" href="#research-findings" title="Permanent link">&para;</a></h1>
-<div class="admonition warning">
-<p class="admonition-title">Pre-v0.5 diagnostic results</p>
-<p>The classical, Safe-GP, and early SAC numbers on this page predate the v0.5 candidate backend. They document protocols and failure modes; they are not rankings for the current 15-task release candidate.</p>
-</div>
+<h1 id="chemworld-system-model">ChemWorld System Model<a class="headerlink" href="#chemworld-system-model" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>ChemWorld has produced useful failures and control results, but not a completed benchmark release.</strong></p>
+<p><strong>This page is the normative source for architectural terminology, trajectory fields, and manuscript boundaries.</strong>
+The authoritative evidence state is <code>configs/current.json</code>; implementation does not imply empirical closure.</p>
 </blockquote>
-<div class="admonition warning">
-<p class="admonition-title">Evidence tense</p>
-<p>The RC28 numbers below are formal historical results on their frozen
-source. Static-S0 and task-contract work changed the current source
-fingerprint, so nine RC28 bindings are now stale and
-<code>benchmark_ready=false</code>. The static-S0 results are current and
-replay-verified, but do not replace Gate A recertification.</p>
-</div>
-<h2 id="new-finding-fixed-world-optimization-works-better-than-explicit-mechanism-understanding">New finding: fixed-world optimization works better than explicit mechanism understanding<a class="headerlink" href="#new-finding-fixed-world-optimization-works-better-than-explicit-mechanism-understanding" title="Permanent link">&para;</a></h2>
-<p>The 2026-07-27 formal static-S0 runs used the same <code>gpt-5.6-sol high</code>
-method, 20 complete experiments, five world seeds, a separate final synthesis,
-and paired blind validation. The statistical unit is the world seed; five
-algorithm seeds are first averaged within each world. Electrochemical blind
-mean was 0.3902 (95% CI [0.1732, 0.6072]) versus RF-EI at 0.4798, with a
-paired difference of -0.0896 ([-0.2896, 0.1104]) and two world wins against
-three losses. Reaction-to-crystallization reached 0.4829 ([0.4326, 0.5332])
-versus GP-EI at 0.5324, with a paired difference of -0.0495
-([-0.0933, -0.0056]) and zero wins against five losses.</p>
-<p><img alt="Static-S0 blind final scores by world" src="../assets/images/static-s0-blind-scores-v0.1.png" /></p>
-<p>The model did use feedback: all ten best trials appeared after round 10.
-Mean best-so-far increased by 0.0548 and 0.0599 between experiments 8 and 20.
-However, predictive directional accuracy was only 64.4% and 44.4%, while
-Declared structural-edge F1 was 0.274 and 0.242 and unsupported-claim rates
-were 68.3% and 75.1%. Finding improved conditions is therefore not evidence
-that the model has correctly learned the mechanism. All ten final syntheses
-submitted tested conditions: eight had zero gain, two had small negative gain,
-and none improved the incumbent.</p>
-<p><img alt="Static-S0 optimization curves" src="../assets/images/static-s0-optimization-curves-v0.1.png" /></p>
-<p>These are frozen formal optimization estimands on the current backend, but
-cover only five sampled worlds and one LLM trajectory per world. The strongest
-classic family was selected descriptively from six candidates, so the
-intervals are not preregistered superiority tests. The current roadmap
-prioritizes independent model/provider replication, static final-synthesis
-ablations, more static tasks, and a real-world bridge. Hidden world changes and
-mechanism replacement are deferred rather than part of the current S0 roadmap;
-Private-E/A and real-chemistry transfer also remain open.</p>
-<h2 id="design-finding-all-15-tasks-need-executable-complete-experiments">Design finding: all 15 tasks need executable complete experiments<a class="headerlink" href="#design-finding-all-15-tasks-need-executable-complete-experiments" title="Permanent link">&para;</a></h2>
-<p>The completion audit found that three purification tasks had been mapped to a
-generic reaction-only recipe and that evaporation and distillation shared
-intensity coordinates. The corrected purification design has 16 independent
-controls and 22 compiled operations; distillation has 13 controls with
-independent temperature and time for both stages. The matrix generator now
-detects dead coordinates and executes every midpoint recipe. All 15 pass with
-zero dead coordinates and zero unresolved formalization blockers. This proves
-design executability, not formal performance on the 13 non-confirmatory tasks.</p>
-<h2 id="evidence-levels">Evidence levels<a class="headerlink" href="#evidence-levels" title="Permanent link">&para;</a></h2>
+<p>ChemWorld unifies a <strong>Physical Causal World Substrate</strong>, an <strong>Experimental Interaction Runtime</strong>, and a <strong>Task and
+Evaluation Contract</strong> so that search, execution, identification, and adaptation can be studied as one experimental-
+intelligence problem. The agent, trainer, model weights, and private agent memory remain outside these three layers.</p>
+<div class="highlight"><pre><span></span><code>trainer / pretraining / fine-tuning
+                │
+                ▼
+              Agent
+                │ public task, actions, observations, history
+                ▼
+┌────────────────────────────────────┐
+│ Task and Evaluation Contract       │
+├────────────────────────────────────┤
+│ Experimental Interaction Runtime   │
+├────────────────────────────────────┤
+│ Physical Causal World Substrate    │
+└────────────────────────────────────┘
+</code></pre></div>
+<p>ChemWorld can generate data for an external trainer or host training interactions. It does not update agent weights,
+maintain agent beliefs, or select the next experiment for the agent.</p>
+<h2 id="layer-responsibilities">Layer responsibilities<a class="headerlink" href="#layer-responsibilities" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Level</th>
+<th>Layer</th>
+<th>Owns</th>
+<th>Does not own</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Physical Causal World Substrate</td>
+<td>State, dynamics, constitutive laws, equipment, observation generation, constraints, controlled interventions</td>
+<td>Task objectives, leaderboard weights, agent beliefs, training</td>
+</tr>
+<tr>
+<td>Experimental Interaction Runtime</td>
+<td>Action validity, transactions, lifecycle, measurements, visible feedback, failures, resource ledgers, trajectories</td>
+<td>Agent action selection, silent closeout assistance, cross-task ranking</td>
+</tr>
+<tr>
+<td>Task and Evaluation Contract</td>
+<td>Public goal, action/observation permissions, budgets, termination, scoring, scenario distribution</td>
+<td>Runtime physics or hidden-truth disclosure</td>
+</tr>
+</tbody>
+</table>
+<p>The current scoring compiler lives under <code>chemworld.world.scoring</code>, but the task layer has authority over objectives
+and weights. The runtime executes a task-supplied scoring contract; the physical world does not define the research
+objective.</p>
+<h2 id="physical-causal-worlds">Physical causal worlds<a class="headerlink" href="#physical-causal-worlds" title="Permanent link">&para;</a></h2>
+<p>A world family can be written as</p>
+<p>[
+W=(\mathcal X,\mathcal U,T_\omega,O_\omega,C_\omega,\Delta_\omega),
+]</p>
+<p>where the terms denote typed physical state, operations, hidden transitions, observation generation, constraints, and
+controlled world interventions. Implemented intervention axes include parameters, rate-law form, topology,
+constitutive relations, material mappings, and selected apparatus boundaries. Observation noise is configurable, but a
+general independently validated sensor-law family is not a current claim.</p>
+<h2 id="experimental-runtime">Experimental runtime<a class="headerlink" href="#experimental-runtime" title="Permanent link">&para;</a></h2>
+<p>An Experiment begins from an explicitly initialized sample or process state, contains a sequence of operations and
+measurements, and ends in final assay, explicit termination, failure, or budget truncation. Only a contract-valid final
+assay is a comparable formal outcome; failures and incomplete runs remain in autonomy denominators.</p>
+<div class="highlight"><pre><span></span><code>Campaign
+└── Experiment
+    └── Operation / Measurement
+</code></pre></div>
+<p>The same runtime exposes three action abstractions:</p>
+<ul>
+<li><strong>Campaign Design:</strong> select a complete recipe or experiment;</li>
+<li><strong>Procedure Execution:</strong> select one operation at a time;</li>
+<li><strong>Process Control:</strong> select bounded equipment setpoints or process-control actions.</li>
+</ul>
+<p>The current control interface is a bounded setpoint/process-control abstraction, not a claim of universal high-
+frequency continuous control. The runtime validates and records lifecycle semantics but does not choose terminate or
+final-assay actions for an autonomous agent.</p>
+<h2 id="task-and-evaluation-contract">Task and evaluation contract<a class="headerlink" href="#task-and-evaluation-contract" title="Permanent link">&para;</a></h2>
+<p>A task specifies the public goal, action and observation permissions, budgets, scoring rules, and world/intervention
+distribution. Task endpoints, online shaping, constraints, information efficiency, resources, and procedural autonomy
+remain separate; unlike physical quantities are not averaged into one cross-domain intelligence score.</p>
+<h2 id="canonical-entities-and-identifiers">Canonical entities and identifiers<a class="headerlink" href="#canonical-entities-and-identifiers" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Definition</th>
+<th>Trajectory identifier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Task</td>
+<td>Stable public goal, permissions, budget, and scoring contract</td>
+<td><code>task_id</code>, <code>task_contract_hash</code></td>
+</tr>
+<tr>
+<td>World</td>
+<td>One hidden physical-law instance</td>
+<td><code>world_id</code>, <code>mechanism_hash</code></td>
+</tr>
+<tr>
+<td>Scenario</td>
+<td>Task–World composition plus initial state, interventions, reset/feedback condition, and seed</td>
+<td><code>scenario_id</code></td>
+</tr>
+<tr>
+<td>Campaign</td>
+<td>One agent run on one Task × Scenario × Seed</td>
+<td><code>campaign_id</code></td>
+</tr>
+<tr>
+<td>Experiment</td>
+<td>One initialized physical run within a campaign</td>
+<td><code>experiment_index</code></td>
+</tr>
+<tr>
+<td>Operation</td>
+<td>One state-changing, measurement, or lifecycle action</td>
+<td><code>operation_id</code>, <code>action</code></td>
+</tr>
+<tr>
+<td>Run</td>
+<td>Traceable execution instance</td>
+<td><code>run_id</code></td>
+</tr>
+</tbody>
+</table>
+<p>The canonical benchmark cell is <strong>Task × Scenario × Agent × Seed</strong>.</p>
+<p>Trajectory v0.1 stored a seed-specific run label in <code>task_id</code> and the stable task in <code>benchmark_task_id</code>. In v0.2,
+<code>task_id</code> is the stable task-contract identifier and <code>run_id</code> carries the execution label. <code>benchmark_task_id</code> remains
+a compatibility alias. The v0.2 writer stops materializing all five v0.1 aliases in
+<code>chemworld-trajectory-0.3</code>; read-only support for old trajectories is a separate policy.</p>
+<h2 id="three-outcome-layers">Three outcome layers<a class="headerlink" href="#three-outcome-layers" title="Permanent link">&para;</a></h2>
+<p>Trajectory v0.2 fixes three top-level fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
 <th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Implemented</td>
-<td>A code path and interface exist</td>
+<td><code>environment_outcome</code></td>
+<td>The transaction, physical observation, resource consequence, and lifecycle state actually produced by the world/runtime</td>
 </tr>
 <tr>
-<td>Control-validated</td>
-<td>Executable controls establish environment behavior</td>
+<td><code>agent_visible_observation</code></td>
+<td>The observation and feedback actually released under this information condition</td>
 </tr>
 <tr>
-<td>Agent-demonstrated</td>
-<td>An agent shows interpretable development behavior</td>
-</tr>
-<tr>
-<td>Confirmatory</td>
-<td>A frozen method is tested on an untouched cohort</td>
-</tr>
-<tr>
-<td>Externally bridged</td>
-<td>Independent backend, real data, or physical evidence supports it</td>
+<td><code>evaluation_outcome</code></td>
+<td>The true evaluation endpoint/reward and scoring-contract binding</td>
 </tr>
 </tbody>
 </table>
-<h2 id="finding-1-objective-gains-can-hide-risk-regressions">Finding 1: objective gains can hide risk regressions<a class="headerlink" href="#finding-1-objective-gains-can-hide-risk-regressions" title="Permanent link">&para;</a></h2>
-<p>Unconstrained structured GP improved four task objectives while increasing operational-risk exceedance in three tasks.
-Outcome alone was therefore insufficient.</p>
-<h2 id="finding-2-strict-rules-preserve-meaningful-failures">Finding 2: strict rules preserve meaningful failures<a class="headerlink" href="#finding-2-strict-rules-preserve-meaningful-failures" title="Permanent link">&para;</a></h2>
-<p>A frozen Safe-GP confirmation improved all four objectives and passed safety/cost rules. The flow effect was 0.018752
-against a pre-registered practical threshold of 0.020000, so the all-task claim remained failed.</p>
-<h2 id="finding-3-the-historical-four-action-certificate-failed-calibrated-rc28-gate-a-passes">Finding 3: the historical four-action certificate failed; calibrated RC28 Gate A passes<a class="headerlink" href="#finding-3-the-historical-four-action-certificate-failed-calibrated-rc28-gate-a-passes" title="Permanent link">&para;</a></h2>
-<p>Nine task–mode controls establish deterministic execution, local response separation, bounded response,
-conservation, and replay. At the preregistered four-experiment budget, the source-bound RC21 controlled matched
-oracle reaches 239/240 (99.58%) and passes. The separately bound online-policy-feasible oracle reaches 230/240
-(95.83%) overall, but the reaction <code>rate_law_family</code> reaches only 23/30, with a Wilson lower bound of 0.5907, so
-historical RC21 Gate A remained false. The same family reaches 30/30 in the controlled certificate; the reaction material family
-reaches 29/30 in both certificates.</p>
-<p>This family is an upstream, pivot-normalized catalyst-activity-order stress on the primary target pathway—not a
-crystal nucleation or growth rate law. The design audit proves that only the <code>target_formation</code> rate law changes
-and that crystallization constitutive parameters remain fixed. RC22-d then evaluated all eleven admissible
-four-action sets using disjoint fit, policy-selection-validation, and development-trial namespaces. Every set
-failed world-clustered selection validation; the best weakest-family result was 16/24. The selected set obtained
-20/20 for rate law, 20/20 for no change, 18/20 for topology, and 12/20 for material mapping in non-controlling
-development trials; all four electrochemical families obtained 20/20. RC22-d does not control Gate A and did not
-trigger a formal RC22 run. It localizes the remaining problem to a fixed four-action, single-reference,
-single-likelihood online decoder that cannot robustly combine temporal and cross-action relational evidence—not
-to physical non-identifiability of the reaction rate-law task.</p>
-<p>A non-controlling budget extension then reused the exact RC21 fit/trial seeds, fixed policy, and public observation
-contract to evaluate <code>k={1,2,4,8}</code>. Reaction accuracy was 53/120, 77/120, 111/120, and 112/120, while rate-law
-recall was 0/30, 10/30, 23/30, and 23/30. The k=4 checkpoint exactly reproduced RC21; k=8 only improved no change
-from 29/30 to 30/30, leaving the rate-law Wilson lower bound at 0.5907. Because this diagnostic reused formal
-seeds, it cannot become new confirmatory evidence. It rules out the claim that simply extending the same fixed
-cycle from four to eight steps closes the gap: the extra rounds add repeated evidence, not a new identifying
-relation.</p>
-<p>A subsequent non-certificate screening at only four worlds per family also rejected a naive myopic
-posterior-EIG plus one-step reference-acquisition policy. It generated history-dependent action paths but often
-repeated one locally high-information action. Reaction diagnosis reached only 10/16 (rate law 3/4, topology 4/4,
-material 1/4, and no change 2/4), while electrochemistry reached 16/16. This low-power screen cannot estimate a
-formal pass rate, and its implementation was not retained. It only establishes that a future adaptive method must
-jointly plan reference coverage, temporal evidence, and cross-action relations, then pass independent selection
-validation before preregistration.</p>
-<p>RC21 also exposed a more basic protocol error. Although <code>change_time=1</code> technically executes one old-world
-experiment, that experiment usually lies near the weak-signal rate-law pivot and does not establish the response
-reference needed to say what changed from what. Version 0.3 therefore separates static current-world
-identification, early uncalibrated nonstationarity, and calibrated online change attribution. The static track
-never reports change probability. <code>change_time={0,1,2,4}</code> remains a non-controlling stress track. RC24 freezes
-Gate A3 as online attainability of a reference diagnostic policy with truth support <code>never/6/8/10</code>; <code>tau</code> is the
-number of completed old-world experiments. Reference sufficiency uses relation closure and within-campaign
-pre-change cross-fitting. Changed and never use separate denominators, and detection is reported at
-<code>k={1,2,4,8}</code>. A2, A3, and private confirmation each freeze 180 independent world clusters per task/family.
-After the confirmatory-task semantics audit passed 25/25 and the physical
-design audit passed 83/83, any formal conclusion still had to come from a new
-untouched RC28 cohort. RC21, RC22-d, and RC23 cannot be promoted into v0.3
-confirmatory evidence.</p>
-<p>RC28 subsequently executed untouched formal cohorts under the calibrated
-protocol. A2 completed 4,896/4,896 receipts and passed at the primary
-five-experiment budget: active-oracle and fixed-decoder top-1 accuracy were
-both 98.26% (95% CI 97.45–98.82), with every task/family intersection passing.
-A3 completed 2,016/2,016 receipts. By <code>k=8</code>, the frozen reference policy reached
-99.17% reference sufficiency, 99.35% changed detection recall, 0.9990 AUROC,
-2.80% conditional no-change FPR, 98.03% conditional attribution, and 96.57%
-end-to-end success. The frozen-source joint decision was <code>gate_a_pass=true</code> and
-<code>benchmark_ready=true</code>, so Gate A was true for that source; the current binding is stale.</p>
-<p>This new result resolves the environment-attainability question, not the
-participant-Agent question. Gates B–E, Private-E/Private-A, cross-method
-provider results, and publication evidence remain incomplete.</p>
-<p>These results support environment-level identifiability diagnostics, not Agent-level mechanism discovery,
-crystallization-kinetics discovery, or exact rate-parameter identification.</p>
-<h2 id="finding-4-current-rl-evidence-diagnoses-contracts-not-rankings">Finding 4: current RL evidence diagnoses contracts, not rankings<a class="headerlink" href="#finding-4-current-rl-evidence-diagnoses-contracts-not-rankings" title="Permanent link">&para;</a></h2>
-<p>The early 100,000-step SAC pipeline ran end to end, but development behavior omitted the core flow operation and
-concentrated on adding, measuring, and terminating. Action, reward, and behavioral completion contracts are being
-remediated before any formal multi-seed result.</p>
-<h2 id="finding-5-llm-evidence-use-requires-causal-ablation">Finding 5: LLM evidence use requires causal ablation<a class="headerlink" href="#finding-5-llm-evidence-use-requires-causal-ablation" title="Permanent link">&para;</a></h2>
-<p>Operation-level interaction, memory, spectrum disclosure, and resource accounting are implemented. No formal real
-provider trajectory matrix exists; explanations alone do not prove that spectra or memory changed decisions.</p>
-<p><strong>Status:</strong> benchmark candidate. No SOTA, completed RL/LLM ranking, mechanism-adaptation, or real-world transfer claim
-is supported.</p>
-<p>See the <a href="https://sunyrain.github.io/ChemWorld/benchmark_release/">versioned evidence page in Chinese</a>.</p>
+<p>Feedback ablations may change only <code>agent_visible_observation</code>; they must not rewrite the environment or evaluation
+outcomes. The v0.1 aliases <code>observation</code>, <code>reward</code>, <code>agent_view</code>, and <code>leaderboard_score</code> remain during migration, but
+new analysis must use the three outcome layers. Their writer compatibility, together with <code>benchmark_task_id</code>, ends
+at <code>chemworld-trajectory-0.3</code>.</p>
+<h2 id="bounded-completeness">Bounded completeness<a class="headerlink" href="#bounded-completeness" title="Permanent link">&para;</a></h2>
+<p>ChemWorld distinguishes:</p>
+<ul>
+<li><strong>structural completeness:</strong> the hidden-world → action → transition → measurement → feedback → next-experiment
+  interaction chain is closed by design;</li>
+<li><strong>evaluation completeness:</strong> outcomes, constraints, resources, adaptation, and autonomy have explicit contracts, but
+  fixed-world formal evidence exists on two tasks while mechanism-adaptation cross-method evidence remains incomplete;</li>
+<li><strong>attribution completeness:</strong> diagnostics are designed to separate under-identifiability, experiment choice,
+  feedback use, recovery, and lifecycle failure. Historical RC28 Gate A passed
+  on its frozen source; its current binding is stale, and participant-Agent
+  Gates B–E remain to be frozen and executed.</li>
+</ul>
+<p>The normative boundary is:</p>
+<blockquote>
+<p><strong>ChemWorld targets structural completeness of the experimental-interaction stack across selected physical-
+chemistry archetypes; chemical coverage and numerical fidelity are bounded and explicitly declared, not
+exhaustive.</strong></p>
+</blockquote>
+<h2 id="core-diagnostic-and-extended">Core, Diagnostic, and Extended<a class="headerlink" href="#core-diagnostic-and-extended" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Core</strong> is the six-serious-task agent-comparison environment. Its environment contract is ready, while methods,
+  resources, and results remain unfrozen.</li>
+<li><strong>Diagnostic</strong> contains identifiability, no-change, feedback branching, counterfactual, adaptation-decomposition,
+  and autonomy protocols. Mechanism v0.3 starts with crystallization and electrochemistry and separates static,
+  calibrated-change, uncalibrated-stress, and recovery tracks.</li>
+<li><strong>Extended</strong> contains the remaining registered tasks, training uses, and demonstrations. Coverage does not grant a
+  formal ranking claim.</li>
+</ul>
+<p>These are evaluation roles, not separate engines. The current evaluation contract defines Core; changing its scope
+requires a new protocol version and revalidation, and prior results cannot be carried forward silently.</p>
+<h2 id="mechanism-understanding-evidence">Mechanism-understanding evidence<a class="headerlink" href="#mechanism-understanding-evidence" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Declared:</strong> an auditable mechanism distribution or change probability;</li>
+<li><strong>Predictive:</strong> a testable prediction for an unexecuted intervention;</li>
+<li><strong>Actionable:</strong> a belief that changes experiment choice and improves recovery or regret under a fixed budget.</li>
+</ol>
+<p>Mechanism v0.3 requires explicit old-world reference acquisition before calibrated change attribution. RC24 defines
+A3 as online attainability of a frozen reference diagnostic policy rather than participant-Agent performance. It
+makes <code>never</code> first-class, uses relation closure and within-campaign pre-change cross-fitting for reference
+sufficiency, blinds the policy to prefix and changepoint support, and separates all formal cohorts.
+Static current-world identification and early uncalibrated nonstationarity remain separate, non-gating diagnostics.
+An independent Agent counterfactual-prediction probe is still a future result rather than completed evidence.</p>
+<h2 id="current-boundary">Current boundary<a class="headerlink" href="#current-boundary" title="Permanent link">&para;</a></h2>
+<p>The candidate backend and replay controls are operational. Method and result freezes are campaign-owned rather than
+repository-wide. Historical RC21 controlled matched identifiability passes at 239/240, but the online rate-law family
+is 23/30. Version 0.3 treats that result as evidence that reference acquisition and attribution were confounded, not
+as a physical-kernel failure. Formal RC28 A2/A3 passed on their frozen source,
+establishing historical <code>gate_a_pass=true</code> and <code>benchmark_ready=true</code>. The
+current source binding is stale and current <code>benchmark_ready=false</code>.
+Participant-Agent methods, Gates B–E, Private-E/Private-A, and External Bridge evidence remain incomplete.
+Documentation and scientific claims must follow <code>configs/current.json</code>.</p>
 
 
 

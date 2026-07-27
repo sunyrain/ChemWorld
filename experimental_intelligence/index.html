@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -16,7 +16,7 @@
         <link rel="prev" href="../vision/">
       
       
-        <link rel="next" href="../benchmark_release/">
+        <link rel="next" href="../research_findings/">
       
       
         
@@ -504,6 +504,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#world-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        从“会说机制”到可行动 world model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -552,6 +563,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -559,7 +598,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -753,7 +792,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -781,7 +820,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1329,6 +1368,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1605,7 +1672,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2289,34 +2356,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2403,6 +2442,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#world-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        从“会说机制”到可行动 world model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2461,6 +2511,9 @@
 </blockquote>
 <p>实验智能是把知识变成可检验行动的能力：Agent 要知道自己不知道什么，选择值得做的操作或测量，
 在结果与预期冲突时更新解释，并在安全、成本和时间约束下继续推进。</p>
+<p>规范定义是：<strong>实验智能是在部分可观测且受约束的物理系统中，通过获取证据、构建并修正可行动的
+world model，以及据此调整决策的能力。</strong> 这里的 world model 可以存在于模型权重、上下文、外部
+记忆、显式 belief 或 surrogate 中；ChemWorld 不规定其实现，也不替 Agent 更新它。</p>
 <h2 id="_2">知识、预测与实验是三件事<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2511,6 +2564,36 @@
 结果：若峰未迁移，则降低该假设置信度
 </code></pre></div>
 <p>评价不依据文字是否“像化学家”，而看新证据是否改变后续实验设计。</p>
+<h2 id="world-model">从“会说机制”到可行动 world model<a class="headerlink" href="#world-model" title="Permanent link">&para;</a></h2>
+<p>机制理解按三层证据分开报告：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>检查什么</th>
+<th>不能自动推出什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Declared</td>
+<td>Agent 自报的机制分布或变化概率</td>
+<td>不等于模型内部真实信念</td>
+</tr>
+<tr>
+<td>Predictive</td>
+<td>对尚未执行干预的结果预测是否正确</td>
+<td>不等于预测会影响行动</td>
+</tr>
+<tr>
+<td>Actionable</td>
+<td>判断是否改变下一实验并改善恢复或 regret</td>
+<td>不等于现实机理有效性</td>
+</tr>
+</tbody>
+</table>
+<p>完整证据链是“声明 → 反事实预测 → 行动改变 → 任务恢复”。当前机制协议主要覆盖声明与行动诊断；
+独立预测探针属于后续协议，不能由自然语言解释代替。</p>
 <h2 id="_5">失败恢复也是能力<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>实验可能因为前置条件不满足、操作越界、测量无信息、预算不足或策略误判而失败。环境会保留合法性、
 事务回滚、风险和成本证据。Agent 能否识别失败类型、选择恢复步骤，并避免重复相同错误，应当进入
@@ -2601,7 +2684,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

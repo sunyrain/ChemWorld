@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -627,7 +655,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -655,7 +683,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1203,6 +1231,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1483,7 +1539,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2280,34 +2336,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2443,11 +2471,14 @@
     └── Operation  投料、控制、测量或分离动作
 </code></pre></div>
 <h2 id="campaign">Campaign：这一轮研究<a class="headerlink" href="#campaign" title="Permanent link">&para;</a></h2>
-<p>Campaign 绑定 task、world、seed、Agent 与总预算。主动学习或 BO 可以在同一个 Campaign 中完成
+<p>Campaign 绑定一个 Task、一个 Scenario、一个 Agent、一个 seed 与总预算；它就是规范 benchmark cell
+<code>Task × Scenario × Agent × Seed</code> 的实际执行。主动学习或 BO 可以在同一个 Campaign 中完成
 多次 Experiment，并使用前一次终检结果选择下一套 recipe。</p>
 <h2 id="experiment">Experiment：一只新反应器中的完整流程<a class="headerlink" href="#experiment" title="Permanent link">&para;</a></h2>
-<p>Experiment 从任务初态开始，以合法 <code>final_assay</code> 形成可比较结果。多次加热、追加物料或中间测量
-仍属于同一个 Experiment；只有 campaign 模式下完成终检并换到 fresh vessel，才开始下一次实验。</p>
+<p>Experiment 从明确初始化的样品或过程状态开始，以合法 <code>final_assay</code>、显式终止、失败或预算截断结束。
+只有合法 <code>final_assay</code> 形成可比较的正式结果；失败和未完成运行仍保留在自主性统计中。多次加热、追加
+物料或中间测量仍属于同一个 Experiment；只有 campaign 模式下完成当前生命周期并换到 fresh vessel，
+才开始下一次实验。</p>
 <h2 id="operation">Operation：状态真正发生变化的一步<a class="headerlink" href="#operation" title="Permanent link">&para;</a></h2>
 <p><code>add_reagent</code>、<code>heat</code>、<code>measure</code>、<code>separate_phase</code> 和 <code>distill</code> 都是 Operation。每一步会经过 Action
 schema 与前置条件检查，并返回实际时间、体积、样品、风险、成本和状态事务摘要。</p>
@@ -2476,6 +2507,8 @@ schema 与前置条件检查，并返回实际时间、体积、样品、风险�
 <h2 id="final-assay">Final Assay 为什么特殊<a class="headerlink" href="#final-assay" title="Permanent link">&para;</a></h2>
 <p>合法终检会写入 <code>leaderboard_score</code>、Experiment 条件摘要和 campaign 进度。没有 final assay 的中间
 reward 只用于学习与诊断，不能当作正式实验结果。</p>
+<p>运行时负责校验和记录终止/终检语义，但不会在自主评测中替 Agent 选择 closeout。若协议允许辅助收尾，
+必须将程序自治与此前实验选择产生的科学结果分开报告。</p>
 <h2 id="replay">Replay 需要记录什么<a class="headerlink" href="#replay" title="Permanent link">&para;</a></h2>
 <p>轨迹会保存 task metadata、seed、Action 序列、Experiment index、合同 hash 和必要随机流信息，
 确保同一 Campaign 可以被重建。完整信任链见<a href="../release_integrity/">验证结果可信度</a>。</p>
@@ -2516,7 +2549,7 @@ reward 只用于学习与诊断，不能当作正式实验结果。</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

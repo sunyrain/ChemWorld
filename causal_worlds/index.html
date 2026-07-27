@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -753,7 +781,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -781,7 +809,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1329,6 +1357,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1605,7 +1661,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2289,34 +2345,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2556,10 +2584,13 @@
 <p>机理 cells 应在不同 split 间不重叠。已经查看并用于调参的世界不能重新称为未见确认数据。</p>
 <h2 id="_4">变化需要“可辨识但不灾难”<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p>干预太弱，Agent 无法通过合理实验发现；干预太强，任务会变成世界标签识别或不可解。当前六个研究
-任务已建立实际 Provider 消费的机理或构成律族；控制审计在 5 个世界、5 个代表性 recipe 上检查
-9 个任务—模式组合，验证确定性、行为可辨识、响应不过强和过程守恒。</p>
-<p>这些是<strong>世界控制证据</strong>，不代表 Agent 已经学会适应。下一步正式实验需要测量 change detection、
-identification accuracy、recovery experiments 与 adaptation regret。</p>
+任务已建立实际 Provider 消费的机理或构成律族；低层控制审计在 5 个世界、5 个固定探针 recipe 上检查
+9 个任务—模式组合，验证确定性、局部响应分离、响应不过强和过程守恒。</p>
+<p>世界控制证据本身不证明候选 family 在给定预算内可识别，也不代表 Agent 已经学会适应。RC28 因此
+另行完成正式环境证书：A2 五实验主预算 top-1 为 98.26%，A3 冻结 reference policy 到 <code>k=8</code> 的
+端到端成功率为 96.57%，所有任务与 changed family 交集通过，<code>gate_a_pass=true</code>。这证明冻结
+benchmark 可在线求解；后续仍需用独立冻结的 Participant-Agent Gates B–E 测量 Agent 自身的
+change detection、feedback use、recovery 与 autonomy。</p>
 <h2 id="_5">反事实世界可以检验名称先验<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>未来的严格消融可以保持材料标签与接口不变，同时改变其隐藏作用，检查 Agent 是否依赖名称先验而
 非实验。当前已具备类别编码、语义重映射与隐藏机理合同，但反事实名称—规律矩阵仍应作为独立协议
@@ -2602,7 +2633,7 @@ identification accuracy、recovery experiments 与 adaptation regret。</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

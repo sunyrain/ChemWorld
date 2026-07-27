@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -627,7 +655,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -655,7 +683,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1203,6 +1231,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1483,7 +1539,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2236,34 +2292,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2350,13 +2378,13 @@
 <h1 id="_1">世界律与版本<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <p>世界律是所有任务共享的底层规则：物质怎样流动、反应怎样推进、设备怎样约束操作、仪器能看到什么，
 以及风险、成本和评分如何计算。当前版本是：</p>
-<div class="highlight"><pre><span></span><code>chemworld-physical-chemistry-v0.4
+<div class="highlight"><pre><span></span><code>chemworld-physical-chemistry-v0.5
 </code></pre></div>
 <p>任务是同一世界律上的能力切片，不会为单个任务暗中更换物理规则。世界律 ID 会写入 task
 contract、scenario、trajectory 与 replay；改变状态转移、操作成本、观测可见性、评分或正式
 provider 路由时必须提升版本，旧轨迹不会被静默解释为新版本结果。</p>
 <h2 id="v05-candidate">v0.5 candidate 冻结的正式运行路径<a class="headerlink" href="#v05-candidate" title="Permanent link">&para;</a></h2>
-<p>v0.4 的正式运行时已经把下列窄域 provider 接入统一事务：</p>
+<p>v0.5 的正式运行时已经把下列窄域 provider 接入统一事务：</p>
 <ul>
 <li><code>mix</code>、<code>wash</code>：稳定性门控、活度修正、显式夹带与逐组分守恒的 LLE；</li>
 <li><code>dry</code>：有限容量竞争吸附与 spent-sorbent 物料账；</li>
@@ -2417,7 +2445,7 @@ ledger 中，不以“损失系数”隐藏物料去向。</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

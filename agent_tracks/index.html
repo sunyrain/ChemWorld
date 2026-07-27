@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -627,7 +655,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -655,7 +683,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -901,7 +929,7 @@
   <a href="#process-control" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Process Control：怎样连续调节设备状态
+        Process Control：怎样调节设备设定值与过程状态
       
     </span>
   </a>
@@ -1318,6 +1346,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1594,7 +1650,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2278,34 +2334,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2373,7 +2401,7 @@
   <a href="#process-control" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Process Control：怎样连续调节设备状态
+        Process Control：怎样调节设备设定值与过程状态
       
     </span>
   </a>
@@ -2463,15 +2491,15 @@
 <li>如何处理离散操作与条件参数组成的混合动作空间？</li>
 </ul>
 <p><strong>适合任务</strong>：Reaction to Purification、Crystallization、Distillation、tool-agent planning。</p>
-<h2 id="process-control">Process Control：怎样连续调节设备状态<a class="headerlink" href="#process-control" title="Permanent link">&para;</a></h2>
-<p>决策集中在连续或高频设备设定，如流量、停留时间、温度和电化学控制。它要求 Agent 从传感器反馈中
-识别动态系统，而不只是选择一套静态 recipe。</p>
+<h2 id="process-control">Process Control：怎样调节设备设定值与过程状态<a class="headerlink" href="#process-control" title="Permanent link">&para;</a></h2>
+<p>决策集中在流量、停留时间、温度、电位和电流等设备设定。当前 ChemWorld 提供有界的 setpoint 与
+过程控制动作，用于研究动态反馈和系统辨识；这不等于通用高频连续控制器或真实仪器接口。</p>
 <p><strong>典型方法</strong>：SAC、TD3、MPC、system identification、world-model control。</p>
 <p><strong>主要问题</strong>：</p>
 <ul>
 <li>如何在动态响应与安全边界之间控制？</li>
 <li>设备滞后、传热或隐藏动力学变化时怎样恢复？</li>
-<li>控制频率、观察延迟和连续资源如何公平计量？</li>
+<li>决策频率、观察延迟和过程资源如何公平计量？</li>
 </ul>
 <p><strong>适合任务</strong>：Flow Reaction Optimization、Electrochemical Conversion。</p>
 <h2 id="world-model-adaptation">World-Model Adaptation：现在是哪一种世界<a class="headerlink" href="#world-model-adaptation" title="Permanent link">&para;</a></h2>
@@ -2564,7 +2592,7 @@ Control Agent 甚至持续接收反馈。后两者通常拥有更多决策机会
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   

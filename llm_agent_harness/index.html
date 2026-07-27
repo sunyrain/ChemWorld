@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="用于训练和评测实验智能体的可回放因果虚拟化学实验室。">
+        <meta name="description" content="用于训练和评测实验智能体的可回放物理化学因果世界与交互环境。">
       
       
       
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../research_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    研究发现
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_release/" class="md-nav__link">
         
   
@@ -433,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    研究发现与证据
+    证据与当前状态
   
 
     
@@ -627,7 +655,7 @@
   <span class="md-ellipsis">
     
   
-    旗舰世界与任务
+    展示世界与任务
   
 
     
@@ -655,7 +683,7 @@
   <span class="md-ellipsis">
     
   
-    打开可视化实验室
+    打开可视化界面
   
 
     
@@ -1373,6 +1401,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../flagship_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    确认性基准任务与状态
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -1649,7 +1705,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    规范系统模型
   
 
     
@@ -2333,34 +2389,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_notes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布说明
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2718,7 +2746,9 @@ python<span class="w"> </span>-m<span class="w"> </span>apps.task_lab.server<spa
 请求都应进入资源账本。</p>
 <h2 id="harness">不联网也能测试 Harness<a class="headerlink" href="#harness" title="Permanent link">&para;</a></h2>
 <p><code>ToolUsingLLMStubAgent</code> 用确定性规则检查 tool use、validator、memory 与 replay 管线；
-<code>LLMReplayAgent</code> 则重放已经保存的 Action trace。</p>
+<code>LLMReplayAgent</code>（method id <code>llm_replay</code>）重放已经保存的 Action trace；
+<code>LLMCompletionReplayAgent</code>（method id <code>llm_completion_replay</code>）则重放 recipe planner 的缓存 JSON completion。
+两者处于不同抽象层，不共享方法身份。</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>examples/demo_llm_replay_harness.py
 </code></pre></div>
 <p>它们适合测试工程链路，但不能代表在线 LLM 的性能。</p>
@@ -2764,7 +2794,7 @@ python<span class="w"> </span>-m<span class="w"> </span>apps.task_lab.server<spa
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      ChemWorld · 因果虚拟实验世界，不用于指导真实实验
+      ChemWorld · 物理化学机理世界与 Agent 评测环境，不用于指导真实实验
     </div>
   
   
