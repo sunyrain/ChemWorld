@@ -2,6 +2,52 @@
 
 > **Showcase Worlds 展示平台广度；Confirmatory Benchmark Tasks 承担确认性结论。两者不再统称为“旗舰”。**
 
+!!! warning "当前源码绑定"
+    RC28 Gate A 在其冻结源码上正式通过，但 2026-07-27 的静态 S0 与任务合同更新改变了当前源码指纹。
+    旧 RC28 数字仍是历史正式结果，当前绑定标记为 stale，`benchmark_ready=false`，必须重新认证后才能
+    对当前源码恢复环境 Gate A 主张。
+
+## 2026-07-27 静态 S0 正式结果
+
+两个确认性任务现已在同一静态科学优化范式下完成 `gpt-5.6-sol high` 五 world seed 正式实验。每个
+seed 有 20 个完整探索实验、一次独立最终综合、三个冻结 Predictive 干预、incumbent 与 recommendation
+各三个配对盲验证；所有物理实验均已 replay。
+
+| 任务 | LLM 盲最终 mean，95% CI | 最佳经典校准 mean | 配对差 LLM − 经典，95% CI | World 胜负 | Predictive |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Electrochemical Conversion | 0.3902 [0.1732, 0.6072] | RF-EI 0.4798 | -0.0896 [-0.2896, 0.1104] | 2 胜 / 3 负 | 29/45（64.4%） |
+| Reaction to Crystallization | 0.4829 [0.4326, 0.5332] | GP-EI 0.5324 | -0.0495 [-0.0933, -0.0056] | 0 胜 / 5 负 | 20/45（44.4%） |
+
+统计单位是 world seed；经典算法的五个 algorithm seed 先在每个 world 内取均值。表中区间是五个
+world cluster 上的双侧 95% Student-t 描述性区间。“最佳经典校准”从六个候选算法家族中按总体
+盲均值选择，因此这些区间不是预注册优越性检验。
+
+![静态 S0 逐 world 盲最终分](assets/images/static-s0-blind-scores-v0.1.png)
+
+两个任务的十个最佳探索点都出现在第 11 次实验以后：20 轮预算提供了实际搜索机会。第 8 轮到第
+20 轮的 LLM best-so-far 均值，电化学从 0.3749 增至 0.4297，反应–结晶从 0.4311 增至 0.4911。
+
+![静态 S0 优化曲线](assets/images/static-s0-optimization-curves-v0.1.png)
+
+模型能进行静态闭环优化，但跨世界稳定性和世界理解均未超过结构化优化基线。十次最终提交全部为
+`tested`：8/10 相对配对 incumbent 为零增益，2/10 为轻微负增益，0/10 为正增益。独立 final
+synthesis 因而提供了清晰提交与解释接口，但尚未证明能产生更好的实验条件。
+
+S0 是当前研究主线：它测量固定但未知系统中的闭环科学优化。下文 RC28 是冻结源码上的历史环境
+可识别性证书，不是当前 Participant 实验路线。隐藏 changepoint、机制替换与世界变化实验已经延期；
+只有建立现实漂移场景和独立问题定义后才会重新设计。
+
+## 15 任务优化设计状态
+
+两个确认性任务以外的 13 个任务不要求本轮昂贵模型实验，但其优化设计不能只是任务注册表。当前
+15 个任务都已有版本化完整实验适配器、物理坐标、固定测量槽、final-assay 反馈和安全/成本边界。
+生成器对每个坐标执行低/高干预检查，并在 world seed 0 实际运行中点配方：15/15 通过，死坐标为 0，
+未解决正式化 blocker 为 0。
+
+三个纯化任务使用 16 个独立控制和 22 个编译操作，覆盖反应、萃取、分相、洗涤、干燥、浓缩与转移；
+蒸馏使用 13 个控制，蒸发/蒸馏的温度和时间已经相互独立。这些是可执行设计证据，不是其余 13 个任务
+的正式算法排名。
+
 ## 两个正交集合
 
 网站首页展示四个 **Showcase Worlds**：分配发现、反应–结晶、反应–蒸馏和流动反应优化。它们说明
@@ -22,19 +68,20 @@ Showcase 卡片不是确认性证据；确认性任务也不必出现在首页�
 | 状态 | 当前值 |
 | --- | --- |
 | Environment design candidate | passed |
-| Semantic protocol audit | passed，RC28 25/25 |
-| A1 physical validity | passed，RC28 83/83 设计检查（含关系预算可行性） |
-| A2 controlled identifiability | **passed**，4,896/4,896 receipts |
-| A3 online attainability | **passed**，2,016/2,016 receipts |
-| Participant-Agent Gates B–E | pending method/runner freeze |
+| Semantic protocol audit | 历史 RC28 passed，25/25；当前绑定 stale |
+| A1 physical validity | 历史 RC28 passed，83/83 设计检查；当前绑定 stale |
+| A2 controlled identifiability | 历史 RC28 **passed**，4,896/4,896 receipts；当前源码绑定 stale |
+| A3 online attainability | 历史 RC28 **passed**，2,016/2,016 receipts；当前源码绑定 stale |
+| Static S0 Participant Agent | 两个确认性任务五 seed 正式实验与 replay 已完成 |
+| Mechanism-adaptation Participant Gates B–E | 延期研究扩展；Flash Direct/Stateful S1/S2 均为 0/4 autonomous completion，正式矩阵未启动 |
 | Private-E environment confirmation | eligible，尚未执行 |
 | Private-A participant-Agent confirmation | sealed，等待 participant freeze |
-| Benchmark ready | `true` |
+| Benchmark ready | `false`，等待当前源码 Gate A 重新认证 |
 | Evidence complete | `false` |
 | Publication ready | `false` |
 
-25 项语义检查和 83 项设计检查是两份审计中的检查项，不代表 108 份独立科学证据。RC28 已完成正式
-A2/A3，并于同一联合决策中解封结果：`gate_a_pass=true`、`benchmark_ready=true`。这只表示环境的
+25 项语义检查和 83 项设计检查是两份审计中的检查项，不代表 108 份独立科学证据。RC28 在冻结源码上
+完成正式 A2/A3，并于同一联合决策中解封结果：`gate_a_pass=true`、`benchmark_ready=true`。这只表示该版本环境的
 物理有效性、预算内可识别性和在线可达性前置条件已通过；它不表示 DeepSeek 或其他 participant Agent
 已经通过 Gate B–E，也不使 `evidence_complete` 或 `publication_ready` 自动变为 true。
 
@@ -53,6 +100,11 @@ A2/A3，并于同一联合决策中解封结果：`gate_a_pass=true`、`benchmar
 `k=4` 的 active oracle 在该 cohort 上已经能得到高准确率，但电化学五动作关系并集不能在四动作内形成
 完整结构见证，而且 fixed decoder 的 family 交集仍未通过。因此正式证书仍正确绑定 `k=5`，不能事后
 把较好的 `k=4` oracle 结果改成主门槛。
+
+运行后重合审计表明，`k=5` 的 25 个 oracle/decoder 错误完全重合。原因不是 prediction
+字段复制：电化学的两个五动作 batch 不同；但反应–结晶的 information maximum 恰好等于固定
+前五动作，所以该任务 720 条 trial 共用同一 paired contrast。fixed decoder 从一开始就
+`controls_gate=false`，这里应解释为辅助一致性检查，而不是第二个完全独立的 A2 复现证书。
 
 在 `k=5`，电化学的 constitutive、solvent mapping、electrolyte-profile mapping 和 no-change
 召回率均为 100%。反应–结晶的 rate-law、topology、material mapping 和 no-change 召回率分别为
@@ -214,7 +266,9 @@ certificate；A3 的 `k={1,2,4,8}`、online horizon=8 与 reference policy 不�
 现在为每个任务生成关系并集最小覆盖 witness，并在任何 formal scheduler 前验证预算可行性。
 
 RC28 同时保留 RC25–RC27 的执行硬化：A3 的 576 个 predictive-fit 单元与 1,440 个在线 trial
-合计为 2,016 个 receipts；A2 在三个 checkpoint 下合计为 4,896 个 receipts。除此之外：
+合计为 2,016 个 receipts；A2 在三个 checkpoint 下合计为 4,896 个 receipts。receipt 是执行
+与恢复单元，不是独立样本：A2 的三个预算复用同一组 360 个 held-out task × world clusters，
+A3 使用另外 360 个 confirmatory clusters，两者无交集。除此之外：
 
 - 每个 `task × truth × world cluster × changepoint × arm` 只允许一个 write-once terminal receipt；
 - 基础设施失败进入独立 attempt ledger，恢复时只补缺失 trial，不重跑已完成单元；
@@ -222,9 +276,10 @@ RC28 同时保留 RC25–RC27 的执行硬化：A3 的 576 个 predictive-fit �
 - 观测噪声由实验号、操作、仪器和 replicate 的语义坐标派生，不再依赖分支路径消耗了多少 RNG；
 - Private confirmation 拆成环境复现 Private-E 与 Agent 矩阵复现 Private-A。
 
-Participant-Agent 的默认决策 prompt 使用 `chemworld-compact-decision-context-0.2`，保守估算上限为
-1,500 tokens。它只包含当前决策所需的任务、生命周期、预算、指标、测量摘要、约束、短期记忆和
-动作参数签名；完整谱图数组、replicate 曲线、重复 observation view、constitution checks 与
+Participant-Agent 的默认决策 prompt 使用 `chemworld-compact-decision-context-0.3`。50 个最坏合法
+fixture 给出的 development cap 为：共享 environment view 2,050，Direct 总 prompt 3,600，
+Stateful v0.4 总 prompt 4,150 estimated tokens。它只包含当前决策所需的任务、生命周期、预算、
+指标、测量摘要、约束、短期记忆和动作参数签名；完整谱图数组、replicate 曲线、重复 observation view、constitution checks 与
 Git/provider/ledger 元数据只进入审计轨迹。历史谱图可通过公开 `spectrum_id` 按需获取。
 
 ## 分层通过规则
@@ -251,6 +306,13 @@ Pooled micro-average 仅作补充，不能用一个容易任务掩盖另一个�
 
 语义审计通过不等于这些 Gate 已通过。
 
+第一轮正式实验采用四方法 `2×2` 因子设计：Pro/Flash 两个 backend 分别运行 direct reactive
+与 stateful scientific 两种 scaffold。该设计同时估计 backend、scaffold 和交互效应，只需新增
+一个 stateful scientific scaffold；ReAct 与 planning-memory 延后为有针对性的消融或补充，
+不阻断第一轮。当前 `live_llm_a/live_llm_b` 同时改变 backend、thinking 和 controller，只能
+保留为 development pilot，不能直接形成正式模型或 scaffold 效应。完整实施顺序和临时 TODO
+已收束到仓库内的 RC28 Participant 正式实验主计划。
+
 ## 单一预注册入口
 
 启动 A2/A3 前，唯一控制文件是：
@@ -274,4 +336,7 @@ Pooled micro-average 仅作补充，不能用一个容易任务掩盖另一个�
 - A3 结构回执：`mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json`
 - 联合公开决策：`mechanism-adaptation-public-decision-v0.1-rc28.json`
 - Participant-Agent 预注册候选：`configs/benchmark/mechanism_adaptation_participant_preregistration_rc28.json`
+- Gate A 运行后审计：`RC28_GATE_A_POSTRUN_SANITY_AUDIT_ZH.md`
+- Participant 正式实验计划：`RC28_PARTICIPANT_FORMAL_EXPERIMENT_PLAN_AND_TODO_ZH.md`
+- Stateful Scientific 实现规格：`STATEFUL_SCIENTIFIC_AGENT_V0_1_SPEC_ZH.md`
 - 当前状态真源：`configs/current.json`

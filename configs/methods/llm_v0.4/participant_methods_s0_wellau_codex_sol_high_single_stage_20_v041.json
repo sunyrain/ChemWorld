@@ -1,0 +1,68 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.4.1-s0",
+  "freeze_id": "chemworld-static-scientific-optimization-s0-wellau-codex-sol-high-single-stage-20-v0.4.1-2026-07-27",
+  "status": "owner_authorized_formal_finalization_amendment",
+  "benchmark_claim_allowed": false,
+  "formal_result": true,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_known_horizon",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "world_policy": "static_for_entire_campaign",
+    "electrochemical_workflow_mode": "static_single_stage",
+    "horizon_visible": true,
+    "model_facing_parameterization": "named_physical_controls",
+    "internal_unit_vector_visible_to_agent": false,
+    "final_synthesis": true,
+    "structured_world_claims": true,
+    "held_out_predictive_world_understanding": true,
+    "blind_recommendation_validation": true,
+    "paired_validation_noise": true,
+    "hidden_world_fields_supplied": false,
+    "mechanism_candidates_supplied": false
+  },
+  "formal_amendments": [
+    {
+      "amendment_id": "explicit-final-list-limits",
+      "scope": "final_synthesis_only",
+      "reason": "The original validator enforced a 16-item list cap that was not exposed in the required JSON shape.",
+      "change": "Expose the existing at-most-16 limit for evidence and narrative list fields; do not change exploration prompts, physical execution, scoring, or validation."
+    },
+    {
+      "amendment_id": "eligible-predictive-reference",
+      "scope": "final_synthesis_predictive_queries_only",
+      "reason": "The incumbent can exhaust every unseen categorical one-factor intervention.",
+      "change": "Choose the highest-scoring explored experiment that supports the complete frozen unseen one-factor query set."
+    }
+  ],
+  "methods": {
+    "s0_codex_sol_high_single_stage_20": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_named_single_stage_controls_world_claims_full_history_20_v041",
+      "request_configuration": {
+        "response_format": "json_object",
+        "reasoning_effort": "high",
+        "max_tokens": 8000,
+        "timeout_s": 300.0,
+        "max_attempts": 3,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 20,
+        "per_decision_max_estimated_tokens": 25500,
+        "final_synthesis_max_estimated_tokens": 36000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+        "final_synthesis_list_limits_explicit": true,
+        "preflight_status": "local_mock_continuation_completed_and_replay_verified",
+        "mock_preflight_source_world_seed": 4,
+        "mock_preflight_completed_exploration_experiments_reused": 20,
+        "mock_preflight_final_synthesis_estimate": 16813,
+        "mock_preflight_total_physical_experiments": 38,
+        "mock_preflight_replay_verified": true
+      }
+    }
+  }
+}

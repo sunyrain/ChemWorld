@@ -1,0 +1,36 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.1-s0-dev",
+  "freeze_id": "chemworld-static-scientific-optimization-s0-wellau-codex-sol-2026-07-26-dev",
+  "benchmark_claim_allowed": false,
+  "formal_result": false,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "world_policy": "static_for_entire_campaign",
+    "hidden_world_fields_supplied": false,
+    "mechanism_candidates_supplied": false
+  },
+  "methods": {
+    "s0_codex_sol_direct": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct",
+      "request_configuration": {
+        "response_format": "json_object",
+        "reasoning_effort": "high",
+        "max_tokens": 8000,
+        "timeout_s": 180.0,
+        "max_attempts": 3,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 8,
+        "per_decision_max_estimated_tokens": 6250,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only"
+      }
+    }
+  }
+}

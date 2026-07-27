@@ -378,6 +378,11 @@ def _run_campaigns(args: argparse.Namespace) -> int:
         pair_ids=args.pair_id,
         limit=args.pair_limit,
     )
+    rows = _development_truncated_campaign_rows(
+        rows,
+        pre_change_experiments=args.development_pre_change_experiments,
+        post_change_experiments=args.development_post_change_experiments,
+    )
     summaries = args.runtime_root / "campaigns"
     completed = 0
     reused = 0
@@ -425,6 +430,12 @@ def _run_campaigns(args: argparse.Namespace) -> int:
         "completed_this_invocation": completed,
         "reused_this_invocation": reused,
         "feedback_condition": args.feedback_condition,
+        "development_post_change_experiments": (
+            args.development_post_change_experiments
+        ),
+        "development_pre_change_experiments": (
+            args.development_pre_change_experiments
+        ),
         "campaign_paths": [
             str(summaries / _campaign_filename(row, args.feedback_condition))
             for row in rows
@@ -434,6 +445,70 @@ def _run_campaigns(args: argparse.Namespace) -> int:
     _write_json(args.runtime_root / "campaign-index.json", index)
     print(json.dumps(index, indent=2, sort_keys=True))
     return 0
+
+
+def _development_truncated_campaign_rows(
+    rows: list[dict[str, Any]],
+    *,
+    pre_change_experiments: int | None = None,
+    post_change_experiments: int | None = None,
+) -> list[dict[str, Any]]:
+    """Shorten development smoke runs without mutating the frozen protocol."""
+
+    if pre_change_experiments is None and post_change_experiments is None:
+        return rows
+    if pre_change_experiments is not None and pre_change_experiments <= 0:
+        raise ValueError("development pre-change experiments must be positive")
+    if post_change_experiments is not None and post_change_experiments <= 0:
+        raise ValueError("development post-change experiments must be positive")
+    truncated: list[dict[str, Any]] = []
+    for row in rows:
+        frozen_change_time = int(row["phase_reset_after_experiment"])
+        frozen_horizon = int(row["total_experiment_horizon"])
+        frozen_post_change = frozen_horizon - frozen_change_time
+        executed_pre_change = (
+            frozen_change_time
+            if pre_change_experiments is None
+            else pre_change_experiments
+        )
+        executed_post_change = (
+            frozen_post_change
+            if post_change_experiments is None
+            else post_change_experiments
+        )
+        if executed_pre_change > frozen_change_time:
+            raise ValueError(
+                "development pre-change experiments cannot exceed the frozen horizon"
+            )
+        if executed_post_change > frozen_post_change:
+            raise ValueError(
+                "development post-change experiments cannot exceed the frozen horizon"
+            )
+        development_row = dict(row)
+        development_row["phase_reset_after_experiment"] = executed_pre_change
+        development_row["total_experiment_horizon"] = (
+            executed_pre_change + executed_post_change
+        )
+        if row.get("truth_change_time") != "never":
+            development_row["truth_change_time"] = executed_pre_change
+        if row.get("evaluator_pseudo_checkpoint") is not None:
+            development_row["evaluator_pseudo_checkpoint"] = executed_pre_change
+        development_row["post_change_checkpoints"] = [
+            int(item)
+            for item in row["post_change_checkpoints"]
+            if int(item) <= executed_post_change
+        ]
+        development_row["ordinary_change_detection_claim_allowed"] = False
+        development_row["development_horizon_override"] = {
+            "frozen_total_experiment_horizon": frozen_horizon,
+            "frozen_post_change_experiments": frozen_post_change,
+            "frozen_pre_change_experiments": frozen_change_time,
+            "executed_pre_change_experiments": executed_pre_change,
+            "executed_post_change_experiments": executed_post_change,
+            "formal_result": False,
+        }
+        truncated.append(development_row)
+    return truncated
 
 
 def _print_campaign_progress(
@@ -687,6 +762,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--task", action="append")
     parser.add_argument("--pair-id", action="append")
     parser.add_argument("--pair-limit", type=int)
+    parser.add_argument(
+        "--development-pre-change-experiments",
+        type=int,
+        default=None,
+        help=(
+            "Development-only shortening of the reference phase; changed and "
+            "no-change checkpoints move together and outputs remain non-formal."
+        ),
+    )
+    parser.add_argument(
+        "--development-post-change-experiments",
+        type=int,
+        default=None,
+        help=(
+            "Development-only campaign truncation after the frozen pre-change "
+            "reference phase; outputs remain non-formal."
+        ),
+    )
     parser.add_argument("--provider-repeats", type=int, default=3)
     parser.add_argument("--target-shifted-experiment", type=int, default=2)
     parser.add_argument("--resume", action="store_true")

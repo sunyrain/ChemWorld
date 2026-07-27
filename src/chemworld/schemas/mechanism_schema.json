@@ -97,6 +97,7 @@
               "equation_id": {
                 "type": "string",
                 "enum": [
+                  "runtime_owned",
                   "mass_action",
                   "arrhenius",
                   "modified_arrhenius",
@@ -113,7 +114,40 @@
               "parameters": {
                 "type": "object"
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "equation_id": {
+                      "const": "runtime_owned"
+                    }
+                  },
+                  "required": [
+                    "equation_id"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "parameters"
+                  ],
+                  "properties": {
+                    "parameters": {
+                      "type": "object",
+                      "required": [
+                        "runtime_model_id"
+                      ],
+                      "properties": {
+                        "runtime_model_id": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
           },
           "metadata": {
             "type": "object"

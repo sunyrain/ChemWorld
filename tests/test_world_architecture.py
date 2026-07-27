@@ -692,9 +692,7 @@ def test_runtime_species_view_uses_mechanism_roles_without_fixed_names() -> None
         species_amounts={
             "Ox": 0.006,
             "Red": 0.003,
-            "IsoRed": 0.001,
-            "D": 0.0,
-            "Coupled": 0.0,
+            "SideRed": 0.001,
         },
         volume_L=0.05,
         temperature_K=298.15,
@@ -708,7 +706,7 @@ def test_runtime_species_view_uses_mechanism_roles_without_fixed_names() -> None
 
     assert view.reactant_species(state) == "Ox"
     assert view.primary_target_species == "Red"
-    assert view.primary_impurity_species == "IsoRed"
+    assert view.primary_impurity_species == "SideRed"
     assert view.target_amount(state) == 0.003
     assert view.impurity_amount(state) == 0.001
     assert truth["yield"] == pytest.approx(0.3)
@@ -830,7 +828,7 @@ def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() ->
         compiled,
     )
     state = WorldState(
-        species_amounts={"Ox": 0.0, "Red": 0.0, "IsoRed": 0.0, "D": 0.0, "Coupled": 0.0},
+        species_amounts={"Ox": 0.0, "Red": 0.0, "SideRed": 0.0},
         volume_L=0.05,
         temperature_K=298.15,
         pressure_Pa=101_325.0,
@@ -880,7 +878,7 @@ def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() ->
     )
     assert converted.species_amounts["Ox"] < configured.species_amounts["Ox"]
     assert converted.species_amounts["Red"] > configured.species_amounts["Red"]
-    assert converted.species_amounts["IsoRed"] >= configured.species_amounts["IsoRed"]
+    assert converted.species_amounts["SideRed"] >= configured.species_amounts["SideRed"]
     assert abs(electro_record.state_delta_summary["actual_current_A"]) > 0.0
     assert "interfacial_potential_V" in electro_record.state_delta_summary
     assert "ohmic_loss_J" in electro_record.state_delta_summary
@@ -897,9 +895,7 @@ def test_observation_kernel_scores_non_fixed_mechanism_species() -> None:
         species_amounts={
             "Ox": 0.004,
             "Red": 0.004,
-            "IsoRed": 0.001,
-            "D": 0.001,
-            "Coupled": 0.0,
+            "SideRed": 0.002,
         },
         volume_L=0.05,
         temperature_K=298.15,
@@ -914,7 +910,7 @@ def test_observation_kernel_scores_non_fixed_mechanism_species() -> None:
     assert truth["yield"] == pytest.approx(0.4)
     assert truth["conversion"] == pytest.approx(0.6)
     assert truth["byproduct_signal"] == pytest.approx(0.2)
-    assert truth["degradation_warning"] == pytest.approx(0.1)
+    assert truth["degradation_warning"] == pytest.approx(0.0)
 
 
 def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None:
@@ -2254,21 +2250,25 @@ def test_recipe_compiler_expands_macros_and_checks_task_policy() -> None:
     compiled = compile_recipe(recipe, task_info=purification_task)
 
     assert [step["operation"] for step in compiled] == [
-        "add_extractant",
+        "add_phase",
         "mix",
         "settle",
         "separate_phase",
         "dry",
         "concentrate",
     ]
-    assert compiled[0]["compiled_from_macro"] == "wash"
-    assert compiled[-1]["compiled_from_macro"] == "concentrate"
+    assert compiled[0] == {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.012,
+    }
+    assert compiled[4] == {"operation": "dry"}
     assert validate_recipe(recipe, task_info=purification_task).valid
 
     reaction_only_task = get_task("reaction-to-assay").to_dict()
     blocked = validate_recipe(recipe, task_info=reaction_only_task)
     assert not blocked.valid
-    assert "operation not allowed by task: add_extractant" in blocked.errors[0]
+    assert "operation not allowed by task: add_phase" in blocked.errors[0]
 
 
 def test_packaged_schema_files_match_runtime_constants() -> None:

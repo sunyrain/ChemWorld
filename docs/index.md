@@ -27,6 +27,19 @@
 
 </section>
 
+## 当前正式证据
+
+`gpt-5.6-sol high` 已在两个固定世界科学优化任务上完成五 world seed、每 seed 20 个完整实验的正式
+运行。电化学与反应–结晶的盲最终均值分别为 0.3902 和 0.4829，最强经典校准家族分别为 0.4798 和
+0.5324；逐 world 比较为 2 胜 3 负和 0 胜 5 负。十次 final synthesis 中 0 次产生正的配对增益。
+全部探索、Predictive 和盲验证实验均已精确 replay。
+
+这些结果测量静态优化和最终科学综合。固定世界 S0 是当前主线；隐藏世界变化与机制替换已经延期，
+需要在现实漂移模型和独立研究问题明确后重新设计。
+
+另有一条独立的设计证据：15 个任务的完整实验适配器均已执行中点 smoke，死坐标与未解决正式化
+blocker 均为 0；只有两个确认性任务完成了本轮昂贵正式模型实验。
+
 ## 实验数据不能像文本和游戏经验一样无限生成
 
 语言模型可以读取海量文本，机器人策略可以在模拟器里经历数百万次失败；化学与化工 Agent 却无法
@@ -252,15 +265,17 @@ Safe-GP 改善目标并通过安全与成本规则，但一个任务未达到预
 
 RC28 已在未触碰 cohort 上完成正式环境证书：A2 4,896/4,896、A3 2,016/2,016 receipts，
 五实验主预算的受控识别 top-1 为 98.26%，在线 reference policy 到 `k=8` 的端到端成功率为
-96.57%，因此 `gate_a_pass=true`、`benchmark_ready=true`。这证明 benchmark 在冻结条件下可求解，
-不证明 DeepSeek 或其他 Agent 会适应；Participant-Agent Gates B–E、Private confirmation 和
+96.57%，冻结源码上的历史决策为 `gate_a_pass=true`、`benchmark_ready=true`。这证明该冻结版本在
+预算内可求解，不证明 DeepSeek 或其他 Agent 会适应。当前源码绑定已 stale，当前
+`benchmark_ready=false`；Participant-Agent Gates B–E、Private confirmation 和
 跨 provider 方法矩阵仍待独立冻结与执行。
 
 </div>
 
 </div>
 
-LLM 交互、记忆、资源账本和谱图消融协议已经具备；真实模型矩阵仍未形成正式结果。现有单 seed RL
+LLM 交互、记忆、资源账本和谱图消融协议已经具备；两个固定世界 S0 的真实模型矩阵已形成正式结果，
+但机制变化模型矩阵仍未完成。现有单 seed RL
 运行主要是动作、奖励和训练合同的工程诊断，不作为训练尺度或方法排名结论。
 
 [阅读研究发现与证据等级 →](benchmark_release.md)

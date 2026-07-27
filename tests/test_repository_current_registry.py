@@ -51,7 +51,7 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     assert registry["project"]["version"] == pyproject["project"]["version"]
     assert registry["project"]["role"] == "agent_capability_evaluation_and_training_environment"
     assert registry["project"]["environment_updates_agent_weights"] is False
-    assert registry["formal_evaluation"]["formal_results_present"] is False
+    assert registry["formal_evaluation"]["formal_results_present"] is True
     assert registry["formal_evaluation"]["benchmark_claim_allowed"] is False
     assert (
         registry["formal_evaluation"]["environment_certificate_results_present"]
@@ -61,12 +61,26 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
         registry["formal_evaluation"][
             "environment_benchmark_readiness_claim_allowed"
         ]
-        is True
+        is False
     )
     assert registry["mechanism_adaptation"]["publication_ready"] is False
+    assert registry["static_scientific_optimization"]["formal_result"] is True
+    assert registry["static_scientific_optimization"]["all_replay_verified"] is True
+    assert (
+        registry["static_scientific_optimization"]["hidden_world_change_evaluated"]
+        is False
+    )
+    assert registry["task_design"]["registered_task_count"] == 15
+    assert registry["task_design"]["executable_midpoint_task_count"] == 15
+    assert registry["task_design"]["dead_recipe_coordinate_count"] == 0
+    assert registry["task_design"]["formalization_blocker_count"] == 0
+    assert registry["task_design"]["formal_experiment_task_ids"] == [
+        "electrochemical-conversion",
+        "reaction-to-crystallization",
+    ]
     assert registry["mechanism_adaptation"]["new_external_provider_runs_completed"] is False
     assert registry["mechanism_adaptation"]["gate_a_pass"] is True
-    assert registry["mechanism_adaptation"]["benchmark_ready"] is True
+    assert registry["mechanism_adaptation"]["benchmark_ready"] is False
     assert registry["mechanism_adaptation"][
         "a2_structural_receipt"
     ].endswith(
@@ -82,22 +96,22 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     ].endswith(
         "mechanism-adaptation-public-decision-v0.1-rc28.json"
     )
-    assert registry["mechanism_adaptation"]["release_qualification_pass"] is True
+    assert registry["mechanism_adaptation"]["release_qualification_pass"] is False
     assert registry["mechanism_adaptation"][
         "participant_preregistration_candidate"
     ].endswith("mechanism_adaptation_participant_preregistration_rc28.json")
-    assert registry["mechanism_adaptation"]["semantics_audit_pass"] is True
+    assert registry["mechanism_adaptation"]["semantics_audit_pass"] is False
     assert registry["mechanism_adaptation"][
         "semantics_audit_report"
     ].endswith("confirmatory-task-semantics-audit-rc28.json")
     assert registry["mechanism_adaptation"]["gate_a_certificate_status"] == {
         "a1_physical_intervention_validity": "passed",
-        "a2_controlled_matched_identifiability": "passed",
-        "a3_online_attainability": "passed",
+        "a2_controlled_matched_identifiability": "historical_pass_current_binding_stale",
+        "a3_online_attainability": "historical_pass_current_binding_stale",
     }
     assert (
         registry["mechanism_adaptation"]["status"]
-        == "gate_a_passed_remaining_gates_pending"
+        == "historical_gate_a_pass_current_binding_stale"
     )
     assert (
         registry["mechanism_adaptation"]["gate_a_evidence_current"]

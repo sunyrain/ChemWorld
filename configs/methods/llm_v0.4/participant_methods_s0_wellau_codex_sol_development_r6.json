@@ -1,0 +1,92 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.3-s0-dev",
+  "freeze_id": "chemworld-static-scientific-optimization-s0-wellau-codex-sol-r6-named-electrochem-world-understanding-2026-07-26-dev",
+  "status": "development_pending_owner_confirmation",
+  "benchmark_claim_allowed": false,
+  "formal_result": false,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_known_horizon",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "world_policy": "static_for_entire_campaign",
+    "horizon_visible": true,
+    "model_facing_parameterization": "named_physical_controls",
+    "internal_unit_vector_visible_to_agent": false,
+    "final_synthesis": true,
+    "structured_world_claims": true,
+    "held_out_predictive_world_understanding": true,
+    "blind_recommendation_validation": true,
+    "paired_validation_noise": true,
+    "hidden_world_fields_supplied": false,
+    "mechanism_candidates_supplied": false
+  },
+  "development_amendments": [
+    {
+      "amendment_id": "s0-electrochemical-task-contract-r6",
+      "scope": "development_only",
+      "reason": "The declarative electrochemical mechanism and runtime previously described different worlds.",
+      "change": "Bind the task to one runtime-validated contract with Ox, Red, SideRed and runtime-owned electrochemical pathways.",
+      "scientific_contract_changed": true
+    },
+    {
+      "amendment_id": "s0-named-physical-controls-r6",
+      "scope": "development_only",
+      "reason": "A normalized unit vector is not a scientifically interpretable model interface.",
+      "change": "The model selects named controls with units; deterministic unit-vector encoding remains internal for baseline compatibility.",
+      "scientific_contract_changed": true
+    },
+    {
+      "amendment_id": "s0-world-understanding-claims-r6",
+      "scope": "development_only",
+      "reason": "Free-text mechanism explanations cannot be compared reproducibly to the instantiated world.",
+      "change": "Require evidence-grounded structured observable causal claims and score them against a frozen hidden reference graph.",
+      "scientific_contract_changed": true
+    },
+    {
+      "amendment_id": "s0-prompt-budget-r6",
+      "scope": "development_only",
+      "reason": "Eight-round named-control mock preflight reached 6268 estimated tokens and final synthesis reached 7146.",
+      "change": "Freeze a 7500-token decision prompt cap and a 9000-token final-synthesis prompt cap without changing provider max output tokens.",
+      "scientific_contract_changed": false
+    },
+    {
+      "amendment_id": "s0-predictive-world-understanding-r6",
+      "scope": "development_only",
+      "reason": "Declared mechanism claims alone do not establish that the model can predict unseen interventions.",
+      "change": "Add three frozen one-factor held-out direction queries to the existing final synthesis call, followed by twelve paired local simulations with no feedback to the model.",
+      "scientific_contract_changed": true
+    },
+    {
+      "amendment_id": "s0-controlled-claim-vocabulary-r6",
+      "scope": "development_only",
+      "reason": "The public recipe exposed controlled-stage field names while the declared-claim vocabulary used ambiguous stage-free names.",
+      "change": "Use the exact controlled_potential_V, controlled_current_mA, and controlled_duration_s names in the existing hidden reference graph.",
+      "scientific_contract_changed": false
+    }
+  ],
+  "methods": {
+    "s0_codex_sol_direct": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_named_controls_world_claims",
+      "request_configuration": {
+        "response_format": "json_object",
+        "reasoning_effort": "high",
+        "max_tokens": 8000,
+        "timeout_s": 180.0,
+        "max_attempts": 3,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 8,
+        "per_decision_max_estimated_tokens": 7500,
+        "final_synthesis_max_estimated_tokens": 9000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+        "mock_preflight_max_decision_estimate": 6268,
+        "mock_preflight_final_synthesis_estimate": 8579
+      }
+    }
+  }
+}

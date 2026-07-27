@@ -9,7 +9,7 @@ from typing import Any
 from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.live_llm import LiveLLMAgent
 
-DIAGNOSTIC_PROMPT_VERSION = "chemworld-mechanism-diagnostic-prompt-0.3"
+DIAGNOSTIC_PROMPT_VERSION = "chemworld-mechanism-diagnostic-prompt-0.4"
 
 
 class MechanismDiagnosticLiveLLMAgent(LiveLLMAgent):
@@ -85,36 +85,36 @@ class MechanismDiagnosticLiveLLMAgent(LiveLLMAgent):
         context: AgentDecisionContext,
         public_view: dict[str, Any],
     ) -> str:
+        return self._serialize_extended_prompt(
+            self._build_diagnostic_payload(context, public_view)
+        )
+
+    def _build_diagnostic_payload(
+        self,
+        context: AgentDecisionContext,
+        public_view: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Compose diagnostics without enforcing a transient subclass budget."""
+
         payload = json.loads(super()._build_prompt(context, public_view))
         payload["instruction"] += (
-            " The hidden world law may remain stable or may change during the campaign. "
-            "Do not infer a change from experiment count alone. Use only released evidence "
-            "to maintain a normalized belief over the supplied candidate mechanism IDs. "
-            "Report the expected information value of the selected next operation; this is "
-            "a public forecast and will be scored against subsequent belief change. "
-            "A completed experiment is mandatory. The campaign state exposes "
-            "diagnostic_actions_used_current_experiment and "
-            "diagnostic_per_experiment_action_limit. Reserve the final two action slots "
-            "for terminate followed by measure with instrument=final_assay; once used "
-            "actions reach limit minus two, stop optional diagnostics and begin closeout."
+            " The hidden law may stay stable or change; experiment count is not evidence. "
+            "Use released evidence only for a normalized candidate belief. Forecast the "
+            "selected operation's information value. Complete an experiment: when the "
+            "public diagnostic-action count reaches its limit minus two, reserve the last "
+            "two legal slots for terminate and final_assay."
         )
         payload["mechanism_diagnostic_contract"] = {
-            "version": DIAGNOSTIC_PROMPT_VERSION,
             "candidate_ids": list(self.mechanism_candidates),
-            "belief_semantics": "probability distribution summing to one",
-            "change_probability_semantics": (
-                "probability that the current hidden law differs from the initial regime"
-            ),
-            "expected_information_gain_semantics": (
-                "0 means no expected reduction in mechanism uncertainty; 1 means maximal"
-            ),
-            "ground_truth_withheld": True,
+            "probabilities": "non-negative and sum to one",
+            "change_probability": "probability current law differs from initial law",
+            "ground_truth": "withheld",
         }
         payload["required_json_shape"]["diagnostic_report"] = {
             "mechanism_belief": dict.fromkeys(self.mechanism_candidates, "probability from 0 to 1"),
             "change_probability": "number from 0 to 1",
         }
-        return self._serialize_extended_prompt(payload)
+        return payload
 
     def _normalize_decision(
         self,

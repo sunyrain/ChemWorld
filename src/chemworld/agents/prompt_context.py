@@ -10,8 +10,9 @@ from typing import Any
 
 from chemworld.data.logging import to_builtin
 
-PROMPT_CONTEXT_VERSION = "chemworld-compact-decision-context-0.2"
+PROMPT_CONTEXT_VERSION = "chemworld-compact-decision-context-0.3"
 DEFAULT_PROMPT_TOKEN_ESTIMATE_CAP = 1500
+PROMPT_TOKEN_ESTIMATE_SAFETY_MARGIN = 50
 
 _TASK_KEYS = (
     "task_id",
@@ -32,6 +33,8 @@ _LIFECYCLE_KEYS = (
 )
 _STATE_KEYS = (
     "experiment_index",
+    "diagnostic_actions_used_current_experiment",
+    "diagnostic_per_experiment_action_limit",
     "remaining_budget",
     "remaining_experiments",
     "remaining_operations",
@@ -77,6 +80,15 @@ _SKIPPED_ARRAY_KEYS = frozenset(
         "values",
     }
 )
+_PURE_SPECTRAL_PACKET_KINDS = frozenset(
+    {
+        "gc_chromatogram",
+        "hplc_chromatogram",
+        "ir_spectrum",
+        "nmr_1h_spectrum",
+        "uvvis_spectrum",
+    }
+)
 
 
 class PromptBudgetExceededError(ValueError):
@@ -89,6 +101,7 @@ class PromptPacket:
     text: str
     estimated_tokens: int
     max_estimated_tokens: int
+    reduction_steps: tuple[str, ...]
 
 
 def build_decision_prompt(
@@ -110,10 +123,12 @@ def build_decision_prompt(
     payload: dict[str, Any] = {
         "representation_version": PROMPT_CONTEXT_VERSION,
         "instruction": (
-            "Choose one legal next operation from the compact public state. Declare "
+            "Choose a legal operation from the public state. Declare "
             "which outcome would support or weaken the diagnostic target. Request a "
             "historical spectrum only when its detail can change the decision. The "
-            "harness does not repair, terminate, or assay on your behalf."
+            "action must be a flat JSON object: every required field is a direct "
+            "sibling of operation; never nest values under parameters. The harness "
+            "does not repair, terminate, or assay on your behalf."
         ),
         "task": _compact_task_contract(task_contract),
         "decision_state": {
@@ -124,6 +139,10 @@ def build_decision_prompt(
                 state.get("remaining_budget"),
             ),
             "current_experiment": _pick_compact(state, _STATE_KEYS),
+            "lifecycle": _compact_lifecycle_state(
+                decision_context,
+                state,
+            ),
             "latest_metrics": _compact_scalar_mapping(
                 decision_context.get("visible_metrics", {})
             ),
@@ -157,7 +176,11 @@ def build_decision_prompt(
         "legal_actions": [
             compact_action(item)
             for item in actions
-            if isinstance(item, Mapping) and item.get("operation")
+            if (
+                isinstance(item, Mapping)
+                and item.get("operation")
+                and item.get("valid") is not False
+            )
         ]
         if isinstance(actions, list)
         else [],
@@ -170,7 +193,10 @@ def build_decision_prompt(
             ),
         },
         "required_json_shape": {
-            "action": {"operation": "one legal operation plus required parameters"},
+            "action": {
+                "operation": "one legal operation",
+                "<required field>": "value as a direct sibling of operation",
+            },
             "expected_effect": "one concise testable expectation",
             "diagnostic_target": "candidate relation or exploitation objective",
             "expected_information_gain": "unitless forecast in [0,1]",
@@ -182,15 +208,6 @@ def build_decision_prompt(
             "request_historical_spectrum_id": (
                 "public spectrum_id needed next, or null"
             ),
-        },
-        "context_manifest": {
-            "raw_numeric_arrays": "audit_only_not_supplied",
-            "duplicate_observation_views": "not_supplied",
-            "provider_repository_and_ledger_metadata": "audit_only_not_supplied",
-            "constitution_checks": "audit_only_not_supplied",
-            "memory_policy": "historical_best_plus_two_most_recent",
-            "recent_decision_count": min(len(recent_decisions), 2),
-            "max_estimated_tokens": max_estimated_tokens,
         },
     }
     return serialize_prompt_payload(payload, max_estimated_tokens=max_estimated_tokens)
@@ -204,9 +221,15 @@ def serialize_prompt_payload(
     """Serialize under a hard cap; never silently remove required action fields."""
 
     mutable = to_builtin(dict(payload))
+    reduction_steps: list[str] = []
     text = _canonical_json(mutable)
     estimate = estimate_prompt_tokens(text)
-    if estimate > max_estimated_tokens:
+    reduction_target = max(
+        500,
+        max_estimated_tokens - PROMPT_TOKEN_ESTIMATE_SAFETY_MARGIN,
+    )
+    if estimate > reduction_target:
+        reduction_steps.append("trim_recent_uncertainty_and_peak_detail")
         mutable["recent_decisions"] = list(mutable.get("recent_decisions", []))[-1:]
         state = mutable.get("decision_state")
         if isinstance(state, dict):
@@ -226,6 +249,91 @@ def serialize_prompt_payload(
             manifest["fixed_budget_reduction_applied"] = True
         text = _canonical_json(mutable)
         estimate = estimate_prompt_tokens(text)
+    if estimate > reduction_target:
+        reduction_steps.append("trim_actions_catalog_and_peak_detail")
+        recent = mutable.get("recent_decisions")
+        if isinstance(recent, list):
+            for item in recent:
+                if isinstance(item, dict):
+                    item.pop("action", None)
+        state = mutable.get("decision_state")
+        if isinstance(state, dict):
+            for measurement_key in (
+                "latest_measurement",
+                "requested_historical_measurement",
+            ):
+                measurement = state.get(measurement_key)
+                if isinstance(measurement, dict) and isinstance(
+                    measurement.get("peaks"), list
+                ):
+                    measurement["peaks"] = measurement["peaks"][:2]
+        on_demand = mutable.get("on_demand_detail")
+        if isinstance(on_demand, dict):
+            catalog = on_demand.get("historical_spectrum_catalog")
+            if isinstance(catalog, list):
+                on_demand["historical_spectrum_catalog"] = catalog[-2:]
+        text = _canonical_json(mutable)
+        estimate = estimate_prompt_tokens(text)
+    if estimate > reduction_target:
+        reduction_steps.append("project_recent_memory_and_measurements")
+        recent = mutable.get("recent_decisions")
+        if isinstance(recent, list):
+            mutable["recent_decisions"] = [
+                _minimal_recent_decision(item)
+                for item in recent[-1:]
+                if isinstance(item, Mapping)
+            ]
+        state = mutable.get("decision_state")
+        if isinstance(state, dict):
+            latest_metrics = state.get("latest_metrics")
+            latest_measurement = state.get("latest_measurement")
+            if (
+                isinstance(latest_metrics, Mapping)
+                and latest_metrics
+                and isinstance(latest_measurement, dict)
+            ):
+                latest_measurement.pop("processed_estimate", None)
+            for measurement_key in (
+                "latest_measurement",
+                "requested_historical_measurement",
+            ):
+                measurement = state.get(measurement_key)
+                if isinstance(measurement, dict) and isinstance(
+                    measurement.get("peaks"), list
+                ):
+                    measurement["peaks"] = measurement["peaks"][:3]
+        memory = mutable.get("experiment_memory")
+        if isinstance(memory, dict) and isinstance(memory.get("recent"), list):
+            memory["recent"] = memory["recent"][-1:]
+        on_demand = mutable.get("on_demand_detail")
+        if isinstance(on_demand, dict):
+            catalog = on_demand.get("historical_spectrum_catalog")
+            if isinstance(catalog, list):
+                on_demand["historical_spectrum_catalog"] = catalog[-4:]
+        text = _canonical_json(mutable)
+        estimate = estimate_prompt_tokens(text)
+    if estimate > reduction_target:
+        reduction_steps.append("trim_on_demand_and_provenance")
+        on_demand = mutable.get("on_demand_detail")
+        if isinstance(on_demand, dict):
+            on_demand.pop("historical_spectrum", None)
+        state = mutable.get("decision_state")
+        if isinstance(state, dict):
+            provenance = state.get("observation_provenance")
+            if isinstance(provenance, dict):
+                provenance.pop("current_event_type", None)
+                provenance.pop("current_spectral_packet", None)
+        text = _canonical_json(mutable)
+        estimate = estimate_prompt_tokens(text)
+    if estimate > reduction_target:
+        reduction_steps.append("project_prior_scientific_state")
+        prior_state = mutable.get("prior_scientific_state")
+        if isinstance(prior_state, dict):
+            mutable["prior_scientific_state"] = _project_prior_scientific_state(
+                prior_state
+            )
+        text = _canonical_json(mutable)
+        estimate = estimate_prompt_tokens(text)
     if estimate > max_estimated_tokens:
         raise PromptBudgetExceededError(
             f"compact prompt estimate {estimate} exceeds cap "
@@ -236,6 +344,7 @@ def serialize_prompt_payload(
         text=text,
         estimated_tokens=estimate,
         max_estimated_tokens=max_estimated_tokens,
+        reduction_steps=tuple(reduction_steps),
     )
 
 
@@ -243,6 +352,51 @@ def estimate_prompt_tokens(text: str) -> int:
     """Conservative tokenizer-independent estimate for mixed-language JSON."""
 
     return math.ceil(len(text.encode("utf-8")) / 4)
+
+
+def estimate_prompt_segments(payload: Mapping[str, Any]) -> dict[str, int]:
+    """Audit shared public context separately from persistent Agent memory."""
+
+    memory_keys = {
+        "experiment_memory",
+        "recent_decisions",
+        "prior_scientific_state",
+    }
+    environment_keys = {
+        "task",
+        "decision_state",
+        "legal_actions",
+        "on_demand_detail",
+    }
+    environment = {
+        str(key): to_builtin(value)
+        for key, value in payload.items()
+        if key in environment_keys
+    }
+    method_contract = {
+        str(key): to_builtin(value)
+        for key, value in payload.items()
+        if key not in memory_keys and key not in environment_keys
+    }
+    memory = {
+        str(key): to_builtin(value)
+        for key, value in payload.items()
+        if key in memory_keys
+    }
+    return {
+        "environment_view_estimated_tokens": estimate_prompt_tokens(
+            _canonical_json(environment)
+        ),
+        "method_contract_estimated_tokens": estimate_prompt_tokens(
+            _canonical_json(method_contract)
+        ),
+        "agent_memory_estimated_tokens": (
+            estimate_prompt_tokens(_canonical_json(memory)) if memory else 0
+        ),
+        "total_estimated_tokens": estimate_prompt_tokens(
+            _canonical_json(to_builtin(dict(payload)))
+        ),
+    }
 
 
 def summarize_measurement(value: Any) -> dict[str, Any]:
@@ -268,8 +422,9 @@ def summarize_measurement(value: Any) -> dict[str, Any]:
     peaks: list[dict[str, Any]] = []
     _collect_peaks(value, peaks)
     if peaks:
-        summary["peaks"] = peaks[:8]
-        summary["peak_count_supplied"] = min(len(peaks), 8)
+        unique_peaks = _deduplicate_rows(peaks)
+        summary["peaks"] = unique_peaks[:8]
+        summary["peak_count_supplied"] = min(len(unique_peaks), 8)
     processed = value.get("processed_estimate")
     if isinstance(processed, Mapping):
         summary["processed_estimate"] = _compact_scalar_mapping(
@@ -281,11 +436,10 @@ def summarize_measurement(value: Any) -> dict[str, Any]:
         for key in ("spectrum_id", "instrument", "kind"):
             if key not in summary and _is_compact_value(raw.get(key)):
                 summary[key] = to_builtin(raw[key])
-        non_spectral = _compact_nested_scalars(raw)
-        if non_spectral:
-            summary["non_spectral_estimate"] = non_spectral
-    if summary["available"]:
-        summary["raw_signal"] = "available_by_public_spectrum_id_not_in_prompt"
+        if raw.get("kind") not in _PURE_SPECTRAL_PACKET_KINDS:
+            non_spectral = _compact_nested_scalars(raw)
+            if non_spectral:
+                summary["non_spectral_estimate"] = non_spectral
     return summary
 
 
@@ -304,9 +458,16 @@ def compact_experiment_memory(
         if scored
         else memory[-1]
     )
+    compact_best = _compact_experiment(best)
+    compact_recent = [_compact_experiment(item) for item in memory[-2:]]
+    compact_recent = [
+        item
+        for item in compact_recent
+        if _canonical_json(item) != _canonical_json(compact_best)
+    ]
     return {
-        "historical_best": _compact_experiment(best),
-        "recent": [_compact_experiment(item) for item in memory[-2:]],
+        "historical_best": compact_best,
+        "recent": compact_recent,
     }
 
 
@@ -325,10 +486,84 @@ def compact_decision(item: Mapping[str, Any]) -> dict[str, Any]:
                 "uncertainty",
                 "request_historical_spectrum_id",
                 "status",
+                "mechanism_distribution",
+                "declared_information_value",
+            ),
+        )
+    )
+    mechanism_distribution = item.get("mechanism_distribution")
+    if isinstance(mechanism_distribution, Mapping):
+        compact["mechanism_distribution"] = _compact_scalar_mapping(
+            mechanism_distribution,
+            limit=8,
+        )
+    return compact
+
+
+def _minimal_recent_decision(item: Mapping[str, Any]) -> dict[str, Any]:
+    """Keep the prior action and belief while dropping repeated prose."""
+
+    compact: dict[str, Any] = {}
+    action = item.get("action")
+    if isinstance(action, Mapping):
+        compact["action"] = to_builtin(dict(action))
+    mechanism_distribution = item.get("mechanism_distribution")
+    if isinstance(mechanism_distribution, Mapping):
+        compact["mechanism_distribution"] = _compact_scalar_mapping(
+            mechanism_distribution,
+            limit=8,
+        )
+    compact.update(
+        _pick_compact(
+            item,
+            (
+                "declared_information_value",
+                "uncertainty",
             ),
         )
     )
     return compact
+
+
+def _project_prior_scientific_state(
+    state: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Project audited state to the bounded fields needed for the next choice."""
+
+    projected: dict[str, Any] = {}
+    distribution = state.get("mechanism_distribution")
+    if isinstance(distribution, Mapping):
+        projected["mechanism_distribution"] = _compact_scalar_mapping(
+            distribution,
+            limit=8,
+        )
+    plan = state.get("campaign_plan")
+    if isinstance(plan, list):
+        for item in plan:
+            if not isinstance(item, Mapping):
+                continue
+            step = item.get("step")
+            if _is_compact_value(step):
+                projected["current_plan_step"] = to_builtin(step)
+                break
+    evidence = state.get("evidence_ledger")
+    evidence_supplied = False
+    if isinstance(evidence, list):
+        for item in reversed(evidence):
+            if not isinstance(item, Mapping):
+                continue
+            compact_evidence = _pick_compact(
+                item,
+                ("supports", "contradicts"),
+            )
+            if compact_evidence:
+                projected["latest_evidence"] = compact_evidence
+                evidence_supplied = True
+                break
+    if not evidence_supplied:
+        projected.update(_pick_compact(state, ("replan_trigger",)))
+    projected.update(_pick_compact(state, ("uncertainty",)))
+    return projected
 
 
 def compact_action(item: Mapping[str, Any]) -> dict[str, Any]:
@@ -346,7 +581,6 @@ def compact_action(item: Mapping[str, Any]) -> dict[str, Any]:
     required_raw = schema.get("required_fields", [])
     required = set(required_raw) if isinstance(required_raw, list) else set()
     fields = schema.get("fields")
-    parameters: list[dict[str, Any]] = []
     if isinstance(fields, list):
         for field in fields:
             if not isinstance(field, Mapping):
@@ -354,7 +588,9 @@ def compact_action(item: Mapping[str, Any]) -> dict[str, Any]:
             name = field.get("field", field.get("name"))
             if not isinstance(name, str) or not name:
                 continue
-            parameter = {"field": name, "required": name in required}
+            parameter: dict[str, Any] = {}
+            if name not in required:
+                parameter["optional"] = True
             parameter.update(
                 _pick_compact(
                     field,
@@ -369,9 +605,28 @@ def compact_action(item: Mapping[str, Any]) -> dict[str, Any]:
                     ),
                 )
             )
-            parameters.append(parameter)
-    if parameters:
-        compact["parameters"] = parameters
+            bounds = field.get("bounds")
+            if isinstance(bounds, Mapping):
+                low = bounds.get("low")
+                high = bounds.get("high")
+                if _is_compact_value(low) and _is_compact_value(high):
+                    parameter["range"] = [to_builtin(low), to_builtin(high)]
+            recommended = field.get("recommended_range")
+            if isinstance(recommended, Mapping):
+                low = recommended.get("low")
+                high = recommended.get("high")
+                range_value = parameter.get("range")
+                recommended_value = [to_builtin(low), to_builtin(high)]
+                if (
+                    _is_compact_value(low)
+                    and _is_compact_value(high)
+                    and recommended_value != range_value
+                ):
+                    parameter["recommended_range"] = [
+                        to_builtin(low),
+                        to_builtin(high),
+                    ]
+            compact[name] = parameter
     return compact
 
 
@@ -390,6 +645,62 @@ def _compact_task_contract(task_contract: Mapping[str, Any]) -> dict[str, Any]:
             _LIFECYCLE_KEYS,
         )
     return compact
+
+
+def _compact_lifecycle_state(
+    decision_context: Mapping[str, Any],
+    campaign_state: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Expose public lifecycle counters without selecting a scientific action."""
+
+    raw_count = campaign_state.get(
+        "diagnostic_actions_used_current_experiment"
+    )
+    raw_limit = campaign_state.get("diagnostic_per_experiment_action_limit")
+    count = (
+        int(raw_count)
+        if isinstance(raw_count, int) and not isinstance(raw_count, bool)
+        else None
+    )
+    limit = (
+        int(raw_limit)
+        if isinstance(raw_limit, int) and not isinstance(raw_limit, bool)
+        else None
+    )
+    stage = str(decision_context.get("decision_stage") or "")
+    terminated = stage == "experiment_closeout"
+    available_raw = decision_context.get("available_operations", ())
+    available = (
+        {str(item) for item in available_raw}
+        if isinstance(available_raw, list | tuple)
+        else set()
+    )
+    final_assay_available = terminated and "measure" in available
+    reserved = 2
+    ordinary_remaining = (
+        max(limit - count - reserved, 0)
+        if count is not None and limit is not None
+        else None
+    )
+    if terminated:
+        closeout_status = "terminated_awaiting_final_assay"
+    elif ordinary_remaining == 0:
+        closeout_status = "reserved_closeout_window"
+    else:
+        closeout_status = "not_started"
+    return {
+        key: value
+        for key, value in {
+            "experiment_action_count": count,
+            "experiment_action_limit": limit,
+            "ordinary_action_slots_remaining": ordinary_remaining,
+            "reserved_closeout_slots": reserved,
+            "experiment_terminated": terminated,
+            "final_assay_available": final_assay_available,
+            "closeout_status": closeout_status,
+        }.items()
+        if value is not None
+    }
 
 
 def _compact_spectrum_catalog(value: Any) -> list[dict[str, Any]]:
@@ -470,6 +781,19 @@ def _collect_peaks(value: Any, output: list[dict[str, Any]]) -> None:
     elif isinstance(value, list) and len(value) <= 16:
         for item in value:
             _collect_peaks(item, output)
+
+
+def _deduplicate_rows(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    unique: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for row in rows:
+        normalized = to_builtin(dict(row))
+        key = _canonical_json(normalized)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(normalized)
+    return unique
 
 
 def _mapping(value: Any) -> Mapping[str, Any]:
@@ -564,6 +888,7 @@ __all__ = [
     "compact_action",
     "compact_decision",
     "compact_experiment_memory",
+    "estimate_prompt_segments",
     "estimate_prompt_tokens",
     "serialize_prompt_payload",
     "summarize_measurement",

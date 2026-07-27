@@ -37,6 +37,12 @@ def evaluate_rate_law(
         raise ValueError("temperature_K must be positive")
     params = reaction.rate_law.parameters
     equation_id = reaction.rate_law.equation_id
+    if equation_id == "runtime_owned":
+        runtime_model_id = str(params["runtime_model_id"])
+        raise ValueError(
+            "runtime_owned pathway cannot be evaluated by the generic reaction network: "
+            f"reaction_id={reaction.reaction_id!r}, runtime_model_id={runtime_model_id!r}"
+        )
     driving_quantities = rate_driving_quantities(
         reaction,
         concentrations_mol_L,

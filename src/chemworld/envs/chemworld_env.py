@@ -42,6 +42,10 @@ from chemworld.foundation.state import (
     process_with_last_observation,
 )
 from chemworld.operation_validator import OperationValidation, OperationValidator
+from chemworld.physchem.electrochemical_task_contract import (
+    ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE,
+    normalize_electrochemical_workflow_mode,
+)
 from chemworld.runtime import (
     ChemWorldObservationKernel,
     ChemWorldRuntime,
@@ -81,6 +85,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         observation_noise_mode: str = "sequential",
         observation_noise_namespace: str = "chemworld-default-observation",
         world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
+        electrochemical_workflow_mode: str = (
+            ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE
+        ),
         debug_truth: bool = False,
         render_mode: str | None = None,
     ) -> None:
@@ -119,6 +126,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         self.observation_noise_mode = observation_noise_mode
         self.observation_noise_namespace = observation_noise_namespace
+        self.electrochemical_workflow_mode = normalize_electrochemical_workflow_mode(
+            electrochemical_workflow_mode
+        )
         self.debug_truth = debug_truth
         self.world_interventions = tuple(world_interventions or ())
         self.render_mode = render_mode
@@ -578,6 +588,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             allowed_operations=self.allowed_operations,
             allowed_instruments=self.allowed_instruments,
             task_id=None if self.task_spec is None else self.task_spec.task_id,
+            electrochemical_workflow_mode=self.electrochemical_workflow_mode,
             target_species=species_view.target_species,
             reagent_charge_molar_multiplier=reagent_charge_molar_multiplier,
             action_codec=self.action_codec,

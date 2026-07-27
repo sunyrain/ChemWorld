@@ -5,6 +5,58 @@
 
 > **ChemWorld has produced useful failures and control results, but not a completed benchmark release.**
 
+!!! warning "Evidence tense"
+    The RC28 numbers below are formal historical results on their frozen
+    source. Static-S0 and task-contract work changed the current source
+    fingerprint, so nine RC28 bindings are now stale and
+    `benchmark_ready=false`. The static-S0 results are current and
+    replay-verified, but do not replace Gate A recertification.
+
+## New finding: fixed-world optimization works better than explicit mechanism understanding
+
+The 2026-07-27 formal static-S0 runs used the same `gpt-5.6-sol high`
+method, 20 complete experiments, five world seeds, a separate final synthesis,
+and paired blind validation. The statistical unit is the world seed; five
+algorithm seeds are first averaged within each world. Electrochemical blind
+mean was 0.3902 (95% CI [0.1732, 0.6072]) versus RF-EI at 0.4798, with a
+paired difference of -0.0896 ([-0.2896, 0.1104]) and two world wins against
+three losses. Reaction-to-crystallization reached 0.4829 ([0.4326, 0.5332])
+versus GP-EI at 0.5324, with a paired difference of -0.0495
+([-0.0933, -0.0056]) and zero wins against five losses.
+
+![Static-S0 blind final scores by world](assets/images/static-s0-blind-scores-v0.1.png)
+
+The model did use feedback: all ten best trials appeared after round 10.
+Mean best-so-far increased by 0.0548 and 0.0599 between experiments 8 and 20.
+However, predictive directional accuracy was only 64.4% and 44.4%, while
+Declared structural-edge F1 was 0.274 and 0.242 and unsupported-claim rates
+were 68.3% and 75.1%. Finding improved conditions is therefore not evidence
+that the model has correctly learned the mechanism. All ten final syntheses
+submitted tested conditions: eight had zero gain, two had small negative gain,
+and none improved the incumbent.
+
+![Static-S0 optimization curves](assets/images/static-s0-optimization-curves-v0.1.png)
+
+These are frozen formal optimization estimands on the current backend, but
+cover only five sampled worlds and one LLM trajectory per world. The strongest
+classic family was selected descriptively from six candidates, so the
+intervals are not preregistered superiority tests. The current roadmap
+prioritizes independent model/provider replication, static final-synthesis
+ablations, more static tasks, and a real-world bridge. Hidden world changes and
+mechanism replacement are deferred rather than part of the current S0 roadmap;
+Private-E/A and real-chemistry transfer also remain open.
+
+## Design finding: all 15 tasks need executable complete experiments
+
+The completion audit found that three purification tasks had been mapped to a
+generic reaction-only recipe and that evaporation and distillation shared
+intensity coordinates. The corrected purification design has 16 independent
+controls and 22 compiled operations; distillation has 13 controls with
+independent temperature and time for both stages. The matrix generator now
+detects dead coordinates and executes every midpoint recipe. All 15 pass with
+zero dead coordinates and zero unresolved formalization blockers. This proves
+design executability, not formal performance on the 13 non-confirmatory tasks.
+
 ## Evidence levels
 
 | Level | Meaning |
@@ -82,8 +134,8 @@ both 98.26% (95% CI 97.45–98.82), with every task/family intersection passing.
 A3 completed 2,016/2,016 receipts. By `k=8`, the frozen reference policy reached
 99.17% reference sufficiency, 99.35% changed detection recall, 0.9990 AUROC,
 2.80% conditional no-change FPR, 98.03% conditional attribution, and 96.57%
-end-to-end success. The joint decision is `gate_a_pass=true` and
-`benchmark_ready=true`, so Gate A is true.
+end-to-end success. The frozen-source joint decision was `gate_a_pass=true` and
+`benchmark_ready=true`, so Gate A was true for that source; the current binding is stale.
 
 This new result resolves the environment-attainability question, not the
 participant-Agent question. Gates B–E, Private-E/Private-A, cross-method

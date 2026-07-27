@@ -19,7 +19,9 @@ from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabi
 from chemworld.agents.prompt_context import (
     DEFAULT_PROMPT_TOKEN_ESTIMATE_CAP,
     PROMPT_CONTEXT_VERSION,
+    PromptBudgetExceededError,
     build_decision_prompt,
+    estimate_prompt_segments,
     serialize_prompt_payload,
 )
 from chemworld.data.logging import to_builtin
@@ -28,7 +30,9 @@ SpectrumDisclosure = Literal["assigned", "unassigned", "masked"]
 
 SYSTEM_PROMPT = """You are an operation-level agent in the ChemWorld causal world-model environment.
 Use only the compact public decision state and legal action signatures. Choose exactly one
-next operation and return one JSON object. Never claim hidden identities or simulator state.
+next operation and return one JSON object. The action is flat: put every required field
+directly beside operation and never use a nested parameters object. Never claim hidden
+identities or simulator state.
 Do not provide private chain-of-thought. Declare only the expected effect, diagnostic target,
 information-value forecast, conditional belief-update rule, uncertainty, and exact action.
 """
@@ -108,6 +112,8 @@ class LiveLLMAgent(BaseAgent):
         experiment_memory_limit: int = 4,
         response_max_tokens: int | None = None,
         prompt_token_estimate_cap: int = DEFAULT_PROMPT_TOKEN_ESTIMATE_CAP,
+        environment_view_token_estimate_cap: int | None = None,
+        agent_memory_token_estimate_cap: int | None = None,
         fail_fast_on_unbillable_provider_failure: bool = False,
     ) -> None:
         if spectrum_disclosure not in {"assigned", "unassigned", "masked"}:
@@ -120,6 +126,18 @@ class LiveLLMAgent(BaseAgent):
             raise ValueError("response_max_tokens must be positive")
         if prompt_token_estimate_cap < 500:
             raise ValueError("prompt_token_estimate_cap must be at least 500")
+        if (
+            environment_view_token_estimate_cap is not None
+            and environment_view_token_estimate_cap < 500
+        ):
+            raise ValueError(
+                "environment_view_token_estimate_cap must be at least 500"
+            )
+        if (
+            agent_memory_token_estimate_cap is not None
+            and agent_memory_token_estimate_cap < 100
+        ):
+            raise ValueError("agent_memory_token_estimate_cap must be at least 100")
         self.client = client
         self.role_id = role_id
         self.spectrum_disclosure = spectrum_disclosure
@@ -131,6 +149,16 @@ class LiveLLMAgent(BaseAgent):
             else (8000 if bool(getattr(client, "thinking", False)) else 2000)
         )
         self.prompt_token_estimate_cap = int(prompt_token_estimate_cap)
+        self.environment_view_token_estimate_cap = (
+            None
+            if environment_view_token_estimate_cap is None
+            else int(environment_view_token_estimate_cap)
+        )
+        self.agent_memory_token_estimate_cap = (
+            None
+            if agent_memory_token_estimate_cap is None
+            else int(agent_memory_token_estimate_cap)
+        )
         self.fail_fast_on_unbillable_provider_failure = bool(
             fail_fast_on_unbillable_provider_failure
         )
@@ -154,6 +182,10 @@ class LiveLLMAgent(BaseAgent):
         self._provider_attempt_records: list[dict[str, Any]] = []
         self._last_prompt_estimated_tokens = 0
         self._maximum_prompt_estimated_tokens = 0
+        self._last_prompt_segment_estimates: dict[str, int] = {}
+        self._maximum_prompt_segment_estimates: dict[str, int] = {}
+        self._last_prompt_reduction_steps: tuple[str, ...] = ()
+        self._prompt_reduction_decision_count = 0
 
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
         del history
@@ -233,6 +265,8 @@ class LiveLLMAgent(BaseAgent):
         self._last_context = context.to_dict()
         self._last_public_view = to_builtin(public_view)
         prompt = self._build_prompt(context, public_view)
+        if self._last_prompt_reduction_steps:
+            self._prompt_reduction_decision_count += 1
         completion: JsonCompletionLike | None = None
         try:
             completion = self.client.complete_json(
@@ -273,6 +307,7 @@ class LiveLLMAgent(BaseAgent):
             except Exception as exc:
                 self._provider_failure_count += 1
                 decision = self._failure_decision(context, exc)
+                decision["normalization_error"] = " ".join(str(exc).split())[:300]
             else:
                 decision["status"] = "model_decision"
             decision["provider_model"] = str(completion.model)
@@ -423,6 +458,12 @@ class LiveLLMAgent(BaseAgent):
                 "prompt_context_version": PROMPT_CONTEXT_VERSION,
                 "prompt_hash": _prompt_hash(),
                 "prompt_token_estimate_cap": self.prompt_token_estimate_cap,
+                "environment_view_token_estimate_cap": (
+                    self.environment_view_token_estimate_cap
+                ),
+                "agent_memory_token_estimate_cap": (
+                    self.agent_memory_token_estimate_cap
+                ),
                 "prompt_context_policy": (
                     "decision_first_no_raw_arrays_with_explicit_hard_cap"
                 ),
@@ -479,8 +520,20 @@ class LiveLLMAgent(BaseAgent):
                     ),
                     "max_tokens": self.response_max_tokens,
                     "prompt_token_estimate_cap": self.prompt_token_estimate_cap,
+                    "environment_view_token_estimate_cap": (
+                        self.environment_view_token_estimate_cap
+                    ),
+                    "agent_memory_token_estimate_cap": (
+                        self.agent_memory_token_estimate_cap
+                    ),
                     "maximum_prompt_estimated_tokens": (
                         self._maximum_prompt_estimated_tokens
+                    ),
+                    "maximum_prompt_segment_estimates": dict(
+                        self._maximum_prompt_segment_estimates
+                    ),
+                    "prompt_reduction_decision_count": (
+                        self._prompt_reduction_decision_count
                     ),
                     "logical_decisions": self._logical_decision_count,
                     "spectrum_disclosure": self.spectrum_disclosure,
@@ -563,11 +616,7 @@ class LiveLLMAgent(BaseAgent):
             recent_decisions=self._recent_decisions,
             max_estimated_tokens=self.prompt_token_estimate_cap,
         )
-        self._last_prompt_estimated_tokens = packet.estimated_tokens
-        self._maximum_prompt_estimated_tokens = max(
-            self._maximum_prompt_estimated_tokens,
-            packet.estimated_tokens,
-        )
+        self._record_prompt_packet(packet)
         return packet.text
 
     def _serialize_extended_prompt(self, payload: Mapping[str, Any]) -> str:
@@ -577,12 +626,42 @@ class LiveLLMAgent(BaseAgent):
             payload,
             max_estimated_tokens=self.prompt_token_estimate_cap,
         )
+        self._record_prompt_packet(packet)
+        return packet.text
+
+    def _record_prompt_packet(self, packet: Any) -> None:
+        segments = estimate_prompt_segments(packet.payload)
+        environment_cap = self.environment_view_token_estimate_cap
+        memory_cap = self.agent_memory_token_estimate_cap
+        if (
+            environment_cap is not None
+            and segments["environment_view_estimated_tokens"] > environment_cap
+        ):
+            raise PromptBudgetExceededError(
+                "environment view estimate "
+                f"{segments['environment_view_estimated_tokens']} exceeds cap "
+                f"{environment_cap}"
+            )
+        if (
+            memory_cap is not None
+            and segments["agent_memory_estimated_tokens"] > memory_cap
+        ):
+            raise PromptBudgetExceededError(
+                "agent memory estimate "
+                f"{segments['agent_memory_estimated_tokens']} exceeds cap {memory_cap}"
+            )
         self._last_prompt_estimated_tokens = packet.estimated_tokens
         self._maximum_prompt_estimated_tokens = max(
             self._maximum_prompt_estimated_tokens,
             packet.estimated_tokens,
         )
-        return packet.text
+        self._last_prompt_segment_estimates = segments
+        for key, value in segments.items():
+            self._maximum_prompt_segment_estimates[key] = max(
+                self._maximum_prompt_segment_estimates.get(key, 0),
+                value,
+            )
+        self._last_prompt_reduction_steps = tuple(packet.reduction_steps)
 
     def _normalize_decision(
         self,

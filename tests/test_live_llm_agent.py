@@ -207,6 +207,7 @@ def test_live_llm_consumes_spectra_and_carries_experiment_memory() -> None:
     memory = client.prompts[1]["experiment_memory"]
     assert memory["historical_best"]["score"] == 0.2
     assert memory["historical_best"]["operations"] == ["terminate"]
+    assert memory["recent"] == []
     assert "recent_decisions" not in memory["historical_best"]
     assert client.prompts[1]["recent_decisions"] == []
     assert agent.decision_audit()["adaptation_source"] == "spectrum"  # type: ignore[index]
@@ -268,8 +269,9 @@ def test_masked_spectral_ablation_removes_raw_and_processed_spectral_features() 
         "current_spectral_packet"
     ] is False
     assert "intensity" not in json.dumps(prompt)
-    assert prompt["context_manifest"]["raw_numeric_arrays"] == (
-        "audit_only_not_supplied"
+    assert "context_manifest" not in prompt
+    assert agent.manifest()["prompt_context_policy"] == (
+        "decision_first_no_raw_arrays_with_explicit_hard_cap"
     )
     assert agent.interaction_capabilities().consumes_spectra is False
 
@@ -394,6 +396,9 @@ def test_invalid_model_decision_does_not_double_count_provider_attempts() -> Non
     assert action == {"operation": "model_failure"}
     assert agent.method_resource_usage()["model_call_count"] == 2
     assert agent.method_resource_usage()["model_provenance"]["provider_failure_count"] == 1
+    assert agent.agent_trace()[0]["normalization_error"] == (
+        "model decision is missing expected_effect or diagnostic_target"
+    )
 
 
 def test_frozen_response_token_limit_is_forwarded_to_provider() -> None:
@@ -442,9 +447,7 @@ def test_dense_spectrum_is_bounded_without_losing_peaks_or_full_artifact() -> No
     assert packet["peaks"] == [{"center": 0.12, "assignment": "target"}]
     assert "time_min" not in packet
     assert "replicate_signals" not in packet
-    assert client.prompts[0]["context_manifest"]["raw_numeric_arrays"] == (
-        "audit_only_not_supplied"
-    )
+    assert "context_manifest" not in client.prompts[0]
     assert public_view["tool_json"]["raw_signal"]["time_min"] == raw_curve
 
 

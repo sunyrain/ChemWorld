@@ -275,6 +275,47 @@ NODES = (
         ),
     ),
     EvidenceNode(
+        "static_s0_electrochemical_protocol",
+        "configs/benchmark/scientific_optimization_s0_v0.4.1_single_stage_high_20_formal.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "static_s0_electrochemical_method",
+        "configs/methods/llm_v0.4/participant_methods_s0_wellau_codex_sol_high_single_stage_20_v041.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "static_s0_crystallization_protocol",
+        "configs/benchmark/scientific_optimization_s0_v0.5_crystallization_high_20_formal.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "static_s0_crystallization_method",
+        "configs/methods/llm_v0.5/participant_methods_s0_wellau_codex_sol_high_crystallization_20.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "static_s0_confirmatory_summary",
+        "workstreams/flagship_tasks/reports/static-s0-confirmatory-summary-v0.1.json",
+        "formal_result",
+        (
+            "static_s0_electrochemical_protocol",
+            "static_s0_electrochemical_method",
+            "static_s0_crystallization_protocol",
+            "static_s0_crystallization_method",
+        ),
+    ),
+    EvidenceNode(
+        "task_design_matrix",
+        "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
+        "generated_current",
+        command=(
+            "scripts/build_task_design_matrix.py",
+            "--output",
+            "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
+        ),
+    ),
+    EvidenceNode(
         "mechanism_agent_pilot",
         "workstreams/flagship_tasks/reports/mechanism-adaptation-agent-pilot-v0.2.1.json",
         "development_diagnostic",
@@ -409,6 +450,9 @@ def _node_contract_errors(node: EvidenceNode) -> list[str]:
 CURRENT_PATH_RULES = (
     CurrentPathRule(("runtime", "backend"), "protocol_input"),
     CurrentPathRule(("runtime", "backend_report"), "generated_current"),
+    CurrentPathRule(("task_design", "matrix"), "generated_current"),
+    CurrentPathRule(("static_scientific_optimization", "summary"), "formal_result"),
+    CurrentPathRule(("publication", "manuscript"), "development_diagnostic"),
     CurrentPathRule(("mechanism_adaptation", "protocol"), "protocol_input"),
     CurrentPathRule(("mechanism_adaptation", "preflight_report"), "generated_current"),
     CurrentPathRule(("mechanism_adaptation", "gate_a_plan"), "protocol_input"),
@@ -628,6 +672,7 @@ def _run(
         raise RuntimeError(f"generator failed for {node.node_id}: {completed.stderr.strip()}")
     if not (ROOT / node.path).is_file():
         raise RuntimeError(f"generator did not create {node.path}")
+    _normalize_materialized_json_path(ROOT / node.path)
 
 
 def _is_materialized_output_path(path: str) -> bool:
@@ -662,12 +707,16 @@ def _normalize_materialized_json_line_endings() -> None:
         if node.command is None:
             continue
         path = ROOT / node.path
-        if path.suffix.lower() != ".json" or not path.is_file():
-            continue
-        payload = path.read_bytes()
-        normalized = payload.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
-        if normalized != payload:
-            path.write_bytes(normalized)
+        _normalize_materialized_json_path(path)
+
+
+def _normalize_materialized_json_path(path: Path) -> None:
+    if path.suffix.lower() != ".json" or not path.is_file():
+        return
+    payload = path.read_bytes()
+    normalized = payload.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    if normalized != payload:
+        path.write_bytes(normalized)
 
 
 def _repository_source_sha256() -> str:
@@ -1064,6 +1113,9 @@ def _write_current_registry() -> None:
     mechanism_plan = load_json_object(
         ROOT / node_map()["mechanism_gate_a_plan"].path
     )
+    static_s0_summary_path = ROOT / node_map()["static_s0_confirmatory_summary"].path
+    static_s0_summary = load_json_object(static_s0_summary_path)
+    task_design_matrix = load_json_object(ROOT / node_map()["task_design_matrix"].path)
     mechanism_evidence_current = _mechanism_public_decision_binding_current(
         mechanism_decision,
         mechanism_a2_receipt,
@@ -1118,6 +1170,10 @@ def _write_current_registry() -> None:
             "freshness": "fresh" if fresh else "stale_dependency_binding",
             "gate_state": gate_state,
         }
+    mechanism_gate_a_current = bool(
+        mechanism_gate_a_pass
+        and nodes["mechanism_public_gate_a_decision"]["artifact_state"] == "current"
+    )
 
     current["schema_version"] = "chemworld-current-surface-registry-0.4"
     current["updated_at"] = date.today().isoformat()
@@ -1157,7 +1213,7 @@ def _write_current_registry() -> None:
         "evaluation": "contracts_defined_empirical_closure_pending",
         "attribution": (
             "gate_a_identifiability_passed_remaining_agent_attribution_gates_pending"
-            if mechanism_gate_a_pass
+            if mechanism_gate_a_current
             else "gate_a_recertification_required_after_public_contract_change"
         ),
         "chemical_coverage": "selected_bounded_archetypes_not_exhaustive",
@@ -1175,7 +1231,7 @@ def _write_current_registry() -> None:
             "task_ids": list(mechanism_protocol["design"]["tasks"]),
             "status": (
                 "gate_a_passed"
-                if mechanism_gate_a_pass
+                if mechanism_gate_a_current
                 else "gate_a_recertification_required"
             ),
         },
@@ -1245,31 +1301,77 @@ def _write_current_registry() -> None:
         "task_contract_version": backend_protocol["task_contract_version"],
     }
     current["formal_evaluation"] = {
-        "status": "environment_gate_a_certified_methods_unfrozen",
-        "formal_results_present": False,
+        "status": "static_s0_formal_complete_mechanism_recertification_pending",
+        "formal_results_present": True,
         "benchmark_claim_allowed": False,
         "environment_certificate_results_present": True,
-        "environment_benchmark_readiness_claim_allowed": True,
+        "environment_benchmark_readiness_claim_allowed": mechanism_gate_a_current,
         "interpretation": (
-            "Formal A1/A2/A3 environment certificates passed. Participant-Agent "
-            "methods and Gates B-E remain unfrozen/unexecuted, so no Agent "
-            "performance claim is enabled."
+            "Fixed-world static-S0 participant results are complete for both "
+            "confirmatory tasks. RC28 Gate A passed on its frozen source, but its "
+            "current source binding is stale and requires recertification. "
+            "Mechanism-adaptation Participant Gates B-E remain unexecuted."
+        ),
+    }
+    current["static_scientific_optimization"] = {
+        "summary": node_map()["static_s0_confirmatory_summary"].path,
+        "status": static_s0_summary["status"],
+        "formal_result": bool(static_s0_summary["formal_result"]),
+        "benchmark_claim_allowed": bool(static_s0_summary["benchmark_claim_allowed"]),
+        "task_ids": sorted(static_s0_summary["results"]),
+        "world_seeds": list(static_s0_summary["method"]["world_seeds"]),
+        "exploration_experiments_per_seed": int(
+            static_s0_summary["method"]["exploration_experiments_per_seed"]
+        ),
+        "all_replay_verified": all(
+            bool(result["all_replay_verified"])
+            for result in static_s0_summary["results"].values()
+        ),
+        "hidden_world_change_evaluated": False,
+    }
+    task_design_validation = task_design_matrix["design_validation"]
+    current["task_design"] = {
+        "matrix": node_map()["task_design_matrix"].path,
+        "status": task_design_validation["status"],
+        "registered_task_count": int(task_design_matrix["task_count"]),
+        "executable_midpoint_task_count": int(
+            task_design_validation["executable_midpoint_task_count"]
+        ),
+        "dead_recipe_coordinate_count": int(
+            task_design_validation["dead_recipe_coordinate_count"]
+        ),
+        "formalization_blocker_count": int(
+            task_design_validation["formalization_blocker_count"]
+        ),
+        "formal_experiment_task_ids": list(
+            task_design_validation["formal_experiment_task_ids"]
+        ),
+        "nonconfirmatory_formal_experiments_required": bool(
+            task_design_validation["nonconfirmatory_formal_experiments_required"]
         ),
     }
     mechanism_state_machine = dict(mechanism_protocol["protocol_state_machine"])
     mechanism_state_machine.update(
         {
             "a2_controlled_identifiability": (
-                "passed" if controlled_gate_a_pass else "invalidated"
+                "passed"
+                if mechanism_gate_a_current and controlled_gate_a_pass
+                else "historical_pass_current_binding_stale"
+                if controlled_gate_a_pass
+                else "invalidated"
             ),
             "a3_online_attainability": (
-                "passed" if online_gate_a_pass else "invalidated"
+                "passed"
+                if mechanism_gate_a_current and online_gate_a_pass
+                else "historical_pass_current_binding_stale"
+                if online_gate_a_pass
+                else "invalidated"
             ),
             "participant_agent_gates_b_to_e": "pending_method_freeze",
             "publication_ready": False,
             "private_environment_confirmation": "eligible_not_executed",
             "private_agent_confirmation": "sealed_pending_participant_freeze",
-            "benchmark_ready": mechanism_gate_a_pass,
+            "benchmark_ready": mechanism_gate_a_current,
             "evidence_complete": False,
         }
     )
@@ -1333,7 +1435,11 @@ def _write_current_registry() -> None:
         ].path,
         "agent_pilot_report": node_map()["mechanism_agent_pilot"].path,
         "protocol_state_machine": mechanism_state_machine,
-        "status": mechanism_gate_a_status,
+        "status": (
+            mechanism_gate_a_status
+            if mechanism_gate_a_current
+            else "historical_gate_a_pass_current_binding_stale"
+        ),
         "gate_a_pass": mechanism_gate_a_pass,
         "gate_a_evidence_current": bool(
             mechanism_evidence_current
@@ -1348,11 +1454,15 @@ def _write_current_registry() -> None:
             ),
             "a2_controlled_matched_identifiability": (
                 "passed"
+                if mechanism_gate_a_current and controlled_gate_a_pass
+                else "historical_pass_current_binding_stale"
                 if controlled_gate_a_pass
                 else "invalidated"
             ),
             "a3_online_attainability": (
                 "passed"
+                if mechanism_gate_a_current and online_gate_a_pass
+                else "historical_pass_current_binding_stale"
                 if online_gate_a_pass
                 else "invalidated"
             ),
@@ -1405,21 +1515,22 @@ def _write_current_registry() -> None:
         "agent_pilot_evidence_current": False,
         "agent_pilot_protocol_version": "historical_v0.2.1",
         "agent_weight_updates_performed": False,
-        "benchmark_ready": mechanism_gate_a_pass,
+        "benchmark_ready": mechanism_gate_a_current,
         "evidence_complete": False,
         "publication_ready": False,
     }
     current.pop("development_evidence", None)
     current.pop("history_policy", None)
     current["publication"] = {
-        "status": "no_active_manuscript",
+        "status": "working_manuscript_not_submission_ready",
+        "manuscript": "paper/chemworld_benchmark_manuscript.md",
         "publication_ready": False,
     }
     blockers: list[dict[str, Any]] = []
     if backend["clean_release_attestation"] != "passed":
         blockers.append({"id": "clean_release_attestation_pending", "scope": "backend_release"})
     remaining_mechanism_gates = ["gate_b", "gate_c", "gate_d", "gate_e"]
-    if not mechanism_gate_a_pass:
+    if not mechanism_gate_a_current:
         remaining_mechanism_gates.insert(0, "gate_a")
     blockers.append(
         {
@@ -1428,18 +1539,31 @@ def _write_current_registry() -> None:
             "gates": remaining_mechanism_gates,
         }
     )
+    stale_binding_ids = sorted(
+        node_id for node_id, node in nodes.items() if node["artifact_state"] == "stale"
+    )
+    if stale_binding_ids:
+        blockers.append(
+            {
+                "id": "stale_evidence_bindings",
+                "scope": "evidence_registry",
+                "artifact_ids": stale_binding_ids,
+            }
+        )
     current["repository_integrity"] = {
         "status": (
-            "current_evidence_coherent_worktree_dirty"
+            "stale_evidence_bindings_worktree_dirty"
+            if stale_binding_ids and dirty
+            else "stale_evidence_bindings"
+            if stale_binding_ids
+            else "current_evidence_coherent_worktree_dirty"
             if dirty
             else "current_evidence_coherent_worktree_clean"
         ),
-        "current_evidence_coherent": True,
+        "current_evidence_coherent": not stale_binding_ids,
         "tracked_source_tree_dirty": dirty,
-        "stale_binding_count": sum(node["artifact_state"] == "stale" for node in nodes.values()),
-        "stale_binding_ids": sorted(
-            node_id for node_id, node in nodes.items() if node["artifact_state"] == "stale"
-        ),
+        "stale_binding_count": len(stale_binding_ids),
+        "stale_binding_ids": stale_binding_ids,
         "blockers": blockers,
     }
     write_json_atomic(CURRENT_REGISTRY, current, sort_keys=False)
@@ -1721,25 +1845,68 @@ def check_current_evidence() -> list[str]:
     expected_backend_validation = (
         "passed" if backend.get("backend_contract_validated") else "blocked"
     )
-    if runtime.get("contract_validation") != expected_backend_validation:
-        errors.append("current registry backend validation state is inconsistent")
-    if formal.get("status") != "environment_gate_a_certified_methods_unfrozen":
-        errors.append("current registry formal evaluation boundary is inconsistent")
-    if formal.get("formal_results_present") is not False:
-        errors.append("current registry improperly records participant formal results")
-    if formal.get("benchmark_claim_allowed") is not False:
-        errors.append("current registry improperly enables participant benchmark claims")
-    if formal.get("environment_certificate_results_present") is not True:
-        errors.append("current registry omits formal environment certificate results")
-    if formal.get("environment_benchmark_readiness_claim_allowed") is not True:
-        errors.append("current registry suppresses the passed environment readiness claim")
-    mechanism_registry = current.get("mechanism_adaptation", {})
     expected_gate_a_pass = bool(
         gate_a_binding_current
         and mechanism_decision.get("gate_a_pass") is True
     )
+    expected_gate_a_current = bool(
+        expected_gate_a_pass
+        and recorded_nodes.get("mechanism_public_gate_a_decision", {}).get(
+            "artifact_state"
+        )
+        == "current"
+    )
+    if runtime.get("contract_validation") != expected_backend_validation:
+        errors.append("current registry backend validation state is inconsistent")
+    if formal.get("status") != "static_s0_formal_complete_mechanism_recertification_pending":
+        errors.append("current registry formal evaluation boundary is inconsistent")
+    if formal.get("formal_results_present") is not True:
+        errors.append("current registry omits static-S0 participant formal results")
+    if formal.get("benchmark_claim_allowed") is not False:
+        errors.append("current registry improperly enables participant benchmark claims")
+    if formal.get("environment_certificate_results_present") is not True:
+        errors.append("current registry omits formal environment certificate results")
+    if (
+        formal.get("environment_benchmark_readiness_claim_allowed")
+        is not expected_gate_a_current
+    ):
+        errors.append("current registry environment readiness state is inconsistent")
+    static_s0 = current.get("static_scientific_optimization", {})
+    if static_s0.get("formal_result") is not True:
+        errors.append("current registry omits the static-S0 formal result")
+    if static_s0.get("benchmark_claim_allowed") is not False:
+        errors.append("current registry improperly enables a broad static-S0 benchmark claim")
+    if static_s0.get("all_replay_verified") is not True:
+        errors.append("current registry static-S0 replay state is inconsistent")
+    if static_s0.get("hidden_world_change_evaluated") is not False:
+        errors.append("current registry conflates static S0 with hidden world changes")
+    task_design = current.get("task_design", {})
+    if task_design.get("status") != "all_registered_task_designs_executable":
+        errors.append("current registry task-design status is inconsistent")
+    if task_design.get("registered_task_count") != 15:
+        errors.append("current registry task-design count is inconsistent")
+    if task_design.get("executable_midpoint_task_count") != 15:
+        errors.append("current registry omits executable task designs")
+    if task_design.get("dead_recipe_coordinate_count") != 0:
+        errors.append("current registry records dead task-recipe coordinates")
+    if task_design.get("formalization_blocker_count") != 0:
+        errors.append("current registry records unresolved task-design blockers")
+    if task_design.get("formal_experiment_task_ids") != [
+        "electrochemical-conversion",
+        "reaction-to-crystallization",
+    ]:
+        errors.append("current registry task-design empirical scope is inconsistent")
+    if task_design.get("nonconfirmatory_formal_experiments_required") is not False:
+        errors.append("current registry improperly requires nonconfirmatory experiments")
+    mechanism_registry = current.get("mechanism_adaptation", {})
     if mechanism_registry.get("gate_a_pass") != expected_gate_a_pass:
         errors.append("current registry mechanism Gate A state is inconsistent")
+    if mechanism_registry.get("gate_a_evidence_current") != expected_gate_a_current:
+        errors.append("current registry mechanism Gate A freshness is inconsistent")
+    if mechanism_registry.get("benchmark_ready") != expected_gate_a_current:
+        errors.append("current registry mechanism benchmark readiness is inconsistent")
+    if publication.get("status") != "working_manuscript_not_submission_ready":
+        errors.append("current registry manuscript state is inconsistent")
     if publication.get("publication_ready") is not False:
         errors.append("current registry publication state is inconsistent")
     return errors

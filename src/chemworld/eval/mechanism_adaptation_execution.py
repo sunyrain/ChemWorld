@@ -29,6 +29,9 @@ from chemworld.agents.mechanism_adaptation_live_llm import (
     MechanismAdaptationLiveLLMAgent,
     MechanismCandidateSpec,
 )
+from chemworld.agents.stateful_scientific import (
+    StatefulScientificMechanismAgent,
+)
 from chemworld.agents.task_recipes import (
     DIAGNOSTIC_RECIPE_DESIGN_V1,
     diagnostic_task_recipe_vectors,
@@ -5081,6 +5084,12 @@ def run_campaign_row(
     )
     change_time = int(row["phase_reset_after_experiment"])
     horizon = int(row["total_experiment_horizon"])
+    development_override = row.get("development_horizon_override")
+    minimum_reference_experiments = (
+        int(development_override["frozen_pre_change_experiments"])
+        if isinstance(development_override, Mapping)
+        else change_time
+    )
     condition_suffix = "" if feedback_condition == "true_feedback" else f"--{feedback_condition}"
     campaign_id = f"{row['pair_id']}--{row['arm']}{condition_suffix}"
     result = run_two_phase_campaign(
@@ -5093,6 +5102,7 @@ def run_campaign_row(
         output_root=Path(output_root) / "trajectories",
         campaign_id=campaign_id,
         observation_pair_id=str(row["pair_id"]),
+        minimum_reference_experiments=minimum_reference_experiments,
         progress_callback=progress_callback,
     )
     result.update(
@@ -5120,7 +5130,7 @@ def build_mechanism_agent(
     spectrum_disclosure: str = "assigned",
     client: Any | None = None,
 ) -> MechanismAdaptationLiveLLMAgent:
-    """Build the exact leakage-resistant Agent used by campaign and local audits."""
+    """Build one leakage-resistant development participant Agent."""
 
     method = llm_methods["methods"][method_id]
     request = method["request_configuration"]
@@ -5141,7 +5151,28 @@ def build_mechanism_agent(
         for candidate_id in row["candidate_ids"]
     )
     candidate_label_mode = _parse_candidate_label_mode(row["candidate_label_mode"])
-    return MechanismAdaptationLiveLLMAgent(
+    scaffold_id = str(method.get("scaffold_id") or "direct_reactive")
+    if scaffold_id == "direct_reactive":
+        agent_type = MechanismAdaptationLiveLLMAgent
+    elif scaffold_id == "stateful_scientific":
+        agent_type = StatefulScientificMechanismAgent
+    else:
+        raise ValueError(f"unsupported mechanism participant scaffold: {scaffold_id}")
+    prompt_budget = method.get("prompt_budget_contract")
+    prompt_budget_kwargs: dict[str, int] = {}
+    if isinstance(prompt_budget, Mapping):
+        prompt_budget_kwargs = {
+            "environment_view_token_estimate_cap": int(
+                prompt_budget["environment_view_max_estimated_tokens"]
+            ),
+            "agent_memory_token_estimate_cap": int(
+                prompt_budget["agent_memory_max_estimated_tokens"]
+            ),
+            "prompt_token_estimate_cap": int(
+                prompt_budget["per_decision_max_estimated_tokens"]
+            ),
+        }
+    return agent_type(
         planner,
         role_id=f"mechanism_adaptation_{method_id}",
         spectrum_disclosure=spectrum_disclosure,
@@ -5151,6 +5182,7 @@ def build_mechanism_agent(
         candidate_label_mode=candidate_label_mode,
         candidate_order_seed=int(row["candidate_order_seed"]),
         randomize_candidate_order=True,
+        **prompt_budget_kwargs,
     )
 
 

@@ -1,4 +1,4 @@
-"""Electrochemical scenario cards and deterministic hidden parameters."""
+"""Standalone electrochemical reference scenarios, not ChemWorld task runtime."""
 
 from __future__ import annotations
 
@@ -16,6 +16,9 @@ from chemworld.physchem.electrochemistry import (
 )
 
 SUPPORTED_ELECTROCHEMICAL_SPLITS = ("public-dev", "public-test", "private-eval")
+ELECTROCHEMICAL_SCENARIO_EXECUTION_ROLE = (
+    "standalone_reference_generator_not_electrochemical_conversion_runtime"
+)
 HIDDEN_PARAMETER_IDS = (
     "exchange_current_density_A_m2",
     "electrolyte_conductivity_S_m",
@@ -144,6 +147,7 @@ class ElectrochemicalScenarioCard:
         return {
             "schema_version": self.schema_version,
             "scenario_id": self.scenario_id,
+            "execution_role": ELECTROCHEMICAL_SCENARIO_EXECUTION_ROLE,
             "title": self.title,
             "redox": self.redox.to_dict(),
             "electrode_area_m2": self.electrode_area_m2,
@@ -466,6 +470,7 @@ def _finite(value: float, field_name: str) -> None:
 
 
 __all__ = [
+    "ELECTROCHEMICAL_SCENARIO_EXECUTION_ROLE",
     "ElectrochemicalHiddenParameters",
     "ElectrochemicalModelBundle",
     "ElectrochemicalScenarioCard",

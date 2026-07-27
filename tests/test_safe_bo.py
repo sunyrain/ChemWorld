@@ -5,6 +5,7 @@ import pytest
 from chemworld.agents.base import HistoryRecord
 from chemworld.agents.bo import StructuredSafetyConstrainedBOAgent
 from chemworld.agents.task_recipes import (
+    TASK_RECIPE_SPACE_VERSION,
     sample_conservative_task_recipe,
     task_recipe_dimension,
     task_recipe_from_unit_vector,
@@ -51,7 +52,7 @@ def test_safe_bo_initial_design_is_conservative_and_manifested() -> None:
     assert manifest["risk_observation"] == "experiment_peak_safety_risk"
     assert manifest["risk_confidence_beta"] == 2.0
     assert manifest["initial_design"] == "public_conservative_low_intensity"
-    assert manifest["search_space_version"] == "chemworld-task-recipe-space-0.5"
+    assert manifest["search_space_version"] == TASK_RECIPE_SPACE_VERSION
 
 
 def test_safe_bo_acquisition_records_uncertainty_aware_feasibility() -> None:

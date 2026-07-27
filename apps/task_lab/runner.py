@@ -112,7 +112,6 @@ def run_task(
     spectrum_archive: list[dict[str, Any]] = []
     invalid_plan_actions = 0
     model_call_count = 0
-    task_info: dict[str, Any] = {}
     env_kwargs = task.env_kwargs(seed=selected_seed)
     if contract_profile == "extended-research":
         env_kwargs["budget_override"] = effective_budget
@@ -123,6 +122,7 @@ def run_task(
         env.reset(seed=selected_seed)
         base: Any = env.unwrapped
         task_info = base.task_info()
+        logging_task_info = {**task_info, **base.evaluator_provenance()}
         prompt = base.task_prompt()
         background = TASK_BACKGROUNDS[task_id].to_dict()
         emit(
@@ -542,7 +542,7 @@ def run_task(
                 )
                 agent_metadata["method_resources"] = method_resources
                 logger.log(
-                    task_info=task_info,
+                    task_info=logging_task_info,
                     step=executed_steps,
                     action=decision["action"],
                     observation=obs_json,

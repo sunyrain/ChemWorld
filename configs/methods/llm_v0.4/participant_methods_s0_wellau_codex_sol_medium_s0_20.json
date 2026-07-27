@@ -1,0 +1,81 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.3-s0-dev",
+  "freeze_id": "chemworld-static-scientific-optimization-s0-wellau-codex-sol-medium-s0-20-2026-07-26-dev",
+  "status": "development_owner_authorized_horizon_diagnostic",
+  "benchmark_claim_allowed": false,
+  "formal_result": false,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_known_horizon",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "world_policy": "static_for_entire_campaign",
+    "horizon_visible": true,
+    "model_facing_parameterization": "named_physical_controls",
+    "internal_unit_vector_visible_to_agent": false,
+    "final_synthesis": true,
+    "structured_world_claims": true,
+    "held_out_predictive_world_understanding": true,
+    "blind_recommendation_validation": true,
+    "paired_validation_noise": true,
+    "hidden_world_fields_supplied": false,
+    "mechanism_candidates_supplied": false
+  },
+  "development_amendments": [
+    {
+      "amendment_id": "s0-medium-horizon-diagnostic-20",
+      "scope": "development_only",
+      "reason": "Test whether the previously selected eight-experiment horizon truncates useful fixed-world optimization progress.",
+      "change": "Run one owner-authorized seed with 20 visible exploration experiments while preserving the S0 v0.3 world, named-control interface, final synthesis, predictive validation, and blind validation.",
+      "scientific_contract_changed": true,
+      "method_changed": false
+    },
+    {
+      "amendment_id": "s0-full-history-20",
+      "scope": "development_only",
+      "reason": "Keep horizon diagnosis separate from a compressed-memory intervention.",
+      "change": "Temporarily raise history_limit from 8 to 20 so every exploration decision and final synthesis sees the complete campaign history.",
+      "scientific_contract_changed": false,
+      "method_changed": true
+    },
+    {
+      "amendment_id": "s0-triple-prompt-guard-20",
+      "scope": "development_only",
+      "reason": "Permit the complete 20-record public history without changing prompt content or output limits.",
+      "change": "Raise the local fail-closed experiment-design and final-synthesis prompt estimates from 8500/12000 to 25500/36000 tokens.",
+      "scientific_contract_changed": false,
+      "method_changed": true
+    }
+  ],
+  "methods": {
+    "s0_codex_sol_medium_s0_20": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_named_controls_world_claims_full_history_20",
+      "request_configuration": {
+        "response_format": "json_object",
+        "reasoning_effort": "medium",
+        "max_tokens": 8000,
+        "timeout_s": 180.0,
+        "max_attempts": 3,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 20,
+        "per_decision_max_estimated_tokens": 25500,
+        "final_synthesis_max_estimated_tokens": 36000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+        "preflight_status": "local_mock_completed_and_replay_verified",
+        "mock_preflight_completed_exploration_experiments": 20,
+        "mock_preflight_max_decision_estimate": 14547,
+        "mock_preflight_round_20_decision_estimate": 14547,
+        "mock_preflight_final_synthesis_estimate": 16861,
+        "mock_preflight_total_physical_experiments": 38,
+        "mock_preflight_replay_verified": true,
+        "reference_eight_round_live_max_decision_estimate": 7855,
+        "reference_eight_round_live_final_synthesis_estimate": 10376
+      }
+    }
+  }
+}

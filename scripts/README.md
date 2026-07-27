@@ -10,6 +10,17 @@ repository surface. Superseded runners belong in Git history rather than beside 
 Resolve active runtime and protocol paths through `configs/current.json`; do not infer currency from a `vnext` name
 or a larger version suffix.
 
+Static S0 entry points require explicit `--protocol` paths, and LLM runs also require an explicit
+`--llm-methods` path. There is no implicit development protocol or electrochemical workflow mode. Frozen formal
+inputs remain immutable; historical development protocols explicitly declare `adaptive_two_stage`, while current
+electrochemical S0 protocols explicitly declare `static_single_stage`. Use
+`resume_static_optimization_s0.py` for an audited continuation. One-off qualification finalizers do not belong on
+the active script surface.
+
+`run_scientific_adaptation_shakedown.py` is retained only to reproduce historical development diagnostics. It
+requires explicit protocol and method inputs and is not an active experiment roadmap. Announced or hidden world
+changes are deferred research extensions; current experiment work remains on fixed-world S0.
+
 Use `python scripts/evidence_pipeline.py --refresh` to regenerate the current deterministic evidence in dependency
 order, and `python scripts/evidence_pipeline.py --check` to reject stale bindings without rewriting files. Do not run
 individual current-report generators and then update parent ledgers by hand.

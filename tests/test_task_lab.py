@@ -486,6 +486,12 @@ def test_deepseek_json_client_retries_empty_output_and_aggregates_usage() -> Non
         "prompt_cache_hit_tokens": 0,
         "prompt_cache_miss_tokens": 0,
     }
+    assert completion.attempt_records[0]["failure_type"] == "invalid_structured_output"
+    assert completion.attempt_records[0]["parse_error_type"] == "JSONDecodeError"
+    assert completion.attempt_records[0]["content_character_count"] == 0
+    assert completion.attempt_records[0]["reasoning_character_count"] > 0
+    assert completion.attempt_records[1]["status"] == "succeeded"
+    assert completion.attempt_records[1]["content_character_count"] > 0
     assert client.bodies[0]["thinking"] == {"type": "enabled"}
     assert client.bodies[0]["reasoning_effort"] == "max"
     assert "PRIVATE_REASONING_MUST_NOT_BE_RETAINED" not in json.dumps(
@@ -514,9 +520,7 @@ def test_adaptive_runner_reads_public_spectrum_and_emits_audit_record(
     semantics = client.prompts[0]["state_semantics"]
     assert "current state" in semantics["current_vessel"]
     assert "spectrum_request_id" in client.prompts[0]["instruction"]
-    assert client.prompts[0]["instruction"].startswith(
-        "Return either one spectrum_request_id"
-    )
+    assert client.prompts[0]["instruction"].startswith("Return either one spectrum_request_id")
     assert client.prompts[5]["available_spectra"]
     assert client.prompts[5]["retrieved_spectra"] == []
     assert client.prompts[5]["latest_lab_report"]["spectra_summary"] == {

@@ -13,7 +13,7 @@ from chemworld.eval.provenance import (
 )
 
 PREREGISTRATION_VERSION = "chemworld-mechanism-preregistration-0.1"
-LEGACY_SCORER_SOURCE_PATHS = (
+RC24_SCORER_SOURCE_PATHS = (
     "src/chemworld/eval/mechanism_adaptation.py",
     "src/chemworld/eval/mechanism_adaptation_execution.py",
     "src/chemworld/eval/mechanism_gate_decision.py",
@@ -63,7 +63,7 @@ def build_mechanism_preregistration(
         raise ValueError("plan_id must end in an RC identifier")
     release_candidate = release_candidate_match.group(1)
     scorer_paths = (
-        LEGACY_SCORER_SOURCE_PATHS
+        RC24_SCORER_SOURCE_PATHS
         if release_candidate == "rc24"
         else SCORER_SOURCE_PATHS
     )

@@ -60,7 +60,17 @@ A3 `k=8` 端到端 reference–detection–attribution 成功率为 96.57%。正
 `reports/mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json` 和
 `reports/mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json`。
 
+运行后 sanity audit 进一步确认：两个 A2 预测路径没有字段复制，但反应–结晶在 `k=5`
+时 active information maximum 与固定前五动作恰好是同一个 batch，因此该任务的 720 条
+active/decoder trial 共享同一 paired contrast；电化学的两个 batch 则不同。fixed decoder
+不控制 Gate A，只能作为辅助一致性检查，不能描述为第二个完全独立的复现证书。A2 的三个预算
+共用 360 个 held-out task × world clusters；A3 使用另外 360 个 clusters，不能把 receipt
+数量解释成独立样本数。完整口径见 `RC28_GATE_A_POSTRUN_SANITY_AUDIT_ZH.md`。
+
 该结果只解除环境 benchmark prerequisites。Participant-Agent Gates B–E 仍需要独立冻结
 method roster、prompt/scaffold、runner、样本量、统计/排除规则和 provider 成本契约；当前不允许把
 Gate A 通过解释为 DeepSeek 或其他 Agent 已通过，也不允许设置 `evidence_complete=true` 或
 `publication_ready=true`。
+
+Participant-Agent 正式矩阵、统计与执行 TODO 见
+`RC28_PARTICIPANT_FORMAL_EXPERIMENT_PLAN_AND_TODO_ZH.md`。

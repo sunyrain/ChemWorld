@@ -712,6 +712,7 @@
             },
             "contact_resistance_ohm": 0.3771319529503157,
             "current_mA": 75.0,
+            "current_setpoint_semantics": "nonnegative_magnitude_cap_signed_current_from_butler_volmer",
             "diffusion_layer_thickness_m": 0.0009596428022998181,
             "diffusivity_m2_s": 8.339538145118311e-10,
             "double_layer_capacitance_F_m2": 0.12946192143493257,
@@ -749,7 +750,7 @@
             "equilibrium_max_precipitation_passes": 3,
             "faradaic_efficiency_multiplier": 0.78,
             "material_balance_scope": "redox_network_only_electrolyte_medium_is_boundary_condition",
-            "mechanism_hash": "691cb87f8a9b61ffb20187e6bf1ccd83996bc6223542741b70d9aa8c726660ff",
+            "mechanism_hash": "e6fb86d014288572033ada1244193bf1409b19abc51a50983d60c92dbedde9fd",
             "mechanism_id": "electrochemical_conversion",
             "medium_thermodynamic_semantics": "effective_activity_profile_not_literal_nonaqueous_pH",
             "potential_V": 1.15,
@@ -762,10 +763,15 @@
               "randles_double_layer_transient_v1",
               "aqueous_acid_base_ph_observation"
             ],
+            "runtime_owned_pathway_ids": [
+              "desired_redox_couple",
+              "lumped_side_reduction"
+            ],
             "setpoint_history": [
               {
                 "configured_time_s": 0.0,
                 "current_mA": 75.0,
+                "current_setpoint_semantics": "nonnegative_magnitude_cap_signed_current_from_butler_volmer",
                 "electrolyte_profile": 1,
                 "potential_V": 1.15,
                 "setpoint_index": 1
@@ -775,6 +781,20 @@
             "solvent_id": "ethanol",
             "standard_potential_shift_V": -0.16,
             "supporting_electrolyte_mol": 0.00208,
+            "task_contract": {
+              "current_setpoint_semantics": "nonnegative_magnitude_cap_signed_current_from_butler_volmer",
+              "electrolyte_accounting": "boundary_state_outside_redox_species_ledger",
+              "electron_accounting": "implicit_faraday_charge_ledger",
+              "formula_semantics": "conserved_element_inventory_basis_not_literal_molecular_formula",
+              "mechanism_id": "electrochemical_conversion",
+              "runtime_owned_pathway_ids": [
+                "desired_redox_couple",
+                "lumped_side_reduction"
+              ],
+              "species_identity_semantics": "lumped_redox_pseudocomponents",
+              "task_contract_version": "chemworld-electrochemical-task-contract-0.1",
+              "task_id": "electrochemical-conversion"
+            },
             "transport_diagnostic": {
               "charge_balance_residual_C": 0.0,
               "current_efficiency": 0.999999999999999,

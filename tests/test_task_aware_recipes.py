@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import gymnasium as gym
 import numpy as np
 import pytest
+from scripts.build_task_design_matrix import _task_row
 
+import chemworld  # noqa: F401
 from chemworld.agents.task_recipes import (
     FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER,
     task_recipe_dimension,
@@ -36,6 +39,9 @@ def test_task_recipe_compiles_only_allowed_operations(task_id: str) -> None:
         ("partition-discovery", "partition"),
         ("reaction-to-crystallization", "reaction_crystallization"),
         ("reaction-to-distillation", "reaction_distillation"),
+        ("reaction-to-purification", "reaction_purification"),
+        ("purity-yield-tradeoff", "reaction_purification"),
+        ("tool-agent-planning", "reaction_purification"),
         ("flow-reaction-optimization", "flow"),
         ("electrochemical-conversion", "electrochemical"),
         ("equilibrium-characterization", "equilibrium"),
@@ -62,6 +68,96 @@ def test_model_vector_one_hot_encodes_electrolyte_profile_and_solvent() -> None:
     assert {
         step["electrolyte_profile"] for step in steps if step["operation"] == "set_potential"
     } == {2}
+
+
+@pytest.mark.parametrize(
+    "task_id",
+    ("reaction-to-purification", "purity-yield-tradeoff", "tool-agent-planning"),
+)
+def test_purification_recipe_executes_the_complete_workup(task_id: str) -> None:
+    task = get_task(task_id)
+    task_info = task.to_dict()
+    dimension = task_recipe_dimension(task_info)
+    assert dimension == 16
+    recipe = task_recipe_from_unit_vector(
+        task_info,
+        np.full(dimension, 0.5, dtype=float),
+    )
+    operations = [str(step["operation"]) for step in recipe["steps"]]
+    required_workup = (
+        "add_phase",
+        "add_extractant",
+        "mix",
+        "settle",
+        "separate_phase",
+        "wash",
+        "dry",
+        "concentrate",
+        "transfer",
+    )
+    assert all(operation in operations for operation in required_workup)
+    assert [operations.index(operation) for operation in required_workup] == sorted(
+        operations.index(operation) for operation in required_workup
+    )
+
+    env = gym.make(task.env_id, **task.env_kwargs(seed=0))
+    try:
+        env.reset(seed=0)
+        for action in compile_recipe(recipe, task_info=task_info):
+            _observation, _reward, _terminated, _truncated, info = env.step(action)
+            assert info["transaction_status"] == "committed", action
+            assert not info["constraint_flags"]["precondition_failed"], action
+    finally:
+        env.close()
+
+
+def test_distillation_recipe_controls_both_stages_independently() -> None:
+    task_info = get_task("reaction-to-distillation").to_dict()
+    dimension = task_recipe_dimension(task_info)
+    assert dimension == 13
+    reference = np.full(dimension, 0.5, dtype=float)
+
+    def operation(vector: np.ndarray, operation_id: str) -> dict[str, object]:
+        return next(
+            step
+            for step in task_recipe_from_unit_vector(task_info, vector)["steps"]
+            if step["operation"] == operation_id
+        )
+
+    evaporation_temperature = np.array(reference, copy=True)
+    evaporation_temperature[7] = 0.8
+    assert operation(evaporation_temperature, "evaporate")["target_temperature_K"] != (
+        operation(reference, "evaporate")["target_temperature_K"]
+    )
+    assert operation(evaporation_temperature, "distill")["target_temperature_K"] == (
+        operation(reference, "distill")["target_temperature_K"]
+    )
+
+    distillation_duration = np.array(reference, copy=True)
+    distillation_duration[10] = 0.8
+    assert operation(distillation_duration, "distill")["duration_s"] != operation(
+        reference, "distill"
+    )["duration_s"]
+    assert operation(distillation_duration, "evaporate")["duration_s"] == operation(
+        reference, "evaporate"
+    )["duration_s"]
+
+
+def test_design_matrix_rows_are_executable_for_all_registered_tasks() -> None:
+    from chemworld.tasks import list_tasks
+
+    rows = [_task_row(task) for task in list_tasks()]
+    assert len(rows) == 15
+    assert all(
+        row["complete_experiment_adapter"]["midpoint_execution_audit"]["status"]
+        == "passed"
+        for row in rows
+    )
+    assert all(
+        row["overprotocol_audit"]["dead_recipe_coordinates"] == []
+        and row["overprotocol_audit"]["formalization_blocker"] is None
+        for row in rows
+    )
 
 
 @pytest.mark.parametrize("residence_coordinate", (0.0, 0.25, 0.5, 0.75, 1.0))

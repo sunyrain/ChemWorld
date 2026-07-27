@@ -50,6 +50,7 @@ def main() -> None:
     fixture_path.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
+        newline="\n",
     )
     print(f"Wrote {fixture_path}")
 

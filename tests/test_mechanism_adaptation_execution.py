@@ -1503,14 +1503,16 @@ def test_current_registry_does_not_promote_method_development_to_environment_evi
     assert "development_evidence" not in current
     assert (
         current["formal_evaluation"]["status"]
-        == "environment_gate_a_certified_methods_unfrozen"
+        == "static_s0_formal_complete_mechanism_recertification_pending"
     )
-    assert current["formal_evaluation"]["formal_results_present"] is False
+    assert current["formal_evaluation"]["formal_results_present"] is True
     assert current["formal_evaluation"]["benchmark_claim_allowed"] is False
     assert (
         current["formal_evaluation"]["environment_certificate_results_present"]
         is True
     )
+    assert current["static_scientific_optimization"]["formal_result"] is True
+    assert current["static_scientific_optimization"]["hidden_world_change_evaluated"] is False
 
 
 def test_campaign_resume_rejects_a_stale_matrix_row(tmp_path: Path) -> None:

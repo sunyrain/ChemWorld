@@ -12,6 +12,7 @@ from chemworld.physchem.elements import parse_formula
 
 Arrow = Literal["=>", "<=>"]
 SUPPORTED_RATE_LAW_EQUATION_IDS = (
+    "runtime_owned",
     "mass_action",
     "arrhenius",
     "modified_arrhenius",
@@ -74,6 +75,10 @@ class RateLawSpec:
             raise ValueError("rate_law_id cannot be empty")
         if self.equation_id not in SUPPORTED_RATE_LAW_EQUATION_IDS:
             raise ValueError(f"Unsupported rate law: {self.equation_id}")
+        if self.equation_id == "runtime_owned":
+            runtime_model_id = self.parameters.get("runtime_model_id")
+            if not isinstance(runtime_model_id, str) or not runtime_model_id.strip():
+                raise ValueError("runtime_owned rate laws require runtime_model_id")
         if self.concentration_basis != "mol/L":
             raise ValueError("reaction rate laws currently require concentration_basis='mol/L'")
         if self.rate_basis != "mol/(L*s)":

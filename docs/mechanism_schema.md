@@ -45,8 +45,8 @@ seed。
 `solvent` 与 `electrolyte_profile` 都变为公开可选的反事实坐标，并移除了 Agent 可见消息中的世界/机理
 身份字段。历史 RC20 暴露了在线 reference 与 attribution 混淆；RC28 将参照建立、no-change、
 时序检测和 family 交集重新冻结后，在未触碰 cohort 上完成 A2/A3。五实验主预算的 active oracle
-与 fixed decoder top-1 均为 98.26%，A3 `k=8` 端到端成功率为 96.57%，因此环境 Gate A 已通过。
-该证书不评价 Participant Agent。
+与 fixed decoder top-1 均为 98.26%，A3 `k=8` 端到端成功率为 96.57%，因此冻结源码上的环境
+Gate A 通过。当前源码绑定 stale，当前 `benchmark_ready=false`；该历史证书不评价 Participant Agent。
 
 ## Agent 能看到什么
 

@@ -17,6 +17,11 @@ from chemworld.foundation import (
 from chemworld.physchem.crystallization_units import (
     DEFAULT_MAXIMUM_COOLING_RATE_K_S,
 )
+from chemworld.physchem.electrochemical_task_contract import (
+    ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE,
+    ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
+    normalize_electrochemical_workflow_mode,
+)
 from chemworld.schemas import validate_action_schema
 from chemworld.world.actions import ELECTROLYTE_PROFILES
 from chemworld.world.operations import (
@@ -89,6 +94,9 @@ class OperationValidator:
         target_species: tuple[str, ...] = (),
         reagent_charge_molar_multiplier: float = 1.0,
         task_id: str | None = None,
+        electrochemical_workflow_mode: str = (
+            ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE
+        ),
         operation_types: tuple[str, ...] = OPERATION_TYPES,
         action_codec: ActionCodec | None = None,
     ) -> None:
@@ -100,6 +108,9 @@ class OperationValidator:
             raise ValueError("reagent_charge_molar_multiplier must be positive")
         self.reagent_charge_molar_multiplier = float(reagent_charge_molar_multiplier)
         self.task_id = task_id
+        self.electrochemical_workflow_mode = normalize_electrochemical_workflow_mode(
+            electrochemical_workflow_mode
+        )
         self.operation_types = operation_types
         self.action_codec = action_codec or ActionCodec()
 
@@ -467,6 +478,13 @@ class OperationValidator:
             return operation_type in {"add_solvent", "add_reagent", "set_potential"}
         if electrolysis_count == 0:
             return operation_type == "electrolyze"
+        if (
+            self.electrochemical_workflow_mode
+            == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
+        ):
+            if self._electrochemical_outcome_assay_complete(state):
+                return operation_type == "terminate"
+            return operation_type == "measure"
         if electrolysis_count == 1 and setpoint_count == 1:
             if self._electrochemical_probe_diagnostics_complete(state):
                 return operation_type == "set_potential"
@@ -482,6 +500,22 @@ class OperationValidator:
         electrolysis_history = tuple(cell.get("electrolysis_history", ()))
         if not electrolysis_history:
             return ()
+        if (
+            self.electrochemical_workflow_mode
+            == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
+        ):
+            last_end = self._float(dict(electrolysis_history[-1]).get("end_time_s"))
+            if last_end is None:
+                return ()
+            return tuple(
+                instrument_id
+                for instrument_id in ("ph_meter", "uvvis")
+                if not self._instrument_used_at_or_after(
+                    state,
+                    instrument_id,
+                    last_end,
+                )
+            )
         if len(electrolysis_history) == 1:
             first_end = self._float(dict(electrolysis_history[0]).get("end_time_s"))
             if first_end is None:
@@ -507,6 +541,13 @@ class OperationValidator:
     def _electrochemical_outcome_assay_complete(self, state: WorldState) -> bool:
         cell = equipment_settings(state.equipment, "electrochemical_cell")
         electrolysis_history = tuple(cell.get("electrolysis_history", ()))
+        if (
+            self.electrochemical_workflow_mode
+            == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
+        ):
+            return bool(electrolysis_history) and not self._electrochemical_required_instruments(
+                state
+            )
         if len(electrolysis_history) < 2:
             return False
         last_end = self._float(dict(electrolysis_history[-1]).get("end_time_s"))

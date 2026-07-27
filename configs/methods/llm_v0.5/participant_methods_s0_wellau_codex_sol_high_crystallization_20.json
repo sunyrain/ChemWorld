@@ -1,0 +1,55 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.5-s0",
+  "freeze_id": "chemworld-static-scientific-optimization-s0-wellau-codex-sol-high-crystallization-20-v0.5-2026-07-27",
+  "status": "owner_authorized_formal",
+  "benchmark_claim_allowed": false,
+  "formal_result": true,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_known_horizon",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "world_policy": "static_for_entire_campaign",
+    "workflow_mode": "static_single_stage_complete_reaction_crystallization",
+    "horizon_visible": true,
+    "model_facing_parameterization": "named_physical_controls",
+    "internal_unit_vector_visible_to_agent": false,
+    "final_synthesis": true,
+    "structured_world_claims": true,
+    "held_out_predictive_world_understanding": true,
+    "blind_recommendation_validation": true,
+    "paired_validation_noise": true,
+    "hidden_world_fields_supplied": false,
+    "mechanism_candidates_supplied": false
+  },
+  "methods": {
+    "s0_codex_sol_high_crystallization_20": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_named_crystallization_controls_world_claims_full_history_20_v05",
+      "request_configuration": {
+        "response_format": "json_object",
+        "reasoning_effort": "high",
+        "max_tokens": 8000,
+        "timeout_s": 300.0,
+        "max_attempts": 3,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 20,
+        "per_decision_max_estimated_tokens": 30000,
+        "final_synthesis_max_estimated_tokens": 42000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+        "final_synthesis_list_limits_explicit": true,
+        "preflight_status": "local_mock_20_completed_and_replay_verified",
+        "mock_preflight_world_seed": 0,
+        "mock_preflight_completed_exploration_experiments": 20,
+        "mock_preflight_total_physical_experiments": 38,
+        "mock_preflight_max_decision_prompt_estimate": 10876,
+        "mock_preflight_final_synthesis_prompt_estimate": 12977,
+        "mock_preflight_replay_verified": true
+      }
+    }
+  }
+}

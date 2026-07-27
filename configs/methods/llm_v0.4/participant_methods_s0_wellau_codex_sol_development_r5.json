@@ -1,0 +1,71 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.2.1-s0-dev",
+  "freeze_id": "chemworld-static-scientific-optimization-s0-wellau-codex-sol-r5-known-horizon-paired-validation-2026-07-26-dev",
+  "benchmark_claim_allowed": false,
+  "formal_result": false,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_known_horizon",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "world_policy": "static_for_entire_campaign",
+    "horizon_visible": true,
+    "final_synthesis": true,
+    "blind_recommendation_validation": true,
+    "paired_validation_noise": true,
+    "hidden_world_fields_supplied": false,
+    "mechanism_candidates_supplied": false
+  },
+  "development_amendments": [
+    {
+      "amendment_id": "s0-known-horizon-r5",
+      "scope": "development_only",
+      "reason": "The agent must know the finite exploration horizon.",
+      "change": "Expose total, current, completed, and remaining exploration experiments.",
+      "scientific_contract_changed": true
+    },
+    {
+      "amendment_id": "s0-integrated-final-synthesis-r5",
+      "scope": "development_only",
+      "reason": "The final submitted method is the campaign conclusion.",
+      "change": "Add one terminal synthesis call with tested, interpolated, or bounded extrapolated recommendations.",
+      "scientific_contract_changed": true
+    },
+    {
+      "amendment_id": "s0-final-schema-qualification-r5",
+      "scope": "development_only",
+      "reason": "A tested recommendation may cite multiple supporting experiments and requires a final-specific text contract.",
+      "change": "Require at least one cited source method to match the tested recommendation; validate final summary lengths independently from experiment intents.",
+      "scientific_contract_changed": true
+    },
+    {
+      "amendment_id": "s0-paired-validation-r5",
+      "scope": "development_only",
+      "reason": "Recommendation-versus-incumbent comparisons should not be dominated by different validation noise draws.",
+      "change": "Use common independent replicate seeds across recommendation and incumbent validation targets.",
+      "scientific_contract_changed": true
+    }
+  ],
+  "methods": {
+    "s0_codex_sol_direct": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_final_synthesis",
+      "request_configuration": {
+        "response_format": "json_object",
+        "reasoning_effort": "high",
+        "max_tokens": 8000,
+        "timeout_s": 180.0,
+        "max_attempts": 3,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 8,
+        "per_decision_max_estimated_tokens": 7000,
+        "final_synthesis_max_estimated_tokens": 9000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only"
+      }
+    }
+  }
+}

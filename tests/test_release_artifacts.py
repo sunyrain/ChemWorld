@@ -92,7 +92,7 @@ def test_baseline_report_private_signature_and_paper_artifact(tmp_path: Path) ->
     assert release_checklist["items"][0]["id"] == "task_contracts"
     assert release_checklist["artifact_bundle_complete"] is True
     assert release_checklist["claim_status_source"] == "configs/current.json"
-    assert release_checklist["claim_status"]["formal_results_present"] is False
+    assert release_checklist["claim_status"]["formal_results_present"] is True
     assert release_checklist["claim_status"]["benchmark_claim_allowed"] is False
     assert release_checklist["publication_ready"] is False
     assert release_checklist["formal_publication_claim_allowed"] is False

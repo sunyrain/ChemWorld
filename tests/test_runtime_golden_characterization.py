@@ -123,22 +123,22 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "electrochemical-conversion": {
         "mechanism_id": "electrochemical_conversion",
         "steps": 6,
-        "score": 0.7628460512371612,
+        "score": 0.5725246390019622,
     },
     "equilibrium-characterization": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 7,
-        "score": 0.28981344839072215,
+        "score": 0.29312146253133403,
     },
     "flow-reaction-optimization": {
         "mechanism_id": "pfr_hotspot",
         "steps": 7,
-        "score": 0.04025939108974932,
+        "score": 0.04021970027842368,
     },
     "low-budget-characterization": {
         "mechanism_id": "autocatalytic_reaction",
         "steps": 7,
-        "score": 0.1918881438581116,
+        "score": 0.22178038851589393,
     },
     "partition-discovery": {
         "mechanism_id": "reaction_extraction",
@@ -148,47 +148,47 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "public-private-generalization": {
         "mechanism_id": "parallel_series_reaction",
         "steps": 7,
-        "score": 0.11534868145970442,
+        "score": 0.30150669960768867,
     },
     "purity-yield-tradeoff": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.25507638518935166,
+        "score": 0.27413537747066424,
     },
     "reaction-mechanism-explanation": {
         "mechanism_id": "autocatalytic_reaction",
         "steps": 7,
-        "score": 0.22155533806413272,
+        "score": 0.2254301873856107,
     },
     "reaction-optimization-standard": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 7,
-        "score": 0.372689896248878,
+        "score": 0.3587079335231141,
     },
     "reaction-safety-constrained": {
         "mechanism_id": "catalyst_deactivation",
         "steps": 7,
-        "score": 0.11042791355818407,
+        "score": 0.10499116775812853,
     },
     "reaction-to-assay": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 7,
-        "score": 0.2640746425356242,
+        "score": 0.32899467396589954,
     },
     "reaction-to-crystallization": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 12,
-        "score": 0.4597052333212239,
+        "score": 0.2916629316456961,
     },
     "reaction-to-distillation": {
         "mechanism_id": "reactive_distillation_lite",
         "steps": 10,
-        "score": 0.2057057872506592,
+        "score": 0.2321268513060291,
     },
     "reaction-to-purification": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.296613558321044,
+        "score": 0.2911131542061084,
     },
     "tool-agent-planning": {
         "mechanism_id": "reaction_extraction",

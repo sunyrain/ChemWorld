@@ -1,0 +1,63 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.2-s0-dev",
+  "freeze_id": "chemworld-static-scientific-optimization-s0-wellau-codex-sol-r4-known-horizon-2026-07-26-dev",
+  "benchmark_claim_allowed": false,
+  "formal_result": false,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_known_horizon",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "world_policy": "static_for_entire_campaign",
+    "horizon_visible": true,
+    "final_synthesis": true,
+    "blind_recommendation_validation": true,
+    "hidden_world_fields_supplied": false,
+    "mechanism_candidates_supplied": false
+  },
+  "development_amendments": [
+    {
+      "amendment_id": "s0-known-horizon-r4",
+      "scope": "development_only",
+      "reason": "The agent must know the finite exploration horizon to allocate exploration, refinement, and confirmation rationally.",
+      "change": "Expose total, current, completed, and remaining exploration experiments in every decision context.",
+      "scientific_contract_changed": true
+    },
+    {
+      "amendment_id": "s0-integrated-final-synthesis-r4",
+      "scope": "development_only",
+      "reason": "The last executed trial is not a final recommendation.",
+      "change": "Add one post-exploration synthesis call and blind validation of both the submitted method and the observed incumbent.",
+      "scientific_contract_changed": true
+    },
+    {
+      "amendment_id": "s0-final-synthesis-prompt-cap-r4",
+      "scope": "development_only",
+      "reason": "The terminal synthesis schema contains all eight experiments plus evidence-grounded recommendation fields.",
+      "change": "Use a separate 9000-token estimated-input cap for the final synthesis call.",
+      "scientific_contract_changed": false
+    }
+  ],
+  "methods": {
+    "s0_codex_sol_direct": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_final_synthesis",
+      "request_configuration": {
+        "response_format": "json_object",
+        "reasoning_effort": "high",
+        "max_tokens": 8000,
+        "timeout_s": 180.0,
+        "max_attempts": 3,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 8,
+        "per_decision_max_estimated_tokens": 7000,
+        "final_synthesis_max_estimated_tokens": 9000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only"
+      }
+    }
+  }
+}

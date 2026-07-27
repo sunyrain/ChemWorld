@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 from typing import Any
@@ -351,7 +352,12 @@ def test_v0_3_protocol_separates_tracks_and_does_not_pretend_gates_passed() -> N
         protocol,
         gate_a_plan,
         graph,
-    ) == []
+    ) == ["Gate A relation graph digest binding is stale"]
+    rebound_plan = copy.deepcopy(gate_a_plan)
+    rebound_plan["diagnostic_relation_graph"]["expected_graph_sha256"] = graph[
+        "graph_sha256"
+    ]
+    assert validate_diagnostic_relation_graph(protocol, rebound_plan, graph) == []
     cohort_namespaces = {
         cohort["seed_namespace_start"]
         for cohort in gate_a_plan["cohort_partition"].values()
@@ -381,9 +387,13 @@ def test_every_v0_3_intervention_is_instantiable_by_the_current_environment() ->
 
 def test_v0_3_preflight_separates_method_freeze_from_external_execution() -> None:
     report = build_mechanism_adaptation_preflight()
-    assert report["implementation_complete"] is True
+    assert report["implementation_complete"] is False
     assert report["design_validity_audit_pass"] is True
-    assert report["method_freeze_decision_blocker_count"] == 0
+    assert report["method_freeze_decision_blocker_count"] == 2
+    assert report["method_freeze_decision_blockers"] == [
+        "Gate A relation graph digest binding is stale",
+        "preregistration manifest is stale or differs from its bound inputs",
+    ]
     assert report["external_empirical_run_completed"] is False
     assert set(report["empirical_gate_status"].values()) == {"not_evaluated"}
     assert report["publication_ready"] is False

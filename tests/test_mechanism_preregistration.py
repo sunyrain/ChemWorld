@@ -60,20 +60,17 @@ def test_rc28_sample_size_audit_uses_independent_world_clusters() -> None:
     )
 
 
-def test_rc28_preregistration_is_current_and_hash_bound() -> None:
+def test_rc28_preregistration_records_frozen_contract_and_current_source_drift() -> None:
     protocol, plan, relation_graph, sample_size, manifest = _bound_inputs()
 
-    assert (
-        validate_mechanism_preregistration(
-            manifest,
-            repository_root=ROOT,
-            protocol=protocol,
-            plan=plan,
-            relation_graph=relation_graph,
-            sample_size_audit=sample_size,
-        )
-        == []
-    )
+    assert validate_mechanism_preregistration(
+        manifest,
+        repository_root=ROOT,
+        protocol=protocol,
+        plan=plan,
+        relation_graph=relation_graph,
+        sample_size_audit=sample_size,
+    ) == ["preregistration manifest is stale or differs from its bound inputs"]
     assert (
         manifest["certification_subjects"]["a3"]
         == "frozen_reference_diagnostic_policy"

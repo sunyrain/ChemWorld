@@ -16,6 +16,7 @@ from chemworld.agents.bo import (
     StructuredRandomForestEIAgent,
     StructuredSafetyConstrainedBOAgent,
 )
+from chemworld.agents.task_recipes import TASK_RECIPE_SPACE_VERSION
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.metrics import evaluate_records
 from chemworld.eval.runner import run_agent
@@ -83,7 +84,7 @@ def test_all_formal_acquisition_variants_declare_typed_recipe_encoding() -> None
     for agent in agents:
         manifest = agent.manifest()
         assert manifest["recipe_encoding"] == "continuous_plus_material_one_hot"
-        assert manifest["search_space_version"] == "chemworld-task-recipe-space-0.5"
+        assert manifest["search_space_version"] == TASK_RECIPE_SPACE_VERSION
 
 
 def test_bo_campaign_runs_multiple_recipes(tmp_path) -> None:

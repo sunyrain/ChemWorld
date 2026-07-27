@@ -1,0 +1,127 @@
+{
+  "schema_version": "chemworld-world-understanding-reference-0.3-dev",
+  "reference_id": "electrochemical-conversion-s0-observable-mechanism-v0.3-single-stage-dev",
+  "status": "development_frozen_single_stage",
+  "task_id": "electrochemical-conversion",
+  "electrochemical_workflow_mode": "static_single_stage",
+  "comparison_target": "observable_causal_equivalence_classes_not_hidden_species_ids",
+  "public_vocabulary": {
+    "cause_variables": [
+      "potential_V",
+      "current_mA",
+      "duration_s",
+      "electrolyte_profile",
+      "solvent",
+      "reagent_amount_mol"
+    ],
+    "effect_variables": [
+      "yield",
+      "conversion",
+      "energy_efficiency",
+      "faradaic_efficiency",
+      "transport_efficiency",
+      "ohmic_efficiency",
+      "pH_normalized",
+      "precipitation_signal",
+      "leaderboard_score"
+    ],
+    "mechanism_tags": [
+      "nernst_equilibrium",
+      "butler_volmer_kinetics",
+      "current_magnitude_cap",
+      "faraday_charge",
+      "double_layer_charging",
+      "mass_transfer_limit",
+      "ohmic_loss",
+      "overpotential_stress",
+      "acid_base_activity",
+      "precipitation_equilibrium",
+      "categorical_medium_effect",
+      "inventory_limit",
+      "direction_reversal"
+    ]
+  },
+  "reference_claims": [
+    {
+      "claim_id": "potential-to-yield",
+      "cause_variables": ["potential_V"],
+      "effect_variable": "yield",
+      "accepted_relations": ["nonmonotonic", "conditional"],
+      "mechanism_tags": [
+        "nernst_equilibrium",
+        "butler_volmer_kinetics",
+        "overpotential_stress",
+        "direction_reversal"
+      ]
+    },
+    {
+      "claim_id": "potential-to-energy-efficiency",
+      "cause_variables": ["potential_V"],
+      "effect_variable": "energy_efficiency",
+      "accepted_relations": ["nonmonotonic", "conditional"],
+      "mechanism_tags": ["nernst_equilibrium", "overpotential_stress", "ohmic_loss"]
+    },
+    {
+      "claim_id": "current-cap-to-conversion",
+      "cause_variables": ["current_mA"],
+      "effect_variable": "conversion",
+      "accepted_relations": ["positive", "conditional"],
+      "mechanism_tags": ["current_magnitude_cap", "faraday_charge", "mass_transfer_limit"]
+    },
+    {
+      "claim_id": "current-cap-to-ohmic-efficiency",
+      "cause_variables": ["current_mA"],
+      "effect_variable": "ohmic_efficiency",
+      "accepted_relations": ["negative", "conditional"],
+      "mechanism_tags": ["current_magnitude_cap", "ohmic_loss"]
+    },
+    {
+      "claim_id": "duration-to-conversion",
+      "cause_variables": ["duration_s"],
+      "effect_variable": "conversion",
+      "accepted_relations": ["positive", "conditional"],
+      "mechanism_tags": ["faraday_charge", "mass_transfer_limit", "inventory_limit"]
+    },
+    {
+      "claim_id": "electrolyte-to-transport",
+      "cause_variables": ["electrolyte_profile"],
+      "effect_variable": "transport_efficiency",
+      "accepted_relations": ["conditional"],
+      "mechanism_tags": ["categorical_medium_effect", "mass_transfer_limit", "ohmic_loss"]
+    },
+    {
+      "claim_id": "electrolyte-to-proton-activity",
+      "cause_variables": ["electrolyte_profile"],
+      "effect_variable": "pH_normalized",
+      "accepted_relations": ["conditional"],
+      "mechanism_tags": ["categorical_medium_effect", "acid_base_activity"]
+    },
+    {
+      "claim_id": "solvent-to-score",
+      "cause_variables": ["solvent"],
+      "effect_variable": "leaderboard_score",
+      "accepted_relations": ["conditional"],
+      "mechanism_tags": ["categorical_medium_effect"]
+    },
+    {
+      "claim_id": "inventory-to-conversion",
+      "cause_variables": ["reagent_amount_mol"],
+      "effect_variable": "conversion",
+      "accepted_relations": ["negative", "conditional"],
+      "mechanism_tags": ["inventory_limit", "faraday_charge"]
+    }
+  ],
+  "score_layers": {
+    "declared": [
+      "structural_edge_precision",
+      "structural_edge_recall",
+      "structural_edge_f1",
+      "directional_accuracy",
+      "mechanism_tag_f1",
+      "unsupported_claim_rate",
+      "confidence_brier_score"
+    ],
+    "predictive": "requires a separately frozen held-out intervention set and is not inferred from prose",
+    "actionable": "reported separately through blind final-recommendation validation"
+  }
+}

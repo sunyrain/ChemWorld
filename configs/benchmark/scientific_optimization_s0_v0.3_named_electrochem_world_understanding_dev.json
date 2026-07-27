@@ -1,0 +1,133 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-protocol-0.3-s0-dev",
+  "protocol_id": "chemworld-static-scientific-optimization-s0-v0.3-named-electrochem-world-understanding-2026-07-26-dev",
+  "status": "development_pending_owner_confirmation",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "world_policy": {
+    "mode": "static_for_entire_campaign",
+    "world_seed": 0,
+    "interventions": [],
+    "phase_changes": [],
+    "hidden_world_fields_in_public_context": false
+  },
+  "tasks": ["electrochemical-conversion"],
+  "horizon": 8,
+  "scientific_campaign_budget": {
+    "exploration_experiments": 8,
+    "horizon_visible": true,
+    "final_synthesis_after_exploration": true
+  },
+  "experiment_interface": {
+    "model_facing_parameterization": "named_physical_controls",
+    "internal_unit_vector_visible_to_agent": false,
+    "internal_unit_vector_retained_for_baseline_compatibility": true
+  },
+  "measurement_budget": {
+    "mode": "environment_native_cost_accounted_no_hard_cap",
+    "hard_campaign_cap": null,
+    "report_optional_measurement_count": true,
+    "report_measurement_cost": true
+  },
+  "executor_contract": {
+    "atomic_complete_experiment": true,
+    "electrochemical_workflow_mode": "adaptive_two_stage",
+    "runtime_guard_margin_operations": 1,
+    "runtime_margin_available_to_agent": false,
+    "mandatory_terminate": true,
+    "mandatory_final_assay": true,
+    "show_task_operation_budget_to_agent": false
+  },
+  "final_synthesis": {
+    "enabled": true,
+    "calls": 1,
+    "executes_experiment": false,
+    "allow_tested_recommendation": true,
+    "allow_interpolated_recommendation": true,
+    "allow_extrapolated_recommendation_within_bounds": true,
+    "requires_structured_world_claims": true,
+    "validation_feedback_returned_to_agent": false
+  },
+  "world_understanding": {
+    "enabled": true,
+    "reference_path": "configs/benchmark/world_understanding_s0_v0.1_dev.json",
+    "declared_claims_are_secondary_diagnostics": true,
+    "predictive_score_enabled": true,
+    "predictive_validation": {
+      "query_count": 3,
+      "paired_replicates_per_query": 2,
+      "simulations_per_pair": 2,
+      "total_physical_experiments_per_seed": 12,
+      "intervention_variables": [
+        "controlled_potential_V",
+        "controlled_current_mA",
+        "electrolyte_profile"
+      ],
+      "metric_ids_by_intervention": {
+        "controlled_potential_V": [
+          "yield",
+          "energy_efficiency",
+          "leaderboard_score"
+        ],
+        "controlled_current_mA": [
+          "conversion",
+          "ohmic_efficiency",
+          "leaderboard_score"
+        ],
+        "electrolyte_profile": [
+          "transport_efficiency",
+          "pH_normalized",
+          "leaderboard_score"
+        ]
+      },
+      "metric_source_by_metric": {
+        "yield": "measurement_evidence.closeout-final-assay.processed_estimate",
+        "energy_efficiency": "measurement_evidence.closeout-final-assay.processed_estimate",
+        "leaderboard_score": "terminal_summary.leaderboard_score",
+        "conversion": "measurement_evidence.closeout-final-assay.processed_estimate",
+        "ohmic_efficiency": "measurement_evidence.closeout-final-assay.processed_estimate",
+        "transport_efficiency": "measurement_evidence.closeout-final-assay.processed_estimate",
+        "pH_normalized": "measurement_evidence.closeout-final-assay.processed_estimate"
+      },
+      "direction_labels": [
+        "increase",
+        "decrease",
+        "no_material_change"
+      ],
+      "direction_threshold": 0.01,
+      "standardized_measurement_slots": [
+        "diagnostic-01-ph_meter",
+        "diagnostic-02-uvvis",
+        "diagnostic-03-uvvis"
+      ],
+      "paired_observation_seed": true,
+      "paired_observation_noise_namespace": true,
+      "feedback_returned_to_agent": false,
+      "additional_model_calls": 0
+    },
+    "actionable_measure": "blind validated final recommendation score"
+  },
+  "validation_budget": {
+    "incumbent_replicates": 3,
+    "recommendation_replicates": 3,
+    "independent_observation_seeds": true,
+    "paired_observation_seeds_across_targets": true,
+    "feedback_returned_to_agent": false
+  },
+  "candidate_order_seed": 0,
+  "observation_noise_namespace": "scientific-optimization-s0-v03-named-electrochem",
+  "objective": "maximize blind-validated final recommendation performance and report evidence-grounded observable mechanism claims in one static world",
+  "primary_metric": "validated_final_recommendation_score_mean",
+  "secondary_metrics": [
+    "world_understanding_structural_edge_f1",
+    "world_understanding_directional_accuracy",
+    "world_understanding_mechanism_tag_f1",
+    "world_understanding_unsupported_claim_rate",
+    "world_understanding_confidence_brier_score",
+    "predictive_world_understanding_directional_accuracy",
+    "predictive_world_understanding_confidence_brier_score",
+    "predictive_world_understanding_nontrivial_actual_effect_rate"
+  ],
+  "method_config_path": "configs/methods/llm_v0.4/participant_methods_s0_wellau_codex_sol_development_r6.json",
+  "method_ids": ["s0_codex_sol_direct"]
+}

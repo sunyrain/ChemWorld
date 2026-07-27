@@ -63,8 +63,10 @@ submission → trajectory validation → deterministic replay
 ```
 
 The current Engine and replay controls are operational. Method selection, training, and result freezes belong to each
-evaluation campaign, and this repository bundles no formal cross-method result. The action/intervention audit passes
-with both solvent and electrolyte-profile electrochemical counterfactuals publicly reachable and decision-relevant.
+evaluation campaign. The repository now bundles a formal fixed-world LLM-versus-classic comparison on two
+confirmatory tasks, but no completed cross-method mechanism-adaptation ranking. On the frozen RC28 source, the
+action/intervention audit passed with both solvent and electrolyte-profile electrochemical counterfactuals publicly
+reachable and decision-relevant.
 Historical RC21 controlled matched identifiability passes at 239/240, while its fixed four-action online certificate
 fails the reaction rate-law family at 23/30. RC24 of version 0.3 supersedes that protocol because early changes did
 not always provide an adequate old-world reference and A3 previously blurred benchmark attainability with
@@ -72,14 +74,15 @@ participant-Agent evaluation. RC24 freezes a reference diagnostic policy, first-
 within-campaign cross-fitting, time-resolved detection, 180 independent clusters per family, and task/family
 intersection gates. RC28 preserves those A3 scientific definitions while adding a minimum relation-union
 feasibility certificate for the primary controlled budget, write-once receipts, semantic-coordinate noise,
-metric embargo, and release qualification. The confirmatory-task semantics audit passes
-25/25 and the physical design audit passes 83/83. RC28 then completed 4,896/4,896
+metric embargo, and release qualification. On that frozen source, the confirmatory-task semantics audit passed
+25/25 and the physical design audit passed 83/83. RC28 then completed 4,896/4,896
 A2 receipts and 2,016/2,016 A3 receipts on the untouched formal cohorts. The
-joint decision is `gate_a_pass=true` and `benchmark_ready=true`: controlled
+historical joint decision was `gate_a_pass=true` and `benchmark_ready=true`: controlled
 top-1 accuracy is 98.26% at the primary five-experiment budget, and the online
 reference policy reaches 96.57% end-to-end success by `k=8` with 2.80%
 conditional no-change FPR. These are environment attainability results, not
-participant-Agent results. Cross-method evaluation, real-LLM evaluation,
-private confirmation, and external bridge evidence remain incomplete.
+participant-Agent results. The current binding is stale and current
+`benchmark_ready=false`. Mechanism-adaptation cross-method evaluation, private
+confirmation, and external bridge evidence remain incomplete.
 
 Next: [Research Findings](research_findings.md) · [Real-world Bridge](real_world_bridge.md)

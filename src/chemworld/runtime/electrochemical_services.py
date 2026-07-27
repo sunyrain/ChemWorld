@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 import numpy as np
@@ -19,6 +20,9 @@ from chemworld.physchem.electrochem_double_layer import (
 from chemworld.physchem.electrochem_transport import (
     DiffusionLayerSpec,
     diffusion_layer_current_response,
+)
+from chemworld.physchem.electrochemical_task_contract import (
+    ELECTROCHEMICAL_TASK_CONTRACT,
 )
 from chemworld.physchem.electrochemistry import (
     FARADAY_C_PER_MOL,
@@ -196,8 +200,24 @@ class ChemWorldElectrochemicalServices:
     def __init__(self, world: ChemWorldParameters, species_view: MechanismSpeciesView) -> None:
         self.world = world
         self.species_view = species_view
+        self.task_contract = (
+            ELECTROCHEMICAL_TASK_CONTRACT
+            if species_view.mechanism.mechanism_id
+            == ELECTROCHEMICAL_TASK_CONTRACT.mechanism_id
+            else None
+        )
+        if self.task_contract is not None:
+            self.task_contract.validate_compiled_mechanism(species_view.mechanism)
+
+    def _require_task_contract(self):
+        if self.task_contract is None:
+            raise ValueError(
+                "electrochemical operations require the electrochemical-conversion mechanism"
+            )
+        return self.task_contract
 
     def set_potential(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        contract = self._require_task_contract()
         electrolyte_profile = _bounded_action_index(
             action,
             "electrolyte_profile",
@@ -225,8 +245,20 @@ class ChemWorldElectrochemicalServices:
         if solvent_effects.shape[0] < 5 or not np.all(np.isfinite(solvent_effects[:5])):
             raise ValueError("world solvent-effect row is not valid for electrochemistry")
         previous_cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
-        potential = _bounded_action_float(action, "potential_V", 1.20, low=-3.0, high=3.0)
-        current = _bounded_action_float(action, "current_mA", 50.0, low=1.0e-3, high=500.0)
+        potential = _bounded_action_float(
+            action,
+            "potential_V",
+            1.20,
+            low=contract.setpoint_input_potential_bounds_V[0],
+            high=contract.setpoint_input_potential_bounds_V[1],
+        )
+        current = _bounded_action_float(
+            action,
+            "current_mA",
+            50.0,
+            low=contract.setpoint_current_magnitude_bounds_mA[0],
+            high=contract.setpoint_current_magnitude_bounds_mA[1],
+        )
         conductivity = float(
             np.clip(
                 profile["electrolyte_conductivity_S_m"]
@@ -246,7 +278,7 @@ class ChemWorldElectrochemicalServices:
                 100.0,
             )
         )
-        voltage_window = 2.5
+        voltage_window = contract.executable_abs_potential_limit_V
         diffusivity_multiplier = max(
             solvent_profile["diffusivity_multiplier"] * solvent_effects[1],
             0.02,
@@ -323,6 +355,9 @@ class ChemWorldElectrochemicalServices:
                 "configured_time_s": state.ledger.time_s,
                 "potential_V": potential,
                 "current_mA": current,
+                "current_setpoint_semantics": (
+                    "nonnegative_magnitude_cap_signed_current_from_butler_volmer"
+                ),
                 "electrolyte_profile": electrolyte_profile,
             }
         )
@@ -335,6 +370,9 @@ class ChemWorldElectrochemicalServices:
             settings={
                 "potential_V": potential,
                 "current_mA": current,
+                "current_setpoint_semantics": (
+                    "nonnegative_magnitude_cap_signed_current_from_butler_volmer"
+                ),
                 "electrolyte_profile": electrolyte_profile,
                 "electrolyte_profile_id": ELECTROLYTE_PROFILES[electrolyte_profile],
                 "electrolyte_profile_model": "bounded_effective_electrolyte_media_v3",
@@ -347,6 +385,7 @@ class ChemWorldElectrochemicalServices:
                 "material_balance_scope": (
                     "redox_network_only_electrolyte_medium_is_boundary_condition"
                 ),
+                "task_contract": contract.provenance(),
                 "solvent": solvent,
                 "solvent_id": SOLVENTS[solvent],
                 "electrolyte_conductivity_S_m": conductivity,
@@ -376,6 +415,7 @@ class ChemWorldElectrochemicalServices:
         return state.replace(ledger=ledger, equipment=equipment)
 
     def electrolyze(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        contract = self._require_task_contract()
         duration = _bounded_action_float(action, "duration_s", 900.0, low=1.0, high=14_400.0)
         cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
         if not cell_settings:
@@ -444,10 +484,10 @@ class ChemWorldElectrochemicalServices:
             "electro_standard_potential_multiplier"
         )
         electrochemical_spec = ElectrodeReactionSpec(
-            reaction_id=f"{reactant}_to_{product}_electrochemical",
-            electrons_transferred=2.0,
+            reaction_id=contract.desired_pathway_id,
+            electrons_transferred=contract.electrons_transferred,
             standard_potential_V=(
-                1.05 * standard_potential_multiplier
+                contract.standard_potential_V * standard_potential_multiplier
                 + float(cell_settings["standard_potential_shift_V"])
             ),
             reaction_quotient_exponents={product: 1.0, reactant: -1.0},
@@ -472,7 +512,7 @@ class ChemWorldElectrochemicalServices:
             overpotential_selectivity_sensitivity_V_inv=0.45 * selectivity_decay,
             # The declared A -> P transformation is reduction-like under the
             # Butler-Volmer convention used by the shared kernel.
-            forward_current_sign=-1,
+            forward_current_sign=contract.forward_current_sign,
         )
         redox_activity_coefficient = aqueous.activity_coefficient_ratio**0.5
         activities = {
@@ -492,6 +532,14 @@ class ChemWorldElectrochemicalServices:
         )
         if abs(preliminary.actual_current_A) <= 1.0e-12:
             raise ValueError("electrochemical driving force produced no executable current")
+        if preliminary.reaction_direction < 0:
+            # The declared side-product pool is a forward-reduction branch.  A
+            # reverse Ox/Red operation therefore closes only the main couple.
+            electrochemical_spec = replace(
+                electrochemical_spec,
+                product_selectivity_ref=1.0,
+                overpotential_selectivity_sensitivity_V_inv=0.0,
+            )
         charge_transfer_resistance = (
             R_J_PER_MOL_K
             * state.temperature_K
@@ -621,6 +669,7 @@ class ChemWorldElectrochemicalServices:
             electrochemical_initial_impurity_mol=initial_impurity_mol,
             electrochemical_net_target_mol=net_target_mol,
             electrochemical_net_impurity_mol=net_impurity_mol,
+            lumped_side_product_mol=net_impurity_mol,
             electrochemical_net_reactant_consumed_mol=net_reactant_consumed_mol,
             electrochemical_selectivity=float(np.clip(electrochemical_selectivity, 0.0, 1.0)),
             selective_product_yield=float(np.clip(selective_product_yield, 0.0, 1.0)),
@@ -656,6 +705,7 @@ class ChemWorldElectrochemicalServices:
             measured_potential_V=result.measured_potential_V,
             interfacial_potential_V=result.interfacial_potential_V,
             overpotential_V=result.overpotential_V,
+            overpotential_stress_V=max(abs(result.overpotential_V) - 0.15, 0.0),
             kinetic_current_A=result.kinetic_current_A,
             actual_current_A=result.actual_current_A,
             reaction_direction=float(result.reaction_direction),
@@ -724,11 +774,13 @@ class ChemWorldElectrochemicalServices:
                     },
                 ],
                 "runtime_model_ids": (
-                    "nernst_butler_volmer_faradaic_v1",
+                    contract.runtime_model_ids[0],
                     transport.model_id,
                     double_layer.model_id,
-                    "aqueous_acid_base_ph_observation",
+                    contract.runtime_model_ids[3],
                 ),
+                "task_contract": contract.provenance(),
+                "runtime_owned_pathway_ids": contract.pathway_ids,
                 "mechanism_id": self.species_view.mechanism.mechanism_id,
                 "mechanism_hash": self.species_view.mechanism.mechanism_hash,
                 "transport_diagnostic": {

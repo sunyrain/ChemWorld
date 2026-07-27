@@ -9,12 +9,13 @@ from typing import Any
 import numpy as np
 import pytest
 
-from chemworld.agents.base import BaseAgent
+from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.diagnostic_live_llm import MechanismDiagnosticLiveLLMAgent
 from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabilities
 from chemworld.envs.chemworld_env import ChemWorldEnv
 from chemworld.eval.flagship_diagnostics import (
     ContinuingPublicViewAgent,
+    assess_reference_acquisition_execution,
     stable_phase_observation_seed,
     summarize_phase,
 )
@@ -426,7 +427,10 @@ def test_lifecycle_guardrail_reserves_terminate_and_final_assay() -> None:
     adapter.configure_lifecycle_guardrail(4)
     adapter.begin_phase("iid", experiment_offset=0, operation_offset=0)
     adapter.reset({"task_id": "reaction-to-crystallization"}, 0)
-    context = _context(score=0.2)
+    context = replace(
+        _context(score=0.2),
+        available_operations=("measure", "terminate"),
+    )
     for _ in range(2):
         action = adapter.act_with_public_view(context, _view(0.2))
         adapter.update(action, {"score": 0.2}, 0.0, _info(0.2, 0))
@@ -437,7 +441,11 @@ def test_lifecycle_guardrail_reserves_terminate_and_final_assay() -> None:
     assert audit is not None and audit["action"] == terminate
     adapter.update(terminate, {"score": 0.2}, 0.0, _info(0.2, 0))
 
-    closeout = replace(context, decision_stage="experiment_control")
+    closeout = replace(
+        context,
+        decision_stage="experiment_control",
+        available_operations=("measure",),
+    )
     final_assay = adapter.act_with_public_view(closeout, _view(0.2))
     assert final_assay == {"operation": "measure", "instrument": "final_assay"}
     trace = adapter.agent_trace()
@@ -445,6 +453,100 @@ def test_lifecycle_guardrail_reserves_terminate_and_final_assay() -> None:
     assert [item["reason"] for item in adapter.lifecycle_guardrail_log] == [
         "terminate_reserved_slot",
         "final_assay_reserved_slot",
+    ]
+
+
+def test_lifecycle_guardrail_never_repeats_an_illegal_terminate() -> None:
+    delegate = _RecordingPublicAgent()
+    adapter = ContinuingPublicViewAgent(
+        delegate,
+        method_id="deepseek_v4_flash",
+        feedback_condition="true_feedback",
+        critical_instrument="hplc",
+    )
+    adapter.configure_lifecycle_guardrail(2)
+    adapter.begin_phase("iid", experiment_offset=0, operation_offset=0)
+    adapter.reset({"task_id": "reaction-to-crystallization"}, 0)
+    context = replace(
+        _context(score=0.2),
+        available_operations=("add_reagent", "add_solvent"),
+    )
+
+    action = adapter.act_with_public_view(context, _view(0.2))
+
+    assert action == {"operation": "measure", "instrument": "hplc"}
+    assert adapter.lifecycle_guardrail_log == []
+
+
+def test_action_contract_exposes_limit_without_enabling_lifecycle_assistance() -> None:
+    delegate = _RecordingPublicAgent()
+    adapter = ContinuingPublicViewAgent(
+        delegate,
+        method_id="deepseek_v4_flash_direct",
+        feedback_condition="true_feedback",
+        critical_instrument="hplc",
+    )
+    adapter.configure_experiment_action_contract(2)
+    adapter.begin_phase("iid", experiment_offset=0, operation_offset=0)
+    adapter.reset({"task_id": "reaction-to-crystallization"}, 0)
+    context = replace(
+        _context(score=0.2),
+        available_operations=("measure", "terminate"),
+    )
+
+    action = adapter.act_with_public_view(context, _view(0.2))
+
+    assert action == {"operation": "measure", "instrument": "hplc"}
+    assert adapter.lifecycle_guardrail_log == []
+    assert adapter.manifest()["lifecycle_assistance_enabled"] is False
+
+
+def test_short_smoke_reference_status_does_not_claim_scientific_failure() -> None:
+    terminal = HistoryRecord(
+        step=1,
+        action={"operation": "measure", "instrument": "final_assay"},
+        observation={"yield": 0.2},
+        reward=0.2,
+        info={"transaction_status": "committed", "leaderboard_score": 0.2},
+        event_type="experiment_end",
+    )
+
+    result = assess_reference_acquisition_execution(
+        [terminal],
+        requested_pre_change_experiments=1,
+        minimum_reference_experiments=6,
+    )
+
+    assert result["status"] == (
+        "development_horizon_insufficient_for_reference_evaluation"
+    )
+    assert result["reference_acquisition_failed"] is None
+    assert result["conditional_attribution_eligible"] is False
+    assert "development_horizon_below_frozen_reference_minimum" in result[
+        "reason_codes"
+    ]
+
+
+def test_incomplete_reference_phase_is_explicit_execution_failure() -> None:
+    failed = HistoryRecord(
+        step=0,
+        action={"operation": "model_failure"},
+        observation={},
+        reward=0.0,
+        info={"transaction_status": "rejected"},
+    )
+
+    result = assess_reference_acquisition_execution(
+        [failed],
+        requested_pre_change_experiments=1,
+        minimum_reference_experiments=1,
+    )
+
+    assert result["status"] == "reference_execution_failed"
+    assert result["reference_acquisition_failed"] is True
+    assert result["reason_codes"][:2] == [
+        "incomplete_prechange_experiment",
+        "provider_or_action_failure_during_reference",
     ]
 
 

@@ -167,10 +167,8 @@ class DeepSeekClient:
             cache_miss += prompt_tokens - accounted_prompt
         completion = _nonnegative_int(usage.get("completion_tokens"))
         cost = (
-            Decimal(cache_hit)
-            * Decimal(str(pricing["input_cache_hit_per_million_usd"]))
-            + Decimal(cache_miss)
-            * Decimal(str(pricing["input_cache_miss_per_million_usd"]))
+            Decimal(cache_hit) * Decimal(str(pricing["input_cache_hit_per_million_usd"]))
+            + Decimal(cache_miss) * Decimal(str(pricing["input_cache_miss_per_million_usd"]))
             + Decimal(completion) * Decimal(str(pricing["output_per_million_usd"]))
         ) / Decimal(1_000_000)
         return float(cost)
@@ -190,6 +188,9 @@ class DeepSeekClient:
         for attempt in range(1, self.max_attempts + 1):
             envelope: dict[str, Any] | None = None
             attempt_usage: dict[str, int] = {}
+            finish_reason: str | None = None
+            content_character_count = 0
+            reasoning_character_count = 0
             body = self._request_body(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
@@ -251,10 +252,13 @@ class DeepSeekClient:
                 choice = envelope["choices"][0]
                 message = choice["message"]
                 content = message["content"]
+                finish_reason = _optional_text(choice.get("finish_reason"))
+                content_character_count = len(content) if isinstance(content, str) else 0
+                reasoning = message.get("reasoning_content")
+                reasoning_character_count = len(reasoning) if isinstance(reasoning, str) else 0
                 payload = _parse_json_content(content)
                 if not isinstance(payload, dict):
                     raise TypeError("JSON output is not an object")
-                reasoning = message.get("reasoning_content")
                 attempt_records.append(
                     _attempt_record(
                         attempt_index=attempt,
@@ -264,6 +268,9 @@ class DeepSeekClient:
                         usage=attempt_usage,
                         usage_complete=_usage_complete(attempt_usage),
                         billable=True,
+                        finish_reason=finish_reason,
+                        content_character_count=content_character_count,
+                        reasoning_character_count=reasoning_character_count,
                     )
                 )
                 return JsonCompletion(
@@ -273,7 +280,7 @@ class DeepSeekClient:
                     request_id=request_id,
                     attempts=attempt,
                     system_fingerprint=_optional_text(envelope.get("system_fingerprint")),
-                    finish_reason=_optional_text(choice.get("finish_reason")),
+                    finish_reason=finish_reason,
                     reasoning_content_present=isinstance(reasoning, str) and bool(reasoning),
                     reasoning_character_count=(len(reasoning) if isinstance(reasoning, str) else 0),
                     attempt_records=tuple(attempt_records),
@@ -289,9 +296,7 @@ class DeepSeekClient:
                         request_id=(
                             header_request_id
                             or (
-                                _optional_text(envelope.get("id"))
-                                if envelope is not None
-                                else None
+                                _optional_text(envelope.get("id")) if envelope is not None else None
                             )
                         ),
                         model_id=(
@@ -300,13 +305,13 @@ class DeepSeekClient:
                             else self.model
                         ),
                         usage=attempt_usage,
-                        usage_complete=(
-                            _usage_complete(attempt_usage)
-                            if attempt_usage
-                            else False
-                        ),
+                        usage_complete=(_usage_complete(attempt_usage) if attempt_usage else False),
                         billable=envelope is not None,
                         failure_type="invalid_structured_output",
+                        finish_reason=finish_reason,
+                        content_character_count=content_character_count,
+                        reasoning_character_count=reasoning_character_count,
+                        parse_error_type=type(exc).__name__,
                     )
                 )
         raise DeepSeekAPIError(
@@ -422,8 +427,7 @@ def _usage_complete(usage: dict[str, int]) -> bool:
             usage["prompt_cache_hit_tokens"] + usage["prompt_cache_miss_tokens"]
             == usage["prompt_tokens"]
         )
-        and usage["total_tokens"]
-        == usage["prompt_tokens"] + usage["completion_tokens"]
+        and usage["total_tokens"] == usage["prompt_tokens"] + usage["completion_tokens"]
     )
 
 
@@ -437,6 +441,10 @@ def _attempt_record(
     usage_complete: bool,
     billable: bool,
     failure_type: str | None = None,
+    finish_reason: str | None = None,
+    content_character_count: int = 0,
+    reasoning_character_count: int = 0,
+    parse_error_type: str | None = None,
 ) -> dict[str, Any]:
     record: dict[str, Any] = {
         "attempt_index": int(attempt_index),
@@ -447,9 +455,14 @@ def _attempt_record(
         "usage_complete": bool(usage_complete),
         "billable": bool(billable),
         "usage_source": "provider_response" if billable else "unavailable",
+        "finish_reason": finish_reason,
+        "content_character_count": int(content_character_count),
+        "reasoning_character_count": int(reasoning_character_count),
     }
     if failure_type:
         record["failure_type"] = failure_type
+    if parse_error_type:
+        record["parse_error_type"] = parse_error_type
     return record
 
 

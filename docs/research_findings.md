@@ -6,6 +6,44 @@
 
 > **ChemWorld 已经形成有价值的环境控制、失败案例和诊断证据，但尚未完成正式 benchmark release。**
 
+!!! warning "证据时态"
+    下文 RC28 数字是在其冻结源码上的正式历史结果。当前源码已因静态 S0 和任务合同工作发生变化，
+    evidence DAG 将 9 个 RC28 相关绑定标为 stale；当前 `benchmark_ready=false`。静态 S0 结果是当前
+    replay-verified 结果，但不替代 Gate A 重新认证。
+
+## 新发现：固定世界优化有效，但显式机理理解明显落后
+
+2026-07-27 的两个静态 S0 正式实验使用同一 `gpt-5.6-sol high`、20 个完整实验、五个 world seed、
+独立最终综合和配对盲验证。统计单位是 world seed，经典算法的五个 algorithm seed 先在同一 world
+内取均值。电化学盲最终均值为 `0.3902`（95% CI `[0.1732, 0.6072]`），RF-EI world-cluster
+均值为 `0.4798`，配对差为 `-0.0896`（`[-0.2896, 0.1104]`），逐 world 为 2 胜 3 负。反应–结晶
+盲最终均值为 `0.4829`（`[0.4326, 0.5332]`），GP-EI 均值为 `0.5324`，配对差为 `-0.0495`
+（`[-0.0933, -0.0056]`），逐 world 为 0 胜 5 负。
+
+![静态 S0 逐 world 盲最终分](assets/images/static-s0-blind-scores-v0.1.png)
+
+模型确实会根据固定世界反馈继续优化：两个任务的十个正式 cell 最佳点都在第 11 轮以后，第 8 到
+第 20 轮的 best-so-far 均值分别增加 `0.0548` 和 `0.0599`。但 Predictive 方向正确率只有 `64.4%`
+和 `44.4%`；Declared structural edge F1 分别为 `0.274` 和 `0.242`，unsupported claim rate
+分别为 `68.3%` 和 `75.1%`。因此“能找到更好条件”不能被升级成“已经正确认识机理”。
+
+十次 final synthesis 全部提交已测试条件，但 8/10 为零增益、2/10 为轻微负增益、0/10 为正增益。
+最终综合目前没有把证据转化为优于 incumbent 的新条件。
+
+![静态 S0 优化曲线](assets/images/static-s0-optimization-curves-v0.1.png)
+
+该结果是当前后端上的冻结正式优化估计量，但只有五个 sampled worlds 和每 world 一条 LLM 轨迹。
+最强经典家族也是从六个候选家族中描述性选择，区间不应解释成预注册优越性检验。当前路线优先复现
+独立模型/provider、final-synthesis 静态消融、更多静态任务和现实桥接。隐藏世界变化与机制替换已经
+延期，不在当前 S0 路线内；Private-E/A 和现实化学迁移也尚未完成。
+
+## 设计发现：15 个任务都需要真实可执行的完整实验
+
+完成性审计发现三个纯化任务曾被错误映射为通用反应配方，蒸发与蒸馏条件也曾共享强度坐标。修正后，
+三个纯化任务使用 16 个独立控制和 22 个编译操作；蒸馏使用 13 个控制，两个阶段的温度和时间相互独立。
+矩阵生成器现会自动检测死坐标并实际执行中点配方。当前 15/15 通过，死坐标和未解决正式化 blocker
+均为 0；这只证明设计可执行，不构成其余 13 个任务的正式性能证据。
+
 ## 证据等级
 
 | 等级 | 含义 |
@@ -71,8 +109,8 @@ RC28 随后按校准协议在未触碰正式 cohort 上完成执行。A2 生成 
 主预算通过：active oracle 与 fixed decoder top-1 均为 98.26%（95% CI 97.45–98.82），所有
 task/family 交集通过。A3 生成 2,016/2,016 receipts；到 `k=8`，冻结 reference policy 的参照充分率、
 changed 检测召回率、AUROC、条件 no-change FPR、条件归因率和端到端成功率分别为 99.17%、
-99.35%、0.9990、2.80%、98.03% 和 96.57%。联合决策为 `gate_a_pass=true`、
-`benchmark_ready=true`，Gate A 总状态为 true。
+99.35%、0.9990、2.80%、98.03% 和 96.57%。冻结源码上的联合决策为 `gate_a_pass=true`、
+`benchmark_ready=true`，该版本 Gate A 总状态为 true；当前源码绑定 stale。
 
 该新结果解决的是环境在线可达性问题，不是 participant Agent 能力问题。Gate B–E、
 Private-E/Private-A、跨方法 provider 结果和发表证据仍未完成。

@@ -1,0 +1,29 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-protocol-0.1-s0-dev",
+  "protocol_id": "chemworld-static-scientific-optimization-s0-2026-07-26-dev",
+  "status": "development",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "world_policy": {
+    "mode": "static_for_entire_campaign",
+    "world_seed": 0,
+    "interventions": [],
+    "phase_changes": [],
+    "hidden_world_fields_in_public_context": false
+  },
+  "tasks": [
+    "reaction-to-crystallization",
+    "electrochemical-conversion"
+  ],
+  "horizon": 8,
+  "executor_contract": {
+    "electrochemical_workflow_mode": "adaptive_two_stage"
+  },
+  "candidate_order_seed": 0,
+  "observation_noise_namespace": "scientific-optimization-s0",
+  "objective": "maximize fixed task success metrics through public experimental feedback",
+  "method_ids": [
+    "s0_pro_direct",
+    "s0_flash_direct"
+  ]
+}

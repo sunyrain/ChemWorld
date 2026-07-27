@@ -744,7 +744,9 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
             "(the pH diagnostic is a normalized effective proton-activity index, not a "
             "literal non-aqueous pH claim), "
             "from a probe regime, then change potential by at least 0.02 V or current by "
-            "at least 1.0 mA for selective, charge- and energy-efficient conversion."
+            "at least 1.0 mA for selective, charge- and energy-efficient conversion. The "
+            "public current_mA control is a nonnegative power-supply magnitude cap; the "
+            "signed electrochemical current and reaction direction follow Butler-Volmer."
         ),
         instruments=("ph_meter", "uvvis", "final_assay"),
         termination_policy="budget-with-workflow-gated-final-assay",

@@ -286,32 +286,32 @@ cards:
   - card_id: electrochemical-conversion-card
     mechanism_id: electrochemical_conversion
     mechanism_path: configs/mechanisms/electrochemical_conversion.yaml
-    scenario_id: electrochemical-selectivity-energy
+    scenario_id: electrochemical-conversion
     family: electrochemical
     recommended_reactor: electrochemical_cell
     module_tags: [reaction, electrochemistry, energy, selectivity]
     initial_amounts_mol:
       Ox: 1.0
       Red: 0.0
-      IsoRed: 0.0
-      D: 0.0
-      Coupled: 0.0
+      SideRed: 0.0
     default_conditions:
       volume_L: 1.0
       temperature_K: 298.15
       duration_s: 7200.0
-      potential_V: -0.72
+      potential_V: 1.20
+      current_mA: 50.0
     operating_window:
       temperature_K: {min: 285.0, max: 330.0}
-      duration_s: {min: 100.0, max: 24000.0}
-      potential_V: {min: -1.4, max: -0.4}
-      current_A: {min: 0.01, max: 2.0}
+      duration_s: {min: 1.0, max: 14400.0}
+      potential_V: {min: 0.60, max: 1.80}
+      current_mA: {min: 0.001, max: 220.0}
     target_species: [Red]
-    impurity_species: [IsoRed, D, Coupled]
-    recommended_tasks: [electrochemical-selectivity-energy]
+    impurity_species: [SideRed]
+    recommended_tasks: [electrochemical-conversion]
     expected_qualitative_behavior:
       - potential controls selectivity between desired and side paths
-      - longer electrolysis can overconvert product
+      - duration increases conversion until charge, transport, or inventory limits dominate
       - energy efficiency and selectivity trade off under high current
     validation_notes:
-      - current implementation stores electrochemical metadata while using balanced pseudo-kinetics
+      - species are lumped inventory pools, not claims about literal molecular identities
+      - runtime owns Nernst, Butler-Volmer, transport, double-layer, and Faraday accounting

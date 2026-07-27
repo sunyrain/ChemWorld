@@ -125,11 +125,12 @@ Agent submission
 ## 当前状态
 
 World Engine、回放、资源合同和环境确认协议可运行。方法选择、训练、资源匹配和结果冻结由每个评测
-campaign 自行声明，当前仓库不捆绑正式跨方法排名。RC28 已在未触碰 cohort 上完成 A2
-4,896/4,896 与 A3 2,016/2,016 receipts，联合决策为 `gate_a_pass=true`、
-`benchmark_ready=true`；五实验主预算受控识别 top-1 为 98.26%，A3 `k=8` 端到端成功率为
-96.57%。完整跨方法矩阵、真实 LLM、Participant-Agent Gates B–E、私有确认和独立 Bridge 证据仍未
-共同闭合，因此这是环境前置条件通过的 benchmark candidate，不是已完成的 Agent 排名 release。
+campaign 自行声明。当前仓库已包含两个固定世界确认性任务的正式 LLM—经典优化器比较，但没有完成
+机制适应的跨方法排名。RC28 在其冻结源码和未触碰 cohort 上完成 A2 4,896/4,896 与 A3
+2,016/2,016 receipts，历史联合决策为 `gate_a_pass=true`、`benchmark_ready=true`；五实验主预算
+受控识别 top-1 为 98.26%，A3 `k=8` 端到端成功率为 96.57%。当前源码绑定 stale，当前
+`benchmark_ready=false`。Participant-Agent Gates B–E、私有确认和独立 Bridge 证据仍未共同闭合，
+因此这是 benchmark candidate，不是已完成的机制适应排名 release。
 
 继续阅读：[公平评测协议](benchmark_protocol.md) · [研究发现与证据](benchmark_release.md) ·
 [提交、回放与私有评测](submission.md)

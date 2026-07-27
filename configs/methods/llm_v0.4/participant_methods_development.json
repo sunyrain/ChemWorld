@@ -1,0 +1,208 @@
+{
+  "schema_version": "chemworld-json-composition-0.1",
+  "extends": "llm_methods_rc25.json",
+  "base_sha256": "b602a1c4bb6e56bfe4466a433f2e75bd5ce7d965350e644312f95ce80f4c49de",
+  "overrides": {
+    "schema_version": "chemworld-participant-method-development-candidate-0.2",
+    "freeze_id": "chemworld-participant-factorial-development-r4-2026-07-25",
+    "benchmark_claim_allowed": false,
+    "architecture_candidate": {
+      "primary_track": "scientific_adaptation",
+      "decision_scope": "complete_experiment",
+      "public_context_builder": "PublicExperimentContextBuilder",
+      "response_validator": "ExperimentPlanResponseValidator",
+      "executor": "ScientificAdaptationExperimentSession",
+      "mechanical_closeout": true,
+      "operation_level_track": "autonomous_procedure",
+      "formal_result": false
+    },
+    "development_amendments": [
+      {
+        "amendment_id": "pro-output-cap-8000-after-length-diagnostic-v4",
+        "scope": "development_only",
+        "reason": "Pro Stateful post-history responses exhausted the 4000-token cap with finish_reason=length before producing complete JSON.",
+        "fairness_rule": "The same 8000-token output cap applies to Pro Direct and Pro Stateful.",
+        "scientific_contract_changed": false
+      },
+      {
+        "amendment_id": "controlled-variable-limit-10-after-v5",
+        "scope": "development_only",
+        "reason": "The six-item limit was narrower than the ten-coordinate reaction recipe and rejected an otherwise valid bounded plan.",
+        "scientific_contract_changed": true
+      },
+      {
+        "amendment_id": "single-representation-bounded-history-after-two-task-r3-mock",
+        "scope": "development_only",
+        "reason": "The eight-experiment r3 mock exposed duplicated raw/processed measurements and unbounded narrative replay that exceeded the inherited operation-level prompt budget.",
+        "fairness_rule": "Direct and Stateful share the same compact processed-estimate history and deterministic history-selection policy; only Stateful receives bounded Agent-authored memory.",
+        "scientific_contract_changed": true
+      }
+    ],
+    "methods": {
+      "dev_pro_direct": {
+        "model_id": "deepseek-v4-pro",
+        "role": "direct_reactive",
+        "scaffold_id": "direct_reactive",
+        "scientific_adaptation_scaffold_id": "direct",
+        "scientific_adaptation_memory_store": "NullScientificMemory",
+        "provider_calls_per_logical_decision": 1,
+        "scientific_adaptation_prompt_budget_contract": {
+          "source": "r4_two_task_6_pre_2_post_mock_profile_plus_15_percent_headroom",
+          "qualification_profile_id": "scientific_adaptation_r4_two_task_prompt_profile_20260725",
+          "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+          "history_limit": 8,
+          "history_selection_policy": "oldest_reference_half_plus_most_recent_half",
+          "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+          "observed_max_estimated_tokens": 5434,
+          "headroom_fraction": 0.15,
+          "per_decision_max_estimated_tokens": 6250
+        },
+        "prompt_budget_contract": {
+          "source": "offline_worst_legal_prompt_fixture_plus_15_percent_headroom",
+          "environment_view_max_estimated_tokens": 2050,
+          "agent_memory_max_estimated_tokens": 950,
+          "per_decision_max_estimated_tokens": 3600,
+          "campaign_estimated_token_ceiling_rule": "per_decision_max_estimated_tokens * frozen_operation_limit"
+        },
+        "request_configuration": {
+          "response_format": "json_object",
+          "thinking": true,
+          "reasoning_effort": "high",
+          "max_tokens": 8000,
+          "timeout_s": 120.0,
+          "max_attempts": 3,
+          "retry_backoff_s": 0.25,
+          "temperature": null
+        }
+      },
+      "dev_pro_stateful": {
+        "model_id": "deepseek-v4-pro",
+        "role": "stateful_scientific",
+        "scaffold_id": "stateful_scientific",
+        "scientific_adaptation_scaffold_id": "stateful_scientific",
+        "scientific_adaptation_memory_store": "BoundedScientificMemory",
+        "provider_calls_per_logical_decision": 1,
+        "scientific_adaptation_prompt_budget_contract": {
+          "source": "r4_two_task_6_pre_2_post_mock_profile_plus_15_percent_headroom",
+          "qualification_profile_id": "scientific_adaptation_r4_two_task_prompt_profile_20260725",
+          "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+          "history_limit": 8,
+          "history_selection_policy": "oldest_reference_half_plus_most_recent_half",
+          "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+          "observed_max_estimated_tokens": 6157,
+          "headroom_fraction": 0.15,
+          "per_decision_max_estimated_tokens": 7100
+        },
+        "prompt_budget_contract": {
+          "source": "offline_worst_legal_prompt_fixture_plus_15_percent_headroom",
+          "environment_view_max_estimated_tokens": 2050,
+          "agent_memory_max_estimated_tokens": 1350,
+          "per_decision_max_estimated_tokens": 4150,
+          "campaign_estimated_token_ceiling_rule": "per_decision_max_estimated_tokens * frozen_operation_limit"
+        },
+        "request_configuration": {
+          "response_format": "json_object",
+          "thinking": true,
+          "reasoning_effort": "high",
+          "max_tokens": 8000,
+          "timeout_s": 120.0,
+          "max_attempts": 3,
+          "retry_backoff_s": 0.25,
+          "temperature": null
+        }
+      },
+      "dev_flash_direct": {
+        "model_id": "deepseek-v4-flash",
+        "role": "direct_reactive",
+        "scaffold_id": "direct_reactive",
+        "scientific_adaptation_scaffold_id": "direct",
+        "scientific_adaptation_memory_store": "NullScientificMemory",
+        "provider_calls_per_logical_decision": 1,
+        "scientific_adaptation_prompt_budget_contract": {
+          "source": "r4_two_task_6_pre_2_post_mock_profile_plus_15_percent_headroom",
+          "qualification_profile_id": "scientific_adaptation_r4_two_task_prompt_profile_20260725",
+          "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+          "history_limit": 8,
+          "history_selection_policy": "oldest_reference_half_plus_most_recent_half",
+          "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+          "observed_max_estimated_tokens": 5434,
+          "headroom_fraction": 0.15,
+          "per_decision_max_estimated_tokens": 6250
+        },
+        "prompt_budget_contract": {
+          "source": "offline_worst_legal_prompt_fixture_plus_15_percent_headroom",
+          "environment_view_max_estimated_tokens": 2050,
+          "agent_memory_max_estimated_tokens": 950,
+          "per_decision_max_estimated_tokens": 3600,
+          "campaign_estimated_token_ceiling_rule": "per_decision_max_estimated_tokens * frozen_operation_limit"
+        },
+        "request_configuration": {
+          "response_format": "json_object",
+          "thinking": false,
+          "reasoning_effort": null,
+          "max_tokens": 1000,
+          "timeout_s": 120.0,
+          "max_attempts": 3,
+          "retry_backoff_s": 0.25,
+          "temperature": null
+        }
+      },
+      "dev_flash_stateful": {
+        "model_id": "deepseek-v4-flash",
+        "role": "stateful_scientific",
+        "scaffold_id": "stateful_scientific",
+        "scientific_adaptation_scaffold_id": "stateful_scientific",
+        "scientific_adaptation_memory_store": "BoundedScientificMemory",
+        "provider_calls_per_logical_decision": 1,
+        "scientific_adaptation_prompt_budget_contract": {
+          "source": "r4_two_task_6_pre_2_post_mock_profile_plus_15_percent_headroom",
+          "qualification_profile_id": "scientific_adaptation_r4_two_task_prompt_profile_20260725",
+          "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+          "history_limit": 8,
+          "history_selection_policy": "oldest_reference_half_plus_most_recent_half",
+          "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+          "observed_max_estimated_tokens": 6157,
+          "headroom_fraction": 0.15,
+          "per_decision_max_estimated_tokens": 7100
+        },
+        "prompt_budget_contract": {
+          "source": "offline_worst_legal_prompt_fixture_plus_15_percent_headroom",
+          "environment_view_max_estimated_tokens": 2050,
+          "agent_memory_max_estimated_tokens": 1350,
+          "per_decision_max_estimated_tokens": 4150,
+          "campaign_estimated_token_ceiling_rule": "per_decision_max_estimated_tokens * frozen_operation_limit"
+        },
+        "request_configuration": {
+          "response_format": "json_object",
+          "thinking": false,
+          "reasoning_effort": null,
+          "max_tokens": 1000,
+          "timeout_s": 120.0,
+          "max_attempts": 3,
+          "retry_backoff_s": 0.25,
+          "temperature": null
+        }
+      }
+    },
+    "factorial_design": {
+      "backend_axis": [
+        "deepseek-v4-pro",
+        "deepseek-v4-flash"
+      ],
+      "scaffold_axis": [
+        "direct_reactive",
+        "stateful_scientific"
+      ],
+      "scientific_adaptation_scaffold_axis": [
+        "direct",
+        "stateful_scientific"
+      ],
+      "primary_contrast": "C1_stateful_minus_direct",
+      "confirmatory_secondary_contrast": "C2_pro_minus_flash",
+      "exploratory_contrast": "C3_backend_by_scaffold_interaction",
+      "primary_endpoint": "post_change_adaptation_regret_auc",
+      "formal_result": false,
+      "development_namespaces_only": true
+    }
+  }
+}

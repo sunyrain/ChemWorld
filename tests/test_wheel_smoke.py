@@ -59,7 +59,7 @@ def test_wheel_smoke_uses_current_registry_claim_boundary() -> None:
         "current_registry_schema": "chemworld-current-surface-registry-0.4",
         "project_role": "agent_capability_evaluation_and_training_environment",
         "environment_updates_agent_weights": False,
-        "formal_results_present": False,
+        "formal_results_present": True,
         "publication_ready": False,
     }
     _validate_current_registry_payload(payload)

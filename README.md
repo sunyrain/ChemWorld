@@ -103,9 +103,23 @@ including exact task-contract hashes, replay-bound transitions, and a fail-close
 and clean-source attestation describe the environment only; they do not imply an algorithm ranking, a completed
 evaluation campaign, or real-chemistry validation.
 
+All 15 tasks now have versioned complete-experiment adapters with physical coordinate schemas. A deterministic
+midpoint smoke executes every adapter end to end; the design audit reports no dead coordinates or unresolved
+formalization blockers. The three purification tasks use a 16-control reaction/workup design, and the distillation
+adapter exposes evaporation and distillation temperature/time as four independent controls. This is design
+validation, not formal empirical performance for the 13 non-confirmatory tasks.
+
 ChemWorld no longer treats one repository-wide method freeze as environment evidence. Each comparison campaign must
-declare its own agents, resources, seeds, and result freeze. No formal cross-method result is bundled with the current
-repository.
+declare its own agents, resources, seeds, and result freeze. The current repository now includes two frozen static-S0
+campaigns on the confirmatory tasks: five world seeds each, 20 complete experiments per seed, separate final synthesis,
+paired predictive checks, blind validation, classic optimizer baselines, and exact replay. `gpt-5.6-sol high` reached
+blind final means of 0.3902 [95% world-cluster CI 0.1732, 0.6072] on electrochemical conversion and 0.4829
+[0.4326, 0.5332] on reaction-to-crystallization. Paired differences from the descriptively strongest classic families
+were -0.0896 [-0.2896, 0.1104] against RF-EI and -0.0495 [-0.0933, -0.0056] against GP-EI. The LLM exceeded the
+within-world classic mean in 2/5 electrochemical worlds and 0/5 crystallization worlds. All ten final syntheses selected
+tested conditions; eight had zero paired gain, two had small negative gain, and none improved the incumbent.
+
+![Static-S0 blind final scores by world](docs/assets/images/static-s0-blind-scores-v0.1.png)
 
 Pre-v0.5 result bundles are diagnostic history and are not part of the current evidence DAG or benchmark claims.
 
@@ -113,6 +127,10 @@ Pre-v0.5 result bundles are diagnostic history and are not part of the current e
 validation, clean-release attestation, formal-evaluation readiness, and publication readiness as separate states.
 
 Current evidence establishes the following boundaries:
+
+- current fixed-world static-S0 results are complete and replay-verified for the two confirmatory tasks;
+- RC28 Gate A passed on its frozen source, but the current source fingerprint has changed. Its result remains a
+  historical formal certificate while the current binding is stale; `benchmark_ready=false` until recertification;
 
 - executable mechanism and constitutive-law shifts are control-validated. RC28 defines A3 as online attainability by
   one frozen reference diagnostic policy rather than performance of any participant Agent. It freezes true no-change
@@ -122,12 +140,17 @@ Current evidence establishes the following boundaries:
   relation-union feasibility certificate: A2 reports `k={2,4,5}`, with the mathematically minimal relation-closing
   `k=5` as its primary controlled certificate. It also freezes write-once trial receipts, missing-only
   resume, semantic-coordinate observation noise, split Private-E/Private-A confirmation, and a compact
-  decision-first Agent prompt capped at an estimated 1,500 tokens. The confirmatory-task semantic audit passes 25/25 and the physical
-  action/intervention audit passes 83/83. Formal RC28 completed A2 at 4,896/4,896 receipts and A3 at
-  2,016/2,016 receipts; the joint decision is `gate_a_pass=true` and `benchmark_ready=true`. This certifies
-  environment attainability. Gate A now establishes environment-level identifiability, while participant-Agent
+  decision-first Agent prompt capped at an estimated 1,500 tokens. On the frozen RC28 source, the confirmatory-task
+  semantic audit passed 25/25 and the physical action/intervention audit passed 83/83. Formal RC28 completed A2 at
+  4,896/4,896 receipts and A3 at
+  2,016/2,016 receipts; its frozen-source joint decision was `gate_a_pass=true` and
+  `benchmark_ready=true`. This certifies historical environment attainability for that source. The current source
+  binding is stale and current `benchmark_ready=false`; participant-Agent
   Gates B–E remain unfrozen; mechanism-discovery claims remain unsupported for DeepSeek or any other Agent;
-- LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
+- the real-provider static-S0 matrix is complete for the two confirmatory tasks. Fixed-world scientific optimization is
+  the current research priority. It does not test hidden world changes. Hidden world changes and mechanism replacement
+  are deferred until a realistic drift model and separate research question are established; private confirmation and
+  external bridge evidence remain open.
 
 See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.
 

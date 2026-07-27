@@ -103,6 +103,13 @@ def test_cooling_schema_matches_the_current_runtime_temperature_domain() -> None
         env.step({"operation": "add_reagent", "amount_mol": 0.01})
         env.step(
             {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.00025,
+                "catalyst": 1,
+            }
+        )
+        env.step(
+            {
                 "operation": "heat",
                 "target_temperature_K": 340.0,
                 "duration_s": 600.0,
@@ -110,7 +117,7 @@ def test_cooling_schema_matches_the_current_runtime_temperature_domain() -> None
             }
         )
         env.step({"operation": "measure", "instrument": "hplc"})
-        env.step({"operation": "seed_crystals", "seed_mass_g": 0.001})
+        env.step({"operation": "seed_crystals", "seed_mass_g": 0.0001})
         env.unwrapped._state = env.unwrapped._state.replace(temperature_K=260.0)
 
         schema = env.unwrapped.action_schema("cool_crystallize")

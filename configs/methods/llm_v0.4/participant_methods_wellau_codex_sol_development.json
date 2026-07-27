@@ -1,0 +1,110 @@
+{
+  "schema_version": "chemworld-json-composition-0.1",
+  "extends": "participant_methods_development.json",
+  "base_sha256": "240b0f0a3258c8fcc9f5e40515ff9aca70eea45757222e74bf00c3cea88e2e42",
+  "overrides": {
+    "schema_version": "chemworld-participant-method-development-candidate-0.2",
+    "freeze_id": "chemworld-participant-wellau-codex-sol-development-r1-2026-07-25",
+    "benchmark_claim_allowed": false,
+    "development_amendments": [
+      {
+        "amendment_id": "wellau-gpt-5.6-sol-single-backend-pilot-r1",
+        "scope": "development_only",
+        "reason": "Authenticated model discovery and a minimal structured-output probe verified the exact gpt-5.6-sol chat-completions contract.",
+        "fairness_rule": "Direct and Stateful share the exact model, high reasoning effort, JSON mode, output cap, timeout, and retry policy.",
+        "scientific_contract_changed": false
+      }
+    ],
+    "provider_freeze": {
+      "provider": "WellAU",
+      "base_url": "https://api.wellau.com/v1",
+      "model_catalog_endpoint": "https://api.wellau.com/v1/models",
+      "model_catalog_access_date": "2026-07-25",
+      "model_id": "gpt-5.6-sol",
+      "completion_endpoint": "/chat/completions",
+      "response_format": "json_object",
+      "reasoning_effort": "high",
+      "pricing_verified": false,
+      "accounting_complete": false
+    },
+    "methods": {
+      "dev_codex_sol_direct": {
+        "model_id": "gpt-5.6-sol",
+        "role": "direct_reactive",
+        "scaffold_id": "direct_reactive",
+        "scientific_adaptation_scaffold_id": "direct",
+        "scientific_adaptation_memory_store": "NullScientificMemory",
+        "provider_calls_per_logical_decision": 1,
+        "scientific_adaptation_prompt_budget_contract": {
+          "source": "r4_two_task_6_pre_2_post_mock_profile_plus_15_percent_headroom",
+          "qualification_profile_id": "scientific_adaptation_r4_two_task_prompt_profile_20260725",
+          "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+          "history_limit": 8,
+          "history_selection_policy": "oldest_reference_half_plus_most_recent_half",
+          "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+          "observed_max_estimated_tokens": 5434,
+          "headroom_fraction": 0.15,
+          "per_decision_max_estimated_tokens": 6250
+        },
+        "request_configuration": {
+          "response_format": "json_object",
+          "thinking": true,
+          "reasoning_effort": "high",
+          "max_tokens": 8000,
+          "timeout_s": 180.0,
+          "max_attempts": 3,
+          "retry_backoff_s": 0.5,
+          "temperature": null
+        }
+      },
+      "dev_codex_sol_stateful": {
+        "model_id": "gpt-5.6-sol",
+        "role": "stateful_scientific",
+        "scaffold_id": "stateful_scientific",
+        "scientific_adaptation_scaffold_id": "stateful_scientific",
+        "scientific_adaptation_memory_store": "BoundedScientificMemory",
+        "provider_calls_per_logical_decision": 1,
+        "scientific_adaptation_prompt_budget_contract": {
+          "source": "r4_two_task_6_pre_2_post_mock_profile_plus_15_percent_headroom",
+          "qualification_profile_id": "scientific_adaptation_r4_two_task_prompt_profile_20260725",
+          "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+          "history_limit": 8,
+          "history_selection_policy": "oldest_reference_half_plus_most_recent_half",
+          "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+          "observed_max_estimated_tokens": 6157,
+          "headroom_fraction": 0.15,
+          "per_decision_max_estimated_tokens": 7100
+        },
+        "request_configuration": {
+          "response_format": "json_object",
+          "thinking": true,
+          "reasoning_effort": "high",
+          "max_tokens": 8000,
+          "timeout_s": 180.0,
+          "max_attempts": 3,
+          "retry_backoff_s": 0.5,
+          "temperature": null
+        }
+      }
+    },
+    "factorial_design": {
+      "backend_axis": [
+        "gpt-5.6-sol"
+      ],
+      "scaffold_axis": [
+        "direct_reactive",
+        "stateful_scientific"
+      ],
+      "scientific_adaptation_scaffold_axis": [
+        "direct",
+        "stateful_scientific"
+      ],
+      "primary_contrast": "development_descriptive_stateful_minus_direct",
+      "confirmatory_secondary_contrast": null,
+      "exploratory_contrast": null,
+      "primary_endpoint": "post_change_adaptation_regret_auc",
+      "formal_result": false,
+      "development_namespaces_only": true
+    }
+  }
+}

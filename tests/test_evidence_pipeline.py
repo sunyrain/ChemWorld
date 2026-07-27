@@ -23,6 +23,7 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert "mechanism_public_gate_a_decision" in node_ids
     assert "mechanism_diagnostic_relation_graph" in node_ids
     assert "mechanism_confirmatory_task_semantics_audit" in node_ids
+    assert "task_design_matrix" in node_ids
     assert not any(node_id.startswith("ncs_") for node_id in node_ids)
     assert {node.role for node in nodes} <= pipeline["CURRENT_ARTIFACT_ROLES"]
     assert all(pipeline["_node_producer"](node) for node in nodes)
@@ -38,12 +39,12 @@ def test_current_evidence_pipeline_records_formal_gate_a_pass() -> None:
     current = json.loads(pipeline["CURRENT_REGISTRY"].read_text(encoding="utf-8"))
 
     mechanism = current["mechanism_adaptation"]
-    assert mechanism["status"] == "gate_a_passed_remaining_gates_pending"
+    assert mechanism["status"] == "historical_gate_a_pass_current_binding_stale"
     assert mechanism["gate_a_pass"] is True
     assert mechanism["gate_a_certificate_status"] == {
         "a1_physical_intervention_validity": "passed",
-        "a2_controlled_matched_identifiability": "passed",
-        "a3_online_attainability": "passed",
+        "a2_controlled_matched_identifiability": "historical_pass_current_binding_stale",
+        "a3_online_attainability": "historical_pass_current_binding_stale",
     }
     assert (
         mechanism["gate_a_evidence_current"]
@@ -63,12 +64,25 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
 
     assert current["runtime"]["contract_validation"] == "passed"
     assert current["formal_evaluation"]["benchmark_claim_allowed"] is False
-    assert current["publication"]["status"] == "no_active_manuscript"
+    assert current["publication"]["status"] == "working_manuscript_not_submission_ready"
     assert current["publication"]["publication_ready"] is False
+    assert current["task_design"] == {
+        "matrix": "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
+        "status": "all_registered_task_designs_executable",
+        "registered_task_count": 15,
+        "executable_midpoint_task_count": 15,
+        "dead_recipe_coordinate_count": 0,
+        "formalization_blocker_count": 0,
+        "formal_experiment_task_ids": [
+            "electrochemical-conversion",
+            "reaction-to-crystallization",
+        ],
+        "nonconfirmatory_formal_experiments_required": False,
+    }
 
     summary = pipeline["current_status_summary"](current)
     assert summary["backend_candidate"]["contract_validation"] == "passed"
-    assert summary["release_attestation"]["status"] == "passed"
+    assert summary["release_attestation"]["status"] == "pending_clean_tree"
     assert (
         summary["mechanism_gate_a"]["status"]
         == current["mechanism_adaptation"]["status"]
@@ -80,7 +94,7 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert summary["mechanism_gate_a"]["passed"] is True
     assert (
         summary["formal_benchmark"]["status"]
-        == "environment_gate_a_certified_methods_unfrozen"
+        == "static_s0_formal_complete_mechanism_recertification_pending"
     )
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False

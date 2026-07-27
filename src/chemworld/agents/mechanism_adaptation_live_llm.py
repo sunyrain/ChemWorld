@@ -16,7 +16,7 @@ from chemworld.eval.mechanism_adaptation import (
     normalized_distribution,
 )
 
-MECHANISM_ADAPTATION_PROMPT_VERSION = "chemworld-mechanism-adaptation-prompt-0.4"
+MECHANISM_ADAPTATION_PROMPT_VERSION = "chemworld-mechanism-adaptation-prompt-0.5"
 
 CandidateLabelMode = Literal["semantic", "anonymous"]
 
@@ -134,23 +134,28 @@ class MechanismAdaptationLiveLLMAgent(MechanismDiagnosticLiveLLMAgent):
         context: AgentDecisionContext,
         public_view: dict[str, Any],
     ) -> str:
-        payload = json.loads(super()._build_prompt(context, public_view))
+        return self._serialize_extended_prompt(
+            self._build_mechanism_adaptation_payload(context, public_view)
+        )
+
+    def _build_mechanism_adaptation_payload(
+        self,
+        context: AgentDecisionContext,
+        public_view: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Compose the final public mechanism payload before one cap check."""
+
+        payload = self._build_diagnostic_payload(context, public_view)
         payload["instruction"] = (
-            "Choose exactly one next operation using only released public evidence. "
-            "Maintain one distribution over the supplied mutually exclusive candidate "
-            "definitions; no stage number is evidence of change. Report a unitless "
-            "declared information-value forecast for the selected action. It is an Agent "
-            "forecast, not Bayesian expected information gain unless independently "
-            "calibrated. Complete the experiment without harness-selected scientific "
-            "actions."
+            "Choose one legal operation from released evidence. Maintain a normalized "
+            "distribution over the mutually exclusive candidates; count or stage is not "
+            "evidence. Report a unitless, uncalibrated information-value forecast. "
+            "Complete the experiment without harness-selected scientific actions."
         )
         payload["mechanism_diagnostic_contract"] = {
-            "version": MECHANISM_ADAPTATION_PROMPT_VERSION,
             "candidates": self._public_candidates(),
-            "candidate_order_randomized": self.randomize_candidate_order,
-            "distribution_semantics": "non-negative probabilities summing to one",
-            "change_probability": "not requested; evaluator derives 1-q(no_change)",
-            "ground_truth_withheld": True,
+            "probabilities": "non-negative and sum to one",
+            "ground_truth": "withheld",
         }
         shape = payload["required_json_shape"]
         shape.pop("diagnostic_report", None)
@@ -162,7 +167,7 @@ class MechanismAdaptationLiveLLMAgent(MechanismDiagnosticLiveLLMAgent):
         payload["recent_decisions"] = [
             self._sanitized_memory_item(item) for item in payload.get("recent_decisions", [])
         ]
-        return self._serialize_extended_prompt(payload)
+        return payload
 
     def _normalize_decision(
         self,

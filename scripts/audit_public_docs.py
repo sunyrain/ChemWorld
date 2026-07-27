@@ -27,7 +27,12 @@ RESULT_PAGES = (
     "docs/limitations.md",
 )
 CURRENT_TRUTH_MARKERS = {
-    "docs/tasks.md": ("reference_validated", "proxy_allowed=false"),
+    "docs/tasks.md": (
+        "reference_validated",
+        "proxy_allowed=false",
+        "16 个独立控制",
+        "未解决正式化 blocker 均为 0",
+    ),
     "docs/task_cards.md": ("reference_validated", "proxy_allowed=false"),
     "docs/worlds.md": ("15", "reference_validated", "proxy_allowed=false"),
     "docs/backends.md": ("v0.5", "candidate"),
@@ -36,7 +41,12 @@ CURRENT_TRUTH_MARKERS = {
     "docs/physchem_core_design.md": ("reference_validated", "proxy"),
 }
 REQUIRED_NARRATIVE_MARKERS = {
-    "docs/index.md": ("让实验智能拥有自己的世界引擎", "同一个任务", "不直接迁移配方"),
+    "docs/index.md": (
+        "让实验智能拥有自己的世界引擎",
+        "同一个任务",
+        "不直接迁移配方",
+        "15 个任务的完整实验适配器",
+    ),
     "docs/vision.md": (
         "实验交互的规模瓶颈",
         "ChemWorld Engine",
@@ -48,9 +58,17 @@ REQUIRED_NARRATIVE_MARKERS = {
     "docs/causal_worlds.md": ("World、Task 与 Scenario", "为什么只换 Seed 不够"),
     "docs/benchmark_overview.md": ("适应需要自己的指标", "不同 Agent Track 分开报告"),
     "docs/real_world_bridge.md": ("验证路线", "Transfer advantage", "Shadow Mode"),
-    "docs/index.en.md": ("Give experimental intelligence its own world engine", "Causal Worlds"),
-    "docs/research_findings.md": ("发现五", "benchmark candidate"),
-    "docs/research_findings.en.md": ("Finding 4", "benchmark candidate"),
+    "docs/index.en.md": (
+        "Give experimental intelligence its own world engine",
+        "Causal Worlds",
+        "all 15 complete-experiment adapters",
+    ),
+    "docs/research_findings.md": ("发现五", "benchmark candidate", "当前 15/15 通过"),
+    "docs/research_findings.en.md": (
+        "Finding 4",
+        "benchmark candidate",
+        "All 15 pass",
+    ),
 }
 NAV_GROUPS = (
     "研究主线",
@@ -70,7 +88,7 @@ ENGLISH_NAV_TARGETS = (
 )
 README_BOUNDARY_MARKERS = (
     "campaign",
-    "no formal cross-method result",
+    "does not test hidden world changes",
     "mechanism-discovery claims remain unsupported",
 )
 PASSED_GATE_A_STATUS_MARKERS = {
@@ -105,22 +123,22 @@ FAILED_GATE_A_STATUS_MARKERS = {
         "Gate A remains false",
     ),
 }
-INVALIDATED_GATE_A_STATUS_MARKERS = {
+BINDING_STALE_GATE_A_STATUS_MARKERS = {
     "README.md": (
-        "The current source binding is invalidated",
-        "pending source-bound recertification",
+        "current binding is stale",
+        "benchmark_ready=false` until recertification",
     ),
     "docs/benchmark_release.md": (
-        "当前源码绑定已失效",
-        "等待新的源码绑定认证",
+        "fingerprint 已变化",
+        "在重新认证前",
     ),
     "docs/research_findings.md": (
-        "当前源码绑定已失效",
-        "等待新的源码绑定认证",
+        "9 个 RC28 相关绑定标为 stale",
+        "Gate A 重新认证",
     ),
     "docs/research_findings.en.md": (
-        "The current source binding is invalidated",
-        "pending source-bound recertification",
+        "nine RC28 bindings are now stale",
+        "Gate A recertification",
     ),
 }
 STALE_GATE_A_STATUS_MARKERS = (
@@ -168,15 +186,16 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
     gate_a_pass = (
         current.get("mechanism_adaptation", {}).get("gate_a_pass") is True
     )
-    gate_a_invalidated = (
-        current.get("mechanism_adaptation", {}).get("status")
-        == "gate_a_invalidated_recertification_required"
+    gate_a_binding_stale = (
+        gate_a_pass
+        and current.get("mechanism_adaptation", {}).get("gate_a_evidence_current")
+        is not True
     )
     expected_status_markers = (
-        PASSED_GATE_A_STATUS_MARKERS
+        BINDING_STALE_GATE_A_STATUS_MARKERS
+        if gate_a_binding_stale
+        else PASSED_GATE_A_STATUS_MARKERS
         if gate_a_pass
-        else INVALIDATED_GATE_A_STATUS_MARKERS
-        if gate_a_invalidated
         else FAILED_GATE_A_STATUS_MARKERS
     )
     status_surface_missing_markers = _missing_markers(
@@ -189,9 +208,9 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
             root,
             STALE_GATE_A_STATUS_MARKERS,
         )
-        if gate_a_pass
+        if gate_a_pass and not gate_a_binding_stale
         else []
-        if gate_a_invalidated
+        if gate_a_binding_stale
         else _token_hits(
             [root / relative for relative in FAILED_GATE_A_STATUS_MARKERS],
             root,

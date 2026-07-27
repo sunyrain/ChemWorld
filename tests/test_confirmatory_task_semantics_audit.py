@@ -10,19 +10,17 @@ from chemworld.eval.confirmatory_task_semantics_audit import (
 from chemworld.eval.mechanism_adaptation import (
     load_mechanism_adaptation_protocol,
 )
+from chemworld.eval.mechanism_adaptation_execution import load_json_object
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def _inputs() -> tuple[dict, dict, dict]:
     protocol = load_mechanism_adaptation_protocol(
-        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0.json"
+        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc28.json"
     )
-    plan = json.loads(
-        (
-            ROOT
-            / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0.json"
-        ).read_text(encoding="utf-8")
+    plan = load_json_object(
+        ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json"
     )
     graph = json.loads(
         (ROOT / plan["diagnostic_relation_graph"]["report"]).read_text(
@@ -32,13 +30,16 @@ def _inputs() -> tuple[dict, dict, dict]:
     return protocol, plan, graph
 
 
-def test_current_confirmatory_task_semantics_audit_covers_every_gate_component() -> None:
+def test_current_semantics_audit_reports_frozen_relation_graph_drift() -> None:
     protocol, plan, graph = _inputs()
     report = audit_confirmatory_task_semantics(protocol, plan, graph)
 
-    assert report["pass"] is True
-    assert report["failure_count"] == 0
+    assert report["pass"] is False
+    assert report["failure_count"] == 1
     assert report["check_count"] == 25
+    assert report["failures"][0]["check"] == (
+        "diagnostic_relation_graph_frozen_and_bound"
+    )
     assert report["confirmatory_benchmark_task_ids"] == [
         "reaction-to-crystallization",
         "electrochemical-conversion",

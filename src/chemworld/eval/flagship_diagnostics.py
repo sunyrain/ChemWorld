@@ -63,15 +63,32 @@ class _ContinuingAgentBase:
         self._operation_offset = 0
         self._usage_baseline: dict[str, Any] = {}
         self._per_experiment_action_limit: int | None = None
+        self._lifecycle_assistance_enabled = False
         self._experiment_action_count = 0
         self._pending_guardrail_audit: dict[str, Any] | None = None
         self._pending_guardrail_trace: list[dict[str, Any]] | None = None
         self.lifecycle_guardrail_log: list[dict[str, Any]] = []
 
     def configure_lifecycle_guardrail(self, per_experiment_action_limit: int) -> None:
+        """Compatibility helper for explicitly assisted diagnostic runs."""
+
+        self.configure_experiment_action_contract(
+            per_experiment_action_limit,
+            lifecycle_assistance=True,
+        )
+
+    def configure_experiment_action_contract(
+        self,
+        per_experiment_action_limit: int,
+        *,
+        lifecycle_assistance: bool = False,
+    ) -> None:
+        """Expose the public limit without silently enabling harness closeout."""
+
         if per_experiment_action_limit < 2:
             raise ValueError("per_experiment_action_limit must be at least two")
         self._per_experiment_action_limit = int(per_experiment_action_limit)
+        self._lifecycle_assistance_enabled = bool(lifecycle_assistance)
 
     def begin_phase(
         self,
@@ -126,9 +143,14 @@ class _ContinuingAgentBase:
                 "agent_memory_reset_between_phases": False,
                 "benchmark_claim_allowed": False,
                 "diagnostic_per_experiment_action_limit": (self._per_experiment_action_limit),
+                "lifecycle_assistance_enabled": self._lifecycle_assistance_enabled,
                 "lifecycle_guardrail": (
-                    "force terminate and final_assay only in the final two per-experiment "
-                    "action slots"
+                    (
+                        "force only currently legal terminate and final_assay actions in "
+                        "the final two per-experiment action slots"
+                    )
+                    if self._lifecycle_assistance_enabled
+                    else "disabled; delegate must terminate and request final_assay"
                 ),
             }
         )
@@ -187,6 +209,8 @@ class _ContinuingAgentBase:
     ) -> dict[str, Any] | None:
         self._pending_guardrail_audit = None
         self._pending_guardrail_trace = None
+        if not self._lifecycle_assistance_enabled:
+            return None
         limit = self._per_experiment_action_limit
         if limit is None:
             return None
@@ -198,10 +222,18 @@ class _ContinuingAgentBase:
             and previous_action.get("operation") == "terminate"
             and bool(getattr(self, "_previous_action_committed", False))
         )
-        if closeout_ready and self._experiment_action_count >= limit - 2:
+        available = set(context.available_operations)
+        if (
+            closeout_ready
+            and "measure" in available
+            and self._experiment_action_count >= limit - 2
+        ):
             action = {"operation": "measure", "instrument": "final_assay"}
             reason = "final_assay_reserved_slot"
-        elif self._experiment_action_count >= limit - 2:
+        elif (
+            "terminate" in available
+            and self._experiment_action_count >= limit - 2
+        ):
             action = {"operation": "terminate"}
             reason = "terminate_reserved_slot"
         if action is None:
@@ -598,6 +630,8 @@ def run_two_phase_campaign(
     campaign_id: str,
     observation_pair_id: str | None = None,
     closeout_headroom_per_experiment: int = 6,
+    enable_lifecycle_assistance: bool = False,
+    minimum_reference_experiments: int | None = None,
     progress_callback: (
         Callable[[str, HistoryRecord, list[dict[str, Any]]], None] | None
     ) = None,
@@ -606,6 +640,8 @@ def run_two_phase_campaign(
 
     if closeout_headroom_per_experiment < 0:
         raise ValueError("closeout_headroom_per_experiment must be non-negative")
+    if minimum_reference_experiments is not None and minimum_reference_experiments <= 0:
+        raise ValueError("minimum_reference_experiments must be positive")
     task = get_task(task_id)
     per_experiment = task_recipe_event_count(task.to_dict())
     root = Path(output_root)
@@ -615,7 +651,12 @@ def run_two_phase_campaign(
     per_experiment_limit = per_experiment + closeout_headroom_per_experiment
     iid_limit = per_experiment_limit * pre_change_experiments
     shifted_limit = per_experiment_limit * post_change_experiments
-    adapter.configure_lifecycle_guardrail(per_experiment_limit)
+    prompt_cap = getattr(adapter.delegate, "prompt_token_estimate_cap", None)
+    response_cap = getattr(adapter.delegate, "response_max_tokens", None)
+    adapter.configure_experiment_action_contract(
+        per_experiment_limit,
+        lifecycle_assistance=enable_lifecycle_assistance,
+    )
     noise_pair = campaign_id if observation_pair_id is None else observation_pair_id
 
     phase_observation_seeds = {
@@ -682,6 +723,18 @@ def run_two_phase_campaign(
             else lambda record, trace: progress_callback("shifted", record, trace)
         ),
     )
+    reference_acquisition = assess_reference_acquisition_execution(
+        iid_history,
+        requested_pre_change_experiments=pre_change_experiments,
+        minimum_reference_experiments=(
+            pre_change_experiments
+            if minimum_reference_experiments is None
+            else minimum_reference_experiments
+        ),
+        lifecycle_assistance_event_count=sum(
+            item.get("phase") == "iid" for item in adapter.lifecycle_guardrail_log
+        ),
+    )
     return {
         "campaign_id": campaign_id,
         "task_id": task_id,
@@ -696,10 +749,125 @@ def run_two_phase_campaign(
         "recipe_event_count": per_experiment,
         "closeout_headroom_per_experiment": closeout_headroom_per_experiment,
         "phase_operation_limit_per_experiment": per_experiment_limit,
+        "lifecycle_assistance_enabled": enable_lifecycle_assistance,
+        "campaign_token_ceiling": {
+            "estimate_kind": "tokenizer_independent_utf8_bytes_divided_by_four",
+            "per_decision_prompt_estimated_tokens": prompt_cap,
+            "per_decision_output_tokens": response_cap,
+            "iid_prompt_estimated_token_ceiling": (
+                iid_limit * int(prompt_cap)
+                if isinstance(prompt_cap, int)
+                else None
+            ),
+            "shifted_prompt_estimated_token_ceiling": (
+                shifted_limit * int(prompt_cap)
+                if isinstance(prompt_cap, int)
+                else None
+            ),
+            "total_prompt_estimated_token_ceiling": (
+                (iid_limit + shifted_limit) * int(prompt_cap)
+                if isinstance(prompt_cap, int)
+                else None
+            ),
+            "interpretation": (
+                "Planning ceiling only; provider-reported input/output tokens remain "
+                "the accounting source of truth."
+            ),
+        },
+        "reference_acquisition": reference_acquisition,
         "full_method_resources": adapter.full_method_resource_usage(),
         "provider_receipts": adapter.provider_receipts(),
         "feedback_intervention_log": list(getattr(adapter, "feedback_intervention_log", ())),
         "lifecycle_guardrail_log": list(adapter.lifecycle_guardrail_log),
+    }
+
+
+def assess_reference_acquisition_execution(
+    history: Sequence[HistoryRecord],
+    *,
+    requested_pre_change_experiments: int,
+    minimum_reference_experiments: int,
+    lifecycle_assistance_event_count: int = 0,
+) -> dict[str, Any]:
+    """Classify reference-phase execution without pretending to certify science.
+
+    This evaluator is intentionally outside the Agent-visible state. Completing the
+    old-world phase is necessary but not sufficient for the frozen relation-coverage
+    and predictive-reference certificate.
+    """
+
+    if requested_pre_change_experiments <= 0:
+        raise ValueError("requested_pre_change_experiments must be positive")
+    if minimum_reference_experiments <= 0:
+        raise ValueError("minimum_reference_experiments must be positive")
+    terminal = [record for record in history if record.event_type == "experiment_end"]
+    committed_measurements = [
+        record
+        for record in history
+        if record.action.get("operation") == "measure"
+        and record.info.get("transaction_status") == "committed"
+    ]
+    committed_final_assays = [
+        record
+        for record in committed_measurements
+        if record.action.get("instrument") == "final_assay"
+    ]
+    failed_operations = [
+        record
+        for record in history
+        if record.info.get("transaction_status") != "committed"
+    ]
+    reasons: list[str] = []
+    execution_failed = len(terminal) < requested_pre_change_experiments
+    if execution_failed:
+        reasons.append("incomplete_prechange_experiment")
+    if len(committed_final_assays) < len(terminal):
+        reasons.append("invalid_or_missing_final_assay")
+    if failed_operations:
+        reasons.append("provider_or_action_failure_during_reference")
+    if lifecycle_assistance_event_count:
+        reasons.append("harness_lifecycle_assistance_used")
+    horizon_sufficient = (
+        requested_pre_change_experiments >= minimum_reference_experiments
+    )
+    if not horizon_sufficient:
+        reasons.append("development_horizon_below_frozen_reference_minimum")
+    if not execution_failed and horizon_sufficient:
+        reasons.extend(
+            (
+                "relation_coverage_not_yet_evaluated",
+                "predictive_reference_not_yet_evaluated",
+            )
+        )
+
+    if execution_failed:
+        status = "reference_execution_failed"
+        reference_acquisition_failed: bool | None = True
+    elif not horizon_sufficient:
+        status = "development_horizon_insufficient_for_reference_evaluation"
+        reference_acquisition_failed = None
+    else:
+        status = "pending_relation_and_predictive_reference_evaluation"
+        reference_acquisition_failed = None
+    return {
+        "schema_version": "chemworld-reference-acquisition-execution-0.1",
+        "evaluator_visibility": "evaluator_only_not_agent_visible",
+        "status": status,
+        "reference_acquisition_failed": reference_acquisition_failed,
+        "conditional_attribution_eligible": False,
+        "requested_pre_change_experiments": requested_pre_change_experiments,
+        "minimum_reference_experiments": minimum_reference_experiments,
+        "development_horizon_sufficient": horizon_sufficient,
+        "complete_prechange_experiment_count": len(terminal),
+        "committed_measurement_count": len(committed_measurements),
+        "committed_final_assay_count": len(committed_final_assays),
+        "failed_operation_count": len(failed_operations),
+        "lifecycle_assistance_event_count": lifecycle_assistance_event_count,
+        "reason_codes": reasons,
+        "interpretation": (
+            "Execution completion is only a prerequisite. Relation coverage and "
+            "cross-fitted predictive sufficiency remain separate frozen evaluators."
+        ),
     }
 
 
@@ -846,6 +1014,7 @@ __all__ = [
     "FeedbackCondition",
     "FeedbackOutcomePacket",
     "FeedbackViewPacket",
+    "assess_reference_acquisition_execution",
     "run_two_phase_campaign",
     "stable_phase_observation_seed",
     "summarize_phase",

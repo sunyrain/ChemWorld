@@ -10,7 +10,10 @@ from chemworld.physchem import (
     generate_electrochemical_scenario,
     validate_model_card,
 )
-from chemworld.physchem.electrochemical_scenarios import HIDDEN_PARAMETER_IDS
+from chemworld.physchem.electrochemical_scenarios import (
+    ELECTROCHEMICAL_SCENARIO_EXECUTION_ROLE,
+    HIDDEN_PARAMETER_IDS,
+)
 
 
 def test_curated_electrochemical_cards_expose_public_contract_without_ranges() -> None:
@@ -22,6 +25,7 @@ def test_curated_electrochemical_cards_expose_public_contract_without_ranges() -
     }
     for card in cards:
         public = card.to_public_dict()
+        assert public["execution_role"] == ELECTROCHEMICAL_SCENARIO_EXECUTION_ROLE
         assert set(public["hidden_parameter_policy"]) == set(HIDDEN_PARAMETER_IDS)
         assert "hidden_parameter_ranges" not in public
         assert all(

@@ -1,0 +1,2816 @@
+{
+  "confirmatory_task_ids": [
+    "reaction-to-crystallization",
+    "electrochemical-conversion"
+  ],
+  "design_principles": {
+    "final_submission": "separate synthesis after the visible horizon",
+    "hidden_world_fields_supplied_to_agent": false,
+    "one_environment_step": "one validated operation",
+    "one_s0_decision": "one complete experiment",
+    "optimizer_feedback": "terminal final-assay leaderboard score"
+  },
+  "design_validation": {
+    "dead_recipe_coordinate_count": 0,
+    "executable_midpoint_task_count": 15,
+    "formal_experiment_task_ids": [
+      "electrochemical-conversion",
+      "reaction-to-crystallization"
+    ],
+    "formalization_blocker_count": 0,
+    "nonconfirmatory_formal_experiments_required": false,
+    "status": "all_registered_task_designs_executable"
+  },
+  "schema_version": "chemworld-task-design-matrix-1.1",
+  "source_commit": "cbb74fd7b51da2c1fa139ac472f3f62d94a07dba",
+  "source_tree_dirty": true,
+  "task_count": 15,
+  "tasks": [
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 8,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "set_potential",
+          "electrolyze",
+          "measure",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 6,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "set_potential",
+          "electrolyze",
+          "measure",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "electrolyze",
+            "instrument": "ph_meter",
+            "recipe_step_index": 4,
+            "slot_id": "diagnostic-01-ph_meter"
+          },
+          {
+            "after_operation": "measure",
+            "instrument": "uvvis",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-02-uvvis"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 8,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "current_mA": {
+            "maximum": 220.0,
+            "minimum": 0.001,
+            "semantics": "nonnegative_magnitude_cap",
+            "type": "number",
+            "unit": "mA"
+          },
+          "duration_s": {
+            "maximum": 3600.0,
+            "minimum": 300.0,
+            "type": "number",
+            "unit": "s"
+          },
+          "electrolyte_profile": {
+            "maximum": 3,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "potential_V": {
+            "maximum": 1.8,
+            "minimum": 0.6,
+            "type": "number",
+            "unit": "V"
+          },
+          "reagent_amount_mol": {
+            "maximum": 0.03,
+            "minimum": 0.003,
+            "type": "number",
+            "unit": "mol"
+          },
+          "solvent": {
+            "maximum": 3,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "parameterization": "named_physical_controls",
+        "recipe_kind": "electrochemical",
+        "recipe_space_version": "chemworld-electrochemical-static-single-stage-recipe-0.1-s0-dev",
+        "workflow": "static_single_stage_electrochemical"
+      },
+      "design_status": "formal_design_and_empirical_execution_complete",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 48,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "blind_validation_replicates_per_target": 3,
+        "declared_world_understanding": true,
+        "evidence": {
+          "aggregate": "runs/formal/static_scientific_optimization_s0_v041_single_stage_high_20_5seed_20260727/multiseed_report.json",
+          "protocol": "configs/benchmark/scientific_optimization_s0_v0.4.1_single_stage_high_20_formal.json"
+        },
+        "exploration_horizon": 20,
+        "final_synthesis": true,
+        "horizon_visible": true,
+        "predictive_world_understanding": true,
+        "status": "completed_five_static_world_seeds"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "conversion": 0.05,
+          "electrochemical_selectivity": 0.15,
+          "energy_efficiency": 0.15,
+          "faradaic_efficiency": 0.12,
+          "ohmic_efficiency": 0.08,
+          "reaction_score": 0.1,
+          "selective_product_yield": 0.25,
+          "transport_efficiency": 0.1
+        },
+        "contract_hash": "7321ac336e118ea20012e0a8bca4bf7b4f1bd0fae7ee68054ff1f609d8f929a8",
+        "multiplicative_gates": {
+          "selective_product_yield": 0.02
+        },
+        "objective": "balanced",
+        "score_family": "electrochemistry",
+        "success_metrics": [
+          "selective_product_yield",
+          "electrochemical_selectivity",
+          "score",
+          "faradaic_efficiency",
+          "transport_efficiency",
+          "ohmic_efficiency",
+          "energy_efficiency",
+          "pH_normalized",
+          "precipitation_signal",
+          "safety_risk"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "confirmatory",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "electrochemical-conversion",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 8,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "measure",
+          "add_reagent",
+          "measure",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 3,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "measure",
+          "add_reagent",
+          "measure",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "add_reagent",
+            "instrument": "ph_meter",
+            "recipe_step_index": 2,
+            "slot_id": "diagnostic-01-ph_meter"
+          },
+          {
+            "after_operation": "add_reagent",
+            "instrument": "ph_meter",
+            "recipe_step_index": 4,
+            "slot_id": "diagnostic-02-ph_meter"
+          },
+          {
+            "after_operation": "measure",
+            "instrument": "uvvis",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-03-uvvis"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 8,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "aqueous_volume_L",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              0.018,
+              0.04
+            ],
+            "unit": "L"
+          },
+          "1": {
+            "control_id": "first_reagent_amount_mol",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              0.001,
+              0.018
+            ],
+            "unit": "mol"
+          },
+          "2": {
+            "control_id": "second_reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.001,
+              0.018
+            ],
+            "unit": "mol"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "equilibrium",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_equilibrium_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 24,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "acid_dissociation_fraction": 0.2,
+          "equilibrium_confidence": 0.45,
+          "equilibrium_residual": -0.25,
+          "pH_normalized": 0.1,
+          "precipitation_signal": 0.15
+        },
+        "contract_hash": "3cd7ec60d7a730f41ad01cb3b56c4fe3c06c960cb4bbad9f97eacf6dc91ee60e",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "equilibrium_characterization",
+        "success_metrics": [
+          "pH_normalized",
+          "acid_dissociation_fraction",
+          "precipitation_signal",
+          "equilibrium_residual",
+          "equilibrium_confidence"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "equilibrium-characterization",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 8,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "set_flow_rate",
+          "run_flow",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 8,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "set_flow_rate",
+          "run_flow",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "run_flow",
+            "instrument": "uvvis",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-uvvis"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 8,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 0,
+            "kind": "categorical"
+          },
+          "1": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "2": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 2,
+            "kind": "categorical"
+          },
+          "3": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "4": {
+            "control_id": "flow_rate_mL_min",
+            "coordinate": 4,
+            "kind": "linear",
+            "physical_bounds": [
+              0.2,
+              4.0
+            ],
+            "unit": "mL/min"
+          },
+          "5": {
+            "control_id": "residence_time_s",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              180.0,
+              2400.0
+            ],
+            "unit": "s"
+          },
+          "6": {
+            "control_id": "flow_temperature_K",
+            "coordinate": 6,
+            "kind": "linear",
+            "physical_bounds": [
+              330.0,
+              430.0
+            ],
+            "unit": "K"
+          },
+          "7": {
+            "control_id": "requested_run_duration_s",
+            "coordinate": 7,
+            "coupled_minimum": "residence_time_s * 1.75",
+            "kind": "linear",
+            "physical_bounds": [
+              600.0,
+              3600.0
+            ],
+            "unit": "s"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "flow",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_flow_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 60,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "flow_conversion": 0.35,
+          "reaction_score": 0.5,
+          "yield": 0.15
+        },
+        "contract_hash": "c288c3ef920edbcbd40afd453ee476dad1fd834ffa0e81914a92aa1dbd1c855c",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "continuous_flow",
+        "success_metrics": [
+          "score",
+          "flow_conversion",
+          "yield",
+          "safety_risk"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [
+          "requested_run_duration_s"
+        ],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "flow-reaction-optimization",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 8,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 7,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 8,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "reaction_temperature_K",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              333.15,
+              423.15
+            ],
+            "unit": "K"
+          },
+          "1": {
+            "control_id": "reaction_duration_s",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              7200.0
+            ],
+            "unit": "s"
+          },
+          "2": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "3": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1050.0
+            ],
+            "unit": "rpm"
+          },
+          "4": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 4,
+            "kind": "categorical"
+          },
+          "5": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "6": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 6,
+            "kind": "categorical"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "reaction",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_reaction_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 18,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "reaction_score": 1.0
+        },
+        "contract_hash": "beb4c06168b38398e1e0e8f5b21815dcd3159dfd5d616fc3854629e13fbe7617",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "reaction",
+        "success_metrics": [
+          "sample_efficiency",
+          "uncertainty",
+          "local_model_quality"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "low-budget-characterization",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 10,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_phase",
+          "add_extractant",
+          "mix",
+          "settle",
+          "measure",
+          "separate_phase",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 8,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_phase",
+          "add_extractant",
+          "mix",
+          "settle",
+          "measure",
+          "separate_phase",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "settle",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-hplc"
+          },
+          {
+            "after_operation": "separate_phase",
+            "instrument": "hplc",
+            "recipe_step_index": 7,
+            "slot_id": "diagnostic-02-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 10,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 0,
+            "kind": "categorical"
+          },
+          "1": {
+            "control_id": "solvent_volume_L",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              0.012,
+              0.028
+            ],
+            "unit": "L"
+          },
+          "2": {
+            "control_id": "aqueous_volume_L",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.006,
+              0.024
+            ],
+            "unit": "L"
+          },
+          "3": {
+            "category_count": 4,
+            "control_id": "extractant",
+            "coordinate": 3,
+            "kind": "categorical"
+          },
+          "4": {
+            "control_id": "extractant_volume_L",
+            "coordinate": 4,
+            "kind": "linear",
+            "physical_bounds": [
+              0.008,
+              0.03
+            ],
+            "unit": "L"
+          },
+          "5": {
+            "control_id": "mix_duration_s",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              60.0,
+              600.0
+            ],
+            "unit": "s"
+          },
+          "6": {
+            "control_id": "settle_duration_s",
+            "coordinate": 6,
+            "kind": "linear",
+            "physical_bounds": [
+              120.0,
+              1200.0
+            ],
+            "unit": "s"
+          },
+          "7": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 7,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1100.0
+            ],
+            "unit": "rpm"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "partition",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_partition_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 48,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "phase_ratio": 0.25,
+          "product_in_aqueous": -0.1,
+          "product_in_organic": 0.4,
+          "reaction_score": 0.25
+        },
+        "contract_hash": "afa3c875e9f4e54b23bfa4d311449fb50ba798d01eaaae37e4dfba520c47a5c9",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "partition",
+        "success_metrics": [
+          "phase_ratio",
+          "product_in_organic",
+          "product_in_aqueous"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "partition-discovery",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 8,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 7,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 8,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "reaction_temperature_K",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              333.15,
+              423.15
+            ],
+            "unit": "K"
+          },
+          "1": {
+            "control_id": "reaction_duration_s",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              7200.0
+            ],
+            "unit": "s"
+          },
+          "2": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "3": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1050.0
+            ],
+            "unit": "rpm"
+          },
+          "4": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 4,
+            "kind": "categorical"
+          },
+          "5": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "6": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 6,
+            "kind": "categorical"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "reaction",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_reaction_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 72,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "reaction_score": 1.0
+        },
+        "contract_hash": "cab2a152458f9d7f6f82ff8d7523aec15586319171256f0dbde463e8185935e9",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "reaction",
+        "success_metrics": [
+          "score",
+          "public_private_gap",
+          "rank_confidence"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "public-private-generalization",
+      "world_split": "private-eval"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 22,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "add_phase",
+          "add_extractant",
+          "mix",
+          "settle",
+          "separate_phase",
+          "measure",
+          "wash",
+          "dry",
+          "concentrate",
+          "transfer",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 16,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "add_phase",
+          "add_extractant",
+          "mix",
+          "settle",
+          "separate_phase",
+          "measure",
+          "add_phase",
+          "mix",
+          "settle",
+          "separate_phase",
+          "dry",
+          "concentrate",
+          "transfer",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [
+          "wash",
+          "dry",
+          "concentrate"
+        ],
+        "measurement_slots": [
+          {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-hplc"
+          },
+          {
+            "after_operation": "separate_phase",
+            "instrument": "hplc",
+            "recipe_step_index": 11,
+            "slot_id": "diagnostic-02-hplc"
+          },
+          {
+            "after_operation": "transfer",
+            "instrument": "hplc",
+            "recipe_step_index": 16,
+            "slot_id": "diagnostic-03-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 22,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "reaction_temperature_K",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              333.15,
+              423.15
+            ],
+            "unit": "K"
+          },
+          "1": {
+            "control_id": "reaction_duration_s",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              7200.0
+            ],
+            "unit": "s"
+          },
+          "10": {
+            "control_id": "mix_duration_s",
+            "coordinate": 10,
+            "kind": "linear",
+            "physical_bounds": [
+              60.0,
+              600.0
+            ],
+            "unit": "s"
+          },
+          "11": {
+            "control_id": "mix_stirring_speed_rpm",
+            "coordinate": 11,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1100.0
+            ],
+            "unit": "rpm"
+          },
+          "12": {
+            "control_id": "settle_duration_s",
+            "coordinate": 12,
+            "kind": "linear",
+            "physical_bounds": [
+              120.0,
+              1200.0
+            ],
+            "unit": "s"
+          },
+          "13": {
+            "control_id": "wash_volume_L",
+            "coordinate": 13,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.015
+            ],
+            "unit": "L"
+          },
+          "14": {
+            "control_id": "concentrate_duration_s",
+            "coordinate": 14,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1500.0
+            ],
+            "unit": "s"
+          },
+          "15": {
+            "control_id": "transfer_fraction",
+            "coordinate": 15,
+            "kind": "linear",
+            "physical_bounds": [
+              0.55,
+              0.99
+            ],
+            "unit": "fraction"
+          },
+          "2": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "3": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1050.0
+            ],
+            "unit": "rpm"
+          },
+          "4": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 4,
+            "kind": "categorical"
+          },
+          "5": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "6": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 6,
+            "kind": "categorical"
+          },
+          "7": {
+            "control_id": "aqueous_volume_L",
+            "coordinate": 7,
+            "kind": "linear",
+            "physical_bounds": [
+              0.006,
+              0.024
+            ],
+            "unit": "L"
+          },
+          "8": {
+            "category_count": 4,
+            "control_id": "extractant",
+            "coordinate": 8,
+            "kind": "categorical"
+          },
+          "9": {
+            "control_id": "extractant_volume_L",
+            "coordinate": 9,
+            "kind": "linear",
+            "physical_bounds": [
+              0.008,
+              0.03
+            ],
+            "unit": "L"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "reaction_purification",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_reaction_purification_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 90,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "process_mass_balance_error": -0.1,
+          "purity": 0.35,
+          "reaction_score": 0.35,
+          "recovery": 0.25
+        },
+        "contract_hash": "3e20f6451bf43ff5c50b5859d98d3bdf2de4226e087a20a6b102a6e686ac4d4a",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "purification",
+        "success_metrics": [
+          "yield",
+          "purity",
+          "recovery",
+          "cost"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "purity-yield-tradeoff",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 8,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 7,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 8,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "reaction_temperature_K",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              333.15,
+              423.15
+            ],
+            "unit": "K"
+          },
+          "1": {
+            "control_id": "reaction_duration_s",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              7200.0
+            ],
+            "unit": "s"
+          },
+          "2": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "3": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1050.0
+            ],
+            "unit": "rpm"
+          },
+          "4": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 4,
+            "kind": "categorical"
+          },
+          "5": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "6": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 6,
+            "kind": "categorical"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "reaction",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_reaction_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 36,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "reaction_score": 1.0
+        },
+        "contract_hash": "31c3ca738da00b48b2f11d6cc2118b11a1c6835aa2522d950ad6265beea0ac61",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "reaction",
+        "success_metrics": [
+          "score",
+          "mechanism_explanation",
+          "failure_analysis"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "reaction-mechanism-explanation",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 8,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 7,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 8,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "reaction_temperature_K",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              333.15,
+              423.15
+            ],
+            "unit": "K"
+          },
+          "1": {
+            "control_id": "reaction_duration_s",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              7200.0
+            ],
+            "unit": "s"
+          },
+          "2": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "3": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1050.0
+            ],
+            "unit": "rpm"
+          },
+          "4": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 4,
+            "kind": "categorical"
+          },
+          "5": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "6": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 6,
+            "kind": "categorical"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "reaction",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_reaction_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 72,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "reaction_score": 1.0
+        },
+        "contract_hash": "3c81642cbcf8508ff7edbaed4256797de98d419636952ee55a70b8f56d2cd117",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "reaction",
+        "success_metrics": [
+          "score",
+          "yield",
+          "selectivity",
+          "sample_efficiency"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "reaction-optimization-standard",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 8,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 7,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 8,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "reaction_temperature_K",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              333.15,
+              423.15
+            ],
+            "unit": "K"
+          },
+          "1": {
+            "control_id": "reaction_duration_s",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              7200.0
+            ],
+            "unit": "s"
+          },
+          "2": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "3": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1050.0
+            ],
+            "unit": "rpm"
+          },
+          "4": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 4,
+            "kind": "categorical"
+          },
+          "5": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "6": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 6,
+            "kind": "categorical"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "reaction",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_reaction_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 72,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "reaction_score": 1.0
+        },
+        "contract_hash": "8501c0695e1187deb9d1936f74bcf04f6054c3a315e25283c89b25bb0e48de69",
+        "multiplicative_gates": {},
+        "objective": "safe",
+        "score_family": "reaction",
+        "success_metrics": [
+          "score",
+          "safety_risk",
+          "constraint_violations"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.35
+      },
+      "task_id": "reaction-safety-constrained",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 8,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 7,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 8,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "reaction_temperature_K",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              333.15,
+              423.15
+            ],
+            "unit": "K"
+          },
+          "1": {
+            "control_id": "reaction_duration_s",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              7200.0
+            ],
+            "unit": "s"
+          },
+          "2": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "3": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1050.0
+            ],
+            "unit": "rpm"
+          },
+          "4": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 4,
+            "kind": "categorical"
+          },
+          "5": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "6": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 6,
+            "kind": "categorical"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "reaction",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_reaction_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 18,
+      "episode_mode": "single_experiment",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "reaction_score": 1.0
+        },
+        "contract_hash": "526b6901541d4759d8206655a4ee89b406646992dcc7c493882c0ca3a6f010b5",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "reaction",
+        "success_metrics": [
+          "final_assay_score",
+          "trajectory_validity"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "reaction-to-assay",
+      "world_split": "public-dev"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 12,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "seed_crystals",
+          "cool_crystallize",
+          "measure",
+          "filter_crystals",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 10,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "seed_crystals",
+          "cool_crystallize",
+          "measure",
+          "filter_crystals",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "scientific_role": "reaction_outcome_before_crystallization",
+            "slot_id": "diagnostic-01-hplc"
+          },
+          {
+            "after_operation": "cool_crystallize",
+            "instrument": "hplc",
+            "recipe_step_index": 8,
+            "scientific_role": "slurry_outcome_before_filtration",
+            "slot_id": "diagnostic-02-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 12,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "catalyst": {
+            "maximum": 3,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "catalyst_amount_mol": {
+            "maximum": 0.00055,
+            "minimum": 8e-05,
+            "type": "number",
+            "unit": "mol"
+          },
+          "crystallization_duration_s": {
+            "maximum": 14400.0,
+            "minimum": 600.0,
+            "type": "number",
+            "unit": "s"
+          },
+          "crystallization_temperature_K": {
+            "coupled_maximum": "min(315.0, reaction_temperature_K - 55.0)",
+            "maximum": 315.0,
+            "minimum": 270.0,
+            "semantics": "post_quench_seeded_cooling_target",
+            "type": "number",
+            "unit": "K"
+          },
+          "reaction_duration_s": {
+            "maximum": 7200.0,
+            "minimum": 900.0,
+            "type": "number",
+            "unit": "s"
+          },
+          "reaction_temperature_K": {
+            "maximum": 423.15,
+            "minimum": 333.15,
+            "type": "number",
+            "unit": "K"
+          },
+          "reagent_amount_mol": {
+            "maximum": 0.03,
+            "minimum": 0.003,
+            "type": "number",
+            "unit": "mol"
+          },
+          "seed_mass_g": {
+            "maximum": 0.015,
+            "minimum": 0.001,
+            "type": "number",
+            "unit": "g"
+          },
+          "solvent": {
+            "maximum": 3,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stirring_speed_rpm": {
+            "maximum": 1050.0,
+            "minimum": 300.0,
+            "type": "number",
+            "unit": "rpm"
+          }
+        },
+        "parameterization": "named_physical_controls",
+        "recipe_kind": "reaction_crystallization",
+        "recipe_space_version": "chemworld-reaction-crystallization-static-single-stage-recipe-0.1-s0-dev",
+        "workflow": "static_single_stage_complete_reaction_crystallization"
+      },
+      "design_status": "formal_design_and_empirical_execution_complete",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 72,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "blind_validation_replicates_per_target": 3,
+        "declared_world_understanding": true,
+        "evidence": {
+          "aggregate": "runs/formal/static_scientific_optimization_s0_v05_crystallization_high_20_5seed_20260727/multiseed_report.json",
+          "classic_baselines": "runs/development/static_scientific_optimization_s0_v05_crystallization_classic_baselines_20_5worlds_20260727/multiseed_report.json",
+          "protocol": "configs/benchmark/scientific_optimization_s0_v0.5_crystallization_high_20_formal.json"
+        },
+        "exploration_horizon": 20,
+        "final_synthesis": true,
+        "horizon_visible": true,
+        "predictive_world_understanding": true,
+        "status": "completed_five_static_world_seeds"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "crystal_csd_quality": 0.2,
+          "crystal_fines_fraction": -0.1,
+          "crystal_purity": 0.2,
+          "crystal_size": 0.1,
+          "crystal_yield": 0.25,
+          "reaction_score": 0.25
+        },
+        "contract_hash": "1ee4b83ab49f3b236bc8c993513d3389d238d850bf5aa11f703c553c325fffa6",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "crystallization",
+        "success_metrics": [
+          "crystal_yield",
+          "score",
+          "crystal_purity",
+          "crystal_size",
+          "crystal_csd_quality",
+          "crystal_fines_fraction"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "confirmatory",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "reaction-to-crystallization",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 11,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "evaporate",
+          "distill",
+          "collect_fraction",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 13,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "evaporate",
+          "distill",
+          "collect_fraction",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [],
+        "measurement_slots": [
+          {
+            "after_operation": "collect_fraction",
+            "instrument": "gc",
+            "recipe_step_index": 8,
+            "slot_id": "diagnostic-01-gc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 11,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "reaction_temperature_K",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              333.15,
+              423.15
+            ],
+            "unit": "K"
+          },
+          "1": {
+            "control_id": "reaction_duration_s",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              7200.0
+            ],
+            "unit": "s"
+          },
+          "10": {
+            "control_id": "distillation_duration_s",
+            "coordinate": 10,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              3600.0
+            ],
+            "unit": "s"
+          },
+          "11": {
+            "control_id": "reflux_ratio",
+            "coordinate": 11,
+            "kind": "linear",
+            "physical_bounds": [
+              0.5,
+              5.0
+            ],
+            "unit": "dimensionless"
+          },
+          "12": {
+            "control_id": "transfer_fraction",
+            "coordinate": 12,
+            "kind": "linear",
+            "physical_bounds": [
+              0.55,
+              0.99
+            ],
+            "unit": "fraction"
+          },
+          "2": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "3": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1050.0
+            ],
+            "unit": "rpm"
+          },
+          "4": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 4,
+            "kind": "categorical"
+          },
+          "5": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "6": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 6,
+            "kind": "categorical"
+          },
+          "7": {
+            "control_id": "evaporation_temperature_K",
+            "coordinate": 7,
+            "kind": "linear",
+            "physical_bounds": [
+              315.0,
+              350.0
+            ],
+            "unit": "K"
+          },
+          "8": {
+            "control_id": "evaporation_duration_s",
+            "coordinate": 8,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1500.0
+            ],
+            "unit": "s"
+          },
+          "9": {
+            "control_id": "distillation_temperature_K",
+            "coordinate": 9,
+            "kind": "linear",
+            "physical_bounds": [
+              345.0,
+              395.0
+            ],
+            "unit": "K"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "reaction_distillation",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_reaction_distillation_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 72,
+      "episode_mode": "campaign",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "distillate_purity": 0.34,
+          "distillate_recovery": 0.22,
+          "reaction_score": 0.4,
+          "solvent_loss": -0.1
+        },
+        "contract_hash": "8f87baf4d905c699443dc4e797d274e1cb8bd6147c7a100edc138a1b95e73b01",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "distillation",
+        "success_metrics": [
+          "score",
+          "distillate_purity",
+          "distillate_recovery",
+          "solvent_loss"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "reaction-to-distillation",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 22,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "add_phase",
+          "add_extractant",
+          "mix",
+          "settle",
+          "separate_phase",
+          "measure",
+          "wash",
+          "dry",
+          "concentrate",
+          "transfer",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 16,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "add_phase",
+          "add_extractant",
+          "mix",
+          "settle",
+          "separate_phase",
+          "measure",
+          "add_phase",
+          "mix",
+          "settle",
+          "separate_phase",
+          "dry",
+          "concentrate",
+          "transfer",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [
+          "wash",
+          "dry",
+          "concentrate"
+        ],
+        "measurement_slots": [
+          {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-hplc"
+          },
+          {
+            "after_operation": "separate_phase",
+            "instrument": "hplc",
+            "recipe_step_index": 11,
+            "slot_id": "diagnostic-02-hplc"
+          },
+          {
+            "after_operation": "transfer",
+            "instrument": "hplc",
+            "recipe_step_index": 16,
+            "slot_id": "diagnostic-03-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 22,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "reaction_temperature_K",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              333.15,
+              423.15
+            ],
+            "unit": "K"
+          },
+          "1": {
+            "control_id": "reaction_duration_s",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              7200.0
+            ],
+            "unit": "s"
+          },
+          "10": {
+            "control_id": "mix_duration_s",
+            "coordinate": 10,
+            "kind": "linear",
+            "physical_bounds": [
+              60.0,
+              600.0
+            ],
+            "unit": "s"
+          },
+          "11": {
+            "control_id": "mix_stirring_speed_rpm",
+            "coordinate": 11,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1100.0
+            ],
+            "unit": "rpm"
+          },
+          "12": {
+            "control_id": "settle_duration_s",
+            "coordinate": 12,
+            "kind": "linear",
+            "physical_bounds": [
+              120.0,
+              1200.0
+            ],
+            "unit": "s"
+          },
+          "13": {
+            "control_id": "wash_volume_L",
+            "coordinate": 13,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.015
+            ],
+            "unit": "L"
+          },
+          "14": {
+            "control_id": "concentrate_duration_s",
+            "coordinate": 14,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1500.0
+            ],
+            "unit": "s"
+          },
+          "15": {
+            "control_id": "transfer_fraction",
+            "coordinate": 15,
+            "kind": "linear",
+            "physical_bounds": [
+              0.55,
+              0.99
+            ],
+            "unit": "fraction"
+          },
+          "2": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "3": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1050.0
+            ],
+            "unit": "rpm"
+          },
+          "4": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 4,
+            "kind": "categorical"
+          },
+          "5": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "6": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 6,
+            "kind": "categorical"
+          },
+          "7": {
+            "control_id": "aqueous_volume_L",
+            "coordinate": 7,
+            "kind": "linear",
+            "physical_bounds": [
+              0.006,
+              0.024
+            ],
+            "unit": "L"
+          },
+          "8": {
+            "category_count": 4,
+            "control_id": "extractant",
+            "coordinate": 8,
+            "kind": "categorical"
+          },
+          "9": {
+            "control_id": "extractant_volume_L",
+            "coordinate": 9,
+            "kind": "linear",
+            "physical_bounds": [
+              0.008,
+              0.03
+            ],
+            "unit": "L"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "reaction_purification",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_reaction_purification_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 90,
+      "episode_mode": "single_experiment",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "process_mass_balance_error": -0.1,
+          "purity": 0.35,
+          "reaction_score": 0.35,
+          "recovery": 0.25
+        },
+        "contract_hash": "ad5443f6af06761d3e1d8f653a97eb52f075074197d6645ac548b836a166191e",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "purification",
+        "success_metrics": [
+          "score",
+          "purity",
+          "recovery",
+          "process_mass_balance_error"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "reaction-to-purification",
+      "world_split": "public-test"
+    },
+    {
+      "complete_experiment_adapter": {
+        "compiled_operation_count_at_midpoint": 22,
+        "declared_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "add_phase",
+          "add_extractant",
+          "mix",
+          "settle",
+          "separate_phase",
+          "measure",
+          "wash",
+          "dry",
+          "concentrate",
+          "transfer",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "dimension": 16,
+        "fixed_operation_sequence": [
+          "add_solvent",
+          "add_reagent",
+          "add_catalyst",
+          "heat",
+          "quench",
+          "measure",
+          "add_phase",
+          "add_extractant",
+          "mix",
+          "settle",
+          "separate_phase",
+          "measure",
+          "add_phase",
+          "mix",
+          "settle",
+          "separate_phase",
+          "dry",
+          "concentrate",
+          "transfer",
+          "measure",
+          "terminate",
+          "measure"
+        ],
+        "macro_operations": [
+          "wash",
+          "dry",
+          "concentrate"
+        ],
+        "measurement_slots": [
+          {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "recipe_step_index": 5,
+            "slot_id": "diagnostic-01-hplc"
+          },
+          {
+            "after_operation": "separate_phase",
+            "instrument": "hplc",
+            "recipe_step_index": 11,
+            "slot_id": "diagnostic-02-hplc"
+          },
+          {
+            "after_operation": "transfer",
+            "instrument": "hplc",
+            "recipe_step_index": 16,
+            "slot_id": "diagnostic-03-hplc"
+          }
+        ],
+        "midpoint_execution_audit": {
+          "all_transactions_committed": true,
+          "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+          "compiled_operations": 22,
+          "failures": [],
+          "final_assay_present": true,
+          "status": "passed",
+          "within_environment_operation_budget": true,
+          "world_seed": 0
+        },
+        "parameter_schema": {
+          "0": {
+            "control_id": "reaction_temperature_K",
+            "coordinate": 0,
+            "kind": "linear",
+            "physical_bounds": [
+              333.15,
+              423.15
+            ],
+            "unit": "K"
+          },
+          "1": {
+            "control_id": "reaction_duration_s",
+            "coordinate": 1,
+            "kind": "linear",
+            "physical_bounds": [
+              900.0,
+              7200.0
+            ],
+            "unit": "s"
+          },
+          "10": {
+            "control_id": "mix_duration_s",
+            "coordinate": 10,
+            "kind": "linear",
+            "physical_bounds": [
+              60.0,
+              600.0
+            ],
+            "unit": "s"
+          },
+          "11": {
+            "control_id": "mix_stirring_speed_rpm",
+            "coordinate": 11,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1100.0
+            ],
+            "unit": "rpm"
+          },
+          "12": {
+            "control_id": "settle_duration_s",
+            "coordinate": 12,
+            "kind": "linear",
+            "physical_bounds": [
+              120.0,
+              1200.0
+            ],
+            "unit": "s"
+          },
+          "13": {
+            "control_id": "wash_volume_L",
+            "coordinate": 13,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.015
+            ],
+            "unit": "L"
+          },
+          "14": {
+            "control_id": "concentrate_duration_s",
+            "coordinate": 14,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1500.0
+            ],
+            "unit": "s"
+          },
+          "15": {
+            "control_id": "transfer_fraction",
+            "coordinate": 15,
+            "kind": "linear",
+            "physical_bounds": [
+              0.55,
+              0.99
+            ],
+            "unit": "fraction"
+          },
+          "2": {
+            "control_id": "reagent_amount_mol",
+            "coordinate": 2,
+            "kind": "linear",
+            "physical_bounds": [
+              0.003,
+              0.03
+            ],
+            "unit": "mol"
+          },
+          "3": {
+            "control_id": "stirring_speed_rpm",
+            "coordinate": 3,
+            "kind": "linear",
+            "physical_bounds": [
+              300.0,
+              1050.0
+            ],
+            "unit": "rpm"
+          },
+          "4": {
+            "category_count": 4,
+            "control_id": "catalyst",
+            "coordinate": 4,
+            "kind": "categorical"
+          },
+          "5": {
+            "control_id": "catalyst_amount_mol",
+            "coordinate": 5,
+            "kind": "linear",
+            "physical_bounds": [
+              8e-05,
+              0.00055
+            ],
+            "unit": "mol"
+          },
+          "6": {
+            "category_count": 4,
+            "control_id": "solvent",
+            "coordinate": 6,
+            "kind": "categorical"
+          },
+          "7": {
+            "control_id": "aqueous_volume_L",
+            "coordinate": 7,
+            "kind": "linear",
+            "physical_bounds": [
+              0.006,
+              0.024
+            ],
+            "unit": "L"
+          },
+          "8": {
+            "category_count": 4,
+            "control_id": "extractant",
+            "coordinate": 8,
+            "kind": "categorical"
+          },
+          "9": {
+            "control_id": "extractant_volume_L",
+            "coordinate": 9,
+            "kind": "linear",
+            "physical_bounds": [
+              0.008,
+              0.03
+            ],
+            "unit": "L"
+          }
+        },
+        "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+        "recipe_kind": "reaction_purification",
+        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "workflow": "registered_complete_reaction_purification_recipe"
+      },
+      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "environment_decision_unit": "one_validated_operation",
+      "environment_operation_budget": 48,
+      "episode_mode": "single_experiment",
+      "formal_s0": {
+        "formal_experiment_run": false,
+        "status": "not_required_for_current_confirmatory_release"
+      },
+      "objective_and_reward": {
+        "component_weights": {
+          "reaction_score": 1.0
+        },
+        "contract_hash": "09a5743658d96610886b53e00503655567593570a5b1a91f86c33e6692dacda4",
+        "multiplicative_gates": {},
+        "objective": "balanced",
+        "score_family": "reaction",
+        "success_metrics": [
+          "trajectory_validity",
+          "validator_use",
+          "score",
+          "explanation"
+        ]
+      },
+      "overprotocol_audit": {
+        "coupled_internal_controls": [],
+        "dead_recipe_coordinates": [],
+        "formalization_blocker": null
+      },
+      "physics_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "role": "registered_extended",
+      "safety_and_cost": {
+        "cost_observed": true,
+        "leaderboard_score_source": "final_assay",
+        "online_reward_source": "fresh_measurement_score_delta",
+        "safety_limit": 0.65
+      },
+      "task_id": "tool-agent-planning",
+      "world_split": "public-dev"
+    }
+  ]
+}

@@ -5,6 +5,22 @@
 
 > **ChemWorld 已经产生了有价值的失败与控制结果，但完整 benchmark 仍未达到正式发布状态。**
 
+!!! success "当前静态 S0 正式证据"
+    两个确认性任务的五 seed `gpt-5.6-sol high` 静态优化已经完成并逐实验 replay。电化学盲最终均值
+    为 0.3902（95% world-cluster CI [0.1732, 0.6072]），反应–结晶为 0.4829
+    （[0.4326, 0.5332]）；相对最强经典校准家族逐 world 分别为 2 胜 3 负和 0 胜 5 负。十次
+    final synthesis 中 0 次产生正增益。固定世界 S0 是当前主线；世界变化实验已经延期。
+
+!!! info "15 任务设计证据"
+    15 个完整实验适配器均通过坐标干预检查和端到端中点执行，死坐标与未解决正式化 blocker 均为 0。
+    三个纯化任务现覆盖完整后处理，蒸发与蒸馏控制也已拆分。该证据只支持设计可执行性；其余 13 个
+    任务没有本轮正式模型性能结果。
+
+!!! warning "RC28 当前绑定"
+    RC28 Gate A 的 4,896 条 A2 与 2,016 条 A3 receipts 仍是冻结源码上的历史正式结果。当前 source
+    fingerprint 已变化，相关 evidence nodes 标记为 stale；在重新认证前，当前
+    `benchmark_ready=false`。
+
 这一页按“发现”组织证据，而不是按算法或代码模块罗列功能。每项结果都说明证据等级、支持什么，
 以及不能被升级成什么结论。
 
@@ -17,9 +33,9 @@
 | 等级 | 含义 | 当前例子 |
 | --- | --- | --- |
 | **Implemented** | 代码路径和接口存在 | Agent API、provider route、轨迹 schema |
-| **Control-validated** | 环境行为经过可执行控制 | 回放、守恒、机理干预与信息遮蔽 |
+| **Control-validated** | 环境行为经过可执行控制 | 回放、守恒、15 任务设计 smoke、机理干预与信息遮蔽 |
 | **Agent-demonstrated** | Agent 在开发实验中显示可解释行为 | 经典方法与单任务 RL 诊断 |
-| **Confirmatory** | 冻结方法在未见 cohort 上按预注册规则检验 | Safe-GP 四任务确认切片 |
+| **Confirmatory** | 冻结方法在未见 cohort 上按预注册规则检验 | 两个确认性任务的五 seed 静态 S0 |
 | **Externally bridged** | 独立 backend、真实数据或物理系统支持 | 当前尚无 |
 
 通过低等级证据不会自动获得更高等级。例如 Provider 可达不等于 Agent 会适应，软件测试全绿也不
@@ -105,12 +121,18 @@ RC28 保留上述 A3 科学设计、阈值和 cohort 规模；A2 保留 `k={2,4}
 完成前保持 embargo；Private confirmation 拆为环境证书复现 Private-E 与 participant-Agent 复现
 Private-A。A2 的 2/4/5 次配对诊断预算不再与 A3 的六次旧世界参照前缀混为同一个预算条件。
 
-RC28 正式运行完成 A2 4,896/4,896 和 A3 2,016/2,016 receipts，联合公开决策为
-`gate_a_pass=true`、`benchmark_ready=true`，Gate A 整体因此通过。A2 主预算 `k=5` 下 active oracle 与 fixed decoder
+RC28 正式运行完成 A2 4,896/4,896 和 A3 2,016/2,016 receipts，冻结源码上的联合公开决策为
+`gate_a_pass=true`、`benchmark_ready=true`，该冻结版本 Gate A 整体因此通过。A2 主预算 `k=5` 下 active oracle 与 fixed decoder
 top-1 均为 98.26%（95% CI 97.45–98.82），所有 task/family 交集通过。A3 在 `k=8` 的 reference
 sufficiency、changed recall、AUROC、条件归因和端到端成功率分别为 99.17%、99.35%、0.9990、
 98.03% 和 96.57%；条件 no-change FPR 为 2.80%，未条件化 horizon FPR 为 3.33%。完整分任务、
 分 family 和 `k={1,2,4,8}` 表见 [确认性基准任务](flagship_experiments.md)。
+
+运行后审计确认，fixed decoder 未复制 active-oracle prediction，但反应–结晶在 `k=5`
+时二者选择同一个五动作 batch，因而该任务共享 paired contrast；电化学 batch 不同。
+fixed decoder 不控制 Gate A，只作为辅助一致性检查。A2 的 4,896 receipts 对应 360 个
+held-out certificate clusters 加 24 个独立 fit clusters，而不是 4,896 个独立 worlds；
+A3 的 certificate 使用另外 360 个 clusters。
 
 使用 RC21 原始 fit/trial seed 和同一固定策略的非控制性 `k={1,2,4,8}` 延长曲线进一步得到：
 反应总体为 53/120、77/120、111/120、112/120，rate-law 为 0/30、10/30、23/30、23/30。
@@ -134,6 +156,11 @@ family。A1/A2/A3 环境前置证书已经通过。
 这些变化、恢复性能、迁移到未见 family，或适应现实机理；这些结论仍由尚未冻结和执行的 Gate B–E
 及正式配对 provider 矩阵控制。
 
+Gate B–E 的正式实验已形成单一实施计划，但尚未冻结方法、runner、power 和成本合同。主设计是
+Pro/Flash × direct reactive/stateful scientific 的四方法 `2×2` 因子矩阵，预注册 backend、
+scaffold 和交互效应；当前 `live_llm_a/live_llm_b` 的混合差异只能作为 development pilot。
+ReAct 与 planning-memory 不阻断第一轮正式实验。
+
 ## Finding 4：现有 RL 结果首先暴露了动作与训练合同问题
 
 **Evidence level：Pre-v0.5 agent-demonstrated engineering diagnostic**
@@ -155,15 +182,17 @@ family。A1/A2/A3 环境前置证书已经通过。
 **Evidence level：Control-validated protocol**
 
 LLM Harness 已具备逐操作决策、跨实验记忆、按需谱图、token/费用/重试账本，以及 assigned/masked
-信息条件。默认输入已切换到 `chemworld-compact-decision-context-0.2`：只传当前任务、生命周期、
-预算、标量指标、处理后的测量摘要、约束、短期记忆和合法动作参数签名，保守估算上限为 1,500
-tokens。原始谱图数组、replicate 曲线、重复 observation view、constitution checks 与
+信息条件。默认输入已切换到 `chemworld-compact-decision-context-0.3`：只传当前任务、生命周期、
+预算、标量指标、处理后的测量摘要、约束、短期记忆和合法动作参数签名。上限不再固定为 1,500，
+而由 50 个最坏合法 fixture 加 15% 余量得到：Direct/Stateful 共享 2,050-token environment view，
+总 prompt cap 分别为 3,600 和 4,150。原始谱图数组、replicate 曲线、重复 observation view、constitution checks 与
 Git/provider/ledger 元数据仍保留在审计轨迹中，但不进入默认决策 prompt。输出要求可检验的
 expected effect、diagnostic target、information-gain forecast 和条件式 belief-update rule，不请求或
 保存私有逐字思维链。
 
-当前没有真实 provider 轨迹。Fake client、stub 和 replay 只能证明协议工作，不能证明模型使用了
-谱图、形成了正确机理或优于其它方法。
+当前已有 Flash Direct/Stateful 的 development execution-qualification 轨迹；两者在同一
+`1 pre + 1 post` pair 中均为 0/4 autonomous completion。它们证明 provider、prompt envelope 和
+失败归因链可以运行，但不能证明模型使用了谱图、形成了正确机理或优于其它方法。
 
 **支持的结论**：可以冻结并审计 LLM 的信息条件、工具调用和资源。
 

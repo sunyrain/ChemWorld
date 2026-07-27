@@ -102,49 +102,35 @@ def expand_macro_action(action: dict[str, Any]) -> list[dict[str, Any]]:
 
     if operation == "wash":
         wash_volume = float(canonical.get("wash_volume_L", 0.010))
-        return _tag_macro_steps(
-            operation,
-            (
-                {
-                    "operation": "add_extractant",
-                    "extractant": int(canonical.get("extractant", canonical.get("solvent", 0))),
-                    "volume_L": wash_volume,
-                },
-                {
-                    "operation": "mix",
-                    "duration_s": float(canonical.get("mix_duration_s", 120.0)),
-                    "stirring_speed_rpm": float(canonical.get("stirring_speed_rpm", 600.0)),
-                },
-                {
-                    "operation": "settle",
-                    "duration_s": float(canonical.get("settle_duration_s", 300.0)),
-                },
-                {
-                    "operation": "separate_phase",
-                    "target_phase": str(canonical.get("target_phase", "organic")),
-                },
-            ),
-        )
+        return [
+            {
+                "operation": "add_phase",
+                "phase": "aqueous",
+                "volume_L": wash_volume,
+            },
+            {
+                "operation": "mix",
+                "duration_s": float(canonical.get("mix_duration_s", 120.0)),
+                "stirring_speed_rpm": float(canonical.get("stirring_speed_rpm", 600.0)),
+            },
+            {
+                "operation": "settle",
+                "duration_s": float(canonical.get("settle_duration_s", 300.0)),
+            },
+            {
+                "operation": "separate_phase",
+                "target_phase": str(canonical.get("target_phase", "organic")),
+            },
+        ]
     if operation == "dry":
-        return _tag_macro_steps(
-            operation,
-            (
-                {
-                    "operation": "dry",
-                    "duration_s": float(canonical.get("duration_s", 300.0)),
-                },
-            ),
-        )
+        return [{"operation": "dry"}]
     if operation == "concentrate":
-        return _tag_macro_steps(
-            operation,
-            (
-                {
-                    "operation": "concentrate",
-                    "duration_s": float(canonical.get("duration_s", 600.0)),
-                },
-            ),
-        )
+        return [
+            {
+                "operation": "concentrate",
+                "duration_s": float(canonical.get("duration_s", 600.0)),
+            }
+        ]
     raise ValueError(f"Unsupported macro operation: {operation}")
 
 
@@ -159,20 +145,6 @@ def _expand_steps(steps: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for step in steps:
         expanded.extend(expand_macro_action(step))
     return expanded
-
-
-def _tag_macro_steps(
-    macro_operation: str,
-    steps: tuple[dict[str, Any], ...],
-) -> list[dict[str, Any]]:
-    return [
-        {
-            **step,
-            "compiled_from_macro": macro_operation,
-            "macro_step_index": index,
-        }
-        for index, step in enumerate(steps)
-    ]
 
 
 def _checked_steps(

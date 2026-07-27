@@ -30,6 +30,27 @@ making scalable, comparable, and falsifiable.
 
 </section>
 
+## Current formal evidence
+
+Two fixed-world scientific-optimization campaigns are now complete for
+`gpt-5.6-sol high`. Across five world seeds and 20 complete experiments per
+seed, blind final means were 0.3902 for electrochemical conversion and 0.4829
+for reaction-to-crystallization. The strongest classic baselines reached
+0.4798 and 0.5324; per-world comparisons were two wins against three losses
+and zero wins against five losses. None of the ten final syntheses produced
+positive paired gain. Every exploration, predictive, and blind-validation
+experiment replayed exactly.
+
+These results measure static optimization and final scientific synthesis.
+Fixed-world S0 is the current research priority. Hidden world changes and
+mechanism replacement are deferred until a realistic drift model and separate
+research question are established.
+
+Separately, all 15 complete-experiment adapters pass executable midpoint
+smokes with zero dead coordinates and zero unresolved formalization blockers.
+Only the two confirmatory tasks received costly formal model evaluations in
+this release.
+
 ## Why a world engine
 
 Real chemical experiments are slow, costly, and risk-bearing. Static datasets test knowledge and prediction, but not
@@ -73,4 +94,5 @@ The complete API and local setup reference currently lives in the
 [Chinese technical documentation](https://sunyrain.github.io/ChemWorld/getting_started/).
 
 > Research status: benchmark candidate. Engine and replay controls are operational; formal cross-method adaptation,
-> private evaluation, and external bridging remain incomplete.
+> private evaluation, and external bridging remain incomplete. RC28 Gate A passed on its frozen source, but its
+> current source binding is stale and current `benchmark_ready=false` pending recertification.

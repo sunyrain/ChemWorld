@@ -15,7 +15,8 @@ def electrochemical_scenario_model_cards() -> tuple[ModelCard, ...]:
             summary=(
                 "Versioned public redox/equipment/window cards with private "
                 "parameter ranges, split-aware deterministic sampling, side-"
-                "reaction thresholds, and direct construction of model bundles."
+                "reaction thresholds, and direct construction of standalone model bundles. "
+                "This catalog is not the electrochemical-conversion task runtime."
             ),
             equations=(
                 "seed = SHA256(schema:scenario:split:seed:private_salt)",
@@ -32,6 +33,8 @@ def electrochemical_scenario_model_cards() -> tuple[ModelCard, ...]:
                 "public-dev, public-test, and private-eval share the same model "
                 "family but use distinct deterministic seed payloads.",
                 "private-eval generation requires a maintainer-controlled salt.",
+                "Generated bundles are standalone references and are not loaded by "
+                "ChemWorldElectrochemicalServices.",
             ),
             validity_limits=(
                 "Generated parameters are bounded independent samples; cross-"
@@ -94,7 +97,7 @@ def electrochemical_scenario_model_cards() -> tuple[ModelCard, ...]:
                 "databases remain external.",
             ),
             intended_use=(
-                "Public/private electrochemical benchmark generation.",
+                "Standalone public/private electrochemical reference generation.",
                 "Agent generalization studies across redox, transport, ohmic, "
                 "double-layer, selectivity, and side-reaction uncertainty.",
             ),

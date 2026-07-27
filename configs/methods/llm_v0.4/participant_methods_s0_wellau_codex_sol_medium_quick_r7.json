@@ -1,0 +1,77 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.3-s0-dev",
+  "freeze_id": "chemworld-static-scientific-optimization-s0-wellau-codex-sol-r7-medium-quick-pilot-2026-07-26-dev",
+  "status": "development_owner_authorized_quick_pilot",
+  "benchmark_claim_allowed": false,
+  "formal_result": false,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_known_horizon",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "world_policy": "static_for_entire_campaign",
+    "horizon_visible": true,
+    "model_facing_parameterization": "named_physical_controls",
+    "internal_unit_vector_visible_to_agent": false,
+    "final_synthesis": true,
+    "structured_world_claims": true,
+    "held_out_predictive_world_understanding": true,
+    "blind_recommendation_validation": true,
+    "paired_validation_noise": true,
+    "hidden_world_fields_supplied": false,
+    "mechanism_candidates_supplied": false
+  },
+  "development_amendments": [
+    {
+      "amendment_id": "s0-medium-quick-pilot-r7",
+      "scope": "development_only",
+      "reason": "Run one owner-authorized lower-latency seed before the frozen high-reasoning campaign.",
+      "change": "Keep the complete S0 v0.3 scientific protocol and change only WellAU reasoning_effort from high to medium.",
+      "scientific_contract_changed": false,
+      "method_changed": true
+    },
+    {
+      "amendment_id": "s0-live-prefix-prompt-budget-r7",
+      "scope": "development_only",
+      "reason": "The owner-authorized live prefix reached a round-eight estimate of 7855 tokens, above the mock-derived 7500 cap, before issuing the eighth provider call.",
+      "change": "Raise only the local fail-closed prompt limits to 8500 for experiment design and 12000 for final synthesis; prompts, model, reasoning effort, output cap, and scientific protocol are unchanged.",
+      "scientific_contract_changed": false,
+      "method_changed": false
+    },
+    {
+      "amendment_id": "s0-controlled-claim-vocabulary-r7",
+      "scope": "development_only",
+      "reason": "The public recipe exposed controlled-stage field names while the declared-claim vocabulary used ambiguous stage-free names.",
+      "change": "Rename the existing six-cause reference graph to the exact public controlled-stage field names without adding causal edges or endpoints.",
+      "scientific_contract_changed": false,
+      "method_changed": false
+    }
+  ],
+  "methods": {
+    "s0_codex_sol_medium_quick": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_named_controls_world_claims",
+      "request_configuration": {
+        "response_format": "json_object",
+        "reasoning_effort": "medium",
+        "max_tokens": 8000,
+        "timeout_s": 180.0,
+        "max_attempts": 3,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 8,
+        "per_decision_max_estimated_tokens": 8500,
+        "final_synthesis_max_estimated_tokens": 12000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+        "mock_preflight_max_decision_estimate": 6268,
+        "mock_preflight_final_synthesis_estimate": 8579,
+        "live_prefix_max_completed_decision_estimate": 6924,
+        "live_prefix_blocked_next_decision_estimate": 7855,
+        "live_complete_history_final_synthesis_estimate": 10376
+      }
+    }
+  }
+}
