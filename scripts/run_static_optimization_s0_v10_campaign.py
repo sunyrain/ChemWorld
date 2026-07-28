@@ -132,7 +132,12 @@ def _participant_complete(cell: CampaignCell) -> bool:
     )
 
 
-def _run_process(command: list[str], *, output: Path) -> dict[str, Any]:
+def _run_process(
+    command: list[str],
+    *,
+    output: Path,
+    log_name: str,
+) -> dict[str, Any]:
     output.mkdir(parents=True, exist_ok=True)
     result = subprocess.run(
         command,
@@ -146,7 +151,7 @@ def _run_process(command: list[str], *, output: Path) -> dict[str, Any]:
         "stdout": result.stdout,
         "stderr": result.stderr,
     }
-    write_json_atomic(output / "execution_log.json", log)
+    write_json_atomic(output / log_name, log)
     if result.returncode != 0:
         raise RuntimeError(
             f"campaign subprocess failed ({result.returncode}): {' '.join(command)}"
@@ -209,8 +214,16 @@ def _run_participant(cell: CampaignCell, provider: str) -> dict[str, Any]:
                     method_hash,
                 ]
             )
-        _run_process(command, output=cell.output)
-    _run_process(_audit_command(cell), output=cell.output)
+        _run_process(
+            command,
+            output=cell.output,
+            log_name="execution_run_log.json",
+        )
+    _run_process(
+        _audit_command(cell),
+        output=cell.output,
+        log_name="execution_audit_log.json",
+    )
     audit = _load_json(cell.output / "postrun_audit.json")
     if audit.get("replay", {}).get("all_verified") is not True:
         raise RuntimeError(f"participant exact replay failed: {cell.output}")
@@ -236,8 +249,16 @@ def _run_baselines(cell: CampaignCell) -> dict[str, Any]:
         str(cell.world_seed),
         "--resume-missing",
     ]
-    _run_process(command, output=cell.output)
-    _run_process(_audit_command(cell), output=cell.output)
+    _run_process(
+        command,
+        output=cell.output,
+        log_name="execution_run_log.json",
+    )
+    _run_process(
+        _audit_command(cell),
+        output=cell.output,
+        log_name="execution_audit_log.json",
+    )
     report = _load_json(cell.output / "report.json")
     audit = _load_json(cell.output / "postrun_audit.json")
     if report.get("completed_cell_count") != report.get("cell_count"):

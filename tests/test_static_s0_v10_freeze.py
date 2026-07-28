@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import runpy
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +43,30 @@ def _load(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert isinstance(payload, dict)
     return payload
+
+
+def test_campaign_subprocess_logs_do_not_overwrite_each_other(
+    tmp_path: Path,
+) -> None:
+    campaign = runpy.run_path(
+        ROOT / "scripts" / "run_static_optimization_s0_v10_campaign.py",
+        run_name="static_s0_v10_campaign",
+    )
+    run_process = campaign["_run_process"]
+
+    run_process(
+        [sys.executable, "-c", "print('run')"],
+        output=tmp_path,
+        log_name="execution_run_log.json",
+    )
+    run_process(
+        [sys.executable, "-c", "print('audit')"],
+        output=tmp_path,
+        log_name="execution_audit_log.json",
+    )
+
+    assert _load(tmp_path / "execution_run_log.json")["stdout"].strip() == "run"
+    assert _load(tmp_path / "execution_audit_log.json")["stdout"].strip() == "audit"
 
 
 def test_v10_participant_protocols_freeze_twenty_rounds_across_ten_worlds() -> None:
