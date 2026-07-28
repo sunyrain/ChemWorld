@@ -9,6 +9,15 @@ from hashlib import sha256
 import numpy as np
 
 from chemworld.world.actions import CATALYSTS, SOLVENTS
+from chemworld.world.crystallization_material_family import (
+    REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY,
+    crystallization_material_family,
+)
+from chemworld.world.electrochemical_material_family import (
+    NOMINAL_PRIOR_MATERIAL_FAMILY,
+    ElectrochemicalResidualGeneratorContract,
+    electrochemical_material_family,
+)
 
 WORLD_FAMILY_VERSION = "chemworld-physical-chemistry-v0.5"
 SUPPORTED_SPLITS = ("public-dev", "public-test", "private-eval")
@@ -42,6 +51,20 @@ class ChemWorldParameters:
     activation_energy: np.ndarray
     catalyst_effects: np.ndarray
     solvent_effects: np.ndarray
+    crystallization_catalyst_effects: np.ndarray
+    crystallization_solvent_effects: np.ndarray
+    crystallization_solvent_solubility_multipliers: np.ndarray
+    crystallization_solvent_nucleation_multipliers: np.ndarray
+    crystallization_solvent_growth_multipliers: np.ndarray
+    crystallization_solvent_occlusion_multipliers: np.ndarray
+    electrochemical_electrolyte_effects: np.ndarray
+    electrochemical_solvent_effects: np.ndarray
+    electrochemical_electrolyte_potential_residual_V: np.ndarray
+    electrochemical_solvent_potential_residual_V: np.ndarray
+    electrochemical_electrode_gap_m: float
+    electrochemical_electrode_area_m2: float
+    electrochemical_base_contact_resistance_ohm: float
+    electrochemical_exchange_current_density_A_m2: float
     solvent_risks: np.ndarray
     solvent_costs: np.ndarray
     catalyst_costs: np.ndarray
@@ -74,6 +97,45 @@ class ChemWorldParameters:
             or self.crystallization_reference_solubility_mol_L <= 0.0
         ):
             raise ValueError("crystallization reference solubility must be positive and finite")
+        for field_name in (
+            "crystallization_catalyst_effects",
+            "crystallization_solvent_effects",
+        ):
+            values = np.asarray(getattr(self, field_name), dtype=float)
+            if values.shape != (4, 5) or not np.all(np.isfinite(values)) or np.any(values <= 0.0):
+                raise ValueError(f"{field_name} must be a finite positive 4x5 matrix")
+        for field_name in (
+            "crystallization_solvent_solubility_multipliers",
+            "crystallization_solvent_nucleation_multipliers",
+            "crystallization_solvent_growth_multipliers",
+            "crystallization_solvent_occlusion_multipliers",
+        ):
+            values = np.asarray(getattr(self, field_name), dtype=float)
+            if values.shape != (4,) or not np.all(np.isfinite(values)) or np.any(values <= 0.0):
+                raise ValueError(f"{field_name} must be a finite positive four-element vector")
+        for field_name in (
+            "electrochemical_electrolyte_effects",
+            "electrochemical_solvent_effects",
+        ):
+            values = np.asarray(getattr(self, field_name), dtype=float)
+            if values.shape != (4, 7) or not np.all(np.isfinite(values)) or np.any(values <= 0.0):
+                raise ValueError(f"{field_name} must be a finite positive 4x7 matrix")
+        for field_name in (
+            "electrochemical_electrolyte_potential_residual_V",
+            "electrochemical_solvent_potential_residual_V",
+        ):
+            values = np.asarray(getattr(self, field_name), dtype=float)
+            if values.shape != (4,) or not np.all(np.isfinite(values)):
+                raise ValueError(f"{field_name} must be a finite four-element vector")
+        for field_name in (
+            "electrochemical_electrode_gap_m",
+            "electrochemical_electrode_area_m2",
+            "electrochemical_base_contact_resistance_ohm",
+            "electrochemical_exchange_current_density_A_m2",
+        ):
+            value = float(getattr(self, field_name))
+            if not np.isfinite(value) or value <= 0.0:
+                raise ValueError(f"{field_name} must be positive and finite")
 
     def domain_parameter(self, key: str) -> float:
         """Return a typed vNext provider parameter and fail on unknown keys."""
@@ -87,6 +149,37 @@ class ChemWorldParameters:
 def stable_parameter_seed(split: str, seed: int, private_salt: str = "") -> int:
     digest = sha256(f"{WORLD_FAMILY_VERSION}:{split}:{seed}:{private_salt}".encode()).digest()
     return int.from_bytes(digest[:8], "little") % (2**32)
+
+
+def _latent_material_effects(
+    rng: np.random.Generator,
+    contract: ElectrochemicalResidualGeneratorContract,
+    loadings: tuple[tuple[float, ...], ...],
+) -> tuple[np.ndarray, np.ndarray]:
+    latent = rng.normal(
+        loc=0.0,
+        scale=np.asarray(contract.latent_sigma, dtype=float),
+        size=(4, len(contract.latent_factor_names)),
+    )
+    loading_matrix = np.asarray(loadings, dtype=float)
+    if loading_matrix.shape != (
+        len(contract.property_names),
+        len(contract.latent_factor_names),
+    ):
+        raise RuntimeError("electrochemical residual factor loading matrix is malformed")
+    independent = rng.normal(
+        0.0,
+        contract.independent_property_sigma,
+        size=(4, len(contract.property_names)),
+    )
+    log_effects = latent @ loading_matrix.T + independent
+    effects = np.clip(np.exp(log_effects), *contract.multiplier_bounds)
+    potential = np.clip(
+        latent @ np.asarray(contract.potential_loadings, dtype=float)
+        + rng.normal(0.0, contract.potential_noise_sigma_V, size=4),
+        *contract.potential_bounds_V,
+    )
+    return effects, potential
 
 
 def load_chemworld_parameters(
@@ -126,6 +219,122 @@ def load_chemworld_parameters(
     solvent_effects[:, 3] *= np.array([0.70, 0.95, 1.15, 1.25])
     solvent_effects[:, 4] *= np.array([0.65, 1.05, 0.98, 1.18])
 
+    crystallization_family = crystallization_material_family(
+        REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY
+    )
+    crystallization_residual = crystallization_family.residual_generator
+    if crystallization_residual is None:
+        raise RuntimeError("crystallization material family lacks a residual generator")
+    crystallization_seed = stable_parameter_seed(
+        split,
+        seed,
+        f"{private_salt}:{crystallization_residual.seed_namespace}",
+    )
+    crystallization_rng = np.random.default_rng(crystallization_seed)
+    residual_bounds = crystallization_residual.residual_multiplier_bounds
+    catalyst_nominal = np.asarray(
+        [
+            row["reaction_multipliers"]
+            for row in crystallization_family.catalyst_profiles
+        ],
+        dtype=float,
+    )
+    solvent_nominal = np.asarray(
+        [
+            row["reaction_multipliers"]
+            for row in crystallization_family.solvent_profiles
+        ],
+        dtype=float,
+    )
+    crystallization_catalyst_effects = catalyst_nominal * np.clip(
+        crystallization_rng.lognormal(
+            mean=0.0,
+            sigma=crystallization_residual.reaction_log_sigma,
+            size=catalyst_nominal.shape,
+        ),
+        *residual_bounds,
+    )
+    crystallization_solvent_effects = solvent_nominal * np.clip(
+        crystallization_rng.lognormal(
+            mean=0.0,
+            sigma=crystallization_residual.reaction_log_sigma,
+            size=solvent_nominal.shape,
+        ),
+        *residual_bounds,
+    )
+
+    def crystallization_profile_vector(field: str) -> np.ndarray:
+        nominal = np.asarray(
+            [row[field] for row in crystallization_family.solvent_profiles],
+            dtype=float,
+        )
+        residual = np.clip(
+            crystallization_rng.lognormal(
+                mean=0.0,
+                sigma=crystallization_residual.crystallization_log_sigma,
+                size=nominal.shape,
+            ),
+            *residual_bounds,
+        )
+        return nominal * residual
+
+    crystallization_solvent_solubility_multipliers = (
+        crystallization_profile_vector("solubility_multiplier")
+    )
+    crystallization_solvent_nucleation_multipliers = (
+        crystallization_profile_vector("nucleation_multiplier")
+    )
+    crystallization_solvent_growth_multipliers = (
+        crystallization_profile_vector("growth_multiplier")
+    )
+    crystallization_solvent_occlusion_multipliers = (
+        crystallization_profile_vector("impurity_occlusion_multiplier")
+    )
+
+    material_family = electrochemical_material_family(NOMINAL_PRIOR_MATERIAL_FAMILY)
+    residual_contract = material_family.residual_generator
+    if residual_contract is None:
+        raise RuntimeError("nominal-prior material family lacks a residual generator contract")
+    material_seed = stable_parameter_seed(
+        split,
+        seed,
+        f"{private_salt}:{residual_contract.seed_namespace}",
+    )
+    material_rng = np.random.default_rng(material_seed)
+    (
+        electrochemical_electrolyte_effects,
+        electrochemical_electrolyte_potential_residual_V,
+    ) = _latent_material_effects(
+        material_rng,
+        residual_contract,
+        residual_contract.electrolyte_loadings,
+    )
+    (
+        electrochemical_solvent_effects,
+        electrochemical_solvent_potential_residual_V,
+    ) = _latent_material_effects(
+        material_rng,
+        residual_contract,
+        residual_contract.solvent_loadings,
+    )
+    geometry_bounds = material_family.world_fixed_cell_geometry_bounds
+    if geometry_bounds is None:
+        raise RuntimeError("nominal-prior material family lacks geometry bounds")
+    electrochemical_electrode_gap_m = float(material_rng.uniform(*geometry_bounds.electrode_gap_m))
+    electrochemical_electrode_area_m2 = float(
+        material_rng.uniform(*geometry_bounds.electrode_area_m2)
+    )
+    electrochemical_base_contact_resistance_ohm = float(
+        material_rng.uniform(*geometry_bounds.base_contact_resistance_ohm)
+    )
+    electrochemical_exchange_current_density_A_m2 = float(
+        np.clip(
+            residual_contract.exchange_current_reference_A_m2
+            * material_rng.lognormal(0.0, residual_contract.exchange_current_log_sigma),
+            *residual_contract.exchange_current_bounds_A_m2,
+        )
+    )
+
     provider_label = "external" if provider == "external-private-registry" else "public"
     world_id = f"ChemWorld:{split}:{provider_label}:seed-{seed}"
     return ChemWorldParameters(
@@ -137,6 +346,32 @@ def load_chemworld_parameters(
         activation_energy=activation_energy,
         catalyst_effects=catalyst_effects,
         solvent_effects=solvent_effects,
+        crystallization_catalyst_effects=crystallization_catalyst_effects,
+        crystallization_solvent_effects=crystallization_solvent_effects,
+        crystallization_solvent_solubility_multipliers=(
+            crystallization_solvent_solubility_multipliers
+        ),
+        crystallization_solvent_nucleation_multipliers=(
+            crystallization_solvent_nucleation_multipliers
+        ),
+        crystallization_solvent_growth_multipliers=(
+            crystallization_solvent_growth_multipliers
+        ),
+        crystallization_solvent_occlusion_multipliers=(
+            crystallization_solvent_occlusion_multipliers
+        ),
+        electrochemical_electrolyte_effects=electrochemical_electrolyte_effects,
+        electrochemical_solvent_effects=electrochemical_solvent_effects,
+        electrochemical_electrolyte_potential_residual_V=(
+            electrochemical_electrolyte_potential_residual_V
+        ),
+        electrochemical_solvent_potential_residual_V=(electrochemical_solvent_potential_residual_V),
+        electrochemical_electrode_gap_m=electrochemical_electrode_gap_m,
+        electrochemical_electrode_area_m2=electrochemical_electrode_area_m2,
+        electrochemical_base_contact_resistance_ohm=(electrochemical_base_contact_resistance_ohm),
+        electrochemical_exchange_current_density_A_m2=(
+            electrochemical_exchange_current_density_A_m2
+        ),
         solvent_risks=np.array([0.05, 0.18, 0.28, 0.35]),
         solvent_costs=np.array([0.03, 0.08, 0.16, 0.11]),
         catalyst_costs=np.array([0.08, 0.18, 0.12, 0.22]),

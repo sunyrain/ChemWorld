@@ -1,0 +1,98 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-protocol-0.6-s0-dev",
+  "protocol_family_id": "chemworld-static-s0-material-prior-pilot-v0.6",
+  "protocol_id": "chemworld-static-s0-material-prior-pilot-v0.6-shuffled-8-2026-07-28",
+  "condition_id": "shuffled",
+  "status": "development_pilot_only",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "world_policy": {
+    "mode": "static_for_entire_campaign",
+    "world_seed": 0,
+    "development_world_seeds": [0, 1],
+    "electrochemical_material_family_id": "nominal-prior-latent-v2",
+    "interventions": [],
+    "phase_changes": [],
+    "hidden_world_fields_in_public_context": false
+  },
+  "tasks": ["electrochemical-conversion"],
+  "horizon": 8,
+  "scientific_campaign_budget": {
+    "exploration_experiments": 8,
+    "horizon_visible": true,
+    "final_synthesis_after_exploration": true
+  },
+  "material_information": {
+    "mode": "anonymous_shuffled_properties",
+    "descriptor_permutation": {
+      "electrolyte_profile": [2, 3, 1, 0],
+      "solvent": [1, 3, 0, 2]
+    }
+  },
+  "experiment_interface": {
+    "model_facing_parameterization": "named_physical_controls",
+    "electrochemical_workflow_mode": "static_single_stage",
+    "internal_unit_vector_visible_to_agent": false
+  },
+  "measurement_budget": {
+    "mode": "environment_native_cost_accounted_no_hard_cap",
+    "hard_campaign_cap": null,
+    "report_optional_measurement_count": true,
+    "report_measurement_cost": true
+  },
+  "reward_contract": {
+    "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+    "optimization_feedback": "terminal_summary.leaderboard_score",
+    "feedback_timing": "after_completed_final_assay_only",
+    "safety_label": "peak_safety_risk",
+    "safety_constraint_threshold": 0.65,
+    "safety_is_separate_from_primary_reward": true,
+    "primary_endpoint": "paired_blind_validated_final_recommendation_score_mean"
+  },
+  "executor_contract": {
+    "atomic_complete_experiment": true,
+    "electrochemical_workflow_mode": "static_single_stage",
+    "runtime_guard_margin_operations": 1,
+    "runtime_margin_available_to_agent": false,
+    "mandatory_terminate": true,
+    "mandatory_final_assay": true,
+    "show_task_operation_budget_to_agent": false
+  },
+  "final_synthesis": {
+    "enabled": true,
+    "calls": 1,
+    "executes_experiment": false,
+    "allow_tested_recommendation": true,
+    "allow_interpolated_recommendation": true,
+    "allow_extrapolated_recommendation_within_bounds": true,
+    "requires_structured_world_claims": true,
+    "validation_feedback_returned_to_agent": false,
+    "list_item_limit": 16,
+    "list_item_limit_visible_to_model": true
+  },
+  "world_understanding": {
+    "enabled": true,
+    "declared_claims_are_secondary_diagnostics": true,
+    "predictive_score_enabled": false,
+    "reason": "pilot preserves S0 optimization as the primary story"
+  },
+  "validation_budget": {
+    "incumbent_replicates": 2,
+    "recommendation_replicates": 2,
+    "independent_observation_seeds": true,
+    "paired_observation_seeds_across_targets": true,
+    "feedback_returned_to_agent": false
+  },
+  "candidate_order_seed": 0,
+  "observation_noise_namespace": "scientific-optimization-s0-v06-material-prior-pilot",
+  "objective": "measure whether correct anonymous material properties improve fixed-world electrochemical optimization",
+  "primary_metric": "validated_final_recommendation_score_mean",
+  "secondary_metrics": [
+    "best_exploration_score",
+    "best_so_far_area_under_curve",
+    "recommendation_gain_over_incumbent_mean",
+    "world_understanding_structural_edge_f1"
+  ],
+  "method_config_path": "configs/methods/llm_v0.4/participant_methods_s0_wellau_codex_sol_material_pilot_v06.json",
+  "method_ids": ["s0_codex_sol_medium_material_pilot"]
+}

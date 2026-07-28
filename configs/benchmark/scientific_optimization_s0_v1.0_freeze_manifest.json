@@ -1,0 +1,95 @@
+{
+  "schema_version": "chemworld-static-s0-formal-freeze-manifest-1.0",
+  "freeze_id": "chemworld-static-s0-two-flagships-full-suite-v1.0-2026-07-29",
+  "status": "owner_authorized_frozen_formal_pending_execution",
+  "formal_result": true,
+  "benchmark_claim_allowed": false,
+  "source_commit_binding": "recorded_by_campaign_orchestrator_at_execution",
+  "world_seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "participant_tracks": [
+    {
+      "track_id": "electrochemical",
+      "task_id": "electrochemical-conversion",
+      "protocol_path": "configs/benchmark/scientific_optimization_s0_v1.0_electrochemical_material_opaque_20x10_formal.json",
+      "protocol_sha256": "69075dce0ddcecba9f1dab02e3a7f55193ae37d9ea2a93523d0bf7249a46f7ea",
+      "method_path": "configs/methods/llm_v1.0/participant_methods_s0_codex_subscription_sol_electrochemical_material_opaque_20x10_v10.json",
+      "method_sha256": "1c41cadfef5a6cb90a7d79f40703b48a54c746ee17f8c008f8a29cf2790a8926",
+      "world_understanding_reference_path": "configs/benchmark/world_understanding_s0_electrochemical_material_v1.0.json",
+      "world_understanding_reference_sha256": "65583594c65a2445c72a7c4b8ae1026b3cdddc5bb23990f0447b14a4d00e1a37",
+      "method_id": "s0_codex_subscription_sol_medium_electrochemical_material_opaque_20",
+      "provider": "codex_subscription",
+      "model_id": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "world_count": 10,
+      "exploration_rounds_per_world": 20,
+      "predictive_physical_experiments_per_world": 12,
+      "blind_validation_experiments_per_world": 6
+    },
+    {
+      "track_id": "crystallization",
+      "task_id": "reaction-to-crystallization",
+      "protocol_path": "configs/benchmark/scientific_optimization_s0_v1.0_crystallization_material_opaque_20x10_formal.json",
+      "protocol_sha256": "f33c30509276946a5da8b48f2e65e60f14a063ee9e676b9f8e28e47df0d80bde",
+      "method_path": "configs/methods/llm_v1.0/participant_methods_s0_codex_subscription_sol_crystallization_material_opaque_20x10_v10.json",
+      "method_sha256": "cb90ce10aa07bb040c98b5184cd0659435d57e941aea8bf9bdf9df0ed6238e62",
+      "world_understanding_reference_path": "configs/benchmark/world_understanding_s0_crystallization_material_v1.0.json",
+      "world_understanding_reference_sha256": "d9e361ddf1879c35295280e81d53d289db69894fb6ee6e9f190a579836b882fd",
+      "method_id": "s0_codex_subscription_sol_medium_crystallization_material_opaque_20",
+      "provider": "codex_subscription",
+      "model_id": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "world_count": 10,
+      "exploration_rounds_per_world": 20,
+      "predictive_physical_experiments_per_world": 12,
+      "blind_validation_experiments_per_world": 6
+    }
+  ],
+  "baseline_tracks": [
+    {
+      "track_id": "electrochemical",
+      "task_id": "electrochemical-conversion",
+      "protocol_path": "configs/benchmark/scientific_optimization_s0_v1.0_electrochemical_classic_baselines_20x10_formal.json",
+      "protocol_sha256": "1e146b7dd3aaf45185e86bfb3f4ae1b0792ced9f25536672666db830ac0b81f5",
+      "world_count": 10,
+      "algorithm_count": 14,
+      "algorithm_seed_count": 5,
+      "cell_count": 700,
+      "information_matched_algorithm_count": 7,
+      "privileged_calibration_or_negative_control_count": 7
+    },
+    {
+      "track_id": "crystallization",
+      "task_id": "reaction-to-crystallization",
+      "protocol_path": "configs/benchmark/scientific_optimization_s0_v1.0_crystallization_classic_baselines_20x10_formal.json",
+      "protocol_sha256": "2c3434689e048b01dc10d96b991bf6694acae152ac84af5d9a222ea0cd39e6b9",
+      "world_count": 10,
+      "algorithm_count": 7,
+      "algorithm_seed_count": 5,
+      "cell_count": 350,
+      "information_matched_algorithm_count": 7,
+      "privileged_calibration_or_negative_control_count": 0
+    }
+  ],
+  "planned_accounting": {
+    "participant_world_cells": 20,
+    "participant_provider_calls": 420,
+    "participant_exploration_experiments": 400,
+    "participant_predictive_physical_experiments": 240,
+    "participant_blind_validation_experiments": 120,
+    "participant_total_physical_experiments": 760,
+    "baseline_cells": 1050,
+    "baseline_exploration_experiments": 21000,
+    "baseline_blind_validation_experiments": 6300,
+    "baseline_total_physical_experiments": 27300,
+    "campaign_total_physical_experiments": 28060
+  },
+  "reporting_boundaries": {
+    "primary_endpoint": "paired_blind_validated_final_recommendation_score_mean",
+    "declared_world_understanding": "secondary_diagnostic",
+    "predictive_world_understanding": "secondary_diagnostic",
+    "privileged_descriptor_baselines": "calibration_not_information_matched_comparison",
+    "sampled_world_scope_only": true,
+    "provider_causal_effect_claim_allowed": false,
+    "broad_generalization_claim_allowed": false
+  }
+}

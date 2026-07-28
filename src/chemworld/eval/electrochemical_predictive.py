@@ -28,8 +28,12 @@ from chemworld.physchem.electrochemical_task_contract import (
 
 ELECTROCHEMICAL_PREDICTIVE_VERSION = "chemworld-electrochemical-predictive-0.1-s0-dev"
 ELECTROCHEMICAL_SINGLE_STAGE_PREDICTIVE_VERSION = (
-    "chemworld-electrochemical-predictive-0.2-single-stage-s0-dev"
+    "chemworld-electrochemical-predictive-0.4-material-single-stage-s0-dev"
 )
+ELECTROCHEMICAL_STANDARDIZED_PREDICTIVE_VERSION = (
+    "chemworld-electrochemical-predictive-0.3-standardized-single-stage-s0-dev"
+)
+STANDARDIZED_PREDICTIVE_ANCHOR_ID = "balanced-standardized-anchor-v0.1"
 PREDICTION_DIRECTIONS = ("increase", "decrease", "no_material_change")
 PREDICTIVE_QUERY_COUNT = 3
 PREDICTIVE_PAIRED_REPLICATE_COUNT = 2
@@ -43,16 +47,32 @@ PREDICTIVE_MEASUREMENT_SLOTS = (
     "diagnostic-03-uvvis",
 )
 PREDICTIVE_QUERY_METRICS = {
-    "controlled_potential_V": ("yield", "energy_efficiency", "leaderboard_score"),
-    "controlled_current_mA": ("conversion", "ohmic_efficiency", "leaderboard_score"),
+    "controlled_potential_V": (
+        "selective_product_yield",
+        "energy_efficiency",
+        "leaderboard_score",
+    ),
+    "controlled_current_mA": (
+        "electrochemical_conversion",
+        "ohmic_efficiency",
+        "leaderboard_score",
+    ),
     "electrolyte_profile": ("transport_efficiency", "pH_normalized", "leaderboard_score"),
 }
 SINGLE_STAGE_PREDICTIVE_MEASUREMENT_SLOTS = tuple(
     str(item["slot_id"]) for item in ELECTROCHEMICAL_SINGLE_STAGE_MEASUREMENT_SLOTS
 )
 SINGLE_STAGE_PREDICTIVE_QUERY_METRICS = {
-    "potential_V": ("yield", "energy_efficiency", "leaderboard_score"),
-    "current_mA": ("conversion", "ohmic_efficiency", "leaderboard_score"),
+    "potential_V": (
+        "selective_product_yield",
+        "energy_efficiency",
+        "leaderboard_score",
+    ),
+    "current_mA": (
+        "electrochemical_conversion",
+        "ohmic_efficiency",
+        "leaderboard_score",
+    ),
     "electrolyte_profile": (
         "transport_efficiency",
         "pH_normalized",
@@ -69,13 +89,35 @@ PREDICTIVE_METRIC_SOURCES = {
     for metric_id in metrics
 }
 _DIRECTION_THRESHOLDS = {
-    "yield": PREDICTIVE_DIRECTION_THRESHOLD,
-    "conversion": PREDICTIVE_DIRECTION_THRESHOLD,
+    "selective_product_yield": PREDICTIVE_DIRECTION_THRESHOLD,
+    "electrochemical_conversion": PREDICTIVE_DIRECTION_THRESHOLD,
     "energy_efficiency": PREDICTIVE_DIRECTION_THRESHOLD,
     "ohmic_efficiency": PREDICTIVE_DIRECTION_THRESHOLD,
     "transport_efficiency": PREDICTIVE_DIRECTION_THRESHOLD,
     "pH_normalized": PREDICTIVE_DIRECTION_THRESHOLD,
     "leaderboard_score": PREDICTIVE_DIRECTION_THRESHOLD,
+}
+STANDARDIZED_PREDICTIVE_REFERENCE_PARAMETERS: dict[str, int | float] = {
+    "electrolyte_profile": 1,
+    "solvent": 0,
+    "reagent_amount_mol": 0.015,
+    "potential_V": 0.8,
+    "current_mA": 180.0,
+    "duration_s": 2100.0,
+}
+STANDARDIZED_PREDICTIVE_INTERVENTIONS: dict[str, dict[str, int | float]] = {
+    "potential_V": {
+        **STANDARDIZED_PREDICTIVE_REFERENCE_PARAMETERS,
+        "potential_V": 1.0,
+    },
+    "current_mA": {
+        **STANDARDIZED_PREDICTIVE_REFERENCE_PARAMETERS,
+        "current_mA": 220.0,
+    },
+    "electrolyte_profile": {
+        **STANDARDIZED_PREDICTIVE_REFERENCE_PARAMETERS,
+        "electrolyte_profile": 2,
+    },
 }
 
 
@@ -236,6 +278,116 @@ def build_electrochemical_prediction_queries(
         electrochemical_workflow_mode=workflow_mode,
     )
     return tuple(queries)
+
+
+def build_standardized_electrochemical_prediction_queries(
+) -> tuple[ElectrochemicalPredictionQuery, ...]:
+    """Build the history-independent anchor qualified across balanced S0 worlds."""
+
+    reference = dict(STANDARDIZED_PREDICTIVE_REFERENCE_PARAMETERS)
+    electrochemical_single_stage_unit_vector_from_parameters(reference)
+    query_ids = {
+        "potential_V": "standardized-potential",
+        "current_mA": "standardized-current",
+        "electrolyte_profile": "standardized-electrolyte-profile",
+    }
+    queries: list[ElectrochemicalPredictionQuery] = []
+    for variable in ("potential_V", "current_mA", "electrolyte_profile"):
+        intervention = dict(STANDARDIZED_PREDICTIVE_INTERVENTIONS[variable])
+        electrochemical_single_stage_unit_vector_from_parameters(intervention)
+        metrics = SINGLE_STAGE_PREDICTIVE_QUERY_METRICS[variable]
+        thresholds = {
+            metric_id: _DIRECTION_THRESHOLDS[metric_id] for metric_id in metrics
+        }
+        sources = {
+            metric_id: PREDICTIVE_METRIC_SOURCES[metric_id]
+            for metric_id in metrics
+        }
+        query_id = query_ids[variable]
+        core = _query_core(
+            query_id=query_id,
+            reference_experiment_index=-1,
+            intervention_variable=variable,
+            reference_recipe_parameters=reference,
+            intervention_recipe_parameters=intervention,
+            metric_ids=metrics,
+            metric_sources=sources,
+            direction_thresholds=thresholds,
+            schema_version=ELECTROCHEMICAL_STANDARDIZED_PREDICTIVE_VERSION,
+            standardized_measurement_slots=SINGLE_STAGE_PREDICTIVE_MEASUREMENT_SLOTS,
+        )
+        queries.append(
+            ElectrochemicalPredictionQuery(
+                schema_version=ELECTROCHEMICAL_STANDARDIZED_PREDICTIVE_VERSION,
+                standardized_measurement_slots=(
+                    SINGLE_STAGE_PREDICTIVE_MEASUREMENT_SLOTS
+                ),
+                query_id=query_id,
+                reference_experiment_index=-1,
+                intervention_variable=variable,
+                reference_recipe_parameters=dict(reference),
+                intervention_recipe_parameters=intervention,
+                metric_ids=metrics,
+                metric_sources=sources,
+                direction_thresholds=thresholds,
+                query_sha256=_canonical_sha256(core),
+            )
+        )
+    validate_standardized_prediction_queries(queries)
+    return tuple(queries)
+
+
+def validate_standardized_prediction_queries(
+    queries: Sequence[ElectrochemicalPredictionQuery],
+) -> None:
+    expected_ids = (
+        "standardized-potential",
+        "standardized-current",
+        "standardized-electrolyte-profile",
+    )
+    if tuple(query.query_id for query in queries) != expected_ids:
+        raise ValueError("standardized predictive query IDs or order changed")
+    reference = dict(STANDARDIZED_PREDICTIVE_REFERENCE_PARAMETERS)
+    for query in queries:
+        if query.schema_version != ELECTROCHEMICAL_STANDARDIZED_PREDICTIVE_VERSION:
+            raise ValueError("standardized predictive schema version changed")
+        if query.reference_experiment_index != -1:
+            raise ValueError("standardized predictive reference must be history-independent")
+        if query.reference_recipe_parameters != reference:
+            raise ValueError("standardized predictive reference recipe changed")
+        expected_intervention = STANDARDIZED_PREDICTIVE_INTERVENTIONS[
+            query.intervention_variable
+        ]
+        if query.intervention_recipe_parameters != expected_intervention:
+            raise ValueError("standardized predictive intervention recipe changed")
+        changed = {
+            key
+            for key in reference
+            if reference[key] != query.intervention_recipe_parameters[key]
+        }
+        if changed != {query.intervention_variable}:
+            raise ValueError("standardized predictive query is not one-factor")
+        expected_metrics = SINGLE_STAGE_PREDICTIVE_QUERY_METRICS[
+            query.intervention_variable
+        ]
+        if query.metric_ids != expected_metrics:
+            raise ValueError("standardized predictive metrics changed")
+        expected_hash = _canonical_sha256(
+            _query_core(
+                query_id=query.query_id,
+                reference_experiment_index=-1,
+                intervention_variable=query.intervention_variable,
+                reference_recipe_parameters=reference,
+                intervention_recipe_parameters=expected_intervention,
+                metric_ids=query.metric_ids,
+                metric_sources=query.metric_sources,
+                direction_thresholds=query.direction_thresholds,
+                schema_version=query.schema_version,
+                standardized_measurement_slots=query.standardized_measurement_slots,
+            )
+        )
+        if query.query_sha256 != expected_hash:
+            raise ValueError("standardized predictive query hash mismatch")
 
 
 def validate_prediction_queries(
@@ -797,6 +949,7 @@ def _canonical_sha256(payload: object) -> str:
 __all__ = [
     "ELECTROCHEMICAL_PREDICTIVE_VERSION",
     "ELECTROCHEMICAL_SINGLE_STAGE_PREDICTIVE_VERSION",
+    "ELECTROCHEMICAL_STANDARDIZED_PREDICTIVE_VERSION",
     "PREDICTION_DIRECTIONS",
     "PREDICTIVE_DIRECTION_THRESHOLD",
     "PREDICTIVE_MEASUREMENT_SLOTS",
@@ -807,10 +960,14 @@ __all__ = [
     "PREDICTIVE_QUERY_METRICS",
     "SINGLE_STAGE_PREDICTIVE_MEASUREMENT_SLOTS",
     "SINGLE_STAGE_PREDICTIVE_QUERY_METRICS",
+    "STANDARDIZED_PREDICTIVE_ANCHOR_ID",
+    "STANDARDIZED_PREDICTIVE_INTERVENTIONS",
+    "STANDARDIZED_PREDICTIVE_REFERENCE_PARAMETERS",
     "CounterfactualMetricPrediction",
     "CounterfactualQueryPrediction",
     "ElectrochemicalPredictionQuery",
     "build_electrochemical_prediction_queries",
+    "build_standardized_electrochemical_prediction_queries",
     "classify_metric_direction",
     "metric_value_from_result",
     "parse_counterfactual_predictions",
@@ -819,4 +976,5 @@ __all__ = [
     "predictive_schema_version",
     "score_predictive_validation",
     "validate_prediction_queries",
+    "validate_standardized_prediction_queries",
 ]

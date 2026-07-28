@@ -110,25 +110,23 @@ adapter exposes evaporation and distillation temperature/time as four independen
 validation, not formal empirical performance for the 13 non-confirmatory tasks.
 
 ChemWorld no longer treats one repository-wide method freeze as environment evidence. Each comparison campaign must
-declare its own agents, resources, seeds, and result freeze. The current repository now includes two frozen static-S0
-campaigns on the confirmatory tasks: five world seeds each, 20 complete experiments per seed, separate final synthesis,
-paired predictive checks, blind validation, classic optimizer baselines, and exact replay. `gpt-5.6-sol high` reached
-blind final means of 0.3902 [95% world-cluster CI 0.1732, 0.6072] on electrochemical conversion and 0.4829
-[0.4326, 0.5332] on reaction-to-crystallization. Paired differences from the descriptively strongest classic families
-were -0.0896 [-0.2896, 0.1104] against RF-EI and -0.0495 [-0.0933, -0.0056] against GP-EI. The LLM exceeded the
-within-world classic mean in 2/5 electrochemical worlds and 0/5 crystallization worlds. All ten final syntheses selected
-tested conditions; eight had zero paired gain, two had small negative gain, and none improved the incumbent.
+declare its own agents, resources, seeds, material family, score law, and result freeze. The 2026-07-27 legacy
+static-S0 participant results were withdrawn on 2026-07-28: they are not current evidence, are not arXiv-reportable,
+and no numerical claim from that bundle is retained on the active status surface.
 
-![Static-S0 blind final scores by world](docs/assets/images/static-s0-blind-scores-v0.1.png)
-
-Pre-v0.5 result bundles are diagnostic history and are not part of the current evidence DAG or benchmark claims.
+The replacement electrochemical protocol uses a versioned latent material family, anonymous material IDs, a
+balanced-efficiency score, and paired blind validation. The replacement reaction-to-crystallization protocol now has
+its own catalyst/solvent material family and couples solvent identity to reaction kinetics, solubility, nucleation,
+growth, and impurity occlusion. Its five-world, 16-material-pair simulator qualification passed; this is a development
+readiness result, not participant performance. Both replacement protocols remain `formal_result=false` until their
+preregistrations, references, baselines, and full multi-world participant runs are frozen and executed.
 
 [`configs/current.json`](configs/current.json) is the authoritative status surface. It reports backend-contract
 validation, clean-release attestation, formal-evaluation readiness, and publication readiness as separate states.
 
 Current evidence establishes the following boundaries:
 
-- current fixed-world static-S0 results are complete and replay-verified for the two confirmatory tasks;
+- legacy fixed-world static-S0 participant results are withdrawn; replacement formal results are not yet present;
 - RC28 Gate A passed on its frozen source, but the current source fingerprint has changed. Its result remains a
   historical formal certificate while the current binding is stale; `benchmark_ready=false` until recertification;
 

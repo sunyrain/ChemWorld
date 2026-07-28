@@ -21,7 +21,12 @@ from chemworld.agents.task_recipes import task_recipe_event_count
 from chemworld.data.logging import observation_to_json, to_builtin
 from chemworld.envs.chemworld_env import ChemWorldEnv
 from chemworld.eval.static_optimization_protocol import (
+    PREDICTIVE_CALL_INTEGRATED,
     exploration_experiment_count,
+    static_optimization_crystallization_material_family_id,
+    static_optimization_material_family_id,
+    static_optimization_predictive_call_policy,
+    static_optimization_scoring_contract_id,
     static_optimization_workflow_mode,
 )
 from chemworld.physchem.electrochemical_task_contract import (
@@ -30,6 +35,7 @@ from chemworld.physchem.electrochemical_task_contract import (
 )
 from chemworld.providers.deepseek import DeepSeekClient
 from chemworld.tasks import get_task
+from chemworld.world.scoring import TASK_DERIVED_SCORING_CONTRACT, TaskScoringContract
 
 STATIC_OPTIMIZATION_RESULT_VERSION = "chemworld-static-optimization-result-0.1-s0-dev"
 
@@ -106,6 +112,9 @@ class StaticOptimizationExperimentSession:
         electrochemical_workflow_mode: str = (
             ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
         ),
+        electrochemical_material_family_id: str | None = None,
+        crystallization_material_family_id: str | None = None,
+        scoring_contract_id: str = TASK_DERIVED_SCORING_CONTRACT,
     ) -> None:
         if experiment_horizon <= 0:
             raise ValueError("experiment_horizon must be positive")
@@ -118,6 +127,9 @@ class StaticOptimizationExperimentSession:
         self.electrochemical_workflow_mode = normalize_electrochemical_workflow_mode(
             electrochemical_workflow_mode
         )
+        self.electrochemical_material_family_id = electrochemical_material_family_id
+        self.crystallization_material_family_id = crystallization_material_family_id
+        self.scoring_contract_id = str(scoring_contract_id)
         if (
             self.task_id == "electrochemical-conversion"
             and self.electrochemical_workflow_mode
@@ -138,6 +150,13 @@ class StaticOptimizationExperimentSession:
             observation_noise_namespace=observation_noise_namespace,
             world_interventions=(),
             electrochemical_workflow_mode=self.electrochemical_workflow_mode,
+            electrochemical_material_family_id=(
+                self.electrochemical_material_family_id
+            ),
+            crystallization_material_family_id=(
+                self.crystallization_material_family_id
+            ),
+            scoring_contract_id=self.scoring_contract_id,
         )
         self.environment.reset(seed=int(seed))
         self._completed_experiments = 0
@@ -252,6 +271,12 @@ def build_static_optimization_agent(
     method_id: str,
     client: Any | None = None,
 ) -> StaticOptimizationAgent:
+    task_spec = get_task(str(task_id))
+    scoring_contract = TaskScoringContract.from_success_metrics(
+        objective=task_spec.objective,
+        success_metrics=task_spec.success_metrics,
+        contract_id=static_optimization_scoring_contract_id(protocol),
+    )
     method = llm_methods["methods"][method_id]
     request = method["request_configuration"]
     prompt_budget = method.get("static_optimization_prompt_budget_contract")
@@ -291,6 +316,15 @@ def build_static_optimization_agent(
                 prompt_budget["per_decision_max_estimated_tokens"],
             )
         ),
+        predictive_synthesis_prompt_token_estimate_cap=int(
+            prompt_budget.get(
+                "predictive_synthesis_max_estimated_tokens",
+                prompt_budget.get(
+                    "final_synthesis_max_estimated_tokens",
+                    prompt_budget["per_decision_max_estimated_tokens"],
+                ),
+            )
+        ),
         include_task_operation_budget=bool(
             protocol.get("executor_contract", {}).get(
                 "show_task_operation_budget_to_agent", True
@@ -301,9 +335,24 @@ def build_static_optimization_agent(
                 "predictive_score_enabled", False
             )
         ),
+        predictive_queries_in_final_synthesis=(
+            static_optimization_predictive_call_policy(protocol)
+            == PREDICTIVE_CALL_INTEGRATED
+        ),
+        declared_claim_validation_policy=str(
+            method.get("declared_claim_validation_policy", "strict")
+        ),
+        material_information=protocol.get("material_information"),
+        electrochemical_material_family_id=(
+            static_optimization_material_family_id(protocol)
+        ),
+        crystallization_material_family_id=(
+            static_optimization_crystallization_material_family_id(protocol)
+        ),
+        scoring_contract=scoring_contract.to_dict(),
         electrochemical_workflow_mode=static_optimization_workflow_mode(protocol),
     )
-    agent.reset(get_task(str(task_id)).to_dict(), int(protocol["candidate_order_seed"]))
+    agent.reset(task_spec.to_dict(), int(protocol["candidate_order_seed"]))
     return agent
 
 __all__ = [

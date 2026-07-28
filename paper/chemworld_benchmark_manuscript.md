@@ -16,20 +16,16 @@ Every registered task has an executable complete-experiment adapter; all 15
 midpoint designs pass with no dead coordinates or unresolved formalization
 blockers.
 
-We evaluate `gpt-5.6-sol high` in a fixed world. For each
-confirmatory task, the model receives 20 complete experiments in each of five
-world seeds, then submits a distinct final method, structured mechanism
-claims, and three held-out intervention predictions. Blind final means were
-0.3902 (95% world-cluster CI [0.1732, 0.6072]) for electrochemical
-conversion and 0.4829 ([0.4326, 0.5332]) for
-reaction-to-crystallization. Paired differences from the descriptively
-strongest classic families were -0.0896 ([-0.2896, 0.1104]) and -0.0495
-([-0.0933, -0.0056]); the model exceeded the within-world classic mean in two
-of five and zero of five worlds. Predictive directional accuracy was 64.4%
-and 44.4%, while Declared structural-edge F1 was 0.274 and 0.242. None of ten
-final syntheses improved the paired incumbent. The model often improves the
-process but does not reliably convert evidence into a better final method or
-a correct, transferable mechanism model.
+The former 2026-07-27 static-S0 participant result bundle has been withdrawn
+because its legacy material and score contracts are not the contracts of the
+current benchmark candidate. No participant-performance number from that
+bundle is reported here. Replacement fixed-world protocols now bind explicit
+material-family hashes, task-specific score laws, opaque material identities,
+and paired blind validation. Electrochemical replacement diagnostics and a
+five-world reaction-to-crystallization material qualification are complete,
+but both remain development evidence (`formal_result=false`). New
+preregistered multi-world participant and baseline runs are required before
+this manuscript can make a static-S0 performance claim.
 
 Historical environment-level RC28 controls also establish budgeted
 identifiability and online attainability on their frozen source: the
@@ -109,40 +105,22 @@ paired blind validation replicates. Free-form mechanism prose is secondary;
 structured Declared claims, held-out Predictive directions, and Actionable
 blind performance are scored separately.
 
-## 5. Static-S0 Results
+## 5. Static-S0 Replacement Status
 
-The statistical unit is the world seed. The five algorithm seeds for each
-classic family are averaged within world before comparison and are not treated
-as 25 independent worlds. Intervals below are two-sided 95% Student-t
-descriptive intervals over five world clusters. The best classic family is
-selected descriptively from six candidates by aggregate blind mean; these
-comparisons are not preregistered superiority tests.
+There is currently no active formal static-S0 participant result. The legacy
+two-task bundle was removed from the evidence DAG and cannot support an
+abstract, result table, model comparison, or arXiv claim.
 
-| Task | LLM blind mean, 95% CI | Best classic mean | Paired LLM - classic, 95% CI | World wins | Predictive | Declared edge F1 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Electrochemical conversion | 0.3902 [0.1732, 0.6072] | RF-EI 0.4798 | -0.0896 [-0.2896, 0.1104] | 2/5 | 29/45 (64.4%) | 0.274 |
-| Reaction-to-crystallization | 0.4829 [0.4326, 0.5332] | GP-EI 0.5324 | -0.0495 [-0.0933, -0.0056] | 0/5 | 20/45 (44.4%) | 0.242 |
+| Task | Replacement material contract | Score contract | Current evidence | Formal participant result |
+| --- | --- | --- | --- | --- |
+| Electrochemical conversion | `nominal-prior-latent-v2` | `electrochemical-s0-balanced-efficiency-v2` | development multi-world diagnostics | absent |
+| Reaction-to-crystallization | `reaction-crystallization-latent-materials-v1` | `reaction-crystallization-s0-balanced-product-v1` | five-world simulator qualification | absent |
 
-Unsupported-claim rates for Declared relations were 68.3% and 75.1%,
-respectively.
-
-![Blind final recommendation by world](../docs/assets/images/static-s0-blind-scores-v0.1.png)
-
-All ten best exploration trials occurred after round 10. The five
-crystallization best-trial indices were 15, 17, 18, 18, and 19 in zero-based
-indexing; 110 of 150 classic-baseline crystallization cells also found their
-best trial in rounds 11–20. The 20-experiment horizon is therefore not an
-arbitrary long tail. Mean LLM best-so-far increased from 0.3749 at experiment
-8 to 0.4297 at experiment 20 in electrochemistry and from 0.4311 to 0.4911 in
-reaction-to-crystallization.
-
-![Fixed-world optimization progress](../docs/assets/images/static-s0-optimization-curves-v0.1.png)
-
-All ten model submissions were tested methods. Relative to the paired
-incumbent, eight had zero blind gain and two electrochemical submissions had
-small negative gains (-0.001563 and -0.005039); none had positive gain. The
-final synthesis did not exploit its permission to interpolate or extrapolate
-and did not improve the incumbent in this sample.
+The reaction-to-crystallization qualification tests all 16 anonymous
+catalyst-solvent pairs in each of five worlds with a paired observation
+coordinate. It establishes deterministic replay, world-specific material
+identity, material relevance, and absence of a universal standardized winner.
+It does not estimate participant-agent performance.
 
 ## 6. Environment Attainability
 

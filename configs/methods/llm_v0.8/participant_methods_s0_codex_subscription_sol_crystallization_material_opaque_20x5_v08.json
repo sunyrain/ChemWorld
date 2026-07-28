@@ -1,0 +1,58 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.8-s0-dev",
+  "freeze_id": "chemworld-static-s0-codex-subscription-sol-crystallization-material-opaque-20x5-v0.8-2026-07-28",
+  "status": "development_qualification_candidate",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_crystallization_material_opaque_horizon",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "provider_transport": "codex_cli_chatgpt_subscription",
+    "authentication": "chatgpt_subscription_cached_login",
+    "world_policy": "static_for_entire_campaign",
+    "workflow_mode": "static_single_stage_complete_reaction_crystallization",
+    "horizon_visible": true,
+    "history_policy": "complete_20_experiment_public_history",
+    "model_facing_parameterization": "named_physical_controls",
+    "material_information": "opaque_codes",
+    "final_synthesis": true,
+    "structured_world_claims": true,
+    "declared_claim_scoring": false,
+    "predictive_validation": false,
+    "blind_recommendation_validation": true,
+    "hidden_world_fields_supplied": false,
+    "codex_tools_enabled": false,
+    "codex_session_persistence": false
+  },
+  "methods": {
+    "s0_codex_subscription_sol_medium_crystallization_material_opaque_20": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_named_crystallization_material_opaque_full_history_20_v08",
+      "declared_claim_validation_policy": "unscored_unknown_terms",
+      "request_configuration": {
+        "response_format": "codex_exec_output_schema",
+        "reasoning_effort": "medium",
+        "max_tokens": 8000,
+        "timeout_s": 600.0,
+        "max_attempts": 2,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 20,
+        "per_decision_max_estimated_tokens": 30000,
+        "final_synthesis_max_estimated_tokens": 42000,
+        "predictive_synthesis_max_estimated_tokens": 42000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+        "preflight_status": "local_mock_20_completed_and_replay_verified",
+        "mock_preflight_world_seed": 0,
+        "mock_preflight_completed_exploration_experiments": 20,
+        "mock_preflight_completed_validation_experiments": 4,
+        "mock_preflight_replay_verified": true
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": "chemworld-current-surface-registry-0.4",
-  "updated_at": "2026-07-27",
+  "updated_at": "2026-07-29",
   "project": {
     "distribution": "chemworld-bench",
     "version": "0.2.0",
@@ -21,17 +21,17 @@
     "task_contract_version": "chemworld-task-contract-1.1"
   },
   "formal_evaluation": {
-    "status": "static_s0_formal_complete_mechanism_recertification_pending",
-    "formal_results_present": true,
+    "status": "static_s0_legacy_withdrawn_replacements_pending_formal_execution",
+    "formal_results_present": false,
     "benchmark_claim_allowed": false,
     "environment_certificate_results_present": true,
     "environment_benchmark_readiness_claim_allowed": false,
-    "interpretation": "Fixed-world static-S0 participant results are complete for both confirmatory tasks. RC28 Gate A passed on its frozen source, but its current source binding is stale and requires recertification. Mechanism-adaptation Participant Gates B-E remain unexecuted."
+    "interpretation": "Legacy fixed-world static-S0 participant results were withdrawn. Replacement electrochemical and reaction-crystallization protocols are development-qualified but have no formal multi-world result. RC28 Gate A remains a historical environment certificate with stale current-source binding; Participant Gates B-E remain unexecuted."
   },
   "static_scientific_optimization": {
-    "summary": "workstreams/flagship_tasks/reports/static-s0-confirmatory-summary-v0.1.json",
-    "status": "formal_results_complete_replay_verified",
-    "formal_result": true,
+    "summary": "workstreams/flagship_tasks/reports/static-s0-replacement-readiness-v0.1.json",
+    "status": "legacy_results_withdrawn_replacement_pilots_ready",
+    "formal_result": false,
     "benchmark_claim_allowed": false,
     "task_ids": [
       "electrochemical-conversion",
@@ -45,7 +45,37 @@
       4
     ],
     "exploration_experiments_per_seed": 20,
-    "all_replay_verified": true,
+    "all_replay_verified": false,
+    "replacement_protocols": {
+      "electrochemical-conversion": {
+        "protocol": "configs/benchmark/scientific_optimization_s0_v0.7_material_opaque_20x5_dev.json",
+        "material_family_id": "nominal-prior-latent-v2",
+        "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+        "material_information": "opaque_codes",
+        "qualification": "workstreams/flagship_tasks/reports/static-s0-material-family-v2-qualification-v0.3.json",
+        "qualification_status": "qualified_for_development_pilots",
+        "formal_result": false
+      },
+      "reaction-to-crystallization": {
+        "protocol": "configs/benchmark/scientific_optimization_s0_v0.8_crystallization_material_opaque_20x5_dev.json",
+        "method": "configs/methods/llm_v0.8/participant_methods_s0_codex_subscription_sol_crystallization_material_opaque_20x5_v08.json",
+        "material_family_id": "reaction-crystallization-latent-materials-v1",
+        "scoring_contract_id": "reaction-crystallization-s0-balanced-product-v1",
+        "material_information": "opaque_codes",
+        "qualification": "workstreams/flagship_tasks/reports/static-s0-crystallization-material-family-v1-qualification-v0.1.json",
+        "qualification_status": "qualified_for_development_pilots",
+        "formal_result": false
+      }
+    },
+    "formalization_gates": {
+      "protocol_and_method_freeze": false,
+      "classic_baseline_freeze": false,
+      "world_understanding_reference_freeze": false,
+      "multi_world_participant_execution": false,
+      "multi_world_baseline_execution": false,
+      "exact_postrun_replay": false,
+      "formal_summary_generated": false
+    },
     "hidden_world_change_evaluated": false
   },
   "mechanism_adaptation": {
@@ -126,7 +156,7 @@
     "status": "stale_evidence_bindings_worktree_dirty",
     "current_evidence_coherent": false,
     "tracked_source_tree_dirty": true,
-    "stale_binding_count": 9,
+    "stale_binding_count": 10,
     "stale_binding_ids": [
       "mechanism_a2_structural_receipt",
       "mechanism_a3_structural_receipt",
@@ -136,7 +166,8 @@
       "mechanism_preflight",
       "mechanism_preregistration",
       "mechanism_public_gate_a_decision",
-      "mechanism_release_qualification"
+      "mechanism_release_qualification",
+      "runtime_affordance"
     ],
     "blockers": [
       {
@@ -166,7 +197,8 @@
           "mechanism_preflight",
           "mechanism_preregistration",
           "mechanism_public_gate_a_decision",
-          "mechanism_release_qualification"
+          "mechanism_release_qualification",
+          "runtime_affordance"
         ]
       }
     ]
@@ -222,8 +254,8 @@
     "schema_version": "chemworld-current-evidence-dag-0.3",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "b2cb38ed84515da29acaeb19914191d957f94ee9e3de6cbfdcd3f4bf4aa193e2",
-    "repository_source_sha256": "dd1f81e39d0050b4943a20ff9f80c2e1e32d398c954f536b365fd5dda17d9635",
+    "graph_sha256": "4a8678ccae31c301b7657001b459744f45c7e2f89b99554d5022ad726ceb547e",
+    "repository_source_sha256": "6448dba09f576066078b4477f8b7456e3c436bcfb4babd5fd429179a5da9f3aa",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -251,11 +283,13 @@
       "public_boundary",
       "runtime_reachability",
       "state_transition_invariants",
-      "static_s0_confirmatory_summary",
+      "static_s0_crystallization_qualification",
+      "static_s0_electrochemical_qualification",
       "maturity_truth",
       "mechanism_diagnostic_relation_graph",
       "mechanism_participant_preregistration_candidate",
       "mechanism_sample_size_audit",
+      "static_s0_replacement_readiness",
       "backend_candidate",
       "mechanism_preregistration",
       "mechanism_confirmatory_task_semantics_audit",
@@ -383,9 +417,9 @@
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
         "sha256": "96551d0443aedafbb2522d52e787d7dd7e00ffd859bfa48d23815c59793507b8",
-        "artifact_state": "current",
-        "freshness": "fresh",
-        "gate_state": "passed"
+        "artifact_state": "stale",
+        "freshness": "stale_dependency_binding",
+        "gate_state": "invalidated"
       },
       "runtime_integration": {
         "path": "workstreams/world_foundation/reports/wf-110-runtime-integration.json",
@@ -448,49 +482,49 @@
         "gate_state": "not_applicable"
       },
       "static_s0_crystallization_method": {
-        "path": "configs/methods/llm_v0.5/participant_methods_s0_wellau_codex_sol_high_crystallization_20.json",
+        "path": "configs/methods/llm_v0.8/participant_methods_s0_codex_subscription_sol_crystallization_material_opaque_20x5_v08.json",
         "role": "protocol_input",
         "lifecycle": "immutable",
         "producer": "maintainer_versioned_input",
         "source_binding": "content_sha256",
         "dependencies": [],
-        "sha256": "d332d37f04f10987c8cbb3326c44c3e4b9df44f64d29970fda50534ba6736e19",
+        "sha256": "d2d60030b085f5eeab922cbc5f84b43992154a7cc8ce707f184e4017b1134c94",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "not_applicable"
       },
       "static_s0_crystallization_protocol": {
-        "path": "configs/benchmark/scientific_optimization_s0_v0.5_crystallization_high_20_formal.json",
+        "path": "configs/benchmark/scientific_optimization_s0_v0.8_crystallization_material_opaque_20x5_dev.json",
         "role": "protocol_input",
         "lifecycle": "immutable",
         "producer": "maintainer_versioned_input",
         "source_binding": "content_sha256",
         "dependencies": [],
-        "sha256": "f16f33e2ccd0537d440cc376bf1a4c9ba3b432d1691b53d8d907bc77ae67d9bb",
+        "sha256": "b1443465225018e2e945d4aabee5acc0dc6ff7d26add7ea53957b3ce716b91c5",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "not_applicable"
       },
       "static_s0_electrochemical_method": {
-        "path": "configs/methods/llm_v0.4/participant_methods_s0_wellau_codex_sol_high_single_stage_20_v041.json",
+        "path": "configs/methods/llm_v0.4/participant_methods_s0_codex_subscription_sol_material_opaque_20x5_v071.json",
         "role": "protocol_input",
         "lifecycle": "immutable",
         "producer": "maintainer_versioned_input",
         "source_binding": "content_sha256",
         "dependencies": [],
-        "sha256": "3249b1519b0447d4a904bd62ff865999bf42e52f6f64e04818f7e9a1f4ecf16e",
+        "sha256": "b52bcc6110ffc1b74dd204ad564d4d38f1e7826068e14bce7975775c497eaa3c",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "not_applicable"
       },
       "static_s0_electrochemical_protocol": {
-        "path": "configs/benchmark/scientific_optimization_s0_v0.4.1_single_stage_high_20_formal.json",
+        "path": "configs/benchmark/scientific_optimization_s0_v0.7.1_material_opaque_codex_subscription_20x5_dev.json",
         "role": "protocol_input",
         "lifecycle": "immutable",
         "producer": "maintainer_versioned_input",
         "source_binding": "content_sha256",
         "dependencies": [],
-        "sha256": "f4ac3a967374a68b2679785cd15efa5ba35387463ed95803d07644e600fb17af",
+        "sha256": "f735e91a114b82eccccccd4148d6b262389555c55a0da0606e8d436c1d38d460",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "not_applicable"
@@ -598,22 +632,33 @@
         "freshness": "fresh",
         "gate_state": "passed"
       },
-      "static_s0_confirmatory_summary": {
-        "path": "workstreams/flagship_tasks/reports/static-s0-confirmatory-summary-v0.1.json",
-        "role": "formal_result",
+      "static_s0_crystallization_qualification": {
+        "path": "workstreams/flagship_tasks/reports/static-s0-crystallization-material-family-v1-qualification-v0.1.json",
+        "role": "development_diagnostic",
         "lifecycle": "immutable",
-        "producer": "frozen_formal_execution",
-        "source_binding": "protocol_plan_and_result_sha256",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
         "dependencies": [
-          "static_s0_electrochemical_protocol",
-          "static_s0_electrochemical_method",
-          "static_s0_crystallization_protocol",
-          "static_s0_crystallization_method"
+          "static_s0_crystallization_protocol"
         ],
-        "sha256": "c114c643c6baece7c18763f4b1a6123b63e842ad2c6a89cadaac8788969a93f7",
+        "sha256": "9e841cf8faad006acaf1f72e8e4a44f361fd6c4cd647bd9880e7f7076a01e235",
         "artifact_state": "current",
         "freshness": "fresh",
-        "gate_state": "passed"
+        "gate_state": "not_applicable"
+      },
+      "static_s0_electrochemical_qualification": {
+        "path": "workstreams/flagship_tasks/reports/static-s0-material-family-v2-qualification-v0.3.json",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
+        "dependencies": [
+          "static_s0_electrochemical_protocol"
+        ],
+        "sha256": "1b31564a2dfe1aa310fb0ddedcb82890ee708e569257423265b1eb86968c190c",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
       },
       "maturity_truth": {
         "path": "workstreams/world_foundation/reports/maturity-truth-vnext.json",
@@ -676,6 +721,25 @@
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
+      },
+      "static_s0_replacement_readiness": {
+        "path": "workstreams/flagship_tasks/reports/static-s0-replacement-readiness-v0.1.json",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
+        "dependencies": [
+          "static_s0_electrochemical_protocol",
+          "static_s0_electrochemical_method",
+          "static_s0_electrochemical_qualification",
+          "static_s0_crystallization_protocol",
+          "static_s0_crystallization_method",
+          "static_s0_crystallization_qualification"
+        ],
+        "sha256": "bad57e566e04658fda525e98a76b492c3e4a2ee4ead91ed92c4428a42e9acf57",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
       },
       "backend_candidate": {
         "path": "workstreams/world_foundation/reports/backend-v0.5.json",

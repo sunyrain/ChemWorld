@@ -9,13 +9,72 @@ from chemworld.agents.task_recipes import (
     electrochemical_recipe_unit_vector_from_parameters,
 )
 from chemworld.eval.electrochemical_predictive import (
+    ELECTROCHEMICAL_STANDARDIZED_PREDICTIVE_VERSION,
     PREDICTIVE_DIRECTION_THRESHOLD,
     PREDICTIVE_QUERY_COUNT,
+    SINGLE_STAGE_PREDICTIVE_QUERY_METRICS,
+    STANDARDIZED_PREDICTIVE_ANCHOR_ID,
+    STANDARDIZED_PREDICTIVE_INTERVENTIONS,
+    STANDARDIZED_PREDICTIVE_REFERENCE_PARAMETERS,
     build_electrochemical_prediction_queries,
+    build_standardized_electrochemical_prediction_queries,
     classify_metric_direction,
     parse_counterfactual_predictions,
     score_predictive_validation,
 )
+from chemworld.physchem.electrochemical_task_contract import (
+    ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
+)
+
+
+def test_standardized_prediction_queries_are_history_independent_and_frozen() -> None:
+    queries = build_standardized_electrochemical_prediction_queries()
+
+    assert STANDARDIZED_PREDICTIVE_ANCHOR_ID == "balanced-standardized-anchor-v0.1"
+    assert [query.query_id for query in queries] == [
+        "standardized-potential",
+        "standardized-current",
+        "standardized-electrolyte-profile",
+    ]
+    for query in queries:
+        assert query.schema_version == ELECTROCHEMICAL_STANDARDIZED_PREDICTIVE_VERSION
+        assert query.reference_experiment_index == -1
+        assert query.reference_recipe_parameters == (
+            STANDARDIZED_PREDICTIVE_REFERENCE_PARAMETERS
+        )
+        assert query.intervention_recipe_parameters == (
+            STANDARDIZED_PREDICTIVE_INTERVENTIONS[query.intervention_variable]
+        )
+
+
+def test_single_stage_predictive_metrics_match_final_assay_field_names() -> None:
+    assert SINGLE_STAGE_PREDICTIVE_QUERY_METRICS["potential_V"][0] == (
+        "selective_product_yield"
+    )
+    assert SINGLE_STAGE_PREDICTIVE_QUERY_METRICS["current_mA"][0] == (
+        "electrochemical_conversion"
+    )
+    queries = build_electrochemical_prediction_queries(
+        [
+            {
+                "experiment_index": 0,
+                "plan": {
+                    "recipe_parameters": {
+                        "electrolyte_profile": 0,
+                        "solvent": 0,
+                        "reagent_amount_mol": 0.010,
+                        "potential_V": 0.8,
+                        "current_mA": 180.0,
+                        "duration_s": 2100.0,
+                    }
+                },
+                "terminal_summary": {"leaderboard_score": 0.5},
+            }
+        ],
+        electrochemical_workflow_mode=ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
+    )
+    assert queries[0].metric_ids[0] == "selective_product_yield"
+    assert queries[1].metric_ids[0] == "electrochemical_conversion"
 
 
 def _recipe(**updates: int | float) -> dict[str, int | float]:

@@ -6,6 +6,7 @@
   "benchmark_claim_allowed": false,
   "world_policy": {
     "mode": "static_for_entire_campaign",
+    "electrochemical_material_family_id": "legacy-electrochemical-materials-v0.1",
     "world_seed": 0,
     "interventions": [],
     "phase_changes": [],
@@ -64,15 +65,15 @@
         "electrolyte_profile"
       ],
       "metric_ids_by_intervention": {
-        "controlled_potential_V": ["yield", "energy_efficiency", "leaderboard_score"],
-        "controlled_current_mA": ["conversion", "ohmic_efficiency", "leaderboard_score"],
+        "controlled_potential_V": ["selective_product_yield", "energy_efficiency", "leaderboard_score"],
+        "controlled_current_mA": ["electrochemical_conversion", "ohmic_efficiency", "leaderboard_score"],
         "electrolyte_profile": ["transport_efficiency", "pH_normalized", "leaderboard_score"]
       },
       "metric_source_by_metric": {
-        "yield": "measurement_evidence.closeout-final-assay.processed_estimate",
+        "selective_product_yield": "measurement_evidence.closeout-final-assay.processed_estimate",
         "energy_efficiency": "measurement_evidence.closeout-final-assay.processed_estimate",
         "leaderboard_score": "terminal_summary.leaderboard_score",
-        "conversion": "measurement_evidence.closeout-final-assay.processed_estimate",
+        "electrochemical_conversion": "measurement_evidence.closeout-final-assay.processed_estimate",
         "ohmic_efficiency": "measurement_evidence.closeout-final-assay.processed_estimate",
         "transport_efficiency": "measurement_evidence.closeout-final-assay.processed_estimate",
         "pH_normalized": "measurement_evidence.closeout-final-assay.processed_estimate"

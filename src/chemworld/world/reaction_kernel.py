@@ -160,8 +160,7 @@ def integrate_compiled_reaction_ode(
     reactor_settings = equipment_settings(state.equipment, "batch_reactor")
     catalyst = int(reactor_settings.get("catalyst", 0))
     solvent = int(reactor_settings.get("solvent", 0))
-    catalyst_effects = np.asarray(world.catalyst_effects, dtype=float)
-    solvent_effects = np.asarray(world.solvent_effects, dtype=float)
+    catalyst_effects, solvent_effects = _reaction_effect_tables(world, state)
     if catalyst_effects.ndim not in {1, 2} or catalyst not in range(
         catalyst_effects.shape[0]
     ):
@@ -176,6 +175,7 @@ def integrate_compiled_reaction_ode(
             solvent=solvent,
             reaction_index=index,
             stirring_factor=stirring_factor,
+            state=state,
         )
         for index, reaction in enumerate(network.reactions)
     }
@@ -488,6 +488,7 @@ def compiled_reaction_ode_rhs(
             solvent=solvent,
             reaction_index=reaction_index,
             stirring_factor=stirring_factor,
+            state=state,
         )
         rate_mol_s = rates_mol_L_s[reaction.reaction_id] * volume * hidden_modifier
         for species_id, coefficient in reaction.stoichiometry.items():
@@ -515,9 +516,9 @@ def _hidden_reaction_modifier(
     solvent: int,
     reaction_index: int,
     stirring_factor: float,
+    state: WorldState,
 ) -> float:
-    catalyst_effects = np.asarray(world.catalyst_effects, dtype=float)
-    solvent_effects = np.asarray(world.solvent_effects, dtype=float)
+    catalyst_effects, solvent_effects = _reaction_effect_tables(world, state)
     if catalyst_effects.ndim not in {1, 2} or catalyst not in range(
         catalyst_effects.shape[0]
     ):
@@ -541,6 +542,24 @@ def _hidden_reaction_modifier(
         else solvent_effects[solvent_index]
     )
     return float(catalyst_factor * solvent_factor * stirring_factor)
+
+
+def _reaction_effect_tables(
+    world: Any,
+    state: WorldState,
+) -> tuple[np.ndarray, np.ndarray]:
+    if (
+        state.metadata.get("crystallization_material_family_id")
+        == "reaction-crystallization-latent-materials-v1"
+    ):
+        return (
+            np.asarray(world.crystallization_catalyst_effects, dtype=float),
+            np.asarray(world.crystallization_solvent_effects, dtype=float),
+        )
+    return (
+        np.asarray(world.catalyst_effects, dtype=float),
+        np.asarray(world.solvent_effects, dtype=float),
+    )
 
 
 @dataclass(frozen=True)

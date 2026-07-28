@@ -8,48 +8,24 @@
     numbers remain historical formal results, but their current binding is
     stale and `benchmark_ready=false` until recertification.
 
-## 2026-07-27 formal static-S0 results
+## Static-S0 replacement status
 
-Both confirmatory tasks have completed five-world formal evaluations with
-`gpt-5.6-sol high` under the same static scientific-optimization design. Each
-world has 20 complete exploration experiments, one separate final synthesis,
-three frozen predictive interventions, three paired blind incumbent
-replicates, and three paired blind recommendation replicates. Every physical
-experiment replayed exactly.
+The legacy 2026-07-27 two-task participant bundle is withdrawn from the
+current evidence DAG and cannot support an abstract, result table, or model
+comparison. Both confirmatory tasks now have replacement development
+protocols:
 
-| Task | LLM blind mean, 95% CI | Best classic calibration mean | Paired LLM − classic, 95% CI | World wins | Predictive |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Electrochemical Conversion | 0.3902 [0.1732, 0.6072] | RF-EI 0.4798 | -0.0896 [-0.2896, 0.1104] | 2 win / 3 loss | 29/45 (64.4%) |
-| Reaction to Crystallization | 0.4829 [0.4326, 0.5332] | GP-EI 0.5324 | -0.0495 [-0.0933, -0.0056] | 0 win / 5 loss | 20/45 (44.4%) |
+| Task | Material contract | Score contract | Current evidence | Formal participant result |
+| --- | --- | --- | --- | --- |
+| Electrochemical Conversion | `nominal-prior-latent-v2` | `electrochemical-s0-balanced-efficiency-v2` | multi-world development diagnostics | absent |
+| Reaction to Crystallization | `reaction-crystallization-latent-materials-v1` | `reaction-crystallization-s0-balanced-product-v1` | five-world material qualification | absent |
 
-The statistical unit is the world seed. Five algorithm seeds are averaged
-within each world before comparison. Intervals are two-sided 95% Student-t
-descriptive intervals over five world clusters. The best classic calibration
-family is selected from six candidates by aggregate blind mean, so these are
-not preregistered superiority tests.
-
-![Static-S0 blind final scores by world](assets/images/static-s0-blind-scores-v0.1.png)
-
-All ten best exploration points occurred after experiment 10, so the
-20-experiment budget supplied material search opportunity. From experiment 8
-to experiment 20, mean LLM best-so-far increased from 0.3749 to 0.4297 in
-electrochemistry and from 0.4311 to 0.4911 in crystallization.
-
-![Static-S0 optimization curves](assets/images/static-s0-optimization-curves-v0.1.png)
-
-The model can improve a fixed-world process, but its cross-world reliability
-and world understanding remain below structured black-box optimizers. All ten
-final submissions were tested methods: eight had zero paired gain, two had
-small negative gain, and none improved the incumbent. Separate final synthesis
-therefore provides an explicit submission and explanation interface, but has
-not yet demonstrated better experimental conditions.
-
-Static S0 is the current research priority: closed-loop optimization in a
-fixed but unknown system. The RC28 material below is a historical environment
-identifiability certificate on frozen source, not the current participant
-roadmap. Hidden changepoints, mechanism replacement, and world-change
-experiments are deferred until they have a realistic drift model and a
-separate research question.
+The reaction-to-crystallization qualification executes all 16 anonymous
+catalyst-solvent pairs in every world and establishes exact replay,
+world-fixed material identity, material relevance, and no universal
+standardized winner. It is not agent performance. Both replacement protocols
+remain `formal_result=false` until preregistration, reference contracts,
+classic baselines, and multi-world Codex subscription runs are frozen.
 
 ## Optimization designs across all 15 tasks
 
@@ -95,7 +71,7 @@ API compatibility; they no longer define the scientific taxonomy.
 | A1 physical validity | historical RC28 passed, 83/83 design checks; current binding stale |
 | A2 controlled identifiability | historical RC28 **passed**, 4,896/4,896 receipts; current binding stale |
 | A3 online attainability | historical RC28 **passed**, 2,016/2,016 receipts; current binding stale |
-| Static-S0 Participant Agent | five-seed formal execution and replay complete for both confirmatory tasks |
+| Static-S0 Participant Agent | legacy results withdrawn; replacement protocols development-qualified, formal multi-world runs pending |
 | Mechanism-adaptation Participant Gates B–E | deferred research extension; Flash Direct/Stateful S1/S2 each achieved 0/4 autonomous completion, formal matrix not started |
 | Private-E environment confirmation | eligible, not yet executed |
 | Private-A participant-Agent confirmation | sealed pending participant freeze |

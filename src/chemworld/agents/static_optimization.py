@@ -59,15 +59,39 @@ from chemworld.eval.electrochemical_predictive import (
     build_electrochemical_prediction_queries,
     parse_counterfactual_predictions,
 )
-from chemworld.eval.world_understanding import parse_world_understanding_claims
+from chemworld.eval.world_understanding import (
+    parse_world_understanding_claims,
+    parse_world_understanding_claims_tolerant,
+)
+from chemworld.materials import (
+    normalize_static_material_information_config,
+    static_material_information_dossier,
+)
 from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
     normalize_electrochemical_workflow_mode,
 )
 
-STATIC_OPTIMIZATION_INTERFACE_VERSION = "chemworld-static-optimization-interface-0.2-s0-dev"
-STATIC_OPTIMIZATION_PROMPT_VERSION = "chemworld-static-optimization-prompt-0.2-s0-dev"
+STATIC_OPTIMIZATION_INTERFACE_VERSION = "chemworld-static-optimization-interface-0.3-s0-dev"
+STATIC_OPTIMIZATION_PROMPT_VERSION = "chemworld-static-optimization-prompt-0.3-s0-dev"
 STATIC_FINAL_SYNTHESIS_VERSION = "chemworld-static-final-synthesis-0.3-s0-dev"
+STATIC_FINAL_SYNTHESIS_SEPARATE_VERSION = (
+    "chemworld-static-final-synthesis-0.4-s0-dev"
+)
+STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION = (
+    "chemworld-static-final-synthesis-0.5-s0-dev"
+)
+STATIC_PREDICTIVE_SYNTHESIS_VERSION = (
+    "chemworld-static-predictive-synthesis-0.1-s0-dev"
+)
+DECLARED_CLAIM_VALIDATION_STRICT = "strict"
+DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN = "unscored_unknown_terms"
+DECLARED_CLAIM_VALIDATION_POLICIES = frozenset(
+    {
+        DECLARED_CLAIM_VALIDATION_STRICT,
+        DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN,
+    }
+)
 
 _ELECTROCHEMICAL_CLAIM_CAUSES = (
     "controlled_potential_V",
@@ -86,8 +110,9 @@ _ELECTROCHEMICAL_SINGLE_STAGE_CLAIM_CAUSES = (
     "reagent_amount_mol",
 )
 _ELECTROCHEMICAL_CLAIM_EFFECTS = (
-    "yield",
-    "conversion",
+    "selective_product_yield",
+    "electrochemical_conversion",
+    "electrochemical_selectivity",
     "energy_efficiency",
     "faradaic_efficiency",
     "transport_efficiency",
@@ -165,6 +190,24 @@ declared public search bounds. Return exactly one JSON object without exposing p
 chain-of-thought. Ground the recommendation and working scientific explanation in public
 experiment indices and evidence IDs. Separate empirical relations from mechanism claims,
 and express structured claims only with the declared public vocabulary.
+"""
+
+FINAL_SYNTHESIS_SEPARATE_PREDICTIVE_SYSTEM_PROMPT = """You are completing a
+fixed-world scientific optimization campaign in ChemWorld. Exploration is finished.
+Submit one final experimental method and a working scientific explanation using only the
+public campaign evidence. The final method will be committed before a later, separate
+predictive diagnostic. Do not include counterfactual_predictions, predictive queries, or
+answers to unseen interventions in this response. Return exactly the declared JSON fields
+without exposing private chain-of-thought. Ground the recommendation in public experiment
+indices and evidence IDs, and use only the declared public mechanism vocabulary.
+"""
+
+PREDICTIVE_SYNTHESIS_SYSTEM_PROMPT = """You are completing a held-out predictive
+diagnostic for a fixed-world scientific campaign in ChemWorld. A final experimental method
+has already been committed and cannot be changed. Use only the supplied public experiment
+history to predict the direction of each pre-registered intervention. Return exactly one
+JSON object without exposing private chain-of-thought. Do not recommend, revise, or rank
+experimental methods; this call is prediction-only.
 """
 
 _PUBLIC_TASK_KEYS = (
@@ -324,10 +367,11 @@ class StaticFinalRecommendation:
     recommended_followup: str
     recommended_recipe_parameters: dict[str, Any] | None = None
     counterfactual_predictions: tuple[dict[str, Any], ...] = ()
+    schema_version: str = STATIC_FINAL_SYNTHESIS_VERSION
 
     def to_dict(self) -> dict[str, Any]:
         payload = {
-            "schema_version": STATIC_FINAL_SYNTHESIS_VERSION,
+            "schema_version": self.schema_version,
             "recommended_search_vector": list(self.recommended_search_vector),
             "recommended_measurement_slots": list(self.recommended_measurement_slots),
             "recommendation_type": self.recommendation_type,
@@ -378,6 +422,10 @@ class StaticOptimizationContextBuilder:
         final_synthesis_after_exploration: bool = False,
         include_task_operation_budget: bool = True,
         predictive_world_understanding_enabled: bool = False,
+        material_information: Mapping[str, Any] | None = None,
+        electrochemical_material_family_id: str | None = None,
+        crystallization_material_family_id: str | None = None,
+        scoring_contract: Mapping[str, Any] | None = None,
         electrochemical_workflow_mode: str = (
             ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
         ),
@@ -398,6 +446,32 @@ class StaticOptimizationContextBuilder:
         self.predictive_world_understanding_enabled = bool(
             predictive_world_understanding_enabled
         )
+        active_material_family_id = (
+            crystallization_material_family_id
+            if str(self.task_info.get("task_id", "")) == "reaction-to-crystallization"
+            else electrochemical_material_family_id
+        )
+        self.material_information_config = normalize_static_material_information_config(
+            material_information,
+            task_ids=(str(self.task_info.get("task_id", "")),),
+            material_family_id=active_material_family_id,
+        )
+        self.material_information_condition = str(
+            self.material_information_config["mode"]
+        )
+        self.material_information = static_material_information_dossier(
+            self.material_information_config,
+            task_id=str(self.task_info.get("task_id", "")),
+            material_family_id=active_material_family_id,
+        )
+        self.material_information_sha256 = (
+            canonical_sha256(self.material_information)
+            if self.material_information is not None
+            else None
+        )
+        self.scoring_contract = (
+            None if scoring_contract is None else copy.deepcopy(dict(scoring_contract))
+        )
         self.electrochemical_workflow_mode = normalize_electrochemical_workflow_mode(
             electrochemical_workflow_mode
         )
@@ -410,9 +484,17 @@ class StaticOptimizationContextBuilder:
         experiment_history: Sequence[Mapping[str, Any]],
         *,
         decision_stage: str = "experiment_design",
+        include_prediction_queries: bool | None = None,
     ) -> dict[str, Any]:
         if decision_stage not in {"experiment_design", "final_synthesis"}:
             raise ValueError("unsupported static optimization decision stage")
+        if include_prediction_queries is None:
+            include_prediction_queries = (
+                self.predictive_world_understanding_enabled
+                and decision_stage == "final_synthesis"
+            )
+        if include_prediction_queries and decision_stage != "final_synthesis":
+            raise ValueError("prediction queries are only valid after exploration")
         selected = self._select_history(experiment_history)
         history = [self._compact_history_record(item) for item in selected]
         evidence_catalog = [
@@ -426,6 +508,10 @@ class StaticOptimizationContextBuilder:
             "feedback_policy": "public_processed_estimate_uncertainty_reward",
             "decision_stage": decision_stage,
         }
+        if self.scoring_contract is not None:
+            optimization_contract["scoring_contract"] = copy.deepcopy(
+                self.scoring_contract
+            )
         if self.total_experiments is not None:
             completed = len(experiment_history)
             current = min(completed + 1, self.total_experiments)
@@ -509,6 +595,10 @@ class StaticOptimizationContextBuilder:
                 experiment_interface["electrochemical_workflow_mode"] = (
                     self.electrochemical_workflow_mode
                 )
+            if self.material_information is not None:
+                experiment_interface["material_information"] = copy.deepcopy(
+                    self.material_information
+                )
         else:
             experiment_interface.update(
                 {
@@ -545,7 +635,7 @@ class StaticOptimizationContextBuilder:
         }
         if (
             decision_stage == "final_synthesis"
-            and self.predictive_world_understanding_enabled
+            and include_prediction_queries
         ):
             queries = (
                 build_electrochemical_prediction_queries(
@@ -818,6 +908,8 @@ class StaticFinalRecommendationValidator:
         task_info: Mapping[str, Any],
         *,
         predictive_world_understanding_enabled: bool = False,
+        final_synthesis_version: str = STATIC_FINAL_SYNTHESIS_VERSION,
+        declared_claim_validation_policy: str = DECLARED_CLAIM_VALIDATION_STRICT,
         electrochemical_workflow_mode: str = (
             ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
         ),
@@ -833,6 +925,10 @@ class StaticFinalRecommendationValidator:
         self.predictive_world_understanding_enabled = bool(
             predictive_world_understanding_enabled
         )
+        self.final_synthesis_version = str(final_synthesis_version)
+        if declared_claim_validation_policy not in DECLARED_CLAIM_VALIDATION_POLICIES:
+            raise ValueError("unknown Declared claim validation policy")
+        self.declared_claim_validation_policy = declared_claim_validation_policy
 
     @staticmethod
     def _string_list(value: Any, *, field: str, maximum_items: int = 16) -> list[str]:
@@ -905,7 +1001,7 @@ class StaticFinalRecommendationValidator:
             if _uses_named_physical_controls(self.plan_validator.task_info)
             else "recommended_search_vector"
         )
-        if self.predictive_world_understanding_enabled:
+        if prediction_queries:
             required.add("counterfactual_predictions")
         missing = required - set(payload)
         if missing:
@@ -922,13 +1018,13 @@ class StaticFinalRecommendationValidator:
                 constraint="exact_declared_fields",
                 observed=",".join(sorted(str(item) for item in set(payload) - required)),
             )
-        if payload["schema_version"] != STATIC_FINAL_SYNTHESIS_VERSION:
+        if payload["schema_version"] != self.final_synthesis_version:
             raise ScientificPlanValidationError(
                 "final synthesis schema_version does not match the frozen contract",
                 field_path="schema_version",
                 constraint="exact_schema_version",
                 observed=str(payload["schema_version"]),
-                limit=STATIC_FINAL_SYNTHESIS_VERSION,
+                limit=self.final_synthesis_version,
             )
         confidence = self._probability(payload["confidence"], field="confidence")
         plan_payload = {
@@ -1065,47 +1161,58 @@ class StaticFinalRecommendationValidator:
             ),
         }
         if _uses_named_physical_controls(self.plan_validator.task_info):
-            try:
-                claims = parse_world_understanding_claims(
-                    explanation["structured_claims"],
-                    evidence_catalog=evidence_catalog,
-                    allowed_cause_variables=(
-                        _ELECTROCHEMICAL_SINGLE_STAGE_CLAIM_CAUSES
-                        if self.electrochemical_workflow_mode
-                        == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
-                        and self.recipe_kind == "electrochemical"
-                        else _ELECTROCHEMICAL_CLAIM_CAUSES
-                        if self.recipe_kind == "electrochemical"
-                        else _CRYSTALLIZATION_CLAIM_CAUSES
-                    ),
-                    allowed_effect_variables=(
-                        _ELECTROCHEMICAL_CLAIM_EFFECTS
-                        if self.recipe_kind == "electrochemical"
-                        else _CRYSTALLIZATION_CLAIM_EFFECTS
-                    ),
-                    allowed_mechanism_tags=(
-                        _ELECTROCHEMICAL_MECHANISM_TAGS
-                        if self.recipe_kind == "electrochemical"
-                        else _CRYSTALLIZATION_MECHANISM_TAGS
-                    ),
+            claim_arguments = {
+                "evidence_catalog": evidence_catalog,
+                "allowed_cause_variables": (
+                    _ELECTROCHEMICAL_SINGLE_STAGE_CLAIM_CAUSES
+                    if self.electrochemical_workflow_mode
+                    == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
+                    and self.recipe_kind == "electrochemical"
+                    else _ELECTROCHEMICAL_CLAIM_CAUSES
+                    if self.recipe_kind == "electrochemical"
+                    else _CRYSTALLIZATION_CLAIM_CAUSES
+                ),
+                "allowed_effect_variables": (
+                    _ELECTROCHEMICAL_CLAIM_EFFECTS
+                    if self.recipe_kind == "electrochemical"
+                    else _CRYSTALLIZATION_CLAIM_EFFECTS
+                ),
+                "allowed_mechanism_tags": (
+                    _ELECTROCHEMICAL_MECHANISM_TAGS
+                    if self.recipe_kind == "electrochemical"
+                    else _CRYSTALLIZATION_MECHANISM_TAGS
+                ),
+            }
+            if (
+                self.declared_claim_validation_policy
+                == DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN
+            ):
+                claims, claim_diagnostics = (
+                    parse_world_understanding_claims_tolerant(
+                        explanation["structured_claims"],
+                        **claim_arguments,
+                    )
                 )
-            except ValueError as error:
-                raise ScientificPlanValidationError(
-                    str(error),
-                    field_path="working_explanation.structured_claims",
-                    constraint="world_understanding_claim_contract",
-                ) from error
+                normalized_explanation["structured_claim_diagnostics"] = (
+                    claim_diagnostics
+                )
+            else:
+                try:
+                    claims = parse_world_understanding_claims(
+                        explanation["structured_claims"],
+                        **claim_arguments,
+                    )
+                except ValueError as error:
+                    raise ScientificPlanValidationError(
+                        str(error),
+                        field_path="working_explanation.structured_claims",
+                        constraint="world_understanding_claim_contract",
+                    ) from error
             normalized_explanation["structured_claims"] = [
                 claim.to_dict() for claim in claims
             ]
         counterfactual_predictions: tuple[dict[str, Any], ...] = ()
-        if self.predictive_world_understanding_enabled:
-            if not prediction_queries:
-                raise ScientificPlanValidationError(
-                    "predictive validation is enabled but no frozen queries were supplied",
-                    field_path="counterfactual_predictions",
-                    constraint="frozen_query_set_present",
-                )
+        if prediction_queries:
             try:
                 parsed_predictions = parse_counterfactual_predictions(
                     payload["counterfactual_predictions"],
@@ -1144,6 +1251,7 @@ class StaticFinalRecommendationValidator:
             ),
             recommended_recipe_parameters=plan.recipe_parameters,
             counterfactual_predictions=counterfactual_predictions,
+            schema_version=self.final_synthesis_version,
         )
 
 
@@ -1162,8 +1270,15 @@ class StaticOptimizationAgent:
         horizon_visible: bool = False,
         final_synthesis_enabled: bool = False,
         final_synthesis_prompt_token_estimate_cap: int | None = None,
+        predictive_synthesis_prompt_token_estimate_cap: int | None = None,
         include_task_operation_budget: bool = True,
         predictive_world_understanding_enabled: bool = False,
+        predictive_queries_in_final_synthesis: bool = True,
+        declared_claim_validation_policy: str = DECLARED_CLAIM_VALIDATION_STRICT,
+        material_information: Mapping[str, Any] | None = None,
+        electrochemical_material_family_id: str | None = None,
+        crystallization_material_family_id: str | None = None,
+        scoring_contract: Mapping[str, Any] | None = None,
         electrochemical_workflow_mode: str = (
             ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
         ),
@@ -1183,9 +1298,44 @@ class StaticOptimizationAgent:
             if final_synthesis_prompt_token_estimate_cap is not None
             else prompt_token_estimate_cap
         )
+        self.predictive_synthesis_prompt_token_estimate_cap = int(
+            predictive_synthesis_prompt_token_estimate_cap
+            if predictive_synthesis_prompt_token_estimate_cap is not None
+            else self.final_synthesis_prompt_token_estimate_cap
+        )
         self.include_task_operation_budget = bool(include_task_operation_budget)
         self.predictive_world_understanding_enabled = bool(
             predictive_world_understanding_enabled
+        )
+        self.predictive_queries_in_final_synthesis = bool(
+            predictive_queries_in_final_synthesis
+        )
+        if declared_claim_validation_policy not in DECLARED_CLAIM_VALIDATION_POLICIES:
+            raise ValueError("unknown Declared claim validation policy")
+        self.declared_claim_validation_policy = declared_claim_validation_policy
+        if (
+            self.declared_claim_validation_policy
+            == DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN
+        ):
+            self.final_synthesis_version = (
+                STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION
+            )
+        else:
+            self.final_synthesis_version = (
+                STATIC_FINAL_SYNTHESIS_SEPARATE_VERSION
+                if self.predictive_world_understanding_enabled
+                and not self.predictive_queries_in_final_synthesis
+                else STATIC_FINAL_SYNTHESIS_VERSION
+            )
+        self.material_information_config = (
+            None
+            if material_information is None
+            else copy.deepcopy(dict(material_information))
+        )
+        self.electrochemical_material_family_id = electrochemical_material_family_id
+        self.crystallization_material_family_id = crystallization_material_family_id
+        self.scoring_contract = (
+            None if scoring_contract is None else copy.deepcopy(dict(scoring_contract))
         )
         self.electrochemical_workflow_mode = normalize_electrochemical_workflow_mode(
             electrochemical_workflow_mode
@@ -1193,6 +1343,7 @@ class StaticOptimizationAgent:
         self.resource_ledger = ResourceLedger()
         self._last_audit: dict[str, Any] | None = None
         self._last_synthesis_audit: dict[str, Any] | None = None
+        self._last_predictive_audit: dict[str, Any] | None = None
 
     def reset(self, task_info: Mapping[str, Any], seed: int) -> None:
         self.task_info = dict(task_info)
@@ -1214,6 +1365,14 @@ class StaticOptimizationAgent:
             predictive_world_understanding_enabled=(
                 self.predictive_world_understanding_enabled
             ),
+            material_information=self.material_information_config,
+            electrochemical_material_family_id=(
+                self.electrochemical_material_family_id
+            ),
+            crystallization_material_family_id=(
+                self.crystallization_material_family_id
+            ),
+            scoring_contract=self.scoring_contract,
             electrochemical_workflow_mode=self.electrochemical_workflow_mode,
         )
         self.validator = StaticOptimizationValidator(
@@ -1225,11 +1384,16 @@ class StaticOptimizationAgent:
             predictive_world_understanding_enabled=(
                 self.predictive_world_understanding_enabled
             ),
+            final_synthesis_version=self.final_synthesis_version,
+            declared_claim_validation_policy=(
+                self.declared_claim_validation_policy
+            ),
             electrochemical_workflow_mode=self.electrochemical_workflow_mode,
         )
         self.resource_ledger.reset()
         self._last_audit = None
         self._last_synthesis_audit = None
+        self._last_predictive_audit = None
 
     def public_context(self, history: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         if not hasattr(self, "context_builder"):
@@ -1237,13 +1401,25 @@ class StaticOptimizationAgent:
         return self.context_builder.build(history)
 
     def final_synthesis_context(
-        self, history: Sequence[Mapping[str, Any]]
+        self,
+        history: Sequence[Mapping[str, Any]],
+        *,
+        include_prediction_queries: bool | None = None,
     ) -> dict[str, Any]:
         if not self.final_synthesis_enabled:
             raise RuntimeError("final synthesis is not enabled for this S0 method")
         if self.experiment_horizon is not None and len(history) != self.experiment_horizon:
             raise RuntimeError("final synthesis requires the complete exploration history")
-        return self.context_builder.build(history, decision_stage="final_synthesis")
+        if include_prediction_queries is None:
+            include_prediction_queries = (
+                self.predictive_world_understanding_enabled
+                and self.predictive_queries_in_final_synthesis
+            )
+        return self.context_builder.build(
+            history,
+            decision_stage="final_synthesis",
+            include_prediction_queries=include_prediction_queries,
+        )
 
     def plan_next(self, history: Sequence[Mapping[str, Any]]) -> StaticOptimizationPlan:
         context = self.public_context(history)
@@ -1313,17 +1489,36 @@ class StaticOptimizationAgent:
             "provider_model": str(completion.model),
             "provider_attempts": int(completion.attempts),
             "provider_usage": copy.deepcopy(to_builtin(completion.usage)),
+            "model_call_consumed": True,
             "prompt_estimated_tokens": prompt_estimated_tokens,
             "prompt_token_estimate_cap": self.prompt_token_estimate_cap,
             "static_world_assumed": True,
             "hidden_world_fields_supplied": False,
+            "material_information_condition": (
+                self.context_builder.material_information_condition
+            ),
+            "material_information_sha256": (
+                self.context_builder.material_information_sha256
+            ),
+            "scoring_contract": copy.deepcopy(self.scoring_contract),
         }
         return plan
 
     def synthesize_final(
-        self, history: Sequence[Mapping[str, Any]]
+        self,
+        history: Sequence[Mapping[str, Any]],
+        *,
+        include_prediction_queries: bool | None = None,
     ) -> StaticFinalRecommendation:
-        context = self.final_synthesis_context(history)
+        if include_prediction_queries is None:
+            include_prediction_queries = (
+                self.predictive_world_understanding_enabled
+                and self.predictive_queries_in_final_synthesis
+            )
+        context = self.final_synthesis_context(
+            history,
+            include_prediction_queries=include_prediction_queries,
+        )
         context_sha256 = canonical_sha256(context)
         dimension = _recipe_dimension(
             self.task_info, self.electrochemical_workflow_mode
@@ -1340,7 +1535,7 @@ class StaticOptimizationAgent:
                 if electrochemical
                 else build_crystallization_prediction_queries(history)
             )
-            if self.predictive_world_understanding_enabled
+            if include_prediction_queries
             else ()
         )
         if prediction_queries:
@@ -1379,28 +1574,38 @@ class StaticOptimizationAgent:
                 }
             ]
         }
-        counterfactual_prediction_shape = {
-            "counterfactual_predictions": [
-                {
-                    "query_id": query.query_id,
-                    "metric_predictions": [
-                        {
-                            "metric_id": metric_id,
-                            "direction": "increase|decrease|no_material_change",
-                            "confidence": "number in [0,1]",
-                        }
-                        for metric_id in query.metric_ids
-                    ],
-                }
-                for query in prediction_queries
-            ]
-        }
+        counterfactual_prediction_shape = (
+            {
+                "counterfactual_predictions": [
+                    {
+                        "query_id": query.query_id,
+                        "metric_predictions": [
+                            {
+                                "metric_id": metric_id,
+                                "direction": "increase|decrease|no_material_change",
+                                "confidence": "number in [0,1]",
+                            }
+                            for metric_id in query.metric_ids
+                        ],
+                    }
+                    for query in prediction_queries
+                ]
+            }
+            if prediction_queries
+            else {}
+        )
         prompt_payload = {
-            "schema_version": STATIC_FINAL_SYNTHESIS_VERSION,
+            "schema_version": self.final_synthesis_version,
             "public_final_synthesis_context": context,
             "public_context_sha256": context_sha256,
+            **(
+                {"forbidden_json_fields": ["counterfactual_predictions"]}
+                if self.predictive_world_understanding_enabled
+                and not include_prediction_queries
+                else {}
+            ),
             "required_json_shape": {
-                "schema_version": STATIC_FINAL_SYNTHESIS_VERSION,
+                "schema_version": self.final_synthesis_version,
                 **recommendation_field,
                 "recommended_measurement_slots": ["public diagnostic slot ID"],
                 "recommendation_type": "tested|interpolated|extrapolated",
@@ -1443,7 +1648,12 @@ class StaticOptimizationAgent:
             )
         try:
             completion = self.client.complete_json(
-                system_prompt=FINAL_SYNTHESIS_SYSTEM_PROMPT,
+                system_prompt=(
+                    FINAL_SYNTHESIS_SEPARATE_PREDICTIVE_SYSTEM_PROMPT
+                    if self.predictive_world_understanding_enabled
+                    and not include_prediction_queries
+                    else FINAL_SYNTHESIS_SYSTEM_PROMPT
+                ),
                 user_prompt=prompt,
                 max_tokens=self.response_max_tokens,
             )
@@ -1463,7 +1673,7 @@ class StaticOptimizationAgent:
             prediction_queries=prediction_queries,
         )
         self._last_synthesis_audit = {
-            "schema_version": STATIC_FINAL_SYNTHESIS_VERSION,
+            "schema_version": self.final_synthesis_version,
             "role_id": self.role_id,
             "public_context_sha256": context_sha256,
             "recommendation_sha256": canonical_sha256(recommendation.to_dict()),
@@ -1477,6 +1687,17 @@ class StaticOptimizationAgent:
             "static_world_assumed": True,
             "validation_feedback_returned_to_agent": False,
             "predictive_world_understanding_enabled": bool(prediction_queries),
+            "predictive_queries_visible": bool(prediction_queries),
+            "forbidden_json_fields": (
+                ["counterfactual_predictions"]
+                if self.predictive_world_understanding_enabled
+                and not bool(prediction_queries)
+                else []
+            ),
+            "recommendation_committed_before_predictive_query_visibility": (
+                self.predictive_world_understanding_enabled
+                and not bool(prediction_queries)
+            ),
             "predictive_query_sha256": [
                 query.query_sha256 for query in prediction_queries
             ],
@@ -1487,14 +1708,152 @@ class StaticOptimizationAgent:
                 if prediction_queries
                 else None
             ),
+            "material_information_condition": (
+                self.context_builder.material_information_condition
+            ),
+            "material_information_sha256": (
+                self.context_builder.material_information_sha256
+            ),
         }
         return recommendation
+
+    def predict_counterfactuals(
+        self,
+        history: Sequence[Mapping[str, Any]],
+        *,
+        prediction_queries: Sequence[
+            ElectrochemicalPredictionQuery | CrystallizationPredictionQuery
+        ],
+        committed_recommendation_sha256: str,
+    ) -> tuple[dict[str, Any], ...]:
+        if not self.predictive_world_understanding_enabled:
+            raise RuntimeError("predictive world understanding is not enabled")
+        if self.predictive_queries_in_final_synthesis:
+            raise RuntimeError("predictive-only call is disabled for the integrated policy")
+        if not prediction_queries:
+            raise ValueError("predictive-only call requires a frozen query set")
+        if not isinstance(committed_recommendation_sha256, str) or len(
+            committed_recommendation_sha256
+        ) != 64:
+            raise ValueError("committed recommendation requires a SHA256 digest")
+        context = self.final_synthesis_context(
+            history,
+            include_prediction_queries=False,
+        )
+        if "held_out_prediction_queries" in context:
+            raise RuntimeError("final recommendation context leaked predictive queries")
+        public_queries = [query.to_public_dict() for query in prediction_queries]
+        predictive_context = {
+            "public_campaign_context": context,
+            "held_out_prediction_queries": public_queries,
+            "prediction_contract": {
+                "recommendation_committed_before_query_visibility": True,
+                "prediction_call_can_modify_recommendation": False,
+                "feedback_returned_to_agent": False,
+            },
+        }
+        prompt_payload = {
+            "schema_version": STATIC_PREDICTIVE_SYNTHESIS_VERSION,
+            "public_predictive_context": predictive_context,
+            "public_context_sha256": canonical_sha256(predictive_context),
+            "required_json_shape": {
+                "schema_version": STATIC_PREDICTIVE_SYNTHESIS_VERSION,
+                "counterfactual_predictions": [
+                    {
+                        "query_id": query.query_id,
+                        "metric_predictions": [
+                            {
+                                "metric_id": metric_id,
+                                "direction": "increase|decrease|no_material_change",
+                                "confidence": "number in [0,1]",
+                            }
+                            for metric_id in query.metric_ids
+                        ],
+                    }
+                    for query in prediction_queries
+                ],
+            },
+        }
+        prompt = json.dumps(
+            prompt_payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        prompt_estimated_tokens = estimate_prompt_tokens(prompt)
+        if prompt_estimated_tokens > self.predictive_synthesis_prompt_token_estimate_cap:
+            raise PromptBudgetExceededError(
+                "static predictive synthesis prompt estimate "
+                f"{prompt_estimated_tokens} exceeds cap "
+                f"{self.predictive_synthesis_prompt_token_estimate_cap}"
+            )
+        try:
+            completion = self.client.complete_json(
+                system_prompt=PREDICTIVE_SYNTHESIS_SYSTEM_PROMPT,
+                user_prompt=prompt,
+                max_tokens=self.response_max_tokens,
+            )
+        except Exception as error:
+            self.resource_ledger.record_failure(error)
+            raise
+        self.resource_ledger.record_completion(completion)
+        payload = completion.payload
+        required_fields = {"schema_version", "counterfactual_predictions"}
+        if not isinstance(payload, Mapping) or set(payload) != required_fields:
+            raise ScientificPlanValidationError(
+                "predictive-only response fields do not match its contract",
+                field_path="predictive_synthesis_response",
+                constraint="exact_declared_fields",
+            )
+        if payload["schema_version"] != STATIC_PREDICTIVE_SYNTHESIS_VERSION:
+            raise ScientificPlanValidationError(
+                "predictive-only schema_version does not match the frozen contract",
+                field_path="schema_version",
+                constraint="exact_schema_version",
+                observed=str(payload["schema_version"]),
+                limit=STATIC_PREDICTIVE_SYNTHESIS_VERSION,
+            )
+        try:
+            parsed = parse_counterfactual_predictions(
+                payload["counterfactual_predictions"],
+                queries=prediction_queries,
+            )
+        except ValueError as error:
+            raise ScientificPlanValidationError(
+                str(error),
+                field_path="counterfactual_predictions",
+                constraint="frozen_predictive_contract",
+            ) from error
+        normalized = tuple(prediction.to_dict() for prediction in parsed)
+        self._last_predictive_audit = {
+            "schema_version": STATIC_PREDICTIVE_SYNTHESIS_VERSION,
+            "role_id": self.role_id,
+            "public_context_sha256": canonical_sha256(predictive_context),
+            "query_sha256": [query.query_sha256 for query in prediction_queries],
+            "query_set_sha256": canonical_sha256(public_queries),
+            "predictions_sha256": canonical_sha256(list(normalized)),
+            "committed_recommendation_sha256": committed_recommendation_sha256,
+            "recommendation_visible_to_prediction_call": False,
+            "recommendation_committed_before_query_visibility": True,
+            "prediction_call_can_modify_recommendation": False,
+            "provider_model": str(completion.model),
+            "provider_attempts": int(completion.attempts),
+            "provider_usage": copy.deepcopy(to_builtin(completion.usage)),
+            "prompt_estimated_tokens": prompt_estimated_tokens,
+            "prompt_token_estimate_cap": (
+                self.predictive_synthesis_prompt_token_estimate_cap
+            ),
+        }
+        return normalized
 
     def decision_audit(self) -> dict[str, Any] | None:
         return copy.deepcopy(self._last_audit)
 
     def synthesis_audit(self) -> dict[str, Any] | None:
         return copy.deepcopy(self._last_synthesis_audit)
+
+    def predictive_audit(self) -> dict[str, Any] | None:
+        return copy.deepcopy(self._last_predictive_audit)
 
     def manifest(self) -> dict[str, Any]:
         return {
@@ -1511,13 +1870,30 @@ class StaticOptimizationAgent:
             "experiment_horizon": self.experiment_horizon,
             "horizon_visible": self.horizon_visible,
             "final_synthesis_enabled": self.final_synthesis_enabled,
+            "final_synthesis_version": self.final_synthesis_version,
+            "declared_claim_validation_policy": (
+                self.declared_claim_validation_policy
+            ),
             "final_synthesis_prompt_token_estimate_cap": (
                 self.final_synthesis_prompt_token_estimate_cap
+            ),
+            "predictive_synthesis_prompt_token_estimate_cap": (
+                self.predictive_synthesis_prompt_token_estimate_cap
             ),
             "predictive_world_understanding_enabled": (
                 self.predictive_world_understanding_enabled
             ),
+            "predictive_queries_in_final_synthesis": (
+                self.predictive_queries_in_final_synthesis
+            ),
             "electrochemical_workflow_mode": self.electrochemical_workflow_mode,
+            "material_information_condition": (
+                self.context_builder.material_information_condition
+            ),
+            "material_information_sha256": (
+                self.context_builder.material_information_sha256
+            ),
+            "scoring_contract": copy.deepcopy(self.scoring_contract),
             "mechanical_closeout": True,
             "static_world": True,
             "hidden_world_fields_supplied": False,
@@ -1581,10 +1957,17 @@ def compile_static_optimization_plan(
 
 
 __all__ = [
+    "DECLARED_CLAIM_VALIDATION_STRICT",
+    "DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN",
+    "FINAL_SYNTHESIS_SEPARATE_PREDICTIVE_SYSTEM_PROMPT",
     "FINAL_SYNTHESIS_SYSTEM_PROMPT",
+    "PREDICTIVE_SYNTHESIS_SYSTEM_PROMPT",
+    "STATIC_FINAL_SYNTHESIS_SEPARATE_VERSION",
+    "STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION",
     "STATIC_FINAL_SYNTHESIS_VERSION",
     "STATIC_OPTIMIZATION_INTERFACE_VERSION",
     "STATIC_OPTIMIZATION_PROMPT_VERSION",
+    "STATIC_PREDICTIVE_SYNTHESIS_VERSION",
     "StaticFinalRecommendation",
     "StaticFinalRecommendationValidator",
     "StaticOptimizationAgent",

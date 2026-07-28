@@ -53,13 +53,21 @@ from chemworld.runtime import (
     make_chemworld_constitution,
 )
 from chemworld.tasks import default_kernel_maturity, get_task
+from chemworld.world.crystallization_material_family import (
+    apply_crystallization_material_family,
+    normalize_crystallization_material_family,
+)
+from chemworld.world.electrochemical_material_family import (
+    apply_electrochemical_material_family,
+    normalize_electrochemical_material_family,
+)
 from chemworld.world.observation_contracts import TaskObservationContract
 from chemworld.world.operations import (
     INSTRUMENTS,
     REACTION_OPERATIONS,
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
-from chemworld.world.scoring import TaskScoringContract
+from chemworld.world.scoring import TASK_DERIVED_SCORING_CONTRACT, TaskScoringContract
 
 DEFAULT_SCENARIO_ID = "reaction-to-assay"
 __all__ = ["OBSERVATION_KEYS", "ChemWorldEnv"]
@@ -88,6 +96,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         electrochemical_workflow_mode: str = (
             ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE
         ),
+        electrochemical_material_family_id: str | None = None,
+        crystallization_material_family_id: str | None = None,
+        scoring_contract_id: str = TASK_DERIVED_SCORING_CONTRACT,
         debug_truth: bool = False,
         render_mode: str | None = None,
     ) -> None:
@@ -129,6 +140,17 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.electrochemical_workflow_mode = normalize_electrochemical_workflow_mode(
             electrochemical_workflow_mode
         )
+        self.electrochemical_material_family_id = (
+            normalize_electrochemical_material_family(
+                electrochemical_material_family_id
+            )
+        )
+        self.crystallization_material_family_id = (
+            normalize_crystallization_material_family(
+                crystallization_material_family_id
+            )
+        )
+        self.scoring_contract_id = str(scoring_contract_id)
         self.debug_truth = debug_truth
         self.world_interventions = tuple(world_interventions or ())
         self.render_mode = render_mode
@@ -168,6 +190,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             success_metrics=(
                 self.task_spec.success_metrics if self.task_spec is not None else ("score",)
             ),
+            contract_id=self.scoring_contract_id,
         )
         self.action_codec = ActionCodec()
         self.scenario_generator = DefaultScenarioGenerator()
@@ -180,6 +203,14 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.scenario_spec,
             seed,
             self.world_interventions,
+        )
+        self.scenario_instance = apply_electrochemical_material_family(
+            self.scenario_instance,
+            self.electrochemical_material_family_id,
+        )
+        self.scenario_instance = apply_crystallization_material_family(
+            self.scenario_instance,
+            self.crystallization_material_family_id,
         )
         self.world = self.scenario_instance.parameters
         self.constitution = make_chemworld_constitution(self.scenario_instance.compiled_mechanism)
@@ -237,6 +268,14 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.scenario_spec,
             self.seed,
             self.world_interventions,
+        )
+        self.scenario_instance = apply_electrochemical_material_family(
+            self.scenario_instance,
+            self.electrochemical_material_family_id,
+        )
+        self.scenario_instance = apply_crystallization_material_family(
+            self.scenario_instance,
+            self.crystallization_material_family_id,
         )
         self.world = self.scenario_instance.parameters
         self._state = deepcopy(self.scenario_instance.initial_state)

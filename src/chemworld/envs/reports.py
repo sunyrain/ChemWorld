@@ -138,6 +138,30 @@ def build_evaluator_provenance(env: Any) -> dict[str, Any]:
             "mechanism_family_intervention_version"
         ),
         "mechanism_family_intervention_hash": metadata.get("mechanism_family_intervention_hash"),
+        "electrochemical_material_family_contract_version": metadata.get(
+            "electrochemical_material_family_contract_version"
+        ),
+        "electrochemical_material_family_id": metadata.get(
+            "electrochemical_material_family_id"
+        ),
+        "electrochemical_material_family_sha256": metadata.get(
+            "electrochemical_material_family_sha256"
+        ),
+        "electrochemical_material_instance_sha256": metadata.get(
+            "electrochemical_material_instance_sha256"
+        ),
+        "crystallization_material_family_contract_version": metadata.get(
+            "crystallization_material_family_contract_version"
+        ),
+        "crystallization_material_family_id": metadata.get(
+            "crystallization_material_family_id"
+        ),
+        "crystallization_material_family_sha256": metadata.get(
+            "crystallization_material_family_sha256"
+        ),
+        "crystallization_material_instance_sha256": metadata.get(
+            "crystallization_material_instance_sha256"
+        ),
         "material_law_counterfactual_version": metadata.get("material_law_counterfactual_version"),
         "material_law_counterfactual_hash": metadata.get("material_law_counterfactual_hash"),
     }
@@ -146,6 +170,14 @@ def build_evaluator_provenance(env: Any) -> dict[str, Any]:
 _PRIVATE_AGENT_IDENTITY_KEYS = frozenset(
     {
         "base_mechanism_hash",
+        "electrochemical_material_family_contract_version",
+        "electrochemical_material_family_id",
+        "electrochemical_material_family_sha256",
+        "electrochemical_material_instance_sha256",
+        "crystallization_material_family_contract_version",
+        "crystallization_material_family_id",
+        "crystallization_material_family_sha256",
+        "crystallization_material_instance_sha256",
         "seed",
         "world_seed",
         "material_law_counterfactual_hash",

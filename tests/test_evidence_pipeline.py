@@ -94,7 +94,7 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert summary["mechanism_gate_a"]["passed"] is True
     assert (
         summary["formal_benchmark"]["status"]
-        == "static_s0_formal_complete_mechanism_recertification_pending"
+        == "static_s0_legacy_withdrawn_v1_frozen_pending_formal_execution"
     )
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False

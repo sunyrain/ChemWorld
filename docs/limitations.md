@@ -16,11 +16,10 @@ ChemWorld Bench 适合研究**预算受限、部分可观测的闭环实验决�
   在其冻结源码上通过，五实验受控识别 top-1 为 98.26%，在线端到端成功率为 96.57%；当前源码指纹
   已变化，因此该绑定为 stale，`benchmark_ready=false`，等待重新认证；
 - 当前经典确认切片揭示了目标改善、风险控制与最小实质效应之间的冲突。
-- 当前静态 S0 已在两个确认性任务上完成五 seed 正式运行；电化学 LLM 盲最终均值为 0.3902
-  （95% world-cluster CI [0.1732, 0.6072]），反应–结晶为 0.4829（[0.4326, 0.5332]）；
-  逐 world 相对最强经典家族分别为 2 胜 3 负和 0 胜 5 负，且 Predictive/Declared 世界理解仍弱；
-- 十次独立 final synthesis 均选择已测试条件，8/10 零增益、2/10 轻微负增益、0/10 正增益；当前
-  证据不支持最终综合能够优于探索 incumbent。
+- 2026-07-27 的旧静态 S0 双任务 Participant 结果已撤回；当前没有可用于模型排名或论文结果表的
+  正式静态 S0 数值；
+- 电化学与反应–结晶替代协议已经完成开发资格检查，但仍为 `formal_result=false`；反应–结晶的
+  五世界材料资格审计只证明材料合同可执行，不代表 Agent 性能。
 
 ## 哪些说法会越过证据
 
@@ -29,8 +28,8 @@ ChemWorld Bench 适合研究**预算受限、部分可观测的闭环实验决�
 - 明确的运行路由等于全部物理模块达到专业模拟精度；
 - Safe-GP 已通过完整四任务优越性规则；
 - 单 seed SAC 开发结果代表 RL 性能或最佳 checkpoint；
-- fake client、stub 或 replay 代表真实 LLM 性能；正式 S0 的真实 provider 结果只覆盖冻结的两个
-  固定世界优化任务；
+- fake client、stub、资格审计或旧 replay 代表当前真实 LLM 性能；替代 S0 的正式 provider 多世界
+  结果尚未执行；
 - 环境 Gate A 通过等于 DeepSeek 或其他 Participant Agent 通过 Gates B–E；
 - 公开世界结果证明跨机理、私有世界或现实实验泛化；
 - 当前候选包是正式发表级 benchmark release。

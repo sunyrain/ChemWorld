@@ -12,6 +12,7 @@ from typing import Any
 
 from run_static_optimization_s0 import (
     _build_client,
+    _build_prediction_queries,
     _execute_predictive_validation,
     _execute_validation_target,
     _exploration_horizon,
@@ -36,6 +37,12 @@ from chemworld.eval.static_optimization_execution import (
     static_optimization_workflow_mode,
 )
 from chemworld.eval.static_optimization_protocol import (
+    PREDICTIVE_CALL_INTEGRATED,
+    PREDICTIVE_CALL_SEPARATE,
+    static_optimization_crystallization_material_family_id,
+    static_optimization_material_family_id,
+    static_optimization_predictive_call_policy,
+    static_optimization_scoring_contract_id,
     validate_static_optimization_protocol,
 )
 from chemworld.eval.static_optimization_seeds import exploration_observation_seed
@@ -72,9 +79,7 @@ def _merge_resource_usage(
         for key in usage_keys
     }
     prior_records = copy.deepcopy(list(prior.get("provider_attempt_records", [])))
-    continuation_records = copy.deepcopy(
-        list(continuation.get("provider_attempt_records", []))
-    )
+    continuation_records = copy.deepcopy(list(continuation.get("provider_attempt_records", [])))
     logical_offset = int(prior.get("model_call_count", 0))
     for record in continuation_records:
         record["logical_decision_index"] = (
@@ -110,6 +115,7 @@ def _resume_cell(
         receipt.update(
             {
                 "completed_synthesis_call_count": 0,
+                "completed_predictive_model_call_count": 0,
                 "final_synthesis": None,
                 "completed_predictive_validation_experiment_count": 0,
                 "completed_validation_experiment_count": 0,
@@ -164,17 +170,21 @@ def _resume_cell(
                 f"{protocol['observation_noise_namespace']}-{task_id}-"
                 f"experiment-{experiment_index:03d}"
             ),
-            electrochemical_workflow_mode=static_optimization_workflow_mode(
-                protocol
+            electrochemical_workflow_mode=static_optimization_workflow_mode(protocol),
+            electrochemical_material_family_id=(static_optimization_material_family_id(protocol)),
+            crystallization_material_family_id=(
+                static_optimization_crystallization_material_family_id(protocol)
             ),
+            scoring_contract_id=static_optimization_scoring_contract_id(protocol),
         ) as session:
             plan = agent.plan_next(history)
+            decision_audit = agent.decision_audit()
             result = session.execute(plan)
         history.append(result.public_record())
         experiments.append(
             {
                 "result": result.to_dict(),
-                "decision_audit": agent.decision_audit(),
+                "decision_audit": decision_audit,
             }
         )
     continuation_usage = agent.method_resource_usage()
@@ -187,9 +197,7 @@ def _resume_cell(
         "source_failure": source_failure,
         "source_final_synthesis_present": source_final_synthesis is not None,
         "source_completed_predictive_validation_experiment_count": int(
-            source_receipt.get(
-                "completed_predictive_validation_experiment_count", 0
-            )
+            source_receipt.get("completed_predictive_validation_experiment_count", 0)
         ),
         "source_completed_validation_experiment_count": int(
             source_receipt.get("completed_validation_experiment_count", 0)
@@ -217,14 +225,11 @@ def _resume_cell(
                 "cell_status": "exploration_complete_pending_synthesis",
                 "failure": None,
                 "agent_manifest": agent.manifest(),
-                "resources": _merge_resource_usage(
-                    receipt["resources"], continuation_usage
-                ),
+                "resources": _merge_resource_usage(receipt["resources"], continuation_usage),
                 "experiment_count": len(experiments),
                 "completed_experiment_count": len(experiments),
                 "scores": [
-                    float(item["terminal_summary"]["leaderboard_score"])
-                    for item in history
+                    float(item["terminal_summary"]["leaderboard_score"]) for item in history
                 ],
                 "experiments": experiments,
                 "public_history": history,
@@ -255,53 +260,87 @@ def _resume_cell(
                 "cell_status": "method_failure",
                 "failure": failure,
                 "agent_manifest": agent.manifest(),
-                "resources": _merge_resource_usage(
-                    receipt["resources"], continuation_usage
-                ),
+                "resources": _merge_resource_usage(receipt["resources"], continuation_usage),
                 "experiment_count": len(experiments),
                 "completed_experiment_count": len(experiments),
                 "scores": [
-                    float(item["terminal_summary"]["leaderboard_score"])
-                    for item in history
+                    float(item["terminal_summary"]["leaderboard_score"]) for item in history
                 ],
                 "experiments": experiments,
                 "public_history": history,
                 "total_physical_experiment_count": len(experiments),
                 "continuation": {
                     **prefix_continuation,
-                    "continuation_model_call_count": continuation_usage[
-                        "model_call_count"
-                    ],
+                    "continuation_model_call_count": continuation_usage["model_call_count"],
                 },
             }
         )
         return receipt
+    recommendation_sha256 = canonical_sha256(recommendation.to_dict())
     final_synthesis = {
         "recommendation": recommendation.to_dict(),
         "synthesis_audit": agent.synthesis_audit(),
+        "recommendation_commit_sha256": recommendation_sha256,
         "executes_experiment": False,
         "validation_feedback_returned_to_agent": False,
     }
     predictive_contract = _predictive_contract(protocol)
     predictive_validation: dict[str, Any] | None = None
     if predictive_contract is not None:
-        calls_before = int(agent.method_resource_usage()["model_call_count"])
+        call_policy = static_optimization_predictive_call_policy(protocol)
+        queries = _build_prediction_queries(
+            protocol=protocol,
+            task_id=task_id,
+            history=history,
+        )
+        calls_before_prediction = int(agent.method_resource_usage()["model_call_count"])
+        if call_policy == PREDICTIVE_CALL_SEPARATE:
+            if recommendation.counterfactual_predictions:
+                raise RuntimeError("separate final recommendation contains predictive output")
+            predictions_payload: object = list(
+                agent.predict_counterfactuals(
+                    history,
+                    prediction_queries=queries,
+                    committed_recommendation_sha256=recommendation_sha256,
+                )
+            )
+            calls_before_execution = int(agent.method_resource_usage()["model_call_count"])
+            if calls_before_execution != calls_before_prediction + 1:
+                raise RuntimeError("predictive-only stage must consume exactly one model call")
+        elif call_policy == PREDICTIVE_CALL_INTEGRATED:
+            predictions_payload = list(recommendation.counterfactual_predictions)
+            calls_before_execution = calls_before_prediction
+        else:
+            raise RuntimeError("predictive call policy is not executable")
         predictive_validation = _execute_predictive_validation(
             protocol=protocol,
             task_id=task_id,
             world_seed=world_seed,
             history=history,
-            predictions_payload=list(recommendation.counterfactual_predictions),
+            predictions_payload=predictions_payload,
             experiment_index_offset=horizon,
             model_call_count_before_execution=(
-                int(receipt["resources"]["model_call_count"]) + calls_before
+                int(receipt["resources"]["model_call_count"]) + calls_before_execution
             ),
         )
         calls_after = int(agent.method_resource_usage()["model_call_count"])
-        if calls_after != calls_before:
+        if calls_after != calls_before_execution:
             raise RuntimeError("predictive continuation changed the model call count")
         predictive_validation["model_call_count_after_execution"] = (
             int(receipt["resources"]["model_call_count"]) + calls_after
+        )
+        predictive_validation["model_call_count_before_prediction"] = (
+            int(receipt["resources"]["model_call_count"]) + calls_before_prediction
+        )
+        predictive_validation["recommendation_commit_sha256"] = recommendation_sha256
+        predictive_validation["recommendation_committed_before_query_visibility"] = (
+            call_policy == PREDICTIVE_CALL_SEPARATE
+        )
+        predictive_validation["query_visible_during_final_synthesis"] = (
+            call_policy == PREDICTIVE_CALL_INTEGRATED
+        )
+        predictive_validation["prediction_call_audit"] = (
+            agent.predictive_audit() if call_policy == PREDICTIVE_CALL_SEPARATE else None
         )
     scores = [float(item["terminal_summary"]["leaderboard_score"]) for item in history]
     incumbent_index = max(range(len(scores)), key=scores.__getitem__)
@@ -310,9 +349,7 @@ def _resume_cell(
     incumbent_replicates = int(validation_config["incumbent_replicates"])
     recommendation_replicates = int(validation_config["recommendation_replicates"])
     validation_offset = horizon + (
-        PREDICTIVE_PHYSICAL_EXPERIMENT_COUNT
-        if predictive_contract is not None
-        else 0
+        PREDICTIVE_PHYSICAL_EXPERIMENT_COUNT if predictive_contract is not None else 0
     )
     incumbent_validation = _execute_validation_target(
         protocol=protocol,
@@ -343,8 +380,7 @@ def _resume_cell(
         "recommendation": recommendation_validation,
         "primary_validated_recommendation_score_mean": recommendation_mean,
         "validated_incumbent_score_mean": incumbent_mean,
-        "recommendation_gain_over_incumbent_mean": recommendation_mean
-        - incumbent_mean,
+        "recommendation_gain_over_incumbent_mean": recommendation_mean - incumbent_mean,
     }
     continuation_usage = agent.method_resource_usage()
     completed_predictive = (
@@ -358,25 +394,28 @@ def _resume_cell(
             "method_config_sha256": canonical_sha256(methods),
             "protocol_id": protocol["protocol_id"],
             "protocol_sha256": canonical_sha256(protocol),
-            "formal_result": bool(protocol.get("formal_result", False)) and bool(
-                methods.get("formal_result", False)
-            ),
-            "benchmark_claim_allowed": bool(
-                protocol.get("benchmark_claim_allowed", False)
-            )
+            "formal_result": bool(protocol.get("formal_result", False))
+            and bool(methods.get("formal_result", False)),
+            "benchmark_claim_allowed": bool(protocol.get("benchmark_claim_allowed", False))
             and bool(methods.get("benchmark_claim_allowed", False)),
             "cell_status": "completed",
             "failure": None,
             "agent_manifest": agent.manifest(),
-            "resources": _merge_resource_usage(
-                receipt["resources"], continuation_usage
-            ),
+            "resources": _merge_resource_usage(receipt["resources"], continuation_usage),
             "experiment_count": len(experiments),
             "completed_experiment_count": len(experiments),
             "scores": scores,
             "experiments": experiments,
             "public_history": history,
             "completed_synthesis_call_count": 1,
+            "planned_predictive_model_call_count": int(
+                predictive_contract is not None
+                and static_optimization_predictive_call_policy(protocol) == PREDICTIVE_CALL_SEPARATE
+            ),
+            "completed_predictive_model_call_count": int(
+                predictive_validation is not None
+                and predictive_validation.get("prediction_call_audit") is not None
+            ),
             "final_synthesis": final_synthesis,
             "completed_predictive_validation_experiment_count": completed_predictive,
             "completed_validation_experiment_count": (
@@ -391,9 +430,7 @@ def _resume_cell(
             "primary_score": recommendation_mean,
             "continuation": {
                 **prefix_continuation,
-                "continuation_model_call_count": continuation_usage[
-                    "model_call_count"
-                ],
+                "continuation_model_call_count": continuation_usage["model_call_count"],
             },
         }
     )
@@ -406,7 +443,11 @@ def main() -> None:
     parser.add_argument("--llm-methods", type=Path, required=True)
     parser.add_argument("--source-run-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--provider", choices=("mock", "deepseek", "wellau"), required=True)
+    parser.add_argument(
+        "--provider",
+        choices=("mock", "deepseek", "wellau", "codex_subscription"),
+        required=True,
+    )
     parser.add_argument("--allow-external-provider", action="store_true")
     parser.add_argument("--confirm-protocol-sha256")
     parser.add_argument("--confirm-method-sha256")
@@ -438,8 +479,7 @@ def main() -> None:
     source_report = json.loads(source_report_path.read_text(encoding="utf-8"))
     source_receipt_paths = sorted((args.source_run_root / "receipts").glob("*.json"))
     source_receipts = [
-        json.loads(path.read_text(encoding="utf-8"))
-        for path in source_receipt_paths
+        json.loads(path.read_text(encoding="utf-8")) for path in source_receipt_paths
     ]
     cells = [
         _resume_cell(
@@ -450,9 +490,7 @@ def main() -> None:
             allow_external_provider=bool(args.allow_external_provider),
             source_run_root=args.source_run_root,
             stop_after_exploration=bool(args.stop_after_exploration),
-            known_unreceipted_provider_calls=int(
-                args.known_unreceipted_provider_calls
-            ),
+            known_unreceipted_provider_calls=int(args.known_unreceipted_provider_calls),
             redo_final_synthesis=bool(args.redo_final_synthesis),
         )
         for receipt in source_receipts
@@ -470,11 +508,7 @@ def main() -> None:
                 "source_completed_predictive_validation_experiment_count", 0
             )
         )
-        + int(
-            item.get("continuation", {}).get(
-                "source_completed_validation_experiment_count", 0
-            )
-        )
+        + int(item.get("continuation", {}).get("source_completed_validation_experiment_count", 0))
         for item in cells
         if item.get("continuation", {}).get("redo_final_synthesis") is True
     )
@@ -485,25 +519,24 @@ def main() -> None:
             "protocol_id": protocol["protocol_id"],
             "protocol_sha256": canonical_sha256(protocol),
             "formal_result": formal_result,
-            "benchmark_claim_allowed": bool(
-                protocol.get("benchmark_claim_allowed", False)
-            )
+            "benchmark_claim_allowed": bool(protocol.get("benchmark_claim_allowed", False))
             and bool(methods.get("benchmark_claim_allowed", False)),
-            "completed_cell_count": sum(
-                item["cell_status"] == "completed" for item in cells
-            ),
+            "completed_cell_count": sum(item["cell_status"] == "completed" for item in cells),
             "method_failure_cell_count": sum(
                 item["cell_status"] == "method_failure" for item in cells
             ),
-            "completed_experiment_count": sum(
-                item["completed_experiment_count"] for item in cells
-            ),
+            "completed_experiment_count": sum(item["completed_experiment_count"] for item in cells),
             "completed_synthesis_call_count": sum(
                 item["completed_synthesis_call_count"] for item in cells
             ),
+            "planned_predictive_model_call_count": sum(
+                item.get("planned_predictive_model_call_count", 0) for item in cells
+            ),
+            "completed_predictive_model_call_count": sum(
+                item.get("completed_predictive_model_call_count", 0) for item in cells
+            ),
             "completed_predictive_validation_experiment_count": sum(
-                item["completed_predictive_validation_experiment_count"]
-                for item in cells
+                item["completed_predictive_validation_experiment_count"] for item in cells
             ),
             "completed_validation_experiment_count": sum(
                 item["completed_validation_experiment_count"] for item in cells
@@ -511,53 +544,38 @@ def main() -> None:
             "total_physical_experiment_count": sum(
                 item["total_physical_experiment_count"] for item in cells
             ),
-            "superseded_source_physical_experiment_count": (
-                superseded_source_physical_experiments
-            ),
+            "superseded_source_physical_experiment_count": (superseded_source_physical_experiments),
             "effective_lineage_total_physical_experiment_count": sum(
                 item["total_physical_experiment_count"] for item in cells
             )
             + superseded_source_physical_experiments,
-            "provider_call_count": sum(
-                item["resources"]["model_call_count"] for item in cells
-            ),
-            "known_unreceipted_provider_call_count": int(
-                args.known_unreceipted_provider_calls
-            ),
+            "provider_call_count": sum(item["resources"]["model_call_count"] for item in cells),
+            "known_unreceipted_provider_call_count": int(args.known_unreceipted_provider_calls),
             "effective_minimum_provider_call_count": sum(
                 item["resources"]["model_call_count"] for item in cells
             )
             + int(args.known_unreceipted_provider_calls),
-            "provider_token_accounting_complete": (
-                int(args.known_unreceipted_provider_calls) == 0
-            ),
+            "provider_token_accounting_complete": (int(args.known_unreceipted_provider_calls) == 0),
             "provider_attempt_count": sum(
                 item["resources"]["provider_attempt_count"] for item in cells
             ),
             "provider_reported_total_tokens": sum(
-                item["resources"]["provider_usage"]["total_tokens"]
-                for item in cells
+                item["resources"]["provider_usage"]["total_tokens"] for item in cells
             ),
-            "accounting_complete": all(
-                item["resources"]["accounting_complete"] for item in cells
-            ),
+            "accounting_complete": all(item["resources"]["accounting_complete"] for item in cells),
             "known_billed_cost_usd": sum(
                 item["resources"]["monetary_cost_usd"]
                 for item in cells
                 if item["resources"]["accounting_complete"]
             ),
             "receipt_sha256": {
-                f"{item['method_id']}:{item['cell']['task_id']}": canonical_sha256(
-                    item
-                )
+                f"{item['method_id']}:{item['cell']['task_id']}": canonical_sha256(item)
                 for item in cells
             },
             "cells": cells,
             "continuation": {
                 "source_run_root": str(args.source_run_root),
-                "source_report_sha256": hashlib.sha256(
-                    source_report_path.read_bytes()
-                ).hexdigest(),
+                "source_report_sha256": hashlib.sha256(source_report_path.read_bytes()).hexdigest(),
                 "stateless_prefix_continuation": True,
                 "redo_final_synthesis": bool(args.redo_final_synthesis),
                 "formal_result": formal_result,

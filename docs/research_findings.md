@@ -8,34 +8,20 @@
 
 !!! warning "证据时态"
     下文 RC28 数字是在其冻结源码上的正式历史结果。当前源码已因静态 S0 和任务合同工作发生变化，
-    evidence DAG 将 9 个 RC28 相关绑定标为 stale；当前 `benchmark_ready=false`。静态 S0 结果是当前
-    replay-verified 结果，但不替代 Gate A 重新认证。
+    evidence DAG 将 9 个 RC28 相关绑定标为 stale；当前 `benchmark_ready=false`。2026-07-27 的旧
+    静态 S0 双任务结果已撤回，不再是当前证据，也不能用于论文数字或模型排名。
 
-## 新发现：固定世界优化有效，但显式机理理解明显落后
+## 新发现：两个确认性任务的替代合同已可进入开发 pilot
 
-2026-07-27 的两个静态 S0 正式实验使用同一 `gpt-5.6-sol high`、20 个完整实验、五个 world seed、
-独立最终综合和配对盲验证。统计单位是 world seed，经典算法的五个 algorithm seed 先在同一 world
-内取均值。电化学盲最终均值为 `0.3902`（95% CI `[0.1732, 0.6072]`），RF-EI world-cluster
-均值为 `0.4798`，配对差为 `-0.0896`（`[-0.2896, 0.1104]`），逐 world 为 2 胜 3 负。反应–结晶
-盲最终均值为 `0.4829`（`[0.4326, 0.5332]`），GP-EI 均值为 `0.5324`，配对差为 `-0.0495`
-（`[-0.0933, -0.0056]`），逐 world 为 0 胜 5 负。
+电化学替代协议已绑定 `nominal-prior-latent-v2` 材料家族、
+`electrochemical-s0-balanced-efficiency-v2` 评分与匿名材料身份。反应–结晶现有独立的
+`reaction-crystallization-latent-materials-v1`：催化剂和溶剂进入反应动力学，溶剂还进入溶解度、
+成核、生长和杂质夹杂。五个世界 × 16 个材料配对的本地资格审计全部可回放，出现三个不同的标准化
+优胜配对，世界内材料分数跨度最小为 0.163。
 
-![静态 S0 逐 world 盲最终分](assets/images/static-s0-blind-scores-v0.1.png)
-
-模型确实会根据固定世界反馈继续优化：两个任务的十个正式 cell 最佳点都在第 11 轮以后，第 8 到
-第 20 轮的 best-so-far 均值分别增加 `0.0548` 和 `0.0599`。但 Predictive 方向正确率只有 `64.4%`
-和 `44.4%`；Declared structural edge F1 分别为 `0.274` 和 `0.242`，unsupported claim rate
-分别为 `68.3%` 和 `75.1%`。因此“能找到更好条件”不能被升级成“已经正确认识机理”。
-
-十次 final synthesis 全部提交已测试条件，但 8/10 为零增益、2/10 为轻微负增益、0/10 为正增益。
-最终综合目前没有把证据转化为优于 incumbent 的新条件。
-
-![静态 S0 优化曲线](assets/images/static-s0-optimization-curves-v0.1.png)
-
-该结果是当前后端上的冻结正式优化估计量，但只有五个 sampled worlds 和每 world 一条 LLM 轨迹。
-最强经典家族也是从六个候选家族中描述性选择，区间不应解释成预注册优越性检验。当前路线优先复现
-独立模型/provider、final-synthesis 静态消融、更多静态任务和现实桥接。隐藏世界变化与机制替换已经
-延期，不在当前 S0 路线内；Private-E/A 和现实化学迁移也尚未完成。
+这些只证明替代任务有稳定材料身份、材料相关性和足够的优化地形，不是 Participant Agent 成绩。
+两个替代协议仍为 `formal_result=false`；下一步必须冻结预注册、参考世界理解、经典基线和多世界
+Codex subscription 运行，之后才能恢复正式静态 S0 论断。
 
 ## 设计发现：15 个任务都需要真实可执行的完整实验
 

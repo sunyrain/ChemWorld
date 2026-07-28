@@ -7,35 +7,20 @@
     旧 RC28 数字仍是历史正式结果，当前绑定标记为 stale，`benchmark_ready=false`，必须重新认证后才能
     对当前源码恢复环境 Gate A 主张。
 
-## 2026-07-27 静态 S0 正式结果
+## 静态 S0 替代状态
 
-两个确认性任务现已在同一静态科学优化范式下完成 `gpt-5.6-sol high` 五 world seed 正式实验。每个
-seed 有 20 个完整探索实验、一次独立最终综合、三个冻结 Predictive 干预、incumbent 与 recommendation
-各三个配对盲验证；所有物理实验均已 replay。
+2026-07-27 的旧双任务 Participant 结果已经撤回，不在当前 evidence DAG 中，也不能进入论文摘要、
+结果表或模型比较。当前两个确认性任务都已有替代开发协议：
 
-| 任务 | LLM 盲最终 mean，95% CI | 最佳经典校准 mean | 配对差 LLM − 经典，95% CI | World 胜负 | Predictive |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Electrochemical Conversion | 0.3902 [0.1732, 0.6072] | RF-EI 0.4798 | -0.0896 [-0.2896, 0.1104] | 2 胜 / 3 负 | 29/45（64.4%） |
-| Reaction to Crystallization | 0.4829 [0.4326, 0.5332] | GP-EI 0.5324 | -0.0495 [-0.0933, -0.0056] | 0 胜 / 5 负 | 20/45（44.4%） |
+| 任务 | 材料合同 | 评分合同 | 当前证据 | 正式 Participant 结果 |
+| --- | --- | --- | --- | --- |
+| Electrochemical Conversion | `nominal-prior-latent-v2` | `electrochemical-s0-balanced-efficiency-v2` | 多世界开发诊断 | 无 |
+| Reaction to Crystallization | `reaction-crystallization-latent-materials-v1` | `reaction-crystallization-s0-balanced-product-v1` | 五世界材料资格审计 | 无 |
 
-统计单位是 world seed；经典算法的五个 algorithm seed 先在每个 world 内取均值。表中区间是五个
-world cluster 上的双侧 95% Student-t 描述性区间。“最佳经典校准”从六个候选算法家族中按总体
-盲均值选择，因此这些区间不是预注册优越性检验。
-
-![静态 S0 逐 world 盲最终分](assets/images/static-s0-blind-scores-v0.1.png)
-
-两个任务的十个最佳探索点都出现在第 11 次实验以后：20 轮预算提供了实际搜索机会。第 8 轮到第
-20 轮的 LLM best-so-far 均值，电化学从 0.3749 增至 0.4297，反应–结晶从 0.4311 增至 0.4911。
-
-![静态 S0 优化曲线](assets/images/static-s0-optimization-curves-v0.1.png)
-
-模型能进行静态闭环优化，但跨世界稳定性和世界理解均未超过结构化优化基线。十次最终提交全部为
-`tested`：8/10 相对配对 incumbent 为零增益，2/10 为轻微负增益，0/10 为正增益。独立 final
-synthesis 因而提供了清晰提交与解释接口，但尚未证明能产生更好的实验条件。
-
-S0 是当前研究主线：它测量固定但未知系统中的闭环科学优化。下文 RC28 是冻结源码上的历史环境
-可识别性证书，不是当前 Participant 实验路线。隐藏 changepoint、机制替换与世界变化实验已经延期；
-只有建立现实漂移场景和独立问题定义后才会重新设计。
+反应–结晶资格审计对每个世界执行 16 个匿名催化剂–溶剂配对，确认精确回放、世界固定材料身份、
+显著材料响应和不存在通用标准化赢家。该审计不是 Agent 性能。两个替代协议仍为
+`formal_result=false`，必须在预注册、参考合同、经典基线和 Codex subscription 多世界运行冻结后
+才能形成新的正式 S0 结果。
 
 ## 15 任务优化设计状态
 
@@ -72,7 +57,7 @@ Showcase 卡片不是确认性证据；确认性任务也不必出现在首页�
 | A1 physical validity | 历史 RC28 passed，83/83 设计检查；当前绑定 stale |
 | A2 controlled identifiability | 历史 RC28 **passed**，4,896/4,896 receipts；当前源码绑定 stale |
 | A3 online attainability | 历史 RC28 **passed**，2,016/2,016 receipts；当前源码绑定 stale |
-| Static S0 Participant Agent | 两个确认性任务五 seed 正式实验与 replay 已完成 |
+| Static S0 Participant Agent | 旧结果已撤回；两个替代协议开发资格通过，正式多世界结果待执行 |
 | Mechanism-adaptation Participant Gates B–E | 延期研究扩展；Flash Direct/Stateful S1/S2 均为 0/4 autonomous completion，正式矩阵未启动 |
 | Private-E environment confirmation | eligible，尚未执行 |
 | Private-A participant-Agent confirmation | sealed，等待 participant freeze |

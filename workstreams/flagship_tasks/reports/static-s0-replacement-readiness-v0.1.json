@@ -1,0 +1,67 @@
+{
+  "schema_version": "chemworld-static-s0-replacement-readiness-0.1",
+  "status": "legacy_results_withdrawn_v1_freeze_ready_for_execution",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "withdrawal": {
+    "effective_date": "2026-07-28",
+    "scope": "legacy electrochemical-conversion and reaction-to-crystallization static-S0 participant bundle",
+    "active_evidence_status": "withdrawn",
+    "paper_claim_allowed": false,
+    "reason": "The legacy bundle is not comparable to the replacement material-family, information, and scoring contracts."
+  },
+  "task_ids": [
+    "electrochemical-conversion",
+    "reaction-to-crystallization"
+  ],
+  "development_world_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "exploration_experiments_per_seed": 20,
+  "replacement_protocols": {
+    "electrochemical-conversion": {
+      "protocol": "configs/benchmark/scientific_optimization_s0_v1.0_electrochemical_material_opaque_20x10_formal.json",
+      "method": "configs/methods/llm_v1.0/participant_methods_s0_codex_subscription_sol_electrochemical_material_opaque_20x10_v10.json",
+      "classic_baselines": "configs/benchmark/scientific_optimization_s0_v1.0_electrochemical_classic_baselines_20x10_formal.json",
+      "world_understanding_reference": "configs/benchmark/world_understanding_s0_electrochemical_material_v1.0.json",
+      "material_family_id": "nominal-prior-latent-v2",
+      "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+      "material_information": "opaque_codes",
+      "qualification": "workstreams/flagship_tasks/reports/static-s0-material-family-v2-qualification-v0.3.json",
+      "qualification_status": "qualified_and_frozen_for_formal_execution",
+      "formal_result": false
+    },
+    "reaction-to-crystallization": {
+      "protocol": "configs/benchmark/scientific_optimization_s0_v1.0_crystallization_material_opaque_20x10_formal.json",
+      "method": "configs/methods/llm_v1.0/participant_methods_s0_codex_subscription_sol_crystallization_material_opaque_20x10_v10.json",
+      "classic_baselines": "configs/benchmark/scientific_optimization_s0_v1.0_crystallization_classic_baselines_20x10_formal.json",
+      "world_understanding_reference": "configs/benchmark/world_understanding_s0_crystallization_material_v1.0.json",
+      "material_family_id": "reaction-crystallization-latent-materials-v1",
+      "scoring_contract_id": "reaction-crystallization-s0-balanced-product-v1",
+      "material_information": "opaque_codes",
+      "qualification": "workstreams/flagship_tasks/reports/static-s0-crystallization-material-family-v1-qualification-v0.1.json",
+      "qualification_status": "qualified_and_frozen_for_formal_execution",
+      "formal_result": false
+    }
+  },
+  "freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json",
+  "formalization_gates": {
+    "protocol_and_method_freeze": true,
+    "classic_baseline_freeze": true,
+    "world_understanding_reference_freeze": true,
+    "multi_world_participant_execution": false,
+    "multi_world_baseline_execution": false,
+    "exact_postrun_replay": false,
+    "formal_summary_generated": false
+  },
+  "interpretation": "The two replacement flagship protocols, Codex-subscription methods, world-understanding references, and full classic-baseline rosters are frozen for ten-world formal execution. Full 20-round mock pilots and one-cell baseline smokes passed exact replay. No active formal multi-world participant performance result exists until execution and postrun aggregation complete."
+}

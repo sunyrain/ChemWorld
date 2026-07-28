@@ -201,9 +201,53 @@ class ChemWorldCrystallizationServices:
         impurity_mol = self.species_view.impurity_amount(state)
         target_molecular_weight = self._target_molecular_weight_kg_mol()
         initial_concentration = dissolved_product_mol / max(state.volume_L, 1.0e-12)
+        solvent_index = int(
+            equipment_settings(state.equipment, "batch_reactor").get("solvent", 0)
+        )
+        material_coupling_enabled = (
+            state.metadata.get("crystallization_material_family_id")
+            == "reaction-crystallization-latent-materials-v1"
+        )
+        if material_coupling_enabled and solvent_index not in range(4):
+            raise ValueError("configured solvent index is outside the material contract")
+        solubility_multiplier = (
+            float(
+                self.world.crystallization_solvent_solubility_multipliers[
+                    solvent_index
+                ]
+            )
+            if material_coupling_enabled
+            else 1.0
+        )
+        nucleation_multiplier = (
+            float(
+                self.world.crystallization_solvent_nucleation_multipliers[
+                    solvent_index
+                ]
+            )
+            if material_coupling_enabled
+            else 1.0
+        )
+        growth_multiplier = (
+            float(
+                self.world.crystallization_solvent_growth_multipliers[solvent_index]
+            )
+            if material_coupling_enabled
+            else 1.0
+        )
+        occlusion_multiplier = (
+            float(
+                self.world.crystallization_solvent_occlusion_multipliers[
+                    solvent_index
+                ]
+            )
+            if material_coupling_enabled
+            else 1.0
+        )
         reference_solubility = (
             self.world.crystallization_reference_solubility_mol_L
             * self.world.domain_parameter("crystallization_solubility_multiplier")
+            * solubility_multiplier
         )
         dissolution_enthalpy = 20_000.0
         solubility = SolubilityCurveSpec(
@@ -219,14 +263,15 @@ class ChemWorldCrystallizationServices:
             model_id="runtime_cooling_population_balance_v1",
             primary_nucleation_coefficient_per_L_s=(
                 2.0e7 * self.world.domain_parameter("crystallization_nucleation_multiplier")
+                * nucleation_multiplier
             ),
             primary_nucleation_exponent=2.0,
-            growth_coefficient_m_s=2.0e-8,
+            growth_coefficient_m_s=2.0e-8 * growth_multiplier,
             growth_exponent=1.0,
             crystal_density_kg_m3=1200.0,
             target_molecular_weight_kg_mol=target_molecular_weight,
             nucleus_diameter_m=8.0e-6,
-            impurity_occlusion_mol_per_mol=0.02,
+            impurity_occlusion_mol_per_mol=0.02 * occlusion_multiplier,
             supersaturation_occlusion_factor=0.5,
             fines_threshold_m=20.0e-6,
             provenance_id="chemworld-world-law-v0.2-crystallization-kinetics",

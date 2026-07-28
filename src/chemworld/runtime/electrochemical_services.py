@@ -37,132 +37,22 @@ from chemworld.physchem.equilibrium_chemistry import (
 )
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.actions import ELECTROLYTE_PROFILES, SOLVENTS
+from chemworld.world.electrochemical_material_family import (
+    HISTORICAL_ELECTROCHEMICAL_MATERIAL_FAMILY,
+    electrochemical_material_family,
+    normalize_electrochemical_material_family,
+)
 from chemworld.world.material_counterfactual import resolve_material_law_index
 from chemworld.world.parameters import ChemWorldParameters
 
-ELECTROLYTE_MEDIUM_PROFILE_PARAMETERS: tuple[dict[str, float], ...] = (
-    {
-        "electrolyte_conductivity_S_m": 0.8,
-        "electrode_gap_m": 0.006,
-        "electrode_area_m2": 0.004,
-        "contact_resistance_ohm": 0.50,
-        "diffusivity_m2_s": 3.0e-10,
-        "diffusion_layer_thickness_m": 2.5e-3,
-        "double_layer_capacitance_F_m2": 0.25,
-        "acid_concentration_mol_L": 0.015,
-        "supporting_electrolyte_concentration_mol_L": 0.003,
-        "precipitating_salt_concentration_mol_L": 0.001,
-        "electrolyte_acid_pka": 4.76,
-        "electrolyte_ksp": 1.0e-7,
-        "standard_potential_shift_V": -0.18,
-        "faradaic_efficiency_multiplier": 0.72,
-        "product_selectivity_multiplier": 0.68,
-    },
-    {
-        "electrolyte_conductivity_S_m": 12.0,
-        "electrode_gap_m": 0.003,
-        "electrode_area_m2": 0.004,
-        "contact_resistance_ohm": 0.12,
-        "diffusivity_m2_s": 1.2e-9,
-        "diffusion_layer_thickness_m": 8.0e-4,
-        "double_layer_capacitance_F_m2": 0.20,
-        "acid_concentration_mol_L": 0.010,
-        "supporting_electrolyte_concentration_mol_L": 0.080,
-        "precipitating_salt_concentration_mol_L": 0.001,
-        "electrolyte_acid_pka": 4.76,
-        "electrolyte_ksp": 1.0e-8,
-        "standard_potential_shift_V": 0.00,
-        "faradaic_efficiency_multiplier": 1.00,
-        "product_selectivity_multiplier": 1.00,
-    },
-    {
-        "electrolyte_conductivity_S_m": 6.0,
-        "electrode_gap_m": 0.004,
-        "electrode_area_m2": 0.004,
-        "contact_resistance_ohm": 0.20,
-        "diffusivity_m2_s": 8.0e-10,
-        "diffusion_layer_thickness_m": 1.2e-3,
-        "double_layer_capacitance_F_m2": 0.18,
-        "acid_concentration_mol_L": 0.050,
-        "supporting_electrolyte_concentration_mol_L": 0.040,
-        "precipitating_salt_concentration_mol_L": 5.0e-4,
-        "electrolyte_acid_pka": 3.20,
-        "electrolyte_ksp": 1.0e-6,
-        "standard_potential_shift_V": 0.20,
-        "faradaic_efficiency_multiplier": 0.88,
-        "product_selectivity_multiplier": 0.82,
-    },
-    {
-        "electrolyte_conductivity_S_m": 2.0,
-        "electrode_gap_m": 0.005,
-        "electrode_area_m2": 0.004,
-        "contact_resistance_ohm": 0.35,
-        "diffusivity_m2_s": 2.0e-10,
-        "diffusion_layer_thickness_m": 3.0e-3,
-        "double_layer_capacitance_F_m2": 0.30,
-        "acid_concentration_mol_L": 0.005,
-        "supporting_electrolyte_concentration_mol_L": 0.015,
-        "precipitating_salt_concentration_mol_L": 0.050,
-        "electrolyte_acid_pka": 6.20,
-        "electrolyte_ksp": 1.0e-12,
-        "standard_potential_shift_V": -0.35,
-        "faradaic_efficiency_multiplier": 0.58,
-        "product_selectivity_multiplier": 0.50,
-    },
-)
+_HISTORICAL_MATERIALS = electrochemical_material_family(HISTORICAL_ELECTROCHEMICAL_MATERIAL_FAMILY)
+ELECTROLYTE_MEDIUM_PROFILE_PARAMETERS = _HISTORICAL_MATERIALS.electrolyte_profiles
+ELECTROCHEMICAL_SOLVENT_PARAMETERS = _HISTORICAL_MATERIALS.solvent_profiles
 
 # Compatibility alias for downstream characterization code.  The values are
 # effective medium profiles; only profile 0 is intended to resemble an aqueous
 # electrolyte and reported "pH" is a bounded proton-activity index.
 AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS = ELECTROLYTE_MEDIUM_PROFILE_PARAMETERS
-
-# Public solvent labels select bounded effective electrochemical media.  These
-# coefficients are intentionally coarse: ChemWorld models comparative
-# transport/equilibrium behavior, not a fully resolved non-aqueous electrolyte.
-# Hidden material-law counterfactuals remap the complete row while public names,
-# costs, and action codes remain unchanged.
-ELECTROCHEMICAL_SOLVENT_PARAMETERS: tuple[dict[str, float], ...] = (
-    {
-        "conductivity_multiplier": 1.00,
-        "diffusivity_multiplier": 1.00,
-        "capacitance_multiplier": 1.00,
-        "proton_activity_multiplier": 1.00,
-        "ksp_multiplier": 1.00,
-        "standard_potential_shift_V": 0.00,
-        "faradaic_efficiency_multiplier": 1.00,
-        "product_selectivity_multiplier": 1.00,
-    },
-    {
-        "conductivity_multiplier": 0.45,
-        "diffusivity_multiplier": 0.62,
-        "capacitance_multiplier": 0.70,
-        "proton_activity_multiplier": 0.55,
-        "ksp_multiplier": 4.00,
-        "standard_potential_shift_V": -0.16,
-        "faradaic_efficiency_multiplier": 0.78,
-        "product_selectivity_multiplier": 0.72,
-    },
-    {
-        "conductivity_multiplier": 0.72,
-        "diffusivity_multiplier": 0.82,
-        "capacitance_multiplier": 0.48,
-        "proton_activity_multiplier": 0.20,
-        "ksp_multiplier": 12.0,
-        "standard_potential_shift_V": 0.35,
-        "faradaic_efficiency_multiplier": 0.55,
-        "product_selectivity_multiplier": 0.58,
-    },
-    {
-        "conductivity_multiplier": 0.035,
-        "diffusivity_multiplier": 0.18,
-        "capacitance_multiplier": 0.16,
-        "proton_activity_multiplier": 0.025,
-        "ksp_multiplier": 80.0,
-        "standard_potential_shift_V": -0.42,
-        "faradaic_efficiency_multiplier": 0.42,
-        "product_selectivity_multiplier": 0.45,
-    },
-)
 
 
 def _action_float(action: dict[str, Any], key: str, default: float) -> float:
@@ -202,8 +92,7 @@ class ChemWorldElectrochemicalServices:
         self.species_view = species_view
         self.task_contract = (
             ELECTROCHEMICAL_TASK_CONTRACT
-            if species_view.mechanism.mechanism_id
-            == ELECTROCHEMICAL_TASK_CONTRACT.mechanism_id
+            if species_view.mechanism.mechanism_id == ELECTROCHEMICAL_TASK_CONTRACT.mechanism_id
             else None
         )
         if self.task_contract is not None:
@@ -218,6 +107,10 @@ class ChemWorldElectrochemicalServices:
 
     def set_potential(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         contract = self._require_task_contract()
+        material_family_id = normalize_electrochemical_material_family(
+            state.metadata.get("electrochemical_material_family_id")
+        )
+        material_family = electrochemical_material_family(material_family_id)
         electrolyte_profile = _bounded_action_index(
             action,
             "electrolyte_profile",
@@ -229,7 +122,7 @@ class ChemWorldElectrochemicalServices:
             public_index=electrolyte_profile,
             catalog_size=len(ELECTROLYTE_PROFILES),
         )
-        profile = ELECTROLYTE_MEDIUM_PROFILE_PARAMETERS[hidden_profile]
+        profile = material_family.electrolyte_profiles[hidden_profile]
         reactor_settings = equipment_settings(state.equipment, "batch_reactor")
         solvent = reactor_settings.get("solvent")
         if isinstance(solvent, bool) or not isinstance(solvent, int):
@@ -240,10 +133,37 @@ class ChemWorldElectrochemicalServices:
             public_index=solvent,
             catalog_size=len(SOLVENTS),
         )
-        solvent_profile = ELECTROCHEMICAL_SOLVENT_PARAMETERS[hidden_solvent]
-        solvent_effects = np.asarray(self.world.solvent_effects[solvent], dtype=float)
-        if solvent_effects.shape[0] < 5 or not np.all(np.isfinite(solvent_effects[:5])):
-            raise ValueError("world solvent-effect row is not valid for electrochemistry")
+        solvent_profile = material_family.solvent_profiles[hidden_solvent]
+        if material_family_id == HISTORICAL_ELECTROCHEMICAL_MATERIAL_FAMILY:
+            electrolyte_effects = np.ones(7, dtype=float)
+            solvent_effects = np.concatenate(
+                (
+                    np.asarray(self.world.solvent_effects[solvent], dtype=float),
+                    np.ones(2, dtype=float),
+                )
+            )
+            electrolyte_potential_residual = 0.0
+            solvent_potential_residual = 0.0
+        else:
+            electrolyte_effects = np.asarray(
+                self.world.electrochemical_electrolyte_effects[hidden_profile],
+                dtype=float,
+            )
+            solvent_effects = np.asarray(
+                self.world.electrochemical_solvent_effects[hidden_solvent],
+                dtype=float,
+            )
+            electrolyte_potential_residual = float(
+                self.world.electrochemical_electrolyte_potential_residual_V[hidden_profile]
+            )
+            solvent_potential_residual = float(
+                self.world.electrochemical_solvent_potential_residual_V[hidden_solvent]
+            )
+        if any(
+            effects.shape != (7,) or not np.all(np.isfinite(effects)) or np.any(effects <= 0.0)
+            for effects in (electrolyte_effects, solvent_effects)
+        ):
+            raise ValueError("world material residuals are not valid for electrochemistry")
         previous_cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
         potential = _bounded_action_float(
             action,
@@ -263,24 +183,33 @@ class ChemWorldElectrochemicalServices:
             np.clip(
                 profile["electrolyte_conductivity_S_m"]
                 * solvent_profile["conductivity_multiplier"]
+                * electrolyte_effects[0]
                 * solvent_effects[0],
                 0.01,
                 100.0,
             )
         )
-        electrode_gap = float(profile["electrode_gap_m"])
-        electrode_area = float(profile["electrode_area_m2"])
-        contact_resistance = float(
-            np.clip(
-                profile["contact_resistance_ohm"]
-                / max(solvent_profile["conductivity_multiplier"] * solvent_effects[0], 0.02),
-                0.0,
-                100.0,
+        if material_family_id == HISTORICAL_ELECTROCHEMICAL_MATERIAL_FAMILY:
+            electrode_gap = float(profile["electrode_gap_m"])
+            electrode_area = float(profile["electrode_area_m2"])
+            contact_resistance = float(
+                np.clip(
+                    profile["contact_resistance_ohm"]
+                    / max(
+                        solvent_profile["conductivity_multiplier"] * solvent_effects[0],
+                        0.02,
+                    ),
+                    0.0,
+                    100.0,
+                )
             )
-        )
+        else:
+            electrode_gap = self.world.electrochemical_electrode_gap_m
+            electrode_area = self.world.electrochemical_electrode_area_m2
+            contact_resistance = self.world.electrochemical_base_contact_resistance_ohm
         voltage_window = contract.executable_abs_potential_limit_V
         diffusivity_multiplier = max(
-            solvent_profile["diffusivity_multiplier"] * solvent_effects[1],
+            solvent_profile["diffusivity_multiplier"] * electrolyte_effects[1] * solvent_effects[1],
             0.02,
         )
         diffusivity = float(
@@ -297,18 +226,21 @@ class ChemWorldElectrochemicalServices:
             np.clip(
                 profile["double_layer_capacitance_F_m2"]
                 * solvent_profile["capacitance_multiplier"]
+                * electrolyte_effects[2]
                 * solvent_effects[2],
                 1.0e-5,
                 100.0,
             )
         )
         proton_activity_multiplier = max(
-            solvent_profile["proton_activity_multiplier"] * solvent_effects[3],
+            solvent_profile["proton_activity_multiplier"]
+            * electrolyte_effects[3]
+            * solvent_effects[3],
             1.0e-3,
         )
         acid_total = float(
             np.clip(
-                profile["acid_concentration_mol_L"] * proton_activity_multiplier * state.volume_L,
+                profile["acid_concentration_mol_L"] * state.volume_L,
                 0.0,
                 max(state.volume_L, 1.0e-6),
             )
@@ -328,7 +260,10 @@ class ChemWorldElectrochemicalServices:
         )
         solubility_product = float(
             np.clip(
-                profile["electrolyte_ksp"] * solvent_profile["ksp_multiplier"] * solvent_effects[4],
+                profile["electrolyte_ksp"]
+                * solvent_profile["ksp_multiplier"]
+                * electrolyte_effects[4]
+                * solvent_effects[4],
                 1.0e-30,
                 1.0,
             )
@@ -336,15 +271,33 @@ class ChemWorldElectrochemicalServices:
         standard_potential_shift = float(
             profile["standard_potential_shift_V"]
             + solvent_profile["standard_potential_shift_V"]
+            + electrolyte_potential_residual
+            + solvent_potential_residual
         )
-        faradaic_efficiency_multiplier = float(
-            profile["faradaic_efficiency_multiplier"]
-            * solvent_profile["faradaic_efficiency_multiplier"]
-        )
-        product_selectivity_multiplier = float(
-            profile["product_selectivity_multiplier"]
-            * solvent_profile["product_selectivity_multiplier"]
-        )
+        if material_family_id == HISTORICAL_ELECTROCHEMICAL_MATERIAL_FAMILY:
+            # Historical replay retains its old empirical endpoint factors.
+            faradaic_efficiency_multiplier = float(
+                profile["faradaic_efficiency_multiplier"]
+                * solvent_profile["faradaic_efficiency_multiplier"]
+                * electrolyte_effects[5]
+                * solvent_effects[5]
+            )
+            product_selectivity_multiplier = float(
+                profile["product_selectivity_multiplier"]
+                * solvent_profile["product_selectivity_multiplier"]
+                * electrolyte_effects[6]
+                * solvent_effects[6]
+            )
+        else:
+            # The current material dossier exposes only foundational properties.
+            # Endpoint quality is generated by hidden interface residuals and is
+            # therefore not a public answer-adjacent descriptor.
+            faradaic_efficiency_multiplier = float(
+                electrolyte_effects[5] * solvent_effects[5]
+            )
+            product_selectivity_multiplier = float(
+                electrolyte_effects[6] * solvent_effects[6]
+            )
         activity_iterations_raw = 64.0
         precipitation_passes_raw = 3.0
         activity_tolerance = 1.0e-10
@@ -376,6 +329,8 @@ class ChemWorldElectrochemicalServices:
                 "electrolyte_profile": electrolyte_profile,
                 "electrolyte_profile_id": ELECTROLYTE_PROFILES[electrolyte_profile],
                 "electrolyte_profile_model": "bounded_effective_electrolyte_media_v3",
+                "electrochemical_material_family_id": material_family.family_id,
+                "electrochemical_material_family_sha256": material_family.family_sha256,
                 "medium_thermodynamic_semantics": (
                     "effective_activity_profile_not_literal_nonaqueous_pH"
                 ),
@@ -416,6 +371,9 @@ class ChemWorldElectrochemicalServices:
 
     def electrolyze(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         contract = self._require_task_contract()
+        material_family_id = normalize_electrochemical_material_family(
+            state.metadata.get("electrochemical_material_family_id")
+        )
         duration = _bounded_action_float(action, "duration_s", 900.0, low=1.0, high=14_400.0)
         cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
         if not cell_settings:
@@ -471,8 +429,15 @@ class ChemWorldElectrochemicalServices:
         reactor_settings = equipment_settings(state.equipment, "batch_reactor")
         catalyst = int(reactor_settings.get("catalyst", 0))
         solvent = int(reactor_settings.get("solvent", 0))
-        exchange_current_density = 28.0 * float(self.world.catalyst_effects[catalyst, 0])
-        exchange_current_density *= float(self.world.solvent_effects[solvent, 0])
+        if material_family_id == HISTORICAL_ELECTROCHEMICAL_MATERIAL_FAMILY:
+            exchange_current_density = 28.0 * float(self.world.catalyst_effects[catalyst, 0])
+            exchange_current_density *= float(self.world.solvent_effects[solvent, 0])
+        else:
+            # Static S0 has no catalyst control. Use the explicit world-level
+            # electrode kinetics parameter rather than an unrelated catalyst table.
+            exchange_current_density = float(
+                self.world.electrochemical_exchange_current_density_A_m2
+            )
         exchange_current_density *= self.world.domain_parameter(
             "electro_exchange_current_multiplier"
         )
@@ -562,9 +527,7 @@ class ChemWorldElectrochemicalServices:
             duration_s=duration,
             sample_interval_s=max(duration / 20.0, 1.0e-6),
         )
-        directional_substrate_mol = (
-            a_mol if preliminary.reaction_direction >= 0 else target_mol
-        )
+        directional_substrate_mol = a_mol if preliminary.reaction_direction >= 0 else target_mol
         transport = diffusion_layer_current_response(
             DiffusionLayerSpec(
                 model_id="runtime_planar_diffusion_layer",
@@ -575,9 +538,7 @@ class ChemWorldElectrochemicalServices:
                 electrolyte_volume_m3=state.volume_L * 1.0e-3,
                 provenance_id="chemworld_runtime_electrochemical_services",
             ),
-            bulk_concentration_mol_m3=(
-                directional_substrate_mol / (state.volume_L * 1.0e-3)
-            ),
+            bulk_concentration_mol_m3=(directional_substrate_mol / (state.volume_L * 1.0e-3)),
             applied_current_A=preliminary.actual_current_A,
             duration_s=duration,
             kinetic_current_A=preliminary.kinetic_current_A,
@@ -637,9 +598,7 @@ class ChemWorldElectrochemicalServices:
             else net_target_mol / (net_target_mol + net_impurity_mol)
         )
         selective_product_yield = net_target_mol / max(initial_reactant_mol, 1.0e-15)
-        electrochemical_conversion = net_reactant_consumed_mol / max(
-            initial_reactant_mol, 1.0e-15
-        )
+        electrochemical_conversion = net_reactant_consumed_mol / max(initial_reactant_mol, 1.0e-15)
         cumulative_charge = (
             float(previous_metrics.get("cumulative_charge_C", 0.0)) + result.charge_C
         )
@@ -647,10 +606,9 @@ class ChemWorldElectrochemicalServices:
             float(previous_metrics.get("cumulative_faradaic_charge_C", 0.0))
             + result.faradaic_charge_C
         )
-        cumulative_transport_charge = (
-            float(previous_metrics.get("cumulative_transport_useful_charge_C", 0.0))
-            + min(result.faradaic_charge_C, transport.useful_charge_C)
-        )
+        cumulative_transport_charge = float(
+            previous_metrics.get("cumulative_transport_useful_charge_C", 0.0)
+        ) + min(result.faradaic_charge_C, transport.useful_charge_C)
         cumulative_electrical_work = (
             float(previous_metrics.get("cumulative_electrical_work_J", 0.0))
             + result.electrical_work_J
@@ -695,8 +653,7 @@ class ChemWorldElectrochemicalServices:
             ),
             energy_efficiency=float(
                 np.clip(
-                    cumulative_selective_reversible_work
-                    / max(cumulative_electrical_work, 1.0e-15),
+                    cumulative_selective_reversible_work / max(cumulative_electrical_work, 1.0e-15),
                     0.0,
                     1.0,
                 )

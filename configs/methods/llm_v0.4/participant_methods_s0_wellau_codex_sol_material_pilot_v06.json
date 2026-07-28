@@ -1,0 +1,51 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.6-s0-dev",
+  "freeze_id": "chemworld-static-s0-material-prior-pilot-codex-sol-medium-v0.6-2026-07-28",
+  "status": "development_pilot_only",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_material_prior",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "world_policy": "static_for_entire_campaign",
+    "electrochemical_workflow_mode": "static_single_stage",
+    "horizon_visible": true,
+    "model_facing_parameterization": "named_physical_controls",
+    "final_synthesis": true,
+    "structured_world_claims": true,
+    "predictive_validation": false,
+    "blind_recommendation_validation": true,
+    "hidden_world_fields_supplied": false
+  },
+  "methods": {
+    "s0_codex_sol_medium_material_pilot": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_named_material_prior_v06",
+      "declared_claim_validation_policy": "unscored_unknown_terms",
+      "request_configuration": {
+        "response_format": "json_object",
+        "reasoning_effort": "medium",
+        "max_tokens": 5000,
+        "timeout_s": 180.0,
+        "max_attempts": 2,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 8,
+        "per_decision_max_estimated_tokens": 18000,
+        "final_synthesis_max_estimated_tokens": 26000,
+        "predictive_synthesis_max_estimated_tokens": 26000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+        "preflight_status": "three_condition_mock_campaign_completed",
+        "mock_preflight_max_decision_estimate": 5755,
+        "mock_preflight_final_synthesis_estimate": 6462,
+        "mock_preflight_completed_exploration_experiments_per_condition": 8,
+        "mock_preflight_completed_validation_experiments_per_condition": 4
+      }
+    }
+  }
+}

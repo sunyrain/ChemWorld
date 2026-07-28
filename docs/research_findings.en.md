@@ -9,42 +9,24 @@
     The RC28 numbers below are formal historical results on their frozen
     source. Static-S0 and task-contract work changed the current source
     fingerprint, so nine RC28 bindings are now stale and
-    `benchmark_ready=false`. The static-S0 results are current and
-    replay-verified, but do not replace Gate A recertification.
+    `benchmark_ready=false`. The legacy 2026-07-27 two-task static-S0 result
+    bundle is withdrawn and cannot support current paper numbers or rankings.
 
-## New finding: fixed-world optimization works better than explicit mechanism understanding
+## New finding: replacement contracts are ready for development pilots
 
-The 2026-07-27 formal static-S0 runs used the same `gpt-5.6-sol high`
-method, 20 complete experiments, five world seeds, a separate final synthesis,
-and paired blind validation. The statistical unit is the world seed; five
-algorithm seeds are first averaged within each world. Electrochemical blind
-mean was 0.3902 (95% CI [0.1732, 0.6072]) versus RF-EI at 0.4798, with a
-paired difference of -0.0896 ([-0.2896, 0.1104]) and two world wins against
-three losses. Reaction-to-crystallization reached 0.4829 ([0.4326, 0.5332])
-versus GP-EI at 0.5324, with a paired difference of -0.0495
-([-0.0933, -0.0056]) and zero wins against five losses.
+The electrochemical replacement binds `nominal-prior-latent-v2`, an explicit
+balanced-efficiency score, and anonymous material identities. Reaction-to-
+crystallization now has an independent catalyst/solvent family that couples
+materials to reaction kinetics and solvent identity to solubility, nucleation,
+growth, and impurity occlusion. A five-world by 16-material-pair qualification
+is exactly replayable, produces three distinct standardized winners, and has a
+minimum within-world material score range of 0.163.
 
-![Static-S0 blind final scores by world](assets/images/static-s0-blind-scores-v0.1.png)
-
-The model did use feedback: all ten best trials appeared after round 10.
-Mean best-so-far increased by 0.0548 and 0.0599 between experiments 8 and 20.
-However, predictive directional accuracy was only 64.4% and 44.4%, while
-Declared structural-edge F1 was 0.274 and 0.242 and unsupported-claim rates
-were 68.3% and 75.1%. Finding improved conditions is therefore not evidence
-that the model has correctly learned the mechanism. All ten final syntheses
-submitted tested conditions: eight had zero gain, two had small negative gain,
-and none improved the incumbent.
-
-![Static-S0 optimization curves](assets/images/static-s0-optimization-curves-v0.1.png)
-
-These are frozen formal optimization estimands on the current backend, but
-cover only five sampled worlds and one LLM trajectory per world. The strongest
-classic family was selected descriptively from six candidates, so the
-intervals are not preregistered superiority tests. The current roadmap
-prioritizes independent model/provider replication, static final-synthesis
-ablations, more static tasks, and a real-world bridge. Hidden world changes and
-mechanism replacement are deferred rather than part of the current S0 roadmap;
-Private-E/A and real-chemistry transfer also remain open.
+This establishes stable material identity, material relevance, and an
+optimizable landscape. It is not participant-agent performance. Both
+replacement protocols remain `formal_result=false` until preregistration,
+reference claims, classic baselines, and multi-world Codex subscription runs
+are frozen and executed.
 
 ## Design finding: all 15 tasks need executable complete experiments
 

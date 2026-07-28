@@ -1,0 +1,54 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.7-s0-dev",
+  "freeze_id": "chemworld-static-s0-material-opaque-codex-sol-medium-20x5-v0.7-2026-07-28",
+  "status": "development_owner_authorized_20x5",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_material_opaque_horizon",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "world_policy": "static_for_entire_campaign",
+    "electrochemical_workflow_mode": "static_single_stage",
+    "horizon_visible": true,
+    "history_policy": "complete_20_experiment_public_history",
+    "model_facing_parameterization": "named_physical_controls",
+    "material_information": "opaque_codes",
+    "final_synthesis": true,
+    "structured_world_claims": true,
+    "declared_claim_scoring": false,
+    "predictive_validation": false,
+    "blind_recommendation_validation": true,
+    "hidden_world_fields_supplied": false
+  },
+  "methods": {
+    "s0_codex_sol_medium_material_opaque_20": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_named_material_opaque_full_history_20_v07",
+      "declared_claim_validation_policy": "unscored_unknown_terms",
+      "request_configuration": {
+        "response_format": "json_object",
+        "reasoning_effort": "medium",
+        "max_tokens": 8000,
+        "timeout_s": 180.0,
+        "max_attempts": 3,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 20,
+        "per_decision_max_estimated_tokens": 30000,
+        "final_synthesis_max_estimated_tokens": 42000,
+        "predictive_synthesis_max_estimated_tokens": 42000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+        "preflight_status": "five_seed_local_mock_completed_and_replay_verified",
+        "mock_preflight_completed_exploration_experiments": 20,
+        "mock_preflight_max_decision_estimate": 10369,
+        "mock_preflight_final_synthesis_estimate": 11069,
+        "mock_preflight_completed_validation_experiments": 4
+      }
+    }
+  }
+}

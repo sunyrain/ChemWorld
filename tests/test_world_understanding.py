@@ -12,8 +12,11 @@ from chemworld.agents.static_optimization import (
 from chemworld.eval.static_optimization_postrun import audit_world_understanding_receipts
 from chemworld.eval.world_understanding import (
     ReferenceWorldClaim,
+    WorldUnderstandingClaim,
     parse_world_understanding_claims,
+    parse_world_understanding_claims_tolerant,
     score_world_understanding,
+    score_world_understanding_atomic_edges,
 )
 from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE,
@@ -109,6 +112,93 @@ def test_world_understanding_scores_observable_equivalence_classes() -> None:
     assert score.confidence_brier_score == pytest.approx(0.04)
 
 
+def test_tolerant_world_understanding_keeps_valid_claims_and_records_unknowns() -> None:
+    payload = [
+        {
+            "claim_id": "valid",
+            "cause_variables": ["potential_V"],
+            "effect_variable": "yield",
+            "relation": "nonmonotonic",
+            "mechanism_tags": ["nernst_equilibrium"],
+            "scope": "tested range",
+            "evidence_ids": ["e1"],
+            "confidence": 0.8,
+        },
+        {
+            "claim_id": "unknown-effect",
+            "cause_variables": ["potential_V"],
+            "effect_variable": "unsupported_metric",
+            "relation": "positive",
+            "mechanism_tags": ["nernst_equilibrium"],
+            "scope": "tested range",
+            "evidence_ids": ["e1"],
+            "confidence": 0.7,
+        },
+    ]
+
+    claims, diagnostics = parse_world_understanding_claims_tolerant(
+        payload,
+        evidence_catalog=["e1"],
+        allowed_cause_variables=["potential_V"],
+        allowed_effect_variables=["yield"],
+        allowed_mechanism_tags=["nernst_equilibrium"],
+    )
+
+    assert [claim.claim_id for claim in claims] == ["valid"]
+    assert diagnostics["submitted_claim_count"] == 2
+    assert diagnostics["scored_claim_count"] == 1
+    assert diagnostics["unscored_claim_count"] == 1
+    assert diagnostics["unscored_claims"] == [
+        {
+            "claim_index": 1,
+            "claim_id": "unknown-effect",
+            "reason_code": "unknown_effect_variable",
+            "message": "structured claim contains an unknown effect variable",
+            "unknown_terms": ["unsupported_metric"],
+        }
+    ]
+
+
+def test_atomic_world_understanding_scores_multivariate_claim_edges() -> None:
+    predicted = (
+        WorldUnderstandingClaim(
+            claim_id="multi",
+            cause_variables=("potential_V", "current_mA"),
+            effect_variable="yield",
+            relation="nonmonotonic",
+            mechanism_tags=("nernst_equilibrium",),
+            scope="tested region",
+            evidence_ids=("e1",),
+            confidence=0.8,
+        ),
+    )
+    reference = (
+        ReferenceWorldClaim(
+            claim_id="potential-yield",
+            cause_variables=("potential_V",),
+            effect_variable="yield",
+            accepted_relations=("nonmonotonic",),
+            mechanism_tags=("nernst_equilibrium",),
+        ),
+        ReferenceWorldClaim(
+            claim_id="current-conversion",
+            cause_variables=("current_mA",),
+            effect_variable="conversion",
+            accepted_relations=("positive",),
+            mechanism_tags=("faraday_charge",),
+        ),
+    )
+
+    score = score_world_understanding_atomic_edges(predicted, reference)
+
+    assert score.structural_edge_precision == pytest.approx(0.5)
+    assert score.structural_edge_recall == pytest.approx(0.5)
+    assert score.matched_edge_directional_accuracy == pytest.approx(1.0)
+    assert score.mechanism_tag_f1 == pytest.approx(2 / 3)
+    assert score.out_of_reference_edge_rate == pytest.approx(0.5)
+    assert score.confidence_brier_score == pytest.approx(0.56)
+
+
 def test_world_understanding_reference_scores_receipt_claims() -> None:
     protocol = {
         "world_understanding": {
@@ -144,7 +234,26 @@ def test_world_understanding_reference_scores_receipt_claims() -> None:
                             "evidence_ids": ["e1"],
                             "confidence": 0.8,
                         }
-                    ]
+                    ],
+                    "structured_claim_diagnostics": {
+                        "schema_version": (
+                            "chemworld-world-understanding-claim-diagnostics-0.1"
+                        ),
+                        "validation_policy": "unscored_unknown_terms",
+                        "submitted_claim_count": 2,
+                        "scored_claim_count": 1,
+                        "unscored_claim_count": 1,
+                        "unscored_claims": [
+                            {
+                                "claim_index": 1,
+                                "claim_id": "unknown",
+                                "reason_code": "unknown_effect_variable",
+                                "message": (
+                                    "structured claim contains an unknown effect variable"
+                                ),
+                            }
+                        ],
+                    },
                 }
             }
         },
@@ -154,8 +263,48 @@ def test_world_understanding_reference_scores_receipt_claims() -> None:
 
     assert audit["enabled"] is True
     assert audit["scored_cell_count"] == 1
+    assert audit["submitted_claim_count"] == 2
+    assert audit["unscored_claim_count"] == 1
     assert audit["cells"][0]["status"] == "scored"
     assert audit["cells"][0]["score"]["structural_edge_precision"] == pytest.approx(1.0)
+
+
+def test_world_understanding_without_reference_is_captured_but_not_scored() -> None:
+    protocol = {
+        "world_understanding": {
+            "enabled": True,
+            "declared_claims_are_secondary_diagnostics": True,
+            "predictive_score_enabled": False,
+        }
+    }
+    receipt = {
+        "cell": {"cell_id": "cell-1", "task_id": "electrochemical-conversion"},
+        "method_id": "mock",
+        "final_synthesis": {
+            "recommendation": {
+                "working_explanation": {
+                    "structured_claims": [{"claim_id": "descriptive-claim"}],
+                    "structured_claim_diagnostics": {
+                        "submitted_claim_count": 2,
+                        "scored_claim_count": 1,
+                        "unscored_claim_count": 1,
+                    },
+                }
+            }
+        },
+    }
+
+    audit = audit_world_understanding_receipts([receipt], protocol)
+
+    assert audit["enabled"] is True
+    assert audit["scoring_enabled"] is False
+    assert audit["reference_configured"] is False
+    assert audit["scored_cell_count"] == 0
+    assert audit["submitted_claim_count"] == 2
+    assert audit["unscored_claim_count"] == 1
+    assert audit["cells"][0]["status"] == (
+        "captured_unscored_no_frozen_reference"
+    )
 
 
 def test_v03_protocol_is_explicitly_blocked_before_paid_execution() -> None:

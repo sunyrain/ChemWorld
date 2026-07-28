@@ -30,26 +30,24 @@ making scalable, comparable, and falsifiable.
 
 </section>
 
-## Current formal evidence
+## Current evidence
 
-Two fixed-world scientific-optimization campaigns are now complete for
-`gpt-5.6-sol high`. Across five world seeds and 20 complete experiments per
-seed, blind final means were 0.3902 for electrochemical conversion and 0.4829
-for reaction-to-crystallization. The strongest classic baselines reached
-0.4798 and 0.5324; per-world comparisons were two wins against three losses
-and zero wins against five losses. None of the ten final syntheses produced
-positive paired gain. Every exploration, predictive, and blind-validation
-experiment replayed exactly.
+The legacy 2026-07-27 two-task static-S0 participant bundle is withdrawn and
+no longer supports current rankings or manuscript numbers. The replacement
+electrochemical protocol binds an explicit material family and balanced score.
+The replacement reaction-to-crystallization protocol binds an independent
+catalyst/solvent family and has passed a five-world by 16-material-pair
+qualification. Both remain development evidence with `formal_result=false`.
 
-These results measure static optimization and final scientific synthesis.
-Fixed-world S0 is the current research priority. Hidden world changes and
-mechanism replacement are deferred until a realistic drift model and separate
-research question are established.
+Fixed-world S0 remains the current research priority, but new formal claims
+require frozen classic baselines and multi-world Codex subscription runs.
+Hidden world changes and mechanism replacement remain deferred until a
+realistic drift model and separate research question are established.
 
 Separately, all 15 complete-experiment adapters pass executable midpoint
 smokes with zero dead coordinates and zero unresolved formalization blockers.
-Only the two confirmatory tasks received costly formal model evaluations in
-this release.
+Only the two confirmatory tasks are in scope for the replacement formal model
+evaluation.
 
 ## Why a world engine
 

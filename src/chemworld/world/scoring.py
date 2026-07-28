@@ -9,6 +9,14 @@ from typing import Any
 
 import numpy as np
 
+TASK_DERIVED_SCORING_CONTRACT = "task-derived-scoring-v1"
+ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2 = (
+    "electrochemical-s0-balanced-efficiency-v2"
+)
+CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1 = (
+    "reaction-crystallization-s0-balanced-product-v1"
+)
+
 
 @dataclass(frozen=True)
 class ObjectiveWeights:
@@ -28,6 +36,7 @@ class TaskScoringContract:
     score_family: str
     component_weights: dict[str, float]
     multiplicative_gates: dict[str, float] = field(default_factory=dict)
+    contract_id: str = TASK_DERIVED_SCORING_CONTRACT
 
     @classmethod
     def from_success_metrics(
@@ -35,8 +44,67 @@ class TaskScoringContract:
         *,
         objective: str,
         success_metrics: tuple[str, ...] = (),
+        contract_id: str = TASK_DERIVED_SCORING_CONTRACT,
     ) -> TaskScoringContract:
         metrics = frozenset(success_metrics)
+        if contract_id == CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1:
+            required = {
+                "crystal_yield",
+                "crystal_purity",
+                "crystal_size",
+                "crystal_csd_quality",
+                "crystal_fines_fraction",
+            }
+            if not required.issubset(metrics):
+                raise ValueError(
+                    "reaction-crystallization S0 v1 scoring requires the "
+                    "crystallization task metrics"
+                )
+            return cls(
+                objective=objective,
+                success_metrics=success_metrics,
+                score_family="crystallization",
+                component_weights={
+                    "reaction_score": 0.20,
+                    "crystal_yield": 0.25,
+                    "crystal_purity": 0.20,
+                    "crystal_size": 0.10,
+                    "crystal_csd_quality": 0.25,
+                    "crystal_fines_fraction": -0.10,
+                },
+                contract_id=contract_id,
+            )
+        if contract_id == ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2:
+            required = {
+                "selective_product_yield",
+                "electrochemical_selectivity",
+                "faradaic_efficiency",
+                "transport_efficiency",
+                "ohmic_efficiency",
+                "energy_efficiency",
+            }
+            if not required.issubset(metrics):
+                raise ValueError(
+                    "electrochemical S0 v2 scoring requires the electrochemical task metrics"
+                )
+            return cls(
+                objective=objective,
+                success_metrics=success_metrics,
+                score_family="electrochemistry",
+                component_weights={
+                    "selective_product_yield": 0.30,
+                    "electrochemical_selectivity": 0.15,
+                    "electrochemical_conversion": 0.10,
+                    "faradaic_efficiency": 0.12,
+                    "transport_efficiency": 0.10,
+                    "ohmic_efficiency": 0.08,
+                    "energy_efficiency": 0.15,
+                },
+                multiplicative_gates={"selective_product_yield": 0.02},
+                contract_id=contract_id,
+            )
+        if contract_id != TASK_DERIVED_SCORING_CONTRACT:
+            raise ValueError(f"unsupported scoring contract ID: {contract_id}")
         if metrics.intersection(
             {
                 "crystal_yield",
@@ -162,6 +230,7 @@ class TaskScoringContract:
 
     def to_dict(self) -> dict[str, Any]:
         return {
+            "contract_id": self.contract_id,
             "objective": self.objective,
             "success_metrics": list(self.success_metrics),
             "score_family": self.score_family,
@@ -173,6 +242,7 @@ class TaskScoringContract:
     @property
     def contract_hash(self) -> str:
         payload = {
+            "contract_id": self.contract_id,
             "objective": self.objective,
             "success_metrics": list(self.success_metrics),
             "score_family": self.score_family,
@@ -282,7 +352,10 @@ def task_score_observation(
 
 
 __all__ = [
+    "CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1",
+    "ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2",
     "OBJECTIVES",
+    "TASK_DERIVED_SCORING_CONTRACT",
     "ObjectiveWeights",
     "TaskScoringContract",
     "purification_score",

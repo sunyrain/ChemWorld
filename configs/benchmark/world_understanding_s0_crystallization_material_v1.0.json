@@ -1,0 +1,175 @@
+{
+  "schema_version": "chemworld-world-understanding-reference-1.0",
+  "reference_id": "reaction-to-crystallization-material-opaque-observable-mechanism-v1.0",
+  "status": "frozen_for_formal_s0_v1",
+  "task_id": "reaction-to-crystallization",
+  "material_family_id": "reaction-crystallization-latent-materials-v1",
+  "scoring_contract_id": "reaction-crystallization-s0-balanced-product-v1",
+  "comparison_target": "observable_causal_equivalence_classes_not_hidden_material_parameters",
+  "public_vocabulary": {
+    "cause_variables": [
+      "reaction_temperature_K",
+      "reaction_duration_s",
+      "reagent_amount_mol",
+      "stirring_speed_rpm",
+      "catalyst",
+      "catalyst_amount_mol",
+      "solvent",
+      "seed_mass_g",
+      "crystallization_temperature_K",
+      "crystallization_duration_s"
+    ],
+    "effect_variables": [
+      "reaction_score",
+      "yield",
+      "selectivity",
+      "crystal_yield",
+      "crystal_purity",
+      "crystal_size",
+      "crystal_csd_quality",
+      "crystal_fines_fraction",
+      "leaderboard_score"
+    ],
+    "mechanism_tags": [
+      "arrhenius_kinetics",
+      "versioned_catalyst_activity",
+      "versioned_solvent_reaction_effect",
+      "world_fixed_material_residual",
+      "inventory_limit",
+      "vanthoff_solubility",
+      "solvent_solubility_coupling",
+      "supersaturation",
+      "primary_nucleation",
+      "solvent_nucleation_coupling",
+      "seeded_growth",
+      "solvent_growth_coupling",
+      "impurity_occlusion",
+      "solvent_occlusion_coupling",
+      "cooling_rate",
+      "filtration_recovery",
+      "yield_purity_size_tradeoff"
+    ]
+  },
+  "reference_claims": [
+    {
+      "claim_id": "reaction-temperature-to-reaction-score",
+      "cause_variables": ["reaction_temperature_K"],
+      "effect_variable": "reaction_score",
+      "accepted_relations": ["nonmonotonic", "conditional"],
+      "mechanism_tags": [
+        "arrhenius_kinetics",
+        "yield_purity_size_tradeoff"
+      ]
+    },
+    {
+      "claim_id": "reaction-duration-to-yield",
+      "cause_variables": ["reaction_duration_s"],
+      "effect_variable": "yield",
+      "accepted_relations": ["positive", "conditional", "nonmonotonic"],
+      "mechanism_tags": ["arrhenius_kinetics", "inventory_limit"]
+    },
+    {
+      "claim_id": "catalyst-identity-to-reaction-score",
+      "cause_variables": ["catalyst"],
+      "effect_variable": "reaction_score",
+      "accepted_relations": ["conditional"],
+      "mechanism_tags": [
+        "versioned_catalyst_activity",
+        "world_fixed_material_residual"
+      ]
+    },
+    {
+      "claim_id": "catalyst-dose-to-reaction-score",
+      "cause_variables": ["catalyst_amount_mol"],
+      "effect_variable": "reaction_score",
+      "accepted_relations": ["positive", "conditional", "nonmonotonic"],
+      "mechanism_tags": [
+        "versioned_catalyst_activity",
+        "inventory_limit"
+      ]
+    },
+    {
+      "claim_id": "solvent-to-score",
+      "cause_variables": ["solvent"],
+      "effect_variable": "leaderboard_score",
+      "accepted_relations": ["conditional"],
+      "mechanism_tags": [
+        "versioned_solvent_reaction_effect",
+        "solvent_solubility_coupling",
+        "solvent_nucleation_coupling",
+        "solvent_growth_coupling",
+        "solvent_occlusion_coupling",
+        "world_fixed_material_residual"
+      ]
+    },
+    {
+      "claim_id": "crystallization-temperature-to-yield",
+      "cause_variables": ["crystallization_temperature_K"],
+      "effect_variable": "crystal_yield",
+      "accepted_relations": ["negative", "conditional"],
+      "mechanism_tags": [
+        "vanthoff_solubility",
+        "supersaturation",
+        "solvent_solubility_coupling"
+      ]
+    },
+    {
+      "claim_id": "crystallization-temperature-to-fines",
+      "cause_variables": ["crystallization_temperature_K"],
+      "effect_variable": "crystal_fines_fraction",
+      "accepted_relations": ["negative", "conditional", "nonmonotonic"],
+      "mechanism_tags": [
+        "supersaturation",
+        "primary_nucleation",
+        "cooling_rate",
+        "solvent_nucleation_coupling"
+      ]
+    },
+    {
+      "claim_id": "seed-mass-to-purity",
+      "cause_variables": ["seed_mass_g"],
+      "effect_variable": "crystal_purity",
+      "accepted_relations": ["positive", "conditional"],
+      "mechanism_tags": [
+        "seeded_growth",
+        "supersaturation",
+        "impurity_occlusion"
+      ]
+    },
+    {
+      "claim_id": "crystallization-duration-to-size",
+      "cause_variables": ["crystallization_duration_s"],
+      "effect_variable": "crystal_size",
+      "accepted_relations": ["positive", "conditional"],
+      "mechanism_tags": [
+        "seeded_growth",
+        "cooling_rate",
+        "solvent_growth_coupling"
+      ]
+    },
+    {
+      "claim_id": "crystallization-duration-to-yield",
+      "cause_variables": ["crystallization_duration_s"],
+      "effect_variable": "crystal_yield",
+      "accepted_relations": ["positive", "conditional"],
+      "mechanism_tags": [
+        "vanthoff_solubility",
+        "seeded_growth",
+        "solvent_solubility_coupling"
+      ]
+    }
+  ],
+  "score_layers": {
+    "declared": [
+      "structural_edge_precision",
+      "structural_edge_recall",
+      "structural_edge_f1",
+      "directional_accuracy",
+      "mechanism_tag_f1",
+      "unsupported_claim_rate",
+      "confidence_brier_score"
+    ],
+    "predictive": "three frozen history-local one-factor interventions scored after prediction",
+    "actionable": "paired blind final-recommendation validation"
+  }
+}

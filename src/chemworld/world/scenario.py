@@ -91,6 +91,42 @@ class ScenarioInstance:
             "mechanism_family_intervention_hash": self.initial_state.metadata.get(
                 "mechanism_family_intervention_hash"
             ),
+            "electrochemical_material_family_contract_version": (
+                self.initial_state.metadata.get(
+                    "electrochemical_material_family_contract_version"
+                )
+            ),
+            "electrochemical_material_family_id": self.initial_state.metadata.get(
+                "electrochemical_material_family_id"
+            ),
+            "electrochemical_material_family_sha256": (
+                self.initial_state.metadata.get(
+                    "electrochemical_material_family_sha256"
+                )
+            ),
+            "electrochemical_material_instance_sha256": (
+                self.initial_state.metadata.get(
+                    "electrochemical_material_instance_sha256"
+                )
+            ),
+            "crystallization_material_family_contract_version": (
+                self.initial_state.metadata.get(
+                    "crystallization_material_family_contract_version"
+                )
+            ),
+            "crystallization_material_family_id": self.initial_state.metadata.get(
+                "crystallization_material_family_id"
+            ),
+            "crystallization_material_family_sha256": (
+                self.initial_state.metadata.get(
+                    "crystallization_material_family_sha256"
+                )
+            ),
+            "crystallization_material_instance_sha256": (
+                self.initial_state.metadata.get(
+                    "crystallization_material_instance_sha256"
+                )
+            ),
             "mechanism": self.compiled_mechanism.to_dict(),
         }
 

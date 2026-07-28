@@ -1,0 +1,154 @@
+{
+  "schema_version": "chemworld-world-understanding-reference-1.0",
+  "reference_id": "electrochemical-conversion-material-opaque-observable-mechanism-v1.0",
+  "status": "frozen_for_formal_s0_v1",
+  "task_id": "electrochemical-conversion",
+  "electrochemical_workflow_mode": "static_single_stage",
+  "material_family_id": "nominal-prior-latent-v2",
+  "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+  "comparison_target": "observable_causal_equivalence_classes_not_hidden_material_parameters",
+  "public_vocabulary": {
+    "cause_variables": [
+      "potential_V",
+      "current_mA",
+      "duration_s",
+      "electrolyte_profile",
+      "solvent",
+      "reagent_amount_mol"
+    ],
+    "effect_variables": [
+      "selective_product_yield",
+      "electrochemical_conversion",
+      "electrochemical_selectivity",
+      "energy_efficiency",
+      "faradaic_efficiency",
+      "transport_efficiency",
+      "ohmic_efficiency",
+      "pH_normalized",
+      "precipitation_signal",
+      "leaderboard_score"
+    ],
+    "mechanism_tags": [
+      "nernst_equilibrium",
+      "butler_volmer_kinetics",
+      "current_magnitude_cap",
+      "faraday_charge",
+      "double_layer_charging",
+      "mass_transfer_limit",
+      "ohmic_loss",
+      "overpotential_stress",
+      "acid_base_activity",
+      "precipitation_equilibrium",
+      "versioned_material_family",
+      "world_fixed_material_residual",
+      "inventory_limit",
+      "direction_reversal"
+    ]
+  },
+  "reference_claims": [
+    {
+      "claim_id": "potential-to-selective-product-yield",
+      "cause_variables": ["potential_V"],
+      "effect_variable": "selective_product_yield",
+      "accepted_relations": ["nonmonotonic", "conditional"],
+      "mechanism_tags": [
+        "nernst_equilibrium",
+        "butler_volmer_kinetics",
+        "overpotential_stress",
+        "direction_reversal"
+      ]
+    },
+    {
+      "claim_id": "potential-to-energy-efficiency",
+      "cause_variables": ["potential_V"],
+      "effect_variable": "energy_efficiency",
+      "accepted_relations": ["nonmonotonic", "conditional"],
+      "mechanism_tags": [
+        "nernst_equilibrium",
+        "overpotential_stress",
+        "ohmic_loss"
+      ]
+    },
+    {
+      "claim_id": "current-cap-to-conversion",
+      "cause_variables": ["current_mA"],
+      "effect_variable": "electrochemical_conversion",
+      "accepted_relations": ["positive", "conditional"],
+      "mechanism_tags": [
+        "current_magnitude_cap",
+        "faraday_charge",
+        "mass_transfer_limit"
+      ]
+    },
+    {
+      "claim_id": "current-cap-to-ohmic-efficiency",
+      "cause_variables": ["current_mA"],
+      "effect_variable": "ohmic_efficiency",
+      "accepted_relations": ["negative", "conditional"],
+      "mechanism_tags": ["current_magnitude_cap", "ohmic_loss"]
+    },
+    {
+      "claim_id": "duration-to-conversion",
+      "cause_variables": ["duration_s"],
+      "effect_variable": "electrochemical_conversion",
+      "accepted_relations": ["positive", "conditional"],
+      "mechanism_tags": [
+        "faraday_charge",
+        "mass_transfer_limit",
+        "inventory_limit"
+      ]
+    },
+    {
+      "claim_id": "electrolyte-to-transport",
+      "cause_variables": ["electrolyte_profile"],
+      "effect_variable": "transport_efficiency",
+      "accepted_relations": ["conditional"],
+      "mechanism_tags": [
+        "versioned_material_family",
+        "world_fixed_material_residual",
+        "mass_transfer_limit",
+        "ohmic_loss"
+      ]
+    },
+    {
+      "claim_id": "electrolyte-to-proton-activity",
+      "cause_variables": ["electrolyte_profile"],
+      "effect_variable": "pH_normalized",
+      "accepted_relations": ["conditional"],
+      "mechanism_tags": [
+        "versioned_material_family",
+        "acid_base_activity"
+      ]
+    },
+    {
+      "claim_id": "solvent-to-score",
+      "cause_variables": ["solvent"],
+      "effect_variable": "leaderboard_score",
+      "accepted_relations": ["conditional"],
+      "mechanism_tags": [
+        "versioned_material_family",
+        "world_fixed_material_residual"
+      ]
+    },
+    {
+      "claim_id": "inventory-to-conversion",
+      "cause_variables": ["reagent_amount_mol"],
+      "effect_variable": "electrochemical_conversion",
+      "accepted_relations": ["negative", "conditional"],
+      "mechanism_tags": ["inventory_limit", "faraday_charge"]
+    }
+  ],
+  "score_layers": {
+    "declared": [
+      "structural_edge_precision",
+      "structural_edge_recall",
+      "structural_edge_f1",
+      "directional_accuracy",
+      "mechanism_tag_f1",
+      "unsupported_claim_rate",
+      "confidence_brier_score"
+    ],
+    "predictive": "three frozen history-local one-factor interventions scored after prediction",
+    "actionable": "paired blind final-recommendation validation"
+  }
+}

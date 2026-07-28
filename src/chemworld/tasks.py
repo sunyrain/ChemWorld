@@ -742,9 +742,8 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
             "Select a bounded solvent medium and electrolyte profile, identify coupled "
             "effective equilibrium, transport, double-layer, kinetic, and ohmic behavior "
             "(the pH diagnostic is a normalized effective proton-activity index, not a "
-            "literal non-aqueous pH claim), "
-            "from a probe regime, then change potential by at least 0.02 V or current by "
-            "at least 1.0 mA for selective, charge- and energy-efficient conversion. The "
+            "literal non-aqueous pH claim), and optimize potential, current, and duration "
+            "for selective, charge- and energy-efficient conversion. The "
             "public current_mA control is a nonnegative power-supply magnitude cap; the "
             "signed electrochemical current and reaction direction follow Butler-Volmer."
         ),

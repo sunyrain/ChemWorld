@@ -1,0 +1,1599 @@
+{
+  "aggregate": {
+    "distinct_standardized_winner_count": 3,
+    "distinct_standardized_winners": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        2
+      ]
+    ],
+    "maximum_score_range": 0.3600662979151714,
+    "median_score_range": 0.28527222001195635,
+    "minimum_score_range": 0.16338823504119943
+  },
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "all_scores_finite_and_bounded": true,
+    "deterministic_replay_exact": true,
+    "material_instance_varies_across_worlds": true,
+    "minimum_within_world_material_score_range_at_least_0_05": true,
+    "no_universal_standardized_winner": true
+  },
+  "formal_result": false,
+  "interpretation": "This is a deterministic simulator qualification of material relevance and world-fixed identity. It is not an agent benchmark result and must not be reported as blind optimization performance.",
+  "material_family": {
+    "catalyst_profiles": [
+      {
+        "reaction_multipliers": [
+          1.0,
+          1.05,
+          0.92,
+          0.95,
+          0.88
+        ]
+      },
+      {
+        "reaction_multipliers": [
+          1.3,
+          0.92,
+          1.15,
+          1.08,
+          1.1
+        ]
+      },
+      {
+        "reaction_multipliers": [
+          0.82,
+          1.32,
+          0.9,
+          1.18,
+          0.94
+        ]
+      },
+      {
+        "reaction_multipliers": [
+          1.1,
+          0.86,
+          1.22,
+          0.9,
+          1.2
+        ]
+      }
+    ],
+    "contract_version": "chemworld-reaction-crystallization-material-family-1.0",
+    "family_id": "reaction-crystallization-latent-materials-v1",
+    "family_sha256": "24e1d5326fae212dc5acd7c21460916d1b3fa888a8f4a58c2eed7509c3155ffb",
+    "identity_policy": "Catalyst and solvent IDs are anonymous benchmark formulations, not real synthesis recommendations.",
+    "residual_generator": {
+      "contract_version": "chemworld-reaction-crystallization-residual-generator-1.0",
+      "crystallization_log_sigma": 0.08,
+      "reaction_log_sigma": 0.12,
+      "residual_multiplier_bounds": [
+        0.75,
+        1.35
+      ],
+      "seed_namespace": "reaction-crystallization-latent-materials-v1-residuals"
+    },
+    "residual_policy": "Nominal reaction and crystallization factors receive bounded, correlated-by-choice residuals sampled once per world and fixed for the campaign.",
+    "runtime_coupling_version": "reaction-and-population-balance-material-coupling-v1",
+    "solvent_profiles": [
+      {
+        "growth_multiplier": 0.8,
+        "impurity_occlusion_multiplier": 1.2,
+        "nucleation_multiplier": 1.25,
+        "reaction_multipliers": [
+          0.75,
+          0.72,
+          0.68,
+          0.7,
+          0.65
+        ],
+        "solubility_multiplier": 1.2
+      },
+      {
+        "growth_multiplier": 1.05,
+        "impurity_occlusion_multiplier": 0.8,
+        "nucleation_multiplier": 0.85,
+        "reaction_multipliers": [
+          0.96,
+          1.02,
+          1.0,
+          0.95,
+          1.05
+        ],
+        "solubility_multiplier": 0.85
+      },
+      {
+        "growth_multiplier": 1.3,
+        "impurity_occlusion_multiplier": 0.65,
+        "nucleation_multiplier": 0.65,
+        "reaction_multipliers": [
+          1.2,
+          0.98,
+          1.12,
+          1.15,
+          0.98
+        ],
+        "solubility_multiplier": 0.7
+      },
+      {
+        "growth_multiplier": 0.95,
+        "impurity_occlusion_multiplier": 1.05,
+        "nucleation_multiplier": 1.05,
+        "reaction_multipliers": [
+          1.05,
+          1.34,
+          1.28,
+          1.25,
+          1.18
+        ],
+        "solubility_multiplier": 1.05
+      }
+    ]
+  },
+  "schema_version": "chemworld-reaction-crystallization-material-qualification-0.1",
+  "scoring_contract_id": "reaction-crystallization-s0-balanced-product-v1",
+  "source_contract_sha256": {
+    "scripts/qualify_crystallization_material_family.py": "7c0b311c7a8540581fc1e80529ce9144c3969ee6eeeea575d875ca5ff5144aeb",
+    "src/chemworld/runtime/crystallization_services.py": "ed1fe681b6ab181caf61d415f457dd7f883e693d018d55eb7bde29ded79be3d9",
+    "src/chemworld/world/crystallization_material_family.py": "15b8d127c71fd37dfb6c1670ccd1e667208826e84b7f8dc55343a68155359771",
+    "src/chemworld/world/parameters.py": "34662ef987c1381c339e08eb5653c1352276af8832ed6a46f86145cefced9148",
+    "src/chemworld/world/reaction_kernel.py": "6f270809f299d9386f1f0486d8cfbe740559cf3902de144fb541e26789b8a196",
+    "src/chemworld/world/scoring.py": "6299a01af36ef17d4addbf9920e09f256410ac12df64ca37c706e912e55b166d"
+  },
+  "standardized_design": {
+    "continuous_vector": [
+      0.55,
+      0.6,
+      0.6,
+      0.6,
+      "categorical",
+      0.55,
+      "categorical",
+      0.5,
+      0.45,
+      0.65
+    ],
+    "material_pair_count": 16,
+    "paired_observation_coordinate_across_material_pairs": true
+  },
+  "status": "qualified_for_development_pilots",
+  "world_reports": [
+    {
+      "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+      "score_range": 0.30040395961594724,
+      "standardized_material_responses": [
+        {
+          "leaderboard_score": 0.44058520115418004,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            0,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5436743732624045,
+            "crystal_fines_fraction": 0.8376402975227684,
+            "crystal_purity": 0.9696006707152869,
+            "crystal_size": 0.008687029406367952,
+            "crystal_yield": 0.6103003849724211,
+            "selectivity": 0.302319335380028,
+            "yield": 0.30881201492229904
+          }
+        },
+        {
+          "leaderboard_score": 0.4364137354217584,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            0,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5792934669523617,
+            "crystal_fines_fraction": 0.7359990761282083,
+            "crystal_purity": 0.9761329791977574,
+            "crystal_size": 0.011717154527803697,
+            "crystal_yield": 0.5699710485338585,
+            "selectivity": 0.2112251432855056,
+            "yield": 0.21826687995057628
+          }
+        },
+        {
+          "leaderboard_score": 0.5294813647581526,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            0,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.7017048864736743,
+            "crystal_fines_fraction": 0.5102039534120688,
+            "crystal_purity": 0.9802014221988239,
+            "crystal_size": 0.021809030615584896,
+            "crystal_yield": 0.6999241178685985,
+            "selectivity": 0.2591222827015817,
+            "yield": 0.2661958436634472
+          }
+        },
+        {
+          "leaderboard_score": 0.3429680561628606,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            0,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.47099854958109005,
+            "crystal_fines_fraction": 0.9786183908880146,
+            "crystal_purity": 0.9716729796514766,
+            "crystal_size": 0.0023112071722226693,
+            "crystal_yield": 0.4250792761789066,
+            "selectivity": 0.19471183929514266,
+            "yield": 0.20178582297941947
+          }
+        },
+        {
+          "leaderboard_score": 0.451213325816882,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            1,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5596683835362904,
+            "crystal_fines_fraction": 0.805211542889388,
+            "crystal_purity": 0.969543384237317,
+            "crystal_size": 0.010187483968501623,
+            "crystal_yield": 0.6291309612526887,
+            "selectivity": 0.3198449330073291,
+            "yield": 0.3266850101285661
+          }
+        },
+        {
+          "leaderboard_score": 0.4324255170592444,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            1,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5755856032948881,
+            "crystal_fines_fraction": 0.7444932399606066,
+            "crystal_purity": 0.9761192203639353,
+            "crystal_size": 0.012544373916280174,
+            "crystal_yield": 0.5753215720924576,
+            "selectivity": 0.21421915271077327,
+            "yield": 0.22128771153816618
+          }
+        },
+        {
+          "leaderboard_score": 0.5289788468846419,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            1,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.7075132662142838,
+            "crystal_fines_fraction": 0.49830131780240927,
+            "crystal_purity": 0.9801836666713933,
+            "crystal_size": 0.02492060509656653,
+            "crystal_yield": 0.7014353616725691,
+            "selectivity": 0.2607770650341917,
+            "yield": 0.26785560267956693
+          }
+        },
+        {
+          "leaderboard_score": 0.339454695175724,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            1,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4715354298237543,
+            "crystal_fines_fraction": 0.9774560403233415,
+            "crystal_purity": 0.9716702894428343,
+            "crystal_size": 0.0035189677968298153,
+            "crystal_yield": 0.4257070693557246,
+            "selectivity": 0.1949292719669751,
+            "yield": 0.2020077227290083
+          }
+        },
+        {
+          "leaderboard_score": 0.34877427519030846,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            2,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.46555473963916727,
+            "crystal_fines_fraction": 1.0,
+            "crystal_purity": 0.9700793628093052,
+            "crystal_size": 0.0,
+            "crystal_yield": 0.4512459533976444,
+            "selectivity": 0.20733037168986734,
+            "yield": 0.21386219382660593
+          }
+        },
+        {
+          "leaderboard_score": 0.3157134905376291,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            2,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.45048690348915305,
+            "crystal_fines_fraction": 1.0,
+            "crystal_purity": 0.9768669968108803,
+            "crystal_size": 0.00013493264831297008,
+            "crystal_yield": 0.3731313614279788,
+            "selectivity": 0.14114967850736476,
+            "yield": 0.1481848112141978
+          }
+        },
+        {
+          "leaderboard_score": 0.47824575115924867,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            2,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6624873166699714,
+            "crystal_fines_fraction": 0.5314147941972398,
+            "crystal_purity": 0.9807424236399492,
+            "crystal_size": 0.021743273594576798,
+            "crystal_yield": 0.5945082309072328,
+            "selectivity": 0.18085522206318846,
+            "yield": 0.18792744109461018
+          }
+        },
+        {
+          "leaderboard_score": 0.2328988072400111,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            2,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.43321695359233386,
+            "crystal_fines_fraction": 1.0,
+            "crystal_purity": 0.977793247905488,
+            "crystal_size": 0.0,
+            "crystal_yield": 0.07116115543796038,
+            "selectivity": 0.1304712299994308,
+            "yield": 0.1375432661311975
+          }
+        },
+        {
+          "leaderboard_score": 0.4343340248905595,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            3,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5390099136962303,
+            "crystal_fines_fraction": 0.8483158506256578,
+            "crystal_purity": 0.9695898558665259,
+            "crystal_size": 0.009538580049746948,
+            "crystal_yield": 0.6144696114640046,
+            "selectivity": 0.30624416509287355,
+            "yield": 0.31259080764827957
+          }
+        },
+        {
+          "leaderboard_score": 0.414741391686098,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            3,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.556202619480466,
+            "crystal_fines_fraction": 0.7865302775449806,
+            "crystal_purity": 0.9761747883453233,
+            "crystal_size": 0.01162784618842444,
+            "crystal_yield": 0.554266732436652,
+            "selectivity": 0.202870917473493,
+            "yield": 0.2098960913635833
+          }
+        },
+        {
+          "leaderboard_score": 0.5333027668559583,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            3,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.7290446710401417,
+            "crystal_fines_fraction": 0.4416095933831833,
+            "crystal_purity": 0.9803142149066193,
+            "crystal_size": 0.023117039787668714,
+            "crystal_yield": 0.6890955006792752,
+            "selectivity": 0.2480041086691539,
+            "yield": 0.25507438353549783
+          }
+        },
+        {
+          "leaderboard_score": 0.32134854379086947,
+          "material_instance_sha256": "85eff7c2dfdc10c4201982629b85cab57f4f3cc78e6115cd61726a64c81e69a5",
+          "material_pair": [
+            3,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4570053009171218,
+            "crystal_fines_fraction": 1.0,
+            "crystal_purity": 0.9718314928247933,
+            "crystal_size": 0.0006126810593729964,
+            "crystal_yield": 0.3910229913028586,
+            "selectivity": 0.1835406769054129,
+            "yield": 0.19061087280330152
+          }
+        }
+      ],
+      "winning_material_pair": [
+        3,
+        2
+      ],
+      "winning_score": 0.5333027668559583,
+      "world_seed": 0
+    },
+    {
+      "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+      "score_range": 0.21846281455306393,
+      "standardized_material_responses": [
+        {
+          "leaderboard_score": 0.4568836230538172,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            0,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.484948059026916,
+            "crystal_fines_fraction": 0.8769341729341238,
+            "crystal_purity": 0.976732980192841,
+            "crystal_size": 0.07326193872716302,
+            "crystal_yield": 0.6724678374564776,
+            "selectivity": 0.38979283849693447,
+            "yield": 0.3810816018447297
+          }
+        },
+        {
+          "leaderboard_score": 0.45540353344863355,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            0,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4486932976097953,
+            "crystal_fines_fraction": 0.9968970759344762,
+            "crystal_purity": 0.9837317369636539,
+            "crystal_size": 0.07540204590322365,
+            "crystal_yield": 0.760120576640126,
+            "selectivity": 0.3733702694699795,
+            "yield": 0.36517008707236626
+          }
+        },
+        {
+          "leaderboard_score": 0.5127841010494409,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            0,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5799854835981142,
+            "crystal_fines_fraction": 0.6955586101119708,
+            "crystal_purity": 0.985194256778331,
+            "crystal_size": 0.08015000811951233,
+            "crystal_yield": 0.7736048805833451,
+            "selectivity": 0.3164719197556566,
+            "yield": 0.30837422920923246
+          }
+        },
+        {
+          "leaderboard_score": 0.3888352206756709,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            0,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4572528525323308,
+            "crystal_fines_fraction": 0.9028499867802389,
+            "crystal_purity": 0.9761250990548425,
+            "crystal_size": 0.06915670826509242,
+            "crystal_yield": 0.5374925615763536,
+            "selectivity": 0.24526088162803333,
+            "yield": 0.23711097909712037
+          }
+        },
+        {
+          "leaderboard_score": 0.4372254112437247,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            1,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.48101158100372504,
+            "crystal_fines_fraction": 0.8679576196694188,
+            "crystal_purity": 0.9769460152810135,
+            "crystal_size": 0.07148577914190025,
+            "crystal_yield": 0.6356352505486038,
+            "selectivity": 0.34719245022997974,
+            "yield": 0.3389639050453453
+          }
+        },
+        {
+          "leaderboard_score": 0.46566256130951783,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            1,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5042729806909589,
+            "crystal_fines_fraction": 0.8631985135345611,
+            "crystal_purity": 0.9844108012225218,
+            "crystal_size": 0.07482934426699454,
+            "crystal_yield": 0.7334555201310569,
+            "selectivity": 0.329692359290689,
+            "yield": 0.32158376093950186
+          }
+        },
+        {
+          "leaderboard_score": 0.5105451134872144,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            1,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6112123825266851,
+            "crystal_fines_fraction": 0.6175917850785483,
+            "crystal_purity": 0.9860991546675689,
+            "crystal_size": 0.08190398878767803,
+            "crystal_yield": 0.742894808730106,
+            "selectivity": 0.2722105299586235,
+            "yield": 0.26411825867766275
+          }
+        },
+        {
+          "leaderboard_score": 0.33689975209401085,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            1,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4137005766295767,
+            "crystal_fines_fraction": 0.996750311350123,
+            "crystal_purity": 0.976496682271187,
+            "crystal_size": 0.06408202581340396,
+            "crystal_yield": 0.4504874809501959,
+            "selectivity": 0.20828075247851574,
+            "yield": 0.20017946628069444
+          }
+        },
+        {
+          "leaderboard_score": 0.3220424345646792,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            2,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4219169151751454,
+            "crystal_fines_fraction": 0.9967998544170819,
+            "crystal_purity": 0.9779368470205207,
+            "crystal_size": 0.056467466901162486,
+            "crystal_yield": 0.3644640150467512,
+            "selectivity": 0.20455605186868742,
+            "yield": 0.19582965278463985
+          }
+        },
+        {
+          "leaderboard_score": 0.40192690092494526,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            2,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.48144435927112167,
+            "crystal_fines_fraction": 0.8400829350032029,
+            "crystal_purity": 0.9855821377828917,
+            "crystal_size": 0.07210417289918596,
+            "crystal_yield": 0.5609950765098698,
+            "selectivity": 0.19529771431014242,
+            "yield": 0.18706772768379257
+          }
+        },
+        {
+          "leaderboard_score": 0.439046925811607,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            2,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5592262762973059,
+            "crystal_fines_fraction": 0.6436834848587079,
+            "crystal_purity": 0.9874664575167558,
+            "crystal_size": 0.0803760621276362,
+            "crystal_yield": 0.5742226802795738,
+            "selectivity": 0.16075312126341207,
+            "yield": 0.15264906915993953
+          }
+        },
+        {
+          "leaderboard_score": 0.4951570739463425,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            2,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.9870337423059847,
+            "crystal_fines_fraction": 0.0,
+            "crystal_purity": 1.0,
+            "crystal_size": 0.4059829917335096,
+            "crystal_yield": 0.0,
+            "selectivity": 0.1164615461342388,
+            "yield": 0.1082800397697482
+          }
+        },
+        {
+          "leaderboard_score": 0.39839121873973055,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            3,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4426681649568045,
+            "crystal_fines_fraction": 0.9513341762990105,
+            "crystal_purity": 0.9770741775794838,
+            "crystal_size": 0.06851102547081578,
+            "crystal_yield": 0.5851397432973998,
+            "selectivity": 0.3034862925002324,
+            "yield": 0.29512535966932396
+          }
+        },
+        {
+          "leaderboard_score": 0.47316125175975593,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            3,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5513172469259797,
+            "crystal_fines_fraction": 0.733498403868654,
+            "crystal_purity": 0.9849851518488857,
+            "crystal_size": 0.07909858651838733,
+            "crystal_yield": 0.6954394247356323,
+            "selectivity": 0.28415388671835345,
+            "yield": 0.2760201006610685
+          }
+        },
+        {
+          "leaderboard_score": 0.5007161416007746,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            3,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6248487791178765,
+            "crystal_fines_fraction": 0.5607477083370381,
+            "crystal_purity": 0.9868371716177666,
+            "crystal_size": 0.08558219646460445,
+            "crystal_yield": 0.6979033218089234,
+            "selectivity": 0.22728483072830163,
+            "yield": 0.21919111623699045
+          }
+        },
+        {
+          "leaderboard_score": 0.294321286496377,
+          "material_instance_sha256": "c8b5692783401f3ba82b682306f0850a12046b341e4310a53f808b477168336e",
+          "material_pair": [
+            3,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4111559730846095,
+            "crystal_fines_fraction": 0.9966973732265272,
+            "crystal_purity": 0.9774543140630572,
+            "crystal_size": 0.05710584026588202,
+            "crystal_yield": 0.3117722995867413,
+            "selectivity": 0.17316366329589722,
+            "yield": 0.16504720124150415
+          }
+        }
+      ],
+      "winning_material_pair": [
+        0,
+        2
+      ],
+      "winning_score": 0.5127841010494409,
+      "world_seed": 1
+    },
+    {
+      "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+      "score_range": 0.3600662979151714,
+      "standardized_material_responses": [
+        {
+          "leaderboard_score": 0.3952507224620262,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            0,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.43709031658353104,
+            "crystal_fines_fraction": 0.9306417520415979,
+            "crystal_purity": 0.9675666899257634,
+            "crystal_size": 0.07677849988639299,
+            "crystal_yield": 0.5739189112796255,
+            "selectivity": 0.26448917779697606,
+            "yield": 0.26058159586411644
+          }
+        },
+        {
+          "leaderboard_score": 0.49217227762789073,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            0,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5836062681159007,
+            "crystal_fines_fraction": 0.6253698334718213,
+            "crystal_purity": 0.9741682416101457,
+            "crystal_size": 0.08798066305819421,
+            "crystal_yield": 0.6950100165914712,
+            "selectivity": 0.2549240026906074,
+            "yield": 0.2513009526396049
+          }
+        },
+        {
+          "leaderboard_score": 0.5316112105721602,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            0,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6472136779349945,
+            "crystal_fines_fraction": 0.49844025957070404,
+            "crystal_purity": 0.9795410181675944,
+            "crystal_size": 0.09025497561884982,
+            "crystal_yield": 0.7275255744411416,
+            "selectivity": 0.274105794562451,
+            "yield": 0.27051319105327665
+          }
+        },
+        {
+          "leaderboard_score": 0.3258422389262776,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            0,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4085296973471045,
+            "crystal_fines_fraction": 0.9803212856597239,
+            "crystal_purity": 0.9700891529357942,
+            "crystal_size": 0.06873271066124811,
+            "crystal_yield": 0.4015790548215377,
+            "selectivity": 0.1909203179911884,
+            "yield": 0.18733105142831954
+          }
+        },
+        {
+          "leaderboard_score": 0.391591874444152,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            1,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4360925362197188,
+            "crystal_fines_fraction": 0.9328836994005579,
+            "crystal_purity": 0.9675591401952615,
+            "crystal_size": 0.0772026381614821,
+            "crystal_yield": 0.5764047201815037,
+            "selectivity": 0.2658199892705833,
+            "yield": 0.2621132123094719
+          }
+        },
+        {
+          "leaderboard_score": 0.4849627968665803,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            1,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5778163634311904,
+            "crystal_fines_fraction": 0.6368784697420844,
+            "crystal_purity": 0.9741849292815791,
+            "crystal_size": 0.08854619948766934,
+            "crystal_yield": 0.6934018844323965,
+            "selectivity": 0.2535098618336688,
+            "yield": 0.2499130457932582
+          }
+        },
+        {
+          "leaderboard_score": 0.5234469906894266,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            1,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6399819481926278,
+            "crystal_fines_fraction": 0.5132761602920841,
+            "crystal_purity": 0.9795677813141401,
+            "crystal_size": 0.09103725365036627,
+            "crystal_yield": 0.7253371272936243,
+            "selectivity": 0.2717489432634867,
+            "yield": 0.26816120474721333
+          }
+        },
+        {
+          "leaderboard_score": 0.319351537783481,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            1,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4083914755773701,
+            "crystal_fines_fraction": 0.9803183720577693,
+            "crystal_purity": 0.9701365485750025,
+            "crystal_size": 0.06866466759191224,
+            "crystal_yield": 0.39329708355038384,
+            "selectivity": 0.18871033969223544,
+            "yield": 0.18512341456183273
+          }
+        },
+        {
+          "leaderboard_score": 0.3045275172869688,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            2,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.41274814041444385,
+            "crystal_fines_fraction": 0.9803237349674545,
+            "crystal_purity": 0.9689304050274267,
+            "crystal_size": 0.06309767424239657,
+            "crystal_yield": 0.3191488780438614,
+            "selectivity": 0.17526023434154625,
+            "yield": 0.17038643267735376
+          }
+        },
+        {
+          "leaderboard_score": 0.3937308657437112,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            2,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.46986570210346196,
+            "crystal_fines_fraction": 0.830975965792257,
+            "crystal_purity": 0.9748340683365769,
+            "crystal_size": 0.08073854436856745,
+            "crystal_yield": 0.5532750029928499,
+            "selectivity": 0.17442141343648074,
+            "yield": 0.1705716680214863
+          }
+        },
+        {
+          "leaderboard_score": 0.4731662454782322,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            2,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5941185299852398,
+            "crystal_fines_fraction": 0.5438258338454772,
+            "crystal_purity": 0.9801677599874296,
+            "crystal_size": 0.09161792237311892,
+            "crystal_yield": 0.6175497217045806,
+            "selectivity": 0.1935137600846073,
+            "yield": 0.18985635178813492
+          }
+        },
+        {
+          "leaderboard_score": 0.1715449126569888,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            2,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.2042283138060133,
+            "crystal_fines_fraction": 0.9772723749881752,
+            "crystal_purity": 0.9866533671673288,
+            "crystal_size": 0.04873641060201594,
+            "crystal_yield": 0.024998865296894962,
+            "selectivity": 0.12887309358127472,
+            "yield": 0.1252467893498261
+          }
+        },
+        {
+          "leaderboard_score": 0.39636154197501894,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            3,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4437529976242888,
+            "crystal_fines_fraction": 0.9159357927943599,
+            "crystal_purity": 0.9675348446769534,
+            "crystal_size": 0.07721505928292122,
+            "crystal_yield": 0.5845427876035038,
+            "selectivity": 0.2713350294807035,
+            "yield": 0.2672710330450896
+          }
+        },
+        {
+          "leaderboard_score": 0.48195806022141385,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            3,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.581595271706856,
+            "crystal_fines_fraction": 0.6187631295426962,
+            "crystal_purity": 0.9742899667144781,
+            "crystal_size": 0.08890496795430619,
+            "crystal_yield": 0.6820891426892773,
+            "selectivity": 0.24424811863232476,
+            "yield": 0.24059822477576806
+          }
+        },
+        {
+          "leaderboard_score": 0.5224927677749774,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            3,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6532953544367557,
+            "crystal_fines_fraction": 0.4714505565632774,
+            "crystal_purity": 0.9797580226530185,
+            "crystal_size": 0.09433452030210557,
+            "crystal_yield": 0.7070164659771094,
+            "selectivity": 0.25381505540309196,
+            "yield": 0.2502159503766341
+          }
+        },
+        {
+          "leaderboard_score": 0.2993049784990059,
+          "material_instance_sha256": "818ebc209a44276208988c5303606ddac160eb212b1b9eb22d441a003df3892e",
+          "material_pair": [
+            3,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.40740895815605194,
+            "crystal_fines_fraction": 0.9802937074532182,
+            "crystal_purity": 0.9705710328702206,
+            "crystal_size": 0.06508185188548041,
+            "crystal_yield": 0.3299779146332333,
+            "selectivity": 0.17454906107410334,
+            "yield": 0.17095649662601475
+          }
+        }
+      ],
+      "winning_material_pair": [
+        0,
+        2
+      ],
+      "winning_score": 0.5316112105721602,
+      "world_seed": 2
+    },
+    {
+      "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+      "score_range": 0.16338823504119943,
+      "standardized_material_responses": [
+        {
+          "leaderboard_score": 0.3912545061815796,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            0,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.42429842205274987,
+            "crystal_fines_fraction": 0.9780073781878481,
+            "crystal_purity": 0.9809839724377107,
+            "crystal_size": 0.03252862701182975,
+            "crystal_yield": 0.5854433730376306,
+            "selectivity": 0.2935129345744833,
+            "yield": 0.27871853098388744
+          }
+        },
+        {
+          "leaderboard_score": 0.4540637757463237,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            0,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5456580693475785,
+            "crystal_fines_fraction": 0.682068921036542,
+            "crystal_purity": 0.9879032532973047,
+            "crystal_size": 0.04317606967093339,
+            "crystal_yield": 0.6255676055706606,
+            "selectivity": 0.2379052317861634,
+            "yield": 0.22364836624546533
+          }
+        },
+        {
+          "leaderboard_score": 0.4748600074845444,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            0,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5892984796292199,
+            "crystal_fines_fraction": 0.5877212920065568,
+            "crystal_purity": 0.9910524041855978,
+            "crystal_size": 0.04645989629768833,
+            "crystal_yield": 0.6497711018713292,
+            "selectivity": 0.2028056450450854,
+            "yield": 0.188607015139729
+          }
+        },
+        {
+          "leaderboard_score": 0.36158456709188236,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            0,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4326619995773141,
+            "crystal_fines_fraction": 0.934029770813766,
+            "crystal_purity": 0.9812973167667906,
+            "crystal_size": 0.033055717212717745,
+            "crystal_yield": 0.5017004647238087,
+            "selectivity": 0.21009960431858277,
+            "yield": 0.195880095812608
+          }
+        },
+        {
+          "leaderboard_score": 0.4160114546219384,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            1,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.44898110684292747,
+            "crystal_fines_fraction": 0.9271613469910941,
+            "crystal_purity": 0.9808440528663616,
+            "crystal_size": 0.035035245508272986,
+            "crystal_yield": 0.6328813081802783,
+            "selectivity": 0.33061768605414704,
+            "yield": 0.3162519349017826
+          }
+        },
+        {
+          "leaderboard_score": 0.4739922291592324,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            1,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5689591649893291,
+            "crystal_fines_fraction": 0.658294785822899,
+            "crystal_purity": 0.9876726826084776,
+            "crystal_size": 0.044567778665302676,
+            "crystal_yield": 0.6698660040346075,
+            "selectivity": 0.269495152018956,
+            "yield": 0.2552945174020681
+          }
+        },
+        {
+          "leaderboard_score": 0.4827818728380412,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            1,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.59542511088472,
+            "crystal_fines_fraction": 0.6052017434701611,
+            "crystal_purity": 0.9908123217129937,
+            "crystal_size": 0.047083206233673,
+            "crystal_yield": 0.6853619732210335,
+            "selectivity": 0.2253255645803048,
+            "yield": 0.2111368177505686
+          }
+        },
+        {
+          "leaderboard_score": 0.3889421115505855,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            1,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.46724057170505556,
+            "crystal_fines_fraction": 0.8594174953591515,
+            "crystal_purity": 0.9810941369477783,
+            "crystal_size": 0.03627870125481533,
+            "crystal_yield": 0.5497001019968489,
+            "selectivity": 0.23085438631115363,
+            "yield": 0.21666141462187966
+          }
+        },
+        {
+          "leaderboard_score": 0.368184621043631,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            2,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4118879223868072,
+            "crystal_fines_fraction": 1.0,
+            "crystal_purity": 0.9811200715336604,
+            "crystal_size": 0.02973741746481463,
+            "crystal_yield": 0.5386418032539878,
+            "selectivity": 0.26497287568880207,
+            "yield": 0.25008132410852685
+          }
+        },
+        {
+          "leaderboard_score": 0.4143322210048008,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            2,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4982740935386031,
+            "crystal_fines_fraction": 0.7822705868410552,
+            "crystal_purity": 0.9880441635727498,
+            "crystal_size": 0.03916938545575242,
+            "crystal_yield": 0.5774036370563486,
+            "selectivity": 0.21176427461678762,
+            "yield": 0.19748833163867152
+          }
+        },
+        {
+          "leaderboard_score": 0.43265092973719393,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            2,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5357993520731171,
+            "crystal_fines_fraction": 0.6867445896682015,
+            "crystal_purity": 0.9912431591417955,
+            "crystal_size": 0.04353545923068064,
+            "crystal_yield": 0.5965136253770993,
+            "selectivity": 0.17726771118899642,
+            "yield": 0.16306425910169223
+          }
+        },
+        {
+          "leaderboard_score": 0.31939363779684177,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            2,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.39840711189302086,
+            "crystal_fines_fraction": 1.0,
+            "crystal_purity": 0.9817560764468755,
+            "crystal_size": 0.028440874647362054,
+            "crystal_yield": 0.41746406906878536,
+            "selectivity": 0.18293583554623621,
+            "yield": 0.16870756391485714
+          }
+        },
+        {
+          "leaderboard_score": 0.4032412123716799,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            3,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4412962316441327,
+            "crystal_fines_fraction": 0.9404985192091829,
+            "crystal_purity": 0.9809142555183056,
+            "crystal_size": 0.03416302465218343,
+            "crystal_yield": 0.6120078525787805,
+            "selectivity": 0.3133772183206848,
+            "yield": 0.29847619800405245
+          }
+        },
+        {
+          "leaderboard_score": 0.45885476315201684,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            3,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5529517943544233,
+            "crystal_fines_fraction": 0.6775432652285382,
+            "crystal_purity": 0.9878063537163468,
+            "crystal_size": 0.04484217327157597,
+            "crystal_yield": 0.6487630212290928,
+            "selectivity": 0.25338124970402376,
+            "yield": 0.2391079799703208
+          }
+        },
+        {
+          "leaderboard_score": 0.4718192830120915,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            3,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5867123814000524,
+            "crystal_fines_fraction": 0.6066574577988996,
+            "crystal_purity": 0.9909652098537173,
+            "crystal_size": 0.046747895925328686,
+            "crystal_yield": 0.6651755121499521,
+            "selectivity": 0.2118926064111472,
+            "yield": 0.19769099417479716
+          }
+        },
+        {
+          "leaderboard_score": 0.36744053613953204,
+          "material_instance_sha256": "cfcf7bdacf94432dea7efdf543961dbb57b873e95a6c3d0ca9d1a0b416b2e98e",
+          "material_pair": [
+            3,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.44523184745811784,
+            "crystal_fines_fraction": 0.9069703487374083,
+            "crystal_purity": 0.9812171356358138,
+            "crystal_size": 0.0346803096391102,
+            "crystal_yield": 0.5196801423650785,
+            "selectivity": 0.21734460657862217,
+            "yield": 0.2031169528978081
+          }
+        }
+      ],
+      "winning_material_pair": [
+        1,
+        2
+      ],
+      "winning_score": 0.4827818728380412,
+      "world_seed": 3
+    },
+    {
+      "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+      "score_range": 0.28527222001195635,
+      "standardized_material_responses": [
+        {
+          "leaderboard_score": 0.42077512555625673,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            0,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5067269146816133,
+            "crystal_fines_fraction": 0.9667174268351614,
+            "crystal_purity": 0.9579376129422214,
+            "crystal_size": 0.06397678417074484,
+            "crystal_yield": 0.6078891759546279,
+            "selectivity": 0.3195913375467829,
+            "yield": 0.29494261574572184
+          }
+        },
+        {
+          "leaderboard_score": 0.5126017109975828,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            0,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6482029381178327,
+            "crystal_fines_fraction": 0.6732108829839064,
+            "crystal_purity": 0.9658238126947561,
+            "crystal_size": 0.07569486444673955,
+            "crystal_yield": 0.718356672489434,
+            "selectivity": 0.3079621820464935,
+            "yield": 0.28356156291373613
+          }
+        },
+        {
+          "leaderboard_score": 0.514023916645836,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            0,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6902618889118846,
+            "crystal_fines_fraction": 0.5222109752855224,
+            "crystal_purity": 0.9676590522939461,
+            "crystal_size": 0.08100017636862374,
+            "crystal_yield": 0.6610370243484373,
+            "selectivity": 0.24387582346880052,
+            "yield": 0.21943864527944212
+          }
+        },
+        {
+          "leaderboard_score": 0.33193588252321776,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            0,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4876328215982765,
+            "crystal_fines_fraction": 0.990962144505673,
+            "crystal_purity": 0.9571713836998788,
+            "crystal_size": 0.05354876515585835,
+            "crystal_yield": 0.3524132635070009,
+            "selectivity": 0.22753740599190872,
+            "yield": 0.2031433226486005
+          }
+        },
+        {
+          "leaderboard_score": 0.3975964855768038,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            1,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4958911862677025,
+            "crystal_fines_fraction": 0.9910402312770797,
+            "crystal_purity": 0.9580440985578205,
+            "crystal_size": 0.0614446908708675,
+            "crystal_yield": 0.5687801542286686,
+            "selectivity": 0.2923276780853205,
+            "yield": 0.26787967929228096
+          }
+        },
+        {
+          "leaderboard_score": 0.504229047817116,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            1,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6567124550703733,
+            "crystal_fines_fraction": 0.631237280455732,
+            "crystal_purity": 0.9660964884435623,
+            "crystal_size": 0.07751490395453857,
+            "crystal_yield": 0.6907085795541474,
+            "selectivity": 0.28084632086119216,
+            "yield": 0.2564621755552326
+          }
+        },
+        {
+          "leaderboard_score": 0.482394051160318,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            1,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6596273641186481,
+            "crystal_fines_fraction": 0.5796768886998983,
+            "crystal_purity": 0.9677795819424275,
+            "crystal_size": 0.07728799209586912,
+            "crystal_yield": 0.619985976389175,
+            "selectivity": 0.21957537395103904,
+            "yield": 0.19518301506403649
+          }
+        },
+        {
+          "leaderboard_score": 0.2935818020534945,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            1,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4878061733896922,
+            "crystal_fines_fraction": 0.9909036215685406,
+            "crystal_purity": 0.9584527661810325,
+            "crystal_size": 0.04778846884919593,
+            "crystal_yield": 0.22948787024011288,
+            "selectivity": 0.20498242587778037,
+            "yield": 0.1805991892996553
+          }
+        },
+        {
+          "leaderboard_score": 0.3656882626408276,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            2,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.49596614198577166,
+            "crystal_fines_fraction": 0.9910144400649499,
+            "crystal_purity": 0.9584195884166159,
+            "crystal_size": 0.05565817121060276,
+            "crystal_yield": 0.4631307520213169,
+            "selectivity": 0.24148661455006182,
+            "yield": 0.21671690972887953
+          }
+        },
+        {
+          "leaderboard_score": 0.4729737474920016,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            2,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6232644853991283,
+            "crystal_fines_fraction": 0.6747617260494174,
+            "crystal_purity": 0.9663557388424623,
+            "crystal_size": 0.07396540327574198,
+            "crystal_yield": 0.6325521908984808,
+            "selectivity": 0.23878194309342424,
+            "yield": 0.21436617949291858
+          }
+        },
+        {
+          "leaderboard_score": 0.432425568769503,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            2,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.5962652451759818,
+            "crystal_fines_fraction": 0.7142811871487187,
+            "crystal_purity": 0.9679897079924089,
+            "crystal_size": 0.07159579510913039,
+            "crystal_yield": 0.5476885001943131,
+            "selectivity": 0.18875778936777876,
+            "yield": 0.16428489783993305
+          }
+        },
+        {
+          "leaderboard_score": 0.22875169663387968,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            2,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.41743081297425705,
+            "crystal_fines_fraction": 0.9900659506066908,
+            "crystal_purity": 0.9695960198150934,
+            "crystal_size": 0.03777216485146762,
+            "crystal_yield": 0.04250132835579816,
+            "selectivity": 0.17588991079655328,
+            "yield": 0.1514871403851689
+          }
+        },
+        {
+          "leaderboard_score": 0.4286779670954156,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            3,
+            0
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.518924310011267,
+            "crystal_fines_fraction": 0.9394503993260546,
+            "crystal_purity": 0.9578860375002463,
+            "crystal_size": 0.06524558406052146,
+            "crystal_yield": 0.6287465246333361,
+            "selectivity": 0.33663598255958754,
+            "yield": 0.3120415288972746
+          }
+        },
+        {
+          "leaderboard_score": 0.5107839926673828,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            3,
+            1
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6549991307721705,
+            "crystal_fines_fraction": 0.6597753350552927,
+            "crystal_purity": 0.9657951101907271,
+            "crystal_size": 0.07490917111778606,
+            "crystal_yield": 0.7206043403363138,
+            "selectivity": 0.31043760093422124,
+            "yield": 0.28604213748438295
+          }
+        },
+        {
+          "leaderboard_score": 0.5077626773185231,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            3,
+            2
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.6924227783570929,
+            "crystal_fines_fraction": 0.5145339728783458,
+            "crystal_purity": 0.9676783090482445,
+            "crystal_size": 0.08031143523283732,
+            "crystal_yield": 0.6558325995577999,
+            "selectivity": 0.24043030886760564,
+            "yield": 0.21600566483026995
+          }
+        },
+        {
+          "leaderboard_score": 0.3206130700808164,
+          "material_instance_sha256": "88e5226ada343d4c6ef76b32c7056aa964fdc08fe4a7de93b266bf15baf66d16",
+          "material_pair": [
+            3,
+            3
+          ],
+          "metrics": {
+            "crystal_csd_quality": 0.4876070556486201,
+            "crystal_fines_fraction": 0.9909555339956472,
+            "crystal_purity": 0.9573064806943942,
+            "crystal_size": 0.05176418482762443,
+            "crystal_yield": 0.3331120401116973,
+            "selectivity": 0.22315628916610059,
+            "yield": 0.1987651396966808
+          }
+        }
+      ],
+      "winning_material_pair": [
+        0,
+        2
+      ],
+      "winning_score": 0.514023916645836,
+      "world_seed": 4
+    }
+  ],
+  "world_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "world_split": "public-test"
+}

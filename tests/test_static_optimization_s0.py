@@ -24,8 +24,12 @@ from chemworld.agents.crystallization_single_stage import (
 from chemworld.agents.electrochemical_single_stage import (
     electrochemical_single_stage_parameter_schema,
     electrochemical_single_stage_parameters_from_unit_vector,
+    electrochemical_single_stage_unit_vector_from_parameters,
 )
 from chemworld.agents.static_optimization import (
+    DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN,
+    STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION,
+    StaticFinalRecommendationValidator,
     StaticOptimizationAgent,
     StaticOptimizationPlan,
     compile_static_optimization_plan,
@@ -33,8 +37,12 @@ from chemworld.agents.static_optimization import (
 from chemworld.eval.electrochemical_predictive import (
     build_electrochemical_prediction_queries,
 )
-from chemworld.eval.static_optimization_execution import StaticOptimizationExperimentSession
+from chemworld.eval.static_optimization_execution import (
+    StaticOptimizationExperimentSession,
+)
 from chemworld.eval.static_optimization_postrun import (
+    _predictive_accuracy_breakdown,
+    _predictive_recommendation_overlap,
     audit_static_optimization_run,
     replay_static_optimization_predictive,
     replay_static_optimization_receipt,
@@ -64,9 +72,7 @@ def test_s0_context_and_plan_have_no_change_world_contract() -> None:
     assert "hidden_world" not in serialized_context
     assert "reference_claims" not in serialized_context
     assert "mechanism_candidates" not in serialized_context
-    assert context["experiment_interface"]["parameterization"] == (
-        "named_physical_controls"
-    )
+    assert context["experiment_interface"]["parameterization"] == ("named_physical_controls")
     assert context["experiment_interface"]["recipe_parameter_schema"] == (
         crystallization_single_stage_parameter_schema()
     )
@@ -171,8 +177,7 @@ def test_s0_session_does_not_accept_interventions() -> None:
 def test_formal_postrun_audit_preserves_source_lifecycle(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parents[1]
     protocol = _load_json(
-        root
-        / "configs/benchmark/"
+        root / "configs/benchmark/"
         "scientific_optimization_s0_v0.5_crystallization_high_20_formal.json"
     )
     protocol["horizon"] = 1
@@ -191,8 +196,7 @@ def test_formal_postrun_audit_preserves_source_lifecycle(tmp_path: Path) -> None
         SimpleNamespace(
             protocol=protocol_path,
             llm_methods=(
-                root
-                / "configs/methods/llm_v0.5/"
+                root / "configs/methods/llm_v0.5/"
                 "participant_methods_s0_wellau_codex_sol_high_crystallization_20.json"
             ),
             output=run_root,
@@ -247,13 +251,11 @@ def test_s0_known_horizon_context_reports_remaining_experiments() -> None:
 def test_s0_integrated_mock_runs_synthesis_and_blind_validation() -> None:
     root = Path(__file__).resolve().parents[1]
     protocol = _load_json(
-        root
-        / "configs/benchmark/"
+        root / "configs/benchmark/"
         "scientific_optimization_s0_v0.2.1_known_horizon_paired_validation_dev.json"
     )
     methods = _load_json(
-        root
-        / "configs/methods/llm_v0.4/"
+        root / "configs/methods/llm_v0.4/"
         "participant_methods_s0_wellau_codex_sol_development_r5.json"
     )
     short_protocol = copy.deepcopy(protocol)
@@ -280,25 +282,90 @@ def test_s0_integrated_mock_runs_synthesis_and_blind_validation() -> None:
     assert receipt["final_synthesis"]["recommendation"]["recommendation_type"] == "tested"
     assert receipt["validation"]["blind"] is True
     assert receipt["validation"]["feedback_returned_to_agent"] is False
-    assert receipt["primary_score"] == receipt["validation"][
-        "primary_validated_recommendation_score_mean"
-    ]
+    assert (
+        receipt["primary_score"]
+        == receipt["validation"]["primary_validated_recommendation_score_mean"]
+    )
     for experiment in receipt["experiments"]:
         result = experiment["result"]
         assert result["operation_count"] == result["compiled_operation_count"]
         assert result["runtime_margin_used"] is False
 
 
+def test_s0_final_prompt_omits_predictive_field_when_predictive_is_disabled() -> None:
+    class RecordingMockClient(_DeterministicStaticMockClient):
+        def __init__(self) -> None:
+            super().__init__()
+            self.final_prompt: dict[str, object] | None = None
+
+        def complete_json(
+            self,
+            *,
+            system_prompt: str,
+            user_prompt: str,
+            max_tokens: int = 4096,
+        ):
+            prompt = json.loads(user_prompt)
+            if "public_final_synthesis_context" in prompt:
+                self.final_prompt = prompt
+            return super().complete_json(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                max_tokens=max_tokens,
+            )
+
+    root = Path(__file__).resolve().parents[1]
+    protocol = _load_json(
+        root / "configs/benchmark/"
+        "scientific_optimization_s0_v0.2.1_known_horizon_paired_validation_dev.json"
+    )
+    methods = _load_json(
+        root / "configs/methods/llm_v0.4/"
+        "participant_methods_s0_wellau_codex_sol_development_r5.json"
+    )
+    short_protocol = copy.deepcopy(protocol)
+    short_protocol["horizon"] = 1
+    short_protocol["scientific_campaign_budget"]["exploration_experiments"] = 1
+    receipt = _run_cell(
+        protocol=short_protocol,
+        methods=methods,
+        method_id="s0_codex_sol_direct",
+        task_id="reaction-to-crystallization",
+        provider="mock",
+        allow_external_provider=False,
+    )
+    client = RecordingMockClient()
+    agent = StaticOptimizationAgent(
+        client,
+        role_id="s0-final-contract-test",
+        response_max_tokens=1000,
+        history_limit=8,
+        prompt_token_estimate_cap=9000,
+        experiment_horizon=1,
+        horizon_visible=True,
+        final_synthesis_enabled=True,
+        final_synthesis_prompt_token_estimate_cap=9000,
+        predictive_world_understanding_enabled=False,
+    )
+    agent.reset(get_task("reaction-to-crystallization").to_dict(), 0)
+
+    agent.synthesize_final(receipt["public_history"])
+
+    assert client.final_prompt is not None
+    assert (
+        "counterfactual_predictions"
+        not in client.final_prompt["required_json_shape"]
+    )
+
+
 def test_s0_predictive_mock_adds_local_paired_validation_without_model_calls() -> None:
     root = Path(__file__).resolve().parents[1]
     protocol = _load_json(
-        root
-        / "configs/benchmark/"
+        root / "configs/benchmark/"
         "scientific_optimization_s0_v0.3_named_electrochem_world_understanding_dev.json"
     )
     methods = _load_json(
-        root
-        / "configs/methods/llm_v0.4/"
+        root / "configs/methods/llm_v0.4/"
         "participant_methods_s0_wellau_codex_sol_development_r6.json"
     )
 
@@ -322,33 +389,140 @@ def test_s0_predictive_mock_adds_local_paired_validation_without_model_calls() -
     assert predictive["feedback_returned_to_agent"] is False
     assert predictive["model_call_count_before_execution"] == 9
     assert predictive["model_call_count_after_execution"] == 9
+    overlap = _predictive_recommendation_overlap(receipt)
+    assert overlap["query_visible_during_final_synthesis"] is True
+    assert overlap["exactly_matches_explored_action"] is True
+    assert overlap["exactly_matches_predictive_reference"] is True
+    assert overlap["exactly_matches_predictive_intervention"] is False
     for query in predictive["queries"]:
         assert len(query["paired_replicates"]) == 2
         for pair in query["paired_replicates"]:
-            assert pair["reference"]["observation_seed"] == pair["intervention"][
-                "observation_seed"
-            ]
-            assert pair["reference"]["observation_noise_namespace"] == pair[
-                "intervention"
-            ]["observation_noise_namespace"]
+            assert pair["reference"]["observation_seed"] == pair["intervention"]["observation_seed"]
+            assert (
+                pair["reference"]["observation_noise_namespace"]
+                == pair["intervention"]["observation_noise_namespace"]
+            )
     replay = replay_static_optimization_predictive(receipt, protocol)
     assert replay["verified"] is True
     assert replay["replayed_experiment_count"] == 12
 
     tampered = copy.deepcopy(receipt)
-    tampered["predictive_validation"]["queries"][0]["paired_replicates"][0][
-        "intervention"
-    ]["observation_seed"] += 1
+    tampered["predictive_validation"]["queries"][0]["paired_replicates"][0]["intervention"][
+        "observation_seed"
+    ] += 1
     tampered_replay = replay_static_optimization_predictive(tampered, protocol)
     assert tampered_replay["verified"] is False
     assert any("observation_seed" in item for item in tampered_replay["mismatches"])
 
 
+def test_tolerant_declared_claim_does_not_invalidate_final_recommendation() -> None:
+    task_info = get_task("electrochemical-conversion").to_dict()
+    parameters = electrochemical_single_stage_parameters_from_unit_vector(np.full(6, 0.5))
+    search_vector = tuple(
+        float(value)
+        for value in electrochemical_single_stage_unit_vector_from_parameters(parameters)
+    )
+    plan = StaticOptimizationPlan(
+        experiment_intent="test one electrochemical condition",
+        search_vector=search_vector,
+        requested_measurement_slots=(
+            "diagnostic-01-ph_meter",
+            "diagnostic-02-uvvis",
+        ),
+        measurement_objective="measure the fixed-world response",
+        expected_effect="establish a source method",
+        uncertainty=0.5,
+        recipe_parameters=parameters,
+    )
+    history = [
+        {
+            "experiment_index": 0,
+            "plan": plan.to_dict(),
+        }
+    ]
+    validator = StaticFinalRecommendationValidator(
+        task_info,
+        predictive_world_understanding_enabled=True,
+        final_synthesis_version=(STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION),
+        declared_claim_validation_policy=(DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN),
+    )
+    payload = {
+        "schema_version": STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION,
+        "recommended_recipe_parameters": parameters,
+        "recommended_measurement_slots": list(plan.requested_measurement_slots),
+        "recommendation_type": "tested",
+        "source_experiment_indices": [0],
+        "predicted_score": 0.5,
+        "confidence": 0.6,
+        "method_summary": "reuse the tested source method",
+        "evidence_refs": ["e1"],
+        "working_explanation": {
+            "empirical_relationships": ["the source method was measurable"],
+            "mechanistic_hypothesis": "an unsupported effect term is secondary",
+            "supporting_evidence_ids": ["e1"],
+            "contradicting_evidence_ids": [],
+            "uncertainty": 0.4,
+            "structured_claims": [
+                {
+                    "claim_id": "unsupported-effect",
+                    "cause_variables": ["potential_V"],
+                    "effect_variable": "yield",
+                    "relation": "positive",
+                    "mechanism_tags": ["unsupported_mechanism_tag"],
+                    "scope": "tested range",
+                    "evidence_ids": ["e1"],
+                    "confidence": 0.6,
+                }
+            ],
+        },
+        "remaining_risks": ["secondary claim is unscored"],
+        "recommended_followup": "retain the Predictive-only evaluation",
+    }
+
+    recommendation = validator.validate(
+        payload,
+        history=history,
+        evidence_catalog=["e1"],
+    )
+
+    explanation = recommendation.working_explanation
+    assert explanation["structured_claims"] == []
+    diagnostics = explanation["structured_claim_diagnostics"]
+    assert diagnostics["unscored_claim_count"] == 1
+    assert diagnostics["unscored_claims"][0]["reason_code"] == ("unknown_mechanism_tag")
+    assert diagnostics["unscored_claims"][0]["unknown_terms"] == [
+        "unsupported_mechanism_tag"
+    ]
+
+
+def test_predictive_accuracy_breakdown_separates_effect_coverage() -> None:
+    breakdown = _predictive_accuracy_breakdown(
+        {
+            "rows": [
+                {"actual_direction": "decrease", "correct": True},
+                {"actual_direction": "increase", "correct": False},
+                {"actual_direction": "no_material_change", "correct": True},
+                {"actual_direction": "no_material_change", "correct": False},
+                {"actual_direction": "no_material_change", "correct": True},
+            ]
+        }
+    )
+
+    assert breakdown["nontrivial_effects"] == {
+        "count": 2,
+        "correct_count": 1,
+        "directional_accuracy": 0.5,
+    }
+    assert breakdown["no_material_change"] == {
+        "count": 3,
+        "correct_count": 2,
+        "directional_accuracy": pytest.approx(2 / 3),
+    }
+
+
 def test_s0_single_stage_electrochemical_contract_executes_once() -> None:
     task_info = get_task("electrochemical-conversion").to_dict()
-    parameters = electrochemical_single_stage_parameters_from_unit_vector(
-        np.full(6, 0.5)
-    )
+    parameters = electrochemical_single_stage_parameters_from_unit_vector(np.full(6, 0.5))
     plan = StaticOptimizationPlan(
         experiment_intent="execute one production electrolysis",
         search_vector=(0.5,) * 6,
@@ -408,13 +582,10 @@ def test_s0_single_stage_electrochemical_contract_executes_once() -> None:
 def test_s0_single_stage_predictive_queries_use_production_controls() -> None:
     root = Path(__file__).resolve().parents[1]
     protocol = _load_json(
-        root
-        / "configs/benchmark/"
-        "scientific_optimization_s0_v0.4_single_stage_high_20_formal.json"
+        root / "configs/benchmark/scientific_optimization_s0_v0.4_single_stage_high_20_formal.json"
     )
     methods = _load_json(
-        root
-        / "configs/methods/llm_v0.4/"
+        root / "configs/methods/llm_v0.4/"
         "participant_methods_s0_wellau_codex_sol_high_single_stage_20.json"
     )
     short_protocol = copy.deepcopy(protocol)
@@ -433,10 +604,7 @@ def test_s0_single_stage_predictive_queries_use_production_controls() -> None:
     )
 
     assert receipt["cell_status"] == "completed"
-    assert all(
-        item["result"]["compiled_operation_count"] == 8
-        for item in receipt["experiments"]
-    )
+    assert all(item["result"]["compiled_operation_count"] == 8 for item in receipt["experiments"])
     queries = build_electrochemical_prediction_queries(
         receipt["public_history"],
         electrochemical_workflow_mode=ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
@@ -447,7 +615,6 @@ def test_s0_single_stage_predictive_queries_use_production_controls() -> None:
         "electrolyte_profile",
     ]
     assert all(
-        query.standardized_measurement_slots
-        == ("diagnostic-01-ph_meter", "diagnostic-02-uvvis")
+        query.standardized_measurement_slots == ("diagnostic-01-ph_meter", "diagnostic-02-uvvis")
         for query in queries
     )

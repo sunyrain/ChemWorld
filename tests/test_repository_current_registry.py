@@ -51,7 +51,7 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     assert registry["project"]["version"] == pyproject["project"]["version"]
     assert registry["project"]["role"] == "agent_capability_evaluation_and_training_environment"
     assert registry["project"]["environment_updates_agent_weights"] is False
-    assert registry["formal_evaluation"]["formal_results_present"] is True
+    assert registry["formal_evaluation"]["formal_results_present"] is False
     assert registry["formal_evaluation"]["benchmark_claim_allowed"] is False
     assert (
         registry["formal_evaluation"]["environment_certificate_results_present"]
@@ -64,8 +64,8 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
         is False
     )
     assert registry["mechanism_adaptation"]["publication_ready"] is False
-    assert registry["static_scientific_optimization"]["formal_result"] is True
-    assert registry["static_scientific_optimization"]["all_replay_verified"] is True
+    assert registry["static_scientific_optimization"]["formal_result"] is False
+    assert registry["static_scientific_optimization"]["all_replay_verified"] is False
     assert (
         registry["static_scientific_optimization"]["hidden_world_change_evaluated"]
         is False

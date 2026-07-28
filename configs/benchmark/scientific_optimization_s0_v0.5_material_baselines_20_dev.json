@@ -1,0 +1,161 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-baseline-protocol-0.3-s0-dev",
+  "protocol_id": "chemworld-static-scientific-optimization-s0-v0.5-material-baselines-20-dev-2026-07-28",
+  "freeze_id": "chemworld-static-scientific-optimization-s0-v0.5-material-baselines-20-dev",
+  "status": "development_only_pending_material_family_qualification",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "world_policy": {
+    "mode": "static_for_entire_campaign",
+    "world_seed": 0,
+    "development_world_seeds": [0, 1, 2, 3, 4],
+    "electrochemical_material_family_id": "nominal-prior-latent-v2",
+    "interventions": [],
+    "phase_changes": [],
+    "hidden_world_fields_in_public_context": false
+  },
+  "tasks": ["electrochemical-conversion"],
+  "horizon": 20,
+  "scientific_campaign_budget": {
+    "exploration_experiments": 20,
+    "horizon_visible": true,
+    "final_synthesis_after_exploration": true
+  },
+  "material_information": {
+    "mode": "opaque_codes"
+  },
+  "experiment_interface": {
+    "model_facing_parameterization": "named_physical_controls",
+    "electrochemical_workflow_mode": "static_single_stage",
+    "algorithm_internal_representation": "six_dimensional_unit_vector",
+    "internal_unit_vector_is_scientific_evidence": false
+  },
+  "reward_contract": {
+    "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+    "optimization_feedback": "terminal_summary.leaderboard_score",
+    "feedback_timing": "after_completed_final_assay_only",
+    "intermediate_measurement_reward_used": false,
+    "fresh_measurement_score_delta_used": false,
+    "failed_experiment_score": 0.0,
+    "safety_label": "peak_safety_risk",
+    "safety_constraint_threshold": 0.65,
+    "safety_is_separate_from_primary_reward": true,
+    "final_selection": "best_observed_completed_experiment",
+    "primary_endpoint": "paired_blind_validated_final_recommendation_score_mean"
+  },
+  "executor_contract": {
+    "atomic_complete_experiment": true,
+    "electrochemical_workflow_mode": "static_single_stage",
+    "runtime_guard_margin_operations": 1,
+    "runtime_margin_available_to_agent": false,
+    "mandatory_terminate": true,
+    "mandatory_final_assay": true,
+    "show_task_operation_budget_to_agent": false
+  },
+  "final_synthesis": {
+    "enabled": true,
+    "calls": 0,
+    "mode": "deterministic_best_observed_selection",
+    "executes_experiment": false,
+    "allow_tested_recommendation": true,
+    "allow_interpolated_recommendation": false,
+    "allow_extrapolated_recommendation_within_bounds": false,
+    "validation_feedback_returned_to_agent": false
+  },
+  "world_understanding": {
+    "enabled": false,
+    "predictive_score_enabled": false,
+    "reason": "classic optimizers are optimization baselines"
+  },
+  "validation_budget": {
+    "incumbent_replicates": 3,
+    "recommendation_replicates": 3,
+    "independent_observation_seeds": true,
+    "paired_observation_seeds_across_targets": true,
+    "feedback_returned_to_agent": false
+  },
+  "algorithm_seeds": [0, 1, 2, 3, 4],
+  "algorithms": {
+    "random": {
+      "family": "uniform_random_search"
+    },
+    "lhs": {
+      "family": "balanced_latin_hypercube"
+    },
+    "structured_gp_ei": {
+      "family": "gaussian_process_expected_improvement",
+      "categorical_surrogate_encoding": "nominal_one_hot",
+      "n_initial": 6,
+      "n_candidates": 2048,
+      "local_candidate_fraction": 0.5,
+      "local_candidate_scale": 0.12
+    },
+    "structured_rf_ei": {
+      "family": "random_forest_expected_improvement",
+      "categorical_surrogate_encoding": "nominal_one_hot",
+      "n_initial": 6,
+      "n_candidates": 2048,
+      "n_estimators": 192,
+      "local_candidate_fraction": 0.5,
+      "local_candidate_scale": 0.12
+    },
+    "descriptor_gp_ei": {
+      "family": "gaussian_process_expected_improvement",
+      "categorical_surrogate_encoding": "nominal_properties",
+      "n_initial": 6,
+      "n_candidates": 2048,
+      "local_candidate_fraction": 0.5,
+      "local_candidate_scale": 0.12
+    },
+    "descriptor_rf_ei": {
+      "family": "random_forest_expected_improvement",
+      "categorical_surrogate_encoding": "nominal_properties",
+      "n_initial": 6,
+      "n_candidates": 2048,
+      "n_estimators": 192,
+      "local_candidate_fraction": 0.5,
+      "local_candidate_scale": 0.12
+    },
+    "shuffled_descriptor_gp_ei": {
+      "family": "gaussian_process_expected_improvement",
+      "categorical_surrogate_encoding": "shuffled_properties",
+      "descriptor_permutation": {
+        "electrolyte_profile": [2, 3, 1, 0],
+        "solvent": [1, 3, 0, 2]
+      },
+      "n_initial": 6,
+      "n_candidates": 2048,
+      "local_candidate_fraction": 0.5,
+      "local_candidate_scale": 0.12
+    },
+    "descriptor_telemetry_rf_ei": {
+      "family": "multi_output_random_forest_expected_improvement",
+      "categorical_surrogate_encoding": "nominal_properties",
+      "telemetry_metric_ids": [
+        "electrochemical_conversion",
+        "selective_product_yield",
+        "electrochemical_selectivity",
+        "energy_efficiency",
+        "ohmic_efficiency",
+        "transport_efficiency",
+        "faradaic_efficiency",
+        "pH_normalized"
+      ],
+      "n_initial": 6,
+      "n_candidates": 2048,
+      "n_estimators": 192,
+      "local_candidate_fraction": 0.5,
+      "local_candidate_scale": 0.12
+    }
+  },
+  "observation_noise_namespace": "scientific-optimization-s0-v05-material-baselines-dev",
+  "objective": "compare score-only, descriptor-aware, shuffled, and telemetry-aware complete-experiment optimizers",
+  "primary_metric": "validated_final_recommendation_score_mean",
+  "secondary_metrics": [
+    "best_exploration_score",
+    "best_so_far_area_under_curve",
+    "threshold_hitting_rounds",
+    "peak_safety_risk",
+    "algorithm_cpu_time_s"
+  ]
+}

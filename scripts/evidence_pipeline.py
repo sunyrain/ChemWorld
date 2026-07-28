@@ -276,33 +276,47 @@ NODES = (
     ),
     EvidenceNode(
         "static_s0_electrochemical_protocol",
-        "configs/benchmark/scientific_optimization_s0_v0.4.1_single_stage_high_20_formal.json",
+        "configs/benchmark/scientific_optimization_s0_v0.7.1_material_opaque_codex_subscription_20x5_dev.json",
         "protocol_input",
     ),
     EvidenceNode(
         "static_s0_electrochemical_method",
-        "configs/methods/llm_v0.4/participant_methods_s0_wellau_codex_sol_high_single_stage_20_v041.json",
+        "configs/methods/llm_v0.4/participant_methods_s0_codex_subscription_sol_material_opaque_20x5_v071.json",
         "protocol_input",
     ),
     EvidenceNode(
+        "static_s0_electrochemical_qualification",
+        "workstreams/flagship_tasks/reports/static-s0-material-family-v2-qualification-v0.3.json",
+        "development_diagnostic",
+        ("static_s0_electrochemical_protocol",),
+    ),
+    EvidenceNode(
         "static_s0_crystallization_protocol",
-        "configs/benchmark/scientific_optimization_s0_v0.5_crystallization_high_20_formal.json",
+        "configs/benchmark/scientific_optimization_s0_v0.8_crystallization_material_opaque_20x5_dev.json",
         "protocol_input",
     ),
     EvidenceNode(
         "static_s0_crystallization_method",
-        "configs/methods/llm_v0.5/participant_methods_s0_wellau_codex_sol_high_crystallization_20.json",
+        "configs/methods/llm_v0.8/participant_methods_s0_codex_subscription_sol_crystallization_material_opaque_20x5_v08.json",
         "protocol_input",
     ),
     EvidenceNode(
-        "static_s0_confirmatory_summary",
-        "workstreams/flagship_tasks/reports/static-s0-confirmatory-summary-v0.1.json",
-        "formal_result",
+        "static_s0_crystallization_qualification",
+        "workstreams/flagship_tasks/reports/static-s0-crystallization-material-family-v1-qualification-v0.1.json",
+        "development_diagnostic",
+        ("static_s0_crystallization_protocol",),
+    ),
+    EvidenceNode(
+        "static_s0_replacement_readiness",
+        "workstreams/flagship_tasks/reports/static-s0-replacement-readiness-v0.1.json",
+        "development_diagnostic",
         (
             "static_s0_electrochemical_protocol",
             "static_s0_electrochemical_method",
+            "static_s0_electrochemical_qualification",
             "static_s0_crystallization_protocol",
             "static_s0_crystallization_method",
+            "static_s0_crystallization_qualification",
         ),
     ),
     EvidenceNode(
@@ -451,7 +465,10 @@ CURRENT_PATH_RULES = (
     CurrentPathRule(("runtime", "backend"), "protocol_input"),
     CurrentPathRule(("runtime", "backend_report"), "generated_current"),
     CurrentPathRule(("task_design", "matrix"), "generated_current"),
-    CurrentPathRule(("static_scientific_optimization", "summary"), "formal_result"),
+    CurrentPathRule(
+        ("static_scientific_optimization", "summary"),
+        "development_diagnostic",
+    ),
     CurrentPathRule(("publication", "manuscript"), "development_diagnostic"),
     CurrentPathRule(("mechanism_adaptation", "protocol"), "protocol_input"),
     CurrentPathRule(("mechanism_adaptation", "preflight_report"), "generated_current"),
@@ -1113,7 +1130,7 @@ def _write_current_registry() -> None:
     mechanism_plan = load_json_object(
         ROOT / node_map()["mechanism_gate_a_plan"].path
     )
-    static_s0_summary_path = ROOT / node_map()["static_s0_confirmatory_summary"].path
+    static_s0_summary_path = ROOT / node_map()["static_s0_replacement_readiness"].path
     static_s0_summary = load_json_object(static_s0_summary_path)
     task_design_matrix = load_json_object(ROOT / node_map()["task_design_matrix"].path)
     mechanism_evidence_current = _mechanism_public_decision_binding_current(
@@ -1301,32 +1318,33 @@ def _write_current_registry() -> None:
         "task_contract_version": backend_protocol["task_contract_version"],
     }
     current["formal_evaluation"] = {
-        "status": "static_s0_formal_complete_mechanism_recertification_pending",
-        "formal_results_present": True,
+        "status": "static_s0_legacy_withdrawn_v1_frozen_pending_formal_execution",
+        "formal_results_present": False,
         "benchmark_claim_allowed": False,
         "environment_certificate_results_present": True,
         "environment_benchmark_readiness_claim_allowed": mechanism_gate_a_current,
         "interpretation": (
-            "Fixed-world static-S0 participant results are complete for both "
-            "confirmatory tasks. RC28 Gate A passed on its frozen source, but its "
-            "current source binding is stale and requires recertification. "
-            "Mechanism-adaptation Participant Gates B-E remain unexecuted."
+            "Legacy fixed-world static-S0 participant results were withdrawn. "
+            "Replacement electrochemical and reaction-crystallization protocols, "
+            "methods, references, and classic baselines are frozen for ten-world "
+            "execution but have no formal multi-world result. "
+            "RC28 Gate A remains a historical environment certificate with stale "
+            "current-source binding; Participant Gates B-E remain unexecuted."
         ),
     }
     current["static_scientific_optimization"] = {
-        "summary": node_map()["static_s0_confirmatory_summary"].path,
+        "summary": node_map()["static_s0_replacement_readiness"].path,
         "status": static_s0_summary["status"],
-        "formal_result": bool(static_s0_summary["formal_result"]),
-        "benchmark_claim_allowed": bool(static_s0_summary["benchmark_claim_allowed"]),
-        "task_ids": sorted(static_s0_summary["results"]),
-        "world_seeds": list(static_s0_summary["method"]["world_seeds"]),
+        "formal_result": False,
+        "benchmark_claim_allowed": False,
+        "task_ids": list(static_s0_summary["task_ids"]),
+        "world_seeds": list(static_s0_summary["development_world_seeds"]),
         "exploration_experiments_per_seed": int(
-            static_s0_summary["method"]["exploration_experiments_per_seed"]
+            static_s0_summary["exploration_experiments_per_seed"]
         ),
-        "all_replay_verified": all(
-            bool(result["all_replay_verified"])
-            for result in static_s0_summary["results"].values()
-        ),
+        "all_replay_verified": False,
+        "replacement_protocols": dict(static_s0_summary["replacement_protocols"]),
+        "formalization_gates": dict(static_s0_summary["formalization_gates"]),
         "hidden_world_change_evaluated": False,
     }
     task_design_validation = task_design_matrix["design_validation"]
@@ -1858,10 +1876,13 @@ def check_current_evidence() -> list[str]:
     )
     if runtime.get("contract_validation") != expected_backend_validation:
         errors.append("current registry backend validation state is inconsistent")
-    if formal.get("status") != "static_s0_formal_complete_mechanism_recertification_pending":
+    if (
+        formal.get("status")
+        != "static_s0_legacy_withdrawn_v1_frozen_pending_formal_execution"
+    ):
         errors.append("current registry formal evaluation boundary is inconsistent")
-    if formal.get("formal_results_present") is not True:
-        errors.append("current registry omits static-S0 participant formal results")
+    if formal.get("formal_results_present") is not False:
+        errors.append("current registry improperly claims static-S0 formal results")
     if formal.get("benchmark_claim_allowed") is not False:
         errors.append("current registry improperly enables participant benchmark claims")
     if formal.get("environment_certificate_results_present") is not True:
@@ -1872,12 +1893,12 @@ def check_current_evidence() -> list[str]:
     ):
         errors.append("current registry environment readiness state is inconsistent")
     static_s0 = current.get("static_scientific_optimization", {})
-    if static_s0.get("formal_result") is not True:
-        errors.append("current registry omits the static-S0 formal result")
+    if static_s0.get("formal_result") is not False:
+        errors.append("current registry improperly promotes replacement static-S0 evidence")
     if static_s0.get("benchmark_claim_allowed") is not False:
         errors.append("current registry improperly enables a broad static-S0 benchmark claim")
-    if static_s0.get("all_replay_verified") is not True:
-        errors.append("current registry static-S0 replay state is inconsistent")
+    if static_s0.get("all_replay_verified") is not False:
+        errors.append("current registry improperly claims replacement formal replay")
     if static_s0.get("hidden_world_change_evaluated") is not False:
         errors.append("current registry conflates static S0 with hidden world changes")
     task_design = current.get("task_design", {})

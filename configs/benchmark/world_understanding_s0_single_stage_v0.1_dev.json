@@ -15,8 +15,8 @@
       "reagent_amount_mol"
     ],
     "effect_variables": [
-      "yield",
-      "conversion",
+      "selective_product_yield",
+      "electrochemical_conversion",
       "energy_efficiency",
       "faradaic_efficiency",
       "transport_efficiency",
@@ -45,7 +45,7 @@
     {
       "claim_id": "potential-to-yield",
       "cause_variables": ["potential_V"],
-      "effect_variable": "yield",
+      "effect_variable": "selective_product_yield",
       "accepted_relations": ["nonmonotonic", "conditional"],
       "mechanism_tags": [
         "nernst_equilibrium",
@@ -64,7 +64,7 @@
     {
       "claim_id": "current-cap-to-conversion",
       "cause_variables": ["current_mA"],
-      "effect_variable": "conversion",
+      "effect_variable": "electrochemical_conversion",
       "accepted_relations": ["positive", "conditional"],
       "mechanism_tags": ["current_magnitude_cap", "faraday_charge", "mass_transfer_limit"]
     },
@@ -78,7 +78,7 @@
     {
       "claim_id": "duration-to-conversion",
       "cause_variables": ["duration_s"],
-      "effect_variable": "conversion",
+      "effect_variable": "electrochemical_conversion",
       "accepted_relations": ["positive", "conditional"],
       "mechanism_tags": ["faraday_charge", "mass_transfer_limit", "inventory_limit"]
     },
@@ -106,7 +106,7 @@
     {
       "claim_id": "inventory-to-conversion",
       "cause_variables": ["reagent_amount_mol"],
-      "effect_variable": "conversion",
+      "effect_variable": "electrochemical_conversion",
       "accepted_relations": ["negative", "conditional"],
       "mechanism_tags": ["inventory_limit", "faraday_charge"]
     }
