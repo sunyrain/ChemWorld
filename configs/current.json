@@ -21,17 +21,17 @@
     "task_contract_version": "chemworld-task-contract-1.1"
   },
   "formal_evaluation": {
-    "status": "static_s0_legacy_withdrawn_v1_frozen_pending_formal_execution",
-    "formal_results_present": false,
+    "status": "static_s0_v1_formal_descriptive_results_complete_claim_bounded",
+    "formal_results_present": true,
     "benchmark_claim_allowed": false,
     "environment_certificate_results_present": true,
     "environment_benchmark_readiness_claim_allowed": false,
-    "interpretation": "Legacy fixed-world static-S0 participant results were withdrawn. Replacement electrochemical and reaction-crystallization protocols, methods, references, and classic baselines are frozen for ten-world execution but have no formal multi-world result. RC28 Gate A remains a historical environment certificate with stale current-source binding; Participant Gates B-E remain unexecuted."
+    "interpretation": "Legacy fixed-world static-S0 participant results were withdrawn. Replacement electrochemical and reaction-crystallization campaigns completed ten independent worlds, twenty exploration experiments per world, full classic baselines, and exact replay. Results are descriptive: electrochemical is positive against the best information-matched baseline but not stable against the best privileged calibration baseline; crystallization underperforms LHS. RC28 Gate A remains a historical environment certificate with stale current-source binding; Participant Gates B-E remain unexecuted."
   },
   "static_scientific_optimization": {
-    "summary": "workstreams/flagship_tasks/reports/static-s0-replacement-readiness-v0.1.json",
-    "status": "legacy_results_withdrawn_v1_freeze_ready_for_execution",
-    "formal_result": false,
+    "summary": "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json",
+    "status": "completed_audited_formal_descriptive_result",
+    "formal_result": true,
     "benchmark_claim_allowed": false,
     "task_ids": [
       "electrochemical-conversion",
@@ -50,41 +50,25 @@
       9
     ],
     "exploration_experiments_per_seed": 20,
-    "all_replay_verified": false,
-    "replacement_protocols": {
-      "electrochemical-conversion": {
-        "protocol": "configs/benchmark/scientific_optimization_s0_v1.0_electrochemical_material_opaque_20x10_formal.json",
-        "method": "configs/methods/llm_v1.0/participant_methods_s0_codex_subscription_sol_electrochemical_material_opaque_20x10_v10.json",
-        "classic_baselines": "configs/benchmark/scientific_optimization_s0_v1.0_electrochemical_classic_baselines_20x10_formal.json",
-        "world_understanding_reference": "configs/benchmark/world_understanding_s0_electrochemical_material_v1.0.json",
-        "material_family_id": "nominal-prior-latent-v2",
-        "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
-        "material_information": "opaque_codes",
-        "qualification": "workstreams/flagship_tasks/reports/static-s0-material-family-v2-qualification-v0.3.json",
-        "qualification_status": "qualified_and_frozen_for_formal_execution",
-        "formal_result": false
+    "all_replay_verified": true,
+    "freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json",
+    "campaign_total_physical_experiments": 28060,
+    "comparison_scope": "descriptive_only_no_preregistered_superiority_threshold_or_multiplicity_plan",
+    "task_results": {
+      "electrochemical": {
+        "participant_mean": 0.7149733356640986,
+        "participant_world_bootstrap_95_interval": [
+          0.6283116887495973,
+          0.7860843989134604
+        ]
       },
-      "reaction-to-crystallization": {
-        "protocol": "configs/benchmark/scientific_optimization_s0_v1.0_crystallization_material_opaque_20x10_formal.json",
-        "method": "configs/methods/llm_v1.0/participant_methods_s0_codex_subscription_sol_crystallization_material_opaque_20x10_v10.json",
-        "classic_baselines": "configs/benchmark/scientific_optimization_s0_v1.0_crystallization_classic_baselines_20x10_formal.json",
-        "world_understanding_reference": "configs/benchmark/world_understanding_s0_crystallization_material_v1.0.json",
-        "material_family_id": "reaction-crystallization-latent-materials-v1",
-        "scoring_contract_id": "reaction-crystallization-s0-balanced-product-v1",
-        "material_information": "opaque_codes",
-        "qualification": "workstreams/flagship_tasks/reports/static-s0-crystallization-material-family-v1-qualification-v0.1.json",
-        "qualification_status": "qualified_and_frozen_for_formal_execution",
-        "formal_result": false
+      "crystallization": {
+        "participant_mean": 0.5354837981204051,
+        "participant_world_bootstrap_95_interval": [
+          0.5045197088082654,
+          0.5643865950273746
+        ]
       }
-    },
-    "formalization_gates": {
-      "protocol_and_method_freeze": true,
-      "classic_baseline_freeze": true,
-      "world_understanding_reference_freeze": true,
-      "multi_world_participant_execution": false,
-      "multi_world_baseline_execution": false,
-      "exact_postrun_replay": false,
-      "formal_summary_generated": false
     },
     "hidden_world_change_evaluated": false
   },
@@ -166,7 +150,7 @@
     "status": "stale_evidence_bindings",
     "current_evidence_coherent": false,
     "tracked_source_tree_dirty": false,
-    "stale_binding_count": 9,
+    "stale_binding_count": 10,
     "stale_binding_ids": [
       "mechanism_a2_structural_receipt",
       "mechanism_a3_structural_receipt",
@@ -176,7 +160,8 @@
       "mechanism_preflight",
       "mechanism_preregistration",
       "mechanism_public_gate_a_decision",
-      "mechanism_release_qualification"
+      "mechanism_release_qualification",
+      "pre_arxiv_claim_evidence_ledger"
     ],
     "blockers": [
       {
@@ -202,7 +187,8 @@
           "mechanism_preflight",
           "mechanism_preregistration",
           "mechanism_public_gate_a_decision",
-          "mechanism_release_qualification"
+          "mechanism_release_qualification",
+          "pre_arxiv_claim_evidence_ledger"
         ]
       }
     ]
@@ -258,8 +244,8 @@
     "schema_version": "chemworld-current-evidence-dag-0.3",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "d01932a8284f0f31e52f92aa73561761d2da47de5bbdcf4c37e1c07a36cf3a6a",
-    "repository_source_sha256": "eb12914f0aa475e7290bd51a35c0d51439f22d015afa603dfdb38eb8ff08bdc4",
+    "graph_sha256": "04ad7a77baa523208921fc62ac3f45f63db72fd07e213f8968076dbf90545458",
+    "repository_source_sha256": "7d63adba9cc58f856d9f1e4b95f014afb2dda4da1e440468e15378df5d7ccb2a",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -284,7 +270,6 @@
       "static_s0_electrochemical_method",
       "static_s0_electrochemical_protocol",
       "static_s0_electrochemical_world_understanding",
-      "task_design_matrix",
       "mechanism_agent_pilot",
       "mechanism_gate_a_plan",
       "mechanism_public_matrix",
@@ -298,16 +283,19 @@
       "mechanism_diagnostic_relation_graph",
       "mechanism_participant_preregistration_candidate",
       "mechanism_sample_size_audit",
+      "static_s0_formal_campaign_summary",
       "static_s0_replacement_readiness",
       "backend_candidate",
       "mechanism_preregistration",
+      "task_design_matrix",
       "mechanism_confirmatory_task_semantics_audit",
       "mechanism_design_audit",
       "mechanism_release_qualification",
       "mechanism_a2_structural_receipt",
       "mechanism_a3_structural_receipt",
       "mechanism_preflight",
-      "mechanism_public_gate_a_decision"
+      "mechanism_public_gate_a_decision",
+      "pre_arxiv_claim_evidence_ledger"
     ],
     "nodes": {
       "backend_golden_fixture": {
@@ -586,18 +574,6 @@
         "freshness": "fresh",
         "gate_state": "not_applicable"
       },
-      "task_design_matrix": {
-        "path": "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
-        "role": "generated_current",
-        "lifecycle": "generated",
-        "producer": "python scripts/build_task_design_matrix.py --output workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
-        "source_binding": "dependencies_and_source_commit",
-        "dependencies": [],
-        "sha256": "cbb2a2c9a920e8f3aefce0f638d88149ea9232a010536e1620fbf54b67799221",
-        "artifact_state": "current",
-        "freshness": "fresh",
-        "gate_state": "passed"
-      },
       "mechanism_agent_pilot": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-agent-pilot-v0.2.1.json",
         "role": "development_diagnostic",
@@ -800,6 +776,20 @@
         "freshness": "fresh",
         "gate_state": "passed"
       },
+      "static_s0_formal_campaign_summary": {
+        "path": "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
+        "dependencies": [
+          "static_s0_freeze_manifest"
+        ],
+        "sha256": "309db48ff0f60b6f00ad4b40ec0bb5cdba19b8810c7239cd3e3b826dfde96001",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
       "static_s0_replacement_readiness": {
         "path": "workstreams/flagship_tasks/reports/static-s0-replacement-readiness-v0.1.json",
         "role": "development_diagnostic",
@@ -859,6 +849,20 @@
         "artifact_state": "stale",
         "freshness": "stale_dependency_binding",
         "gate_state": "invalidated"
+      },
+      "task_design_matrix": {
+        "path": "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/build_task_design_matrix.py --output workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
+        "source_binding": "dependencies_and_source_commit",
+        "dependencies": [
+          "static_s0_formal_campaign_summary"
+        ],
+        "sha256": "190e6cad41c78a5c05bf39ffb4f70954efc89c3bf68161369d3e845df04e56b1",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
       },
       "mechanism_confirmatory_task_semantics_audit": {
         "path": "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc28.json",
@@ -992,12 +996,32 @@
         "artifact_state": "stale",
         "freshness": "stale_dependency_binding",
         "gate_state": "invalidated"
+      },
+      "pre_arxiv_claim_evidence_ledger": {
+        "path": "workstreams/flagship_tasks/reports/pre-arxiv-claim-evidence-ledger-v1.json",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
+        "dependencies": [
+          "mechanism_public_gate_a_decision",
+          "static_s0_formal_campaign_summary",
+          "task_design_matrix"
+        ],
+        "sha256": "93ef8f21f03911b9ff249934e0e599d6ff1867fbf5d4bcdb0c4ba3dd55cf06be",
+        "artifact_state": "stale",
+        "freshness": "stale_dependency_binding",
+        "gate_state": "invalidated"
       }
     }
   },
   "publication": {
     "status": "working_manuscript_not_submission_ready",
     "manuscript": "paper/chemworld_benchmark_manuscript.md",
+    "claim_evidence_ledger": "workstreams/flagship_tasks/reports/pre-arxiv-claim-evidence-ledger-v1.json",
+    "scope": "narrow_two_task_fixed_world_descriptive_benchmark",
+    "new_scientific_experiments_required_for_narrow_scope": false,
+    "stronger_claim_experiments_pending": true,
     "publication_ready": false
   },
   "system_model": {
@@ -1067,15 +1091,34 @@
   },
   "task_design": {
     "matrix": "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
-    "status": "all_registered_task_designs_executable",
+    "status": "all_registered_task_designs_executable_and_metric_bound",
     "registered_task_count": 15,
     "executable_midpoint_task_count": 15,
+    "executable_boundary_task_count": 15,
+    "boundary_recipe_case_count": 415,
+    "declared_success_metric_count": 62,
+    "bound_success_metric_count": 62,
     "dead_recipe_coordinate_count": 0,
     "formalization_blocker_count": 0,
     "formal_experiment_task_ids": [
       "electrochemical-conversion",
       "reaction-to-crystallization"
     ],
-    "nonconfirmatory_formal_experiments_required": false
+    "formal_empirical_comparison_pending_task_ids": [
+      "equilibrium-characterization",
+      "flow-reaction-optimization",
+      "low-budget-characterization",
+      "partition-discovery",
+      "public-private-generalization",
+      "purity-yield-tradeoff",
+      "reaction-mechanism-explanation",
+      "reaction-optimization-standard",
+      "reaction-safety-constrained",
+      "reaction-to-assay",
+      "reaction-to-distillation",
+      "reaction-to-purification",
+      "tool-agent-planning"
+    ],
+    "nonconfirmatory_formal_experiments_required_for_future_claims": true
   }
 }

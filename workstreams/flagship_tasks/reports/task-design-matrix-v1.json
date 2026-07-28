@@ -11,23 +11,86 @@
     "optimizer_feedback": "terminal final-assay leaderboard score"
   },
   "design_validation": {
+    "bound_success_metric_count": 62,
+    "boundary_recipe_case_count": 415,
     "dead_recipe_coordinate_count": 0,
+    "declared_success_metric_count": 62,
+    "executable_boundary_task_count": 15,
     "executable_midpoint_task_count": 15,
+    "formal_empirical_comparison_pending_task_ids": [
+      "equilibrium-characterization",
+      "flow-reaction-optimization",
+      "low-budget-characterization",
+      "partition-discovery",
+      "public-private-generalization",
+      "purity-yield-tradeoff",
+      "reaction-mechanism-explanation",
+      "reaction-optimization-standard",
+      "reaction-safety-constrained",
+      "reaction-to-assay",
+      "reaction-to-distillation",
+      "reaction-to-purification",
+      "tool-agent-planning"
+    ],
     "formal_experiment_task_ids": [
       "electrochemical-conversion",
       "reaction-to-crystallization"
     ],
     "formalization_blocker_count": 0,
-    "nonconfirmatory_formal_experiments_required": false,
-    "status": "all_registered_task_designs_executable"
+    "nonconfirmatory_formal_experiments_required_for_future_claims": true,
+    "status": "all_registered_task_designs_executable_and_metric_bound"
   },
-  "schema_version": "chemworld-task-design-matrix-1.1",
-  "source_commit": "efdaf3b8bb4bc033e7300f33d97cb799429ce5e9",
+  "schema_version": "chemworld-task-design-matrix-1.2",
+  "source_commit": "2eedad617b3568a93a29333199981819ab7d9af3",
   "source_tree_dirty": false,
   "task_count": 15,
   "tasks": [
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 21,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "electrolyte_profile": {
+              "all_categories_reachable": true,
+              "coordinate": 0,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 1,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 12,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 8,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 8,
         "declared_operation_sequence": [
           "add_solvent",
@@ -67,6 +130,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 8,
           "failures": [],
@@ -117,22 +181,154 @@
         "recipe_space_version": "chemworld-electrochemical-static-single-stage-recipe-0.1-s0-dev",
         "workflow": "static_single_stage_electrochemical"
       },
-      "design_status": "formal_design_and_empirical_execution_complete",
+      "design_status": "formal_campaign_complete_claim_bounded",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 48,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "688fb204baab4c6a1c2c95b1de602cb77ea7704e3bd43c4ddd052cb3aea9916c",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "selective_product_yield",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "electrochemical_selectivity",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "score",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "faradaic_efficiency",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "transport_efficiency",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "ohmic_efficiency",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "energy_efficiency",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "pH_normalized",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "precipitation_signal",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "minimize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "safety_risk",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "selective_product_yield",
+          "electrochemical_selectivity",
+          "score",
+          "faradaic_efficiency",
+          "transport_efficiency",
+          "ohmic_efficiency",
+          "energy_efficiency",
+          "pH_normalized",
+          "precipitation_signal",
+          "safety_risk"
+        ]
+      },
       "formal_s0": {
         "blind_validation_replicates_per_target": 3,
         "declared_world_understanding": true,
         "evidence": {
-          "aggregate": "runs/formal/static_scientific_optimization_s0_v041_single_stage_high_20_5seed_20260727/multiseed_report.json",
-          "protocol": "configs/benchmark/scientific_optimization_s0_v0.4.1_single_stage_high_20_formal.json"
+          "baseline_campaign_index": "runs/formal/static-s0-v10-baselines-20260729/campaign_execution_index.json",
+          "campaign_summary": "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json",
+          "freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json",
+          "participant_campaign_index": "runs/formal/static-s0-v10-codex-subscription-20260729/campaign_execution_index.json"
         },
         "exploration_horizon": 20,
         "final_synthesis": true,
         "horizon_visible": true,
+        "independent_world_count": 10,
         "predictive_world_understanding": true,
-        "status": "completed_five_static_world_seeds"
+        "status": "completed_ten_worlds_full_classic_baselines"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -184,6 +380,27 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 7,
+          "categorical_case_count": 0,
+          "categorical_coverage": {},
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 6,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 8,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 8,
         "declared_operation_sequence": [
           "add_solvent",
@@ -229,6 +446,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 8,
           "failures": [],
@@ -274,13 +492,83 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_equilibrium_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 24,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "c2cde2d9e09921dfa91568080c9c8498f096fd427005699807502c489ad5bcf6",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "pH_normalized",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "acid_dissociation_fraction",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "precipitation_signal",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "minimize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "equilibrium_residual",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "equilibrium_confidence",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "pH_normalized",
+          "acid_dissociation_fraction",
+          "precipitation_signal",
+          "equilibrium_residual",
+          "equilibrium_confidence"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -322,6 +610,50 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 25,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 2,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 0,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 16,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 8,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 8,
         "declared_operation_sequence": [
           "add_solvent",
@@ -355,6 +687,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 8,
           "failures": [],
@@ -443,13 +776,71 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_flow_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 60,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "0ad4167ac2a89a5dcdaeab731c1bdb67b57a47fa18595ab3925b9fffaa251d5b",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "score",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "flow_conversion",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "yield",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "minimize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "safety_risk",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "score",
+          "flow_conversion",
+          "yield",
+          "safety_risk"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -490,6 +881,50 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 23,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 14,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 8,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 8,
         "declared_operation_sequence": [
           "add_solvent",
@@ -523,6 +958,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 8,
           "failures": [],
@@ -600,13 +1036,64 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_reaction_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 18,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "8eac9c7a83603b663a9ded3b1fb74645fbddaaa0267bc13ec2b3f404194fc463",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "threshold_hit_by_completed_experiment",
+            "implementation_status": "executable",
+            "metric_id": "sample_efficiency",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "trajectory_records",
+              "task_threshold"
+            ],
+            "source_layer": "trajectory_aggregate"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "frozen_holdout_normal_interval_score",
+            "implementation_status": "executable",
+            "metric_id": "uncertainty",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "frozen_holdout_targets",
+              "predictive_means",
+              "predictive_standard_deviations"
+            ],
+            "source_layer": "predictive_holdout"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "frozen_holdout_one_minus_rmse",
+            "implementation_status": "executable",
+            "metric_id": "local_model_quality",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "frozen_holdout_targets",
+              "predictive_means",
+              "predictive_standard_deviations"
+            ],
+            "source_layer": "predictive_holdout"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "sample_efficiency",
+          "uncertainty",
+          "local_model_quality"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -642,6 +1129,50 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 25,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "extractant": {
+              "all_categories_reachable": true,
+              "coordinate": 3,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 0,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 16,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 10,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 10,
         "declared_operation_sequence": [
           "add_solvent",
@@ -685,6 +1216,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 10,
           "failures": [],
@@ -772,13 +1304,59 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_partition_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 48,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "6bc2e7d119e63dc0d99a1f6ea6e92aa590a7a0e3c5797c9db1e5a2d69555e23e",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "phase_ratio",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "product_in_organic",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "product_in_aqueous",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "phase_ratio",
+          "product_in_organic",
+          "product_in_aqueous"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -817,6 +1395,50 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 23,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 14,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 8,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 8,
         "declared_operation_sequence": [
           "add_solvent",
@@ -850,6 +1472,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 8,
           "failures": [],
@@ -927,13 +1550,61 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_reaction_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 72,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "d8de6c4de59ac84c497323d2460a4763d203e053788a6851c49e91db4cc3a22c",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "score",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "minimize",
+            "evaluator_id": "absolute_public_private_mean_shift",
+            "implementation_status": "executable",
+            "metric_id": "public_private_gap",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "aligned_public_world_scores_by_method",
+              "aligned_private_world_scores_by_method"
+            ],
+            "source_layer": "paired_split_campaign"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "world_bootstrap_pairwise_rank_agreement",
+            "implementation_status": "executable",
+            "metric_id": "rank_confidence",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "aligned_public_world_scores_by_method",
+              "aligned_private_world_scores_by_method"
+            ],
+            "source_layer": "paired_split_campaign"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "score",
+          "public_private_gap",
+          "rank_confidence"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -969,6 +1640,61 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 45,
+          "categorical_case_count": 12,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "extractant": {
+              "all_categories_reachable": true,
+              "coordinate": 8,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 32,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 22,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 22,
         "declared_operation_sequence": [
           "add_solvent",
@@ -1043,6 +1769,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 22,
           "failures": [],
@@ -1206,13 +1933,71 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_reaction_purification_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 90,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "11117e589b59ba602e29c74b04f18117376d6a0f33665b5087ea616e9fc68eb9",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "yield",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "purity",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "recovery",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "minimize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "cost",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "yield",
+          "purity",
+          "recovery",
+          "cost"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -1252,6 +2037,50 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 23,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 14,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 8,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 8,
         "declared_operation_sequence": [
           "add_solvent",
@@ -1285,6 +2114,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 8,
           "failures": [],
@@ -1362,13 +2192,61 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_reaction_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 36,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "5e15f24d56e66677088f8621db18a10fec2866d245cd66ebeb6f9ae0ff0fb4df",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "score",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "transparent_mechanism_rubric",
+            "implementation_status": "executable",
+            "metric_id": "mechanism_explanation",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "structured_explanation_artifact",
+              "trajectory_records"
+            ],
+            "source_layer": "structured_artifact"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "structured_failure_analysis_rubric",
+            "implementation_status": "executable",
+            "metric_id": "failure_analysis",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "structured_explanation_artifact",
+              "trajectory_records"
+            ],
+            "source_layer": "structured_artifact"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "score",
+          "mechanism_explanation",
+          "failure_analysis"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -1404,6 +2282,50 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 23,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 14,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 8,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 8,
         "declared_operation_sequence": [
           "add_solvent",
@@ -1437,6 +2359,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 8,
           "failures": [],
@@ -1514,13 +2437,72 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_reaction_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 72,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "af3f6275db95559013759a2ee9956f7dfd17f3956cf31a58e03fbbe4397c2385",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "score",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "yield",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "selectivity",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "threshold_hit_by_completed_experiment",
+            "implementation_status": "executable",
+            "metric_id": "sample_efficiency",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "trajectory_records",
+              "task_threshold"
+            ],
+            "source_layer": "trajectory_aggregate"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "score",
+          "yield",
+          "selectivity",
+          "sample_efficiency"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -1557,6 +2539,50 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 23,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 14,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 8,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 8,
         "declared_operation_sequence": [
           "add_solvent",
@@ -1590,6 +2616,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 8,
           "failures": [],
@@ -1667,13 +2694,59 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_reaction_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 72,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "5b241fd6450378f38b019e9b63bb900cdbf459639cb0387d6f3c125b32de3a76",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "score",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "minimize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "safety_risk",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "minimize",
+            "evaluator_id": "trajectory_constraint_event_count",
+            "implementation_status": "executable",
+            "metric_id": "constraint_violations",
+            "output_contract": "nonnegative_integer",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "trajectory_aggregate"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "score",
+          "safety_risk",
+          "constraint_violations"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -1709,6 +2782,50 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 23,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 14,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 8,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 8,
         "declared_operation_sequence": [
           "add_solvent",
@@ -1742,6 +2859,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 8,
           "failures": [],
@@ -1819,13 +2937,47 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_reaction_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 18,
       "episode_mode": "single_experiment",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "ba9f22fb66e1fcd69b08ab6159a42483b33351a8124d3eb7d00008c1ff22d135",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_score",
+            "implementation_status": "executable",
+            "metric_id": "final_assay_score",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "trajectory_aggregate"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "committed_valid_operation_fraction_with_final_assay_gate",
+            "implementation_status": "executable",
+            "metric_id": "trajectory_validity",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "trajectory_aggregate"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "final_assay_score",
+          "trajectory_validity"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -1860,6 +3012,50 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 29,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 20,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 12,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 12,
         "declared_operation_sequence": [
           "add_solvent",
@@ -1909,6 +3105,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 12,
           "failures": [],
@@ -1984,23 +3181,106 @@
         "recipe_space_version": "chemworld-reaction-crystallization-static-single-stage-recipe-0.1-s0-dev",
         "workflow": "static_single_stage_complete_reaction_crystallization"
       },
-      "design_status": "formal_design_and_empirical_execution_complete",
+      "design_status": "formal_campaign_complete_claim_bounded",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 72,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "d7777fba3f5f03a738f408a5e3fe2a6d91b9aec562bc939b83dd77c542f9821b",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "crystal_yield",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "score",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "crystal_purity",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "crystal_size",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "crystal_csd_quality",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "minimize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "crystal_fines_fraction",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "crystal_yield",
+          "score",
+          "crystal_purity",
+          "crystal_size",
+          "crystal_csd_quality",
+          "crystal_fines_fraction"
+        ]
+      },
       "formal_s0": {
         "blind_validation_replicates_per_target": 3,
         "declared_world_understanding": true,
         "evidence": {
-          "aggregate": "runs/formal/static_scientific_optimization_s0_v05_crystallization_high_20_5seed_20260727/multiseed_report.json",
-          "classic_baselines": "runs/development/static_scientific_optimization_s0_v05_crystallization_classic_baselines_20_5worlds_20260727/multiseed_report.json",
-          "protocol": "configs/benchmark/scientific_optimization_s0_v0.5_crystallization_high_20_formal.json"
+          "baseline_campaign_index": "runs/formal/static-s0-v10-baselines-20260729/campaign_execution_index.json",
+          "campaign_summary": "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json",
+          "freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json",
+          "participant_campaign_index": "runs/formal/static-s0-v10-codex-subscription-20260729/campaign_execution_index.json"
         },
         "exploration_horizon": 20,
         "final_synthesis": true,
         "horizon_visible": true,
+        "independent_world_count": 10,
         "predictive_world_understanding": true,
-        "status": "completed_five_static_world_seeds"
+        "status": "completed_ten_worlds_full_classic_baselines"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -2044,6 +3324,50 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 35,
+          "categorical_case_count": 8,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 26,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 11,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 11,
         "declared_operation_sequence": [
           "add_solvent",
@@ -2083,6 +3407,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 11,
           "failures": [],
@@ -2220,13 +3545,71 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_reaction_distillation_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 72,
       "episode_mode": "campaign",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "0f7253cb9dacb2522c7780a478f5db848722240cdfccdb1b95f83e4c2f745ce2",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "score",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "distillate_purity",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "distillate_recovery",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "minimize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "solvent_loss",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "score",
+          "distillate_purity",
+          "distillate_recovery",
+          "solvent_loss"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -2266,6 +3649,61 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 45,
+          "categorical_case_count": 12,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "extractant": {
+              "all_categories_reachable": true,
+              "coordinate": 8,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 32,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 22,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 22,
         "declared_operation_sequence": [
           "add_solvent",
@@ -2340,6 +3778,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 22,
           "failures": [],
@@ -2503,13 +3942,71 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_reaction_purification_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 90,
       "episode_mode": "single_experiment",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "c2f0c490545cd5b246c9b1fcfacb72264fc21f03c422665ccd116e9357c1fbd1",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "score",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "purity",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "recovery",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "minimize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "process_mass_balance_error",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "score",
+          "purity",
+          "recovery",
+          "process_mass_balance_error"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
@@ -2549,6 +4046,61 @@
     },
     {
       "complete_experiment_adapter": {
+        "boundary_execution_audit": {
+          "case_count": 45,
+          "categorical_case_count": 12,
+          "categorical_coverage": {
+            "catalyst": {
+              "all_categories_reachable": true,
+              "coordinate": 4,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "extractant": {
+              "all_categories_reachable": true,
+              "coordinate": 8,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            },
+            "solvent": {
+              "all_categories_reachable": true,
+              "coordinate": 6,
+              "declared_category_count": 4,
+              "observed_categories": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "claim_boundary": "deterministic coordinate-boundary and categorical reachability audit; not comparative empirical evidence",
+          "coordinate_low_high_case_count": 32,
+          "failed_cases": [],
+          "midpoint": {
+            "all_transactions_committed": true,
+            "case_id": "midpoint",
+            "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+            "compiled_operations": 22,
+            "failures": [],
+            "final_assay_present": true,
+            "status": "passed",
+            "within_environment_operation_budget": true,
+            "world_seed": 0
+          },
+          "status": "passed",
+          "world_seed": 0
+        },
         "compiled_operation_count_at_midpoint": 22,
         "declared_operation_sequence": [
           "add_solvent",
@@ -2623,6 +4175,7 @@
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
+          "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
           "compiled_operations": 22,
           "failures": [],
@@ -2786,13 +4339,72 @@
         "recipe_space_version": "chemworld-task-recipe-space-1.1",
         "workflow": "registered_complete_reaction_purification_recipe"
       },
-      "design_status": "registered_design_complete_formal_empirical_execution_not_required",
+      "design_status": "executable_design_qualified_formal_comparison_pending",
       "environment_decision_unit": "one_validated_operation",
       "environment_operation_budget": 48,
       "episode_mode": "single_experiment",
+      "evaluation_endpoints": {
+        "all_metrics_bound": true,
+        "contract_hash": "3636cc17695855ccde92c2a344d671c032a8973a221c2d2ebc1d8c64e186a728",
+        "endpoints": [
+          {
+            "direction": "maximize",
+            "evaluator_id": "committed_valid_operation_fraction_with_final_assay_gate",
+            "implementation_status": "executable",
+            "metric_id": "trajectory_validity",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "trajectory_aggregate"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "validator_evidence_fraction",
+            "implementation_status": "executable",
+            "metric_id": "validator_use",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "trajectory_aggregate"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "last_committed_final_assay_observation",
+            "implementation_status": "executable",
+            "metric_id": "score",
+            "output_contract": "finite_scalar",
+            "required_inputs": [
+              "trajectory_records"
+            ],
+            "source_layer": "terminal_observation"
+          },
+          {
+            "direction": "maximize",
+            "evaluator_id": "structured_explanation_rubric",
+            "implementation_status": "executable",
+            "metric_id": "explanation",
+            "output_contract": "unit_interval",
+            "required_inputs": [
+              "structured_explanation_artifact",
+              "trajectory_records"
+            ],
+            "source_layer": "structured_artifact"
+          }
+        ],
+        "schema_version": "chemworld-task-metric-endpoints-1.0",
+        "success_metrics": [
+          "trajectory_validity",
+          "validator_use",
+          "score",
+          "explanation"
+        ]
+      },
       "formal_s0": {
+        "design_and_endpoint_qualification_complete": true,
         "formal_experiment_run": false,
-        "status": "not_required_for_current_confirmatory_release"
+        "status": "formal_comparative_execution_pending"
       },
       "objective_and_reward": {
         "component_weights": {
