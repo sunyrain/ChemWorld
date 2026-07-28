@@ -224,7 +224,7 @@ def test_world_understanding_reference_scores_receipt_claims() -> None:
                         {
                             "claim_id": "p1",
                             "cause_variables": ["controlled_potential_V"],
-                            "effect_variable": "yield",
+                            "effect_variable": "selective_product_yield",
                             "relation": "nonmonotonic",
                             "mechanism_tags": [
                                 "nernst_equilibrium",
@@ -267,6 +267,58 @@ def test_world_understanding_reference_scores_receipt_claims() -> None:
     assert audit["unscored_claim_count"] == 1
     assert audit["cells"][0]["status"] == "scored"
     assert audit["cells"][0]["score"]["structural_edge_precision"] == pytest.approx(1.0)
+
+
+def test_world_understanding_audit_scores_runtime_valid_out_of_reference_terms() -> None:
+    protocol = {
+        "world_understanding": {
+            "enabled": True,
+            "reference_path": (
+                "configs/benchmark/"
+                "world_understanding_s0_crystallization_material_v1.0.json"
+            ),
+            "predictive_score_enabled": False,
+        }
+    }
+    receipt = {
+        "cell": {"cell_id": "cell-1", "task_id": "reaction-to-crystallization"},
+        "method_id": "mock",
+        "experiments": [
+            {
+                "result": {
+                    "measurement_evidence": [{"evidence_id": "e1"}],
+                }
+            }
+        ],
+        "final_synthesis": {
+            "recommendation": {
+                "working_explanation": {
+                    "structured_claims": [
+                        {
+                            "claim_id": "p1",
+                            "cause_variables": ["reaction_temperature_K"],
+                            "effect_variable": "reaction_score",
+                            "relation": "nonmonotonic",
+                            "mechanism_tags": [
+                                "arrhenius_kinetics",
+                                "catalyst_activity",
+                            ],
+                            "scope": "tested range",
+                            "evidence_ids": ["e1"],
+                            "confidence": 0.8,
+                        }
+                    ],
+                }
+            }
+        },
+    }
+
+    audit = audit_world_understanding_receipts([receipt], protocol)
+
+    assert audit["scored_cell_count"] == 1
+    assert audit["cells"][0]["status"] == "scored"
+    assert audit["cells"][0]["score"]["structural_edge_precision"] == pytest.approx(1.0)
+    assert audit["cells"][0]["score"]["mechanism_tag_precision"] == pytest.approx(0.5)
 
 
 def test_world_understanding_without_reference_is_captured_but_not_scored() -> None:

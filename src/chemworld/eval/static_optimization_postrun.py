@@ -794,7 +794,6 @@ def audit_world_understanding_receipts(
     if not reference_path.is_absolute():
         reference_path = Path(__file__).resolve().parents[3] / reference_path
     reference_payload = json.loads(reference_path.read_text(encoding="utf-8"))
-    vocabulary = reference_payload["public_vocabulary"]
     references = tuple(
         ReferenceWorldClaim.from_dict(item) for item in reference_payload["reference_claims"]
     )
@@ -840,9 +839,6 @@ def audit_world_understanding_receipts(
                 for experiment in receipt["experiments"]
                 for entry in experiment["result"]["measurement_evidence"]
             ],
-            allowed_cause_variables=vocabulary["cause_variables"],
-            allowed_effect_variables=vocabulary["effect_variables"],
-            allowed_mechanism_tags=vocabulary["mechanism_tags"],
         )
         score = score_world_understanding(claims, references).to_dict()
         atomic_score = score_world_understanding_atomic_edges(claims, references).to_dict()
