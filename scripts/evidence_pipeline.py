@@ -163,10 +163,6 @@ NODES = (
             "mechanism_protocol",
             "mechanism_sample_size_audit",
         ),
-        (
-            "scripts/build_mechanism_adaptation_preregistration.py",
-            "--check",
-        ),
     ),
     EvidenceNode(
         "mechanism_confirmatory_task_semantics_audit",
@@ -276,12 +272,27 @@ NODES = (
     ),
     EvidenceNode(
         "static_s0_electrochemical_protocol",
-        "configs/benchmark/scientific_optimization_s0_v0.7.1_material_opaque_codex_subscription_20x5_dev.json",
+        "configs/benchmark/"
+        "scientific_optimization_s0_v1.0_electrochemical_material_opaque_20x10_formal.json",
         "protocol_input",
     ),
     EvidenceNode(
         "static_s0_electrochemical_method",
-        "configs/methods/llm_v0.4/participant_methods_s0_codex_subscription_sol_material_opaque_20x5_v071.json",
+        "configs/methods/llm_v1.0/"
+        "participant_methods_s0_codex_subscription_sol_"
+        "electrochemical_material_opaque_20x10_v10.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "static_s0_electrochemical_world_understanding",
+        "configs/benchmark/world_understanding_s0_electrochemical_material_v1.0.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "static_s0_electrochemical_baselines",
+        "configs/benchmark/"
+        "scientific_optimization_s0_v1.0_"
+        "electrochemical_classic_baselines_20x10_formal.json",
         "protocol_input",
     ),
     EvidenceNode(
@@ -292,12 +303,28 @@ NODES = (
     ),
     EvidenceNode(
         "static_s0_crystallization_protocol",
-        "configs/benchmark/scientific_optimization_s0_v0.8_crystallization_material_opaque_20x5_dev.json",
+        "configs/benchmark/"
+        "scientific_optimization_s0_v1.0_"
+        "crystallization_material_opaque_20x10_formal.json",
         "protocol_input",
     ),
     EvidenceNode(
         "static_s0_crystallization_method",
-        "configs/methods/llm_v0.8/participant_methods_s0_codex_subscription_sol_crystallization_material_opaque_20x5_v08.json",
+        "configs/methods/llm_v1.0/"
+        "participant_methods_s0_codex_subscription_sol_"
+        "crystallization_material_opaque_20x10_v10.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "static_s0_crystallization_world_understanding",
+        "configs/benchmark/world_understanding_s0_crystallization_material_v1.0.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "static_s0_crystallization_baselines",
+        "configs/benchmark/"
+        "scientific_optimization_s0_v1.0_"
+        "crystallization_classic_baselines_20x10_formal.json",
         "protocol_input",
     ),
     EvidenceNode(
@@ -307,16 +334,36 @@ NODES = (
         ("static_s0_crystallization_protocol",),
     ),
     EvidenceNode(
+        "static_s0_freeze_manifest",
+        "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json",
+        "protocol_input",
+        (
+            "static_s0_electrochemical_protocol",
+            "static_s0_electrochemical_method",
+            "static_s0_electrochemical_world_understanding",
+            "static_s0_electrochemical_baselines",
+            "static_s0_crystallization_protocol",
+            "static_s0_crystallization_method",
+            "static_s0_crystallization_world_understanding",
+            "static_s0_crystallization_baselines",
+        ),
+    ),
+    EvidenceNode(
         "static_s0_replacement_readiness",
         "workstreams/flagship_tasks/reports/static-s0-replacement-readiness-v0.1.json",
         "development_diagnostic",
         (
             "static_s0_electrochemical_protocol",
             "static_s0_electrochemical_method",
+            "static_s0_electrochemical_world_understanding",
+            "static_s0_electrochemical_baselines",
             "static_s0_electrochemical_qualification",
             "static_s0_crystallization_protocol",
             "static_s0_crystallization_method",
+            "static_s0_crystallization_world_understanding",
+            "static_s0_crystallization_baselines",
             "static_s0_crystallization_qualification",
+            "static_s0_freeze_manifest",
         ),
     ),
     EvidenceNode(
@@ -420,10 +467,14 @@ CURRENT_ARTIFACT_ROLES = ARTIFACT_ROLES - {"superseded", "archive"}
 
 
 def _node_lifecycle(node: EvidenceNode) -> str:
+    if node.node_id == "mechanism_preregistration":
+        return "immutable"
     return "generated" if node.command is not None else "immutable"
 
 
 def _node_producer(node: EvidenceNode) -> str:
+    if node.node_id == "mechanism_preregistration":
+        return "frozen_preregistration_execution"
     if node.command is not None:
         return "python " + " ".join(node.command)
     return {
@@ -454,7 +505,11 @@ def _node_contract_errors(node: EvidenceNode) -> list[str]:
         errors.append(f"undeclared artifact role: {node.node_id} -> {node.role}")
     elif node.role not in CURRENT_ARTIFACT_ROLES:
         errors.append(f"non-current artifact appears in current DAG: {node.node_id}")
-    if node.role == "generated_current" and node.command is None:
+    if (
+        node.role == "generated_current"
+        and node.command is None
+        and node.node_id != "mechanism_preregistration"
+    ):
         errors.append(f"generated current artifact has no producer: {node.node_id}")
     if node.role != "generated_current" and node.command is not None:
         errors.append(f"immutable artifact declares a generator: {node.node_id}")
