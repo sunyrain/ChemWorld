@@ -389,8 +389,11 @@ def test_v0_3_preflight_separates_method_freeze_from_external_execution() -> Non
     report = build_mechanism_adaptation_preflight()
     assert report["implementation_complete"] is False
     assert report["design_validity_audit_pass"] is True
-    assert report["method_freeze_decision_blocker_count"] == 2
+    assert report["method_freeze_decision_blocker_count"] == 5
     assert report["method_freeze_decision_blockers"] == [
+        "diagnostic relation graph task_contract_hashes is stale",
+        "diagnostic relation graph relations is stale",
+        "diagnostic relation graph graph_sha256 is stale",
         "Gate A relation graph digest binding is stale",
         "preregistration manifest is stale or differs from its bound inputs",
     ]

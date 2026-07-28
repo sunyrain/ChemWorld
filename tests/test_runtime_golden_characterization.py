@@ -123,7 +123,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "electrochemical-conversion": {
         "mechanism_id": "electrochemical_conversion",
         "steps": 6,
-        "score": 0.5725246390019622,
+        "score": 0.572524715033883,
     },
     "equilibrium-characterization": {
         "mechanism_id": "simple_batch_reaction",

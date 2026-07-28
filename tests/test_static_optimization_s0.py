@@ -466,7 +466,7 @@ def test_tolerant_declared_claim_does_not_invalidate_final_recommendation() -> N
                 {
                     "claim_id": "unsupported-effect",
                     "cause_variables": ["potential_V"],
-                    "effect_variable": "yield",
+                    "effect_variable": "selective_product_yield",
                     "relation": "positive",
                     "mechanism_tags": ["unsupported_mechanism_tag"],
                     "scope": "tested range",
