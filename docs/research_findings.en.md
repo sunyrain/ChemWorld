@@ -11,22 +11,24 @@
     fingerprint, so nine RC28 bindings are now stale and
     `benchmark_ready=false`. The legacy 2026-07-27 two-task static-S0 result
     bundle is withdrawn and cannot support current paper numbers or rankings.
+    Current benchmark readiness requires Gate A recertification.
 
-## New finding: replacement contracts are ready for development pilots
+## New finding: the replacement fixed-world campaigns are complete
 
 The electrochemical replacement binds `nominal-prior-latent-v2`, an explicit
 balanced-efficiency score, and anonymous material identities. Reaction-to-
 crystallization now has an independent catalyst/solvent family that couples
 materials to reaction kinetics and solvent identity to solubility, nucleation,
-growth, and impurity occlusion. A five-world by 16-material-pair qualification
-is exactly replayable, produces three distinct standardized winners, and has a
-minimum within-world material score range of 0.163.
+growth, and impurity occlusion. Both formal campaigns completed ten independent
+worlds, twenty exploration experiments per world, paired blind validation,
+full classic baselines, and exact replay.
 
-This establishes stable material identity, material relevance, and an
-optimizable landscape. It is not participant-agent performance. Both
-replacement protocols remain `formal_result=false` until preregistration,
-reference claims, classic baselines, and multi-world Codex subscription runs
-are frozen and executed.
+Codex averages 0.7150 on electrochemical conversion and 0.5355 on
+crystallization. The electrochemical paired descriptive difference against the
+best information-matched baseline is +0.0991, while its interval against the
+best privileged calibration baseline crosses zero. Crystallization trails LHS
+(0.5708), so the campaign does not support a crystallization outperformance
+claim. No superiority threshold or multiplicity plan was preregistered.
 
 ## Design finding: all 15 tasks need executable complete experiments
 
@@ -34,10 +36,11 @@ The completion audit found that three purification tasks had been mapped to a
 generic reaction-only recipe and that evaporation and distillation shared
 intensity coordinates. The corrected purification design has 16 independent
 controls and 22 compiled operations; distillation has 13 controls with
-independent temperature and time for both stages. The matrix generator now
-detects dead coordinates and executes every midpoint recipe. All 15 pass with
-zero dead coordinates and zero unresolved formalization blockers. This proves
-design executability, not formal performance on the 13 non-confirmatory tasks.
+independent temperature and time for both stages. The matrix generator executes
+415 complete cases spanning midpoints, every coordinate's low/high intervention,
+and all discrete categories. All 62 declared metrics bind to executable
+evaluation endpoints. All 15 pass this expanded audit. This proves design executability, not formal performance
+on the 13 non-confirmatory tasks.
 
 ## Evidence levels
 

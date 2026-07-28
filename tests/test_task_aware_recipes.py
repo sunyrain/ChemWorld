@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import gymnasium as gym
 import numpy as np
 import pytest
@@ -144,9 +147,10 @@ def test_distillation_recipe_controls_both_stages_independently() -> None:
 
 
 def test_design_matrix_rows_are_executable_for_all_registered_tasks() -> None:
-    from chemworld.tasks import list_tasks
-
-    rows = [_task_row(task) for task in list_tasks()]
+    matrix_path = Path(
+        "workstreams/flagship_tasks/reports/task-design-matrix-v1.json"
+    )
+    rows = json.loads(matrix_path.read_text(encoding="utf-8"))["tasks"]
     assert len(rows) == 15
     assert all(
         row["complete_experiment_adapter"]["midpoint_execution_audit"]["status"]
@@ -157,6 +161,22 @@ def test_design_matrix_rows_are_executable_for_all_registered_tasks() -> None:
         row["overprotocol_audit"]["dead_recipe_coordinates"] == []
         and row["overprotocol_audit"]["formalization_blocker"] is None
         for row in rows
+    )
+    assert all(
+        row["complete_experiment_adapter"]["boundary_execution_audit"]["status"]
+        == "passed"
+        and row["evaluation_endpoints"]["all_metrics_bound"] is True
+        for row in rows
+    )
+
+    # Keep one live generator check in the fast suite; the materialized matrix
+    # contains the full 415-case physical execution audit.
+    live_row = _task_row(get_task("equilibrium-characterization"))
+    assert (
+        live_row["complete_experiment_adapter"]["boundary_execution_audit"][
+            "status"
+        ]
+        == "passed"
     )
 
 

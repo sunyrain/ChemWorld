@@ -363,13 +363,32 @@ NODES = (
         ),
     ),
     EvidenceNode(
+        "static_s0_formal_campaign_summary",
+        "workstreams/flagship_tasks/reports/"
+        "static-s0-v1.0-formal-campaign-summary.json",
+        "formal_result",
+        ("static_s0_freeze_manifest",),
+    ),
+    EvidenceNode(
         "task_design_matrix",
         "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
         "generated_current",
+        ("static_s0_formal_campaign_summary",),
         command=(
             "scripts/build_task_design_matrix.py",
             "--output",
             "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
+        ),
+    ),
+    EvidenceNode(
+        "pre_arxiv_claim_evidence_ledger",
+        "workstreams/flagship_tasks/reports/"
+        "pre-arxiv-claim-evidence-ledger-v1.json",
+        "development_diagnostic",
+        (
+            "mechanism_public_gate_a_decision",
+            "static_s0_formal_campaign_summary",
+            "task_design_matrix",
         ),
     ),
     EvidenceNode(
@@ -528,6 +547,10 @@ CURRENT_PATH_RULES = (
     CurrentPathRule(("task_design", "matrix"), "generated_current"),
     CurrentPathRule(
         ("static_scientific_optimization", "summary"),
+        "formal_result",
+    ),
+    CurrentPathRule(
+        ("publication", "claim_evidence_ledger"),
         "development_diagnostic",
     ),
     CurrentPathRule(("publication", "manuscript"), "development_diagnostic"),
@@ -1065,6 +1088,34 @@ def _artifact_source_binding_current(
             plan,
         ):
             return False
+    if node.node_id == "static_s0_formal_campaign_summary":
+        freeze_manifest = load_json_object(
+            ROOT / node_map()["static_s0_freeze_manifest"].path
+        )
+        execution = payload.get("execution", {})
+        accounting = payload.get("accounting", {})
+        if not (
+            payload.get("schema_version")
+            == "chemworld-static-s0-campaign-summary-1.0"
+            and payload.get("status")
+            == "completed_audited_formal_descriptive_result"
+            and payload.get("formal_result") is True
+            and payload.get("benchmark_claim_allowed") is False
+            and payload.get("freeze", {}).get("manifest_sha256")
+            == _canonical_sha256(freeze_manifest)
+            and execution.get("participant", {}).get(
+                "all_exact_replay_verified"
+            )
+            is True
+            and execution.get("baselines", {}).get(
+                "all_exact_replay_verified"
+            )
+            is True
+            and accounting.get("campaign_total_physical_experiments") == 28060
+            and set(payload.get("tasks", {}))
+            == {"electrochemical", "crystallization"}
+        ):
+            return False
     if payload.get("source_commit_stable") is False:
         return False
     recorded_dirty = payload.get("source_tree_dirty")
@@ -1191,7 +1242,7 @@ def _write_current_registry() -> None:
     mechanism_plan = load_json_object(
         ROOT / node_map()["mechanism_gate_a_plan"].path
     )
-    static_s0_summary_path = ROOT / node_map()["static_s0_replacement_readiness"].path
+    static_s0_summary_path = ROOT / node_map()["static_s0_formal_campaign_summary"].path
     static_s0_summary = load_json_object(static_s0_summary_path)
     task_design_matrix = load_json_object(ROOT / node_map()["task_design_matrix"].path)
     mechanism_evidence_current = _mechanism_public_decision_binding_current(
@@ -1379,33 +1430,71 @@ def _write_current_registry() -> None:
         "task_contract_version": backend_protocol["task_contract_version"],
     }
     current["formal_evaluation"] = {
-        "status": "static_s0_legacy_withdrawn_v1_frozen_pending_formal_execution",
-        "formal_results_present": False,
+        "status": "static_s0_v1_formal_descriptive_results_complete_claim_bounded",
+        "formal_results_present": True,
         "benchmark_claim_allowed": False,
         "environment_certificate_results_present": True,
         "environment_benchmark_readiness_claim_allowed": mechanism_gate_a_current,
         "interpretation": (
             "Legacy fixed-world static-S0 participant results were withdrawn. "
-            "Replacement electrochemical and reaction-crystallization protocols, "
-            "methods, references, and classic baselines are frozen for ten-world "
-            "execution but have no formal multi-world result. "
+            "Replacement electrochemical and reaction-crystallization campaigns "
+            "completed ten independent worlds, twenty exploration experiments per "
+            "world, full classic baselines, and exact replay. Results are descriptive: "
+            "electrochemical is positive against the best information-matched baseline "
+            "but not stable against the best privileged calibration baseline; "
+            "crystallization underperforms LHS. "
             "RC28 Gate A remains a historical environment certificate with stale "
             "current-source binding; Participant Gates B-E remain unexecuted."
         ),
     }
+    static_task_ids = [
+        static_s0_summary["tasks"][task_key]["task_id"]
+        for task_key in ("electrochemical", "crystallization")
+    ]
+    static_world_seeds = [
+        int(row["world_seed"])
+        for row in static_s0_summary["tasks"]["electrochemical"]["participant"][
+            "worlds"
+        ]
+    ]
     current["static_scientific_optimization"] = {
-        "summary": node_map()["static_s0_replacement_readiness"].path,
+        "summary": node_map()["static_s0_formal_campaign_summary"].path,
         "status": static_s0_summary["status"],
-        "formal_result": False,
+        "formal_result": True,
         "benchmark_claim_allowed": False,
-        "task_ids": list(static_s0_summary["task_ids"]),
-        "world_seeds": list(static_s0_summary["development_world_seeds"]),
-        "exploration_experiments_per_seed": int(
-            static_s0_summary["exploration_experiments_per_seed"]
+        "task_ids": static_task_ids,
+        "world_seeds": static_world_seeds,
+        "exploration_experiments_per_seed": 20,
+        "all_replay_verified": bool(
+            static_s0_summary["execution"]["participant"][
+                "all_exact_replay_verified"
+            ]
+            and static_s0_summary["execution"]["baselines"][
+                "all_exact_replay_verified"
+            ]
         ),
-        "all_replay_verified": False,
-        "replacement_protocols": dict(static_s0_summary["replacement_protocols"]),
-        "formalization_gates": dict(static_s0_summary["formalization_gates"]),
+        "freeze_manifest": node_map()["static_s0_freeze_manifest"].path,
+        "campaign_total_physical_experiments": int(
+            static_s0_summary["accounting"][
+                "campaign_total_physical_experiments"
+            ]
+        ),
+        "comparison_scope": static_s0_summary["reporting_boundaries"][
+            "all_algorithm_comparisons"
+        ],
+        "task_results": {
+            task_key: {
+                "participant_mean": static_s0_summary["tasks"][task_key][
+                    "participant"
+                ]["primary_score"]["mean"],
+                "participant_world_bootstrap_95_interval": (
+                    static_s0_summary["tasks"][task_key]["participant"][
+                        "primary_score"
+                    ]["world_bootstrap_95_interval"]
+                ),
+            }
+            for task_key in ("electrochemical", "crystallization")
+        },
         "hidden_world_change_evaluated": False,
     }
     task_design_validation = task_design_matrix["design_validation"]
@@ -1416,6 +1505,18 @@ def _write_current_registry() -> None:
         "executable_midpoint_task_count": int(
             task_design_validation["executable_midpoint_task_count"]
         ),
+        "executable_boundary_task_count": int(
+            task_design_validation["executable_boundary_task_count"]
+        ),
+        "boundary_recipe_case_count": int(
+            task_design_validation["boundary_recipe_case_count"]
+        ),
+        "declared_success_metric_count": int(
+            task_design_validation["declared_success_metric_count"]
+        ),
+        "bound_success_metric_count": int(
+            task_design_validation["bound_success_metric_count"]
+        ),
         "dead_recipe_coordinate_count": int(
             task_design_validation["dead_recipe_coordinate_count"]
         ),
@@ -1425,8 +1526,15 @@ def _write_current_registry() -> None:
         "formal_experiment_task_ids": list(
             task_design_validation["formal_experiment_task_ids"]
         ),
-        "nonconfirmatory_formal_experiments_required": bool(
-            task_design_validation["nonconfirmatory_formal_experiments_required"]
+        "formal_empirical_comparison_pending_task_ids": list(
+            task_design_validation[
+                "formal_empirical_comparison_pending_task_ids"
+            ]
+        ),
+        "nonconfirmatory_formal_experiments_required_for_future_claims": bool(
+            task_design_validation[
+                "nonconfirmatory_formal_experiments_required_for_future_claims"
+            ]
         ),
     }
     mechanism_state_machine = dict(mechanism_protocol["protocol_state_machine"])
@@ -1603,6 +1711,12 @@ def _write_current_registry() -> None:
     current["publication"] = {
         "status": "working_manuscript_not_submission_ready",
         "manuscript": "paper/chemworld_benchmark_manuscript.md",
+        "claim_evidence_ledger": node_map()[
+            "pre_arxiv_claim_evidence_ledger"
+        ].path,
+        "scope": "narrow_two_task_fixed_world_descriptive_benchmark",
+        "new_scientific_experiments_required_for_narrow_scope": False,
+        "stronger_claim_experiments_pending": True,
         "publication_ready": False,
     }
     blockers: list[dict[str, Any]] = []
@@ -1955,11 +2069,11 @@ def check_current_evidence() -> list[str]:
         errors.append("current registry backend validation state is inconsistent")
     if (
         formal.get("status")
-        != "static_s0_legacy_withdrawn_v1_frozen_pending_formal_execution"
+        != "static_s0_v1_formal_descriptive_results_complete_claim_bounded"
     ):
         errors.append("current registry formal evaluation boundary is inconsistent")
-    if formal.get("formal_results_present") is not False:
-        errors.append("current registry improperly claims static-S0 formal results")
+    if formal.get("formal_results_present") is not True:
+        errors.append("current registry omits completed static-S0 formal results")
     if formal.get("benchmark_claim_allowed") is not False:
         errors.append("current registry improperly enables participant benchmark claims")
     if formal.get("environment_certificate_results_present") is not True:
@@ -1970,21 +2084,32 @@ def check_current_evidence() -> list[str]:
     ):
         errors.append("current registry environment readiness state is inconsistent")
     static_s0 = current.get("static_scientific_optimization", {})
-    if static_s0.get("formal_result") is not False:
-        errors.append("current registry improperly promotes replacement static-S0 evidence")
+    if static_s0.get("formal_result") is not True:
+        errors.append("current registry omits replacement static-S0 evidence")
     if static_s0.get("benchmark_claim_allowed") is not False:
         errors.append("current registry improperly enables a broad static-S0 benchmark claim")
-    if static_s0.get("all_replay_verified") is not False:
-        errors.append("current registry improperly claims replacement formal replay")
+    if static_s0.get("all_replay_verified") is not True:
+        errors.append("current registry omits replacement formal replay")
     if static_s0.get("hidden_world_change_evaluated") is not False:
         errors.append("current registry conflates static S0 with hidden world changes")
     task_design = current.get("task_design", {})
-    if task_design.get("status") != "all_registered_task_designs_executable":
+    if (
+        task_design.get("status")
+        != "all_registered_task_designs_executable_and_metric_bound"
+    ):
         errors.append("current registry task-design status is inconsistent")
     if task_design.get("registered_task_count") != 15:
         errors.append("current registry task-design count is inconsistent")
     if task_design.get("executable_midpoint_task_count") != 15:
         errors.append("current registry omits executable task designs")
+    if task_design.get("executable_boundary_task_count") != 15:
+        errors.append("current registry omits task boundary execution")
+    if task_design.get("boundary_recipe_case_count") != 415:
+        errors.append("current registry task boundary case count is inconsistent")
+    if task_design.get("declared_success_metric_count") != 62:
+        errors.append("current registry declared metric count is inconsistent")
+    if task_design.get("bound_success_metric_count") != 62:
+        errors.append("current registry omits metric endpoint bindings")
     if task_design.get("dead_recipe_coordinate_count") != 0:
         errors.append("current registry records dead task-recipe coordinates")
     if task_design.get("formalization_blocker_count") != 0:
@@ -1994,8 +2119,15 @@ def check_current_evidence() -> list[str]:
         "reaction-to-crystallization",
     ]:
         errors.append("current registry task-design empirical scope is inconsistent")
-    if task_design.get("nonconfirmatory_formal_experiments_required") is not False:
-        errors.append("current registry improperly requires nonconfirmatory experiments")
+    if (
+        task_design.get(
+            "nonconfirmatory_formal_experiments_required_for_future_claims"
+        )
+        is not True
+    ):
+        errors.append("current registry hides pending nonconfirmatory experiments")
+    if len(task_design.get("formal_empirical_comparison_pending_task_ids", [])) != 13:
+        errors.append("current registry task-design empirical backlog is inconsistent")
     mechanism_registry = current.get("mechanism_adaptation", {})
     if mechanism_registry.get("gate_a_pass") != expected_gate_a_pass:
         errors.append("current registry mechanism Gate A state is inconsistent")

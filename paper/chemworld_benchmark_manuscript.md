@@ -1,6 +1,6 @@
 # ChemWorld: A Replayable Causal Environment for Experimental Intelligence
 
-Status: working manuscript, 2026-07-27. Not submission-ready.
+Status: working manuscript, 2026-07-29. Not submission-ready.
 
 ## Abstract
 
@@ -13,19 +13,23 @@ proxy-only physics on their required runtime paths. Two confirmatory tasks,
 electrochemical conversion and reaction-to-crystallization, support both
 static scientific optimization and controlled mechanism interventions.
 Every registered task has an executable complete-experiment adapter; all 15
-midpoint designs pass with no dead coordinates or unresolved formalization
-blockers.
+tasks pass 415 midpoint, coordinate-boundary, and categorical execution cases,
+with no dead coordinates. All 62 declared success metrics bind to explicit
+evaluation endpoints.
 
 The former 2026-07-27 static-S0 participant result bundle has been withdrawn
 because its legacy material and score contracts are not the contracts of the
 current benchmark candidate. No participant-performance number from that
 bundle is reported here. Replacement fixed-world protocols now bind explicit
 material-family hashes, task-specific score laws, opaque material identities,
-and paired blind validation. Electrochemical replacement diagnostics and a
-five-world reaction-to-crystallization material qualification are complete,
-but both remain development evidence (`formal_result=false`). New
-preregistered multi-world participant and baseline runs are required before
-this manuscript can make a static-S0 performance claim.
+and paired blind validation. Both replacement campaigns completed ten
+independent worlds, twenty exploration experiments per world, full classic
+baselines, and exact replay. Codex averages 0.7150 on electrochemical
+conversion and 0.5355 on crystallization. The electrochemical paired
+descriptive difference against the best information-matched baseline is
++0.0991; crystallization trails LHS by 0.0353. No superiority threshold or
+multiplicity plan was preregistered, so these are bounded descriptive results,
+not a broad state-of-the-art claim.
 
 Historical environment-level RC28 controls also establish budgeted
 identifiability and online attainability on their frozen source: the
@@ -81,12 +85,14 @@ compiles to 22 operations spanning extraction, phase separation, washing,
 drying, concentration, and transfer. Distillation uses 13 controls, with
 independent evaporation and distillation temperature/time settings.
 
-The matrix generator changes each coordinate from a low to a high intervention
-and rejects action-invariant coordinates. It also executes every midpoint
-recipe against the runtime, requiring committed transactions, a final assay,
-and compliance with the operation budget. All 15 tasks pass. This is design
-validation; only the two confirmatory tasks have formal model experiments in
-the present study.
+The matrix generator rejects action-invariant coordinates and executes every
+midpoint, each coordinate's low/high intervention, and every discrete category
+against the runtime. All 415 cases require committed transactions, a final
+assay, and compliance with the operation budget. All 15 tasks pass. The 62
+declared success metrics bind separately to terminal-observation, trajectory,
+structured-artifact, predictive-holdout, or paired-split evaluators. This is
+design validation; only the two confirmatory tasks have formal model
+experiments in the present study.
 
 ## 4. Static-S0 Protocol
 
@@ -105,22 +111,35 @@ paired blind validation replicates. Free-form mechanism prose is secondary;
 structured Declared claims, held-out Predictive directions, and Actionable
 blind performance are scored separately.
 
-## 5. Static-S0 Replacement Status
+## 5. Static-S0 Formal Results
 
-There is currently no active formal static-S0 participant result. The legacy
-two-task bundle was removed from the evidence DAG and cannot support an
-abstract, result table, model comparison, or arXiv claim.
+The legacy two-task bundle was removed from the evidence DAG and cannot support
+an abstract, result table, model comparison, or arXiv claim. The replacement
+v1.0 campaigns are the only active static-S0 formal results.
 
-| Task | Replacement material contract | Score contract | Current evidence | Formal participant result |
-| --- | --- | --- | --- | --- |
-| Electrochemical conversion | `nominal-prior-latent-v2` | `electrochemical-s0-balanced-efficiency-v2` | development multi-world diagnostics | absent |
-| Reaction-to-crystallization | `reaction-crystallization-latent-materials-v1` | `reaction-crystallization-s0-balanced-product-v1` | five-world simulator qualification | absent |
+| Task | Codex mean (world-bootstrap 95% interval) | Strongest information-matched baseline | Paired difference (95% interval) |
+| --- | ---: | ---: | ---: |
+| Electrochemical conversion | 0.7150 (0.6283–0.7861) | structured RF, 0.6159 | +0.0991 (+0.0103–+0.1748) |
+| Reaction-to-crystallization | 0.5355 (0.5045–0.5644) | LHS, 0.5708 | −0.0353 (−0.0650–−0.0085) |
 
-The reaction-to-crystallization qualification tests all 16 anonymous
-catalyst-solvent pairs in each of five worlds with a paired observation
-coordinate. It establishes deterministic replay, world-specific material
-identity, material relevance, and absence of a universal standardized winner.
-It does not estimate participant-agent performance.
+Electrochemical conversion has fourteen classic baselines. The strongest
+privileged calibration baseline is descriptor RF at 0.6441; the Codex-minus-
+baseline interval for that comparison is −0.0072 to +0.1354 and crosses zero.
+The positive information-matched comparison therefore does not establish
+superiority to methods with privileged nominal material descriptors.
+
+Reaction-to-crystallization has seven classic baselines. Codex is below LHS
+and does not support an outperformance claim. Its secondary held-out
+predictive directional accuracy is 0.478 with Brier score 0.298, compared with
+0.744 and 0.186 for electrochemical conversion. Every final recommendation is
+a tested condition and has zero gain over its validated incumbent. The present
+data therefore support bounded optimization-performance reporting but not a
+claim that final synthesis generated a novel improved method.
+
+Algorithm-seed repeats are treated as nested technical repeats; uncertainty is
+bootstrapped over the ten independent worlds. All comparisons are descriptive
+because the campaign did not preregister a superiority threshold or a
+multiplicity correction.
 
 ## 6. Environment Attainability
 
@@ -138,15 +157,17 @@ must not be cited as mechanism-change performance.
 
 ## 7. Audit and Resources
 
-The electrochemical formal lineage contains 109 provider calls and 1,320,840
-provider-reported tokens after the v0.4.1 final-synthesis amendment. The
-crystallization formal matrix contains 105 calls, 113 attempts, and 1,269,110
-tokens. Each current five-seed task summary contains 190 physical experiments:
-100 exploration, 60 predictive, 15 incumbent-validation, and 15
-recommendation-validation experiments. Every receipt replayed exactly.
+The participant campaigns contain 760 physical experiments and 420 Codex
+subscription calls. Per world, each task uses 20 exploration experiments, 12
+predictive physical experiments, and six paired blind-validation experiments.
+The classic baselines contain 1,050 algorithm cells and 27,300 physical
+experiments: electrochemical uses fourteen algorithms × five technical
+algorithm seeds × ten worlds, and crystallization uses seven × five × ten.
+The complete campaign therefore contains 28,060 physical experiments.
 
-Provider pricing was not independently verifiable, so monetary accounting is
-reported as incomplete rather than imputed.
+All twenty participant reports and all twenty task/world baseline audits pass
+exact replay. Provider pricing was not independently verifiable, so monetary
+accounting is not imputed.
 
 ## 8. Limitations
 
@@ -156,19 +177,18 @@ HPLC, GC, UV-Vis, and final-assay observations are state-coupled measurement
 models, not empirical spectra. Virtual risk and cost are benchmark quantities,
 not laboratory safety or procurement guidance.
 
-The static-S0 sample has five world seeds and one LLM run per world. It
+The static-S0 sample has ten world seeds and one LLM run per world. It
 characterizes those sampled worlds and does not estimate a universal model
-effect. The strongest classic family was selected descriptively from the same
-six-family calibration matrix, so its paired interval is not a preregistered
-confirmatory test. GP and Safe-GP trajectories coincide because the current
-safety limit does not bind. The explicit mechanism metrics show that
-successful local optimization is not sufficient evidence of correct world
-understanding.
+effect. Baselines and comparisons were selected and ranked descriptively, so
+the paired intervals are not preregistered confirmatory tests and do not
+control familywise error. The explicit world-understanding metrics and zero
+recommendation gains show that successful local optimization is not sufficient
+evidence of correct mechanism understanding or novel method synthesis.
 
-The 15-task adapter audit is a deterministic executability check at one
-midpoint world seed, not a performance experiment. Thirteen tasks therefore
-have complete optimization designs but no formal model comparison in this
-study.
+The 15-task adapter audit is a deterministic 415-case executability check at
+one world seed, not a performance experiment. Thirteen tasks therefore have
+complete optimization designs and metric endpoints but no formal model
+comparison in this study.
 
 Private-E/A, independent backend replication, real-data bridging, and physical
 experiments remain open. Hidden changepoints and mechanism replacement are
@@ -179,12 +199,14 @@ specified. The repository therefore retains `publication_ready=false`.
 
 The immediate roadmap remains within fixed-world scientific optimization:
 
-1. replicate the frozen S0 protocol with an independent model and provider;
-2. ablate final synthesis against best-observed submission, optional
-   interpolation, and forced-new-proposal variants;
-3. extend formal evaluation to one or two additional static task families
-   after local optimizer attainability checks;
-4. add untouched static world seeds to reduce cross-world uncertainty; and
+1. freeze a crystallization v1.1 participant policy before running untouched
+   worlds, without altering the v1.0 result;
+2. preregister primary baseline comparisons, superiority margins, and
+   multiplicity handling for the next independent campaign;
+3. ablate final synthesis against best-observed submission and a
+   forced-new-proposal variant;
+4. replicate with an independent model/provider and extend formal comparison
+   to selected additional static tasks; and
 5. build a static bridge to real data or a higher-fidelity simulator.
 
 World-change experiments are not an active launch item. They should return

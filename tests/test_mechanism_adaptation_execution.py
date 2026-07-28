@@ -1503,7 +1503,7 @@ def test_current_registry_does_not_promote_method_development_to_environment_evi
     assert "development_evidence" not in current
     assert (
         current["formal_evaluation"]["status"]
-        == "static_s0_formal_complete_mechanism_recertification_pending"
+        == "static_s0_v1_formal_descriptive_results_complete_claim_bounded"
     )
     assert current["formal_evaluation"]["formal_results_present"] is True
     assert current["formal_evaluation"]["benchmark_claim_allowed"] is False

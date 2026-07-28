@@ -23,6 +23,8 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert "mechanism_public_gate_a_decision" in node_ids
     assert "mechanism_diagnostic_relation_graph" in node_ids
     assert "mechanism_confirmatory_task_semantics_audit" in node_ids
+    assert "static_s0_formal_campaign_summary" in node_ids
+    assert "pre_arxiv_claim_evidence_ledger" in node_ids
     assert "task_design_matrix" in node_ids
     assert not any(node_id.startswith("ncs_") for node_id in node_ids)
     assert {node.role for node in nodes} <= pipeline["CURRENT_ARTIFACT_ROLES"]
@@ -82,16 +84,35 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert current["publication"]["publication_ready"] is False
     assert current["task_design"] == {
         "matrix": "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
-        "status": "all_registered_task_designs_executable",
+        "status": "all_registered_task_designs_executable_and_metric_bound",
         "registered_task_count": 15,
         "executable_midpoint_task_count": 15,
+        "executable_boundary_task_count": 15,
+        "boundary_recipe_case_count": 415,
+        "declared_success_metric_count": 62,
+        "bound_success_metric_count": 62,
         "dead_recipe_coordinate_count": 0,
         "formalization_blocker_count": 0,
         "formal_experiment_task_ids": [
             "electrochemical-conversion",
             "reaction-to-crystallization",
         ],
-        "nonconfirmatory_formal_experiments_required": False,
+        "formal_empirical_comparison_pending_task_ids": [
+            "equilibrium-characterization",
+            "flow-reaction-optimization",
+            "low-budget-characterization",
+            "partition-discovery",
+            "public-private-generalization",
+            "purity-yield-tradeoff",
+            "reaction-mechanism-explanation",
+            "reaction-optimization-standard",
+            "reaction-safety-constrained",
+            "reaction-to-assay",
+            "reaction-to-distillation",
+            "reaction-to-purification",
+            "tool-agent-planning",
+        ],
+        "nonconfirmatory_formal_experiments_required_for_future_claims": True,
     }
 
     summary = pipeline["current_status_summary"](current)
@@ -108,10 +129,17 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert summary["mechanism_gate_a"]["passed"] is True
     assert (
         summary["formal_benchmark"]["status"]
-        == "static_s0_legacy_withdrawn_v1_frozen_pending_formal_execution"
+        == "static_s0_v1_formal_descriptive_results_complete_claim_bounded"
     )
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False
+    assert (
+        current["publication"][
+            "new_scientific_experiments_required_for_narrow_scope"
+        ]
+        is False
+    )
+    assert current["publication"]["stronger_claim_experiments_pending"] is True
 
 
 def test_generated_evidence_paths_do_not_make_source_tree_dirty() -> None:

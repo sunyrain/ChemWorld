@@ -34,36 +34,44 @@ from chemworld.agents.task_recipes import (
     task_recipe_kind,
 )
 from chemworld.eval.provenance import git_source_commit, git_worktree_dirty
+from chemworld.eval.task_metric_endpoints import build_task_metric_contract
 from chemworld.tasks import CONFIRMATORY_BENCHMARK_TASK_IDS, list_tasks
 from chemworld.world.recipes import compile_recipe
 from chemworld.world.scoring import TaskScoringContract
 
 FORMAL_EVIDENCE = {
     "electrochemical-conversion": {
-        "protocol": (
-            "configs/benchmark/"
-            "scientific_optimization_s0_v0.4.1_single_stage_high_20_formal.json"
+        "freeze_manifest": (
+            "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json"
         ),
-        "aggregate": (
-            "runs/formal/"
-            "static_scientific_optimization_s0_v041_single_stage_high_20_5seed_20260727/"
-            "multiseed_report.json"
+        "campaign_summary": (
+            "workstreams/flagship_tasks/reports/"
+            "static-s0-v1.0-formal-campaign-summary.json"
+        ),
+        "participant_campaign_index": (
+            "runs/formal/static-s0-v10-codex-subscription-20260729/"
+            "campaign_execution_index.json"
+        ),
+        "baseline_campaign_index": (
+            "runs/formal/static-s0-v10-baselines-20260729/"
+            "campaign_execution_index.json"
         ),
     },
     "reaction-to-crystallization": {
-        "protocol": (
-            "configs/benchmark/"
-            "scientific_optimization_s0_v0.5_crystallization_high_20_formal.json"
+        "freeze_manifest": (
+            "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json"
         ),
-        "aggregate": (
-            "runs/formal/"
-            "static_scientific_optimization_s0_v05_crystallization_high_20_5seed_20260727/"
-            "multiseed_report.json"
+        "campaign_summary": (
+            "workstreams/flagship_tasks/reports/"
+            "static-s0-v1.0-formal-campaign-summary.json"
         ),
-        "classic_baselines": (
-            "runs/development/"
-            "static_scientific_optimization_s0_v05_crystallization_"
-            "classic_baselines_20_5worlds_20260727/multiseed_report.json"
+        "participant_campaign_index": (
+            "runs/formal/static-s0-v10-codex-subscription-20260729/"
+            "campaign_execution_index.json"
+        ),
+        "baseline_campaign_index": (
+            "runs/formal/static-s0-v10-baselines-20260729/"
+            "campaign_execution_index.json"
         ),
     },
 }
@@ -98,32 +106,31 @@ def _dead_recipe_coordinates(
     return dead
 
 
-def _midpoint_execution_audit(
-    task: Any,
+def _execute_recipe_case(
+    env: Any,
     task_info: dict[str, Any],
     compiled_recipe: list[dict[str, Any]],
+    *,
+    case_id: str,
 ) -> dict[str, Any]:
     failures: list[dict[str, Any]] = []
-    env = gym.make(task.env_id, **task.env_kwargs(seed=0))
-    try:
-        env.reset(seed=0)
-        for step_index, action in enumerate(compiled_recipe):
-            _observation, _reward, _terminated, _truncated, info = env.step(action)
-            if (
-                info.get("transaction_status") != "committed"
-                or info.get("constraint_flags", {}).get("precondition_failed") is True
-            ):
-                failures.append(
-                    {
-                        "step_index": step_index,
-                        "action": action,
-                        "transaction_status": info.get("transaction_status"),
-                        "preconditions": info.get("preconditions", {}),
-                    }
-                )
-                break
-    finally:
-        env.close()
+    env.reset(seed=0)
+    for step_index, action in enumerate(compiled_recipe):
+        _observation, _reward, _terminated, _truncated, info = env.step(action)
+        if (
+            info.get("transaction_status") != "committed"
+            or info.get("constraint_flags", {}).get("precondition_failed") is True
+        ):
+            failures.append(
+                {
+                    "case_id": case_id,
+                    "step_index": step_index,
+                    "action": action,
+                    "transaction_status": info.get("transaction_status"),
+                    "preconditions": info.get("preconditions", {}),
+                }
+            )
+            break
     final_assay_present = any(
         action.get("operation") == "measure"
         and action.get("instrument") == "final_assay"
@@ -132,6 +139,7 @@ def _midpoint_execution_audit(
     within_budget = len(compiled_recipe) <= int(task_info["budget"])
     return {
         "status": "passed" if not failures and final_assay_present and within_budget else "failed",
+        "case_id": case_id,
         "world_seed": 0,
         "all_transactions_committed": not failures,
         "final_assay_present": final_assay_present,
@@ -139,6 +147,109 @@ def _midpoint_execution_audit(
         "within_environment_operation_budget": within_budget,
         "failures": failures,
         "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
+    }
+
+
+def _parameter_entries(
+    parameter_schema: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    if all("coordinate" in value for value in parameter_schema.values()):
+        return sorted(
+            (dict(value) for value in parameter_schema.values()),
+            key=lambda value: int(value["coordinate"]),
+        )
+    entries: list[dict[str, Any]] = []
+    for coordinate, (control_id, value) in enumerate(parameter_schema.items()):
+        entry = {"coordinate": coordinate, "control_id": control_id, **value}
+        if value.get("type") == "integer":
+            entry["kind"] = "categorical"
+            entry["category_count"] = (
+                int(value["maximum"]) - int(value["minimum"]) + 1
+            )
+        entries.append(entry)
+    return entries
+
+
+def _design_execution_audit(
+    task: Any,
+    task_info: dict[str, Any],
+    *,
+    recipe_builder: Callable[[np.ndarray], dict[str, Any]],
+    dimension: int,
+    parameter_schema: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    entries = _parameter_entries(parameter_schema)
+    if len(entries) != dimension:
+        raise RuntimeError(
+            f"parameter schema dimension mismatch for {task.task_id}: "
+            f"{len(entries)} != {dimension}"
+        )
+    vectors: list[tuple[str, np.ndarray]] = [
+        ("midpoint", np.full(dimension, 0.5, dtype=float))
+    ]
+    for coordinate in range(dimension):
+        for label, value in (("low", 0.2), ("high", 0.8)):
+            vector = np.full(dimension, 0.5, dtype=float)
+            vector[coordinate] = value
+            vectors.append((f"coordinate-{coordinate}-{label}", vector))
+    categorical_coverage: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        if entry.get("kind") != "categorical":
+            continue
+        coordinate = int(entry["coordinate"])
+        category_count = int(entry["category_count"])
+        control_id = str(entry["control_id"])
+        observed: set[int] = set()
+        for category in range(category_count):
+            vector = np.full(dimension, 0.5, dtype=float)
+            vector[coordinate] = (category + 0.5) / category_count
+            vectors.append((f"coordinate-{coordinate}-category-{category}", vector))
+            recipe = recipe_builder(vector)
+            observed.update(
+                int(step[control_id])
+                for step in recipe["steps"]
+                if step.get(control_id) is not None
+            )
+        categorical_coverage[control_id] = {
+            "coordinate": coordinate,
+            "declared_category_count": category_count,
+            "observed_categories": sorted(observed),
+            "all_categories_reachable": len(observed) == category_count,
+        }
+
+    cases: list[dict[str, Any]] = []
+    env = gym.make(task.env_id, **task.env_kwargs(seed=0))
+    try:
+        for case_id, vector in vectors:
+            recipe = recipe_builder(vector)
+            compiled = compile_recipe(recipe, task_info=task_info)
+            cases.append(
+                _execute_recipe_case(
+                    env,
+                    task_info,
+                    compiled,
+                    case_id=case_id,
+                )
+            )
+    finally:
+        env.close()
+    midpoint = next(case for case in cases if case["case_id"] == "midpoint")
+    passed = all(case["status"] == "passed" for case in cases) and all(
+        row["all_categories_reachable"] for row in categorical_coverage.values()
+    )
+    return {
+        "status": "passed" if passed else "failed",
+        "world_seed": 0,
+        "case_count": len(cases),
+        "midpoint": midpoint,
+        "coordinate_low_high_case_count": 2 * dimension,
+        "categorical_case_count": len(cases) - 1 - 2 * dimension,
+        "categorical_coverage": categorical_coverage,
+        "failed_cases": [case for case in cases if case["status"] != "passed"],
+        "claim_boundary": (
+            "deterministic coordinate-boundary and categorical reachability audit; "
+            "not comparative empirical evidence"
+        ),
     }
 
 
@@ -185,7 +296,13 @@ def _task_row(task: Any) -> dict[str, Any]:
     ]
     compiled_recipe = compile_recipe(recipe, task_info=task_info)
     dead_coordinates = _dead_recipe_coordinates(recipe_builder, dimension)
-    execution_audit = _midpoint_execution_audit(task, task_info, compiled_recipe)
+    execution_audit = _design_execution_audit(
+        task,
+        task_info,
+        recipe_builder=recipe_builder,
+        dimension=dimension,
+        parameter_schema=parameter_schema,
+    )
     if dead_coordinates or execution_audit["status"] != "passed":
         raise RuntimeError(
             f"task design validation failed for {task.task_id}: "
@@ -195,6 +312,9 @@ def _task_row(task: Any) -> dict[str, Any]:
         objective=task.objective,
         success_metrics=task.success_metrics,
     )
+    metric_contract = build_task_metric_contract(task.success_metrics)
+    if not metric_contract["all_metrics_bound"]:
+        raise RuntimeError(f"task has unbound success metrics: {task.task_id}")
     confirmatory = task.task_id in CONFIRMATORY_BENCHMARK_TASK_IDS
     return {
         "task_id": task.task_id,
@@ -227,9 +347,11 @@ def _task_row(task: Any) -> dict[str, Any]:
                     "search_space_version", TASK_RECIPE_SPACE_VERSION
                 )
             ),
-            "midpoint_execution_audit": execution_audit,
+            "midpoint_execution_audit": execution_audit["midpoint"],
+            "boundary_execution_audit": execution_audit,
         },
         "objective_and_reward": scoring.to_dict(),
+        "evaluation_endpoints": metric_contract,
         "safety_and_cost": {
             "safety_limit": task.safety_limit,
             "cost_observed": True,
@@ -238,7 +360,8 @@ def _task_row(task: Any) -> dict[str, Any]:
         },
         "formal_s0": (
             {
-                "status": "completed_five_static_world_seeds",
+                "status": "completed_ten_worlds_full_classic_baselines",
+                "independent_world_count": 10,
                 "exploration_horizon": 20,
                 "horizon_visible": True,
                 "final_synthesis": True,
@@ -249,8 +372,9 @@ def _task_row(task: Any) -> dict[str, Any]:
             }
             if confirmatory
             else {
-                "status": "not_required_for_current_confirmatory_release",
+                "status": "formal_comparative_execution_pending",
                 "formal_experiment_run": False,
+                "design_and_endpoint_qualification_complete": True,
             }
         ),
         "overprotocol_audit": {
@@ -261,9 +385,9 @@ def _task_row(task: Any) -> dict[str, Any]:
         "physics_maturity": task.kernel_maturity.lowest_level.value,
         "proxy_allowed": task.kernel_maturity.proxy_allowed,
         "design_status": (
-            "formal_design_and_empirical_execution_complete"
+            "formal_campaign_complete_claim_bounded"
             if confirmatory
-            else "registered_design_complete_formal_empirical_execution_not_required"
+            else "executable_design_qualified_formal_comparison_pending"
         ),
     }
 
@@ -282,17 +406,23 @@ def main() -> None:
     formal_experiment_task_ids = sorted(
         row["task_id"]
         for row in tasks
-        if row["formal_s0"]["status"] == "completed_five_static_world_seeds"
+        if row["formal_s0"]["status"]
+        == "completed_ten_worlds_full_classic_baselines"
+    )
+    formal_empirical_comparison_pending_task_ids = sorted(
+        row["task_id"]
+        for row in tasks
+        if row["formal_s0"]["status"] == "formal_comparative_execution_pending"
     )
     payload = {
-        "schema_version": "chemworld-task-design-matrix-1.1",
+        "schema_version": "chemworld-task-design-matrix-1.2",
         "source_commit": os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_COMMIT")
         or git_source_commit(ROOT),
         "source_tree_dirty": source_tree_dirty,
         "task_count": len(tasks),
         "confirmatory_task_ids": list(CONFIRMATORY_BENCHMARK_TASK_IDS),
         "design_validation": {
-            "status": "all_registered_task_designs_executable",
+            "status": "all_registered_task_designs_executable_and_metric_bound",
             "executable_midpoint_task_count": sum(
                 row["complete_experiment_adapter"]["midpoint_execution_audit"][
                     "status"
@@ -300,8 +430,31 @@ def main() -> None:
                 == "passed"
                 for row in tasks
             ),
+            "executable_boundary_task_count": sum(
+                row["complete_experiment_adapter"]["boundary_execution_audit"][
+                    "status"
+                ]
+                == "passed"
+                for row in tasks
+            ),
+            "boundary_recipe_case_count": sum(
+                row["complete_experiment_adapter"]["boundary_execution_audit"][
+                    "case_count"
+                ]
+                for row in tasks
+            ),
             "dead_recipe_coordinate_count": sum(
                 len(row["overprotocol_audit"]["dead_recipe_coordinates"])
+                for row in tasks
+            ),
+            "declared_success_metric_count": sum(
+                len(row["evaluation_endpoints"]["endpoints"]) for row in tasks
+            ),
+            "bound_success_metric_count": sum(
+                sum(
+                    endpoint["implementation_status"] == "executable"
+                    for endpoint in row["evaluation_endpoints"]["endpoints"]
+                )
                 for row in tasks
             ),
             "formalization_blocker_count": sum(
@@ -309,7 +462,10 @@ def main() -> None:
                 for row in tasks
             ),
             "formal_experiment_task_ids": formal_experiment_task_ids,
-            "nonconfirmatory_formal_experiments_required": False,
+            "formal_empirical_comparison_pending_task_ids": (
+                formal_empirical_comparison_pending_task_ids
+            ),
+            "nonconfirmatory_formal_experiments_required_for_future_claims": True,
         },
         "design_principles": {
             "one_environment_step": "one validated operation",

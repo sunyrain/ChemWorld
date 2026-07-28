@@ -8,34 +8,34 @@
     numbers remain historical formal results, but their current binding is
     stale and `benchmark_ready=false` until recertification.
 
-## Static-S0 replacement status
+## Static-S0 v1.0 formal status
 
 The legacy 2026-07-27 two-task participant bundle is withdrawn from the
 current evidence DAG and cannot support an abstract, result table, or model
-comparison. Both confirmatory tasks now have replacement development
-protocols:
+comparison. Both replacement tasks have now completed formal ten-world
+comparisons:
 
 | Task | Material contract | Score contract | Current evidence | Formal participant result |
 | --- | --- | --- | --- | --- |
-| Electrochemical Conversion | `nominal-prior-latent-v2` | `electrochemical-s0-balanced-efficiency-v2` | multi-world development diagnostics | absent |
-| Reaction to Crystallization | `reaction-crystallization-latent-materials-v1` | `reaction-crystallization-s0-balanced-product-v1` | five-world material qualification | absent |
+| Electrochemical Conversion | `nominal-prior-latent-v2` | `electrochemical-s0-balanced-efficiency-v2` | ten worlds, full baselines, exact replay | Codex 0.7150 |
+| Reaction to Crystallization | `reaction-crystallization-latent-materials-v1` | `reaction-crystallization-s0-balanced-product-v1` | ten worlds, full baselines, exact replay | Codex 0.5355 |
 
-The reaction-to-crystallization qualification executes all 16 anonymous
-catalyst-solvent pairs in every world and establishes exact replay,
-world-fixed material identity, material relevance, and no universal
-standardized winner. It is not agent performance. Both replacement protocols
-remain `formal_result=false` until preregistration, reference contracts,
-classic baselines, and multi-world Codex subscription runs are frozen.
+The electrochemical paired descriptive difference against the best
+information-matched baseline is +0.0991, but its interval against the best
+privileged calibration baseline crosses zero. Crystallization trails LHS
+(0.5708), so it does not support an outperformance claim. Neither comparison
+preregistered a superiority threshold or multiplicity plan.
 
 ## Optimization designs across all 15 tasks
 
-The other 13 tasks do not require costly model runs in this release, but their
+The other 13 tasks have not yet run formal multi-world comparisons, but their
 optimization designs are more than registry entries. All 15 tasks now have a
 versioned complete-experiment adapter, physical coordinate schema, fixed
 measurement slots, final-assay feedback, and safety/cost boundaries. The
-generator perturbs every coordinate and executes the midpoint recipe at world
-seed 0: 15/15 pass, with zero dead coordinates and zero unresolved
-formalization blockers.
+generator executes 415 complete cases spanning midpoints, every coordinate's
+low/high intervention, and all discrete categories: 15/15 pass, with zero dead
+coordinates. All 62 declared success metrics bind to explicit observation,
+trajectory, artifact, predictive-holdout, or paired-split endpoints.
 
 The three purification tasks use 16 independent controls and 22 compiled
 operations spanning reaction, extraction, phase separation, washing, drying,
@@ -71,7 +71,7 @@ API compatibility; they no longer define the scientific taxonomy.
 | A1 physical validity | historical RC28 passed, 83/83 design checks; current binding stale |
 | A2 controlled identifiability | historical RC28 **passed**, 4,896/4,896 receipts; current binding stale |
 | A3 online attainability | historical RC28 **passed**, 2,016/2,016 receipts; current binding stale |
-| Static-S0 Participant Agent | legacy results withdrawn; replacement protocols development-qualified, formal multi-world runs pending |
+| Static-S0 Participant Agent | v1.0 formal ten-world descriptive results complete; electrochemical positive, crystallization below LHS |
 | Mechanism-adaptation Participant Gates B–E | deferred research extension; Flash Direct/Stateful S1/S2 each achieved 0/4 autonomous completion, formal matrix not started |
 | Private-E environment confirmation | eligible, not yet executed |
 | Private-A participant-Agent confirmation | sealed pending participant freeze |

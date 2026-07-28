@@ -7,27 +7,27 @@
     旧 RC28 数字仍是历史正式结果，当前绑定标记为 stale，`benchmark_ready=false`，必须重新认证后才能
     对当前源码恢复环境 Gate A 主张。
 
-## 静态 S0 替代状态
+## 静态 S0 v1.0 正式状态
 
 2026-07-27 的旧双任务 Participant 结果已经撤回，不在当前 evidence DAG 中，也不能进入论文摘要、
-结果表或模型比较。当前两个确认性任务都已有替代开发协议：
+结果表或模型比较。两个替代任务现已完成正式十世界比较：
 
 | 任务 | 材料合同 | 评分合同 | 当前证据 | 正式 Participant 结果 |
 | --- | --- | --- | --- | --- |
-| Electrochemical Conversion | `nominal-prior-latent-v2` | `electrochemical-s0-balanced-efficiency-v2` | 多世界开发诊断 | 无 |
-| Reaction to Crystallization | `reaction-crystallization-latent-materials-v1` | `reaction-crystallization-s0-balanced-product-v1` | 五世界材料资格审计 | 无 |
+| Electrochemical Conversion | `nominal-prior-latent-v2` | `electrochemical-s0-balanced-efficiency-v2` | 10 世界、完整基线、精确 replay | Codex 0.7150 |
+| Reaction to Crystallization | `reaction-crystallization-latent-materials-v1` | `reaction-crystallization-s0-balanced-product-v1` | 10 世界、完整基线、精确 replay | Codex 0.5355 |
 
-反应–结晶资格审计对每个世界执行 16 个匿名催化剂–溶剂配对，确认精确回放、世界固定材料身份、
-显著材料响应和不存在通用标准化赢家。该审计不是 Agent 性能。两个替代协议仍为
-`formal_result=false`，必须在预注册、参考合同、经典基线和 Codex subscription 多世界运行冻结后
-才能形成新的正式 S0 结果。
+电化学相对最佳 information-matched 基线的描述性配对差为 +0.0991，但相对最佳 privileged
+calibration 基线的区间跨 0。结晶低于 LHS 的 0.5708，因此不能声称优于经典基线。两项比较均未
+预注册 superiority 阈值或多重比较方案；正式结果存在不等于允许广义 benchmark 或 SOTA 主张。
 
 ## 15 任务优化设计状态
 
-两个确认性任务以外的 13 个任务不要求本轮昂贵模型实验，但其优化设计不能只是任务注册表。当前
+两个确认性任务以外的 13 个任务尚未运行正式多世界比较，但其优化设计不能只是任务注册表。当前
 15 个任务都已有版本化完整实验适配器、物理坐标、固定测量槽、final-assay 反馈和安全/成本边界。
-生成器对每个坐标执行低/高干预检查，并在 world seed 0 实际运行中点配方：15/15 通过，死坐标为 0，
-未解决正式化 blocker 为 0。
+生成器实际运行 415 个完整案例，覆盖中点、每个坐标的低/高干预和全部离散类别：15/15 通过，
+死坐标为 0。62 个声明成功指标也全部绑定到明确的观测、轨迹、artifact、predictive holdout 或
+paired split 端点。
 
 三个纯化任务使用 16 个独立控制和 22 个编译操作，覆盖反应、萃取、分相、洗涤、干燥、浓缩与转移；
 蒸馏使用 13 个控制，蒸发/蒸馏的温度和时间已经相互独立。这些是可执行设计证据，不是其余 13 个任务
@@ -57,7 +57,7 @@ Showcase 卡片不是确认性证据；确认性任务也不必出现在首页�
 | A1 physical validity | 历史 RC28 passed，83/83 设计检查；当前绑定 stale |
 | A2 controlled identifiability | 历史 RC28 **passed**，4,896/4,896 receipts；当前源码绑定 stale |
 | A3 online attainability | 历史 RC28 **passed**，2,016/2,016 receipts；当前源码绑定 stale |
-| Static S0 Participant Agent | 旧结果已撤回；两个替代协议开发资格通过，正式多世界结果待执行 |
+| Static S0 Participant Agent | v1.0 十世界正式描述性结果完成；电化学正面、结晶未超过 LHS |
 | Mechanism-adaptation Participant Gates B–E | 延期研究扩展；Flash Direct/Stateful S1/S2 均为 0/4 autonomous completion，正式矩阵未启动 |
 | Private-E environment confirmation | eligible，尚未执行 |
 | Private-A participant-Agent confirmation | sealed，等待 participant freeze |

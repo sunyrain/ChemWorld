@@ -51,7 +51,7 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     assert registry["project"]["version"] == pyproject["project"]["version"]
     assert registry["project"]["role"] == "agent_capability_evaluation_and_training_environment"
     assert registry["project"]["environment_updates_agent_weights"] is False
-    assert registry["formal_evaluation"]["formal_results_present"] is False
+    assert registry["formal_evaluation"]["formal_results_present"] is True
     assert registry["formal_evaluation"]["benchmark_claim_allowed"] is False
     assert (
         registry["formal_evaluation"]["environment_certificate_results_present"]
@@ -64,20 +64,33 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
         is False
     )
     assert registry["mechanism_adaptation"]["publication_ready"] is False
-    assert registry["static_scientific_optimization"]["formal_result"] is False
-    assert registry["static_scientific_optimization"]["all_replay_verified"] is False
+    assert registry["static_scientific_optimization"]["formal_result"] is True
+    assert registry["static_scientific_optimization"]["all_replay_verified"] is True
     assert (
         registry["static_scientific_optimization"]["hidden_world_change_evaluated"]
         is False
     )
     assert registry["task_design"]["registered_task_count"] == 15
     assert registry["task_design"]["executable_midpoint_task_count"] == 15
+    assert registry["task_design"]["executable_boundary_task_count"] == 15
+    assert registry["task_design"]["boundary_recipe_case_count"] == 415
+    assert registry["task_design"]["declared_success_metric_count"] == 62
+    assert registry["task_design"]["bound_success_metric_count"] == 62
     assert registry["task_design"]["dead_recipe_coordinate_count"] == 0
     assert registry["task_design"]["formalization_blocker_count"] == 0
     assert registry["task_design"]["formal_experiment_task_ids"] == [
         "electrochemical-conversion",
         "reaction-to-crystallization",
     ]
+    assert len(
+        registry["task_design"]["formal_empirical_comparison_pending_task_ids"]
+    ) == 13
+    assert (
+        registry["task_design"][
+            "nonconfirmatory_formal_experiments_required_for_future_claims"
+        ]
+        is True
+    )
     assert registry["mechanism_adaptation"]["new_external_provider_runs_completed"] is False
     assert registry["mechanism_adaptation"]["gate_a_pass"] is True
     assert registry["mechanism_adaptation"]["benchmark_ready"] is False

@@ -1,6 +1,6 @@
 # ChemWorld 15 任务设计矩阵 v1
 
-日期：2026-07-27
+日期：2026-07-29
 
 机器可读权威文件：`workstreams/flagship_tasks/reports/task-design-matrix-v1.json`
 
@@ -18,10 +18,24 @@
 
 - 注册任务：15。
 - Confirmatory 任务：`electrochemical-conversion`、`reaction-to-crystallization`。
-- 两个 Confirmatory 任务均已完成具名物理控制、20 轮、五静态世界、最终综合、Predictive、盲验证和 replay。
-- 其余 13 个任务完成注册合同与完整实验适配器设计；当前发布不要求昂贵正式模型实验。
-- 15 个任务的确定性中点配方均已端到端执行；全部 transaction committed，均包含 final assay 且未超操作预算。
+- 两个 Confirmatory 任务均已完成具名物理控制、10 个独立世界、每世界 20 轮、最终综合、Predictive、盲验证、完整经典基线和精确 replay。
+- 其余 13 个任务已完成注册合同、完整实验适配器和指标端点实现；它们具备运行正式比较的设计条件，但尚无正式多世界比较证据。
+- 15 个任务共执行 415 个确定性设计案例，覆盖中点、每个坐标的低/高干预和全部离散类别；全部 transaction committed，均包含 final assay 且未超操作预算。
+- 62 个声明成功指标已全部绑定到可执行端点，没有再把非观测指标静默忽略。
 - 所有任务均为 `proxy_allowed=false`；成熟度声明仍受各自 model card 边界约束。
+
+## 指标端点
+
+指标现在按产生证据的层级显式区分：
+
+- `terminal_observation`：最终已提交 final assay 的直接物理观测。
+- `trajectory_aggregate`：样本效率、约束事件、轨迹有效性和 validator 使用率。
+- `structured_artifact`：机制解释、失败分析和规划解释，使用透明 rubric 与轨迹 evidence ID。
+- `predictive_holdout`：低预算表征的冻结 holdout RMSE 与区间评分。
+- `paired_split_campaign`：public/private 均值偏移和按世界 bootstrap 的排序一致性。
+
+缺少 holdout、结构化解释或成对 split 时，评估器返回
+`not_evaluated_missing_input`，不会以零分或默认值冒充已测结果。
 
 ## 已清理问题
 
@@ -30,8 +44,15 @@
 - 两个 Confirmatory 任务不再向模型暴露归一化向量。
 - `reaction-to-purification`、`purity-yield-tradeoff` 和 `tool-agent-planning` 不再退化为通用 8 步反应配方；现在使用 16 维反应—纯化设计，编译后执行 22 个操作。
 - distillation 的蒸发温度、蒸发时间、蒸馏温度和蒸馏时间已经拆成四个独立控制，配方为 13 维。
-- 生成器实际比较每个坐标的低/高干预并执行中点配方；当前 15 个任务死坐标为 0，未解决正式化 blocker 为 0。
+- 生成器实际执行每个坐标的低/高干预并枚举全部离散类别；当前 15 个任务死坐标为 0，指标实现 blocker 为 0。
+- 原先没有端点的 7 个任务已经补齐：`sample_efficiency`、`constraint_violations`、`final_assay_score`、`trajectory_validity`、`mechanism_explanation`、`failure_analysis`、`validator_use`、`explanation`、`uncertainty`、`local_model_quality`、`public_private_gap` 和 `rank_confidence` 均有明确定义。
 
 ## 正式实验边界
 
-当前正式结论只覆盖静态 S0。机制适应 RC28 的 Gate A 是环境可辨识性结果；Participant Gates B–E 仍未启动，不能与本轮固定世界模型能力结果混同。
+当前正式结论只覆盖静态 S0 v1.0：
+
+- 电化学 Codex 盲测均值 0.7150；相对最佳 information-matched 基线的描述性配对差为 +0.0991，但相对最佳 privileged calibration 基线的区间跨 0。
+- 结晶 Codex 盲测均值 0.5355；低于 LHS 的 0.5708，当前不能支持“优于经典基线”的论断。
+- 所有比较均为描述性结果；没有预注册 superiority 阈值或多重比较方案。
+
+其余 13 个任务的状态是“设计与端点合格、正式比较待执行”，不能因为实现 blocker 为 0 就写成已有经验论证。机制适应 RC28 的 Gate A 是历史环境可辨识性结果；Participant Gates B–E 也不能与本轮固定世界模型能力结果混同。

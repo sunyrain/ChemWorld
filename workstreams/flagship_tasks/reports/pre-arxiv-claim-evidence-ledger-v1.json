@@ -1,0 +1,118 @@
+{
+  "schema_version": "chemworld-pre-arxiv-claim-evidence-ledger-1.0",
+  "as_of": "2026-07-29",
+  "paper_scope": "narrow_two_task_fixed_world_descriptive_benchmark",
+  "publication_ready": false,
+  "current_formal_evidence": {
+    "campaign_summary": "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json",
+    "freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json",
+    "formal_results_present": true,
+    "benchmark_claim_allowed": false
+  },
+  "claims": [
+    {
+      "claim_id": "C01",
+      "claim": "All 15 registered tasks have executable complete-experiment designs and bound evaluation endpoints.",
+      "status": "supported_control_validated",
+      "allowed_wording": "Fifteen task designs pass 415 deterministic execution cases and all 62 declared metrics bind to executable endpoints.",
+      "required_additional_experiment": null,
+      "boundary": "This is design qualification, not comparative agent performance."
+    },
+    {
+      "claim_id": "C02",
+      "claim": "Codex performs better than the strongest information-matched electrochemical baseline in the sampled worlds.",
+      "status": "supported_descriptive_only",
+      "allowed_wording": "Codex mean 0.7150 versus structured RF 0.6159; paired descriptive difference +0.0991 with world-bootstrap interval [+0.0103,+0.1748].",
+      "required_additional_experiment": null,
+      "boundary": "No preregistered superiority margin or multiplicity plan; do not call this a confirmatory superiority test."
+    },
+    {
+      "claim_id": "C03",
+      "claim": "Codex is superior to all classical electrochemical baselines.",
+      "status": "not_supported",
+      "allowed_wording": null,
+      "required_additional_experiment": "Freeze a primary comparator, superiority margin, multiplicity rule, and untouched independent worlds before execution.",
+      "boundary": "The interval against the best privileged calibration baseline crosses zero."
+    },
+    {
+      "claim_id": "C04",
+      "claim": "Codex outperforms classical optimization on crystallization.",
+      "status": "contradicted_by_current_formal_result",
+      "allowed_wording": "Codex mean 0.5355 trails LHS 0.5708 by 0.0353; the paired interval is [-0.0650,-0.0085].",
+      "required_additional_experiment": "Freeze a v1.1 participant policy and statistical plan, then evaluate it on untouched worlds without altering or replacing v1.0.",
+      "boundary": "The negative v1.0 result remains part of the evidence."
+    },
+    {
+      "claim_id": "C05",
+      "claim": "The participant learned a correct scientific world model or synthesized a novel improved method.",
+      "status": "not_supported",
+      "allowed_wording": "Held-out predictive diagnostics are secondary and every submitted recommendation has zero gain over its validated incumbent.",
+      "required_additional_experiment": "Preregister world-model endpoints and a forced-new-proposal or recommendation-gain endpoint on untouched worlds.",
+      "boundary": "Optimization score alone is not mechanism understanding."
+    },
+    {
+      "claim_id": "C06",
+      "claim": "Participant performance generalizes across all 15 tasks.",
+      "status": "not_supported",
+      "allowed_wording": null,
+      "required_additional_experiment": "Run frozen multi-world participant and classic-baseline comparisons for selected additional tasks; all 13 extended tasks are currently pending.",
+      "boundary": "The 415-case audit establishes executability only."
+    },
+    {
+      "claim_id": "C07",
+      "claim": "A participant Agent can detect, identify, and recover from mechanism changes.",
+      "status": "not_supported",
+      "allowed_wording": "Historical RC28 Gate A certifies environment attainability on its frozen source.",
+      "required_additional_experiment": "Recertify Gate A on current source if cited as current, then freeze and execute participant Gates B-E.",
+      "boundary": "RC28 is not participant-Agent performance and its current source binding is stale."
+    },
+    {
+      "claim_id": "C08",
+      "claim": "Results generalize from public to private worlds.",
+      "status": "not_supported",
+      "allowed_wording": null,
+      "required_additional_experiment": "Execute an aligned public/private campaign and evaluate the frozen public-private gap and world-bootstrap rank-confidence endpoints.",
+      "boundary": "The current ten-world static campaign is sampled-world evidence only."
+    },
+    {
+      "claim_id": "C09",
+      "claim": "The performance difference is caused by the Codex provider or by a particular scaffold.",
+      "status": "not_supported",
+      "allowed_wording": null,
+      "required_additional_experiment": "Run a controlled provider/scaffold factorial comparison with frozen prompts, budgets, and independent worlds.",
+      "boundary": "One provider and one participant policy cannot identify a provider causal effect."
+    },
+    {
+      "claim_id": "C10",
+      "claim": "ChemWorld performance transfers to real chemistry or higher-fidelity simulators.",
+      "status": "not_supported",
+      "allowed_wording": "ChemWorld is a bounded virtual physical-chemistry benchmark.",
+      "required_additional_experiment": "Complete an independent backend, real-data, or narrow physical-system bridge with a preregistered transfer endpoint.",
+      "boundary": "No external bridge evidence is currently complete."
+    },
+    {
+      "claim_id": "C11",
+      "claim": "The reported computation is reproducible.",
+      "status": "supported_internal_exact_replay",
+      "allowed_wording": "All participant and baseline task/world artifacts pass exact replay and reconcile to 28,060 physical experiments.",
+      "required_additional_experiment": "An independent clean-checkout replication is still required for an independent reproducibility claim.",
+      "boundary": "Internal exact replay is not independent replication."
+    }
+  ],
+  "first_arxiv_decision": {
+    "narrow_descriptive_submission_can_proceed_without_new_scientific_experiments": true,
+    "conditions": [
+      "Report the crystallization result as negative.",
+      "Label all algorithm comparisons descriptive and disclose the absent superiority and multiplicity preregistration.",
+      "Exclude broad SOTA, provider-causal, private-generalization, mechanism-adaptation participant, and real-world transfer claims.",
+      "Finish clean-release attestation, manuscript consistency, and independent artifact reproduction checks."
+    ],
+    "experiments_required_before_any_stronger_claim": [
+      "Untouched preregistered crystallization v1.1 campaign.",
+      "Independent model/provider replication.",
+      "Aligned public/private generalization campaign.",
+      "Current-source mechanism Gate A recertification plus participant Gates B-E if mechanism claims remain in scope.",
+      "Independent backend or real/physical bridge for transfer claims."
+    ]
+  }
+}

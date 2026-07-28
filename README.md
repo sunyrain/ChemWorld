@@ -98,35 +98,39 @@ credentials are read from the local process environment and must not enter the r
 
 ## Evidence status
 
+Pre-v0.5 algorithm numbers are retained only as protocol and failure-mode diagnostics; they are not current rankings.
+
 The `chemworld-physical-chemistry-v0.5-candidate` backend has deterministic controls for all 15 registered tasks,
 including exact task-contract hashes, replay-bound transitions, and a fail-closed public boundary. Backend validation
 and clean-source attestation describe the environment only; they do not imply an algorithm ranking, a completed
 evaluation campaign, or real-chemistry validation.
 
-All 15 tasks now have versioned complete-experiment adapters with physical coordinate schemas. A deterministic
-midpoint smoke executes every adapter end to end; the design audit reports no dead coordinates or unresolved
-formalization blockers. The three purification tasks use a 16-control reaction/workup design, and the distillation
-adapter exposes evaporation and distillation temperature/time as four independent controls. This is design
-validation, not formal empirical performance for the 13 non-confirmatory tasks.
+All 15 tasks now have versioned complete-experiment adapters with physical coordinate schemas. The design audit
+executes 415 end-to-end cases covering each midpoint, every coordinate's low/high intervention, and every discrete
+category. All 62 declared success metrics are bound to explicit terminal-observation, trajectory, artifact,
+predictive-holdout, or paired-split evaluators. The three purification tasks use a 16-control reaction/workup design,
+and the distillation adapter exposes evaporation and distillation temperature/time as four independent controls.
+This is design validation, not formal empirical performance for the 13 non-confirmatory tasks.
 
 ChemWorld no longer treats one repository-wide method freeze as environment evidence. Each comparison campaign must
 declare its own agents, resources, seeds, material family, score law, and result freeze. The 2026-07-27 legacy
 static-S0 participant results were withdrawn on 2026-07-28: they are not current evidence, are not arXiv-reportable,
 and no numerical claim from that bundle is retained on the active status surface.
 
-The replacement electrochemical protocol uses a versioned latent material family, anonymous material IDs, a
-balanced-efficiency score, and paired blind validation. The replacement reaction-to-crystallization protocol now has
-its own catalyst/solvent material family and couples solvent identity to reaction kinetics, solubility, nucleation,
-growth, and impurity occlusion. Its five-world, 16-material-pair simulator qualification passed; this is a development
-readiness result, not participant performance. Both replacement protocols remain `formal_result=false` until their
-preregistrations, references, baselines, and full multi-world participant runs are frozen and executed.
+The replacement electrochemical and reaction-to-crystallization S0 v1.0 campaigns are complete: each uses ten
+independent worlds, twenty exploration experiments per world, paired blind validation, full classic baselines, and
+exact replay. Codex averages 0.7150 on electrochemical conversion and 0.5355 on crystallization. Electrochemical is
+descriptively +0.0991 above the best information-matched baseline, but its interval against the best privileged
+calibration baseline crosses zero. Crystallization is below LHS (0.5708), so it does not support an outperformance
+claim. These comparisons were not preregistered with a superiority threshold or multiplicity plan.
 
 [`configs/current.json`](configs/current.json) is the authoritative status surface. It reports backend-contract
 validation, clean-release attestation, formal-evaluation readiness, and publication readiness as separate states.
 
 Current evidence establishes the following boundaries:
 
-- legacy fixed-world static-S0 participant results are withdrawn; replacement formal results are not yet present;
+- legacy fixed-world static-S0 participant results are withdrawn; the replacement ten-world formal descriptive
+  results are current, while broad benchmark, provider-causal, and out-of-sample generalization claims remain disabled;
 - RC28 Gate A passed on its frozen source, but the current source fingerprint has changed. Its result remains a
   historical formal certificate while the current binding is stale; `benchmark_ready=false` until recertification;
 
