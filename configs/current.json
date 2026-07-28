@@ -13,10 +13,10 @@
     "backend": "configs/foundation/backend_v0.5.json",
     "backend_report": "workstreams/world_foundation/reports/backend-v0.5.json",
     "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
-    "status": "blocked",
-    "contract_validation": "blocked",
-    "clean_release_attestation": "blocked",
-    "source_tree_dirty": true,
+    "status": "candidate_backend_clean_attested",
+    "contract_validation": "passed",
+    "clean_release_attestation": "passed",
+    "source_tree_dirty": false,
     "world_law_id": "chemworld-physical-chemistry-v0.5",
     "task_contract_version": "chemworld-task-contract-1.1"
   },
@@ -163,9 +163,9 @@
     "publication_ready": false
   },
   "repository_integrity": {
-    "status": "stale_evidence_bindings_worktree_dirty",
+    "status": "stale_evidence_bindings",
     "current_evidence_coherent": false,
-    "tracked_source_tree_dirty": true,
+    "tracked_source_tree_dirty": false,
     "stale_binding_count": 9,
     "stale_binding_ids": [
       "mechanism_a2_structural_receipt",
@@ -179,10 +179,6 @@
       "mechanism_release_qualification"
     ],
     "blockers": [
-      {
-        "id": "clean_release_attestation_pending",
-        "scope": "backend_release"
-      },
       {
         "id": "mechanism_gates_remaining",
         "scope": "mechanism_benchmark",
@@ -333,7 +329,7 @@
         "producer": "maintainer_versioned_input",
         "source_binding": "content_sha256",
         "dependencies": [],
-        "sha256": "3853ccfb7f2bc7b6ce6af36cbde08085b13e8b7947554b6863dd614f7f60a8c5",
+        "sha256": "5865a0b6a0db0528148b4ff27bcf2e70e9d62b4198f40f73793945216a926dbd",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "not_applicable"
@@ -429,7 +425,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "fda9b9e642fe6376022ed063a514abc2adcf8b9ec3361d20f12a8b400d0295e8",
+        "sha256": "7669aaef8be2b6ae59f15fdb7c7b98cd34b469e2132be487456dbe8187914fc4",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -597,7 +593,7 @@
         "producer": "python scripts/build_task_design_matrix.py --output workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "948f9b3622c85af20d0047e68a1e8c4b673e65886a84b89189557873cc7d06f8",
+        "sha256": "cbb2a2c9a920e8f3aefce0f638d88149ea9232a010536e1620fbf54b67799221",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -673,7 +669,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "4a7ff5798070d0efddcfec807e13c10efda534e6c413b3789bc29fc1372a158b",
+        "sha256": "90bb75bfdbd0ac6c903e8f7ead0eb5d3c087b5c49187830a2f4cbb9260694fad",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -688,7 +684,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "be63d34a42b9f8e697c54bbd06542faeac28443e7da4ab138dc847cae48c9b45",
+        "sha256": "28d67d6c615701f26f166c7a0c28446b9e4a45db3f08962ece9a76f7fde34546",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -753,7 +749,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "64d0834bb07027dcc32422aec4474c494d8edbb951f3789faaef8e1ae22c651c",
+        "sha256": "a6c765a15c7bdceec769ed64c4b840b994c088779ef046fea5c408af0e791141",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -842,10 +838,10 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "fda254b8ad373755e41aa0cdb742735a3efba73c0204b32249342a4e95500fb7",
+        "sha256": "360ad1ed9f8dda706d7d7306da1b13f4fd7d3f2eadff9d62e97b8411b44fb31b",
         "artifact_state": "current",
         "freshness": "fresh",
-        "gate_state": "blocked"
+        "gate_state": "passed"
       },
       "mechanism_preregistration": {
         "path": "configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc28.json",
