@@ -29,9 +29,23 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert all(pipeline["_node_producer"](node) for node in nodes)
     assert all(pipeline["_node_source_binding"](node) for node in nodes)
     assert all(
-        (node.command is not None) == (pipeline["_node_lifecycle"](node) == "generated")
+        pipeline["_node_lifecycle"](node) == "immutable"
+        if node.node_id in pipeline["FROZEN_MECHANISM_NODE_IDS"]
+        else (node.command is not None)
+        == (pipeline["_node_lifecycle"](node) == "generated")
         for node in nodes
     )
+
+
+def test_frozen_rc28_evidence_is_not_regenerated_after_task_contract_drift() -> None:
+    pipeline = _pipeline()
+    node_by_id = {node.node_id: node for node in pipeline["NODES"]}
+
+    for node_id in pipeline["FROZEN_MECHANISM_NODE_IDS"]:
+        node = node_by_id[node_id]
+        assert node.command is None
+        assert pipeline["_node_lifecycle"](node) == "immutable"
+        assert pipeline["_node_producer"](node) == "frozen_rc28_preregistration_evidence"
 
 
 def test_current_evidence_pipeline_records_formal_gate_a_pass() -> None:

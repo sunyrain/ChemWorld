@@ -142,7 +142,6 @@ NODES = (
         "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc28.json",
         "generated_current",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
-        ("scripts/build_mechanism_diagnostic_relation_graph.py",),
     ),
     EvidenceNode(
         "mechanism_sample_size_audit",
@@ -150,7 +149,6 @@ NODES = (
         "mechanism-adaptation-sample-size-audit-v0.3.0-rc28.json",
         "generated_current",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
-        ("scripts/audit_mechanism_adaptation_sample_size.py",),
     ),
     EvidenceNode(
         "mechanism_preregistration",
@@ -175,7 +173,6 @@ NODES = (
             "mechanism_preregistration",
             "mechanism_protocol",
         ),
-        ("scripts/audit_confirmatory_task_semantics.py",),
     ),
     EvidenceNode(
         "mechanism_design_audit",
@@ -187,7 +184,6 @@ NODES = (
             "mechanism_gate_a_plan",
             "mechanism_protocol",
         ),
-        ("scripts/audit_mechanism_adaptation_design.py",),
     ),
     EvidenceNode(
         "mechanism_release_qualification",
@@ -465,16 +461,26 @@ ARTIFACT_ROLES = frozenset(
 )
 CURRENT_ARTIFACT_ROLES = ARTIFACT_ROLES - {"superseded", "archive"}
 
+FROZEN_MECHANISM_NODE_IDS = frozenset(
+    {
+        "mechanism_diagnostic_relation_graph",
+        "mechanism_sample_size_audit",
+        "mechanism_preregistration",
+        "mechanism_confirmatory_task_semantics_audit",
+        "mechanism_design_audit",
+    }
+)
+
 
 def _node_lifecycle(node: EvidenceNode) -> str:
-    if node.node_id == "mechanism_preregistration":
+    if node.node_id in FROZEN_MECHANISM_NODE_IDS:
         return "immutable"
     return "generated" if node.command is not None else "immutable"
 
 
 def _node_producer(node: EvidenceNode) -> str:
-    if node.node_id == "mechanism_preregistration":
-        return "frozen_preregistration_execution"
+    if node.node_id in FROZEN_MECHANISM_NODE_IDS:
+        return "frozen_rc28_preregistration_evidence"
     if node.command is not None:
         return "python " + " ".join(node.command)
     return {
@@ -508,7 +514,7 @@ def _node_contract_errors(node: EvidenceNode) -> list[str]:
     if (
         node.role == "generated_current"
         and node.command is None
-        and node.node_id != "mechanism_preregistration"
+        and node.node_id not in FROZEN_MECHANISM_NODE_IDS
     ):
         errors.append(f"generated current artifact has no producer: {node.node_id}")
     if node.role != "generated_current" and node.command is not None:
@@ -1645,11 +1651,27 @@ def _write_current_registry() -> None:
 def refresh() -> None:
     source_commit = _git_head()
     source_tree_dirty = _git_tree_dirty()
+    fresh_nodes: dict[str, bool] = {}
     for node in generation_order():
-        _run(
-            node,
-            source_commit=source_commit,
-            source_tree_dirty=source_tree_dirty,
+        dependency_fresh = all(
+            fresh_nodes[dependency] for dependency in node.dependencies
+        )
+        if dependency_fresh:
+            _run(
+                node,
+                source_commit=source_commit,
+                source_tree_dirty=source_tree_dirty,
+            )
+        path = ROOT / node.path
+        payload = (
+            json.loads(path.read_text(encoding="utf-8"))
+            if path.suffix == ".json" and path.is_file()
+            else {}
+        )
+        fresh_nodes[node.node_id] = bool(
+            dependency_fresh
+            and path.is_file()
+            and _artifact_source_binding_current(node, payload)
         )
     _normalize_materialized_json_line_endings()
     if _git_head() != source_commit or _git_tree_dirty() != source_tree_dirty:
