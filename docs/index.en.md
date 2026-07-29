@@ -51,8 +51,7 @@ The design audit covers all 15 complete-experiment adapters: they pass 415
 end-to-end cases, and all 62 declared metrics bind to executable endpoints. Only two tasks have formal
 multi-world model comparisons. RC28 Gate A remains a historical environment
 certificate on its frozen source; its current binding is stale and current
-`benchmark_ready=false`. The withdrawn 0.3902/0.4829 bundle is not current
-evidence.
+`benchmark_ready=false`. The withdrawn legacy bundle is not current evidence.
 
 ## Why a world engine
 

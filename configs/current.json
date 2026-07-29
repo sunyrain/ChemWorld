@@ -244,8 +244,8 @@
     "schema_version": "chemworld-current-evidence-dag-0.3",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "04ad7a77baa523208921fc62ac3f45f63db72fd07e213f8968076dbf90545458",
-    "repository_source_sha256": "7d63adba9cc58f856d9f1e4b95f014afb2dda4da1e440468e15378df5d7ccb2a",
+    "graph_sha256": "a6dbadb972b02324645c3d4f551bf4ba2555d14014040a17f753f1bf8f1c5ca4",
+    "repository_source_sha256": "ac6c68a94f5596f041142287d755105f5ed5653317298222334ddb0fec73c592",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -287,8 +287,10 @@
       "static_s0_replacement_readiness",
       "backend_candidate",
       "mechanism_preregistration",
+      "static_s0_nominal_information_freeze_manifest",
       "task_design_matrix",
       "mechanism_confirmatory_task_semantics_audit",
+      "static_s0_nominal_information_interim_summary",
       "mechanism_design_audit",
       "mechanism_release_qualification",
       "mechanism_a2_structural_receipt",
@@ -413,7 +415,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "7669aaef8be2b6ae59f15fdb7c7b98cd34b469e2132be487456dbe8187914fc4",
+        "sha256": "85773882203ba74faa80a1d413ac8d5b052561893e55ff3ccf0d8bc60534da51",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -645,7 +647,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "90bb75bfdbd0ac6c903e8f7ead0eb5d3c087b5c49187830a2f4cbb9260694fad",
+        "sha256": "18e7718797f9eb94ebd0ffabb9093400285faa3404cd8fc175d4f9d0f6e06c6a",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -660,7 +662,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "28d67d6c615701f26f166c7a0c28446b9e4a45db3f08962ece9a76f7fde34546",
+        "sha256": "461f901f078720f25379e9ae6c0f79dc5a40fe487e063d7b59b209ade9159876",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -725,7 +727,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "a6c765a15c7bdceec769ed64c4b840b994c088779ef046fea5c408af0e791141",
+        "sha256": "273db45d19e5cefac2654870b671c5d7a2604878e4a0d9f8214fff5cc60c2cf8",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -828,7 +830,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "360ad1ed9f8dda706d7d7306da1b13f4fd7d3f2eadff9d62e97b8411b44fb31b",
+        "sha256": "195a47ce50691b2fdb27a7974c8b3d45a355b2b7453add33557b3c3593be7f3f",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -850,6 +852,20 @@
         "freshness": "stale_dependency_binding",
         "gate_state": "invalidated"
       },
+      "static_s0_nominal_information_freeze_manifest": {
+        "path": "configs/benchmark/scientific_optimization_s0_v1.1_nominal_information_freeze_manifest.json",
+        "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
+        "dependencies": [
+          "static_s0_formal_campaign_summary"
+        ],
+        "sha256": "837c66af8ed256de74e89ac7eaa51c3de78777bb35eaa78f9414cf134fbc9f83",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
+      },
       "task_design_matrix": {
         "path": "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
         "role": "generated_current",
@@ -859,7 +875,7 @@
         "dependencies": [
           "static_s0_formal_campaign_summary"
         ],
-        "sha256": "190e6cad41c78a5c05bf39ffb4f70954efc89c3bf68161369d3e845df04e56b1",
+        "sha256": "333dd2a53ad0d493a341c36451575fc8338169e5b33770c6b917375611ff940b",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -880,6 +896,21 @@
         "artifact_state": "stale",
         "freshness": "stale_dependency_binding",
         "gate_state": "invalidated"
+      },
+      "static_s0_nominal_information_interim_summary": {
+        "path": "workstreams/flagship_tasks/reports/static-s0-v1.1-nominal-information-interim-5world-summary.json",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
+        "dependencies": [
+          "static_s0_formal_campaign_summary",
+          "static_s0_nominal_information_freeze_manifest"
+        ],
+        "sha256": "bf1d62bf9aaa1d7717d89b7b78b75d7119e2aba67b2aad0b1b305f2d47bde8d6",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
       },
       "mechanism_design_audit": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc28.json",
@@ -1006,9 +1037,10 @@
         "dependencies": [
           "mechanism_public_gate_a_decision",
           "static_s0_formal_campaign_summary",
+          "static_s0_nominal_information_interim_summary",
           "task_design_matrix"
         ],
-        "sha256": "93ef8f21f03911b9ff249934e0e599d6ff1867fbf5d4bcdb0c4ba3dd55cf06be",
+        "sha256": "38989e3c8108b7f6717602a382572f96b42b0801c3c03634ef27eff8e96a078f",
         "artifact_state": "stale",
         "freshness": "stale_dependency_binding",
         "gate_state": "invalidated"
@@ -1120,5 +1152,67 @@
       "tool-agent-planning"
     ],
     "nonconfirmatory_formal_experiments_required_for_future_claims": true
+  },
+  "static_material_information_interim": {
+    "summary": "workstreams/flagship_tasks/reports/static-s0-v1.1-nominal-information-interim-5world-summary.json",
+    "freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.1_nominal_information_freeze_manifest.json",
+    "status": "completed_audited_interim_descriptive_result",
+    "formal_result": false,
+    "interim_analysis_only": true,
+    "confirmatory_analysis_complete": false,
+    "benchmark_claim_allowed": false,
+    "selected_world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "preregistered_world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "all_selected_cells_exact_replay_verified": true,
+    "total_physical_experiments": 380,
+    "provider_calls": 210,
+    "provider_retry_attempts": 5,
+    "task_results": {
+      "electrochemical": {
+        "nominal_mean": 0.7873316351011291,
+        "opaque_mean": 0.6938696850116889,
+        "paired_mean_difference": 0.09346195008944023,
+        "paired_world_bootstrap_95_interval": [
+          -0.006194363832806938,
+          0.22322377111858818
+        ],
+        "interim_familywise_rule_preview": "inconclusive"
+      },
+      "crystallization": {
+        "nominal_mean": 0.5506605368786465,
+        "opaque_mean": 0.5172669926701967,
+        "paired_mean_difference": 0.03339354420844983,
+        "paired_world_bootstrap_95_interval": [
+          -0.030746177338334634,
+          0.09287029935265739
+        ],
+        "interim_familywise_rule_preview": "inconclusive"
+      }
+    },
+    "remaining_confirmatory_world_seeds": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "interpretation": "Both five-world paired point estimates favor nominal information, but both paired intervals cross zero. This is an interim descriptive result, not the frozen ten-world confirmatory result."
   }
 }
