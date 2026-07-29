@@ -3,7 +3,7 @@
 > **Showcase Worlds 展示平台广度；Confirmatory Benchmark Tasks 承担确认性结论。两者不再统称为“旗舰”。**
 
 !!! warning "当前源码绑定"
-    RC28 Gate A 在其冻结源码上正式通过，但 2026-07-27 的静态 S0 与任务合同更新改变了当前源码指纹。
+    RC28 Gate A 在其冻结源码上正式通过，但后续静态 S0、任务合同与证据工作改变了当前源码指纹。
     旧 RC28 数字仍是历史正式结果，当前绑定标记为 stale，`benchmark_ready=false`，必须重新认证后才能
     对当前源码恢复环境 Gate A 主张。
 
@@ -20,6 +20,27 @@
 电化学相对最佳 information-matched 基线的描述性配对差为 +0.0991，但相对最佳 privileged
 calibration 基线的区间跨 0。结晶低于 LHS 的 0.5708，因此不能声称优于经典基线。两项比较均未
 预注册 superiority 阈值或多重比较方案；正式结果存在不等于允许广义 benchmark 或 SOTA 主张。
+
+## 静态 S0 v1.1：正确匿名材料属性的五世界中期结果
+
+v1.1 保持世界、噪声命名空间、20 轮预算、预测诊断、盲测、模型与推理强度不变，只把正确但匿名的
+材料族名义属性加入公开上下文。它不提供真实材料身份、隐藏世界残差、活动机理、响应面、分数或
+最优配方。
+
+按负责人要求，本轮先执行每任务 seed 0–4，而不是预注册的 seed 0–9：
+
+| 任务 | nominal 盲测均值 | opaque 配对基线 | 配对差 | 95% 配对世界区间 | 胜/平/负 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Electrochemical Conversion | 0.7873 | 0.6939 | +0.0935 | [−0.0062, +0.2232] | 4/0/1 |
+| Reaction to Crystallization | 0.5507 | 0.5173 | +0.0334 | [−0.0307, +0.0929] | 3/0/2 |
+
+10 个 task × world 单元均完成 20 次探索、12 次预测诊断物理实验和 6 次盲测验证；合计 380 次物理
+实验、210 次成功 Codex subscription 调用、5 次自动重试、0 个方法失败，全部精确 replay。
+
+两个点估计都偏正，但 95% 和每任务 97.5% familywise 区间均跨 0。机器状态因此是
+`completed_audited_interim_descriptive_result`、`formal_result=false`、
+`confirmatory_analysis_complete=false`。要执行冻结的确认性规则，仍需补齐每任务 seed 5–9。
+该实验回答材料信息价值，不回答 Codex 是否优于 LHS 等经典算法。
 
 ## 15 任务优化设计状态
 
@@ -58,6 +79,7 @@ Showcase 卡片不是确认性证据；确认性任务也不必出现在首页�
 | A2 controlled identifiability | 历史 RC28 **passed**，4,896/4,896 receipts；当前源码绑定 stale |
 | A3 online attainability | 历史 RC28 **passed**，2,016/2,016 receipts；当前源码绑定 stale |
 | Static S0 Participant Agent | v1.0 十世界正式描述性结果完成；电化学正面、结晶未超过 LHS |
+| S0 v1.1 nominal-information extension | seed 0–4 完成；两任务点估计为正但区间跨 0，确认性结论未完成 |
 | Mechanism-adaptation Participant Gates B–E | 延期研究扩展；Flash Direct/Stateful S1/S2 均为 0/4 autonomous completion，正式矩阵未启动 |
 | Private-E environment confirmation | eligible，尚未执行 |
 | Private-A participant-Agent confirmation | sealed，等待 participant freeze |

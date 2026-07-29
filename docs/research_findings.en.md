@@ -8,7 +8,7 @@
 !!! warning "Evidence tense"
     The RC28 numbers below are formal historical results on their frozen
     source. Static-S0 and task-contract work changed the current source
-    fingerprint, so nine RC28 bindings are now stale and
+    fingerprint, so ten related bindings are now stale and
     `benchmark_ready=false`. The legacy 2026-07-27 two-task static-S0 result
     bundle is withdrawn and cannot support current paper numbers or rankings.
     Current benchmark readiness requires Gate A recertification.
@@ -29,6 +29,25 @@ best information-matched baseline is +0.0991, while its interval against the
 best privileged calibration baseline crosses zero. Crystallization trails LHS
 (0.5708), so the campaign does not support a crystallization outperformance
 claim. No superiority threshold or multiplicity plan was preregistered.
+
+## New finding: correct anonymous properties show a positive but uncertain interim signal
+
+S0 v1.1 adds only correct anonymous family-level nominal material properties
+to the v1.0 opaque condition while pairing world seeds, observation noise,
+budgets, model, and blind endpoint. The owner requested an early five-world
+readout, so only seeds 0–4 are complete per task:
+
+- electrochemical nominal 0.7873 versus opaque 0.6939, paired difference
+  +0.0935, 95% interval [−0.0062, +0.2232], four wins and one loss;
+- crystallization nominal 0.5507 versus opaque 0.5173, paired difference
+  +0.0334, 95% interval [−0.0307, +0.0929], three wins and two losses.
+
+All ten cells pass exact replay. The ledger contains 380 physical experiments,
+210 successful subscription calls, five automatic retry attempts, and zero
+method failures. Both point estimates are positive, but both intervals cross
+zero and the frozen per-task 97.5% rule preview is `inconclusive`. This is not
+the ten-world confirmatory result, does not prove positive information value,
+and does not make crystallization a 0.6+ result. Seeds 5–9 remain unrun.
 
 ## Design finding: all 15 tasks need executable complete experiments
 
@@ -137,8 +156,11 @@ remediated before any formal multi-seed result.
 
 ## Finding 5: LLM evidence use requires causal ablation
 
-Operation-level interaction, memory, spectrum disclosure, and resource accounting are implemented. No formal real
-provider trajectory matrix exists; explanations alone do not prove that spectra or memory changed decisions.
+Operation-level interaction, memory, spectrum disclosure, and resource
+accounting are implemented. Formal fixed-world provider trajectories now exist
+for two tasks, but there is no formal mechanism-adaptation or paired
+spectrum/memory causal-ablation matrix; explanations alone do not prove that
+spectra or memory changed decisions.
 
 **Status:** benchmark candidate. No SOTA, completed RL/LLM ranking, mechanism-adaptation, or real-world transfer claim
 is supported.

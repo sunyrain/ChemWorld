@@ -76,7 +76,7 @@ Dreamer、TD-MPC、PEARL、VariBAD 或 RL² 等名称代表可能的研究家族
 
 ## 学习器可以使用哪些数据
 
-公开 trajectory v0.2 分开提供 Action、`environment_outcome`、`agent_visible_observation`、
+公开 trajectory v0.3 分开提供 Action、`environment_outcome`、`agent_visible_observation`、
 `evaluation_outcome`、constraint flags、instrument readings、任务合同、公开 scenario metadata 与 Agent
 自己的历史。训练输入只能使用协议允许的 Agent 可见层；环境结果层和评价层用于监督、回放或分析时
 必须遵守相应信息合同。隐藏 state、oracle mechanism 和 private-eval 参数不属于 Agent 输入。

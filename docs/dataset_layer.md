@@ -102,7 +102,7 @@ python examples/demo_dataset_agent_trace_export.py
 ## 发布前检查
 
 - 每条 trajectory 必须通过 schema validation。
-- 新生成数据应使用 `chemworld-trajectory-0.2`；v0.1 只作为历史读取兼容。
+- 新生成数据应使用 `chemworld-trajectory-0.3`；旧 trajectory 只按兼容策略读取，不应写成当前格式。
 - 每个公开 dataset 应能追溯到 task id、scenario id、mechanism hash、seed、commit hash 和生成命令。
 - `agent_view` 与 `agent_trace` 必须是 public-facing；不能泄露 hidden species id、hidden amounts、rate constants 或 private-eval 参数。
 - replay verification 不通过的数据集不能作为 benchmark artifact 发布。

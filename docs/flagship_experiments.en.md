@@ -3,8 +3,8 @@
 > **Showcase Worlds demonstrate platform breadth; Confirmatory Benchmark Tasks carry confirmatory claims. They are no longer described by the same “flagship” label.**
 
 !!! warning "Current source binding"
-    RC28 Gate A formally passed on its frozen source. The 2026-07-27 static-S0
-    and task-contract updates changed the current source fingerprint. The RC28
+    RC28 Gate A formally passed on its frozen source. Subsequent static-S0,
+    task-contract, and evidence work changed the current source fingerprint. The RC28
     numbers remain historical formal results, but their current binding is
     stale and `benchmark_ready=false` until recertification.
 
@@ -25,6 +25,34 @@ information-matched baseline is +0.0991, but its interval against the best
 privileged calibration baseline crosses zero. Crystallization trails LHS
 (0.5708), so it does not support an outperformance claim. Neither comparison
 preregistered a superiority threshold or multiplicity plan.
+
+## Static-S0 v1.1: five-world interim with correct anonymous properties
+
+Version 1.1 holds worlds, observation-noise namespaces, the twenty-round
+budget, predictive diagnostics, blind validation, model, and reasoning effort
+fixed. Its only intervention is to expose correct anonymous family-level
+nominal material properties. It does not expose real identities, hidden-world
+residuals, the active mechanism, a response surface, scores, or an optimum.
+
+At the owner's request, this run stops after seeds 0–4 per task instead of the
+preregistered seeds 0–9:
+
+| Task | Nominal blind mean | Paired opaque mean | Paired difference | Paired-world 95% interval | W/T/L |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Electrochemical Conversion | 0.7873 | 0.6939 | +0.0935 | [−0.0062, +0.2232] | 4/0/1 |
+| Reaction to Crystallization | 0.5507 | 0.5173 | +0.0334 | [−0.0307, +0.0929] | 3/0/2 |
+
+All ten task-by-world cells completed twenty exploration experiments, twelve
+predictive-diagnostic physical experiments, and six blind-validation
+experiments: 380 physical experiments, 210 successful Codex subscription
+calls, five automatic retry attempts, zero method failures, and exact replay.
+
+Both point estimates are positive, but both the 95% and per-task 97.5%
+familywise intervals cross zero. The machine state is therefore
+`completed_audited_interim_descriptive_result`, with `formal_result=false` and
+`confirmatory_analysis_complete=false`. Seeds 5–9 per task remain necessary
+to apply the frozen confirmatory rule. This study asks about information value,
+not superiority to LHS or another classical optimizer.
 
 ## Optimization designs across all 15 tasks
 
@@ -72,6 +100,7 @@ API compatibility; they no longer define the scientific taxonomy.
 | A2 controlled identifiability | historical RC28 **passed**, 4,896/4,896 receipts; current binding stale |
 | A3 online attainability | historical RC28 **passed**, 2,016/2,016 receipts; current binding stale |
 | Static-S0 Participant Agent | v1.0 formal ten-world descriptive results complete; electrochemical positive, crystallization below LHS |
+| S0 v1.1 nominal-information extension | seeds 0–4 complete; positive point estimates but intervals cross zero, confirmatory result incomplete |
 | Mechanism-adaptation Participant Gates B–E | deferred research extension; Flash Direct/Stateful S1/S2 each achieved 0/4 autonomous completion, formal matrix not started |
 | Private-E environment confirmation | eligible, not yet executed |
 | Private-A participant-Agent confirmation | sealed pending participant freeze |

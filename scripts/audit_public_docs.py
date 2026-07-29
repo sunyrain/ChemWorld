@@ -134,11 +134,11 @@ BINDING_STALE_GATE_A_STATUS_MARKERS = {
         "在重新认证前",
     ),
     "docs/research_findings.md": (
-        "9 个 RC28 相关绑定标为 stale",
+        "10 个相关绑定标为 stale",
         "Gate A 重新认证",
     ),
     "docs/research_findings.en.md": (
-        "nine RC28 bindings are now stale",
+        "ten related bindings are now stale",
         "Gate A recertification",
     ),
 }
