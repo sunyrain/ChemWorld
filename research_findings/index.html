@@ -491,7 +491,18 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        新发现：固定世界优化有效，但显式机理理解明显落后
+        新发现：两个确认性任务的替代正式实验已完成
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新发现：正确匿名材料属性呈正向但不确定的中期信号
       
     </span>
   </a>
@@ -510,7 +521,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         证据等级
@@ -521,7 +532,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         发现一：目标提升可能掩盖风险退化
@@ -532,7 +543,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         发现二：严格判据应保留有信息量的失败
@@ -2401,7 +2412,18 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        新发现：固定世界优化有效，但显式机理理解明显落后
+        新发现：两个确认性任务的替代正式实验已完成
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新发现：正确匿名材料属性呈正向但不确定的中期信号
       
     </span>
   </a>
@@ -2420,7 +2442,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         证据等级
@@ -2431,7 +2453,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         发现一：目标提升可能掩盖风险退化
@@ -2442,7 +2464,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         发现二：严格判据应保留有信息量的失败
@@ -2517,34 +2539,38 @@
 <div class="admonition warning">
 <p class="admonition-title">证据时态</p>
 <p>下文 RC28 数字是在其冻结源码上的正式历史结果。当前源码已因静态 S0 和任务合同工作发生变化，
-evidence DAG 将 9 个 RC28 相关绑定标为 stale；当前 <code>benchmark_ready=false</code>。静态 S0 结果是当前
-replay-verified 结果，但不替代 Gate A 重新认证。</p>
+evidence DAG 当前将 10 个相关绑定标为 stale；当前 <code>benchmark_ready=false</code>。2026-07-27 的旧
+静态 S0 双任务结果已撤回，不再是当前证据，也不能用于论文数字或模型排名。
+当前 benchmark readiness 需要 Gate A 重新认证。</p>
 </div>
-<h2 id="_2">新发现：固定世界优化有效，但显式机理理解明显落后<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>2026-07-27 的两个静态 S0 正式实验使用同一 <code>gpt-5.6-sol high</code>、20 个完整实验、五个 world seed、
-独立最终综合和配对盲验证。统计单位是 world seed，经典算法的五个 algorithm seed 先在同一 world
-内取均值。电化学盲最终均值为 <code>0.3902</code>（95% CI <code>[0.1732, 0.6072]</code>），RF-EI world-cluster
-均值为 <code>0.4798</code>，配对差为 <code>-0.0896</code>（<code>[-0.2896, 0.1104]</code>），逐 world 为 2 胜 3 负。反应–结晶
-盲最终均值为 <code>0.4829</code>（<code>[0.4326, 0.5332]</code>），GP-EI 均值为 <code>0.5324</code>，配对差为 <code>-0.0495</code>
-（<code>[-0.0933, -0.0056]</code>），逐 world 为 0 胜 5 负。</p>
-<p><img alt="静态 S0 逐 world 盲最终分" src="../assets/images/static-s0-blind-scores-v0.1.png" /></p>
-<p>模型确实会根据固定世界反馈继续优化：两个任务的十个正式 cell 最佳点都在第 11 轮以后，第 8 到
-第 20 轮的 best-so-far 均值分别增加 <code>0.0548</code> 和 <code>0.0599</code>。但 Predictive 方向正确率只有 <code>64.4%</code>
-和 <code>44.4%</code>；Declared structural edge F1 分别为 <code>0.274</code> 和 <code>0.242</code>，unsupported claim rate
-分别为 <code>68.3%</code> 和 <code>75.1%</code>。因此“能找到更好条件”不能被升级成“已经正确认识机理”。</p>
-<p>十次 final synthesis 全部提交已测试条件，但 8/10 为零增益、2/10 为轻微负增益、0/10 为正增益。
-最终综合目前没有把证据转化为优于 incumbent 的新条件。</p>
-<p><img alt="静态 S0 优化曲线" src="../assets/images/static-s0-optimization-curves-v0.1.png" /></p>
-<p>该结果是当前后端上的冻结正式优化估计量，但只有五个 sampled worlds 和每 world 一条 LLM 轨迹。
-最强经典家族也是从六个候选家族中描述性选择，区间不应解释成预注册优越性检验。当前路线优先复现
-独立模型/provider、final-synthesis 静态消融、更多静态任务和现实桥接。隐藏世界变化与机制替换已经
-延期，不在当前 S0 路线内；Private-E/A 和现实化学迁移也尚未完成。</p>
+<h2 id="_2">新发现：两个确认性任务的替代正式实验已完成<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>电化学替代协议已绑定 <code>nominal-prior-latent-v2</code> 材料家族、
+<code>electrochemical-s0-balanced-efficiency-v2</code> 评分与匿名材料身份。反应–结晶现有独立的
+<code>reaction-crystallization-latent-materials-v1</code>：催化剂和溶剂进入反应动力学，溶剂还进入溶解度、
+成核、生长和杂质夹杂。两个正式 campaign 均完成 10 个独立世界、每世界 20 轮、配对盲验证、完整
+经典基线和精确 replay。</p>
+<p>Codex 在电化学和结晶上的均值分别为 0.7150 和 0.5355。电化学相对最佳 information-matched
+基线的描述性差为 +0.0991，但相对最佳 privileged calibration 基线的区间跨 0；结晶低于 LHS
+的 0.5708。因此当前不能声称结晶优于经典基线。比较没有预注册 superiority 阈值或多重比较方案。</p>
+<h2 id="_3">新发现：正确匿名材料属性呈正向但不确定的中期信号<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>S0 v1.1 在 v1.0 opaque 条件上只增加匿名、正确、族级的名义材料属性，并保持 world seed、观测
+噪声、预算、模型和盲测端点配对。负责人要求先看五世界结果，因此目前每任务只完成 seed 0–4：</p>
+<ul>
+<li>电化学 nominal 0.7873 vs opaque 0.6939，配对差 +0.0935，95% 区间
+  [−0.0062, +0.2232]，4 胜 1 负；</li>
+<li>结晶 nominal 0.5507 vs opaque 0.5173，配对差 +0.0334，95% 区间
+  [−0.0307, +0.0929]，3 胜 2 负。</li>
+</ul>
+<p>全部 10 个单元精确 replay，账本为 380 次物理实验、210 次成功订阅调用、5 次自动重试和 0 方法
+失败。两个点估计都偏正，但区间均跨 0；冻结的每任务 97.5% 规则预览也为 <code>inconclusive</code>。这不是
+十世界确认性结果，不能写成“已证明材料属性提升性能”，也不能把结晶 0.5507 写成 0.6+。完整
+信息价值论断仍缺 seed 5–9。</p>
 <h2 id="15">设计发现：15 个任务都需要真实可执行的完整实验<a class="headerlink" href="#15" title="Permanent link">&para;</a></h2>
 <p>完成性审计发现三个纯化任务曾被错误映射为通用反应配方，蒸发与蒸馏条件也曾共享强度坐标。修正后，
 三个纯化任务使用 16 个独立控制和 22 个编译操作；蒸馏使用 13 个控制，两个阶段的温度和时间相互独立。
-矩阵生成器现会自动检测死坐标并实际执行中点配方。当前 15/15 通过，死坐标和未解决正式化 blocker
-均为 0；这只证明设计可执行，不构成其余 13 个任务的正式性能证据。</p>
-<h2 id="_3">证据等级<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+矩阵生成器实际执行 415 个完整案例，覆盖中点、每个坐标低/高干预和全部离散类别。当前 15/15 通过，
+62 个声明指标全部有可执行评估端点；这只证明设计可执行，不构成其余 13 个任务的正式性能证据。</p>
+<h2 id="_4">证据等级<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -2575,10 +2601,10 @@ replay-verified 结果，但不替代 Gate A 重新认证。</p>
 </tr>
 </tbody>
 </table>
-<h2 id="_4">发现一：目标提升可能掩盖风险退化<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h2 id="_5">发现一：目标提升可能掩盖风险退化<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>早期无约束 structured GP 在部分任务上提高目标值，同时增加操作风险超限。因此，最终 outcome 不能替代
 风险、成本和协议有效性的独立报告。</p>
-<h2 id="_5">发现二：严格判据应保留有信息量的失败<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<h2 id="_6">发现二：严格判据应保留有信息量的失败<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <p>早期 Safe-GP 确证在四个任务上改善目标并满足安全/成本规则，但 flow effect 低于预注册实用阈值，
 所以整体主张仍然失败。ChemWorld 将这种边界失败保留为结果，而不是事后放宽阈值。</p>
 <h2 id="rc28-gate-a">发现三：历史四动作在线证书失败；校准后的 RC28 Gate A 通过<a class="headerlink" href="#rc28-gate-a" title="Permanent link">&para;</a></h2>

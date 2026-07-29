@@ -626,10 +626,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#2026-07-27-formal-static-s0-results" class="md-nav__link">
+  <a href="#static-s0-v10-formal-status" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2026-07-27 formal static-S0 results
+        Static-S0 v1.0 formal status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static-s0-v11-five-world-interim-with-correct-anonymous-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Static-S0 v1.1: five-world interim with correct anonymous properties
       
     </span>
   </a>
@@ -1004,10 +1015,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#2026-07-27-formal-static-s0-results" class="md-nav__link">
+  <a href="#static-s0-v10-formal-status" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2026-07-27 formal static-S0 results
+        Static-S0 v1.0 formal status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static-s0-v11-five-world-interim-with-correct-anonymous-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Static-S0 v1.1: five-world interim with correct anonymous properties
       
     </span>
   </a>
@@ -1255,79 +1277,105 @@
 </blockquote>
 <div class="admonition warning">
 <p class="admonition-title">Current source binding</p>
-<p>RC28 Gate A formally passed on its frozen source. The 2026-07-27 static-S0
-and task-contract updates changed the current source fingerprint. The RC28
+<p>RC28 Gate A formally passed on its frozen source. Subsequent static-S0,
+task-contract, and evidence work changed the current source fingerprint. The RC28
 numbers remain historical formal results, but their current binding is
 stale and <code>benchmark_ready=false</code> until recertification.</p>
 </div>
-<h2 id="2026-07-27-formal-static-s0-results">2026-07-27 formal static-S0 results<a class="headerlink" href="#2026-07-27-formal-static-s0-results" title="Permanent link">&para;</a></h2>
-<p>Both confirmatory tasks have completed five-world formal evaluations with
-<code>gpt-5.6-sol high</code> under the same static scientific-optimization design. Each
-world has 20 complete exploration experiments, one separate final synthesis,
-three frozen predictive interventions, three paired blind incumbent
-replicates, and three paired blind recommendation replicates. Every physical
-experiment replayed exactly.</p>
+<h2 id="static-s0-v10-formal-status">Static-S0 v1.0 formal status<a class="headerlink" href="#static-s0-v10-formal-status" title="Permanent link">&para;</a></h2>
+<p>The legacy 2026-07-27 two-task participant bundle is withdrawn from the
+current evidence DAG and cannot support an abstract, result table, or model
+comparison. Both replacement tasks have now completed formal ten-world
+comparisons:</p>
 <table>
 <thead>
 <tr>
 <th>Task</th>
-<th style="text-align: right;">LLM blind mean, 95% CI</th>
-<th style="text-align: right;">Best classic calibration mean</th>
-<th style="text-align: right;">Paired LLM − classic, 95% CI</th>
-<th style="text-align: right;">World wins</th>
-<th style="text-align: right;">Predictive</th>
+<th>Material contract</th>
+<th>Score contract</th>
+<th>Current evidence</th>
+<th>Formal participant result</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Electrochemical Conversion</td>
-<td style="text-align: right;">0.3902 [0.1732, 0.6072]</td>
-<td style="text-align: right;">RF-EI 0.4798</td>
-<td style="text-align: right;">-0.0896 [-0.2896, 0.1104]</td>
-<td style="text-align: right;">2 win / 3 loss</td>
-<td style="text-align: right;">29/45 (64.4%)</td>
+<td><code>nominal-prior-latent-v2</code></td>
+<td><code>electrochemical-s0-balanced-efficiency-v2</code></td>
+<td>ten worlds, full baselines, exact replay</td>
+<td>Codex 0.7150</td>
 </tr>
 <tr>
 <td>Reaction to Crystallization</td>
-<td style="text-align: right;">0.4829 [0.4326, 0.5332]</td>
-<td style="text-align: right;">GP-EI 0.5324</td>
-<td style="text-align: right;">-0.0495 [-0.0933, -0.0056]</td>
-<td style="text-align: right;">0 win / 5 loss</td>
-<td style="text-align: right;">20/45 (44.4%)</td>
+<td><code>reaction-crystallization-latent-materials-v1</code></td>
+<td><code>reaction-crystallization-s0-balanced-product-v1</code></td>
+<td>ten worlds, full baselines, exact replay</td>
+<td>Codex 0.5355</td>
 </tr>
 </tbody>
 </table>
-<p>The statistical unit is the world seed. Five algorithm seeds are averaged
-within each world before comparison. Intervals are two-sided 95% Student-t
-descriptive intervals over five world clusters. The best classic calibration
-family is selected from six candidates by aggregate blind mean, so these are
-not preregistered superiority tests.</p>
-<p><img alt="Static-S0 blind final scores by world" src="../assets/images/static-s0-blind-scores-v0.1.png" /></p>
-<p>All ten best exploration points occurred after experiment 10, so the
-20-experiment budget supplied material search opportunity. From experiment 8
-to experiment 20, mean LLM best-so-far increased from 0.3749 to 0.4297 in
-electrochemistry and from 0.4311 to 0.4911 in crystallization.</p>
-<p><img alt="Static-S0 optimization curves" src="../assets/images/static-s0-optimization-curves-v0.1.png" /></p>
-<p>The model can improve a fixed-world process, but its cross-world reliability
-and world understanding remain below structured black-box optimizers. All ten
-final submissions were tested methods: eight had zero paired gain, two had
-small negative gain, and none improved the incumbent. Separate final synthesis
-therefore provides an explicit submission and explanation interface, but has
-not yet demonstrated better experimental conditions.</p>
-<p>Static S0 is the current research priority: closed-loop optimization in a
-fixed but unknown system. The RC28 material below is a historical environment
-identifiability certificate on frozen source, not the current participant
-roadmap. Hidden changepoints, mechanism replacement, and world-change
-experiments are deferred until they have a realistic drift model and a
-separate research question.</p>
+<p>The electrochemical paired descriptive difference against the best
+information-matched baseline is +0.0991, but its interval against the best
+privileged calibration baseline crosses zero. Crystallization trails LHS
+(0.5708), so it does not support an outperformance claim. Neither comparison
+preregistered a superiority threshold or multiplicity plan.</p>
+<h2 id="static-s0-v11-five-world-interim-with-correct-anonymous-properties">Static-S0 v1.1: five-world interim with correct anonymous properties<a class="headerlink" href="#static-s0-v11-five-world-interim-with-correct-anonymous-properties" title="Permanent link">&para;</a></h2>
+<p>Version 1.1 holds worlds, observation-noise namespaces, the twenty-round
+budget, predictive diagnostics, blind validation, model, and reasoning effort
+fixed. Its only intervention is to expose correct anonymous family-level
+nominal material properties. It does not expose real identities, hidden-world
+residuals, the active mechanism, a response surface, scores, or an optimum.</p>
+<p>At the owner's request, this run stops after seeds 0–4 per task instead of the
+preregistered seeds 0–9:</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th style="text-align: right;">Nominal blind mean</th>
+<th style="text-align: right;">Paired opaque mean</th>
+<th style="text-align: right;">Paired difference</th>
+<th style="text-align: right;">Paired-world 95% interval</th>
+<th style="text-align: right;">W/T/L</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Electrochemical Conversion</td>
+<td style="text-align: right;">0.7873</td>
+<td style="text-align: right;">0.6939</td>
+<td style="text-align: right;">+0.0935</td>
+<td style="text-align: right;">[−0.0062, +0.2232]</td>
+<td style="text-align: right;">4/0/1</td>
+</tr>
+<tr>
+<td>Reaction to Crystallization</td>
+<td style="text-align: right;">0.5507</td>
+<td style="text-align: right;">0.5173</td>
+<td style="text-align: right;">+0.0334</td>
+<td style="text-align: right;">[−0.0307, +0.0929]</td>
+<td style="text-align: right;">3/0/2</td>
+</tr>
+</tbody>
+</table>
+<p>All ten task-by-world cells completed twenty exploration experiments, twelve
+predictive-diagnostic physical experiments, and six blind-validation
+experiments: 380 physical experiments, 210 successful Codex subscription
+calls, five automatic retry attempts, zero method failures, and exact replay.</p>
+<p>Both point estimates are positive, but both the 95% and per-task 97.5%
+familywise intervals cross zero. The machine state is therefore
+<code>completed_audited_interim_descriptive_result</code>, with <code>formal_result=false</code> and
+<code>confirmatory_analysis_complete=false</code>. Seeds 5–9 per task remain necessary
+to apply the frozen confirmatory rule. This study asks about information value,
+not superiority to LHS or another classical optimizer.</p>
 <h2 id="optimization-designs-across-all-15-tasks">Optimization designs across all 15 tasks<a class="headerlink" href="#optimization-designs-across-all-15-tasks" title="Permanent link">&para;</a></h2>
-<p>The other 13 tasks do not require costly model runs in this release, but their
+<p>The other 13 tasks have not yet run formal multi-world comparisons, but their
 optimization designs are more than registry entries. All 15 tasks now have a
 versioned complete-experiment adapter, physical coordinate schema, fixed
 measurement slots, final-assay feedback, and safety/cost boundaries. The
-generator perturbs every coordinate and executes the midpoint recipe at world
-seed 0: 15/15 pass, with zero dead coordinates and zero unresolved
-formalization blockers.</p>
+generator executes 415 complete cases spanning midpoints, every coordinate's
+low/high intervention, and all discrete categories: 15/15 pass, with zero dead
+coordinates. All 62 declared success metrics bind to explicit observation,
+trajectory, artifact, predictive-holdout, or paired-split endpoints.</p>
 <p>The three purification tasks use 16 independent controls and 22 compiled
 operations spanning reaction, extraction, phase separation, washing, drying,
 concentration, and transfer. Distillation uses 13 controls, with evaporation
@@ -1398,7 +1446,11 @@ API compatibility; they no longer define the scientific taxonomy.</p>
 </tr>
 <tr>
 <td>Static-S0 Participant Agent</td>
-<td>five-seed formal execution and replay complete for both confirmatory tasks</td>
+<td>v1.0 formal ten-world descriptive results complete; electrochemical positive, crystallization below LHS</td>
+</tr>
+<tr>
+<td>S0 v1.1 nominal-information extension</td>
+<td>seeds 0–4 complete; positive point estimates but intervals cross zero, confirmatory result incomplete</td>
 </tr>
 <tr>
 <td>Mechanism-adaptation Participant Gates B–E</td>

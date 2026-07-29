@@ -357,7 +357,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前正式证据
+        当前证据
       
     </span>
   </a>
@@ -2680,7 +2680,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前正式证据
+        当前证据
       
     </span>
   </a>
@@ -3085,15 +3085,18 @@
   <span class="cw-pill">BO · RL · LLM · World Models</span>
 </div>
 </section>
-<h2 id="_2">当前正式证据<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p><code>gpt-5.6-sol high</code> 已在两个固定世界科学优化任务上完成五 world seed、每 seed 20 个完整实验的正式
-运行。电化学与反应–结晶的盲最终均值分别为 0.3902 和 0.4829，最强经典校准家族分别为 0.4798 和
-0.5324；逐 world 比较为 2 胜 3 负和 0 胜 5 负。十次 final synthesis 中 0 次产生正的配对增益。
-全部探索、Predictive 和盲验证实验均已精确 replay。</p>
-<p>这些结果测量静态优化和最终科学综合。固定世界 S0 是当前主线；隐藏世界变化与机制替换已经延期，
-需要在现实漂移模型和独立研究问题明确后重新设计。</p>
-<p>另有一条独立的设计证据：15 个任务的完整实验适配器均已执行中点 smoke，死坐标与未解决正式化
-blocker 均为 0；只有两个确认性任务完成了本轮昂贵正式模型实验。</p>
+<h2 id="_2">当前证据<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>截至 2026-07-29，替代静态 S0 v1.0 已在电化学和反应–结晶上各完成 10 个独立世界、每世界
+20 轮探索、完整经典基线与精确回放。Codex 盲测均值分别为 <strong>0.7150</strong> 和 <strong>0.5355</strong>；电化学
+相对最佳 information-matched 基线的描述性差为 +0.0991，结晶低于 LHS 的 0.5708。比较没有
+预注册 superiority 阈值，因此不支持广义 SOTA 论断。</p>
+<p>正确匿名材料属性的 S0 v1.1 配对扩展已按负责人要求先完成每任务 seed 0–4。电化学 nominal
+为 <strong>0.7873</strong>、opaque 为 0.6939（配对差 +0.0935）；结晶 nominal 为 <strong>0.5507</strong>、opaque
+为 0.5173（配对差 +0.0334）。两个 95% 配对区间都跨 0，所以这是积极但不确定的五世界中期
+结果，不是冻结的十世界确认性结论；seed 5–9 尚未运行。</p>
+<p>15 个任务的完整实验适配器通过 415 个端到端案例，62 个声明指标均绑定到可执行端点；只有两个任务
+具有正式多世界模型比较。RC28 Gate A 仍是冻结旧源码上的历史环境证书，当前源码绑定 stale，
+<code>benchmark_ready=false</code>。旧双任务结果已撤回，不属于当前证据。</p>
 <h2 id="_3">实验数据不能像文本和游戏经验一样无限生成<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p>语言模型可以读取海量文本，机器人策略可以在模拟器里经历数百万次失败；化学与化工 Agent 却无法
 在真实实验室中以同样规模安全试错。真实实验的成本、速度与风险不仅限制训练规模，也让我们很难
@@ -3277,8 +3280,8 @@ blocker 均为 0；只有两个确认性任务完成了本轮昂贵正式模型�
 跨 provider 方法矩阵仍待独立冻结与执行。</p>
 </div>
 </div>
-<p>LLM 交互、记忆、资源账本和谱图消融协议已经具备；两个固定世界 S0 的真实模型矩阵已形成正式结果，
-但机制变化模型矩阵仍未完成。现有单 seed RL
+<p>LLM 交互、记忆、资源账本和谱图消融协议已经具备；替代固定世界 S0 的正式模型矩阵尚未执行，
+机制变化模型矩阵也仍未完成。现有单 seed RL
 运行主要是动作、奖励和训练合同的工程诊断，不作为训练尺度或方法排名结论。</p>
 <p><a href="benchmark_release/">阅读研究发现与证据等级 →</a></p>
 <h2 id="_17">不直接迁移配方，而是迁移适应能力<a class="headerlink" href="#_17" title="Permanent link">&para;</a></h2>

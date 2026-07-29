@@ -1293,10 +1293,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#2026-07-27-s0" class="md-nav__link">
+  <a href="#s0-v10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2026-07-27 静态 S0 正式结果
+        静态 S0 v1.0 正式状态
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s0-v11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        静态 S0 v1.1：正确匿名材料属性的五世界中期结果
       
     </span>
   </a>
@@ -2536,10 +2547,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#2026-07-27-s0" class="md-nav__link">
+  <a href="#s0-v10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2026-07-27 静态 S0 正式结果
+        静态 S0 v1.0 正式状态
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s0-v11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        静态 S0 v1.1：正确匿名材料属性的五世界中期结果
       
     </span>
   </a>
@@ -2787,62 +2809,90 @@
 </blockquote>
 <div class="admonition warning">
 <p class="admonition-title">当前源码绑定</p>
-<p>RC28 Gate A 在其冻结源码上正式通过，但 2026-07-27 的静态 S0 与任务合同更新改变了当前源码指纹。
+<p>RC28 Gate A 在其冻结源码上正式通过，但后续静态 S0、任务合同与证据工作改变了当前源码指纹。
 旧 RC28 数字仍是历史正式结果，当前绑定标记为 stale，<code>benchmark_ready=false</code>，必须重新认证后才能
 对当前源码恢复环境 Gate A 主张。</p>
 </div>
-<h2 id="2026-07-27-s0">2026-07-27 静态 S0 正式结果<a class="headerlink" href="#2026-07-27-s0" title="Permanent link">&para;</a></h2>
-<p>两个确认性任务现已在同一静态科学优化范式下完成 <code>gpt-5.6-sol high</code> 五 world seed 正式实验。每个
-seed 有 20 个完整探索实验、一次独立最终综合、三个冻结 Predictive 干预、incumbent 与 recommendation
-各三个配对盲验证；所有物理实验均已 replay。</p>
+<h2 id="s0-v10">静态 S0 v1.0 正式状态<a class="headerlink" href="#s0-v10" title="Permanent link">&para;</a></h2>
+<p>2026-07-27 的旧双任务 Participant 结果已经撤回，不在当前 evidence DAG 中，也不能进入论文摘要、
+结果表或模型比较。两个替代任务现已完成正式十世界比较：</p>
 <table>
 <thead>
 <tr>
 <th>任务</th>
-<th style="text-align: right;">LLM 盲最终 mean，95% CI</th>
-<th style="text-align: right;">最佳经典校准 mean</th>
-<th style="text-align: right;">配对差 LLM − 经典，95% CI</th>
-<th style="text-align: right;">World 胜负</th>
-<th style="text-align: right;">Predictive</th>
+<th>材料合同</th>
+<th>评分合同</th>
+<th>当前证据</th>
+<th>正式 Participant 结果</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Electrochemical Conversion</td>
-<td style="text-align: right;">0.3902 [0.1732, 0.6072]</td>
-<td style="text-align: right;">RF-EI 0.4798</td>
-<td style="text-align: right;">-0.0896 [-0.2896, 0.1104]</td>
-<td style="text-align: right;">2 胜 / 3 负</td>
-<td style="text-align: right;">29/45（64.4%）</td>
+<td><code>nominal-prior-latent-v2</code></td>
+<td><code>electrochemical-s0-balanced-efficiency-v2</code></td>
+<td>10 世界、完整基线、精确 replay</td>
+<td>Codex 0.7150</td>
 </tr>
 <tr>
 <td>Reaction to Crystallization</td>
-<td style="text-align: right;">0.4829 [0.4326, 0.5332]</td>
-<td style="text-align: right;">GP-EI 0.5324</td>
-<td style="text-align: right;">-0.0495 [-0.0933, -0.0056]</td>
-<td style="text-align: right;">0 胜 / 5 负</td>
-<td style="text-align: right;">20/45（44.4%）</td>
+<td><code>reaction-crystallization-latent-materials-v1</code></td>
+<td><code>reaction-crystallization-s0-balanced-product-v1</code></td>
+<td>10 世界、完整基线、精确 replay</td>
+<td>Codex 0.5355</td>
 </tr>
 </tbody>
 </table>
-<p>统计单位是 world seed；经典算法的五个 algorithm seed 先在每个 world 内取均值。表中区间是五个
-world cluster 上的双侧 95% Student-t 描述性区间。“最佳经典校准”从六个候选算法家族中按总体
-盲均值选择，因此这些区间不是预注册优越性检验。</p>
-<p><img alt="静态 S0 逐 world 盲最终分" src="../assets/images/static-s0-blind-scores-v0.1.png" /></p>
-<p>两个任务的十个最佳探索点都出现在第 11 次实验以后：20 轮预算提供了实际搜索机会。第 8 轮到第
-20 轮的 LLM best-so-far 均值，电化学从 0.3749 增至 0.4297，反应–结晶从 0.4311 增至 0.4911。</p>
-<p><img alt="静态 S0 优化曲线" src="../assets/images/static-s0-optimization-curves-v0.1.png" /></p>
-<p>模型能进行静态闭环优化，但跨世界稳定性和世界理解均未超过结构化优化基线。十次最终提交全部为
-<code>tested</code>：8/10 相对配对 incumbent 为零增益，2/10 为轻微负增益，0/10 为正增益。独立 final
-synthesis 因而提供了清晰提交与解释接口，但尚未证明能产生更好的实验条件。</p>
-<p>S0 是当前研究主线：它测量固定但未知系统中的闭环科学优化。下文 RC28 是冻结源码上的历史环境
-可识别性证书，不是当前 Participant 实验路线。隐藏 changepoint、机制替换与世界变化实验已经延期；
-只有建立现实漂移场景和独立问题定义后才会重新设计。</p>
+<p>电化学相对最佳 information-matched 基线的描述性配对差为 +0.0991，但相对最佳 privileged
+calibration 基线的区间跨 0。结晶低于 LHS 的 0.5708，因此不能声称优于经典基线。两项比较均未
+预注册 superiority 阈值或多重比较方案；正式结果存在不等于允许广义 benchmark 或 SOTA 主张。</p>
+<h2 id="s0-v11">静态 S0 v1.1：正确匿名材料属性的五世界中期结果<a class="headerlink" href="#s0-v11" title="Permanent link">&para;</a></h2>
+<p>v1.1 保持世界、噪声命名空间、20 轮预算、预测诊断、盲测、模型与推理强度不变，只把正确但匿名的
+材料族名义属性加入公开上下文。它不提供真实材料身份、隐藏世界残差、活动机理、响应面、分数或
+最优配方。</p>
+<p>按负责人要求，本轮先执行每任务 seed 0–4，而不是预注册的 seed 0–9：</p>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th style="text-align: right;">nominal 盲测均值</th>
+<th style="text-align: right;">opaque 配对基线</th>
+<th style="text-align: right;">配对差</th>
+<th style="text-align: right;">95% 配对世界区间</th>
+<th style="text-align: right;">胜/平/负</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Electrochemical Conversion</td>
+<td style="text-align: right;">0.7873</td>
+<td style="text-align: right;">0.6939</td>
+<td style="text-align: right;">+0.0935</td>
+<td style="text-align: right;">[−0.0062, +0.2232]</td>
+<td style="text-align: right;">4/0/1</td>
+</tr>
+<tr>
+<td>Reaction to Crystallization</td>
+<td style="text-align: right;">0.5507</td>
+<td style="text-align: right;">0.5173</td>
+<td style="text-align: right;">+0.0334</td>
+<td style="text-align: right;">[−0.0307, +0.0929]</td>
+<td style="text-align: right;">3/0/2</td>
+</tr>
+</tbody>
+</table>
+<p>10 个 task × world 单元均完成 20 次探索、12 次预测诊断物理实验和 6 次盲测验证；合计 380 次物理
+实验、210 次成功 Codex subscription 调用、5 次自动重试、0 个方法失败，全部精确 replay。</p>
+<p>两个点估计都偏正，但 95% 和每任务 97.5% familywise 区间均跨 0。机器状态因此是
+<code>completed_audited_interim_descriptive_result</code>、<code>formal_result=false</code>、
+<code>confirmatory_analysis_complete=false</code>。要执行冻结的确认性规则，仍需补齐每任务 seed 5–9。
+该实验回答材料信息价值，不回答 Codex 是否优于 LHS 等经典算法。</p>
 <h2 id="15">15 任务优化设计状态<a class="headerlink" href="#15" title="Permanent link">&para;</a></h2>
-<p>两个确认性任务以外的 13 个任务不要求本轮昂贵模型实验，但其优化设计不能只是任务注册表。当前
+<p>两个确认性任务以外的 13 个任务尚未运行正式多世界比较，但其优化设计不能只是任务注册表。当前
 15 个任务都已有版本化完整实验适配器、物理坐标、固定测量槽、final-assay 反馈和安全/成本边界。
-生成器对每个坐标执行低/高干预检查，并在 world seed 0 实际运行中点配方：15/15 通过，死坐标为 0，
-未解决正式化 blocker 为 0。</p>
+生成器实际运行 415 个完整案例，覆盖中点、每个坐标的低/高干预和全部离散类别：15/15 通过，
+死坐标为 0。62 个声明成功指标也全部绑定到明确的观测、轨迹、artifact、predictive holdout 或
+paired split 端点。</p>
 <p>三个纯化任务使用 16 个独立控制和 22 个编译操作，覆盖反应、萃取、分相、洗涤、干燥、浓缩与转移；
 蒸馏使用 13 个控制，蒸发/蒸馏的温度和时间已经相互独立。这些是可执行设计证据，不是其余 13 个任务
 的正式算法排名。</p>
@@ -2907,7 +2957,11 @@ ChemWorld 能支持哪些实验推理和物理化学反馈。</p>
 </tr>
 <tr>
 <td>Static S0 Participant Agent</td>
-<td>两个确认性任务五 seed 正式实验与 replay 已完成</td>
+<td>v1.0 十世界正式描述性结果完成；电化学正面、结晶未超过 LHS</td>
+</tr>
+<tr>
+<td>S0 v1.1 nominal-information extension</td>
+<td>seed 0–4 完成；两任务点估计为正但区间跨 0，确认性结论未完成</td>
 </tr>
 <tr>
 <td>Mechanism-adaptation Participant Gates B–E</td>
