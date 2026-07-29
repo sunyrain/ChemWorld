@@ -730,6 +730,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#8-five-task-post-qualification-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Five-task post-qualification extension
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -987,6 +998,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#8-five-task-post-qualification-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Five-task post-qualification extension
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1008,9 +1030,10 @@
 
 
 <h1 id="flagship-experiments">Flagship experiments<a class="headerlink" href="#flagship-experiments" title="Permanent link">&para;</a></h1>
-<p>Only two ChemWorld tasks currently have formal multi-world Participant campaigns:
-Electrochemical Conversion and Reaction to Crystallization. This page records the
-design and results; see the
+<p>Two ChemWorld tasks currently have formal multi-world Participant campaigns:
+Electrochemical Conversion and Reaction to Crystallization. Three additional tasks
+now have a five-world development-only comparison, bringing complete comparative
+execution to five tasks. This page records the design and results; see the
 <a href="https://sunyrain.github.io/ChemWorld/benchmark_release/">authoritative current-status page</a>
 for release readiness.</p>
 <h2 id="1-questions">1. Questions<a class="headerlink" href="#1-questions" title="Permanent link">&para;</a></h2>
@@ -1262,6 +1285,68 @@ are not interchangeable experiments.</p>
 <p>RC28 Gate A certified environment identifiability and online attainability only
 on its historical frozen source. Its current-source binding is stale, and
 Participant Gates B–E remain pending.</p>
+<h2 id="8-five-task-post-qualification-extension">8. Five-task post-qualification extension<a class="headerlink" href="#8-five-task-post-qualification-extension" title="Permanent link">&para;</a></h2>
+<p>On source <code>74cfcdaa0d9780de2d21424ef8c329079554f8b5</code>, five tasks used the same
+task-neutral Codex prompt, world seeds 0–4, 20 exploration experiments, and
+3+3 blind validations. Five classical methods used the same public task
+information. This is audited development evidence, not a preregistered
+superiority study.</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th style="text-align: right;">Codex</th>
+<th style="text-align: right;">Best classical method</th>
+<th style="text-align: right;">Difference</th>
+<th style="text-align: right;">Wins/ties/losses against each world's best</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Electrochemical Conversion</td>
+<td style="text-align: right;"><strong>0.7454 ± 0.0522</strong></td>
+<td style="text-align: right;">RF-EI 0.6622</td>
+<td style="text-align: right;">+0.0832</td>
+<td style="text-align: right;">3 / 0 / 2</td>
+</tr>
+<tr>
+<td>Reaction to Crystallization</td>
+<td style="text-align: right;">0.5206 ± 0.0681</td>
+<td style="text-align: right;"><strong>RF-EI 0.6071</strong></td>
+<td style="text-align: right;">−0.0866</td>
+<td style="text-align: right;">1 / 0 / 4</td>
+</tr>
+<tr>
+<td>Reaction to Distillation</td>
+<td style="text-align: right;"><strong>0.4795 ± 0.0264</strong></td>
+<td style="text-align: right;">GP-EI 0.4192</td>
+<td style="text-align: right;">+0.0603</td>
+<td style="text-align: right;">4 / 0 / 1</td>
+</tr>
+<tr>
+<td>Partition Discovery</td>
+<td style="text-align: right;">0.5426 ± 0.0870</td>
+<td style="text-align: right;"><strong>GP-EI 0.5511</strong></td>
+<td style="text-align: right;">−0.0085</td>
+<td style="text-align: right;">1 / 0 / 4</td>
+</tr>
+<tr>
+<td>Flow Reaction Optimization</td>
+<td style="text-align: right;">0.1627 ± 0.0131</td>
+<td style="text-align: right;"><strong>GP-EI 0.2145</strong></td>
+<td style="text-align: right;">−0.0518</td>
+<td style="text-align: right;">0 / 0 / 5</td>
+</tr>
+</tbody>
+</table>
+<p>All 150 method-by-world cells and 3,900 physical experiments completed exact
+replay. The new 13-dimensional reaction–distillation task reached its task
+threshold in every world. No method reached Partition Discovery's frozen 0.58
+cross-world threshold. Absolute scores are not comparable across tasks.</p>
+<ul>
+<li><a href="https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json">Machine-readable five-task summary</a></li>
+<li><a href="https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/STATIC_S0_FIVE_TASK_POSTQUALIFICATION_RESULTS_ZH.md">Detailed Chinese audit</a></li>
+</ul>
 
 
 

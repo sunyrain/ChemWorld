@@ -1165,6 +1165,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#8-post-qualification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 五任务 post-qualification 扩展
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1440,6 +1451,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#8-post-qualification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 五任务 post-qualification 扩展
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1461,8 +1483,9 @@
 
 
 <h1 id="_1">旗舰实验<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>ChemWorld 当前只有两个任务完成了正式 Participant 多世界 campaign：
-Electrochemical Conversion 和 Reaction to Crystallization。本页说明实验问题、对照和结果；
+<p>ChemWorld 当前有两个任务完成了正式 Participant 多世界 campaign：
+Electrochemical Conversion 和 Reaction to Crystallization。另有三个任务完成五世界
+development-only 比较，使当前完整比较覆盖五项任务。本页说明实验问题、对照和结果；
 项目整体状态以<a href="../benchmark_release/">证据与当前状态</a>为准。</p>
 <h2 id="1">1. 实验问题<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
 <p>两组实验回答不同问题：</p>
@@ -1702,6 +1725,65 @@ campaign 中途变化后，Agent 能否检测、归因并恢复</strong>。二�
 但不是同一个实验，不能用静态三臂结果替代 Gates B–E。</p>
 <p>RC28 Gate A 只认证了历史冻结环境的可识别性和在线可达性；当前源码绑定已过期，Participant
 Gates B–E 仍待执行。详细当前边界见<a href="../benchmark_release/">证据与当前状态</a>。</p>
+<h2 id="8-post-qualification">8. 五任务 post-qualification 扩展<a class="headerlink" href="#8-post-qualification" title="Permanent link">&para;</a></h2>
+<p>在当前源码 <code>74cfcdaa0d9780de2d21424ef8c329079554f8b5</code> 上，五个任务使用同一份中性
+Codex prompt、world seed 0–4、20 轮探索和 3+3 次盲验证，并与五种经典方法比较。
+这是完整审计的开发证据，不是正式 superiority 研究。</p>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th style="text-align: right;">Codex</th>
+<th style="text-align: right;">最佳经典方法</th>
+<th style="text-align: right;">差值</th>
+<th style="text-align: right;">逐世界对当世最佳胜/平/负</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>电化学转换</td>
+<td style="text-align: right;"><strong>0.7454 ± 0.0522</strong></td>
+<td style="text-align: right;">RF-EI 0.6622</td>
+<td style="text-align: right;">+0.0832</td>
+<td style="text-align: right;">3 / 0 / 2</td>
+</tr>
+<tr>
+<td>反应—结晶</td>
+<td style="text-align: right;">0.5206 ± 0.0681</td>
+<td style="text-align: right;"><strong>RF-EI 0.6071</strong></td>
+<td style="text-align: right;">−0.0866</td>
+<td style="text-align: right;">1 / 0 / 4</td>
+</tr>
+<tr>
+<td>反应—蒸馏</td>
+<td style="text-align: right;"><strong>0.4795 ± 0.0264</strong></td>
+<td style="text-align: right;">GP-EI 0.4192</td>
+<td style="text-align: right;">+0.0603</td>
+<td style="text-align: right;">4 / 0 / 1</td>
+</tr>
+<tr>
+<td>分配规律</td>
+<td style="text-align: right;">0.5426 ± 0.0870</td>
+<td style="text-align: right;"><strong>GP-EI 0.5511</strong></td>
+<td style="text-align: right;">−0.0085</td>
+<td style="text-align: right;">1 / 0 / 4</td>
+</tr>
+<tr>
+<td>连续流优化</td>
+<td style="text-align: right;">0.1627 ± 0.0131</td>
+<td style="text-align: right;"><strong>GP-EI 0.2145</strong></td>
+<td style="text-align: right;">−0.0518</td>
+<td style="text-align: right;">0 / 0 / 5</td>
+</tr>
+</tbody>
+</table>
+<p>五任务合计 150 个方法×世界单元、3,900 次物理实验，全部精确 replay。新 13D
+反应—蒸馏任务在五个世界中均达到任务阈值；partition 则没有任何方法跨世界达到冻结的
+0.58 门槛。跨任务绝对分数不作直接比较。</p>
+<ul>
+<li><a href="https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json">五任务机器可读摘要</a></li>
+<li><a href="https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/STATIC_S0_FIVE_TASK_POSTQUALIFICATION_RESULTS_ZH.md">五任务中文结果审计</a></li>
+</ul>
 
 
 
