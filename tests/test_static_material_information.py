@@ -23,6 +23,7 @@ from chemworld.eval.static_optimization_protocol import (
 from chemworld.foundation import equipment_settings
 from chemworld.materials import (
     CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION,
+    STATIC_MATERIAL_INFORMATION_MISINDEXED,
     STATIC_MATERIAL_INFORMATION_NOMINAL,
     STATIC_MATERIAL_INFORMATION_OPAQUE,
     STATIC_MATERIAL_INFORMATION_SHUFFLED,
@@ -118,6 +119,119 @@ def test_shuffled_dossier_is_a_blind_derangement_with_the_same_property_rows() -
         shuffled_rows = _property_rows(shuffled, field)
         assert all(left != right for left, right in zip(nominal_rows, shuffled_rows, strict=True))
         assert sorted(map(json.dumps, nominal_rows)) == sorted(map(json.dumps, shuffled_rows))
+
+
+def test_electrochemical_misindexed_dossier_swaps_only_the_target_rows_blindly() -> None:
+    nominal = static_material_information_dossier(
+        {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL},
+        task_id="electrochemical-conversion",
+        material_family_id=NOMINAL_PRIOR_MATERIAL_FAMILY,
+    )
+    misindexed = static_material_information_dossier(
+        {
+            "mode": STATIC_MATERIAL_INFORMATION_MISINDEXED,
+            "target_field": "electrolyte_profile",
+            "descriptor_permutation": [0, 3, 2, 1],
+        },
+        task_id="electrochemical-conversion",
+        material_family_id=NOMINAL_PRIOR_MATERIAL_FAMILY,
+    )
+
+    assert nominal is not None and misindexed is not None
+    serialized = json.dumps(misindexed, sort_keys=True).lower()
+    for private_term in ("misindexed", "permutation", "target_field", "shuffled"):
+        assert private_term not in serialized
+    nominal_electrolytes = _property_rows(nominal, "electrolyte_profile")
+    misindexed_electrolytes = _property_rows(misindexed, "electrolyte_profile")
+    assert misindexed_electrolytes == [
+        nominal_electrolytes[0],
+        nominal_electrolytes[3],
+        nominal_electrolytes[2],
+        nominal_electrolytes[1],
+    ]
+    assert _property_rows(misindexed, "solvent") == _property_rows(
+        nominal,
+        "solvent",
+    )
+
+
+def test_crystallization_misindexed_dossier_swaps_only_the_target_rows_blindly() -> None:
+    nominal = static_material_information_dossier(
+        {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL},
+        task_id="reaction-to-crystallization",
+        material_family_id=REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY,
+    )
+    misindexed = static_material_information_dossier(
+        {
+            "mode": STATIC_MATERIAL_INFORMATION_MISINDEXED,
+            "target_field": "catalyst",
+            "descriptor_permutation": [0, 2, 1, 3],
+        },
+        task_id="reaction-to-crystallization",
+        material_family_id=REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY,
+    )
+
+    assert nominal is not None and misindexed is not None
+    serialized = json.dumps(misindexed, sort_keys=True).lower()
+    for private_term in ("misindexed", "permutation", "target_field", "shuffled"):
+        assert private_term not in serialized
+    nominal_catalysts = _property_rows(nominal, "catalyst")
+    misindexed_catalysts = _property_rows(misindexed, "catalyst")
+    assert misindexed_catalysts == [
+        nominal_catalysts[0],
+        nominal_catalysts[2],
+        nominal_catalysts[1],
+        nominal_catalysts[3],
+    ]
+    assert _property_rows(misindexed, "solvent") == _property_rows(
+        nominal,
+        "solvent",
+    )
+
+
+@pytest.mark.parametrize(
+    ("task_id", "family_id", "target_field", "permutation", "message"),
+    [
+        (
+            "electrochemical-conversion",
+            NOMINAL_PRIOR_MATERIAL_FAMILY,
+            "catalyst",
+            [0, 3, 2, 1],
+            "target_field",
+        ),
+        (
+            "electrochemical-conversion",
+            NOMINAL_PRIOR_MATERIAL_FAMILY,
+            "electrolyte_profile",
+            [0, 1, 2, 3],
+            "two-row transposition",
+        ),
+        (
+            "reaction-to-crystallization",
+            REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY,
+            "catalyst",
+            [1, 2, 0, 3],
+            "two-row transposition",
+        ),
+    ],
+)
+def test_misindexed_information_rejects_non_targeted_mappings(
+    task_id: str,
+    family_id: str,
+    target_field: str,
+    permutation: list[int],
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        normalize_static_material_information_config(
+            {
+                "mode": STATIC_MATERIAL_INFORMATION_MISINDEXED,
+                "target_field": target_field,
+                "descriptor_permutation": permutation,
+            },
+            task_ids=(task_id,),
+            material_family_id=family_id,
+        )
 
 
 def test_nominal_material_context_and_audit_are_hashed() -> None:

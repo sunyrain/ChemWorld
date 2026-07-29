@@ -26,8 +26,10 @@ CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION = (
 STATIC_MATERIAL_INFORMATION_OPAQUE = "opaque_codes"
 STATIC_MATERIAL_INFORMATION_NOMINAL = "anonymous_nominal_properties"
 STATIC_MATERIAL_INFORMATION_SHUFFLED = "anonymous_shuffled_properties"
+STATIC_MATERIAL_INFORMATION_MISINDEXED = "anonymous_misindexed_properties"
 STATIC_MATERIAL_INFORMATION_MODES = frozenset(
     {
+        STATIC_MATERIAL_INFORMATION_MISINDEXED,
         STATIC_MATERIAL_INFORMATION_OPAQUE,
         STATIC_MATERIAL_INFORMATION_NOMINAL,
         STATIC_MATERIAL_INFORMATION_SHUFFLED,
@@ -36,6 +38,10 @@ STATIC_MATERIAL_INFORMATION_MODES = frozenset(
 _ELECTROCHEMICAL_TASK_ID = "electrochemical-conversion"
 _CRYSTALLIZATION_TASK_ID = "reaction-to-crystallization"
 _CONTROLLED_MATERIAL_FIELDS = ("electrolyte_profile", "solvent")
+_CONTROLLED_MATERIAL_FIELDS_BY_TASK = {
+    _ELECTROCHEMICAL_TASK_ID: _CONTROLLED_MATERIAL_FIELDS,
+    _CRYSTALLIZATION_TASK_ID: ("catalyst", "solvent"),
+}
 
 
 def public_material_catalog() -> dict[str, Any]:
@@ -174,7 +180,7 @@ def normalize_static_material_information_config(
         return {"mode": STATIC_MATERIAL_INFORMATION_OPAQUE}
     if not isinstance(config, Mapping):
         raise ValueError("material_information must be an object")
-    unknown = set(config) - {"mode", "descriptor_permutation"}
+    unknown = set(config) - {"mode", "target_field", "descriptor_permutation"}
     if unknown:
         raise ValueError(f"material_information has unsupported fields: {sorted(unknown)}")
     mode = config.get("mode")
@@ -215,12 +221,59 @@ def normalize_static_material_information_config(
                 "reaction-crystallization latent material family"
             )
     raw_permutation = config.get("descriptor_permutation")
-    if mode != STATIC_MATERIAL_INFORMATION_SHUFFLED:
-        if raw_permutation is not None:
+    raw_target_field = config.get("target_field")
+    if mode == STATIC_MATERIAL_INFORMATION_MISINDEXED:
+        task_id = next(iter(task_set))
+        controlled_fields = _CONTROLLED_MATERIAL_FIELDS_BY_TASK[task_id]
+        if not isinstance(raw_target_field, str) or raw_target_field not in controlled_fields:
             raise ValueError(
-                "descriptor_permutation is allowed only for anonymous_shuffled_properties"
+                "misindexed material information requires target_field to be one of "
+                f"{list(controlled_fields)}"
+            )
+        if not isinstance(raw_permutation, list) or any(
+            isinstance(item, bool) or not isinstance(item, int)
+            for item in raw_permutation
+        ):
+            raise ValueError(
+                "misindexed material information requires descriptor_permutation "
+                "to be an integer list"
+            )
+        expected = list(range(4))
+        if sorted(raw_permutation) != expected:
+            raise ValueError(
+                "misindexed descriptor_permutation must be a permutation of "
+                f"{expected}"
+            )
+        moved = [
+            index
+            for index, source in enumerate(raw_permutation)
+            if index != source
+        ]
+        if (
+            len(moved) != 2
+            or raw_permutation[moved[0]] != moved[1]
+            or raw_permutation[moved[1]] != moved[0]
+        ):
+            raise ValueError(
+                "misindexed descriptor_permutation must be exactly one "
+                "two-row transposition"
+            )
+        return {
+            "mode": STATIC_MATERIAL_INFORMATION_MISINDEXED,
+            "target_field": raw_target_field,
+            "descriptor_permutation": list(raw_permutation),
+        }
+    if mode != STATIC_MATERIAL_INFORMATION_SHUFFLED:
+        if raw_permutation is not None or raw_target_field is not None:
+            raise ValueError(
+                "target_field and descriptor_permutation are allowed only for "
+                "misindexed or shuffled material information"
             )
         return {"mode": str(mode)}
+    if raw_target_field is not None:
+        raise ValueError(
+            "target_field is not allowed for anonymous_shuffled_properties"
+        )
     if not isinstance(raw_permutation, Mapping) or set(raw_permutation) != set(
         _CONTROLLED_MATERIAL_FIELDS
     ):
@@ -263,15 +316,29 @@ def static_material_information_dossier(
     mode = normalized["mode"]
     if mode == STATIC_MATERIAL_INFORMATION_OPAQUE:
         return None
+    permutations = {
+        field: list(range(4))
+        for field in _CONTROLLED_MATERIAL_FIELDS_BY_TASK[task_id]
+    }
+    if mode == STATIC_MATERIAL_INFORMATION_SHUFFLED:
+        permutations.update(normalized["descriptor_permutation"])
+    elif mode == STATIC_MATERIAL_INFORMATION_MISINDEXED:
+        permutations[normalized["target_field"]] = normalized[
+            "descriptor_permutation"
+        ]
     if task_id == _CRYSTALLIZATION_TASK_ID:
-        return _crystallization_material_information_dossier(material_family_id)
-    permutations = normalized.get(
-        "descriptor_permutation",
-        {field: list(range(4)) for field in _CONTROLLED_MATERIAL_FIELDS},
-    )
+        return _crystallization_material_information_dossier(
+            material_family_id,
+            permutations=permutations,
+        )
+    electrochemical_permutations = {
+        field: permutations[field] for field in _CONTROLLED_MATERIAL_FIELDS
+    }
     family = electrochemical_material_family(material_family_id)
     electrolyte_choices = []
-    for action_value, source_index in enumerate(permutations["electrolyte_profile"]):
+    for action_value, source_index in enumerate(
+        electrochemical_permutations["electrolyte_profile"]
+    ):
         row = family.electrolyte_profiles[source_index]
         electrolyte_choices.append(
             {
@@ -296,7 +363,9 @@ def static_material_information_dossier(
             }
         )
     solvent_choices = []
-    for action_value, source_index in enumerate(permutations["solvent"]):
+    for action_value, source_index in enumerate(
+        electrochemical_permutations["solvent"]
+    ):
         row = family.solvent_profiles[source_index]
         solvent_choices.append(
             {
@@ -379,6 +448,8 @@ def _reaction_panel_properties(values: Sequence[float]) -> dict[str, float]:
 
 def _crystallization_material_information_dossier(
     material_family_id: object | None,
+    *,
+    permutations: Mapping[str, Sequence[int]],
 ) -> dict[str, Any]:
     """Build an anonymous, nominal-only catalyst/solvent dossier.
 
@@ -388,18 +459,21 @@ def _crystallization_material_information_dossier(
     """
 
     family = crystallization_material_family(material_family_id)
-    catalyst_choices = [
-        {
-            "action_value": action_value,
-            "anonymous_material_id": f"catalyst-C{action_value}",
-            "nominal_properties": _reaction_panel_properties(
-                row["reaction_multipliers"]
-            ),
-        }
-        for action_value, row in enumerate(family.catalyst_profiles)
-    ]
+    catalyst_choices = []
+    for action_value, source_index in enumerate(permutations["catalyst"]):
+        row = family.catalyst_profiles[source_index]
+        catalyst_choices.append(
+            {
+                "action_value": action_value,
+                "anonymous_material_id": f"catalyst-C{action_value}",
+                "nominal_properties": _reaction_panel_properties(
+                    row["reaction_multipliers"]
+                ),
+            }
+        )
     solvent_choices = []
-    for action_value, row in enumerate(family.solvent_profiles):
+    for action_value, source_index in enumerate(permutations["solvent"]):
+        row = family.solvent_profiles[source_index]
         reaction_properties = _reaction_panel_properties(
             row["reaction_multipliers"]
         )
@@ -461,6 +535,7 @@ def _crystallization_material_information_dossier(
 
 __all__ = [
     "CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION",
+    "STATIC_MATERIAL_INFORMATION_MISINDEXED",
     "STATIC_MATERIAL_INFORMATION_MODES",
     "STATIC_MATERIAL_INFORMATION_NOMINAL",
     "STATIC_MATERIAL_INFORMATION_OPAQUE",
