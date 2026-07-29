@@ -26,33 +26,46 @@ privileged calibration baseline crosses zero. Crystallization trails LHS
 (0.5708), so it does not support an outperformance claim. Neither comparison
 preregistered a superiority threshold or multiplicity plan.
 
-## Static-S0 v1.1: five-world interim with correct anonymous properties
+## Static-S0 v1.2: confirmatory three-arm material-information result
 
-Version 1.1 holds worlds, observation-noise namespaces, the twenty-round
-budget, predictive diagnostics, blind validation, model, and reasoning effort
-fixed. Its only intervention is to expose correct anonymous family-level
-nominal material properties. It does not expose real identities, hidden-world
-residuals, the active mechanism, a response surface, scores, or an optimum.
+The complete study compares three arms on the same ten worlds, noise
+namespaces, twenty-round budget, predictive diagnostics, blind validation,
+model, and reasoning effort: `opaque`, correct anonymous family-level
+properties (`nominal`), and one fixed targeted two-row property swap
+(`misindexed`). The wrong-prior mappings were frozen before any v1.2 provider
+call. They swap E1/E3 electrolyte profiles while keeping solvent correct for
+electrochemistry, and C1/C2 catalysts while keeping solvent correct for
+crystallization. No arm exposes real identities, hidden-world residuals, the
+active mechanism, a response surface, scores, or an optimum.
 
-At the owner's request, this run stops after seeds 0–4 per task instead of the
-preregistered seeds 0–9:
+Correct-information value uses the frozen per-task familywise 97.5%
+paired-world interval:
 
-| Task | Nominal blind mean | Paired opaque mean | Paired difference | Paired-world 95% interval | W/T/L |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Electrochemical Conversion | 0.7873 | 0.6939 | +0.0935 | [−0.0062, +0.2232] | 4/0/1 |
-| Reaction to Crystallization | 0.5507 | 0.5173 | +0.0334 | [−0.0307, +0.0929] | 3/0/2 |
+| Task | Opaque | Nominal | Nominal − opaque | 97.5% interval | Result |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Electrochemical Conversion | 0.7150 | 0.7874 | +0.0724 | [+0.0074,+0.1546] | positive information value |
+| Reaction to Crystallization | 0.5355 | 0.5615 | +0.0260 | [−0.0130,+0.0630] | inconclusive |
 
-All ten task-by-world cells completed twenty exploration experiments, twelve
-predictive-diagnostic physical experiments, and six blind-validation
-experiments: 380 physical experiments, 210 successful Codex subscription
-calls, five automatic retry attempts, zero method failures, and exact replay.
+The wrong-prior analysis keeps prior influence, action correction, and
+performance recovery separate:
 
-Both point estimates are positive, but both the 95% and per-task 97.5%
-familywise intervals cross zero. The machine state is therefore
-`completed_audited_interim_descriptive_result`, with `formal_result=false` and
-`confirmatory_analysis_complete=false`. Seeds 5–9 per task remain necessary
-to apply the frozen confirmatory rule. This study asks about information value,
-not superiority to LHS or another classical optimizer.
+| Task | Misindexed | Misindexed − nominal | 97.5% interval | Joint recovery |
+| --- | ---: | ---: | ---: | --- |
+| Electrochemical Conversion | 0.6853 | −0.1020 | [−0.2101,−0.0078] | failed: action correction passed; recovery to opaque did not |
+| Reaction to Crystallization | 0.5845 | +0.0229 | [+0.0046,+0.0419] | failed: performance was non-inferior to opaque; differential action correction did not pass |
+
+The early-action manipulation check passes in both tasks, so the dossier
+changed policy behavior. Neither task, however, jointly satisfies
+manipulation, differential action correction, and performance recovery.
+The crystallization score benefit in these sampled worlds is therefore not
+evidence that the model identified or corrected the misinformation.
+
+All 60 task-by-world-by-arm cells complete exact replay: 1,200 exploration,
+720 predictive-diagnostic, and 360 blind-validation experiments, totaling
+2,280 physical experiments; 1,260 successful Codex subscription calls, five
+automatic retries, and zero method failures. The study tests material
+information and response to one targeted wrong prior—not superiority to a
+classical optimizer or generalization across mappings, tasks, or providers.
 
 ## Optimization designs across all 15 tasks
 
@@ -100,7 +113,7 @@ API compatibility; they no longer define the scientific taxonomy.
 | A2 controlled identifiability | historical RC28 **passed**, 4,896/4,896 receipts; current binding stale |
 | A3 online attainability | historical RC28 **passed**, 2,016/2,016 receipts; current binding stale |
 | Static-S0 Participant Agent | v1.0 formal ten-world descriptive results complete; electrochemical positive, crystallization below LHS |
-| S0 v1.1 nominal-information extension | seeds 0–4 complete; positive point estimates but intervals cross zero, confirmatory result incomplete |
+| S0 v1.2 three-arm material-information study | 60/60 cells complete with exact replay; electrochemical correct-information value passes, crystallization is inconclusive; overall recovery fails in both |
 | Mechanism-adaptation Participant Gates B–E | deferred research extension; Flash Direct/Stateful S1/S2 each achieved 0/4 autonomous completion, formal matrix not started |
 | Private-E environment confirmation | eligible, not yet executed |
 | Private-A participant-Agent confirmation | sealed pending participant freeze |

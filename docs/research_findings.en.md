@@ -30,24 +30,33 @@ best privileged calibration baseline crosses zero. Crystallization trails LHS
 (0.5708), so the campaign does not support a crystallization outperformance
 claim. No superiority threshold or multiplicity plan was preregistered.
 
-## New finding: correct anonymous properties show a positive but uncertain interim signal
+## New finding: information value is task-specific, and prior influence is not recovery
 
-S0 v1.1 adds only correct anonymous family-level nominal material properties
-to the v1.0 opaque condition while pairing world seeds, observation noise,
-budgets, model, and blind endpoint. The owner requested an early five-world
-readout, so only seeds 0–4 are complete per task:
+S0 v1.2 completes `opaque`, correct anonymous `nominal`, and fixed targeted
+wrong-property `misindexed` arms on ten paired worlds. World seeds,
+observation noise, the twenty-round budget, model, and blind endpoint are held
+fixed:
 
-- electrochemical nominal 0.7873 versus opaque 0.6939, paired difference
-  +0.0935, 95% interval [−0.0062, +0.2232], four wins and one loss;
-- crystallization nominal 0.5507 versus opaque 0.5173, paired difference
-  +0.0334, 95% interval [−0.0307, +0.0929], three wins and two losses.
+- electrochemical nominal is 0.7874 versus 0.7150 opaque, a paired +0.0724
+  with familywise 97.5% interval [+0.0074,+0.1546], confirming positive
+  information value;
+- crystallization nominal is 0.5615 versus 0.5355 opaque, a paired +0.0260
+  with interval [−0.0130,+0.0630], so the result is inconclusive;
+- electrochemical misindexed is 0.6853, 0.1020 below nominal, while
+  crystallization misindexed is 0.5845, 0.0229 above nominal. Both wrong-prior
+  contrasts exclude zero familywise, but in opposite directions.
 
-All ten cells pass exact replay. The ledger contains 380 physical experiments,
-210 successful subscription calls, five automatic retry attempts, and zero
-method failures. Both point estimates are positive, but both intervals cross
-zero and the frozen per-task 97.5% rule preview is `inconclusive`. This is not
-the ten-world confirmatory result, does not prove positive information value,
-and does not make crystallization a 0.6+ result. Seeds 5–9 remain unrun.
+Both wrong priors pass the early-action manipulation check. Electrochemistry
+passes differential action correction but not performance recovery to opaque;
+crystallization remains non-inferior to opaque but does not pass differential
+action correction. Neither task passes the preregistered joint recovery rule.
+The causal distinction matters: changing behavior does not show that the model
+identified an error, and avoiding a score loss does not show correction.
+
+All 60 cells pass exact replay: 2,280 physical experiments, 1,260 successful
+subscription calls, five automatic retries, and zero method failures. The
+result covers one fixed two-row swap per task and does not establish recovery
+across arbitrary priors, tasks, mappings, or providers.
 
 ## Design finding: all 15 tasks need executable complete experiments
 

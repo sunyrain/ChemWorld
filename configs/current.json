@@ -13,10 +13,10 @@
     "backend": "configs/foundation/backend_v0.5.json",
     "backend_report": "workstreams/world_foundation/reports/backend-v0.5.json",
     "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
-    "status": "candidate_backend_clean_attested",
+    "status": "candidate_backend_validated_dirty_tree",
     "contract_validation": "passed",
-    "clean_release_attestation": "passed",
-    "source_tree_dirty": false,
+    "clean_release_attestation": "pending_clean_tree",
+    "source_tree_dirty": true,
     "world_law_id": "chemworld-physical-chemistry-v0.5",
     "task_contract_version": "chemworld-task-contract-1.1"
   },
@@ -147,9 +147,9 @@
     "publication_ready": false
   },
   "repository_integrity": {
-    "status": "stale_evidence_bindings",
+    "status": "stale_evidence_bindings_worktree_dirty",
     "current_evidence_coherent": false,
-    "tracked_source_tree_dirty": false,
+    "tracked_source_tree_dirty": true,
     "stale_binding_count": 10,
     "stale_binding_ids": [
       "mechanism_a2_structural_receipt",
@@ -164,6 +164,10 @@
       "pre_arxiv_claim_evidence_ledger"
     ],
     "blockers": [
+      {
+        "id": "clean_release_attestation_pending",
+        "scope": "backend_release"
+      },
       {
         "id": "mechanism_gates_remaining",
         "scope": "mechanism_benchmark",
@@ -244,8 +248,8 @@
     "schema_version": "chemworld-current-evidence-dag-0.3",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "a6dbadb972b02324645c3d4f551bf4ba2555d14014040a17f753f1bf8f1c5ca4",
-    "repository_source_sha256": "ac6c68a94f5596f041142287d755105f5ed5653317298222334ddb0fec73c592",
+    "graph_sha256": "bdae394818005bb09381061c489add21764ee84b574288fc27c38790e5cbfae2",
+    "repository_source_sha256": "3374478f1d2894f8cff08385828e842f84ef0dcb17e29547289a47d49627697c",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -290,8 +294,9 @@
       "static_s0_nominal_information_freeze_manifest",
       "task_design_matrix",
       "mechanism_confirmatory_task_semantics_audit",
-      "static_s0_nominal_information_interim_summary",
+      "static_s0_misindexed_information_freeze_manifest",
       "mechanism_design_audit",
+      "static_s0_material_information_triarm_summary",
       "mechanism_release_qualification",
       "mechanism_a2_structural_receipt",
       "mechanism_a3_structural_receipt",
@@ -415,7 +420,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "85773882203ba74faa80a1d413ac8d5b052561893e55ff3ccf0d8bc60534da51",
+        "sha256": "57515c96c62d1feb8a6c3306a62123267d1cf4012c771f0f426f325fc78e7680",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -647,7 +652,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "18e7718797f9eb94ebd0ffabb9093400285faa3404cd8fc175d4f9d0f6e06c6a",
+        "sha256": "5a01f1926ad4eb34ea86be5f76946bd94d37c0f289e6a8752d6327dc21a19529",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -662,7 +667,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "461f901f078720f25379e9ae6c0f79dc5a40fe487e063d7b59b209ade9159876",
+        "sha256": "90431dc39f191b30831bd0a50ad95cc3a479a38c7e439da49d0508e88011d71d",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -727,7 +732,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "273db45d19e5cefac2654870b671c5d7a2604878e4a0d9f8214fff5cc60c2cf8",
+        "sha256": "df6e3a44c7c4ef03344ff5c051f77dd507d1222c3d0243e19736a92a6248b292",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -830,7 +835,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "195a47ce50691b2fdb27a7974c8b3d45a355b2b7453add33557b3c3593be7f3f",
+        "sha256": "1d2aa648355c22744befdd9bce4af06cc183c497a2963e6b7707064dcfa70674",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -875,7 +880,7 @@
         "dependencies": [
           "static_s0_formal_campaign_summary"
         ],
-        "sha256": "333dd2a53ad0d493a341c36451575fc8338169e5b33770c6b917375611ff940b",
+        "sha256": "a7ae56ea903952d9bcb7e17634adb9a80209126af29a44bd16cf94fad81d9814",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -897,17 +902,17 @@
         "freshness": "stale_dependency_binding",
         "gate_state": "invalidated"
       },
-      "static_s0_nominal_information_interim_summary": {
-        "path": "workstreams/flagship_tasks/reports/static-s0-v1.1-nominal-information-interim-5world-summary.json",
-        "role": "development_diagnostic",
+      "static_s0_misindexed_information_freeze_manifest": {
+        "path": "configs/benchmark/scientific_optimization_s0_v1.2_misindexed_information_freeze_manifest.json",
+        "role": "protocol_input",
         "lifecycle": "immutable",
-        "producer": "versioned_development_execution",
-        "source_binding": "content_and_versioned_source_sha256",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
         "dependencies": [
           "static_s0_formal_campaign_summary",
           "static_s0_nominal_information_freeze_manifest"
         ],
-        "sha256": "bf1d62bf9aaa1d7717d89b7b78b75d7119e2aba67b2aad0b1b305f2d47bde8d6",
+        "sha256": "0a54c01b92cb263ee7a1739103102b40080ea863192ec6cfc1bcd66c2721adce",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "not_applicable"
@@ -928,6 +933,22 @@
         "artifact_state": "stale",
         "freshness": "stale_dependency_binding",
         "gate_state": "invalidated"
+      },
+      "static_s0_material_information_triarm_summary": {
+        "path": "workstreams/flagship_tasks/reports/static-s0-v1.2-three-arm-information-campaign-summary.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
+        "dependencies": [
+          "static_s0_formal_campaign_summary",
+          "static_s0_nominal_information_freeze_manifest",
+          "static_s0_misindexed_information_freeze_manifest"
+        ],
+        "sha256": "6a05f6cca2a3a60cbbd0e4b07b5b5fe9c813977bf5a85a4ab45a84482c3e7b3a",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
       },
       "mechanism_release_qualification": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-release-qualification-v0.1-rc28.json",
@@ -1037,10 +1058,10 @@
         "dependencies": [
           "mechanism_public_gate_a_decision",
           "static_s0_formal_campaign_summary",
-          "static_s0_nominal_information_interim_summary",
+          "static_s0_material_information_triarm_summary",
           "task_design_matrix"
         ],
-        "sha256": "38989e3c8108b7f6717602a382572f96b42b0801c3c03634ef27eff8e96a078f",
+        "sha256": "c3071d39db16601abb1295069f25c7b19f14209381c233069912faa8b5c0c00d",
         "artifact_state": "stale",
         "freshness": "stale_dependency_binding",
         "gate_state": "invalidated"
@@ -1153,22 +1174,15 @@
     ],
     "nonconfirmatory_formal_experiments_required_for_future_claims": true
   },
-  "static_material_information_interim": {
-    "summary": "workstreams/flagship_tasks/reports/static-s0-v1.1-nominal-information-interim-5world-summary.json",
-    "freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.1_nominal_information_freeze_manifest.json",
-    "status": "completed_audited_interim_descriptive_result",
-    "formal_result": false,
-    "interim_analysis_only": true,
-    "confirmatory_analysis_complete": false,
+  "static_material_information_three_arm": {
+    "summary": "workstreams/flagship_tasks/reports/static-s0-v1.2-three-arm-information-campaign-summary.json",
+    "nominal_freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.1_nominal_information_freeze_manifest.json",
+    "misindexed_freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.2_misindexed_information_freeze_manifest.json",
+    "status": "completed_audited_formal_three_arm_result",
+    "formal_result": true,
+    "confirmatory_analysis_complete": true,
     "benchmark_claim_allowed": false,
-    "selected_world_seeds": [
-      0,
-      1,
-      2,
-      3,
-      4
-    ],
-    "preregistered_world_seeds": [
+    "world_seeds": [
       0,
       1,
       2,
@@ -1180,39 +1194,130 @@
       8,
       9
     ],
-    "all_selected_cells_exact_replay_verified": true,
-    "total_physical_experiments": 380,
-    "provider_calls": 210,
+    "all_sixty_cells_exact_replay_verified": true,
+    "total_physical_experiments": 2280,
+    "provider_calls": 1260,
     "provider_retry_attempts": 5,
     "task_results": {
       "electrochemical": {
-        "nominal_mean": 0.7873316351011291,
-        "opaque_mean": 0.6938696850116889,
-        "paired_mean_difference": 0.09346195008944023,
-        "paired_world_bootstrap_95_interval": [
-          -0.006194363832806938,
-          0.22322377111858818
-        ],
-        "interim_familywise_rule_preview": "inconclusive"
+        "score_mean_by_arm": {
+          "opaque": 0.7149733356640986,
+          "nominal": 0.7873706578076737,
+          "misindexed": 0.6853305540005751
+        },
+        "nominal_minus_opaque": {
+          "count": 10,
+          "familywise_result": "positive_information_value",
+          "maximum": 0.3167725916375111,
+          "mean": 0.0723973221435752,
+          "median": 0.012852851012283728,
+          "minimum": -0.023832674441000012,
+          "paired_win_tie_loss": {
+            "losses": 2,
+            "ties": 0,
+            "wins": 8
+          },
+          "sample_standard_deviation": 0.11160675727902013,
+          "world_bootstrap_95_interval": [
+            0.013997623890673083,
+            0.14306790956307042
+          ],
+          "world_bootstrap_97_5_interval": [
+            0.007365351636873141,
+            0.1545741195166764
+          ]
+        },
+        "misindexed_minus_nominal": {
+          "count": 10,
+          "familywise_result": "wrong_prior_cost",
+          "maximum": 0.10766175899638586,
+          "mean": -0.10204010380709864,
+          "median": -0.048821071598300625,
+          "minimum": -0.4101421491996722,
+          "paired_win_tie_loss": {
+            "losses": 8,
+            "ties": 0,
+            "wins": 2
+          },
+          "sample_standard_deviation": 0.15276212738806216,
+          "world_bootstrap_95_interval": [
+            -0.1963947689956435,
+            -0.017820262623872617
+          ],
+          "world_bootstrap_97_5_interval": [
+            -0.21005225660303414,
+            -0.007799354659374732
+          ]
+        },
+        "overall_recovery_claim": {
+          "passed": false,
+          "required_components": {
+            "differential_action_correction": true,
+            "manipulation_check": true,
+            "performance_recovery_to_opaque": false
+          }
+        }
       },
       "crystallization": {
-        "nominal_mean": 0.5506605368786465,
-        "opaque_mean": 0.5172669926701967,
-        "paired_mean_difference": 0.03339354420844983,
-        "paired_world_bootstrap_95_interval": [
-          -0.030746177338334634,
-          0.09287029935265739
-        ],
-        "interim_familywise_rule_preview": "inconclusive"
+        "score_mean_by_arm": {
+          "opaque": 0.5354837981204051,
+          "nominal": 0.5615288662398149,
+          "misindexed": 0.5844651824615941
+        },
+        "nominal_minus_opaque": {
+          "count": 10,
+          "familywise_result": "inconclusive",
+          "maximum": 0.10650966916157417,
+          "mean": 0.026045068119409813,
+          "median": 0.031810278545736315,
+          "minimum": -0.07264691724175104,
+          "paired_win_tie_loss": {
+            "losses": 3,
+            "ties": 0,
+            "wins": 7
+          },
+          "sample_standard_deviation": 0.05702593785789753,
+          "world_bootstrap_95_interval": [
+            -0.007826753095298677,
+            0.05883906418704824
+          ],
+          "world_bootstrap_97_5_interval": [
+            -0.013020160918153549,
+            0.06296562843620451
+          ]
+        },
+        "misindexed_minus_nominal": {
+          "count": 10,
+          "familywise_result": "wrong_prior_benefit_in_sampled_worlds",
+          "maximum": 0.0736258615555716,
+          "mean": 0.02293631622177918,
+          "median": 0.024188807780130578,
+          "minimum": -0.022901827223474225,
+          "paired_win_tie_loss": {
+            "losses": 1,
+            "ties": 0,
+            "wins": 9
+          },
+          "sample_standard_deviation": 0.027657874640494184,
+          "world_bootstrap_95_interval": [
+            0.0068109484395993455,
+            0.03934742400926818
+          ],
+          "world_bootstrap_97_5_interval": [
+            0.004649322216336826,
+            0.041851101768914205
+          ]
+        },
+        "overall_recovery_claim": {
+          "passed": false,
+          "required_components": {
+            "differential_action_correction": false,
+            "manipulation_check": true,
+            "performance_recovery_to_opaque": true
+          }
+        }
       }
     },
-    "remaining_confirmatory_world_seeds": [
-      5,
-      6,
-      7,
-      8,
-      9
-    ],
-    "interpretation": "Both five-world paired point estimates favor nominal information, but both paired intervals cross zero. This is an interim descriptive result, not the frozen ten-world confirmatory result."
+    "interpretation": "Correct anonymous nominal properties have positive confirmatory information value for electrochemistry and an inconclusive effect for crystallization. The fixed targeted wrong prior changes behavior in both tasks, but neither task satisfies the preregistered overall recovery claim."
   }
 }

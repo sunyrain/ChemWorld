@@ -377,13 +377,24 @@ NODES = (
         ("static_s0_formal_campaign_summary",),
     ),
     EvidenceNode(
-        "static_s0_nominal_information_interim_summary",
-        "workstreams/flagship_tasks/reports/"
-        "static-s0-v1.1-nominal-information-interim-5world-summary.json",
-        "development_diagnostic",
+        "static_s0_misindexed_information_freeze_manifest",
+        "configs/benchmark/"
+        "scientific_optimization_s0_v1.2_misindexed_information_freeze_manifest.json",
+        "protocol_input",
         (
             "static_s0_formal_campaign_summary",
             "static_s0_nominal_information_freeze_manifest",
+        ),
+    ),
+    EvidenceNode(
+        "static_s0_material_information_triarm_summary",
+        "workstreams/flagship_tasks/reports/"
+        "static-s0-v1.2-three-arm-information-campaign-summary.json",
+        "formal_result",
+        (
+            "static_s0_formal_campaign_summary",
+            "static_s0_nominal_information_freeze_manifest",
+            "static_s0_misindexed_information_freeze_manifest",
         ),
     ),
     EvidenceNode(
@@ -405,7 +416,7 @@ NODES = (
         (
             "mechanism_public_gate_a_decision",
             "static_s0_formal_campaign_summary",
-            "static_s0_nominal_information_interim_summary",
+            "static_s0_material_information_triarm_summary",
             "task_design_matrix",
         ),
     ),
@@ -568,11 +579,15 @@ CURRENT_PATH_RULES = (
         "formal_result",
     ),
     CurrentPathRule(
-        ("static_material_information_interim", "summary"),
-        "development_diagnostic",
+        ("static_material_information_three_arm", "summary"),
+        "formal_result",
     ),
     CurrentPathRule(
-        ("static_material_information_interim", "freeze_manifest"),
+        ("static_material_information_three_arm", "nominal_freeze_manifest"),
+        "protocol_input",
+    ),
+    CurrentPathRule(
+        ("static_material_information_three_arm", "misindexed_freeze_manifest"),
         "protocol_input",
     ),
     CurrentPathRule(
@@ -1142,36 +1157,61 @@ def _artifact_source_binding_current(
             == {"electrochemical", "crystallization"}
         ):
             return False
-    if node.node_id == "static_s0_nominal_information_interim_summary":
-        freeze_manifest = load_json_object(
+    if node.node_id == "static_s0_material_information_triarm_summary":
+        nominal_manifest = load_json_object(
             ROOT / node_map()["static_s0_nominal_information_freeze_manifest"].path
+        )
+        misindexed_manifest = load_json_object(
+            ROOT
+            / node_map()["static_s0_misindexed_information_freeze_manifest"].path
         )
         execution = payload.get("execution", {})
         accounting = payload.get("accounting", {})
         tasks = payload.get("tasks", {})
         if not (
             payload.get("schema_version")
-            == "chemworld-static-s0-nominal-information-interim-1.0"
+            == "chemworld-static-s0-material-information-triarm-result-1.0"
             and payload.get("status")
-            == "completed_audited_interim_descriptive_result"
-            and payload.get("formal_result") is False
-            and payload.get("interim_analysis_only") is True
-            and payload.get("confirmatory_analysis_complete") is False
+            == "completed_audited_formal_three_arm_result"
+            and payload.get("formal_result") is True
+            and payload.get("confirmatory_analysis_complete") is True
             and payload.get("benchmark_claim_allowed") is False
-            and payload.get("freeze", {}).get("manifest_sha256")
-            == _canonical_sha256(freeze_manifest)
-            and execution.get("selected_world_seeds") == [0, 1, 2, 3, 4]
-            and execution.get("preregistered_world_seeds")
+            and payload.get("freeze", {}).get("nominal_manifest_sha256")
+            == _canonical_sha256(nominal_manifest)
+            and payload.get("freeze", {}).get("misindexed_manifest_sha256")
+            == _canonical_sha256(misindexed_manifest)
+            and execution.get("world_seeds")
             == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            and execution.get("all_selected_cells_completed") is True
-            and execution.get("all_selected_cells_exact_replay_verified") is True
-            and accounting.get("total_physical_experiments") == 380
-            and accounting.get("provider_calls") == 210
-            and accounting.get("method_failures") == 0
+            and execution.get("all_three_arms_completed") is True
+            and execution.get("all_sixty_cells_exact_replay_verified") is True
+            and accounting.get("three_arm_total", {}).get(
+                "participant_world_cells"
+            )
+            == 60
+            and accounting.get("three_arm_total", {}).get(
+                "total_physical_experiments"
+            )
+            == 2280
+            and accounting.get("three_arm_total", {}).get("provider_calls")
+            == 1260
+            and accounting.get("three_arm_total", {}).get("method_failures")
+            == 0
             and set(tasks) == {"electrochemical", "crystallization"}
+            and tasks.get("electrochemical", {})
+            .get("paired_contrasts", {})
+            .get("nominal_minus_opaque", {})
+            .get("familywise_result")
+            == "positive_information_value"
+            and tasks.get("crystallization", {})
+            .get("paired_contrasts", {})
+            .get("nominal_minus_opaque", {})
+            .get("familywise_result")
+            == "inconclusive"
             and all(
-                task.get("confirmatory_claim_allowed") is False
-                and task.get("interim_familywise_rule_preview") == "inconclusive"
+                task.get("recovery", {})
+                .get("overall_recovery_claim", {})
+                .get("passed")
+                is False
                 for task in tasks.values()
             )
         ):
@@ -1304,8 +1344,8 @@ def _write_current_registry() -> None:
     )
     static_s0_summary_path = ROOT / node_map()["static_s0_formal_campaign_summary"].path
     static_s0_summary = load_json_object(static_s0_summary_path)
-    static_s0_nominal_interim = load_json_object(
-        ROOT / node_map()["static_s0_nominal_information_interim_summary"].path
+    static_s0_information_triarm = load_json_object(
+        ROOT / node_map()["static_s0_material_information_triarm_summary"].path
     )
     task_design_matrix = load_json_object(ROOT / node_map()["task_design_matrix"].path)
     mechanism_evidence_current = _mechanism_public_decision_binding_current(
@@ -1560,63 +1600,66 @@ def _write_current_registry() -> None:
         },
         "hidden_world_change_evaluated": False,
     }
-    current["static_material_information_interim"] = {
+    current.pop("static_material_information_interim", None)
+    current["static_material_information_three_arm"] = {
         "summary": node_map()[
-            "static_s0_nominal_information_interim_summary"
+            "static_s0_material_information_triarm_summary"
         ].path,
-        "freeze_manifest": node_map()[
+        "nominal_freeze_manifest": node_map()[
             "static_s0_nominal_information_freeze_manifest"
         ].path,
-        "status": static_s0_nominal_interim["status"],
-        "formal_result": False,
-        "interim_analysis_only": True,
-        "confirmatory_analysis_complete": False,
+        "misindexed_freeze_manifest": node_map()[
+            "static_s0_misindexed_information_freeze_manifest"
+        ].path,
+        "status": static_s0_information_triarm["status"],
+        "formal_result": True,
+        "confirmatory_analysis_complete": True,
         "benchmark_claim_allowed": False,
-        "selected_world_seeds": static_s0_nominal_interim["execution"][
-            "selected_world_seeds"
-        ],
-        "preregistered_world_seeds": static_s0_nominal_interim["execution"][
-            "preregistered_world_seeds"
-        ],
-        "all_selected_cells_exact_replay_verified": static_s0_nominal_interim[
-            "execution"
-        ]["all_selected_cells_exact_replay_verified"],
-        "total_physical_experiments": static_s0_nominal_interim["accounting"][
-            "total_physical_experiments"
-        ],
-        "provider_calls": static_s0_nominal_interim["accounting"][
-            "provider_calls"
-        ],
-        "provider_retry_attempts": static_s0_nominal_interim["accounting"][
-            "provider_retry_attempts"
-        ],
+        "world_seeds": static_s0_information_triarm["execution"]["world_seeds"],
+        "all_sixty_cells_exact_replay_verified": (
+            static_s0_information_triarm["execution"][
+                "all_sixty_cells_exact_replay_verified"
+            ]
+        ),
+        "total_physical_experiments": static_s0_information_triarm["accounting"][
+            "three_arm_total"
+        ]["total_physical_experiments"],
+        "provider_calls": static_s0_information_triarm["accounting"][
+            "three_arm_total"
+        ]["provider_calls"],
+        "provider_retry_attempts": static_s0_information_triarm["accounting"][
+            "three_arm_total"
+        ]["provider_retry_attempts"],
         "task_results": {
             task_key: {
-                "nominal_mean": static_s0_nominal_interim["tasks"][task_key][
-                    "nominal_primary_score"
-                ]["mean"],
-                "opaque_mean": static_s0_nominal_interim["tasks"][task_key][
-                    "opaque_primary_score"
-                ]["mean"],
-                "paired_mean_difference": static_s0_nominal_interim["tasks"][
-                    task_key
-                ]["paired_nominal_minus_opaque"]["mean"],
-                "paired_world_bootstrap_95_interval": (
-                    static_s0_nominal_interim["tasks"][task_key][
-                        "paired_nominal_minus_opaque"
-                    ]["world_bootstrap_95_interval"]
+                "score_mean_by_arm": {
+                    arm: static_s0_information_triarm["tasks"][task_key][
+                        "primary_score_by_arm"
+                    ][arm]["mean"]
+                    for arm in ("opaque", "nominal", "misindexed")
+                },
+                "nominal_minus_opaque": (
+                    static_s0_information_triarm["tasks"][task_key][
+                        "paired_contrasts"
+                    ]["nominal_minus_opaque"]
                 ),
-                "interim_familywise_rule_preview": static_s0_nominal_interim[
-                    "tasks"
-                ][task_key]["interim_familywise_rule_preview"],
+                "misindexed_minus_nominal": (
+                    static_s0_information_triarm["tasks"][task_key][
+                        "paired_contrasts"
+                    ]["misindexed_minus_nominal"]
+                ),
+                "overall_recovery_claim": static_s0_information_triarm["tasks"][
+                    task_key
+                ]["recovery"]["overall_recovery_claim"],
             }
             for task_key in ("electrochemical", "crystallization")
         },
-        "remaining_confirmatory_world_seeds": [5, 6, 7, 8, 9],
         "interpretation": (
-            "Both five-world paired point estimates favor nominal information, "
-            "but both paired intervals cross zero. This is an interim descriptive "
-            "result, not the frozen ten-world confirmatory result."
+            "Correct anonymous nominal properties have positive confirmatory "
+            "information value for electrochemistry and an inconclusive effect for "
+            "crystallization. The fixed targeted wrong prior changes behavior in "
+            "both tasks, but neither task satisfies the preregistered overall "
+            "recovery claim."
         ),
     }
     task_design_validation = task_design_matrix["design_validation"]
@@ -2214,18 +2257,34 @@ def check_current_evidence() -> list[str]:
         errors.append("current registry omits replacement formal replay")
     if static_s0.get("hidden_world_change_evaluated") is not False:
         errors.append("current registry conflates static S0 with hidden world changes")
-    nominal_interim = current.get("static_material_information_interim", {})
-    if nominal_interim.get("formal_result") is not False:
-        errors.append("current registry promotes the nominal-information interim")
-    if nominal_interim.get("confirmatory_analysis_complete") is not False:
-        errors.append("current registry marks the partial information study complete")
+    information_triarm = current.get("static_material_information_three_arm", {})
+    if information_triarm.get("formal_result") is not True:
+        errors.append("current registry omits the formal three-arm information study")
+    if information_triarm.get("confirmatory_analysis_complete") is not True:
+        errors.append("current registry marks the three-arm information study incomplete")
     if (
-        nominal_interim.get("all_selected_cells_exact_replay_verified")
+        information_triarm.get("all_sixty_cells_exact_replay_verified")
         is not True
     ):
-        errors.append("current registry omits nominal-information replay")
-    if nominal_interim.get("remaining_confirmatory_world_seeds") != [5, 6, 7, 8, 9]:
-        errors.append("current registry hides remaining information-study worlds")
+        errors.append("current registry omits three-arm information replay")
+    if information_triarm.get("world_seeds") != list(range(10)):
+        errors.append("current registry has inconsistent three-arm world seeds")
+    task_results = information_triarm.get("task_results", {})
+    if (
+        task_results.get("electrochemical", {})
+        .get("nominal_minus_opaque", {})
+        .get("familywise_result")
+        != "positive_information_value"
+    ):
+        errors.append("current registry hides electrochemical information value")
+    if any(
+        task_results.get(task_key, {})
+        .get("overall_recovery_claim", {})
+        .get("passed")
+        is not False
+        for task_key in ("electrochemical", "crystallization")
+    ):
+        errors.append("current registry overclaims wrong-prior recovery")
     task_design = current.get("task_design", {})
     if (
         task_design.get("status")

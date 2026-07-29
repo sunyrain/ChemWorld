@@ -8,9 +8,10 @@
     "freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json",
     "formal_results_present": true,
     "benchmark_claim_allowed": false,
-    "nominal_information_interim_summary": "workstreams/flagship_tasks/reports/static-s0-v1.1-nominal-information-interim-5world-summary.json",
-    "nominal_information_interim_formal_result": false,
-    "nominal_information_confirmatory_analysis_complete": false
+    "material_information_three_arm_summary": "workstreams/flagship_tasks/reports/static-s0-v1.2-three-arm-information-campaign-summary.json",
+    "material_information_three_arm_formal_result": true,
+    "material_information_confirmatory_analysis_complete": true,
+    "material_information_all_sixty_cells_exact_replay_verified": true
   },
   "claims": [
     {
@@ -43,7 +44,7 @@
       "status": "contradicted_by_current_formal_result",
       "allowed_wording": "Codex mean 0.5355 trails LHS 0.5708 by 0.0353; the paired interval is [-0.0650,-0.0085].",
       "required_additional_experiment": "Freeze a crystallization superiority protocol against a primary classical comparator, with a margin, multiplicity rule, and untouched worlds.",
-      "boundary": "The negative v1.0 result remains part of the evidence; nominal-versus-opaque v1.1 asks an information-value question and does not resolve classical-algorithm superiority."
+      "boundary": "The negative v1.0 result remains part of the evidence; the three-arm material-information study asks information-value and wrong-prior questions and does not resolve classical-algorithm superiority."
     },
     {
       "claim_id": "C05",
@@ -104,25 +105,34 @@
     {
       "claim_id": "C12",
       "claim": "Correct anonymous nominal material properties improve participant performance.",
-      "status": "interim_positive_point_estimate_not_confirmatory",
-      "allowed_wording": "Across the first five paired worlds, electrochemical nominal information scores 0.7873 versus 0.6939 opaque (+0.0935), and crystallization scores 0.5507 versus 0.5173 opaque (+0.0334); both paired 95% intervals cross zero.",
-      "required_additional_experiment": "Complete preregistered seeds 5-9 for both tasks and apply the frozen per-task 97.5% paired-world intervals.",
-      "boundary": "Only half of the preregistered worlds are complete; do not claim confirmed positive information value."
+      "status": "supported_for_electrochemical_inconclusive_for_crystallization",
+      "allowed_wording": "Across ten paired worlds, electrochemical nominal information scores 0.7874 versus 0.7150 opaque (+0.0724; familywise 97.5% interval [+0.0074,+0.1546]), while crystallization scores 0.5615 versus 0.5355 (+0.0260; interval [-0.0130,+0.0630]).",
+      "required_additional_experiment": "Use an independent frozen replication before claiming cross-provider or broad task-general information value.",
+      "boundary": "The confirmatory positive information-value result is task-specific to electrochemistry; crystallization remains inconclusive."
+    },
+    {
+      "claim_id": "C13",
+      "claim": "After receiving a fixed targeted wrong material prior, the participant can discover the error and recover.",
+      "status": "not_supported_by_preregistered_joint_recovery_rule",
+      "allowed_wording": "The wrong prior caused the intended early action shift in both tasks. Electrochemical behavior corrected over time, but performance recovery to opaque was not established; crystallization performance remained non-inferior to opaque, but differential action correction was not established. Neither task passed the joint recovery rule.",
+      "required_additional_experiment": "For a broader recovery claim, preregister additional mappings, tasks, providers, and worlds, then require manipulation, differential behavioral correction, and performance recovery jointly.",
+      "boundary": "Crystallization's sampled-world score benefit under the wrong prior is not evidence that the model detected or corrected the misinformation."
     }
   ],
   "first_arxiv_decision": {
     "narrow_descriptive_submission_can_proceed_without_new_scientific_experiments": true,
     "conditions": [
       "Report the crystallization result as negative.",
-      "If the nominal-information extension is mentioned, label its five-world result interim and inconclusive.",
+      "Report correct-material information value as positive only for electrochemistry and inconclusive for crystallization.",
+      "Report that neither task passed the preregistered overall wrong-prior recovery rule.",
       "Label all algorithm comparisons descriptive and disclose the absent superiority and multiplicity preregistration.",
       "Exclude broad SOTA, provider-causal, private-generalization, mechanism-adaptation participant, and real-world transfer claims.",
       "Finish clean-release attestation, manuscript consistency, and independent artifact reproduction checks."
     ],
     "experiments_required_before_any_stronger_claim": [
       "Untouched preregistered crystallization superiority campaign against a primary classical comparator.",
-      "Remaining nominal-information seeds 5-9 for the frozen information-value claim.",
       "Independent model/provider replication.",
+      "A new frozen multi-mapping wrong-prior campaign if broad misinformation-recovery claims are retained.",
       "Aligned public/private generalization campaign.",
       "Current-source mechanism Gate A recertification plus participant Gates B-E if mechanism claims remain in scope.",
       "Independent backend or real/physical bridge for transfer claims."

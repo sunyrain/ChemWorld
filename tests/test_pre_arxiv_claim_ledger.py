@@ -18,6 +18,20 @@ def test_pre_arxiv_claim_ledger_separates_results_from_stronger_claims() -> None
     assert claims["C04"]["status"] == "contradicted_by_current_formal_result"
     assert claims["C06"]["status"] == "not_supported"
     assert claims["C11"]["status"] == "supported_internal_exact_replay"
+    assert (
+        claims["C12"]["status"]
+        == "supported_for_electrochemical_inconclusive_for_crystallization"
+    )
+    assert (
+        claims["C13"]["status"]
+        == "not_supported_by_preregistered_joint_recovery_rule"
+    )
+    assert (
+        ledger["current_formal_evidence"][
+            "material_information_all_sixty_cells_exact_replay_verified"
+        ]
+        is True
+    )
 
     decision = ledger["first_arxiv_decision"]
     assert (

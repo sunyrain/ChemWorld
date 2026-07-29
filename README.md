@@ -124,14 +124,15 @@ descriptively +0.0991 above the best information-matched baseline, but its inter
 calibration baseline crosses zero. Crystallization is below LHS (0.5708), so it does not support an outperformance
 claim. These comparisons were not preregistered with a superiority threshold or multiplicity plan.
 
-The paired S0 v1.1 correct-anonymous-material-information extension has
-completed the owner-requested first five worlds per task. Electrochemical
-scores 0.7873 nominal versus 0.6939 opaque (+0.0935), and crystallization
-scores 0.5507 versus 0.5173 (+0.0334). Both paired 95% intervals cross zero.
-All ten cells pass exact replay, accounting for 380 physical experiments, 210
-successful Codex subscription calls, five automatic retry attempts, and zero
-method failures. This is an interim descriptive result, not the frozen
-ten-world confirmatory result; seeds 5–9 remain unrun.
+The S0 material-information study is now complete across three arms, ten
+paired worlds, and both tasks. Correct anonymous properties improve
+electrochemical performance from 0.7150 opaque to 0.7874 nominal (+0.0724;
+familywise 97.5% interval [+0.0074,+0.1546]); crystallization changes from
+0.5355 to 0.5615 (+0.0260; [−0.0130,+0.0630]) and remains inconclusive.
+A fixed targeted wrong prior shifts early actions in both tasks, but neither
+task passes the preregistered joint recovery rule. All 60 cells pass exact
+replay: 2,280 physical experiments, 1,260 successful Codex subscription
+calls, five automatic retry attempts, and zero method failures.
 
 [`configs/current.json`](configs/current.json) is the authoritative status surface. It reports backend-contract
 validation, clean-release attestation, formal-evaluation readiness, and publication readiness as separate states.

@@ -2,10 +2,9 @@
 
 日期：2026-07-29
 
-当前执行状态：按负责人要求先完成每项 seed 0–4，共 10 个任务×世界单元。五世界结果仅作
-中期描述，不能应用冻结的完整确认性结论。结果见
-`workstreams/flagship_tasks/STATIC_S0_V1_1_NOMINAL_INFORMATION_INTERIM_5WORLD_RESULTS_ZH.md`。
-完整方案仍缺每项 seed 5–9。
+当前执行状态：每项 seed 0–9 已全部完成并精确 replay。确认性结果已并入
+`workstreams/flagship_tasks/STATIC_S0_V1_2_THREE_ARM_INFORMATION_RESULTS_ZH.md`；早先五世界报告仅保留
+为时间顺序记录，不再代表当前证据状态。
 
 ## 问题
 

@@ -21,26 +21,36 @@
 calibration 基线的区间跨 0。结晶低于 LHS 的 0.5708，因此不能声称优于经典基线。两项比较均未
 预注册 superiority 阈值或多重比较方案；正式结果存在不等于允许广义 benchmark 或 SOTA 主张。
 
-## 静态 S0 v1.1：正确匿名材料属性的五世界中期结果
+## 静态 S0 v1.2：匿名材料信息三臂确认性结果
 
-v1.1 保持世界、噪声命名空间、20 轮预算、预测诊断、盲测、模型与推理强度不变，只把正确但匿名的
-材料族名义属性加入公开上下文。它不提供真实材料身份、隐藏世界残差、活动机理、响应面、分数或
-最优配方。
+完整实验在相同的十个世界、噪声命名空间、20 轮预算、预测诊断、盲测、模型与推理强度上比较三臂：
+不提供材料属性的 `opaque`、提供正确匿名族级名义属性的 `nominal`，以及只把一个目标属性做固定
+两行互换的 `misindexed`。错误先验映射在任何 v1.2 provider 调用前冻结；电化学互换 E1/E3
+electrolyte profile 并保持 solvent 正确，结晶互换 C1/C2 catalyst 并保持 solvent 正确。
+三个条件都不提供真实材料身份、隐藏世界残差、活动机理、响应面、分数或最优配方。
 
-按负责人要求，本轮先执行每任务 seed 0–4，而不是预注册的 seed 0–9：
+正确属性的信息价值按冻结的双任务 familywise 97.5% 配对世界区间判断：
 
-| 任务 | nominal 盲测均值 | opaque 配对基线 | 配对差 | 95% 配对世界区间 | 胜/平/负 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Electrochemical Conversion | 0.7873 | 0.6939 | +0.0935 | [−0.0062, +0.2232] | 4/0/1 |
-| Reaction to Crystallization | 0.5507 | 0.5173 | +0.0334 | [−0.0307, +0.0929] | 3/0/2 |
+| 任务 | opaque | nominal | nominal − opaque | 97.5% 区间 | 结论 |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Electrochemical Conversion | 0.7150 | 0.7874 | +0.0724 | [+0.0074,+0.1546] | 正信息价值 |
+| Reaction to Crystallization | 0.5355 | 0.5615 | +0.0260 | [−0.0130,+0.0630] | 不确定 |
 
-10 个 task × world 单元均完成 20 次探索、12 次预测诊断物理实验和 6 次盲测验证；合计 380 次物理
-实验、210 次成功 Codex subscription 调用、5 次自动重试、0 个方法失败，全部精确 replay。
+错误先验的结果必须把“先验影响”“动作纠偏”“性能恢复”分开：
 
-两个点估计都偏正，但 95% 和每任务 97.5% familywise 区间均跨 0。机器状态因此是
-`completed_audited_interim_descriptive_result`、`formal_result=false`、
-`confirmatory_analysis_complete=false`。要执行冻结的确认性规则，仍需补齐每任务 seed 5–9。
-该实验回答材料信息价值，不回答 Codex 是否优于 LHS 等经典算法。
+| 任务 | misindexed | misindexed − nominal | 97.5% 区间 | 联合恢复 |
+| --- | ---: | ---: | ---: | --- |
+| Electrochemical Conversion | 0.6853 | −0.1020 | [−0.2101,−0.0078] | 失败：行为纠偏通过，性能恢复到 opaque 未通过 |
+| Reaction to Crystallization | 0.5845 | +0.0229 | [+0.0046,+0.0419] | 失败：性能非劣于 opaque，差分行为纠偏未通过 |
+
+两个任务的早期动作操纵检验都通过，证明 dossier 确实影响策略；但两个任务都没有同时满足操纵、
+差分行为纠偏和性能恢复三个预注册分量。因此不能声称模型普遍能发现并恢复错误先验，也不能把
+结晶在这组世界中的分数收益解释成成功纠错。
+
+60 个 task × world × arm 单元全部完成并精确 replay：1,200 次探索、720 次预测诊断和
+360 次盲测验证，共 2,280 次物理实验；1,260 次成功 Codex subscription 调用、5 次自动重试、
+0 个方法失败。该实验回答材料信息价值与定向错误先验响应，不回答 Codex 是否优于 LHS 等经典算法，
+也不支持跨映射、跨任务或跨 provider 泛化。
 
 ## 15 任务优化设计状态
 
@@ -79,7 +89,7 @@ Showcase 卡片不是确认性证据；确认性任务也不必出现在首页�
 | A2 controlled identifiability | 历史 RC28 **passed**，4,896/4,896 receipts；当前源码绑定 stale |
 | A3 online attainability | 历史 RC28 **passed**，2,016/2,016 receipts；当前源码绑定 stale |
 | Static S0 Participant Agent | v1.0 十世界正式描述性结果完成；电化学正面、结晶未超过 LHS |
-| S0 v1.1 nominal-information extension | seed 0–4 完成；两任务点估计为正但区间跨 0，确认性结论未完成 |
+| S0 v1.2 三臂材料信息实验 | 60/60 单元完成并精确 replay；电化学正确信息价值通过，结晶不确定；两任务整体恢复均失败 |
 | Mechanism-adaptation Participant Gates B–E | 延期研究扩展；Flash Direct/Stateful S1/S2 均为 0/4 autonomous completion，正式矩阵未启动 |
 | Private-E environment confirmation | eligible，尚未执行 |
 | Private-A participant-Agent confirmation | sealed，等待 participant freeze |

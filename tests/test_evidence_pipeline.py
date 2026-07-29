@@ -25,7 +25,8 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert "mechanism_confirmatory_task_semantics_audit" in node_ids
     assert "static_s0_formal_campaign_summary" in node_ids
     assert "static_s0_nominal_information_freeze_manifest" in node_ids
-    assert "static_s0_nominal_information_interim_summary" in node_ids
+    assert "static_s0_misindexed_information_freeze_manifest" in node_ids
+    assert "static_s0_material_information_triarm_summary" in node_ids
     assert "pre_arxiv_claim_evidence_ledger" in node_ids
     assert "task_design_matrix" in node_ids
     assert not any(node_id.startswith("ncs_") for node_id in node_ids)
@@ -82,17 +83,22 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
 
     assert current["runtime"]["contract_validation"] == "passed"
     assert current["formal_evaluation"]["benchmark_claim_allowed"] is False
-    nominal_interim = current["static_material_information_interim"]
-    assert nominal_interim["formal_result"] is False
-    assert nominal_interim["confirmatory_analysis_complete"] is False
-    assert nominal_interim["all_selected_cells_exact_replay_verified"] is True
-    assert nominal_interim["remaining_confirmatory_world_seeds"] == [5, 6, 7, 8, 9]
-    assert nominal_interim["task_results"]["electrochemical"][
-        "interim_familywise_rule_preview"
+    triarm = current["static_material_information_three_arm"]
+    assert triarm["formal_result"] is True
+    assert triarm["confirmatory_analysis_complete"] is True
+    assert triarm["all_sixty_cells_exact_replay_verified"] is True
+    assert triarm["world_seeds"] == list(range(10))
+    assert triarm["task_results"]["electrochemical"]["nominal_minus_opaque"][
+        "familywise_result"
+    ] == "positive_information_value"
+    assert triarm["task_results"]["crystallization"]["nominal_minus_opaque"][
+        "familywise_result"
     ] == "inconclusive"
-    assert nominal_interim["task_results"]["crystallization"][
-        "interim_familywise_rule_preview"
-    ] == "inconclusive"
+    assert all(
+        triarm["task_results"][task_key]["overall_recovery_claim"]["passed"]
+        is False
+        for task_key in ("electrochemical", "crystallization")
+    )
     assert current["publication"]["status"] == "working_manuscript_not_submission_ready"
     assert current["publication"]["publication_ready"] is False
     assert current["task_design"] == {

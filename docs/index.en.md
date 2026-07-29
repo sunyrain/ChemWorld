@@ -40,12 +40,13 @@ electrochemical descriptive difference against the best information-matched
 baseline is +0.0991; crystallization trails LHS (0.5708). No superiority
 threshold was preregistered, so these results do not support a broad SOTA claim.
 
-The paired S0 v1.1 extension that supplies correct anonymous nominal material
-properties has completed the owner-requested first five worlds per task.
-Electrochemical scores **0.7873** nominal versus 0.6939 opaque (+0.0935);
-crystallization scores **0.5507** versus 0.5173 (+0.0334). Both paired 95%
-intervals cross zero. This is a positive but inconclusive five-world interim,
-not the frozen ten-world confirmatory result; seeds 5–9 remain unrun.
+The S0 material-information extension is complete across opaque, correct
+anonymous, and fixed targeted wrong-prior arms. Across ten paired worlds,
+electrochemical scores **0.7874** nominal versus 0.7150 opaque (+0.0724;
+familywise 97.5% interval [+0.0074,+0.1546]); crystallization scores
+**0.5615** versus 0.5355 (+0.0260; [−0.0130,+0.0630]) and is inconclusive.
+The wrong prior shifts early actions in both tasks, but neither task passes
+the preregistered joint recovery rule. All 60 cells pass exact replay.
 
 The design audit covers all 15 complete-experiment adapters: they pass 415
 end-to-end cases, and all 62 declared metrics bind to executable endpoints. Only two tasks have formal

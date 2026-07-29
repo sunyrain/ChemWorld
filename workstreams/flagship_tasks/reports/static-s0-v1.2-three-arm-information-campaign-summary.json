@@ -1,0 +1,3261 @@
+{
+  "accounting": {
+    "by_arm": {
+      "misindexed": {
+        "blind_validation_experiments": 120,
+        "exploration_experiments": 400,
+        "method_failures": 0,
+        "participant_world_cells": 20,
+        "predictive_physical_experiments": 240,
+        "provider_attempts": 420,
+        "provider_calls": 420,
+        "provider_retry_attempts": 0,
+        "total_physical_experiments": 760
+      },
+      "nominal": {
+        "blind_validation_experiments": 120,
+        "exploration_experiments": 400,
+        "method_failures": 0,
+        "participant_world_cells": 20,
+        "predictive_physical_experiments": 240,
+        "provider_attempts": 425,
+        "provider_calls": 420,
+        "provider_retry_attempts": 5,
+        "total_physical_experiments": 760
+      },
+      "opaque": {
+        "blind_validation_experiments": 120,
+        "exploration_experiments": 400,
+        "method_failures": 0,
+        "participant_world_cells": 20,
+        "predictive_physical_experiments": 240,
+        "provider_attempts": 420,
+        "provider_calls": 420,
+        "provider_retry_attempts": 0,
+        "total_physical_experiments": 760
+      }
+    },
+    "new_work_completed_in_this_continuation": {
+      "method_failures": 0,
+      "participant_world_cells": 30,
+      "provider_calls": 630,
+      "total_physical_experiments": 1140
+    },
+    "three_arm_total": {
+      "blind_validation_experiments": 360,
+      "exploration_experiments": 1200,
+      "method_failures": 0,
+      "participant_world_cells": 60,
+      "predictive_physical_experiments": 720,
+      "provider_attempts": 1265,
+      "provider_calls": 1260,
+      "provider_retry_attempts": 5,
+      "total_physical_experiments": 2280
+    }
+  },
+  "analysis": {
+    "bootstrap_resamples": 100000,
+    "bootstrap_seed": 20260729,
+    "pairing_key": "task_id_and_world_seed",
+    "performance_recovery_margin": 0.05,
+    "two_task_familywise_interval": "paired_world_bootstrap_97.5_percent_per_task",
+    "unit": "independent_world"
+  },
+  "benchmark_claim_allowed": false,
+  "confirmatory_analysis_complete": true,
+  "execution": {
+    "all_sixty_cells_exact_replay_verified": true,
+    "all_three_arms_completed": true,
+    "roots": {
+      "misindexed": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729",
+      "nominal": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729",
+      "opaque": "runs\\formal\\static-s0-v10-codex-subscription-20260729"
+    },
+    "source_commits": {
+      "misindexed": "5f5d8b51bb7b987a3de5ac57e1890abcdc4ff0f2",
+      "nominal": "52d317e49887d4b918eb65319d57542126c6bb17",
+      "opaque": "555896ce3f6b6d6455ab9e0605e01063057889da"
+    },
+    "world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  "formal_result": true,
+  "freeze": {
+    "misindexed_manifest_path": "configs\\benchmark\\scientific_optimization_s0_v1.2_misindexed_information_freeze_manifest.json",
+    "misindexed_manifest_sha256": "a709191b5cbc6ca55c9eb07bda82be074fd9aa323d126ff0e4a342251f40fa0a",
+    "nominal_manifest_path": "configs\\benchmark\\scientific_optimization_s0_v1.1_nominal_information_freeze_manifest.json",
+    "nominal_manifest_sha256": "17b569a7bfaeac1ea900dcfb434218e4d18524fba525ae300b120705565acc3e"
+  },
+  "reporting_boundaries": {
+    "broad_generalization_claim_allowed": false,
+    "broad_recovery_generalization_claim_allowed": false,
+    "hidden_world_residuals_supplied": false,
+    "intervention_scope": "one fixed targeted whole-row transposition per task",
+    "material_properties": "anonymous_nominal_family_level_priors_only",
+    "opaque_v1_0_freeze_mutated": false,
+    "post_nominal_sequential_extension": true,
+    "primary_endpoint": "paired_blind_validated_final_recommendation_score_mean",
+    "provider_causal_effect_claim_allowed": false,
+    "real_material_identity_claim_allowed": false,
+    "sampled_world_scope_only": true,
+    "world_specific_adversarial_mapping": false
+  },
+  "schema_version": "chemworld-static-s0-material-information-triarm-result-1.0",
+  "status": "completed_audited_formal_three_arm_result",
+  "tasks": {
+    "crystallization": {
+      "misindexing_contract": {
+        "fixed_across_worlds": true,
+        "misleading_action_value": 2,
+        "nominal_source_action_value": 1,
+        "non_target_material_field_remains_correct": true,
+        "qualification_report_path": "workstreams/flagship_tasks/reports/static-s0-crystallization-material-family-v1-qualification-v0.1.json",
+        "qualification_report_sha256": "bed967532b69b2fbd28128e6060d7eead2304ee3fbb7c5a0df02af38d71ac7bc",
+        "selection_evidence": {
+          "qualification_world_seeds": [
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113,
+            114
+          ],
+          "selection_rule": "swap a standardized-design winner with the only catalyst absent from the qualification winners while leaving solvent information correct",
+          "standardized_misleading_target_is_a_winner": false,
+          "standardized_nominal_source_is_a_winner": true
+        },
+        "single_two_row_transposition": true,
+        "source_index_by_action_value": [
+          0,
+          2,
+          1,
+          3
+        ],
+        "target_field": "catalyst"
+      },
+      "paired_contrasts": {
+        "misindexed_minus_nominal": {
+          "count": 10,
+          "familywise_result": "wrong_prior_benefit_in_sampled_worlds",
+          "maximum": 0.0736258615555716,
+          "mean": 0.02293631622177918,
+          "median": 0.024188807780130578,
+          "minimum": -0.022901827223474225,
+          "paired_win_tie_loss": {
+            "losses": 1,
+            "ties": 0,
+            "wins": 9
+          },
+          "sample_standard_deviation": 0.027657874640494184,
+          "world_bootstrap_95_interval": [
+            0.0068109484395993455,
+            0.03934742400926818
+          ],
+          "world_bootstrap_97_5_interval": [
+            0.004649322216336826,
+            0.041851101768914205
+          ]
+        },
+        "misindexed_minus_opaque": {
+          "count": 10,
+          "maximum": 0.13591136467410414,
+          "mean": 0.048981384341189,
+          "median": 0.04643115481065285,
+          "minimum": -0.04910375374441889,
+          "paired_win_tie_loss": {
+            "losses": 1,
+            "ties": 0,
+            "wins": 9
+          },
+          "sample_standard_deviation": 0.05544886208558528,
+          "world_bootstrap_95_interval": [
+            0.016300268654503514,
+            0.08081790503850861
+          ],
+          "world_bootstrap_97_5_interval": [
+            0.011581320061050166,
+            0.08574469531248688
+          ]
+        },
+        "nominal_minus_opaque": {
+          "count": 10,
+          "familywise_result": "inconclusive",
+          "maximum": 0.10650966916157417,
+          "mean": 0.026045068119409813,
+          "median": 0.031810278545736315,
+          "minimum": -0.07264691724175104,
+          "paired_win_tie_loss": {
+            "losses": 3,
+            "ties": 0,
+            "wins": 7
+          },
+          "sample_standard_deviation": 0.05702593785789753,
+          "world_bootstrap_95_interval": [
+            -0.007826753095298677,
+            0.05883906418704824
+          ],
+          "world_bootstrap_97_5_interval": [
+            -0.013020160918153549,
+            0.06296562843620451
+          ]
+        }
+      },
+      "predictive_secondary_diagnostic_mean_by_arm": {
+        "misindexed": {
+          "confidence_brier_score": 0.3159177777777778,
+          "directional_accuracy": 0.4333333333333333,
+          "nontrivial_actual_effect_rate": 0.5333333333333333
+        },
+        "nominal": {
+          "confidence_brier_score": 0.3155988888888889,
+          "directional_accuracy": 0.4333333333333333,
+          "nontrivial_actual_effect_rate": 0.611111111111111
+        },
+        "opaque": {
+          "confidence_brier_score": 0.29762777777777777,
+          "directional_accuracy": 0.47777777777777775,
+          "nontrivial_actual_effect_rate": 0.5888888888888888
+        }
+      },
+      "primary_score_by_arm": {
+        "misindexed": {
+          "count": 10,
+          "maximum": 0.6402596199737572,
+          "mean": 0.5844651824615941,
+          "median": 0.5849808117227618,
+          "minimum": 0.5205338963501792,
+          "sample_standard_deviation": 0.03820015349753784
+        },
+        "nominal": {
+          "count": 10,
+          "maximum": 0.6038618083298735,
+          "mean": 0.5615288662398149,
+          "median": 0.5601445365405993,
+          "minimum": 0.49699073285284706,
+          "sample_standard_deviation": 0.030944429204871265
+        },
+        "opaque": {
+          "count": 10,
+          "maximum": 0.5929743341336673,
+          "mean": 0.5354837981204051,
+          "median": 0.5469895847148523,
+          "minimum": 0.4532023901918623,
+          "sample_standard_deviation": 0.05113624750679398
+        }
+      },
+      "recovery": {
+        "differential_action_correction": {
+          "count": 10,
+          "maximum": 0.6,
+          "mean": -0.28,
+          "median": -0.2,
+          "minimum": -1.0,
+          "paired_win_tie_loss": {
+            "losses": 5,
+            "ties": 2,
+            "wins": 3
+          },
+          "passed": false,
+          "sample_standard_deviation": 0.5513619500836089,
+          "world_bootstrap_95_interval": [
+            -0.6,
+            0.039999999999999994
+          ],
+          "world_bootstrap_97_5_interval": [
+            -0.64,
+            0.08
+          ]
+        },
+        "early_misleading_share_by_arm": {
+          "misindexed": {
+            "count": 10,
+            "maximum": 1.0,
+            "mean": 0.86,
+            "median": 1.0,
+            "minimum": 0.4,
+            "sample_standard_deviation": 0.2503331114069145
+          },
+          "nominal": {
+            "count": 10,
+            "maximum": 0.2,
+            "mean": 0.08,
+            "median": 0.0,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.10327955589886445
+          },
+          "opaque": {
+            "count": 10,
+            "maximum": 0.8,
+            "mean": 0.22000000000000003,
+            "median": 0.2,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.23944379994757295
+          }
+        },
+        "final_action_misleading_rate_by_arm": {
+          "misindexed": 0.5,
+          "nominal": 0.0,
+          "opaque": 0.1
+        },
+        "first_action_misleading_rate_by_arm": {
+          "misindexed": 1.0,
+          "nominal": 0.0,
+          "opaque": 0.0
+        },
+        "late_misleading_share_by_arm": {
+          "misindexed": {
+            "count": 10,
+            "maximum": 1.0,
+            "mean": 0.5,
+            "median": 0.5,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.5270462766947299
+          },
+          "nominal": {
+            "count": 10,
+            "maximum": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.0
+          },
+          "opaque": {
+            "count": 10,
+            "maximum": 0.4,
+            "mean": 0.04,
+            "median": 0.0,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.1264911064067352
+          }
+        },
+        "manipulation_check": {
+          "count": 10,
+          "maximum": 1.0,
+          "mean": 0.78,
+          "median": 0.8,
+          "minimum": 0.4,
+          "paired_win_tie_loss": {
+            "losses": 0,
+            "ties": 0,
+            "wins": 10
+          },
+          "passed": true,
+          "sample_standard_deviation": 0.22010098692292238,
+          "world_bootstrap_95_interval": [
+            0.64,
+            0.9
+          ],
+          "world_bootstrap_97_5_interval": [
+            0.62,
+            0.9199999999999999
+          ]
+        },
+        "misleading_action_value": 2,
+        "overall_recovery_claim": {
+          "passed": false,
+          "required_components": {
+            "differential_action_correction": false,
+            "manipulation_check": true,
+            "performance_recovery_to_opaque": true
+          }
+        },
+        "performance_recovery_to_opaque": {
+          "one_sided_familywise_lower_97_5_bound": 0.01614523479827691,
+          "passed": true,
+          "practical_score_margin": 0.05
+        },
+        "performance_restoration_to_nominal": {
+          "one_sided_familywise_lower_97_5_bound": 0.006940767032193202,
+          "passed": true,
+          "practical_score_margin": 0.05
+        },
+        "target_field": "catalyst"
+      },
+      "target_field": "catalyst",
+      "task_id": "reaction-to-crystallization",
+      "worlds": [
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                2,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 0.4,
+              "final_action": 3,
+              "final_action_is_misleading": false,
+              "first_action": 2,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-00\\postrun_audit.json",
+              "audit_sha256": "e0aeb9af9d00b463e0f28b9624230ac67fe14277b10bdfffe367d980abf17a3e",
+              "exact_replay_verified": true,
+              "primary_score": 0.5955356102530983,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-00\\report.json",
+              "report_sha256": "796893ddc808e4da734a17669c424db23890f9091cc64d0585b63bbc54b97379",
+              "world_seed": 0
+            },
+            "primary_score": 0.5955356102530983
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                0,
+                1,
+                1,
+                1,
+                3,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-00\\postrun_audit.json",
+              "audit_sha256": "1db7fbe6626b6f9cd9f7da4672bed03a50909513df51a45509f2ca6caac60962",
+              "exact_replay_verified": true,
+              "primary_score": 0.565965671991601,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-00\\report.json",
+              "report_sha256": "8708d67181151332cf4be63040c9750f4f425d430ec0dbac1a59246fdd833044",
+              "world_seed": 0
+            },
+            "primary_score": 0.565965671991601
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                3,
+                0,
+                0,
+                0
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 0,
+              "final_action_is_misleading": false,
+              "first_action": 0,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-00\\postrun_audit.json",
+              "audit_sha256": "db3538730e5f6e0ba5fa5bd785e1782ef5c51326cac7cc0e8dab2f44f762bb2a",
+              "exact_replay_verified": true,
+              "primary_score": 0.5929743341336673,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-00\\report.json",
+              "report_sha256": "5f580c71ee65768df9d5a8d3e0633ea1d024a64fbb68f4bf998f5461c99a2a18",
+              "world_seed": 0
+            },
+            "primary_score": 0.5929743341336673
+          },
+          "world_seed": 0
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                2,
+                2,
+                0,
+                3,
+                0,
+                1,
+                2,
+                2,
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 0.4,
+              "final_action": 2,
+              "final_action_is_misleading": true,
+              "first_action": 2,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 1.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-01\\postrun_audit.json",
+              "audit_sha256": "ab14b20a899b7b96e4f0b216d53aff4001156333dd6719809f4b5c92dac1d91e",
+              "exact_replay_verified": true,
+              "primary_score": 0.5368102321299623,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-01\\report.json",
+              "report_sha256": "ccb2f78bbdeb1676397914a8cd46b8f113cfb7afde9eb36fe94fb02bd01707e3",
+              "world_seed": 1
+            },
+            "primary_score": 0.5368102321299623
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-01\\postrun_audit.json",
+              "audit_sha256": "824c55ac4160e999eb80a8be97167cd11a14a186dcaf9ed7bc4a318fff7b84f2",
+              "exact_replay_verified": true,
+              "primary_score": 0.5597120593534365,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-01\\report.json",
+              "report_sha256": "0d4b06f93977c191d4e6cf8b44ed74949f6315c2c20c6e09a9c7c8b39b13601c",
+              "world_seed": 1
+            },
+            "primary_score": 0.5597120593534365
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                1,
+                2,
+                1,
+                0,
+                0,
+                0,
+                3,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 0,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-01\\postrun_audit.json",
+              "audit_sha256": "e913264a02922bf0ec0717b42c2fa0bd98d94bb01cb0218022eb4f958f9d0433",
+              "exact_replay_verified": true,
+              "primary_score": 0.4532023901918623,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-01\\report.json",
+              "report_sha256": "a4455f6d45beb24f5438c96142b52c4c55baeb1c817ae9384ed566418bccc92c",
+              "world_seed": 1
+            },
+            "primary_score": 0.4532023901918623
+          },
+          "world_seed": 1
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                2,
+                2,
+                2,
+                2,
+                3,
+                3,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.8,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 2,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-02\\postrun_audit.json",
+              "audit_sha256": "3ac294808952a071f9a441b971a4d1ad251fcdd805448f5e698bd3c3c61df805",
+              "exact_replay_verified": true,
+              "primary_score": 0.6402596199737572,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-02\\report.json",
+              "report_sha256": "eb38739aaaaca9dee0c3fa665e6561ce9cf07d7d09b9146d21b4065258909560",
+              "world_seed": 2
+            },
+            "primary_score": 0.6402596199737572
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 0,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-02\\postrun_audit.json",
+              "audit_sha256": "64930e0c808ae9d0f1cc9b6ad104256195370b2da77d75e3a2bdbd9628c50e03",
+              "exact_replay_verified": true,
+              "primary_score": 0.5955667824752994,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-02\\report.json",
+              "report_sha256": "acf26a9ba728607a2cf90c713621e89ab7d87e3783326b54de7eac73664e2ddb",
+              "world_seed": 2
+            },
+            "primary_score": 0.5955667824752994
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                1,
+                0,
+                2,
+                1,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 3,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-02\\postrun_audit.json",
+              "audit_sha256": "1ba014017335452f22a3ed51170f81fe44f70ba69d7390dee3a27cb583881e1e",
+              "exact_replay_verified": true,
+              "primary_score": 0.5043482552996531,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-02\\report.json",
+              "report_sha256": "6bff2a534ab34d64dfe206a8995528ce5ebf27030ecca9ead04630ed8f4a6afb",
+              "world_seed": 2
+            },
+            "primary_score": 0.5043482552996531
+          },
+          "world_seed": 2
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 2,
+              "final_action_is_misleading": true,
+              "first_action": 2,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 1.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-03\\postrun_audit.json",
+              "audit_sha256": "48dd06f1419ca6a25e444befe8ff4cf79b38ed1d6eb7e9cb8b9469565ed78b7f",
+              "exact_replay_verified": true,
+              "primary_score": 0.5810584611444451,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-03\\report.json",
+              "report_sha256": "3077872a6f10689cabe6c6e0042340d9523af670cb53204bb4080bbb076b9cc4",
+              "world_seed": 3
+            },
+            "primary_score": 0.5810584611444451
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                0,
+                1,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-03\\postrun_audit.json",
+              "audit_sha256": "5641323c8d3176104152c9edadabc65181fcb50b59d671b4b6e00f360070b893",
+              "exact_replay_verified": true,
+              "primary_score": 0.5350674377200487,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-03\\report.json",
+              "report_sha256": "b0fc2598e668f8d0de100a4ea113ccc026875a564e94f26e1e2ae8c6e384c923",
+              "world_seed": 3
+            },
+            "primary_score": 0.5350674377200487
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                0,
+                1,
+                2,
+                3,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                0,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 0,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-03\\postrun_audit.json",
+              "audit_sha256": "be69eacc8d9418fe00d361b435d547fde5440e2fe10c37e989ed24965c869d5d",
+              "exact_replay_verified": true,
+              "primary_score": 0.46617233363120264,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-03\\report.json",
+              "report_sha256": "00a4a5661164e7156b20f76216c2ae7c9107865e9dea91ef05c575a99c967391",
+              "world_seed": 3
+            },
+            "primary_score": 0.46617233363120264
+          },
+          "world_seed": 3
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 2,
+              "final_action_is_misleading": true,
+              "first_action": 2,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 1.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-04\\postrun_audit.json",
+              "audit_sha256": "96ba6cc093cf4398c42bfcbf6a7693e818315c1712ecad9532c01342f4170d46",
+              "exact_replay_verified": true,
+              "primary_score": 0.5205338963501792,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-04\\report.json",
+              "report_sha256": "a400b732fbf796e6656b0417f6de11cf8b578ec75fbdcc547d447a8d627ebfc0",
+              "world_seed": 4
+            },
+            "primary_score": 0.5205338963501792
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                3,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 3,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-04\\postrun_audit.json",
+              "audit_sha256": "cdfacf165cb5aff01aba26c6c339c1d9af2aea3ed2fadd9a166f20976c49515c",
+              "exact_replay_verified": true,
+              "primary_score": 0.49699073285284706,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-04\\report.json",
+              "report_sha256": "b20028bbbbf9910d92d702a77ffc5dffc291783d1018ca5385ccb288f48cb4fa",
+              "world_seed": 4
+            },
+            "primary_score": 0.49699073285284706
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 0,
+              "final_action_is_misleading": false,
+              "first_action": 0,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-04\\postrun_audit.json",
+              "audit_sha256": "9e6fa35315f1a8812c7f849ab127e5a0351e1cd86c82a1c4741638b033b34f09",
+              "exact_replay_verified": true,
+              "primary_score": 0.5696376500945981,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-04\\report.json",
+              "report_sha256": "0bbedba18d3bab3e9a31d4243ae93a4f929099b8dce64b851aa56e24a0b12c19",
+              "world_seed": 4
+            },
+            "primary_score": 0.5696376500945981
+          },
+          "world_seed": 4
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 3,
+              "final_action_is_misleading": false,
+              "first_action": 2,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-05\\postrun_audit.json",
+              "audit_sha256": "c39d8223c1212d47c23d559c8884cd90ab5646fc8313b2ec55d7400cfb1800a4",
+              "exact_replay_verified": true,
+              "primary_score": 0.5889031623010785,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-05\\report.json",
+              "report_sha256": "33fb13ff10e787856cd86c9cdf1d4781912f17b3fe51dba26e149026e6e4cb52",
+              "world_seed": 5
+            },
+            "primary_score": 0.5889031623010785
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                0,
+                2,
+                1,
+                3,
+                3,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-05\\postrun_audit.json",
+              "audit_sha256": "b87f010614aeab7112d7a2cfc946c24fe3f12adb9b8af9f833e4577729bb74a3",
+              "exact_replay_verified": true,
+              "primary_score": 0.5876212545665332,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-05\\report.json",
+              "report_sha256": "d4d9cd0b8bc6099861d57c4a28eb824a733733db644450cc76e121b7de681ebb",
+              "world_seed": 5
+            },
+            "primary_score": 0.5876212545665332
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                1,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                3,
+                3,
+                2,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 0.8,
+              "final_action": 3,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-05\\postrun_audit.json",
+              "audit_sha256": "204c75b3e29d62ea4fd3ec29df2e6df165ffb84bc458dafadb877701502d77dc",
+              "exact_replay_verified": true,
+              "primary_score": 0.5429670881019305,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-05\\report.json",
+              "report_sha256": "518b4e9d755c62458109f635e466fe30550504e8e82cde104463b598b7afcd99",
+              "world_seed": 5
+            },
+            "primary_score": 0.5429670881019305
+          },
+          "world_seed": 5
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 2,
+              "final_action_is_misleading": true,
+              "first_action": 2,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 1.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-06\\postrun_audit.json",
+              "audit_sha256": "d9b6493ddfc1396fdd9b0acf64bcd0fca38f10fecb9671f4af76233b1dff1c8c",
+              "exact_replay_verified": true,
+              "primary_score": 0.5774461878588787,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-06\\report.json",
+              "report_sha256": "b610fbd4c51d2df4e3747cff846ae2f1bf6fab8607dad8d3aa7a66266fd36366",
+              "world_seed": 6
+            },
+            "primary_score": 0.5774461878588787
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                0,
+                0,
+                0,
+                0,
+                3,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 0,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-06\\postrun_audit.json",
+              "audit_sha256": "dbaf4a30adfaf94d6853a1458a476b9f57c4f53dc28e3b7aa77a48c240889c55",
+              "exact_replay_verified": true,
+              "primary_score": 0.5526117357959497,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-06\\report.json",
+              "report_sha256": "d4b9f47eb5e0d9fc531c67dfeeba78ba0ea3f4f323d05d4275199a96c2c44906",
+              "world_seed": 6
+            },
+            "primary_score": 0.5526117357959497
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                1,
+                2,
+                1,
+                1,
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2,
+                1,
+                3,
+                2,
+                2,
+                2,
+                3,
+                1,
+                1,
+                2
+              ],
+              "early_misleading_share": 0.4,
+              "final_action": 2,
+              "final_action_is_misleading": true,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.4
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-06\\postrun_audit.json",
+              "audit_sha256": "853ee02dbf8fe322aabe75a15c7881233f7b675a67887593ba2e10f3008ae6d9",
+              "exact_replay_verified": true,
+              "primary_score": 0.5023517908591836,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-06\\report.json",
+              "report_sha256": "631527549891a31f08046f0c576e557be1b76b08c247585e77f259c67c723564",
+              "world_seed": 6
+            },
+            "primary_score": 0.5023517908591836
+          },
+          "world_seed": 6
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 3,
+              "final_action_is_misleading": false,
+              "first_action": 2,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-07\\postrun_audit.json",
+              "audit_sha256": "c35ff3c3df32d1800a43617cb0dab9804755c81d3ecdd0ecdb04c453149489ea",
+              "exact_replay_verified": true,
+              "primary_score": 0.6342028752833335,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-07\\report.json",
+              "report_sha256": "d6eb79c41a3dfda3c0b9cc620a04edf4a2325e9413fc42e3c83b9d018486aff2",
+              "world_seed": 7
+            },
+            "primary_score": 0.6342028752833335
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                0,
+                1,
+                1,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 3,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-07\\postrun_audit.json",
+              "audit_sha256": "56abdfcca0d26c3f7940459de8d26aeefb9a57038f709580cc29211f871dce1b",
+              "exact_replay_verified": true,
+              "primary_score": 0.5605770137277619,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-07\\report.json",
+              "report_sha256": "9a9097d70f890686a53f31329f713cc10dc2fb4e60c97f4eec1176fab2380b7c",
+              "world_seed": 7
+            },
+            "primary_score": 0.5605770137277619
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 0,
+              "final_action_is_misleading": false,
+              "first_action": 0,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-07\\postrun_audit.json",
+              "audit_sha256": "0434b4aae1061bead0bbda7bdc4aee9eb83637ed245270981e88ba17ccfe34f9",
+              "exact_replay_verified": true,
+              "primary_score": 0.5872766398611758,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-07\\report.json",
+              "report_sha256": "b0cdb8076533226e5358b777042a10c27f1542c06ed6c1bb93fd4b5d5992d35b",
+              "world_seed": 7
+            },
+            "primary_score": 0.5872766398611758
+          },
+          "world_seed": 7
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                3,
+                3,
+                1,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 3,
+              "final_action_is_misleading": false,
+              "first_action": 2,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-08\\postrun_audit.json",
+              "audit_sha256": "6d81abb9941ae091f959960a4353beab47bebe72940afb2f561bf793806a11fe",
+              "exact_replay_verified": true,
+              "primary_score": 0.5627629349244615,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-08\\report.json",
+              "report_sha256": "f04c81cbfdee28320418663ccdfc7f8e9bbc0d6589707bbe389b86ee672f13f7",
+              "world_seed": 8
+            },
+            "primary_score": 0.5627629349244615
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                0,
+                0,
+                0,
+                3,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 0,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-08\\postrun_audit.json",
+              "audit_sha256": "c74fd20877525ddbffdc89254a85e2267a0a45fac4e33849639f11bcb8a16050",
+              "exact_replay_verified": true,
+              "primary_score": 0.5573141655847981,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-08\\report.json",
+              "report_sha256": "0d4a6537a6364b7904cfb4c4e2eec45dbd660cdaf233baac2521cff9577c8d4d",
+              "world_seed": 8
+            },
+            "primary_score": 0.5573141655847981
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                0,
+                1,
+                2,
+                1,
+                1,
+                3,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 0,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-08\\postrun_audit.json",
+              "audit_sha256": "329810ee01da59ab1fc2cca71b568cb67bc6dd717af0a287ef1027b3074b727c",
+              "exact_replay_verified": true,
+              "primary_score": 0.5510120813277739,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-08\\report.json",
+              "report_sha256": "8e06f13d679ecda198bb668aecd3b7eedae845f59038bd7f435a3906e1111b2b",
+              "world_seed": 8
+            },
+            "primary_score": 0.5510120813277739
+          },
+          "world_seed": 8
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 2,
+              "final_action_is_misleading": true,
+              "first_action": 2,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 1.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-09\\postrun_audit.json",
+              "audit_sha256": "3dd6d3ca61757dc4881658b2f7e05b9331a699ec26ae37ac739cdc6c8258af8d",
+              "exact_replay_verified": true,
+              "primary_score": 0.6071388443967464,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\crystallization\\world-09\\report.json",
+              "report_sha256": "010855e807f0206ac05c20aed3917ed96e1952bec2e539a5d5b1a21301f0f6f7",
+              "world_seed": 9
+            },
+            "primary_score": 0.6071388443967464
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 3,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-09\\postrun_audit.json",
+              "audit_sha256": "a7b0fbb3ac4c55790fdc40c74c6de2afd6921b9c4693bb690e3d038ca33b3b9d",
+              "exact_replay_verified": true,
+              "primary_score": 0.6038618083298735,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-09\\report.json",
+              "report_sha256": "f45634ba31355c457a31ebe286c5200bc551098ccc55ff295f50965865ecb902",
+              "world_seed": 9
+            },
+            "primary_score": 0.6038618083298735
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                2,
+                1,
+                3,
+                1,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 3,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-09\\postrun_audit.json",
+              "audit_sha256": "8ad6f170f5e3d61d04a3023c45931ab5e583432e5df7787e8e87644a98559248",
+              "exact_replay_verified": true,
+              "primary_score": 0.5848954177030036,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-09\\report.json",
+              "report_sha256": "918a2579231213fed9d0bfb5f3838bd631bb0c8e034ec425e01985de1d401c46",
+              "world_seed": 9
+            },
+            "primary_score": 0.5848954177030036
+          },
+          "world_seed": 9
+        }
+      ]
+    },
+    "electrochemical": {
+      "misindexing_contract": {
+        "fixed_across_worlds": true,
+        "misleading_action_value": 3,
+        "nominal_source_action_value": 1,
+        "non_target_material_field_remains_correct": true,
+        "qualification_report_path": "workstreams/flagship_tasks/reports/static-s0-material-family-v2-qualification-v0.3.json",
+        "qualification_report_sha256": "ad1e3bbb7e4a1a6959aad12da72527656bbec70833e3c035d66b856483e261a4",
+        "selection_evidence": {
+          "misleading_target_winner_count": 0,
+          "nominal_source_winner_count": 9,
+          "qualification_world_seeds": [
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113,
+            114
+          ],
+          "selection_rule": "swap the most frequent qualification winner with a never-winning but reachable material while leaving the other material field correct"
+        },
+        "single_two_row_transposition": true,
+        "source_index_by_action_value": [
+          0,
+          3,
+          2,
+          1
+        ],
+        "target_field": "electrolyte_profile"
+      },
+      "paired_contrasts": {
+        "misindexed_minus_nominal": {
+          "count": 10,
+          "familywise_result": "wrong_prior_cost",
+          "maximum": 0.10766175899638586,
+          "mean": -0.10204010380709864,
+          "median": -0.048821071598300625,
+          "minimum": -0.4101421491996722,
+          "paired_win_tie_loss": {
+            "losses": 8,
+            "ties": 0,
+            "wins": 2
+          },
+          "sample_standard_deviation": 0.15276212738806216,
+          "world_bootstrap_95_interval": [
+            -0.1963947689956435,
+            -0.017820262623872617
+          ],
+          "world_bootstrap_97_5_interval": [
+            -0.21005225660303414,
+            -0.007799354659374732
+          ]
+        },
+        "misindexed_minus_opaque": {
+          "count": 10,
+          "maximum": 0.42443435063389695,
+          "mean": -0.029642781663523472,
+          "median": -0.010064477392625726,
+          "minimum": -0.39459805321708386,
+          "paired_win_tie_loss": {
+            "losses": 6,
+            "ties": 0,
+            "wins": 4
+          },
+          "sample_standard_deviation": 0.23912544638461272,
+          "world_bootstrap_95_interval": [
+            -0.16637900526317267,
+            0.1132518518825861
+          ],
+          "world_bootstrap_97_5_interval": [
+            -0.18486836232305934,
+            0.1355110052890825
+          ]
+        },
+        "nominal_minus_opaque": {
+          "count": 10,
+          "familywise_result": "positive_information_value",
+          "maximum": 0.3167725916375111,
+          "mean": 0.0723973221435752,
+          "median": 0.012852851012283728,
+          "minimum": -0.023832674441000012,
+          "paired_win_tie_loss": {
+            "losses": 2,
+            "ties": 0,
+            "wins": 8
+          },
+          "sample_standard_deviation": 0.11160675727902013,
+          "world_bootstrap_95_interval": [
+            0.013997623890673083,
+            0.14306790956307042
+          ],
+          "world_bootstrap_97_5_interval": [
+            0.007365351636873141,
+            0.1545741195166764
+          ]
+        }
+      },
+      "predictive_secondary_diagnostic_mean_by_arm": {
+        "misindexed": {
+          "confidence_brier_score": 0.20901333333333333,
+          "directional_accuracy": 0.7111111111111111,
+          "nontrivial_actual_effect_rate": 0.8666666666666666
+        },
+        "nominal": {
+          "confidence_brier_score": 0.14907777777777778,
+          "directional_accuracy": 0.7777777777777778,
+          "nontrivial_actual_effect_rate": 0.9666666666666666
+        },
+        "opaque": {
+          "confidence_brier_score": 0.18619333333333332,
+          "directional_accuracy": 0.7444444444444445,
+          "nontrivial_actual_effect_rate": 0.8444444444444444
+        }
+      },
+      "primary_score_by_arm": {
+        "misindexed": {
+          "count": 10,
+          "maximum": 0.8314463841873122,
+          "mean": 0.6853305540005751,
+          "median": 0.7400540560164959,
+          "minimum": 0.3798954267457435,
+          "sample_standard_deviation": 0.15820211195875095
+        },
+        "nominal": {
+          "count": 10,
+          "maximum": 0.8434388075876352,
+          "mean": 0.7873706578076737,
+          "median": 0.7921036796490883,
+          "minimum": 0.7030836869098835,
+          "sample_standard_deviation": 0.04582078140386423
+        },
+        "opaque": {
+          "count": 10,
+          "maximum": 0.8332772015456561,
+          "mean": 0.7149733356640986,
+          "median": 0.7552900772657565,
+          "minimum": 0.40701203355341525,
+          "sample_standard_deviation": 0.13590853753685517
+        }
+      },
+      "recovery": {
+        "differential_action_correction": {
+          "count": 10,
+          "maximum": 0.19999999999999996,
+          "mean": -0.3,
+          "median": -0.1,
+          "minimum": -1.0,
+          "paired_win_tie_loss": {
+            "losses": 5,
+            "ties": 4,
+            "wins": 1
+          },
+          "passed": true,
+          "sample_standard_deviation": 0.4346134936801766,
+          "world_bootstrap_95_interval": [
+            -0.56,
+            -0.06000000000000001
+          ],
+          "world_bootstrap_97_5_interval": [
+            -0.6000000000000001,
+            -0.04000000000000001
+          ]
+        },
+        "early_misleading_share_by_arm": {
+          "misindexed": {
+            "count": 10,
+            "maximum": 1.0,
+            "mean": 0.54,
+            "median": 0.6000000000000001,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.46236109025065875
+          },
+          "nominal": {
+            "count": 10,
+            "maximum": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.0
+          },
+          "opaque": {
+            "count": 10,
+            "maximum": 0.4,
+            "mean": 0.08,
+            "median": 0.0,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.1398411797560202
+          }
+        },
+        "final_action_misleading_rate_by_arm": {
+          "misindexed": 0.2,
+          "nominal": 0.0,
+          "opaque": 0.2
+        },
+        "first_action_misleading_rate_by_arm": {
+          "misindexed": 0.7,
+          "nominal": 0.0,
+          "opaque": 0.0
+        },
+        "late_misleading_share_by_arm": {
+          "misindexed": {
+            "count": 10,
+            "maximum": 1.0,
+            "mean": 0.24,
+            "median": 0.0,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.41952353926806063
+          },
+          "nominal": {
+            "count": 10,
+            "maximum": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.0
+          },
+          "opaque": {
+            "count": 10,
+            "maximum": 1.0,
+            "mean": 0.2,
+            "median": 0.0,
+            "minimum": 0.0,
+            "sample_standard_deviation": 0.4216370213557839
+          }
+        },
+        "manipulation_check": {
+          "count": 10,
+          "maximum": 1.0,
+          "mean": 0.54,
+          "median": 0.6000000000000001,
+          "minimum": 0.0,
+          "paired_win_tie_loss": {
+            "losses": 0,
+            "ties": 3,
+            "wins": 7
+          },
+          "passed": true,
+          "sample_standard_deviation": 0.46236109025065875,
+          "world_bootstrap_95_interval": [
+            0.26,
+            0.8
+          ],
+          "world_bootstrap_97_5_interval": [
+            0.24,
+            0.8400000000000001
+          ]
+        },
+        "misleading_action_value": 3,
+        "overall_recovery_claim": {
+          "passed": false,
+          "required_components": {
+            "differential_action_correction": true,
+            "manipulation_check": true,
+            "performance_recovery_to_opaque": false
+          }
+        },
+        "performance_recovery_to_opaque": {
+          "one_sided_familywise_lower_97_5_bound": -0.1666996793964406,
+          "passed": false,
+          "practical_score_margin": 0.05
+        },
+        "performance_restoration_to_nominal": {
+          "one_sided_familywise_lower_97_5_bound": -0.19634563057402735,
+          "passed": false,
+          "practical_score_margin": 0.05
+        },
+        "target_field": "electrolyte_profile"
+      },
+      "target_field": "electrolyte_profile",
+      "task_id": "electrochemical-conversion",
+      "worlds": [
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-00\\postrun_audit.json",
+              "audit_sha256": "9565e631a30aa91ee046c415752c7317c5792f0a6959606ef8a212c85a022ed9",
+              "exact_replay_verified": true,
+              "primary_score": 0.8270719873207749,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-00\\report.json",
+              "report_sha256": "3fd62f5f0676c8dc4ceef9cdc0a91d1eeae64435d4fb96f6450c3dd3a0f4debc",
+              "world_seed": 0
+            },
+            "primary_score": 0.8270719873207749
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-00\\postrun_audit.json",
+              "audit_sha256": "57b5a3271a45b5b361ec9d9a5226e510ced88035153bb67e3cd939c0a6f0348b",
+              "exact_replay_verified": true,
+              "primary_score": 0.835930397600205,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-00\\report.json",
+              "report_sha256": "e69062b878fefbb6f044b0346875069cd07f423ed2662d891758c6dbf213a9be",
+              "world_seed": 0
+            },
+            "primary_score": 0.835930397600205
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-00\\postrun_audit.json",
+              "audit_sha256": "5f26f8ab1d3e865d8958471508dd149761a2231679ce233241e38aef76b913c3",
+              "exact_replay_verified": true,
+              "primary_score": 0.8273616450299226,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-00\\report.json",
+              "report_sha256": "26fbc536470cc3c45398e37519cc027d8a278379be3b496a25abef8ad9e8cb9d",
+              "world_seed": 0
+            },
+            "primary_score": 0.8273616450299226
+          },
+          "world_seed": 0
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                3,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 3,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-01\\postrun_audit.json",
+              "audit_sha256": "888e1cafe155bde48cfa24e2a7d77d7d6678f260d073bd6ceae58ed038f243a3",
+              "exact_replay_verified": true,
+              "primary_score": 0.6925154224315203,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-01\\report.json",
+              "report_sha256": "12698a9a83ea88a1a8519810150086b04da229c5bf10e3399251984fd77f89be",
+              "world_seed": 1
+            },
+            "primary_score": 0.6925154224315203
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-01\\postrun_audit.json",
+              "audit_sha256": "d2c13583784514438951362e35aa72a6f85d8c48ff1cebd315cfa78b53425e91",
+              "exact_replay_verified": true,
+              "primary_score": 0.7662558799781763,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-01\\report.json",
+              "report_sha256": "57922b2133aea62a3587bfc6fdef50b2b39438051312a023a4ae31a1aa49d1f8",
+              "world_seed": 1
+            },
+            "primary_score": 0.7662558799781763
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                0,
+                1,
+                2,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 3,
+              "final_action_is_misleading": true,
+              "first_action": 0,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 1.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-01\\postrun_audit.json",
+              "audit_sha256": "c6ca4f17d8e16870472de9c640d765a8b271efb9ab4d0a19ba920b174c160387",
+              "exact_replay_verified": true,
+              "primary_score": 0.6045171878716101,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-01\\report.json",
+              "report_sha256": "1072b4cf9055061002ca1859ea4a3cfda0904936eaecde40335d9b75eb3b8922",
+              "world_seed": 1
+            },
+            "primary_score": 0.6045171878716101
+          },
+          "world_seed": 1
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-02\\postrun_audit.json",
+              "audit_sha256": "ebdb63eb174cca760c7ecf054ba836a14e7ad2ee01cbc16d2fcf6013c25810b2",
+              "exact_replay_verified": true,
+              "primary_score": 0.8007095456446774,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-02\\report.json",
+              "report_sha256": "c899d90ef88380526bbd756be9c3bb19c49581219cd62454c4925fe169da37ad",
+              "world_seed": 2
+            },
+            "primary_score": 0.8007095456446774
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-02\\postrun_audit.json",
+              "audit_sha256": "970c7a27fdc2c4fb2e30bd8152f8cbdb874cc17169db8fe1ef074ccac219abfe",
+              "exact_replay_verified": true,
+              "primary_score": 0.8246112312946227,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-02\\report.json",
+              "report_sha256": "fbb220e8581ce4bd27f82054b525ceb0ae425ca95b58f423ea926a913bceae7c",
+              "world_seed": 2
+            },
+            "primary_score": 0.8246112312946227
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                0,
+                1,
+                2,
+                3,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.2,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 0,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-02\\postrun_audit.json",
+              "audit_sha256": "55ad534c3f1770599ff4ca3c827ea1526cd834ff978892ce40e4060b1fbec2cd",
+              "exact_replay_verified": true,
+              "primary_score": 0.8205488427207812,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-02\\report.json",
+              "report_sha256": "0bde39d9a98ead3b64b67c0c1fa7938340fce574dc2f5fefda042cc2f1e308ae",
+              "world_seed": 2
+            },
+            "primary_score": 0.8205488427207812
+          },
+          "world_seed": 2
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                3,
+                3,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 0.4,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 3,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-03\\postrun_audit.json",
+              "audit_sha256": "83a2793dfddfd46d315255cb62822437e44bc16725abf64c03db5763c5c143b7",
+              "exact_replay_verified": true,
+              "primary_score": 0.8314463841873122,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-03\\report.json",
+              "report_sha256": "c8169dd67aa76c2d437be27dead86957c9113ae8d11a1926aa6b6832f628cdd4",
+              "world_seed": 3
+            },
+            "primary_score": 0.8314463841873122
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-03\\postrun_audit.json",
+              "audit_sha256": "f724a09c8c6d275e2332de71030c3a73357993c8c800022be992deec51a950a0",
+              "exact_replay_verified": true,
+              "primary_score": 0.7237846251909263,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-03\\report.json",
+              "report_sha256": "b0447df2b0564f69a48e676f76d8806d058fb871da7b199b570e271c8b66fc03",
+              "world_seed": 3
+            },
+            "primary_score": 0.7237846251909263
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                0,
+                1,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 0.4,
+              "final_action": 3,
+              "final_action_is_misleading": true,
+              "first_action": 0,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 1.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-03\\postrun_audit.json",
+              "audit_sha256": "1bc62842153fcbb33dd3e911efcc987ba1853c01955601583add2799e9efc022",
+              "exact_replay_verified": true,
+              "primary_score": 0.40701203355341525,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-03\\report.json",
+              "report_sha256": "59327cc9f492799c22294a6e174db887227b3f75d41c4d8c9e759697eed10bbc",
+              "world_seed": 3
+            },
+            "primary_score": 0.40701203355341525
+          },
+          "world_seed": 3
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 3,
+              "final_action_is_misleading": true,
+              "first_action": 3,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 1.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-04\\postrun_audit.json",
+              "audit_sha256": "f43611d6ce702c337b7b913ba4fba70c2aa542864741a2e37a72f20033290bae",
+              "exact_replay_verified": true,
+              "primary_score": 0.530328675229952,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-04\\report.json",
+              "report_sha256": "29f86dbf69ec1ce9eb4a7cfba8b4be4eac75d8c5dd07849f8c875b72d1ff7d05",
+              "world_seed": 4
+            },
+            "primary_score": 0.530328675229952
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-04\\postrun_audit.json",
+              "audit_sha256": "63b71e67ebcdcba0fba2775b1f9cf4b685767f308f3225e576f29840c0ab8ac0",
+              "exact_replay_verified": true,
+              "primary_score": 0.7860760414417153,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-04\\report.json",
+              "report_sha256": "51aac7b5bf8cf5f6dc62fe2ca0e3e0ade9158877ea5b6bdc61809fbee0838996",
+              "world_seed": 4
+            },
+            "primary_score": 0.7860760414417153
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                0,
+                0,
+                1,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 0,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-04\\postrun_audit.json",
+              "audit_sha256": "41b010db0fa749b51e2f752f4042258e8d3a9fb4e61147c8e5489de7694edf3f",
+              "exact_replay_verified": true,
+              "primary_score": 0.8099087158827153,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-04\\report.json",
+              "report_sha256": "1cd577247824a9091a2d6e21d6e078f576755cb62ff57981a3a16c9fa4b2c33c",
+              "world_seed": 4
+            },
+            "primary_score": 0.8099087158827153
+          },
+          "world_seed": 4
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 3,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-05\\postrun_audit.json",
+              "audit_sha256": "be2477503fc5a52d435d1977db9f70edcd4b831402311f2dc181d6044baf608c",
+              "exact_replay_verified": true,
+              "primary_score": 0.7875926896014714,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-05\\report.json",
+              "report_sha256": "7f96414220ed2c152316a579135747502024c64339e142b156bc3b3968d2d6c8",
+              "world_seed": 5
+            },
+            "primary_score": 0.7875926896014714
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-05\\postrun_audit.json",
+              "audit_sha256": "e8c9394b11cc62a60f9d88aa429c27af816ad92afb607675ea827edb884fbfce",
+              "exact_replay_verified": true,
+              "primary_score": 0.7941697833527611,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-05\\report.json",
+              "report_sha256": "203a46d5cff1e09adefff3d272efe758581c9af9aa7abd17ae2aa2a325d2a86a",
+              "world_seed": 5
+            },
+            "primary_score": 0.7941697833527611
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                3,
+                1,
+                1,
+                0,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-05\\postrun_audit.json",
+              "audit_sha256": "3d8b6211ace43ee6db0f403f0388ebbb9b0d2613743c5f73e12a098ba25016b0",
+              "exact_replay_verified": true,
+              "primary_score": 0.7360866745686856,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-05\\report.json",
+              "report_sha256": "0076e50b11951ade64307781af736e5f2100c5e9efe1a0b9d2bb1686a7d38393",
+              "world_seed": 5
+            },
+            "primary_score": 0.7360866745686856
+          },
+          "world_seed": 5
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                3,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-06\\postrun_audit.json",
+              "audit_sha256": "9f1063520aeaaa9e7f6775794efe15222274a22dd14eaa0e5fbf2c4768f790ab",
+              "exact_replay_verified": true,
+              "primary_score": 0.811490152873818,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-06\\report.json",
+              "report_sha256": "d4a0e987fffdf8f035d0351220cf00c275f02d78eb88c3baf1d91fc811198604",
+              "world_seed": 6
+            },
+            "primary_score": 0.811490152873818
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-06\\postrun_audit.json",
+              "audit_sha256": "7d799aef0328aa6a7433d607a6a2b885a84aaab063df495155deae7aad7e40ee",
+              "exact_replay_verified": true,
+              "primary_score": 0.806318548775396,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-06\\report.json",
+              "report_sha256": "48ff56e0d98e7a9d8ec1f5c0de0b1b08c0fb1de3b90fc2f3d80e8d098595ab18",
+              "world_seed": 6
+            },
+            "primary_score": 0.806318548775396
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 0,
+              "final_action_is_misleading": false,
+              "first_action": 0,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-06\\postrun_audit.json",
+              "audit_sha256": "82d89dfdf7e2cb1516e10ac69f04ae1850f714e004c9d189fd236c4d2cced038",
+              "exact_replay_verified": true,
+              "primary_score": 0.6231993020992356,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-06\\report.json",
+              "report_sha256": "dbc9b3420c7c41273803063cf8c3846de9e171479f9a1795d2ca609f8d246325",
+              "world_seed": 6
+            },
+            "primary_score": 0.6231993020992356
+          },
+          "world_seed": 6
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                3,
+                3,
+                3,
+                2,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "early_misleading_share": 0.8,
+              "final_action": 3,
+              "final_action_is_misleading": true,
+              "first_action": 3,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 1.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-07\\postrun_audit.json",
+              "audit_sha256": "232790c6464025c9e020e818265449baec86ecc47fd45bffc2ed21c238309b65",
+              "exact_replay_verified": true,
+              "primary_score": 0.3798954267457435,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-07\\report.json",
+              "report_sha256": "0956ca33199770d37bf0220d273b3abff389d4b053db7a28ee4d4456f2d593c4",
+              "world_seed": 7
+            },
+            "primary_score": 0.3798954267457435
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-07\\postrun_audit.json",
+              "audit_sha256": "1c4ef33442bfb44d66f9c85e99e9c7c94a69824bc62ea704a1a366028279fd7a",
+              "exact_replay_verified": true,
+              "primary_score": 0.7900375759454157,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-07\\report.json",
+              "report_sha256": "daa696451ea93c9ce34f832d73428ee525342f7ea5dad5d9ebe33af1d47034d1",
+              "world_seed": 7
+            },
+            "primary_score": 0.7900375759454157
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                2,
+                3,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-07\\postrun_audit.json",
+              "audit_sha256": "542a71357ebd1882bc733baca752562024fd2f14b065cf0e65ba2d9c9ca565a4",
+              "exact_replay_verified": true,
+              "primary_score": 0.7744934799628274,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-07\\report.json",
+              "report_sha256": "3eba913968bf8c2de1b909b854522efde41b79f8262918279194cc050b64053e",
+              "world_seed": 7
+            },
+            "primary_score": 0.7744934799628274
+          },
+          "world_seed": 7
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 3,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 0.4
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-08\\postrun_audit.json",
+              "audit_sha256": "f93b8779d7f249570eff07a6035422ac756141e4a2df0cbac2d15db705e70e15",
+              "exact_replay_verified": true,
+              "primary_score": 0.522498632041481,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-08\\report.json",
+              "report_sha256": "f589843aca757fdee2cba3d2561534b1a7ddba64ac6df1feb34b117c9b82e6bf",
+              "world_seed": 8
+            },
+            "primary_score": 0.522498632041481
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-08\\postrun_audit.json",
+              "audit_sha256": "c5c006447a361a45d144ca0a9f7c3d5a64deac004c811462385155426982a8c5",
+              "exact_replay_verified": true,
+              "primary_score": 0.7030836869098835,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-08\\report.json",
+              "report_sha256": "e3ab5e3a552e3dbe13f5b0ce72ff3acfcde70e654052d7158befbedf66150aef",
+              "world_seed": 8
+            },
+            "primary_score": 0.7030836869098835
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 1,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-08\\postrun_audit.json",
+              "audit_sha256": "6b3c4fdafbb3cb2a32f534755f7ab7cc18f754b5184e134270a79e741af4318f",
+              "exact_replay_verified": true,
+              "primary_score": 0.7133282734061362,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-08\\report.json",
+              "report_sha256": "e3b20291fff73884f460f8590f721447cd7b63dce18af8bdc25a67b036e660e4",
+              "world_seed": 8
+            },
+            "primary_score": 0.7133282734061362
+          },
+          "world_seed": 8
+        },
+        {
+          "misindexed": {
+            "action": {
+              "actions": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 1.0,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 3,
+              "first_action_is_misleading": true,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-09\\postrun_audit.json",
+              "audit_sha256": "1616511a62e5473c38c2eed0ea8986757ed2a232bf1fa9447e9bea1e832f8880",
+              "exact_replay_verified": true,
+              "primary_score": 0.6697566239289999,
+              "report_path": "runs\\formal\\static-s0-v12-misindexed-codex-subscription-20260729\\participants\\electrochemical\\world-09\\report.json",
+              "report_sha256": "010b809cb4fad08fd40db396a9b424f7f2d6f53872a43c51d6399f6507412abb",
+              "world_seed": 9
+            },
+            "primary_score": 0.6697566239289999
+          },
+          "nominal": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-09\\postrun_audit.json",
+              "audit_sha256": "69282cf0067ce7a670a27d8ab8360d057f6db05a4950a5b6381b904a3faa864a",
+              "exact_replay_verified": true,
+              "primary_score": 0.8434388075876352,
+              "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-09\\report.json",
+              "report_sha256": "6b2711e710a5528ca4b92ec8483683320b03232a26f7a8fec865b32ea3998519",
+              "world_seed": 9
+            },
+            "primary_score": 0.8434388075876352
+          },
+          "opaque": {
+            "action": {
+              "actions": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                3,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "early_misleading_share": 0.0,
+              "final_action": 2,
+              "final_action_is_misleading": false,
+              "first_action": 1,
+              "first_action_is_misleading": false,
+              "late_misleading_share": 0.0
+            },
+            "evidence": {
+              "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-09\\postrun_audit.json",
+              "audit_sha256": "64e1e5d9fead76dd2f209c5e1d95f6e0dfff7e6e0d229a5dbdd205897b652dd7",
+              "exact_replay_verified": true,
+              "primary_score": 0.8332772015456561,
+              "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-09\\report.json",
+              "report_sha256": "f10820d93f342b5bed0f0bed790037ad4599235fe39bff8e2d7c6d62f583dabc",
+              "world_seed": 9
+            },
+            "primary_score": 0.8332772015456561
+          },
+          "world_seed": 9
+        }
+      ]
+    }
+  }
+}
