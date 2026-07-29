@@ -34,6 +34,7 @@ from chemworld.agents.static_optimization import (
     StaticOptimizationPlan,
     compile_static_optimization_plan,
 )
+from chemworld.agents.task_recipes import task_recipe_coordinate_schema
 from chemworld.eval.electrochemical_predictive import (
     build_electrochemical_prediction_queries,
 )
@@ -51,6 +52,10 @@ from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
 )
 from chemworld.tasks import get_task
+from chemworld.world.scoring import (
+    DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
+    TaskScoringContract,
+)
 
 
 def test_s0_context_and_plan_have_no_change_world_contract() -> None:
@@ -76,6 +81,17 @@ def test_s0_context_and_plan_have_no_change_world_contract() -> None:
     assert context["experiment_interface"]["recipe_parameter_schema"] == (
         crystallization_single_stage_parameter_schema()
     )
+    assert context["experiment_interface"]["categorical_controls"] == {
+        "catalyst": 4,
+        "solvent": 4,
+    }
+    assert context["experiment_interface"]["categorical_semantics"]["unordered_nominal"] is True
+    assert (
+        context["experiment_interface"]["categorical_semantics"][
+            "cross_control_code_equality_meaning"
+        ]
+        is False
+    )
     assert "change" not in serialized_context
     assert set(plan.to_dict()) == {
         "experiment_intent",
@@ -86,6 +102,326 @@ def test_s0_context_and_plan_have_no_change_world_contract() -> None:
         "expected_effect",
         "uncertainty",
     }
+
+
+def test_registered_distillation_context_exposes_physical_coordinate_semantics() -> None:
+    task_info = get_task("reaction-to-distillation").to_dict()
+    scoring_contract = TaskScoringContract.from_success_metrics(
+        objective=task_info["objective"],
+        success_metrics=tuple(task_info["success_metrics"]),
+        contract_id=DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
+    )
+    agent = StaticOptimizationAgent(
+        _DeterministicStaticMockClient(),
+        role_id="distillation-s0-test",
+        response_max_tokens=1000,
+        history_limit=8,
+        prompt_token_estimate_cap=9000,
+        scoring_contract=scoring_contract.to_dict(),
+    )
+    agent.reset(task_info, 0)
+
+    empty_context = agent.public_context([])
+    assert empty_context["experiment_interface"]["parameterization"] == (
+        "unit_vector_with_public_physical_coordinate_schema"
+    )
+    assert empty_context["experiment_interface"]["search_vector_coordinate_schema"] == list(
+        task_recipe_coordinate_schema(task_info)
+    )
+    assert [
+        item["control_id"]
+        for item in empty_context["experiment_interface"]["search_vector_coordinate_schema"]
+    ] == [
+        "reaction_temperature_K",
+        "reaction_duration_s",
+        "reagent_amount_mol",
+        "stirring_speed_rpm",
+        "catalyst",
+        "catalyst_amount_mol",
+        "solvent",
+        "evaporation_temperature_K",
+        "evaporation_duration_s",
+        "distillation_temperature_K",
+        "distillation_duration_s",
+        "reflux_ratio",
+        "transfer_fraction",
+    ]
+    categorical_schema = [
+        item
+        for item in empty_context["experiment_interface"]["search_vector_coordinate_schema"]
+        if item["kind"] == "categorical"
+    ]
+    assert [item["control_id"] for item in categorical_schema] == [
+        "catalyst",
+        "solvent",
+    ]
+    assert all(
+        item["selection_semantics"] == "independent_unordered_nominal_choice"
+        and item["numeric_order_has_scientific_meaning"] is False
+        and item["numeric_distance_has_scientific_meaning"] is False
+        for item in categorical_schema
+    )
+    assert empty_context["experiment_interface"]["categorical_semantics"] == {
+        "coordinates_are_independently_selectable": True,
+        "categories_are_unordered_nominal_choices": True,
+        "numeric_order_has_scientific_meaning": False,
+        "numeric_distance_has_scientific_meaning": False,
+        "matching_codes_across_coordinates_has_scientific_meaning": False,
+        "instruction": (
+            "Treat every categorical coordinate as an independent unordered nominal "
+            "choice. Numeric proximity and equal numeric codes across different "
+            "coordinates carry no scientific meaning."
+        ),
+    }
+    assert empty_context["optimization_contract"]["metric_roles"] == {
+        "safety_risk": {
+            "role": "audit_only",
+            "enters_primary_score": False,
+            "constrains_candidate_selection": False,
+            "reference_threshold": 0.65,
+            "instruction": (
+                "Record and report safety_risk, but do not optimize it or treat its "
+                "audit reference threshold as a candidate-selection constraint in "
+                "this development pilot."
+            ),
+        }
+    }
+    assert empty_context["experiment_interface"]["required_measurement_slots"] == [
+        "diagnostic-01-hplc",
+        "diagnostic-02-gc",
+    ]
+    assert [
+        (
+            item["slot_id"],
+            item["instrument"],
+            item["after_operation"],
+            item["selection_policy"],
+        )
+        for item in empty_context["experiment_interface"]["diagnostic_measurement_slots"]
+    ] == [
+        ("diagnostic-01-hplc", "hplc", "quench", "required_by_workflow"),
+        (
+            "diagnostic-02-gc",
+            "gc",
+            "collect_fraction",
+            "required_by_workflow",
+        ),
+    ]
+
+    plan = agent.plan_next([])
+    history = [
+        {
+            "experiment_index": 0,
+            "plan": plan.to_dict(),
+            "measurement_evidence": [
+                {
+                    "evidence_id": "reaction-stage",
+                    "measurement_slot_id": "diagnostic-01-hplc",
+                    "instrument": "hplc",
+                    "processed_estimate": {
+                        "conversion": 0.4,
+                        "yield": 0.3,
+                        "selectivity": 0.8,
+                        "byproduct_signal": 0.2,
+                        "distillate_purity": 0.0,
+                    },
+                    "uncertainty": {
+                        "conversion_std": 0.01,
+                        "yield_std": 0.01,
+                        "distillate_purity_std": 0.01,
+                    },
+                    "reward": 0.1,
+                },
+                {
+                    "evidence_id": "fraction-stage",
+                    "measurement_slot_id": "diagnostic-02-gc",
+                    "instrument": "gc",
+                    "processed_estimate": {
+                        "distillate_purity": 0.6,
+                        "degradation_warning": 0.1,
+                        "byproduct_signal": 0.2,
+                        "yield": 0.3,
+                    },
+                    "uncertainty": {
+                        "distillate_purity_std": 0.02,
+                        "yield_std": 0.01,
+                    },
+                    "reward": 0.2,
+                },
+            ],
+            "terminal_summary": {
+                "leaderboard_score": 0.2,
+                "cost": 0.1,
+                "safety_risk": 0.05,
+            },
+        }
+    ]
+    compact = agent.public_context(history)["experiment_history"][0]["plan"]
+    assert compact["search_vector"] == [0.5] * 13
+    assert [item["operation"] for item in compact["public_physical_controls"]] == [
+        "add_solvent",
+        "add_reagent",
+        "add_catalyst",
+        "heat",
+        "quench",
+        "evaporate",
+        "distill",
+        "collect_fraction",
+    ]
+    assert compact["public_physical_controls"][6]["reflux_ratio"] == pytest.approx(2.75)
+    compact_evidence = agent.public_context(history)["experiment_history"][0][
+        "measurement_evidence"
+    ]
+    assert set(compact_evidence[0]["processed_estimate"]) == {
+        "conversion",
+        "yield",
+        "selectivity",
+        "byproduct_signal",
+    }
+    assert set(compact_evidence[0]["uncertainty"]) == {
+        "conversion_std",
+        "yield_std",
+    }
+    assert set(compact_evidence[1]["processed_estimate"]) == {
+        "distillate_purity",
+        "degradation_warning",
+        "byproduct_signal",
+    }
+    assert set(compact_evidence[1]["uncertainty"]) == {"distillate_purity_std"}
+
+
+def test_distillation_compiler_requires_stage_local_hplc_and_fraction_gc() -> None:
+    task_info = get_task("reaction-to-distillation").to_dict()
+    complete = StaticOptimizationPlan(
+        experiment_intent="measure reaction and separation stages",
+        search_vector=(0.5,) * 13,
+        requested_measurement_slots=("diagnostic-01-hplc", "diagnostic-02-gc"),
+        measurement_objective="separate reaction-stage and fraction-stage evidence",
+        expected_effect="produce one stage-resolved terminal result",
+        uncertainty=0.5,
+    )
+
+    compiled = compile_static_optimization_plan(task_info, complete)
+
+    assert [item["operation"] for item in compiled["steps"]] == [
+        "add_solvent",
+        "add_reagent",
+        "add_catalyst",
+        "heat",
+        "quench",
+        "measure",
+        "evaporate",
+        "distill",
+        "collect_fraction",
+        "measure",
+        "terminate",
+        "measure",
+    ]
+    assert compiled["steps"][5] == {"operation": "measure", "instrument": "hplc"}
+    assert compiled["steps"][9] == {"operation": "measure", "instrument": "gc"}
+    assert compiled["metadata"]["measurement_slots_by_step"] == {
+        "5": "diagnostic-01-hplc",
+        "9": "diagnostic-02-gc",
+        "11": "closeout-final-assay",
+    }
+
+    missing_hplc = StaticOptimizationPlan(
+        experiment_intent=complete.experiment_intent,
+        search_vector=complete.search_vector,
+        requested_measurement_slots=("diagnostic-02-gc",),
+        measurement_objective=complete.measurement_objective,
+        expected_effect=complete.expected_effect,
+        uncertainty=complete.uncertainty,
+    )
+    with pytest.raises(ValueError, match="workflow-required diagnostic"):
+        compile_static_optimization_plan(task_info, missing_hplc)
+
+
+@pytest.mark.parametrize(
+    ("task_id", "expected_diagnostic_metrics"),
+    [
+        (
+            "electrochemical-conversion",
+            [
+                {"pH_normalized", "precipitation_signal"},
+                {
+                    "faradaic_efficiency",
+                    "transport_efficiency",
+                    "ohmic_efficiency",
+                    "energy_efficiency",
+                },
+            ],
+        ),
+        (
+            "reaction-to-crystallization",
+            [
+                {"conversion", "yield", "selectivity", "byproduct_signal"},
+                {"crystal_purity", "yield", "byproduct_signal"},
+            ],
+        ),
+        (
+            "partition-discovery",
+            [
+                {
+                    "phase_ratio",
+                    "product_in_organic",
+                    "product_in_aqueous",
+                    "impurity_signal",
+                },
+                {
+                    "purity",
+                    "recovery",
+                    "product_in_organic",
+                    "product_in_aqueous",
+                    "impurity_signal",
+                },
+            ],
+        ),
+        (
+            "flow-reaction-optimization",
+            [{"flow_conversion", "yield", "selectivity"}],
+        ),
+    ],
+)
+def test_single_seed_stage_evidence_is_filtered_before_model_context(
+    task_id: str,
+    expected_diagnostic_metrics: list[set[str]],
+) -> None:
+    task_info = get_task(task_id).to_dict()
+    agent = StaticOptimizationAgent(
+        _DeterministicStaticMockClient(),
+        role_id=f"{task_id}-stage-evidence-test",
+        response_max_tokens=1000,
+        history_limit=8,
+        prompt_token_estimate_cap=12000,
+    )
+    agent.reset(task_info, 0)
+    empty_context = agent.public_context([])
+    assert empty_context["experiment_interface"]["required_measurement_slots"] == []
+    plan = agent.plan_next([])
+
+    with StaticOptimizationExperimentSession(
+        task_id=task_id,
+        seed=0,
+        experiment_horizon=1,
+    ) as session:
+        result = session.execute(plan)
+
+    assert result.completed is True
+    public_history = agent.public_context(
+        [
+            {
+                "experiment_index": 0,
+                "plan": plan.to_dict(),
+                "measurement_evidence": list(result.measurement_evidence),
+                "terminal_summary": result.terminal_summary,
+            }
+        ]
+    )["experiment_history"][0]
+    diagnostic_evidence = public_history["measurement_evidence"][: len(expected_diagnostic_metrics)]
+    assert [
+        set(item["processed_estimate"]) for item in diagnostic_evidence
+    ] == expected_diagnostic_metrics
 
 
 def test_external_s0_execution_requires_exact_owner_confirmed_hashes() -> None:
@@ -352,10 +688,7 @@ def test_s0_final_prompt_omits_predictive_field_when_predictive_is_disabled() ->
     agent.synthesize_final(receipt["public_history"])
 
     assert client.final_prompt is not None
-    assert (
-        "counterfactual_predictions"
-        not in client.final_prompt["required_json_shape"]
-    )
+    assert "counterfactual_predictions" not in client.final_prompt["required_json_shape"]
 
 
 def test_s0_predictive_mock_adds_local_paired_validation_without_model_calls() -> None:
@@ -490,9 +823,7 @@ def test_tolerant_declared_claim_does_not_invalidate_final_recommendation() -> N
     diagnostics = explanation["structured_claim_diagnostics"]
     assert diagnostics["unscored_claim_count"] == 1
     assert diagnostics["unscored_claims"][0]["reason_code"] == ("unknown_mechanism_tag")
-    assert diagnostics["unscored_claims"][0]["unknown_terms"] == [
-        "unsupported_mechanism_tag"
-    ]
+    assert diagnostics["unscored_claims"][0]["unknown_terms"] == ["unsupported_mechanism_tag"]
 
 
 def test_predictive_accuracy_breakdown_separates_effect_coverage() -> None:

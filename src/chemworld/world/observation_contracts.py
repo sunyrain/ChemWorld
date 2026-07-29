@@ -135,7 +135,16 @@ def _required_observation_keys(
     if scoring_contract.score_family == "purification":
         keys.extend(("purity", "recovery", "impurity_signal", "process_mass_balance_error"))
     elif scoring_contract.score_family == "partition":
-        keys.extend(("phase_ratio", "product_in_organic", "product_in_aqueous"))
+        keys.extend(
+            (
+                "phase_ratio",
+                "product_in_organic",
+                "product_in_aqueous",
+                "purity",
+                "recovery",
+                "impurity_signal",
+            )
+        )
     elif scoring_contract.score_family == "crystallization":
         keys.extend(
             (

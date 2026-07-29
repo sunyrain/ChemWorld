@@ -20,13 +20,17 @@ from chemworld.world.electrochemical_material_family import (
 )
 from chemworld.world.scoring import (
     CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1,
+    DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
     ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2,
+    FLOW_S0_BALANCED_PROCESS_V1,
+    PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
     TASK_DERIVED_SCORING_CONTRACT,
 )
 
 STATIC_WORLD_MODE = "static_for_entire_campaign"
 ELECTROCHEMICAL_TASK_ID = "electrochemical-conversion"
 CRYSTALLIZATION_TASK_ID = "reaction-to-crystallization"
+DISTILLATION_TASK_ID = "reaction-to-distillation"
 PREDICTIVE_CALL_INTEGRATED = "integrated_final_synthesis"
 PREDICTIVE_CALL_SEPARATE = "separate_after_final_commit"
 PREDICTIVE_QUERY_HISTORY_LOCAL = (
@@ -123,10 +127,9 @@ def static_optimization_crystallization_material_family_id(
     if not task_ids and isinstance(cell, Mapping) and cell.get("task_id"):
         task_ids = {str(cell["task_id"])}
     family_id = normalize_crystallization_material_family(raw_family)
-    if (
-        family_id != HISTORICAL_CRYSTALLIZATION_MATERIAL_FAMILY
-        and task_ids != {CRYSTALLIZATION_TASK_ID}
-    ):
+    if family_id != HISTORICAL_CRYSTALLIZATION_MATERIAL_FAMILY and task_ids != {
+        CRYSTALLIZATION_TASK_ID
+    }:
         raise ValueError(
             "non-legacy crystallization material families require exactly the "
             "reaction-to-crystallization task"
@@ -145,31 +148,28 @@ def static_optimization_scoring_contract_id(protocol: Mapping[str, Any]) -> str:
     if not task_ids and isinstance(cell, Mapping) and cell.get("task_id"):
         task_ids = {str(cell["task_id"])}
     electrochemical_family_id = static_optimization_material_family_id(protocol)
-    crystallization_family_id = (
-        static_optimization_crystallization_material_family_id(protocol)
-    )
+    crystallization_family_id = static_optimization_crystallization_material_family_id(protocol)
     nonlegacy_electrochemical = (
         ELECTROCHEMICAL_TASK_ID in task_ids
-        and electrochemical_family_id
-        != HISTORICAL_ELECTROCHEMICAL_MATERIAL_FAMILY
+        and electrochemical_family_id != HISTORICAL_ELECTROCHEMICAL_MATERIAL_FAMILY
     )
     nonlegacy_crystallization = (
         CRYSTALLIZATION_TASK_ID in task_ids
-        and crystallization_family_id
-        != HISTORICAL_CRYSTALLIZATION_MATERIAL_FAMILY
+        and crystallization_family_id != HISTORICAL_CRYSTALLIZATION_MATERIAL_FAMILY
     )
     if (nonlegacy_electrochemical or nonlegacy_crystallization) and raw_contract is None:
         raise ValueError(
             "non-legacy S0 material protocols must explicitly declare "
             "reward_contract.scoring_contract_id"
         )
-    contract_id = (
-        TASK_DERIVED_SCORING_CONTRACT if raw_contract is None else str(raw_contract)
-    )
+    contract_id = TASK_DERIVED_SCORING_CONTRACT if raw_contract is None else str(raw_contract)
     allowed = {
         TASK_DERIVED_SCORING_CONTRACT,
         ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2,
         CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1,
+        DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
+        PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+        FLOW_S0_BALANCED_PROCESS_V1,
     }
     if contract_id not in allowed:
         raise ValueError(f"unsupported S0 scoring contract ID: {contract_id}")
@@ -189,17 +189,21 @@ def static_optimization_scoring_contract_id(protocol: Mapping[str, Any]) -> str:
         raise ValueError(
             "historical crystallization replay requires the historical task-derived score"
         )
-    if (
-        contract_id == ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2
-        and not nonlegacy_electrochemical
-    ):
+    if contract_id == ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2 and not nonlegacy_electrochemical:
         raise ValueError("electrochemical S0 v2 scoring requires its non-legacy material family")
-    if (
-        contract_id == CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1
-        and not nonlegacy_crystallization
-    ):
+    if contract_id == CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1 and not nonlegacy_crystallization:
+        raise ValueError("crystallization S0 v1 scoring requires its non-legacy material family")
+    if contract_id == DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2 and task_ids != {
+        DISTILLATION_TASK_ID
+    }:
         raise ValueError(
-            "crystallization S0 v1 scoring requires its non-legacy material family"
+            "reaction-distillation S0 v2 scoring requires exactly the reaction-to-distillation task"
+        )
+    if contract_id == PARTITION_S0_EXTRACTION_EFFICIENCY_V2 and task_ids != {"partition-discovery"}:
+        raise ValueError("partition S0 v2 scoring requires exactly the partition-discovery task")
+    if contract_id == FLOW_S0_BALANCED_PROCESS_V1 and task_ids != {"flow-reaction-optimization"}:
+        raise ValueError(
+            "continuous-flow S0 v1 scoring requires exactly the flow-reaction-optimization task"
         )
     return contract_id
 
@@ -256,6 +260,7 @@ def validate_static_optimization_protocol(protocol: Mapping[str, Any]) -> None:
         raise ValueError("S0 runner rejects phase changes")
     if world_policy.get("hidden_world_fields_in_public_context") is not False:
         raise ValueError("S0 protocol must hide private world fields")
+    validate_development_seed_policy(protocol)
     if "electrochemical_semantic_profile_id" in world_policy:
         raise ValueError(
             "electrochemical semantic profiles were retired; bind a versioned "
@@ -270,8 +275,8 @@ def validate_static_optimization_protocol(protocol: Mapping[str, Any]) -> None:
     campaign = protocol.get("scientific_campaign_budget")
     static_optimization_workflow_mode(protocol)
     material_family_id = static_optimization_material_family_id(protocol)
-    crystallization_material_family_id = (
-        static_optimization_crystallization_material_family_id(protocol)
+    crystallization_material_family_id = static_optimization_crystallization_material_family_id(
+        protocol
     )
     static_optimization_scoring_contract_id(protocol)
     normalize_static_material_information_config(
@@ -286,13 +291,9 @@ def validate_static_optimization_protocol(protocol: Mapping[str, Any]) -> None:
     predictive_call_policy = static_optimization_predictive_call_policy(protocol)
     predictive_query_policy = static_optimization_predictive_query_policy(protocol)
     world_understanding = protocol.get("world_understanding")
-    if isinstance(world_understanding, Mapping) and bool(
-        world_understanding.get("enabled", False)
-    ):
+    if isinstance(world_understanding, Mapping) and bool(world_understanding.get("enabled", False)):
         reference_path = world_understanding.get("reference_path")
-        reference_configured = isinstance(reference_path, str) and bool(
-            reference_path.strip()
-        )
+        reference_configured = isinstance(reference_path, str) and bool(reference_path.strip())
         declared_scoring = world_understanding.get("declared_scoring_enabled")
         if declared_scoring is True and not reference_configured:
             raise ValueError(
@@ -351,6 +352,52 @@ def validate_static_optimization_protocol(protocol: Mapping[str, Any]) -> None:
             raise ValueError("separate predictive validation requires final synthesis")
 
 
+def validate_development_seed_policy(
+    protocol: Mapping[str, Any],
+    *,
+    algorithm_seed: int | None = None,
+) -> None:
+    """Fail closed when a development protocol forbids multi-seed execution."""
+
+    policy = protocol.get("development_seed_policy")
+    if policy is None:
+        return
+    if not isinstance(policy, Mapping):
+        raise ValueError("development_seed_policy must be an object")
+    if policy.get("multi_seed_execution_allowed") is not False:
+        raise ValueError(
+            "development_seed_policy must explicitly keep multi-seed execution disabled"
+        )
+    world_seeds = policy.get("world_seeds")
+    algorithm_seeds = policy.get("algorithm_seeds")
+    if (
+        not isinstance(world_seeds, list)
+        or len(world_seeds) != 1
+        or isinstance(world_seeds[0], bool)
+        or not isinstance(world_seeds[0], int)
+    ):
+        raise ValueError("single-seed development requires exactly one integer world seed")
+    if (
+        not isinstance(algorithm_seeds, list)
+        or len(algorithm_seeds) != 1
+        or isinstance(algorithm_seeds[0], bool)
+        or not isinstance(algorithm_seeds[0], int)
+    ):
+        raise ValueError("single-seed development requires exactly one integer algorithm seed")
+    world_policy = protocol.get("world_policy")
+    if not isinstance(world_policy, Mapping):
+        raise ValueError("S0 protocol lacks world_policy")
+    if int(world_policy.get("world_seed", world_seeds[0])) != world_seeds[0]:
+        raise ValueError("world seed is outside the single-seed development policy")
+    configured_algorithm_seeds = protocol.get("algorithm_seeds")
+    if configured_algorithm_seeds is not None and configured_algorithm_seeds != algorithm_seeds:
+        raise ValueError(
+            "configured algorithm seeds differ from the single-seed development policy"
+        )
+    if algorithm_seed is not None and int(algorithm_seed) != algorithm_seeds[0]:
+        raise ValueError("algorithm seed is outside the single-seed development policy")
+
+
 def _positive_int(value: object, field: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise ValueError(f"{field} must be a positive integer")
@@ -361,6 +408,7 @@ def _positive_int(value: object, field: str) -> int:
 
 __all__ = [
     "CRYSTALLIZATION_TASK_ID",
+    "DISTILLATION_TASK_ID",
     "ELECTROCHEMICAL_TASK_ID",
     "PREDICTIVE_CALL_INTEGRATED",
     "PREDICTIVE_CALL_SEPARATE",
@@ -374,5 +422,6 @@ __all__ = [
     "static_optimization_predictive_query_policy",
     "static_optimization_scoring_contract_id",
     "static_optimization_workflow_mode",
+    "validate_development_seed_policy",
     "validate_static_optimization_protocol",
 ]

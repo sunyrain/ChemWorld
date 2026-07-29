@@ -10,6 +10,7 @@ from chemworld.eval.static_optimization_protocol import (
     static_optimization_material_family_id,
     static_optimization_scoring_contract_id,
     static_optimization_workflow_mode,
+    validate_development_seed_policy,
     validate_static_optimization_protocol,
 )
 from chemworld.eval.static_optimization_seeds import (
@@ -25,7 +26,10 @@ from chemworld.world.electrochemical_material_family import (
     NOMINAL_PRIOR_MATERIAL_FAMILY,
 )
 from chemworld.world.scoring import (
+    DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
     ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2,
+    FLOW_S0_BALANCED_PROCESS_V1,
+    PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
     TaskScoringContract,
 )
 
@@ -59,9 +63,7 @@ def test_electrochemical_static_protocol_requires_explicit_workflow() -> None:
         "atomic_complete_experiment": True,
         "electrochemical_workflow_mode": ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
     }
-    protocol["world_policy"]["electrochemical_material_family_id"] = (
-        "nominal-prior-latent-v2"
-    )
+    protocol["world_policy"]["electrochemical_material_family_id"] = "nominal-prior-latent-v2"
     protocol["reward_contract"] = {
         "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2"
     }
@@ -169,6 +171,70 @@ def test_electrochemical_s0_v2_score_has_no_composite_double_counting() -> None:
         "ohmic_efficiency": 0.08,
         "energy_efficiency": 0.15,
     }
+
+
+def test_distillation_s0_v2_scoring_contract_is_task_scoped() -> None:
+    protocol = _protocol("reaction-to-distillation")
+    protocol["reward_contract"] = {"scoring_contract_id": DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2}
+
+    assert static_optimization_scoring_contract_id(protocol) == (
+        DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2
+    )
+
+    protocol["tasks"] = ["reaction-optimization-standard"]
+    with pytest.raises(ValueError, match="requires exactly"):
+        static_optimization_scoring_contract_id(protocol)
+
+
+@pytest.mark.parametrize(
+    ("task_id", "contract_id", "other_task"),
+    [
+        (
+            "partition-discovery",
+            PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+            "flow-reaction-optimization",
+        ),
+        (
+            "flow-reaction-optimization",
+            FLOW_S0_BALANCED_PROCESS_V1,
+            "partition-discovery",
+        ),
+    ],
+)
+def test_extended_s0_scoring_contracts_are_task_scoped(
+    task_id: str,
+    contract_id: str,
+    other_task: str,
+) -> None:
+    protocol = _protocol(task_id)
+    protocol["reward_contract"] = {"scoring_contract_id": contract_id}
+
+    assert static_optimization_scoring_contract_id(protocol) == contract_id
+
+    protocol["tasks"] = [other_task]
+    with pytest.raises(ValueError, match="requires exactly"):
+        static_optimization_scoring_contract_id(protocol)
+
+
+def test_single_seed_development_policy_rejects_seed_expansion() -> None:
+    protocol = _protocol("partition-discovery")
+    protocol["world_policy"]["world_seed"] = 0
+    protocol["algorithm_seeds"] = [0]
+    protocol["development_seed_policy"] = {
+        "world_seeds": [0],
+        "algorithm_seeds": [0],
+        "multi_seed_execution_allowed": False,
+    }
+
+    validate_static_optimization_protocol(protocol)
+    validate_development_seed_policy(protocol, algorithm_seed=0)
+
+    with pytest.raises(ValueError, match="algorithm seed is outside"):
+        validate_development_seed_policy(protocol, algorithm_seed=1)
+
+    protocol["world_policy"]["world_seed"] = 1
+    with pytest.raises(ValueError, match="world seed is outside"):
+        validate_static_optimization_protocol(protocol)
 
 
 def test_material_pilot_protocols_differ_only_by_information_condition() -> None:

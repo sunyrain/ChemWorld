@@ -1,0 +1,126 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-protocol-0.1-s0-dev",
+  "protocol_family_id": "chemworld-static-s0-reaction-distillation-pilot-v0.2",
+  "protocol_id": "chemworld-static-s0-reaction-distillation-codex-pilot-v0.2-20x1-2026-07-29",
+  "condition_id": "no-dossier-development-pilot",
+  "status": "development_pilot",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "world_policy": {
+    "mode": "static_for_entire_campaign",
+    "world_seed": 0,
+    "interventions": [],
+    "phase_changes": [],
+    "hidden_world_fields_in_public_context": false
+  },
+  "tasks": [
+    "reaction-to-distillation"
+  ],
+  "horizon": 20,
+  "scientific_campaign_budget": {
+    "exploration_experiments": 20,
+    "horizon_visible": true,
+    "final_synthesis_after_exploration": true
+  },
+  "material_information": {
+    "mode": "opaque_codes"
+  },
+  "experiment_interface": {
+    "model_facing_parameterization": "unit_vector_with_public_physical_coordinate_schema",
+    "workflow_mode": "registered_stage_resolved_reaction_distillation_recipe",
+    "search_vector_dimension": 13,
+    "compiled_operation_count": 12,
+    "categorical_semantics": "independent_unordered_nominal_choices",
+    "matching_codes_across_coordinates_have_scientific_meaning": false,
+    "internal_unit_vector_is_scientific_evidence": false
+  },
+  "measurement_budget": {
+    "mode": "fixed_stage_resolved_diagnostics",
+    "required_measurement_slots": [
+      "diagnostic-01-hplc",
+      "diagnostic-02-gc"
+    ],
+    "reaction_stage_measurement": "hplc_after_quench_before_evaporation",
+    "reaction_stage_model_facing_metrics": [
+      "conversion",
+      "yield",
+      "selectivity",
+      "byproduct_signal"
+    ],
+    "fraction_stage_measurement": "gc_after_collect_fraction",
+    "hard_campaign_cap": null,
+    "report_measurement_cost": true
+  },
+  "reward_contract": {
+    "scoring_contract_id": "reaction-distillation-s0-balanced-audit-safety-v2",
+    "optimization_feedback": "terminal_summary.leaderboard_score",
+    "feedback_timing": "after_completed_final_assay_only",
+    "component_interpretation": {
+      "reaction_score": "maximize_without_safety_risk_term",
+      "distillate_purity": "maximize",
+      "distillate_recovery": "maximize",
+      "solvent_loss": "minimize"
+    },
+    "safety_policy": "audit_only_nonoptimizing",
+    "safety_label": "peak_safety_risk",
+    "safety_audit_reference_threshold": 0.65,
+    "safety_enters_primary_reward": false,
+    "safety_constrains_candidate_selection": false,
+    "primary_endpoint": "blind_validated_final_recommendation_score_mean",
+    "report_purity_recovery_solvent_loss_and_safety_separately": true
+  },
+  "executor_contract": {
+    "atomic_complete_experiment": true,
+    "runtime_guard_margin_operations": 1,
+    "runtime_margin_available_to_agent": false,
+    "mandatory_reaction_stage_hplc": true,
+    "mandatory_fraction_stage_gc": true,
+    "mandatory_terminate": true,
+    "mandatory_final_assay": true,
+    "show_task_operation_budget_to_agent": false
+  },
+  "final_synthesis": {
+    "enabled": true,
+    "calls": 1,
+    "executes_experiment": false,
+    "allow_tested_recommendation": true,
+    "allow_interpolated_recommendation": true,
+    "allow_extrapolated_recommendation_within_bounds": true,
+    "validation_feedback_returned_to_agent": false,
+    "list_item_limit": 16,
+    "list_item_limit_visible_to_model": true
+  },
+  "world_understanding": {
+    "enabled": false,
+    "declared_scoring_enabled": false,
+    "predictive_score_enabled": false,
+    "reason": "the stage-resolved distillation pilot qualifies optimization feedback before freezing a predictive diagnostic"
+  },
+  "validation_budget": {
+    "incumbent_replicates": 3,
+    "recommendation_replicates": 3,
+    "independent_observation_seeds": true,
+    "paired_observation_seeds_across_targets": true,
+    "feedback_returned_to_agent": false
+  },
+  "candidate_order_seed": 0,
+  "observation_noise_namespace": "scientific-optimization-s0-dev-distillation-codex-pilot-v02-20x1",
+  "objective": "developmentally qualify stage-resolved joint reaction and distillation-cut optimization under a balanced score with safety retained only as an audit endpoint",
+  "primary_metric": "blind_validated_final_recommendation_score_mean",
+  "secondary_metrics": [
+    "best_exploration_score",
+    "best_so_far_area_under_curve",
+    "recommendation_gain_over_incumbent_mean",
+    "reaction_stage_conversion",
+    "reaction_stage_yield",
+    "reaction_stage_selectivity",
+    "distillate_purity",
+    "distillate_recovery",
+    "solvent_loss",
+    "peak_safety_risk_audit"
+  ],
+  "method_config_path": "configs/methods/llm_v1.4/participant_methods_s0_codex_subscription_sol_distillation_pilot_20x1_v14.json",
+  "method_ids": [
+    "s0_codex_subscription_sol_medium_distillation_pilot_v02_20"
+  ]
+}

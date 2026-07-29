@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 
 CRYSTALLIZATION_SINGLE_STAGE_RECIPE_VERSION = (
-    "chemworld-reaction-crystallization-static-single-stage-recipe-0.1-s0-dev"
+    "chemworld-reaction-crystallization-static-single-stage-recipe-0.2-s0-dev"
 )
 CRYSTALLIZATION_SINGLE_STAGE_DIMENSION = 10
 CRYSTALLIZATION_SINGLE_STAGE_EVENT_COUNT = 12
@@ -19,14 +19,29 @@ CRYSTALLIZATION_SINGLE_STAGE_MEASUREMENT_SLOTS = (
         "instrument": "hplc",
         "after_operation": "quench",
         "recipe_step_index": 5,
+        "selection_policy": "agent_selectable",
         "scientific_role": "reaction_outcome_before_crystallization",
+        "stage_id": "post_reaction_pre_crystallization",
+        "model_facing_metric_ids": [
+            "conversion",
+            "yield",
+            "selectivity",
+            "byproduct_signal",
+        ],
     },
     {
         "slot_id": "diagnostic-02-hplc",
         "instrument": "hplc",
         "after_operation": "cool_crystallize",
         "recipe_step_index": 8,
+        "selection_policy": "agent_selectable",
         "scientific_role": "slurry_outcome_before_filtration",
+        "stage_id": "post_crystallization_pre_filtration",
+        "model_facing_metric_ids": [
+            "crystal_purity",
+            "yield",
+            "byproduct_signal",
+        ],
     },
 )
 
@@ -113,9 +128,7 @@ def crystallization_single_stage_parameters_from_unit_vector(
         "catalyst_amount_mol": _bounded_scale(values[5], 0.00008, 0.00055),
         "solvent": _choice(values[6], 4),
         "seed_mass_g": _bounded_scale(values[7], 0.001, 0.015),
-        "crystallization_temperature_K": float(
-            np.clip(crystallization_temperature, 250.0, 315.0)
-        ),
+        "crystallization_temperature_K": float(np.clip(crystallization_temperature, 250.0, 315.0)),
         "crystallization_duration_s": _bounded_scale(values[9], 600.0, 14400.0),
     }
 
@@ -208,9 +221,7 @@ def crystallization_single_stage_recipe_from_unit_vector(
             "task_id": task_info.get("task_id"),
             "search_vector": [
                 float(value)
-                for value in crystallization_single_stage_unit_vector_from_parameters(
-                    parameters
-                )
+                for value in crystallization_single_stage_unit_vector_from_parameters(parameters)
             ],
             "recipe_parameters": parameters,
         },

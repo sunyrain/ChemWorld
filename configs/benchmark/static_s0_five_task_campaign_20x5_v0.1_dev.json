@@ -1,0 +1,68 @@
+{
+  "schema_version": "chemworld-static-s0-five-task-campaign-plan-0.1-dev",
+  "campaign_id": "static-s0-five-task-postqualification-20x5-v0.1-2026-07-30",
+  "status": "postqualification_multiseed_development_pending_execution",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "qualification_plan_path": "configs/benchmark/static_s0_five_task_single_seed_qualification_v0.1_dev.json",
+  "qualification_plan_sha256": "381fcdb875674aa3198d3a2618f8a36576787568649193ebcaf034b2899cec96",
+  "qualification_report_default_path": "runs/dev/static-s0-five-task-single-seed-qualification-v0.1/qualification_report.json",
+  "task_ids": [
+    "electrochemical-conversion",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "partition-discovery",
+    "flow-reaction-optimization"
+  ],
+  "world_seeds": [0, 1, 2, 3, 4],
+  "algorithm_seeds": [0],
+  "campaign": {
+    "exploration_experiments": 20,
+    "incumbent_validation_replicates": 3,
+    "recommendation_validation_replicates": 3,
+    "horizon_visible": true
+  },
+  "baseline_algorithm_ids": [
+    "random",
+    "lhs",
+    "greedy",
+    "structured_gp_ei",
+    "structured_rf_ei"
+  ],
+  "participant": {
+    "provider": "codex_subscription",
+    "method_config_path": "configs/methods/llm_v1.5/participant_methods_s0_codex_subscription_sol_five_task_20x5_v15.json",
+    "method_id": "s0_codex_subscription_sol_medium_five_task_shared_20",
+    "shared_method_across_all_tasks": true,
+    "final_synthesis_calls_per_world": 1
+  },
+  "planned_accounting": {
+    "participant_world_cells": 25,
+    "participant_provider_calls": 525,
+    "participant_exploration_experiments": 500,
+    "participant_blind_validation_experiments": 150,
+    "participant_total_physical_experiments": 650,
+    "baseline_cells": 125,
+    "baseline_exploration_experiments": 2500,
+    "baseline_blind_validation_experiments": 750,
+    "baseline_total_physical_experiments": 3250,
+    "campaign_total_physical_experiments": 3900
+  },
+  "execution_contract": {
+    "clean_source_tree_required": true,
+    "qualification_report_must_be_clean_and_match_source_commit": true,
+    "exact_exploration_replay_required": true,
+    "exact_validation_replay_required": true,
+    "participant_postrun_audit_required": true,
+    "resume_only_exact_matching_completed_cells": true
+  },
+  "reporting_boundaries": {
+    "primary_endpoint": "blind_validated_final_recommendation_score_mean",
+    "paired_world_suite": true,
+    "sampled_world_scope_only": true,
+    "provider_causal_effect_claim_allowed": false,
+    "broad_generalization_claim_allowed": false,
+    "formal_publication_result": false
+  },
+  "claim_boundary": "This five-world post-qualification campaign measures optimization behavior on the fixed sampled worlds. It is not a formal publication freeze, a provider causal estimate, or evidence of broad chemical generalization."
+}

@@ -10,12 +10,11 @@ from typing import Any
 import numpy as np
 
 TASK_DERIVED_SCORING_CONTRACT = "task-derived-scoring-v1"
-ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2 = (
-    "electrochemical-s0-balanced-efficiency-v2"
-)
-CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1 = (
-    "reaction-crystallization-s0-balanced-product-v1"
-)
+ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2 = "electrochemical-s0-balanced-efficiency-v2"
+CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1 = "reaction-crystallization-s0-balanced-product-v1"
+DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2 = "reaction-distillation-s0-balanced-audit-safety-v2"
+PARTITION_S0_EXTRACTION_EFFICIENCY_V2 = "partition-s0-extraction-efficiency-v2"
+FLOW_S0_BALANCED_PROCESS_V1 = "continuous-flow-s0-balanced-process-v1"
 
 
 @dataclass(frozen=True)
@@ -47,6 +46,28 @@ class TaskScoringContract:
         contract_id: str = TASK_DERIVED_SCORING_CONTRACT,
     ) -> TaskScoringContract:
         metrics = frozenset(success_metrics)
+        if contract_id == DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2:
+            required = {
+                "distillate_purity",
+                "distillate_recovery",
+                "solvent_loss",
+            }
+            if not required.issubset(metrics):
+                raise ValueError(
+                    "reaction-distillation S0 v2 scoring requires the distillation task metrics"
+                )
+            return cls(
+                objective=objective,
+                success_metrics=success_metrics,
+                score_family="distillation",
+                component_weights={
+                    "reaction_score": 0.40,
+                    "distillate_purity": 0.34,
+                    "distillate_recovery": 0.22,
+                    "solvent_loss": -0.10,
+                },
+                contract_id=contract_id,
+            )
         if contract_id == CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1:
             required = {
                 "crystal_yield",
@@ -71,6 +92,42 @@ class TaskScoringContract:
                     "crystal_size": 0.10,
                     "crystal_csd_quality": 0.25,
                     "crystal_fines_fraction": -0.10,
+                },
+                contract_id=contract_id,
+            )
+        if contract_id == PARTITION_S0_EXTRACTION_EFFICIENCY_V2:
+            required = {
+                "phase_ratio",
+                "product_in_organic",
+                "product_in_aqueous",
+            }
+            if not required.issubset(metrics):
+                raise ValueError("partition S0 v2 scoring requires the partition task metrics")
+            return cls(
+                objective=objective,
+                success_metrics=success_metrics,
+                score_family="partition",
+                component_weights={
+                    "product_in_organic": 0.85,
+                    "product_in_aqueous": -0.10,
+                    "phase_ratio": -0.10,
+                },
+                contract_id=contract_id,
+            )
+        if contract_id == FLOW_S0_BALANCED_PROCESS_V1:
+            required = {"flow_conversion", "yield", "safety_risk"}
+            if not required.issubset(metrics):
+                raise ValueError("continuous-flow S0 v1 scoring requires the flow task metrics")
+            return cls(
+                objective=objective,
+                success_metrics=success_metrics,
+                score_family="continuous_flow",
+                component_weights={
+                    "flow_conversion": 0.40,
+                    "yield": 0.30,
+                    "selectivity": 0.20,
+                    "cost": -0.04,
+                    "safety_risk": -0.06,
                 },
                 contract_id=contract_id,
             )
@@ -192,9 +249,11 @@ class TaskScoringContract:
                 success_metrics,
                 "continuous_flow",
                 {
-                    "reaction_score": 0.50,
-                    "flow_conversion": 0.35,
-                    "yield": 0.15,
+                    "flow_conversion": 0.40,
+                    "yield": 0.30,
+                    "selectivity": 0.20,
+                    "cost": -0.04,
+                    "safety_risk": -0.06,
                 },
             )
         if metrics.intersection({"purity", "recovery", "process_mass_balance_error"}):
@@ -215,10 +274,9 @@ class TaskScoringContract:
                 success_metrics,
                 "partition",
                 {
-                    "reaction_score": 0.25,
-                    "product_in_organic": 0.40,
-                    "phase_ratio": 0.25,
+                    "product_in_organic": 0.85,
                     "product_in_aqueous": -0.10,
+                    "phase_ratio": -0.10,
                 },
             )
         return cls(
@@ -329,7 +387,11 @@ def task_score_observation(
         selectivity=scalar_observation(values, "selectivity"),
         conversion=scalar_observation(values, "conversion"),
         cost=scalar_observation(values, "cost"),
-        safety_risk=scalar_observation(values, "safety_risk"),
+        safety_risk=(
+            0.0
+            if contract.contract_id == DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2
+            else scalar_observation(values, "safety_risk")
+        ),
     )
     components = {"reaction_score": reaction_component}
     components.update(
@@ -345,16 +407,17 @@ def task_score_observation(
     for metric, full_credit_threshold in contract.multiplicative_gates.items():
         if full_credit_threshold <= 0.0:
             raise ValueError("score gate thresholds must be positive")
-        raw *= float(
-            np.clip(scalar_observation(values, metric) / full_credit_threshold, 0.0, 1.0)
-        )
+        raw *= float(np.clip(scalar_observation(values, metric) / full_credit_threshold, 0.0, 1.0))
     return float(np.clip(raw, 0.0, 1.0))
 
 
 __all__ = [
     "CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1",
+    "DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2",
     "ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2",
+    "FLOW_S0_BALANCED_PROCESS_V1",
     "OBJECTIVES",
+    "PARTITION_S0_EXTRACTION_EFFICIENCY_V2",
     "TASK_DERIVED_SCORING_CONTRACT",
     "ObjectiveWeights",
     "TaskScoringContract",

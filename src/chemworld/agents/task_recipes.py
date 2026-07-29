@@ -17,7 +17,7 @@ from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_TASK_CONTRACT,
 )
 
-TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-1.1"
+TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-1.2"
 DIAGNOSTIC_RECIPE_DESIGN_V1 = "deterministic_task_aware_relational_diagnostic_design_v1"
 DIAGNOSTIC_RECIPE_DESIGN_V2 = "deterministic_task_aware_relational_diagnostic_design_v2"
 DIAGNOSTIC_RECIPE_DESIGNS = frozenset(
@@ -289,9 +289,7 @@ def task_recipe_coordinate_schema(task_info: dict[str, Any]) -> tuple[dict[str, 
                 "control_id": "controlled_current_delta_mA",
                 "kind": "signed_delta_from_probe_magnitude_cap",
                 "absolute_delta_bounds": [1.0, 100.0],
-                "result_bounds": list(
-                    ELECTROCHEMICAL_TASK_CONTRACT.s0_current_magnitude_bounds_mA
-                ),
+                "result_bounds": list(ELECTROCHEMICAL_TASK_CONTRACT.s0_current_magnitude_bounds_mA),
                 "unit": "mA",
             },
             {
@@ -318,14 +316,10 @@ def task_recipe_coordinate_schema(task_info: dict[str, Any]) -> tuple[dict[str, 
             *common_reaction,
             _linear_coordinate(7, "seed_mass_g", 0.001, 0.015, "g"),
             {
-                **_linear_coordinate(
-                    8, "crystallization_temperature_K", 270.0, 315.0, "K"
-                ),
+                **_linear_coordinate(8, "crystallization_temperature_K", 270.0, 315.0, "K"),
                 "coupled_maximum": "min(315.0, reaction_temperature_K - 55.0)",
             },
-            _linear_coordinate(
-                9, "crystallization_duration_s", 600.0, 14400.0, "s"
-            ),
+            _linear_coordinate(9, "crystallization_duration_s", 600.0, 14400.0, "s"),
         )
     if kind == "reaction_distillation":
         return (
@@ -408,6 +402,9 @@ def _categorical_coordinate(
         "control_id": control_id,
         "kind": "categorical",
         "category_count": category_count,
+        "selection_semantics": "independent_unordered_nominal_choice",
+        "numeric_order_has_scientific_meaning": False,
+        "numeric_distance_has_scientific_meaning": False,
     }
 
 
@@ -506,15 +503,11 @@ def electrochemical_recipe_unit_vector_from_parameters(
         numeric = float(value)
         if not np.isfinite(numeric):
             raise ValueError(f"{field} must be finite")
-        if not float(specification["minimum"]) <= numeric <= float(
-            specification["maximum"]
-        ):
+        if not float(specification["minimum"]) <= numeric <= float(specification["maximum"]):
             raise ValueError(f"{field} is outside its physical bounds")
         normalized[field] = numeric
 
-    potential_delta = (
-        normalized["controlled_potential_V"] - normalized["probe_potential_V"]
-    )
+    potential_delta = normalized["controlled_potential_V"] - normalized["probe_potential_V"]
     current_delta = normalized["controlled_current_mA"] - normalized["probe_current_mA"]
     if not 0.02 <= abs(potential_delta) <= 0.55:
         raise ValueError("controlled_potential_V must differ from the probe by 0.02 to 0.55 V")
@@ -631,9 +624,7 @@ def diagnostic_task_recipe_vectors(
     )
     electrochemical_vectors: list[np.ndarray] = []
     potential_profile_limit = (
-        min(action_count, 3)
-        if design_id == DIAGNOSTIC_RECIPE_DESIGN_V2
-        else action_count
+        min(action_count, 3) if design_id == DIAGNOSTIC_RECIPE_DESIGN_V2 else action_count
     )
     for probe_potential, controlled_delta in potential_profiles[:potential_profile_limit]:
         potential_vector = np.array(electro_reference, copy=True)
@@ -642,10 +633,7 @@ def diagnostic_task_recipe_vectors(
         electrochemical_vectors.append(potential_vector)
 
     categorical_coordinates = task_recipe_categorical_coordinates(task_info)
-    if (
-        design_id == DIAGNOSTIC_RECIPE_DESIGN_V2
-        and len(electrochemical_vectors) < action_count
-    ):
+    if design_id == DIAGNOSTIC_RECIPE_DESIGN_V2 and len(electrochemical_vectors) < action_count:
         # Every categorical intervention needs a shared, same-condition
         # reference.  Without it, two alternative-material probes may differ
         # in multiple categorical fields and cannot isolate either mapping.
@@ -699,9 +687,7 @@ def _unscale(value: float, low: float, high: float) -> float:
 
 def _signed_delta_coordinate(delta: float, low: float, high: float) -> float:
     magnitude_coordinate = _unscale(abs(delta), low, high)
-    return (1.0 + magnitude_coordinate) / 2.0 if delta > 0.0 else (
-        1.0 - magnitude_coordinate
-    ) / 2.0
+    return (1.0 + magnitude_coordinate) / 2.0 if delta > 0.0 else (1.0 - magnitude_coordinate) / 2.0
 
 
 def _choice(value: float, count: int) -> int:
@@ -766,6 +752,7 @@ def _reaction_steps(values: np.ndarray, *, kind: str) -> list[dict[str, Any]]:
     elif kind == "reaction_distillation":
         steps.extend(
             [
+                {"operation": "measure", "instrument": "hplc"},
                 {
                     "operation": "evaporate",
                     "target_temperature_K": _scale(values[7], 315.0, 350.0),

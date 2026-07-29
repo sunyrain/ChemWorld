@@ -37,7 +37,15 @@ from chemworld.eval.provenance import git_source_commit, git_worktree_dirty
 from chemworld.eval.task_metric_endpoints import build_task_metric_contract
 from chemworld.tasks import CONFIRMATORY_BENCHMARK_TASK_IDS, list_tasks
 from chemworld.world.recipes import compile_recipe
-from chemworld.world.scoring import TaskScoringContract
+from chemworld.world.scoring import (
+    CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1,
+    DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
+    ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2,
+    FLOW_S0_BALANCED_PROCESS_V1,
+    PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+    TASK_DERIVED_SCORING_CONTRACT,
+    TaskScoringContract,
+)
 
 FORMAL_EVIDENCE = {
     "electrochemical-conversion": {
@@ -45,16 +53,13 @@ FORMAL_EVIDENCE = {
             "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json"
         ),
         "campaign_summary": (
-            "workstreams/flagship_tasks/reports/"
-            "static-s0-v1.0-formal-campaign-summary.json"
+            "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json"
         ),
         "participant_campaign_index": (
-            "runs/formal/static-s0-v10-codex-subscription-20260729/"
-            "campaign_execution_index.json"
+            "runs/formal/static-s0-v10-codex-subscription-20260729/campaign_execution_index.json"
         ),
         "baseline_campaign_index": (
-            "runs/formal/static-s0-v10-baselines-20260729/"
-            "campaign_execution_index.json"
+            "runs/formal/static-s0-v10-baselines-20260729/campaign_execution_index.json"
         ),
     },
     "reaction-to-crystallization": {
@@ -62,20 +67,24 @@ FORMAL_EVIDENCE = {
             "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json"
         ),
         "campaign_summary": (
-            "workstreams/flagship_tasks/reports/"
-            "static-s0-v1.0-formal-campaign-summary.json"
+            "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json"
         ),
         "participant_campaign_index": (
-            "runs/formal/static-s0-v10-codex-subscription-20260729/"
-            "campaign_execution_index.json"
+            "runs/formal/static-s0-v10-codex-subscription-20260729/campaign_execution_index.json"
         ),
         "baseline_campaign_index": (
-            "runs/formal/static-s0-v10-baselines-20260729/"
-            "campaign_execution_index.json"
+            "runs/formal/static-s0-v10-baselines-20260729/campaign_execution_index.json"
         ),
     },
 }
 ROOT = Path(__file__).resolve().parents[1]
+_STATIC_S0_SCORING_CONTRACTS = {
+    "electrochemical-conversion": ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2,
+    "reaction-to-crystallization": CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1,
+    "reaction-to-distillation": DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
+    "partition-discovery": PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+    "flow-reaction-optimization": FLOW_S0_BALANCED_PROCESS_V1,
+}
 
 
 def _write_json_atomic(path: Path, payload: dict[str, Any]) -> None:
@@ -132,8 +141,7 @@ def _execute_recipe_case(
             )
             break
     final_assay_present = any(
-        action.get("operation") == "measure"
-        and action.get("instrument") == "final_assay"
+        action.get("operation") == "measure" and action.get("instrument") == "final_assay"
         for action in compiled_recipe
     )
     within_budget = len(compiled_recipe) <= int(task_info["budget"])
@@ -163,9 +171,7 @@ def _parameter_entries(
         entry = {"coordinate": coordinate, "control_id": control_id, **value}
         if value.get("type") == "integer":
             entry["kind"] = "categorical"
-            entry["category_count"] = (
-                int(value["maximum"]) - int(value["minimum"]) + 1
-            )
+            entry["category_count"] = int(value["maximum"]) - int(value["minimum"]) + 1
         entries.append(entry)
     return entries
 
@@ -181,12 +187,9 @@ def _design_execution_audit(
     entries = _parameter_entries(parameter_schema)
     if len(entries) != dimension:
         raise RuntimeError(
-            f"parameter schema dimension mismatch for {task.task_id}: "
-            f"{len(entries)} != {dimension}"
+            f"parameter schema dimension mismatch for {task.task_id}: {len(entries)} != {dimension}"
         )
-    vectors: list[tuple[str, np.ndarray]] = [
-        ("midpoint", np.full(dimension, 0.5, dtype=float))
-    ]
+    vectors: list[tuple[str, np.ndarray]] = [("midpoint", np.full(dimension, 0.5, dtype=float))]
     for coordinate in range(dimension):
         for label, value in (("low", 0.2), ("high", 0.8)):
             vector = np.full(dimension, 0.5, dtype=float)
@@ -282,8 +285,7 @@ def _task_row(task: Any) -> dict[str, Any]:
     else:
         parameterization = "unit_vector_with_public_physical_coordinate_schema"
         parameter_schema = {
-            str(item["coordinate"]): item
-            for item in task_recipe_coordinate_schema(task_info)
+            str(item["coordinate"]): item for item in task_recipe_coordinate_schema(task_info)
         }
         recipe = task_recipe_from_unit_vector(task_info, midpoint)
         slots = scientific_measurement_slots(task_info)
@@ -311,6 +313,10 @@ def _task_row(task: Any) -> dict[str, Any]:
     scoring = TaskScoringContract.from_success_metrics(
         objective=task.objective,
         success_metrics=task.success_metrics,
+        contract_id=_STATIC_S0_SCORING_CONTRACTS.get(
+            task.task_id,
+            TASK_DERIVED_SCORING_CONTRACT,
+        ),
     )
     metric_contract = build_task_metric_contract(task.success_metrics)
     if not metric_contract["all_metrics_bound"]:
@@ -329,12 +335,8 @@ def _task_row(task: Any) -> dict[str, Any]:
             "parameterization": parameterization,
             "dimension": dimension,
             "parameter_schema": parameter_schema,
-            "declared_operation_sequence": [
-                str(step["operation"]) for step in recipe["steps"]
-            ],
-            "fixed_operation_sequence": [
-                str(step["operation"]) for step in compiled_recipe
-            ],
+            "declared_operation_sequence": [str(step["operation"]) for step in recipe["steps"]],
+            "fixed_operation_sequence": [str(step["operation"]) for step in compiled_recipe],
             "compiled_operation_count_at_midpoint": len(compiled_recipe),
             "macro_operations": [
                 str(step["operation"])
@@ -343,9 +345,7 @@ def _task_row(task: Any) -> dict[str, Any]:
             ],
             "measurement_slots": list(slots),
             "recipe_space_version": str(
-                recipe.get("metadata", {}).get(
-                    "search_space_version", TASK_RECIPE_SPACE_VERSION
-                )
+                recipe.get("metadata", {}).get("search_space_version", TASK_RECIPE_SPACE_VERSION)
             ),
             "midpoint_execution_audit": execution_audit["midpoint"],
             "boundary_execution_audit": execution_audit,
@@ -357,6 +357,11 @@ def _task_row(task: Any) -> dict[str, Any]:
             "cost_observed": True,
             "leaderboard_score_source": "final_assay",
             "online_reward_source": "fresh_measurement_score_delta",
+            "safety_role": (
+                "audit_only_nonoptimizing"
+                if task.task_id == "reaction-to-distillation"
+                else "task_score_and_constraint"
+            ),
         },
         "formal_s0": (
             {
@@ -406,8 +411,7 @@ def main() -> None:
     formal_experiment_task_ids = sorted(
         row["task_id"]
         for row in tasks
-        if row["formal_s0"]["status"]
-        == "completed_ten_worlds_full_classic_baselines"
+        if row["formal_s0"]["status"] == "completed_ten_worlds_full_classic_baselines"
     )
     formal_empirical_comparison_pending_task_ids = sorted(
         row["task_id"]
@@ -424,28 +428,19 @@ def main() -> None:
         "design_validation": {
             "status": "all_registered_task_designs_executable_and_metric_bound",
             "executable_midpoint_task_count": sum(
-                row["complete_experiment_adapter"]["midpoint_execution_audit"][
-                    "status"
-                ]
-                == "passed"
+                row["complete_experiment_adapter"]["midpoint_execution_audit"]["status"] == "passed"
                 for row in tasks
             ),
             "executable_boundary_task_count": sum(
-                row["complete_experiment_adapter"]["boundary_execution_audit"][
-                    "status"
-                ]
-                == "passed"
+                row["complete_experiment_adapter"]["boundary_execution_audit"]["status"] == "passed"
                 for row in tasks
             ),
             "boundary_recipe_case_count": sum(
-                row["complete_experiment_adapter"]["boundary_execution_audit"][
-                    "case_count"
-                ]
+                row["complete_experiment_adapter"]["boundary_execution_audit"]["case_count"]
                 for row in tasks
             ),
             "dead_recipe_coordinate_count": sum(
-                len(row["overprotocol_audit"]["dead_recipe_coordinates"])
-                for row in tasks
+                len(row["overprotocol_audit"]["dead_recipe_coordinates"]) for row in tasks
             ),
             "declared_success_metric_count": sum(
                 len(row["evaluation_endpoints"]["endpoints"]) for row in tasks
@@ -458,8 +453,7 @@ def main() -> None:
                 for row in tasks
             ),
             "formalization_blocker_count": sum(
-                row["overprotocol_audit"]["formalization_blocker"] is not None
-                for row in tasks
+                row["overprotocol_audit"]["formalization_blocker"] is not None for row in tasks
             ),
             "formal_experiment_task_ids": formal_experiment_task_ids,
             "formal_empirical_comparison_pending_task_ids": (

@@ -42,6 +42,7 @@ from chemworld.eval.static_optimization_protocol import (
     static_optimization_crystallization_material_family_id,
     static_optimization_material_family_id,
     static_optimization_scoring_contract_id,
+    validate_development_seed_policy,
     validate_static_optimization_protocol,
 )
 from chemworld.eval.static_optimization_seeds import (
@@ -279,8 +280,7 @@ class CompleteExperimentOptimizer:
         self.rng = np.random.default_rng(self.seed)
         if (
             str(self.task_info.get("task_id", "")) == "electrochemical-conversion"
-            and self.electrochemical_workflow_mode
-            == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
+            and self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
         ):
             self.dimension = ELECTROCHEMICAL_SINGLE_STAGE_DIMENSION
             self.categorical = ELECTROCHEMICAL_SINGLE_STAGE_CATEGORICAL_COORDINATES
@@ -1002,6 +1002,7 @@ def run_baseline_cell(
     algorithm_seed: int,
 ) -> dict[str, Any]:
     validate_static_optimization_protocol(protocol)
+    validate_development_seed_policy(protocol, algorithm_seed=algorithm_seed)
     task_id = str(protocol["tasks"][0])
     task_info = get_task(task_id).to_dict()
     horizon = exploration_experiment_count(protocol)
@@ -1066,8 +1067,7 @@ def run_baseline_cell(
             if missing:
                 raise RuntimeError(f"telemetry-aware baseline lacks metrics: {missing}")
             telemetry = tuple(
-                float(processed_estimate[metric])
-                for metric in optimizer.telemetry_metric_ids
+                float(processed_estimate[metric]) for metric in optimizer.telemetry_metric_ids
             )
         optimizer.observe(
             BaselineObservation(
@@ -1165,9 +1165,7 @@ def run_baseline_cell(
     return {
         "schema_version": STATIC_BASELINE_RESULT_VERSION,
         "formal_result": bool(protocol.get("formal_result", False)),
-        "benchmark_claim_allowed": bool(
-            protocol.get("benchmark_claim_allowed", False)
-        ),
+        "benchmark_claim_allowed": bool(protocol.get("benchmark_claim_allowed", False)),
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": protocol_hash,
         "method_config_freeze_id": protocol["freeze_id"],

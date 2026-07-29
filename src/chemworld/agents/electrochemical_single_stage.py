@@ -12,7 +12,7 @@ from chemworld.physchem.electrochemical_task_contract import (
 )
 
 ELECTROCHEMICAL_SINGLE_STAGE_RECIPE_VERSION = (
-    "chemworld-electrochemical-static-single-stage-recipe-0.1-s0-dev"
+    "chemworld-electrochemical-static-single-stage-recipe-0.2-s0-dev"
 )
 ELECTROCHEMICAL_SINGLE_STAGE_DIMENSION = 6
 ELECTROCHEMICAL_SINGLE_STAGE_EVENT_COUNT = 8
@@ -23,12 +23,31 @@ ELECTROCHEMICAL_SINGLE_STAGE_MEASUREMENT_SLOTS = (
         "instrument": "ph_meter",
         "after_operation": "electrolyze",
         "recipe_step_index": 4,
+        "selection_policy": "agent_selectable",
+        "scientific_role": "electrolyte_and_phase_state_after_electrolysis",
+        "stage_id": "post_electrolysis_equilibrium_diagnostic",
+        "model_facing_metric_ids": [
+            "pH_normalized",
+            "acid_dissociation_fraction",
+            "precipitation_signal",
+            "equilibrium_residual",
+            "equilibrium_confidence",
+        ],
     },
     {
         "slot_id": "diagnostic-02-uvvis",
         "instrument": "uvvis",
         "after_operation": "measure",
         "recipe_step_index": 5,
+        "selection_policy": "agent_selectable",
+        "scientific_role": "electrochemical_efficiency_after_electrolysis",
+        "stage_id": "post_electrolysis_efficiency_diagnostic",
+        "model_facing_metric_ids": [
+            "faradaic_efficiency",
+            "transport_efficiency",
+            "ohmic_efficiency",
+            "energy_efficiency",
+        ],
     },
 )
 
@@ -77,9 +96,7 @@ def electrochemical_single_stage_parameters_from_unit_vector(
         raise ValueError("single-stage electrochemical coordinates must be finite")
     values = np.clip(values, 0.0, 1.0)
     potential_low, potential_high = ELECTROCHEMICAL_TASK_CONTRACT.s0_potential_bounds_V
-    current_low, current_high = (
-        ELECTROCHEMICAL_TASK_CONTRACT.s0_current_magnitude_bounds_mA
-    )
+    current_low, current_high = ELECTROCHEMICAL_TASK_CONTRACT.s0_current_magnitude_bounds_mA
     return {
         "electrolyte_profile": _choice(values[0], 4),
         "solvent": _choice(values[1], 4),
@@ -115,9 +132,7 @@ def electrochemical_single_stage_unit_vector_from_parameters(
             raise ValueError(f"{field} is outside its physical bounds")
         normalized[field] = min(max(numeric, minimum), maximum)
     potential_low, potential_high = ELECTROCHEMICAL_TASK_CONTRACT.s0_potential_bounds_V
-    current_low, current_high = (
-        ELECTROCHEMICAL_TASK_CONTRACT.s0_current_magnitude_bounds_mA
-    )
+    current_low, current_high = ELECTROCHEMICAL_TASK_CONTRACT.s0_current_magnitude_bounds_mA
     return np.asarray(
         [
             (normalized["electrolyte_profile"] + 0.5) / 4.0,
@@ -167,9 +182,7 @@ def electrochemical_single_stage_recipe_from_unit_vector(
             "task_id": task_info.get("task_id"),
             "search_vector": [
                 float(value)
-                for value in electrochemical_single_stage_unit_vector_from_parameters(
-                    parameters
-                )
+                for value in electrochemical_single_stage_unit_vector_from_parameters(parameters)
             ],
             "recipe_parameters": parameters,
         },

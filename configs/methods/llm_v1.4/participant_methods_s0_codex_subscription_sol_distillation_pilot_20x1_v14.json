@@ -1,0 +1,59 @@
+{
+  "schema_version": "chemworld-static-scientific-optimization-methods-0.1-s0-dev",
+  "freeze_id": "chemworld-static-s0-codex-subscription-sol-distillation-pilot-20x1-v1.4-2026-07-29",
+  "status": "development_pilot",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "architecture_candidate": {
+    "primary_track": "static_scientific_optimization_reaction_distillation_stage_resolved_pilot",
+    "decision_scope": "complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "provider_transport": "codex_cli_chatgpt_subscription",
+    "authentication": "chatgpt_subscription_cached_login",
+    "world_policy": "static_for_entire_campaign",
+    "workflow_mode": "registered_stage_resolved_reaction_distillation_recipe",
+    "horizon_visible": true,
+    "history_policy": "complete_20_experiment_public_history",
+    "model_facing_parameterization": "unit_vector_with_public_physical_coordinate_schema",
+    "decoded_physical_controls_visible_in_history": true,
+    "categorical_semantics": "independent_unordered_nominal_choices",
+    "matching_codes_across_coordinates_have_scientific_meaning": false,
+    "required_measurement_slots": [
+      "diagnostic-01-hplc",
+      "diagnostic-02-gc"
+    ],
+    "safety_policy": "audit_only_nonoptimizing",
+    "material_information": "no_dossier",
+    "final_synthesis": true,
+    "blind_recommendation_validation": true,
+    "hidden_world_fields_supplied": false,
+    "codex_tools_enabled": false,
+    "codex_session_persistence": false
+  },
+  "methods": {
+    "s0_codex_subscription_sol_medium_distillation_pilot_v02_20": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "direct_known_horizon_distillation_stage_resolved_independent_nominal_full_history_pilot_v14",
+      "declared_claim_validation_policy": "strict",
+      "request_configuration": {
+        "response_format": "codex_exec_output_schema",
+        "reasoning_effort": "medium",
+        "max_tokens": 8000,
+        "timeout_s": 600.0,
+        "max_attempts": 2,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 20,
+        "per_decision_max_estimated_tokens": 44000,
+        "final_synthesis_max_estimated_tokens": 56000,
+        "predictive_synthesis_max_estimated_tokens": 56000,
+        "public_measurement_representation": "stage_resolved_processed_estimate_plus_uncertainty_only",
+        "preflight_status": "passed_v02_20_round_mock_12_operation_stage_diagnostics_and_exact_replay_2026_07_29"
+      }
+    }
+  }
+}

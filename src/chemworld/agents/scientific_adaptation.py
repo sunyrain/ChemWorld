@@ -26,6 +26,7 @@ from chemworld.agents.prompt_context import (
 from chemworld.agents.task_recipes import (
     TASK_RECIPE_SPACE_VERSION,
     task_recipe_categorical_coordinates,
+    task_recipe_coordinate_schema,
     task_recipe_dimension,
     task_recipe_from_unit_vector,
     task_recipe_kind,
@@ -202,6 +203,7 @@ def scientific_measurement_slots(task_info: Mapping[str, Any]) -> tuple[dict[str
     """Describe the fixed diagnostic positions in the public recipe adapter."""
 
     task = dict(task_info)
+    recipe_kind = task_recipe_kind(task)
     vector = np.full(task_recipe_dimension(task), 0.5, dtype=float)
     recipe = task_recipe_from_unit_vector(task, vector)
     slots: list[dict[str, Any]] = []
@@ -212,16 +214,139 @@ def scientific_measurement_slots(task_info: Mapping[str, Any]) -> tuple[dict[str
         instrument = action.get("instrument")
         if operation == "measure" and instrument != "final_assay":
             diagnostic_index += 1
-            slots.append(
-                {
-                    "slot_id": f"diagnostic-{diagnostic_index:02d}-{instrument}",
-                    "instrument": str(instrument),
-                    "after_operation": previous_operation,
-                    "recipe_step_index": step_index,
-                }
-            )
+            slot = {
+                "slot_id": f"diagnostic-{diagnostic_index:02d}-{instrument}",
+                "instrument": str(instrument),
+                "after_operation": previous_operation,
+                "recipe_step_index": step_index,
+                "selection_policy": (
+                    "required_by_workflow"
+                    if recipe_kind == "reaction_distillation"
+                    else "agent_selectable"
+                ),
+            }
+            if recipe_kind == "reaction_distillation" and diagnostic_index == 1:
+                slot.update(
+                    {
+                        "stage_id": "post_reaction_pre_separation",
+                        "model_facing_metric_ids": [
+                            "conversion",
+                            "yield",
+                            "selectivity",
+                            "byproduct_signal",
+                        ],
+                    }
+                )
+            elif recipe_kind == "reaction_distillation" and diagnostic_index == 2:
+                slot.update(
+                    {
+                        "stage_id": "post_fraction_collection",
+                        "model_facing_metric_ids": [
+                            "distillate_purity",
+                            "degradation_warning",
+                            "byproduct_signal",
+                        ],
+                    }
+                )
+            elif recipe_kind == "reaction_crystallization" and diagnostic_index == 1:
+                slot.update(
+                    {
+                        "stage_id": "post_reaction_pre_crystallization",
+                        "model_facing_metric_ids": [
+                            "conversion",
+                            "yield",
+                            "selectivity",
+                            "byproduct_signal",
+                        ],
+                    }
+                )
+            elif recipe_kind == "reaction_crystallization" and diagnostic_index == 2:
+                slot.update(
+                    {
+                        "stage_id": "post_crystallization_pre_filtration",
+                        "model_facing_metric_ids": [
+                            "crystal_purity",
+                            "yield",
+                            "byproduct_signal",
+                        ],
+                    }
+                )
+            elif recipe_kind == "electrochemical" and diagnostic_index == 1:
+                slot.update(
+                    {
+                        "stage_id": "post_probe_electrolysis_equilibrium_diagnostic",
+                        "model_facing_metric_ids": [
+                            "pH_normalized",
+                            "acid_dissociation_fraction",
+                            "precipitation_signal",
+                            "equilibrium_residual",
+                            "equilibrium_confidence",
+                        ],
+                    }
+                )
+            elif recipe_kind == "electrochemical" and diagnostic_index == 2:
+                slot.update(
+                    {
+                        "stage_id": "post_controlled_electrolysis_efficiency_diagnostic",
+                        "model_facing_metric_ids": [
+                            "faradaic_efficiency",
+                            "transport_efficiency",
+                            "ohmic_efficiency",
+                            "energy_efficiency",
+                        ],
+                    }
+                )
+            elif recipe_kind == "partition" and diagnostic_index == 1:
+                slot.update(
+                    {
+                        "stage_id": "post_settle_pre_separation",
+                        "model_facing_metric_ids": [
+                            "phase_ratio",
+                            "product_in_organic",
+                            "product_in_aqueous",
+                            "impurity_signal",
+                        ],
+                    }
+                )
+            elif recipe_kind == "partition" and diagnostic_index == 2:
+                slot.update(
+                    {
+                        "stage_id": "post_selected_phase_separation",
+                        "model_facing_metric_ids": [
+                            "purity",
+                            "recovery",
+                            "product_in_organic",
+                            "product_in_aqueous",
+                            "impurity_signal",
+                        ],
+                    }
+                )
+            elif recipe_kind == "flow" and diagnostic_index == 1:
+                slot.update(
+                    {
+                        "stage_id": "post_flow_run",
+                        "model_facing_metric_ids": [
+                            "flow_conversion",
+                            "yield",
+                            "selectivity",
+                        ],
+                    }
+                )
+            slots.append(slot)
         previous_operation = operation
     return tuple(slots)
+
+
+def required_scientific_measurement_slot_ids(
+    task_info: Mapping[str, Any],
+) -> tuple[str, ...]:
+    """Return diagnostics that every complete workflow execution must retain."""
+
+    return tuple(
+        str(slot["slot_id"])
+        for slot in scientific_measurement_slots(task_info)
+        if slot.get("selection_policy") == "required_by_workflow"
+    )
 
 
 @dataclass(frozen=True)
@@ -271,6 +396,9 @@ def compile_scientific_experiment_plan(
     requested = set(plan.requested_measurement_slots)
     if not requested.issubset(available):
         raise ValueError("plan requests an unknown diagnostic measurement slot")
+    required = set(required_scientific_measurement_slot_ids(task))
+    if not required.issubset(requested):
+        raise ValueError("plan omits a workflow-required diagnostic measurement slot")
 
     steps: list[dict[str, Any]] = []
     measurement_slots_by_step: dict[str, str] = {}
@@ -444,9 +572,7 @@ class BoundedScientificMemory:
             or len(controlled) > self.max_controlled_variables
         ):
             observed = (
-                len(controlled)
-                if isinstance(controlled, list)
-                else type(controlled).__name__
+                len(controlled) if isinstance(controlled, list) else type(controlled).__name__
             )
             raise ScientificPlanValidationError(
                 "controlled_variables violates its bounded item contract",
@@ -694,13 +820,36 @@ class PublicExperimentContextBuilder:
                 "recipe_space_kind": task_recipe_kind(self.task_info),
                 "search_vector_dimension": task_recipe_dimension(self.task_info),
                 "search_vector_bounds": [0.0, 1.0],
+                "search_vector_coordinate_schema": [
+                    copy.deepcopy(item) for item in task_recipe_coordinate_schema(self.task_info)
+                ],
+                "physical_controls_are_deterministically_decoded": True,
                 "categorical_coordinates": [
-                    {"coordinate": coordinate, "category_count": count}
+                    {
+                        "coordinate": coordinate,
+                        "category_count": count,
+                        "selection_semantics": "independent_unordered_nominal_choice",
+                    }
                     for coordinate, count in task_recipe_categorical_coordinates(self.task_info)
                 ],
+                "categorical_semantics": {
+                    "coordinates_are_independently_selectable": True,
+                    "categories_are_unordered_nominal_choices": True,
+                    "numeric_order_has_scientific_meaning": False,
+                    "numeric_distance_has_scientific_meaning": False,
+                    "matching_codes_across_coordinates_has_scientific_meaning": False,
+                    "instruction": (
+                        "Treat every categorical coordinate as an independent unordered "
+                        "nominal choice. Numeric proximity and equal numeric codes across "
+                        "different coordinates carry no scientific meaning."
+                    ),
+                },
                 "diagnostic_measurement_slots": [
                     copy.deepcopy(item) for item in self.measurement_slots
                 ],
+                "required_measurement_slots": list(
+                    required_scientific_measurement_slot_ids(self.task_info)
+                ),
                 "closeout": [
                     {"operation": "terminate"},
                     {"operation": "measure", "instrument": "final_assay"},
@@ -729,8 +878,7 @@ class PublicExperimentContextBuilder:
             return history[:reference_count]
         return history[:reference_count] + history[-recent_count:]
 
-    @staticmethod
-    def _compact_history_record(item: Mapping[str, Any]) -> dict[str, Any]:
+    def _compact_history_record(self, item: Mapping[str, Any]) -> dict[str, Any]:
         plan = item.get("plan")
         if not isinstance(plan, Mapping):
             raise ValueError("experiment history record is missing its public plan")
@@ -742,25 +890,50 @@ class PublicExperimentContextBuilder:
         experiment_index = item.get("experiment_index")
         if isinstance(experiment_index, bool) or not isinstance(experiment_index, int):
             raise ValueError("experiment history index must be an integer")
+        compact_plan = {
+            key: _compact_public_value(plan[key]) for key in _PUBLIC_PLAN_KEYS if key in plan
+        }
+        metrics_by_slot = {
+            str(slot["slot_id"]): {
+                str(metric) for metric in slot.get("model_facing_metric_ids", ())
+            }
+            for slot in self.measurement_slots
+            if slot.get("model_facing_metric_ids")
+        }
         compact_evidence: list[dict[str, Any]] = []
         for entry in evidence:
-            compact_evidence.append(
-                {
-                    key: _compact_public_value(entry[key])
-                    for key in (
-                        "evidence_id",
-                        "processed_estimate",
-                        "uncertainty",
-                        "reward",
-                    )
-                    if key in entry
-                }
-            )
+            slot_id = str(entry.get("measurement_slot_id", ""))
+            allowed_metrics = metrics_by_slot.get(slot_id)
+            compact_entry = {
+                key: _compact_public_value(entry[key])
+                for key in (
+                    "evidence_id",
+                    "reward",
+                )
+                if key in entry
+            }
+            processed_estimate = entry.get("processed_estimate")
+            if isinstance(processed_estimate, Mapping):
+                compact_entry["processed_estimate"] = _compact_public_value(
+                    {
+                        key: value
+                        for key, value in processed_estimate.items()
+                        if allowed_metrics is None or key in allowed_metrics
+                    }
+                )
+            uncertainty = entry.get("uncertainty")
+            if isinstance(uncertainty, Mapping):
+                compact_entry["uncertainty"] = _compact_public_value(
+                    {
+                        key: value
+                        for key, value in uncertainty.items()
+                        if allowed_metrics is None or key.removesuffix("_std") in allowed_metrics
+                    }
+                )
+            compact_evidence.append(compact_entry)
         return {
             "experiment_index": experiment_index,
-            "plan": {
-                key: _compact_public_value(plan[key]) for key in _PUBLIC_PLAN_KEYS if key in plan
-            },
+            "plan": compact_plan,
             "measurement_evidence": compact_evidence,
             "terminal_summary": {
                 key: _compact_public_value(item["terminal_summary"][key])
@@ -797,6 +970,9 @@ class ExperimentPlanResponseValidator:
         self.dimension = task_recipe_dimension(self.task_info)
         self.measurement_slot_ids = tuple(
             str(item["slot_id"]) for item in scientific_measurement_slots(self.task_info)
+        )
+        self.required_measurement_slot_ids = required_scientific_measurement_slot_ids(
+            self.task_info
         )
 
     def validate(
@@ -878,9 +1054,7 @@ class ExperimentPlanResponseValidator:
                 field_path="requested_measurement_slots",
                 constraint="string_list",
                 observed=(
-                    len(requested)
-                    if isinstance(requested, list)
-                    else type(requested).__name__
+                    len(requested) if isinstance(requested, list) else type(requested).__name__
                 ),
             )
         normalized_requested = [str(item) for item in requested]
@@ -897,6 +1071,14 @@ class ExperimentPlanResponseValidator:
                 "requested_measurement_slots contains an unknown slot ID",
                 field_path="requested_measurement_slots",
                 constraint="known_measurement_slot_ids",
+            )
+        if not set(self.required_measurement_slot_ids).issubset(normalized_requested):
+            raise ScientificPlanValidationError(
+                "requested_measurement_slots omits a workflow-required slot ID",
+                field_path="requested_measurement_slots",
+                constraint="required_measurement_slot_ids",
+                observed=len(set(self.required_measurement_slot_ids) - set(normalized_requested)),
+                limit=0,
             )
         normalized_requested.sort(key=self.measurement_slot_ids.index)
 
@@ -1307,5 +1489,6 @@ __all__ = [
     "StatefulScientificScaffoldPolicy",
     "canonical_sha256",
     "compile_scientific_experiment_plan",
+    "required_scientific_measurement_slot_ids",
     "scientific_measurement_slots",
 ]

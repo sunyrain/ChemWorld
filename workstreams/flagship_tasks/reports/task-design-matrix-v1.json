@@ -41,8 +41,8 @@
     "status": "all_registered_task_designs_executable_and_metric_bound"
   },
   "schema_version": "chemworld-task-design-matrix-1.2",
-  "source_commit": "c987f57ac60036e5b3f0e52c42e274b7bb6a7b6c",
-  "source_tree_dirty": false,
+  "source_commit": "1701a4d09b5b4cfa6cf30fd3e4c9a2f2f15ad0e3",
+  "source_tree_dirty": true,
   "task_count": 15,
   "tasks": [
     {
@@ -118,14 +118,33 @@
           {
             "after_operation": "electrolyze",
             "instrument": "ph_meter",
+            "model_facing_metric_ids": [
+              "pH_normalized",
+              "acid_dissociation_fraction",
+              "precipitation_signal",
+              "equilibrium_residual",
+              "equilibrium_confidence"
+            ],
             "recipe_step_index": 4,
-            "slot_id": "diagnostic-01-ph_meter"
+            "scientific_role": "electrolyte_and_phase_state_after_electrolysis",
+            "selection_policy": "agent_selectable",
+            "slot_id": "diagnostic-01-ph_meter",
+            "stage_id": "post_electrolysis_equilibrium_diagnostic"
           },
           {
             "after_operation": "measure",
             "instrument": "uvvis",
+            "model_facing_metric_ids": [
+              "faradaic_efficiency",
+              "transport_efficiency",
+              "ohmic_efficiency",
+              "energy_efficiency"
+            ],
             "recipe_step_index": 5,
-            "slot_id": "diagnostic-02-uvvis"
+            "scientific_role": "electrochemical_efficiency_after_electrolysis",
+            "selection_policy": "agent_selectable",
+            "slot_id": "diagnostic-02-uvvis",
+            "stage_id": "post_electrolysis_efficiency_diagnostic"
           }
         ],
         "midpoint_execution_audit": {
@@ -178,7 +197,7 @@
         },
         "parameterization": "named_physical_controls",
         "recipe_kind": "electrochemical",
-        "recipe_space_version": "chemworld-electrochemical-static-single-stage-recipe-0.1-s0-dev",
+        "recipe_space_version": "chemworld-electrochemical-static-single-stage-recipe-0.2-s0-dev",
         "workflow": "static_single_stage_electrochemical"
       },
       "design_status": "formal_campaign_complete_claim_bounded",
@@ -332,17 +351,16 @@
       },
       "objective_and_reward": {
         "component_weights": {
-          "conversion": 0.05,
+          "electrochemical_conversion": 0.1,
           "electrochemical_selectivity": 0.15,
           "energy_efficiency": 0.15,
           "faradaic_efficiency": 0.12,
           "ohmic_efficiency": 0.08,
-          "reaction_score": 0.1,
-          "selective_product_yield": 0.25,
+          "selective_product_yield": 0.3,
           "transport_efficiency": 0.1
         },
-        "contract_hash": "ce0a73b2ecda02b480c258a14ac08cb0d55227af9ae17c9c0ea866d7430b2579",
-        "contract_id": "task-derived-scoring-v1",
+        "contract_hash": "b5603757998437e3537a07c1916c36dbff3266b48bb5bf46dad8a952d1f9842b",
+        "contract_id": "electrochemical-s0-balanced-efficiency-v2",
         "multiplicative_gates": {
           "selective_product_yield": 0.02
         },
@@ -373,7 +391,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "electrochemical-conversion",
       "world_split": "public-test"
@@ -429,18 +448,21 @@
             "after_operation": "add_reagent",
             "instrument": "ph_meter",
             "recipe_step_index": 2,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-01-ph_meter"
           },
           {
             "after_operation": "add_reagent",
             "instrument": "ph_meter",
             "recipe_step_index": 4,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-02-ph_meter"
           },
           {
             "after_operation": "measure",
             "instrument": "uvvis",
             "recipe_step_index": 5,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-03-uvvis"
           }
         ],
@@ -489,7 +511,7 @@
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "equilibrium",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_equilibrium_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -603,7 +625,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "equilibrium-characterization",
       "world_split": "public-test"
@@ -681,8 +704,15 @@
           {
             "after_operation": "run_flow",
             "instrument": "uvvis",
+            "model_facing_metric_ids": [
+              "flow_conversion",
+              "yield",
+              "selectivity"
+            ],
             "recipe_step_index": 5,
-            "slot_id": "diagnostic-01-uvvis"
+            "selection_policy": "agent_selectable",
+            "slot_id": "diagnostic-01-uvvis",
+            "stage_id": "post_flow_run"
           }
         ],
         "midpoint_execution_audit": {
@@ -701,7 +731,10 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 0,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "1": {
             "control_id": "reagent_amount_mol",
@@ -717,7 +750,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 2,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "3": {
             "control_id": "catalyst_amount_mol",
@@ -773,7 +809,7 @@
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "flow",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_flow_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -844,12 +880,14 @@
       },
       "objective_and_reward": {
         "component_weights": {
-          "flow_conversion": 0.35,
-          "reaction_score": 0.5,
-          "yield": 0.15
+          "cost": -0.04,
+          "flow_conversion": 0.4,
+          "safety_risk": -0.06,
+          "selectivity": 0.2,
+          "yield": 0.3
         },
-        "contract_hash": "6c3fb1fdcd0207f3cec3fa1758cde1c1f006e4f06847d0817e6d61b22fdb6c99",
-        "contract_id": "task-derived-scoring-v1",
+        "contract_hash": "b8e4cfc573651351982e4e324df3dc4070e5d63a6ac725242ecb399e4d3825e0",
+        "contract_id": "continuous-flow-s0-balanced-process-v1",
         "multiplicative_gates": {},
         "objective": "balanced",
         "score_family": "continuous_flow",
@@ -874,7 +912,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "flow-reaction-optimization",
       "world_split": "public-test"
@@ -953,6 +992,7 @@
             "after_operation": "quench",
             "instrument": "hplc",
             "recipe_step_index": 5,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-01-hplc"
           }
         ],
@@ -1012,7 +1052,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 4,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "5": {
             "control_id": "catalyst_amount_mol",
@@ -1028,12 +1071,15 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 6,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           }
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "reaction",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_reaction_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -1122,7 +1168,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "low-budget-characterization",
       "world_split": "public-test"
@@ -1204,14 +1251,31 @@
           {
             "after_operation": "settle",
             "instrument": "hplc",
+            "model_facing_metric_ids": [
+              "phase_ratio",
+              "product_in_organic",
+              "product_in_aqueous",
+              "impurity_signal"
+            ],
             "recipe_step_index": 5,
-            "slot_id": "diagnostic-01-hplc"
+            "selection_policy": "agent_selectable",
+            "slot_id": "diagnostic-01-hplc",
+            "stage_id": "post_settle_pre_separation"
           },
           {
             "after_operation": "separate_phase",
             "instrument": "hplc",
+            "model_facing_metric_ids": [
+              "purity",
+              "recovery",
+              "product_in_organic",
+              "product_in_aqueous",
+              "impurity_signal"
+            ],
             "recipe_step_index": 7,
-            "slot_id": "diagnostic-02-hplc"
+            "selection_policy": "agent_selectable",
+            "slot_id": "diagnostic-02-hplc",
+            "stage_id": "post_selected_phase_separation"
           }
         ],
         "midpoint_execution_audit": {
@@ -1230,7 +1294,10 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 0,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "1": {
             "control_id": "solvent_volume_L",
@@ -1256,7 +1323,10 @@
             "category_count": 4,
             "control_id": "extractant",
             "coordinate": 3,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "4": {
             "control_id": "extractant_volume_L",
@@ -1301,7 +1371,7 @@
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "partition",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_partition_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -1360,13 +1430,12 @@
       },
       "objective_and_reward": {
         "component_weights": {
-          "phase_ratio": 0.25,
+          "phase_ratio": -0.1,
           "product_in_aqueous": -0.1,
-          "product_in_organic": 0.4,
-          "reaction_score": 0.25
+          "product_in_organic": 0.85
         },
-        "contract_hash": "75757443bff9c8a75382eeeab9a41ad3145360d6e2115f5bca7200dcda10463c",
-        "contract_id": "task-derived-scoring-v1",
+        "contract_hash": "353482d019ec94e642ce43f415e505d37b4367908b45b12af630a5d0aaf7238d",
+        "contract_id": "partition-s0-extraction-efficiency-v2",
         "multiplicative_gates": {},
         "objective": "balanced",
         "score_family": "partition",
@@ -1388,7 +1457,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "partition-discovery",
       "world_split": "public-test"
@@ -1467,6 +1537,7 @@
             "after_operation": "quench",
             "instrument": "hplc",
             "recipe_step_index": 5,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-01-hplc"
           }
         ],
@@ -1526,7 +1597,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 4,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "5": {
             "control_id": "catalyst_amount_mol",
@@ -1542,12 +1616,15 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 6,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           }
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "reaction",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_reaction_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -1633,7 +1710,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "public-private-generalization",
       "world_split": "private-eval"
@@ -1752,18 +1830,21 @@
             "after_operation": "quench",
             "instrument": "hplc",
             "recipe_step_index": 5,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-01-hplc"
           },
           {
             "after_operation": "separate_phase",
             "instrument": "hplc",
             "recipe_step_index": 11,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-02-hplc"
           },
           {
             "after_operation": "transfer",
             "instrument": "hplc",
             "recipe_step_index": 16,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-03-hplc"
           }
         ],
@@ -1883,7 +1964,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 4,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "5": {
             "control_id": "catalyst_amount_mol",
@@ -1899,7 +1983,10 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 6,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "7": {
             "control_id": "aqueous_volume_L",
@@ -1915,7 +2002,10 @@
             "category_count": 4,
             "control_id": "extractant",
             "coordinate": 8,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "9": {
             "control_id": "extractant_volume_L",
@@ -1930,7 +2020,7 @@
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "reaction_purification",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_reaction_purification_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -2030,7 +2120,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "purity-yield-tradeoff",
       "world_split": "public-test"
@@ -2109,6 +2200,7 @@
             "after_operation": "quench",
             "instrument": "hplc",
             "recipe_step_index": 5,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-01-hplc"
           }
         ],
@@ -2168,7 +2260,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 4,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "5": {
             "control_id": "catalyst_amount_mol",
@@ -2184,12 +2279,15 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 6,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           }
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "reaction",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_reaction_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -2275,7 +2373,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "reaction-mechanism-explanation",
       "world_split": "public-test"
@@ -2354,6 +2453,7 @@
             "after_operation": "quench",
             "instrument": "hplc",
             "recipe_step_index": 5,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-01-hplc"
           }
         ],
@@ -2413,7 +2513,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 4,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "5": {
             "control_id": "catalyst_amount_mol",
@@ -2429,12 +2532,15 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 6,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           }
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "reaction",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_reaction_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -2532,7 +2638,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "reaction-optimization-standard",
       "world_split": "public-test"
@@ -2611,6 +2718,7 @@
             "after_operation": "quench",
             "instrument": "hplc",
             "recipe_step_index": 5,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-01-hplc"
           }
         ],
@@ -2670,7 +2778,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 4,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "5": {
             "control_id": "catalyst_amount_mol",
@@ -2686,12 +2797,15 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 6,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           }
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "reaction",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_reaction_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -2775,7 +2889,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.35
+        "safety_limit": 0.35,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "reaction-safety-constrained",
       "world_split": "public-test"
@@ -2854,6 +2969,7 @@
             "after_operation": "quench",
             "instrument": "hplc",
             "recipe_step_index": 5,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-01-hplc"
           }
         ],
@@ -2913,7 +3029,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 4,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "5": {
             "control_id": "catalyst_amount_mol",
@@ -2929,12 +3048,15 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 6,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           }
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "reaction",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_reaction_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -3005,7 +3127,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "reaction-to-assay",
       "world_split": "public-dev"
@@ -3091,16 +3214,31 @@
           {
             "after_operation": "quench",
             "instrument": "hplc",
+            "model_facing_metric_ids": [
+              "conversion",
+              "yield",
+              "selectivity",
+              "byproduct_signal"
+            ],
             "recipe_step_index": 5,
             "scientific_role": "reaction_outcome_before_crystallization",
-            "slot_id": "diagnostic-01-hplc"
+            "selection_policy": "agent_selectable",
+            "slot_id": "diagnostic-01-hplc",
+            "stage_id": "post_reaction_pre_crystallization"
           },
           {
             "after_operation": "cool_crystallize",
             "instrument": "hplc",
+            "model_facing_metric_ids": [
+              "crystal_purity",
+              "yield",
+              "byproduct_signal"
+            ],
             "recipe_step_index": 8,
             "scientific_role": "slurry_outcome_before_filtration",
-            "slot_id": "diagnostic-02-hplc"
+            "selection_policy": "agent_selectable",
+            "slot_id": "diagnostic-02-hplc",
+            "stage_id": "post_crystallization_pre_filtration"
           }
         ],
         "midpoint_execution_audit": {
@@ -3178,7 +3316,7 @@
         },
         "parameterization": "named_physical_controls",
         "recipe_kind": "reaction_crystallization",
-        "recipe_space_version": "chemworld-reaction-crystallization-static-single-stage-recipe-0.1-s0-dev",
+        "recipe_space_version": "chemworld-reaction-crystallization-static-single-stage-recipe-0.2-s0-dev",
         "workflow": "static_single_stage_complete_reaction_crystallization"
       },
       "design_status": "formal_campaign_complete_claim_bounded",
@@ -3284,15 +3422,15 @@
       },
       "objective_and_reward": {
         "component_weights": {
-          "crystal_csd_quality": 0.2,
+          "crystal_csd_quality": 0.25,
           "crystal_fines_fraction": -0.1,
           "crystal_purity": 0.2,
           "crystal_size": 0.1,
           "crystal_yield": 0.25,
-          "reaction_score": 0.25
+          "reaction_score": 0.2
         },
-        "contract_hash": "f39a24a9153127106649ca7d342293b20954a1a5515633b8424d2ab7f3a98eb9",
-        "contract_id": "task-derived-scoring-v1",
+        "contract_hash": "61aff14c8d7ebb0b2edf0af61c35a19b40a80274559f49f624e5090f47697ec6",
+        "contract_id": "reaction-crystallization-s0-balanced-product-v1",
         "multiplicative_gates": {},
         "objective": "balanced",
         "score_family": "crystallization",
@@ -3317,7 +3455,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "reaction-to-crystallization",
       "world_split": "public-test"
@@ -3358,7 +3497,7 @@
             "all_transactions_committed": true,
             "case_id": "midpoint",
             "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
-            "compiled_operations": 11,
+            "compiled_operations": 12,
             "failures": [],
             "final_assay_present": true,
             "status": "passed",
@@ -3368,13 +3507,14 @@
           "status": "passed",
           "world_seed": 0
         },
-        "compiled_operation_count_at_midpoint": 11,
+        "compiled_operation_count_at_midpoint": 12,
         "declared_operation_sequence": [
           "add_solvent",
           "add_reagent",
           "add_catalyst",
           "heat",
           "quench",
+          "measure",
           "evaporate",
           "distill",
           "collect_fraction",
@@ -3389,6 +3529,7 @@
           "add_catalyst",
           "heat",
           "quench",
+          "measure",
           "evaporate",
           "distill",
           "collect_fraction",
@@ -3399,17 +3540,38 @@
         "macro_operations": [],
         "measurement_slots": [
           {
+            "after_operation": "quench",
+            "instrument": "hplc",
+            "model_facing_metric_ids": [
+              "conversion",
+              "yield",
+              "selectivity",
+              "byproduct_signal"
+            ],
+            "recipe_step_index": 5,
+            "selection_policy": "required_by_workflow",
+            "slot_id": "diagnostic-01-hplc",
+            "stage_id": "post_reaction_pre_separation"
+          },
+          {
             "after_operation": "collect_fraction",
             "instrument": "gc",
-            "recipe_step_index": 8,
-            "slot_id": "diagnostic-01-gc"
+            "model_facing_metric_ids": [
+              "distillate_purity",
+              "degradation_warning",
+              "byproduct_signal"
+            ],
+            "recipe_step_index": 9,
+            "selection_policy": "required_by_workflow",
+            "slot_id": "diagnostic-02-gc",
+            "stage_id": "post_fraction_collection"
           }
         ],
         "midpoint_execution_audit": {
           "all_transactions_committed": true,
           "case_id": "midpoint",
           "claim_boundary": "deterministic design smoke; not comparative empirical evidence",
-          "compiled_operations": 11,
+          "compiled_operations": 12,
           "failures": [],
           "final_assay_present": true,
           "status": "passed",
@@ -3491,7 +3653,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 4,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "5": {
             "control_id": "catalyst_amount_mol",
@@ -3507,7 +3672,10 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 6,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "7": {
             "control_id": "evaporation_temperature_K",
@@ -3542,7 +3710,7 @@
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "reaction_distillation",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_reaction_distillation_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -3618,8 +3786,8 @@
           "reaction_score": 0.4,
           "solvent_loss": -0.1
         },
-        "contract_hash": "66b001ed4fa00526284c38138a7c819dc97be15f037c0926d259926897018516",
-        "contract_id": "task-derived-scoring-v1",
+        "contract_hash": "216d421d9c84dfb894adeba91eb64c231cb9486fd7e00a99afd1dc9449b9d46a",
+        "contract_id": "reaction-distillation-s0-balanced-audit-safety-v2",
         "multiplicative_gates": {},
         "objective": "balanced",
         "score_family": "distillation",
@@ -3642,7 +3810,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "audit_only_nonoptimizing"
       },
       "task_id": "reaction-to-distillation",
       "world_split": "public-test"
@@ -3761,18 +3930,21 @@
             "after_operation": "quench",
             "instrument": "hplc",
             "recipe_step_index": 5,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-01-hplc"
           },
           {
             "after_operation": "separate_phase",
             "instrument": "hplc",
             "recipe_step_index": 11,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-02-hplc"
           },
           {
             "after_operation": "transfer",
             "instrument": "hplc",
             "recipe_step_index": 16,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-03-hplc"
           }
         ],
@@ -3892,7 +4064,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 4,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "5": {
             "control_id": "catalyst_amount_mol",
@@ -3908,7 +4083,10 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 6,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "7": {
             "control_id": "aqueous_volume_L",
@@ -3924,7 +4102,10 @@
             "category_count": 4,
             "control_id": "extractant",
             "coordinate": 8,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "9": {
             "control_id": "extractant_volume_L",
@@ -3939,7 +4120,7 @@
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "reaction_purification",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_reaction_purification_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -4039,7 +4220,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "reaction-to-purification",
       "world_split": "public-test"
@@ -4158,18 +4340,21 @@
             "after_operation": "quench",
             "instrument": "hplc",
             "recipe_step_index": 5,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-01-hplc"
           },
           {
             "after_operation": "separate_phase",
             "instrument": "hplc",
             "recipe_step_index": 11,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-02-hplc"
           },
           {
             "after_operation": "transfer",
             "instrument": "hplc",
             "recipe_step_index": 16,
+            "selection_policy": "agent_selectable",
             "slot_id": "diagnostic-03-hplc"
           }
         ],
@@ -4289,7 +4474,10 @@
             "category_count": 4,
             "control_id": "catalyst",
             "coordinate": 4,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "5": {
             "control_id": "catalyst_amount_mol",
@@ -4305,7 +4493,10 @@
             "category_count": 4,
             "control_id": "solvent",
             "coordinate": 6,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "7": {
             "control_id": "aqueous_volume_L",
@@ -4321,7 +4512,10 @@
             "category_count": 4,
             "control_id": "extractant",
             "coordinate": 8,
-            "kind": "categorical"
+            "kind": "categorical",
+            "numeric_distance_has_scientific_meaning": false,
+            "numeric_order_has_scientific_meaning": false,
+            "selection_semantics": "independent_unordered_nominal_choice"
           },
           "9": {
             "control_id": "extractant_volume_L",
@@ -4336,7 +4530,7 @@
         },
         "parameterization": "unit_vector_with_public_physical_coordinate_schema",
         "recipe_kind": "reaction_purification",
-        "recipe_space_version": "chemworld-task-recipe-space-1.1",
+        "recipe_space_version": "chemworld-task-recipe-space-1.2",
         "workflow": "registered_complete_reaction_purification_recipe"
       },
       "design_status": "executable_design_qualified_formal_comparison_pending",
@@ -4434,7 +4628,8 @@
         "cost_observed": true,
         "leaderboard_score_source": "final_assay",
         "online_reward_source": "fresh_measurement_score_delta",
-        "safety_limit": 0.65
+        "safety_limit": 0.65,
+        "safety_role": "task_score_and_constraint"
       },
       "task_id": "tool-agent-planning",
       "world_split": "public-dev"

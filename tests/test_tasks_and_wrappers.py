@@ -33,6 +33,9 @@ from chemworld.world.operations import (
 )
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.scoring import (
+    DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
+    FLOW_S0_BALANCED_PROCESS_V1,
+    PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
     TaskScoringContract,
     score_observation,
     task_score_observation,
@@ -149,10 +152,7 @@ def test_core_task_cards_are_complete_release_contracts() -> None:
         assert contract["allowed_operations"] == list(task.allowed_operations)
         assert contract["allowed_instruments"] == list(task.allowed_instruments)
         assert contract["safety_limit"] == task.safety_limit
-        assert (
-            card["reward_leaderboard_metric"]["objective_score_threshold"]
-            == task.threshold
-        )
+        assert card["reward_leaderboard_metric"]["objective_score_threshold"] == task.threshold
         assert card["reward_leaderboard_metric"]["threshold_semantics"] == (
             "leaderboard_objective_score_not_primary_metric"
         )
@@ -208,6 +208,124 @@ def test_task_specific_scoring_contracts_are_explicit() -> None:
     assert task_score_observation(contract=purification_contract, values=values) == (
         expected_purification
     )
+
+
+def test_distillation_s0_v2_records_but_does_not_score_safety_risk() -> None:
+    task = get_task("reaction-to-distillation")
+    contract = TaskScoringContract.from_success_metrics(
+        objective=task.objective,
+        success_metrics=task.success_metrics,
+        contract_id=DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
+    )
+    values = {
+        "yield": 0.55,
+        "selectivity": 0.85,
+        "conversion": 0.65,
+        "cost": 0.40,
+        "distillate_purity": 0.60,
+        "distillate_recovery": 0.75,
+        "solvent_loss": 0.20,
+    }
+
+    low_risk = task_score_observation(
+        contract=contract,
+        values={**values, "safety_risk": 0.05},
+    )
+    high_risk = task_score_observation(
+        contract=contract,
+        values={**values, "safety_risk": 0.95},
+    )
+
+    assert contract.score_family == "distillation"
+    assert low_risk == high_risk
+
+
+def test_partition_score_contains_only_active_partition_components() -> None:
+    task = get_task("partition-discovery")
+    contract = TaskScoringContract.from_success_metrics(
+        objective=task.objective,
+        success_metrics=task.success_metrics,
+        contract_id=PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+    )
+    partition_values = {
+        "product_in_organic": 0.70,
+        "phase_ratio": 0.60,
+        "product_in_aqueous": 0.20,
+    }
+
+    low_reaction_metrics = task_score_observation(
+        contract=contract,
+        values={
+            **partition_values,
+            "yield": 0.0,
+            "conversion": 0.0,
+            "selectivity": 0.0,
+            "cost": 1.0,
+            "safety_risk": 1.0,
+        },
+    )
+    high_reaction_metrics = task_score_observation(
+        contract=contract,
+        values={
+            **partition_values,
+            "yield": 1.0,
+            "conversion": 1.0,
+            "selectivity": 1.0,
+            "cost": 0.0,
+            "safety_risk": 0.0,
+        },
+    )
+
+    assert contract.score_family == "partition"
+    assert contract.component_weights == {
+        "product_in_organic": 0.85,
+        "product_in_aqueous": -0.10,
+        "phase_ratio": -0.10,
+    }
+    assert low_reaction_metrics == pytest.approx(0.515)
+    assert high_reaction_metrics == low_reaction_metrics
+
+
+def test_flow_score_has_no_nested_reaction_composite() -> None:
+    task = get_task("flow-reaction-optimization")
+    contract = TaskScoringContract.from_success_metrics(
+        objective=task.objective,
+        success_metrics=task.success_metrics,
+        contract_id=FLOW_S0_BALANCED_PROCESS_V1,
+    )
+    values = {
+        "flow_conversion": 0.60,
+        "yield": 0.50,
+        "selectivity": 0.70,
+        "cost": 0.20,
+        "safety_risk": 0.10,
+    }
+
+    score = task_score_observation(
+        contract=contract,
+        values={
+            **values,
+            "conversion": 0.0,
+        },
+    )
+    score_with_unrelated_reaction_fields = task_score_observation(
+        contract=contract,
+        values={
+            **values,
+            "conversion": 1.0,
+        },
+    )
+
+    assert contract.component_weights == {
+        "flow_conversion": 0.40,
+        "yield": 0.30,
+        "selectivity": 0.20,
+        "cost": -0.04,
+        "safety_risk": -0.06,
+    }
+    assert "reaction_score" not in contract.component_weights
+    assert score == pytest.approx(0.516)
+    assert score_with_unrelated_reaction_fields == score
 
 
 def test_env_task_info_exposes_scoring_contract() -> None:
@@ -440,9 +558,10 @@ def test_raw_and_flat_action_spaces_emit_only_operation_conditional_fields() -> 
             action = env.action_space.sample()
             operation = OPERATION_TYPES[int(action["operation"])]
             assert set(action) == {"operation", *contracts[operation].required_fields}
-            assert "payload_fields_declared" not in env.unwrapped.validate_action(action)[
-                "invalid_reasons"
-            ]
+            assert (
+                "payload_fields_declared"
+                not in env.unwrapped.validate_action(action)["invalid_reasons"]
+            )
 
         wrapped = ContinuousEventActionWrapper(env)
         for _ in range(32):
