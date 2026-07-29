@@ -1,6 +1,6 @@
 # S0 五任务 post-qualification 20×5 结果
 
-日期：2026-07-30  
+日期：2026-07-30
 状态：**development-only；完整执行与审计已完成，不是正式 benchmark 排名**
 
 ## 1. 这轮回答什么

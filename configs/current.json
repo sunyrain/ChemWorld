@@ -26,7 +26,7 @@
     "benchmark_claim_allowed": false,
     "environment_certificate_results_present": true,
     "environment_benchmark_readiness_claim_allowed": false,
-    "interpretation": "Legacy fixed-world static-S0 participant results were withdrawn. Replacement electrochemical and reaction-crystallization campaigns completed ten independent worlds, twenty exploration experiments per world, full classic baselines, and exact replay. Results are descriptive: electrochemical is positive against the best information-matched baseline but not stable against the best privileged calibration baseline; crystallization underperforms LHS. RC28 Gate A remains a historical environment certificate with stale current-source binding; Participant Gates B-E remain unexecuted."
+    "interpretation": "Legacy fixed-world static-S0 participant results were withdrawn. Replacement electrochemical and reaction-crystallization campaigns completed ten independent worlds, twenty exploration experiments per world, full classic baselines, and exact replay. Results are descriptive: electrochemical is positive against the best information-matched baseline but not stable against the best privileged calibration baseline; crystallization underperforms LHS. A separate five-task, five-world development comparison is complete and remains explicitly non-formal. RC28 Gate A remains a historical environment certificate with stale current-source binding; Participant Gates B-E remain unexecuted."
   },
   "static_scientific_optimization": {
     "summary": "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json",
@@ -244,8 +244,8 @@
     "schema_version": "chemworld-current-evidence-dag-0.3",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "bdae394818005bb09381061c489add21764ee84b574288fc27c38790e5cbfae2",
-    "repository_source_sha256": "8e9f132c07957675b90d76a0871c5cef450208bc4dc9b4b4eee352dda8efdf78",
+    "graph_sha256": "8f6a86b90628d2d61a9da2b582977863329953dd30f2c57d0c14ec03e9f7d12b",
+    "repository_source_sha256": "4a1275b49f4f967a9927154f84cf938f37d0b960f8d0aabb49f85052746cfedd",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -270,6 +270,8 @@
       "static_s0_electrochemical_method",
       "static_s0_electrochemical_protocol",
       "static_s0_electrochemical_world_understanding",
+      "static_s0_five_task_campaign_plan",
+      "static_s0_five_task_participant_method",
       "mechanism_agent_pilot",
       "mechanism_gate_a_plan",
       "mechanism_public_matrix",
@@ -290,6 +292,7 @@
       "static_s0_nominal_information_freeze_manifest",
       "task_design_matrix",
       "mechanism_confirmatory_task_semantics_audit",
+      "static_s0_five_task_postqualification_summary",
       "static_s0_misindexed_information_freeze_manifest",
       "mechanism_design_audit",
       "static_s0_material_information_triarm_summary",
@@ -416,7 +419,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "a407fd9c9850bec107e73160d31d02f90ebc1198077c61e08efb9d2118fa0ec0",
+        "sha256": "b8f7ef44dcc4fa681e27a7868920d120adfa750cdb3cd44bab5b340596366897",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -577,6 +580,30 @@
         "freshness": "fresh",
         "gate_state": "not_applicable"
       },
+      "static_s0_five_task_campaign_plan": {
+        "path": "configs/benchmark/static_s0_five_task_campaign_20x5_v0.1_dev.json",
+        "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
+        "dependencies": [],
+        "sha256": "df727cc484adf1ba38ebfdf3c275fd0478550ce9c7a06a1f01756cc9297562a2",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
+      },
+      "static_s0_five_task_participant_method": {
+        "path": "configs/methods/llm_v1.5/participant_methods_s0_codex_subscription_sol_five_task_20x5_v15.json",
+        "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
+        "dependencies": [],
+        "sha256": "15c27f5771dfc4805135eb0e5a36a1758eaf6833a2ac61e14c75e0c6d48c4e7b",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
+      },
       "mechanism_agent_pilot": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-agent-pilot-v0.2.1.json",
         "role": "development_diagnostic",
@@ -648,7 +675,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "593324e0ad8debf41b7ebc90ba31b5b2d8bda2e1b96f529d0ed2e5cd342075fb",
+        "sha256": "91e7ac635e72b9db96243246af487f41bd36984df1e507a3fa72454b74dad1e8",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -663,7 +690,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "83158c3cb7a672361f4d7b41667040ab85700aaa32797846edfcfac43adcdceb",
+        "sha256": "d7fd232871e4fdb079d326da362a8b82433248abc2e6758aeff47c749ba69b06",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -728,7 +755,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "79e4a6a88891bc9fdf9c6adbc6bd664106ea900e8ea3b1587bc1309173ee3a5f",
+        "sha256": "c73065cde264ce4debb93fd542d2bf3b8f3128a4a1ab8a00344934a570093059",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -831,7 +858,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "479bedb56d923fc5ef0c2c577dca190d581a3eee9df3b75afed5dd10f17f4350",
+        "sha256": "e9f3d045fc20be313e3e8e89789b0313a453483dc8806987e0a5ebe91e2e6d26",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -876,7 +903,7 @@
         "dependencies": [
           "static_s0_formal_campaign_summary"
         ],
-        "sha256": "5e20ef12e23ea944a96c3d216d6e169b719a4a47480b14b567b8f5bfb23c7392",
+        "sha256": "42c67e2a2571ab6459702bb0afd5a1bbf2a74222ba7e6c1db37cf562c50ccd7e",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -897,6 +924,22 @@
         "artifact_state": "stale",
         "freshness": "stale_dependency_binding",
         "gate_state": "invalidated"
+      },
+      "static_s0_five_task_postqualification_summary": {
+        "path": "workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
+        "dependencies": [
+          "backend_candidate",
+          "static_s0_five_task_campaign_plan",
+          "static_s0_five_task_participant_method"
+        ],
+        "sha256": "09f68e0f6e045829bda34b36a736e589d602f84dd2e382f52541bcc760a063c3",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
       },
       "static_s0_misindexed_information_freeze_manifest": {
         "path": "configs/benchmark/scientific_optimization_s0_v1.2_misindexed_information_freeze_manifest.json",
@@ -1315,5 +1358,39 @@
       }
     },
     "interpretation": "Correct anonymous nominal properties have positive confirmatory information value for electrochemistry and an inconclusive effect for crystallization. The fixed targeted wrong prior changes behavior in both tasks, but neither task satisfies the preregistered overall recovery claim."
+  },
+  "static_s0_five_task_postqualification": {
+    "summary": "workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json",
+    "status": "completed_audited_development_only",
+    "formal_result": false,
+    "benchmark_claim_allowed": false,
+    "task_ids": [
+      "electrochemical-conversion",
+      "flow-reaction-optimization",
+      "partition-discovery",
+      "reaction-to-crystallization",
+      "reaction-to-distillation"
+    ],
+    "world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "result_count": 150,
+    "campaign_total_physical_experiments": 3900,
+    "participant_provider_calls": 526,
+    "all_replay_verified": true,
+    "all_tasks_reached_threshold_by_any_method_mean": false,
+    "threshold_failure_task": "partition-discovery",
+    "participant_mean_by_task": {
+      "electrochemical-conversion": 0.7453837639835598,
+      "flow-reaction-optimization": 0.16273951764956313,
+      "partition-discovery": 0.5426488446621696,
+      "reaction-to-crystallization": 0.5205785119980845,
+      "reaction-to-distillation": 0.47951357082381535
+    },
+    "interpretation": "Completed audited development comparison. It extends comparative coverage to five tasks but does not promote the results to formal benchmark evidence or a broad provider ranking."
   }
 }
