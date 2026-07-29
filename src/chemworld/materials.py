@@ -8,6 +8,11 @@ from typing import Any
 
 from chemworld.physchem.component_registry import curated_component_registry
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
+from chemworld.world.crystallization_material_family import (
+    REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY,
+    crystallization_material_family,
+    normalize_crystallization_material_family,
+)
 from chemworld.world.electrochemical_material_family import (
     NOMINAL_PRIOR_MATERIAL_FAMILY,
     electrochemical_material_family,
@@ -15,6 +20,9 @@ from chemworld.world.electrochemical_material_family import (
 )
 
 STATIC_MATERIAL_INFORMATION_VERSION = "chemworld-static-material-information-1.1"
+CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION = (
+    "chemworld-static-crystallization-material-information-1.0"
+)
 STATIC_MATERIAL_INFORMATION_OPAQUE = "opaque_codes"
 STATIC_MATERIAL_INFORMATION_NOMINAL = "anonymous_nominal_properties"
 STATIC_MATERIAL_INFORMATION_SHUFFLED = "anonymous_shuffled_properties"
@@ -26,6 +34,7 @@ STATIC_MATERIAL_INFORMATION_MODES = frozenset(
     }
 )
 _ELECTROCHEMICAL_TASK_ID = "electrochemical-conversion"
+_CRYSTALLIZATION_TASK_ID = "reaction-to-crystallization"
 _CONTROLLED_MATERIAL_FIELDS = ("electrolyte_profile", "solvent")
 
 
@@ -173,16 +182,37 @@ def normalize_static_material_information_config(
         raise ValueError(
             f"material_information.mode must be one of {sorted(STATIC_MATERIAL_INFORMATION_MODES)}"
         )
-    if mode != STATIC_MATERIAL_INFORMATION_OPAQUE and set(task_ids) != {_ELECTROCHEMICAL_TASK_ID}:
+    task_set = set(task_ids)
+    if mode != STATIC_MATERIAL_INFORMATION_OPAQUE and task_set not in {
+        frozenset({_ELECTROCHEMICAL_TASK_ID}),
+        frozenset({_CRYSTALLIZATION_TASK_ID}),
+    }:
         raise ValueError(
-            "nominal material properties are currently audited only for the "
-            "electrochemical-conversion task"
+            "nominal material properties require exactly one audited flagship task"
         )
-    if mode != STATIC_MATERIAL_INFORMATION_OPAQUE:
+    if (
+        mode == STATIC_MATERIAL_INFORMATION_SHUFFLED
+        and task_set == {_CRYSTALLIZATION_TASK_ID}
+    ):
+        raise ValueError(
+            "shuffled crystallization material properties are not frozen in this condition"
+        )
+    if mode != STATIC_MATERIAL_INFORMATION_OPAQUE and task_set == {
+        _ELECTROCHEMICAL_TASK_ID
+    }:
         family_id = normalize_electrochemical_material_family(material_family_id)
         if family_id != NOMINAL_PRIOR_MATERIAL_FAMILY:
             raise ValueError(
                 "nominal material information requires the nominal-prior material family"
+            )
+    if mode != STATIC_MATERIAL_INFORMATION_OPAQUE and task_set == {
+        _CRYSTALLIZATION_TASK_ID
+    }:
+        family_id = normalize_crystallization_material_family(material_family_id)
+        if family_id != REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY:
+            raise ValueError(
+                "nominal crystallization material information requires the "
+                "reaction-crystallization latent material family"
             )
     raw_permutation = config.get("descriptor_permutation")
     if mode != STATIC_MATERIAL_INFORMATION_SHUFFLED:
@@ -233,6 +263,8 @@ def static_material_information_dossier(
     mode = normalized["mode"]
     if mode == STATIC_MATERIAL_INFORMATION_OPAQUE:
         return None
+    if task_id == _CRYSTALLIZATION_TASK_ID:
+        return _crystallization_material_information_dossier(material_family_id)
     permutations = normalized.get(
         "descriptor_permutation",
         {field: list(range(4)) for field in _CONTROLLED_MATERIAL_FIELDS},
@@ -320,7 +352,115 @@ def static_material_information_dossier(
     }
 
 
+def _positive_geometric_mean(values: Sequence[float]) -> float:
+    numeric = tuple(float(value) for value in values)
+    if not numeric or any(value <= 0.0 or not math.isfinite(value) for value in numeric):
+        raise ValueError("nominal material multipliers must be finite and positive")
+    return math.exp(sum(math.log(value) for value in numeric) / len(numeric))
+
+
+def _log_variability(values: Sequence[float]) -> float:
+    numeric = tuple(float(value) for value in values)
+    center = sum(math.log(value) for value in numeric) / len(numeric)
+    return math.sqrt(
+        sum((math.log(value) - center) ** 2 for value in numeric) / len(numeric)
+    )
+
+
+def _reaction_panel_properties(values: Sequence[float]) -> dict[str, float]:
+    numeric = tuple(float(value) for value in values)
+    return {
+        "reference_panel_activity_geomean": _positive_geometric_mean(numeric),
+        "reference_panel_activity_floor": min(numeric),
+        "reference_panel_activity_ceiling": max(numeric),
+        "reference_panel_log_variability": _log_variability(numeric),
+    }
+
+
+def _crystallization_material_information_dossier(
+    material_family_id: object | None,
+) -> dict[str, Any]:
+    """Build an anonymous, nominal-only catalyst/solvent dossier.
+
+    The published values are derived only from the frozen family-level nominal
+    profiles. They never read the world-specific residual instance, active
+    mechanism, realized score, or any experiment observation.
+    """
+
+    family = crystallization_material_family(material_family_id)
+    catalyst_choices = [
+        {
+            "action_value": action_value,
+            "anonymous_material_id": f"catalyst-C{action_value}",
+            "nominal_properties": _reaction_panel_properties(
+                row["reaction_multipliers"]
+            ),
+        }
+        for action_value, row in enumerate(family.catalyst_profiles)
+    ]
+    solvent_choices = []
+    for action_value, row in enumerate(family.solvent_profiles):
+        reaction_properties = _reaction_panel_properties(
+            row["reaction_multipliers"]
+        )
+        solvent_choices.append(
+            {
+                "action_value": action_value,
+                "anonymous_material_id": f"solvent-S{action_value}",
+                "nominal_properties": {
+                    **reaction_properties,
+                    "relative_solubility": float(row["solubility_multiplier"]),
+                    "relative_nucleation_tendency": float(
+                        row["nucleation_multiplier"]
+                    ),
+                    "relative_crystal_growth": float(row["growth_multiplier"]),
+                    "relative_impurity_occlusion": float(
+                        row["impurity_occlusion_multiplier"]
+                    ),
+                },
+            }
+        )
+    if len(catalyst_choices) != 4 or len(solvent_choices) != 4:
+        raise ValueError(
+            "crystallization nominal material dossier requires four catalyst "
+            "and four solvent choices"
+        )
+    return {
+        "contract_version": CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION,
+        "presentation": "anonymous_material_ids_with_nominal_properties",
+        "identity_policy": (
+            "Catalyst and solvent IDs are benchmark-only labels and do not "
+            "identify real substances, formulations, or synthesis conditions."
+        ),
+        "property_scope": {
+            "catalyst": (
+                "Nominal aggregate activity across an anonymous reference-reaction "
+                "panel before the fixed-world catalyst residual."
+            ),
+            "solvent": (
+                "Nominal aggregate reference-reaction activity plus relative "
+                "solubility, nucleation, growth, and impurity-occlusion tendencies "
+                "before fixed-world residuals."
+            ),
+        },
+        "residual_policy": (
+            "World-specific catalyst and solvent residual multipliers are hidden, "
+            "sampled once per world, and fixed for the entire campaign."
+        ),
+        "interpretation_policy": (
+            "Treat these values as incomplete mechanistic prior evidence. They do "
+            "not reveal the active hidden reaction family, realized response law, "
+            "objective score, optimal recipe, or world-specific residuals."
+        ),
+        "choices": {
+            "catalyst": catalyst_choices,
+            "solvent": solvent_choices,
+        },
+    }
+
+
 __all__ = [
+    "CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION",
     "STATIC_MATERIAL_INFORMATION_MODES",
     "STATIC_MATERIAL_INFORMATION_NOMINAL",
     "STATIC_MATERIAL_INFORMATION_OPAQUE",

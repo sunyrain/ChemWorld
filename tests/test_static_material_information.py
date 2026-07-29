@@ -22,6 +22,7 @@ from chemworld.eval.static_optimization_protocol import (
 )
 from chemworld.foundation import equipment_settings
 from chemworld.materials import (
+    CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION,
     STATIC_MATERIAL_INFORMATION_NOMINAL,
     STATIC_MATERIAL_INFORMATION_OPAQUE,
     STATIC_MATERIAL_INFORMATION_SHUFFLED,
@@ -29,6 +30,9 @@ from chemworld.materials import (
     static_material_information_dossier,
 )
 from chemworld.tasks import get_task
+from chemworld.world.crystallization_material_family import (
+    REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY,
+)
 from chemworld.world.electrochemical_material_family import (
     LEGACY_ELECTROCHEMICAL_MATERIAL_FAMILY,
     NOMINAL_PRIOR_MATERIAL_FAMILY,
@@ -142,12 +146,12 @@ def test_nominal_material_context_and_audit_are_hashed() -> None:
     assert audit["material_information_sha256"] == manifest["material_information_sha256"]
 
 
-def test_nominal_material_information_fails_closed_outside_audited_task() -> None:
-    with pytest.raises(ValueError, match="currently audited only"):
+def test_nominal_material_information_fails_closed_outside_audited_family() -> None:
+    with pytest.raises(ValueError, match="latent material family"):
         normalize_static_material_information_config(
             {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL},
             task_ids=("reaction-to-crystallization",),
-            material_family_id=NOMINAL_PRIOR_MATERIAL_FAMILY,
+            material_family_id=None,
         )
 
     with pytest.raises(ValueError, match="requires the nominal-prior"):
@@ -168,8 +172,96 @@ def test_nominal_material_information_fails_closed_outside_audited_task() -> Non
     )
     invalid = copy.deepcopy(protocol)
     invalid["material_information"] = {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL}
-    with pytest.raises(ValueError, match="currently audited only"):
+    with pytest.raises(ValueError, match="latent material family"):
         validate_static_optimization_protocol(invalid)
+
+
+def test_crystallization_nominal_dossier_is_anonymous_partial_and_audited() -> None:
+    dossier = static_material_information_dossier(
+        {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL},
+        task_id="reaction-to-crystallization",
+        material_family_id=REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY,
+    )
+
+    assert dossier is not None
+    assert dossier["contract_version"] == (
+        CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION
+    )
+    assert set(dossier["choices"]) == {"catalyst", "solvent"}
+    assert len(dossier["choices"]["catalyst"]) == 4
+    assert len(dossier["choices"]["solvent"]) == 4
+    serialized = json.dumps(dossier, sort_keys=True).lower()
+    for private_term in (
+        "reaction_multipliers",
+        "residual_generator",
+        "family_sha256",
+        "world_id",
+        "leaderboard_score",
+        "optimal_recipe",
+    ):
+        assert private_term not in serialized
+    catalyst_fields = set(
+        dossier["choices"]["catalyst"][0]["nominal_properties"]
+    )
+    solvent_fields = set(
+        dossier["choices"]["solvent"][0]["nominal_properties"]
+    )
+    assert {
+        "reference_panel_activity_geomean",
+        "reference_panel_activity_floor",
+        "reference_panel_activity_ceiling",
+        "reference_panel_log_variability",
+    } == catalyst_fields
+    assert {
+        "relative_solubility",
+        "relative_nucleation_tendency",
+        "relative_crystal_growth",
+        "relative_impurity_occlusion",
+    }.issubset(solvent_fields)
+
+
+def test_crystallization_nominal_protocol_reaches_the_participant_context() -> None:
+    root = Path(__file__).resolve().parents[1]
+    protocol = json.loads(
+        (
+            root
+            / "configs"
+            / "benchmark"
+            / "scientific_optimization_s0_v1.0_crystallization_material_opaque_20x10_formal.json"
+        ).read_text(encoding="utf-8")
+    )
+    methods = json.loads(
+        (
+            root
+            / "configs"
+            / "methods"
+            / "llm_v1.0"
+            / (
+                "participant_methods_s0_codex_subscription_sol_"
+                "crystallization_material_opaque_20x10_v10.json"
+            )
+        ).read_text(encoding="utf-8")
+    )
+    protocol["material_information"] = {
+        "mode": STATIC_MATERIAL_INFORMATION_NOMINAL
+    }
+    validate_static_optimization_protocol(protocol)
+    agent = build_static_optimization_agent(
+        protocol,
+        "reaction-to-crystallization",
+        llm_methods=methods,
+        method_id=protocol["method_ids"][0],
+        client=_DeterministicStaticMockClient(),
+    )
+
+    material_information = agent.public_context([])["experiment_interface"][
+        "material_information"
+    ]
+    assert material_information["contract_version"] == (
+        CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION
+    )
+    assert agent.manifest()["hidden_world_fields_supplied"] is False
+    assert agent.manifest()["material_information_sha256"]
 
 
 def test_protocol_condition_reaches_the_built_agent() -> None:

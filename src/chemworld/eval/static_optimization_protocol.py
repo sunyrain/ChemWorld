@@ -270,12 +270,18 @@ def validate_static_optimization_protocol(protocol: Mapping[str, Any]) -> None:
     campaign = protocol.get("scientific_campaign_budget")
     static_optimization_workflow_mode(protocol)
     material_family_id = static_optimization_material_family_id(protocol)
-    static_optimization_crystallization_material_family_id(protocol)
+    crystallization_material_family_id = (
+        static_optimization_crystallization_material_family_id(protocol)
+    )
     static_optimization_scoring_contract_id(protocol)
     normalize_static_material_information_config(
         protocol.get("material_information"),
         task_ids=tasks,
-        material_family_id=material_family_id,
+        material_family_id=(
+            crystallization_material_family_id
+            if set(tasks) == {CRYSTALLIZATION_TASK_ID}
+            else material_family_id
+        ),
     )
     predictive_call_policy = static_optimization_predictive_call_policy(protocol)
     predictive_query_policy = static_optimization_predictive_query_policy(protocol)

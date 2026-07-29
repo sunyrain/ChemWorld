@@ -1,0 +1,133 @@
+{
+  "baseline_tracks": [
+    {
+      "algorithm_count": 14,
+      "algorithm_seed_count": 5,
+      "cell_count": 700,
+      "information_matched_algorithm_count": 7,
+      "privileged_calibration_or_negative_control_count": 7,
+      "protocol_path": "configs/benchmark/scientific_optimization_s0_v1.0_electrochemical_classic_baselines_20x10_formal.json",
+      "protocol_sha256": "1e146b7dd3aaf45185e86bfb3f4ae1b0792ced9f25536672666db830ac0b81f5",
+      "reuse_only": true,
+      "reuse_reason": "same worlds and outcome contract; no baseline rerun is needed for the participant information intervention",
+      "task_id": "electrochemical-conversion",
+      "track_id": "electrochemical",
+      "world_count": 10
+    },
+    {
+      "algorithm_count": 7,
+      "algorithm_seed_count": 5,
+      "cell_count": 350,
+      "information_matched_algorithm_count": 7,
+      "privileged_calibration_or_negative_control_count": 0,
+      "protocol_path": "configs/benchmark/scientific_optimization_s0_v1.0_crystallization_classic_baselines_20x10_formal.json",
+      "protocol_sha256": "2c3434689e048b01dc10d96b991bf6694acae152ac84af5d9a222ea0cd39e6b9",
+      "reuse_only": true,
+      "reuse_reason": "same worlds and outcome contract; no baseline rerun is needed for the participant information intervention",
+      "task_id": "reaction-to-crystallization",
+      "track_id": "crystallization",
+      "world_count": 10
+    }
+  ],
+  "benchmark_claim_allowed": false,
+  "confirmatory_analysis": {
+    "bootstrap_resamples": 100000,
+    "familywise_interval": "paired_world_bootstrap_97.5_percent_per_task_for_two_task_bonferroni_family",
+    "harmful_information": "familywise_interval_upper_bound_less_than_zero",
+    "nominal_interval": "paired_world_bootstrap_95_percent",
+    "otherwise": "inconclusive",
+    "pairing_key": "task_id_and_world_seed",
+    "positive_information_value": "familywise_interval_lower_bound_greater_than_zero",
+    "primary_estimand_by_task": "paired_world_mean(nominal_blind_score - opaque_blind_score)",
+    "random_seed": 20260729
+  },
+  "formal_result": true,
+  "freeze_id": "chemworld-static-s0-two-flagships-nominal-information-v1.1-2026-07-29",
+  "paired_opaque_evidence": {
+    "campaign_index": "runs/formal/static-s0-v10-codex-subscription-20260729/campaign_execution_index.json",
+    "campaign_root": "runs/formal/static-s0-v10-codex-subscription-20260729",
+    "formal_summary": "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json"
+  },
+  "participant_tracks": [
+    {
+      "blind_validation_experiments_per_world": 6,
+      "exploration_rounds_per_world": 20,
+      "material_information_contract_version": "chemworld-static-material-information-1.1",
+      "material_information_sha256": "f3fd3ea3c98f68f97c591e2e23d2fc0c0d07112a5fdd4f3124879e00612bbc63",
+      "method_id": "s0_codex_subscription_sol_medium_electrochemical_material_nominal_20",
+      "method_path": "configs/methods/llm_v1.1/participant_methods_s0_codex_subscription_sol_electrochemical_material_nominal_20x10_v11.json",
+      "method_sha256": "b531a5609e7aae279538eabf1b55a69d57869d6781eda7750d6af24b850e2452",
+      "model_id": "gpt-5.6-sol",
+      "paired_opaque_method_path": "configs/methods/llm_v1.0/participant_methods_s0_codex_subscription_sol_electrochemical_material_opaque_20x10_v10.json",
+      "paired_opaque_protocol_path": "configs/benchmark/scientific_optimization_s0_v1.0_electrochemical_material_opaque_20x10_formal.json",
+      "predictive_physical_experiments_per_world": 12,
+      "protocol_path": "configs/benchmark/scientific_optimization_s0_v1.1_electrochemical_material_nominal_20x10_formal.json",
+      "protocol_sha256": "cc4ea685762576521caa64330b576c4c97a7653be7ff13d8c76b2e7925acb1ec",
+      "provider": "codex_subscription",
+      "reasoning_effort": "medium",
+      "task_id": "electrochemical-conversion",
+      "track_id": "electrochemical",
+      "world_count": 10,
+      "world_understanding_reference_path": "configs/benchmark/world_understanding_s0_electrochemical_material_v1.0.json",
+      "world_understanding_reference_sha256": "65583594c65a2445c72a7c4b8ae1026b3cdddc5bb23990f0447b14a4d00e1a37"
+    },
+    {
+      "blind_validation_experiments_per_world": 6,
+      "exploration_rounds_per_world": 20,
+      "material_information_contract_version": "chemworld-static-crystallization-material-information-1.0",
+      "material_information_sha256": "4432e956ccc0923de2dd226503673e7fea3faa257208b45d226a6e701c1f92e7",
+      "method_id": "s0_codex_subscription_sol_medium_crystallization_material_nominal_20",
+      "method_path": "configs/methods/llm_v1.1/participant_methods_s0_codex_subscription_sol_crystallization_material_nominal_20x10_v11.json",
+      "method_sha256": "fbd9cf28c030b23affcf728b5a32cb2b42437a754f8f631671143b30c768aa5f",
+      "model_id": "gpt-5.6-sol",
+      "paired_opaque_method_path": "configs/methods/llm_v1.0/participant_methods_s0_codex_subscription_sol_crystallization_material_opaque_20x10_v10.json",
+      "paired_opaque_protocol_path": "configs/benchmark/scientific_optimization_s0_v1.0_crystallization_material_opaque_20x10_formal.json",
+      "predictive_physical_experiments_per_world": 12,
+      "protocol_path": "configs/benchmark/scientific_optimization_s0_v1.1_crystallization_material_nominal_20x10_formal.json",
+      "protocol_sha256": "909cfc870339006a08407ade2e7695f05dcd26cdd45178faeb0248b264f5d241",
+      "provider": "codex_subscription",
+      "reasoning_effort": "medium",
+      "task_id": "reaction-to-crystallization",
+      "track_id": "crystallization",
+      "world_count": 10,
+      "world_understanding_reference_path": "configs/benchmark/world_understanding_s0_crystallization_material_v1.0.json",
+      "world_understanding_reference_sha256": "d9e361ddf1879c35295280e81d53d289db69894fb6ee6e9f190a579836b882fd"
+    }
+  ],
+  "planned_accounting": {
+    "new_participant_blind_validation_experiments": 120,
+    "new_participant_exploration_experiments": 400,
+    "new_participant_predictive_physical_experiments": 240,
+    "new_participant_provider_calls": 420,
+    "new_participant_total_physical_experiments": 760,
+    "new_participant_world_cells": 20,
+    "newly_executed_baseline_cells": 0,
+    "reused_classic_baseline_cells": 1050,
+    "reused_opaque_participant_world_cells": 20
+  },
+  "reporting_boundaries": {
+    "broad_generalization_claim_allowed": false,
+    "hidden_world_residuals_supplied": false,
+    "material_properties": "anonymous_nominal_family_level_priors_only",
+    "opaque_v1_0_freeze_mutated": false,
+    "primary_endpoint": "paired_blind_validated_final_recommendation_score_mean",
+    "provider_causal_effect_claim_allowed": false,
+    "real_material_identity_claim_allowed": false,
+    "sampled_world_scope_only": true
+  },
+  "schema_version": "chemworld-static-s0-nominal-information-freeze-manifest-1.0",
+  "source_commit_binding": "recorded_by_campaign_orchestrator_at_execution",
+  "status": "owner_authorized_frozen_formal_pending_execution",
+  "world_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ]
+}
