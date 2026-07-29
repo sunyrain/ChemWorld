@@ -1,0 +1,443 @@
+{
+  "accounting": {
+    "blind_validation_experiments": 60,
+    "exploration_experiments": 200,
+    "method_failures": 0,
+    "predictive_physical_experiments": 120,
+    "provider_attempts": 215,
+    "provider_calls": 210,
+    "provider_retry_attempts": 5,
+    "total_physical_experiments": 380
+  },
+  "analysis": {
+    "bootstrap_resamples": 100000,
+    "bootstrap_seed": 20260729,
+    "familywise_rule_preview_interval": "paired_world_bootstrap_97.5_percent_per_task",
+    "full_preregistered_rule_not_applied": true,
+    "nominal_interval": "paired_world_bootstrap_95_percent",
+    "pairing_key": "task_id_and_world_seed",
+    "primary_estimand_by_task": "paired_world_mean(nominal_blind_score - opaque_blind_score)",
+    "unit": "independent_world"
+  },
+  "benchmark_claim_allowed": false,
+  "confirmatory_analysis_complete": false,
+  "execution": {
+    "all_selected_cells_completed": true,
+    "all_selected_cells_exact_replay_verified": true,
+    "completed_fraction_per_task": 0.5,
+    "nominal_root": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729",
+    "opaque_reference_root": "runs\\formal\\static-s0-v10-codex-subscription-20260729",
+    "owner_stop_rule": "first_five_worlds_requested_for_interim_review",
+    "preregistered_world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "selected_world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "formal_result": false,
+  "freeze": {
+    "freeze_id": "chemworld-static-s0-two-flagships-nominal-information-v1.1-2026-07-29",
+    "manifest_path": "configs\\benchmark\\scientific_optimization_s0_v1.1_nominal_information_freeze_manifest.json",
+    "manifest_sha256": "17b569a7bfaeac1ea900dcfb434218e4d18524fba525ae300b120705565acc3e"
+  },
+  "interim_analysis_only": true,
+  "reporting_boundaries": {
+    "broad_generalization_claim_allowed": false,
+    "five_world_result": "interim_descriptive_only_not_the_frozen_ten_world_confirmatory_result",
+    "hidden_world_residuals_supplied": false,
+    "material_properties": "anonymous_nominal_family_level_priors_only",
+    "opaque_v1_0_freeze_mutated": false,
+    "positive_information_value_claim_allowed": false,
+    "primary_endpoint": "paired_blind_validated_final_recommendation_score_mean",
+    "provider_causal_effect_claim_allowed": false,
+    "real_material_identity_claim_allowed": false,
+    "reason": "only_five_of_ten_preregistered_worlds_per_task_were_run_and_both_paired_intervals_cross_zero",
+    "sampled_world_scope_only": true
+  },
+  "schema_version": "chemworld-static-s0-nominal-information-interim-1.0",
+  "status": "completed_audited_interim_descriptive_result",
+  "tasks": {
+    "crystallization": {
+      "confirmatory_claim_allowed": false,
+      "declared_world_understanding_secondary_diagnostic_mean": {
+        "confidence_brier_score": 0.8018014285714286,
+        "directional_accuracy": 0.9,
+        "mechanism_tag_f1": 0.12967171717171716,
+        "mechanism_tag_precision": 0.6333333333333333,
+        "mechanism_tag_recall": 0.07333333333333333,
+        "structural_edge_f1": 0.2511111111111111,
+        "structural_edge_precision": 0.30333333333333334,
+        "structural_edge_recall": 0.22000000000000003,
+        "unsupported_claim_rate": 0.7733333333333333
+      },
+      "interim_familywise_rule_preview": "inconclusive",
+      "method_id": "s0_codex_subscription_sol_medium_crystallization_material_nominal_20",
+      "model_id": "gpt-5.6-sol",
+      "nominal_primary_score": {
+        "count": 5,
+        "maximum": 0.5955667824752994,
+        "mean": 0.5506605368786465,
+        "median": 0.5597120593534365,
+        "minimum": 0.49699073285284706,
+        "sample_standard_deviation": 0.03693352379296452
+      },
+      "opaque_primary_score": {
+        "count": 5,
+        "maximum": 0.5929743341336673,
+        "mean": 0.5172669926701967,
+        "median": 0.5043482552996531,
+        "minimum": 0.4532023901918623,
+        "sample_standard_deviation": 0.06195990348361932
+      },
+      "paired_nominal_minus_opaque": {
+        "count": 5,
+        "maximum": 0.10650966916157417,
+        "mean": 0.03339354420844983,
+        "median": 0.06889510408884608,
+        "minimum": -0.07264691724175104,
+        "sample_standard_deviation": 0.07880841188261675,
+        "world_bootstrap_95_interval": [
+          -0.030746177338334634,
+          0.09287029935265739
+        ],
+        "world_bootstrap_97_5_interval": [
+          -0.036815599961086,
+          0.09592852774984298
+        ]
+      },
+      "paired_win_tie_loss": {
+        "losses": 2,
+        "ties": 0,
+        "wins": 3
+      },
+      "predictive_secondary_diagnostic_mean": {
+        "confidence_brier_score": 0.3236755555555556,
+        "directional_accuracy": 0.4222222222222222,
+        "nontrivial_actual_effect_rate": 0.6222222222222222
+      },
+      "provider": "codex_subscription",
+      "reasoning_effort": "medium",
+      "task_id": "reaction-to-crystallization",
+      "worlds": [
+        {
+          "nominal_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-00\\postrun_audit.json",
+            "audit_sha256": "1db7fbe6626b6f9cd9f7da4672bed03a50909513df51a45509f2ca6caac60962",
+            "exact_replay_verified": true,
+            "primary_score": 0.565965671991601,
+            "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-00\\report.json",
+            "report_sha256": "8708d67181151332cf4be63040c9750f4f425d430ec0dbac1a59246fdd833044",
+            "world_seed": 0
+          },
+          "nominal_minus_opaque": -0.02700866214206632,
+          "nominal_score": 0.565965671991601,
+          "opaque_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-00\\postrun_audit.json",
+            "audit_sha256": "db3538730e5f6e0ba5fa5bd785e1782ef5c51326cac7cc0e8dab2f44f762bb2a",
+            "exact_replay_verified": true,
+            "primary_score": 0.5929743341336673,
+            "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-00\\report.json",
+            "report_sha256": "5f580c71ee65768df9d5a8d3e0633ea1d024a64fbb68f4bf998f5461c99a2a18",
+            "world_seed": 0
+          },
+          "opaque_score": 0.5929743341336673,
+          "world_seed": 0
+        },
+        {
+          "nominal_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-01\\postrun_audit.json",
+            "audit_sha256": "824c55ac4160e999eb80a8be97167cd11a14a186dcaf9ed7bc4a318fff7b84f2",
+            "exact_replay_verified": true,
+            "primary_score": 0.5597120593534365,
+            "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-01\\report.json",
+            "report_sha256": "0d4b06f93977c191d4e6cf8b44ed74949f6315c2c20c6e09a9c7c8b39b13601c",
+            "world_seed": 1
+          },
+          "nominal_minus_opaque": 0.10650966916157417,
+          "nominal_score": 0.5597120593534365,
+          "opaque_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-01\\postrun_audit.json",
+            "audit_sha256": "e913264a02922bf0ec0717b42c2fa0bd98d94bb01cb0218022eb4f958f9d0433",
+            "exact_replay_verified": true,
+            "primary_score": 0.4532023901918623,
+            "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-01\\report.json",
+            "report_sha256": "a4455f6d45beb24f5438c96142b52c4c55baeb1c817ae9384ed566418bccc92c",
+            "world_seed": 1
+          },
+          "opaque_score": 0.4532023901918623,
+          "world_seed": 1
+        },
+        {
+          "nominal_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-02\\postrun_audit.json",
+            "audit_sha256": "64930e0c808ae9d0f1cc9b6ad104256195370b2da77d75e3a2bdbd9628c50e03",
+            "exact_replay_verified": true,
+            "primary_score": 0.5955667824752994,
+            "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-02\\report.json",
+            "report_sha256": "acf26a9ba728607a2cf90c713621e89ab7d87e3783326b54de7eac73664e2ddb",
+            "world_seed": 2
+          },
+          "nominal_minus_opaque": 0.09121852717564627,
+          "nominal_score": 0.5955667824752994,
+          "opaque_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-02\\postrun_audit.json",
+            "audit_sha256": "1ba014017335452f22a3ed51170f81fe44f70ba69d7390dee3a27cb583881e1e",
+            "exact_replay_verified": true,
+            "primary_score": 0.5043482552996531,
+            "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-02\\report.json",
+            "report_sha256": "6bff2a534ab34d64dfe206a8995528ce5ebf27030ecca9ead04630ed8f4a6afb",
+            "world_seed": 2
+          },
+          "opaque_score": 0.5043482552996531,
+          "world_seed": 2
+        },
+        {
+          "nominal_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-03\\postrun_audit.json",
+            "audit_sha256": "5641323c8d3176104152c9edadabc65181fcb50b59d671b4b6e00f360070b893",
+            "exact_replay_verified": true,
+            "primary_score": 0.5350674377200487,
+            "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-03\\report.json",
+            "report_sha256": "b0fc2598e668f8d0de100a4ea113ccc026875a564e94f26e1e2ae8c6e384c923",
+            "world_seed": 3
+          },
+          "nominal_minus_opaque": 0.06889510408884608,
+          "nominal_score": 0.5350674377200487,
+          "opaque_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-03\\postrun_audit.json",
+            "audit_sha256": "be69eacc8d9418fe00d361b435d547fde5440e2fe10c37e989ed24965c869d5d",
+            "exact_replay_verified": true,
+            "primary_score": 0.46617233363120264,
+            "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-03\\report.json",
+            "report_sha256": "00a4a5661164e7156b20f76216c2ae7c9107865e9dea91ef05c575a99c967391",
+            "world_seed": 3
+          },
+          "opaque_score": 0.46617233363120264,
+          "world_seed": 3
+        },
+        {
+          "nominal_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-04\\postrun_audit.json",
+            "audit_sha256": "cdfacf165cb5aff01aba26c6c339c1d9af2aea3ed2fadd9a166f20976c49515c",
+            "exact_replay_verified": true,
+            "primary_score": 0.49699073285284706,
+            "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\crystallization\\world-04\\report.json",
+            "report_sha256": "b20028bbbbf9910d92d702a77ffc5dffc291783d1018ca5385ccb288f48cb4fa",
+            "world_seed": 4
+          },
+          "nominal_minus_opaque": -0.07264691724175104,
+          "nominal_score": 0.49699073285284706,
+          "opaque_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-04\\postrun_audit.json",
+            "audit_sha256": "9e6fa35315f1a8812c7f849ab127e5a0351e1cd86c82a1c4741638b033b34f09",
+            "exact_replay_verified": true,
+            "primary_score": 0.5696376500945981,
+            "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\crystallization\\world-04\\report.json",
+            "report_sha256": "0bbedba18d3bab3e9a31d4243ae93a4f929099b8dce64b851aa56e24a0b12c19",
+            "world_seed": 4
+          },
+          "opaque_score": 0.5696376500945981,
+          "world_seed": 4
+        }
+      ]
+    },
+    "electrochemical": {
+      "confirmatory_claim_allowed": false,
+      "declared_world_understanding_secondary_diagnostic_mean": {
+        "confidence_brier_score": 0.8313032234432235,
+        "directional_accuracy": 0.7,
+        "mechanism_tag_f1": 0.19047619047619047,
+        "mechanism_tag_precision": 0.5666666666666667,
+        "mechanism_tag_recall": 0.12000000000000002,
+        "structural_edge_f1": 0.3416666666666667,
+        "structural_edge_precision": 0.35757575757575755,
+        "structural_edge_recall": 0.3333333333333333,
+        "unsupported_claim_rate": 0.7457142857142858
+      },
+      "interim_familywise_rule_preview": "inconclusive",
+      "method_id": "s0_codex_subscription_sol_medium_electrochemical_material_nominal_20",
+      "model_id": "gpt-5.6-sol",
+      "nominal_primary_score": {
+        "count": 5,
+        "maximum": 0.835930397600205,
+        "mean": 0.7873316351011291,
+        "median": 0.7860760414417153,
+        "minimum": 0.7237846251909263,
+        "sample_standard_deviation": 0.04537508800751566
+      },
+      "opaque_primary_score": {
+        "count": 5,
+        "maximum": 0.8273616450299226,
+        "mean": 0.6938696850116889,
+        "median": 0.8099087158827153,
+        "minimum": 0.40701203355341525,
+        "sample_standard_deviation": 0.18547503202466767
+      },
+      "paired_nominal_minus_opaque": {
+        "count": 5,
+        "maximum": 0.3167725916375111,
+        "mean": 0.09346195008944023,
+        "median": 0.008568752570282445,
+        "minimum": -0.023832674441000012,
+        "sample_standard_deviation": 0.14447017136508594,
+        "world_bootstrap_95_interval": [
+          -0.006194363832806938,
+          0.22322377111858818
+        ],
+        "world_bootstrap_97_5_interval": [
+          -0.011773376435775229,
+          0.2241250439178764
+        ]
+      },
+      "paired_win_tie_loss": {
+        "losses": 1,
+        "ties": 0,
+        "wins": 4
+      },
+      "predictive_secondary_diagnostic_mean": {
+        "confidence_brier_score": 0.18800444444444445,
+        "directional_accuracy": 0.711111111111111,
+        "nontrivial_actual_effect_rate": 0.9333333333333333
+      },
+      "provider": "codex_subscription",
+      "reasoning_effort": "medium",
+      "task_id": "electrochemical-conversion",
+      "worlds": [
+        {
+          "nominal_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-00\\postrun_audit.json",
+            "audit_sha256": "57b5a3271a45b5b361ec9d9a5226e510ced88035153bb67e3cd939c0a6f0348b",
+            "exact_replay_verified": true,
+            "primary_score": 0.835930397600205,
+            "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-00\\report.json",
+            "report_sha256": "e69062b878fefbb6f044b0346875069cd07f423ed2662d891758c6dbf213a9be",
+            "world_seed": 0
+          },
+          "nominal_minus_opaque": 0.008568752570282445,
+          "nominal_score": 0.835930397600205,
+          "opaque_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-00\\postrun_audit.json",
+            "audit_sha256": "5f26f8ab1d3e865d8958471508dd149761a2231679ce233241e38aef76b913c3",
+            "exact_replay_verified": true,
+            "primary_score": 0.8273616450299226,
+            "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-00\\report.json",
+            "report_sha256": "26fbc536470cc3c45398e37519cc027d8a278379be3b496a25abef8ad9e8cb9d",
+            "world_seed": 0
+          },
+          "opaque_score": 0.8273616450299226,
+          "world_seed": 0
+        },
+        {
+          "nominal_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-01\\postrun_audit.json",
+            "audit_sha256": "d2c13583784514438951362e35aa72a6f85d8c48ff1cebd315cfa78b53425e91",
+            "exact_replay_verified": true,
+            "primary_score": 0.7662558799781763,
+            "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-01\\report.json",
+            "report_sha256": "57922b2133aea62a3587bfc6fdef50b2b39438051312a023a4ae31a1aa49d1f8",
+            "world_seed": 1
+          },
+          "nominal_minus_opaque": 0.16173869210656622,
+          "nominal_score": 0.7662558799781763,
+          "opaque_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-01\\postrun_audit.json",
+            "audit_sha256": "c6ca4f17d8e16870472de9c640d765a8b271efb9ab4d0a19ba920b174c160387",
+            "exact_replay_verified": true,
+            "primary_score": 0.6045171878716101,
+            "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-01\\report.json",
+            "report_sha256": "1072b4cf9055061002ca1859ea4a3cfda0904936eaecde40335d9b75eb3b8922",
+            "world_seed": 1
+          },
+          "opaque_score": 0.6045171878716101,
+          "world_seed": 1
+        },
+        {
+          "nominal_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-02\\postrun_audit.json",
+            "audit_sha256": "970c7a27fdc2c4fb2e30bd8152f8cbdb874cc17169db8fe1ef074ccac219abfe",
+            "exact_replay_verified": true,
+            "primary_score": 0.8246112312946227,
+            "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-02\\report.json",
+            "report_sha256": "fbb220e8581ce4bd27f82054b525ceb0ae425ca95b58f423ea926a913bceae7c",
+            "world_seed": 2
+          },
+          "nominal_minus_opaque": 0.004062388573841447,
+          "nominal_score": 0.8246112312946227,
+          "opaque_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-02\\postrun_audit.json",
+            "audit_sha256": "55ad534c3f1770599ff4ca3c827ea1526cd834ff978892ce40e4060b1fbec2cd",
+            "exact_replay_verified": true,
+            "primary_score": 0.8205488427207812,
+            "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-02\\report.json",
+            "report_sha256": "0bde39d9a98ead3b64b67c0c1fa7938340fce574dc2f5fefda042cc2f1e308ae",
+            "world_seed": 2
+          },
+          "opaque_score": 0.8205488427207812,
+          "world_seed": 2
+        },
+        {
+          "nominal_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-03\\postrun_audit.json",
+            "audit_sha256": "f724a09c8c6d275e2332de71030c3a73357993c8c800022be992deec51a950a0",
+            "exact_replay_verified": true,
+            "primary_score": 0.7237846251909263,
+            "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-03\\report.json",
+            "report_sha256": "b0447df2b0564f69a48e676f76d8806d058fb871da7b199b570e271c8b66fc03",
+            "world_seed": 3
+          },
+          "nominal_minus_opaque": 0.3167725916375111,
+          "nominal_score": 0.7237846251909263,
+          "opaque_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-03\\postrun_audit.json",
+            "audit_sha256": "1bc62842153fcbb33dd3e911efcc987ba1853c01955601583add2799e9efc022",
+            "exact_replay_verified": true,
+            "primary_score": 0.40701203355341525,
+            "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-03\\report.json",
+            "report_sha256": "59327cc9f492799c22294a6e174db887227b3f75d41c4d8c9e759697eed10bbc",
+            "world_seed": 3
+          },
+          "opaque_score": 0.40701203355341525,
+          "world_seed": 3
+        },
+        {
+          "nominal_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-04\\postrun_audit.json",
+            "audit_sha256": "63b71e67ebcdcba0fba2775b1f9cf4b685767f308f3225e576f29840c0ab8ac0",
+            "exact_replay_verified": true,
+            "primary_score": 0.7860760414417153,
+            "report_path": "runs\\formal\\static-s0-v11-nominal-codex-subscription-20260729\\participants\\electrochemical\\world-04\\report.json",
+            "report_sha256": "51aac7b5bf8cf5f6dc62fe2ca0e3e0ade9158877ea5b6bdc61809fbee0838996",
+            "world_seed": 4
+          },
+          "nominal_minus_opaque": -0.023832674441000012,
+          "nominal_score": 0.7860760414417153,
+          "opaque_evidence": {
+            "audit_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-04\\postrun_audit.json",
+            "audit_sha256": "41b010db0fa749b51e2f752f4042258e8d3a9fb4e61147c8e5489de7694edf3f",
+            "exact_replay_verified": true,
+            "primary_score": 0.8099087158827153,
+            "report_path": "runs\\formal\\static-s0-v10-codex-subscription-20260729\\participants\\electrochemical\\world-04\\report.json",
+            "report_sha256": "1cd577247824a9091a2d6e21d6e078f576755cb62ff57981a3a16c9fa4b2c33c",
+            "world_seed": 4
+          },
+          "opaque_score": 0.8099087158827153,
+          "world_seed": 4
+        }
+      ]
+    }
+  }
+}

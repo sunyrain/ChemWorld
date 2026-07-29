@@ -7,7 +7,10 @@
     "campaign_summary": "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json",
     "freeze_manifest": "configs/benchmark/scientific_optimization_s0_v1.0_freeze_manifest.json",
     "formal_results_present": true,
-    "benchmark_claim_allowed": false
+    "benchmark_claim_allowed": false,
+    "nominal_information_interim_summary": "workstreams/flagship_tasks/reports/static-s0-v1.1-nominal-information-interim-5world-summary.json",
+    "nominal_information_interim_formal_result": false,
+    "nominal_information_confirmatory_analysis_complete": false
   },
   "claims": [
     {
@@ -39,8 +42,8 @@
       "claim": "Codex outperforms classical optimization on crystallization.",
       "status": "contradicted_by_current_formal_result",
       "allowed_wording": "Codex mean 0.5355 trails LHS 0.5708 by 0.0353; the paired interval is [-0.0650,-0.0085].",
-      "required_additional_experiment": "Freeze a v1.1 participant policy and statistical plan, then evaluate it on untouched worlds without altering or replacing v1.0.",
-      "boundary": "The negative v1.0 result remains part of the evidence."
+      "required_additional_experiment": "Freeze a crystallization superiority protocol against a primary classical comparator, with a margin, multiplicity rule, and untouched worlds.",
+      "boundary": "The negative v1.0 result remains part of the evidence; nominal-versus-opaque v1.1 asks an information-value question and does not resolve classical-algorithm superiority."
     },
     {
       "claim_id": "C05",
@@ -97,18 +100,28 @@
       "allowed_wording": "All participant and baseline task/world artifacts pass exact replay and reconcile to 28,060 physical experiments.",
       "required_additional_experiment": "An independent clean-checkout replication is still required for an independent reproducibility claim.",
       "boundary": "Internal exact replay is not independent replication."
+    },
+    {
+      "claim_id": "C12",
+      "claim": "Correct anonymous nominal material properties improve participant performance.",
+      "status": "interim_positive_point_estimate_not_confirmatory",
+      "allowed_wording": "Across the first five paired worlds, electrochemical nominal information scores 0.7873 versus 0.6939 opaque (+0.0935), and crystallization scores 0.5507 versus 0.5173 opaque (+0.0334); both paired 95% intervals cross zero.",
+      "required_additional_experiment": "Complete preregistered seeds 5-9 for both tasks and apply the frozen per-task 97.5% paired-world intervals.",
+      "boundary": "Only half of the preregistered worlds are complete; do not claim confirmed positive information value."
     }
   ],
   "first_arxiv_decision": {
     "narrow_descriptive_submission_can_proceed_without_new_scientific_experiments": true,
     "conditions": [
       "Report the crystallization result as negative.",
+      "If the nominal-information extension is mentioned, label its five-world result interim and inconclusive.",
       "Label all algorithm comparisons descriptive and disclose the absent superiority and multiplicity preregistration.",
       "Exclude broad SOTA, provider-causal, private-generalization, mechanism-adaptation participant, and real-world transfer claims.",
       "Finish clean-release attestation, manuscript consistency, and independent artifact reproduction checks."
     ],
     "experiments_required_before_any_stronger_claim": [
-      "Untouched preregistered crystallization v1.1 campaign.",
+      "Untouched preregistered crystallization superiority campaign against a primary classical comparator.",
+      "Remaining nominal-information seeds 5-9 for the frozen information-value claim.",
       "Independent model/provider replication.",
       "Aligned public/private generalization campaign.",
       "Current-source mechanism Gate A recertification plus participant Gates B-E if mechanism claims remain in scope.",

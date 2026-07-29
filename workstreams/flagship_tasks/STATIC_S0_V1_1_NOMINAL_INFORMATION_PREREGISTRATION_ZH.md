@@ -2,6 +2,11 @@
 
 日期：2026-07-29
 
+当前执行状态：按负责人要求先完成每项 seed 0–4，共 10 个任务×世界单元。五世界结果仅作
+中期描述，不能应用冻结的完整确认性结论。结果见
+`workstreams/flagship_tasks/STATIC_S0_V1_1_NOMINAL_INFORMATION_INTERIM_5WORLD_RESULTS_ZH.md`。
+完整方案仍缺每项 seed 5–9。
+
 ## 问题
 
 在模型、推理强度、世界、20 轮探索预算、测量接口、评分律、预测验证和盲测均保持不变时，向 participant 增加正确但匿名的材料名义属性，是否改变最终盲测推荐分数？
@@ -48,4 +53,3 @@
 - Freeze SHA-256：`17b569a7bfaeac1ea900dcfb434218e4d18524fba525ae300b120705565acc3e`
 - 电化学 dossier SHA-256：`f3fd3ea3c98f68f97c591e2e23d2fc0c0d07112a5fdd4f3124879e00612bbc63`
 - 结晶 dossier SHA-256：`4432e956ccc0923de2dd226503673e7fea3faa257208b45d226a6e701c1f92e7`
-

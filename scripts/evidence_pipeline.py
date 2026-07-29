@@ -370,6 +370,23 @@ NODES = (
         ("static_s0_freeze_manifest",),
     ),
     EvidenceNode(
+        "static_s0_nominal_information_freeze_manifest",
+        "configs/benchmark/"
+        "scientific_optimization_s0_v1.1_nominal_information_freeze_manifest.json",
+        "protocol_input",
+        ("static_s0_formal_campaign_summary",),
+    ),
+    EvidenceNode(
+        "static_s0_nominal_information_interim_summary",
+        "workstreams/flagship_tasks/reports/"
+        "static-s0-v1.1-nominal-information-interim-5world-summary.json",
+        "development_diagnostic",
+        (
+            "static_s0_formal_campaign_summary",
+            "static_s0_nominal_information_freeze_manifest",
+        ),
+    ),
+    EvidenceNode(
         "task_design_matrix",
         "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
         "generated_current",
@@ -388,6 +405,7 @@ NODES = (
         (
             "mechanism_public_gate_a_decision",
             "static_s0_formal_campaign_summary",
+            "static_s0_nominal_information_interim_summary",
             "task_design_matrix",
         ),
     ),
@@ -548,6 +566,14 @@ CURRENT_PATH_RULES = (
     CurrentPathRule(
         ("static_scientific_optimization", "summary"),
         "formal_result",
+    ),
+    CurrentPathRule(
+        ("static_material_information_interim", "summary"),
+        "development_diagnostic",
+    ),
+    CurrentPathRule(
+        ("static_material_information_interim", "freeze_manifest"),
+        "protocol_input",
     ),
     CurrentPathRule(
         ("publication", "claim_evidence_ledger"),
@@ -1116,6 +1142,40 @@ def _artifact_source_binding_current(
             == {"electrochemical", "crystallization"}
         ):
             return False
+    if node.node_id == "static_s0_nominal_information_interim_summary":
+        freeze_manifest = load_json_object(
+            ROOT / node_map()["static_s0_nominal_information_freeze_manifest"].path
+        )
+        execution = payload.get("execution", {})
+        accounting = payload.get("accounting", {})
+        tasks = payload.get("tasks", {})
+        if not (
+            payload.get("schema_version")
+            == "chemworld-static-s0-nominal-information-interim-1.0"
+            and payload.get("status")
+            == "completed_audited_interim_descriptive_result"
+            and payload.get("formal_result") is False
+            and payload.get("interim_analysis_only") is True
+            and payload.get("confirmatory_analysis_complete") is False
+            and payload.get("benchmark_claim_allowed") is False
+            and payload.get("freeze", {}).get("manifest_sha256")
+            == _canonical_sha256(freeze_manifest)
+            and execution.get("selected_world_seeds") == [0, 1, 2, 3, 4]
+            and execution.get("preregistered_world_seeds")
+            == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            and execution.get("all_selected_cells_completed") is True
+            and execution.get("all_selected_cells_exact_replay_verified") is True
+            and accounting.get("total_physical_experiments") == 380
+            and accounting.get("provider_calls") == 210
+            and accounting.get("method_failures") == 0
+            and set(tasks) == {"electrochemical", "crystallization"}
+            and all(
+                task.get("confirmatory_claim_allowed") is False
+                and task.get("interim_familywise_rule_preview") == "inconclusive"
+                for task in tasks.values()
+            )
+        ):
+            return False
     if payload.get("source_commit_stable") is False:
         return False
     recorded_dirty = payload.get("source_tree_dirty")
@@ -1244,6 +1304,9 @@ def _write_current_registry() -> None:
     )
     static_s0_summary_path = ROOT / node_map()["static_s0_formal_campaign_summary"].path
     static_s0_summary = load_json_object(static_s0_summary_path)
+    static_s0_nominal_interim = load_json_object(
+        ROOT / node_map()["static_s0_nominal_information_interim_summary"].path
+    )
     task_design_matrix = load_json_object(ROOT / node_map()["task_design_matrix"].path)
     mechanism_evidence_current = _mechanism_public_decision_binding_current(
         mechanism_decision,
@@ -1496,6 +1559,65 @@ def _write_current_registry() -> None:
             for task_key in ("electrochemical", "crystallization")
         },
         "hidden_world_change_evaluated": False,
+    }
+    current["static_material_information_interim"] = {
+        "summary": node_map()[
+            "static_s0_nominal_information_interim_summary"
+        ].path,
+        "freeze_manifest": node_map()[
+            "static_s0_nominal_information_freeze_manifest"
+        ].path,
+        "status": static_s0_nominal_interim["status"],
+        "formal_result": False,
+        "interim_analysis_only": True,
+        "confirmatory_analysis_complete": False,
+        "benchmark_claim_allowed": False,
+        "selected_world_seeds": static_s0_nominal_interim["execution"][
+            "selected_world_seeds"
+        ],
+        "preregistered_world_seeds": static_s0_nominal_interim["execution"][
+            "preregistered_world_seeds"
+        ],
+        "all_selected_cells_exact_replay_verified": static_s0_nominal_interim[
+            "execution"
+        ]["all_selected_cells_exact_replay_verified"],
+        "total_physical_experiments": static_s0_nominal_interim["accounting"][
+            "total_physical_experiments"
+        ],
+        "provider_calls": static_s0_nominal_interim["accounting"][
+            "provider_calls"
+        ],
+        "provider_retry_attempts": static_s0_nominal_interim["accounting"][
+            "provider_retry_attempts"
+        ],
+        "task_results": {
+            task_key: {
+                "nominal_mean": static_s0_nominal_interim["tasks"][task_key][
+                    "nominal_primary_score"
+                ]["mean"],
+                "opaque_mean": static_s0_nominal_interim["tasks"][task_key][
+                    "opaque_primary_score"
+                ]["mean"],
+                "paired_mean_difference": static_s0_nominal_interim["tasks"][
+                    task_key
+                ]["paired_nominal_minus_opaque"]["mean"],
+                "paired_world_bootstrap_95_interval": (
+                    static_s0_nominal_interim["tasks"][task_key][
+                        "paired_nominal_minus_opaque"
+                    ]["world_bootstrap_95_interval"]
+                ),
+                "interim_familywise_rule_preview": static_s0_nominal_interim[
+                    "tasks"
+                ][task_key]["interim_familywise_rule_preview"],
+            }
+            for task_key in ("electrochemical", "crystallization")
+        },
+        "remaining_confirmatory_world_seeds": [5, 6, 7, 8, 9],
+        "interpretation": (
+            "Both five-world paired point estimates favor nominal information, "
+            "but both paired intervals cross zero. This is an interim descriptive "
+            "result, not the frozen ten-world confirmatory result."
+        ),
     }
     task_design_validation = task_design_matrix["design_validation"]
     current["task_design"] = {
@@ -2092,6 +2214,18 @@ def check_current_evidence() -> list[str]:
         errors.append("current registry omits replacement formal replay")
     if static_s0.get("hidden_world_change_evaluated") is not False:
         errors.append("current registry conflates static S0 with hidden world changes")
+    nominal_interim = current.get("static_material_information_interim", {})
+    if nominal_interim.get("formal_result") is not False:
+        errors.append("current registry promotes the nominal-information interim")
+    if nominal_interim.get("confirmatory_analysis_complete") is not False:
+        errors.append("current registry marks the partial information study complete")
+    if (
+        nominal_interim.get("all_selected_cells_exact_replay_verified")
+        is not True
+    ):
+        errors.append("current registry omits nominal-information replay")
+    if nominal_interim.get("remaining_confirmatory_world_seeds") != [5, 6, 7, 8, 9]:
+        errors.append("current registry hides remaining information-study worlds")
     task_design = current.get("task_design", {})
     if (
         task_design.get("status")
