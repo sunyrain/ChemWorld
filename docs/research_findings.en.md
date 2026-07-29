@@ -79,6 +79,20 @@ Those results are not current rankings. Their methodological value is that a
 failure remains attached to a named criterion instead of disappearing through a
 metric swap, task removal, or post-hoc threshold change.
 
+## 6. One autonomous scaffold is not a cross-task constant
+
+The five-task development campaign holds the neutral prompt, model, and budget
+fixed. Codex is above the best classical method mean in electrochemistry and the
+new reaction–distillation task, clearly below it in crystallization and
+continuous flow, and close but below the frozen threshold in partition. A single
+flagship score therefore cannot represent general autonomous experimental
+optimization.
+
+In continuous flow, the best explored conditions were already weak, so the
+failure is not merely a final-synthesis selection error. A useful next
+Participant should test access to generic numerical-search tools rather than
+receive task-specific hidden hints.
+
 ## Supported and unsupported claims
 
 Supported:
@@ -86,6 +100,8 @@ Supported:
 - ChemWorld can execute and audit multi-world experiments with anonymous
   materials, finite budgets, blind validation, and exact replay.
 - Two flagship tasks have formal descriptive Participant results.
+- A five-task development comparison is complete and shows strong task
+  heterogeneity for one shared Codex strategy.
 - Correct material information has positive value in electrochemistry, with
   clear task heterogeneity.
 - A targeted wrong prior affects behavior, but general recovery is not shown.
@@ -93,6 +109,7 @@ Supported:
 Unsupported:
 
 - broad SOTA for Codex or any provider;
+- pooling task-specific absolute scores into one cross-task ranking;
 - Participant mechanism discovery or online mechanism adaptation;
 - interpreting the crystallization wrong-dossier benefit as error discovery;
 - transfer from the simulator to real chemical systems.

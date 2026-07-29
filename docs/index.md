@@ -35,8 +35,10 @@
 `opaque / nominal / misindexed` 三臂匿名材料信息实验。正确信息对电化学有确认的正价值，
 对结晶仍不确定；错误先验会影响两个任务的早期行动，但没有一个任务通过整体恢复联合规则。
 
-15 个任务的完整实验合同均可执行，但只有两个任务有正式多世界 Participant 结果。历史 Gate A
-的当前源码绑定已过期，Participant Gates B–E 尚未执行，因此当前
+当前还完成了五任务、五世界的 development-only 扩展：共享 Codex 策略在电化学和新
+反应—蒸馏任务上高于最佳经典方法均值，在结晶、分配和连续流上落后。15 个任务的完整实验合同
+均可执行；两个任务有正式结果，另外三个任务新增了开发比较。历史 Gate A 的当前源码绑定已过期，
+Participant Gates B–E 尚未执行，因此当前
 `benchmark_ready=false`：这是候选研究环境，不是完整排名 release。
 
 [查看精确结果与当前状态 →](benchmark_release.md){ .md-button }
@@ -77,7 +79,8 @@ Agent 更新判断并选择下一次实验
 - **先验纠错：**正确或错误的材料信息怎样改变行动，反馈能否纠偏？
 - **机制适应：**规律中途变化后，Agent 能否检测、归因并恢复？
 
-当前正式证据已经覆盖前两项的两个旗舰任务；第三项仍缺 Participant Gates B–E。
+当前正式证据已经覆盖前两项的两个旗舰任务，五任务开发比较进一步检验了静态搜索的任务异质性；
+第三项仍缺 Participant Gates B–E。
 
 [了解因果世界 →](causal_worlds.md) · [查看旗舰实验 →](flagship_experiments.md)
 

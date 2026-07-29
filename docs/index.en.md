@@ -38,11 +38,14 @@ information has confirmed positive value in electrochemistry and an inconclusive
 effect in crystallization. A targeted wrong prior changes early behavior in both
 tasks, but neither passes the joint recovery rule.
 
-All 15 task contracts are executable; only two have formal multi-world
-Participant results. Historical RC28 Gate A has a stale current-source binding,
-and Participant Gates B–E remain unexecuted. ChemWorld is therefore a candidate
-research environment with `benchmark_ready=false`, not a completed leaderboard
-release.
+A five-task, five-world development extension is also complete. The shared Codex
+strategy is above the best classical method mean in electrochemistry and the new
+reaction–distillation task, but below it in crystallization, partition, and
+continuous flow. All 15 task contracts are executable; two tasks have formal
+results and three more now have development comparisons. Historical RC28 Gate A
+has a stale current-source binding, and Participant Gates B–E remain unexecuted.
+ChemWorld is therefore a candidate research environment with
+`benchmark_ready=false`, not a completed leaderboard release.
 
 [Inspect exact results and status →](flagship_experiments.en.md){ .md-button }
 

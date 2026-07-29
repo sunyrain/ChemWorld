@@ -1,7 +1,8 @@
 # 旗舰实验
 
-ChemWorld 当前只有两个任务完成了正式 Participant 多世界 campaign：
-Electrochemical Conversion 和 Reaction to Crystallization。本页说明实验问题、对照和结果；
+ChemWorld 当前有两个任务完成了正式 Participant 多世界 campaign：
+Electrochemical Conversion 和 Reaction to Crystallization。另有三个任务完成五世界
+development-only 比较，使当前完整比较覆盖五项任务。本页说明实验问题、对照和结果；
 项目整体状态以[证据与当前状态](benchmark_release.md)为准。
 
 ## 1. 实验问题
@@ -99,3 +100,24 @@ campaign 中途变化后，Agent 能否检测、归因并恢复**。二者共享
 
 RC28 Gate A 只认证了历史冻结环境的可识别性和在线可达性；当前源码绑定已过期，Participant
 Gates B–E 仍待执行。详细当前边界见[证据与当前状态](benchmark_release.md)。
+
+## 8. 五任务 post-qualification 扩展
+
+在当前源码 `74cfcdaa0d9780de2d21424ef8c329079554f8b5` 上，五个任务使用同一份中性
+Codex prompt、world seed 0–4、20 轮探索和 3+3 次盲验证，并与五种经典方法比较。
+这是完整审计的开发证据，不是正式 superiority 研究。
+
+| 任务 | Codex | 最佳经典方法 | 差值 | 逐世界对当世最佳胜/平/负 |
+| --- | ---: | ---: | ---: | ---: |
+| 电化学转换 | **0.7454 ± 0.0522** | RF-EI 0.6622 | +0.0832 | 3 / 0 / 2 |
+| 反应—结晶 | 0.5206 ± 0.0681 | **RF-EI 0.6071** | −0.0866 | 1 / 0 / 4 |
+| 反应—蒸馏 | **0.4795 ± 0.0264** | GP-EI 0.4192 | +0.0603 | 4 / 0 / 1 |
+| 分配规律 | 0.5426 ± 0.0870 | **GP-EI 0.5511** | −0.0085 | 1 / 0 / 4 |
+| 连续流优化 | 0.1627 ± 0.0131 | **GP-EI 0.2145** | −0.0518 | 0 / 0 / 5 |
+
+五任务合计 150 个方法×世界单元、3,900 次物理实验，全部精确 replay。新 13D
+反应—蒸馏任务在五个世界中均达到任务阈值；partition 则没有任何方法跨世界达到冻结的
+0.58 门槛。跨任务绝对分数不作直接比较。
+
+- [五任务机器可读摘要](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json)
+- [五任务中文结果审计](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/STATIC_S0_FIVE_TASK_POSTQUALIFICATION_RESULTS_ZH.md)

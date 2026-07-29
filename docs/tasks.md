@@ -11,14 +11,15 @@ ChemWorld 当前提供 15 个任务。它们共享 World Law
 
 !!! info "15 任务设计矩阵"
     全部任务的决策尺度、完整实验配方、物理坐标、操作序列、测量槽位、reward、安全边界和正式证据状态
-    已汇总到本轮机器可读设计矩阵。两个确认性任务已完成正式 S0；其余 13 个任务完成设计与指标端点，
-    但未来涉及它们的性能论断仍需要正式多世界比较。
+    已汇总到本轮机器可读设计矩阵。两个确认性任务已完成正式 S0；反应—蒸馏、分配规律和连续流
+    新增了五世界 development comparison；其余 10 个任务仍只有设计与指标端点证据。
 
 配方清理同时删除了 `equilibrium-characterization` 一个从未进入任何操作的死坐标，现在为 3 维。
 两个确认性任务向 LLM 暴露具名物理量而非归一化向量。三个纯化任务现在使用 16 个独立控制，覆盖
 反应、萃取、分相、洗涤、干燥、浓缩和转移；蒸馏的蒸发/蒸馏温度与时间已拆成四个独立控制。
 15 个任务共 415 个中点、坐标低/高与离散类别配方均已端到端执行；死坐标和指标实现 blocker 均为 0，
-62 个声明成功指标全部有可执行端点。该检查是设计资格审计，不能替代其余 13 个任务尚未进行的正式模型实验。
+62 个声明成功指标全部有可执行端点。该检查是设计资格审计；五任务开发比较也不能被解释为其余
+10 个任务的正式模型证据。
 
 ## 从研究问题开始
 
@@ -41,9 +42,9 @@ hash 不一致时，旧轨迹不能被静默解释为当前结果。
 | --- | --- | --- | --- |
 | `electrochemical-conversion` | `c93f5daf6e0c8643f7e8899e0d71086fd912853be17e39bb1879f7b880d9f43b` | `reference_validated` | `false` |
 | `equilibrium-characterization` | `77e1c30cd83e1a09363cef3ea58b1ddefb415bb1d790d6d63a3c519f45325917` | `reference_validated` | `false` |
-| `flow-reaction-optimization` | `697a5956fd3ad242b78144c6fd11e6d3ca5335c493336d5b9cacb13decefc16b` | `reference_validated` | `false` |
+| `flow-reaction-optimization` | `bc14f63f753c830e34b50487b1c44bcc8a20e11e07d5ee8fe557d001a85ee0a8` | `reference_validated` | `false` |
 | `low-budget-characterization` | `2cd44cd76937b9e95a9ae4282994a540f4d390b3f9a59c963ca60ff2db72706b` | `reference_validated` | `false` |
-| `partition-discovery` | `efa54ba1ab6c5c40c0bdc77f57b2234487a58d98ed5043f273496ef103b6599e` | `reference_validated` | `false` |
+| `partition-discovery` | `ade27680a38ff18e4c47e63116aaf75c9482543795b15bb62dee2e7525a5bff9` | `reference_validated` | `false` |
 | `public-private-generalization` | `bf092340dfcbb59fe261a7e73b3042449d57858a60f73d3b19336f15b627e8b8` | `reference_validated` | `false` |
 | `purity-yield-tradeoff` | `2d2ab14c61e90b87c1c530f74b9e6fbf0c82966199d78e99ec755ba5ba208e76` | `reference_validated` | `false` |
 | `reaction-mechanism-explanation` | `097bd39293eae4063dc84ed0af299935aefce5c391183944302431d5d6c93f6e` | `reference_validated` | `false` |

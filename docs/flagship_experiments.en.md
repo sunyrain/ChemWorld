@@ -1,8 +1,9 @@
 # Flagship experiments
 
-Only two ChemWorld tasks currently have formal multi-world Participant campaigns:
-Electrochemical Conversion and Reaction to Crystallization. This page records the
-design and results; see the
+Two ChemWorld tasks currently have formal multi-world Participant campaigns:
+Electrochemical Conversion and Reaction to Crystallization. Three additional tasks
+now have a five-world development-only comparison, bringing complete comparative
+execution to five tasks. This page records the design and results; see the
 [authoritative current-status page](https://sunyrain.github.io/ChemWorld/benchmark_release/)
 for release readiness.
 
@@ -111,3 +112,27 @@ are not interchangeable experiments.
 RC28 Gate A certified environment identifiability and online attainability only
 on its historical frozen source. Its current-source binding is stale, and
 Participant Gates B–E remain pending.
+
+## 8. Five-task post-qualification extension
+
+On source `74cfcdaa0d9780de2d21424ef8c329079554f8b5`, five tasks used the same
+task-neutral Codex prompt, world seeds 0–4, 20 exploration experiments, and
+3+3 blind validations. Five classical methods used the same public task
+information. This is audited development evidence, not a preregistered
+superiority study.
+
+| Task | Codex | Best classical method | Difference | Wins/ties/losses against each world's best |
+| --- | ---: | ---: | ---: | ---: |
+| Electrochemical Conversion | **0.7454 ± 0.0522** | RF-EI 0.6622 | +0.0832 | 3 / 0 / 2 |
+| Reaction to Crystallization | 0.5206 ± 0.0681 | **RF-EI 0.6071** | −0.0866 | 1 / 0 / 4 |
+| Reaction to Distillation | **0.4795 ± 0.0264** | GP-EI 0.4192 | +0.0603 | 4 / 0 / 1 |
+| Partition Discovery | 0.5426 ± 0.0870 | **GP-EI 0.5511** | −0.0085 | 1 / 0 / 4 |
+| Flow Reaction Optimization | 0.1627 ± 0.0131 | **GP-EI 0.2145** | −0.0518 | 0 / 0 / 5 |
+
+All 150 method-by-world cells and 3,900 physical experiments completed exact
+replay. The new 13-dimensional reaction–distillation task reached its task
+threshold in every world. No method reached Partition Discovery's frozen 0.58
+cross-world threshold. Absolute scores are not comparable across tasks.
+
+- [Machine-readable five-task summary](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json)
+- [Detailed Chinese audit](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/STATIC_S0_FIVE_TASK_POSTQUALIFICATION_RESULTS_ZH.md)

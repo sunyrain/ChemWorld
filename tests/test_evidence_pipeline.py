@@ -27,6 +27,9 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert "static_s0_nominal_information_freeze_manifest" in node_ids
     assert "static_s0_misindexed_information_freeze_manifest" in node_ids
     assert "static_s0_material_information_triarm_summary" in node_ids
+    assert "static_s0_five_task_campaign_plan" in node_ids
+    assert "static_s0_five_task_participant_method" in node_ids
+    assert "static_s0_five_task_postqualification_summary" in node_ids
     assert "pre_arxiv_claim_evidence_ledger" in node_ids
     assert "task_design_matrix" in node_ids
     assert not any(node_id.startswith("ncs_") for node_id in node_ids)
@@ -88,6 +91,13 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert triarm["confirmatory_analysis_complete"] is True
     assert triarm["all_sixty_cells_exact_replay_verified"] is True
     assert triarm["world_seeds"] == list(range(10))
+    five_task = current["static_s0_five_task_postqualification"]
+    assert five_task["status"] == "completed_audited_development_only"
+    assert five_task["formal_result"] is False
+    assert five_task["benchmark_claim_allowed"] is False
+    assert five_task["all_replay_verified"] is True
+    assert five_task["result_count"] == 150
+    assert five_task["threshold_failure_task"] == "partition-discovery"
     assert triarm["task_results"]["electrochemical"]["nominal_minus_opaque"][
         "familywise_result"
     ] == "positive_information_value"

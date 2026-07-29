@@ -16,9 +16,10 @@
 | 运行时与任务合同 | **通过候选验证** | v0.5 candidate 可运行；15 个任务适配器和 62 个指标端点可执行 | 科学真实性或模型优越性 |
 | 双旗舰静态优化 | **正式描述性结果完成** | 两个任务、10 个独立世界、每世界 20 轮、经典基线、精确 replay | 预注册 superiority、跨任务或跨 provider 泛化 |
 | 匿名材料三臂实验 | **正式确认性分析完成** | `opaque / nominal / misindexed` 配对设计、60 个单元、完整审计 | 两个任务上的统一“错误先验恢复”能力 |
+| 五任务 post-qualification | **开发比较完成** | 五个任务、五个世界、150 个方法×世界单元、3,900 次物理实验、精确 replay | 正式 superiority 或完整排名 |
 | 机制环境 Gate A | **历史通过，当前绑定过期** | RC28 冻结版本上的 A1/A2/A3 环境证书 | 当前源码上的重新认证；Participant 能力 |
 | Participant Gates B–E | **待方法冻结与执行** | 协议骨架和部分开发诊断存在 | 时序检测、反馈归因、恢复和迁移结论 |
-| 其余 13 个任务 | **设计可执行** | 边界案例、动作和评分合同通过 | 正式多世界方法比较 |
+| 其余 10 个任务 | **设计可执行** | 边界案例、动作和评分合同通过 | 正式多世界方法比较 |
 | 外部有效性 | **未建立** | 无 | 独立 backend、真实数据或物理系统复现 |
 
 ## 当前正式结果
@@ -54,6 +55,29 @@
 60 个任务×世界×臂单元全部精确 replay；共 2,280 次物理实验、1,260 次成功
 Codex subscription 调用、5 次自动重试、0 次方法失败。
 
+## 五任务扩展证据（development-only）
+
+当前源码上还完成了一轮共享中性 Codex 方法与五种经典优化器的五任务、五世界比较。它新增
+`reaction-to-distillation`、`partition-discovery` 和 `flow-reaction-optimization` 三个任务的
+多世界开发证据，但没有改变上面的两任务正式三臂结论。
+
+| 任务 | Codex 均值 ± SD | 最佳经典方法均值 | Codex − 最佳经典方法 | Participant 达到阈值 |
+| --- | ---: | ---: | ---: | --- |
+| Electrochemical Conversion | **0.7454 ± 0.0522** | 0.6622 | +0.0832 | 是 |
+| Reaction to Crystallization | 0.5206 ± 0.0681 | **0.6071** | −0.0866 | 否 |
+| Reaction to Distillation | **0.4795 ± 0.0264** | 0.4192 | +0.0603 | 是 |
+| Partition Discovery | 0.5426 ± 0.0870 | **0.5511** | −0.0085 | 否 |
+| Flow Reaction Optimization | 0.1627 ± 0.0131 | **0.2145** | −0.0518 | 否 |
+
+150/150 个单元和全部精确 replay 完成。Participant 为 500 次探索、150 次盲验证和 526 次
+provider 调用；经典基线为 2,500 次探索和 750 次盲验证。唯一额外调用来自一次透明记录的
+最终综合续跑，完整 20 轮探索前缀未修改。
+
+这轮支持“共享策略表现高度依赖任务”和“新蒸馏任务已具备完整开发比较”，不支持广义
+Codex 优越性。`partition-discovery` 的最佳方法均值只有 0.5511，没有任何方法达到冻结的
+0.58 门槛；该失败没有通过事后降低阈值消除。精确数字见
+[五任务摘要 JSON](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json)。
+
 ## 机制适应证据
 
 RC28 在其冻结源码上完成了正式 Gate A 环境证书：A2 为 4,896 条 receipts，主预算 top-1
@@ -71,7 +95,7 @@ RC28 在其冻结源码上完成了正式 Gate A 环境证书：A2 为 4,896 条
 
 ## 发表边界
 
-当前材料足以支持一篇范围严格的、以环境设计和双旗舰描述性实验为中心的工作稿，但还不是
+当前材料足以支持一篇范围严格的、以 benchmark 架构、双旗舰正式结果和五任务开发比较为中心的工作稿，但还不是
 submission-ready benchmark paper。第一次 arXiv 前至少要完成：
 
 1. 重新绑定或重新执行当前源码上的机制 Gate A。

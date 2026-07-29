@@ -398,6 +398,28 @@ NODES = (
         ),
     ),
     EvidenceNode(
+        "static_s0_five_task_campaign_plan",
+        "configs/benchmark/static_s0_five_task_campaign_20x5_v0.1_dev.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "static_s0_five_task_participant_method",
+        "configs/methods/llm_v1.5/"
+        "participant_methods_s0_codex_subscription_sol_five_task_20x5_v15.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "static_s0_five_task_postqualification_summary",
+        "workstreams/flagship_tasks/reports/"
+        "static-s0-five-task-postqualification-campaign-summary.json",
+        "development_diagnostic",
+        (
+            "backend_candidate",
+            "static_s0_five_task_campaign_plan",
+            "static_s0_five_task_participant_method",
+        ),
+    ),
+    EvidenceNode(
         "task_design_matrix",
         "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
         "generated_current",
@@ -589,6 +611,10 @@ CURRENT_PATH_RULES = (
     CurrentPathRule(
         ("static_material_information_three_arm", "misindexed_freeze_manifest"),
         "protocol_input",
+    ),
+    CurrentPathRule(
+        ("static_s0_five_task_postqualification", "summary"),
+        "development_diagnostic",
     ),
     CurrentPathRule(
         ("publication", "claim_evidence_ledger"),
@@ -1216,6 +1242,46 @@ def _artifact_source_binding_current(
             )
         ):
             return False
+    if node.node_id == "static_s0_five_task_postqualification_summary":
+        campaign_plan = load_json_object(
+            ROOT / node_map()["static_s0_five_task_campaign_plan"].path
+        )
+        participant_method = load_json_object(
+            ROOT / node_map()["static_s0_five_task_participant_method"].path
+        )
+        execution = payload.get("execution", {})
+        accounting = payload.get("accounting", {})
+        threshold_summary = payload.get("threshold_summary", {})
+        if not (
+            payload.get("schema_version")
+            == "chemworld-static-s0-five-task-postqualification-summary-0.1"
+            and payload.get("status") == "completed_audited_development_only"
+            and payload.get("formal_result") is False
+            and payload.get("benchmark_claim_allowed") is False
+            and execution.get("campaign_plan_sha256")
+            == _canonical_sha256(campaign_plan)
+            and execution.get("all_cells_completed") is True
+            and execution.get("all_exact_replay_verified") is True
+            and execution.get("result_count") == 150
+            and accounting.get("campaign_total_physical_experiments") == 3900
+            and accounting.get("participant_provider_calls") == 526
+            and payload.get("method", {}).get("participant_method_id")
+            in participant_method.get("methods", {})
+            and set(payload.get("tasks", {}))
+            == {
+                "electrochemical-conversion",
+                "reaction-to-crystallization",
+                "reaction-to-distillation",
+                "partition-discovery",
+                "flow-reaction-optimization",
+            }
+            and threshold_summary.get(
+                "all_tasks_reached_threshold_by_any_method_mean"
+            )
+            is False
+            and threshold_summary.get("failure_task") == "partition-discovery"
+        ):
+            return False
     if payload.get("source_commit_stable") is False:
         return False
     recorded_dirty = payload.get("source_tree_dirty")
@@ -1346,6 +1412,9 @@ def _write_current_registry() -> None:
     static_s0_summary = load_json_object(static_s0_summary_path)
     static_s0_information_triarm = load_json_object(
         ROOT / node_map()["static_s0_material_information_triarm_summary"].path
+    )
+    static_s0_five_task = load_json_object(
+        ROOT / node_map()["static_s0_five_task_postqualification_summary"].path
     )
     task_design_matrix = load_json_object(ROOT / node_map()["task_design_matrix"].path)
     mechanism_evidence_current = _mechanism_public_decision_binding_current(
@@ -1546,6 +1615,8 @@ def _write_current_registry() -> None:
             "electrochemical is positive against the best information-matched baseline "
             "but not stable against the best privileged calibration baseline; "
             "crystallization underperforms LHS. "
+            "A separate five-task, five-world development comparison is complete "
+            "and remains explicitly non-formal. "
             "RC28 Gate A remains a historical environment certificate with stale "
             "current-source binding; Participant Gates B-E remain unexecuted."
         ),
@@ -1599,6 +1670,41 @@ def _write_current_registry() -> None:
             for task_key in ("electrochemical", "crystallization")
         },
         "hidden_world_change_evaluated": False,
+    }
+    current["static_s0_five_task_postqualification"] = {
+        "summary": node_map()["static_s0_five_task_postqualification_summary"].path,
+        "status": static_s0_five_task["status"],
+        "formal_result": False,
+        "benchmark_claim_allowed": False,
+        "task_ids": sorted(static_s0_five_task["tasks"]),
+        "world_seeds": static_s0_five_task["execution"]["world_seeds"],
+        "result_count": static_s0_five_task["execution"]["result_count"],
+        "campaign_total_physical_experiments": static_s0_five_task["accounting"][
+            "campaign_total_physical_experiments"
+        ],
+        "participant_provider_calls": static_s0_five_task["accounting"][
+            "participant_provider_calls"
+        ],
+        "all_replay_verified": static_s0_five_task["execution"][
+            "all_exact_replay_verified"
+        ],
+        "all_tasks_reached_threshold_by_any_method_mean": (
+            static_s0_five_task["threshold_summary"][
+                "all_tasks_reached_threshold_by_any_method_mean"
+            ]
+        ),
+        "threshold_failure_task": static_s0_five_task["threshold_summary"][
+            "failure_task"
+        ],
+        "participant_mean_by_task": {
+            task_id: task["participant_mean"]
+            for task_id, task in static_s0_five_task["tasks"].items()
+        },
+        "interpretation": (
+            "Completed audited development comparison. It extends comparative "
+            "coverage to five tasks but does not promote the results to formal "
+            "benchmark evidence or a broad provider ranking."
+        ),
     }
     current.pop("static_material_information_interim", None)
     current["static_material_information_three_arm"] = {
@@ -2257,6 +2363,17 @@ def check_current_evidence() -> list[str]:
         errors.append("current registry omits replacement formal replay")
     if static_s0.get("hidden_world_change_evaluated") is not False:
         errors.append("current registry conflates static S0 with hidden world changes")
+    five_task = current.get("static_s0_five_task_postqualification", {})
+    if five_task.get("formal_result") is not False:
+        errors.append("current registry promotes five-task development evidence")
+    if five_task.get("benchmark_claim_allowed") is not False:
+        errors.append("current registry enables a five-task benchmark claim")
+    if five_task.get("all_replay_verified") is not True:
+        errors.append("current registry omits five-task exact replay")
+    if five_task.get("result_count") != 150:
+        errors.append("current registry has inconsistent five-task result count")
+    if five_task.get("threshold_failure_task") != "partition-discovery":
+        errors.append("current registry hides the five-task threshold failure")
     information_triarm = current.get("static_material_information_three_arm", {})
     if information_triarm.get("formal_result") is not True:
         errors.append("current registry omits the formal three-arm information study")

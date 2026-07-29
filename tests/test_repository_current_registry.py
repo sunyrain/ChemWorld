@@ -70,6 +70,12 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
         registry["static_scientific_optimization"]["hidden_world_change_evaluated"]
         is False
     )
+    five_task = registry["static_s0_five_task_postqualification"]
+    assert five_task["formal_result"] is False
+    assert five_task["benchmark_claim_allowed"] is False
+    assert five_task["all_replay_verified"] is True
+    assert five_task["result_count"] == 150
+    assert five_task["threshold_failure_task"] == "partition-discovery"
     assert registry["task_design"]["registered_task_count"] == 15
     assert registry["task_design"]["executable_midpoint_task_count"] == 15
     assert registry["task_design"]["executable_boundary_task_count"] == 15

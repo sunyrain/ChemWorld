@@ -1,0 +1,198 @@
+{
+  "accounting": {
+    "baseline_blind_validation_experiments": 750,
+    "baseline_cells": 125,
+    "baseline_exploration_experiments": 2500,
+    "campaign_total_physical_experiments": 3900,
+    "participant_blind_validation_experiments": 150,
+    "participant_cells": 25,
+    "participant_exploration_experiments": 500,
+    "participant_provider_calls": 526,
+    "planned_participant_provider_calls": 525
+  },
+  "benchmark_claim_allowed": false,
+  "execution": {
+    "all_cells_completed": true,
+    "all_exact_replay_verified": true,
+    "campaign_id": "static-s0-five-task-postqualification-20x5-v0.1-2026-07-30",
+    "campaign_plan_sha256": "8c382c467b4820d661c30e6d6bcc16d95ed41aa059f08473773f8c1b094b38a0",
+    "full_report_path": "runs/dev/static-s0-five-task-campaign-20x5-v0.1/campaign_report.json",
+    "full_report_sha256": "2d68dffa1f081362058538f1dfd2b3dea6e1494d9e46b31c8715676f34a52111",
+    "qualification_report_sha256": "14ccad9af4985b021440a7d9256a332f394b0133a55ac0fa38683e360a55dd18",
+    "result_count": 150,
+    "source_commit": "74cfcdaa0d9780de2d21424ef8c329079554f8b5",
+    "source_tree_dirty_at_completion": false,
+    "world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "formal_result": false,
+  "method": {
+    "algorithm_seed": 0,
+    "baseline_algorithm_ids": [
+      "random",
+      "lhs",
+      "greedy",
+      "structured_gp_ei",
+      "structured_rf_ei"
+    ],
+    "participant_method_id": "s0_codex_subscription_sol_medium_five_task_shared_20",
+    "participant_model": "gpt-5.6-sol",
+    "participant_provider": "codex_subscription",
+    "reasoning_effort": "medium",
+    "shared_task_neutral_prompt": true
+  },
+  "reporting_boundaries": {
+    "algorithm_comparisons": "descriptive_development_only",
+    "broad_generalization_claim_allowed": false,
+    "cross_task_absolute_scores_comparable": false,
+    "primary_endpoint": "blind_validated_final_recommendation_score_mean",
+    "provider_causal_effect_claim_allowed": false,
+    "sampled_world_scope_only": true,
+    "superiority_claim_allowed": false
+  },
+  "schema_version": "chemworld-static-s0-five-task-postqualification-summary-0.1",
+  "status": "completed_audited_development_only",
+  "synthesis_recovery": {
+    "additional_provider_calls": 1,
+    "affected_cell": "electrochemical-conversion:world-01",
+    "exploration_prefix_reused_without_modification": true,
+    "initial_failure": "unknown mechanism tag in final structured claims",
+    "recovery": "stateless continuation of final synthesis and blind validation",
+    "recovered_cell_exact_replay_verified": true
+  },
+  "tasks": {
+    "electrochemical-conversion": {
+      "any_method_reached_threshold": true,
+      "best_classic_algorithm": "structured_rf_ei",
+      "best_classic_mean": 0.6622146261285735,
+      "best_classic_sample_standard_deviation": 0.08987067901973557,
+      "mean_delta_to_best_classic_method": 0.08316913785498625,
+      "paired_delta_to_best_available_classic_per_world_mean": 0.05297385309952467,
+      "paired_wins_ties_losses": [
+        3,
+        0,
+        2
+      ],
+      "participant_mean": 0.7453837639835598,
+      "participant_reached_threshold": true,
+      "participant_sample_standard_deviation": 0.05219327469863,
+      "participant_world_scores": [
+        0.6620652815914757,
+        0.7566491216092737,
+        0.7358907798602855,
+        0.7717923967653685,
+        0.8005212400913958
+      ],
+      "threshold": 0.58
+    },
+    "flow-reaction-optimization": {
+      "any_method_reached_threshold": true,
+      "best_classic_algorithm": "structured_gp_ei",
+      "best_classic_mean": 0.2145247041159492,
+      "best_classic_sample_standard_deviation": 0.007470441597482912,
+      "mean_delta_to_best_classic_method": -0.05178518646638608,
+      "paired_delta_to_best_available_classic_per_world_mean": -0.05230143381421441,
+      "paired_wins_ties_losses": [
+        0,
+        0,
+        5
+      ],
+      "participant_mean": 0.16273951764956313,
+      "participant_reached_threshold": false,
+      "participant_sample_standard_deviation": 0.013111080922161088,
+      "participant_world_scores": [
+        0.16554934134269342,
+        0.15345239667510246,
+        0.16702794322552572,
+        0.18075538773545005,
+        0.14691251926904395
+      ],
+      "threshold": 0.18
+    },
+    "partition-discovery": {
+      "any_method_reached_threshold": false,
+      "best_classic_algorithm": "structured_gp_ei",
+      "best_classic_mean": 0.5511414565255642,
+      "best_classic_sample_standard_deviation": 0.0854091265722783,
+      "mean_delta_to_best_classic_method": -0.008492611863394672,
+      "paired_delta_to_best_available_classic_per_world_mean": -0.01248000686796743,
+      "paired_wins_ties_losses": [
+        1,
+        0,
+        4
+      ],
+      "participant_mean": 0.5426488446621696,
+      "participant_reached_threshold": false,
+      "participant_sample_standard_deviation": 0.08702061198522695,
+      "participant_world_scores": [
+        0.5723640858601851,
+        0.533547284354532,
+        0.6444451566945383,
+        0.5571733713558348,
+        0.40571432504575755
+      ],
+      "threshold": 0.58
+    },
+    "reaction-to-crystallization": {
+      "any_method_reached_threshold": true,
+      "best_classic_algorithm": "structured_rf_ei",
+      "best_classic_mean": 0.607146997845689,
+      "best_classic_sample_standard_deviation": 0.03727818005961208,
+      "mean_delta_to_best_classic_method": -0.08656848584760457,
+      "paired_delta_to_best_available_classic_per_world_mean": -0.10561115486128339,
+      "paired_wins_ties_losses": [
+        1,
+        0,
+        4
+      ],
+      "participant_mean": 0.5205785119980845,
+      "participant_reached_threshold": false,
+      "participant_sample_standard_deviation": 0.0680692185489528,
+      "participant_world_scores": [
+        0.577130178726532,
+        0.4330080926343265,
+        0.5423907733098843,
+        0.4653952616370279,
+        0.5849682536826515
+      ],
+      "threshold": 0.55
+    },
+    "reaction-to-distillation": {
+      "any_method_reached_threshold": true,
+      "best_classic_algorithm": "structured_gp_ei",
+      "best_classic_mean": 0.41916950812418136,
+      "best_classic_sample_standard_deviation": 0.06665645032505471,
+      "mean_delta_to_best_classic_method": 0.060344062699633993,
+      "paired_delta_to_best_available_classic_per_world_mean": 0.0465698227247235,
+      "paired_wins_ties_losses": [
+        4,
+        0,
+        1
+      ],
+      "participant_mean": 0.47951357082381535,
+      "participant_reached_threshold": true,
+      "participant_sample_standard_deviation": 0.026441328695914076,
+      "participant_world_scores": [
+        0.5036321204192015,
+        0.43658119443582555,
+        0.49480935320569935,
+        0.4893822415728699,
+        0.47316294448548035
+      ],
+      "threshold": 0.29
+    }
+  },
+  "threshold_summary": {
+    "all_tasks_reached_threshold_by_any_method_mean": false,
+    "failure_task": "partition-discovery",
+    "participant_tasks_reaching_threshold": [
+      "electrochemical-conversion",
+      "reaction-to-distillation"
+    ]
+  }
+}
