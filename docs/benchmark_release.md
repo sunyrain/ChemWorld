@@ -76,7 +76,7 @@ provider 调用；经典基线为 2,500 次探索和 750 次盲验证。唯一�
 这轮支持“共享策略表现高度依赖任务”和“新蒸馏任务已具备完整开发比较”，不支持广义
 Codex 优越性。`partition-discovery` 的最佳方法均值只有 0.5511，没有任何方法达到冻结的
 0.58 门槛；该失败没有通过事后降低阈值消除。精确数字见
-[五任务摘要 JSON](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json)。
+[五任务摘要 JSON](https://github.com/sunyrain/ChemWorld/blob/07db2877/workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json)。
 
 ## 机制适应证据
 

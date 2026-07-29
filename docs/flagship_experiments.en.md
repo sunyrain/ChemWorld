@@ -134,5 +134,5 @@ replay. The new 13-dimensional reaction–distillation task reached its task
 threshold in every world. No method reached Partition Discovery's frozen 0.58
 cross-world threshold. Absolute scores are not comparable across tasks.
 
-- [Machine-readable five-task summary](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json)
-- [Detailed Chinese audit](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/STATIC_S0_FIVE_TASK_POSTQUALIFICATION_RESULTS_ZH.md)
+- [Machine-readable five-task summary](https://github.com/sunyrain/ChemWorld/blob/07db2877/workstreams/flagship_tasks/reports/static-s0-five-task-postqualification-campaign-summary.json)
+- [Detailed Chinese audit](https://github.com/sunyrain/ChemWorld/blob/07db2877/workstreams/flagship_tasks/STATIC_S0_FIVE_TASK_POSTQUALIFICATION_RESULTS_ZH.md)
