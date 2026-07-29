@@ -1,359 +1,101 @@
-# 确认性基准任务：设计、预注册与执行状态
+# 旗舰实验
 
-> **Showcase Worlds 展示平台广度；Confirmatory Benchmark Tasks 承担确认性结论。两者不再统称为“旗舰”。**
+ChemWorld 当前只有两个任务完成了正式 Participant 多世界 campaign：
+Electrochemical Conversion 和 Reaction to Crystallization。本页说明实验问题、对照和结果；
+项目整体状态以[证据与当前状态](benchmark_release.md)为准。
 
-!!! warning "当前源码绑定"
-    RC28 Gate A 在其冻结源码上正式通过，但后续静态 S0、任务合同与证据工作改变了当前源码指纹。
-    旧 RC28 数字仍是历史正式结果，当前绑定标记为 stale，`benchmark_ready=false`，必须重新认证后才能
-    对当前源码恢复环境 Gate A 主张。
+## 1. 实验问题
 
-## 静态 S0 v1.0 正式状态
+两组实验回答不同问题：
 
-2026-07-27 的旧双任务 Participant 结果已经撤回，不在当前 evidence DAG 中，也不能进入论文摘要、
-结果表或模型比较。两个替代任务现已完成正式十世界比较：
+1. **S0 v1.0 无 dossier：**在匿名材料、固定 20 轮探索预算下，Participant 相对经典优化器表现如何？
+2. **S0 v1.2 三臂：**正确材料信息是否有价值？定向错误信息是否会误导？模型能否从实验反馈中恢复？
 
-| 任务 | 材料合同 | 评分合同 | 当前证据 | 正式 Participant 结果 |
-| --- | --- | --- | --- | --- |
-| Electrochemical Conversion | `nominal-prior-latent-v2` | `electrochemical-s0-balanced-efficiency-v2` | 10 世界、完整基线、精确 replay | Codex 0.7150 |
-| Reaction to Crystallization | `reaction-crystallization-latent-materials-v1` | `reaction-crystallization-s0-balanced-product-v1` | 10 世界、完整基线、精确 replay | Codex 0.5355 |
+这不是“给出真实性能已知的材料属性”。Nominal dossier 提供的是正确但有限的匿名材料属性；
+真实性能仍需通过实验学习。Opaque 不提供 dossier，Misindexed 则固定交换目标材料字段的两行。
 
-电化学相对最佳 information-matched 基线的描述性配对差为 +0.0991，但相对最佳 privileged
-calibration 基线的区间跨 0。结晶低于 LHS 的 0.5708，因此不能声称优于经典基线。两项比较均未
-预注册 superiority 阈值或多重比较方案；正式结果存在不等于允许广义 benchmark 或 SOTA 主张。
+## 2. 共同冻结合同
 
-## 静态 S0 v1.2：匿名材料信息三臂确认性结果
-
-完整实验在相同的十个世界、噪声命名空间、20 轮预算、预测诊断、盲测、模型与推理强度上比较三臂：
-不提供材料属性的 `opaque`、提供正确匿名族级名义属性的 `nominal`，以及只把一个目标属性做固定
-两行互换的 `misindexed`。错误先验映射在任何 v1.2 provider 调用前冻结；电化学互换 E1/E3
-electrolyte profile 并保持 solvent 正确，结晶互换 C1/C2 catalyst 并保持 solvent 正确。
-三个条件都不提供真实材料身份、隐藏世界残差、活动机理、响应面、分数或最优配方。
-
-正确属性的信息价值按冻结的双任务 familywise 97.5% 配对世界区间判断：
-
-| 任务 | opaque | nominal | nominal − opaque | 97.5% 区间 | 结论 |
-| --- | ---: | ---: | ---: | ---: | --- |
-| Electrochemical Conversion | 0.7150 | 0.7874 | +0.0724 | [+0.0074,+0.1546] | 正信息价值 |
-| Reaction to Crystallization | 0.5355 | 0.5615 | +0.0260 | [−0.0130,+0.0630] | 不确定 |
-
-错误先验的结果必须把“先验影响”“动作纠偏”“性能恢复”分开：
-
-| 任务 | misindexed | misindexed − nominal | 97.5% 区间 | 联合恢复 |
-| --- | ---: | ---: | ---: | --- |
-| Electrochemical Conversion | 0.6853 | −0.1020 | [−0.2101,−0.0078] | 失败：行为纠偏通过，性能恢复到 opaque 未通过 |
-| Reaction to Crystallization | 0.5845 | +0.0229 | [+0.0046,+0.0419] | 失败：性能非劣于 opaque，差分行为纠偏未通过 |
-
-两个任务的早期动作操纵检验都通过，证明 dossier 确实影响策略；但两个任务都没有同时满足操纵、
-差分行为纠偏和性能恢复三个预注册分量。因此不能声称模型普遍能发现并恢复错误先验，也不能把
-结晶在这组世界中的分数收益解释成成功纠错。
-
-60 个 task × world × arm 单元全部完成并精确 replay：1,200 次探索、720 次预测诊断和
-360 次盲测验证，共 2,280 次物理实验；1,260 次成功 Codex subscription 调用、5 次自动重试、
-0 个方法失败。该实验回答材料信息价值与定向错误先验响应，不回答 Codex 是否优于 LHS 等经典算法，
-也不支持跨映射、跨任务或跨 provider 泛化。
-
-## 15 任务优化设计状态
-
-两个确认性任务以外的 13 个任务尚未运行正式多世界比较，但其优化设计不能只是任务注册表。当前
-15 个任务都已有版本化完整实验适配器、物理坐标、固定测量槽、final-assay 反馈和安全/成本边界。
-生成器实际运行 415 个完整案例，覆盖中点、每个坐标的低/高干预和全部离散类别：15/15 通过，
-死坐标为 0。62 个声明成功指标也全部绑定到明确的观测、轨迹、artifact、predictive holdout 或
-paired split 端点。
-
-三个纯化任务使用 16 个独立控制和 22 个编译操作，覆盖反应、萃取、分相、洗涤、干燥、浓缩与转移；
-蒸馏使用 13 个控制，蒸发/蒸馏的温度和时间已经相互独立。这些是可执行设计证据，不是其余 13 个任务
-的正式算法排名。
-
-## 两个正交集合
-
-网站首页展示四个 **Showcase Worlds**：分配发现、反应–结晶、反应–蒸馏和流动反应优化。它们说明
-ChemWorld 能支持哪些实验推理和物理化学反馈。
-
-机制适应协议当前只有两个 **Confirmatory Benchmark Tasks**：
-
-| 确认性任务 | 隐藏变化家族 | 可主动改变的诊断坐标 | 主要观测 |
-| --- | --- | --- | --- |
-| Reaction to Crystallization | rate law、反应 topology、催化剂映射 | 催化剂剂量、温度/时间、催化剂选择 | HPLC、终检、任务分数 |
-| Electrochemical Conversion | 构成律、solvent 映射、electrolyte-profile 映射 | 电压、电流、时间、solvent、electrolyte profile | UV-Vis、终检、任务分数 |
-
-Showcase 卡片不是确认性证据；确认性任务也不必出现在首页四张卡片中。代码中的部分 `flagship`
-标识符是兼容性名称，不再是论文或网站的科学分类。
-
-## 当前状态机
-
-| 状态 | 当前值 |
+| 项目 | 冻结值 |
 | --- | --- |
-| Environment design candidate | passed |
-| Semantic protocol audit | 历史 RC28 passed，25/25；当前绑定 stale |
-| A1 physical validity | 历史 RC28 passed，83/83 设计检查；当前绑定 stale |
-| A2 controlled identifiability | 历史 RC28 **passed**，4,896/4,896 receipts；当前源码绑定 stale |
-| A3 online attainability | 历史 RC28 **passed**，2,016/2,016 receipts；当前源码绑定 stale |
-| Static S0 Participant Agent | v1.0 十世界正式描述性结果完成；电化学正面、结晶未超过 LHS |
-| S0 v1.2 三臂材料信息实验 | 60/60 单元完成并精确 replay；电化学正确信息价值通过，结晶不确定；两任务整体恢复均失败 |
-| Mechanism-adaptation Participant Gates B–E | 延期研究扩展；Flash Direct/Stateful S1/S2 均为 0/4 autonomous completion，正式矩阵未启动 |
-| Private-E environment confirmation | eligible，尚未执行 |
-| Private-A participant-Agent confirmation | sealed，等待 participant freeze |
-| Benchmark ready | `false`，等待当前源码 Gate A 重新认证 |
-| Evidence complete | `false` |
-| Publication ready | `false` |
+| 任务 | 电化学转换；反应—结晶 |
+| 独立世界 | seeds 0–9 |
+| 自主探索预算 | 每任务×世界×臂 20 次完整实验 |
+| Participant | Codex subscription，`gpt-5.6-sol`，medium reasoning |
+| 主终点 | 配对盲测的最终推荐分数 |
+| Replay | 所有正式单元精确通过 |
+| 推断单元 | 独立 world；不是模型调用或算法技术 seed |
 
-25 项语义检查和 83 项设计检查是两份审计中的检查项，不代表 108 份独立科学证据。RC28 在冻结源码上
-完成正式 A2/A3，并于同一联合决策中解封结果：`gate_a_pass=true`、`benchmark_ready=true`。这只表示该版本环境的
-物理有效性、预算内可识别性和在线可达性前置条件已通过；它不表示 DeepSeek 或其他 participant Agent
-已经通过 Gate B–E，也不使 `evidence_complete` 或 `publication_ready` 自动变为 true。
+### 信息臂
 
-## RC28 正式 Gate A 结果
-
-### A2：预算内受控可识别性
-
-每个预算包含 1,440 个 task × truth × world-cluster 单元。冻结的主预算是 `k=5`：
-
-| 预算 | Active oracle top-1（95% CI） | Fixed decoder top-1（95% CI） | family 交集 |
-| --- | --- | --- | --- |
-| 2 | 93.75%（92.38–94.89） | 94.44%（93.14–95.51） | fail |
-| 4 | 98.47%（97.70–98.99） | 95.35%（94.13–96.32） | decoder fail |
-| **5（primary）** | **98.26%（97.45–98.82）** | **98.26%（97.45–98.82）** | **pass** |
-
-`k=4` 的 active oracle 在该 cohort 上已经能得到高准确率，但电化学五动作关系并集不能在四动作内形成
-完整结构见证，而且 fixed decoder 的 family 交集仍未通过。因此正式证书仍正确绑定 `k=5`，不能事后
-把较好的 `k=4` oracle 结果改成主门槛。
-
-运行后重合审计表明，`k=5` 的 25 个 oracle/decoder 错误完全重合。原因不是 prediction
-字段复制：电化学的两个五动作 batch 不同；但反应–结晶的 information maximum 恰好等于固定
-前五动作，所以该任务 720 条 trial 共用同一 paired contrast。fixed decoder 从一开始就
-`controls_gate=false`，这里应解释为辅助一致性检查，而不是第二个完全独立的 A2 复现证书。
-
-在 `k=5`，电化学的 constitutive、solvent mapping、electrolyte-profile mapping 和 no-change
-召回率均为 100%。反应–结晶的 rate-law、topology、material mapping 和 no-change 召回率分别为
-98.33%、98.89%、88.89% 和 100%；最弱的 material mapping 95% 下界仍为 83.46%，高于冻结的
-70% family 下界。
-
-### A3：在线参照、检测与归因
-
-冻结 reference policy 不接收变化时点、最短稳定前缀、真值或 reference certificate。总体适应曲线为：
-
-| post-change k | 检测 recall | AUROC | 条件 FPR | mean Brier | 条件归因 | 端到端成功 |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | 83.10% | 0.9703 | 0.84% | 0.0641 | 88.65% | 73.06% |
-| 2 | 93.46% | 0.9965 | 1.12% | 0.0446 | 95.50% | 88.52% |
-| 4 | 98.88% | 0.9987 | 1.96% | 0.0331 | 97.54% | 95.65% |
-| **8** | **99.35%** | **0.9990** | **2.80%** | **0.0263** | **98.03%** | **96.57%** |
-
-这里的 FPR 是在 reference sufficient 条件下计算；未条件化的 no-change horizon FPR 为 3.33%。
-总体 reference sufficient rate 为 99.17%，检测到事件的平均延迟为 1.233 个 post-change 实验。
-`k=8` 时电化学和反应–结晶的端到端成功率分别为 98.33% 和 94.81%；六个 changed family 均单独
-通过，最弱的是反应–结晶 material mapping（93.33% 端到端成功）。
-
-这些数字认证的是冻结 reference diagnostic policy 所证明的 benchmark attainability，而不是
-participant Agent 的能力。后者必须使用独立冻结的方法、prompt、runner、样本量和 provider 成本契约
-进入 Gate B–E。
-
-## A1、A2、A3 分别认证什么
-
-| 层级 | 认证对象 | 作用 |
+| Arm | Agent 可见信息 | 因果角色 |
 | --- | --- | --- |
-| A1 | 物理世界与隐藏干预 | 变化是否真实、单轴、可达且会进入公开观测 |
-| A2 | 受控 oracle/decoder | 在充分控制和相同预算下，候选家族是否可区分 |
-| A3 | 冻结的 reference diagnostic policy | 在不知道变化时点和真值时，是否存在合规在线策略能建立参照、检测变化并识别家族 |
-| Gate B–E | 实际被测 Agent | 检测、反馈利用、适应恢复和程序自治能力 |
+| `opaque` | 匿名 ID，不提供材料 dossier | 无信息基线 |
+| `nominal` | ID 对应正确匿名属性 | 正确信息 |
+| `misindexed` | 目标字段固定两行互换；其他字段保持正确 | 定向错误先验 |
 
-因此 DeepSeek、Claude 或任何参赛 Agent 的失败不会使 A3 重新定义，也不会把环境自动判成不可识别。
-A3 的正式名称是 **Online attainability certificate**；参赛 Agent 从 Gate B 开始评分。
+同一任务和 world seed 的三臂复用语义世界、观察噪声键、预算、模型、scaffold 和盲测端点。
+因此配对差主要归因于 dossier 条件，而不是换了更容易的世界。
 
-## 校准后的在线变化语义
+## 3. S0 v1.0：Participant 与经典基线
 
-```text
-truth change time ∈ {never, 6, 8, 10}
-total experiment horizon = 18
-relative checkpoints k ∈ {1, 2, 4, 8}
-```
+| 任务 | Codex | 95% 世界区间 | 最佳信息匹配基线 | 最佳 privileged calibration |
+| --- | ---: | ---: | ---: | ---: |
+| 电化学转换 | **0.7150** | [0.6283, 0.7861] | Structured RF-EI 0.6159 | Descriptor RF-EI 0.6441 |
+| 反应—结晶 | **0.5355** | [0.5045, 0.5644] | LHS 0.5708 | 不适用 |
 
-`τ=6` 只表示前六个完整实验使用旧世界，第七个实验才可能进入新世界。策略只知道总 horizon，以及
-世界可能保持不变或在未指定时刻变化。最短稳定前缀、候选变化时点、真值、reference certificate、
-pseudo-checkpoint 和当前相对 checkpoint 均不进入策略上下文。
+电化学相对最佳 information-matched 基线的描述性差为 +0.0991，但与最佳 privileged
+calibration 基线的区间比较不稳定。结晶低于 LHS。由于没有预注册 superiority 阈值和多重比较
+方案，这些结果不能升级为广义 SOTA 或 provider 因果效应。
 
-`never` 是一等真值。它的 pseudo-checkpoint 只存在于 evaluator，不触发新的环境事件，也不改变
-instance ID、metadata、reset 规则或随机数流。
+## 4. S0 v1.2：三臂结果
 
-## A3 的参照不是六个动作 ID 清单
+### 正确信息价值
 
-冻结的六动作 recipe 是可复现的 **canonical witness set**，不是唯一合格答案。Reference certificate
-依据的是 **relation closure**：
+| 任务 | Opaque | Nominal | 配对差 | 双任务 familywise 97.5% 区间 | 决策 |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 电化学转换 | 0.7150 | **0.7874** | +0.0724 | [+0.0074, +0.1546] | 正信息价值 |
+| 反应—结晶 | 0.5355 | **0.5615** | +0.0260 | [−0.0130, +0.0630] | 不确定 |
 
-- varied fields 和 controlled background 是否满足关系定义；
-- rate-law 或构成律的 low/pivot/high 是否形成；
-- topology 与材料映射所需的同背景对照是否闭合；
-- 可观察 signature 的拟合信息是否非饱和；
-- 参照是否仍在冻结的 age limit 内。
+### 错误先验与恢复
 
-未来策略可以使用不同的连续剂量或扫描点，只要同样闭合声明关系并通过预测充分性检查，就不会因为没有
-调用 `design-00` 到 `design-05` 而失败。
+| 任务 | Misindexed | Misindexed − Nominal | 操纵检验 | 差分动作纠偏 | 性能恢复至 Opaque | 整体恢复 |
+| --- | ---: | ---: | --- | --- | --- | --- |
+| 电化学转换 | 0.6853 | −0.1020；[−0.2101, −0.0078] | 通过 | 通过 | 未通过 | **未通过** |
+| 反应—结晶 | 0.5845 | +0.0229；[+0.0046, +0.0419] | 通过 | 未通过 | 通过 | **未通过** |
 
-## 预测充分性不再由全局模型循环认证
+整体恢复采用联合规则：错误信息必须先实质性影响早期动作，随后动作相对早期误导方向纠偏，
+且最终性能恢复到 opaque 的实用界限内。单独满足其中一项不能称为“识别并纠正错误先验”。
 
-Development cohort 只冻结：
+结晶中的 Misindexed 得分反而高于 Nominal，只能表述为这次固定映射在采样世界中的收益。
+它没有通过动作纠偏，因此不是模型发现 dossier 错误的证据。
 
-- 特征编码；
-- 预测模型族；
-- action selection 规则；
-- 误差阈值。
+## 5. 规模与审计
 
-每个 A3 campaign 使用自己的 pre-change 观测估计 nuisance reference 参数，并执行
-leave-one-experiment-out cross-fitting。被留出的旧世界观测不能参与自身参数估计；post-change 观测和
-真实 family 标签完全禁止进入 reference fit。报告同时保留标准化平方误差、预测 log score 和 95%
-prediction-interval coverage。
+| 项目 | S0 v1.0 | S0 v1.2 三臂 |
+| --- | ---: | ---: |
+| 正式单元 | 20 | 60 |
+| Participant provider 调用 | 420 | 1,260 |
+| Participant 物理实验 | 760 | 2,280 |
+| 含经典基线的物理实验 | 28,060 | 不重复计入基线 |
+| 自动重试 | — | 5 |
+| 方法失败 | 0 | 0 |
+| 精确 replay | 全部通过 | 全部通过 |
 
-## Changed 与 never 使用不同分母
+三个 arm 复用 v1.0 的 opaque 结果，因此不能把 v1.0 与 v1.2 的 opaque 再当作独立样本。
 
-令 `R` 为参照充分，`D_change` 为变化报警，`A` 为变化家族归因正确。
+## 6. 证据入口
 
-Changed campaigns 报告：
+- [v1.0 正式 summary JSON](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json)
+- [v1.2 三臂 summary JSON](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/reports/static-s0-v1.2-three-arm-information-campaign-summary.json)
+- [v1.2 中文结果审计](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/STATIC_S0_V1_2_THREE_ARM_INFORMATION_RESULTS_ZH.md)
+- [v1.2 预注册](https://github.com/sunyrain/ChemWorld/blob/main/workstreams/flagship_tasks/STATIC_S0_V1_2_MISINDEXED_INFORMATION_PREREGISTRATION_ZH.md)
 
-```text
-P(R | changed)
-P(D_change | R, changed)
-P(A | D_change, R, changed)
-P(R ∧ D_change ∧ A | changed)
-```
+## 7. 与机制适应的边界
 
-No-change campaigns 报告：
+静态三臂研究的是**先验信息如何改变一个固定世界中的搜索**。机制适应研究的是**规律在
+campaign 中途变化后，Agent 能否检测、归因并恢复**。二者共享“证据能否纠正先验”的主叙事，
+但不是同一个实验，不能用静态三臂结果替代 Gates B–E。
 
-```text
-P(R | never)
-P(no false alarm | R, never)
-FPR_horizon = P(八个实验窗口内曾经报警 | never)
-```
-
-`never` 没有可归因的变化家族，因此不会进入 `P(A|D,R)` 的分母。Reference failure 只从条件归因分母
-排除，在 changed 端到端成功率中仍按失败保留。
-
-## 时序检测指标
-
-在 `k={1,2,4,8}` 分别报告：
-
-- Recall(k)；
-- AUROC(k)；
-- Brier(k)；
-- 与相同 pseudo-checkpoint 窗口配对的 no-change FPR(k)。
-
-主 Brier 指标先对 changed/never 两类等权，再对四个 checkpoint 等权求均值。检测事件冻结为：
-
-```text
-T_D = min{k : p(change) >= 0.5}
-```
-
-到 `k=8` 仍未检测的 changed campaign 按右删失记录，不赋值为 8、无穷大，也不从数据中删除。FPR
-使用 horizon 内“曾经越阈”的事件，不能用终点 posterior 回落来抹去早期误报。
-
-## 样本量与独立性
-
-正式 RC28 沿用 RC27 的世界、cohort 与统计设计并冻结为：
-
-- A2、A3、Private-E 和 Private-A：每个任务/家族各 180 个独立 world-seed cluster；
-- 每个 changed family 在 `τ={6,8,10}` 上严格平衡为每个时点 60 个 cluster；
-- 每个任务有 180 个 `never` cluster；
-- provider repeat 为每个配对 cell 5 次，但只作为嵌套技术重复，不作为独立样本；
-- cluster bootstrap 单位是 `task_id + world_seed`。
-
-功效审计显示，30 个 cluster 在真实 reference 成功率 0.90 时，通过 Wilson 下界 0.80 的概率仅约
-0.18。180 个 cluster 将该概率提高到约 0.964；在真实 recall=0.90 和 FPR=0.05 时，通过冻结
-cluster-bootstrap 规则的概率分别约为 0.978 和 0.808。真实 reference 成功率仅 0.85 时功效仍有限，
-该限制在审计中明确保留。
-
-## 严格配对的 no-change 对照
-
-同一 changed/never twin 共享：
-
-- 初始状态和 world seed；
-- pre/post session 边界与 reset 规则；
-- 完全相同的 pre-change action schedule；
-- 每个共同语义坐标上的相同 observation-noise key，即 common random numbers；
-- checkpoint 前后的 metadata 结构。
-
-两臂唯一允许的差别是是否施加隐藏物理规律变化。Evaluator pseudo-checkpoint 没有 runtime side effect，
-Agent 看不到 reset 或 instance 标识。自适应策略在 post-change 后可能选择不同动作，因此不要求两臂
-拥有完全相同的后续噪声坐标集合；只要求所有共同坐标的噪声 key 一致。
-
-## RC28 的关系预算证书、执行硬化与 Agent 上下文
-
-RC27 的正式执行暴露出一个此前设计审计未覆盖的矛盾：电化学任务要同时闭合 constitutive
-low/pivot/high、solvent pair 与 electrolyte-profile pair，最少需要 5 个不同动作，primary
-budget=4 不可行。RC28 保留 A2 的 `k=2`、`k=4` 诊断点，并新增最小可行的 `k=5` 作为 primary
-certificate；A3 的 `k={1,2,4,8}`、online horizon=8 与 reference policy 不变。83 项设计审计
-现在为每个任务生成关系并集最小覆盖 witness，并在任何 formal scheduler 前验证预算可行性。
-
-RC28 同时保留 RC25–RC27 的执行硬化：A3 的 576 个 predictive-fit 单元与 1,440 个在线 trial
-合计为 2,016 个 receipts；A2 在三个 checkpoint 下合计为 4,896 个 receipts。receipt 是执行
-与恢复单元，不是独立样本：A2 的三个预算复用同一组 360 个 held-out task × world clusters，
-A3 使用另外 360 个 confirmatory clusters，两者无交集。除此之外：
-
-- 每个 `task × truth × world cluster × changepoint × arm` 只允许一个 write-once terminal receipt；
-- 基础设施失败进入独立 attempt ledger，恢复时只补缺失 trial，不重跑已完成单元；
-- A3 先运行时只公开结构完整性 receipt；A2 完成后才一次性发布联合 A2/A3 决策和科学表；
-- 观测噪声由实验号、操作、仪器和 replicate 的语义坐标派生，不再依赖分支路径消耗了多少 RNG；
-- Private confirmation 拆成环境复现 Private-E 与 Agent 矩阵复现 Private-A。
-
-Participant-Agent 的默认决策 prompt 使用 `chemworld-compact-decision-context-0.3`。50 个最坏合法
-fixture 给出的 development cap 为：共享 environment view 2,050，Direct 总 prompt 3,600，
-Stateful v0.4 总 prompt 4,150 estimated tokens。它只包含当前决策所需的任务、生命周期、预算、
-指标、测量摘要、约束、短期记忆和动作参数签名；完整谱图数组、replicate 曲线、重复 observation view、constitution checks 与
-Git/provider/ledger 元数据只进入审计轨迹。历史谱图可通过公开 `spectrum_id` 按需获取。
-
-## 分层通过规则
-
-A3 最终采用交集规则：
-
-1. overall 通过；
-2. Reaction to Crystallization 单独通过；
-3. Electrochemical Conversion 单独通过；
-4. 每个 changed family 单独通过；
-5. macro-average 通过。
-
-Pooled micro-average 仅作补充，不能用一个容易任务掩盖另一个任务，也不能用容易 family 掩盖局部
-不可识别性。
-
-## Gate B–E 的证据边界
-
-当前设计审计未发现 Gate C–E 存在旧 A3 的前置条件混淆，但它们的**经验有效性仍待正式执行**：
-
-- Gate B 评价参赛 Agent 的时序检测与校准；
-- Gate C 仍需验证相同前缀的反馈局部配对和完整 campaign 的 provider 噪声；
-- Gate D 仍需验证 frozen-policy、adaptive-policy 与 oracle 的严格冻结；
-- Gate E 仍需确认 assisted history 不污染后续 autonomous 实验。
-
-语义审计通过不等于这些 Gate 已通过。
-
-第一轮正式实验采用四方法 `2×2` 因子设计：Pro/Flash 两个 backend 分别运行 direct reactive
-与 stateful scientific 两种 scaffold。该设计同时估计 backend、scaffold 和交互效应，只需新增
-一个 stateful scientific scaffold；ReAct 与 planning-memory 延后为有针对性的消融或补充，
-不阻断第一轮。当前 `live_llm_a/live_llm_b` 同时改变 backend、thinking 和 controller，只能
-保留为 development pilot，不能直接形成正式模型或 scaffold 效应。完整实施顺序和临时 TODO
-已收束到仓库内的 RC28 Participant 正式实验主计划。
-
-## 单一预注册入口
-
-启动 A2/A3 前，唯一控制文件是：
-
-`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc28.json`
-
-它绑定 source commit、protocol/plan/relation/scorer hash、cohort namespace、样本量、reference-policy
-版本、阈值、checkpoint、bootstrap、分层规则、失败处理、排除、停止规则和 private unseal 条件。
-任何绑定项变化都必须产生新的 RC，不能回写解释已经采集的结果。
-
-## 可审计入口
-
-- 协议：`configs/benchmark/mechanism_adaptation_v0.3.0_rc28.json`
-- Gate A 计划：`configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json`
-- 预注册：`configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc28.json`
-- 样本量审计：`mechanism-adaptation-sample-size-audit-v0.3.0-rc28.json`
-- 诊断关系图：`mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc28.json`
-- 统一语义审计：`confirmatory-task-semantics-audit-rc28.json`
-- 发布资格：`mechanism-adaptation-release-qualification-v0.1-rc28.json`
-- A2 结构回执：`mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json`
-- A3 结构回执：`mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json`
-- 联合公开决策：`mechanism-adaptation-public-decision-v0.1-rc28.json`
-- Participant-Agent 预注册候选：`configs/benchmark/mechanism_adaptation_participant_preregistration_rc28.json`
-- Gate A 运行后审计：`RC28_GATE_A_POSTRUN_SANITY_AUDIT_ZH.md`
-- Participant 正式实验计划：`RC28_PARTICIPANT_FORMAL_EXPERIMENT_PLAN_AND_TODO_ZH.md`
-- Stateful Scientific 实现规格：`STATEFUL_SCIENTIFIC_AGENT_V0_1_SPEC_ZH.md`
-- 当前状态真源：`configs/current.json`
+RC28 Gate A 只认证了历史冻结环境的可识别性和在线可达性；当前源码绑定已过期，Participant
+Gates B–E 仍待执行。详细当前边界见[证据与当前状态](benchmark_release.md)。

@@ -32,27 +32,19 @@ making scalable, comparable, and falsifiable.
 
 ## Current evidence
 
-As of 2026-07-29, replacement static-S0 v1.0 campaigns have completed ten
-independent worlds per task, twenty exploration rounds per world, full classic
-baselines, and exact replay. Codex blind-validation means are **0.7150** for
-electrochemical conversion and **0.5355** for crystallization. The
-electrochemical descriptive difference against the best information-matched
-baseline is +0.0991; crystallization trails LHS (0.5708). No superiority
-threshold was preregistered, so these results do not support a broad SOTA claim.
+Two flagship tasks now have formal descriptive no-dossier campaigns and paired
+`opaque / nominal / misindexed` anonymous-material experiments. Correct
+information has confirmed positive value in electrochemistry and an inconclusive
+effect in crystallization. A targeted wrong prior changes early behavior in both
+tasks, but neither passes the joint recovery rule.
 
-The S0 material-information extension is complete across opaque, correct
-anonymous, and fixed targeted wrong-prior arms. Across ten paired worlds,
-electrochemical scores **0.7874** nominal versus 0.7150 opaque (+0.0724;
-familywise 97.5% interval [+0.0074,+0.1546]); crystallization scores
-**0.5615** versus 0.5355 (+0.0260; [−0.0130,+0.0630]) and is inconclusive.
-The wrong prior shifts early actions in both tasks, but neither task passes
-the preregistered joint recovery rule. All 60 cells pass exact replay.
+All 15 task contracts are executable; only two have formal multi-world
+Participant results. Historical RC28 Gate A has a stale current-source binding,
+and Participant Gates B–E remain unexecuted. ChemWorld is therefore a candidate
+research environment with `benchmark_ready=false`, not a completed leaderboard
+release.
 
-The design audit covers all 15 complete-experiment adapters: they pass 415
-end-to-end cases, and all 62 declared metrics bind to executable endpoints. Only two tasks have formal
-multi-world model comparisons. RC28 Gate A remains a historical environment
-certificate on its frozen source; its current binding is stale and current
-`benchmark_ready=false`. The withdrawn legacy bundle is not current evidence.
+[Inspect exact results and status →](flagship_experiments.en.md){ .md-button }
 
 ## Why a world engine
 

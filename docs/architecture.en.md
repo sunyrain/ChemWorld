@@ -134,8 +134,9 @@ The normative boundary is:
 
 ## Core, Diagnostic, and Extended
 
-- **Core** is the six-serious-task agent-comparison environment. Its environment contract is ready, while methods,
-  resources, and results remain unfrozen.
+- **Core** is the six-serious-task agent-comparison environment. Its environment contract is ready; two flagship
+  tasks have frozen formal descriptive Participant results, while the remaining tasks and cross-task method matrix
+  remain unfrozen.
 - **Diagnostic** contains identifiability, no-change, feedback branching, counterfactual, adaptation-decomposition,
   and autonomy protocols. Mechanism v0.3 starts with crystallization and electrochemistry and separates static,
   calibrated-change, uncalibrated-stress, and recovery tracks.
@@ -151,20 +152,18 @@ requires a new protocol version and revalidation, and prior results cannot be ca
 2. **Predictive:** a testable prediction for an unexecuted intervention;
 3. **Actionable:** a belief that changes experiment choice and improves recovery or regret under a fixed budget.
 
-Mechanism v0.3 requires explicit old-world reference acquisition before calibrated change attribution. RC24 defines
-A3 as online attainability of a frozen reference diagnostic policy rather than participant-Agent performance. It
+The mechanism protocol requires explicit old-world reference acquisition before calibrated change attribution. It
 makes `never` first-class, uses relation closure and within-campaign pre-change cross-fitting for reference
-sufficiency, blinds the policy to prefix and changepoint support, and separates all formal cohorts.
+sufficiency, blinds the policy to prefix and changepoint support, and separates environment, Participant, and
+private-confirmation cohorts.
 Static current-world identification and early uncalibrated nonstationarity remain separate, non-gating diagnostics.
 An independent Agent counterfactual-prediction probe is still a future result rather than completed evidence.
 
 ## Current boundary
 
-The candidate backend and replay controls are operational. Method and result freezes are campaign-owned rather than
-repository-wide. Historical RC21 controlled matched identifiability passes at 239/240, but the online rate-law family
-is 23/30. Version 0.3 treats that result as evidence that reference acquisition and attribution were confounded, not
-as a physical-kernel failure. Formal RC28 A2/A3 passed on their frozen source,
-establishing historical `gate_a_pass=true` and `benchmark_ready=true`. The
-current source binding is stale and current `benchmark_ready=false`.
-Participant-Agent methods, Gates B–E, Private-E/Private-A, and External Bridge evidence remain incomplete.
-Documentation and scientific claims must follow `configs/current.json`.
+The candidate backend and replay controls are operational, and two flagship
+tasks have formal descriptive Participant results. Historical environment Gate A
+has a stale current-source binding. Participant Gates B–E, private confirmation,
+and external bridge evidence remain incomplete, so current
+`benchmark_ready=false`. Documentation and scientific claims must follow
+`configs/current.json`.

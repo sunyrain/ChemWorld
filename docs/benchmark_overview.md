@@ -34,8 +34,8 @@ Task 是公开且稳定的合同；World 是隐藏规律实例；Scenario 再加
 
 | 套件 | 回答什么 | 当前边界 |
 | --- | --- | --- |
-| Core | 在已验证环境上开展按 campaign 定义的 Agent 比较 | 仓库不捆绑统一的方法冻结或正式排名结果 |
-| Diagnostic | 可识别性、反馈利用、反事实、适应与自治归因 | 历史 RC20：控制匹配通过、在线 material family 失败；当前待 RC21 重认证 |
+| Core | 在已验证环境上开展按 campaign 定义的 Agent 比较 | 两个旗舰任务有正式描述性结果；没有仓库级统一排名 |
+| Diagnostic | 可识别性、反馈利用、反事实、适应与自治归因 | 历史 Gate A 证书当前绑定过期；Participant Gates B–E 待执行 |
 | Extended | 环境覆盖、训练、教学和方法开发 | 不自动获得正式排名主张 |
 
 ## 每个任务保留自己的结果
@@ -85,12 +85,10 @@ Task 是公开且稳定的合同；World 是隐藏规律实例；Scenario 再加
 - **Constraint cost during adaptation**：恢复过程是否以更多风险换速度。
 
 机制理解还需要分开三层证据：Agent 声明了什么（Declared）、能否预测未执行干预（Predictive）、
-以及判断是否改变实验并改善结果（Actionable）。当前 v0.3 将静态当前世界识别、旧世界 reference
-acquisition、校准后的变化检测与归因、以及恢复分开；RC24 将 A3 限定为冻结 reference policy 的
-online attainability，RC28 在不改变 A3 科学阈值的前提下补齐 primary controlled budget 的
-关系并集可行性证书、write-once receipt、keyed noise、metric embargo 与发布资格，并继续要求关系闭合、campaign 内 cross-fitting、时序检测与
-任务/family 分层交集。
-独立 Agent 反事实预测探针仍属于后续协议，不能由机制标签准确率替代。
+以及判断是否改变实验并改善结果（Actionable）。当前协议将静态世界识别、旧世界 reference
+acquisition、校准后的变化检测与归因、以及性能恢复分开，并要求关系闭合、campaign 内
+cross-fitting、时序检测和任务/family 分层。独立 Agent 反事实预测探针仍属于后续协议，不能由
+机制标签准确率替代。
 
 ## 反馈和评价不能混成一个 outcome
 
@@ -124,15 +122,10 @@ Agent submission
 
 ## 当前状态
 
-World Engine、回放、资源合同和环境确认协议可运行。方法选择、训练、资源匹配和结果冻结由每个评测
-campaign 自行声明。当前仓库已包含两个固定世界确认性任务的正式 LLM—经典优化器比较，但没有完成
-机制适应的跨方法排名。匿名材料信息三臂实验另已完成每任务十个配对世界：电化学正确信息价值通过，
-结晶不确定，两个任务的错误先验整体恢复均失败。RC28 在其冻结源码和未触碰 cohort 上完成 A2
-4,896/4,896 与 A3
-2,016/2,016 receipts，历史联合决策为 `gate_a_pass=true`、`benchmark_ready=true`；五实验主预算
-受控识别 top-1 为 98.26%，A3 `k=8` 端到端成功率为 96.57%。当前源码绑定 stale，当前
-`benchmark_ready=false`。Participant-Agent Gates B–E、私有确认和独立 Bridge 证据仍未共同闭合，
-因此这是 benchmark candidate，不是已完成的机制适应排名 release。
+World Engine、回放和资源合同可运行；双旗舰静态优化与匿名材料信息三臂实验已经完成。历史
+RC28 Gate A 是冻结源码上的环境证书，当前绑定已过期；Participant Gates B–E、私有确认和
+独立 Bridge 证据尚未闭合。因此这是 benchmark candidate，不是已完成的机制适应排名 release。
+精确进展只在[证据与当前状态](benchmark_release.md)维护。
 
 继续阅读：[公平评测协议](benchmark_protocol.md) · [研究发现与证据](benchmark_release.md) ·
 [提交、回放与私有评测](submission.md)

@@ -3,6 +3,10 @@
 任务和 Action 定义“要做什么”，Provider 负责“这一步怎样改变世界”。这种分离让公共接口保持稳定，
 同时允许物理实现逐步升级并留下明确来源。
 
+!!! note "这里的 Provider 是物理执行后端"
+    本页的 runtime/reference provider 指世界如何执行 Operation，不是 DeepSeek、Codex 等 LLM
+    服务商。模型接入路径见[LLM 实验智能体](llm_agent_harness.md)。
+
 ## Provider 角色
 
 | 角色 | 是否改变运行时状态 | 用途 |

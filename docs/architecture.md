@@ -161,7 +161,8 @@ ChemWorld 不声称穷尽化学空间、精确模拟全部材料体系或替代�
 
 这三个名字只表示**评测角色**，不表示三个不同引擎：
 
-- **Core**：六个 serious task 的 Agent 比较环境；环境合同已就绪，但方法、资源和结果尚未冻结；
+- **Core**：六个 serious task 的 Agent 比较环境；环境合同已就绪，其中两个旗舰任务已有冻结的
+  正式描述性 Participant 结果，其余任务和跨任务方法矩阵尚未冻结；
 - **Diagnostic**：可识别性、no-change、反馈分支、反事实、适应分解和自治归因协议；当前机制 v0.3
   首先覆盖 reaction-to-crystallization 与 electrochemical-conversion，并拆分静态世界识别、
   有基线变化、无校准压力和性能恢复四条轨道；
@@ -176,14 +177,10 @@ evaluation contract 决定；改变范围需要新的协议版本和重新验证
 2. **Predictive**：Agent 对未执行干预给出可检验的反事实预测。
 3. **Actionable**：判断实际改变下一实验，并在固定预算内改善恢复或 regret。
 
-当前机制 v0.3 要求先建立并认证旧世界参考，再评价变化检测与 family attribution。RC24 将 A3
-定义为冻结 reference policy 的 online attainability；RC28 保持该科学定义，并增加 primary
-controlled budget 的关系并集最小覆盖证书、不可变 trial receipt、missing-only resume、
-语义坐标噪声与联合发布状态机。
-`never`
-是一等真值，reference 使用关系闭合与 campaign 内 pre-change cross-fitting，并向策略隐藏稳定前缀、
-changepoint support 与证书状态；Development、A2、A3、Private-E 和 Private-A cohort 相互独立。
-初始化即处于某个候选 family 的世界只进入静态当前世界识别；早期无校准变化进入非控制性压力轨。
+当前机制协议要求先建立并认证旧世界参考，再评价变化检测与 family attribution。`never` 是一等
+真值；reference 使用关系闭合与 campaign 内 pre-change cross-fitting，并向策略隐藏稳定前缀、
+changepoint support 与证书状态。环境认证、Participant 评测和 private confirmation 使用互不重叠的
+cohort。初始化即处于候选 family 的世界只进入静态识别；早期无校准变化进入非控制性压力轨。
 独立 Agent predictive probe 仍是后续结果，不能追溯性写成已完成证据。
 
 ## 代码职责映射
@@ -207,8 +204,7 @@ changepoint support 与证书状态；Development、A2、A3、Private-E 和 Priv
 | 能把结果、反馈、评价和自治拆开 | 自报机制概率等于模型内部理解 |
 | 可被外部训练器使用 | ChemWorld 本身是一种训练算法 |
 
-当前候选后端和回放控制可运行；RC28 环境 Gate A 只在冻结源码上历史通过。当前源码绑定 stale，
-当前 `benchmark_ready=false`。Participant-Agent 方法、Gate B–E、Private-E/Private-A 和外部 Bridge
-证据仍未完成。
-任何论文或 README 状态句都必须服从 `configs/current.json`，不能把环境可达性自动升级成 Agent
-能力或发表就绪结论。
+当前候选后端和回放控制可运行；两个旗舰任务已有正式描述性 Participant 结果。历史环境 Gate A
+的当前源码绑定已过期，Participant Gates B–E、private confirmation 和外部 Bridge 尚未完成，
+所以 `benchmark_ready=false`。所有状态句都必须服从 `configs/current.json`；精确进展见
+[证据与当前状态](benchmark_release.md)。

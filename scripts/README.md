@@ -18,8 +18,9 @@ electrochemical S0 protocols explicitly declare `static_single_stage`. Use
 the active script surface.
 
 `run_scientific_adaptation_shakedown.py` is retained only to reproduce historical development diagnostics. It
-requires explicit protocol and method inputs and is not an active experiment roadmap. Announced or hidden world
-changes are deferred research extensions; current experiment work remains on fixed-world S0.
+requires explicit protocol and method inputs and is not an active experiment roadmap. Current mechanism-adaptation
+work follows the staged v0.3 protocol and must restore the current-source Gate A binding before Participant
+Gates B–E; the completed fixed-world S0 campaigns remain a separate evidence track.
 
 Use `python scripts/evidence_pipeline.py --refresh` to regenerate the current deterministic evidence in dependency
 order, and `python scripts/evidence_pipeline.py --check` to reject stale bindings without rewriting files. Do not run

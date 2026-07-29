@@ -68,25 +68,9 @@ confirmatory tasks, but no completed cross-method mechanism-adaptation ranking.
 The separate three-arm material-information study has completed ten paired
 worlds per task. Correct information has positive value for electrochemistry
 and an inconclusive effect for crystallization; neither task passes the joint
-wrong-prior recovery rule. On the frozen RC28 source, the
-action/intervention audit passed with both solvent and electrolyte-profile electrochemical counterfactuals publicly
-reachable and decision-relevant.
-Historical RC21 controlled matched identifiability passes at 239/240, while its fixed four-action online certificate
-fails the reaction rate-law family at 23/30. RC24 of version 0.3 supersedes that protocol because early changes did
-not always provide an adequate old-world reference and A3 previously blurred benchmark attainability with
-participant-Agent evaluation. RC24 freezes a reference diagnostic policy, first-class no-change, relation closure,
-within-campaign cross-fitting, time-resolved detection, 180 independent clusters per family, and task/family
-intersection gates. RC28 preserves those A3 scientific definitions while adding a minimum relation-union
-feasibility certificate for the primary controlled budget, write-once receipts, semantic-coordinate noise,
-metric embargo, and release qualification. On that frozen source, the confirmatory-task semantics audit passed
-25/25 and the physical design audit passed 83/83. RC28 then completed 4,896/4,896
-A2 receipts and 2,016/2,016 A3 receipts on the untouched formal cohorts. The
-historical joint decision was `gate_a_pass=true` and `benchmark_ready=true`: controlled
-top-1 accuracy is 98.26% at the primary five-experiment budget, and the online
-reference policy reaches 96.57% end-to-end success by `k=8` with 2.80%
-conditional no-change FPR. These are environment attainability results, not
-participant-Agent results. The current binding is stale and current
-`benchmark_ready=false`. Mechanism-adaptation cross-method evaluation, private
-confirmation, and external bridge evidence remain incomplete.
+wrong-prior recovery rule. Historical RC28 Gate A is an environment certificate
+on its frozen source, not a Participant result; its current-source binding is
+stale. Participant Gates B–E, private confirmation, and external bridge evidence
+remain incomplete, so current `benchmark_ready=false`.
 
 Next: [Research Findings](research_findings.md) · [Real-world Bridge](real_world_bridge.md)

@@ -1,141 +1,85 @@
 # 研究发现
 
-!!! warning "Pre-v0.5 诊断结果"
-    早期 classical、Safe-GP 与 SAC 数字早于 v0.5 candidate backend，只用于说明协议和失败模式，
-    不能作为当前 15 个任务上的方法排名。
+本页只解释已经获得的证据，不保存另一份状态账本或结果表。精确数字见
+[旗舰实验](flagship_experiments.md)，可发布边界见[证据与当前状态](benchmark_release.md)。
 
-> **ChemWorld 已经形成有价值的环境控制、失败案例和诊断证据，但尚未完成正式 benchmark release。**
+## 主叙事
 
-!!! warning "证据时态"
-    下文 RC28 数字是在其冻结源码上的正式历史结果。当前源码已因静态 S0 和任务合同工作发生变化，
-    evidence DAG 当前将 10 个相关绑定标为 stale；当前 `benchmark_ready=false`。2026-07-27 的旧
-    静态 S0 双任务结果已撤回，不再是当前证据，也不能用于论文数字或模型排名。
-    当前 benchmark readiness 需要 Gate A 重新认证。
+ChemWorld 研究的不是“模型能否在一个黑箱上刷高分”，而是：
 
-## 新发现：两个确认性任务的替代正式实验已完成
+> 当实验世界只部分可见、材料身份匿名、先验可能正确也可能错误，甚至构成律会在 campaign
+> 中变化时，Agent 能否用有限实验形成可检验的判断，并让后续行动随证据更新？
 
-电化学替代协议已绑定 `nominal-prior-latent-v2` 材料家族、
-`electrochemical-s0-balanced-efficiency-v2` 评分与匿名材料身份。反应–结晶现有独立的
-`reaction-crystallization-latent-materials-v1`：催化剂和溶剂进入反应动力学，溶剂还进入溶解度、
-成核、生长和杂质夹杂。两个正式 campaign 均完成 10 个独立世界、每世界 20 轮、配对盲验证、完整
-经典基线和精确 replay。
+当前证据覆盖了这条链的前半段：静态优化、正确信息价值、定向错误先验的行为影响，以及环境级
+机制可识别性。它还没有覆盖 Participant 在在线规律变化后的完整检测、归因和恢复。
 
-Codex 在电化学和结晶上的均值分别为 0.7150 和 0.5355。电化学相对最佳 information-matched
-基线的描述性差为 +0.0991，但相对最佳 privileged calibration 基线的区间跨 0；结晶低于 LHS
-的 0.5708。因此当前不能声称结晶优于经典基线。比较没有预注册 superiority 阈值或多重比较方案。
+## 发现一：正确信息有时有价值，但不是跨任务常数
 
-## 新发现：材料信息价值具有任务差异，错误先验影响不等于恢复
+匿名材料三臂实验显示，正确 dossier 对电化学有确认的正信息价值，对结晶则仍不确定。
+这排除了“材料说明永远无用”，也排除了“给出正确属性必然提高所有任务”的过强说法。
 
-S0 v1.2 在十个配对世界上完成 `opaque`、正确匿名属性 `nominal` 和固定定向错误属性
-`misindexed` 三臂。三臂保持 world seed、观测噪声、20 轮预算、模型和盲测端点一致：
+更合理的结论是：信息价值取决于属性能否连接到任务中的可控变量、观察预算和最终决策。
+因此未来比较应保留任务分层，不能只报告跨任务平均。
 
-- 电化学 nominal 0.7874 vs opaque 0.7150，配对差 +0.0724，双任务 familywise 97.5%
-  区间 [+0.0074,+0.1546]，确认正信息价值；
-- 结晶 nominal 0.5615 vs opaque 0.5355，配对差 +0.0260，区间
-  [−0.0130,+0.0630]，结论不确定；
-- 电化学 misindexed 0.6853，低于 nominal 0.1020；结晶 misindexed 0.5845，高于 nominal
-  0.0229。两个 wrong-prior 对比的 familywise 区间都不跨 0，但方向相反。
+## 发现二：信息改变行为，不等于模型理解信息
 
-两个任务的错误先验都通过早期动作操纵检验。电化学通过差分行为纠偏，却没有证明性能恢复到
-opaque；结晶性能对 opaque 非劣，却没有通过差分行为纠偏。因此两任务均未通过预注册的整体恢复
-联合规则。这里最重要的因果区分是：信息改变行为，不代表模型识别了错误；分数未下降，也不代表
-发生了纠错。
+两个任务的错误 dossier 都显著改变了早期动作，证明操纵确实进入了决策过程。但整体恢复规则
+在两个任务上都失败，而且失败环节不同：
 
-全部 60 个单元精确 replay，账本为 2,280 次物理实验、1,260 次成功订阅调用、5 次自动重试和
-0 方法失败。结果只覆盖每任务一个固定两行互换，不能推广为任意错误先验、任意任务或任意 provider
-上的恢复能力。
+- 电化学出现后期动作纠偏，却没有恢复到无信息基线的性能界限。
+- 结晶性能没有受损，甚至在采样世界中更高，却没有出现预注册意义上的差分动作纠偏。
 
-## 设计发现：15 个任务都需要真实可执行的完整实验
+这说明“受影响”“分数没掉”和“识别并纠正错误”是三个不同命题。恢复必须同时看到操纵生效、
+行为纠偏和性能恢复，不能从解释文本或最终分数单独推断。
 
-完成性审计发现三个纯化任务曾被错误映射为通用反应配方，蒸发与蒸馏条件也曾共享强度坐标。修正后，
-三个纯化任务使用 16 个独立控制和 22 个编译操作；蒸馏使用 13 个控制，两个阶段的温度和时间相互独立。
-矩阵生成器实际执行 415 个完整案例，覆盖中点、每个坐标低/高干预和全部离散类别。当前 15/15 通过，
-62 个声明指标全部有可执行评估端点；这只证明设计可执行，不构成其余 13 个任务的正式性能证据。
+## 发现三：无信息结果必须与信息匹配基线比较
 
-## 证据等级
+无 dossier 的 Participant 在电化学上高于所有 information-matched 经典基线，但对 privileged
+descriptor calibration 的比较不稳定；在结晶上则低于简单 LHS。不同信息权限的算法回答的是
+不同问题，不能混成一张“谁最好”的榜单。
 
-| 等级 | 含义 |
-| --- | --- |
-| 已实现 | 存在可执行代码路径和公开接口 |
-| 控制验证 | 可执行对照证明环境行为符合合同 |
-| Agent 演示 | Agent 在开发实验中表现出可解释行为 |
-| 确证结果 | 冻结方法在未触碰 cohort 上完成评估 |
-| 外部桥接 | 独立 backend、真实数据或物理证据提供支持 |
+这也是当前结果只标记为 formal descriptive 的原因：实验足够完整，可以报告；统计问题没有
+按 superiority 研究预注册，不能事后升级。
 
-## 发现一：目标提升可能掩盖风险退化
+## 发现四：环境可识别，不代表 Participant 会适应
 
-早期无约束 structured GP 在部分任务上提高目标值，同时增加操作风险超限。因此，最终 outcome 不能替代
-风险、成本和协议有效性的独立报告。
+历史 RC28 Gate A 证明其冻结版本中的候选规律族可在受控预算下识别，并证明冻结 reference
+policy 能在未知变化时点建立参照、检测变化并归因。这是环境证书，不是 Agent 成绩。
 
-## 发现二：严格判据应保留有信息量的失败
+当前源码绑定已经过期；即使重新认证 Gate A，也仍需 Participant Gates B–E 才能回答模型是否：
 
-早期 Safe-GP 确证在四个任务上改善目标并满足安全/成本规则，但 flow effect 低于预注册实用阈值，
-所以整体主张仍然失败。ChemWorld 将这种边界失败保留为结果，而不是事后放宽阈值。
+1. 在 campaign 中检测到变化；
+2. 区分变化 family；
+3. 用反馈修正后续实验；
+4. 恢复性能并迁移到未见条件。
 
-## 发现三：历史四动作在线证书失败；校准后的 RC28 Gate A 通过
+## 发现五：严格规则会保留有信息量的失败
 
-当前 material、mechanism 与 constitutive-law counterfactual 均由隐藏世界执行。源码绑定的 RC21
-正式结果在预算 4 下给出：controlled matched certificate 为 239/240（99.58%）并通过；独立
-online-policy-feasible certificate 为 230/240（95.83%），但反应 `rate_law_family` 仅识别
-23/30，其 Wilson 下界为 0.5907，因而历史 RC21 Gate A 仍为 false。同一 family 在受控证书中为 30/30；
-反应 material family 在受控与在线证书中均为 29/30。
+早期 Safe-GP 诊断显示，多个任务的目标方向、风险和成本可以同时改善，但只要一个预注册实用
+效应门槛未达到，联合主张仍然失败。早期 RL 诊断则揭示了动作覆盖、奖励和核心流程完成合同的
+问题，而不是可靠的训练规模规律。
 
-该 rate-law family 绑定的是上游目标生成路径的 pivot-normalized catalyst-activity-order stress，
-不是结晶成核或生长速率律；设计审计证明只有 `target_formation` 的速率律改变，结晶构成参数不变。
-RC22-d 又以独立 fit、policy-selection validation 和开发 trial namespace 检查了所有 11 个合规
-四动作集合。所有集合都未通过按 world 聚类的 selection validation；最佳集合的最弱 family 仅为
-16/24。所选集合在 20 worlds/family 的非控制性开发 trial 中得到：rate-law 20/20、no-change
-20/20、topology 18/20、material mapping 12/20；电化学四类均为 20/20。该开发结果不控制 Gate A，
-也没有触发 RC22 正式运行。它说明当前阻断来自固定四动作、单 reference/单 likelihood 在线 decoder
-不能同时稳定利用时间与跨动作关系证据，而不是反应 rate-law 物理任务不可识别。
+这些旧结果不是当前排名证据，但保留了一个重要方法论：失败应定位到具体判据，不能通过换指标、
+删任务或事后放宽阈值消失。
 
-使用 RC21 原始 fit/trial seed、相同固定策略和相同公开观测合同的非控制性预算延长又给出了
-`k={1,2,4,8}` 曲线。反应任务总体分别为 53/120、77/120、111/120 和 112/120；rate-law 分别为
-0/30、10/30、23/30 和 23/30。k=4 精确复现 RC21，k=8 只把 no-change 从 29/30 提高到 30/30，
-rate-law 的 Wilson 下界仍为 0.5907。该开发诊断复用了正式 seed，不能成为新的确证结果；它排除了
-“只要把同一固定周期从四步延长到八步就能闭环”的解释，说明额外轮次没有提供新的辨识关系。
+## 当前可以与不可以说什么
 
-随后一个未进入证书、仅 4 worlds/family 的小规模开发筛查又否决了朴素的 “myopic posterior-EIG
-与一步 reference acquisition” 策略：它虽然产生了不同动作路径，但经常重复同一个局部高信息动作；
-反应任务仅识别 10/16（rate-law 3/4、topology 4/4、material 1/4、no-change 2/4），而电化学为
-16/16。该低功效筛查不能估计正式通过率，相关实现也未保留；它只说明未来自适应方法必须显式联合
-规划 reference coverage、时间证据与跨动作关系，并在独立 selection validation 通过后才能预注册。
+可以说：
 
-RC21 还暴露了一个更基础的协议问题：`change_time=1` 虽然在实现上表示先执行一个旧世界实验，
-但该实验通常落在 rate-law 的弱信号枢轴附近，不能形成足以解释“从什么变成什么”的响应基线。
-因此 v0.3 不再把静态世界识别、早期无校准非平稳性和有基线的在线变化归因混在同一个 Gate。
-静态轨只识别当前世界；`change_time={0,1,2,4}` 被保留为非控制性压力轨；控制 Gate A3 的校准轨
-使用 `truth_change_time={never,6,8,10}`。`τ=6` 唯一表示前六个完整实验属于旧世界，第七个实验
-开始才可能变化；Agent 不知道最早变化位置、候选时间、reference certificate 或 evaluator
-checkpoint。RC24 将 A3 明确为冻结 reference diagnostic policy 的 online attainability；
-reference certificate 使用关系闭合和 campaign 内 pre-change cross-fitting，changed 与 never
-分开定义分母，并在 `k={1,2,4,8}` 报告时序检测。A2/A3/private 每个任务/family 冻结 180 个独立
-world cluster。确认性任务语义审计 25/25、物理设计审计 83/83 通过后，正式结论仍必须来自新的
-RC28 未触碰 cohort；RC21/RC22-d/RC23 不能升级为 v0.3 确证证据。
+- ChemWorld 已能执行和审计匿名材料、有限预算、盲测和精确 replay 的多世界实验。
+- 两个旗舰任务已有正式描述性 Participant 结果。
+- 正确材料信息在电化学上有正价值；任务间异质性明显。
+- 定向错误先验会影响行为，但没有证据表明模型在两个任务上普遍完成恢复。
 
-RC28 随后按校准协议在未触碰正式 cohort 上完成执行。A2 生成 4,896/4,896 receipts，并在五实验
-主预算通过：active oracle 与 fixed decoder top-1 均为 98.26%（95% CI 97.45–98.82），所有
-task/family 交集通过。A3 生成 2,016/2,016 receipts；到 `k=8`，冻结 reference policy 的参照充分率、
-changed 检测召回率、AUROC、条件 no-change FPR、条件归因率和端到端成功率分别为 99.17%、
-99.35%、0.9990、2.80%、98.03% 和 96.57%。冻结源码上的联合决策为 `gate_a_pass=true`、
-`benchmark_ready=true`，该版本 Gate A 总状态为 true；当前源码绑定 stale。
+不可以说：
 
-该新结果解决的是环境在线可达性问题，不是 participant Agent 能力问题。Gate B–E、
-Private-E/Private-A、跨方法 provider 结果和发表证据仍未完成。
+- Codex 或任何 provider 在 ChemWorld 上达到广义 SOTA。
+- Participant 已证明机制发现或在线机制适应。
+- 结晶中的错误 dossier “帮助模型识别真相”。
+- 仿真结果已经迁移到真实化学系统。
 
-这些结果只支持环境级可识别性诊断，不证明被评 Agent 已具备机制发现能力，也不代表发现了结晶动力学
-或精确速率参数。
+## 下一条最有价值的证据
 
-## 发现四：当前 RL 证据诊断的是合同，不是排名
-
-早期 100,000-step SAC 管线能够端到端运行，但行为覆盖和核心 flow operation 仍不足。当前结果用于发现
-action、reward、checkpoint 和资源计量问题，不构成正式多 seed 排名。
-
-## 发现五：LLM 的反馈利用需要因果消融
-
-operation-level 交互、跨实验记忆、光谱披露和资源计量已经实现，但解释文本本身不能证明反馈改变了决策。
-正式证据仍需要局部配对反馈反应测试和完整 campaign 因果消融。
-
-**当前状态：benchmark candidate。** 尚不支持 SOTA、完整 RL/LLM 排名、Agent 机制适应或真实世界迁移主张。
-机器可读状态以 [`configs/current.json`](https://github.com/sunyrain/ChemWorld/blob/main/configs/current.json)
-和[证据与当前状态](benchmark_release.md)为准。
+下一阶段不应再扩张静态三臂的映射数量，而应先恢复当前源码上的 Gate A 绑定，冻结 Participant
+方法和统计合同，再执行 Gates B–E。这样新增实验会直接闭合主叙事中尚缺的“反馈纠错与在线恢复”，
+而不是继续堆积静态优化分数。

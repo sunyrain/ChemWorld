@@ -60,11 +60,10 @@ Seed 通常改变初值、噪声或连续参数抽样，却可能保留同一因
 任务已建立实际 Provider 消费的机理或构成律族；低层控制审计在 5 个世界、5 个固定探针 recipe 上检查
 9 个任务—模式组合，验证确定性、局部响应分离、响应不过强和过程守恒。
 
-世界控制证据本身不证明候选 family 在给定预算内可识别，也不代表 Agent 已经学会适应。RC28 因此
-另行完成正式环境证书：A2 五实验主预算 top-1 为 98.26%，A3 冻结 reference policy 到 `k=8` 的
-端到端成功率为 96.57%，所有任务与 changed family 交集通过，`gate_a_pass=true`。这证明冻结
-benchmark 可在线求解；后续仍需用独立冻结的 Participant-Agent Gates B–E 测量 Agent 自身的
-change detection、feedback use、recovery 与 autonomy。
+世界控制证据本身不证明候选 family 在给定预算内可识别，也不代表 Agent 已经学会适应。历史
+Gate A 曾在其冻结源码上认证受控可识别性和 reference policy 的在线可达性；当前绑定已经过期。
+后续仍需重新认证环境，并用独立冻结的 Participant Gates B–E 测量 Agent 自身的 change detection、
+feedback use、recovery 与 autonomy。精确状态见[证据与当前状态](benchmark_release.md)。
 
 ## 反事实世界可以检验名称先验
 

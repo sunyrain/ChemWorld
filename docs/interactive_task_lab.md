@@ -148,6 +148,9 @@ GP、RF 和安全约束代理先做 4 个初始配方，第 5 个配方起使用
 
 ### 连接在线模型
 
+Task Lab 当前只接入 DeepSeek API。这是本地交互产品的 provider，不是双旗舰正式 campaign 使用的
+Codex subscription adapter；切换 Task Lab 凭据不会改变或复现正式结果。
+
 === "本地 key 文件"
 
     ```powershell
@@ -192,7 +195,7 @@ python -m apps.task_lab.run_evaluation --all-tasks --mode adaptive --max-steps 2
 每次运行会生成 `evaluation_summary.json`，并为每个任务保存模型计划、完整轨迹和经过回放验证的
 评分结果。可用 `--tasks <task-id...>` 选择部分任务，用 `--resume --output-dir <目录>` 续跑。
 
-扩展 DeepSeek campaign：
+扩展 Task Lab 的 DeepSeek campaign：
 
 ```powershell
 python -m apps.task_lab.run_evaluation --tasks reaction-to-assay --mode adaptive `

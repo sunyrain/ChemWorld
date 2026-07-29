@@ -1,177 +1,105 @@
-# Research Findings
+# Research findings
 
-!!! warning "Pre-v0.5 diagnostic results"
-    The classical, Safe-GP, and early SAC numbers on this page predate the v0.5 candidate backend. They document protocols and failure modes; they are not rankings for the current 15-task release candidate.
+This page interprets the evidence without maintaining another result ledger.
+See [Flagship experiments](flagship_experiments.en.md) for exact numbers and the
+[authoritative current-status page](https://sunyrain.github.io/ChemWorld/benchmark_release/)
+for release boundaries.
 
-> **ChemWorld has produced useful failures and control results, but not a completed benchmark release.**
+## Central narrative
 
-!!! warning "Evidence tense"
-    The RC28 numbers below are formal historical results on their frozen
-    source. Static-S0 and task-contract work changed the current source
-    fingerprint, so ten related bindings are now stale and
-    `benchmark_ready=false`. The legacy 2026-07-27 two-task static-S0 result
-    bundle is withdrawn and cannot support current paper numbers or rankings.
-    Current benchmark readiness requires Gate A recertification.
+ChemWorld does not ask only whether a model can optimize a black-box score. It asks:
 
-## New finding: the replacement fixed-world campaigns are complete
+> When an experimental world is partially observed, material identity is
+> anonymous, priors may be right or wrong, and constitutive laws may change
+> during a campaign, can an Agent form testable judgments from a limited
+> experiment budget and update later actions when evidence disagrees?
 
-The electrochemical replacement binds `nominal-prior-latent-v2`, an explicit
-balanced-efficiency score, and anonymous material identities. Reaction-to-
-crystallization now has an independent catalyst/solvent family that couples
-materials to reaction kinetics and solvent identity to solubility, nucleation,
-growth, and impurity occlusion. Both formal campaigns completed ten independent
-worlds, twenty exploration experiments per world, paired blind validation,
-full classic baselines, and exact replay.
+Current evidence covers the first half of this chain: static optimization,
+correct-information value, behavioral effects of a targeted wrong prior, and
+environment-level mechanism identifiability. It does not yet establish complete
+Participant detection, attribution, and recovery after an online law change.
 
-Codex averages 0.7150 on electrochemical conversion and 0.5355 on
-crystallization. The electrochemical paired descriptive difference against the
-best information-matched baseline is +0.0991, while its interval against the
-best privileged calibration baseline crosses zero. Crystallization trails LHS
-(0.5708), so the campaign does not support a crystallization outperformance
-claim. No superiority threshold or multiplicity plan was preregistered.
+## 1. Correct information can help, but its value is task-dependent
 
-## New finding: information value is task-specific, and prior influence is not recovery
+The anonymous-material three-arm experiment confirms positive information value
+for electrochemistry while leaving crystallization inconclusive. This rejects
+both “material information is always useless” and “correct attributes improve
+every task.”
 
-S0 v1.2 completes `opaque`, correct anonymous `nominal`, and fixed targeted
-wrong-property `misindexed` arms on ten paired worlds. World seeds,
-observation noise, the twenty-round budget, model, and blind endpoint are held
-fixed:
+Information value depends on whether the attributes connect to controllable
+variables, observations, budget, and the final decision. Future analyses should
+therefore remain task-stratified rather than relying on one pooled mean.
 
-- electrochemical nominal is 0.7874 versus 0.7150 opaque, a paired +0.0724
-  with familywise 97.5% interval [+0.0074,+0.1546], confirming positive
-  information value;
-- crystallization nominal is 0.5615 versus 0.5355 opaque, a paired +0.0260
-  with interval [−0.0130,+0.0630], so the result is inconclusive;
-- electrochemical misindexed is 0.6853, 0.1020 below nominal, while
-  crystallization misindexed is 0.5845, 0.0229 above nominal. Both wrong-prior
-  contrasts exclude zero familywise, but in opposite directions.
+## 2. Behavioral influence is not evidence of understanding
 
-Both wrong priors pass the early-action manipulation check. Electrochemistry
-passes differential action correction but not performance recovery to opaque;
-crystallization remains non-inferior to opaque but does not pass differential
-action correction. Neither task passes the preregistered joint recovery rule.
-The causal distinction matters: changing behavior does not show that the model
-identified an error, and avoiding a score loss does not show correction.
+The wrong dossier changed early actions in both tasks, so the manipulation
+entered the decision process. Yet both tasks failed the joint recovery rule for
+different reasons:
 
-All 60 cells pass exact replay: 2,280 physical experiments, 1,260 successful
-subscription calls, five automatic retries, and zero method failures. The
-result covers one fixed two-row swap per task and does not establish recovery
-across arbitrary priors, tasks, mappings, or providers.
+- electrochemistry showed later action correction without practical performance
+  recovery to the no-information arm;
+- crystallization retained—and in these sampled worlds improved—performance,
+  but lacked preregistered differential action correction.
 
-## Design finding: all 15 tasks need executable complete experiments
+Being influenced, avoiding a score loss, and identifying an error are distinct
+claims. Recovery needs evidence that the manipulation mattered, behavior
+corrected, and performance recovered.
 
-The completion audit found that three purification tasks had been mapped to a
-generic reaction-only recipe and that evaporation and distillation shared
-intensity coordinates. The corrected purification design has 16 independent
-controls and 22 compiled operations; distillation has 13 controls with
-independent temperature and time for both stages. The matrix generator executes
-415 complete cases spanning midpoints, every coordinate's low/high intervention,
-and all discrete categories. All 62 declared metrics bind to executable
-evaluation endpoints. All 15 pass this expanded audit. This proves design executability, not formal performance
-on the 13 non-confirmatory tasks.
+## 3. No-information results need information-matched controls
 
-## Evidence levels
+Without a dossier, the Participant is above every information-matched classical
+baseline in electrochemistry, but the comparison with privileged descriptor
+calibration is unstable. In crystallization it is below simple LHS. Methods with
+different information access do not belong in one undifferentiated leaderboard.
 
-| Level | Meaning |
-| --- | --- |
-| Implemented | A code path and interface exist |
-| Control-validated | Executable controls establish environment behavior |
-| Agent-demonstrated | An agent shows interpretable development behavior |
-| Confirmatory | A frozen method is tested on an untouched cohort |
-| Externally bridged | Independent backend, real data, or physical evidence supports it |
+The results are formal descriptive evidence because the execution is complete
+and auditable, while superiority thresholds and multiplicity were not
+preregistered.
 
-## Finding 1: objective gains can hide risk regressions
+## 4. Environment identifiability is not Participant adaptation
 
-Unconstrained structured GP improved four task objectives while increasing operational-risk exceedance in three tasks.
-Outcome alone was therefore insufficient.
+Historical RC28 Gate A showed that candidate law families were identifiable
+under controlled budgets and that a frozen reference policy could establish a
+baseline, detect a change, and attribute it. That is an environment certificate,
+not an Agent result.
 
-## Finding 2: strict rules preserve meaningful failures
+The current-source binding is stale. Even after it is renewed, Participant Gates
+B–E are required to test whether a model detects a change, distinguishes its
+family, updates experiments, restores performance, and transfers to held-out
+conditions.
 
-A frozen Safe-GP confirmation improved all four objectives and passed safety/cost rules. The flow effect was 0.018752
-against a pre-registered practical threshold of 0.020000, so the all-task claim remained failed.
+## 5. Strict rules preserve informative failures
 
-## Finding 3: the historical four-action certificate failed; calibrated RC28 Gate A passes
+Earlier Safe-GP diagnostics improved objective, safety, and cost on several tasks
+but failed a joint claim when one preregistered practical-effect threshold was
+missed. Earlier RL diagnostics exposed action-coverage, reward, and workflow
+completion problems rather than a reliable scaling law.
 
-Nine task–mode controls establish deterministic execution, local response separation, bounded response,
-conservation, and replay. At the preregistered four-experiment budget, the source-bound RC21 controlled matched
-oracle reaches 239/240 (99.58%) and passes. The separately bound online-policy-feasible oracle reaches 230/240
-(95.83%) overall, but the reaction `rate_law_family` reaches only 23/30, with a Wilson lower bound of 0.5907, so
-historical RC21 Gate A remained false. The same family reaches 30/30 in the controlled certificate; the reaction material family
-reaches 29/30 in both certificates.
+Those results are not current rankings. Their methodological value is that a
+failure remains attached to a named criterion instead of disappearing through a
+metric swap, task removal, or post-hoc threshold change.
 
-This family is an upstream, pivot-normalized catalyst-activity-order stress on the primary target pathway—not a
-crystal nucleation or growth rate law. The design audit proves that only the `target_formation` rate law changes
-and that crystallization constitutive parameters remain fixed. RC22-d then evaluated all eleven admissible
-four-action sets using disjoint fit, policy-selection-validation, and development-trial namespaces. Every set
-failed world-clustered selection validation; the best weakest-family result was 16/24. The selected set obtained
-20/20 for rate law, 20/20 for no change, 18/20 for topology, and 12/20 for material mapping in non-controlling
-development trials; all four electrochemical families obtained 20/20. RC22-d does not control Gate A and did not
-trigger a formal RC22 run. It localizes the remaining problem to a fixed four-action, single-reference,
-single-likelihood online decoder that cannot robustly combine temporal and cross-action relational evidence—not
-to physical non-identifiability of the reaction rate-law task.
+## Supported and unsupported claims
 
-A non-controlling budget extension then reused the exact RC21 fit/trial seeds, fixed policy, and public observation
-contract to evaluate `k={1,2,4,8}`. Reaction accuracy was 53/120, 77/120, 111/120, and 112/120, while rate-law
-recall was 0/30, 10/30, 23/30, and 23/30. The k=4 checkpoint exactly reproduced RC21; k=8 only improved no change
-from 29/30 to 30/30, leaving the rate-law Wilson lower bound at 0.5907. Because this diagnostic reused formal
-seeds, it cannot become new confirmatory evidence. It rules out the claim that simply extending the same fixed
-cycle from four to eight steps closes the gap: the extra rounds add repeated evidence, not a new identifying
-relation.
+Supported:
 
-A subsequent non-certificate screening at only four worlds per family also rejected a naive myopic
-posterior-EIG plus one-step reference-acquisition policy. It generated history-dependent action paths but often
-repeated one locally high-information action. Reaction diagnosis reached only 10/16 (rate law 3/4, topology 4/4,
-material 1/4, and no change 2/4), while electrochemistry reached 16/16. This low-power screen cannot estimate a
-formal pass rate, and its implementation was not retained. It only establishes that a future adaptive method must
-jointly plan reference coverage, temporal evidence, and cross-action relations, then pass independent selection
-validation before preregistration.
+- ChemWorld can execute and audit multi-world experiments with anonymous
+  materials, finite budgets, blind validation, and exact replay.
+- Two flagship tasks have formal descriptive Participant results.
+- Correct material information has positive value in electrochemistry, with
+  clear task heterogeneity.
+- A targeted wrong prior affects behavior, but general recovery is not shown.
 
-RC21 also exposed a more basic protocol error. Although `change_time=1` technically executes one old-world
-experiment, that experiment usually lies near the weak-signal rate-law pivot and does not establish the response
-reference needed to say what changed from what. Version 0.3 therefore separates static current-world
-identification, early uncalibrated nonstationarity, and calibrated online change attribution. The static track
-never reports change probability. `change_time={0,1,2,4}` remains a non-controlling stress track. RC24 freezes
-Gate A3 as online attainability of a reference diagnostic policy with truth support `never/6/8/10`; `tau` is the
-number of completed old-world experiments. Reference sufficiency uses relation closure and within-campaign
-pre-change cross-fitting. Changed and never use separate denominators, and detection is reported at
-`k={1,2,4,8}`. A2, A3, and private confirmation each freeze 180 independent world clusters per task/family.
-After the confirmatory-task semantics audit passed 25/25 and the physical
-design audit passed 83/83, any formal conclusion still had to come from a new
-untouched RC28 cohort. RC21, RC22-d, and RC23 cannot be promoted into v0.3
-confirmatory evidence.
+Unsupported:
 
-RC28 subsequently executed untouched formal cohorts under the calibrated
-protocol. A2 completed 4,896/4,896 receipts and passed at the primary
-five-experiment budget: active-oracle and fixed-decoder top-1 accuracy were
-both 98.26% (95% CI 97.45–98.82), with every task/family intersection passing.
-A3 completed 2,016/2,016 receipts. By `k=8`, the frozen reference policy reached
-99.17% reference sufficiency, 99.35% changed detection recall, 0.9990 AUROC,
-2.80% conditional no-change FPR, 98.03% conditional attribution, and 96.57%
-end-to-end success. The frozen-source joint decision was `gate_a_pass=true` and
-`benchmark_ready=true`, so Gate A was true for that source; the current binding is stale.
+- broad SOTA for Codex or any provider;
+- Participant mechanism discovery or online mechanism adaptation;
+- interpreting the crystallization wrong-dossier benefit as error discovery;
+- transfer from the simulator to real chemical systems.
 
-This new result resolves the environment-attainability question, not the
-participant-Agent question. Gates B–E, Private-E/Private-A, cross-method
-provider results, and publication evidence remain incomplete.
+## Highest-value next evidence
 
-These results support environment-level identifiability diagnostics, not Agent-level mechanism discovery,
-crystallization-kinetics discovery, or exact rate-parameter identification.
-
-## Finding 4: current RL evidence diagnoses contracts, not rankings
-
-The early 100,000-step SAC pipeline ran end to end, but development behavior omitted the core flow operation and
-concentrated on adding, measuring, and terminating. Action, reward, and behavioral completion contracts are being
-remediated before any formal multi-seed result.
-
-## Finding 5: LLM evidence use requires causal ablation
-
-Operation-level interaction, memory, spectrum disclosure, and resource
-accounting are implemented. Formal fixed-world provider trajectories now exist
-for two tasks, but there is no formal mechanism-adaptation or paired
-spectrum/memory causal-ablation matrix; explanations alone do not prove that
-spectra or memory changed decisions.
-
-**Status:** benchmark candidate. No SOTA, completed RL/LLM ranking, mechanism-adaptation, or real-world transfer claim
-is supported.
-
-See the [versioned evidence page in Chinese](https://sunyrain.github.io/ChemWorld/benchmark_release/).
+The next phase should restore Gate A’s current-source binding, freeze the
+Participant method and statistical contract, and execute Gates B–E. That closes
+the missing feedback-correction and online-recovery segment of the narrative
+instead of adding more static score tables.

@@ -3,28 +3,48 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 FORBIDDEN_TOKENS = (
     "codex_subagent",
-    "workstreams/",
+    "](workstreams/",
+    "](../workstreams/",
     "python scripts/",
 )
 UNIMPLEMENTED_COMMANDS = ("chemworld score",)
 RESULT_PAGES = (
     "README.md",
-    "docs/benchmark_release.md",
     "docs/benchmark_protocol.md",
     "docs/baseline_reference.md",
     "docs/safety_cost.md",
     "docs/world_model_learning.md",
-    "docs/research_findings.md",
-    "docs/research_findings.en.md",
-    "docs/limitations.md",
+)
+CANONICAL_RESULT_TOKENS = (
+    "0.7150",
+    "0.5355",
+    "0.7874",
+    "0.5615",
+    "0.6853",
+    "0.5845",
+)
+CANONICAL_RESULT_PAGES = {
+    "docs/benchmark_release.md",
+    "docs/flagship_experiments.md",
+    "docs/flagship_experiments.en.md",
+}
+HISTORICAL_CERTIFICATE_TOKENS = ("4,896", "2,016", "98.26%", "96.57%")
+HISTORICAL_CERTIFICATE_PAGES = {"docs/benchmark_release.md"}
+OBSOLETE_STATUS_PHRASES = (
+    "替代固定世界 S0 的正式模型矩阵尚未执行",
+    "当前正式方法矩阵仍缺少真实 provider 轨迹",
+    "方法、资源和结果尚未冻结",
+    "方法与结果尚未冻结",
 )
 CURRENT_TRUTH_MARKERS = {
     "docs/tasks.md": (
@@ -46,7 +66,8 @@ REQUIRED_NARRATIVE_MARKERS = {
         "让实验智能拥有自己的世界引擎",
         "同一个任务",
         "不直接迁移配方",
-        "15 个任务的完整实验适配器",
+        "15 个任务的完整实验合同",
+        "查看精确结果与当前状态",
     ),
     "docs/vision.md": (
         "实验交互的规模瓶颈",
@@ -62,20 +83,23 @@ REQUIRED_NARRATIVE_MARKERS = {
     "docs/index.en.md": (
         "Give experimental intelligence its own world engine",
         "Causal Worlds",
-        "all 15 complete-experiment adapters",
+        "All 15 task contracts are executable",
     ),
-    "docs/research_findings.md": ("发现五", "benchmark candidate", "当前 15/15 通过"),
+    "docs/research_findings.md": (
+        "主叙事",
+        "信息改变行为，不等于模型理解信息",  # noqa: RUF001
+        "下一条最有价值的证据",
+    ),
     "docs/research_findings.en.md": (
-        "Finding 4",
-        "benchmark candidate",
-        "All 15 pass",
+        "Central narrative",
+        "Behavioral influence is not evidence of understanding",
+        "Highest-value next evidence",
     ),
 }
 NAV_GROUPS = (
-    "研究主线",
-    "探索世界",
-    "构建智能体",
-    "评测",
+    "研究与证据",
+    "体验 ChemWorld",
+    "构建与评测",
     "技术参考",
 )
 ENGLISH_NAV_TARGETS = (
@@ -83,63 +107,34 @@ ENGLISH_NAV_TARGETS = (
     "vision.md",
     "experimental_intelligence.md",
     "causal_worlds.md",
+    "architecture.md",
     "benchmark_overview.md",
+    "flagship_experiments.md",
     "research_findings.md",
     "real_world_bridge.md",
 )
 README_BOUNDARY_MARKERS = (
     "campaign",
-    "does not test hidden world changes",
-    "mechanism-discovery claims remain unsupported",
+    "participant gates b–e",  # noqa: RUF001
+    "does not support broad sota",
+    "real-world-transfer claims",
 )
 PASSED_GATE_A_STATUS_MARKERS = {
-    "README.md": (
-        "Gate A now establishes environment-level identifiability",
-    ),
-    "docs/benchmark_release.md": (
-        "Gate A 整体因此通过",
-    ),
-    "docs/research_findings.md": (
-        "Gate A 总状态为 true",
-    ),
-    "docs/research_findings.en.md": (
-        "so Gate A is true",
-    ),
+    "README.md": ("Historical RC28 Gate A passed",),
+    "docs/benchmark_release.md": ("历史通过",),
 }
 FAILED_GATE_A_STATUS_MARKERS = {
-    "README.md": (
-        "A2 and A3 remain pending",
-        "Gate A remains false",
-    ),
-    "docs/benchmark_release.md": (
-        "A2、A3 与 private",
-        "Gate A 整体仍为 false",
-    ),
-    "docs/research_findings.md": (
-        "A2/A3 仍需新的未触碰",
-        "Gate A 仍为 false",
-    ),
-    "docs/research_findings.en.md": (
-        "A2/A3 execution is still required",
-        "Gate A remains false",
-    ),
+    "README.md": ("benchmark_ready=false",),
+    "docs/benchmark_release.md": ("benchmark_ready=false",),
 }
 BINDING_STALE_GATE_A_STATUS_MARKERS = {
     "README.md": (
-        "current binding is stale",
-        "benchmark_ready=false` until recertification",
+        "binding is stale",
+        "benchmark_ready=false",
     ),
     "docs/benchmark_release.md": (
-        "fingerprint 已变化",
-        "在重新认证前",
-    ),
-    "docs/research_findings.md": (
-        "10 个相关绑定标为 stale",
-        "Gate A 重新认证",
-    ),
-    "docs/research_findings.en.md": (
-        "ten related bindings are now stale",
-        "Gate A recertification",
+        "当前源码指纹已经变化",
+        "benchmark_ready=false",
     ),
 }
 STALE_GATE_A_STATUS_MARKERS = (
@@ -156,6 +151,21 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
     files = _public_files(root)
     forbidden_hits = _token_hits(files, root, FORBIDDEN_TOKENS)
     unimplemented_hits = _token_hits(files, root, UNIMPLEMENTED_COMMANDS)
+    obsolete_status_hits = _token_hits(files, root, OBSOLETE_STATUS_PHRASES)
+    result_number_hits = _disallowed_token_hits(
+        files,
+        root,
+        CANONICAL_RESULT_TOKENS,
+        CANONICAL_RESULT_PAGES,
+    )
+    historical_number_hits = _disallowed_token_hits(
+        files,
+        root,
+        HISTORICAL_CERTIFICATE_TOKENS,
+        HISTORICAL_CERTIFICATE_PAGES,
+    )
+    broken_local_links = _broken_local_links(root)
+    unreferenced_images = _unreferenced_images(root)
 
     protocol = json.loads(
         (root / "configs/foundation/backend_v0.5.json").read_text(encoding="utf-8")
@@ -254,7 +264,13 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         path.relative_to(root / "docs").as_posix()
         for path in (root / "docs").rglob("*.en.md")
     }
-    unlisted_public_pages = sorted(public_markdown_targets - set(chinese_nav_targets)) + [
+    reference_catalog = (root / "docs/reference_index.md").read_text(encoding="utf-8")
+    reference_catalog_targets = set(re.findall(r"\]\(([^)#?]+\.md)\)", reference_catalog))
+    unlisted_public_pages = sorted(
+        public_markdown_targets
+        - set(chinese_nav_targets)
+        - reference_catalog_targets
+    ) + [
         f"en:{target}"
         for target in sorted(public_english_targets - set(english_source_targets))
     ]
@@ -315,6 +331,11 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         "utf8_files_readable": bool(files),
         "no_maintainer_paths_or_commands": not forbidden_hits,
         "no_unimplemented_cli": not unimplemented_hits,
+        "no_obsolete_status_phrases": not obsolete_status_hits,
+        "canonical_result_numbers_are_not_duplicated": not result_number_hits,
+        "historical_certificate_numbers_have_one_summary": not historical_number_hits,
+        "local_links_resolve": not broken_local_links,
+        "image_assets_are_referenced": not unreferenced_images,
         "task_truth_matches_v05_protocol": not missing_task_truth and not missing_task_hashes,
         "current_truth_markers_present": not missing_current_markers,
         "pre_v05_results_marked_diagnostic": not missing_history_boundaries,
@@ -335,12 +356,17 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         ),
     }
     return {
-        "schema_version": "chemworld-public-docs-audit-0.4",
+        "schema_version": "chemworld-public-docs-audit-0.5",
         "passed": all(checks.values()),
         "checks": checks,
         "file_count": len(files),
         "forbidden_hits": forbidden_hits,
         "unimplemented_command_hits": unimplemented_hits,
+        "obsolete_status_hits": obsolete_status_hits,
+        "result_number_hits": result_number_hits,
+        "historical_number_hits": historical_number_hits,
+        "broken_local_links": broken_local_links,
+        "unreferenced_images": unreferenced_images,
         "missing_task_truth": missing_task_truth,
         "missing_task_hashes": missing_task_hashes,
         "missing_current_markers": missing_current_markers,
@@ -419,6 +445,72 @@ def _token_hits(files: list[Path], root: Path, tokens: tuple[str, ...]) -> list[
                         }
                     )
     return hits
+
+
+def _disallowed_token_hits(
+    files: list[Path],
+    root: Path,
+    tokens: tuple[str, ...],
+    allowed_paths: set[str],
+) -> list[dict[str, Any]]:
+    scoped_files = [
+        path
+        for path in files
+        if path.relative_to(root).as_posix() not in allowed_paths
+    ]
+    return _token_hits(scoped_files, root, tokens)
+
+
+def _broken_local_links(root: Path) -> list[dict[str, Any]]:
+    broken: list[dict[str, Any]] = []
+    docs_root = root / "docs"
+    link_pattern = re.compile(r"!?\[[^\]]*]\(([^)]+)\)")
+    for path in sorted(docs_root.rglob("*.md")):
+        for line_number, line in enumerate(
+            path.read_text(encoding="utf-8").splitlines(),
+            start=1,
+        ):
+            for match in link_pattern.finditer(line):
+                raw_target = match.group(1).strip()
+                if raw_target.startswith("<") and ">" in raw_target:
+                    target = raw_target[1 : raw_target.index(">")]
+                else:
+                    target = raw_target.split(maxsplit=1)[0]
+                if (
+                    not target
+                    or target.startswith(("#", "/"))
+                    or re.match(r"^[a-z][a-z0-9+.-]*:", target, re.IGNORECASE)
+                ):
+                    continue
+                relative = unquote(target.split("#", 1)[0].split("?", 1)[0])
+                resolved = (path.parent / relative).resolve()
+                if not resolved.exists():
+                    broken.append(
+                        {
+                            "path": path.relative_to(root).as_posix(),
+                            "line": line_number,
+                            "target": target,
+                        }
+                    )
+    return broken
+
+
+def _unreferenced_images(root: Path) -> list[str]:
+    image_root = root / "docs/assets/images"
+    if not image_root.is_dir():
+        return []
+    public_text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted((root / "docs").rglob("*.md"))
+    )
+    public_text += "\n" + (root / "mkdocs.yml").read_text(encoding="utf-8")
+    return [
+        path.relative_to(root).as_posix()
+        for path in sorted(image_root.rglob("*"))
+        if path.is_file()
+        and path.relative_to(root / "docs").as_posix() not in public_text
+        and path.name not in public_text
+    ]
 
 
 def _missing_markers(root: Path, requirements: dict[str, tuple[str, ...]]) -> dict[str, list[str]]:

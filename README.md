@@ -105,66 +105,26 @@ including exact task-contract hashes, replay-bound transitions, and a fail-close
 and clean-source attestation describe the environment only; they do not imply an algorithm ranking, a completed
 evaluation campaign, or real-chemistry validation.
 
-All 15 tasks now have versioned complete-experiment adapters with physical coordinate schemas. The design audit
-executes 415 end-to-end cases covering each midpoint, every coordinate's low/high intervention, and every discrete
-category. All 62 declared success metrics are bound to explicit terminal-observation, trajectory, artifact,
-predictive-holdout, or paired-split evaluators. The three purification tasks use a 16-control reaction/workup design,
-and the distillation adapter exposes evaporation and distillation temperature/time as four independent controls.
-This is design validation, not formal empirical performance for the 13 non-confirmatory tasks.
-
-ChemWorld no longer treats one repository-wide method freeze as environment evidence. Each comparison campaign must
-declare its own agents, resources, seeds, material family, score law, and result freeze. The 2026-07-27 legacy
-static-S0 participant results were withdrawn on 2026-07-28: they are not current evidence, are not arXiv-reportable,
-and no numerical claim from that bundle is retained on the active status surface.
-
-The replacement electrochemical and reaction-to-crystallization S0 v1.0 campaigns are complete: each uses ten
-independent worlds, twenty exploration experiments per world, paired blind validation, full classic baselines, and
-exact replay. Codex averages 0.7150 on electrochemical conversion and 0.5355 on crystallization. Electrochemical is
-descriptively +0.0991 above the best information-matched baseline, but its interval against the best privileged
-calibration baseline crosses zero. Crystallization is below LHS (0.5708), so it does not support an outperformance
-claim. These comparisons were not preregistered with a superiority threshold or multiplicity plan.
-
-The S0 material-information study is now complete across three arms, ten
-paired worlds, and both tasks. Correct anonymous properties improve
-electrochemical performance from 0.7150 opaque to 0.7874 nominal (+0.0724;
-familywise 97.5% interval [+0.0074,+0.1546]); crystallization changes from
-0.5355 to 0.5615 (+0.0260; [−0.0130,+0.0630]) and remains inconclusive.
-A fixed targeted wrong prior shifts early actions in both tasks, but neither
-task passes the preregistered joint recovery rule. All 60 cells pass exact
-replay: 2,280 physical experiments, 1,260 successful Codex subscription
-calls, five automatic retry attempts, and zero method failures.
+All 15 tasks have executable complete-experiment contracts, but only two
+flagship tasks have formal multi-world Participant results. Those tasks have
+completed both a no-dossier descriptive campaign and a paired
+`opaque / nominal / misindexed` anonymous-material study. Correct information
+has confirmed positive value in electrochemistry and an inconclusive effect in
+crystallization. A targeted wrong prior changes early behavior in both tasks,
+but neither passes the joint recovery rule.
 
 [`configs/current.json`](configs/current.json) is the authoritative status surface. It reports backend-contract
 validation, clean-release attestation, formal-evaluation readiness, and publication readiness as separate states.
 
-Current evidence establishes the following boundaries:
+Historical RC28 Gate A passed on its frozen source, but its current-source
+binding is stale. Participant Gates B–E, private confirmation, and external
+bridge evidence remain incomplete. Current `benchmark_ready=false` and
+`publication_ready=false`; the evidence does not support broad SOTA,
+mechanism-adaptation, provider-causal, or real-world-transfer claims.
 
-- legacy fixed-world static-S0 participant results are withdrawn; the replacement ten-world formal descriptive
-  results are current, while broad benchmark, provider-causal, and out-of-sample generalization claims remain disabled;
-- RC28 Gate A passed on its frozen source, but the current source fingerprint has changed. Its result remains a
-  historical formal certificate while the current binding is stale; `benchmark_ready=false` until recertification;
-
-- executable mechanism and constitutive-law shifts are control-validated. RC28 defines A3 as online attainability by
-  one frozen reference diagnostic policy rather than performance of any participant Agent. It freezes true no-change
-  campaigns, time-resolved `k={1,2,4,8}` detection, right-censored delay, relation-closure reference sufficiency,
-  within-campaign pre-change cross-fitting, task/family intersection gates, 180 independent world clusters per family,
-  and one hash-bound preregistration manifest. RC28 retains the RC27 online design and adds a pre-scheduler
-  relation-union feasibility certificate: A2 reports `k={2,4,5}`, with the mathematically minimal relation-closing
-  `k=5` as its primary controlled certificate. It also freezes write-once trial receipts, missing-only
-  resume, semantic-coordinate observation noise, split Private-E/Private-A confirmation, and a compact
-  decision-first Agent prompt capped at an estimated 1,500 tokens. On the frozen RC28 source, the confirmatory-task
-  semantic audit passed 25/25 and the physical action/intervention audit passed 83/83. Formal RC28 completed A2 at
-  4,896/4,896 receipts and A3 at
-  2,016/2,016 receipts; its frozen-source joint decision was `gate_a_pass=true` and
-  `benchmark_ready=true`. This certifies historical environment attainability for that source. The current source
-  binding is stale and current `benchmark_ready=false`; participant-Agent
-  Gates B–E remain unfrozen; mechanism-discovery claims remain unsupported for DeepSeek or any other Agent;
-- the real-provider static-S0 matrix is complete for the two confirmatory tasks. Fixed-world scientific optimization is
-  the current research priority. It does not test hidden world changes. Hidden world changes and mechanism replacement
-  are deferred until a realistic drift model and separate research question are established; private confirmation and
-  external bridge evidence remain open.
-
-See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.
+See [Evidence and current status](https://sunyrain.github.io/ChemWorld/benchmark_release/)
+before citing results, and [Flagship experiments](https://sunyrain.github.io/ChemWorld/flagship_experiments/)
+for exact numbers and evidence links.
 
 ## Documentation
 

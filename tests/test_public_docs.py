@@ -15,12 +15,19 @@ def test_public_documentation_is_user_facing_and_matches_v05_truth() -> None:
     assert report["checks"]["task_truth_matches_v05_protocol"] is True
     assert report["checks"]["pre_v05_results_marked_diagnostic"] is True
     assert report["checks"]["research_status_matches_current_registry"] is True
+    assert report["checks"]["no_obsolete_status_phrases"] is True
+    assert report["checks"]["canonical_result_numbers_are_not_duplicated"] is True
+    assert report["checks"]["historical_certificate_numbers_have_one_summary"] is True
+    assert report["checks"]["local_links_resolve"] is True
+    assert report["checks"]["image_assets_are_referenced"] is True
     assert report["status_surface_missing_markers"] == {}
     assert report["status_surface_stale_markers"] == []
+    assert report["broken_local_links"] == []
+    assert report["unreferenced_images"] == []
     assert report["missing_task_hashes"] == {}
 
 
-def test_professional_bilingual_navigation_has_unique_existing_targets() -> None:
+def test_curated_bilingual_navigation_and_reference_catalog_cover_public_pages() -> None:
     report = audit_public_docs(ROOT)
     assert report["checks"]["professional_information_architecture"] is True, report
     assert report["missing_navigation_targets"] == []

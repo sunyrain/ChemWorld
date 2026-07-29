@@ -95,6 +95,16 @@ scaffold、信息条件和资源，不能把它们合并成“LLM”一行。
 
 ## 技术配置：连接在线模型
 
+这里有两条独立的模型接入路径：
+
+| 路径 | 当前 provider | 用途 |
+| --- | --- | --- |
+| Task Lab / Agent Observatory | DeepSeek API | 本地交互、演示和自定义开发评测 |
+| 冻结正式 campaign runner | Codex subscription | 当前双旗舰 S0 正式结果 |
+
+下面的环境变量只配置 **Task Lab**，不会把正式 campaign 切换为 DeepSeek，也不会复现已经冻结的
+Codex subscription 结果。正式 runner、模型与资源合同见[旗舰实验](flagship_experiments.md)。
+
 === "PowerShell"
 
     ```powershell
@@ -143,8 +153,9 @@ python examples/demo_llm_replay_harness.py
 
 ## 当前做到哪一步
 
-在线客户端、逐操作 trace、按需谱图、token/费用账本和失败保留规则已经实现。当前正式方法矩阵仍
-缺少真实 provider 轨迹，因此还不能发布 LLM 排名、模型优劣或“模型学会化学机理”的结论。
+在线客户端、逐操作 trace、按需谱图、token/费用账本和失败保留规则已经实现。双旗舰静态
+campaign 已留下真实 Codex subscription provider 轨迹；这支持冻结范围内的正式描述性结果，
+不构成跨模型排名或“模型学会化学机理”的结论。机制适应的正式跨方法 provider 矩阵仍未执行。
 
 界面操作见[打开可视化实验室](interactive_task_lab.md)，方法比较口径见
 [设计公平评测](benchmark_protocol.md)。
