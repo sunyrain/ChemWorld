@@ -88,6 +88,9 @@ STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION = (
 STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION = (
     "chemworld-static-optimization-prompt-0.6-s0-dev"
 )
+STATIC_OPTIMIZATION_NONDUPLICATE_PORTFOLIO_PROMPT_VERSION = (
+    "chemworld-static-optimization-prompt-0.7-s0-dev"
+)
 STATIC_FINAL_SYNTHESIS_VERSION = "chemworld-static-final-synthesis-0.3-s0-dev"
 STATIC_FINAL_SYNTHESIS_SEPARATE_VERSION = "chemworld-static-final-synthesis-0.4-s0-dev"
 STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION = "chemworld-static-final-synthesis-0.5-s0-dev"
@@ -106,17 +109,28 @@ DIRECT_OPTIMIZATION_SCAFFOLD_ID = (
 COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID = (
     "coverage_then_adaptive_five_task_public_contract_full_history_v16"
 )
-COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID = (
+COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID = (
     "coverage_surrogate_portfolio_five_task_public_contract_full_history_v17"
+)
+COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID = (
+    "coverage_surrogate_portfolio_nonduplicate_five_task_public_contract_full_history_v18"
 )
 COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_IDS = frozenset(
     {
         COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID,
+        COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID,
+        COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+    }
+)
+SURROGATE_PORTFOLIO_OPTIMIZATION_SCAFFOLD_IDS = frozenset(
+    {
+        COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID,
         COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
     }
 )
 COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS = 8
-SURROGATE_PORTFOLIO_FINAL_EXPERIMENT_INDEX = 16
+SURROGATE_PORTFOLIO_V17_FINAL_EXPERIMENT_INDEX = 16
+SURROGATE_PORTFOLIO_NONDUPLICATE_FINAL_EXPERIMENT_INDEX = 19
 
 _ELECTROCHEMICAL_CLAIM_CAUSES = (
     "controlled_potential_V",
@@ -246,6 +260,33 @@ chain-of-thought. When named physical recipe parameters are supplied, reason and
 those parameters and units; do not invent or request hidden normalized coordinates.
 """
 
+NONDUPLICATE_SURROGATE_PORTFOLIO_SYSTEM_PROMPT = """You are a static scientific
+optimization agent in ChemWorld. The world is fixed for the entire campaign. Optimize the
+task objective using only the public task contract, public experiment history, and public
+campaign_scaffold. During the first eight experiments, the protocol executor commits the
+balanced-design recipe shown in campaign_scaffold; use that condition to choose diagnostics,
+state the experiment's purpose, and predict its effect, but do not return recipe fields.
+During experiments 9 through 20, select exactly one candidate_id from the displayed
+public-history-only candidate portfolio and return that candidate's exact complete recipe.
+The portfolio supplies task-neutral numerical search discipline and excludes completed
+recipes; you remain responsible for choosing among acquisition, global-coverage,
+uncertainty, and boundary candidates using the public scientific evidence. Follow
+campaign_scaffold.task_neutral_default_candidate_id unless specific completed public
+experiments or evidence IDs justify another displayed candidate, and explain any deviation
+in experiment_intent. Never treat nominal category codes as ordered or transferable across
+controls. The initial space-filling design is confounded, so do not infer a one-control
+direction merely by comparing two unrelated initial recipes. Inspect the signed scoring
+weights and stage-resolved measurements, not only terminal leaderboard_score. A strong
+aggregate score with a positively weighted component near its floor, or a negatively
+weighted component near its ceiling, is an unresolved scientific bottleneck. Use remaining
+experiments to challenge that bottleneck or a credible competing basin. Do not repeat a
+completed recipe: three blind validation replicates occur after the final recommendation
+and provide the replication evidence. Return exactly one JSON object without exposing
+private chain-of-thought. When named physical recipe parameters are supplied, reason and
+report in those parameters and units; do not invent or request hidden normalized
+coordinates.
+"""
+
 FINAL_SYNTHESIS_SYSTEM_PROMPT = """You are completing a fixed-world scientific
 optimization campaign in ChemWorld. Exploration is finished. Submit one final experimental
 method that represents your overall conclusion from the public evidence. The method may
@@ -278,6 +319,23 @@ a clearly superior, scientifically coherent tested region merely because it has 
 exploration duplicates: three blind validation replicates follow the committed
 recommendation. Do not infer order or distance between nominal codes, and do not optimize
 an audit-only metric. Return exactly one JSON object without exposing private
+chain-of-thought. Ground the recommendation and working scientific explanation in public
+experiment indices and evidence IDs, separate empirical relationships from mechanistic
+hypotheses, and use only the declared public claim vocabulary.
+"""
+
+NONDUPLICATE_SURROGATE_PORTFOLIO_FINAL_SYNTHESIS_SYSTEM_PROMPT = """You are
+completing a fixed-world scientific optimization campaign in ChemWorld. Exploration is
+finished. Submit one final experimental method using only the public campaign evidence and
+public campaign_scaffold. Candidate portfolios were generated only from prior public
+outcomes; their surrogate predictions are aids, not ground truth. Compare terminal scores,
+signed scoring weights, and stage-resolved component measurements. Do not treat a high
+aggregate score as robust when a positively weighted component remains near its floor or a
+negatively weighted component remains near its ceiling. Prefer a tested condition supported
+by local consistency and balanced component performance; a clearly superior coherent tested
+region need not have campaign duplicates because three blind validation replicates follow
+the committed recommendation. Do not infer order or distance between nominal codes, and do
+not optimize an audit-only metric. Return exactly one JSON object without exposing private
 chain-of-thought. Ground the recommendation and working scientific explanation in public
 experiment indices and evidence IDs, separate empirical relationships from mechanistic
 hypotheses, and use only the declared public claim vocabulary.
@@ -775,16 +833,25 @@ class StaticOptimizationContextBuilder:
         )
         portfolio_scaffold = (
             self.optimization_scaffold_id
+            in SURROGATE_PORTFOLIO_OPTIMIZATION_SCAFFOLD_IDS
+        )
+        nonduplicate_portfolio_scaffold = (
+            self.optimization_scaffold_id
             == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID
+        )
+        portfolio_final_experiment_index = (
+            SURROGATE_PORTFOLIO_NONDUPLICATE_FINAL_EXPERIMENT_INDEX
+            if nonduplicate_portfolio_scaffold
+            else SURROGATE_PORTFOLIO_V17_FINAL_EXPERIMENT_INDEX
         )
         portfolio_selection_active = bool(
             portfolio_scaffold
             and COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS
             <= completed
-            <= SURROGATE_PORTFOLIO_FINAL_EXPERIMENT_INDEX
+            <= portfolio_final_experiment_index
         )
         closeout_start = (
-            SURROGATE_PORTFOLIO_FINAL_EXPERIMENT_INDEX + 1
+            portfolio_final_experiment_index + 1
             if portfolio_scaffold
             else max(total - 4, COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS)
         )
@@ -804,7 +871,10 @@ class StaticOptimizationContextBuilder:
                 "candidates; preserve basin discovery rather than making tiny sequential "
                 "changes or repeating a recipe."
             )
-        elif portfolio_scaffold and completed <= SURROGATE_PORTFOLIO_FINAL_EXPERIMENT_INDEX:
+        elif (
+            portfolio_scaffold
+            and completed <= SURROGATE_PORTFOLIO_V17_FINAL_EXPERIMENT_INDEX
+        ):
             phase = "surrogate_guided_convergence"
             requirement = (
                 "Select exactly one displayed candidate_id and return its exact recipe. "
@@ -812,6 +882,18 @@ class StaticOptimizationContextBuilder:
                 "distance from prior recipes, stage diagnostics, and unresolved competing "
                 "basins. Exact exploration duplicates remain wasteful because blind "
                 "validation follows final recommendation."
+            )
+        elif nonduplicate_portfolio_scaffold and completed <= (
+            SURROGATE_PORTFOLIO_NONDUPLICATE_FINAL_EXPERIMENT_INDEX
+        ):
+            phase = "nonduplicate_bottleneck_closeout"
+            requirement = (
+                "Select exactly one displayed candidate_id and return its exact novel "
+                "recipe. Do not replicate the incumbent: blind validation follows the "
+                "committed recommendation. Inspect signed score-component weights and "
+                "stage measurements, identify any near-floor positive component or "
+                "near-ceiling penalty in the strongest region, and use the remaining "
+                "budget to challenge that bottleneck or a credible competing basin."
             )
         elif completed < closeout_start:
             phase = "adaptive_discrimination"
@@ -859,7 +941,7 @@ class StaticOptimizationContextBuilder:
                 list(
                     range(
                         COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS,
-                        SURROGATE_PORTFOLIO_FINAL_EXPERIMENT_INDEX + 1,
+                        portfolio_final_experiment_index + 1,
                     )
                 )
                 if portfolio_scaffold
@@ -868,7 +950,7 @@ class StaticOptimizationContextBuilder:
             "free_model_closeout_experiment_indices": (
                 list(
                     range(
-                        SURROGATE_PORTFOLIO_FINAL_EXPERIMENT_INDEX + 1,
+                        portfolio_final_experiment_index + 1,
                         total,
                     )
                 )
@@ -889,6 +971,14 @@ class StaticOptimizationContextBuilder:
                 "candidate_selection_authority_remains_with_model": portfolio_scaffold,
             },
         }
+        if nonduplicate_portfolio_scaffold:
+            scaffold["invariants"].update(
+                {
+                    "campaign_exploration_recipes_must_be_distinct": True,
+                    "blind_validation_supplies_replication": True,
+                    "score_component_bottlenecks_must_be_considered": True,
+                }
+            )
         if completed < COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS:
             suggestion = self._coverage_design()[completed]
             if _uses_named_physical_controls(self.task_info):
@@ -934,6 +1024,10 @@ class StaticOptimizationContextBuilder:
                 "surrogate_predictions_are_ground_truth": False,
                 "candidate_id_required": True,
             }
+            if nonduplicate_portfolio_scaffold:
+                scaffold["candidate_portfolio_contract"][
+                    "completed_recipe_exclusion_minimum_encoded_distance"
+                ] = 0.02
         return scaffold
 
     def build(
@@ -1854,27 +1948,37 @@ class StaticOptimizationAgent:
             self.optimization_scaffold_id
             in COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_IDS
         )
-        surrogate_portfolio = (
+        surrogate_portfolio_v17 = (
+            self.optimization_scaffold_id
+            == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID
+        )
+        nonduplicate_surrogate_portfolio = (
             self.optimization_scaffold_id
             == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID
         )
         self.prompt_version = (
-            STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION
-            if surrogate_portfolio
+            STATIC_OPTIMIZATION_NONDUPLICATE_PORTFOLIO_PROMPT_VERSION
+            if nonduplicate_surrogate_portfolio
+            else STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION
+            if surrogate_portfolio_v17
             else STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION
             if coverage_adaptive
             else STATIC_OPTIMIZATION_PROMPT_VERSION
         )
         self.experiment_system_prompt = (
-            SURROGATE_PORTFOLIO_SYSTEM_PROMPT
-            if surrogate_portfolio
+            NONDUPLICATE_SURROGATE_PORTFOLIO_SYSTEM_PROMPT
+            if nonduplicate_surrogate_portfolio
+            else SURROGATE_PORTFOLIO_SYSTEM_PROMPT
+            if surrogate_portfolio_v17
             else COVERAGE_ADAPTIVE_SYSTEM_PROMPT
             if coverage_adaptive
             else SYSTEM_PROMPT
         )
         self.final_synthesis_system_prompt = (
-            SURROGATE_PORTFOLIO_FINAL_SYNTHESIS_SYSTEM_PROMPT
-            if surrogate_portfolio
+            NONDUPLICATE_SURROGATE_PORTFOLIO_FINAL_SYNTHESIS_SYSTEM_PROMPT
+            if nonduplicate_surrogate_portfolio
+            else SURROGATE_PORTFOLIO_FINAL_SYNTHESIS_SYSTEM_PROMPT
+            if surrogate_portfolio_v17
             else COVERAGE_ADAPTIVE_FINAL_SYNTHESIS_SYSTEM_PROMPT
             if coverage_adaptive
             else FINAL_SYNTHESIS_SYSTEM_PROMPT
@@ -2577,6 +2681,7 @@ __all__ = [
     "COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID",
     "COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_IDS",
     "COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID",
+    "COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID",
     "COVERAGE_ADAPTIVE_SYSTEM_PROMPT",
     "DECLARED_CLAIM_VALIDATION_STRICT",
     "DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN",
@@ -2589,6 +2694,7 @@ __all__ = [
     "STATIC_FINAL_SYNTHESIS_VERSION",
     "STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION",
     "STATIC_OPTIMIZATION_INTERFACE_VERSION",
+    "STATIC_OPTIMIZATION_NONDUPLICATE_PORTFOLIO_PROMPT_VERSION",
     "STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION",
     "STATIC_OPTIMIZATION_PROMPT_VERSION",
     "STATIC_PREDICTIVE_SYNTHESIS_VERSION",

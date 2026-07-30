@@ -27,6 +27,9 @@ STRENGTHENED_PLAN_PATH = (
 PORTFOLIO_PLAN_PATH = (
     ROOT / "configs/benchmark/static_s0_five_task_single_seed_qualification_v0.3_dev.json"
 )
+NONDUPLICATE_PORTFOLIO_PLAN_PATH = (
+    ROOT / "configs/benchmark/static_s0_five_task_single_seed_qualification_v0.4_dev.json"
+)
 EXPECTED_TASK_IDS = [
     "electrochemical-conversion",
     "reaction-to-crystallization",
@@ -172,6 +175,54 @@ def test_mock_provider_cannot_satisfy_frozen_participant_provider_gate() -> None
         plan,
         {"provider_mode": "mock"},
     )
+
+
+def test_nonduplicate_portfolio_qualification_keeps_all_model_rounds_bound() -> None:
+    plan = _load_object(NONDUPLICATE_PORTFOLIO_PLAN_PATH)
+
+    assert plan["task_ids"] == EXPECTED_TASK_IDS
+    assert plan["seed_policy"]["world_seeds"] == [0]
+    assert plan["seed_policy"]["multi_seed_execution_allowed"] is False
+    assert plan["observation_noise_namespace_base"] == (
+        "static-s0-five-task-single-seed-qualification-v0.2-2026-07-30"
+    )
+    assert plan["participant"] == {
+        "provider": "codex_subscription",
+        "method_config_path": (
+            "configs/methods/llm_v1.8/"
+            "participant_methods_s0_codex_subscription_sol_five_task_seed0_v18.json"
+        ),
+        "method_id": (
+            "s0_codex_subscription_sol_medium_five_task_shared_seed0_v18"
+        ),
+        "shared_task_neutral_scaffold": True,
+        "task_specific_hidden_guidance": False,
+    }
+    gates = plan["qualification_gates"]
+    assert (
+        gates[
+            "participant_experiments_9_through_20_selected_by_model_from_public_history_portfolio"
+        ]
+        is True
+    )
+    assert gates["participant_all_twenty_exploration_recipes_distinct"] is True
+    assert gates["participant_remaining_twelve_recipes_selected_by_model"] is True
+    assert gates["participant_candidate_generation_uses_no_hidden_world_fields"] is True
+    assert gates["participant_provider_matches_frozen_provider"] is True
+    assert "Blind validation, not campaign duplication" in plan["claim_boundary"]
+    assert "model selects every recipe after experiment eight" in plan["claim_boundary"]
+
+    for task_id in EXPECTED_TASK_IDS:
+        baseline_protocol = _task_protocol(plan, task_id)
+        participant_protocol = _participant_protocol(plan, task_id)
+        validate_static_optimization_protocol(baseline_protocol)
+        validate_static_optimization_protocol(participant_protocol)
+        assert "qualification-0.4-s0-dev" in participant_protocol["schema_version"]
+        assert participant_protocol["world_policy"]["world_seed"] == 0
+        assert participant_protocol["observation_noise_namespace"] == (
+            "static-s0-five-task-single-seed-qualification-v0.2-2026-07-30"
+            f"--{task_id}"
+        )
 
 
 def test_strengthened_baseline_gate_distinguishes_adaptive_readiness_from_controls() -> None:

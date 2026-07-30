@@ -30,9 +30,11 @@ from chemworld.agents.scientific_adaptation import ScientificPlanValidationError
 from chemworld.agents.static_optimization import (
     COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
     COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID,
+    COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID,
     DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN,
     STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION,
     STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION,
+    STATIC_OPTIMIZATION_NONDUPLICATE_PORTFOLIO_PROMPT_VERSION,
     STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION,
     StaticFinalRecommendationValidator,
     StaticOptimizationAgent,
@@ -370,7 +372,7 @@ def test_coverage_adaptive_scaffold_balances_first_eight_flow_designs() -> None:
     )
     assert audit["all_nominal_pairs_maximally_distinct"] is True
     assert agent.manifest()["prompt_version"] == (
-        STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION
+        STATIC_OPTIMIZATION_NONDUPLICATE_PORTFOLIO_PROMPT_VERSION
     )
     adaptive_plan = agent.plan_next(history)
     adaptive_audit = agent.decision_audit()
@@ -512,6 +514,94 @@ def test_v16_coverage_scaffold_remains_replay_compatible() -> None:
     assert scaffold["phase"] == "adaptive_discrimination"
     assert "model_candidate_portfolio" not in scaffold
     assert agent.manifest()["prompt_version"] == STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION
+
+
+def test_v17_portfolio_scaffold_remains_replay_compatible() -> None:
+    agent = StaticOptimizationAgent(
+        _DeterministicStaticMockClient(),
+        role_id="v17-scaffold-compatibility-test",
+        response_max_tokens=1000,
+        history_limit=20,
+        prompt_token_estimate_cap=20_000,
+        experiment_horizon=20,
+        horizon_visible=True,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID,
+    )
+    agent.reset(get_task("flow-reaction-optimization").to_dict(), 0)
+    history = [
+        {
+            "experiment_index": experiment_index,
+            "plan": {
+                "search_vector": [float(experiment_index % 2)] * 8,
+                "requested_measurement_slots": [],
+            },
+            "measurement_evidence": [],
+            "terminal_summary": {
+                "leaderboard_score": float(experiment_index) / 100.0,
+                "cost": 0.0,
+                "safety_risk": 0.0,
+            },
+        }
+        for experiment_index in range(17)
+    ]
+
+    scaffold = agent.public_context(history)["campaign_scaffold"]
+
+    assert scaffold["scaffold_id"] == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID
+    assert scaffold["phase"] == "robust_closeout"
+    assert "model_candidate_portfolio" not in scaffold
+    assert scaffold["free_model_closeout_experiment_indices"] == [17, 18, 19]
+    assert agent.manifest()["prompt_version"] == (
+        STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION
+    )
+
+
+def test_v18_portfolio_keeps_all_twelve_model_rounds_novel_and_portfolio_bound() -> None:
+    agent = StaticOptimizationAgent(
+        _DeterministicStaticMockClient(),
+        role_id="v18-scaffold-nonduplicate-test",
+        response_max_tokens=1000,
+        history_limit=20,
+        prompt_token_estimate_cap=20_000,
+        experiment_horizon=20,
+        horizon_visible=True,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+    )
+    agent.reset(get_task("flow-reaction-optimization").to_dict(), 0)
+    history = [
+        {
+            "experiment_index": experiment_index,
+            "plan": {
+                "search_vector": [
+                    ((experiment_index + coordinate) % 19) / 18.0
+                    for coordinate in range(8)
+                ],
+                "requested_measurement_slots": [],
+            },
+            "measurement_evidence": [],
+            "terminal_summary": {
+                "leaderboard_score": float(experiment_index) / 100.0,
+                "cost": 0.0,
+                "safety_risk": 0.0,
+            },
+        }
+        for experiment_index in range(17)
+    ]
+
+    scaffold = agent.public_context(history)["campaign_scaffold"]
+
+    assert scaffold["phase"] == "nonduplicate_bottleneck_closeout"
+    assert len(scaffold["model_candidate_portfolio"]) == 6
+    assert scaffold["portfolio_candidate_selection_experiment_indices"] == list(
+        range(8, 20)
+    )
+    assert scaffold["free_model_closeout_experiment_indices"] == []
+    assert scaffold["invariants"]["campaign_exploration_recipes_must_be_distinct"]
+    assert scaffold["invariants"]["blind_validation_supplies_replication"]
+    history_vectors = [record["plan"]["search_vector"] for record in history]
+    for candidate in scaffold["model_candidate_portfolio"]:
+        vector = candidate["search_vector"]
+        assert all(vector != previous for previous in history_vectors)
 
 
 def test_distillation_compiler_requires_stage_local_hplc_and_fraction_gc() -> None:
