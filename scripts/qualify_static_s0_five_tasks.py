@@ -479,6 +479,13 @@ def _run_task(
     }
 
 
+def _participant_provider_matches(
+    plan: Mapping[str, Any],
+    report: Mapping[str, Any],
+) -> bool:
+    return str(report.get("provider_mode")) == str(plan["participant"]["provider"])
+
+
 def _participant_task_report(
     *,
     plan: Mapping[str, Any],
@@ -551,6 +558,10 @@ def _participant_task_report(
     )
     task = get_task(task_id)
     checks = {
+        "provider_matches_frozen_participant": _participant_provider_matches(
+            plan,
+            report,
+        ),
         "single_seed_only": int(cell["cell"]["world_seed"]) == 0,
         "twenty_completed_experiments": int(cell["completed_experiment_count"]) == 20,
         "three_validation_replicates_per_target": all(

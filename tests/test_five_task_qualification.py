@@ -6,6 +6,7 @@ import pytest
 from scripts.qualify_static_s0_five_tasks import (
     _load_object,
     _participant_protocol,
+    _participant_provider_matches,
     _recipe_design_checks,
     _strengthened_baseline_readiness,
     _task_protocol,
@@ -142,6 +143,7 @@ def test_portfolio_qualification_keeps_model_authority_and_hidden_world_boundary
     )
     assert gates["participant_experiments_18_through_20_freely_selected_by_model"] is True
     assert gates["participant_candidate_generation_uses_no_hidden_world_fields"] is True
+    assert gates["participant_provider_matches_frozen_provider"] is True
     assert gates["participant_remaining_twelve_recipes_selected_by_model"] is True
     assert "does not use hidden world fields" in plan["claim_boundary"]
     assert "model selects every recipe after experiment eight" in plan["claim_boundary"]
@@ -157,6 +159,19 @@ def test_portfolio_qualification_keeps_model_authority_and_hidden_world_boundary
             "static-s0-five-task-single-seed-qualification-v0.2-2026-07-30"
             f"--{task_id}"
         )
+
+
+def test_mock_provider_cannot_satisfy_frozen_participant_provider_gate() -> None:
+    plan = _load_object(PORTFOLIO_PLAN_PATH)
+
+    assert _participant_provider_matches(
+        plan,
+        {"provider_mode": "codex_subscription"},
+    )
+    assert not _participant_provider_matches(
+        plan,
+        {"provider_mode": "mock"},
+    )
 
 
 def test_strengthened_baseline_gate_distinguishes_adaptive_readiness_from_controls() -> None:
