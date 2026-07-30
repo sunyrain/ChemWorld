@@ -248,7 +248,28 @@ class _DeterministicStaticMockClient:
         named_controls = (
             context["experiment_interface"].get("parameterization") == "named_physical_controls"
         )
-        if named_controls:
+        campaign_scaffold = context.get("campaign_scaffold", {})
+        candidate_portfolio = campaign_scaffold.get("model_candidate_portfolio", [])
+        selected_candidate = (
+            candidate_portfolio[0]
+            if isinstance(candidate_portfolio, list) and candidate_portfolio
+            else None
+        )
+        if isinstance(selected_candidate, dict):
+            recipe_selection = (
+                {
+                    "candidate_id": str(selected_candidate["candidate_id"]),
+                    "recipe_parameters": dict(
+                        selected_candidate["recipe_parameters"]
+                    ),
+                }
+                if named_controls
+                else {
+                    "candidate_id": str(selected_candidate["candidate_id"]),
+                    "search_vector": list(selected_candidate["search_vector"]),
+                }
+            )
+        elif named_controls:
             parameter_schema = context["experiment_interface"]["recipe_parameter_schema"]
             recipe_parameters = (
                 {

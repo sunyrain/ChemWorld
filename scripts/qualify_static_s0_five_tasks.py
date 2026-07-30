@@ -152,9 +152,14 @@ def _participant_protocol(plan: Mapping[str, Any], task_id: str) -> dict[str, An
     if not isinstance(plan.get("participant"), Mapping):
         raise ValueError("strengthened qualification lacks a participant binding")
     protocol = _task_protocol(plan, task_id)
+    qualification_version = (
+        "0.3"
+        if str(plan.get("schema_version", "")).endswith("0.3-dev")
+        else "0.2"
+    )
     protocol["schema_version"] = (
         "chemworld-static-scientific-optimization-protocol-five-task-"
-        "qualification-0.2-s0-dev"
+        f"qualification-{qualification_version}-s0-dev"
     )
     protocol["protocol_id"] = f"{plan['qualification_id']}--participant--{task_id}"
     protocol["freeze_id"] = f"{plan['qualification_id']}--participant--{task_id}--seed0"
@@ -590,6 +595,34 @@ def _participant_task_report(
             == "unscored_unknown_terms"
         ),
     }
+    if (
+        "participant_experiments_9_through_17_selected_by_model_from_public_history_portfolio"
+        in plan["qualification_gates"]
+    ):
+        checks.update(
+            {
+                "experiments_9_through_17_selected_by_model_from_public_history_portfolio": all(
+                    audit.get("coverage_design_enforced") is False
+                    and audit.get("recipe_selection_authority") == "model"
+                    and audit.get("portfolio_selection_enforced") is True
+                    and isinstance(audit.get("portfolio_candidate_id"), str)
+                    and audit.get("portfolio_candidate_generation_authority")
+                    == "protocol_executor_using_public_history_only"
+                    and audit.get("portfolio_candidate_selection_authority") == "model"
+                    for audit in decision_audits[8:17]
+                ),
+                "experiments_18_through_20_freely_selected_by_model": all(
+                    audit.get("coverage_design_enforced") is False
+                    and audit.get("recipe_selection_authority") == "model"
+                    and audit.get("portfolio_selection_enforced") is False
+                    for audit in decision_audits[17:20]
+                ),
+                "candidate_generation_uses_no_hidden_world_fields": all(
+                    audit.get("portfolio_hidden_world_fields_used") is False
+                    for audit in decision_audits[8:17]
+                ),
+            }
+        )
     return {
         "method_id": method_id,
         "provider": str(report["provider_mode"]),
@@ -676,7 +709,7 @@ def main() -> int:
         type=Path,
         help=(
             "Root containing one externally executed participant report per task; "
-            "required before a v0.2 plan can release multi-seed execution."
+            "required before a strengthened plan can release multi-seed execution."
         ),
     )
     parser.add_argument(
@@ -692,7 +725,8 @@ def main() -> int:
     protocols = {task_id: _task_protocol(plan, task_id) for task_id in task_ids}
     for protocol in protocols.values():
         validate_static_optimization_protocol(protocol)
-    strengthened = str(plan.get("schema_version", "")).endswith("0.2-dev")
+    plan_schema_version = str(plan.get("schema_version", ""))
+    strengthened = plan_schema_version.endswith(("0.2-dev", "0.3-dev"))
     participant_protocols = (
         {task_id: _participant_protocol(plan, task_id) for task_id in task_ids}
         if strengthened
@@ -791,7 +825,9 @@ def main() -> int:
             )
     report = {
         "schema_version": (
-            "chemworld-static-s0-five-task-qualification-report-0.2-dev"
+            "chemworld-static-s0-five-task-qualification-report-0.3-dev"
+            if plan_schema_version.endswith("0.3-dev")
+            else "chemworld-static-s0-five-task-qualification-report-0.2-dev"
             if strengthened
             else "chemworld-static-s0-five-task-qualification-report-0.1-dev"
         ),

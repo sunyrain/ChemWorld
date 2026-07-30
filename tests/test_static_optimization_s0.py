@@ -26,11 +26,14 @@ from chemworld.agents.electrochemical_single_stage import (
     electrochemical_single_stage_parameters_from_unit_vector,
     electrochemical_single_stage_unit_vector_from_parameters,
 )
+from chemworld.agents.scientific_adaptation import ScientificPlanValidationError
 from chemworld.agents.static_optimization import (
     COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+    COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID,
     DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN,
     STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION,
     STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION,
+    STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION,
     StaticFinalRecommendationValidator,
     StaticOptimizationAgent,
     StaticOptimizationPlan,
@@ -338,7 +341,18 @@ def test_coverage_adaptive_scaffold_balances_first_eight_flow_designs() -> None:
         )
 
     adaptive = agent.public_context(history)["campaign_scaffold"]
-    assert adaptive["phase"] == "adaptive_discrimination"
+    assert adaptive["phase"] == "global_surrogate_discrimination"
+    assert len(adaptive["model_candidate_portfolio"]) == 6
+    assert {
+        item["candidate_id"] for item in adaptive["model_candidate_portfolio"]
+    } == {
+        "gp_ei",
+        "rf_ei",
+        "surrogate_consensus",
+        "maximin_global",
+        "boundary_challenge",
+        "gp_uncertainty",
+    }
     audit = adaptive["coverage_audit"]
     assert audit["all_continuous_extremes_seen"] is True
     assert audit["all_nominal_categories_seen"] is True
@@ -356,12 +370,21 @@ def test_coverage_adaptive_scaffold_balances_first_eight_flow_designs() -> None:
     )
     assert audit["all_nominal_pairs_maximally_distinct"] is True
     assert agent.manifest()["prompt_version"] == (
-        STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION
+        STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION
     )
     adaptive_plan = agent.plan_next(history)
     adaptive_audit = agent.decision_audit()
     assert adaptive_audit["coverage_design_enforced"] is False
     assert adaptive_audit["recipe_selection_authority"] == "model"
+    assert adaptive_audit["portfolio_selection_enforced"] is True
+    assert adaptive["task_neutral_default_candidate_id"] == "maximin_global"
+    assert adaptive["model_candidate_portfolio"][0]["candidate_id"] == "maximin_global"
+    assert adaptive_audit["portfolio_candidate_id"] == "maximin_global"
+    assert (
+        adaptive_audit["portfolio_candidate_generation_authority"]
+        == "protocol_executor_using_public_history_only"
+    )
+    assert adaptive_audit["portfolio_candidate_selection_authority"] == "model"
     assert list(adaptive_plan.search_vector) != pytest.approx(vector)
 
 
@@ -398,6 +421,97 @@ def test_coverage_scaffold_keeps_named_controls_physical() -> None:
         scaffold["executor_committed_recipe_parameters"]
     )
     assert coverage.decision_audit()["coverage_design_enforced"] is True
+
+
+def test_portfolio_candidate_id_must_match_the_returned_recipe() -> None:
+    class MismatchedPortfolioMock(_DeterministicStaticMockClient):
+        def complete_json(
+            self,
+            *,
+            system_prompt: str,
+            user_prompt: str,
+            max_tokens: int = 4096,
+        ):
+            completion = super().complete_json(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                max_tokens=max_tokens,
+            )
+            prompt = json.loads(user_prompt)
+            scaffold = prompt.get("public_experiment_context", {}).get(
+                "campaign_scaffold", {}
+            )
+            if scaffold.get("model_candidate_portfolio"):
+                completion.payload["search_vector"] = [0.5] * 8
+            return completion
+
+    agent = StaticOptimizationAgent(
+        MismatchedPortfolioMock(),
+        role_id="portfolio-recipe-binding-test",
+        response_max_tokens=1000,
+        history_limit=20,
+        prompt_token_estimate_cap=20_000,
+        experiment_horizon=20,
+        horizon_visible=True,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+    )
+    agent.reset(get_task("flow-reaction-optimization").to_dict(), 0)
+    history: list[dict[str, object]] = []
+    for experiment_index in range(8):
+        plan = agent.plan_next(history)
+        history.append(
+            {
+                "experiment_index": experiment_index,
+                "plan": plan.to_dict(),
+                "measurement_evidence": [],
+                "terminal_summary": {
+                    "leaderboard_score": float(experiment_index) / 100.0,
+                    "cost": 0.0,
+                    "safety_risk": 0.0,
+                },
+            }
+        )
+
+    with pytest.raises(
+        ScientificPlanValidationError,
+        match="does not match the selected portfolio candidate",
+    ):
+        agent.plan_next(history)
+
+
+def test_v16_coverage_scaffold_remains_replay_compatible() -> None:
+    agent = StaticOptimizationAgent(
+        _DeterministicStaticMockClient(),
+        role_id="v16-scaffold-compatibility-test",
+        response_max_tokens=1000,
+        history_limit=20,
+        prompt_token_estimate_cap=20_000,
+        experiment_horizon=20,
+        horizon_visible=True,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID,
+    )
+    agent.reset(get_task("flow-reaction-optimization").to_dict(), 0)
+    history: list[dict[str, object]] = []
+    for experiment_index in range(8):
+        plan = agent.plan_next(history)
+        history.append(
+            {
+                "experiment_index": experiment_index,
+                "plan": plan.to_dict(),
+                "measurement_evidence": [],
+                "terminal_summary": {
+                    "leaderboard_score": float(experiment_index) / 100.0,
+                    "cost": 0.0,
+                    "safety_risk": 0.0,
+                },
+            }
+        )
+
+    scaffold = agent.public_context(history)["campaign_scaffold"]
+    assert scaffold["scaffold_id"] == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID
+    assert scaffold["phase"] == "adaptive_discrimination"
+    assert "model_candidate_portfolio" not in scaffold
+    assert agent.manifest()["prompt_version"] == STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION
 
 
 def test_distillation_compiler_requires_stage_local_hplc_and_fraction_gc() -> None:

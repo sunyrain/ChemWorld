@@ -23,6 +23,9 @@ PLAN_PATH = ROOT / "configs/benchmark/static_s0_five_task_single_seed_qualificat
 STRENGTHENED_PLAN_PATH = (
     ROOT / "configs/benchmark/static_s0_five_task_single_seed_qualification_v0.2_dev.json"
 )
+PORTFOLIO_PLAN_PATH = (
+    ROOT / "configs/benchmark/static_s0_five_task_single_seed_qualification_v0.3_dev.json"
+)
 EXPECTED_TASK_IDS = [
     "electrochemical-conversion",
     "reaction-to-crystallization",
@@ -107,6 +110,46 @@ def test_strengthened_qualification_adds_shared_participant_gates_without_more_s
             participant_protocol["reward_contract"]["final_selection"]
             == "committed_model_final_recommendation"
         )
+
+
+def test_portfolio_qualification_keeps_model_authority_and_hidden_world_boundary() -> None:
+    plan = _load_object(PORTFOLIO_PLAN_PATH)
+
+    assert plan["task_ids"] == EXPECTED_TASK_IDS
+    assert plan["seed_policy"]["world_seeds"] == [0]
+    assert plan["seed_policy"]["multi_seed_execution_allowed"] is False
+    assert plan["participant"] == {
+        "provider": "codex_subscription",
+        "method_config_path": (
+            "configs/methods/llm_v1.7/"
+            "participant_methods_s0_codex_subscription_sol_five_task_seed0_v17.json"
+        ),
+        "method_id": (
+            "s0_codex_subscription_sol_medium_five_task_shared_seed0_v17"
+        ),
+        "shared_task_neutral_scaffold": True,
+        "task_specific_hidden_guidance": False,
+    }
+    gates = plan["qualification_gates"]
+    assert (
+        gates[
+            "participant_experiments_9_through_17_selected_by_model_from_public_history_portfolio"
+        ]
+        is True
+    )
+    assert gates["participant_experiments_18_through_20_freely_selected_by_model"] is True
+    assert gates["participant_candidate_generation_uses_no_hidden_world_fields"] is True
+    assert gates["participant_remaining_twelve_recipes_selected_by_model"] is True
+    assert "does not use hidden world fields" in plan["claim_boundary"]
+    assert "model selects every recipe after experiment eight" in plan["claim_boundary"]
+
+    for task_id in EXPECTED_TASK_IDS:
+        baseline_protocol = _task_protocol(plan, task_id)
+        participant_protocol = _participant_protocol(plan, task_id)
+        validate_static_optimization_protocol(baseline_protocol)
+        validate_static_optimization_protocol(participant_protocol)
+        assert "qualification-0.3-s0-dev" in participant_protocol["schema_version"]
+        assert participant_protocol["world_policy"]["world_seed"] == 0
 
 
 def test_strengthened_baseline_gate_distinguishes_adaptive_readiness_from_controls() -> None:
