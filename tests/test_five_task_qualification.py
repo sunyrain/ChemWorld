@@ -118,6 +118,9 @@ def test_portfolio_qualification_keeps_model_authority_and_hidden_world_boundary
     assert plan["task_ids"] == EXPECTED_TASK_IDS
     assert plan["seed_policy"]["world_seeds"] == [0]
     assert plan["seed_policy"]["multi_seed_execution_allowed"] is False
+    assert plan["observation_noise_namespace_base"] == (
+        "static-s0-five-task-single-seed-qualification-v0.2-2026-07-30"
+    )
     assert plan["participant"] == {
         "provider": "codex_subscription",
         "method_config_path": (
@@ -150,6 +153,10 @@ def test_portfolio_qualification_keeps_model_authority_and_hidden_world_boundary
         validate_static_optimization_protocol(participant_protocol)
         assert "qualification-0.3-s0-dev" in participant_protocol["schema_version"]
         assert participant_protocol["world_policy"]["world_seed"] == 0
+        assert participant_protocol["observation_noise_namespace"] == (
+            "static-s0-five-task-single-seed-qualification-v0.2-2026-07-30"
+            f"--{task_id}"
+        )
 
 
 def test_strengthened_baseline_gate_distinguishes_adaptive_readiness_from_controls() -> None:

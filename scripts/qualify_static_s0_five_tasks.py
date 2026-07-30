@@ -67,6 +67,11 @@ def _task_protocol(plan: Mapping[str, Any], task_id: str) -> dict[str, Any]:
         "hidden_world_fields_in_public_context": False,
     }
     material_family = task_plan.get("material_family_id")
+    observation_noise_namespace_base = str(
+        plan.get("observation_noise_namespace_base", plan["qualification_id"])
+    )
+    if not observation_noise_namespace_base.strip():
+        raise ValueError("observation_noise_namespace_base must be non-empty")
     if task_id == "electrochemical-conversion":
         world_policy["electrochemical_material_family_id"] = material_family
     elif task_id == "reaction-to-crystallization":
@@ -144,7 +149,9 @@ def _task_protocol(plan: Mapping[str, Any], task_id: str) -> dict[str, Any]:
         },
         "algorithm_seeds": list(seed_policy["algorithm_seeds"]),
         "algorithms": copy.deepcopy(plan["algorithms"]),
-        "observation_noise_namespace": (f"{plan['qualification_id']}--{task_id}"),
+        "observation_noise_namespace": (
+            f"{observation_noise_namespace_base}--{task_id}"
+        ),
     }
 
 
