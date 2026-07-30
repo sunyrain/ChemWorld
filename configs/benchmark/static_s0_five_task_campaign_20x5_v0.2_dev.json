@@ -1,0 +1,115 @@
+{
+  "schema_version": "chemworld-static-s0-five-task-campaign-plan-0.2-dev",
+  "campaign_id": "static-s0-five-task-hybrid-v19-development-plus-heldout-20x5-v0.2-2026-07-30",
+  "status": "postqualification_multiseed_development_pending_execution",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "qualification_plan_path": "configs/benchmark/static_s0_five_task_single_seed_qualification_v0.5_dev.json",
+  "qualification_plan_sha256": "101bd386f8e16981c4d5c8f7ba01f29fe0ccf58666588a745b90481c6781fc9f",
+  "qualification_report_default_path": "runs/dev/v05-clean-fda65ecc/qualification_report.json",
+  "qualification_artifact_root": "runs/dev/v05-clean-fda65ecc",
+  "qualification_source_compatibility": {
+    "qualified_source_commit": "fda65eccbce5decb2b5b4ffcf1a772b8c6c3002b",
+    "allowed_changed_paths": [
+      "configs/benchmark/static_s0_five_task_campaign_20x5_v0.2_dev.json",
+      "scripts/run_static_s0_five_task_campaign.py",
+      "tests/test_five_task_campaign.py"
+    ]
+  },
+  "observation_noise_namespace_base": "static-s0-five-task-single-seed-qualification-v0.2-2026-07-30",
+  "task_ids": [
+    "electrochemical-conversion",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "partition-discovery",
+    "flow-reaction-optimization"
+  ],
+  "world_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "development_world_seed": 0,
+  "held_out_world_seeds": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "execution_world_seeds": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "algorithm_seeds": [
+    0
+  ],
+  "campaign": {
+    "exploration_experiments": 20,
+    "incumbent_validation_replicates": 3,
+    "recommendation_validation_replicates": 3,
+    "horizon_visible": true
+  },
+  "baseline_algorithm_ids": [
+    "random",
+    "lhs",
+    "greedy",
+    "structured_gp_ei",
+    "structured_rf_ei"
+  ],
+  "participant": {
+    "provider": "codex_subscription",
+    "method_config_path": "configs/methods/llm_v1.9/participant_methods_s0_codex_subscription_sol_five_task_seed0_v19.json",
+    "method_id": "s0_codex_subscription_sol_medium_five_task_shared_seed0_v19",
+    "shared_method_across_all_tasks": true,
+    "final_synthesis_calls_per_world": 1,
+    "recipe_selection_authority": "protocol_executor_task_neutral_schedule",
+    "model_authority": "diagnostic_selection_scientific_interpretation_and_final_recommendation"
+  },
+  "planned_accounting": {
+    "imported_qualification_seed0_participant_cells": 5,
+    "new_held_out_participant_world_cells": 20,
+    "new_held_out_participant_provider_calls": 420,
+    "new_held_out_participant_exploration_experiments": 400,
+    "new_held_out_participant_blind_validation_experiments": 120,
+    "imported_qualification_seed0_baseline_cells": 25,
+    "new_held_out_baseline_cells": 100,
+    "new_held_out_baseline_exploration_experiments": 2000,
+    "new_held_out_baseline_blind_validation_experiments": 600,
+    "five_world_evidence_participant_cells": 25,
+    "five_world_evidence_baseline_cells": 125,
+    "five_world_evidence_total_physical_experiments": 3900
+  },
+  "execution_contract": {
+    "clean_source_tree_required": true,
+    "qualification_report_must_be_clean_and_match_qualified_source_commit": true,
+    "qualification_to_campaign_source_delta_must_match_exact_path_allowlist": true,
+    "import_qualified_development_seed0": true,
+    "execute_only_held_out_world_seeds": true,
+    "exact_exploration_replay_required": true,
+    "exact_validation_replay_required": true,
+    "participant_postrun_audit_required": true,
+    "resume_only_exact_matching_completed_cells": true
+  },
+  "reporting_boundaries": {
+    "primary_development_endpoint": "blind_validated_final_recommendation_score_mean",
+    "development_world_seed": 0,
+    "held_out_world_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "held_out_world_mean_reported_separately": true,
+    "five_world_pooled_mean_is_descriptive_only": true,
+    "paired_world_suite": true,
+    "sampled_world_scope_only": true,
+    "provider_causal_effect_claim_allowed": false,
+    "broad_generalization_claim_allowed": false,
+    "formal_publication_result": false
+  },
+  "claim_boundary": "This development campaign imports the already qualified world seed 0 as the method-development world and executes world seeds 1 through 4 as the held-out sampled-world suite. The four-world held-out mean is reported separately from the five-world descriptive mean. The protocol executor, not the language model, commits all exploration recipes; Codex supplies per-experiment scientific interpretation and the final recommendation. The campaign measures this hybrid system on the fixed sampled worlds. It is not a formal publication freeze, language-model recipe-selection evidence, a provider causal estimate, or evidence of broad chemical generalization."
+}

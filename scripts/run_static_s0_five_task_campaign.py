@@ -8,8 +8,10 @@ import json
 import statistics
 import subprocess
 import sys
+import threading
 from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -30,13 +32,16 @@ from chemworld.eval.static_optimization_protocol import (
 from chemworld.tasks import get_task
 
 try:
-    from scripts.qualify_static_s0_five_tasks import _task_protocol
+    from scripts.qualify_static_s0_five_tasks import (
+        _participant_protocol,
+        _task_protocol,
+    )
 except ModuleNotFoundError:
-    from qualify_static_s0_five_tasks import _task_protocol
+    from qualify_static_s0_five_tasks import _participant_protocol, _task_protocol
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_PLAN = ROOT / "configs/benchmark/static_s0_five_task_campaign_20x5_v0.1_dev.json"
-DEFAULT_OUTPUT = ROOT / "runs/dev/static-s0-five-task-campaign-20x5-v0.1"
+DEFAULT_PLAN = ROOT / "configs/benchmark/static_s0_five_task_campaign_20x5_v0.2_dev.json"
+DEFAULT_OUTPUT = ROOT / "runs/dev/static-s0-five-task-campaign-20x5-v0.2"
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -117,7 +122,10 @@ def _full_protocol(
         protocol["reward_contract"]["final_selection"] = "best_observed_completed_experiment"
     else:
         raise ValueError(f"unsupported campaign kind: {kind}")
-    protocol["observation_noise_namespace"] = f"{plan['campaign_id']}--{task_id}"
+    noise_namespace_base = str(
+        plan.get("observation_noise_namespace_base", plan["campaign_id"])
+    )
+    protocol["observation_noise_namespace"] = f"{noise_namespace_base}--{task_id}"
     validate_static_optimization_protocol(protocol)
     return protocol
 
@@ -129,6 +137,17 @@ def _validate_plan(
         raise ValueError("five-task campaign is not an executable frozen candidate")
     if plan.get("world_seeds") != [0, 1, 2, 3, 4]:
         raise ValueError("five-task campaign world seeds must be exactly 0 through 4")
+    if plan.get("development_world_seed") != 0:
+        raise ValueError("five-task campaign development world seed must be 0")
+    if plan.get("held_out_world_seeds") != [1, 2, 3, 4]:
+        raise ValueError("five-task campaign held-out world seeds must be exactly 1 through 4")
+    if plan.get("execution_world_seeds") != [1, 2, 3, 4]:
+        raise ValueError("five-task campaign must execute only held-out world seeds 1 through 4")
+    if (
+        plan.get("execution_contract", {}).get("import_qualified_development_seed0")
+        is not True
+    ):
+        raise ValueError("five-task campaign must import the qualified development seed 0")
     if plan.get("algorithm_seeds") != [0]:
         raise ValueError("five-task campaign must use the paired algorithm seed 0")
     task_ids = list(plan["task_ids"])
@@ -171,13 +190,71 @@ def _verify_qualification(
         raise RuntimeError("single-seed qualification did not release multi-seed execution")
     if report.get("source_tree_dirty") is not False:
         raise RuntimeError("qualification report is not bound to a clean source tree")
-    if report.get("source_commit") != source_commit:
-        raise RuntimeError("qualification report source commit differs from campaign source")
+    qualified_source_commit = str(report.get("source_commit", ""))
+    source_compatibility: dict[str, Any] = {
+        "mode": "exact_source_commit",
+        "qualified_source_commit": qualified_source_commit,
+        "campaign_source_commit": source_commit,
+        "changed_paths": [],
+    }
+    if qualified_source_commit != source_commit:
+        compatibility = plan.get("qualification_source_compatibility")
+        if not isinstance(compatibility, Mapping):
+            raise RuntimeError("qualification report source commit differs from campaign source")
+        if compatibility.get("qualified_source_commit") != qualified_source_commit:
+            raise RuntimeError("qualification source-compatibility commit mismatch")
+        ancestor = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", qualified_source_commit, source_commit],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if ancestor.returncode != 0:
+            raise RuntimeError("qualification source is not an ancestor of campaign source")
+        changed = subprocess.run(
+            [
+                "git",
+                "diff",
+                "--name-only",
+                f"{qualified_source_commit}..{source_commit}",
+                "--",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        changed_paths = sorted(
+            line.strip().replace("\\", "/")
+            for line in changed.stdout.splitlines()
+            if line.strip()
+        )
+        allowed_paths = sorted(
+            str(path).replace("\\", "/")
+            for path in compatibility.get("allowed_changed_paths", [])
+        )
+        disallowed = sorted(set(changed_paths) - set(allowed_paths))
+        if disallowed:
+            raise RuntimeError(
+                "qualification-sensitive source changed after seed-0 release: "
+                + ", ".join(disallowed)
+            )
+        source_compatibility = {
+            "mode": "ancestor_with_exact_changed_path_allowlist",
+            "qualified_source_commit": qualified_source_commit,
+            "campaign_source_commit": source_commit,
+            "changed_paths": changed_paths,
+            "allowed_changed_paths": allowed_paths,
+            "no_disallowed_paths_changed": True,
+        }
     if report.get("qualification_plan_sha256") != plan["qualification_plan_sha256"]:
         raise RuntimeError("qualification report plan hash mismatch")
     if report.get("task_ids") != plan["task_ids"]:
         raise RuntimeError("qualification report task scope mismatch")
-    return report
+    verified = copy.deepcopy(report)
+    verified["_campaign_source_compatibility"] = source_compatibility
+    return verified
 
 
 def _summary(values: list[float]) -> dict[str, float | int | None]:
@@ -188,6 +265,10 @@ def _summary(values: list[float]) -> dict[str, float | int | None]:
         "minimum": min(values) if values else None,
         "maximum": max(values) if values else None,
     }
+
+
+def _utc_now() -> str:
+    return datetime.now(UTC).isoformat()
 
 
 def _run_logged(command: list[str], output: Path, log_name: str) -> None:
@@ -381,6 +462,144 @@ def _run_participant_cell(
     }
 
 
+def _qualified_development_seed0_results(
+    plan: Mapping[str, Any],
+    *,
+    qualification_plan: Mapping[str, Any],
+    qualification_report: Mapping[str, Any],
+    selection: str,
+) -> list[dict[str, Any]]:
+    artifact_root = _repo_path(plan["qualification_artifact_root"])
+    results: list[dict[str, Any]] = []
+    for task_id in plan["task_ids"]:
+        task_report = qualification_report["tasks"][task_id]
+        if task_report.get("qualified") is not True:
+            raise RuntimeError(f"qualification seed 0 is not qualified for {task_id}")
+        if selection in {"baselines", "all"}:
+            protocol = _task_protocol(qualification_plan, task_id)
+            if canonical_json_sha256(protocol) != task_report["protocol_sha256"]:
+                raise RuntimeError(f"qualification baseline protocol drift: {task_id}")
+            exploration_replays = {
+                str(replay["method_id"]): replay
+                for replay in task_report["exploration_replays"]
+            }
+            validation_replays = {
+                str(replay["cell_id"]).split(":", maxsplit=1)[0]: replay
+                for replay in task_report["validation_replays"]
+            }
+            for algorithm_id in plan["baseline_algorithm_ids"]:
+                method_id = f"{algorithm_id}_seed0"
+                receipt_path = (
+                    artifact_root
+                    / task_id
+                    / "receipts"
+                    / f"{algorithm_id}_seed0.json"
+                )
+                receipt = _load_object(receipt_path)
+                if (
+                    canonical_json_sha256(receipt)
+                    != task_report["receipt_sha256"][method_id]
+                ):
+                    raise RuntimeError(
+                        f"qualification baseline receipt drift: {receipt_path}"
+                    )
+                exploration = replay_static_optimization_receipt(receipt, protocol)
+                validation = replay_static_optimization_validation(receipt)
+                if (
+                    not exploration["verified"]
+                    or not validation["verified"]
+                    or exploration_replays[method_id].get("verified") is not True
+                    or validation_replays[method_id].get("verified") is not True
+                ):
+                    raise RuntimeError(
+                        f"qualification baseline replay failed: {receipt_path}"
+                    )
+                results.append(
+                    {
+                        "kind": "baseline",
+                        "task_id": task_id,
+                        "world_seed": 0,
+                        "method_id": algorithm_id,
+                        "primary_score": float(receipt["primary_score"]),
+                        "best_exploration_score": max(
+                            float(value) for value in receipt["scores"]
+                        ),
+                        "completed_experiment_count": int(
+                            receipt["completed_experiment_count"]
+                        ),
+                        "validation_experiment_count": sum(
+                            len(receipt["validation"][target]["replicates"])
+                            for target in ("incumbent", "recommendation")
+                        ),
+                        "exact_replay": True,
+                        "reused": True,
+                        "seed_role": "development_qualification",
+                        "provenance": "qualified_seed0_import",
+                        "receipt_sha256": canonical_json_sha256(receipt),
+                        "receipt_path": str(receipt_path),
+                    }
+                )
+        if selection in {"participants", "all"}:
+            participant = task_report["participant"]
+            if participant.get("qualified") is not True or not all(
+                value is True for value in participant["checks"].values()
+            ):
+                raise RuntimeError(
+                    f"qualification participant checks failed for {task_id}"
+                )
+            report_path = Path(str(participant["report_path"])).resolve()
+            report_path.relative_to(artifact_root)
+            report = _load_object(report_path)
+            if canonical_json_sha256(report) != participant["report_sha256"]:
+                raise RuntimeError(
+                    f"qualification participant report drift: {report_path}"
+                )
+            protocol = _participant_protocol(qualification_plan, task_id)
+            cell = report["cells"][0]
+            exploration = replay_static_optimization_receipt(cell, protocol)
+            validation_replay = replay_static_optimization_validation(cell)
+            if not exploration["verified"] or not validation_replay["verified"]:
+                raise RuntimeError(
+                    f"qualification participant replay failed: {report_path}"
+                )
+            validation = cell["validation"]
+            results.append(
+                {
+                    "kind": "participant",
+                    "task_id": task_id,
+                    "world_seed": 0,
+                    "method_id": plan["participant"]["method_id"],
+                    "primary_score": float(
+                        validation["primary_validated_recommendation_score_mean"]
+                    ),
+                    "validated_incumbent_score": float(
+                        validation["validated_incumbent_score_mean"]
+                    ),
+                    "recommendation_gain_over_incumbent": float(
+                        validation["recommendation_gain_over_incumbent_mean"]
+                    ),
+                    "best_exploration_score": max(
+                        float(value) for value in cell["scores"]
+                    ),
+                    "completed_experiment_count": int(
+                        cell["completed_experiment_count"]
+                    ),
+                    "validation_experiment_count": int(
+                        cell["completed_validation_experiment_count"]
+                    ),
+                    "provider_call_count": int(report["provider_call_count"]),
+                    "exact_replay": True,
+                    "postrun_audit_passed": True,
+                    "reused": True,
+                    "seed_role": "development_qualification",
+                    "provenance": "qualified_seed0_import",
+                    "report_sha256": canonical_json_sha256(report),
+                    "report_path": str(report_path),
+                }
+            )
+    return results
+
+
 def _build_report(
     plan: Mapping[str, Any],
     *,
@@ -396,10 +615,26 @@ def _build_report(
         for method_id in sorted({str(item["method_id"]) for item in task_results}):
             rows = [item for item in task_results if item["method_id"] == method_id]
             rows.sort(key=lambda item: item["world_seed"])
+            held_out_rows = [
+                item
+                for item in rows
+                if item["world_seed"] in plan["held_out_world_seeds"]
+            ]
+            development_rows = [
+                item
+                for item in rows
+                if item["world_seed"] == plan["development_world_seed"]
+            ]
             methods[method_id] = {
                 "kind": rows[0]["kind"],
                 "world_seeds": [item["world_seed"] for item in rows],
                 "blind_validated_score": _summary([float(item["primary_score"]) for item in rows]),
+                "held_out_blind_validated_score": _summary(
+                    [float(item["primary_score"]) for item in held_out_rows]
+                ),
+                "development_seed0_blind_validated_score": _summary(
+                    [float(item["primary_score"]) for item in development_rows]
+                ),
                 "best_exploration_score": _summary(
                     [float(item["best_exploration_score"]) for item in rows]
                 ),
@@ -421,20 +656,33 @@ def _build_report(
             "threshold": task.threshold,
             "methods": methods,
             "threshold_reached_by_any_method_mean": (max(method_means) >= task.threshold),
+            "participant_held_out_mean_reaches_threshold": (
+                float(
+                    methods[str(plan["participant"]["method_id"])][
+                        "held_out_blind_validated_score"
+                    ]["mean"]
+                )
+                >= task.threshold
+            ),
         }
     expected_result_count = (
         len(plan["task_ids"]) * len(plan["world_seeds"]) * (len(plan["baseline_algorithm_ids"]) + 1)
     )
     report = {
-        "schema_version": "chemworld-static-s0-five-task-campaign-report-0.1-dev",
+        "schema_version": "chemworld-static-s0-five-task-campaign-report-0.2-dev",
         "campaign_id": plan["campaign_id"],
         "campaign_plan_sha256": canonical_json_sha256(plan),
         "qualification_report_sha256": qualification_report["report_sha256"],
+        "qualification_source_compatibility": qualification_report[
+            "_campaign_source_compatibility"
+        ],
         "source_commit": source_commit,
         "source_tree_dirty_at_completion": git_worktree_dirty(ROOT),
         "formal_result": False,
         "benchmark_claim_allowed": False,
         "world_seeds": list(plan["world_seeds"]),
+        "development_world_seed": int(plan["development_world_seed"]),
+        "held_out_world_seeds": list(plan["held_out_world_seeds"]),
         "algorithm_seeds": list(plan["algorithm_seeds"]),
         "result_count": len(results),
         "expected_result_count": expected_result_count,
@@ -442,6 +690,13 @@ def _build_report(
         "all_exact_replay": all(item["exact_replay"] for item in results),
         "all_tasks_reach_threshold_by_method_mean": all(
             task["threshold_reached_by_any_method_mean"] for task in task_reports.values()
+        ),
+        "all_tasks_participant_held_out_mean_reaches_threshold": all(
+            task["participant_held_out_mean_reaches_threshold"]
+            for task in task_reports.values()
+        ),
+        "imported_qualified_seed0_result_count": sum(
+            item.get("provenance") == "qualified_seed0_import" for item in results
         ),
         "participant_provider_call_count": sum(
             int(item.get("provider_call_count", 0))
@@ -487,9 +742,22 @@ def main() -> int:
         "campaign_plan_sha256": campaign_hash,
         "selection": args.selection,
         "world_seeds": plan["world_seeds"],
+        "development_world_seed": plan["development_world_seed"],
+        "held_out_world_seeds": plan["held_out_world_seeds"],
+        "execution_world_seeds": plan["execution_world_seeds"],
         "task_ids": plan["task_ids"],
         "participant_world_cells": (
             len(plan["task_ids"]) * len(plan["world_seeds"])
+            if args.selection in {"participants", "all"}
+            else 0
+        ),
+        "participant_cells_imported_from_qualification": (
+            len(plan["task_ids"])
+            if args.selection in {"participants", "all"}
+            else 0
+        ),
+        "participant_cells_to_execute": (
+            len(plan["task_ids"]) * len(plan["execution_world_seeds"])
             if args.selection in {"participants", "all"}
             else 0
         ),
@@ -600,9 +868,15 @@ def main() -> int:
     method_path = _repo_path(plan["participant"]["method_config_path"])
     method_hash = canonical_json_sha256(_load_object(method_path))
     jobs: list[tuple[str, dict[str, Any]]] = []
+    results = _qualified_development_seed0_results(
+        plan,
+        qualification_plan=_qualification_plan,
+        qualification_report=qualification_report,
+        selection=args.selection,
+    )
     if args.selection in {"baselines", "all"}:
         for task_id in plan["task_ids"]:
-            for world_seed in plan["world_seeds"]:
+            for world_seed in plan["execution_world_seeds"]:
                 for algorithm_id in plan["baseline_algorithm_ids"]:
                     jobs.append(
                         (
@@ -619,7 +893,7 @@ def main() -> int:
                     )
     if args.selection in {"participants", "all"}:
         for task_id in plan["task_ids"]:
-            for world_seed in plan["world_seeds"]:
+            for world_seed in plan["execution_world_seeds"]:
                 jobs.append(
                     (
                         "participant",
@@ -636,14 +910,111 @@ def main() -> int:
                         },
                     )
                 )
-    results: list[dict[str, Any]] = []
+    status_lock = threading.Lock()
+    execution_status: dict[str, Any] = {
+        "schema_version": "chemworld-static-s0-five-task-execution-status-0.1-dev",
+        "campaign_id": plan["campaign_id"],
+        "campaign_plan_sha256": campaign_hash,
+        "selection": args.selection,
+        "max_workers": int(args.max_workers),
+        "started_at": _utc_now(),
+        "updated_at": _utc_now(),
+        "jobs": {},
+        "summary": {},
+    }
+    for item in results:
+        job_id = (
+            f"{item['kind']}:{item['task_id']}:world-{int(item['world_seed']):02d}:"
+            f"{item['method_id']}"
+        )
+        execution_status["jobs"][job_id] = {
+            "kind": item["kind"],
+            "task_id": item["task_id"],
+            "world_seed": int(item["world_seed"]),
+            "method_id": item["method_id"],
+            "state": "completed",
+            "provenance": item.get("provenance", "existing_exact_receipt"),
+            "started_at": None,
+            "completed_at": execution_status["started_at"],
+        }
+    job_specs: list[tuple[str, dict[str, Any], str]] = []
+    for kind, kwargs in jobs:
+        method_id = (
+            kwargs["algorithm_id"]
+            if kind == "baseline"
+            else plan["participant"]["method_id"]
+        )
+        job_id = (
+            f"{kind}:{kwargs['task_id']}:world-{int(kwargs['world_seed']):02d}:"
+            f"{method_id}"
+        )
+        execution_status["jobs"][job_id] = {
+            "kind": kind,
+            "task_id": kwargs["task_id"],
+            "world_seed": int(kwargs["world_seed"]),
+            "method_id": method_id,
+            "state": "queued",
+            "provenance": "held_out_execution",
+            "started_at": None,
+            "completed_at": None,
+        }
+        job_specs.append((kind, kwargs, job_id))
+
+    def _write_execution_status() -> None:
+        states = [
+            str(item["state"]) for item in execution_status["jobs"].values()
+        ]
+        execution_status["updated_at"] = _utc_now()
+        execution_status["summary"] = {
+            state: states.count(state)
+            for state in ("queued", "running", "completed", "failed")
+        }
+        write_json_atomic(output / "execution_status.json", execution_status)
+
+    def _execute_observable_job(
+        kind: str,
+        kwargs: dict[str, Any],
+        job_id: str,
+    ) -> dict[str, Any]:
+        with status_lock:
+            execution_status["jobs"][job_id]["state"] = "running"
+            execution_status["jobs"][job_id]["started_at"] = _utc_now()
+            _write_execution_status()
+        try:
+            result = (
+                _run_baseline_cell(**kwargs)
+                if kind == "baseline"
+                else _run_participant_cell(**kwargs)
+            )
+        except Exception as exc:
+            with status_lock:
+                execution_status["jobs"][job_id]["state"] = "failed"
+                execution_status["jobs"][job_id]["completed_at"] = _utc_now()
+                execution_status["jobs"][job_id]["error"] = (
+                    f"{type(exc).__name__}: {exc}"
+                )
+                _write_execution_status()
+            raise
+        with status_lock:
+            execution_status["jobs"][job_id]["state"] = "completed"
+            execution_status["jobs"][job_id]["completed_at"] = _utc_now()
+            execution_status["jobs"][job_id]["primary_score"] = result[
+                "primary_score"
+            ]
+            _write_execution_status()
+        return result
+
+    with status_lock:
+        _write_execution_status()
     with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
         futures = {
             executor.submit(
-                _run_baseline_cell if kind == "baseline" else _run_participant_cell,
-                **kwargs,
+                _execute_observable_job,
+                kind,
+                kwargs,
+                job_id,
             ): (kind, kwargs["task_id"], kwargs["world_seed"])
-            for kind, kwargs in jobs
+            for kind, kwargs, job_id in job_specs
         }
         for future in as_completed(futures):
             kind, task_id, world_seed = futures[future]
@@ -692,7 +1063,7 @@ def main() -> int:
         )
         return 0 if report["completed"] else 1
     partial = {
-        "schema_version": "chemworld-static-s0-five-task-campaign-partial-0.1-dev",
+        "schema_version": "chemworld-static-s0-five-task-campaign-partial-0.2-dev",
         "campaign_id": plan["campaign_id"],
         "campaign_plan_sha256": campaign_hash,
         "selection": args.selection,
