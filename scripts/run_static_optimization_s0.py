@@ -38,6 +38,8 @@ from chemworld.eval.provenance import (
     canonical_json_sha256 as canonical_sha256,
 )
 from chemworld.eval.provenance import (
+    git_source_commit,
+    git_worktree_dirty,
     write_json_atomic,
 )
 from chemworld.eval.static_optimization_execution import (
@@ -1158,6 +1160,8 @@ def run_s0(args: argparse.Namespace) -> dict[str, Any]:
         "benchmark_claim_allowed": benchmark_claim_allowed,
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": canonical_sha256(protocol),
+        "source_commit": git_source_commit(ROOT),
+        "source_tree_dirty": git_worktree_dirty(ROOT),
         "method_config_freeze_id": methods["freeze_id"],
         "method_config_sha256": canonical_sha256(methods),
         "provider_mode": args.provider,

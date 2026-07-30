@@ -107,7 +107,9 @@ def _task_protocol(plan: Mapping[str, Any], task_id: str) -> dict[str, Any]:
             "intermediate_measurement_reward_used": False,
             "fresh_measurement_score_delta_used": False,
             "failed_experiment_score": 0.0,
-            "final_selection": campaign["final_selection"],
+            "final_selection": campaign.get(
+                "baseline_final_selection", campaign.get("final_selection")
+            ),
             "primary_endpoint": ("blind_validated_final_recommendation_score_mean"),
         },
         "executor_contract": executor_contract,
@@ -144,6 +146,45 @@ def _task_protocol(plan: Mapping[str, Any], task_id: str) -> dict[str, Any]:
         "algorithms": copy.deepcopy(plan["algorithms"]),
         "observation_noise_namespace": (f"{plan['qualification_id']}--{task_id}"),
     }
+
+
+def _participant_protocol(plan: Mapping[str, Any], task_id: str) -> dict[str, Any]:
+    if not isinstance(plan.get("participant"), Mapping):
+        raise ValueError("strengthened qualification lacks a participant binding")
+    protocol = _task_protocol(plan, task_id)
+    protocol["schema_version"] = (
+        "chemworld-static-scientific-optimization-protocol-five-task-"
+        "qualification-0.2-s0-dev"
+    )
+    protocol["protocol_id"] = f"{plan['qualification_id']}--participant--{task_id}"
+    protocol["freeze_id"] = f"{plan['qualification_id']}--participant--{task_id}--seed0"
+    protocol["status"] = "development_single_seed_participant_qualification"
+    protocol["candidate_order_seed"] = int(plan["seed_policy"]["algorithm_seeds"][0])
+    protocol["method_config_path"] = str(plan["participant"]["method_config_path"])
+    protocol["method_ids"] = [str(plan["participant"]["method_id"])]
+    protocol["final_synthesis"] = {
+        "enabled": True,
+        "calls": 1,
+        "executes_experiment": False,
+        "allow_tested_recommendation": True,
+        "allow_interpolated_recommendation": True,
+        "allow_extrapolated_recommendation_within_bounds": True,
+        "requires_structured_world_claims": False,
+        "validation_feedback_returned_to_agent": False,
+        "list_item_limit": 16,
+        "list_item_limit_visible_to_model": True,
+    }
+    protocol["reward_contract"]["final_selection"] = str(
+        plan["campaign"]["participant_final_selection"]
+    )
+    protocol["world_understanding"] = {
+        "enabled": False,
+        "declared_scoring_enabled": False,
+        "predictive_score_enabled": False,
+        "reason": "seed-0 qualification isolates optimization readiness",
+    }
+    validate_static_optimization_protocol(protocol)
+    return protocol
 
 
 def _recipe_builder(
@@ -359,6 +400,20 @@ def _run_task(
         component == "reaction_score" or component in first_assay
         for component in scoring.component_weights
     )
+    empirical_score_component_ranges = {}
+    for component in scoring.component_weights:
+        if component == "reaction_score":
+            continue
+        values = [
+            float(
+                experiment["result"]["measurement_evidence"][-1]["observation"][
+                    component
+                ]
+            )
+            for receipt in receipts
+            for experiment in receipt["experiments"]
+        ]
+        empirical_score_component_ranges[component] = max(values) - min(values)
     distinct_scores = len({round(value, 5) for value in primary_scores})
     checks = {
         "single_seed_only": all(
@@ -389,9 +444,14 @@ def _run_task(
         "task_contract_hash": task.contract_hash,
         "protocol_sha256": protocol_hash,
         "scoring_contract": scoring.to_dict(),
+        "empirical_score_component_ranges": empirical_score_component_ranges,
         "threshold": task.threshold,
         "validated_scores": {
             receipt["method_id"]: float(receipt["primary_score"]) for receipt in receipts
+        },
+        "validated_scores_by_algorithm": {
+            str(receipt["method"]["algorithm_id"]): float(receipt["primary_score"])
+            for receipt in receipts
         },
         "validated_score_spread": max(primary_scores) - min(primary_scores),
         "distinct_validated_score_count": distinct_scores,
@@ -407,11 +467,218 @@ def _run_task(
     }
 
 
+def _participant_task_report(
+    *,
+    plan: Mapping[str, Any],
+    task_id: str,
+    protocol: Mapping[str, Any],
+    report_path: Path,
+    baseline_report: Mapping[str, Any],
+    method_config: Mapping[str, Any],
+    source_commit: str,
+) -> dict[str, Any]:
+    report = _load_object(report_path)
+    protocol_hash = canonical_json_sha256(protocol)
+    method_hash = canonical_json_sha256(method_config)
+    method_id = str(plan["participant"]["method_id"])
+    if report.get("protocol_sha256") != protocol_hash:
+        raise RuntimeError(f"stale participant protocol binding: {report_path}")
+    if report.get("method_config_sha256") != method_hash:
+        raise RuntimeError(f"stale participant method binding: {report_path}")
+    if report.get("source_commit") != source_commit:
+        raise RuntimeError(f"participant source commit mismatch: {report_path}")
+    if report.get("source_tree_dirty") is not False:
+        raise RuntimeError(f"participant was not executed on a clean source tree: {report_path}")
+    if report.get("method_ids") != [method_id] or report.get("task_ids") != [task_id]:
+        raise RuntimeError(f"participant cell scope mismatch: {report_path}")
+    if report.get("execution_seed") != 0:
+        raise RuntimeError(f"participant cell is not world seed 0: {report_path}")
+    if report.get("completed_cell_count") != report.get("cell_count") or report.get(
+        "method_failure_cell_count"
+    ):
+        raise RuntimeError(f"participant cell did not complete: {report_path}")
+    cell = report["cells"][0]
+    exploration_replay = replay_static_optimization_receipt(cell, protocol)
+    validation_replay = replay_static_optimization_validation(cell)
+    method = method_config["methods"][method_id]
+    scoring = TaskScoringContract.from_success_metrics(
+        objective=get_task(task_id).objective,
+        success_metrics=get_task(task_id).success_metrics,
+        contract_id=plan["tasks"][task_id]["scoring_contract_id"],
+    )
+    context_agent = StaticOptimizationAgent(
+        object(),
+        role_id="five-task-strengthened-qualification-context-audit",
+        response_max_tokens=1,
+        history_limit=20,
+        prompt_token_estimate_cap=100_000,
+        experiment_horizon=20,
+        horizon_visible=True,
+        final_synthesis_enabled=True,
+        declared_claim_validation_policy=str(
+            method["declared_claim_validation_policy"]
+        ),
+        scoring_contract=scoring.to_dict(),
+        optimization_scaffold_id=str(method["static_optimization_scaffold_id"]),
+    )
+    context_agent.reset(get_task(task_id).to_dict(), 0)
+    initial_context = context_agent.public_context(cell["public_history"][:8])
+    scaffold = initial_context.get("campaign_scaffold")
+    if not isinstance(scaffold, Mapping):
+        raise RuntimeError(f"participant lacks the strengthened campaign scaffold: {report_path}")
+    coverage = scaffold["coverage_audit"]
+    decision_audits = [
+        experiment["decision_audit"] for experiment in cell["experiments"]
+    ]
+    participant_score = float(
+        cell["validation"]["primary_validated_recommendation_score_mean"]
+    )
+    incumbent_score = float(cell["validation"]["validated_incumbent_score_mean"])
+    best_baseline = max(
+        float(value) for value in baseline_report["validated_scores"].values()
+    )
+    task = get_task(task_id)
+    checks = {
+        "single_seed_only": int(cell["cell"]["world_seed"]) == 0,
+        "twenty_completed_experiments": int(cell["completed_experiment_count"]) == 20,
+        "three_validation_replicates_per_target": all(
+            len(cell["validation"][target]["replicates"]) == 3
+            for target in ("incumbent", "recommendation")
+        ),
+        "final_synthesis_completed": int(cell["completed_synthesis_call_count"]) == 1,
+        "initial_continuous_extremes_covered": bool(
+            coverage["all_continuous_extremes_seen"]
+        ),
+        "initial_nominal_categories_covered": bool(
+            coverage["all_nominal_categories_seen"]
+        ),
+        "initial_nominal_pairs_maximally_distinct": bool(
+            coverage["all_nominal_pairs_maximally_distinct"]
+        ),
+        "first_eight_recipes_committed_by_protocol_executor": all(
+            audit.get("coverage_design_enforced") is True
+            and audit.get("recipe_selection_authority") == "protocol_executor"
+            and audit.get("coverage_design_experiment_index") == experiment_index
+            for experiment_index, audit in enumerate(decision_audits[:8])
+        ),
+        "remaining_twelve_recipes_selected_by_model": all(
+            audit.get("coverage_design_enforced") is False
+            and audit.get("recipe_selection_authority") == "model"
+            for audit in decision_audits[8:]
+        ),
+        "validated_threshold_reached": participant_score >= task.threshold,
+        "regret_to_best_baseline_within_limit": (
+            best_baseline - participant_score
+            <= float(
+                plan["qualification_gates"][
+                    "participant_regret_to_best_baseline_at_most"
+                ]
+            )
+        ),
+        "recommendation_not_materially_worse_than_incumbent": (
+            participant_score - incumbent_score
+            >= -float(
+                plan["qualification_gates"][
+                    "participant_recommendation_not_worse_than_incumbent_by_more_than"
+                ]
+            )
+        ),
+        "exploration_replay": bool(exploration_replay["verified"]),
+        "validation_replay": bool(validation_replay["verified"]),
+        "unknown_declared_terms_are_unscored_not_fatal": (
+            cell["agent_manifest"]["declared_claim_validation_policy"]
+            == "unscored_unknown_terms"
+        ),
+    }
+    return {
+        "method_id": method_id,
+        "provider": str(report["provider_mode"]),
+        "report_path": str(report_path),
+        "report_sha256": canonical_json_sha256(report),
+        "protocol_sha256": protocol_hash,
+        "method_config_sha256": method_hash,
+        "source_commit": str(report["source_commit"]),
+        "participant_score": participant_score,
+        "validated_incumbent_score": incumbent_score,
+        "recommendation_gain_over_incumbent": participant_score - incumbent_score,
+        "best_baseline_score": best_baseline,
+        "regret_to_best_baseline": best_baseline - participant_score,
+        "threshold": task.threshold,
+        "coverage_audit_after_eight_experiments": copy.deepcopy(coverage),
+        "checks": checks,
+        "qualified": all(checks.values()),
+    }
+
+
+def _strengthened_baseline_readiness(
+    *,
+    plan: Mapping[str, Any],
+    task_id: str,
+    task_report: Mapping[str, Any],
+) -> dict[str, Any]:
+    policy = plan.get("baseline_readiness_policy")
+    if not isinstance(policy, Mapping):
+        raise ValueError("strengthened qualification lacks a baseline readiness policy")
+    adaptive_algorithm_ids = tuple(str(item) for item in policy["adaptive_algorithm_ids"])
+    if len(adaptive_algorithm_ids) != len(set(adaptive_algorithm_ids)):
+        raise ValueError("adaptive baseline algorithm IDs must be distinct")
+    missing = sorted(set(adaptive_algorithm_ids) - set(plan["algorithms"]))
+    if missing:
+        raise ValueError(f"unknown adaptive baseline algorithms: {missing}")
+    adaptive_families = {
+        algorithm_id: str(plan["algorithms"][algorithm_id]["family"])
+        for algorithm_id in adaptive_algorithm_ids
+    }
+    if len(set(adaptive_families.values())) != len(adaptive_families):
+        raise ValueError("adaptive baseline algorithms must represent distinct families")
+    scores = {
+        str(key): float(value)
+        for key, value in task_report["validated_scores_by_algorithm"].items()
+    }
+    threshold = float(get_task(task_id).threshold)
+    passing_adaptive_ids = [
+        algorithm_id
+        for algorithm_id in adaptive_algorithm_ids
+        if scores[algorithm_id] >= threshold
+    ]
+    best_algorithm_id = max(scores, key=scores.__getitem__)
+    best_score = scores[best_algorithm_id]
+    minimum_passing = int(policy["minimum_passing_adaptive_families"])
+    minimum_margin = float(policy["minimum_best_validated_threshold_margin"])
+    return {
+        "adaptive_algorithm_ids": list(adaptive_algorithm_ids),
+        "adaptive_families": adaptive_families,
+        "passing_adaptive_algorithm_ids": passing_adaptive_ids,
+        "passing_adaptive_family_count": len(passing_adaptive_ids),
+        "minimum_passing_adaptive_families": minimum_passing,
+        "best_algorithm_id": best_algorithm_id,
+        "best_validated_score": best_score,
+        "best_validated_threshold_margin": best_score - threshold,
+        "minimum_best_validated_threshold_margin": minimum_margin,
+        "checks": {
+            "two_adaptive_baseline_families_reach_validated_threshold": (
+                len(passing_adaptive_ids) >= minimum_passing
+            ),
+            "best_baseline_has_nontrivial_threshold_margin": (
+                best_score - threshold >= minimum_margin
+            ),
+        },
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan", type=Path, default=DEFAULT_PLAN)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--resume-missing", action="store_true")
+    parser.add_argument(
+        "--participant-run-root",
+        type=Path,
+        help=(
+            "Root containing one externally executed participant report per task; "
+            "required before a v0.2 plan can release multi-seed execution."
+        ),
+    )
     parser.add_argument(
         "--check-plan",
         action="store_true",
@@ -425,6 +692,17 @@ def main() -> int:
     protocols = {task_id: _task_protocol(plan, task_id) for task_id in task_ids}
     for protocol in protocols.values():
         validate_static_optimization_protocol(protocol)
+    strengthened = str(plan.get("schema_version", "")).endswith("0.2-dev")
+    participant_protocols = (
+        {task_id: _participant_protocol(plan, task_id) for task_id in task_ids}
+        if strengthened
+        else {}
+    )
+    for task_id, protocol in participant_protocols.items():
+        write_json_atomic(
+            args.output / "participant_protocols" / f"{task_id}.json",
+            protocol,
+        )
     if args.check_plan:
         print(
             json.dumps(
@@ -434,6 +712,10 @@ def main() -> int:
                     "protocol_sha256": {
                         task_id: canonical_json_sha256(protocol)
                         for task_id, protocol in protocols.items()
+                    },
+                    "participant_protocol_sha256": {
+                        task_id: canonical_json_sha256(protocol)
+                        for task_id, protocol in participant_protocols.items()
                     },
                     "single_seed_only": True,
                 },
@@ -451,11 +733,71 @@ def main() -> int:
         )
         for task_id in task_ids
     }
+    source_commit = git_source_commit(ROOT)
+    if strengthened:
+        participant_root = (
+            args.participant_run_root.resolve()
+            if args.participant_run_root is not None
+            else None
+        )
+        method_config = _load_object(ROOT / str(plan["participant"]["method_config_path"]))
+        for task_id, task_report in task_reports.items():
+            baseline_readiness = _strengthened_baseline_readiness(
+                plan=plan,
+                task_id=task_id,
+                task_report=task_report,
+            )
+            task_report["baseline_readiness"] = baseline_readiness
+            task_report["checks"].update(baseline_readiness["checks"])
+            minimum_component_range = float(
+                plan["qualification_gates"][
+                    "minimum_empirical_score_component_range"
+                ]
+            )
+            task_report["checks"]["empirically_active_score_components"] = all(
+                float(value) >= minimum_component_range
+                for value in task_report[
+                    "empirical_score_component_ranges"
+                ].values()
+            )
+            task_report["baseline_qualified"] = all(task_report["checks"].values())
+            participant_path = (
+                participant_root / task_id / "report.json"
+                if participant_root is not None
+                else None
+            )
+            task_report["participant"] = (
+                _participant_task_report(
+                    plan=plan,
+                    task_id=task_id,
+                    protocol=participant_protocols[task_id],
+                    report_path=participant_path,
+                    baseline_report=task_report,
+                    method_config=method_config,
+                    source_commit=source_commit,
+                )
+                if participant_path is not None and participant_path.is_file()
+                else {
+                    "status": "pending",
+                    "qualified": False,
+                    "expected_report_path": (
+                        str(participant_path) if participant_path is not None else None
+                    ),
+                }
+            )
+            task_report["qualified"] = bool(
+                task_report["baseline_qualified"]
+                and task_report["participant"]["qualified"]
+            )
     report = {
-        "schema_version": ("chemworld-static-s0-five-task-qualification-report-0.1-dev"),
+        "schema_version": (
+            "chemworld-static-s0-five-task-qualification-report-0.2-dev"
+            if strengthened
+            else "chemworld-static-s0-five-task-qualification-report-0.1-dev"
+        ),
         "qualification_id": plan["qualification_id"],
         "qualification_plan_sha256": canonical_json_sha256(plan),
-        "source_commit": git_source_commit(ROOT),
+        "source_commit": source_commit,
         "source_tree_dirty": git_worktree_dirty(ROOT),
         "formal_result": False,
         "benchmark_claim_allowed": False,
@@ -466,6 +808,14 @@ def main() -> int:
         "qualified_task_count": sum(report["qualified"] for report in task_reports.values()),
         "qualified": all(report["qualified"] for report in task_reports.values()),
         "multi_seed_release_allowed": all(report["qualified"] for report in task_reports.values()),
+        "participant_qualification_required": strengthened,
+        "participant_reports_complete": bool(
+            strengthened
+            and all(
+                report["participant"].get("status") != "pending"
+                for report in task_reports.values()
+            )
+        ),
         "claim_boundary": plan["claim_boundary"],
     }
     report["report_sha256"] = canonical_json_sha256(report)

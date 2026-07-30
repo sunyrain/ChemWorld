@@ -17,7 +17,10 @@ from chemworld.physchem import (
     validate_model_card,
     vle_shortcut_distillation,
 )
-from chemworld.world.phase_kernel import partition_split
+from chemworld.world.phase_kernel import (
+    INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1,
+    partition_split,
+)
 
 
 def test_multistage_extraction_improves_product_recovery_and_balances_material() -> None:
@@ -68,6 +71,84 @@ def test_partition_split_uses_lle_diagnostic_and_balances_runtime_amounts() -> N
     assert split["organic_product_mol"] + split["aqueous_product_mol"] == pytest.approx(0.8)
     assert split["organic_impurity_mol"] + split["aqueous_impurity_mol"] == pytest.approx(0.2)
     assert split["organic_product_mol"] / 0.8 > split["organic_impurity_mol"] / 0.2
+
+
+def test_partition_nominal_pair_contract_makes_both_codes_independent_and_active() -> None:
+    common = {
+        "product_mol": 0.8,
+        "impurity_mol": 0.2,
+        "temperature_K": 298.15,
+        "duration_s": 600.0,
+        "stirring_speed_rpm": 900.0,
+        "organic_volume_L": 0.030,
+        "aqueous_volume_L": 0.018,
+        "nominal_pair_contract": INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1,
+    }
+    solvent_zero_extractant_three = partition_split(
+        **common,
+        solvent=0,
+        extractant=3,
+    )
+    solvent_one_extractant_three = partition_split(
+        **common,
+        solvent=1,
+        extractant=3,
+    )
+    solvent_zero_extractant_two = partition_split(
+        **common,
+        solvent=0,
+        extractant=2,
+    )
+
+    assert solvent_zero_extractant_three["partition_coefficient"] != pytest.approx(
+        solvent_one_extractant_three["partition_coefficient"]
+    )
+    assert solvent_zero_extractant_three["partition_coefficient"] != pytest.approx(
+        solvent_zero_extractant_two["partition_coefficient"]
+    )
+    assert solvent_zero_extractant_three["partition_coefficient"] > (
+        solvent_one_extractant_three["partition_coefficient"]
+    )
+    assert solvent_zero_extractant_three["partition_coefficient"] > (
+        solvent_zero_extractant_two["partition_coefficient"]
+    )
+
+
+def test_partition_v3_calibration_has_reachable_but_nontrivial_nominal_response() -> None:
+    common = {
+        "product_mol": 1.0,
+        "impurity_mol": 0.2,
+        "temperature_K": 298.15,
+        "duration_s": 600.0,
+        "stirring_speed_rpm": 1200.0,
+        "organic_volume_L": 0.030,
+        "aqueous_volume_L": 0.018,
+        "nominal_pair_contract": INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1,
+    }
+    frozen_phase_ratio = common["organic_volume_L"] / (
+        common["organic_volume_L"] + common["aqueous_volume_L"]
+    )
+
+    scores = {}
+    for solvent in range(4):
+        for extractant in range(4):
+            split = partition_split(
+                **common,
+                solvent=solvent,
+                extractant=extractant,
+            )
+            organic_recovery = split["organic_product_mol"]
+            aqueous_residual = split["aqueous_product_mol"]
+            scores[(solvent, extractant)] = (
+                0.85 * organic_recovery
+                - 0.10 * aqueous_residual
+                - 0.10 * frozen_phase_ratio
+            )
+
+    assert sum(score >= 0.58 for score in scores.values()) >= 4
+    assert sum(score < 0.58 for score in scores.values()) >= 3
+    assert max(scores.values()) >= 0.62
+    assert min(scores.values()) <= 0.53
 
 
 def test_flash_evaporation_prefers_volatile_component_and_reports_heat_duty() -> None:

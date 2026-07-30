@@ -24,6 +24,7 @@ from chemworld.world.scoring import (
     ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2,
     FLOW_S0_BALANCED_PROCESS_V1,
     PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+    PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
     TASK_DERIVED_SCORING_CONTRACT,
 )
 
@@ -169,6 +170,7 @@ def static_optimization_scoring_contract_id(protocol: Mapping[str, Any]) -> str:
         CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1,
         DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
         PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+        PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
         FLOW_S0_BALANCED_PROCESS_V1,
     }
     if contract_id not in allowed:
@@ -199,8 +201,15 @@ def static_optimization_scoring_contract_id(protocol: Mapping[str, Any]) -> str:
         raise ValueError(
             "reaction-distillation S0 v2 scoring requires exactly the reaction-to-distillation task"
         )
-    if contract_id == PARTITION_S0_EXTRACTION_EFFICIENCY_V2 and task_ids != {"partition-discovery"}:
-        raise ValueError("partition S0 v2 scoring requires exactly the partition-discovery task")
+    if (
+        contract_id
+        in {
+            PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+            PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
+        }
+        and task_ids != {"partition-discovery"}
+    ):
+        raise ValueError("partition S0 scoring requires exactly the partition-discovery task")
     if contract_id == FLOW_S0_BALANCED_PROCESS_V1 and task_ids != {"flow-reaction-optimization"}:
         raise ValueError(
             "continuous-flow S0 v1 scoring requires exactly the flow-reaction-optimization task"

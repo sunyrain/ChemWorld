@@ -17,6 +17,7 @@ from chemworld.physchem.spectroscopy_adapter_manifest import (
     ValidatedInstrumentRuntimeProvider,
 )
 from chemworld.runtime.mechanisms import CompiledMechanism
+from chemworld.runtime.phase_ledger_services import ChemWorldPhaseLedgerServices
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.observation_contracts import TaskObservationContract
 from chemworld.world.observation_kernel import (
@@ -26,8 +27,13 @@ from chemworld.world.observation_kernel import (
     processed_estimate,
 )
 from chemworld.world.operations import instrument_name, operation_name
-from chemworld.world.scoring import TaskScoringContract, task_score_observation
+from chemworld.world.scoring import (
+    PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
+    TaskScoringContract,
+    task_score_observation,
+)
 from chemworld.world.separation_kernel import downstream_truth_values
+from chemworld.world.species_roles import PHASE_PRODUCT_AMOUNT_KEY
 
 
 class ChemWorldObservationKernel:
@@ -55,6 +61,7 @@ class ChemWorldObservationKernel:
             raise ValueError("observation_noise_multiplier must be positive and finite")
         self.observation_noise_multiplier = float(observation_noise_multiplier)
         self.species_view = MechanismSpeciesView(compiled_mechanism)
+        self.phase_ledgers = ChemWorldPhaseLedgerServices(self.species_view)
         self.instrument_provider = instrument_provider or ValidatedInstrumentRuntimeProvider()
         self.last_provider_execution: dict[str, Any] = {}
 
@@ -240,16 +247,22 @@ class ChemWorldObservationKernel:
 
     def _truth_values(self, state: WorldState) -> dict[str, float]:
         truth = self.species_view.truth_values(state)
-        truth.update(
-            downstream_truth_values(
+        downstream = (
+            self._partition_v3_truth_values(state)
+            if self.scoring_contract.contract_id
+            == PARTITION_S0_EXTRACTION_EFFICIENCY_V3
+            else downstream_truth_values(
                 state,
                 product_amount_mol=self.species_view.target_amount(state),
                 impurity_amount_mol=self.species_view.impurity_amount(state),
-                initial_product_mol=max(self.species_view.initial_reactant_amount(state), 1.0e-12),
+                initial_product_mol=max(
+                    self.species_view.initial_reactant_amount(state), 1.0e-12
+                ),
                 target_species=self.species_view.target_species_for_state(state),
                 impurity_species=self.species_view.impurity_species_for_state(state),
             )
         )
+        truth.update(downstream)
         equilibrium = self._equilibrium_truth_values(state)
         # Once the electrochemical runtime has solved its coupled aqueous
         # state, instrument-facing equilibrium signals must come from that
@@ -258,6 +271,34 @@ class ChemWorldObservationKernel:
         equilibrium.update(self._electrochemical_equilibrium_truth_values(state))
         truth.update(equilibrium)
         return truth
+
+    def _partition_v3_truth_values(self, state: WorldState) -> dict[str, float]:
+        phase_ledger = self.phase_ledgers.phase_ledger(state)
+        product_amount = sum(
+            float(entry.get(PHASE_PRODUCT_AMOUNT_KEY, 0.0))
+            for entry in phase_ledger.values()
+        )
+        impurity_amount = sum(
+            float(entry.get("impurity_mol", 0.0)) for entry in phase_ledger.values()
+        )
+        initial_product_amount = 0.0
+        if state.species is not None:
+            initial_product_amount = sum(
+                max(
+                    float(state.species.initial_amounts_mol.get(species_id, 0.0)),
+                    0.0,
+                )
+                for species_id in self.phase_ledgers.product_candidate_species()
+            )
+        if initial_product_amount <= 0.0:
+            initial_product_amount = self.species_view.initial_reactant_amount(state)
+        return downstream_truth_values(
+            state,
+            phase_ledger,
+            product_amount_mol=product_amount,
+            impurity_amount_mol=impurity_amount,
+            initial_product_mol=max(initial_product_amount, 1.0e-12),
+        )
 
     @staticmethod
     def _electrochemical_equilibrium_truth_values(state: WorldState) -> dict[str, float]:

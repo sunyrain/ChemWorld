@@ -27,14 +27,17 @@ from chemworld.agents.electrochemical_single_stage import (
     electrochemical_single_stage_unit_vector_from_parameters,
 )
 from chemworld.agents.static_optimization import (
+    COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
     DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN,
     STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION,
+    STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION,
     StaticFinalRecommendationValidator,
     StaticOptimizationAgent,
     StaticOptimizationPlan,
     compile_static_optimization_plan,
 )
 from chemworld.agents.task_recipes import task_recipe_coordinate_schema
+from chemworld.envs.chemworld_env import ChemWorldEnv
 from chemworld.eval.electrochemical_predictive import (
     build_electrochemical_prediction_queries,
 )
@@ -52,8 +55,13 @@ from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
 )
 from chemworld.tasks import get_task
+from chemworld.world.phase_kernel import (
+    INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1,
+)
 from chemworld.world.scoring import (
     DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2,
+    PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+    PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
     TaskScoringContract,
 )
 
@@ -290,6 +298,108 @@ def test_registered_distillation_context_exposes_physical_coordinate_semantics()
     assert set(compact_evidence[1]["uncertainty"]) == {"distillate_purity_std"}
 
 
+def test_coverage_adaptive_scaffold_balances_first_eight_flow_designs() -> None:
+    task_info = get_task("flow-reaction-optimization").to_dict()
+    agent = StaticOptimizationAgent(
+        _DeterministicStaticMockClient(),
+        role_id="flow-coverage-scaffold-test",
+        response_max_tokens=1000,
+        history_limit=20,
+        prompt_token_estimate_cap=20_000,
+        experiment_horizon=20,
+        horizon_visible=True,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+    )
+    agent.reset(task_info, 0)
+    history: list[dict[str, object]] = []
+
+    for experiment_index in range(8):
+        context = agent.public_context(history)
+        scaffold = context["campaign_scaffold"]
+        assert scaffold["phase"] == "balanced_coverage"
+        assert scaffold["initial_design_authority"] == "protocol_executor"
+        vector = scaffold["executor_committed_search_vector"]
+        plan = agent.plan_next(history)
+        assert list(plan.search_vector) == pytest.approx(vector)
+        decision_audit = agent.decision_audit()
+        assert decision_audit["coverage_design_enforced"] is True
+        assert decision_audit["recipe_selection_authority"] == "protocol_executor"
+        history.append(
+            {
+                "experiment_index": experiment_index,
+                "plan": plan.to_dict(),
+                "measurement_evidence": [],
+                "terminal_summary": {
+                    "leaderboard_score": float(experiment_index) / 100.0,
+                    "cost": 0.0,
+                    "safety_risk": 0.0,
+                },
+            }
+        )
+
+    adaptive = agent.public_context(history)["campaign_scaffold"]
+    assert adaptive["phase"] == "adaptive_discrimination"
+    audit = adaptive["coverage_audit"]
+    assert audit["all_continuous_extremes_seen"] is True
+    assert audit["all_nominal_categories_seen"] is True
+    assert all(
+        sorted(item["category_counts"].values()) == [2, 2, 2, 2]
+        for item in audit["categorical_controls"]
+    )
+    assert len(audit["nominal_pair_coverage"]) == 1
+    assert audit["nominal_pair_coverage"][0]["distinct_pair_count"] == 8
+    assert (
+        audit["nominal_pair_coverage"][0][
+            "maximally_distinct_at_current_budget"
+        ]
+        is True
+    )
+    assert audit["all_nominal_pairs_maximally_distinct"] is True
+    assert agent.manifest()["prompt_version"] == (
+        STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION
+    )
+    adaptive_plan = agent.plan_next(history)
+    adaptive_audit = agent.decision_audit()
+    assert adaptive_audit["coverage_design_enforced"] is False
+    assert adaptive_audit["recipe_selection_authority"] == "model"
+    assert list(adaptive_plan.search_vector) != pytest.approx(vector)
+
+
+def test_coverage_scaffold_keeps_named_controls_physical() -> None:
+    task_info = get_task("reaction-to-crystallization").to_dict()
+    direct = StaticOptimizationAgent(
+        _DeterministicStaticMockClient(),
+        role_id="crystallization-direct-scaffold-test",
+        response_max_tokens=1000,
+        history_limit=20,
+        prompt_token_estimate_cap=20_000,
+    )
+    direct.reset(task_info, 0)
+    assert "campaign_scaffold" not in direct.public_context([])
+
+    coverage = StaticOptimizationAgent(
+        _DeterministicStaticMockClient(),
+        role_id="crystallization-coverage-scaffold-test",
+        response_max_tokens=1000,
+        history_limit=20,
+        prompt_token_estimate_cap=20_000,
+        experiment_horizon=20,
+        horizon_visible=True,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+    )
+    coverage.reset(task_info, 0)
+    scaffold = coverage.public_context([])["campaign_scaffold"]
+    assert "executor_committed_search_vector" not in scaffold
+    assert set(scaffold["executor_committed_recipe_parameters"]) == set(
+        crystallization_single_stage_parameter_schema()
+    )
+    plan = coverage.plan_next([])
+    assert plan.recipe_parameters == pytest.approx(
+        scaffold["executor_committed_recipe_parameters"]
+    )
+    assert coverage.decision_audit()["coverage_design_enforced"] is True
+
+
 def test_distillation_compiler_requires_stage_local_hplc_and_fraction_gc() -> None:
     task_info = get_task("reaction-to-distillation").to_dict()
     complete = StaticOptimizationPlan(
@@ -422,6 +532,72 @@ def test_single_seed_stage_evidence_is_filtered_before_model_context(
     assert [
         set(item["processed_estimate"]) for item in diagnostic_evidence
     ] == expected_diagnostic_metrics
+
+
+def test_partition_v3_observes_both_phase_inventories_on_a_fixed_feed_basis() -> None:
+    plan = StaticOptimizationPlan(
+        experiment_intent="audit the corrected partition endpoint",
+        search_vector=(0.125, 0.0, 0.0, 0.875, 1.0, 1.0, 0.5, 0.5),
+        requested_measurement_slots=(
+            "diagnostic-01-hplc",
+            "diagnostic-02-hplc",
+        ),
+        measurement_objective="measure organic recovery and aqueous residual",
+        expected_effect="produce a mass-balanced two-phase endpoint",
+        uncertainty=0.5,
+    )
+
+    with StaticOptimizationExperimentSession(
+        task_id="partition-discovery",
+        seed=0,
+        experiment_horizon=1,
+        scoring_contract_id=PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
+        observation_noise_namespace="partition-v3-fixed-basis-test",
+    ) as session:
+        result = session.execute(plan)
+
+    first_hplc = result.measurement_evidence[0]["processed_estimate"]
+    assert first_hplc["product_in_organic"] > 0.70
+    assert first_hplc["product_in_aqueous"] > 0.10
+    assert (
+        first_hplc["product_in_organic"] + first_hplc["product_in_aqueous"]
+    ) == pytest.approx(1.0, abs=0.08)
+    assert result.terminal_summary["leaderboard_score"] > 0.58
+
+
+def test_partition_nominal_pair_law_is_scoped_to_v3_contract() -> None:
+    environments = {
+        "default": ChemWorldEnv(task_id="partition-discovery", seed=0),
+        "v2": ChemWorldEnv(
+            task_id="partition-discovery",
+            seed=0,
+            scoring_contract_id=PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+        ),
+        "v3": ChemWorldEnv(
+            task_id="partition-discovery",
+            seed=0,
+            scoring_contract_id=PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
+        ),
+    }
+    try:
+        assert (
+            environments["default"]
+            .runtime.domain_services.phase_separation.nominal_pair_contract
+            is None
+        )
+        assert (
+            environments["v2"]
+            .runtime.domain_services.phase_separation.nominal_pair_contract
+            is None
+        )
+        assert (
+            environments["v3"]
+            .runtime.domain_services.phase_separation.nominal_pair_contract
+            == INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1
+        )
+    finally:
+        for environment in environments.values():
+            environment.close()
 
 
 def test_external_s0_execution_requires_exact_owner_confirmed_hashes() -> None:

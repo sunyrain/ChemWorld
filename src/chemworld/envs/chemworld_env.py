@@ -66,8 +66,15 @@ from chemworld.world.operations import (
     INSTRUMENTS,
     REACTION_OPERATIONS,
 )
+from chemworld.world.phase_kernel import (
+    INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1,
+)
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
-from chemworld.world.scoring import TASK_DERIVED_SCORING_CONTRACT, TaskScoringContract
+from chemworld.world.scoring import (
+    PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
+    TASK_DERIVED_SCORING_CONTRACT,
+    TaskScoringContract,
+)
 
 DEFAULT_SCENARIO_ID = "reaction-to-assay"
 __all__ = ["OBSERVATION_KEYS", "ChemWorldEnv"]
@@ -607,12 +614,19 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         return f"episode-{uuid4().hex}"
 
     def _make_runtime(self) -> ChemWorldRuntime:
+        partition_nominal_pair_contract = (
+            INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1
+            if self.scoring_contract.contract_id
+            == PARTITION_S0_EXTRACTION_EFFICIENCY_V3
+            else None
+        )
         return ChemWorldRuntime(
             world=self.world,
             constitution=self.constitution,
             task_spec=self.task_spec,
             compiled_mechanism=self.scenario_instance.compiled_mechanism,
             debug_truth=self.debug_truth,
+            partition_nominal_pair_contract=partition_nominal_pair_contract,
         )
 
     def _make_operation_validator(self) -> OperationValidator:

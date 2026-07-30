@@ -34,16 +34,33 @@ from chemworld.runtime.vnext_downstream import (
 )
 from chemworld.world.actions import SOLVENTS
 from chemworld.world.parameters import ChemWorldParameters
-from chemworld.world.phase_kernel import partition_split
+from chemworld.world.phase_kernel import (
+    INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1,
+    partition_split,
+)
 from chemworld.world.species_roles import PHASE_PRODUCT_AMOUNT_KEY
 
 
 class ChemWorldPhaseSeparationServices:
     """Maintain phase ledgers and execute extraction-style separation steps."""
 
-    def __init__(self, world: ChemWorldParameters, species_view: MechanismSpeciesView) -> None:
+    def __init__(
+        self,
+        world: ChemWorldParameters,
+        species_view: MechanismSpeciesView,
+        *,
+        nominal_pair_contract: str | None = None,
+    ) -> None:
+        if nominal_pair_contract not in {
+            None,
+            INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1,
+        }:
+            raise ValueError(
+                f"Unsupported partition nominal-pair contract: {nominal_pair_contract!r}"
+            )
         self.world = world
         self.species_view = species_view
+        self.nominal_pair_contract = nominal_pair_contract
         self.phase_ledgers = ChemWorldPhaseLedgerServices(species_view)
 
     def add_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:
@@ -129,7 +146,25 @@ class ChemWorldPhaseSeparationServices:
         impurity_total = self.phase_ledgers.phase_impurity_amount(state)
         extractor_settings = equipment_settings(state.equipment, "liquid_liquid_extractor")
         reactor_settings = equipment_settings(state.equipment, "batch_reactor")
-        solvent = int(extractor_settings.get("extractant", reactor_settings.get("solvent", 0)))
+        partition_inputs: dict[str, Any] = {}
+        if (
+            self.nominal_pair_contract
+            == INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1
+        ):
+            solvent = int(reactor_settings.get("solvent", 0))
+            partition_inputs = {
+                "extractant": int(extractor_settings.get("extractant", solvent)),
+                "nominal_pair_contract": self.nominal_pair_contract,
+            }
+        else:
+            # Preserve the historical runtime law for every task/contract except
+            # the explicitly selected partition v3 benchmark.
+            solvent = int(
+                extractor_settings.get(
+                    "extractant",
+                    reactor_settings.get("solvent", 0),
+                )
+            )
         split = partition_split(
             product_mol=p_total,
             impurity_mol=impurity_total,
@@ -148,6 +183,7 @@ class ChemWorldPhaseSeparationServices:
             phase_volume_multiplier=self.world.domain_parameter(
                 "partition_phase_volume_multiplier"
             ),
+            **partition_inputs,
         )
         organic[PHASE_PRODUCT_AMOUNT_KEY] = split["organic_product_mol"]
         aqueous[PHASE_PRODUCT_AMOUNT_KEY] = split["aqueous_product_mol"]

@@ -351,6 +351,12 @@ def build_static_optimization_agent(
         ),
         scoring_contract=scoring_contract.to_dict(),
         electrochemical_workflow_mode=static_optimization_workflow_mode(protocol),
+        optimization_scaffold_id=str(
+            method.get(
+                "static_optimization_scaffold_id",
+                "direct_known_horizon_five_task_public_contract_full_history_v15",
+            )
+        ),
     )
     agent.reset(task_spec.to_dict(), int(protocol["candidate_order_seed"]))
     return agent

@@ -48,6 +48,7 @@ class ChemWorldDomainServices:
         constitution: PhysicalConstitution,
         compiled_mechanism: CompiledMechanism,
         service_registry: DomainServiceRegistry | None = None,
+        partition_nominal_pair_contract: str | None = None,
     ) -> None:
         self.world = world
         self.constitution = constitution
@@ -57,7 +58,11 @@ class ChemWorldDomainServices:
         self.operation_recorder = ChemWorldOperationRecorder(constitution)
         self.primitive = ChemWorldPrimitiveOperationServices(world, self.species_view)
         self.reaction_thermal = ChemWorldReactionThermalServices(world, self.species_view)
-        self.phase_separation = ChemWorldPhaseSeparationServices(world, self.species_view)
+        self.phase_separation = ChemWorldPhaseSeparationServices(
+            world,
+            self.species_view,
+            nominal_pair_contract=partition_nominal_pair_contract,
+        )
         self.crystallization = ChemWorldCrystallizationServices(world, self.species_view)
         self.distillation = ChemWorldDistillationServices(world, self.species_view)
         self.flow = ChemWorldFlowServices(self.species_view, self.reaction_thermal)

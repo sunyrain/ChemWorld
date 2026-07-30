@@ -14,6 +14,36 @@ from chemworld.physchem.phase_equilibrium_units import (
     simulate_stability_aware_extraction,
 )
 
+INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1 = "independent-nominal-solvent-extractant-pair-v1"
+
+# These are explicit nominal interaction tables.  Row/column indices are opaque
+# category labels: adjacency, equality across the two axes, and numeric distance
+# have no scientific meaning.
+#
+# The product table is calibrated on the v3 fixed-initial-target inventory basis.
+# The 1.35 factor restores a useful, non-degenerate recovery range after replacing
+# the historical moving denominator: several selective pairs can reach the frozen
+# benchmark threshold, while weak pairs and under-extracted settings remain below it.
+PARTITION_V3_PRODUCT_DISTRIBUTION_CALIBRATION = 1.35
+_NOMINAL_PRODUCT_DISTRIBUTION_COEFFICIENTS = np.asarray(
+    (
+        (1.20, 3.40, 2.00, 3.80),
+        (2.80, 1.50, 3.60, 2.20),
+        (3.20, 2.60, 1.80, 3.50),
+        (2.40, 3.30, 3.00, 1.60),
+    ),
+    dtype=float,
+)
+_NOMINAL_IMPURITY_DISTRIBUTION_COEFFICIENTS = np.asarray(
+    (
+        (0.42, 0.66, 0.51, 0.74),
+        (0.58, 0.39, 0.69, 0.47),
+        (0.63, 0.55, 0.36, 0.61),
+        (0.49, 0.71, 0.57, 0.44),
+    ),
+    dtype=float,
+)
+
 
 class PartitionSplitResult(TypedDict):
     partition_coefficient: float
@@ -37,6 +67,8 @@ def partition_split(
     product_mol: float,
     impurity_mol: float,
     solvent: int,
+    extractant: int | None = None,
+    nominal_pair_contract: str | None = None,
     temperature_K: float,
     duration_s: float,
     stirring_speed_rpm: float,
@@ -52,7 +84,28 @@ def partition_split(
         or phase_volume_multiplier <= 0.0
     ):
         raise ValueError("partition intervention multipliers must be positive")
-    partition_base = np.array([0.65, 1.25, 2.20, 1.55])
+    if solvent < 0 or solvent >= 4:
+        raise ValueError("solvent must be one of four nominal choices")
+    if nominal_pair_contract is not None and (
+        nominal_pair_contract != INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1
+    ):
+        raise ValueError("unsupported nominal solvent/extractant pairing contract")
+    if nominal_pair_contract == INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1:
+        if extractant is None or extractant < 0 or extractant >= 4:
+            raise ValueError("independent nominal pairing requires one of four extractants")
+        partition_base = float(
+            PARTITION_V3_PRODUCT_DISTRIBUTION_CALIBRATION
+            * _NOMINAL_PRODUCT_DISTRIBUTION_COEFFICIENTS[solvent, extractant]
+        )
+        impurity_partition_base = float(
+            _NOMINAL_IMPURITY_DISTRIBUTION_COEFFICIENTS[solvent, extractant]
+        )
+        independent_nominal_pair = True
+    else:
+        historical_partition_base = np.array([0.65, 1.25, 2.20, 1.55])
+        partition_base = float(historical_partition_base[solvent])
+        impurity_partition_base = 0.0
+        independent_nominal_pair = False
     temperature_factor = 1.0 + 0.0025 * (temperature_K - 298.15)
     mix_factor = 0.75 + 0.25 * (1.0 - np.exp(-duration_s / 240.0)) * (
         0.70 + 0.30 * stirring_speed_rpm / 1200.0
@@ -60,7 +113,7 @@ def partition_split(
     partition = max(
         0.05,
         float(
-            partition_base[solvent] ** coefficient_exponent
+            partition_base**coefficient_exponent
             * temperature_factor
             * mix_factor
             * coefficient_multiplier
@@ -68,13 +121,24 @@ def partition_split(
     )
     v_org = max(organic_volume_L * phase_volume_multiplier, 1.0e-9)
     v_aq = max(aqueous_volume_L / phase_volume_multiplier, 1.0e-9)
-    impurity_partition = max(
-        0.05,
-        float(
-            (0.18 * partition / coefficient_multiplier + 0.08 * (solvent + 1))
-            / coefficient_multiplier**0.25
-        ),
-    )
+    if independent_nominal_pair:
+        impurity_partition = max(
+            0.05,
+            float(
+                impurity_partition_base**coefficient_exponent
+                * temperature_factor
+                * mix_factor
+                * coefficient_multiplier**0.50
+            ),
+        )
+    else:
+        impurity_partition = max(
+            0.05,
+            float(
+                (0.18 * partition / coefficient_multiplier + 0.08 * (solvent + 1))
+                / coefficient_multiplier**0.25
+            ),
+        )
     feed = {"product": max(product_mol, 0.0), "impurity": max(impurity_mol, 0.0)}
     if sum(feed.values()) > 0.0:
         distribution_model = DistributionCoefficientModelSpec(
@@ -134,9 +198,7 @@ def partition_split(
         extraction_converged = True
         extraction_balance_error = 0.0
         extraction_entrained_volume = 0.0
-        extraction_provenance = (
-            "ChemWorld stability-aware LLE empty-feed identity",
-        )
+        extraction_provenance = ("ChemWorld stability-aware LLE empty-feed identity",)
     return {
         "partition_coefficient": partition,
         "impurity_partition_coefficient": impurity_partition,
@@ -158,10 +220,11 @@ def partition_split(
 @dataclass(frozen=True)
 class PhaseModuleSpec:
     module_id: str = "phase_partition"
-    version: str = "0.5"
+    version: str = "0.7"
     laws: tuple[str, ...] = (
         "aqueous_organic_phase_volume_balance",
         "benchmark_calibrated_intrinsic_distribution_coefficients",
+        "contract_scoped_independent_nominal_solvent_extractant_interaction_table",
         "stability_gated_activity_corrected_extraction_train",
         "explicit_aqueous_entrainment_ledger",
         "tpd_style_phase_stability_diagnostic",
@@ -187,4 +250,10 @@ def _diagnostic_float(value: object, default: float = 0.0) -> float:
     return float(value) if isinstance(value, int | float) else default
 
 
-__all__ = ["PartitionSplitResult", "PhaseModuleSpec", "partition_split"]
+__all__ = [
+    "INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1",
+    "PARTITION_V3_PRODUCT_DISTRIBUTION_CALIBRATION",
+    "PartitionSplitResult",
+    "PhaseModuleSpec",
+    "partition_split",
+]

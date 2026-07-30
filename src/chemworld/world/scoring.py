@@ -14,6 +14,7 @@ ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2 = "electrochemical-s0-balanced-efficie
 CRYSTALLIZATION_S0_BALANCED_PRODUCT_V1 = "reaction-crystallization-s0-balanced-product-v1"
 DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2 = "reaction-distillation-s0-balanced-audit-safety-v2"
 PARTITION_S0_EXTRACTION_EFFICIENCY_V2 = "partition-s0-extraction-efficiency-v2"
+PARTITION_S0_EXTRACTION_EFFICIENCY_V3 = "partition-s0-extraction-efficiency-v3"
 FLOW_S0_BALANCED_PROCESS_V1 = "continuous-flow-s0-balanced-process-v1"
 
 
@@ -95,7 +96,10 @@ class TaskScoringContract:
                 },
                 contract_id=contract_id,
             )
-        if contract_id == PARTITION_S0_EXTRACTION_EFFICIENCY_V2:
+        if contract_id in {
+            PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+            PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
+        }:
             required = {
                 "phase_ratio",
                 "product_in_organic",
@@ -418,6 +422,7 @@ __all__ = [
     "FLOW_S0_BALANCED_PROCESS_V1",
     "OBJECTIVES",
     "PARTITION_S0_EXTRACTION_EFFICIENCY_V2",
+    "PARTITION_S0_EXTRACTION_EFFICIENCY_V3",
     "TASK_DERIVED_SCORING_CONTRACT",
     "ObjectiveWeights",
     "TaskScoringContract",

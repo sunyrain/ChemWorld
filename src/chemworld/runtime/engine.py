@@ -56,6 +56,7 @@ class ChemWorldRuntime:
         debug_truth: bool = False,
         registry: OperationKernelRegistry | None = None,
         domain_service_registry: DomainServiceRegistry | None = None,
+        partition_nominal_pair_contract: str | None = None,
     ) -> None:
         self.world = world
         self.constitution = constitution
@@ -69,6 +70,7 @@ class ChemWorldRuntime:
             constitution,
             compiled_mechanism=compiled_mechanism,
             service_registry=domain_service_registry,
+            partition_nominal_pair_contract=partition_nominal_pair_contract,
         )
         self.domain_services.validate_profile(self.profile)
         self.transaction_manager = TransactionManager(constitution)

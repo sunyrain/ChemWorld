@@ -7,6 +7,7 @@ import json
 import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from itertools import combinations
 from typing import Any, ClassVar
 
 import numpy as np
@@ -78,6 +79,9 @@ from chemworld.world.scoring import DISTILLATION_S0_BALANCED_AUDIT_SAFETY_V2
 
 STATIC_OPTIMIZATION_INTERFACE_VERSION = "chemworld-static-optimization-interface-0.3-s0-dev"
 STATIC_OPTIMIZATION_PROMPT_VERSION = "chemworld-static-optimization-prompt-0.3-s0-dev"
+STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION = (
+    "chemworld-static-optimization-prompt-0.5-s0-dev"
+)
 STATIC_FINAL_SYNTHESIS_VERSION = "chemworld-static-final-synthesis-0.3-s0-dev"
 STATIC_FINAL_SYNTHESIS_SEPARATE_VERSION = "chemworld-static-final-synthesis-0.4-s0-dev"
 STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION = "chemworld-static-final-synthesis-0.5-s0-dev"
@@ -90,6 +94,13 @@ DECLARED_CLAIM_VALIDATION_POLICIES = frozenset(
         DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN,
     }
 )
+DIRECT_OPTIMIZATION_SCAFFOLD_ID = (
+    "direct_known_horizon_five_task_public_contract_full_history_v15"
+)
+COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID = (
+    "coverage_then_adaptive_five_task_public_contract_full_history_v16"
+)
+COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS = 8
 
 _ELECTROCHEMICAL_CLAIM_CAUSES = (
     "controlled_potential_V",
@@ -180,6 +191,20 @@ physical recipe parameters are supplied, reason and report in those parameters a
 do not invent or request hidden normalized coordinates.
 """
 
+COVERAGE_ADAPTIVE_SYSTEM_PROMPT = """You are a static scientific optimization
+agent in ChemWorld. The world is fixed for the entire campaign. Optimize the task
+objective using only the public task contract, public experiment history, and public
+campaign_scaffold. During the first eight experiments, the protocol executor commits the
+balanced-design recipe shown in campaign_scaffold; use that condition to choose diagnostics,
+state the experiment's purpose, and predict its effect, but do not return recipe fields.
+After those eight experiments, choose the complete recipe yourself. Never treat nominal
+category codes as ordered or transferable across controls; compare completed experiments
+by terminal leaderboard_score; and distinguish deliberate replication from accidental
+duplication. Return exactly one JSON object without exposing private chain-of-thought.
+When named physical recipe parameters are supplied, reason and report in those parameters
+and units; do not invent or request hidden normalized coordinates.
+"""
+
 FINAL_SYNTHESIS_SYSTEM_PROMPT = """You are completing a fixed-world scientific
 optimization campaign in ChemWorld. Exploration is finished. Submit one final experimental
 method that represents your overall conclusion from the public evidence. The method may
@@ -188,6 +213,18 @@ declared public search bounds. Return exactly one JSON object without exposing p
 chain-of-thought. Ground the recommendation and working scientific explanation in public
 experiment indices and evidence IDs. Separate empirical relations from mechanism claims,
 and express structured claims only with the declared public vocabulary.
+"""
+
+COVERAGE_ADAPTIVE_FINAL_SYNTHESIS_SYSTEM_PROMPT = """You are completing a
+fixed-world scientific optimization campaign in ChemWorld. Exploration is finished.
+Submit one final experimental method using only the public campaign evidence and public
+campaign_scaffold. Prefer a tested condition supported by repeated or locally consistent
+evidence over a single noisy maximum. Use blind validation only after the recommendation
+is committed. Do not infer order or distance between nominal codes, and do not optimize
+an audit-only metric. Return exactly one JSON object without exposing private
+chain-of-thought. Ground the recommendation and working scientific explanation in public
+experiment indices and evidence IDs, separate empirical relationships from mechanistic
+hypotheses, and use only the declared public claim vocabulary.
 """
 
 FINAL_SYNTHESIS_SEPARATE_PREDICTIVE_SYSTEM_PROMPT = """You are completing a
@@ -421,6 +458,8 @@ class StaticOptimizationContextBuilder:
         crystallization_material_family_id: str | None = None,
         scoring_contract: Mapping[str, Any] | None = None,
         electrochemical_workflow_mode: str = (ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE),
+        optimization_scaffold_id: str | None = None,
+        algorithm_seed: int = 0,
     ) -> None:
         if history_limit <= 0:
             raise ValueError("history_limit must be positive")
@@ -459,9 +498,253 @@ class StaticOptimizationContextBuilder:
         self.electrochemical_workflow_mode = normalize_electrochemical_workflow_mode(
             electrochemical_workflow_mode
         )
+        self.optimization_scaffold_id = str(
+            optimization_scaffold_id or DIRECT_OPTIMIZATION_SCAFFOLD_ID
+        )
+        self.algorithm_seed = int(algorithm_seed)
         self.measurement_slots = _measurement_slots(
             self.task_info, self.electrochemical_workflow_mode
         )
+
+    def _coverage_design(self) -> np.ndarray:
+        """Return a deterministic, task-neutral balanced design for the first rounds."""
+
+        count = COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS
+        dimension = _recipe_dimension(self.task_info, self.electrochemical_workflow_mode)
+        task_id = str(self.task_info.get("task_id", ""))
+        task_offset = sum(
+            (index + 1) * byte for index, byte in enumerate(task_id.encode("utf-8"))
+        )
+        rng = np.random.default_rng(self.algorithm_seed + task_offset)
+        design = np.empty((count, dimension), dtype=float)
+        categorical = dict(
+            _recipe_categorical_coordinates(
+                self.task_info, self.electrochemical_workflow_mode
+            )
+        )
+        categorical_rank = 0
+        for coordinate in range(dimension):
+            category_count = categorical.get(coordinate)
+            if category_count is not None:
+                offset = int(rng.integers(0, category_count))
+                rows = np.arange(count)
+                base_categories = rows % category_count
+                blocks = rows // category_count
+                categories = (
+                    base_categories * (2 * categorical_rank + 1)
+                    + blocks * categorical_rank
+                    + offset
+                ) % category_count
+                design[:, coordinate] = (categories + 0.5) / category_count
+                categorical_rank += 1
+                continue
+            permutation = rng.permutation(count)
+            design[:, coordinate] = (permutation + 0.5) / count
+        return design
+
+    def _history_vector(self, record: Mapping[str, Any]) -> np.ndarray:
+        plan = record.get("plan")
+        if not isinstance(plan, Mapping):
+            raise ValueError("static history record is missing plan")
+        if _uses_named_physical_controls(self.task_info):
+            return _vector_from_parameters(
+                self.task_info,
+                self.electrochemical_workflow_mode,
+                plan.get("recipe_parameters"),
+            )
+        return np.asarray(plan.get("search_vector"), dtype=float).reshape(-1)
+
+    def _coordinate_labels(self) -> tuple[str, ...]:
+        if _uses_named_physical_controls(self.task_info):
+            return tuple(
+                str(control_id)
+                for control_id in _recipe_parameter_schema(
+                    self.task_info, self.electrochemical_workflow_mode
+                )
+            )
+        return tuple(
+            str(item["control_id"]) for item in task_recipe_coordinate_schema(self.task_info)
+        )
+
+    def _coverage_audit(
+        self, experiment_history: Sequence[Mapping[str, Any]]
+    ) -> dict[str, Any]:
+        vectors = [self._history_vector(record) for record in experiment_history]
+        labels = self._coordinate_labels()
+        categorical = dict(
+            _recipe_categorical_coordinates(
+                self.task_info, self.electrochemical_workflow_mode
+            )
+        )
+        continuous_coverage: list[dict[str, Any]] = []
+        categorical_coverage: list[dict[str, Any]] = []
+        categorical_assignments: dict[str, list[int]] = {}
+        for coordinate, label in enumerate(labels):
+            values = [float(vector[coordinate]) for vector in vectors]
+            category_count = categorical.get(coordinate)
+            if category_count is not None:
+                counts = {
+                    str(category): sum(
+                        min(int(value * category_count), category_count - 1) == category
+                        for value in values
+                    )
+                    for category in range(category_count)
+                }
+                categorical_assignments[label] = [
+                    min(int(value * category_count), category_count - 1)
+                    for value in values
+                ]
+                categorical_coverage.append(
+                    {
+                        "control_id": label,
+                        "category_counts": counts,
+                        "all_categories_seen": bool(values)
+                        and all(count > 0 for count in counts.values()),
+                    }
+                )
+                continue
+            continuous_coverage.append(
+                {
+                    "control_id": label,
+                    "distinct_value_count": len({round(value, 8) for value in values}),
+                    "lower_region_seen": any(value <= 0.20 for value in values),
+                    "upper_region_seen": any(value >= 0.80 for value in values),
+                }
+            )
+        nominal_pair_coverage = []
+        cardinalities = {
+            str(item["control_id"]): len(item["category_counts"])
+            for item in categorical_coverage
+        }
+        for first, second in combinations(categorical_assignments, 2):
+            observed_pairs = set(
+                zip(
+                    categorical_assignments[first],
+                    categorical_assignments[second],
+                    strict=True,
+                )
+            )
+            maximum_distinct_pairs = min(
+                len(vectors),
+                cardinalities[first] * cardinalities[second],
+            )
+            nominal_pair_coverage.append(
+                {
+                    "control_ids": [first, second],
+                    "distinct_pair_count": len(observed_pairs),
+                    "maximum_distinct_pair_count_at_current_budget": (
+                        maximum_distinct_pairs
+                    ),
+                    "maximally_distinct_at_current_budget": bool(vectors)
+                    and len(observed_pairs) == maximum_distinct_pairs,
+                }
+            )
+        return {
+            "completed_experiment_count": len(experiment_history),
+            "continuous_controls": continuous_coverage,
+            "categorical_controls": categorical_coverage,
+            "nominal_pair_coverage": nominal_pair_coverage,
+            "all_continuous_extremes_seen": bool(continuous_coverage)
+            and all(
+                item["lower_region_seen"] and item["upper_region_seen"]
+                for item in continuous_coverage
+            ),
+            "all_nominal_categories_seen": bool(categorical_coverage)
+            and all(item["all_categories_seen"] for item in categorical_coverage),
+            "all_nominal_pairs_maximally_distinct": bool(nominal_pair_coverage)
+            and all(
+                item["maximally_distinct_at_current_budget"]
+                for item in nominal_pair_coverage
+            ),
+        }
+
+    def _campaign_scaffold(
+        self, experiment_history: Sequence[Mapping[str, Any]]
+    ) -> dict[str, Any]:
+        completed = len(experiment_history)
+        total = self.total_experiments or max(
+            COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS, completed + 1
+        )
+        closeout_start = max(total - 4, COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS)
+        if completed < COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS:
+            phase = "balanced_coverage"
+            requirement = (
+                "The protocol executor commits the displayed balanced-design condition. "
+                "Use the model call to select diagnostics and explain what this condition "
+                "tests; recipe selection becomes model-controlled after experiment eight."
+            )
+        elif completed < closeout_start:
+            phase = "adaptive_discrimination"
+            requirement = (
+                "Use the coverage audit and public scores to compare multiple promising "
+                "regions. Prefer controlled one-factor contrasts or local refinements, "
+                "while retaining at least one credible alternative nominal category."
+            )
+        else:
+            phase = "robust_closeout"
+            requirement = (
+                "Resolve uncertainty around the strongest tested region. Deliberately "
+                "replicate or challenge the leading condition; avoid unsupported "
+                "high-dimensional extrapolation before final synthesis."
+            )
+        ranked = sorted(
+            (
+                {
+                    "experiment_index": int(record["experiment_index"]),
+                    "leaderboard_score": float(
+                        record["terminal_summary"].get("leaderboard_score", 0.0)
+                    ),
+                }
+                for record in experiment_history
+            ),
+            key=lambda item: item["leaderboard_score"],
+            reverse=True,
+        )[:3]
+        scaffold: dict[str, Any] = {
+            "scaffold_id": COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+            "policy_scope": "task_neutral_public_history_only",
+            "phase": phase,
+            "initial_balanced_coverage_experiments": (
+                COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS
+            ),
+            "initial_design_authority": (
+                "protocol_executor"
+                if completed < COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS
+                else "completed"
+            ),
+            "model_recipe_selection_begins_at_experiment_index": (
+                COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS
+            ),
+            "decision_requirement": requirement,
+            "coverage_audit": self._coverage_audit(experiment_history),
+            "top_public_experiments": ranked,
+            "invariants": {
+                "nominal_codes_are_independent_and_unordered": True,
+                "continuous_range_coverage_precedes_local_exploitation": True,
+                "terminal_leaderboard_score_is_primary_feedback": True,
+                "audit_only_metrics_do_not_drive_candidate_selection": True,
+                "final_recommendation_should_be_supported_by_robust_public_evidence": True,
+            },
+        }
+        if completed < COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS:
+            suggestion = self._coverage_design()[completed]
+            if _uses_named_physical_controls(self.task_info):
+                scaffold["executor_committed_recipe_parameters"] = _compact(
+                    _parameters_from_vector(
+                        self.task_info,
+                        self.electrochemical_workflow_mode,
+                        suggestion,
+                    )
+                )
+            else:
+                scaffold["executor_committed_search_vector"] = _compact(
+                    suggestion.tolist()
+                )
+            scaffold["committed_design_semantics"] = (
+                "deterministic balanced Latin-hypercube strata for continuous controls "
+                "with balanced independent nominal-category coverage"
+            )
+        return scaffold
 
     def build(
         self,
@@ -666,6 +949,8 @@ class StaticOptimizationContextBuilder:
             "experiment_history": history,
             "evidence_catalog": evidence_catalog,
         }
+        if self.optimization_scaffold_id == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID:
+            payload["campaign_scaffold"] = self._campaign_scaffold(experiment_history)
         if decision_stage == "final_synthesis" and include_prediction_queries:
             queries = (
                 build_electrochemical_prediction_queries(
@@ -1324,6 +1609,7 @@ class StaticOptimizationAgent:
         crystallization_material_family_id: str | None = None,
         scoring_contract: Mapping[str, Any] | None = None,
         electrochemical_workflow_mode: str = (ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE),
+        optimization_scaffold_id: str | None = None,
     ) -> None:
         self.client = client
         self.role_id = role_id
@@ -1371,6 +1657,26 @@ class StaticOptimizationAgent:
         self.electrochemical_workflow_mode = normalize_electrochemical_workflow_mode(
             electrochemical_workflow_mode
         )
+        self.optimization_scaffold_id = str(
+            optimization_scaffold_id or DIRECT_OPTIMIZATION_SCAFFOLD_ID
+        )
+        coverage_adaptive = (
+            self.optimization_scaffold_id
+            == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID
+        )
+        self.prompt_version = (
+            STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION
+            if coverage_adaptive
+            else STATIC_OPTIMIZATION_PROMPT_VERSION
+        )
+        self.experiment_system_prompt = (
+            COVERAGE_ADAPTIVE_SYSTEM_PROMPT if coverage_adaptive else SYSTEM_PROMPT
+        )
+        self.final_synthesis_system_prompt = (
+            COVERAGE_ADAPTIVE_FINAL_SYNTHESIS_SYSTEM_PROMPT
+            if coverage_adaptive
+            else FINAL_SYNTHESIS_SYSTEM_PROMPT
+        )
         self.resource_ledger = ResourceLedger()
         self._last_audit: dict[str, Any] | None = None
         self._last_synthesis_audit: dict[str, Any] | None = None
@@ -1398,6 +1704,8 @@ class StaticOptimizationAgent:
             crystallization_material_family_id=(self.crystallization_material_family_id),
             scoring_contract=self.scoring_contract,
             electrochemical_workflow_mode=self.electrochemical_workflow_mode,
+            optimization_scaffold_id=self.optimization_scaffold_id,
+            algorithm_seed=self.seed,
         )
         self.validator = StaticOptimizationValidator(
             self.task_info,
@@ -1444,6 +1752,11 @@ class StaticOptimizationAgent:
     def plan_next(self, history: Sequence[Mapping[str, Any]]) -> StaticOptimizationPlan:
         context = self.public_context(history)
         context_sha256 = canonical_sha256(context)
+        coverage_design_enforced = bool(
+            self.optimization_scaffold_id
+            == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID
+            and len(history) < COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS
+        )
         recipe_field = (
             {
                 "recipe_parameters": {
@@ -1463,19 +1776,25 @@ class StaticOptimizationAgent:
                 ]
             }
         )
+        required_recipe_field = {} if coverage_design_enforced else recipe_field
         prompt_payload = {
-            "schema_version": STATIC_OPTIMIZATION_PROMPT_VERSION,
+            "schema_version": self.prompt_version,
             "public_experiment_context": context,
             "public_context_sha256": context_sha256,
             "required_json_shape": {
                 "experiment_intent": "string",
-                **recipe_field,
+                **required_recipe_field,
                 "requested_measurement_slots": ["public diagnostic slot ID"],
                 "measurement_objective": "string",
                 "expected_effect": "string",
                 "uncertainty": "number in [0,1]",
             },
         }
+        if coverage_design_enforced:
+            prompt_payload["forbidden_json_fields"] = [
+                "recipe_parameters",
+                "search_vector",
+            ]
         prompt = json.dumps(
             prompt_payload,
             ensure_ascii=False,
@@ -1490,7 +1809,7 @@ class StaticOptimizationAgent:
             )
         try:
             completion = self.client.complete_json(
-                system_prompt=SYSTEM_PROMPT,
+                system_prompt=self.experiment_system_prompt,
                 user_prompt=prompt,
                 max_tokens=self.response_max_tokens,
             )
@@ -1498,12 +1817,32 @@ class StaticOptimizationAgent:
             self.resource_ledger.record_failure(error)
             raise
         self.resource_ledger.record_completion(completion)
-        plan = self.validator.validate(completion.payload)
+        validated_payload = completion.payload
+        model_supplied_recipe_ignored = False
+        if coverage_design_enforced and isinstance(completion.payload, Mapping):
+            validated_payload = copy.deepcopy(dict(completion.payload))
+            model_supplied_recipe_ignored = any(
+                field in validated_payload
+                for field in ("recipe_parameters", "search_vector")
+            )
+            validated_payload.pop("recipe_parameters", None)
+            validated_payload.pop("search_vector", None)
+            scaffold = context["campaign_scaffold"]
+            if _uses_named_physical_controls(self.task_info):
+                validated_payload["recipe_parameters"] = copy.deepcopy(
+                    scaffold["executor_committed_recipe_parameters"]
+                )
+            else:
+                validated_payload["search_vector"] = copy.deepcopy(
+                    scaffold["executor_committed_search_vector"]
+                )
+        plan = self.validator.validate(validated_payload)
         self._last_audit = {
             "schema_version": STATIC_OPTIMIZATION_INTERFACE_VERSION,
             "role_id": self.role_id,
             "public_context_sha256": context_sha256,
             "plan_sha256": canonical_sha256(plan.to_dict()),
+            "model_completion_payload_sha256": canonical_sha256(completion.payload),
             "provider_model": str(completion.model),
             "provider_attempts": int(completion.attempts),
             "provider_usage": copy.deepcopy(to_builtin(completion.usage)),
@@ -1512,6 +1851,14 @@ class StaticOptimizationAgent:
             "prompt_token_estimate_cap": self.prompt_token_estimate_cap,
             "static_world_assumed": True,
             "hidden_world_fields_supplied": False,
+            "coverage_design_enforced": coverage_design_enforced,
+            "coverage_design_experiment_index": (
+                len(history) if coverage_design_enforced else None
+            ),
+            "recipe_selection_authority": (
+                "protocol_executor" if coverage_design_enforced else "model"
+            ),
+            "model_supplied_recipe_ignored": model_supplied_recipe_ignored,
             "material_information_condition": (self.context_builder.material_information_condition),
             "material_information_sha256": (self.context_builder.material_information_sha256),
             "scoring_contract": copy.deepcopy(self.scoring_contract),
@@ -1651,7 +1998,7 @@ class StaticOptimizationAgent:
                     FINAL_SYNTHESIS_SEPARATE_PREDICTIVE_SYSTEM_PROMPT
                     if self.predictive_world_understanding_enabled
                     and not include_prediction_queries
-                    else FINAL_SYNTHESIS_SYSTEM_PROMPT
+                    else self.final_synthesis_system_prompt
                 ),
                 user_prompt=prompt,
                 max_tokens=self.response_max_tokens,
@@ -1850,7 +2197,8 @@ class StaticOptimizationAgent:
             "provider_model": self.client.model,
             "decision_scope": "complete_experiment",
             "interface_version": STATIC_OPTIMIZATION_INTERFACE_VERSION,
-            "prompt_version": STATIC_OPTIMIZATION_PROMPT_VERSION,
+            "prompt_version": self.prompt_version,
+            "optimization_scaffold_id": self.optimization_scaffold_id,
             "history_limit": self.history_limit,
             "prompt_token_estimate_cap": self.prompt_token_estimate_cap,
             "experiment_horizon": self.experiment_horizon,
@@ -1933,14 +2281,19 @@ def compile_static_optimization_plan(
 
 
 __all__ = [
+    "COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS",
+    "COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID",
+    "COVERAGE_ADAPTIVE_SYSTEM_PROMPT",
     "DECLARED_CLAIM_VALIDATION_STRICT",
     "DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN",
+    "DIRECT_OPTIMIZATION_SCAFFOLD_ID",
     "FINAL_SYNTHESIS_SEPARATE_PREDICTIVE_SYSTEM_PROMPT",
     "FINAL_SYNTHESIS_SYSTEM_PROMPT",
     "PREDICTIVE_SYNTHESIS_SYSTEM_PROMPT",
     "STATIC_FINAL_SYNTHESIS_SEPARATE_VERSION",
     "STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION",
     "STATIC_FINAL_SYNTHESIS_VERSION",
+    "STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION",
     "STATIC_OPTIMIZATION_INTERFACE_VERSION",
     "STATIC_OPTIMIZATION_PROMPT_VERSION",
     "STATIC_PREDICTIVE_SYNTHESIS_VERSION",

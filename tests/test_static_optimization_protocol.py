@@ -30,6 +30,7 @@ from chemworld.world.scoring import (
     ELECTROCHEMICAL_S0_BALANCED_EFFICIENCY_V2,
     FLOW_S0_BALANCED_PROCESS_V1,
     PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+    PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
     TaskScoringContract,
 )
 
@@ -192,6 +193,11 @@ def test_distillation_s0_v2_scoring_contract_is_task_scoped() -> None:
         (
             "partition-discovery",
             PARTITION_S0_EXTRACTION_EFFICIENCY_V2,
+            "flow-reaction-optimization",
+        ),
+        (
+            "partition-discovery",
+            PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
             "flow-reaction-optimization",
         ),
         (
