@@ -1,0 +1,168 @@
+{
+  "schema_version": "chemworld-static-s0-five-task-qualification-plan-0.5-dev",
+  "qualification_id": "static-s0-five-task-single-seed-qualification-v0.5-2026-07-30",
+  "status": "development_single_seed_only_pending_execution",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "observation_noise_namespace_base": "static-s0-five-task-single-seed-qualification-v0.2-2026-07-30",
+  "task_ids": [
+    "electrochemical-conversion",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "partition-discovery",
+    "flow-reaction-optimization"
+  ],
+  "seed_policy": {
+    "world_seeds": [
+      0
+    ],
+    "algorithm_seeds": [
+      0
+    ],
+    "multi_seed_execution_allowed": false,
+    "release_condition": "every task, baseline-readiness gate, and shared-participant gate must pass on frozen world seed 0 before any new multi-seed execution"
+  },
+  "campaign": {
+    "exploration_experiments": 20,
+    "incumbent_validation_replicates": 3,
+    "recommendation_validation_replicates": 3,
+    "horizon_visible": true,
+    "baseline_final_selection": "best_observed_completed_experiment",
+    "participant_final_selection": "committed_model_final_recommendation"
+  },
+  "tasks": {
+    "electrochemical-conversion": {
+      "role": "confirmatory_flagship",
+      "dimension": 6,
+      "compiled_operation_count": 8,
+      "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+      "material_family_id": "nominal-prior-latent-v2",
+      "workflow_mode": "static_single_stage",
+      "required_measurement_slots": []
+    },
+    "reaction-to-crystallization": {
+      "role": "confirmatory_flagship",
+      "dimension": 10,
+      "compiled_operation_count": 12,
+      "scoring_contract_id": "reaction-crystallization-s0-balanced-product-v1",
+      "material_family_id": "reaction-crystallization-latent-materials-v1",
+      "required_measurement_slots": []
+    },
+    "reaction-to-distillation": {
+      "role": "extended_process_flagship",
+      "dimension": 13,
+      "compiled_operation_count": 12,
+      "scoring_contract_id": "reaction-distillation-s0-balanced-audit-safety-v2",
+      "required_measurement_slots": [
+        "diagnostic-01-hplc",
+        "diagnostic-02-gc"
+      ],
+      "safety_role": "audit_only_nonoptimizing"
+    },
+    "partition-discovery": {
+      "role": "extended_process_flagship",
+      "dimension": 8,
+      "compiled_operation_count": 10,
+      "scoring_contract_id": "partition-s0-extraction-efficiency-v3",
+      "required_measurement_slots": []
+    },
+    "flow-reaction-optimization": {
+      "role": "extended_process_flagship",
+      "dimension": 8,
+      "compiled_operation_count": 8,
+      "scoring_contract_id": "continuous-flow-s0-balanced-process-v1",
+      "required_measurement_slots": []
+    }
+  },
+  "algorithms": {
+    "random": {
+      "family": "uniform_random_search",
+      "information_condition": "opaque_score_and_public_stage_measurements"
+    },
+    "lhs": {
+      "family": "balanced_latin_hypercube",
+      "information_condition": "opaque_score_and_public_stage_measurements"
+    },
+    "greedy": {
+      "family": "local_perturbation",
+      "information_condition": "opaque_score_and_public_stage_measurements",
+      "n_initial": 6,
+      "perturbation_scale": 0.12,
+      "exploration_probability": 0.2
+    },
+    "structured_gp_ei": {
+      "family": "gaussian_process_expected_improvement",
+      "information_condition": "opaque_score_and_public_stage_measurements",
+      "categorical_surrogate_encoding": "nominal_one_hot",
+      "n_initial": 6,
+      "n_candidates": 2048,
+      "local_candidate_fraction": 0.5,
+      "local_candidate_scale": 0.12
+    },
+    "structured_rf_ei": {
+      "family": "random_forest_expected_improvement",
+      "information_condition": "opaque_score_and_public_stage_measurements",
+      "categorical_surrogate_encoding": "nominal_one_hot",
+      "n_initial": 6,
+      "n_candidates": 2048,
+      "n_estimators": 192,
+      "local_candidate_fraction": 0.5,
+      "local_candidate_scale": 0.12
+    }
+  },
+  "baseline_readiness_policy": {
+    "adaptive_algorithm_ids": [
+      "greedy",
+      "structured_gp_ei",
+      "structured_rf_ei"
+    ],
+    "minimum_passing_adaptive_families": 2,
+    "minimum_best_validated_threshold_margin": 0.02,
+    "difficulty_control_algorithm_ids": [
+      "random",
+      "lhs"
+    ],
+    "rationale": "Random search and Latin-hypercube sampling are benchmark-difficulty controls, not capability-qualified optimizers. Readiness requires two distinct adaptive algorithm families to clear the frozen task threshold and at least one validated baseline to clear it by a nontrivial margin."
+  },
+  "participant": {
+    "provider": "codex_subscription",
+    "method_config_path": "configs/methods/llm_v1.9/participant_methods_s0_codex_subscription_sol_five_task_seed0_v19.json",
+    "method_id": "s0_codex_subscription_sol_medium_five_task_shared_seed0_v19",
+    "shared_task_neutral_scaffold": true,
+    "task_specific_hidden_guidance": false
+  },
+  "qualification_gates": {
+    "exact_task_scope": true,
+    "single_world_seed_only": true,
+    "single_algorithm_seed_only": true,
+    "no_dead_recipe_coordinates": true,
+    "all_categorical_choices_reachable": true,
+    "atomic_complete_experiments": true,
+    "stage_valid_model_facing_evidence": true,
+    "explicit_nominal_categorical_semantics": true,
+    "no_inactive_score_components": true,
+    "minimum_empirical_score_component_range": 0.02,
+    "twenty_completed_experiments_per_method": true,
+    "three_blind_validation_replicates_per_target": true,
+    "deterministic_exploration_replay": true,
+    "deterministic_validation_replay": true,
+    "at_least_three_distinct_validated_baseline_scores": true,
+    "at_least_two_adaptive_baseline_families_reach_validated_threshold": true,
+    "best_baseline_validated_threshold_margin_at_least": 0.02,
+    "participant_initial_continuous_extremes_covered": true,
+    "participant_initial_nominal_categories_covered": true,
+    "participant_initial_nominal_pairs_maximally_distinct": true,
+    "participant_first_eight_recipes_committed_by_protocol_executor": true,
+    "participant_experiments_9_through_20_committed_by_public_task_neutral_schedule": true,
+    "participant_model_call_consumed_for_every_experiment": true,
+    "participant_all_twenty_exploration_recipes_distinct": true,
+    "participant_candidate_generation_uses_no_hidden_world_fields": true,
+    "participant_provider_matches_frozen_provider": true,
+    "participant_validated_threshold_reached": true,
+    "participant_regret_to_best_baseline_at_most": 0.06,
+    "participant_recommendation_not_worse_than_incumbent_by_more_than": 0.015,
+    "participant_final_synthesis_completed": true,
+    "participant_unknown_declared_terms_are_unscored_not_fatal": true
+  },
+  "claim_boundary": "This is a strengthened world-seed-0 development qualification for task readiness and one shared public-history-only hybrid participant scaffold. It retains the v0.2 keyed observation-noise namespace so scaffold revisions use the same observation realization rather than selecting a new noise trial. The protocol executor, not the language model, commits all 20 exploration recipes under one frozen task-neutral schedule: eight balanced-coverage recipes, six public-history maximin candidates, and six public-history boundary-challenge candidates. Codex selects diagnostics, supplies public-evidence-grounded scientific interpretation for every experiment, and commits the final recommendation. Candidate generation uses no hidden world fields, and blind validation supplies replication. This result must not be described as language-model recipe-selection performance; v1.6 through v1.8 remain the autonomous model-selection ablations. Random search and Latin-hypercube sampling remain difficulty controls and are not counted as adaptive capability families. This qualification cannot establish multi-world robustness, method superiority, provider effects, or publication-grade effect sizes. Failure cannot be repaired by lowering a frozen task threshold post hoc."
+}

@@ -31,11 +31,13 @@ from chemworld.agents.static_optimization import (
     COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
     COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID,
     COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID,
+    COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID,
     DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN,
     STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION,
     STATIC_OPTIMIZATION_COVERAGE_PROMPT_VERSION,
     STATIC_OPTIMIZATION_NONDUPLICATE_PORTFOLIO_PROMPT_VERSION,
     STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION,
+    STATIC_OPTIMIZATION_SCHEDULED_PORTFOLIO_PROMPT_VERSION,
     StaticFinalRecommendationValidator,
     StaticOptimizationAgent,
     StaticOptimizationPlan,
@@ -313,7 +315,7 @@ def test_coverage_adaptive_scaffold_balances_first_eight_flow_designs() -> None:
         prompt_token_estimate_cap=20_000,
         experiment_horizon=20,
         horizon_visible=True,
-        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID,
     )
     agent.reset(task_info, 0)
     history: list[dict[str, object]] = []
@@ -410,7 +412,7 @@ def test_coverage_scaffold_keeps_named_controls_physical() -> None:
         prompt_token_estimate_cap=20_000,
         experiment_horizon=20,
         horizon_visible=True,
-        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID,
     )
     coverage.reset(task_info, 0)
     scaffold = coverage.public_context([])["campaign_scaffold"]
@@ -455,7 +457,7 @@ def test_portfolio_candidate_id_must_match_the_returned_recipe() -> None:
         prompt_token_estimate_cap=20_000,
         experiment_horizon=20,
         horizon_visible=True,
-        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID,
     )
     agent.reset(get_task("flow-reaction-optimization").to_dict(), 0)
     history: list[dict[str, object]] = []
@@ -565,7 +567,7 @@ def test_v18_portfolio_keeps_all_twelve_model_rounds_novel_and_portfolio_bound()
         prompt_token_estimate_cap=20_000,
         experiment_horizon=20,
         horizon_visible=True,
-        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID,
     )
     agent.reset(get_task("flow-reaction-optimization").to_dict(), 0)
     history = [
@@ -602,6 +604,75 @@ def test_v18_portfolio_keeps_all_twelve_model_rounds_novel_and_portfolio_bound()
     for candidate in scaffold["model_candidate_portfolio"]:
         vector = candidate["search_vector"]
         assert all(vector != previous for previous in history_vectors)
+
+
+def test_v19_scheduled_portfolio_commits_all_twelve_postcoverage_recipes() -> None:
+    agent = StaticOptimizationAgent(
+        _DeterministicStaticMockClient(),
+        role_id="v19-scheduled-portfolio-test",
+        response_max_tokens=1000,
+        history_limit=20,
+        prompt_token_estimate_cap=20_000,
+        experiment_horizon=20,
+        horizon_visible=True,
+        optimization_scaffold_id=COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+    )
+    agent.reset(get_task("flow-reaction-optimization").to_dict(), 0)
+    history: list[dict[str, object]] = []
+    vectors: list[tuple[float, ...]] = []
+
+    for experiment_index in range(20):
+        context = agent.public_context(history)
+        scaffold = context["campaign_scaffold"]
+        plan = agent.plan_next(history)
+        audit = agent.decision_audit()
+        vectors.append(tuple(plan.search_vector))
+        if experiment_index < 8:
+            assert audit["coverage_design_enforced"] is True
+            assert audit["recipe_selection_authority"] == "protocol_executor"
+        else:
+            expected_candidate = (
+                "maximin_global" if experiment_index < 14 else "boundary_challenge"
+            )
+            assert scaffold["executor_committed_candidate_id"] == expected_candidate
+            assert audit["coverage_design_enforced"] is False
+            assert audit["recipe_selection_authority"] == "protocol_executor"
+            assert audit["portfolio_selection_enforced"] is False
+            assert audit["scheduled_portfolio_candidate_enforced"] is True
+            assert (
+                context["campaign_scaffold"]["invariants"][
+                    "candidate_generation_does_not_commit_the_recipe"
+                ]
+                is False
+            )
+            assert audit["portfolio_candidate_id"] == expected_candidate
+            assert (
+                audit["portfolio_candidate_selection_authority"]
+                == "protocol_executor_task_neutral_schedule"
+            )
+            assert audit["portfolio_hidden_world_fields_used"] is False
+            assert list(plan.search_vector) == pytest.approx(
+                scaffold["executor_committed_search_vector"]
+            )
+        history.append(
+            {
+                "experiment_index": experiment_index,
+                "plan": plan.to_dict(),
+                "measurement_evidence": [],
+                "terminal_summary": {
+                    "leaderboard_score": (
+                        0.2 + 0.5 * float(np.mean(plan.search_vector))
+                    ),
+                    "cost": 0.0,
+                    "safety_risk": 0.0,
+                },
+            }
+        )
+
+    assert len(set(vectors)) == 20
+    assert agent.manifest()["prompt_version"] == (
+        STATIC_OPTIMIZATION_SCHEDULED_PORTFOLIO_PROMPT_VERSION
+    )
 
 
 def test_distillation_compiler_requires_stage_local_hplc_and_fraction_gc() -> None:

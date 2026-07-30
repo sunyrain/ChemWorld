@@ -163,7 +163,7 @@ def _participant_protocol(plan: Mapping[str, Any], task_id: str) -> dict[str, An
     qualification_version = next(
         (
             version
-            for version in ("0.4", "0.3", "0.2")
+            for version in ("0.5", "0.4", "0.3", "0.2")
             if plan_schema_version.endswith(f"{version}-dev")
         ),
         "0.2",
@@ -588,11 +588,6 @@ def _participant_task_report(
             and audit.get("coverage_design_experiment_index") == experiment_index
             for experiment_index, audit in enumerate(decision_audits[:8])
         ),
-        "remaining_twelve_recipes_selected_by_model": all(
-            audit.get("coverage_design_enforced") is False
-            and audit.get("recipe_selection_authority") == "model"
-            for audit in decision_audits[8:]
-        ),
         "validated_threshold_reached": participant_score >= task.threshold,
         "regret_to_best_baseline_within_limit": (
             best_baseline - participant_score
@@ -617,6 +612,15 @@ def _participant_task_report(
             == "unscored_unknown_terms"
         ),
     }
+    if (
+        "participant_remaining_twelve_recipes_selected_by_model"
+        in plan["qualification_gates"]
+    ):
+        checks["remaining_twelve_recipes_selected_by_model"] = all(
+            audit.get("coverage_design_enforced") is False
+            and audit.get("recipe_selection_authority") == "model"
+            for audit in decision_audits[8:]
+        )
     if (
         "participant_experiments_9_through_17_selected_by_model_from_public_history_portfolio"
         in plan["qualification_gates"]
@@ -664,6 +668,50 @@ def _participant_task_report(
                     == "protocol_executor_using_public_history_only"
                     and audit.get("portfolio_candidate_selection_authority") == "model"
                     for audit in decision_audits[8:20]
+                ),
+                "all_twenty_exploration_recipes_distinct": (
+                    len(exploration_vectors) == 20
+                    and len(set(exploration_vectors)) == 20
+                ),
+                "candidate_generation_uses_no_hidden_world_fields": all(
+                    audit.get("portfolio_hidden_world_fields_used") is False
+                    for audit in decision_audits[8:20]
+                ),
+            }
+        )
+    if (
+        "participant_experiments_9_through_20_committed_by_public_task_neutral_schedule"
+        in plan["qualification_gates"]
+    ):
+        exploration_vectors = [
+            tuple(round(float(value), 12) for value in record["plan"]["search_vector"])
+            for record in cell["public_history"]
+        ]
+        expected_candidate_ids = [
+            *(["maximin_global"] * 6),
+            *(["boundary_challenge"] * 6),
+        ]
+        checks.update(
+            {
+                "experiments_9_through_20_committed_by_public_task_neutral_schedule": all(
+                    audit.get("coverage_design_enforced") is False
+                    and audit.get("recipe_selection_authority") == "protocol_executor"
+                    and audit.get("portfolio_selection_enforced") is False
+                    and audit.get("scheduled_portfolio_candidate_enforced") is True
+                    and audit.get("portfolio_candidate_id") == expected_candidate_id
+                    and audit.get("portfolio_candidate_generation_authority")
+                    == "protocol_executor_using_public_history_only"
+                    and audit.get("portfolio_candidate_selection_authority")
+                    == "protocol_executor_task_neutral_schedule"
+                    for audit, expected_candidate_id in zip(
+                        decision_audits[8:20],
+                        expected_candidate_ids,
+                        strict=True,
+                    )
+                ),
+                "model_call_consumed_for_every_experiment": all(
+                    audit.get("model_call_consumed") is True
+                    for audit in decision_audits
                 ),
                 "all_twenty_exploration_recipes_distinct": (
                     len(exploration_vectors) == 20
@@ -778,7 +826,9 @@ def main() -> int:
     for protocol in protocols.values():
         validate_static_optimization_protocol(protocol)
     plan_schema_version = str(plan.get("schema_version", ""))
-    strengthened = plan_schema_version.endswith(("0.2-dev", "0.3-dev", "0.4-dev"))
+    strengthened = plan_schema_version.endswith(
+        ("0.2-dev", "0.3-dev", "0.4-dev", "0.5-dev")
+    )
     participant_protocols = (
         {task_id: _participant_protocol(plan, task_id) for task_id in task_ids}
         if strengthened
@@ -877,7 +927,9 @@ def main() -> int:
             )
     report = {
         "schema_version": (
-            "chemworld-static-s0-five-task-qualification-report-0.4-dev"
+            "chemworld-static-s0-five-task-qualification-report-0.5-dev"
+            if plan_schema_version.endswith("0.5-dev")
+            else "chemworld-static-s0-five-task-qualification-report-0.4-dev"
             if plan_schema_version.endswith("0.4-dev")
             else "chemworld-static-s0-five-task-qualification-report-0.3-dev"
             if plan_schema_version.endswith("0.3-dev")

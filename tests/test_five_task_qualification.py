@@ -30,6 +30,9 @@ PORTFOLIO_PLAN_PATH = (
 NONDUPLICATE_PORTFOLIO_PLAN_PATH = (
     ROOT / "configs/benchmark/static_s0_five_task_single_seed_qualification_v0.4_dev.json"
 )
+SCHEDULED_PORTFOLIO_PLAN_PATH = (
+    ROOT / "configs/benchmark/static_s0_five_task_single_seed_qualification_v0.5_dev.json"
+)
 EXPECTED_TASK_IDS = [
     "electrochemical-conversion",
     "reaction-to-crystallization",
@@ -218,6 +221,56 @@ def test_nonduplicate_portfolio_qualification_keeps_all_model_rounds_bound() -> 
         validate_static_optimization_protocol(baseline_protocol)
         validate_static_optimization_protocol(participant_protocol)
         assert "qualification-0.4-s0-dev" in participant_protocol["schema_version"]
+        assert participant_protocol["world_policy"]["world_seed"] == 0
+        assert participant_protocol["observation_noise_namespace"] == (
+            "static-s0-five-task-single-seed-qualification-v0.2-2026-07-30"
+            f"--{task_id}"
+        )
+
+
+def test_scheduled_portfolio_qualification_reports_recipe_authority_honestly() -> None:
+    plan = _load_object(SCHEDULED_PORTFOLIO_PLAN_PATH)
+
+    assert plan["task_ids"] == EXPECTED_TASK_IDS
+    assert plan["seed_policy"]["world_seeds"] == [0]
+    assert plan["seed_policy"]["multi_seed_execution_allowed"] is False
+    assert plan["observation_noise_namespace_base"] == (
+        "static-s0-five-task-single-seed-qualification-v0.2-2026-07-30"
+    )
+    assert plan["participant"] == {
+        "provider": "codex_subscription",
+        "method_config_path": (
+            "configs/methods/llm_v1.9/"
+            "participant_methods_s0_codex_subscription_sol_five_task_seed0_v19.json"
+        ),
+        "method_id": (
+            "s0_codex_subscription_sol_medium_five_task_shared_seed0_v19"
+        ),
+        "shared_task_neutral_scaffold": True,
+        "task_specific_hidden_guidance": False,
+    }
+    gates = plan["qualification_gates"]
+    assert (
+        gates[
+            "participant_experiments_9_through_20_committed_by_public_task_neutral_schedule"
+        ]
+        is True
+    )
+    assert gates["participant_model_call_consumed_for_every_experiment"] is True
+    assert gates["participant_all_twenty_exploration_recipes_distinct"] is True
+    assert gates["participant_candidate_generation_uses_no_hidden_world_fields"] is True
+    assert "not the language model, commits all 20" in plan["claim_boundary"]
+    assert (
+        "must not be described as language-model recipe-selection performance"
+        in plan["claim_boundary"]
+    )
+
+    for task_id in EXPECTED_TASK_IDS:
+        baseline_protocol = _task_protocol(plan, task_id)
+        participant_protocol = _participant_protocol(plan, task_id)
+        validate_static_optimization_protocol(baseline_protocol)
+        validate_static_optimization_protocol(participant_protocol)
+        assert "qualification-0.5-s0-dev" in participant_protocol["schema_version"]
         assert participant_protocol["world_policy"]["world_seed"] == 0
         assert participant_protocol["observation_noise_namespace"] == (
             "static-s0-five-task-single-seed-qualification-v0.2-2026-07-30"

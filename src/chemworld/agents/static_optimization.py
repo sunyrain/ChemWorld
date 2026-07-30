@@ -91,6 +91,9 @@ STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION = (
 STATIC_OPTIMIZATION_NONDUPLICATE_PORTFOLIO_PROMPT_VERSION = (
     "chemworld-static-optimization-prompt-0.7-s0-dev"
 )
+STATIC_OPTIMIZATION_SCHEDULED_PORTFOLIO_PROMPT_VERSION = (
+    "chemworld-static-optimization-prompt-0.8-s0-dev"
+)
 STATIC_FINAL_SYNTHESIS_VERSION = "chemworld-static-final-synthesis-0.3-s0-dev"
 STATIC_FINAL_SYNTHESIS_SEPARATE_VERSION = "chemworld-static-final-synthesis-0.4-s0-dev"
 STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION = "chemworld-static-final-synthesis-0.5-s0-dev"
@@ -112,19 +115,24 @@ COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID = (
 COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID = (
     "coverage_surrogate_portfolio_five_task_public_contract_full_history_v17"
 )
-COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID = (
+COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID = (
     "coverage_surrogate_portfolio_nonduplicate_five_task_public_contract_full_history_v18"
+)
+COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID = (
+    "coverage_scheduled_public_portfolio_five_task_public_contract_full_history_v19"
 )
 COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_IDS = frozenset(
     {
         COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID,
         COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID,
+        COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID,
         COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
     }
 )
 SURROGATE_PORTFOLIO_OPTIMIZATION_SCAFFOLD_IDS = frozenset(
     {
         COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID,
+        COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID,
         COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
     }
 )
@@ -287,6 +295,23 @@ report in those parameters and units; do not invent or request hidden normalized
 coordinates.
 """
 
+SCHEDULED_SURROGATE_PORTFOLIO_SYSTEM_PROMPT = """You are the scientific-analysis
+component of a static hybrid optimization agent in ChemWorld. The world is fixed for the
+entire campaign. Use only the public task contract, public experiment history, and public
+campaign_scaffold. For every experiment, the protocol executor commits the displayed
+task-neutral recipe. During experiments 1 through 8 it uses balanced coverage; during
+experiments 9 through 14 it commits the public-history maximin candidate; and during
+experiments 15 through 20 it commits the public-history boundary-challenge candidate. Use
+the model call to choose diagnostics, state the scientific purpose of the committed recipe,
+and predict its effect, but do not return recipe fields or a candidate_id. Never treat
+nominal category codes as ordered or transferable across controls. The initial space-filling
+design is confounded, so do not infer a one-control direction merely by comparing unrelated
+recipes. Compare completed experiments using the frozen terminal leaderboard_score as the
+primary objective; signed component weights and stage measurements diagnose why scores
+change but do not replace that registered objective. Return exactly one JSON object without
+exposing private chain-of-thought.
+"""
+
 FINAL_SYNTHESIS_SYSTEM_PROMPT = """You are completing a fixed-world scientific
 optimization campaign in ChemWorld. Exploration is finished. Submit one final experimental
 method that represents your overall conclusion from the public evidence. The method may
@@ -335,6 +360,22 @@ negatively weighted component remains near its ceiling. Prefer a tested conditio
 by local consistency and balanced component performance; a clearly superior coherent tested
 region need not have campaign duplicates because three blind validation replicates follow
 the committed recommendation. Do not infer order or distance between nominal codes, and do
+not optimize an audit-only metric. Return exactly one JSON object without exposing private
+chain-of-thought. Ground the recommendation and working scientific explanation in public
+experiment indices and evidence IDs, separate empirical relationships from mechanistic
+hypotheses, and use only the declared public claim vocabulary.
+"""
+
+SCHEDULED_SURROGATE_PORTFOLIO_FINAL_SYNTHESIS_SYSTEM_PROMPT = """You are completing
+a fixed-world hybrid scientific optimization campaign in ChemWorld. Exploration is
+finished. Submit one final experimental method using only the public campaign evidence and
+public campaign_scaffold. The frozen terminal leaderboard_score is the registered primary
+objective and already encodes the signed component tradeoffs. Choose the tested condition
+with the strongest expected blind-validation score, using local consistency and measurement
+uncertainty only to distinguish plausibly similar scores. Do not replace the registered
+objective with an unregistered requirement that every component be individually balanced.
+Three blind validation replicates follow the committed recommendation, so campaign
+duplicates are not required. Do not infer order or distance between nominal codes, and do
 not optimize an audit-only metric. Return exactly one JSON object without exposing private
 chain-of-thought. Ground the recommendation and working scientific explanation in public
 experiment indices and evidence IDs, separate empirical relationships from mechanistic
@@ -835,9 +876,16 @@ class StaticOptimizationContextBuilder:
             self.optimization_scaffold_id
             in SURROGATE_PORTFOLIO_OPTIMIZATION_SCAFFOLD_IDS
         )
-        nonduplicate_portfolio_scaffold = (
+        scheduled_portfolio_scaffold = (
             self.optimization_scaffold_id
             == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID
+        )
+        nonduplicate_portfolio_scaffold = (
+            self.optimization_scaffold_id
+            in {
+                COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID,
+                COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID,
+            }
         )
         portfolio_final_experiment_index = (
             SURROGATE_PORTFOLIO_NONDUPLICATE_FINAL_EXPERIMENT_INDEX
@@ -860,7 +908,21 @@ class StaticOptimizationContextBuilder:
             requirement = (
                 "The protocol executor commits the displayed balanced-design condition. "
                 "Use the model call to select diagnostics and explain what this condition "
-                "tests; recipe selection becomes model-controlled after experiment eight."
+                "tests; the executor continues with the frozen task-neutral public "
+                "portfolio schedule after experiment eight."
+                if scheduled_portfolio_scaffold
+                else "The protocol executor commits the displayed balanced-design "
+                "condition. Use the model call to select diagnostics and explain what "
+                "this condition tests; recipe selection becomes model-controlled after "
+                "experiment eight."
+            )
+        elif scheduled_portfolio_scaffold and completed <= 13:
+            phase = "scheduled_global_portfolio_discrimination"
+            requirement = (
+                "The protocol executor commits the displayed public-history maximin "
+                "candidate under the frozen task-neutral schedule. Use the model call "
+                "to select diagnostics and explain how this condition discriminates "
+                "basins; do not return recipe fields or a candidate_id."
             )
         elif portfolio_scaffold and completed <= 13:
             phase = "global_surrogate_discrimination"
@@ -870,6 +932,17 @@ class StaticOptimizationContextBuilder:
                 "RF-EI, surrogate consensus, maximum-distance, uncertainty, and boundary "
                 "candidates; preserve basin discovery rather than making tiny sequential "
                 "changes or repeating a recipe."
+            )
+        elif scheduled_portfolio_scaffold and completed <= (
+            SURROGATE_PORTFOLIO_NONDUPLICATE_FINAL_EXPERIMENT_INDEX
+        ):
+            phase = "scheduled_boundary_portfolio_discrimination"
+            requirement = (
+                "The protocol executor commits the displayed public-history "
+                "boundary-challenge candidate under the frozen task-neutral schedule. "
+                "Use the model call to select diagnostics and explain which boundary, "
+                "nominal alternative, or competing basin this condition challenges; "
+                "do not return recipe fields or a candidate_id."
             )
         elif (
             portfolio_scaffold
@@ -935,7 +1008,9 @@ class StaticOptimizationContextBuilder:
                 else "completed"
             ),
             "model_recipe_selection_begins_at_experiment_index": (
-                COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS
+                None
+                if scheduled_portfolio_scaffold
+                else COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS
             ),
             "portfolio_candidate_selection_experiment_indices": (
                 list(
@@ -967,16 +1042,34 @@ class StaticOptimizationContextBuilder:
                 "audit_only_metrics_do_not_drive_candidate_selection": True,
                 "final_recommendation_should_be_supported_by_robust_public_evidence": True,
                 "candidate_generation_uses_public_history_only": portfolio_scaffold,
-                "candidate_generation_does_not_commit_the_recipe": portfolio_scaffold,
-                "candidate_selection_authority_remains_with_model": portfolio_scaffold,
+                "candidate_generation_does_not_commit_the_recipe": (
+                    portfolio_scaffold and not scheduled_portfolio_scaffold
+                ),
+                "candidate_selection_authority_remains_with_model": (
+                    portfolio_scaffold and not scheduled_portfolio_scaffold
+                ),
             },
         }
-        if nonduplicate_portfolio_scaffold:
+        if (
+            nonduplicate_portfolio_scaffold
+            and not scheduled_portfolio_scaffold
+        ):
             scaffold["invariants"].update(
                 {
                     "campaign_exploration_recipes_must_be_distinct": True,
                     "blind_validation_supplies_replication": True,
                     "score_component_bottlenecks_must_be_considered": True,
+                }
+            )
+        elif scheduled_portfolio_scaffold:
+            scaffold["invariants"].update(
+                {
+                    "campaign_exploration_recipes_must_be_distinct": True,
+                    "blind_validation_supplies_replication": True,
+                    "registered_terminal_score_remains_primary_objective": True,
+                    "candidate_selection_authority": (
+                        "protocol_executor_task_neutral_schedule"
+                    ),
                 }
             )
         if completed < COVERAGE_ADAPTIVE_INITIAL_EXPERIMENTS:
@@ -1000,31 +1093,67 @@ class StaticOptimizationContextBuilder:
         elif portfolio_selection_active:
             default_candidate_id = (
                 "maximin_global"
-                if phase == "global_surrogate_discrimination"
+                if completed <= 13
                 else "boundary_challenge"
             )
             portfolio = self._candidate_portfolio(experiment_history)
             portfolio.sort(
                 key=lambda item: item["candidate_id"] != default_candidate_id
             )
-            scaffold["model_candidate_portfolio"] = portfolio
             scaffold["task_neutral_default_candidate_id"] = default_candidate_id
-            scaffold["default_candidate_deviation_contract"] = (
-                "Use the default candidate unless specific completed public experiments "
-                "or evidence IDs justify another displayed candidate. State that evidence "
-                "in experiment_intent; no hidden-world rationale is permitted."
-            )
-            scaffold["candidate_portfolio_contract"] = {
-                "generation_authority": (
-                    "protocol_executor_using_public_history_only"
-                ),
-                "selection_authority": "model",
-                "model_must_return_exact_listed_recipe": True,
-                "hidden_world_fields_used": False,
-                "surrogate_predictions_are_ground_truth": False,
-                "candidate_id_required": True,
-            }
-            if nonduplicate_portfolio_scaffold:
+            if scheduled_portfolio_scaffold:
+                committed = copy.deepcopy(portfolio[0])
+                scaffold["public_history_candidate_portfolio"] = portfolio
+                scaffold["executor_committed_candidate_id"] = str(
+                    committed["candidate_id"]
+                )
+                if "recipe_parameters" in committed:
+                    scaffold["executor_committed_recipe_parameters"] = copy.deepcopy(
+                        committed["recipe_parameters"]
+                    )
+                else:
+                    scaffold["executor_committed_search_vector"] = copy.deepcopy(
+                        committed["search_vector"]
+                    )
+                scaffold["committed_design_semantics"] = (
+                    "frozen task-neutral schedule: maximum-distance public candidate "
+                    "for experiments 9 through 14, then public boundary-challenge "
+                    "candidate for experiments 15 through 20"
+                )
+                scaffold["candidate_portfolio_contract"] = {
+                    "generation_authority": (
+                        "protocol_executor_using_public_history_only"
+                    ),
+                    "selection_authority": (
+                        "protocol_executor_task_neutral_schedule"
+                    ),
+                    "model_selects_diagnostics_and_scientific_interpretation": True,
+                    "model_must_not_return_recipe_or_candidate_id": True,
+                    "hidden_world_fields_used": False,
+                    "completed_recipe_exclusion_minimum_encoded_distance": 0.02,
+                }
+            else:
+                scaffold["model_candidate_portfolio"] = portfolio
+                scaffold["default_candidate_deviation_contract"] = (
+                    "Use the default candidate unless specific completed public "
+                    "experiments or evidence IDs justify another displayed candidate. "
+                    "State that evidence in experiment_intent; no hidden-world rationale "
+                    "is permitted."
+                )
+                scaffold["candidate_portfolio_contract"] = {
+                    "generation_authority": (
+                        "protocol_executor_using_public_history_only"
+                    ),
+                    "selection_authority": "model",
+                    "model_must_return_exact_listed_recipe": True,
+                    "hidden_world_fields_used": False,
+                    "surrogate_predictions_are_ground_truth": False,
+                    "candidate_id_required": True,
+                }
+            if (
+                nonduplicate_portfolio_scaffold
+                and not scheduled_portfolio_scaffold
+            ):
                 scaffold["candidate_portfolio_contract"][
                     "completed_recipe_exclusion_minimum_encoded_distance"
                 ] = 0.02
@@ -1954,10 +2083,16 @@ class StaticOptimizationAgent:
         )
         nonduplicate_surrogate_portfolio = (
             self.optimization_scaffold_id
+            == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID
+        )
+        scheduled_surrogate_portfolio = (
+            self.optimization_scaffold_id
             == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID
         )
         self.prompt_version = (
-            STATIC_OPTIMIZATION_NONDUPLICATE_PORTFOLIO_PROMPT_VERSION
+            STATIC_OPTIMIZATION_SCHEDULED_PORTFOLIO_PROMPT_VERSION
+            if scheduled_surrogate_portfolio
+            else STATIC_OPTIMIZATION_NONDUPLICATE_PORTFOLIO_PROMPT_VERSION
             if nonduplicate_surrogate_portfolio
             else STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION
             if surrogate_portfolio_v17
@@ -1966,7 +2101,9 @@ class StaticOptimizationAgent:
             else STATIC_OPTIMIZATION_PROMPT_VERSION
         )
         self.experiment_system_prompt = (
-            NONDUPLICATE_SURROGATE_PORTFOLIO_SYSTEM_PROMPT
+            SCHEDULED_SURROGATE_PORTFOLIO_SYSTEM_PROMPT
+            if scheduled_surrogate_portfolio
+            else NONDUPLICATE_SURROGATE_PORTFOLIO_SYSTEM_PROMPT
             if nonduplicate_surrogate_portfolio
             else SURROGATE_PORTFOLIO_SYSTEM_PROMPT
             if surrogate_portfolio_v17
@@ -1975,7 +2112,9 @@ class StaticOptimizationAgent:
             else SYSTEM_PROMPT
         )
         self.final_synthesis_system_prompt = (
-            NONDUPLICATE_SURROGATE_PORTFOLIO_FINAL_SYNTHESIS_SYSTEM_PROMPT
+            SCHEDULED_SURROGATE_PORTFOLIO_FINAL_SYNTHESIS_SYSTEM_PROMPT
+            if scheduled_surrogate_portfolio
+            else NONDUPLICATE_SURROGATE_PORTFOLIO_FINAL_SYNTHESIS_SYSTEM_PROMPT
             if nonduplicate_surrogate_portfolio
             else SURROGATE_PORTFOLIO_FINAL_SYNTHESIS_SYSTEM_PROMPT
             if surrogate_portfolio_v17
@@ -2076,6 +2215,15 @@ class StaticOptimizationAgent:
             else []
         )
         portfolio_selection_enforced = bool(candidate_portfolio)
+        scheduled_portfolio_enforced = bool(
+            isinstance(scaffold, Mapping)
+            and scaffold.get("scaffold_id")
+            == COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_ID
+            and isinstance(scaffold.get("executor_committed_candidate_id"), str)
+        )
+        executor_recipe_enforced = bool(
+            coverage_design_enforced or scheduled_portfolio_enforced
+        )
         recipe_field = (
             {
                 "recipe_parameters": {
@@ -2095,7 +2243,7 @@ class StaticOptimizationAgent:
                 ]
             }
         )
-        required_recipe_field = {} if coverage_design_enforced else recipe_field
+        required_recipe_field = {} if executor_recipe_enforced else recipe_field
         required_candidate_field = (
             {"candidate_id": "one exact candidate_id listed in model_candidate_portfolio"}
             if portfolio_selection_enforced
@@ -2115,11 +2263,14 @@ class StaticOptimizationAgent:
                 "uncertainty": "number in [0,1]",
             },
         }
-        if coverage_design_enforced:
+        if executor_recipe_enforced:
             prompt_payload["forbidden_json_fields"] = [
+                "candidate_id",
                 "recipe_parameters",
                 "search_vector",
             ]
+            if coverage_design_enforced:
+                prompt_payload["forbidden_json_fields"].remove("candidate_id")
         prompt = json.dumps(
             prompt_payload,
             ensure_ascii=False,
@@ -2144,16 +2295,27 @@ class StaticOptimizationAgent:
         self.resource_ledger.record_completion(completion)
         validated_payload = completion.payload
         model_supplied_recipe_ignored = False
+        model_supplied_candidate_id_ignored = False
         selected_candidate_id: str | None = None
-        if coverage_design_enforced and isinstance(completion.payload, Mapping):
+        if executor_recipe_enforced and isinstance(completion.payload, Mapping):
             validated_payload = copy.deepcopy(dict(completion.payload))
             model_supplied_recipe_ignored = any(
                 field in validated_payload
                 for field in ("recipe_parameters", "search_vector")
             )
+            model_supplied_candidate_id_ignored = bool(
+                scheduled_portfolio_enforced
+                and "candidate_id" in validated_payload
+            )
+            if scheduled_portfolio_enforced:
+                validated_payload.pop("candidate_id", None)
             validated_payload.pop("recipe_parameters", None)
             validated_payload.pop("search_vector", None)
             scaffold = context["campaign_scaffold"]
+            if scheduled_portfolio_enforced:
+                selected_candidate_id = str(
+                    scaffold["executor_committed_candidate_id"]
+                )
             if _uses_named_physical_controls(self.task_info):
                 validated_payload["recipe_parameters"] = copy.deepcopy(
                     scaffold["executor_committed_recipe_parameters"]
@@ -2239,26 +2401,43 @@ class StaticOptimizationAgent:
                 len(history) if coverage_design_enforced else None
             ),
             "recipe_selection_authority": (
-                "protocol_executor" if coverage_design_enforced else "model"
+                "protocol_executor"
+                if executor_recipe_enforced
+                else "model"
             ),
             "portfolio_selection_enforced": portfolio_selection_enforced,
             "portfolio_candidate_id": selected_candidate_id,
             "portfolio_candidate_generation_authority": (
                 "protocol_executor_using_public_history_only"
-                if portfolio_selection_enforced
+                if portfolio_selection_enforced or scheduled_portfolio_enforced
                 else None
             ),
             "portfolio_candidate_selection_authority": (
-                "model" if portfolio_selection_enforced else None
+                "protocol_executor_task_neutral_schedule"
+                if scheduled_portfolio_enforced
+                else "model"
+                if portfolio_selection_enforced
+                else None
             ),
             "portfolio_hidden_world_fields_used": (
-                False if portfolio_selection_enforced else None
+                False
+                if portfolio_selection_enforced or scheduled_portfolio_enforced
+                else None
             ),
             "model_supplied_recipe_ignored": model_supplied_recipe_ignored,
             "material_information_condition": (self.context_builder.material_information_condition),
             "material_information_sha256": (self.context_builder.material_information_sha256),
             "scoring_contract": copy.deepcopy(self.scoring_contract),
         }
+        if scheduled_portfolio_enforced:
+            self._last_audit.update(
+                {
+                    "scheduled_portfolio_candidate_enforced": True,
+                    "model_supplied_candidate_id_ignored": (
+                        model_supplied_candidate_id_ignored
+                    ),
+                }
+            )
         return plan
 
     def synthesize_final(
@@ -2682,6 +2861,7 @@ __all__ = [
     "COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_IDS",
     "COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V16_ID",
     "COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V17_ID",
+    "COVERAGE_ADAPTIVE_OPTIMIZATION_SCAFFOLD_V18_ID",
     "COVERAGE_ADAPTIVE_SYSTEM_PROMPT",
     "DECLARED_CLAIM_VALIDATION_STRICT",
     "DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN",
@@ -2697,6 +2877,7 @@ __all__ = [
     "STATIC_OPTIMIZATION_NONDUPLICATE_PORTFOLIO_PROMPT_VERSION",
     "STATIC_OPTIMIZATION_PORTFOLIO_PROMPT_VERSION",
     "STATIC_OPTIMIZATION_PROMPT_VERSION",
+    "STATIC_OPTIMIZATION_SCHEDULED_PORTFOLIO_PROMPT_VERSION",
     "STATIC_PREDICTIVE_SYNTHESIS_VERSION",
     "StaticFinalRecommendation",
     "StaticFinalRecommendationValidator",
