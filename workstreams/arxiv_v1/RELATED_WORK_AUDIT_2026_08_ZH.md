@@ -63,7 +63,10 @@ Bran 等人在 Nature Machine Intelligence 2024 将 GPT-4 与 18 个化学工具
 #### A-Lab、移动机器人和近期机器人化学压力测试
 
 A-Lab 在 Nature 2023 展示无机粉末固相合成的自主实验室；移动机器人工作在 Nature 2024
-展示机器人跨合成与表征平台执行探索化学。2026-07-25 的预印本进一步把 45 个机器人
+展示机器人跨合成与表征平台执行探索化学。A-Lab GPSS（2026 preprint）进一步在 glovebox
+中完成 352 个 air-sensitive lithium-halide spinel 样品的长程 campaign，并从 proposal traces
+区分面向异常局部追问的 abductive strategy 与扩展未探索空间的 inductive strategy。2026-07-25
+的机器人压力测试预印本把 45 个机器人
 workstations 暴露为技能，在 4,608 次 trials 中直接评估物理可执行性和反馈后重规划；只有
 3.3% trials 产生专家认可的可执行 workflow，最佳系统为 28.1%，且五轮反馈主要引发局部调整，
 没有 workflow-level replanning 或分析方法重设计。
@@ -74,12 +77,30 @@ workstations 暴露为技能，在 4,608 次 trials 中直接评估物理可执�
 - ChemWorld 的互补价值：低成本克隆同一物理身份、严格配对信息条件、大量独立轨迹、
   保存失败后果和精确反事实重放。
 - 重要主张边界：2026 机器人压力测试已经使用“make scientific agency measurable”这一思想；
-  ChemWorld 不能把这句话本身写成首创。
+  A-Lab GPSS 已经分析 Agent 的实验提议策略。ChemWorld 不能把这两件事本身写成首创。
 
 来源：
 <https://doi.org/10.1038/s41586-023-06734-w>、
 <https://doi.org/10.1038/s41586-024-08173-7>、
+<https://arxiv.org/abs/2604.11957>、
 <https://arxiv.org/abs/2607.23045>。
+
+#### ORGANA 与 ChemAgents
+
+ORGANA（Matter 2025）由自然语言目标生成长程计划，以视觉反馈执行溶解度、pH、重结晶和电化学
+任务，并行完成 19 步 quinone characterization workflow。ChemAgents（JACS 2025）用分层多
+Agent 与文献、protocol、model 和 automated-lab 资源完成六类递增复杂度任务，并迁移到第七个
+机器人有机化学实验室执行光催化反应。
+
+- 它们比 ChemWorld 强的地方：真实机器人感知与动作、多任务化学覆盖、并行调度、人与系统交互
+  评价，以及跨实验室适配。
+- ChemWorld 的差异：不是证明通用编排可以驱动多个现实流程，而是对相同隐藏化学身份进行
+  受控干预，问证据使用、发现后保留和失败后恢复是否跨 fresh trajectories 稳定。
+- 主张边界：long-horizon chemical operations、multi-agent laboratory orchestration 和跨任务
+  真实执行都已有强先例，不能作为第一版的独占标题。
+
+来源：<https://doi.org/10.1016/j.matt.2024.10.015>、
+<https://doi.org/10.1021/jacs.4c17738>。
 
 #### AutoLabs
 
@@ -248,6 +269,23 @@ Chen 等人的 2026 年综述已经把 AI agent behavioral science 明确定义�
 
 来源：<https://doi.org/10.1057/s41599-026-07316-7>。
 
+#### AHOIS
+
+AHOIS（2026 preprint）在真实 multimode-fibre optical platform 上把 hypothesis、Socratic
+physics criticism、hardware abstraction、system-integrity monitoring 与 quantitative inference
+组成闭环。它不仅操作仪器，还提出并验证 random-interference encoding hypothesis、调整稀疏
+测量、区分多种失败来源，并对 Socratic critic 做消融。
+
+- 它比 ChemWorld 强的地方：真实高维物理平台、假设级认识论自治、显式反例/证伪标准、机制
+  解释质量消融和实质性发现结果。当前 ChemWorld 的 synthetic assays 与低 mechanism F1 不能
+  被描述为比它“更深的科学理解”。
+- ChemWorld 的差异：固定同一化学世界及材料身份、随机化式先验条件、实体资源收据、状态重放和
+  fresh-trajectory replication；AHOIS 的主要因果比较是组件消融，不是跨克隆世界的行为表型复现。
+- 正确关系：AHOIS 占据“epistemic autonomy on real instruments”；ChemWorld 占据“controlled
+  reproducibility of experimental behavior in executable chemistry”。
+
+来源：<https://arxiv.org/abs/2606.26722>。
+
 #### Corral
 
 Ríos-García 等人的 Corral（2026 preprint）在八个科学环境、超过 25,000 次 Agent runs 上，
@@ -331,7 +369,8 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 | ChemGymRL | ✓ | ✓ | △ | △ | — | △ | — | — |
 | MADE | 计算材料 | 候选结构提议 | oracle query | 查询预算 | 系统条件 | △ | — | — |
 | Coscientist / ChemCrow | ✓ | ✓ | ✓ | △ | — | △ | — | ✓ |
-| A-Lab / robot chemistry | ✓ | ✓ | ✓ | ✓ | — | △ | — | ✓ |
+| A-Lab GPSS / robot chemistry | ✓ | ✓ | ✓ | ✓ | — | ✓ | — | ✓ |
+| ORGANA / ChemAgents | ✓ | ✓ | ✓ | ✓ | — | △ | — | ✓ |
 | AutoLabs | protocol 表示 | protocol compilation | — | 硬件约束 | — | ✓ | — | hardware-ready |
 | RoboChem-Flex | ✓ | 优化闭环 | ✓ | ✓ | — | △ | — | ✓ |
 | X-ray / teachable instrument agents | 仪器状态 | ✓ | ✓ | ✓ | — | ✓ | — | ✓ |
@@ -341,6 +380,7 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 | ActiveSciBench-Chem | 动力学 | △ | assay query | 查询预算 | ✓ | △ | — | — |
 | CausaLab / ReplaySCM | 抽象 SCM | △ | 干预 | 查询预算 | ✓ | ✓ | — | — |
 | Corral | 依赖底层环境 | 依赖底层环境 | 依赖底层环境 | △ | △ | ✓ | — | — |
+| AHOIS | 真实光学系统 | ✓ | ✓ | △ | critic ablation | ✓ | — | ✓ |
 | LabUtopia / MATTERIX / Labimus | ✓ | ✓ | △ | ✓ | 场景变化 | △ | — | △/✓ |
 | LabOSBench / LabRobFail | △ | workflow | ✓ | ✓ | failure injection | ✓ | — | △ |
 | **ChemWorld 当前版本** | **✓** | **✓** | **✓** | **✓** | **✓** | **✓** | **✓** | **—** |

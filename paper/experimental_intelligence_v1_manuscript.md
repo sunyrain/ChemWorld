@@ -109,6 +109,21 @@ and produce useful outcomes in, the real laboratory
 [Panapitiya et al., 2026](https://doi.org/10.1038/s41598-026-45593-z);
 [Pilon et al., 2026](https://doi.org/10.1038/s44160-026-01053-0)).
 
+Long-horizon and strategy-level claims also have strong physical precedents.
+ORGANA plans with visual feedback and executes diverse chemistry procedures,
+including a parallel nineteen-step electrochemical workflow. ChemAgents spans
+six task types and transfers to a seventh robotic organic-chemistry setting.
+Most directly, A-Lab GPSS reports a 352-sample air-sensitive solid-state
+campaign and distinguishes abductive local interrogation from inductive search
+expansion in its agents' proposal traces. This evidence is stronger than ours
+on real chemical discovery and campaign duration, and it means that observing
+different experimental strategies is not itself novel. ChemWorld's additional
+question is whether such strategy phenotypes survive paired information
+interventions and fresh trajectories in a fixed physical identity
+([Darvish et al., 2025](https://doi.org/10.1016/j.matt.2024.10.015);
+[Song et al., 2025](https://doi.org/10.1021/jacs.4c17738);
+[Fei et al., 2026](https://arxiv.org/abs/2604.11957)).
+
 Recent instrument agents also preclude treating autonomous stepwise operation
 as unique. Agents have orchestrated an X-ray nanoprobe and a robotic materials
 station while retaining instructions from human feedback. An agentic X-ray
@@ -175,12 +190,17 @@ replanning measurable. ChemWorld therefore does not claim to invent behavioral
 evaluation. It instantiates that lens as a chemistry-grounded apparatus in which
 actions, measurements, resources, and subsequent physical consequences are
 observable, while prior information can be paired and fresh trajectories can be
-replicated within the same physical world
+replicated within the same physical world. AHOIS is another important boundary:
+on a real optical platform it proposes and tests physical hypotheses, diagnoses
+failure modes, and ablates a Socratic critic. It is stronger on hypothesis-level
+epistemic autonomy and real discovery; ChemWorld is stronger only on the present
+study's identity control, resource provenance, and trajectory replication
 ([Yang et al., 2026](https://arxiv.org/abs/2605.26029);
 [Batzoglou, 2026](https://arxiv.org/abs/2605.08197);
 [Chen et al., 2026](https://doi.org/10.1057/s41599-026-07316-7);
 [Ríos-García et al., 2026](https://arxiv.org/abs/2604.18805);
-[Guo et al., 2026](https://arxiv.org/abs/2607.23045)).
+[Guo et al., 2026](https://arxiv.org/abs/2607.23045);
+[Zeng et al., 2026](https://arxiv.org/abs/2606.26722)).
 
 Finally, LabUtopia, MATTERIX, and Labimus provide substantially richer
 perception, manipulation, laboratory geometry, powder physics, and sim-to-real
