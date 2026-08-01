@@ -125,6 +125,8 @@ def test_codex_subscription_client_uses_isolated_structured_exec() -> None:
 
     assert completion.payload["experiment_intent"] == "probe"
     assert completion.model == "gpt-5.6-sol"
+    assert client.thinking is True
+    assert client.reasoning_effort == "medium"
     assert completion.request_id == "thread-test"
     assert completion.usage == {
         "prompt_tokens": 100,
@@ -136,6 +138,8 @@ def test_codex_subscription_client_uses_isolated_structured_exec() -> None:
     command = runner.exec_commands[0]
     assert "--ephemeral" in command
     assert "--ignore-user-config" in command
+    assert "--ignore-rules" in command
+    assert "--sandbox" not in command
     assert command.count("--disable") == 4
     assert "shell_tool" in command
     assert "apps" in command
@@ -143,9 +147,7 @@ def test_codex_subscription_client_uses_isolated_structured_exec() -> None:
     assert "plugins" in command
     assert f'model_provider="{HTTPS_PROVIDER_ID}"' in command
     provider_config = next(
-        item
-        for item in command
-        if item.startswith(f"model_providers.{HTTPS_PROVIDER_ID}=")
+        item for item in command if item.startswith(f"model_providers.{HTTPS_PROVIDER_ID}=")
     )
     assert 'name="OpenAI"' in provider_config
     assert "requires_openai_auth=true" in provider_config
@@ -198,6 +200,92 @@ def test_codex_subscription_client_retries_invalid_json_and_aggregates_usage() -
         "failed",
         "succeeded",
     ]
+
+
+def test_explicit_output_schema_takes_priority_over_prompt_derivation() -> None:
+    explicit_schema = {
+        "type": "object",
+        "properties": {
+            "action": {
+                "type": "object",
+                "properties": {
+                    "operation": {
+                        "type": "string",
+                        "enum": ["terminate"],
+                    }
+                },
+                "required": ["operation"],
+                "additionalProperties": False,
+            }
+        },
+        "required": ["action"],
+        "additionalProperties": False,
+    }
+    runner = _FakeCodexRunner([_event_result(json.dumps({"action": {"operation": "terminate"}}))])
+    client = CodexSubscriptionClient(
+        codex_executable="codex-test",
+        command_runner=runner,
+    )
+
+    completion = client.complete_json(
+        system_prompt="Return one operation.",
+        user_prompt="This prompt is intentionally not JSON.",
+        output_schema=explicit_schema,
+    )
+
+    assert completion.payload == {"action": {"operation": "terminate"}}
+    assert runner.schemas == [explicit_schema]
+
+
+def test_document_mode_uses_persistent_workspace_and_workspace_write(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path / "isolated-document-workspace"
+    workspace.mkdir()
+    output_schema = {
+        "type": "object",
+        "properties": {"status": {"type": "string"}},
+        "required": ["status"],
+        "additionalProperties": False,
+    }
+    runner = _FakeCodexRunner([_event_result(json.dumps({"status": "document-updated"}))])
+    client = CodexSubscriptionClient(
+        codex_executable="codex-test",
+        command_runner=runner,
+        persistent_workspace=workspace,
+        allow_document_tools=True,
+    )
+
+    completion = client.complete_json(
+        system_prompt="Update the document in the isolated workspace.",
+        user_prompt="Inspect the workspace and return status JSON.",
+        output_schema=output_schema,
+    )
+
+    assert completion.payload == {"status": "document-updated"}
+    command = runner.exec_commands[0]
+    assert "--ephemeral" in command
+    assert "--ignore-user-config" in command
+    assert "--ignore-rules" in command
+    assert command.count("--disable") == 3
+    assert "shell_tool" not in command
+    assert "apps" in command
+    assert "multi_agent" in command
+    assert "plugins" in command
+    assert command[command.index("--sandbox") + 1] == "workspace-write"
+    assert Path(command[command.index("-C") + 1]) == workspace.resolve()
+    assert "Use the shell tool only" in runner.instructions[0]
+    assert "Do not call tools" not in runner.instructions[0]
+    assert runner.schemas == [output_schema]
+
+
+def test_document_tools_require_an_isolated_persistent_workspace() -> None:
+    with pytest.raises(ValueError, match="persistent_workspace"):
+        CodexSubscriptionClient(
+            codex_executable="codex-test",
+            command_runner=_FakeCodexRunner([]),
+            allow_document_tools=True,
+        )
 
 
 def test_codex_subscription_client_requires_chatgpt_login() -> None:

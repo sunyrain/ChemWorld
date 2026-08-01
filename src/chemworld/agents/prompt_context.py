@@ -24,6 +24,8 @@ _TASK_KEYS = (
     "safety_limit",
     "success_metrics",
     "termination_policy",
+    "electrochemical_workflow_mode",
+    "scoring_contract_id",
 )
 _LIFECYCLE_KEYS = (
     "fresh_experiment_precondition",
@@ -120,6 +122,10 @@ def build_decision_prompt(
     state_raw = decision_context.get("campaign_state", {})
     state = state_raw if isinstance(state_raw, Mapping) else {}
     actions = tool_json.get("available_actions", [])
+    g2_campaign = (
+        task_contract.get("electrochemical_workflow_mode")
+        == "autonomous_open_v1"
+    )
     payload: dict[str, Any] = {
         "representation_version": PROMPT_CONTEXT_VERSION,
         "instruction": (
@@ -139,6 +145,15 @@ def build_decision_prompt(
                 state.get("remaining_budget"),
             ),
             "current_experiment": _pick_compact(state, _STATE_KEYS),
+            **(
+                {
+                    "campaign_resources": _compact_campaign_resources(
+                        state.get("campaign_resources")
+                    )
+                }
+                if g2_campaign
+                else {}
+            ),
             "lifecycle": _compact_lifecycle_state(
                 decision_context,
                 state,
@@ -332,6 +347,22 @@ def serialize_prompt_payload(
             mutable["prior_scientific_state"] = _project_prior_scientific_state(
                 prior_state
             )
+        text = _canonical_json(mutable)
+        estimate = estimate_prompt_tokens(text)
+    if estimate > reduction_target:
+        reduction_steps.append("drop_optional_campaign_ledger_detail")
+        state = mutable.get("decision_state")
+        if isinstance(state, dict):
+            state.pop("campaign_resources", None)
+        text = _canonical_json(mutable)
+        estimate = estimate_prompt_tokens(text)
+    if estimate > reduction_target:
+        reduction_steps.append("drop_optional_material_contract_detail")
+        task = mutable.get("task")
+        if isinstance(task, dict):
+            task.pop("material_catalog", None)
+            task.pop("material_information", None)
+            task.pop("scoring_contract", None)
         text = _canonical_json(mutable)
         estimate = estimate_prompt_tokens(text)
     if estimate > max_estimated_tokens:
@@ -632,6 +663,15 @@ def compact_action(item: Mapping[str, Any]) -> dict[str, Any]:
 
 def _compact_task_contract(task_contract: Mapping[str, Any]) -> dict[str, Any]:
     compact = _pick_compact(task_contract, _TASK_KEYS)
+    if task_contract.get("electrochemical_workflow_mode") == "autonomous_open_v1":
+        for key in (
+            "material_information",
+            "material_catalog",
+            "scoring_contract",
+        ):
+            value = task_contract.get(key)
+            if isinstance(value, Mapping):
+                compact[key] = to_builtin(dict(value))
     method_budget = task_contract.get("method_budget_contract")
     if isinstance(method_budget, Mapping):
         compact["method_budget_contract"] = _compact_scalar_mapping(
@@ -645,6 +685,140 @@ def _compact_task_contract(task_contract: Mapping[str, Any]) -> dict[str, Any]:
             _LIFECYCLE_KEYS,
         )
     return compact
+
+
+def _compact_campaign_resources(value: Any) -> dict[str, Any]:
+    """Expose the public multi-ledger state without copying its event history."""
+
+    if not isinstance(value, Mapping):
+        return {}
+    state = value.get("state")
+    state_mapping = state if isinstance(state, Mapping) else {}
+    remaining = state_mapping.get("remaining")
+    remaining_mapping = remaining if isinstance(remaining, Mapping) else {}
+    lifecycle = value.get("lifecycle_reserve")
+    lifecycle_mapping = lifecycle if isinstance(lifecycle, Mapping) else {}
+    card = value.get("card")
+    card_mapping = card if isinstance(card, Mapping) else {}
+    hard_limits = card_mapping.get("hard_limits")
+    hard_limit_mapping = hard_limits if isinstance(hard_limits, Mapping) else {}
+    current = value.get("current_experiment")
+    current_mapping = current if isinstance(current, Mapping) else {}
+    latest = value.get("latest_receipt")
+    latest_mapping = latest if isinstance(latest, Mapping) else {}
+
+    result = {
+        "ledger_sha256": value.get("ledger_sha256"),
+        "campaign_terminal": value.get("campaign_terminal"),
+        "campaign_terminal_reason": value.get("campaign_terminal_reason"),
+        "card": {
+            "card_id": card_mapping.get("card_id"),
+            "hard_limits": {
+                **_pick_compact(
+                    hard_limit_mapping,
+                    (
+                        "operation_attempts",
+                        "vessel_starts",
+                        "final_assays",
+                        "nonfinal_instrument_uses",
+                    ),
+                ),
+                "stocks": _compact_scalar_mapping(
+                    hard_limit_mapping.get("stocks", {}),
+                    limit=16,
+                ),
+                "per_instrument": _compact_scalar_mapping(
+                    hard_limit_mapping.get("per_instrument", {}),
+                    limit=16,
+                ),
+            },
+        },
+        "current_experiment": _pick_compact(
+            current_mapping,
+            ("experiment_index", "vessel_started"),
+        ),
+        "used": {
+            **_pick_compact(
+                state_mapping,
+                (
+                    "operation_attempts",
+                    "vessel_starts",
+                    "final_assays",
+                    "closed_batches",
+                    "discarded_batches",
+                    "nonfinal_instrument_uses",
+                ),
+            ),
+            "stocks": _compact_scalar_mapping(
+                state_mapping.get("stocks_used", {}),
+                limit=16,
+            ),
+            "instrument_uses": _compact_scalar_mapping(
+                state_mapping.get("instrument_uses", {}),
+                limit=16,
+            ),
+        },
+        "remaining": {
+            **_pick_compact(
+                remaining_mapping,
+                (
+                    "operation_attempts",
+                    "vessel_starts",
+                    "final_assays",
+                    "nonfinal_instrument_uses",
+                ),
+            ),
+            "stocks": _compact_scalar_mapping(
+                remaining_mapping.get("stocks", {}),
+                limit=16,
+            ),
+            "per_instrument": _compact_scalar_mapping(
+                remaining_mapping.get("per_instrument", {}),
+                limit=16,
+            ),
+        },
+        "lifecycle_reserve": {
+            **_pick_compact(
+                lifecycle_mapping,
+                (
+                    "policy",
+                    "remaining_operation_attempts",
+                    "future_unstarted_batches",
+                    "discretionary_attempts_before_final_assay_floor",
+                ),
+            ),
+            "current_batch": _compact_scalar_mapping(
+                lifecycle_mapping.get("current_batch", {}),
+                limit=8,
+            ),
+            "minimum_fresh_batch_operations": _compact_scalar_mapping(
+                lifecycle_mapping.get("minimum_fresh_batch_operations", {}),
+                limit=8,
+            ),
+            "minimum_future_batch_operation_reserve": _compact_scalar_mapping(
+                lifecycle_mapping.get("minimum_future_batch_operation_reserve", {}),
+                limit=8,
+            ),
+            "recommended_remaining_attempt_floor": _compact_scalar_mapping(
+                lifecycle_mapping.get("recommended_remaining_attempt_floor", {}),
+                limit=8,
+            ),
+        },
+        "latest_receipt": _pick_compact(
+            latest_mapping,
+            (
+                "event_id",
+                "accepted",
+                "committed",
+                "rejection_reason",
+            ),
+        ),
+    }
+    return {
+        str(key): item
+        for key, item in result.items()
+        if item not in (None, "", {}, [])
+    }
 
 
 def _compact_lifecycle_state(

@@ -24,8 +24,12 @@ from chemworld.operation_validator import (
 from chemworld.physchem.crystallization_units import (
     DEFAULT_MAXIMUM_COOLING_RATE_K_S,
 )
+from chemworld.physchem.electrochemical_task_contract import (
+    ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1,
+)
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.operations import (
+    CAMPAIGN_CONTROL_OPERATIONS,
     INSTRUMENTS,
     OPERATION_FIELD_BOUNDS,
     OPERATION_FIELD_CHOICES,
@@ -57,6 +61,7 @@ FIELD_UNITS: dict[str, str] = {
     "phase": "categorical",
     "target_phase": "categorical",
     "extractant": "categorical",
+    "reason": "text",
 }
 
 FIELD_RANGES: dict[str, tuple[float, float]] = {
@@ -262,6 +267,45 @@ TASK_PROMPT_PROFILES: dict[str, dict[str, Any]] = {
     },
 }
 
+ELECTROCHEMICAL_AUTONOMOUS_OPEN_PROMPT_PROFILE: dict[str, Any] = {
+    "task_goal": (
+        "Autonomously design and execute electrochemical experiments by choosing "
+        "materials, setpoints, electrolysis stages, and optional diagnostics to "
+        "maximize the declared balanced leaderboard score."
+    ),
+    "success_criteria": [
+        (
+            "Optimize the full declared leaderboard contract; selective_product_yield "
+            "has a gate and 0.30 weight but is not the sole objective."
+        ),
+        (
+            "Balance selectivity, conversion, faradaic, transport, ohmic, and energy "
+            "efficiency according to the published component weights."
+        ),
+        "Use repeated controls or measurements only when they advance the experiment.",
+        "Complete each chosen experiment through terminate and final_assay.",
+    ],
+    "constraints": [
+        "Material identities become locked when the corresponding physical fixture is charged.",
+        "Terminate is legal only after at least one committed electrolysis.",
+        "No diagnostic instrument, second stage, or setpoint change is mandatory.",
+    ],
+    "measurement_policy": (
+        "ph_meter and uvvis are optional noisy diagnostics. final_assay is available "
+        "only after terminate and completes the current experiment."
+    ),
+    "recommended_strategy": [
+        "Use the current public affordances to identify physically legal operations.",
+        "A valid final_assay after terminate completes the current experiment.",
+        "All operations, including optional diagnostics, consume the finite campaign budget.",
+    ],
+    "failure_modes": [
+        "terminating before electrolysis",
+        "budget exhaustion before final_assay",
+        "invalid material changes after the cell formulation is locked",
+    ],
+}
+
 HIDDEN_INFORMATION_POLICY = (
     "No hidden species amounts, rate constants, mechanism parameters, partition "
     "coefficients, hidden phase amounts, or private scenario parameters are exposed "
@@ -312,7 +356,12 @@ def _observed_float(value: Any) -> tuple[float, bool]:
     return (scalar, True) if math.isfinite(scalar) else (-1.0, False)
 
 
-def _field_schema(field: str, *, operation: str | None = None) -> dict[str, Any]:
+def _field_schema(
+    field: str,
+    *,
+    operation: str | None = None,
+    task_id: str | None = None,
+) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "field": field,
         "unit": FIELD_UNITS.get(field, "unitless"),
@@ -336,7 +385,7 @@ def _field_schema(field: str, *, operation: str | None = None) -> dict[str, Any]
     choices = list(operation_choices) if operation_choices is not None else FIELD_CHOICES.get(field)
     if choices is not None:
         payload["choices"] = list(choices)
-        labels = material_choice_labels(field)
+        labels = material_choice_labels(field, task_id=task_id)
         if labels:
             payload["choice_labels"] = labels
     return payload
@@ -370,7 +419,9 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
     """Return the public JSON-friendly schema for one operation."""
 
     base = _base_env(env)
-    contracts = operation_contracts()
+    contracts = operation_contracts(
+        include_campaign_controls=operation in CAMPAIGN_CONTROL_OPERATIONS
+    )
     if operation not in contracts:
         return {
             "schema_version": PUBLIC_ACTION_SCHEMA_VERSION,
@@ -380,12 +431,20 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
         }
     contract = contracts[operation]
     state = getattr(base, "_state", None)
-    fields = [_field_schema(field, operation=operation) for field in contract.required_fields]
+    task_id = getattr(base, "task_id", None)
+    fields = [
+        _field_schema(field, operation=operation, task_id=task_id)
+        for field in contract.required_fields
+    ]
     if operation == "measure":
         allowed_instruments = getattr(base, "allowed_instruments", set(INSTRUMENTS))
         fields = [
             {
-                **_field_schema("instrument", operation=operation),
+                **_field_schema(
+                    "instrument",
+                    operation=operation,
+                    task_id=task_id,
+                ),
                 "choices": [
                     instrument_id
                     for instrument_id in INSTRUMENTS
@@ -425,6 +484,7 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
         if locked is not None:
             field["choices"] = [locked]
             field["locked_for_current_experiment"] = True
+    _apply_campaign_resource_schema(base, operation, fields)
     constraints: list[dict[str, Any]] = []
     if operation == "cool_crystallize" and state is not None:
         constraints.extend(
@@ -464,7 +524,11 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
         if state is not None:
             cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
             setpoint_history = tuple(cell_settings.get("setpoint_history", ()))
-            if len(setpoint_history) == 1:
+            if (
+                len(setpoint_history) == 1
+                and getattr(base, "electrochemical_workflow_mode", None)
+                != ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
+            ):
                 constraints.append(
                     {
                         "id": "payload_adapts:electrochemical_setpoint",
@@ -533,6 +597,31 @@ def validate_action(env: Any, action: dict[str, Any]) -> dict[str, Any]:
         }
     validation = base.operation_validator.validate(canonical, base._state)
     payload = validation.to_dict()
+    resource_reasons = _campaign_resource_rejection_reasons_for_action(
+        base,
+        canonical,
+    )
+    if resource_reasons:
+        payload["valid"] = False
+        payload["dispatchable_to_runtime"] = False
+        payload["preconditions"] = {
+            **payload.get("preconditions", {}),
+            "campaign_resources_available": False,
+        }
+        payload["invalid_reasons"] = list(
+            dict.fromkeys(
+                [
+                    *payload.get("invalid_reasons", []),
+                    "campaign_resources_available",
+                    *[f"campaign_resource:{reason}" for reason in resource_reasons],
+                ]
+            )
+        )
+        payload["safety_flags"] = {
+            **payload.get("safety_flags", {}),
+            "precondition_failed": True,
+            "campaign_resource_rejected": True,
+        }
     payload["canonical_action"] = to_builtin(canonical)
     payload["will_mutate_state"] = False
     return to_builtin(payload)
@@ -545,12 +634,43 @@ def available_actions(env: Any, *, include_invalid: bool = False) -> list[dict[s
     valid = set(base.operation_validator.valid_operations(base._state))
     allowed = set(getattr(base, "allowed_operations", set(OPERATION_TYPES)))
     actions: list[dict[str, Any]] = []
-    for operation in OPERATION_TYPES:
+    operation_types = tuple(getattr(base.operation_validator, "operation_types", OPERATION_TYPES))
+    for operation in operation_types:
         if operation not in allowed and not include_invalid:
             continue
+        if operation == "discard_batch":
+            discard_available = getattr(
+                base,
+                "_campaign_batch_discard_available",
+                lambda: False,
+            )()
+            if not discard_available and not include_invalid:
+                continue
         affordance = base.operation_validator.operation_affordance(operation, base._state)
         validation = affordance.to_dict()
-        is_valid = operation in valid
+        schema = action_schema(base, operation)
+        resource_reasons = list(
+            _campaign_resource_rejection_reasons_for_operation(base, operation)
+        )
+        resource_reasons.extend(
+            _campaign_schema_resource_rejection_reasons(base, operation, schema)
+        )
+        resource_reasons = list(dict.fromkeys(resource_reasons))
+        is_valid = operation in valid and not resource_reasons
+        if resource_reasons:
+            validation["preconditions"] = {
+                **validation["preconditions"],
+                "campaign_resources_available": False,
+            }
+            validation["invalid_reasons"] = list(
+                dict.fromkeys(
+                    [
+                        *validation["invalid_reasons"],
+                        "campaign_resources_available",
+                        *[f"campaign_resource:{reason}" for reason in resource_reasons],
+                    ]
+                )
+            )
         if not is_valid and not include_invalid:
             continue
         actions.append(
@@ -559,10 +679,221 @@ def available_actions(env: Any, *, include_invalid: bool = False) -> list[dict[s
                 "valid": is_valid,
                 "invalid_reasons": validation["invalid_reasons"],
                 "preconditions": validation["preconditions"],
-                "schema": action_schema(base, operation),
+                "schema": schema,
             }
         )
     return actions
+
+
+_CAMPAIGN_RESOURCE_STOCK_FIELDS: dict[str, tuple[str, str]] = {
+    "add_reagent": ("reagent_mol", "amount_mol"),
+    "add_solvent": ("solvent_L", "volume_L"),
+    "add_catalyst": ("catalyst_mol", "catalyst_amount_mol"),
+    "seed_crystals": ("seed_g", "seed_mass_g"),
+    "add_extractant": ("extractant_L", "volume_L"),
+    "add_phase": ("phase_liquid_L", "volume_L"),
+    "wash": ("wash_solvent_L", "wash_volume_L"),
+}
+
+
+def _campaign_ledger(base: Any) -> Any | None:
+    ledger = getattr(base, "_campaign_resource_ledger", None)
+    return ledger
+
+
+def _campaign_remaining(base: Any) -> dict[str, Any]:
+    ledger = _campaign_ledger(base)
+    if ledger is None:
+        return {}
+    snapshot = ledger.snapshot()
+    state = snapshot.get("state", {})
+    remaining = state.get("remaining", {})
+    return dict(remaining) if isinstance(remaining, dict) else {}
+
+
+def _campaign_starts_vessel(base: Any, operation: str) -> bool:
+    return bool(
+        operation != "discard_batch"
+        and not getattr(base, "_campaign_resource_current_vessel_started", False)
+    )
+
+
+def _campaign_resource_rejection_reasons_for_action(
+    base: Any,
+    action: dict[str, Any],
+) -> tuple[str, ...]:
+    ledger = _campaign_ledger(base)
+    if ledger is None:
+        return ()
+    operation = str(action.get("operation", ""))
+    if not operation:
+        return ()
+    return ledger.preview_rejection_reasons(
+        action,
+        starts_vessel=_campaign_starts_vessel(base, operation),
+    )
+
+
+def _campaign_measure_resource_choices(
+    base: Any,
+    choices: list[Any],
+) -> tuple[list[Any], tuple[str, ...]]:
+    ledger = _campaign_ledger(base)
+    if ledger is None:
+        return choices, ()
+    remaining = _campaign_remaining(base)
+    nonfinal_remaining = int(remaining.get("nonfinal_instrument_uses", 0))
+    final_remaining = int(remaining.get("final_assays", 0))
+    per_instrument = remaining.get("per_instrument", {})
+    if not isinstance(per_instrument, dict):
+        per_instrument = {}
+    filtered: list[Any] = []
+    rejected: list[str] = []
+    for instrument in choices:
+        if instrument == "final_assay":
+            if final_remaining < 1:
+                rejected.append("final_assay_limit")
+                continue
+        else:
+            if nonfinal_remaining < 1:
+                rejected.append("nonfinal_instrument_use_limit")
+                continue
+            instrument_remaining = per_instrument.get(instrument)
+            if instrument_remaining is not None and int(instrument_remaining) < 1:
+                rejected.append(f"per_instrument_limit:{instrument}")
+                continue
+        filtered.append(instrument)
+    return filtered, tuple(dict.fromkeys(rejected))
+
+
+def _campaign_resource_rejection_reasons_for_operation(
+    base: Any,
+    operation: str,
+) -> tuple[str, ...]:
+    ledger = _campaign_ledger(base)
+    if ledger is None:
+        return ()
+    remaining = _campaign_remaining(base)
+    reasons: list[str] = []
+    if int(remaining.get("operation_attempts", 0)) < 1:
+        reasons.append("operation_attempt_limit")
+    if _campaign_starts_vessel(base, operation) and int(
+        remaining.get("vessel_starts", 0)
+    ) < 1:
+        reasons.append("vessel_start_limit")
+    if operation == "measure":
+        schema_choices = [
+            instrument
+            for instrument in INSTRUMENTS
+            if instrument in getattr(base, "allowed_instruments", set(INSTRUMENTS))
+        ]
+        state = getattr(base, "_state", None)
+        if state is not None:
+            schema_choices = list(
+                base.operation_validator.public_field_choices(
+                    operation,
+                    "instrument",
+                    state,
+                    choices=tuple(schema_choices),
+                )
+            )
+        filtered_choices, measure_reasons = _campaign_measure_resource_choices(
+            base,
+            schema_choices,
+        )
+        if not filtered_choices:
+            reasons.extend(measure_reasons or ("measurement_resource_limit",))
+    stock_contract = _CAMPAIGN_RESOURCE_STOCK_FIELDS.get(operation)
+    if stock_contract is not None:
+        stock_id, _ = stock_contract
+        if stock_id not in ledger.card.stock_limits:
+            return tuple(dict.fromkeys(reasons))
+        stocks = remaining.get("stocks", {})
+        available = float(stocks.get(stock_id, 0.0)) if isinstance(stocks, dict) else 0.0
+        if available <= 1.0e-12:
+            reasons.append(f"stock_limit:{stock_id}")
+    return tuple(dict.fromkeys(reasons))
+
+
+def _campaign_schema_resource_rejection_reasons(
+    base: Any,
+    operation: str,
+    schema: dict[str, Any],
+) -> tuple[str, ...]:
+    """Detect empty resource-constrained numeric domains in a public schema."""
+
+    ledger = _campaign_ledger(base)
+    if ledger is None:
+        return ()
+    stock_contract = _CAMPAIGN_RESOURCE_STOCK_FIELDS.get(operation)
+    if stock_contract is None:
+        return ()
+    stock_id, field_name = stock_contract
+    if stock_id not in ledger.card.stock_limits:
+        return ()
+    remaining = _campaign_remaining(base)
+    stocks = remaining.get("stocks", {})
+    available = float(stocks.get(stock_id, 0.0)) if isinstance(stocks, dict) else 0.0
+    for field in schema.get("fields", []):
+        if not isinstance(field, dict) or field.get("field") != field_name:
+            continue
+        bounds = field.get("bounds")
+        if not isinstance(bounds, dict):
+            continue
+        low = float(bounds.get("low", 0.0))
+        high = float(bounds.get("high", 0.0))
+        if available <= 1.0e-12 or high <= low + 1.0e-12:
+            return (f"stock_limit:{stock_id}",)
+    return ()
+
+
+def _apply_campaign_resource_schema(
+    base: Any,
+    operation: str,
+    fields: list[dict[str, Any]],
+) -> None:
+    """Narrow G2 schemas to the remaining public campaign envelope."""
+
+    ledger = _campaign_ledger(base)
+    if ledger is None:
+        return
+    remaining = _campaign_remaining(base)
+    stock_contract = _CAMPAIGN_RESOURCE_STOCK_FIELDS.get(operation)
+    stock_remaining: float | None = None
+    if stock_contract is not None:
+        stock_id, _ = stock_contract
+        if stock_id in ledger.card.stock_limits:
+            stocks = remaining.get("stocks", {})
+            if isinstance(stocks, dict):
+                stock_remaining = max(float(stocks.get(stock_id, 0.0)), 0.0)
+    for field in fields:
+        field_name = str(field.get("field", ""))
+        if (
+            stock_contract is not None
+            and stock_remaining is not None
+            and field_name == stock_contract[1]
+        ):
+            bounds = field.get("bounds")
+            if isinstance(bounds, dict) and stock_remaining is not None:
+                old_high = float(bounds.get("high", stock_remaining))
+                new_high = min(old_high, stock_remaining)
+                field["bounds"] = {
+                    "low": float(bounds.get("low", 0.0)),
+                    "high": new_high,
+                }
+                field["recommended_range"] = {
+                    "low": float(bounds.get("low", 0.0)),
+                    "high": new_high,
+                }
+                field["state_dependent_bounds"] = True
+                field["resource_limited"] = new_high < old_high
+        if operation == "measure" and field_name == "instrument":
+            choices = field.get("choices")
+            if isinstance(choices, list):
+                filtered, _ = _campaign_measure_resource_choices(base, choices)
+                field["choices"] = filtered
+                if filtered != choices:
+                    field["resource_limited"] = True
 
 
 def _task_spec_value(base: Any, name: str, fallback: Any = None) -> Any:
@@ -625,6 +956,12 @@ def _default_task_prompt_profile(info: dict[str, Any], base: Any) -> dict[str, A
 
 def _task_prompt_profile(info: dict[str, Any], base: Any) -> dict[str, Any]:
     task_id = str(info.get("task_id") or "")
+    if (
+        task_id == "electrochemical-conversion"
+        and getattr(base, "electrochemical_workflow_mode", None)
+        == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
+    ):
+        return ELECTROCHEMICAL_AUTONOMOUS_OPEN_PROMPT_PROFILE
     if task_id in TASK_PROMPT_PROFILES:
         return TASK_PROMPT_PROFILES[task_id]
     return _default_task_prompt_profile(info, base)
@@ -651,6 +988,13 @@ def experiment_lifecycle_contract(episode_mode: Any) -> dict[str, str]:
         "intermediate_measurement_effect": (
             "Measurements with other instruments provide evidence but do not complete "
             "the experiment."
+        ),
+        "discard_batch_effect": (
+            "In campaign mode, discard_batch is an explicit Agent decision that ends "
+            "the current open batch without returning consumed resources; a fresh batch "
+            "is exposed only when the campaign ledger still permits it."
+            if episode_mode == "campaign"
+            else "discard_batch is unavailable outside campaign mode."
         ),
     }
 
@@ -762,6 +1106,19 @@ def task_prompt(env: Any) -> dict[str, Any]:
             "instruments": allowed_instruments,
         },
         "material_catalog": info.get("material_catalog", {}),
+        "material_information": info.get("material_information"),
+        **(
+            {
+                "campaign_resources": deepcopy(
+                    info["campaign_resources"]
+                )
+            }
+            if "campaign_resources" in info
+            else {}
+        ),
+        "electrochemical_workflow_mode": info.get(
+            "electrochemical_workflow_mode"
+        ),
         "measurement_policy": profile["measurement_policy"],
         "experiment_lifecycle": experiment_lifecycle,
         "recommended_strategy": list(profile["recommended_strategy"]),
@@ -777,9 +1134,12 @@ def campaign_state(env: Any) -> dict[str, Any]:
 
     base = _base_env(env)
     summaries = deepcopy(getattr(base, "_experiment_summaries", []))
+    completed_summaries = [
+        summary for summary in summaries if summary.get("final_assay") is True
+    ]
     scored = [
         _safe_float(summary.get("leaderboard_score"), default=-1.0)
-        for summary in summaries
+        for summary in completed_summaries
         if summary.get("leaderboard_score") is not None
     ]
     info = _latest_info(base)
@@ -794,7 +1154,7 @@ def campaign_state(env: Any) -> dict[str, Any]:
         int(getattr(base, "budget", 0)) - int(getattr(base, "_step_count", 0)),
         0,
     )
-    return {
+    payload = {
         "campaign_id": getattr(base, "_campaign_id", None),
         "task_id": getattr(base, "task_id", None),
         "scenario_id": getattr(getattr(base, "scenario_spec", None), "scenario_id", None),
@@ -803,13 +1163,27 @@ def campaign_state(env: Any) -> dict[str, Any]:
         "operation_count": int(getattr(base, "_step_count", 0)),
         "remaining_budget": remaining_budget,
         "budget": int(getattr(base, "budget", 0)),
-        "final_assay_count": len(summaries)
+        "final_assay_count": len(completed_summaries)
         + (1 if current_score is not None and not current_score_already_summarized else 0),
         "best_score": best_score,
         "last_terminal_summary": summaries[-1] if summaries else None,
         "experiment_summaries": to_builtin(summaries),
+        "completed_batches": to_builtin(completed_summaries),
+        "discarded_batches": to_builtin(
+            [summary for summary in summaries if summary.get("outcome") == "discarded"]
+        ),
         "done": bool(getattr(base, "_done", False)),
     }
+    resource_state_factory = getattr(
+        base,
+        "public_campaign_resource_state",
+        None,
+    )
+    if callable(resource_state_factory):
+        resources = resource_state_factory()
+        if resources is not None:
+            payload["campaign_resources"] = resources
+    return payload
 
 
 def rl_observation_view(

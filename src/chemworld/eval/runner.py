@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import copy
-from collections.abc import Callable
+import sys
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Literal
@@ -38,6 +39,7 @@ from chemworld.agents.interaction import (
     DecisionAuditRecord,
     build_decision_context,
 )
+from chemworld.campaign_resources import CampaignResourceCard
 from chemworld.data.logging import TrajectoryLogger, action_payload, observation_to_json
 from chemworld.data.submission import git_commit
 from chemworld.eval.observation_identifiability import (
@@ -111,6 +113,16 @@ def run_agent(
     evaluation_policy: EvaluationPolicy = "task_contract",
     world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
     safety_limit_override: float | None = None,
+    material_information: Mapping[str, Any] | None = None,
+    campaign_resource_card: (
+        Mapping[str, Any] | CampaignResourceCard | None
+    ) = None,
+    electrochemical_material_family_id: str | None = None,
+    crystallization_material_family_id: str | None = None,
+    electrochemical_workflow_mode: str | None = None,
+    scoring_contract_id: str | None = None,
+    observation_noise_mode: str | None = None,
+    observation_noise_namespace: str | None = None,
 ) -> list[HistoryRecord]:
     """Run one benchmark episode and optionally write a JSONL trajectory."""
 
@@ -140,8 +152,36 @@ def run_agent(
     }
     if observation_seed is not None:
         env_kwargs["observation_seed_override"] = int(observation_seed)
+    if observation_noise_mode is not None:
+        env_kwargs["observation_noise_mode"] = str(observation_noise_mode)
+    if observation_noise_namespace is not None:
+        env_kwargs["observation_noise_namespace"] = str(
+            observation_noise_namespace
+        )
     if task_id is not None:
         env_kwargs["task_id"] = task_id
+    if material_information is not None:
+        env_kwargs["material_information"] = dict(material_information)
+    if campaign_resource_card is not None:
+        env_kwargs["campaign_resource_card"] = (
+            campaign_resource_card
+            if isinstance(campaign_resource_card, CampaignResourceCard)
+            else copy.deepcopy(dict(campaign_resource_card))
+        )
+    if electrochemical_material_family_id is not None:
+        env_kwargs["electrochemical_material_family_id"] = str(
+            electrochemical_material_family_id
+        )
+    if crystallization_material_family_id is not None:
+        env_kwargs["crystallization_material_family_id"] = str(
+            crystallization_material_family_id
+        )
+    if electrochemical_workflow_mode is not None:
+        env_kwargs["electrochemical_workflow_mode"] = str(
+            electrochemical_workflow_mode
+        )
+    if scoring_contract_id is not None:
+        env_kwargs["scoring_contract_id"] = str(scoring_contract_id)
     if world_interventions:
         env_kwargs["world_interventions"] = list(world_interventions)
     if risk_policy is not None:
@@ -357,6 +397,18 @@ def run_agent(
             update_started = perf_counter()
             agent.update(action, obs_json, float(reward), info)
             update_elapsed_s = perf_counter() - update_started
+            outcome_resource_error: MethodResourceLimitError | None = None
+            post_update_usage = (
+                usage_factory() if callable(usage_factory) else {}
+            )
+            try:
+                resource_ledger.reconcile_agent_usage(post_update_usage)
+            except MethodResourceLimitError as exc:
+                # Some experiment-level provider sessions learn exact token
+                # usage only when agent.update closes the session. The physical
+                # operation is already real, so retain and log its outcome.
+                outcome_resource_error = exc
+                info = {**info, "resource_limit_reached": True}
             public_view = agent_view_bundle(env, observation, info)
             packet = _public_spectrum_packet(public_view)
             if packet is not None:
@@ -379,13 +431,18 @@ def run_agent(
                 and action.get("operation") == "measure"
                 and action.get("instrument") == "final_assay"
             )
-            if info.get("experiment_ended") or final_assay_ended:
+            batch_discarded = bool(info.get("batch_discarded", False))
+            experiment_completed = bool(
+                info.get("experiment_completed", not batch_discarded)
+            )
+            if (info.get("experiment_ended") and experiment_completed) or final_assay_ended:
                 event_type = "experiment_end"
+            elif info.get("experiment_ended") and batch_discarded:
+                event_type = "batch_discard"
             elif info.get("operation_type") == "measure":
                 event_type = "measurement_result"
             else:
                 event_type = "operation_result"
-            outcome_resource_error: MethodResourceLimitError | None = None
             try:
                 resource_ledger.record_outcome(
                     experiment_ended=event_type == "experiment_end",
@@ -394,7 +451,8 @@ def run_agent(
             except MethodResourceLimitError as exc:
                 # The physical transaction already occurred, so log its exact
                 # outcome before propagating the resource-budget failure.
-                outcome_resource_error = exc
+                if outcome_resource_error is None:
+                    outcome_resource_error = exc
                 info = {**info, "resource_limit_reached": True}
             method_resources = resource_ledger.snapshot()
             interaction_evidence = {
@@ -412,6 +470,8 @@ def run_agent(
                     "experiment_ended": bool(
                         info.get("experiment_ended", False) or final_assay_ended
                     ),
+                    "experiment_completed": experiment_completed,
+                    "batch_discarded": batch_discarded,
                     "constraint_flags": info.get("constraint_flags", {}),
                 },
                 "method_resources": method_resources,
@@ -455,7 +515,7 @@ def run_agent(
             current_observation = observation
             current_info = info
             previous_event_type = event_type
-            if event_type == "experiment_end":
+            if event_type in {"experiment_end", "batch_discard"}:
                 experiment_index += 1
             complete_experiment_budget_reached = (
                 resource_ledger.limits.complete_experiment_limit is not None
@@ -465,9 +525,24 @@ def run_agent(
             if terminated or truncated or complete_experiment_budget_reached:
                 break
     finally:
-        if logger_context is not None:
-            logger_context.__exit__(None, None, None)
-        env.close()
+        primary_error = sys.exc_info()[1]
+        agent_close_error: BaseException | None = None
+        close_agent = getattr(agent, "close", None)
+        if callable(close_agent):
+            try:
+                close_agent()
+            except BaseException as exc:
+                # Cleanup must not replace the exception that caused the runner
+                # to unwind. On a normal exit, however, close failures remain
+                # visible because they can signal an incomplete provider session.
+                agent_close_error = exc
+        try:
+            if logger_context is not None:
+                logger_context.__exit__(None, None, None)
+        finally:
+            env.close()
+        if primary_error is None and agent_close_error is not None:
+            raise agent_close_error
     return history
 
 

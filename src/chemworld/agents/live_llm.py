@@ -167,6 +167,9 @@ class LiveLLMAgent(BaseAgent):
         super().reset(task_info, seed)
         self._usage = _empty_usage()
         self._model_call_count = 0
+        self._provider_call_accounting_complete = True
+        self._provider_token_accounting_complete = True
+        self._provider_cache_accounting_complete = True
         self._recent_decisions: list[dict[str, Any]] = []
         self._experiment_memory: list[dict[str, Any]] = []
         self._current_experiment_operations: list[dict[str, Any]] = []
@@ -269,10 +272,9 @@ class LiveLLMAgent(BaseAgent):
             self._prompt_reduction_decision_count += 1
         completion: JsonCompletionLike | None = None
         try:
-            completion = self.client.complete_json(
-                system_prompt=SYSTEM_PROMPT,
-                user_prompt=prompt,
-                max_tokens=self.response_max_tokens,
+            completion = self._complete_decision(
+                prompt=prompt,
+                public_view=public_view,
             )
         except Exception as exc:
             attempts = max(int(getattr(exc, "attempts", 1)), 1)
@@ -332,6 +334,21 @@ class LiveLLMAgent(BaseAgent):
         self._recent_decisions.append(_prompt_memory_decision(decision))
         self._recent_decisions = self._recent_decisions[-self.recent_decision_limit :]
         return dict(decision["action"])
+
+    def _complete_decision(
+        self,
+        *,
+        prompt: str,
+        public_view: dict[str, Any],
+    ) -> JsonCompletionLike:
+        """Provider hook for agents with stricter schemas or isolated document tools."""
+
+        del public_view
+        return self.client.complete_json(
+            system_prompt=SYSTEM_PROMPT,
+            user_prompt=prompt,
+            max_tokens=self.response_max_tokens,
+        )
 
     def consume_historical_spectrum_request(self) -> str | None:
         """Consume the previous decision's explicit request at the next operation."""
@@ -486,16 +503,53 @@ class LiveLLMAgent(BaseAgent):
         pricing_factory = getattr(self.client, "pricing_snapshot", None)
         cost_factory = getattr(self.client, "estimate_cost_usd", None)
         pricing = pricing_factory() if callable(pricing_factory) else None
-        accounting_complete = isinstance(pricing, dict) and callable(cost_factory)
+        pricing_requires_cache_accounting = _pricing_requires_cache_accounting(
+            pricing
+        )
+        monetary_accounting_complete = bool(
+            isinstance(pricing, dict)
+            and pricing.get("accounting_complete", True) is True
+            and callable(cost_factory)
+            and (
+                not pricing_requires_cache_accounting
+                or self._provider_cache_accounting_complete
+            )
+        )
+        provider_usage_accounting_complete = bool(
+            self._provider_call_accounting_complete
+            and self._provider_token_accounting_complete
+        )
+        accounting_complete = bool(
+            provider_usage_accounting_complete and monetary_accounting_complete
+        )
         cost = (
             float(cost_factory(self._usage))
-            if isinstance(pricing, dict) and callable(cost_factory)
+            if monetary_accounting_complete
             else 0.0
         )
+        provider = _provider_name(self.client, pricing)
+        model_access_date = _model_access_date(pricing)
         return {
             "schema_version": "chemworld-method-resource-usage-0.1",
             "accounting_complete": accounting_complete,
-            "usage_source": "provider_usage_and_frozen_price_snapshot",
+            "provider_usage_accounting_complete": (
+                provider_usage_accounting_complete
+            ),
+            "provider_call_accounting_complete": (
+                self._provider_call_accounting_complete
+            ),
+            "provider_token_accounting_complete": (
+                self._provider_token_accounting_complete
+            ),
+            "provider_cache_accounting_complete": (
+                self._provider_cache_accounting_complete
+            ),
+            "monetary_accounting_complete": monetary_accounting_complete,
+            "usage_source": (
+                "provider_usage_and_frozen_price_snapshot"
+                if accounting_complete
+                else "provider_usage_with_pricing_unavailable"
+            ),
             "model_call_count": self._model_call_count,
             "input_token_count": int(self._usage["prompt_tokens"]),
             "output_token_count": int(self._usage["completion_tokens"]),
@@ -504,11 +558,9 @@ class LiveLLMAgent(BaseAgent):
             "cpu_time_s": 0.0,
             "gpu_time_s": 0.0,
             "model_provenance": {
-                "provider": "DeepSeek",
+                "provider": provider,
                 "model_id": self.client.model,
-                "model_snapshot_or_access_date": (
-                    pricing.get("access_date") if isinstance(pricing, dict) else None
-                ),
+                "model_snapshot_or_access_date": model_access_date,
                 "prompt_hash": _prompt_hash(),
                 "request_parameters": {
                     "response_format": "json_object",
@@ -538,7 +590,9 @@ class LiveLLMAgent(BaseAgent):
                     "logical_decisions": self._logical_decision_count,
                     "spectrum_disclosure": self.spectrum_disclosure,
                 },
-                "tokenizer_or_provider_usage_source": "DeepSeek response.usage",
+                "tokenizer_or_provider_usage_source": (
+                    f"{provider} response.usage"
+                ),
                 "pricing": pricing,
                 "private_reasoning_retained": False,
                 "provider_failure_count": self._provider_failure_count,
@@ -553,19 +607,46 @@ class LiveLLMAgent(BaseAgent):
         pricing_factory = getattr(self.client, "pricing_snapshot", None)
         cost_factory = getattr(self.client, "estimate_cost_usd", None)
         pricing = pricing_factory() if callable(pricing_factory) else {}
+        pricing_requires_cache_accounting = _pricing_requires_cache_accounting(
+            pricing
+        )
+        monetary_pricing_complete = bool(
+            isinstance(pricing, dict)
+            and pricing.get("accounting_complete", True) is True
+            and callable(cost_factory)
+        )
         pricing_digest = (
             pricing.get("pricing_version_sha256") if isinstance(pricing, dict) else None
         )
+        provider = _provider_name(self.client, pricing)
         receipts: list[dict[str, Any]] = []
         for raw in self._provider_attempt_records:
             usage = raw.get("usage")
             normalized = usage if isinstance(usage, dict) else {}
             usage_complete = bool(raw.get("usage_complete", False))
             billable = bool(raw.get("billable", False))
+            token_accounting_complete = _provider_token_usage_complete(
+                normalized
+            )
+            cache_accounting_complete = _provider_cache_usage_complete(
+                normalized
+            )
+            monetary_accounting_complete = bool(
+                not billable
+                or (
+                    monetary_pricing_complete
+                    and (
+                        not pricing_requires_cache_accounting
+                        or cache_accounting_complete
+                    )
+                )
+            )
             billed_cost = (
                 float(cost_factory(normalized))
-                if callable(cost_factory) and usage_complete and billable
-                else 0.0
+                if monetary_accounting_complete
+                and token_accounting_complete
+                and billable
+                else (0.0 if not billable else None)
             )
             receipts.append(
                 {
@@ -574,12 +655,21 @@ class LiveLLMAgent(BaseAgent):
                     "logical_decision_index": raw["logical_decision_index"],
                     "attempt_index": raw["attempt_index"],
                     "status": raw["status"],
-                    "provider": "DeepSeek",
+                    "provider": provider,
                     "model_id": raw.get("model_id", self.client.model),
                     "pricing_version_sha256": pricing_digest,
                     "usage_source": raw.get("usage_source", "unavailable"),
                     "usage_complete": usage_complete,
+                    "provider_token_accounting_complete": (
+                        token_accounting_complete
+                    ),
+                    "provider_cache_accounting_complete": (
+                        cache_accounting_complete
+                    ),
                     "billable": billable,
+                    "monetary_accounting_complete": (
+                        monetary_accounting_complete
+                    ),
                     "input_token_count": int(normalized.get("prompt_tokens", 0) or 0),
                     "output_token_count": int(normalized.get("completion_tokens", 0) or 0),
                     "input_cache_hit_token_count": int(
@@ -788,7 +878,13 @@ class LiveLLMAgent(BaseAgent):
         return "none"
 
     def _record_provider_usage(self, attempts: int, usage: dict[str, Any]) -> None:
+        if isinstance(attempts, bool) or not isinstance(attempts, int) or attempts < 1:
+            self._provider_call_accounting_complete = False
         self._model_call_count += max(int(attempts), 1)
+        if not _provider_token_usage_complete(usage):
+            self._provider_token_accounting_complete = False
+        if not _provider_cache_usage_complete(usage):
+            self._provider_cache_accounting_complete = False
         for key in self._usage:
             value = usage.get(key, 0)
             if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
@@ -983,6 +1079,80 @@ def _empty_usage() -> dict[str, int]:
     }
 
 
+def _provider_token_usage_complete(usage: Mapping[str, Any]) -> bool:
+    required = ("prompt_tokens", "completion_tokens", "total_tokens")
+    if not all(
+        isinstance(usage.get(key), int)
+        and not isinstance(usage.get(key), bool)
+        and int(usage[key]) >= 0
+        for key in required
+    ):
+        return False
+    prompt_tokens = int(usage["prompt_tokens"])
+    completion_tokens = int(usage["completion_tokens"])
+    return bool(
+        prompt_tokens > 0
+        and int(usage["total_tokens"]) == prompt_tokens + completion_tokens
+    )
+
+
+def _provider_cache_usage_complete(usage: Mapping[str, Any]) -> bool:
+    required = (
+        "prompt_tokens",
+        "prompt_cache_hit_tokens",
+        "prompt_cache_miss_tokens",
+    )
+    if not all(
+        isinstance(usage.get(key), int)
+        and not isinstance(usage.get(key), bool)
+        and int(usage[key]) >= 0
+        for key in required
+    ):
+        return False
+    prompt_tokens = int(usage["prompt_tokens"])
+    return bool(
+        prompt_tokens > 0
+        and int(usage["prompt_cache_hit_tokens"])
+        + int(usage["prompt_cache_miss_tokens"])
+        == prompt_tokens
+    )
+
+
+def _pricing_requires_cache_accounting(
+    pricing: Mapping[str, Any] | None,
+) -> bool:
+    if not isinstance(pricing, Mapping):
+        return False
+    return any(
+        key in pricing
+        for key in (
+            "input_cache_hit_per_million_usd",
+            "input_cache_miss_per_million_usd",
+        )
+    )
+
+
+def _provider_name(
+    client: JsonPlannerClientLike,
+    pricing: Mapping[str, Any] | None,
+) -> str:
+    if isinstance(pricing, Mapping):
+        provider = pricing.get("provider")
+        if isinstance(provider, str) and provider.strip():
+            return provider.strip()
+    provider = getattr(client, "provider", None)
+    if isinstance(provider, str) and provider.strip():
+        return provider.strip()
+    name = type(client).__name__
+    return name[:-6] if name.endswith("Client") else name
+
+
+def _model_access_date(pricing: Mapping[str, Any] | None) -> Any:
+    if not isinstance(pricing, Mapping):
+        return None
+    return pricing.get("access_date") or pricing.get("model_access_date")
+
+
 def _all_provider_attempts_failed_unbillable(error: Exception) -> bool:
     raw_records = getattr(error, "attempt_records", ())
     if not isinstance(raw_records, Sequence) or isinstance(raw_records, str | bytes):
@@ -1042,7 +1212,11 @@ def _compact_task_contract(task_info: dict[str, Any]) -> dict[str, Any]:
         "observation_policy",
         "allowed_operations",
         "allowed_instruments",
+        "material_information",
         "material_catalog",
+        "electrochemical_workflow_mode",
+        "scoring_contract",
+        "scoring_contract_id",
         "method_budget_contract",
         "observation_keys",
         "scenario_id",

@@ -8,7 +8,7 @@ import os
 import time
 import urllib.error
 import urllib.request
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Literal, Protocol
@@ -71,6 +71,7 @@ class JsonPlannerClient(Protocol):
         system_prompt: str,
         user_prompt: str,
         max_tokens: int = 4096,
+        output_schema: Mapping[str, Any] | None = None,
     ) -> JsonCompletion: ...
 
 
@@ -179,9 +180,11 @@ class DeepSeekClient:
         system_prompt: str,
         user_prompt: str,
         max_tokens: int = 4096,
+        output_schema: Mapping[str, Any] | None = None,
     ) -> JsonCompletion:
         if max_tokens <= 0:
             raise ValueError("max_tokens must be positive")
+        resolved_output_schema = _validated_output_schema(output_schema)
         aggregate_usage = _empty_usage()
         attempt_records: list[dict[str, Any]] = []
         last_error: Exception | None = None
@@ -196,6 +199,7 @@ class DeepSeekClient:
                 user_prompt=user_prompt,
                 max_tokens=max_tokens,
                 retry=attempt > 1,
+                output_schema=resolved_output_schema,
             )
             try:
                 raw, header_request_id = self._send(body)
@@ -328,6 +332,7 @@ class DeepSeekClient:
         user_prompt: str,
         max_tokens: int,
         retry: bool,
+        output_schema: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         retry_note = (
             "\nThe previous response was empty or invalid. Return the required JSON object."
@@ -340,7 +345,18 @@ class DeepSeekClient:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt + retry_note},
             ],
-            "response_format": {"type": "json_object"},
+            "response_format": (
+                {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "chemworld_decision",
+                        "strict": True,
+                        "schema": output_schema,
+                    },
+                }
+                if output_schema is not None
+                else {"type": "json_object"}
+            ),
             "thinking": {"type": "enabled" if self.thinking else "disabled"},
             "stream": False,
             "max_tokens": int(max_tokens),
@@ -348,7 +364,6 @@ class DeepSeekClient:
         if self.thinking:
             body["reasoning_effort"] = self.reasoning_effort
         return body
-
     def _send(self, body: dict[str, Any]) -> tuple[str, str | None]:
         request = urllib.request.Request(
             f"{self.base_url}/chat/completions",
@@ -378,6 +393,27 @@ class DeepSeekClient:
             raise DeepSeekAPIError("DeepSeek connection failed", retryable=True) from exc
         except TimeoutError as exc:
             raise DeepSeekAPIError("DeepSeek request timed out", retryable=True) from exc
+
+
+def _validated_output_schema(
+    output_schema: Mapping[str, Any] | None,
+) -> dict[str, Any] | None:
+    if output_schema is None:
+        return None
+    try:
+        normalized = json.loads(
+            json.dumps(
+                dict(output_schema),
+                allow_nan=False,
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError("output_schema must be finite JSON") from exc
+    if not isinstance(normalized, dict) or normalized.get("type") != "object":
+        raise ValueError("output_schema must describe a JSON object")
+    return normalized
 
 
 def _parse_envelope(raw: str) -> dict[str, Any]:

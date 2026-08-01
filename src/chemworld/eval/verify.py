@@ -163,6 +163,47 @@ def verify_records(
         if first.get("contract_profile") == "extended-research":
             env_kwargs["budget_override"] = int(first["budget"])
             env_kwargs["episode_mode_override"] = str(first["episode_mode"])
+        optional_string_kwargs = {
+            "electrochemical_workflow_mode": "electrochemical_workflow_mode",
+            "electrochemical_material_family_id": (
+                "electrochemical_material_family_id"
+            ),
+            "crystallization_material_family_id": (
+                "crystallization_material_family_id"
+            ),
+            "scoring_contract_id": "scoring_contract_id",
+            "observation_noise_mode": "observation_noise_mode",
+            "observation_noise_namespace": "observation_noise_namespace",
+        }
+        for record_key, env_key in optional_string_kwargs.items():
+            value = first.get(record_key)
+            if isinstance(value, str) and value:
+                env_kwargs[env_key] = value
+        observation_seed = first.get("observation_seed")
+        if isinstance(observation_seed, int) and not isinstance(
+            observation_seed, bool
+        ):
+            env_kwargs["observation_seed_override"] = observation_seed
+        # New trajectories carry the evaluator-only normalized configuration
+        # separately so a misindexed arm can be reconstructed without exposing
+        # the transposition to the agent-facing material dossier.  Fall back
+        # to the legacy mode-only field for older trajectories.
+        material_information = first.get("material_information_config")
+        if not isinstance(material_information, dict):
+            legacy_material_information = first.get("material_information")
+            material_information = (
+                {"mode": legacy_material_information.get("mode")}
+                if isinstance(legacy_material_information, dict)
+                and isinstance(legacy_material_information.get("mode"), str)
+                else None
+            )
+        if isinstance(material_information, dict):
+            env_kwargs["material_information"] = dict(material_information)
+        campaign_resource_card = first.get("campaign_resource_card")
+        if isinstance(campaign_resource_card, dict):
+            env_kwargs["campaign_resource_card"] = dict(
+                campaign_resource_card
+            )
     else:
         env_kwargs = {
             "world_split": first["world_split"],

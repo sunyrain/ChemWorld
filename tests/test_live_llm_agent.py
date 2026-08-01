@@ -83,6 +83,58 @@ class FakeClient:
         )
 
 
+class UnknownPricingClient(FakeClient):
+    model = "gpt-5.6-sol"
+    thinking = True
+    reasoning_effort = "high"
+
+    def __init__(self, decisions: list[dict[str, Any] | Exception]) -> None:
+        super().__init__(decisions)
+        self.estimate_cost_call_count = 0
+
+    def complete_json(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int = 4096,
+    ) -> Any:
+        completion = super().complete_json(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            max_tokens=max_tokens,
+        )
+        completion.usage["prompt_cache_hit_tokens"] = 0
+        completion.usage["prompt_cache_miss_tokens"] = 0
+        completion.attempt_records = (
+            {
+                "attempt_index": 1,
+                "status": "succeeded",
+                "request_id": "wellau-test-request",
+                "model_id": self.model,
+                "usage": dict(completion.usage),
+                "usage_complete": False,
+                "billable": True,
+                "usage_source": "provider_response",
+            },
+        )
+        return completion
+
+    def pricing_snapshot(self) -> dict[str, Any]:
+        return {
+            "provider": "WellAU",
+            "requested_model_id": self.model,
+            "model_access_date": "2026-07-25",
+            "accounting_complete": False,
+            "pricing_version_sha256": "unknown-pricing-digest",
+        }
+
+    def estimate_cost_usd(self, usage: dict[str, Any]) -> float:
+        del usage
+        self.estimate_cost_call_count += 1
+        raise AssertionError("unknown pricing must not invoke estimate_cost_usd")
+
+
 class FakeProviderError(RuntimeError):
     def __init__(self) -> None:
         super().__init__("secret transport detail must not be retained")
@@ -366,6 +418,35 @@ def test_provider_failure_is_redacted_retained_and_counted() -> None:
     assert "FakeProviderError" in serialized
 
 
+def test_unknown_pricing_reports_provider_usage_without_estimating_zero_cost() -> None:
+    client = UnknownPricingClient([_decision({"operation": "terminate"})])
+    agent = LiveLLMAgent(client, role_id="live_llm_a")
+    agent.reset({"task_id": "flow-reaction-optimization"}, seed=3)
+
+    agent.act_with_public_view(_context(step=1, previous=None), _public_view())
+
+    usage = agent.method_resource_usage()
+    assert usage["accounting_complete"] is False
+    assert usage["provider_usage_accounting_complete"] is True
+    assert usage["provider_call_accounting_complete"] is True
+    assert usage["provider_token_accounting_complete"] is True
+    assert usage["provider_cache_accounting_complete"] is False
+    assert usage["monetary_accounting_complete"] is False
+    assert usage["monetary_cost_usd"] == 0.0
+    assert usage["usage_source"] == "provider_usage_with_pricing_unavailable"
+    assert usage["model_provenance"]["provider"] == "WellAU"
+    assert usage["model_provenance"]["model_snapshot_or_access_date"] == "2026-07-25"
+
+    receipt = agent.provider_receipts()[0]
+    assert receipt["provider"] == "WellAU"
+    assert receipt["usage_complete"] is False
+    assert receipt["provider_token_accounting_complete"] is True
+    assert receipt["provider_cache_accounting_complete"] is False
+    assert receipt["monetary_accounting_complete"] is False
+    assert receipt["billed_cost_usd"] is None
+    assert client.estimate_cost_call_count == 0
+
+
 def test_formal_unbillable_provider_failure_raises_resumable_interruption() -> None:
     client = FakeClient([FakeUnbillableProviderError()])
     agent = LiveLLMAgent(
@@ -515,6 +596,50 @@ def test_official_runner_ledgers_live_usage_and_replays_trajectory(tmp_path: Pat
     assert "runtime" not in prompt["task"]
     assert "world_law" not in prompt["task"]
     assert "constitution" not in prompt["task"]
+
+
+def test_official_runner_allows_unknown_pricing_only_without_monetary_cap(
+    tmp_path: Path,
+) -> None:
+    client = UnknownPricingClient(
+        [
+            _decision({"operation": "add_solvent", "volume_L": 0.02, "solvent": 1}),
+            _decision({"operation": "add_reagent", "amount_mol": 0.006}),
+            _decision({"operation": "terminate"}),
+            _decision({"operation": "measure", "instrument": "final_assay"}),
+        ]
+    )
+    agent = LiveLLMAgent(client, role_id="live_llm_a")
+    trajectory = tmp_path / "unknown-pricing-development.jsonl"
+
+    run_agent(
+        env_id="ChemWorld",
+        agent=agent,
+        world_split="public-test",
+        budget=4,
+        objective="balanced",
+        seed=1200,
+        task_id="flow-reaction-optimization",
+        output_path=trajectory,
+        budget_override=4,
+        episode_mode_override="campaign",
+        method_resource_limits={
+            "operation_limit": 4,
+            "complete_experiment_limit": 4,
+            "wall_time_limit_s": 30.0,
+            "model_call_limit": 12,
+            "input_token_limit": 10_000,
+            "output_token_limit": 10_000,
+            "monetary_cost_limit_usd": None,
+        },
+    )
+
+    final_resources = load_jsonl(trajectory)[-1]["method_resources"]
+    assert final_resources["accounting_complete"] is False
+    assert final_resources["development_monetary_accounting_incomplete"] is True
+    assert final_resources["agent_usage"]["model_call_count"] == 8
+    assert final_resources["agent_usage"]["provider_token_accounting_complete"] is True
+    assert client.estimate_cost_call_count == 0
 
 
 def test_official_runner_delivers_only_explicitly_requested_historical_spectrum(

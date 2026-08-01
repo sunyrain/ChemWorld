@@ -55,3 +55,39 @@ def test_wellau_request_supports_medium_reasoning_without_fallback() -> None:
 
     assert body["model"] == "gpt-5.6-sol"
     assert body["reasoning_effort"] == "medium"
+
+
+def test_wellau_request_supports_strict_json_schema() -> None:
+    client = WellAUClient(api_key="test-key", model="gpt-5.6-sol")
+    schema = {
+        "type": "object",
+        "properties": {
+            "action": {
+                "type": "object",
+                "properties": {
+                    "operation": {"type": "string", "enum": ["terminate"]}
+                },
+                "required": ["operation"],
+                "additionalProperties": False,
+            }
+        },
+        "required": ["action"],
+        "additionalProperties": False,
+    }
+
+    body = client._request_body(
+        system_prompt="system",
+        user_prompt="user",
+        max_tokens=512,
+        retry=False,
+        output_schema=schema,
+    )
+
+    assert body["response_format"] == {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "chemworld_decision",
+            "strict": True,
+            "schema": schema,
+        },
+    }

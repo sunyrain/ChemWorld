@@ -162,6 +162,49 @@ class ChemWorldRuntime:
             kernel_result=result,
         )
 
+    def apply_campaign_control_transaction(
+        self,
+        state: WorldState,
+        action: dict[str, Any],
+        validation: OperationValidation,
+    ) -> RuntimeStepResult:
+        """Record an environment-owned campaign control without mutating physics."""
+
+        operation_type = str(action["operation"])
+        operation_record = self.domain_services.record_operation(
+            operation_type,
+            state,
+            state,
+            validation.preconditions,
+            action,
+        )
+        result = KernelResult(
+            state=state,
+            operation_record=operation_record,
+            events=(
+                WorldEvent(
+                    event_type="campaign_batch_discarded",
+                    operation_type=operation_type,
+                    payload={"reason": str(action.get("reason", ""))},
+                ),
+            ),
+            patches=(),
+            state_delta_summary=operation_record.state_delta_summary,
+            cost_delta=0.0,
+            risk_delta=0.0,
+            sample_delta=0.0,
+            affected_ledgers=(),
+            kernel_id="campaign_control:discard_batch",
+            kernel_version="runtime-v2.0",
+            transaction_status="committed",
+            rollback_reason=None,
+        )
+        return RuntimeStepResult(
+            state=state,
+            operation_record=operation_record,
+            kernel_result=result,
+        )
+
     def to_dict(self, *, include_debug_truth: bool = False) -> dict[str, Any]:
         payload = {
             "profile": self.profile.to_dict(),

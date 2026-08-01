@@ -44,9 +44,53 @@ _CONTROLLED_MATERIAL_FIELDS_BY_TASK = {
 }
 
 
-def public_material_catalog() -> dict[str, Any]:
+def anonymous_electrochemical_material_catalog() -> dict[str, Any]:
+    """Return the identity-free material catalog for electrochemical agents."""
+
+    solvents = [
+        {
+            "index": index,
+            "anonymous_material_id": f"solvent-S{index}",
+            "display_name": f"solvent-S{index}",
+            "identity_kind": "anonymous_benchmark_solvent_medium",
+            "reference_status": "no_real_material_identity_claimed",
+        }
+        for index in range(len(SOLVENTS))
+    ]
+    electrolyte_profiles = [
+        {
+            "index": index,
+            "anonymous_material_id": f"electrolyte-E{index}",
+            "display_name": f"electrolyte-E{index}",
+            "identity_kind": "anonymous_benchmark_electrolyte_formulation",
+            "reference_status": "no_real_material_identity_claimed",
+        }
+        for index in range(len(ELECTROLYTE_PROFILES))
+    ]
+    return {
+        "catalog_version": "chemworld-public-electrochemical-materials-1.0",
+        "presentation": "anonymous_material_ids",
+        "solvents": solvents,
+        "electrolyte_profiles": electrolyte_profiles,
+        "reagent": {
+            "canonical_id": "limiting_reagent",
+            "display_name": "Anonymous limiting reagent",
+            "identity_kind": "mechanism_role",
+            "reference_status": "mechanism_specific_not_a_real_identity",
+        },
+        "interpretation_policy": (
+            "The solvent and electrolyte IDs are benchmark-only labels. They do not "
+            "identify real substances or formulations, and their action indices reveal "
+            "no hidden world-specific material residuals."
+        ),
+    }
+
+
+def public_material_catalog(*, task_id: str | None = None) -> dict[str, Any]:
     """Return names, reference status, and interpretation policy for task materials."""
 
+    if task_id == _ELECTROCHEMICAL_TASK_ID:
+        return anonymous_electrochemical_material_catalog()
     registry = curated_component_registry()
     solvents: list[dict[str, Any]] = []
     for index, solvent_id in enumerate(SOLVENTS):
@@ -124,10 +168,14 @@ def public_material_catalog() -> dict[str, Any]:
     }
 
 
-def material_choice_labels(field: str) -> dict[str, str]:
+def material_choice_labels(
+    field: str,
+    *,
+    task_id: str | None = None,
+) -> dict[str, str]:
     """Map stable numeric action values to honest user-facing labels."""
 
-    catalog = public_material_catalog()
+    catalog = public_material_catalog(task_id=task_id)
     key = (
         "solvents"
         if field in {"solvent", "extractant"}
@@ -139,8 +187,18 @@ def material_choice_labels(field: str) -> dict[str, str]:
     )
     if key is None:
         return {}
+    # Some task-specific catalogs intentionally omit fields that are not
+    # disclosed or controllable in that task (for example catalysts in the
+    # anonymous electrochemical dossier).  A schema for an otherwise valid
+    # operation must remain serializable even when such a catalog key is
+    # absent; absence means "no public labels", not a catalog failure.
+    if key not in catalog:
+        return {}
     labels: dict[str, str] = {}
     for item in catalog[key]:
+        if task_id == _ELECTROCHEMICAL_TASK_ID:
+            labels[str(item["index"])] = str(item["anonymous_material_id"])
+            continue
         reference = str(item["reference_status"])
         suffix = "reference identity" if reference.startswith("curated_") else "benchmark"
         formula = f" · {item['formula']}" if item.get("formula") else ""
@@ -542,6 +600,7 @@ __all__ = [
     "STATIC_MATERIAL_INFORMATION_SHUFFLED",
     "STATIC_MATERIAL_INFORMATION_VERSION",
     "action_material_display",
+    "anonymous_electrochemical_material_catalog",
     "material_choice_labels",
     "normalize_static_material_information_config",
     "public_material_catalog",

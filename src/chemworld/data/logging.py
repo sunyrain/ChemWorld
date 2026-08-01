@@ -137,6 +137,31 @@ class TrajectoryLogger:
             **default_evaluation_outcome,
             **to_builtin(evaluation_outcome or {}),
         }
+        raw_material_information = task_info.get("material_information")
+        material_information_mode = (
+            raw_material_information.get("mode")
+            if isinstance(raw_material_information, dict)
+            else None
+        )
+        raw_material_information_config = task_info.get(
+            "material_information_config"
+        )
+        material_information_config = (
+            to_builtin(raw_material_information_config)
+            if isinstance(raw_material_information_config, dict)
+            else (
+                {"mode": raw_material_information.get("mode")}
+                if isinstance(raw_material_information, dict)
+                else None
+            )
+        )
+        raw_campaign_resources = task_info.get("campaign_resources")
+        campaign_resource_card = (
+            raw_campaign_resources.get("card")
+            if isinstance(raw_campaign_resources, dict)
+            else None
+        )
+        scoring_contract = task_info.get("scoring_contract")
         payload = {
             "schema_version": TRAJECTORY_SCHEMA_VERSION,
             "env_version": info.get("env_version", __version__),
@@ -159,6 +184,52 @@ class TrajectoryLogger:
             "mechanism_family_intervention_hash": info.get(
                 "mechanism_family_intervention_hash",
                 task_info.get("mechanism_family_intervention_hash"),
+            ),
+            "electrochemical_workflow_mode": task_info.get(
+                "electrochemical_workflow_mode"
+            ),
+            "material_information": (
+                {"mode": material_information_mode}
+                if material_information_mode is not None
+                else None
+            ),
+            # Keep the public material_information field stable while storing
+            # the evaluator-side configuration needed for exact replay of
+            # misindexed conditions (target_field + descriptor_permutation).
+            "material_information_config": material_information_config,
+            "scoring_contract_id": (
+                scoring_contract.get("contract_id")
+                if isinstance(scoring_contract, dict)
+                else None
+            ),
+            "observation_seed": task_info.get("observation_seed"),
+            "observation_noise_mode": task_info.get(
+                "observation_noise_mode"
+            ),
+            "observation_noise_namespace": task_info.get(
+                "observation_noise_namespace"
+            ),
+            "campaign_resource_card_sha256": task_info.get(
+                "campaign_resource_card_sha256"
+            ),
+            "campaign_resource_card": to_builtin(campaign_resource_card),
+            "electrochemical_material_family_id": task_info.get(
+                "electrochemical_material_family_id"
+            ),
+            "electrochemical_material_family_sha256": task_info.get(
+                "electrochemical_material_family_sha256"
+            ),
+            "electrochemical_material_instance_sha256": task_info.get(
+                "electrochemical_material_instance_sha256"
+            ),
+            "crystallization_material_family_id": task_info.get(
+                "crystallization_material_family_id"
+            ),
+            "crystallization_material_family_sha256": task_info.get(
+                "crystallization_material_family_sha256"
+            ),
+            "crystallization_material_instance_sha256": task_info.get(
+                "crystallization_material_instance_sha256"
             ),
             "task_id": stable_task_id,
             "env_id": task_info["env_id"],

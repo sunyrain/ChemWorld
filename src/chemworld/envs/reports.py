@@ -57,7 +57,7 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "operation_types": list(OPERATION_TYPES),
         "allowed_operations": sorted(env.allowed_operations),
         "allowed_instruments": sorted(env.allowed_instruments),
-        "material_catalog": public_material_catalog(),
+        "material_catalog": public_material_catalog(task_id=env.task_id),
         "kernel_maturity": env.kernel_maturity.to_dict(),
         "physics_maturity": env.kernel_maturity.lowest_level.value,
         "proxy_allowed": env.kernel_maturity.proxy_allowed,
@@ -76,6 +76,29 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "backend": semi_mechanistic_backend_spec().to_dict(),
         "observation_keys": list(OBSERVATION_KEYS),
     }
+    if env.task_id == "electrochemical-conversion":
+        payload["electrochemical_workflow_mode"] = (
+            env.electrochemical_workflow_mode
+        )
+    if env.task_id in {
+        "electrochemical-conversion",
+        "reaction-to-crystallization",
+    }:
+        material_information = {
+            "mode": env.material_information_condition,
+        }
+        dossier = env.material_information_dossier()
+        if dossier is not None:
+            material_information["dossier"] = dossier
+            material_information["dossier_sha256"] = (
+                env.material_information_sha256
+            )
+        payload["material_information"] = material_information
+    campaign_resources = env.public_campaign_resource_state(
+        include_card=True
+    )
+    if campaign_resources is not None:
+        payload["campaign_resources"] = campaign_resources
     if env.debug_truth:
         payload["debug_mechanism"] = {
             "mechanism_manifest": compiled_mechanism.manifest.to_dict(),
@@ -129,9 +152,15 @@ def build_evaluator_provenance(env: Any) -> dict[str, Any]:
         "mechanism_id": mechanism.mechanism_id,
         "mechanism_hash": mechanism.mechanism_hash,
         "mechanism_version": mechanism.mechanism_version,
+        "observation_seed": env._observation_seed(env.seed),
         "observation_noise_mode": env.observation_noise_mode,
         "observation_noise_namespace": env.observation_noise_namespace,
         "last_observation_noise": env.observation_noise_provenance(),
+        "campaign_resource_card_sha256": (
+            None
+            if env.campaign_resource_card is None
+            else env.campaign_resource_card.card_sha256
+        ),
         "world_family_intervention_version": metadata.get("world_family_intervention_version"),
         "world_family_intervention_hash": metadata.get("world_family_intervention_hash"),
         "mechanism_family_intervention_version": metadata.get(
@@ -164,6 +193,13 @@ def build_evaluator_provenance(env: Any) -> dict[str, Any]:
         ),
         "material_law_counterfactual_version": metadata.get("material_law_counterfactual_version"),
         "material_law_counterfactual_hash": metadata.get("material_law_counterfactual_hash"),
+        # The public task payload intentionally exposes only the material
+        # dossier (or opaque mode).  The evaluator still needs the exact
+        # configuration to reconstruct a misindexed arm during trajectory
+        # replay, so keep it in evaluator-only provenance.
+        "material_information_config": deepcopy(
+            getattr(env, "material_information_config", None)
+        ),
     }
 
 
@@ -178,8 +214,10 @@ _PRIVATE_AGENT_IDENTITY_KEYS = frozenset(
         "crystallization_material_family_id",
         "crystallization_material_family_sha256",
         "crystallization_material_instance_sha256",
+        "campaign_resource_card_sha256",
         "seed",
         "world_seed",
+        "observation_seed",
         "material_law_counterfactual_hash",
         "material_law_counterfactual_version",
         "mechanism_family_intervention_hash",
@@ -364,7 +402,7 @@ def build_step_info(
         ),
     }
     cost_signal, cost_components = safety_cost_from_flags(constraint_flags)
-    return {
+    payload = {
         "step": env._step_count,
         "budget": env.budget,
         "remaining_budget": max(env.budget - env._step_count, 0),
@@ -424,6 +462,10 @@ def build_step_info(
         "env_version": __version__,
         "world_family_version": env.world.family_version,
     }
+    campaign_resources = env.public_campaign_resource_state()
+    if campaign_resources is not None:
+        payload["campaign_resources"] = campaign_resources
+    return payload
 
 
 def _public_constitution_checks(

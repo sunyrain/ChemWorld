@@ -39,6 +39,7 @@ FLOW_OPERATIONS = ("set_flow_rate", "run_flow")
 ELECTROCHEMISTRY_OPERATIONS = ("set_potential", "electrolyze")
 MACRO_OPERATIONS = ("wash", "dry", "concentrate")
 TERMINAL_OPERATIONS = ("terminate",)
+CAMPAIGN_CONTROL_OPERATIONS = ("discard_batch",)
 DOMAIN_OPERATIONS = (
     *CRYSTALLIZATION_OPERATIONS,
     *DISTILLATION_OPERATIONS,
@@ -68,6 +69,7 @@ OPERATION_TYPES = (
     "terminate",
     "measure",
 )
+CAMPAIGN_OPERATION_TYPES = (*OPERATION_TYPES, *CAMPAIGN_CONTROL_OPERATIONS)
 INSTRUMENTS = ("hplc", "gc", "uvvis", "ph_meter", "final_assay")
 
 # Operation-specific input contracts are the single source of truth for values
@@ -288,7 +290,10 @@ def chemworld_state_variable_contracts() -> tuple[Any, ...]:
     return chemworld_state_variables()
 
 
-def operation_contracts() -> dict[str, OperationContract]:
+def operation_contracts(
+    *,
+    include_campaign_controls: bool = False,
+) -> dict[str, OperationContract]:
     reaction = set(REACTION_OPERATIONS)
     separation = set(SEPARATION_OPERATIONS)
     crystallization = set(CRYSTALLIZATION_OPERATIONS)
@@ -331,6 +336,14 @@ def operation_contracts() -> dict[str, OperationContract]:
             required_fields=operation.required_fields,
             preconditions=operation.preconditions,
         )
+    if include_campaign_controls:
+        contracts["discard_batch"] = OperationContract(
+            operation_id="discard_batch",
+            module="campaign_control",
+            kind="campaign_control",
+            required_fields=("reason",),
+            preconditions=("campaign_batch_open", "campaign_vessel_started"),
+        )
     return contracts
 
 
@@ -371,6 +384,8 @@ def _discrete_index(value: Any, cardinality: int, label: str) -> int:
 
 
 __all__ = [
+    "CAMPAIGN_CONTROL_OPERATIONS",
+    "CAMPAIGN_OPERATION_TYPES",
     "CORE_OBSERVATION_KEYS",
     "CRYSTALLIZATION_OPERATIONS",
     "DISTILLATION_OPERATIONS",

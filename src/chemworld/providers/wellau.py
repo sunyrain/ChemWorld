@@ -5,7 +5,9 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from collections.abc import Callable
+import urllib.error
+import urllib.request
+from collections.abc import Callable, Mapping
 from typing import Any, Literal
 
 from chemworld.providers.deepseek import DeepSeekAPIError, DeepSeekClient
@@ -92,6 +94,7 @@ class WellAUClient(DeepSeekClient):
         user_prompt: str,
         max_tokens: int,
         retry: bool,
+        output_schema: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         retry_note = (
             "\nThe previous response was empty or invalid. Return the required JSON object."
@@ -104,11 +107,52 @@ class WellAUClient(DeepSeekClient):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt + retry_note},
             ],
-            "response_format": {"type": "json_object"},
+            "response_format": (
+                {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "chemworld_decision",
+                        "strict": True,
+                        "schema": output_schema,
+                    },
+                }
+                if output_schema is not None
+                else {"type": "json_object"}
+            ),
             "reasoning_effort": self.reasoning_effort,
             "stream": False,
             "max_tokens": int(max_tokens),
         }
+
+    def _send(self, body: dict[str, Any]) -> tuple[str, str | None]:
+        request = urllib.request.Request(
+            f"{self.base_url}/chat/completions",
+            data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "User-Agent": "ChemWorld-Formal/0.4",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout_s) as response:
+                return (
+                    response.read().decode("utf-8"),
+                    response.headers.get("x-request-id"),
+                )
+        except urllib.error.HTTPError as exc:
+            retryable = exc.code in {408, 409, 425, 429} or 500 <= exc.code <= 599
+            raise WellAUAPIError(
+                f"WellAU HTTP {exc.code}",
+                retryable=retryable,
+                status_code=int(exc.code),
+            ) from exc
+        except urllib.error.URLError as exc:
+            raise WellAUAPIError("WellAU connection failed", retryable=True) from exc
+        except TimeoutError as exc:
+            raise WellAUAPIError("WellAU request timed out", retryable=True) from exc
 
 
 def _canonical_sha256(payload: dict[str, Any]) -> str:

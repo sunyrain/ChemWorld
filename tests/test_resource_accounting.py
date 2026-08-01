@@ -122,6 +122,65 @@ def test_online_model_usage_requires_complete_provenance() -> None:
     assert valid.snapshot()["agent_usage"]["model_call_count"] == 1
 
 
+def test_online_development_ledger_allows_only_explicit_unknown_monetary_accounting() -> None:
+    provenance = {
+        "provider": "test-provider",
+        "model_id": "test-model",
+        "model_snapshot_or_access_date": "2026-07-25",
+        "prompt_hash": "abc123",
+        "request_parameters": {"max_attempts": 3},
+        "tokenizer_or_provider_usage_source": "provider",
+    }
+    usage = _usage(
+        accounting_complete=False,
+        provider_usage_accounting_complete=True,
+        provider_call_accounting_complete=True,
+        provider_token_accounting_complete=True,
+        monetary_accounting_complete=False,
+        model_call_count=1,
+        input_token_count=200,
+        output_token_count=50,
+        monetary_cost_usd=0.0,
+        model_provenance=provenance,
+    )
+    ledger = MethodResourceLedger(
+        MethodResourceLimits(
+            operation_limit=2,
+            model_call_limit=6,
+            monetary_cost_limit_usd=None,
+        ),
+        requires_online_model=True,
+    )
+
+    ledger.record_decision(elapsed_s=0.01, agent_usage=usage)
+
+    snapshot = ledger.snapshot()
+    assert snapshot["accounting_complete"] is False
+    assert snapshot["development_monetary_accounting_incomplete"] is True
+
+    capped = MethodResourceLedger(
+        MethodResourceLimits(
+            operation_limit=2,
+            model_call_limit=6,
+            monetary_cost_limit_usd=1.0,
+        ),
+        requires_online_model=True,
+    )
+    with pytest.raises(ValueError, match="uncapped monetary accounting"):
+        capped.record_decision(elapsed_s=0.01, agent_usage=usage)
+
+    missing_token_attestation = dict(usage)
+    missing_token_attestation.pop("provider_token_accounting_complete")
+    with pytest.raises(ValueError, match="uncapped monetary accounting"):
+        MethodResourceLedger(
+            MethodResourceLimits(operation_limit=2, model_call_limit=6),
+            requires_online_model=True,
+        ).record_decision(
+            elapsed_s=0.01,
+            agent_usage=missing_token_attestation,
+        )
+
+
 def test_online_model_ledger_allows_counted_retries_within_explicit_limit() -> None:
     ledger = MethodResourceLedger(
         MethodResourceLimits(operation_limit=2, model_call_limit=6),
@@ -150,6 +209,160 @@ def test_online_model_ledger_allows_counted_retries_within_explicit_limit() -> N
             elapsed_s=0.01,
             agent_usage=_usage(model_call_count=7, model_provenance=provenance),
         )
+
+
+def test_reconcile_agent_usage_updates_session_tokens_without_counting_operation() -> None:
+    provenance = {
+        "provider": "test-provider",
+        "model_id": "test-model",
+        "model_snapshot_or_access_date": "2026-07-25",
+        "prompt_hash": "abc123",
+        "request_parameters": {"session_scope": "complete_experiment"},
+        "tokenizer_or_provider_usage_source": "provider",
+    }
+    ledger = MethodResourceLedger(
+        MethodResourceLimits(
+            operation_limit=4,
+            model_call_limit=2,
+            input_token_limit=1_000,
+            output_token_limit=200,
+        ),
+        requires_online_model=True,
+    )
+    ledger.record_decision(
+        elapsed_s=0.01,
+        agent_usage=_usage(model_provenance=provenance),
+    )
+
+    ledger.reconcile_agent_usage(
+        _usage(
+            model_call_count=1,
+            input_token_count=700,
+            output_token_count=80,
+            model_provenance=provenance,
+        )
+    )
+
+    snapshot = ledger.snapshot()
+    assert snapshot["operation_count"] == 1
+    assert snapshot["agent_usage"]["model_call_count"] == 1
+    assert snapshot["agent_usage"]["input_token_count"] == 700
+    assert snapshot["agent_usage"]["output_token_count"] == 80
+
+
+def test_reconcile_agent_usage_enforces_session_level_token_limit() -> None:
+    provenance = {
+        "provider": "test-provider",
+        "model_id": "test-model",
+        "model_snapshot_or_access_date": "2026-07-25",
+        "prompt_hash": "abc123",
+        "request_parameters": {"session_scope": "complete_experiment"},
+        "tokenizer_or_provider_usage_source": "provider",
+    }
+    ledger = MethodResourceLedger(
+        MethodResourceLimits(
+            operation_limit=4,
+            model_call_limit=2,
+            input_token_limit=100,
+        ),
+        requires_online_model=True,
+    )
+    ledger.record_decision(
+        elapsed_s=0.01,
+        agent_usage=_usage(model_provenance=provenance),
+    )
+
+    with pytest.raises(MethodResourceLimitError, match="input_token_count"):
+        ledger.reconcile_agent_usage(
+            _usage(
+                model_call_count=1,
+                input_token_count=101,
+                model_provenance=provenance,
+            )
+        )
+
+
+def test_online_ledger_allows_one_explicit_in_flight_experiment_session() -> None:
+    provenance = {
+        "provider": "test-provider",
+        "model_id": "test-model",
+        "model_snapshot_or_access_date": "2026-07-25",
+        "prompt_hash": "abc123",
+        "request_parameters": {"session_scope": "complete_experiment"},
+        "tokenizer_or_provider_usage_source": "provider_turn_completed",
+    }
+    pending = _usage(
+        accounting_complete=False,
+        provider_usage_pending=True,
+        in_flight_model_call_count=1,
+        provider_usage_accounting_complete=False,
+        provider_call_accounting_complete=True,
+        provider_token_accounting_complete=False,
+        provider_cache_accounting_complete=False,
+        monetary_accounting_complete=False,
+        model_call_count=1,
+        model_provenance=provenance,
+    )
+    ledger = MethodResourceLedger(
+        MethodResourceLimits(
+            operation_limit=4,
+            wall_time_limit_s=60.0,
+            model_call_limit=2,
+            input_token_limit=1_000,
+            output_token_limit=200,
+        ),
+        requires_online_model=True,
+    )
+
+    ledger.record_decision(elapsed_s=0.01, agent_usage=pending)
+
+    snapshot = ledger.snapshot()
+    assert snapshot["operation_count"] == 1
+    assert snapshot["provider_usage_pending"] is True
+    assert snapshot["development_deferred_provider_usage"] is True
+    assert snapshot["agent_usage"]["in_flight_model_call_count"] == 1
+
+
+def test_online_ledger_rejects_unbounded_or_multiple_deferred_sessions() -> None:
+    provenance = {
+        "provider": "test-provider",
+        "model_id": "test-model",
+        "model_snapshot_or_access_date": "2026-07-25",
+        "prompt_hash": "abc123",
+        "request_parameters": {"session_scope": "complete_experiment"},
+        "tokenizer_or_provider_usage_source": "provider_turn_completed",
+    }
+    pending = _usage(
+        accounting_complete=False,
+        provider_usage_pending=True,
+        in_flight_model_call_count=1,
+        provider_usage_accounting_complete=False,
+        provider_call_accounting_complete=True,
+        provider_token_accounting_complete=False,
+        provider_cache_accounting_complete=False,
+        monetary_accounting_complete=False,
+        model_call_count=1,
+        model_provenance=provenance,
+    )
+    with pytest.raises(ValueError, match="bounded experiment session"):
+        MethodResourceLedger(
+            MethodResourceLimits(operation_limit=4, model_call_limit=2),
+            requires_online_model=True,
+        ).record_decision(elapsed_s=0.01, agent_usage=pending)
+
+    multiple = dict(pending)
+    multiple["in_flight_model_call_count"] = 2
+    multiple["model_call_count"] = 2
+    with pytest.raises(ValueError, match="bounded experiment session"):
+        MethodResourceLedger(
+            MethodResourceLimits(
+                operation_limit=4,
+                model_call_limit=2,
+                input_token_limit=1_000,
+                output_token_limit=200,
+            ),
+            requires_online_model=True,
+        ).record_decision(elapsed_s=0.01, agent_usage=multiple)
 
 
 def test_runner_retains_method_resource_ledger(tmp_path: Path) -> None:

@@ -63,12 +63,12 @@ class CodexSubscriptionClient:
         retry_backoff_s: float = 0.5,
         sleep: Callable[[float], None] = time.sleep,
         command_runner: CommandRunner = _default_command_runner,
+        persistent_workspace: Path | None = None,
+        allow_document_tools: bool = False,
     ) -> None:
         resolved_executable = codex_executable or shutil.which("codex")
         if not resolved_executable:
-            raise CodexSubscriptionError(
-                "Codex CLI is not installed or is not available on PATH."
-            )
+            raise CodexSubscriptionError("Codex CLI is not installed or is not available on PATH.")
         resolved_model = model or DEFAULT_MODEL
         if resolved_model not in SUPPORTED_MODELS:
             raise CodexSubscriptionError(
@@ -82,12 +82,22 @@ class CodexSubscriptionClient:
             raise ValueError("max_attempts must be positive")
         if retry_backoff_s < 0.0:
             raise ValueError("retry_backoff_s must be non-negative")
+        resolved_workspace = (
+            None if persistent_workspace is None else persistent_workspace.resolve()
+        )
+        if resolved_workspace is not None and not resolved_workspace.is_dir():
+            raise ValueError("persistent_workspace must be an existing directory")
+        if allow_document_tools and resolved_workspace is None:
+            raise ValueError("allow_document_tools requires an isolated persistent_workspace")
         self.codex_executable = str(resolved_executable)
         self.model = resolved_model
+        self.thinking = True
         self.timeout_s = float(timeout_s)
         self.reasoning_effort = reasoning_effort
         self.max_attempts = int(max_attempts)
         self.retry_backoff_s = float(retry_backoff_s)
+        self.persistent_workspace = resolved_workspace
+        self.allow_document_tools = bool(allow_document_tools)
         self._sleep = sleep
         self._command_runner = command_runner
         self.cli_version = self._read_cli_version()
@@ -117,10 +127,15 @@ class CodexSubscriptionClient:
         system_prompt: str,
         user_prompt: str,
         max_tokens: int = 4096,
+        output_schema: Mapping[str, Any] | None = None,
     ) -> JsonCompletion:
         if max_tokens <= 0:
             raise ValueError("max_tokens must be positive")
-        output_schema = _output_schema_from_prompt(user_prompt)
+        resolved_output_schema = (
+            _validated_explicit_output_schema(output_schema)
+            if output_schema is not None
+            else _output_schema_from_prompt(user_prompt)
+        )
         aggregate_usage = _empty_usage()
         attempt_records: list[dict[str, Any]] = []
         last_error: Exception | None = None
@@ -129,7 +144,7 @@ class CodexSubscriptionClient:
                 result = self._execute_once(
                     system_prompt=system_prompt,
                     user_prompt=user_prompt,
-                    output_schema=output_schema,
+                    output_schema=resolved_output_schema,
                     max_tokens=max_tokens,
                 )
             except subprocess.TimeoutExpired as error:
@@ -237,13 +252,22 @@ class CodexSubscriptionClient:
     ) -> subprocess.CompletedProcess[str]:
         with tempfile.TemporaryDirectory(prefix="chemworld-codex-subscription-") as temp:
             temp_root = Path(temp)
+            workspace_root = self.persistent_workspace or temp_root
             instructions_path = temp_root / "instructions.md"
             schema_path = temp_root / "output-schema.json"
+            execution_envelope = (
+                "- Use the shell tool only to inspect or update files inside the isolated "
+                "workspace.\n"
+                "- Do not use apps, multi-agent delegation, plugins, web search, or "
+                "external context.\n"
+                if self.allow_document_tools
+                else "- Do not call tools, inspect files, or use external context.\n"
+            )
             instructions_path.write_text(
                 (
                     f"{system_prompt}\n\n"
                     "Execution envelope:\n"
-                    "- Do not call tools, inspect files, or use external context.\n"
+                    f"{execution_envelope}"
                     "- Return only the requested JSON object.\n"
                     f"- Keep the final response within {max_tokens} output tokens.\n"
                 ),
@@ -263,35 +287,45 @@ class CodexSubscriptionClient:
                 "--skip-git-repo-check",
                 "--output-schema",
                 str(schema_path),
-                "--disable",
-                "shell_tool",
-                "--disable",
-                "apps",
-                "--disable",
-                "multi_agent",
-                "--disable",
-                "plugins",
-                "-c",
-                'approval_policy="never"',
-                "-c",
-                'web_search="disabled"',
-                "-c",
-                f'model_provider="{HTTPS_PROVIDER_ID}"',
-                "-c",
-                (
-                    f"model_providers.{HTTPS_PROVIDER_ID}="
-                    '{name="OpenAI",wire_api="responses",'
-                    "requires_openai_auth=true,supports_websockets=false}"
-                ),
-                "-c",
-                f'model_reasoning_effort="{self.reasoning_effort}"',
-                "-c",
-                f"model_instructions_file={json.dumps(instructions_path.as_posix())}",
-                "-m",
-                self.model,
-                "-C",
-                str(temp_root),
             ]
+            if not self.allow_document_tools:
+                command.extend(["--disable", "shell_tool"])
+            command.extend(
+                [
+                    "--disable",
+                    "apps",
+                    "--disable",
+                    "multi_agent",
+                    "--disable",
+                    "plugins",
+                ]
+            )
+            if self.allow_document_tools:
+                command.extend(["--sandbox", "workspace-write"])
+            command.extend(
+                [
+                    "-c",
+                    'approval_policy="never"',
+                    "-c",
+                    'web_search="disabled"',
+                    "-c",
+                    f'model_provider="{HTTPS_PROVIDER_ID}"',
+                    "-c",
+                    (
+                        f"model_providers.{HTTPS_PROVIDER_ID}="
+                        '{name="OpenAI",wire_api="responses",'
+                        "requires_openai_auth=true,supports_websockets=false}"
+                    ),
+                    "-c",
+                    f'model_reasoning_effort="{self.reasoning_effort}"',
+                    "-c",
+                    (f"model_instructions_file={json.dumps(instructions_path.as_posix())}"),
+                    "-m",
+                    self.model,
+                    "-C",
+                    str(workspace_root),
+                ]
+            )
             return self._command_runner(command, user_prompt, self.timeout_s)
 
     def _read_cli_version(self) -> str:
@@ -340,6 +374,22 @@ def _output_schema_from_prompt(user_prompt: str) -> dict[str, Any]:
     if not isinstance(schema, dict) or schema.get("type") != "object":
         raise ValueError("required_json_shape must describe a JSON object")
     return schema
+
+
+def _validated_explicit_output_schema(
+    output_schema: Mapping[str, Any],
+) -> dict[str, Any]:
+    schema = dict(output_schema)
+    if not schema or schema.get("type") != "object":
+        raise ValueError("explicit output_schema must describe a JSON object")
+    try:
+        encoded = json.dumps(schema, ensure_ascii=False, allow_nan=False)
+    except (TypeError, ValueError) as error:
+        raise ValueError("explicit output_schema must be JSON serializable") from error
+    decoded = json.loads(encoded)
+    if not isinstance(decoded, dict):
+        raise ValueError("explicit output_schema must describe a JSON object")
+    return decoded
 
 
 def _schema_from_shape(value: Any) -> dict[str, Any]:
@@ -509,9 +559,7 @@ def _attempt_record(
         "usage": dict(usage or {}),
         "usage_complete": bool(usage_complete),
         "billable": False,
-        "usage_source": (
-            "codex_cli_turn_completed" if usage_complete else "unavailable"
-        ),
+        "usage_source": ("codex_cli_turn_completed" if usage_complete else "unavailable"),
         "finish_reason": finish_reason,
         "content_character_count": 0,
         "reasoning_character_count": 0,

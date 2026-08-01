@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE = "adaptive_two_stage"
+ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1 = "autonomous_open_v1"
 ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE = "static_single_stage"
 ELECTROCHEMICAL_WORKFLOW_MODES = frozenset(
     {
         ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE,
+        ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1,
         ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
     }
 )
@@ -19,17 +21,28 @@ def normalize_electrochemical_workflow_mode(value: object) -> str:
     mode = str(value)
     if mode not in ELECTROCHEMICAL_WORKFLOW_MODES:
         raise ValueError(
-            "electrochemical_workflow_mode must be adaptive_two_stage or "
-            "static_single_stage"
+            "electrochemical_workflow_mode must be one of "
+            f"{sorted(ELECTROCHEMICAL_WORKFLOW_MODES)}"
         )
     return mode
+
+
+class _NetworkLike(Protocol):
+    reactions: list[Any]
+    species: list[Any]
+
+
+class _ScoreSpecLike(Protocol):
+    reactant_species: str
+    target_species: tuple[str, ...] | list[str]
+    impurity_species: tuple[str, ...] | list[str]
 
 
 class _CompiledMechanismLike(Protocol):
     mechanism_id: str
     species_index: dict[str, int]
-    network: object
-    score_spec: object
+    network: _NetworkLike
+    score_spec: _ScoreSpecLike
 
 
 @dataclass(frozen=True)
@@ -171,6 +184,7 @@ ELECTROCHEMICAL_TASK_CONTRACT = ElectrochemicalTaskContract()
 __all__ = [
     "ELECTROCHEMICAL_TASK_CONTRACT",
     "ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE",
+    "ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1",
     "ELECTROCHEMICAL_WORKFLOW_MODES",
     "ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE",
     "ElectrochemicalTaskContract",

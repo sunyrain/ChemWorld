@@ -1,0 +1,137 @@
+{
+  "schema_version": "chemworld-g2-autonomous-material-triarm-matrix-0.1",
+  "protocol_id": "g2-electrochemical-autonomous-material-information-5x3-v0.1",
+  "status": "development-exploratory",
+  "claim_policy": {
+    "confirmatory": false,
+    "intended_use": "paired early-campaign characterization of operation-level agent behavior under correct, opaque, and intentionally misindexed material information",
+    "not_intended_to_test": [
+      "LLM superiority over Bayesian optimization",
+      "real-laboratory robot manipulation",
+      "population-level significance from five worlds",
+      "a stable causal material-information effect across repeated model draws"
+    ]
+  },
+  "task": {
+    "task_id": "electrochemical-conversion",
+    "world_split": "public-test",
+    "world_seeds": [0, 1, 2, 3, 4],
+    "objective": "balanced",
+    "episode_mode": "campaign",
+    "electrochemical_workflow_mode": "autonomous_open_v1",
+    "electrochemical_material_family_id": "nominal-prior-latent-v2",
+    "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+    "observation_noise_mode": "keyed",
+    "observation_noise_namespace": "g2-autonomous-material-triarm-v1"
+  },
+  "conditions": [
+    {
+      "arm_id": "unknown",
+      "condition_id": "opaque_codes",
+      "material_information": {"mode": "opaque_codes"}
+    },
+    {
+      "arm_id": "known",
+      "condition_id": "anonymous_nominal_properties",
+      "material_information": {"mode": "anonymous_nominal_properties"}
+    },
+    {
+      "arm_id": "mismatched",
+      "condition_id": "anonymous_misindexed_properties",
+      "material_information": {
+        "mode": "anonymous_misindexed_properties",
+        "target_field": "solvent",
+        "descriptor_permutation": [0, 3, 2, 1]
+      }
+    }
+  ],
+  "mismatch_freeze": {
+    "target_field": "solvent",
+    "descriptor_permutation": [0, 3, 2, 1],
+    "transposed_action_values": [1, 3],
+    "agent_blind": true,
+    "world_physics_unchanged": true,
+    "non_target_field_unchanged": true
+  },
+  "execution_order": {
+    "kind": "three-arm cyclic order within each paired world",
+    "order_by_seed_mod_3": {
+      "0": ["unknown", "known", "mismatched"],
+      "1": ["known", "mismatched", "unknown"],
+      "2": ["mismatched", "unknown", "known"]
+    },
+    "rationale": "keep all three conditions adjacent within a fixed world while counterbalancing slow provider drift"
+  },
+  "campaign_resource_card": {
+    "factory": "generous_electrochemical_max_envelope_card",
+    "card_id": "electrochemical-k4-triarm-lean-v1",
+    "complete_experiments": 4,
+    "operation_attempt_limit": 24,
+    "vessel_start_limit": 4,
+    "final_assay_limit": 4,
+    "nonfinal_instrument_use_limit": 0,
+    "stock_action_envelopes_per_experiment": 0.5,
+    "stock_limits": {
+      "reagent_mol": 0.08,
+      "solvent_L": 0.16
+    },
+    "semantics": {
+      "attempts": "every submitted primitive action, including invalid and resource-rejected proposals",
+      "physical_debits": "committed transactions only",
+      "allocation": "one campaign-wide pool; no hidden future-vessel reservation",
+      "automatic_repair": false,
+      "automatic_terminate": false,
+      "automatic_final_assay": false
+    }
+  },
+  "method_resource_limits_per_cell": {
+    "operation_limit": 24,
+    "complete_experiment_limit": 4,
+    "checkpoint_complete_experiments": [1, 2, 3, 4],
+    "wall_time_limit_s": 7200.0,
+    "model_call_limit": 24,
+    "input_token_limit": 480000,
+    "output_token_limit": 48000,
+    "training_environment_step_limit": 0
+  },
+  "agent": {
+    "agent_id": "structured_g2_operation_v0.1",
+    "provider": "WellAU direct structured JSON",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "medium",
+    "one_provider_call_per_operation": true,
+    "provider_timeout_s": 180.0,
+    "provider_max_attempts": 1,
+    "response_max_tokens": 1800,
+    "prompt_token_estimate_cap": 3200,
+    "recent_decision_limit": 4,
+    "experiment_memory_limit": 4,
+    "decision_transport": "one_provider_json_call_per_primitive_operation",
+    "wire_api": "chat_completions",
+    "structured_output": "strict_json_schema",
+    "shell_tools_enabled": false,
+    "lab_tool_used": false,
+    "forced_notebook": false,
+    "agent_directory_optional": true,
+    "authoritative_trajectory_in_agent_workspace": false,
+    "automatic_action_repair": false,
+    "automatic_closeout": false
+  },
+  "analysis": {
+    "primary_endpoints": [
+      "paired best final score by world and arm",
+      "operation-normalized incumbent AUC",
+      "complete lifecycle and exact replay",
+      "first material choice and late material choice",
+      "invalid and resource-rejected operation counts",
+      "ledger utilization and unused hard capacity"
+    ],
+    "wrong_prior_endpoints": [
+      "mismatched first transposed-solvent rate",
+      "mismatched late departure from transposed solvent",
+      "late-minus-early score change",
+      "paired mismatched-minus-known contrast"
+    ],
+    "small_n_policy": "n=5 paired worlds with one stochastic Codex trajectory per arm; report paired values descriptively and do not use confirmatory language"
+  }
+}

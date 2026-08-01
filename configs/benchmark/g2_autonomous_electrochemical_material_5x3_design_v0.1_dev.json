@@ -1,0 +1,142 @@
+{
+  "schema_version": "chemworld-g2-autonomous-material-triarm-design-0.1",
+  "protocol_id": "g2-electrochemical-known-unknown-mismatched-resource-design-v0.1",
+  "status": "development-design-calibration",
+  "task": {
+    "task_id": "electrochemical-conversion",
+    "world_split": "public-test",
+    "world_seeds": [0, 1, 2, 3, 4],
+    "objective": "balanced",
+    "episode_mode": "campaign",
+    "electrochemical_workflow_mode": "autonomous_open_v1",
+    "electrochemical_material_family_id": "nominal-prior-latent-v2",
+    "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+    "observation_noise_mode": "keyed",
+    "observation_noise_namespace": "g2-triarm-resource-design-v1"
+  },
+  "conditions": [
+    {
+      "arm_id": "unknown",
+      "condition_id": "opaque_codes",
+      "material_information": {"mode": "opaque_codes"}
+    },
+    {
+      "arm_id": "known",
+      "condition_id": "anonymous_nominal_properties",
+      "material_information": {"mode": "anonymous_nominal_properties"}
+    },
+    {
+      "arm_id": "mismatched",
+      "condition_id": "anonymous_misindexed_properties",
+      "material_information": {
+        "mode": "anonymous_misindexed_properties",
+        "target_field": "solvent",
+        "descriptor_permutation": [0, 3, 2, 1]
+      }
+    }
+  ],
+  "mismatch_freeze": {
+    "target_field": "solvent",
+    "source_index_by_action_value": [0, 3, 2, 1],
+    "transposed_action_values": [1, 3],
+    "selection_basis": "pre-G2 material-family qualification: solvent-S1 is favored by the frozen mechanistic descriptor heuristic while solvent-S3 is substantially weaker; swap is fixed across all worlds",
+    "agent_blind": true,
+    "world_physics_unchanged": true,
+    "non_target_field_unchanged": true
+  },
+  "execution_order": {
+    "kind": "three-period cyclic order within each paired world",
+    "order_by_seed_mod_3": {
+      "0": ["unknown", "known", "mismatched"],
+      "1": ["known", "mismatched", "unknown"],
+      "2": ["mismatched", "unknown", "known"]
+    }
+  },
+  "resource_designs": [
+    {
+      "design_id": "lean-k4-one-stage",
+      "batch_count": 4,
+      "operation_attempt_limit": 24,
+      "nonfinal_instrument_use_limit": 0,
+      "stock_action_envelopes_per_batch": 0.5,
+      "policy": {
+        "diagnostic_instrument": null,
+        "adapted_second_stage": false
+      }
+    },
+    {
+      "design_id": "diagnostic-k6-one-stage",
+      "batch_count": 6,
+      "operation_attempt_limit": 42,
+      "nonfinal_instrument_use_limit": 6,
+      "stock_action_envelopes_per_batch": 0.5,
+      "policy": {
+        "diagnostic_instrument": "uvvis",
+        "adapted_second_stage": false
+      }
+    },
+    {
+      "design_id": "adaptive-k6-two-stage",
+      "batch_count": 6,
+      "operation_attempt_limit": 54,
+      "nonfinal_instrument_use_limit": 6,
+      "stock_action_envelopes_per_batch": 0.5,
+      "policy": {
+        "diagnostic_instrument": "uvvis",
+        "adapted_second_stage": true
+      }
+    },
+    {
+      "design_id": "diagnostic-k8-one-stage",
+      "batch_count": 8,
+      "operation_attempt_limit": 56,
+      "nonfinal_instrument_use_limit": 8,
+      "stock_action_envelopes_per_batch": 0.5,
+      "policy": {
+        "diagnostic_instrument": "uvvis",
+        "adapted_second_stage": false
+      }
+    },
+    {
+      "design_id": "current-rich-k6-control",
+      "batch_count": 6,
+      "operation_attempt_limit": 84,
+      "nonfinal_instrument_use_limit": 18,
+      "stock_action_envelopes_per_batch": 2.0,
+      "policy": {
+        "diagnostic_instrument": "uvvis",
+        "adapted_second_stage": false
+      }
+    }
+  ],
+  "evaluation": {
+    "primary_design_requirements": [
+      "all planned batches close without right censoring",
+      "known arm is distinguishable from unknown when the dossier is useful",
+      "mismatched arm is behaviorally manipulated relative to known",
+      "six-batch designs expose whether the agent corrects a wrong prior",
+      "unused operation, stock, and instrument capacity is penalized"
+    ],
+    "primary_cell_endpoints": [
+      "best_final_score",
+      "mean_final_score",
+      "incumbent_auc_per_operation",
+      "lifecycle_completion",
+      "operation_utilization",
+      "stock_utilization",
+      "diagnostic_utilization"
+    ],
+    "paired_arm_contrasts": [
+      "known_minus_unknown",
+      "mismatched_minus_known",
+      "mismatched_minus_unknown"
+    ],
+    "wrong_prior_endpoints": [
+      "first_batch_selects_transposed_solvent",
+      "late_batch_leaves_transposed_solvent",
+      "late_minus_early_mismatched_score",
+      "mismatched_recovery_fraction_toward_known"
+    ],
+    "selection_rule": "choose the smallest design satisfying lifecycle completion and manipulation/recovery visibility; break ties by best score per operation and lowest unused hard-envelope fraction"
+  }
+}

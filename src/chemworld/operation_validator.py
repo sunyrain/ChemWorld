@@ -19,12 +19,14 @@ from chemworld.physchem.crystallization_units import (
 )
 from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE,
+    ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1,
     ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
     normalize_electrochemical_workflow_mode,
 )
 from chemworld.schemas import validate_action_schema
 from chemworld.world.actions import ELECTROLYTE_PROFILES
 from chemworld.world.operations import (
+    CAMPAIGN_CONTROL_OPERATIONS,
     OPERATION_CUMULATIVE_FIELD_LIMITS,
     OPERATION_FIELD_BOUNDS,
     OPERATION_FIELD_CHOICES,
@@ -115,7 +117,10 @@ class OperationValidator:
         self.action_codec = action_codec or ActionCodec()
 
     def validate(self, action: dict[str, Any], state: WorldState) -> OperationValidation:
-        schema_result = validate_action_schema(action)
+        schema_result = validate_action_schema(
+            action,
+            operation_types=self.operation_types,
+        )
         if not schema_result.valid:
             operation_type = str(action.get("operation", "invalid"))
             valid_operations = self.valid_operations(state)
@@ -163,9 +168,12 @@ class OperationValidator:
         operation_type = str(canonical["operation"])
         preconditions = self._preconditions(operation_type, canonical, state)
         preconditions["action_schema_valid"] = True
+        contracts = operation_contracts(
+            include_campaign_controls=operation_type in CAMPAIGN_CONTROL_OPERATIONS
+        )
         declared_fields = {
             "operation",
-            *operation_contracts()[operation_type].required_fields,
+            *contracts[operation_type].required_fields,
         }
         preconditions["payload_fields_declared"] = set(canonical).issubset(declared_fields)
         valid_operations = self.valid_operations(state)
@@ -289,6 +297,8 @@ class OperationValidator:
             self.task_id == "electrochemical-conversion"
             and operation_type == "measure"
             and field == "instrument"
+            and self.electrochemical_workflow_mode
+            != ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
         ):
             required = self._electrochemical_required_instruments(state)
             if required:
@@ -474,6 +484,21 @@ class OperationValidator:
         cell = equipment_settings(state.equipment, "electrochemical_cell")
         setpoint_count = len(tuple(cell.get("setpoint_history", ())))
         electrolysis_count = len(tuple(cell.get("electrolysis_history", ())))
+        if (
+            self.electrochemical_workflow_mode
+            == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
+        ):
+            allowed = {
+                "add_solvent",
+                "add_reagent",
+                "set_potential",
+                "electrolyze",
+                "measure",
+                "discard_batch",
+            }
+            if electrolysis_count >= 1:
+                allowed.add("terminate")
+            return operation_type in allowed
         if setpoint_count == 0:
             return operation_type in {"add_solvent", "add_reagent", "set_potential"}
         if electrolysis_count == 0:
@@ -499,6 +524,11 @@ class OperationValidator:
         cell = equipment_settings(state.equipment, "electrochemical_cell")
         electrolysis_history = tuple(cell.get("electrolysis_history", ()))
         if not electrolysis_history:
+            return ()
+        if (
+            self.electrochemical_workflow_mode
+            == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
+        ):
             return ()
         if (
             self.electrochemical_workflow_mode
@@ -543,6 +573,11 @@ class OperationValidator:
         electrolysis_history = tuple(cell.get("electrolysis_history", ()))
         if (
             self.electrochemical_workflow_mode
+            == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
+        ):
+            return bool(electrolysis_history)
+        if (
+            self.electrochemical_workflow_mode
             == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
         ):
             return bool(electrolysis_history) and not self._electrochemical_required_instruments(
@@ -580,6 +615,8 @@ class OperationValidator:
         state: WorldState,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {"operation": operation_type}
+        if operation_type == "discard_batch":
+            payload["reason"] = "campaign decision"
         if operation_type == "measure":
             payload["instrument"] = self._default_measurement_instrument(state)
         if operation_type == "add_phase":
@@ -614,7 +651,9 @@ class OperationValidator:
         state: WorldState,
     ) -> dict[str, bool]:
         checks: dict[str, bool] = {}
-        required_fields = operation_contracts()[operation_type].required_fields
+        required_fields = operation_contracts(
+            include_campaign_controls=operation_type in CAMPAIGN_CONTROL_OPERATIONS
+        )[operation_type].required_fields
         for field in required_fields:
             checks[f"payload_has:{field}"] = field in payload
 
@@ -889,7 +928,11 @@ class OperationValidator:
                         "electrochemical_cell",
                     ).get("setpoint_history", ())
                 )
-                if len(setpoint_history) == 1:
+                if (
+                    len(setpoint_history) == 1
+                    and self.electrochemical_workflow_mode
+                    != ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
+                ):
                     previous = dict(setpoint_history[0])
                     potential = self._float(payload.get("potential_V"))
                     current = self._float(payload.get("current_mA"))

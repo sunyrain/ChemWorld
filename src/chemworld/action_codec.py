@@ -9,11 +9,11 @@ import numpy as np
 
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.operations import (
+    CAMPAIGN_CONTROL_OPERATIONS,
     INSTRUMENTS,
     OPERATION_TYPES,
     instrument_name,
     operation_contracts,
-    operation_name,
 )
 
 PHASES = ("reactor_liquid", "aqueous", "organic")
@@ -68,7 +68,7 @@ class ActionCodec:
             payload["operation"] = canonical["operation"]
             payload.update({key: value for key, value in canonical.items() if key != "operation"})
             canonical = payload
-        canonical["operation"] = operation_name(canonical["operation"])
+        canonical["operation"] = self._operation_name(canonical["operation"])
         canonical = self._apply_aliases(canonical)
         if "solvent" in canonical:
             canonical["solvent"] = self._choice_index(canonical["solvent"], self.solvents)
@@ -91,6 +91,14 @@ class ActionCodec:
                 self.electrolyte_profiles,
             )
         return canonical
+
+    def _operation_name(self, value: Any) -> str:
+        if isinstance(value, str):
+            if value not in self.operation_types:
+                raise ValueError(f"Unsupported operation: {value}")
+            return value
+        index = self._index(value, self.operation_types)
+        return self.operation_types[index]
 
     def _apply_aliases(self, action: dict[str, Any]) -> dict[str, Any]:
         """Accept common user-facing names while preserving canonical output."""
@@ -231,7 +239,9 @@ class ActionCodec:
                 np.clip(round(array[22]), 0, len(self.electrolyte_profiles) - 1)
             ),
         }
-        required = operation_contracts()[operation].required_fields
+        required = operation_contracts(
+            include_campaign_controls=operation in CAMPAIGN_CONTROL_OPERATIONS
+        )[operation].required_fields
         return {"operation": operation, **{key: decoded[key] for key in required}}
 
     def phase_name(self, value: Any) -> str:

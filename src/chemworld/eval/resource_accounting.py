@@ -126,6 +126,18 @@ class MethodResourceLedger:
         self._accept_agent_usage(agent_usage)
         self._enforce()
 
+    def reconcile_agent_usage(self, agent_usage: Mapping[str, Any]) -> None:
+        """Accept cumulative usage learned after an asynchronous decision.
+
+        A tool-using provider may expose exact token usage only after its
+        experiment-level session ends.  The associated laboratory operation
+        was already counted by :meth:`record_decision`, so reconciliation
+        updates only provider counters and never creates a synthetic operation.
+        """
+
+        self._accept_agent_usage(agent_usage)
+        self._enforce()
+
     def record_outcome(self, *, experiment_ended: bool, update_elapsed_s: float) -> None:
         if not math.isfinite(update_elapsed_s) or update_elapsed_s < 0.0:
             raise ValueError("update elapsed time must be finite and non-negative")
@@ -149,6 +161,18 @@ class MethodResourceLedger:
             "limits": to_builtin(asdict(self.limits)),
             "agent_usage": to_builtin(usage),
             "accounting_complete": bool(usage["accounting_complete"]),
+            "provider_usage_pending": bool(usage["provider_usage_pending"]),
+            "development_deferred_provider_usage": bool(
+                self.requires_online_model
+                and usage["provider_usage_pending"]
+                and usage["in_flight_model_call_count"] == 1
+            ),
+            "development_monetary_accounting_incomplete": bool(
+                self.requires_online_model
+                and not usage["accounting_complete"]
+                and usage["provider_usage_accounting_complete"]
+                and not usage["monetary_accounting_complete"]
+            ),
         }
 
     def _accept_agent_usage(self, payload: Mapping[str, Any]) -> None:
@@ -158,8 +182,37 @@ class MethodResourceLedger:
             if usage[name] < previous[name]:
                 raise ValueError(f"cumulative resource field decreased: {name}")
         if self.requires_online_model:
-            if not usage["accounting_complete"]:
-                raise ValueError("online model resource accounting must be complete")
+            deferred_experiment_session = bool(
+                not usage["accounting_complete"]
+                and usage["provider_usage_pending"]
+                and usage["in_flight_model_call_count"] == 1
+                and usage["provider_call_accounting_complete"]
+                and not usage["provider_token_accounting_complete"]
+                and not usage["monetary_accounting_complete"]
+                and self.limits.model_call_limit is not None
+                and self.limits.input_token_limit is not None
+                and self.limits.output_token_limit is not None
+                and self.limits.monetary_cost_limit_usd is None
+            )
+            development_unknown_pricing = bool(
+                not usage["accounting_complete"]
+                and usage["provider_usage_accounting_complete"]
+                and usage["provider_call_accounting_complete"]
+                and usage["provider_token_accounting_complete"]
+                and not usage["monetary_accounting_complete"]
+                and self.limits.monetary_cost_limit_usd is None
+            )
+            if (
+                not usage["accounting_complete"]
+                and not development_unknown_pricing
+                and not deferred_experiment_session
+            ):
+                raise ValueError(
+                    "online model resource accounting must be complete unless "
+                    "provider call/token usage is explicitly complete and only "
+                    "uncapped monetary accounting is incomplete, or exactly one "
+                    "bounded experiment session has explicitly deferred usage"
+                )
             provenance = usage["model_provenance"]
             required = {
                 "provider",
@@ -181,17 +234,68 @@ class MethodResourceLedger:
             }
         if payload.get("schema_version") != METHOD_RESOURCE_USAGE_VERSION:
             raise ValueError("unsupported method resource usage schema")
+        accounting_complete = payload.get("accounting_complete") is True
         normalized: dict[str, Any] = {
             "schema_version": METHOD_RESOURCE_USAGE_VERSION,
-            "accounting_complete": bool(payload.get("accounting_complete", False)),
+            "accounting_complete": accounting_complete,
+            "provider_usage_pending": payload.get("provider_usage_pending") is True,
+            "provider_usage_accounting_complete": (
+                payload.get(
+                    "provider_usage_accounting_complete",
+                    accounting_complete,
+                )
+                is True
+            ),
+            "provider_call_accounting_complete": (
+                payload.get(
+                    "provider_call_accounting_complete",
+                    accounting_complete,
+                )
+                is True
+            ),
+            "provider_token_accounting_complete": (
+                payload.get(
+                    "provider_token_accounting_complete",
+                    accounting_complete,
+                )
+                is True
+            ),
+            "provider_cache_accounting_complete": (
+                payload.get(
+                    "provider_cache_accounting_complete",
+                    accounting_complete,
+                )
+                is True
+            ),
+            "monetary_accounting_complete": (
+                payload.get(
+                    "monetary_accounting_complete",
+                    accounting_complete,
+                )
+                is True
+            ),
             "usage_source": str(payload.get("usage_source", "unspecified")),
             "model_provenance": to_builtin(payload.get("model_provenance", {})),
         }
+        in_flight = int(payload.get("in_flight_model_call_count", 0))
+        if in_flight < 0:
+            raise ValueError(
+                "resource field must be non-negative: in_flight_model_call_count"
+            )
+        if normalized["provider_usage_pending"] != (in_flight > 0):
+            raise ValueError(
+                "provider_usage_pending must match in_flight_model_call_count"
+            )
+        normalized["in_flight_model_call_count"] = in_flight
         for name in _AGENT_COUNTER_FIELDS:
             counter_value = int(payload.get(name, 0))
             if counter_value < 0:
                 raise ValueError(f"resource field must be non-negative: {name}")
             normalized[name] = counter_value
+        if in_flight > normalized["model_call_count"]:
+            raise ValueError(
+                "in_flight_model_call_count cannot exceed model_call_count"
+            )
         for name in _AGENT_FLOAT_FIELDS:
             float_value = float(payload.get(name, 0.0))
             if not math.isfinite(float_value) or float_value < 0.0:

@@ -340,7 +340,11 @@ def _is_number(value: Any) -> bool:
     return isinstance(value, int | float) and not isinstance(value, bool)
 
 
-def validate_action_schema(action: object) -> SchemaValidationResult:
+def validate_action_schema(
+    action: object,
+    *,
+    operation_types: tuple[str, ...] = OPERATION_TYPES,
+) -> SchemaValidationResult:
     errors: list[str] = []
     if not isinstance(action, dict):
         return SchemaValidationResult(False, ("action must be an object",))
@@ -348,12 +352,17 @@ def validate_action_schema(action: object) -> SchemaValidationResult:
     if "operation" not in action:
         errors.append("missing required field: operation")
     operation = action.get("operation")
-    if isinstance(operation, str) and operation not in OPERATION_TYPES:
+    if isinstance(operation, str) and operation not in operation_types:
         errors.append(f"unknown operation: {operation}")
-    if isinstance(operation, int) and not 0 <= operation < len(OPERATION_TYPES):
+    if isinstance(operation, int) and not 0 <= operation < len(operation_types):
         errors.append(f"operation index outside valid range: {operation}")
     if not isinstance(operation, str | int):
         errors.append("operation must be a string name or integer index")
+    reason = action.get("reason")
+    if reason is not None and (
+        not isinstance(reason, str) or not reason.strip() or len(reason) > 256
+    ):
+        errors.append("reason must be a non-empty string of at most 256 characters")
     if "payload" in action and not isinstance(action["payload"], dict):
         errors.append("payload must be an object when provided")
     instrument = action.get("instrument")
