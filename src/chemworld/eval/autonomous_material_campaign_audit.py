@@ -31,8 +31,11 @@ from chemworld.eval.provenance import (
 )
 
 AUTONOMOUS_MATERIAL_CAMPAIGN_AUDIT_VERSION = (
-    "chemworld-autonomous-material-campaign-audit-0.2"
+    "chemworld-autonomous-material-campaign-audit-0.3"
 )
+
+TRAJECTORY_RETENTION_FRACTION = 0.90
+_SCORE_COMPARISON_TOLERANCE = 1e-12
 
 OPAQUE_ARM = "opaque"
 NOMINAL_ARM = "nominal"
@@ -763,6 +766,414 @@ def _diagnostic_adaptation_metrics(
             )
         ),
         "events": alignments,
+    }
+
+
+def _mean_or_none(values: Sequence[float]) -> float | None:
+    return statistics.fmean(float(value) for value in values) if values else None
+
+
+def _discovery_retention_recovery_metrics(
+    final_outcomes: Sequence[Mapping[str, Any]],
+    *,
+    retention_fraction: float = TRAJECTORY_RETENTION_FRACTION,
+) -> dict[str, Any]:
+    """Describe online discovery, incumbent loss, and recovery over final assays."""
+
+    if not 0.0 < retention_fraction <= 1.0:
+        raise ValueError("retention_fraction must be in (0, 1]")
+    points = [
+        {
+            "final_assay_ordinal": ordinal,
+            "batch_number": int(outcome["batch_index"]) + 1,
+            "score": float(outcome["score"]),
+        }
+        for ordinal, outcome in enumerate(final_outcomes, start=1)
+    ]
+    if not points:
+        return {
+            "definition": (
+                "No committed final assay was available, so discovery, retention, "
+                "drawdown, and recovery are undefined."
+            ),
+            "retention_fraction": retention_fraction,
+            "score_observation_count": 0,
+            "global_best_score": None,
+            "global_best_first_final_assay_ordinal": None,
+            "global_best_first_batch_number": None,
+            "global_best_discovery_fraction": None,
+            "incumbent_update_count": 0,
+            "incumbent_updates": [],
+            "online_retention_opportunity_count": 0,
+            "online_retained_count": 0,
+            "online_retention_rate": None,
+            "post_global_best_observation_count": 0,
+            "post_global_best_retained_count": 0,
+            "post_global_best_retention_rate": None,
+            "maximum_absolute_drawdown_from_prior_incumbent": None,
+            "maximum_relative_drawdown_from_prior_incumbent": None,
+            "terminal_to_global_best_ratio": None,
+            "loss_episode_count": 0,
+            "recovered_loss_episode_count": 0,
+            "unresolved_loss_episode_count": 0,
+            "recovery_rate": None,
+            "mean_recovery_delay_final_assays": None,
+            "mean_recovery_delay_batches": None,
+            "loss_episodes": [],
+            "per_final_assay": [],
+        }
+
+    incumbent: float | None = None
+    incumbent_updates: list[dict[str, Any]] = []
+    per_final_assay: list[dict[str, Any]] = []
+    for point in points:
+        score = float(point["score"])
+        pre_incumbent = incumbent
+        if pre_incumbent is None:
+            threshold = None
+            retained = None
+            absolute_drawdown = None
+            relative_drawdown = None
+            new_incumbent = True
+        else:
+            threshold = retention_fraction * pre_incumbent
+            retained = score + _SCORE_COMPARISON_TOLERANCE >= threshold
+            absolute_drawdown = max(0.0, pre_incumbent - score)
+            relative_drawdown = (
+                absolute_drawdown / pre_incumbent
+                if pre_incumbent > 0.0
+                else 0.0
+            )
+            new_incumbent = score > (
+                pre_incumbent + _SCORE_COMPARISON_TOLERANCE
+            )
+        if new_incumbent:
+            incumbent_updates.append(
+                {
+                    **point,
+                    "improvement_over_prior_incumbent": (
+                        None
+                        if pre_incumbent is None
+                        else score - pre_incumbent
+                    ),
+                }
+            )
+            incumbent = score
+        per_final_assay.append(
+            {
+                **point,
+                "pre_assay_incumbent": pre_incumbent,
+                "retention_threshold": threshold,
+                "retained_prior_incumbent": retained,
+                "absolute_drawdown_from_prior_incumbent": absolute_drawdown,
+                "relative_drawdown_from_prior_incumbent": relative_drawdown,
+                "new_incumbent": new_incumbent,
+                "post_assay_incumbent": incumbent,
+            }
+        )
+
+    global_best = max(float(point["score"]) for point in points)
+    global_best_index = next(
+        index
+        for index, point in enumerate(points)
+        if abs(float(point["score"]) - global_best)
+        <= _SCORE_COMPARISON_TOLERANCE
+    )
+    global_best_point = points[global_best_index]
+    post_global_best = points[global_best_index + 1 :]
+    global_retention_threshold = retention_fraction * global_best
+    post_global_retained_count = sum(
+        float(point["score"]) + _SCORE_COMPARISON_TOLERANCE
+        >= global_retention_threshold
+        for point in post_global_best
+    )
+    online_rows = per_final_assay[1:]
+    online_retained_count = sum(
+        row["retained_prior_incumbent"] is True for row in online_rows
+    )
+    absolute_drawdowns = [
+        float(row["absolute_drawdown_from_prior_incumbent"])
+        for row in online_rows
+    ]
+    relative_drawdowns = [
+        float(row["relative_drawdown_from_prior_incumbent"])
+        for row in online_rows
+    ]
+
+    loss_episodes: list[dict[str, Any]] = []
+    open_episode: dict[str, Any] | None = None
+    for row in online_rows:
+        score = float(row["score"])
+        if open_episode is not None:
+            if score + _SCORE_COMPARISON_TOLERANCE >= float(
+                open_episode["recovery_threshold"]
+            ):
+                open_episode.update(
+                    {
+                        "recovered": True,
+                        "recovery_final_assay_ordinal": row[
+                            "final_assay_ordinal"
+                        ],
+                        "recovery_batch_number": row["batch_number"],
+                        "recovery_score": score,
+                        "recovery_delay_final_assays": int(
+                            row["final_assay_ordinal"]
+                        )
+                        - int(open_episode["loss_start_final_assay_ordinal"]),
+                        "recovery_delay_batches": int(row["batch_number"])
+                        - int(open_episode["loss_start_batch_number"]),
+                        "recovery_time_right_censored": False,
+                    }
+                )
+                loss_episodes.append(open_episode)
+                open_episode = None
+            else:
+                open_episode["lowest_score"] = min(
+                    float(open_episode["lowest_score"]), score
+                )
+                reference = float(open_episode["reference_incumbent"])
+                open_episode["maximum_absolute_drawdown"] = max(
+                    float(open_episode["maximum_absolute_drawdown"]),
+                    reference - score,
+                )
+                open_episode["maximum_relative_drawdown"] = (
+                    float(open_episode["maximum_absolute_drawdown"])
+                    / reference
+                    if reference > 0.0
+                    else 0.0
+                )
+            continue
+        if row["retained_prior_incumbent"] is False:
+            reference = float(row["pre_assay_incumbent"])
+            absolute_drawdown = float(
+                row["absolute_drawdown_from_prior_incumbent"]
+            )
+            open_episode = {
+                "loss_start_final_assay_ordinal": row["final_assay_ordinal"],
+                "loss_start_batch_number": row["batch_number"],
+                "loss_start_score": score,
+                "reference_incumbent": reference,
+                "recovery_threshold": retention_fraction * reference,
+                "lowest_score": score,
+                "maximum_absolute_drawdown": absolute_drawdown,
+                "maximum_relative_drawdown": (
+                    absolute_drawdown / reference if reference > 0.0 else 0.0
+                ),
+            }
+    if open_episode is not None:
+        open_episode.update(
+            {
+                "recovered": False,
+                "recovery_final_assay_ordinal": None,
+                "recovery_batch_number": None,
+                "recovery_score": None,
+                "recovery_delay_final_assays": None,
+                "recovery_delay_batches": None,
+                "recovery_time_right_censored": True,
+            }
+        )
+        loss_episodes.append(open_episode)
+
+    recovered_episodes = [
+        episode for episode in loss_episodes if episode["recovered"]
+    ]
+    return {
+        "definition": (
+            "A final assay retains the pre-assay incumbent when its score is "
+            f"at least {retention_fraction:.0%} of that incumbent. A loss "
+            "episode begins below that threshold; its reference incumbent is "
+            "frozen, and recovery is the first later final assay reaching the "
+            "same threshold. Global-best discovery uses the first occurrence "
+            "of the observed campaign maximum. Unrecovered terminal episodes "
+            "have right-censored recovery time."
+        ),
+        "retention_fraction": retention_fraction,
+        "score_observation_count": len(points),
+        "global_best_score": global_best,
+        "global_best_first_final_assay_ordinal": global_best_point[
+            "final_assay_ordinal"
+        ],
+        "global_best_first_batch_number": global_best_point["batch_number"],
+        "global_best_discovery_fraction": (
+            global_best_index / (len(points) - 1) if len(points) > 1 else 0.0
+        ),
+        "incumbent_update_count": len(incumbent_updates),
+        "incumbent_updates": incumbent_updates,
+        "online_retention_opportunity_count": len(online_rows),
+        "online_retained_count": online_retained_count,
+        "online_retention_rate": (
+            online_retained_count / len(online_rows) if online_rows else None
+        ),
+        "post_global_best_observation_count": len(post_global_best),
+        "post_global_best_retained_count": post_global_retained_count,
+        "post_global_best_retention_rate": (
+            post_global_retained_count / len(post_global_best)
+            if post_global_best
+            else None
+        ),
+        "maximum_absolute_drawdown_from_prior_incumbent": (
+            max(absolute_drawdowns) if absolute_drawdowns else 0.0
+        ),
+        "maximum_relative_drawdown_from_prior_incumbent": (
+            max(relative_drawdowns) if relative_drawdowns else 0.0
+        ),
+        "terminal_to_global_best_ratio": (
+            float(points[-1]["score"]) / global_best
+            if global_best > 0.0
+            else 1.0
+        ),
+        "loss_episode_count": len(loss_episodes),
+        "recovered_loss_episode_count": len(recovered_episodes),
+        "unresolved_loss_episode_count": (
+            len(loss_episodes) - len(recovered_episodes)
+        ),
+        "recovery_rate": (
+            len(recovered_episodes) / len(loss_episodes)
+            if loss_episodes
+            else None
+        ),
+        "mean_recovery_delay_final_assays": _mean_or_none(
+            [
+                float(episode["recovery_delay_final_assays"])
+                for episode in recovered_episodes
+            ]
+        ),
+        "mean_recovery_delay_batches": _mean_or_none(
+            [
+                float(episode["recovery_delay_batches"])
+                for episode in recovered_episodes
+            ]
+        ),
+        "loss_episodes": loss_episodes,
+        "per_final_assay": per_final_assay,
+    }
+
+
+def _diagnostic_control_to_final_metrics(
+    final_outcomes: Sequence[Mapping[str, Any]],
+    diagnostic_adaptation: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Align diagnostic-triggered control changes with that batch's final score."""
+
+    events = diagnostic_adaptation.get("events", [])
+    event_rows = [event for event in events if isinstance(event, Mapping)]
+    ordered_outcomes = sorted(
+        final_outcomes,
+        key=lambda outcome: int(outcome["batch_index"]),
+    )
+    prior_scores: list[float] = []
+    rows: list[dict[str, Any]] = []
+    for ordinal, outcome in enumerate(ordered_outcomes, start=1):
+        batch_index = int(outcome["batch_index"])
+        score = float(outcome["score"])
+        batch_events = [
+            event
+            for event in event_rows
+            if int(event.get("batch_index", -1)) == batch_index
+        ]
+        comparable = [
+            event
+            for event in batch_events
+            if event.get("matched_next_control") is True
+            and event.get("comparison_available") is True
+        ]
+        changed = [
+            event
+            for event in comparable
+            if event.get("any_control_field_changed") is True
+        ]
+        previous_score = prior_scores[-1] if prior_scores else None
+        pre_batch_incumbent = max(prior_scores) if prior_scores else None
+        rows.append(
+            {
+                "final_assay_ordinal": ordinal,
+                "batch_number": batch_index + 1,
+                "final_score": score,
+                "diagnostic_event_count": len(batch_events),
+                "comparable_control_event_count": len(comparable),
+                "changed_control_event_count": len(changed),
+                "any_diagnostic_aligned_control_change": bool(changed),
+                "previous_final_score": previous_score,
+                "pre_batch_incumbent": pre_batch_incumbent,
+                "score_delta_vs_previous_final": (
+                    None if previous_score is None else score - previous_score
+                ),
+                "score_delta_vs_pre_batch_incumbent": (
+                    None
+                    if pre_batch_incumbent is None
+                    else score - pre_batch_incumbent
+                ),
+                "positive_delta_vs_previous_final": (
+                    None
+                    if previous_score is None
+                    else score
+                    > previous_score + _SCORE_COMPARISON_TOLERANCE
+                ),
+                "new_incumbent": (
+                    None
+                    if pre_batch_incumbent is None
+                    else score
+                    > pre_batch_incumbent + _SCORE_COMPARISON_TOLERANCE
+                ),
+            }
+        )
+        prior_scores.append(score)
+
+    eligible_changed = [
+        row
+        for row in rows
+        if row["any_diagnostic_aligned_control_change"]
+        and row["previous_final_score"] is not None
+    ]
+    eligible_unchanged = [
+        row
+        for row in rows
+        if row["comparable_control_event_count"] > 0
+        and not row["any_diagnostic_aligned_control_change"]
+        and row["previous_final_score"] is not None
+    ]
+
+    def conversion_summary(
+        selected: Sequence[Mapping[str, Any]],
+    ) -> dict[str, Any]:
+        positive_count = sum(
+            row["positive_delta_vs_previous_final"] is True
+            for row in selected
+        )
+        incumbent_count = sum(row["new_incumbent"] is True for row in selected)
+        return {
+            "eligible_batch_count": len(selected),
+            "positive_next_final_delta_count": positive_count,
+            "positive_next_final_delta_rate": (
+                positive_count / len(selected) if selected else None
+            ),
+            "new_incumbent_count": incumbent_count,
+            "new_incumbent_rate": (
+                incumbent_count / len(selected) if selected else None
+            ),
+            "mean_next_final_delta_vs_previous": _mean_or_none(
+                [float(row["score_delta_vs_previous_final"]) for row in selected]
+            ),
+            "mean_next_final_delta_vs_pre_batch_incumbent": _mean_or_none(
+                [
+                    float(row["score_delta_vs_pre_batch_incumbent"])
+                    for row in selected
+                ]
+            ),
+        }
+
+    return {
+        "definition": (
+            "The analysis unit is a batch, not a diagnostic event. A batch is "
+            "classified as changed when at least one committed non-final "
+            "diagnostic is aligned to a later comparable control whose fields "
+            "changed. Conversion is the fraction of eligible changed batches "
+            "whose final score exceeds the preceding batch's final score. This "
+            "is temporal alignment, not a causal effect estimate."
+        ),
+        "changed_control": conversion_summary(eligible_changed),
+        "comparable_without_change": conversion_summary(eligible_unchanged),
+        "per_final_assay": rows,
     }
 
 
@@ -2430,6 +2841,15 @@ def _audit_cell(
         records,
         batch_indices,
     )
+    trajectory_learning = {
+        "discovery_retention_recovery": (
+            _discovery_retention_recovery_metrics(final_outcomes)
+        ),
+        "diagnostic_control_to_final": _diagnostic_control_to_final_metrics(
+            final_outcomes,
+            diagnostic_adaptation,
+        ),
+    }
     batches, policy_shifts = _batch_policy_rows(
         records,
         batch_indices,
@@ -2557,6 +2977,7 @@ def _audit_cell(
         "measurements": measurements,
         "setpoints": setpoints,
         "diagnostic_adaptation": diagnostic_adaptation,
+        "trajectory_learning": trajectory_learning,
         "batches": batches,
         "cross_batch_policy_shifts": policy_shifts,
         "method_usage": usage,
@@ -2615,6 +3036,34 @@ def _paired_delta(nominal: Mapping[str, Any], opaque: Mapping[str, Any]) -> dict
         "setpoint_change_count": "setpoints.within_batch_change_count",
         "diagnostic_adaptation_change_count": (
             "diagnostic_adaptation.changed_control_event_count"
+        ),
+        "global_best_discovery_fraction": (
+            "trajectory_learning.discovery_retention_recovery."
+            "global_best_discovery_fraction"
+        ),
+        "online_incumbent_retention_rate": (
+            "trajectory_learning.discovery_retention_recovery."
+            "online_retention_rate"
+        ),
+        "maximum_absolute_incumbent_drawdown": (
+            "trajectory_learning.discovery_retention_recovery."
+            "maximum_absolute_drawdown_from_prior_incumbent"
+        ),
+        "terminal_to_global_best_ratio": (
+            "trajectory_learning.discovery_retention_recovery."
+            "terminal_to_global_best_ratio"
+        ),
+        "loss_episode_count": (
+            "trajectory_learning.discovery_retention_recovery."
+            "loss_episode_count"
+        ),
+        "recovered_loss_episode_count": (
+            "trajectory_learning.discovery_retention_recovery."
+            "recovered_loss_episode_count"
+        ),
+        "unresolved_loss_episode_count": (
+            "trajectory_learning.discovery_retention_recovery."
+            "unresolved_loss_episode_count"
         ),
         "input_tokens": "method_usage.input_tokens",
         "output_tokens": "method_usage.output_tokens",
@@ -2676,6 +3125,109 @@ def _paired_delta(nominal: Mapping[str, Any], opaque: Mapping[str, Any]) -> dict
 
 def _mean(values: Sequence[float]) -> float:
     return statistics.fmean(float(value) for value in values)
+
+
+def _trajectory_learning_arm_aggregate(
+    cells: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    discovery_rows = [
+        cell["trajectory_learning"]["discovery_retention_recovery"]
+        for cell in cells
+    ]
+    loss_episodes = [
+        episode
+        for row in discovery_rows
+        for episode in row["loss_episodes"]
+    ]
+    recovered = [episode for episode in loss_episodes if episode["recovered"]]
+    control_rows = [
+        row
+        for cell in cells
+        for row in cell["trajectory_learning"][
+            "diagnostic_control_to_final"
+        ]["per_final_assay"]
+    ]
+    changed_rows = [
+        row
+        for row in control_rows
+        if row["any_diagnostic_aligned_control_change"]
+        and row["previous_final_score"] is not None
+    ]
+    unchanged_rows = [
+        row
+        for row in control_rows
+        if row["comparable_control_event_count"] > 0
+        and not row["any_diagnostic_aligned_control_change"]
+        and row["previous_final_score"] is not None
+    ]
+
+    def pooled_conversion(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+        positive_count = sum(
+            row["positive_delta_vs_previous_final"] is True for row in rows
+        )
+        incumbent_count = sum(row["new_incumbent"] is True for row in rows)
+        return {
+            "eligible_batch_count": len(rows),
+            "positive_next_final_delta_count": positive_count,
+            "positive_next_final_delta_rate": (
+                positive_count / len(rows) if rows else None
+            ),
+            "new_incumbent_count": incumbent_count,
+            "new_incumbent_rate": (
+                incumbent_count / len(rows) if rows else None
+            ),
+            "mean_next_final_delta_vs_previous": _mean_or_none(
+                [float(row["score_delta_vs_previous_final"]) for row in rows]
+            ),
+            "mean_next_final_delta_vs_pre_batch_incumbent": _mean_or_none(
+                [
+                    float(row["score_delta_vs_pre_batch_incumbent"])
+                    for row in rows
+                ]
+            ),
+        }
+
+    return {
+        "cell_count": len(cells),
+        "retention_fraction": TRAJECTORY_RETENTION_FRACTION,
+        "mean_global_best_discovery_fraction": _mean(
+            [row["global_best_discovery_fraction"] for row in discovery_rows]
+        ),
+        "mean_incumbent_update_count": _mean(
+            [row["incumbent_update_count"] for row in discovery_rows]
+        ),
+        "mean_online_retention_rate": _mean(
+            [row["online_retention_rate"] for row in discovery_rows]
+        ),
+        "mean_maximum_absolute_drawdown": _mean(
+            [
+                row["maximum_absolute_drawdown_from_prior_incumbent"]
+                for row in discovery_rows
+            ]
+        ),
+        "mean_terminal_to_global_best_ratio": _mean(
+            [row["terminal_to_global_best_ratio"] for row in discovery_rows]
+        ),
+        "loss_episode_count": len(loss_episodes),
+        "recovered_loss_episode_count": len(recovered),
+        "unresolved_loss_episode_count": len(loss_episodes) - len(recovered),
+        "pooled_recovery_rate": (
+            len(recovered) / len(loss_episodes) if loss_episodes else None
+        ),
+        "mean_recovery_delay_final_assays": _mean_or_none(
+            [
+                float(episode["recovery_delay_final_assays"])
+                for episode in recovered
+            ]
+        ),
+        "mean_recovery_delay_batches": _mean_or_none(
+            [float(episode["recovery_delay_batches"]) for episode in recovered]
+        ),
+        "diagnostic_control_to_final": {
+            "changed_control": pooled_conversion(changed_rows),
+            "comparable_without_change": pooled_conversion(unchanged_rows),
+        },
+    }
 
 
 def audit_autonomous_material_campaign(
@@ -2818,6 +3370,9 @@ def audit_autonomous_material_campaign(
             "mean_output_tokens": _mean(
                 [cell["method_usage"]["output_tokens"] for cell in arm_cells]
             ),
+            "trajectory_learning": _trajectory_learning_arm_aggregate(
+                arm_cells
+            ),
         }
     paired_metric_names = (
         "completion_rate",
@@ -2832,6 +3387,13 @@ def audit_autonomous_material_campaign(
         "material_first_choice_policy_diversity",
         "setpoint_change_count",
         "diagnostic_adaptation_change_count",
+        "global_best_discovery_fraction",
+        "online_incumbent_retention_rate",
+        "maximum_absolute_incumbent_drawdown",
+        "terminal_to_global_best_ratio",
+        "loss_episode_count",
+        "recovered_loss_episode_count",
+        "unresolved_loss_episode_count",
         "input_tokens",
         "output_tokens",
         "tool_event_count",
@@ -3038,6 +3600,71 @@ def render_autonomous_material_campaign_markdown(
     lines.extend(
         [
             "",
+            "## 发现—保留—恢复轨迹",
+            "",
+            "| seed | arm | 最佳首次批次 | incumbent 更新 | 在线保留率 | "
+            "最佳后保留率 | 最大回撤 | 终点/最佳 | loss:恢复/未恢复 | "
+            "诊断改控后正增量 |",
+            "|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
+    for cell in report["cells"]:
+        discovery = cell["trajectory_learning"][
+            "discovery_retention_recovery"
+        ]
+        conversion = cell["trajectory_learning"][
+            "diagnostic_control_to_final"
+        ]["changed_control"]
+        post_best_retention = discovery["post_global_best_retention_rate"]
+        conversion_rate = conversion["positive_next_final_delta_rate"]
+        lines.append(
+            f"| {cell['world_seed']} | {cell['arm']} | "
+            f"{discovery['global_best_first_batch_number']} | "
+            f"{discovery['incumbent_update_count']} | "
+            f"{discovery['online_retention_rate']:.0%} | "
+            f"{('—' if post_best_retention is None else f'{post_best_retention:.0%}')} | "
+            f"{discovery['maximum_absolute_drawdown_from_prior_incumbent']:.4f} | "
+            f"{discovery['terminal_to_global_best_ratio']:.0%} | "
+            f"{discovery['loss_episode_count']}:"
+            f"{discovery['recovered_loss_episode_count']}/"
+            f"{discovery['unresolved_loss_episode_count']} | "
+            f"{('—' if conversion_rate is None else f'{conversion_rate:.0%}')} "
+            f"({conversion['positive_next_final_delta_count']}/"
+            f"{conversion['eligible_batch_count']}) |"
+        )
+    lines.extend(
+        [
+            "",
+            "## 两臂轨迹汇总",
+            "",
+            "| arm | 平均最佳发现进度 | 平均在线保留率 | 平均最大回撤 | "
+            "平均终点/最佳 | loss:恢复/未恢复 | 诊断改控后正增量 |",
+            "|---|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
+    for arm in EXPECTED_ARMS:
+        aggregate = report["arm_descriptive_aggregates"][arm][
+            "trajectory_learning"
+        ]
+        conversion = aggregate["diagnostic_control_to_final"][
+            "changed_control"
+        ]
+        conversion_rate = conversion["positive_next_final_delta_rate"]
+        lines.append(
+            f"| {arm} | {aggregate['mean_global_best_discovery_fraction']:.0%} | "
+            f"{aggregate['mean_online_retention_rate']:.0%} | "
+            f"{aggregate['mean_maximum_absolute_drawdown']:.4f} | "
+            f"{aggregate['mean_terminal_to_global_best_ratio']:.0%} | "
+            f"{aggregate['loss_episode_count']}:"
+            f"{aggregate['recovered_loss_episode_count']}/"
+            f"{aggregate['unresolved_loss_episode_count']} | "
+            f"{('—' if conversion_rate is None else f'{conversion_rate:.0%}')} "
+            f"({conversion['positive_next_final_delta_count']}/"
+            f"{conversion['eligible_batch_count']}) |"
+        )
+    lines.extend(
+        [
+            "",
             "## 每个世界的 nominal - opaque 配对差",
             "",
             "| seed | Δcompletion | Δbest | Δbatch AUC | Δattempt AUC | "
@@ -3063,6 +3690,28 @@ def render_autonomous_material_campaign_markdown(
     lines.extend(
         [
             "",
+            "## 每个世界的 nominal - opaque 轨迹差",
+            "",
+            "| seed | Δ最佳发现进度 | Δ在线保留率 | Δ最大回撤 | "
+            "Δ终点/最佳 | Δloss | Δ恢复 | Δ未恢复 |",
+            "|---:|---:|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
+    for row in report["paired_worlds"]:
+        delta = row["nominal_minus_opaque"]
+        lines.append(
+            f"| {row['world_seed']} | "
+            f"{delta['global_best_discovery_fraction']:+.0%} | "
+            f"{delta['online_incumbent_retention_rate']:+.0%} | "
+            f"{delta['maximum_absolute_incumbent_drawdown']:+.4f} | "
+            f"{delta['terminal_to_global_best_ratio']:+.0%} | "
+            f"{delta['loss_episode_count']:+.0f} | "
+            f"{delta['recovered_loss_episode_count']:+.0f} | "
+            f"{delta['unresolved_loss_episode_count']:+.0f} |"
+        )
+    lines.extend(
+        [
+            "",
             "## 指标定义与审计边界",
             "",
             f"- {report['interpretation']['caveat']}",
@@ -3072,6 +3721,14 @@ def render_autonomous_material_campaign_markdown(
             "分数离散均值; 首次 final assay 前取 0, 无效和资源拒绝操作也计入。",
             "- fixed-budget AUC: 将 attempt 曲线以最终 incumbent 右侧填充至"
             "固定操作预算后求均值。",
+            "- 发现进度: 全局最佳首次出现位置映射到 0—1; 0 表示首批, "
+            "1 表示末批。该值越大只表示发现越晚, 不表示更优。",
+            "- 在线保留: 每个后续 final score 达到此前 incumbent 的 90% "
+            "即视为保留。低于阈值开启 loss episode; 恢复使用开启时冻结的"
+            " incumbent 阈值, 终局未恢复的时延按右删失记录。",
+            "- 诊断改控转化率: 至少一个诊断对齐控制发生可比较字段变化的"
+            " batch 中, final score 高于上一 batch 的比例。它是时间对齐描述, "
+            "不是因果效应。",
             "- 材料首选、名义描述符秩、诊断后控制变化、跨 batch "
             "适应和分项终点评分均保存在 JSON 明细中。",
             "- 对材料信息文件的读取仅表示接口遵循, 不用于判定实验 arm。",

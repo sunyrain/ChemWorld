@@ -461,6 +461,27 @@ def test_audit_validates_and_summarizes_full_paired_matrix(
     assert first_adaptation["field_changes"]["potential_V"][
         "absolute_delta"
     ] == pytest.approx(0.02)
+    learning = nominal["trajectory_learning"]
+    discovery = learning["discovery_retention_recovery"]
+    assert discovery["global_best_first_batch_number"] == 6
+    assert discovery["global_best_discovery_fraction"] == pytest.approx(1.0)
+    assert discovery["incumbent_update_count"] == 6
+    assert discovery["online_retention_rate"] == pytest.approx(1.0)
+    assert discovery["post_global_best_retention_rate"] is None
+    assert discovery[
+        "maximum_absolute_drawdown_from_prior_incumbent"
+    ] == pytest.approx(0.0)
+    assert discovery["terminal_to_global_best_ratio"] == pytest.approx(1.0)
+    assert discovery["loss_episode_count"] == 0
+    assert discovery["recovery_rate"] is None
+    conversion = learning["diagnostic_control_to_final"]["changed_control"]
+    assert conversion["eligible_batch_count"] == 5
+    assert conversion["positive_next_final_delta_count"] == 5
+    assert conversion["positive_next_final_delta_rate"] == pytest.approx(1.0)
+    assert conversion["new_incumbent_rate"] == pytest.approx(1.0)
+    assert conversion["mean_next_final_delta_vs_previous"] == pytest.approx(
+        0.04
+    )
     first_shift = nominal["cross_batch_policy_shifts"][0]
     assert first_shift["antecedent_final_outcome"]["score"] == pytest.approx(
         0.23
@@ -490,6 +511,19 @@ def test_audit_validates_and_summarizes_full_paired_matrix(
     assert report["paired_worlds"][0]["nominal_minus_opaque"][
         "operation_attempt_running_best_auc"
     ] == pytest.approx(46 * 0.03 / 54.0)
+    assert report["paired_worlds"][0]["nominal_minus_opaque"][
+        "online_incumbent_retention_rate"
+    ] == pytest.approx(0.0)
+    nominal_learning_aggregate = report["arm_descriptive_aggregates"][
+        "nominal"
+    ]["trajectory_learning"]
+    assert nominal_learning_aggregate[
+        "mean_global_best_discovery_fraction"
+    ] == pytest.approx(1.0)
+    assert nominal_learning_aggregate["loss_episode_count"] == 0
+    assert nominal_learning_aggregate["diagnostic_control_to_final"][
+        "changed_control"
+    ]["positive_next_final_delta_rate"] == pytest.approx(1.0)
     assert report["interpretation"]["n_pairs"] == 5
     assert report["interpretation"]["confirmatory_claim_allowed"] is False
     assert "n=5" in report["interpretation"]["caveat"]
@@ -601,6 +635,86 @@ def test_operation_attempt_auc_and_diagnostic_alignment_exact_definitions() -> N
         "signed_delta": 60.0,
         "absolute_delta": 60.0,
     }
+
+
+def test_discovery_retention_recovery_and_conversion_exact_definitions() -> None:
+    scores = [0.60, 0.30, 0.58, 0.70, 0.50, 0.64]
+    final_outcomes = [
+        {"batch_index": index, "score": score}
+        for index, score in enumerate(scores)
+    ]
+
+    discovery = audit_module._discovery_retention_recovery_metrics(
+        final_outcomes
+    )
+
+    assert discovery["retention_fraction"] == pytest.approx(0.90)
+    assert discovery["global_best_score"] == pytest.approx(0.70)
+    assert discovery["global_best_first_final_assay_ordinal"] == 4
+    assert discovery["global_best_first_batch_number"] == 4
+    assert discovery["global_best_discovery_fraction"] == pytest.approx(0.60)
+    assert discovery["incumbent_update_count"] == 2
+    assert discovery["online_retained_count"] == 3
+    assert discovery["online_retention_rate"] == pytest.approx(3 / 5)
+    assert discovery["post_global_best_retained_count"] == 1
+    assert discovery["post_global_best_retention_rate"] == pytest.approx(0.5)
+    assert discovery[
+        "maximum_absolute_drawdown_from_prior_incumbent"
+    ] == pytest.approx(0.30)
+    assert discovery[
+        "maximum_relative_drawdown_from_prior_incumbent"
+    ] == pytest.approx(0.50)
+    assert discovery["terminal_to_global_best_ratio"] == pytest.approx(
+        0.64 / 0.70
+    )
+    assert discovery["loss_episode_count"] == 2
+    assert discovery["recovered_loss_episode_count"] == 2
+    assert discovery["unresolved_loss_episode_count"] == 0
+    assert discovery["recovery_rate"] == pytest.approx(1.0)
+    assert discovery["mean_recovery_delay_final_assays"] == pytest.approx(1.0)
+    assert [
+        episode["loss_start_batch_number"]
+        for episode in discovery["loss_episodes"]
+    ] == [2, 5]
+
+    diagnostic_adaptation = {
+        "events": [
+            {
+                "batch_index": batch_index,
+                "matched_next_control": True,
+                "comparison_available": True,
+                "any_control_field_changed": True,
+            }
+            for batch_index in (1, 3, 4)
+        ]
+    }
+    conversion = audit_module._diagnostic_control_to_final_metrics(
+        final_outcomes,
+        diagnostic_adaptation,
+    )["changed_control"]
+    assert conversion["eligible_batch_count"] == 3
+    assert conversion["positive_next_final_delta_count"] == 1
+    assert conversion["positive_next_final_delta_rate"] == pytest.approx(1 / 3)
+    assert conversion["new_incumbent_count"] == 1
+    assert conversion["new_incumbent_rate"] == pytest.approx(1 / 3)
+    assert conversion["mean_next_final_delta_vs_previous"] == pytest.approx(
+        (-0.30 + 0.12 - 0.20) / 3
+    )
+
+    unresolved = audit_module._discovery_retention_recovery_metrics(
+        [
+            {"batch_index": 0, "score": 0.60},
+            {"batch_index": 1, "score": 0.30},
+            {"batch_index": 2, "score": 0.20},
+        ]
+    )
+    assert unresolved["loss_episode_count"] == 1
+    assert unresolved["recovered_loss_episode_count"] == 0
+    assert unresolved["unresolved_loss_episode_count"] == 1
+    assert unresolved["recovery_rate"] == pytest.approx(0.0)
+    assert unresolved["loss_episodes"][0][
+        "recovery_time_right_censored"
+    ] is True
 
 
 def test_incomplete_batch_partition_is_explicitly_opt_in() -> None:
