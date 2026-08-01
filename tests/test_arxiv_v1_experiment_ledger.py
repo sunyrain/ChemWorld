@@ -332,8 +332,8 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
     )
     assert verification["status"] == "passed"
     assert verification["full_test_suite"] == {
-        "collected": 1826,
-        "passed": 1812,
+        "collected": 1827,
+        "passed": 1813,
         "skipped": 14,
         "failed": 0,
         "note": (

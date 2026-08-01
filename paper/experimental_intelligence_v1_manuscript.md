@@ -750,7 +750,7 @@ index binds every root-relative path, byte count and file SHA-256; the two
 tracked formal JSON summaries are bound by canonical-JSON SHA-256 so checkout
 line-ending conversion cannot change their identity. The release now contains
 a compact G2 replay subset and a terminal 677-file G2 index. The 55-node
-evidence graph, clean-wheel smoke test, 1,826-test suite, terminal replay checks
+evidence graph, clean-wheel smoke test, 1,827-test suite, terminal replay checks
 and independent-checkout reproduction have passed. A durable archive
 identifier for the G0 raw bytes remains required before public release.
 
@@ -765,7 +765,7 @@ from the same source into
 G2 index contain no raw content or absolute path. The G2 package includes a
 677-file terminal hash index and a compact four-cell replay subset containing
 one complete pair and both right-censored cells. The release verification
-attestation records 1,812 passing and 14 skipped tests, a clean-wheel smoke
+attestation records 1,813 passing and 14 skipped tests, a clean-wheel smoke
 pass, a passing 55-node evidence graph, and zero-difference regeneration of the
 declared artifacts from an independent checkout. Before release we will add a
 durable archive location for the full local G0 corpus. The manifest remains

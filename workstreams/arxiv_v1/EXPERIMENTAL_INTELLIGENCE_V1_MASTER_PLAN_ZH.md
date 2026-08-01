@@ -263,7 +263,7 @@ G0/G2 是协议术语，不进入标题和主叙事起点。
 - B7 figures：frozen derived JSON、6 CSV、Figures 1--6、Tables 1--4；
 - G2 terminal data：677-file index 与四-cell replay subset 已生成。
 - B2 evidence graph：55/55 nodes passed；
-- release verification：1,812 tests passed、14 skipped、0 failed；clean-wheel
+- release verification：1,813 tests passed、14 skipped、0 failed；clean-wheel
   smoke、terminal replay 与独立 checkout 零差异重建通过。
 
 ### 仍开放

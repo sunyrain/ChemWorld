@@ -102,7 +102,7 @@ G2 v0.5 科学审计 SHA-256：`7bb4045fa1ca041de047d967a31ed3d89d5f8ad83851aa7b
 4. 四 cell compact replay subset：一个完整 pair 与两个 right-censored cells；
 5. 摘要与 Section 7 终态结果写入；
 6. 55-node evidence graph：55/55 passed；
-7. 全测试：1,812 passed、14 skipped、0 failed；
+7. 全测试：1,813 passed、14 skipped、0 failed；
 8. clean-wheel smoke test 与 terminal replay；
 9. 独立 checkout 中 derived data、图表、display items 零差异重建，release suite 26 passed。
 
