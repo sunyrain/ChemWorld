@@ -180,6 +180,8 @@ def _fake_completed_cell_audit(
         "world_seed": seed,
         "trajectory_replicate_id": replicate_id,
         "agent_seed": int(cell["agent_seed"]),
+        "resource_ledger": {"verified": True},
+        "exact_replay": {"verified": True},
         "identity": {
             "world_seed": seed,
             "world_id": f"world-{seed}",
@@ -197,6 +199,23 @@ def _fake_completed_cell_audit(
             "code_hash": "code-sha",
             "pair_config_sha256": pair_hash,
         },
+    }
+
+
+def _fake_right_censored_cell_audit(
+    *,
+    state_audit: dict[str, Any],
+    **_: Any,
+) -> dict[str, Any]:
+    cell = state_audit["cell"]
+    return {
+        "cell_id": cell["cell_id"],
+        "world_seed": int(cell["world_seed"]),
+        "trajectory_replicate_id": str(cell["trajectory_replicate_id"]),
+        "condition_id": str(cell["condition_id"]),
+        "resource_ledger": {"verified": True},
+        "exact_replay": {"verified": True},
+        "provider_sessions": {"verified": True},
     }
 
 
@@ -228,6 +247,11 @@ def synthetic_audit(
         "_completed_cell_audit",
         _fake_completed_cell_audit,
     )
+    monkeypatch.setattr(
+        audit_module,
+        "_right_censored_cell_audit",
+        _fake_right_censored_cell_audit,
+    )
     monkeypatch.setattr(audit_module, "_paired_delta", _fake_paired_delta)
 
 
@@ -246,6 +270,7 @@ def test_replication_audit_reports_five_fresh_pairs_within_each_world(
     assert report["matrix"]["right_censored_cell_count"] == 0
     assert report["matrix"]["all_attempt_selection_policies_verified"] is True
     assert report["matrix"]["all_physical_pairs_verified"] is True
+    assert report["matrix"]["all_terminal_cells_resource_replay_verified"] is True
     seed_1 = report["within_world_descriptive_aggregates"]["1"]
     seed_3 = report["within_world_descriptive_aggregates"]["3"]
     assert seed_1["completed_pair_count"] == 5
@@ -313,6 +338,8 @@ def test_post_action_provider_failure_is_preserved_as_right_censor(
     assert report["matrix"]["completed_cell_count"] == 19
     assert report["matrix"]["right_censored_cell_count"] == 1
     assert report["matrix"]["completed_pair_count"] == 9
+    assert report["matrix"]["all_terminal_cells_resource_replay_verified"] is True
+    assert report["right_censored_cells"][0]["exact_replay"]["verified"] is True
     assert report["within_world_descriptive_aggregates"]["1"][
         "right_censored_pair_count"
     ] == 1

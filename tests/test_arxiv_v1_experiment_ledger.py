@@ -94,17 +94,22 @@ def test_arxiv_v1_required_remaining_experiments_match_frozen_g2_protocol() -> N
     }
 
 
-def test_projected_arxiv_total_and_optional_experiments_are_separated() -> None:
+def test_planned_arxiv_denominator_and_final_counts_are_separated() -> None:
     ledger = _load(LEDGER_PATH)
     accounting = ledger["scientific_experiment_accounting"]
     g2_v0_4 = ledger["experiment_layers"]["g2_v0_4_autonomous_development"]
     optional = ledger["optional_post_arxiv_experiments"]
 
-    assert accounting["projected_arxiv_v1_total_after_g2_v0_5"] == (
+    assert accounting["planned_opportunity_denominator_after_g2_v0_5"] == (
         accounting["completed_or_audited_before_v0_5"]["total"]
         + accounting["required_remaining_for_arxiv_v1"]["total"]
     )
-    assert accounting["projected_arxiv_v1_total_after_g2_v0_5"] == 29_760
+    assert accounting["planned_opportunity_denominator_after_g2_v0_5"] == 29_760
+    assert accounting["final_executed_physical_experiment_total"] is None
+    assert accounting["final_completed_experiment_total"] is None
+    assert "unstarted slots are not executed" in accounting[
+        "right_censoring_counting_rule"
+    ]
     assert accounting["qualification_attempts_excluded_from_scientific_total"] == 2
     assert g2_v0_4["nonfinal_instrument_measurements"] == 164
     assert g2_v0_4["final_assays"] == 60
@@ -182,6 +187,7 @@ def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
     assert "20 G2 v0.5 cells" in manuscript
     assert "120 G2 experiment opportunities" in manuscript
     assert "29,640 existing + 120 new = 29,760" in master_plan
+    assert "不是对最终实际执行实验数" in master_plan
     assert "From Recipe Optimization" not in manuscript
     assert "From Recipe Optimization" not in master_plan
 
@@ -283,6 +289,12 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
     assert manifest["status"] == "building_not_publication_ready"
     assert manifest["publication_ready"] is False
     assert manifest["evidence"]["g2_v0_5_result"] is None
+    accounting = manifest["experiment_accounting"]
+    assert accounting["planned_opportunity_denominator_after_terminal_audit"] == (
+        29_760
+    )
+    assert accounting["final_executed_physical_experiment_total"] is None
+    assert accounting["final_completed_experiment_total"] is None
     for summary in manifest["evidence"]["g0_formal_summaries"]:
         assert summary["canonical_json_sha256"] == canonical_json_sha256(
             _load(ROOT / summary["path"])

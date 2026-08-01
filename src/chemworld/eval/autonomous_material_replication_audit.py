@@ -12,6 +12,11 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from chemworld.campaign_resources import (
+    CampaignResourceCard,
+    CampaignResourceIntegrityError,
+    CampaignResourceLedger,
+)
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.autonomous_material_campaign_audit import (
     NOMINAL_ARM,
@@ -24,6 +29,7 @@ from chemworld.eval.provenance import (
     file_sha256,
     write_json_atomic,
 )
+from chemworld.eval.verify import verify_records
 
 AUTONOMOUS_MATERIAL_REPLICATION_AUDIT_VERSION = (
     "chemworld-autonomous-material-trajectory-replication-audit-0.1"
@@ -423,6 +429,289 @@ def _completed_cell_audit(
     return audited
 
 
+def _nested(payload: Mapping[str, Any], dotted: str) -> Any:
+    current: Any = payload
+    for part in dotted.split("."):
+        if not isinstance(current, Mapping):
+            return None
+        current = current.get(part)
+    return current
+
+
+def _reconstruct_right_censored_resource_and_replay(
+    *,
+    config: Mapping[str, Any],
+    trajectory_path: Path,
+    cell_id: str,
+    expected_vessels: int,
+) -> dict[str, Any]:
+    records = load_jsonl(trajectory_path)
+    if not records:
+        raise AutonomousMaterialReplicationAuditError(
+            f"{cell_id}: action-bearing right-censored trajectory is empty"
+        )
+    raw_card = config.get("campaign_resource_card")
+    if not isinstance(raw_card, Mapping):
+        raise AutonomousMaterialReplicationAuditError(
+            f"{cell_id}: right-censored config lacks campaign resource card"
+        )
+    try:
+        ledger = CampaignResourceLedger(CampaignResourceCard.from_dict(raw_card))
+        declared_hashes: list[str] = []
+        for index, record in enumerate(records, start=1):
+            resources = _nested(
+                record,
+                "agent_view.tool_json.campaign_state.campaign_resources",
+            )
+            if not isinstance(resources, Mapping):
+                raise CampaignResourceIntegrityError(
+                    f"step {index} lacks public campaign resources"
+                )
+            receipt = resources.get("latest_receipt")
+            if not isinstance(receipt, Mapping):
+                raise CampaignResourceIntegrityError(
+                    f"step {index} lacks campaign resource receipt"
+                )
+            preflight = receipt.get("preflight")
+            outcome_delta = receipt.get("outcome_delta")
+            action = record.get("action")
+            if not all(
+                isinstance(value, Mapping)
+                for value in (preflight, outcome_delta, action)
+            ):
+                raise CampaignResourceIntegrityError(
+                    f"step {index} has malformed action/resource receipt"
+                )
+            proposed = preflight.get("proposed_delta")
+            starts_vessel = bool(
+                isinstance(proposed, Mapping)
+                and int(proposed.get("vessel_starts", 0)) == 1
+            )
+            event_id = str(receipt.get("event_id") or "")
+            replayed_preflight = ledger.preflight(
+                event_id,
+                action,
+                starts_vessel=starts_vessel,
+            )
+            if replayed_preflight.to_dict() != dict(preflight):
+                raise CampaignResourceIntegrityError(
+                    f"step {index} preflight replay mismatch"
+                )
+            report = outcome_delta.get("report_only")
+            if not isinstance(report, Mapping):
+                raise CampaignResourceIntegrityError(
+                    f"step {index} resource report is missing"
+                )
+            replayed_delta = ledger.record_outcome(
+                event_id,
+                action,
+                {
+                    "operation_committed": receipt.get("operation_committed")
+                    is True,
+                    "campaign_resource_report_delta": dict(report),
+                },
+                starts_vessel=starts_vessel,
+            )
+            if replayed_delta.to_dict() != dict(outcome_delta):
+                raise CampaignResourceIntegrityError(
+                    f"step {index} outcome replay mismatch"
+                )
+            declared_hash = resources.get("ledger_sha256")
+            if not isinstance(declared_hash, str):
+                raise CampaignResourceIntegrityError(
+                    f"step {index} lacks public ledger hash"
+                )
+            replayed_hash = ledger.snapshot()["ledger_sha256"]
+            if replayed_hash != declared_hash:
+                raise CampaignResourceIntegrityError(
+                    f"step {index} public ledger hash replay mismatch"
+                )
+            declared_hashes.append(declared_hash)
+        snapshot = ledger.snapshot()
+    except (CampaignResourceIntegrityError, KeyError, TypeError, ValueError) as error:
+        raise AutonomousMaterialReplicationAuditError(
+            f"{cell_id}: right-censored campaign resource replay failed: {error}"
+        ) from error
+
+    state = snapshot["state"]
+    starts = int(state["vessel_starts"])
+    final_assays = int(state["final_assays"])
+    discarded = int(state.get("discarded_batches", 0))
+    closed = final_assays + discarded
+    if not 0 <= closed <= starts <= expected_vessels:
+        raise AutonomousMaterialReplicationAuditError(
+            f"{cell_id}: impossible right-censored vessel accounting"
+        )
+    verification = verify_records(records)
+    if not verification.verified:
+        raise AutonomousMaterialReplicationAuditError(
+            f"{cell_id}: right-censored deterministic transition replay failed"
+        )
+    return {
+        "resource_ledger": {
+            "verified": True,
+            "ledger_sha256": snapshot["ledger_sha256"],
+            "all_public_step_hashes_verified": len(declared_hashes) == len(records),
+            "operation_attempts": int(state["operation_attempts"]),
+            "vessel_starts": starts,
+            "final_assays": final_assays,
+            "discarded_batches": discarded,
+            "closed_batches": closed,
+            "started_right_censored_vessels": starts - closed,
+            "unstarted_vessel_opportunities": expected_vessels - starts,
+            "nonfinal_instrument_uses": int(state["nonfinal_instrument_uses"]),
+            "stocks_used": state["stocks_used"],
+            "report_only": state["report_only"],
+        },
+        "exact_replay": {
+            "verified": True,
+            "trajectory_sha256": file_sha256(trajectory_path),
+            "trajectory_record_count": len(records),
+            "campaign_resource_ledger_sha256": snapshot["ledger_sha256"],
+            **verification.to_dict(),
+        },
+    }
+
+
+def _audit_right_censored_provider_sessions(
+    summary: Mapping[str, Any],
+    *,
+    cell_id: str,
+) -> dict[str, Any]:
+    receipts = summary.get("provider_receipts")
+    resources = summary.get("method_resources")
+    failure = summary.get("failure")
+    if not isinstance(receipts, list) or not all(
+        isinstance(receipt, Mapping) for receipt in receipts
+    ):
+        raise AutonomousMaterialReplicationAuditError(
+            f"{cell_id}: right-censored provider receipts are malformed"
+        )
+    if not receipts or not isinstance(resources, Mapping):
+        raise AutonomousMaterialReplicationAuditError(
+            f"{cell_id}: right-censored method accounting is incomplete"
+        )
+    if not isinstance(failure, Mapping):
+        raise AutonomousMaterialReplicationAuditError(
+            f"{cell_id}: right-censored provider failure summary is absent"
+        )
+    completed = receipts[:-1]
+    interrupted = receipts[-1]
+
+    def integrity_verified(receipt: Mapping[str, Any]) -> bool:
+        return any(
+            receipt.get(key) is True
+            for key in (
+                "experiment_tool_integrity_verified_after_session",
+                "lab_tool_integrity_verified_after_session",
+                "mcp_tool_integrity_verified_after_session",
+            )
+        ) and all(
+            receipt.get(key) is True
+            for key in (
+                "experiment_tool_integrity_verified_after_session",
+                "lab_tool_integrity_verified_after_session",
+                "mcp_tool_integrity_verified_after_session",
+            )
+            if key in receipt
+        )
+
+    completed_failures = [
+        index
+        for index, receipt in enumerate(completed, start=1)
+        if not (
+            receipt.get("status") == "completed"
+            and receipt.get("return_code") == 0
+            and receipt.get("terminal_reason")
+            in {"experiment_complete", "batch_discarded"}
+            and receipt.get("final_payload_valid") is True
+            and receipt.get("usage_complete") is True
+            and integrity_verified(receipt)
+        )
+    ]
+    interrupted_valid = (
+        interrupted.get("status") != "completed"
+        and isinstance(interrupted.get("failure_type"), str)
+        and bool(interrupted.get("failure_type"))
+        and integrity_verified(interrupted)
+    )
+    resource_checks = {
+        "provider_usage_pending_false": resources.get("provider_usage_pending")
+        is False,
+        "in_flight_model_calls_zero": int(
+            resources.get("in_flight_model_call_count", -1)
+        )
+        == 0,
+        "provider_call_accounting_complete": resources.get(
+            "provider_call_accounting_complete"
+        )
+        is True,
+        "model_call_count_matches_receipts": int(
+            resources.get("model_call_count", -1)
+        )
+        == len(receipts),
+        "provider_failure_recorded": int(failure.get("provider_failure_count", 0))
+        > 0,
+    }
+    if completed_failures or not interrupted_valid or not all(resource_checks.values()):
+        raise AutonomousMaterialReplicationAuditError(
+            f"{cell_id}: right-censored provider session audit failed; "
+            f"completed_failures={completed_failures}, "
+            f"interrupted_valid={interrupted_valid}, checks={resource_checks}"
+        )
+    return {
+        "verified": True,
+        "receipt_count": len(receipts),
+        "completed_session_count": len(completed),
+        "interrupted_session_count": 1,
+        "interrupted_failure_type": interrupted.get("failure_type"),
+        "completed_session_usage_accounting_complete": True,
+        "aggregate_token_accounting_complete": resources.get(
+            "provider_token_accounting_complete"
+        )
+        is True,
+        "aggregate_monetary_accounting_complete": resources.get(
+            "monetary_accounting_complete"
+        )
+        is True,
+        "resource_checks": resource_checks,
+    }
+
+
+def _right_censored_cell_audit(
+    *,
+    state_audit: Mapping[str, Any],
+    manifest_root: Path,
+    expected_vessels: int,
+) -> dict[str, Any]:
+    cell = state_audit["cell"]
+    authoritative = state_audit["authoritative"]
+    attempt_root = manifest_root / str(authoritative["attempt_dir"])
+    trajectory_path = attempt_root / "trajectory.jsonl"
+    config = authoritative["config"]
+    summary = authoritative["summary"]
+    cell_id = str(cell["cell_id"])
+    reconstructed = _reconstruct_right_censored_resource_and_replay(
+        config=config,
+        trajectory_path=trajectory_path,
+        cell_id=cell_id,
+        expected_vessels=expected_vessels,
+    )
+    provider = _audit_right_censored_provider_sessions(summary, cell_id=cell_id)
+    return {
+        "cell_id": cell_id,
+        "world_seed": int(cell["world_seed"]),
+        "trajectory_replicate_id": str(cell["trajectory_replicate_id"]),
+        "condition_id": str(cell["condition_id"]),
+        "agent_seed": int(cell["agent_seed"]),
+        "run_status": summary.get("run_status"),
+        "accepted_operation_count": int(authoritative["accepted_operation_count"]),
+        "attempt_count": int(state_audit["attempt_count"]),
+        "provider_sessions": provider,
+        **reconstructed,
+    }
+
+
 def _arm(cell: Mapping[str, Any]) -> str:
     return EXPECTED_CONDITIONS[str(cell["condition_id"])]
 
@@ -539,11 +828,18 @@ def audit_autonomous_material_trajectory_replication(
         )
 
     completed_cell_audits: dict[tuple[int, str, str], dict[str, Any]] = {}
+    right_censored_cell_audits: dict[tuple[int, str, str], dict[str, Any]] = {}
     for key, state in keyed.items():
         if state["state"] == "completed":
             completed_cell_audits[key] = _completed_cell_audit(
                 state_audit=state,
                 manifest=manifest,
+                manifest_root=manifest_root,
+                expected_vessels=expected_vessels_per_cell,
+            )
+        elif state["state"] == "right_censored":
+            right_censored_cell_audits[key] = _right_censored_cell_audit(
+                state_audit=state,
                 manifest_root=manifest_root,
                 expected_vessels=expected_vessels_per_cell,
             )
@@ -598,7 +894,7 @@ def audit_autonomous_material_trajectory_replication(
                 row["nominal_minus_opaque"] = None
             pair_rows.append(row)
 
-    right_censored_cells = [
+    right_censored_cell_ids = [
         state["cell"]["cell_id"]
         for state in state_audits
         if state["state"] == "right_censored"
@@ -607,7 +903,7 @@ def audit_autonomous_material_trajectory_replication(
         "schema_version": AUTONOMOUS_MATERIAL_REPLICATION_AUDIT_VERSION,
         "status": (
             "completed_audited_fresh_trajectory_replication"
-            if not right_censored_cells
+            if not right_censored_cell_ids
             else "completed_audited_fresh_trajectory_replication_with_right_censoring"
         ),
         "formal_result": False,
@@ -622,8 +918,8 @@ def audit_autonomous_material_trajectory_replication(
             "trajectory_replicate_ids": list(EXPECTED_REPLICATE_IDS),
             "planned_cell_count": 20,
             "completed_cell_count": len(completed_cell_audits),
-            "right_censored_cell_count": len(right_censored_cells),
-            "right_censored_cell_ids": right_censored_cells,
+            "right_censored_cell_count": len(right_censored_cell_ids),
+            "right_censored_cell_ids": right_censored_cell_ids,
             "all_attempt_selection_policies_verified": all(
                 state["selection_policy_verified"] for state in state_audits
             ),
@@ -631,6 +927,14 @@ def audit_autonomous_material_trajectory_replication(
                 row["physical_pairing"]["passed"] for row in pair_rows
             ),
             "completed_pair_count": sum(row["pair_complete"] for row in pair_rows),
+            "all_terminal_cells_resource_replay_verified": all(
+                cell["resource_ledger"]["verified"]
+                and cell["exact_replay"]["verified"]
+                for cell in (
+                    *completed_cell_audits.values(),
+                    *right_censored_cell_audits.values(),
+                )
+            ),
         },
         "attempt_audits": [
             {
@@ -662,6 +966,10 @@ def audit_autonomous_material_trajectory_replication(
         ],
         "completed_cells": [
             completed_cell_audits[key] for key in sorted(completed_cell_audits)
+        ],
+        "right_censored_cells": [
+            right_censored_cell_audits[key]
+            for key in sorted(right_censored_cell_audits)
         ],
         "paired_trajectories": pair_rows,
         "within_world_descriptive_aggregates": _world_summaries(pair_rows),

@@ -387,53 +387,219 @@ that structure.
 
 ### 9.1 Environment and task qualification
 
-[Describe state ledgers, runtime services, operations, instruments, task
-contracts, the 415-case design audit, and 62 endpoint bindings.]
+ChemWorld represents an experiment with typed species, phase, vessel,
+equipment, thermal, process, and observation state. A submitted action is first
+validated against the public action schema and the current task preconditions,
+then preflighted against the campaign resource card. An allowed action is
+routed to its task-declared domain service and committed as an atomic state
+transaction; a failed precondition, invalid parameter, or resource rejection
+is retained as an attempted but uncommitted transition. Public observations
+are constructed from the committed state through the task observation
+contract. Hidden species, constitutive parameters, material instances, and
+evaluator-only score components are not copied into the public view.
+
+A versioned task contract binds the world split, allowed operation and
+instrument types, public parameter bounds, observation mask, objective and
+scoring contract, safety limit, operation budget, termination semantics, and
+declared success endpoints. The release contains 15 registered task designs,
+28 operation types and five instrument types. We executed every registered
+complete-experiment adapter at its parameter midpoint and at each numeric
+coordinate boundary, and traversed every declared category, giving 415
+deterministic cases. Every transaction required by these compiled cases
+committed, the final assay was reachable, no recipe coordinate was dead, and
+all 62 declared success metrics were bound to an executable evaluator. This is
+a design and reachability audit over declared cases, not a proof over the
+continuous state--action space or evidence of agent performance on all 15
+tasks.
 
 ### 9.2 Compiled-experiment protocols
 
-[Describe v1.0 and v1.2 freezes, ten independent worlds per task, twenty
-exploration experiments, predictive checks, blind validation, classic methods,
-paired intervals, multiplicity boundaries, and nonduplicated accounting.]
+The compiled-experiment studies used electrochemical conversion and
+reaction-to-crystallization with world seeds 0--9. In each participant cell,
+the model selected 20 complete experiments sequentially, receiving the public
+result of each compiled procedure before selecting the next. After exploration
+it produced a committed final recommendation and world-understanding output.
+Twelve separately executed predictive queries assessed held-out directional
+predictions, and the recommendation was evaluated by six blind physical
+validation executions. Thus each task--world--information cell contained 38
+physical experiments and 21 provider calls. The primary performance endpoint
+was the mean blind-validated recommendation score, paired by task and world.
+
+The opaque v1.0 freeze included 14 electrochemical and seven crystallization
+classic algorithms, each with five nested technical algorithm seeds, for 1,050
+algorithm cells. Seven methods per task were information-matched; seven
+additional electrochemical descriptor methods were privileged calibrations or
+negative controls and were not treated as information-matched competitors.
+Classic comparisons were descriptive because no superiority threshold or
+multiplicity plan had been preregistered. Paired differences used 200,000
+world-cluster bootstrap resamples with seed 20260729 and percentile 95%
+intervals; algorithm seeds remained nested within each independent world.
+
+The nominal v1.1 intervention supplied anonymous family-level material
+properties without real material names or world-specific residuals. The
+misindexed v1.2 intervention transposed one fixed pair of material-property
+rows per task while leaving the other material field correct; it was frozen
+after nominal execution and before any v1.2 provider call. Information-value
+and wrong-prior contrasts used 100,000 paired-world bootstrap resamples with
+seed 20260729. A 97.5% interval was reported for each of the two tasks to bound
+the task family. Recovery was a joint rule: differential early-to-late
+misleading-action correction and performance restoration to within 0.05 of the
+reference arm both had to pass their frozen one-sided familywise bounds.
+
+The classic matrix contains 27,300 physical experiments. The three participant
+arms contain 2,280 experiments: 1,200 exploration, 720 predictive, and 360
+blind validation executions. The opaque participant cells occur in both the
+v1.0 and three-arm summaries but are the same executions and are counted once,
+giving a nonduplicated G0 total of 29,580 physical experiments.
 
 ### 9.3 Agent-directed primitive protocol
 
-[Describe MCP transport, one decision per operation, no repair/closeout,
-campaign resource card, six-vessel campaign, persistent file-backed memory,
-public affordances, and hidden-information boundary.]
+Agent-directed campaigns used native Codex CLI with `gpt-5.6-sol` at medium
+reasoning effort. One Codex session controlled one complete vessel through a
+host-owned standard-input/output MCP bridge. At every step the agent could
+inspect the public status and history, inspect previously returned public
+artifacts, optionally maintain files in an agent-owned working directory, and
+submit exactly one typed laboratory action. The host retained the authoritative
+trajectory and resource ledger outside that workspace. The bridge exposed no
+hidden state and verified its generated tool source before every accepted
+action and after each session.
+
+The runner performed no action repair, automatic termination, or automatic
+final assay. To close a vessel, the agent had to terminate the process and then
+request the final assay itself; a new vessel then opened in the same physical
+world. Invalid and resource-rejected proposals remained in the trajectory and
+consumed an operation attempt. Provider failure after any accepted action
+right-censored the cell. Only a provider-infrastructure failure before the
+first accepted action could be retried, at most twice, in a new immutable
+attempt directory.
+
+Each cell received one campaign-wide resource card for six vessels: at most six
+vessel starts and six final assays, 18 nonfinal instrument uses, 0.48 mol of
+reagent, 0.96 L of solvent, and 144 submitted operations. The pool was shared
+across vessels without a hidden per-vessel allocation. Model use was separately
+bounded at six sessions, 72 million input tokens, 1.2 million output tokens and
+six hours of wall time; these method limits were not converted into chemical
+inventory. Operation attempts were debited when submitted, whereas stock,
+sample, physical cost, time and risk changed only on committed transitions.
+The 144-operation bound was a safety and interaction-cost ceiling, not the
+primary experimental resource.
 
 ### 9.4 Trajectory endpoints
 
-[Give exact definitions of discovery fraction, 90% online retention, frozen-
-incumbent loss/recovery, drawdown, terminal-to-best, three running-best AUCs,
-and diagnostic-aligned control change.]
+All performance trajectories used committed final-assay scores. The global-best
+discovery fraction was the zero-based position of the first observed campaign
+maximum divided by the five intervals between six planned assays; it was zero
+when the first assay was best and one when the sixth was first best. At every
+assay after the first, online incumbent retention indicated whether the new
+score was at least 90% of the best preceding score. Maximum absolute drawdown
+was the largest preceding incumbent minus current score. Terminal-to-global-
+best was the last score divided by the campaign maximum, defined as one if that
+maximum was zero.
+
+A loss episode began when an assay fell below 90% of the preceding incumbent.
+That incumbent and its 90% recovery threshold were frozen for the episode;
+recovery was the first later assay that regained the threshold. Recovery delay
+was counted in subsequent final assays and batches. A loss still open at the
+terminal assay was retained with right-censored recovery time. These definitions
+distinguish loss of a previously attained condition from failure to discover a
+good condition in the first place.
+
+Three optimization integrals used discrete arithmetic means of running-best
+score. Batch AUC weighted each committed final assay equally. Realized-operation
+AUC evaluated the incumbent after every submitted primitive attempt, including
+invalid or rejected attempts and zeros before the first assay. Fixed-budget AUC
+right-padded that curve with its terminal incumbent to 144 attempts before
+averaging. Consequently, realized-operation AUC describes the path actually
+taken, whereas fixed-budget AUC compares cells on a common opportunity horizon.
+
+For the descriptive diagnostic endpoint, each committed nonfinal measurement
+was aligned to the first later committed `set_potential` or `electrolyze`
+operation in the same vessel. A control change required a comparable earlier
+operation of the same type and a changed field value. The analysis unit was the
+vessel: vessels with at least one diagnostic-aligned change were related to the
+next final score and its change from the previous assay and prior incumbent.
+This temporal alignment did not identify a causal effect of measurement.
 
 ### 9.5 Fresh-trajectory replication
 
-[Describe selected-world status, exclusion of development trajectories,
-trajectory replicate semantics, pair schedule, immutable attempts, retries,
-right-censoring, and per-world descriptive analysis.]
+The fresh-trajectory study fixed physical world seeds 1 and 3 because their
+nominal-minus-opaque development patterns opposed one another on selected
+trajectory endpoints. This is therefore a development-preregistered replication
+within two deliberately selected worlds, not a confirmatory random sample of
+chemical worlds. The development sessions selected the worlds and endpoints
+and were excluded from the replication estimand.
+
+Within each world, five replicate blocks (`r01`--`r05`) paired opaque material
+codes with anonymous nominal properties. The physical evaluator, material
+instance, keyed observation stream, task and score contracts, resource card,
+model configuration, and local agent seed were identical within a pair. Arm
+order alternated within and across worlds according to a frozen ten-block
+schedule. Native Codex exposes no provider sampling seed; a replicate therefore
+means a fresh independent session-level trajectory and the two arms do not
+share provider randomness.
+
+The matrix contained 20 cells and 120 six-vessel opportunities. Attempts were
+immutable. A zero-action provider-infrastructure failure could be followed by a
+new attempt, with at most three attempts per cell. Any provider failure after
+an accepted action and any action-bearing method-limit failure permanently
+right-censored the cell; completed or right-censored cells were never replaced.
+Execution did not stop in response to scores or arm differences.
+
+For every endpoint, all available nominal-minus-opaque pair differences are
+listed separately by world and replicate. Each world is summarized by the
+median, range, positive/negative/zero counts and sign consistency. An incomplete
+pair remains in the denominator and contributes no invented paired difference.
+The two selected worlds are not pooled into a population p-value. The final
+narrative branch--opposing but repeatable world-conditioned patterns, frequent
+within-world reversal, or endpoint-specific repeatability--is selected only
+after the frozen audit is complete.
 
 ### 9.6 Provenance, provider accounting, and replay
 
-[Describe source/config/physical identity hashes, provider receipts, resource
-ledger reconstruction, exact replay, local raw data, release snapshots, and
-the independent-checkout attestation required before submission.]
+Every formal artifact binds its source commit; task, scoring and observation
+contracts; physical world, mechanism, material-family and material-instance
+identities; observation-noise namespace and seed; resource card; model and
+method envelope; and run configuration. Pair audits require equality of the
+physical and public-contract identities while requiring the information arms
+to differ. Attempts, trajectories, environment contracts, provider receipts,
+resource ledgers and summaries carry content hashes and are never overwritten.
+
+Exact replay starts from the bound initial state and reapplies the durable
+primitive actions without calling the model. It must reproduce every committed
+transition, terminal score, campaign resource receipt and final ledger hash.
+Provider-session audit is separate: it checks session count, completion,
+model/provenance fields and reported token usage, but does not claim to replay
+private model sampling. Subscription use has no attributable per-run dollar
+price, so monetary provider accounting is explicitly incomplete rather than
+estimated from an unrelated API tariff.
+
+The four G0 raw roots comprise 1,441 files and 17,725,724,603 bytes. A tracked
+index binds every root-relative path, byte count and file SHA-256; the two
+tracked formal JSON summaries are bound by canonical-JSON SHA-256 so checkout
+line-ending conversion cannot change their identity. Before public release we
+require a durable archive identifier for the raw bytes, a compact replay subset
+for G2, a terminal G2 file index, a current evidence graph, clean-wheel and full
+test passes, and reproduction of the declared artifacts from an independent
+checkout.
 
 ## 10. Data and code availability
 
-[PARTIALLY RESOLVED: `benchmark/releases/chemworld-serious-v1` now contains a
-fail-closed manifest, data card, and claim boundaries. Before release, add the
-frozen derived cell table, trajectory and receipt hash index, a small replayable
-trajectory subset, and a durable archive location for the full local raw corpus.]
+`benchmark/releases/chemworld-serious-v1` contains a fail-closed manifest, data
+card, claim boundaries, and the deterministic G0 raw-file index. The index
+contains no raw content or absolute path. Before release we will add the frozen
+derived cell table, terminal G2 trajectory and receipt index, a small replayable
+trajectory subset, and a durable archive location for the full local raw
+corpus. The manifest remains `publication_ready=false` until every stated gate
+passes.
 
 ## 11. Remaining work before arXiv
 
 1. Execute and audit 20 G2 v0.5 cells, representing 120 planned physical
    experiment opportunities and 120 provider sessions.
 2. Close the current evidence-pipeline registry/freshness errors.
-3. Archive the four G0 raw roots and publish a public file-hash index; the four
-   historical source commits are already immutable ancestors of `origin/main`.
+3. Archive the four G0 raw roots. Their public 1,441-file hash index and data
+   card now exist, and the four historical source commits are immutable
+   ancestors of `origin/main`.
 4. Build one frozen derived table and generate all figures from it.
 5. Populate the release directory and complete clean-wheel, full-test, replay,
    and independent-checkout attestations.

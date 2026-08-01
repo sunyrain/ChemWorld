@@ -18,9 +18,16 @@ G1 is a development-only interface diagnostic and is not a scientific layer in t
 | G2 v0.4 | autonomous development / hypothesis generation | 60 |
 | Existing audited total |  | 29,640 |
 | G2 v0.5 | planned fresh-trajectory replication opportunities | 120 |
-| Projected total after terminal audit |  | 29,760 |
+| Planned opportunity denominator after terminal audit |  | 29,760 |
 
 An opaque G0 slice occurs in both the v1.0 and v1.2 summaries and is counted only once. Two G2 qualification attempts and the entire first interrupted G2 v0.5 launch are excluded.
+
+The 29,760 figure is a design denominator, not a guaranteed count of executed
+or completed experiments. If a G2 cell is right-censored, its unstarted vessel
+slots remain visible in the 120-opportunity denominator but are not counted as
+executed physical experiments; a started right-censored vessel is executed but
+is not a completed final-assay experiment. Both final totals remain unset until
+the terminal audit.
 
 ## Current raw-data state
 

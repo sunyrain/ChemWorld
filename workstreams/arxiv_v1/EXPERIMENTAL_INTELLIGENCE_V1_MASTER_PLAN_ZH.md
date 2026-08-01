@@ -372,13 +372,16 @@ Qualification 的2个 attempted vessels不计入科学语料；其中1个完成�
 |---|---:|---:|---:|
 | G2 v0.5 replication | 20 | **120** | 120 |
 
-因此第一版完成后的非重复科学物理实验总量预计为：
+因此第一版的计划机会分母为：
 
 ```text
 29,640 existing + 120 new = 29,760
 ```
 
-如果出现预注册 right-censor，120 是计划实验机会而不是强制120个成功 final assay；失败必须留在分母。
+这不是对最终实际执行实验数或成功 final assay 数的承诺。如果出现预注册
+right-censor，120 个计划机会全部留在设计分母；未启动的 vessel slot 不计为
+executed physical experiment，已启动但右删失的 vessel 计为 executed、但不计为
+completed final-assay experiment。两个最终总数只能在 terminal audit 后填写。
 
 ### 11.3 不属于第一版必需实验
 
