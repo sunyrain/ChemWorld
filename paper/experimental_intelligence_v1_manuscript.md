@@ -686,9 +686,9 @@ durable archive location for the full local raw corpus. The manifest remains
 
 ## 11. Remaining work before arXiv
 
-1. Terminalize and audit the remaining G2 v0.5 cells. At the 2026-08-02 02:14
-   (Asia/Shanghai) operational snapshot, 8 cells were complete, 1 was right-
-   censored, 11 remained pending, and 66 of 120 planned vessel-opportunity
+1. Terminalize and audit the remaining G2 v0.5 cells. At the 2026-08-02 02:29
+   (Asia/Shanghai) operational snapshot, 9 cells were complete, 1 was right-
+   censored, 10 remained pending, and 60 of 120 planned vessel-opportunity
    slots remained unresolved. These live counts are not scientific results.
 2. Re-run the currently passing 55-node evidence graph after the final source
    commit, clean-wheel build, and independent-checkout verification.
@@ -705,7 +705,7 @@ durable archive location for the full local raw corpus. The manifest remains
 
 No new G0 scientific experiment is required for this manuscript. The only
 required new scientific matrix contains 20 G2 v0.5 cells and 120 G2 experiment
-opportunities. It is already running; 11 cells and 66 planned experiment-
+opportunities. It is already running; 10 cells and 60 planned experiment-
 opportunity slots remain unresolved at this snapshot.
 
 ## 12. Display items
