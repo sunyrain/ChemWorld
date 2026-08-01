@@ -412,7 +412,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         resource_preflight = None
         resource_event_id: str | None = None
         resource_starts_vessel = False
-        is_campaign_discard = action.get("operation") == "discard_batch"
+        operation_value = action.get("operation")
+        is_campaign_discard = (
+            isinstance(operation_value, str) and operation_value == "discard_batch"
+        )
         if self._campaign_resource_ledger is not None:
             resource_starts_vessel = (
                 not self._campaign_resource_current_vessel_started

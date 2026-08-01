@@ -1,6 +1,7 @@
 # Experimental Intelligence in Executable Chemical Worlds
 
-Status: working manuscript v0.2, 2026-08-01. Not submission-ready.
+Status: working manuscript v0.3, 2026-08-02. Experimental results in Section 7
+remain pending; the rest of the first-version argument and Methods are populated.
 
 Evidence and experiment authority:
 `workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md` and
@@ -103,7 +104,7 @@ estimate whether the resulting experimental behavior is stable
 ([Boiko et al., 2023](https://doi.org/10.1038/s41586-023-06792-0);
 [Bran et al., 2024](https://doi.org/10.1038/s42256-024-00832-8);
 [Szymanski et al., 2023](https://doi.org/10.1038/s41586-023-06734-w);
-[Kotopanov et al., 2024](https://doi.org/10.1038/s41586-024-08173-7)).
+[Dai et al., 2024](https://doi.org/10.1038/s41586-024-08173-7)).
 
 Virtual environments address complementary constraints. Summit and Olympus
 already support reproducible in-silico reaction optimization, PC-Gym supports
@@ -113,7 +114,9 @@ claim the first virtual chemistry laboratory or use optimizer ranking as the
 primary novelty. ChemWorld instead combines chemical primitive control with
 controlled interventions on the experimenting agent, campaign-wide physical
 resource accounting, immutable failure evidence, and state-level replay
-([Beeler et al., 2024](https://doi.org/10.1039/D3DD00183K);
+([Felton et al., 2021](https://doi.org/10.1002/cmtd.202000051);
+[Häse et al., 2021](https://doi.org/10.1088/2632-2153/abedc8);
+[Beeler et al., 2024](https://doi.org/10.1039/D3DD00183K);
 [Bloor et al., 2024](https://arxiv.org/abs/2410.22093)).
 
 Interactive discovery benchmarks already test hypothesis formation,
@@ -596,9 +599,12 @@ manifest remains `publication_ready=false` until every stated gate passes.
 
 ## 11. Remaining work before arXiv
 
-1. Execute and audit 20 G2 v0.5 cells, representing 120 planned physical
-   experiment opportunities and 120 provider sessions.
-2. Close the current evidence-pipeline registry/freshness errors.
+1. Terminalize and audit the remaining G2 v0.5 cells. At the 2026-08-02 01:11
+   (Asia/Shanghai) operational snapshot, 4 cells were complete, 1 was right-
+   censored, 15 remained pending, and 90 of 120 planned vessel-opportunity
+   slots remained unresolved. These live counts are not scientific results.
+2. Re-run the currently passing 55-node evidence graph after the final source
+   commit, clean-wheel build, and independent-checkout verification.
 3. Archive the four G0 raw roots. Their public 1,441-file hash index and data
    card now exist, and the four historical source commits are immutable
    ancestors of `origin/main`.
@@ -606,8 +612,9 @@ manifest remains `publication_ready=false` until every stated gate passes.
    source, freeze it, render Figure 5, and regenerate all figures.
 5. Complete the release directory, clean-wheel, full-test, replay,
    and independent-checkout attestations.
-6. Complete references, statistical-language review, data card, and final
-   claim audit.
+6. Convert the frozen working bibliography in
+   `paper/experimental_intelligence_v1_references.bib` to the target journal
+   style, then complete the statistical-language and final-claim audits.
 
 No new G0 scientific experiment is required for this manuscript. The only
 required new scientific matrix contains 120 G2 experiment opportunities.

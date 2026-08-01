@@ -8,6 +8,12 @@
 
 G2 v0.5 当前执行源码：`main@aae0edac12c849bc4246ca5ac9359a2d00d9f660`
 
+进度快照（2026-08-02 01:11，Asia/Shanghai）：4 completed cells、1 right-censored
+cell、15 cells 待终态化；30/120 vessel opportunity slots 已解析，90 slots 待解析；
+1/10 pair 完整、1/10 pair 右删失、8/10 pair 未决。实时数字只用于运行审计，不进入正文
+结果；机器可读权威为
+`workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json`。
+
 第一次启动基础设施中断记录：`workstreams/arxiv_v1/G2_V05_EXECUTION_INCIDENT_2026_08_01_ZH.md`
 
 相关工作审计：`workstreams/arxiv_v1/RELATED_WORK_AUDIT_2026_08_ZH.md`
@@ -383,6 +389,14 @@ right-censor，120 个计划机会全部留在设计分母；未启动的 vessel
 executed physical experiment，已启动但右删失的 vessel 计为 executed、但不计为
 completed final-assay experiment。两个最终总数只能在 terminal audit 后填写。
 
+截至上述快照，正式终态证据为：4 个 completed cells、1 个 right-censored cell，
+对应 27 个已启动 vessel 和 26 个 completed final assays；右删失 cell 中另有 3 个
+从未启动的 slots。因此还需要让 **15 个 cells 终态化并解析 90 个 vessel opportunity
+slots**。如果此后所有未决 slots 都完成，G2 v0.5 最多得到 117 个 executed vessels 与
+116 个 completed final assays；加上已有 29,640 个实验后，最终最多分别为 29,757 个
+executed physical experiments 与 29,756 个 completed experiments。29,760 始终只是
+计划机会分母。
+
 ### 11.3 不属于第一版必需实验
 
 - 旧 matched G0/G2：40 cells，按 K6 约240次实验；
@@ -399,30 +413,42 @@ completed final-assay experiment。两个最终总数只能在 terminal audit �
 第一次 detached 启动已按预定规则整体排除；干净的前台托管重启已开始。只有 20/20 cells
 终态化且通过 fail-closed audit 后，120 个 experiment opportunities 才能进入正文。
 
-### B2 — Evidence graph 未闭合
+### B2 — Evidence graph 已闭合
 
-`scripts/evidence_pipeline.py --check` 当前失败五项：source fingerprint、runtime affordance freshness/gate、stale count 和 stale identities。
+2026-08-02 完成全量 `--refresh` 后，`scripts/evidence_pipeline.py --check` 的 55 个节点
+全部通过，graph SHA-256 为
+`8f6a86b90628d2d61a9da2b582977863329953dd30f2c57d0c14ec03e9f7d12b`。刷新期间发现并修复了
+空 NumPy operation 在 campaign-control 分支触发布尔歧义的边界缺陷；28 类公共操作的
+状态转移审计现为 0 defects。该门禁在最终 commit、clean wheel 和独立 checkout 后仍需
+再运行一次，但已不是当前设计阻断。
 
-### B3 — Release 为空
+### B3 — Release 已初始化，终态工件待补
 
-`benchmark/releases/chemworld-serious-v1` 当前没有可发布工件。
+`benchmark/releases/chemworld-serious-v1` 已包含 fail-closed manifest、data card、claim
+boundaries、G0 原始文件哈希索引、单一 provisional derived-data JSON、五个 CSV 视图和
+figure manifest。`publication_ready=false` 保持正确；终态 G2 表、Figure 5、最终 attestations
+和外部 archive identifier 尚未补齐。
 
 ### B4 — G0 source binding 已解决
 
 classic、opaque、nominal、misindexed 所绑定的四个历史 commit 均存在且都是 `origin/main`
 祖先。无需把多 commit 本身误判为失效；剩余任务归入 B5 的 raw archive 与公开哈希索引。
 
-### B5 — Raw data 未发布
+### B5 — 数据身份已冻结，外部原始档案未发布
 
-`runs/` 本地存在但被 Git 忽略。至少需要：derived cell table、trajectory/receipt hash index、可 replay subset、完整 archive URL 和 data card。
+G0 的 1,441 个文件、17,725,724,603 bytes 已有逐文件 SHA-256 索引和 data card；四个
+历史 source commits 也已绑定。G2 终态 file index 与 compact exact-replay subset 的构建器
+和测试已完成，待矩阵终态后执行。唯一无法由仓库内部完成的部分是为约 17.7 GB G0 raw
+roots 取得持久外部 archive identifier；该标识不能伪造。
 
-### B6 — 新稿骨架已建立，但内容尚未闭合
+### B6 — 主文稿与 Methods 已建立，结果槽待闭合
 
 旧的 `paper/chemworld_benchmark_manuscript.md` 已标记 superseded；新的
 `paper/experimental_intelligence_v1_manuscript.md` 已建立完整论证骨架。当前剩余阻塞是
-G2 v0.5 正式结果、完整 Methods、参考文献和最终图表尚未填实，而不再是叙事结构缺失。
+G2 v0.5 正式结果、摘要结果句、格式化参考文献、统计措辞终审和最终图表。Methods 9.1--9.6
+已经填实；不再把 Methods 或叙事结构列为缺失。
 
-### B7 — 图表流水线缺失
+### B7 — 图表流水线已建立，终态冻结待执行
 
 部分解决。已经建立单一 provisional derived-data JSON、五个 CSV 视图和只读取该
 JSON 的自动出图脚本；Figures 1--4 与 6 已生成。G2 v0.5 在 JSON 中保持 `null`，
