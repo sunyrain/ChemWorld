@@ -122,6 +122,19 @@ def test_figure_manifest_is_bound_to_derived_data_and_never_fakes_figure_5() -> 
     assert any("figure-5-" in path for path in file_paths) is manifest["figure_5_rendered"]
 
 
+def test_generated_release_text_is_lf_stable_and_figure_hashes_match() -> None:
+    manifest_path = RELEASE / "figure-manifest.json"
+    display_path = ROOT / "paper/experimental_intelligence_v1_display_items.md"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for path in (DERIVED, manifest_path, display_path):
+        assert b"\r\n" not in path.read_bytes()
+    for row in manifest["files"]:
+        path = ROOT / row["path"]
+        assert file_sha256(path) == row["sha256"]
+        if path.suffix == ".svg":
+            assert b"\r\n" not in path.read_bytes()
+
+
 def test_terminal_g2_rows_require_the_frozen_interpretation_binding() -> None:
     audit = _terminal_g2_audit()
     assert _g2_v05_rows(audit)["interpretation"]["selected_branch"]["branch_id"]

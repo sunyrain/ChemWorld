@@ -82,6 +82,11 @@ def _save(fig: plt.Figure, output_dir: Path, stem: str) -> list[Path]:
         bbox_inches="tight",
         metadata={"Date": None, "Creator": "ChemWorld arXiv v1 figure pipeline"},
     )
+    outputs[0].write_text(
+        outputs[0].read_text(encoding="utf-8"),
+        encoding="utf-8",
+        newline="\n",
+    )
     fig.savefig(
         outputs[1],
         bbox_inches="tight",
@@ -624,7 +629,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     manifest_path = _resolve(args.manifest_output)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
     print(
         json.dumps(

@@ -365,7 +365,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     data = _load(_resolve(args.derived_data))
     output = _resolve(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(render(data), encoding="utf-8")
+    output.write_text(render(data), encoding="utf-8", newline="\n")
     print(
         json.dumps(
             {
