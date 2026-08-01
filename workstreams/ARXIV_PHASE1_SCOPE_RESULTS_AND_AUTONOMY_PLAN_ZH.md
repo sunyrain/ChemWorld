@@ -1,3 +1,15 @@
+# 已被取代的第一阶段 arXiv 计划
+
+本文件保留旧的 static-S0/G0–G2 规划历史。当前权威计划为：
+
+- `workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md`；
+- `workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json`；
+- `paper/experimental_intelligence_v1_manuscript.md`。
+
+旧40-cell matched G0/G2 矩阵已不再是第一版 arXiv 的必做前置实验。
+
+---
+
 # ChemWorld 第一阶段 arXiv：范围、证据与逐操作实验计划
 
 状态：`working synthesis; not a publication claim`

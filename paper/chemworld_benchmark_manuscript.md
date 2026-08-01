@@ -1,3 +1,14 @@
+# Superseded working manuscript
+
+This static-S0-centered draft is retained for historical reference. The active
+first-arXiv manuscript is
+`paper/experimental_intelligence_v1_manuscript.md`, governed by
+`workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md`.
+
+Do not update or cite this file as the current manuscript.
+
+---
+
 # ChemWorld: A Replayable Causal Environment for Experimental Intelligence
 
 Status: working manuscript, 2026-07-29. Not submission-ready.

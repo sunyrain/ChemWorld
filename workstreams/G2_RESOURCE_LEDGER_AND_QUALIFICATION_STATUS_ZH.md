@@ -14,7 +14,7 @@ G0 保持 baseline。G2 的原生 Codex STDIO MCP、逐操作 affordance、campa
 
 - seed 3 nominal K6 v0.4 qualification：59 operations，6/6 final assay，通过。
 - 5 world × 2 material-information v0.4 matrix：10/10 cells，60/60 final assay，通过。
-- 815 operations，164 measurements，0 invalid/resource rejection。
+- 815 operations，164 次非终点表征与 60 次 final assay（共 224 个 `measure` 操作），0 invalid/resource rejection。
 - 所有资源账本、物理配对、provider session 和 exact replay 通过。
 - audit v0.3 哈希：`bc7495315745272c95fb326b7b50fb509081ad70323354899a233abac6c7b4a9`；原始轨迹、资源账本和 provider receipts 未改变。
 - 新增发现—保留—恢复审计：opaque/nominal 平均在线保留率为 52%/72%，平均终点/最佳为 67%/94%，平均最佳发现进度为 32%/80%。该结果说明发现速度与保留/终局优化可能解耦，仍仅作 n=5 开发性观察。

@@ -10,7 +10,7 @@ v0.4 的 5 个物理世界 × 2 个材料信息条件共 10 个 cell 全部完�
 
 - 60/60 个新鲜容器均以 final assay 关闭；
 - 815 个 agent 自主提交的原子操作，0 个无效或资源拒绝动作；
-- 164 次仪器测量，其中 60 次 final assay；
+- 164 次非终点仪器表征，另有 60 次 final assay，共 224 个 `measure` 操作；
 - 60/60 个 Codex provider session 完整；
 - 10/10 资源账本、10/10 exact replay 和 5/5 物理世界配对审计通过；
 - 38,526,170 input tokens，179,062 output tokens。
