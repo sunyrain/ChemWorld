@@ -10,12 +10,13 @@ This directory is the single tracked entry point for the first ChemWorld arXiv e
 - a data card with nonduplicated experiment accounting;
 - explicit claim and exclusion boundaries;
 - immutable paths and hashes for the formal G0 summaries and the audited G2 v0.4 development result.
+- a deterministic 1,441-file G0 raw-data hash index with no absolute paths or raw content.
 
 ## Still required
 
 - terminal G2 v0.5 replication audit and frozen derived table;
 - figures generated only from that table;
-- public file-hash indices and a compact replay subset;
+- a compact replay subset and the G2 terminal file-hash index;
 - durable external archive identifiers for the local raw roots;
 - refreshed evidence registry, clean-wheel, full-test, replay, and independent-checkout attestations.
 

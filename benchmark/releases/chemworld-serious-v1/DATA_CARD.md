@@ -24,7 +24,7 @@ An opaque G0 slice occurs in both the v1.0 and v1.2 summaries and is counted onl
 
 ## Current raw-data state
 
-Four G0 raw roots exist locally: 1,441 files and 17,725,724,603 bytes. Their historical source commits are all immutable ancestors of `origin/main`. The bytes have not yet been deposited in a durable external archive. Until an archive identifier and public file-hash index are added, this release candidate is not publication-ready.
+Four G0 raw roots exist locally: 1,441 files and 17,725,724,603 bytes. Their historical source commits are all immutable ancestors of `origin/main`. A deterministic public index now binds every file by root-relative path, byte count, and SHA-256 (`g0-raw-file-index.json`, index SHA-256 `f49884b6e2d2b87a707dce9f93f96041dd7b3636b8e97ea4de93f0b3b429d961`). The raw bytes have not yet been deposited in a durable external archive. Until an archive identifier is added, this release candidate is not publication-ready.
 
 G2 v0.5 is still running. Live trajectories are not promoted into the paper count; only terminal, identity-checked, ledger-audited, exact-replay-verified cells may enter the final derived table.
 

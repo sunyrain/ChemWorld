@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from chemworld.eval.provenance import canonical_json_sha256
+
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER_PATH = (
     ROOT
@@ -118,11 +120,11 @@ def test_tracked_g0_evidence_hashes_match_the_ledger() -> None:
     g0 = ledger["experiment_layers"]["g0_compiled_recipe"]
     foundation = ledger["foundation_qualification"]
 
-    assert g0["formal_summary_file_sha256"]["v1_0"] == _sha256(
-        ROOT / g0["formal_summary_paths"][0]
+    assert g0["formal_summary_canonical_json_sha256"]["v1_0"] == (
+        canonical_json_sha256(_load(ROOT / g0["formal_summary_paths"][0]))
     )
-    assert g0["formal_summary_file_sha256"]["v1_2"] == _sha256(
-        ROOT / g0["formal_summary_paths"][1]
+    assert g0["formal_summary_canonical_json_sha256"]["v1_2"] == (
+        canonical_json_sha256(_load(ROOT / g0["formal_summary_paths"][1]))
     )
     assert foundation["evidence_file_sha256"] == _sha256(
         ROOT / foundation["evidence_path"]
@@ -281,5 +283,19 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
     assert manifest["status"] == "building_not_publication_ready"
     assert manifest["publication_ready"] is False
     assert manifest["evidence"]["g2_v0_5_result"] is None
+    for summary in manifest["evidence"]["g0_formal_summaries"]:
+        assert summary["canonical_json_sha256"] == canonical_json_sha256(
+            _load(ROOT / summary["path"])
+        )
+        assert "sha256" not in summary
+    raw_index = _load(
+        ROOT / manifest["evidence"]["g0_raw_file_index"]["path"]
+    )
+    assert raw_index["index_sha256"] == (
+        "f49884b6e2d2b87a707dce9f93f96041dd7b3636b8e97ea4de93f0b3b429d961"
+    )
+    assert raw_index["file_count"] == 1441
+    assert raw_index["byte_count"] == 17725724603
     assert manifest["gates"]["tracked_release_populated"] == "passed"
+    assert manifest["gates"]["g0_raw_data_hash_index"] == "passed"
     assert manifest["gates"]["raw_data_archive"] == "open"
