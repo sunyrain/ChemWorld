@@ -8,8 +8,8 @@
 
 G2 v0.5 当前执行源码：`main@aae0edac12c849bc4246ca5ac9359a2d00d9f660`
 
-进度快照（2026-08-02 02:29，Asia/Shanghai）：9 completed cells、1 right-censored
-cell、10 cells 待终态化；60/120 vessel opportunity slots 已解析，60 slots 待解析；
+进度快照（2026-08-02 02:47，Asia/Shanghai）：10 completed cells、1 right-censored
+cell、9 cells 待终态化；66/120 vessel opportunity slots 已解析，54 slots 待解析；
 4/10 pair 完整、1/10 pair 右删失、5/10 pair 未决。实时数字只用于运行审计，不进入正文
 结果；固定设计总账与动态运行审计的机器可读权威分别为
 `workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json` 和
@@ -227,13 +227,18 @@ Opaque 是 v1.0 participant 的复用切片，不能再次把 v1.0 的 760 次�
 - 只有 `provider_infrastructure_failure && accepted_operation_count == 0` 可按冻结规则重试；
 - 动作后的失败永久 right-censored，不替换。
 
-### 6.5 三种结果分支
+### 6.5 四分支 outcome-blind 结果映射
 
-1. **world 内稳定、world 间相反**：支持 world-conditioned experimental phenotype；
-2. **world 内频繁翻转**：支持单次 autonomous trajectory 不足以刻画实验智能；
-3. **部分端点稳定**：支持实验智能具有不同稳定性层级，例如 endpoint 不稳定而 retention 稳定。
+按冻结优先级机械选择：
 
-三种分支都保留；没有“必须复现 nominal 优势”的成功判据。
+1. **paired coverage 不足**：任一 world 少于 3 个完整 pair，只报告可用 pair，不作定性重复性分类；
+2. **world 内稳定、world 间相反**：4 个 core metrics 中至少 3 个在两个 world 内均达到
+   75% 同号且 world 间符号相反；
+3. **world 内频繁翻转**：8 个 world × core-metric 分类中至少 4 个为 mixed；
+4. **metric-specific 或非相反重复性**：前三项均不满足时的兜底分支。
+
+四分支都保留；没有“必须复现 nominal 优势”的成功判据。阈值映射是在运行中期、未读取
+v0.5 结果时补充冻结的，不称为 run 前预注册。
 
 ## 7. 第一版主张账本
 
@@ -360,6 +365,14 @@ G0 的 recipe protocol 放在第5节的方法入口，不作为第1—3节的历
 
 在 v0.5 完成前，第5句必须保留占位符，不能提前写稳定方向。
 
+G2 指标和逐 world 报告计划在 fresh run 前已经冻结，但原稿的三个定性叙事分支没有数值化
+判定。为消除终态后的叙事选择自由度，2026-08-02 02:38（Asia/Shanghai）在 9 completed、
+1 right-censored、10 pending 且未读取任何 v0.5 score、trajectory content 或 paired effect 时，
+新增 outcome-blind mapping supplement：
+`configs/benchmark/g2_autonomous_electrochemical_material_seed1_seed3_r5_v0.5_interpretation_policy.json`。
+它只机械选择中性结果语言，不改变 endpoint、estimand、停止规则或推断；且必须明确写成
+mid-execution supplement，而非首个 provider call 前的 preregistration。
+
 ## 11. 实验数量审计
 
 ### 11.1 已完成并计入第一版科学语料
@@ -390,9 +403,9 @@ right-censor，120 个计划机会全部留在设计分母；未启动的 vessel
 executed physical experiment，已启动但右删失的 vessel 计为 executed、但不计为
 completed final-assay experiment。两个最终总数只能在 terminal audit 后填写。
 
-截至上述快照，正式终态证据为：9 个 completed cells、1 个 right-censored cell，
-对应 57 个已启动 vessel 和 56 个 completed final assays；右删失 cell 中另有 3 个
-从未启动的 slots。因此还需要让 **10 个 cells 终态化并解析 60 个 vessel opportunity
+截至上述快照，正式终态证据为：10 个 completed cells、1 个 right-censored cell，
+对应 63 个已启动 vessel 和 62 个 completed final assays；右删失 cell 中另有 3 个
+从未启动的 slots。因此还需要让 **9 个 cells 终态化并解析 54 个 vessel opportunity
 slots**。如果此后所有未决 slots 都完成，G2 v0.5 最多得到 117 个 executed vessels 与
 116 个 completed final assays；加上已有 29,640 个实验后，最终最多分别为 29,757 个
 executed physical experiments 与 29,756 个 completed experiments。29,760 始终只是
@@ -491,7 +504,7 @@ Methods 9.1--9.6、22 条工作参考文献、正文图表调用和显示项图�
 
 ### Phase E — Manuscript freeze
 
-- v0.5 三结果分支之一进入 Figure 5；
+- v0.5 四分支 outcome-blind 映射的机械结果进入 Figure 5；
 - abstract不越过证据等级；
 - 全部图从单一 derived table生成；
 - 对外术语使用 compiled control / agent-directed control，不以 G0/G2 作为标题叙事。

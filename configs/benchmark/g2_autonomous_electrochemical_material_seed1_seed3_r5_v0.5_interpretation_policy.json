@@ -1,0 +1,66 @@
+{
+  "schema_version": "chemworld-g2-v0.5-interpretation-policy-0.1",
+  "status": "outcome-blind-narrative-mapping-supplement",
+  "frozen_at": "2026-08-01T18:38:36Z",
+  "scope": "descriptive mapping of terminal G2 v0.5 paired trajectories to manuscript language; no endpoint, estimand, stopping rule, or inferential test is changed",
+  "outcome_access_attestation": {
+    "terminal_state_counts_inspected": true,
+    "terminal_scores_inspected": false,
+    "paired_effects_inspected": false,
+    "trajectory_contents_inspected": false,
+    "development_v0_4_results_inspected": true,
+    "snapshot_completed_cells": 9,
+    "snapshot_right_censored_cells": 1,
+    "snapshot_pending_cells": 10,
+    "reason": "the original protocol froze metrics and within-world reporting but did not operationalize its qualitative narrative branches"
+  },
+  "classification": {
+    "minimum_completed_pairs_per_world": 3,
+    "zero_tolerance": 1e-12,
+    "directional_consistency_threshold": 0.75,
+    "core_trajectory_metrics": [
+      "global_best_discovery_fraction",
+      "online_incumbent_retention_rate",
+      "maximum_absolute_incumbent_drawdown",
+      "terminal_to_global_best_ratio"
+    ],
+    "endpoint_diagnostics": [
+      "best_final_score",
+      "final_score_mean"
+    ],
+    "per_world_metric_rule": {
+      "directionally_positive": "positive_count / n >= 0.75 and median > 1e-12",
+      "directionally_negative": "negative_count / n >= 0.75 and median < -1e-12",
+      "stable_zero": "zero_count / n >= 0.75 and absolute median <= 1e-12",
+      "mixed": "none of the preceding rules"
+    },
+    "branch_precedence": [
+      {
+        "branch_id": "insufficient_paired_coverage",
+        "rule": "either selected world has fewer than three completed pairs",
+        "manuscript_language": "Right-censoring left insufficient paired coverage for a qualitative repeatability classification; all available pairs are reported without substitution."
+      },
+      {
+        "branch_id": "opposing_world_conditioned_repeatability",
+        "rule": "at least three of four core trajectory metrics are directionally consistent in both worlds and have opposite signs between worlds",
+        "manuscript_language": "Fresh trajectories reproduced predominantly opposite, world-conditioned responses to nominal material information across the core lifecycle metrics."
+      },
+      {
+        "branch_id": "frequent_within_world_reversal",
+        "rule": "at least four of the eight world-by-core-metric classifications are mixed",
+        "manuscript_language": "Fresh trajectories frequently reversed sign within a fixed physical world, indicating that provider-trajectory variability dominated any stable material-information pattern."
+      },
+      {
+        "branch_id": "metric_specific_or_nonopposing_repeatability",
+        "rule": "fallback after the preceding rules",
+        "manuscript_language": "Repeatability was metric-specific or non-opposing across worlds; endpoint and lifecycle effects are therefore reported as a profile rather than a single prior-information effect."
+      }
+    ]
+  },
+  "claim_boundaries": [
+    "classification is descriptive and does not create a population-level material-information effect",
+    "raw nominal-minus-opaque signs are reported; lower values are favorable for discovery fraction and drawdown but the branch rule concerns repeatability, not benefit",
+    "all pair rows and per-world summaries remain authoritative over the qualitative branch label",
+    "the mapping supplement was frozen after execution began and must not be described as preregistered before the first provider call"
+  ]
+}

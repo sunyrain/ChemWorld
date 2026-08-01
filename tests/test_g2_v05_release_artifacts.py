@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from pathlib import Path
 
@@ -10,8 +11,15 @@ from scripts.build_g2_v05_release_artifacts import (
     compact_replay_record,
 )
 
-from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.schemas.validation import TRAJECTORY_REQUIRED_KEYS
+
+ROOT = Path(__file__).resolve().parents[1]
+INTERPRETATION_POLICY = ROOT / (
+    "configs/benchmark/"
+    "g2_autonomous_electrochemical_material_seed1_seed3_r5_v0.5_"
+    "interpretation_policy.json"
+)
 
 
 def _manifest() -> dict[str, object]:
@@ -37,9 +45,10 @@ def _manifest() -> dict[str, object]:
 
 
 def _audit() -> dict[str, object]:
-    return {
+    policy = json.loads(INTERPRETATION_POLICY.read_text(encoding="utf-8"))
+    fallback = policy["classification"]["branch_precedence"][-1]
+    audit: dict[str, object] = {
         "schema_version": ("chemworld-autonomous-material-trajectory-replication-audit-0.1"),
-        "audit_sha256": "a" * 64,
         "matrix": {
             "completed_cell_count": 20,
             "right_censored_cell_count": 0,
@@ -47,7 +56,25 @@ def _audit() -> dict[str, object]:
             "all_physical_pairs_verified": True,
             "all_terminal_cells_resource_replay_verified": True,
         },
+        "interpretation": {
+            "mapping_policy": {
+                "sha256": file_sha256(INTERPRETATION_POLICY),
+                "schema_version": policy["schema_version"],
+                "status": policy["status"],
+            },
+            "selected_branch": {
+                "branch_id": fallback["branch_id"],
+                "manuscript_language": fallback["manuscript_language"],
+            },
+        },
     }
+    audit["audit_sha256"] = canonical_json_sha256(audit)
+    return audit
+
+
+def _rehash_audit(audit: dict[str, object]) -> None:
+    audit.pop("audit_sha256", None)
+    audit["audit_sha256"] = canonical_json_sha256(audit)
 
 
 def test_terminal_file_index_is_deterministic_and_excludes_live_preview(
@@ -94,6 +121,36 @@ def test_terminal_file_index_fails_closed_when_a_cell_is_pending(
             manifest=manifest,
             audit=_audit(),
         )
+
+
+def test_terminal_file_index_fails_closed_without_frozen_interpretation_binding(
+    tmp_path: Path,
+) -> None:
+    audit = _audit()
+    audit.pop("interpretation")
+    _rehash_audit(audit)
+    with pytest.raises(G2ReleaseArtifactError, match="interpretation block"):
+        build_terminal_file_index(tmp_path, manifest=_manifest(), audit=audit)
+
+
+def test_terminal_file_index_fails_closed_when_interpretation_policy_is_tampered(
+    tmp_path: Path,
+) -> None:
+    audit = _audit()
+    audit["interpretation"]["mapping_policy"]["sha256"] = "0" * 64
+    _rehash_audit(audit)
+    with pytest.raises(G2ReleaseArtifactError, match="binding mismatch"):
+        build_terminal_file_index(tmp_path, manifest=_manifest(), audit=audit)
+
+
+def test_terminal_file_index_fails_closed_when_selected_language_is_posthoc(
+    tmp_path: Path,
+) -> None:
+    audit = _audit()
+    audit["interpretation"]["selected_branch"]["manuscript_language"] = "better story"
+    _rehash_audit(audit)
+    with pytest.raises(G2ReleaseArtifactError, match="language differs"):
+        build_terminal_file_index(tmp_path, manifest=_manifest(), audit=audit)
 
 
 def test_compact_record_removes_v02_outcome_layers_and_provider_trace() -> None:

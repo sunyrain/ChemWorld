@@ -1,10 +1,10 @@
 # ChemWorld 第一版 arXiv 完成度与剩余实验审计
 
-审计快照：2026-08-02 02:29（Asia/Shanghai）。
+审计快照：2026-08-02 02:47（Asia/Shanghai）。
 
 机器权威：
 `reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json`，审计 SHA-256 为
-`541ef0ef376f16fabfbf4fbe5acffca032f2438111a20b66c6455152c6751653`。
+`e319cf43cd877bada5af007f30ec28f3846f34dd3053c818aa1e0e4b0b4afb85`。
 
 本文件区分三件事：已经完成的科学证据、仍需终态化的预定实验，以及不需要新增实验但
 仍须完成的发布工件。所有 pending-cell 字节只用于运行监控，不进入论文结果。
@@ -20,6 +20,7 @@
 | 主文稿 | Introduction、Related work、Results 3--6、Discussion、Methods 9.1--9.6 已写实 | Section 7 和摘要中的 v0.5 结果句保持占位 |
 | 显示项 | Figures 1--4、6；Tables 1--3；六份完整图注 | Figure 5 与 Table 4 的数值内容由终态 v0.5 自动解锁 |
 | 数据链 | self-hashed derived JSON、五个 CSV、figure manifest、display-item renderer | 禁止手工复制主表数值，所有显示项绑定一个数据源 |
+| 终态叙事映射 | 四分支 outcome-blind policy 已冻结并纳入 G2 审计代码 | 终态只机械选择分支；该文件是 mid-execution supplement，不伪称 run 前预注册 |
 | 证据门禁 | 55/55 evidence nodes 通过 | 最终 commit、clean wheel 和独立 checkout 后仍须再验证 |
 
 ## 2. 还差多少科学实验
@@ -31,14 +32,14 @@
 
 | 计数对象 | 固定总量 | 当前正式终态 | 尚待解析 |
 | --- | ---: | ---: | ---: |
-| G2 v0.5 cells | 20 | 9 completed + 1 right-censored | 10 cells |
-| vessel opportunity slots | 120 | 60 slots 已由终态 cell 解析 | 60 slots |
-| 已执行 vessel，仅计终态 cell | 最终值未知 | 57 | 不用 120 减 57 解释“剩余实验” |
-| completed final assays，仅计终态 cell | 最终值未知 | 56 | 终态审计后冻结 |
+| G2 v0.5 cells | 20 | 10 completed + 1 right-censored | 9 cells |
+| vessel opportunity slots | 120 | 66 slots 已由终态 cell 解析 | 54 slots |
+| 已执行 vessel，仅计终态 cell | 最终值未知 | 63 | 不用 120 减 63 解释“剩余实验” |
+| completed final assays，仅计终态 cell | 最终值未知 | 62 | 终态审计后冻结 |
 | trajectory pairs | 10 | 4 completed + 1 right-censored | 5 unresolved pairs |
 
-因此，最清晰的答案是：**还差 10 个 cell 终态化，对应 60 个尚未解析的预定实验机会位**。
-“60”是剩余设计机会，不保证最终会形成 60 个已执行且完成终测的实验；方法失败可产生
+因此，最清晰的答案是：**还差 9 个 cell 终态化，对应 54 个尚未解析的预定实验机会位**。
+“54”是剩余设计机会，不保证最终会形成 54 个已执行且完成终测的实验；方法失败可产生
 新的右删失。
 
 ### 2.2 为什么 120、117、116 不能混用
@@ -57,8 +58,8 @@
 
 ### 2.3 当前可见但未晋升的运行字节
 
-在本快照时，全部目录中可读到 58 次 vessel start、57 次 final assay 和 819 次 primitive
-operation。其中 pending cells 比正式终态量多 1 次 start、1 次 final assay；这些值只证明
+在本快照时，全部目录中可读到 68 次 vessel start、66 次 final assay 和 893 次 primitive
+operation。其中 pending cells 比正式终态量多 5 次 start、4 次 final assay；这些值只证明
 运行仍在推进，不得进入摘要、Figure 5、Table 4 或结果解释。
 
 ### 2.4 配对分析容量
@@ -81,8 +82,8 @@ operation。其中 pending cells 比正式终态量多 1 次 start、1 次 final
 2. 生成终态 G2 文件哈希索引与 compact replay subset。
 3. 把通过审计的 v0.5 数据一次性写入 derived JSON，冻结新 hash，并重生成全部 CSV、
    Tables 1--4、Figures 1--6 和 figure manifest。
-4. 根据冻结 audit 在 Section 7 的三个预注册解释分支中选择一个，并补摘要结果句；不得依据
-   叙事偏好选分支。
+4. 根据冻结 audit 和 mid-execution outcome-blind policy 在 Section 7 的四个解释分支中
+   机械选择一个，并补摘要结果句；不得依据叙事偏好选分支，也不得把该 policy 称为 run 前预注册。
 5. 完成统计语言、claim boundary、参考文献格式和逐数字一致性审计。
 6. 运行完整测试、clean-wheel 安装、终态 replay 和独立 checkout 重建。
 7. 为约 17.7 GB 的 G0 原始根目录取得持久外部 archive identifier。仓库已有 1,441 文件、
@@ -91,7 +92,7 @@ operation。其中 pending cells 比正式终态量多 1 次 start、1 次 final
 ## 4. 当前真正的阻塞关系
 
 ```text
-10 cells terminalize
+9 cells terminalize
         |
         v
 terminal G2 audit -> frozen derived data -> Figure 5 / Table 4 -> Section 7 / Abstract

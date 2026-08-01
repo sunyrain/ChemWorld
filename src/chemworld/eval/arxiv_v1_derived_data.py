@@ -15,6 +15,11 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from chemworld.eval.autonomous_material_replication_audit import (
+    AutonomousMaterialReplicationAuditError,
+    validate_interpretation_binding,
+)
+
 ARXIV_V1_DERIVED_SCHEMA = "chemworld-arxiv-v1-derived-data-0.1"
 _G2_V04_SCHEMA = "chemworld-autonomous-material-campaign-audit-0.3"
 _G2_V05_SCHEMA = "chemworld-autonomous-material-trajectory-replication-audit-0.1"
@@ -307,6 +312,16 @@ def _g2_v04_rows(
 
 def _g2_v05_rows(audit: Mapping[str, Any]) -> dict[str, Any]:
     _require(audit.get("schema_version") == _G2_V05_SCHEMA, "wrong G2 v0.5 schema")
+    unhashed = dict(audit)
+    declared_audit_hash = unhashed.pop("audit_sha256", None)
+    _require(
+        declared_audit_hash == canonical_sha256(unhashed),
+        "G2 v0.5 audit hash is invalid",
+    )
+    try:
+        validate_interpretation_binding(audit)
+    except AutonomousMaterialReplicationAuditError as error:
+        raise ArxivV1DerivedDataError(str(error)) from error
     matrix = audit["matrix"]
     _require(
         matrix["completed_cell_count"] + matrix["right_censored_cell_count"] == 20,

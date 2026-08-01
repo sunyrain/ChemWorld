@@ -439,14 +439,19 @@ are not pooled into a population-level p-value. Completed and right-censored
 cells remain in the manifest, and no cell is replaced after an accepted
 operation.
 
-This section will choose exactly one preregistered interpretation branch:
+This section will choose exactly one outcome-blind interpretation branch:
 
 1. repeatable within-world but opposing between-world patterns;
 2. frequent within-world reversals indicating large trajectory stochasticity;
-3. endpoint instability with repeatability in selected lifecycle or trajectory
-   metrics.
+3. metric-specific or non-opposing repeatability; or
+4. insufficient paired coverage after right-censoring.
 
-The branch is selected by the frozen audit output, not by narrative preference.
+The numeric endpoints and within-world reporting plan were frozen before the
+fresh runs. The qualitative mapping was operationalized in a supplemental
+policy while 9 cells were complete, 1 was right-censored, and 10 were pending,
+without inspecting terminal scores, trajectory contents, or paired effects.
+The audit selects the branch mechanically, not by narrative preference; the
+supplement is explicitly not described as preregistered before execution.
 The complete paired effects will appear in Fig. 5 and Table 4; neither display
 is permitted to contain live values before all cells reach a terminal state.
 
@@ -648,9 +653,16 @@ listed separately by world and replicate. Each world is summarized by the
 median, range, positive/negative/zero counts and sign consistency. An incomplete
 pair remains in the denominator and contributes no invented paired difference.
 The two selected worlds are not pooled into a population p-value. The final
-narrative branch--opposing but repeatable world-conditioned patterns, frequent
-within-world reversal, or endpoint-specific repeatability--is selected only
-after the frozen audit is complete.
+narrative mapping uses four core metrics: discovery fraction, retention,
+drawdown and terminal-to-best ratio. A world--metric is directionally consistent
+when at least 75% of its available paired effects have the same nonzero sign;
+at least three complete pairs are required per world. Three of four core metrics
+must be consistent in both worlds with opposite signs for the opposing-world
+branch. At least four of eight world--metric classifications must be mixed for
+the frequent-reversal branch. Remaining adequate-coverage outcomes enter the
+metric-specific/non-opposing branch; inadequate coverage enters its own branch.
+This hierarchy and its neutral manuscript sentences are bound in
+`configs/benchmark/g2_autonomous_electrochemical_material_seed1_seed3_r5_v0.5_interpretation_policy.json`.
 
 ### 9.6 Provenance, provider accounting, and replay
 
@@ -697,9 +709,9 @@ durable archive location for the full local raw corpus. The manifest remains
 
 ## 11. Remaining work before arXiv
 
-1. Terminalize and audit the remaining G2 v0.5 cells. At the 2026-08-02 02:29
-   (Asia/Shanghai) operational snapshot, 9 cells were complete, 1 was right-
-   censored, 10 remained pending, and 60 of 120 planned vessel-opportunity
+1. Terminalize and audit the remaining G2 v0.5 cells. At the 2026-08-02 02:47
+   (Asia/Shanghai) operational snapshot, 10 cells were complete, 1 was right-
+   censored, 9 remained pending, and 54 of 120 planned vessel-opportunity
    slots remained unresolved. These live counts are not scientific results.
 2. Re-run the currently passing 55-node evidence graph after the final source
    commit, clean-wheel build, and independent-checkout verification.
@@ -716,7 +728,7 @@ durable archive location for the full local raw corpus. The manifest remains
 
 No new G0 scientific experiment is required for this manuscript. The only
 required new scientific matrix contains 20 G2 v0.5 cells and 120 G2 experiment
-opportunities. It is already running; 10 cells and 60 planned experiment-
+opportunities. It is already running; 9 cells and 54 planned experiment-
 opportunity slots remain unresolved at this snapshot.
 
 ## 12. Display items

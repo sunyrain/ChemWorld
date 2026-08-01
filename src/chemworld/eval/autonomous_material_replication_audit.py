@@ -34,6 +34,13 @@ from chemworld.eval.verify import verify_records
 AUTONOMOUS_MATERIAL_REPLICATION_AUDIT_VERSION = (
     "chemworld-autonomous-material-trajectory-replication-audit-0.1"
 )
+INTERPRETATION_POLICY_VERSION = "chemworld-g2-v0.5-interpretation-policy-0.1"
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_INTERPRETATION_POLICY_PATH = Path(
+    "configs/benchmark/"
+    "g2_autonomous_electrochemical_material_seed1_seed3_r5_v0.5_"
+    "interpretation_policy.json"
+)
 EXPECTED_MANIFEST_VERSION = "chemworld-g2-trajectory-replication-run-0.1"
 EXPECTED_WORLD_SEEDS = (1, 3)
 EXPECTED_REPLICATE_IDS = ("r01", "r02", "r03", "r04", "r05")
@@ -97,6 +104,133 @@ def _load_json_object(path: Path, *, label: str) -> dict[str, Any]:
             f"{label} must contain a JSON object: {path}"
         )
     return payload
+
+
+def _portable_path(path: Path) -> str:
+    if not path.is_absolute():
+        return path.as_posix()
+    resolved = path.resolve()
+    for root in (_REPOSITORY_ROOT, Path.cwd().resolve()):
+        try:
+            return resolved.relative_to(root).as_posix()
+        except ValueError:
+            continue
+    return resolved.as_posix()
+
+
+def _load_interpretation_policy(path: Path) -> dict[str, Any]:
+    policy = _load_json_object(path, label="interpretation policy")
+    if policy.get("schema_version") != INTERPRETATION_POLICY_VERSION:
+        raise AutonomousMaterialReplicationAuditError(
+            "unsupported G2 v0.5 interpretation policy schema"
+        )
+    if policy.get("status") != "outcome-blind-narrative-mapping-supplement":
+        raise AutonomousMaterialReplicationAuditError(
+            "G2 v0.5 interpretation policy is not the frozen outcome-blind supplement"
+        )
+    classification = policy.get("classification")
+    if not isinstance(classification, Mapping):
+        raise AutonomousMaterialReplicationAuditError(
+            "interpretation policy classification must be an object"
+        )
+    core_metrics = classification.get("core_trajectory_metrics")
+    endpoint_metrics = classification.get("endpoint_diagnostics")
+    if not isinstance(core_metrics, list) or not core_metrics:
+        raise AutonomousMaterialReplicationAuditError(
+            "interpretation policy must declare core trajectory metrics"
+        )
+    if not isinstance(endpoint_metrics, list):
+        raise AutonomousMaterialReplicationAuditError(
+            "interpretation policy endpoint diagnostics must be a list"
+        )
+    unknown = (set(core_metrics) | set(endpoint_metrics)) - set(_PAIRED_METRICS)
+    if unknown:
+        raise AutonomousMaterialReplicationAuditError(
+            "interpretation policy contains unknown paired metrics: "
+            + ", ".join(sorted(unknown))
+        )
+    branch_ids = [
+        branch.get("branch_id")
+        for branch in classification.get("branch_precedence", [])
+        if isinstance(branch, Mapping)
+    ]
+    expected_branches = [
+        "insufficient_paired_coverage",
+        "opposing_world_conditioned_repeatability",
+        "frequent_within_world_reversal",
+        "metric_specific_or_nonopposing_repeatability",
+    ]
+    if branch_ids != expected_branches:
+        raise AutonomousMaterialReplicationAuditError(
+            "interpretation branch precedence is not the frozen four-branch policy"
+        )
+    return policy
+
+
+def _resolved_interpretation_policy_path(path: str | Path | None) -> Path:
+    policy_path = Path(path or DEFAULT_INTERPRETATION_POLICY_PATH)
+    if policy_path.is_absolute() or policy_path.is_file():
+        return policy_path
+    repository_candidate = _REPOSITORY_ROOT / policy_path
+    return repository_candidate if repository_candidate.is_file() else policy_path
+
+
+def validate_interpretation_binding(
+    report: Mapping[str, Any],
+    *,
+    interpretation_policy_path: str | Path | None = None,
+) -> dict[str, Any]:
+    """Fail closed unless an audit is bound to the frozen narrative mapping."""
+
+    policy_file = _resolved_interpretation_policy_path(interpretation_policy_path)
+    policy = _load_interpretation_policy(policy_file)
+    interpretation = report.get("interpretation")
+    if not isinstance(interpretation, Mapping):
+        raise AutonomousMaterialReplicationAuditError(
+            "G2 v0.5 audit has no interpretation block"
+        )
+    mapping = interpretation.get("mapping_policy")
+    if not isinstance(mapping, Mapping):
+        raise AutonomousMaterialReplicationAuditError(
+            "G2 v0.5 audit has no interpretation-policy binding"
+        )
+    expected_mapping = {
+        "sha256": file_sha256(policy_file),
+        "schema_version": policy["schema_version"],
+        "status": policy["status"],
+    }
+    mismatched = [
+        key for key, expected in expected_mapping.items() if mapping.get(key) != expected
+    ]
+    if mismatched:
+        raise AutonomousMaterialReplicationAuditError(
+            "G2 v0.5 interpretation-policy binding mismatch: "
+            + ", ".join(mismatched)
+        )
+    selected = interpretation.get("selected_branch")
+    if not isinstance(selected, Mapping):
+        raise AutonomousMaterialReplicationAuditError(
+            "G2 v0.5 audit has no selected interpretation branch"
+        )
+    branches = {
+        branch["branch_id"]: branch
+        for branch in policy["classification"]["branch_precedence"]
+    }
+    branch = branches.get(selected.get("branch_id"))
+    if branch is None:
+        raise AutonomousMaterialReplicationAuditError(
+            "G2 v0.5 audit selected an unknown interpretation branch"
+        )
+    if selected.get("manuscript_language") != branch.get("manuscript_language"):
+        raise AutonomousMaterialReplicationAuditError(
+            "G2 v0.5 selected-branch language differs from the frozen policy"
+        )
+    return {
+        "policy_path": _portable_path(policy_file),
+        "policy_sha256": expected_mapping["sha256"],
+        "branch_id": branch["branch_id"],
+        "manuscript_language": branch["manuscript_language"],
+    }
 
 
 def _resolve_under(root: Path, relative: Any, *, label: str) -> Path:
@@ -759,14 +893,107 @@ def _world_summaries(pair_rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     return result
 
 
+def _metric_repeatability_class(
+    summary: Mapping[str, Any],
+    *,
+    threshold: float,
+    tolerance: float,
+) -> str:
+    n = int(summary["n"])
+    if n <= 0:
+        return "mixed"
+    median = float(summary["median"])
+    if int(summary["positive_count"]) / n >= threshold and median > tolerance:
+        return "directionally_positive"
+    if int(summary["negative_count"]) / n >= threshold and median < -tolerance:
+        return "directionally_negative"
+    if int(summary["zero_count"]) / n >= threshold and abs(median) <= tolerance:
+        return "stable_zero"
+    return "mixed"
+
+
+def _select_interpretation_branch(
+    world_summaries: Mapping[str, Any],
+    policy: Mapping[str, Any],
+) -> dict[str, Any]:
+    classification = policy["classification"]
+    minimum_pairs = int(classification["minimum_completed_pairs_per_world"])
+    threshold = float(classification["directional_consistency_threshold"])
+    tolerance = float(classification["zero_tolerance"])
+    core_metrics = [str(metric) for metric in classification["core_trajectory_metrics"]]
+    endpoint_metrics = [str(metric) for metric in classification["endpoint_diagnostics"]]
+    metric_classes: dict[str, dict[str, str]] = {}
+    completed_pairs: dict[str, int] = {}
+    for world_seed in EXPECTED_WORLD_SEEDS:
+        world_key = str(world_seed)
+        world = world_summaries[world_key]
+        completed_pairs[world_key] = int(world["completed_pair_count"])
+        metric_classes[world_key] = {
+            metric: _metric_repeatability_class(
+                world["paired_metrics"][metric],
+                threshold=threshold,
+                tolerance=tolerance,
+            )
+            for metric in (*core_metrics, *endpoint_metrics)
+        }
+
+    opposite_metrics = []
+    for metric in core_metrics:
+        seed_1 = metric_classes["1"][metric]
+        seed_3 = metric_classes["3"][metric]
+        if {seed_1, seed_3} == {
+            "directionally_positive",
+            "directionally_negative",
+        }:
+            opposite_metrics.append(metric)
+    mixed_world_metric_count = sum(
+        metric_classes[str(world_seed)][metric] == "mixed"
+        for world_seed in EXPECTED_WORLD_SEEDS
+        for metric in core_metrics
+    )
+
+    if any(value < minimum_pairs for value in completed_pairs.values()):
+        branch_id = "insufficient_paired_coverage"
+    elif len(opposite_metrics) >= 3:
+        branch_id = "opposing_world_conditioned_repeatability"
+    elif mixed_world_metric_count >= 4:
+        branch_id = "frequent_within_world_reversal"
+    else:
+        branch_id = "metric_specific_or_nonopposing_repeatability"
+
+    branch = next(
+        item
+        for item in classification["branch_precedence"]
+        if item["branch_id"] == branch_id
+    )
+    return {
+        "branch_id": branch_id,
+        "manuscript_language": branch["manuscript_language"],
+        "descriptive_only": True,
+        "completed_pairs_by_world": completed_pairs,
+        "minimum_completed_pairs_per_world": minimum_pairs,
+        "directional_consistency_threshold": threshold,
+        "core_trajectory_metrics": core_metrics,
+        "endpoint_diagnostics": endpoint_metrics,
+        "world_metric_classifications": metric_classes,
+        "opposite_direction_core_metrics": opposite_metrics,
+        "opposite_direction_core_metric_count": len(opposite_metrics),
+        "mixed_world_by_core_metric_count": mixed_world_metric_count,
+        "world_by_core_metric_count": len(EXPECTED_WORLD_SEEDS) * len(core_metrics),
+    }
+
+
 def audit_autonomous_material_trajectory_replication(
     manifest_path: str | Path,
     *,
     expected_vessels_per_cell: int = 6,
+    interpretation_policy_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Validate the frozen 2-world x 5-trajectory x 2-arm matrix."""
 
     manifest_file = Path(manifest_path)
+    policy_file = _resolved_interpretation_policy_path(interpretation_policy_path)
+    interpretation_policy = _load_interpretation_policy(policy_file)
     manifest_root = manifest_file.resolve().parent
     manifest = _load_json_object(manifest_file, label="replication manifest")
     if manifest.get("schema_version") != EXPECTED_MANIFEST_VERSION:
@@ -899,6 +1126,11 @@ def audit_autonomous_material_trajectory_replication(
         for state in state_audits
         if state["state"] == "right_censored"
     ]
+    world_summaries = _world_summaries(pair_rows)
+    selected_interpretation = _select_interpretation_branch(
+        world_summaries,
+        interpretation_policy,
+    )
     report: dict[str, Any] = {
         "schema_version": AUTONOMOUS_MATERIAL_REPLICATION_AUDIT_VERSION,
         "status": (
@@ -972,7 +1204,7 @@ def audit_autonomous_material_trajectory_replication(
             for key in sorted(right_censored_cell_audits)
         ],
         "paired_trajectories": pair_rows,
-        "within_world_descriptive_aggregates": _world_summaries(pair_rows),
+        "within_world_descriptive_aggregates": world_summaries,
         "interpretation": {
             "analysis_unit": "fixed physical world by fresh trajectory replicate",
             "fresh_replicates_per_selected_world": 5,
@@ -981,6 +1213,13 @@ def audit_autonomous_material_trajectory_replication(
             "development_trajectory_included": False,
             "descriptive_only": True,
             "general_world_effect_allowed": False,
+            "mapping_policy": {
+                "path": _portable_path(policy_file),
+                "sha256": file_sha256(policy_file),
+                "schema_version": interpretation_policy["schema_version"],
+                "status": interpretation_policy["status"],
+            },
+            "selected_branch": selected_interpretation,
             "caveat": (
                 "Seed 1 and seed 3 were selected from development results because "
                 "their observed directions differed. Replicates characterize "
@@ -1065,6 +1304,15 @@ def render_autonomous_material_trajectory_replication_markdown(
         lines.append("")
     lines.extend(
         [
+            "## Outcome-blind 叙事映射",
+            "",
+            f"- branch：`{report['interpretation']['selected_branch']['branch_id']}`",
+            "- "
+            + report["interpretation"]["selected_branch"]["manuscript_language"],
+            "- policy SHA-256：`"
+            + report["interpretation"]["mapping_policy"]["sha256"]
+            + "`",
+            "",
             "## 边界",
             "",
             f"- {report['interpretation']['caveat']}",
@@ -1086,10 +1334,12 @@ def write_autonomous_material_trajectory_replication_audit(
     json_path: str | Path,
     markdown_path: str | Path,
     expected_vessels_per_cell: int = 6,
+    interpretation_policy_path: str | Path | None = None,
 ) -> dict[str, Any]:
     report = audit_autonomous_material_trajectory_replication(
         manifest_path,
         expected_vessels_per_cell=expected_vessels_per_cell,
+        interpretation_policy_path=interpretation_policy_path,
     )
     write_json_atomic(Path(json_path), report)
     output = Path(markdown_path)
@@ -1107,6 +1357,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--json-output", type=Path, required=True)
     parser.add_argument("--markdown-output", type=Path, required=True)
     parser.add_argument("--expected-vessels", type=int, default=6)
+    parser.add_argument(
+        "--interpretation-policy",
+        type=Path,
+        default=DEFAULT_INTERPRETATION_POLICY_PATH,
+    )
     return parser
 
 
@@ -1117,6 +1372,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         json_path=args.json_output,
         markdown_path=args.markdown_output,
         expected_vessels_per_cell=args.expected_vessels,
+        interpretation_policy_path=args.interpretation_policy,
     )
     print(
         json.dumps(
@@ -1126,6 +1382,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "completed_pair_count"
                 ],
                 "audit_sha256": report["audit_sha256"],
+                "interpretation_branch": report["interpretation"][
+                    "selected_branch"
+                ]["branch_id"],
             },
             ensure_ascii=False,
             sort_keys=True,
@@ -1140,8 +1399,11 @@ if __name__ == "__main__":
 
 __all__ = [
     "AUTONOMOUS_MATERIAL_REPLICATION_AUDIT_VERSION",
+    "DEFAULT_INTERPRETATION_POLICY_PATH",
+    "INTERPRETATION_POLICY_VERSION",
     "AutonomousMaterialReplicationAuditError",
     "audit_autonomous_material_trajectory_replication",
     "render_autonomous_material_trajectory_replication_markdown",
+    "validate_interpretation_binding",
     "write_autonomous_material_trajectory_replication_audit",
 ]

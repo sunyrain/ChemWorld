@@ -283,11 +283,78 @@ def test_replication_audit_reports_five_fresh_pairs_within_each_world(
     assert seed_3["paired_metrics"]["best_final_score"]["values"] == pytest.approx(
         [-0.1, -0.2, -0.3, -0.4, -0.5]
     )
+    assert report["interpretation"]["selected_branch"]["branch_id"] == (
+        "opposing_world_conditioned_repeatability"
+    )
+    assert report["interpretation"]["mapping_policy"]["sha256"]
     rendered = render_autonomous_material_trajectory_replication_markdown(report)
     assert "fresh trajectory replication" in rendered
     assert "seed 1" in rendered
     assert "seed 3" in rendered
+    assert "opposing_world_conditioned_repeatability" in rendered
     assert "总体" not in rendered
+
+
+@pytest.mark.parametrize(
+    ("seed_1_values", "seed_3_values", "seed_1_n", "expected_branch"),
+    [
+        (
+            [1.0, 1.0, 1.0, 1.0],
+            [-1.0, -1.0, -1.0, -1.0],
+            4,
+            "opposing_world_conditioned_repeatability",
+        ),
+        (
+            [1.0, -1.0, 1.0, -1.0],
+            [-1.0, 1.0, -1.0, 1.0],
+            4,
+            "frequent_within_world_reversal",
+        ),
+        (
+            [1.0, 1.0, 1.0, 1.0],
+            [1.0, 1.0, 1.0, 1.0],
+            4,
+            "metric_specific_or_nonopposing_repeatability",
+        ),
+        (
+            [1.0, 1.0],
+            [-1.0, -1.0, -1.0, -1.0],
+            2,
+            "insufficient_paired_coverage",
+        ),
+    ],
+)
+def test_outcome_blind_interpretation_policy_has_exhaustive_precedence(
+    seed_1_values: list[float],
+    seed_3_values: list[float],
+    seed_1_n: int,
+    expected_branch: str,
+) -> None:
+    policy = audit_module._load_interpretation_policy(
+        audit_module.DEFAULT_INTERPRETATION_POLICY_PATH
+    )
+    metrics = [
+        *policy["classification"]["core_trajectory_metrics"],
+        *policy["classification"]["endpoint_diagnostics"],
+    ]
+    summaries = {
+        "1": {
+            "completed_pair_count": seed_1_n,
+            "paired_metrics": {
+                metric: audit_module._summary(seed_1_values) for metric in metrics
+            },
+        },
+        "3": {
+            "completed_pair_count": len(seed_3_values),
+            "paired_metrics": {
+                metric: audit_module._summary(seed_3_values) for metric in metrics
+            },
+        },
+    }
+
+    selected = audit_module._select_interpretation_branch(summaries, policy)
+
+    assert selected["branch_id"] == expected_branch
 
 
 def test_zero_action_provider_attempt_can_precede_completed_attempt(

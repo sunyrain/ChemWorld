@@ -9,6 +9,10 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.data.schema import OUTCOME_LAYER_FIELDS
+from chemworld.eval.autonomous_material_replication_audit import (
+    AutonomousMaterialReplicationAuditError,
+    validate_interpretation_binding,
+)
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
@@ -80,6 +84,10 @@ def _validate_terminal(
         raise G2ReleaseArtifactError("G2 replication matrix is not terminal")
     if audit.get("schema_version") != AUDIT_SCHEMA:
         raise G2ReleaseArtifactError("unsupported G2 replication audit")
+    unhashed_audit = dict(audit)
+    declared_audit_hash = unhashed_audit.pop("audit_sha256", None)
+    if declared_audit_hash != canonical_json_sha256(unhashed_audit):
+        raise G2ReleaseArtifactError("G2 replication audit hash is invalid")
     matrix = audit.get("matrix")
     if not isinstance(matrix, dict):
         raise G2ReleaseArtifactError("G2 replication audit has no matrix")
@@ -94,6 +102,10 @@ def _validate_terminal(
     failed = [name for name, passed in gates.items() if not passed]
     if failed:
         raise G2ReleaseArtifactError("G2 replication terminal audit failed: " + ", ".join(failed))
+    try:
+        validate_interpretation_binding(audit)
+    except AutonomousMaterialReplicationAuditError as error:
+        raise G2ReleaseArtifactError(str(error)) from error
 
 
 def build_terminal_file_index(
