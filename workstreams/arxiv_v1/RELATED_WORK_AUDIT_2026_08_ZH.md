@@ -17,6 +17,7 @@ ChemWorld 不应再声称：
 - 首个测量科学 Agent 过程而非终点的工作；
 - 首个在未知物理系统中自由选择实验并恢复规律的 Agent；
 - 首个长程或端到端自主科学发现系统；
+- 首个提出 Agent environment engineering 的工作；
 - 最完整、近乎无限或可以生成任意物理规律的化学世界；
 - 比真实自主实验室、机器人系统或主动学习算法“更强”。
 
@@ -117,6 +118,24 @@ AutoLabs 已于 2026 年在 Scientific Reports 正式发表。它把自然语言
   的 case study；这不是对其 protocol-generation 贡献的否定。
 
 来源：<https://doi.org/10.1038/s41598-026-45593-z>。
+
+#### ACRA 与 PRISM
+
+ACRA（Communications Chemistry 2026）从论文和补充材料抽取合成步骤与分析数据，消歧后翻译为
+XDL，经语法检查、procedure discrepancy critique 和硬件约束模拟再执行；论文展示六个反应在
+两类 XDL 平台上的现实验证。PRISM（Digital Discovery 2026）以多 Agent 生成、批判和验证
+protocol，经 NVIDIA Omniverse 数字孪生检查物理与次序错误，再协调液体处理器、机械臂和封膜/
+撕膜设备执行 Luna qPCR 与 Cell Painting workflow。
+
+- 它们比 ChemWorld 强的地方：从自然语言或文献到真实机器人执行、硬件可执行性验证、跨设备
+  编排和现实实验复现。ACRA 还对 150 个抽样 procedures 报告多级验证统计并显式展示不可复现文献。
+- ChemWorld 的差异：不是把已有 procedure 编译为正确机器指令，而是让 Agent 决定下一次未知
+  化学实验应如何构造、何时表征和终止，并在相同物理身份下测量这种选择的可重复性。
+- 主张边界：digital-twin protocol validation、hardware-ready code、long-term labbook 和从文献到
+  机器人执行都已有强工作，不能包装成 ChemWorld 的首创。
+
+来源：<https://doi.org/10.1038/s42004-026-01993-w>、
+<https://doi.org/10.1039/D6DD00004E>。
 
 #### RoboChem-Flex
 
@@ -259,6 +278,18 @@ SciExplorer（Physical Review X 2026）给 Agent 一个最小的通用工具集�
 
 来源：<https://doi.org/10.1103/xnqc-q6nt>。
 
+#### Self-Evolving Fluid-Control Agent
+
+Sun 等人（2026 preprint）让 Agent 在非线性流固耦合模拟中部署候选控制器、从多模态物理证据
+诊断行为并反复改写控制代码，最终得到可解释且能迁移到未见目标的统一控制策略。
+
+- 它比 ChemWorld 强的地方：复杂流体系统、从证据到可读控制代码的完整 evolve log，以及未见
+  目标上的泛化测试。
+- 主张边界：ChemWorld 不能把“证据改变后续控制”或“可审计 evidence-to-control chain”本身
+  写成首创；其增量是化学样品生命周期、共享实体账本和先验/身份配对干预后的轨迹复现。
+
+来源：<https://arxiv.org/abs/2606.08405>。
+
 #### NewtonBench、DiscoverPhysics 与 ActiveSciBench-Chem
 
 NewtonBench（ICLR 2026）包含 12 个物理域、324 个反事实规律任务，要求 Agent 主动探测复杂
@@ -290,6 +321,22 @@ ReplaySCM 用 1,300 个 Boolean-SCM worlds 和受限 DSL 评价训练及 held-ou
 来源：<https://arxiv.org/abs/2605.26029>、<https://arxiv.org/abs/2605.08197>。
 
 ### 2.5 过程级科学 Agent 评价：概念上最接近的工作
+
+#### EurekAgent 与 environment engineering
+
+EurekAgent（2026 preprint）明确提出 autonomous scientific discovery 的瓶颈正在从规定 Agent
+workflow 转向设计 Agent environment，并把 permissions、artifacts、budgets 和 human-in-the-loop
+接口列为四个工程维度。其主要实证是 mathematics、kernel engineering 和 machine-learning 中的
+可计算 metric-driven search，而非物理实验。
+
+- 它占据的主张：ChemWorld 不能声称首次认识到“环境/接口/预算决定 Agent 行为”，也不应把
+  environment engineering 作为无先例的新范式。
+- ChemWorld 的差异：environment 不只是代码执行与文件协作容器，而是有守恒、状态、测量、失败
+  和资源后果的化学因果底物；本文把它用于固定身份下的行为干预与复现，而非只放大 task metric。
+- 正确关系：EurekAgent 提供一般的 Agent 环境工程论点；ChemWorld 提供一个物理化学领域的
+  executable experimental apparatus。前者强化了工程动机，后者的可守创新仍在五项能力交集。
+
+来源：<https://arxiv.org/abs/2606.13662>。
 
 #### AI Agent Behavioral Science
 
@@ -427,15 +474,18 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 | A-Lab GPSS / robot chemistry | ✓ | ✓ | ✓ | ✓ | — | ✓ | — | ✓ |
 | ORGANA / ChemAgents | ✓ | ✓ | ✓ | ✓ | — | △ | — | ✓ |
 | AutoLabs | protocol 表示 | protocol compilation | — | 硬件约束 | — | ✓ | — | hardware-ready |
+| ACRA / PRISM | procedure / protocol | protocol compilation | 分析验证 | 硬件约束 | workflow ablation | ✓ | — | ✓ |
 | RoboChem-Flex | ✓ | 优化闭环 | ✓ | ✓ | — | △ | — | ✓ |
 | X-ray / teachable instrument agents | 仪器状态 | ✓ | ✓ | ✓ | — | ✓ | — | ✓ |
 | DiscoveryWorld | △ | ✓ | ✓ | △ | △ | ✓ | — | — |
 | BoxingGym / SciGym | △ | △ | ✓ | 预算 | ✓ | △ | — | — |
 | SciExplorer | 数值物理模型 | ✓ | ✓ | 查询/计算成本 | 系统条件 | ✓ | 独立尝试 | — |
+| Self-evolving fluid control | 流固模拟 | ✓ | 多模态诊断 | 计算成本 | 控制目标 | ✓ | 泛化目标 | — |
 | NewtonBench / DiscoverPhysics | — | △ | ✓ | 查询预算 | ✓ | △ | — | — |
 | ActiveSciBench-Chem | 动力学 | △ | assay query | 查询预算 | ✓ | △ | — | — |
 | CausaLab / ReplaySCM | 抽象 SCM | △ | 干预 | 查询预算 | ✓ | ✓ | — | — |
 | Corral | 依赖底层环境 | 依赖底层环境 | 依赖底层环境 | △ | △ | ✓ | — | — |
+| EurekAgent | 可计算环境 | ✓ | 工具反馈 | 显式预算 | 环境组件消融 | ✓ | — | — |
 | AHOIS | 真实光学系统 | ✓ | ✓ | △ | critic ablation | ✓ | — | ✓ |
 | Qiushi | 真实光学系统 | ✓ | ✓ | 真实平台成本 | — | ✓ | 单一长程研究 | ✓ |
 | LabUtopia / MATTERIX / Labimus | ✓ | ✓ | △ | ✓ | 场景变化 | △ | — | △/✓ |

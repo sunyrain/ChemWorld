@@ -99,7 +99,10 @@ synthesis. A-Lab and mobile robotic laboratories provide stronger evidence than
 ChemWorld for real chemical execution and deployment. AutoLabs adds a systematic
 twenty-configuration evaluation of natural-language-to-liquid-handler protocol
 generation, whereas RoboChem-Flex demonstrates affordable, modular closed-loop
-Bayesian reaction optimization across six real chemical case studies. These
+Bayesian reaction optimization across six real chemical case studies. ACRA
+translates literature procedures into hardware-checked XDL and executes them on
+two robotic platforms; PRISM connects agent-generated protocols, digital-twin
+validation, and coordinated multi-instrument execution. These
 systems answer whether agents, protocols, and optimizers can be connected to,
 and produce useful outcomes in, the real laboratory
 ([Boiko et al., 2023](https://doi.org/10.1038/s41586-023-06792-0);
@@ -107,7 +110,9 @@ and produce useful outcomes in, the real laboratory
 [Szymanski et al., 2023](https://doi.org/10.1038/s41586-023-06734-w);
 [Dai et al., 2024](https://doi.org/10.1038/s41586-024-08173-7);
 [Panapitiya et al., 2026](https://doi.org/10.1038/s41598-026-45593-z);
-[Pilon et al., 2026](https://doi.org/10.1038/s44160-026-01053-0)).
+[Pilon et al., 2026](https://doi.org/10.1038/s44160-026-01053-0);
+[Pagel et al., 2026](https://doi.org/10.1038/s42004-026-01993-w);
+[Hsu et al., 2026](https://doi.org/10.1039/D6DD00004E)).
 
 Hypothesis-centred systems provide another important, but distinct, comparison.
 Co-Scientist uses a multi-agent tournament to generate and refine biomedical
@@ -199,7 +204,12 @@ Prediction--understanding dissociation and process-level evaluation are also
 not unique claims. CausaLab separates task success from recovered causal
 structure, and ReplaySCM evaluates executable mechanism replay. More broadly,
 the AI-agent-behavioral-science literature explicitly advocates systematic
-observation and interventions on situated agents. Most directly for scientific
+observation and interventions on situated agents. EurekAgent separately argues
+that permissions, artifacts, budgets, and human interfaces should be treated as
+an engineered agent environment, although its demonstrations are metric-driven
+mathematics, kernel, and machine-learning tasks rather than physical experiments.
+ChemWorld therefore does not claim the general concept of environment engineering.
+Most directly for scientific
 agents, Corral reports across more than 25,000 runs that successful outcomes can
 conceal evidence neglect and failures of belief revision. A July 2026 robotic-
 chemistry stress test likewise makes physical executability and evidence-driven
@@ -215,6 +225,7 @@ study's identity control, resource provenance, and trajectory replication
 ([Yang et al., 2026](https://arxiv.org/abs/2605.26029);
 [Batzoglou, 2026](https://arxiv.org/abs/2605.08197);
 [Chen et al., 2026](https://doi.org/10.1057/s41599-026-07316-7);
+[Xin et al., 2026](https://arxiv.org/abs/2606.13662);
 [Ríos-García et al., 2026](https://arxiv.org/abs/2604.18805);
 [Guo et al., 2026](https://arxiv.org/abs/2607.23045);
 [Zeng et al., 2026](https://arxiv.org/abs/2606.26722)).
