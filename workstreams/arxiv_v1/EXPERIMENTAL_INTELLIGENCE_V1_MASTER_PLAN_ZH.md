@@ -8,11 +8,12 @@
 
 G2 v0.5 当前执行源码：`main@aae0edac12c849bc4246ca5ac9359a2d00d9f660`
 
-进度快照（2026-08-02 01:11，Asia/Shanghai）：4 completed cells、1 right-censored
-cell、15 cells 待终态化；30/120 vessel opportunity slots 已解析，90 slots 待解析；
-1/10 pair 完整、1/10 pair 右删失、8/10 pair 未决。实时数字只用于运行审计，不进入正文
-结果；机器可读权威为
-`workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json`。
+进度快照（2026-08-02 02:29，Asia/Shanghai）：9 completed cells、1 right-censored
+cell、10 cells 待终态化；60/120 vessel opportunity slots 已解析，60 slots 待解析；
+4/10 pair 完整、1/10 pair 右删失、5/10 pair 未决。实时数字只用于运行审计，不进入正文
+结果；固定设计总账与动态运行审计的机器可读权威分别为
+`workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json` 和
+`workstreams/arxiv_v1/reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json`。
 
 第一次启动基础设施中断记录：`workstreams/arxiv_v1/G2_V05_EXECUTION_INCIDENT_2026_08_01_ZH.md`
 
@@ -389,9 +390,9 @@ right-censor，120 个计划机会全部留在设计分母；未启动的 vessel
 executed physical experiment，已启动但右删失的 vessel 计为 executed、但不计为
 completed final-assay experiment。两个最终总数只能在 terminal audit 后填写。
 
-截至上述快照，正式终态证据为：4 个 completed cells、1 个 right-censored cell，
-对应 27 个已启动 vessel 和 26 个 completed final assays；右删失 cell 中另有 3 个
-从未启动的 slots。因此还需要让 **15 个 cells 终态化并解析 90 个 vessel opportunity
+截至上述快照，正式终态证据为：9 个 completed cells、1 个 right-censored cell，
+对应 57 个已启动 vessel 和 56 个 completed final assays；右删失 cell 中另有 3 个
+从未启动的 slots。因此还需要让 **10 个 cells 终态化并解析 60 个 vessel opportunity
 slots**。如果此后所有未决 slots 都完成，G2 v0.5 最多得到 117 个 executed vessels 与
 116 个 completed final assays；加上已有 29,640 个实验后，最终最多分别为 29,757 个
 executed physical experiments 与 29,756 个 completed experiments。29,760 始终只是
