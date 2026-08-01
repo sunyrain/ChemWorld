@@ -1071,8 +1071,14 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
 
     def _campaign_next_batch_availability(self) -> tuple[bool, list[str]]:
         ledger = self._campaign_resource_ledger
-        if not self.autonomous_campaign_controls_enabled or ledger is None:
-            return False, ["campaign_control_unavailable"]
+        # Legacy campaign tasks predate the explicit G2 resource ledger and
+        # remain budget-delimited multi-experiment episodes.  A missing card
+        # therefore means "no additional ledger gate", not "end campaign".
+        # When a card is present its limits govern every campaign, while the
+        # autonomous-controls flag only determines whether ``discard_batch``
+        # is exposed as an action.
+        if ledger is None:
+            return True, []
         state = ledger.snapshot()["state"]
         remaining = state.get("remaining", {})
         blockers: list[str] = []
