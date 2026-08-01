@@ -1,7 +1,8 @@
 # Experimental Intelligence in Executable Chemical Worlds
 
-Status: working manuscript v0.4, 2026-08-02. The terminal G2 v0.5 audit is
-incorporated; release and independent-reproduction gates remain open.
+Status: working manuscript v0.4, 2026-08-02. The terminal G2 v0.5 audit and
+independent-reproduction checks are incorporated; external-archive and final
+submission-language gates remain open.
 
 Evidence and experiment authority:
 `workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md` and
@@ -716,10 +717,10 @@ The four G0 raw roots comprise 1,441 files and 17,725,724,603 bytes. A tracked
 index binds every root-relative path, byte count and file SHA-256; the two
 tracked formal JSON summaries are bound by canonical-JSON SHA-256 so checkout
 line-ending conversion cannot change their identity. The release now contains
-a compact G2 replay subset and a terminal 677-file G2 index. Before public
-release we still require a durable archive identifier for the G0 raw bytes, a
-current evidence graph, clean-wheel and full-test passes, and reproduction of
-the declared artifacts from an independent checkout.
+a compact G2 replay subset and a terminal 677-file G2 index. The 55-node
+evidence graph, clean-wheel smoke test, 1,826-test suite, terminal replay checks
+and independent-checkout reproduction have passed. A durable archive
+identifier for the G0 raw bytes remains required before public release.
 
 ## 10. Data and code availability
 
@@ -731,21 +732,20 @@ from the same source into
 `paper/experimental_intelligence_v1_display_items.md`. The G0 index and terminal
 G2 index contain no raw content or absolute path. The G2 package includes a
 677-file terminal hash index and a compact four-cell replay subset containing
-one complete pair and both right-censored cells. Before release we will add a
-durable archive location for the full local G0 corpus and complete the clean-
-wheel, full-test, evidence, replay, and independent-checkout attestations. The
-manifest remains `publication_ready=false` until every stated gate passes.
+one complete pair and both right-censored cells. The release verification
+attestation records 1,812 passing and 14 skipped tests, a clean-wheel smoke
+pass, a passing 55-node evidence graph, and zero-difference regeneration of the
+declared artifacts from an independent checkout. Before release we will add a
+durable archive location for the full local G0 corpus. The manifest remains
+`publication_ready=false` until the external-archive and final
+submission-language gates pass.
 
 ## 11. Remaining work before arXiv
 
-1. Re-run the currently passing 55-node evidence graph after the final source
-   commit, clean-wheel build, and independent-checkout verification.
-2. Archive the four G0 raw roots. Their public 1,441-file hash index and data
+1. Archive the four G0 raw roots. Their public 1,441-file hash index and data
    card now exist, and the four historical source commits are immutable
    ancestors of `origin/main`.
-3. Complete the release directory, clean-wheel, full-test, replay,
-   and independent-checkout attestations.
-4. Convert the frozen working bibliography in
+2. Convert the frozen working bibliography in
    `paper/experimental_intelligence_v1_references.bib` to the target journal
    style, then complete the statistical-language and final-claim audits.
 

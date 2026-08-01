@@ -100,15 +100,16 @@ G2 v0.5 科学审计 SHA-256：`7bb4045fa1ca041de047d967a31ed3d89d5f8ad83851aa7b
 2. frozen derived JSON、六个 CSV、Table 4 和 Figure 5；
 3. 677-file G2 终态 SHA-256 索引（279,923,501 bytes）；
 4. 四 cell compact replay subset：一个完整 pair 与两个 right-censored cells；
-5. 摘要与 Section 7 终态结果写入。
+5. 摘要与 Section 7 终态结果写入；
+6. 55-node evidence graph：55/55 passed；
+7. 全测试：1,812 passed、14 skipped、0 failed；
+8. clean-wheel smoke test 与 terminal replay；
+9. 独立 checkout 中 derived data、图表、display items 零差异重建，release suite 26 passed。
 
 仍需完成：
 
-1. 在最终 source commit 上刷新 evidence graph；
-2. full tests、clean-wheel 安装和 terminal replay；
-3. 从独立 checkout 重建 derived data、图表和审计；
-4. 给约 17.7 GB G0 原始根目录取得持久外部 archive identifier；
-5. 参考文献目标格式、统计语言与最终主张审计。
+1. 给约 17.7 GB G0 原始根目录取得持久外部 archive identifier；
+2. 参考文献目标格式、统计语言与最终主张审计。
 
 依赖关系为：
 
@@ -119,7 +120,7 @@ terminal G2 audit（完成）
 frozen derived data + Figures/Tables（完成）
         |
         v
-final evidence + wheel + replay + independent checkout（待完成）
+final evidence + wheel + replay + independent checkout（完成）
         |
         v
 arXiv package
@@ -127,4 +128,4 @@ arXiv package
 external G0 archive identifier ------------------------^
 ```
 
-因此，当前不应暂停来修改科学设计或追加矩阵；应继续完成证据与发布闭环。
+因此，当前不应暂停来修改科学设计或追加矩阵；应继续完成外部归档和投稿编辑闭环。

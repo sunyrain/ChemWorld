@@ -262,14 +262,14 @@ G0/G2 是协议术语，不进入标题和主叙事起点。
 - B4 G0 source binding：四个历史 commits 均存在且为 `origin/main` ancestors；
 - B7 figures：frozen derived JSON、6 CSV、Figures 1--6、Tables 1--4；
 - G2 terminal data：677-file index 与四-cell replay subset 已生成。
+- B2 evidence graph：55/55 nodes passed；
+- release verification：1,812 tests passed、14 skipped、0 failed；clean-wheel
+  smoke、terminal replay 与独立 checkout 零差异重建通过。
 
 ### 仍开放
 
-1. 最终 source commit 后刷新 55-node evidence graph；
-2. clean-wheel、full-test、terminal replay；
-3. 独立 checkout 重建与一致性验证；
-4. 约 17.7 GB G0 raw roots 的持久外部 archive identifier；
-5. 参考文献目标格式、statistical-language 和 final-claim audit。
+1. 约 17.7 GB G0 raw roots 的持久外部 archive identifier；
+2. 参考文献目标格式、statistical-language 和 final-claim audit。
 
 在这些门禁完成前，release manifest 必须保持 `publication_ready=false`。外部 archive identifier 不能伪造；它是目前唯一需要用户或外部服务完成的依赖。
 

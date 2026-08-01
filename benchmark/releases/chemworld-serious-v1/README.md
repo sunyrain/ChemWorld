@@ -20,11 +20,12 @@ This directory is the single tracked entry point for the first ChemWorld arXiv e
 - a Chinese readiness audit separating required experiments, censor-aware counts,
   generated artifacts, release gates, and the external archive dependency;
 - a current 55-node evidence graph with a clean source-tree attestation.
+- a release verification attestation recording the full test suite, clean-wheel
+  smoke, terminal replay, and independent-checkout zero-difference rebuild.
 
 ## Still required
 
 - durable external archive identifiers for the local raw roots;
-- clean-wheel, full-test, terminal replay, and independent-checkout attestations;
 - target-style reference formatting and final statistical-language/claim audit.
 
 No file in this directory should be interpreted as lifting those gates unless `manifest.json` has `publication_ready: true` and every item in `gates` is `passed`.

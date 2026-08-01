@@ -314,3 +314,20 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
     assert manifest["gates"]["tracked_release_populated"] == "passed"
     assert manifest["gates"]["g0_raw_data_hash_index"] == "passed"
     assert manifest["gates"]["raw_data_archive"] == "open"
+    assert manifest["gates"]["clean_wheel_and_full_tests"].startswith("passed_")
+    assert manifest["gates"]["independent_checkout"].startswith("passed_")
+    verification = _load(
+        ROOT / manifest["evidence"]["verification_attestation"]
+    )
+    assert verification["status"] == "passed"
+    assert verification["full_test_suite"] == {
+        "collected": 1826,
+        "passed": 1812,
+        "skipped": 14,
+        "failed": 0,
+        "note": (
+            "The suite was run in alphabetic shards because a single invocation "
+            "exceeded the execution-cell time limit."
+        ),
+    }
+    assert verification["independent_checkout"]["status"] == "passed_zero_diff"
