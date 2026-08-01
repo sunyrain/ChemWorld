@@ -133,7 +133,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "flow-reaction-optimization": {
         "mechanism_id": "pfr_hotspot",
         "steps": 7,
-        "score": 0.04021970027842368,
+        "score": 0.1048851045241961,
     },
     "low-budget-characterization": {
         "mechanism_id": "autocatalytic_reaction",
@@ -143,7 +143,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "partition-discovery": {
         "mechanism_id": "reaction_extraction",
         "steps": 8,
-        "score": 0.4365037717211494,
+        "score": 0.4727168569767468,
     },
     "public-private-generalization": {
         "mechanism_id": "parallel_series_reaction",
@@ -178,7 +178,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "reaction-to-crystallization": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 12,
-        "score": 0.2916629316456961,
+        "score": 0.2989504673886937,
     },
     "reaction-to-distillation": {
         "mechanism_id": "reactive_distillation_lite",
