@@ -1,10 +1,10 @@
 # ChemWorld 第一版 arXiv 完成度与剩余实验审计
 
-审计快照：2026-08-02 02:02（Asia/Shanghai）。
+审计快照：2026-08-02 02:14（Asia/Shanghai）。
 
 机器权威：
 `reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json`，审计 SHA-256 为
-`e9ef5f9e51f9a01c4bd2ef0431ac29020bcbebdf4dcf5313dbc6d2a4ac431266`。
+`74aad2fb0a7a7637890b928f1c248da11bee8db73d3ef6e1bc6a95fb5a2cb203`。
 
 本文件区分三件事：已经完成的科学证据、仍需终态化的预定实验，以及不需要新增实验但
 仍须完成的发布工件。所有 pending-cell 字节只用于运行监控，不进入论文结果。
@@ -31,14 +31,14 @@
 
 | 计数对象 | 固定总量 | 当前正式终态 | 尚待解析 |
 | --- | ---: | ---: | ---: |
-| G2 v0.5 cells | 20 | 7 completed + 1 right-censored | 12 cells |
-| vessel opportunity slots | 120 | 48 slots 已由终态 cell 解析 | 72 slots |
-| 已执行 vessel，仅计终态 cell | 最终值未知 | 45 | 不用 120 减 45 解释“剩余实验” |
-| completed final assays，仅计终态 cell | 最终值未知 | 44 | 终态审计后冻结 |
+| G2 v0.5 cells | 20 | 8 completed + 1 right-censored | 11 cells |
+| vessel opportunity slots | 120 | 54 slots 已由终态 cell 解析 | 66 slots |
+| 已执行 vessel，仅计终态 cell | 最终值未知 | 51 | 不用 120 减 51 解释“剩余实验” |
+| completed final assays，仅计终态 cell | 最终值未知 | 50 | 终态审计后冻结 |
 | trajectory pairs | 10 | 3 completed + 1 right-censored | 6 unresolved pairs |
 
-因此，最清晰的答案是：**还差 12 个 cell 终态化，对应 72 个尚未解析的预定实验机会位**。
-“72”是剩余设计机会，不保证最终会形成 72 个已执行且完成终测的实验；方法失败可产生
+因此，最清晰的答案是：**还差 11 个 cell 终态化，对应 66 个尚未解析的预定实验机会位**。
+“66”是剩余设计机会，不保证最终会形成 66 个已执行且完成终测的实验；方法失败可产生
 新的右删失。
 
 ### 2.2 为什么 120、117、116 不能混用
@@ -57,8 +57,8 @@
 
 ### 2.3 当前可见但未晋升的运行字节
 
-在本快照时，全部目录中可读到 50 次 vessel start、48 次 final assay 和 686 次 primitive
-operation。其中 pending cells 比正式终态量多 5 次 start、4 次 final assay；这些值只证明
+在本快照时，全部目录中可读到 54 次 vessel start、52 次 final assay 和 738 次 primitive
+operation。其中 pending cells 比正式终态量多 3 次 start、2 次 final assay；这些值只证明
 运行仍在推进，不得进入摘要、Figure 5、Table 4 或结果解释。
 
 ### 2.4 配对分析容量
@@ -91,7 +91,7 @@ operation。其中 pending cells 比正式终态量多 5 次 start、4 次 final
 ## 4. 当前真正的阻塞关系
 
 ```text
-12 cells terminalize
+11 cells terminalize
         |
         v
 terminal G2 audit -> frozen derived data -> Figure 5 / Table 4 -> Section 7 / Abstract

@@ -1,6 +1,6 @@
 # ChemWorld 第一版 arXiv：相关工作公允审计与生态位边界
 
-状态：working evidence audit，2026-08-01
+状态：working evidence audit，2026-08-02
 
 主文稿：`paper/experimental_intelligence_v1_manuscript.md`
 
@@ -18,7 +18,7 @@ ChemWorld 不应再声称：
 - 最完整、近乎无限或可以生成任意物理规律的化学世界；
 - 比真实自主实验室、机器人系统或主动学习算法“更强”。
 
-截至 2026-08-01，最有价值且可守的定位是：
+截至 2026-08-02，最有价值且可守的定位是：
 
 > **ChemWorld 是研究化学实验智能的受控测量装置：Agent 在有状态、部分可观测的
 > 化学/化工过程中自主选择逐步操作和表征，承担材料、仪器、失败与生命周期后果；
@@ -83,14 +83,48 @@ workstations 暴露为技能，在 4,608 次 trials 中直接评估物理可执�
 
 #### AutoLabs
 
-AutoLabs（2025 preprint）把自然语言实验说明转换为高通量液体处理器 protocol，通过多 Agent、
-计算工具与自纠错提高程序准确性，并对 20 种配置做消融。
+AutoLabs 已于 2026 年在 Scientific Reports 正式发表。它把自然语言实验说明转换为高通量液体
+处理器 protocol，通过多 Agent、计算工具与自纠错提高程序准确性，并在五类 benchmark 实验、
+20 种配置上做系统消融；复杂多板合成上最强配置的步骤 F1 超过 0.89。
 
 - 它比 ChemWorld 强的地方：protocol generation 的系统架构消融和面向硬件的定量正确性。
 - 相对边界：它主要测“能否把已给定目标和步骤编译成正确 protocol”，不是 Agent 在未知
   化学过程中自主选择实验、表征并从后果中更新策略。
+- 公允限制：其实证只覆盖 Big Kahuna 的平台约束和硬件文件生成，原文也明确将其解释为该平台
+  的 case study；这不是对其 protocol-generation 贡献的否定。
 
-来源：<https://arxiv.org/abs/2509.25651>。
+来源：<https://doi.org/10.1038/s41598-026-45593-z>。
+
+#### RoboChem-Flex
+
+RoboChem-Flex（Nature Synthesis 2026）以约 5,000 美元的基础配置、开源 Python 控制、模块化
+硬件和 Bayesian optimization 支持 fully closed-loop 或 human-in-the-loop 反应优化，并在
+光催化、生物催化、热交叉偶联和不对称催化等六个 case studies 中展示单目标、多目标与迁移学习。
+
+- 它比 ChemWorld 强的地方：真实反应、在线 NMR/UHPLC-MS/Raman 兼容、可扩展验证、低成本
+  开放硬件以及跨反应类型的闭环部署证据。
+- 相对边界：其研究问题是如何低成本、可靠地优化真实反应；不是在克隆的物理身份中随机化
+  Agent 先验、复现实验策略表型。固定 workflow 和 BO 主导的条件选择也不同于 G2 的逐操作自主权。
+- 公允表述：真实系统受化学与硬件约束不是“局限”或“缺陷”；它回答的是 ChemWorld 当前
+  完全不能回答的现实有效性问题。
+
+来源：<https://doi.org/10.1038/s44160-026-01053-0>。
+
+#### 可学习仪器 Agent 与 X-ray scientist
+
+Vriza 等人（npj Computational Materials 2026）让多 Agent 编排 X-ray nanoprobe 与材料机器人，
+并把人类操作指导写入可检索长期记忆。Chen 等人（Nature Machine Intelligence 2026）让 Agent
+在六圆衍射仪的虚拟 beamline 中逐步选择命令、读取 detector/scan 结果并适应异常，随后把相同
+工作流部署到真实同步辐射 beamline；首次现实演示为安全起见由人类原样转发 Agent 命令。
+
+- 它们比 ChemWorld 强的地方：真实仪器、视觉/多模态反馈、设施级安全约束、sim-to-real 和
+  对真实异常的适应。X-ray scientist 也直接证明了“Agent 自主逐步操作仪器”不能作为独占主张。
+- ChemWorld 的差异：它把动作自由度用于可复制的实验行为测量，可固定物理身份并改变信息条件；
+  上述工作的主要 estimand 是特定仪器任务能否正确完成和人类指导能否改善操作。
+- 公允表述：它们的任务专一性来自设施目标和安全边界，不应被贬低为“粗浅实现”。
+
+来源：<https://doi.org/10.1038/s41524-026-02005-0>、
+<https://doi.org/10.1038/s42256-026-01261-5>。
 
 ### 2.2 虚拟化学实验室、优化与过程控制
 
@@ -120,6 +154,22 @@ Summit 和 Olympus 已系统化 in-silico 反应优化、实验规划与算法�
 
 来源：<https://doi.org/10.1002/cmtd.202000051>、
 <https://arxiv.org/abs/2010.04153>、<https://arxiv.org/abs/2410.22093>。
+
+#### MADE
+
+MADE（ICML 2026）是当前与“可扩展、预算受限、闭环材料发现环境”最直接重叠的工作。Agent 或
+算法依次提出材料组成与晶体结构，获得形成能 oracle 反馈，并在凸包发现目标下迭代；框架可组合
+生成模型、过滤器与 planner，并在三元、四元和五元体系上比较固定与自适应 pipeline。
+
+- 它比 ChemWorld 强的地方：跨化学体系复杂度的系统算法比较、晶体结构生成生态、稳定材料
+  发现指标，以及 end-to-end discovery pipeline 的模块化消融。
+- 它占据的主张：ChemWorld 不能再声称首次提供“budget-constrained closed-loop materials
+  discovery environment”，也不能只凭 world 数量或 closed loop 区分自己。
+- ChemWorld 的差异：MADE 的基本交互单元是“提出候选结构—查询形成能 oracle”；ChemWorld
+  的基本单元是带中间状态、表征选择、终止、失败和共享实体资源的实验生命周期。第一版还把
+  prior condition 与物理身份分开干预，并在同一世界重复 fresh trajectories。
+
+来源：<https://openreview.net/forum?id=nrXxVDYMMF>、<https://arxiv.org/abs/2601.20996>。
 
 ### 2.3 交互式科学发现环境
 
@@ -183,6 +233,21 @@ ReplaySCM 用 1,300 个 Boolean-SCM worlds 和受限 DSL 评价训练及 held-ou
 
 ### 2.5 过程级科学 Agent 评价：概念上最接近的工作
 
+#### AI Agent Behavioral Science
+
+Chen 等人的 2026 年综述已经把 AI agent behavioral science 明确定义为：通过系统观察、干预
+设计和理论解释研究 Agent 在情境中的行动、适应与交互。因此 ChemWorld 不能把“对 Agent 做
+行为科学”这层一般思想写成首创。
+
+- 它比 ChemWorld 强的地方：跨 individual、multi-agent 和 human-agent settings 的概念整合，
+  以及对公平、安全、可解释性和治理问题的广泛连接。
+- ChemWorld 的实证增量：为实验化学这一具体行为域提供可执行、可干预、可重放的 apparatus，
+  并报告真实运行轨迹，而不是提出一个新的通用行为科学范式。
+- 最安全的表述：ChemWorld 是这一范式在 experimenting scientific agents 上的领域化实现，
+  其创新落在实验装置和可识别研究设计的组合，不落在“behavioral science”这个词本身。
+
+来源：<https://doi.org/10.1057/s41599-026-07316-7>。
+
 #### Corral
 
 Ríos-García 等人的 Corral（2026 preprint）在八个科学环境、超过 25,000 次 Agent runs 上，
@@ -227,6 +292,23 @@ LabUtopia（NeurIPS 2025）以高保真多物理模拟、程序生成实验室�
 来源：<https://arxiv.org/abs/2505.22634>、
 <https://doi.org/10.1038/s43588-025-00924-4>。
 
+#### Labimus 与 ADePT
+
+Labimus（2026 preprint）重建 30+ 个有功能对应的有机化学工作站资产，引入粒子粉末物理、闭环
+仪器读数、六类原子操作和七步固体称量流程，并区分“任务做完”与“达到实验精度”。ADePT
+（Communications Chemistry 2026 Perspective）则用 adaptability/learning、dexterity、
+perception 和 task complexity 四维描述实验室机器人自主性。
+
+- 它们比 ChemWorld 强的地方：精细具身操作、粉末动力学、精度容差、视觉/接触问题和机器人
+  自主性评价语言。
+- ChemWorld 的边界：当前显式抽象 dexterity 与 perception；它测的是 Agent 为何选择某个
+  化学操作、证据如何改变后续行动，以及这种策略能否在控制身份后重复。
+- 结论：具身仿真与 ChemWorld 不争同一块“蛋糕”，但它们使我们不能把逐步 laboratory
+  operation 或 task-completion/validity dissociation 当作独占主张。
+
+来源：<https://arxiv.org/abs/2606.31037>、
+<https://doi.org/10.1038/s42004-026-01932-9>。
+
 #### LabOSBench 与 LabRobFail
 
 LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks 评价 sample loading、对准、
@@ -247,15 +329,19 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Summit / Olympus / PC-Gym | ✓ | △ | — | △ | △ | △ | — | — |
 | ChemGymRL | ✓ | ✓ | △ | △ | — | △ | — | — |
+| MADE | 计算材料 | 候选结构提议 | oracle query | 查询预算 | 系统条件 | △ | — | — |
 | Coscientist / ChemCrow | ✓ | ✓ | ✓ | △ | — | △ | — | ✓ |
 | A-Lab / robot chemistry | ✓ | ✓ | ✓ | ✓ | — | △ | — | ✓ |
+| AutoLabs | protocol 表示 | protocol compilation | — | 硬件约束 | — | ✓ | — | hardware-ready |
+| RoboChem-Flex | ✓ | 优化闭环 | ✓ | ✓ | — | △ | — | ✓ |
+| X-ray / teachable instrument agents | 仪器状态 | ✓ | ✓ | ✓ | — | ✓ | — | ✓ |
 | DiscoveryWorld | △ | ✓ | ✓ | △ | △ | ✓ | — | — |
 | BoxingGym / SciGym | △ | △ | ✓ | 预算 | ✓ | △ | — | — |
 | NewtonBench / DiscoverPhysics | — | △ | ✓ | 查询预算 | ✓ | △ | — | — |
 | ActiveSciBench-Chem | 动力学 | △ | assay query | 查询预算 | ✓ | △ | — | — |
 | CausaLab / ReplaySCM | 抽象 SCM | △ | 干预 | 查询预算 | ✓ | ✓ | — | — |
 | Corral | 依赖底层环境 | 依赖底层环境 | 依赖底层环境 | △ | △ | ✓ | — | — |
-| LabUtopia / MATTERIX | ✓ | ✓ | △ | ✓ | 场景变化 | △ | — | △/✓ |
+| LabUtopia / MATTERIX / Labimus | ✓ | ✓ | △ | ✓ | 场景变化 | △ | — | △/✓ |
 | LabOSBench / LabRobFail | △ | workflow | ✓ | ✓ | failure injection | ✓ | — | △ |
 | **ChemWorld 当前版本** | **✓** | **✓** | **✓** | **✓** | **✓** | **✓** | **✓** | **—** |
 
@@ -264,7 +350,7 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 
 ## 4. 真正的独占生态位
 
-在所审计工作中，没有单一系统同时把下面五件事作为同一研究设计的一部分：
+在截至 2026-08-02 审计的工作中，没有单一系统同时把下面五件事作为同一研究设计的一部分：
 
 1. chemistry-native、有状态、部分可观测的材料—过程运行时；
 2. Agent 自主决定加料、过程控制、表征、终止和终点检测；
@@ -272,7 +358,8 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 4. 对 Agent 先验和物理身份的配对干预；
 5. 以不可覆盖轨迹、精确重放和 fixed-world fresh replication 测量发现、保留、回撤与恢复。
 
-因此独占生态位不是“比机器人更像实验室”，也不是“比规律发现 benchmark 有更多规律”，而是：
+因此可守的独占生态位不是“比机器人更像实验室”，也不是“比规律发现 benchmark 有更多规律”，
+更不是“首先提出 Agent 行为科学”，而是下面这一组能力的交集：
 
 > **controlled experimental science of experimenting agents, grounded in executable chemistry**
 
@@ -324,7 +411,7 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 
 ## 7. 截止日期与更新规则
 
-- 检索截止：2026-08-01，Asia/Shanghai。
+- 检索截止：2026-08-02，Asia/Shanghai。
 - 2026 年工作均需在正文中标明 peer-reviewed 或 preprint 状态。
 - arXiv 提交前重新检索 `scientific agent benchmark`、`virtual chemistry laboratory`、
   `autonomous chemical experimentation`、`experimental intelligence`、`robotic chemistry agent`

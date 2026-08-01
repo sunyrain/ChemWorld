@@ -178,14 +178,15 @@ def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
         / "workstreams/arxiv_v1/"
         "EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md"
     ).read_text(encoding="utf-8")
+    compact_manuscript = " ".join(manuscript.split())
 
     assert manuscript.startswith(
         "# Experimental Intelligence in Executable Chemical Worlds"
     )
     assert "[PENDING G2 v0.5" in manuscript
     assert "No new G0 scientific experiment is required" in manuscript
-    assert "20 G2 v0.5 cells" in manuscript
-    assert "120 G2 experiment opportunities" in manuscript
+    assert "20 G2 v0.5 cells" in compact_manuscript
+    assert "120 G2 experiment opportunities" in compact_manuscript
     assert "29,640 existing + 120 new = 29,760" in master_plan
     assert "不是对最终实际执行实验数" in master_plan
     assert "From Recipe Optimization" not in manuscript
@@ -223,9 +224,10 @@ def test_related_work_audit_is_current_bounded_and_synchronized() -> None:
     manuscript = (
         ROOT / "paper/experimental_intelligence_v1_manuscript.md"
     ).read_text(encoding="utf-8")
+    compact_manuscript = " ".join(manuscript.split())
     works = {item["id"]: item for item in evidence["works"]}
 
-    assert evidence["reviewed_at"] == "2026-08-01"
+    assert evidence["reviewed_at"] == "2026-08-02"
     assert len(works) >= 18
     assert {
         "chemgymrl",
@@ -247,8 +249,8 @@ def test_related_work_audit_is_current_bounded_and_synchronized() -> None:
     assert len(evidence["absolute_claims_rejected"]) >= 6
     assert len(evidence["chemworld_current_limitations"]) >= 7
     assert "controlled experimental science of experimenting agents" in audit
-    assert "ChemWorld intentionally abstracts those problems" in manuscript
-    assert "first virtual chemistry laboratory" in manuscript
+    assert "ChemWorld intentionally abstracts those problems" in compact_manuscript
+    assert "first virtual chemistry laboratory" in compact_manuscript
 
 
 def test_g0_historical_source_binding_is_reachable_and_data_release_is_honest() -> None:

@@ -96,28 +96,52 @@ protocols, and act through cloud or robotic laboratories. Coscientist connected
 planning, documentation search, code, and experimental automation, while
 ChemCrow combined a language model with eighteen chemistry tools and physical
 synthesis. A-Lab and mobile robotic laboratories provide stronger evidence than
-ChemWorld for real chemical execution and deployment. These systems answer
-whether an agent can be connected to, and produce useful outcomes in, the real
-laboratory. They do not generally provide the cloned physical identities,
-paired information interventions, or fresh-trajectory replication needed to
-estimate whether the resulting experimental behavior is stable
+ChemWorld for real chemical execution and deployment. AutoLabs adds a systematic
+twenty-configuration evaluation of natural-language-to-liquid-handler protocol
+generation, whereas RoboChem-Flex demonstrates affordable, modular closed-loop
+Bayesian reaction optimization across six real chemical case studies. These
+systems answer whether agents, protocols, and optimizers can be connected to,
+and produce useful outcomes in, the real laboratory
 ([Boiko et al., 2023](https://doi.org/10.1038/s41586-023-06792-0);
 [Bran et al., 2024](https://doi.org/10.1038/s42256-024-00832-8);
 [Szymanski et al., 2023](https://doi.org/10.1038/s41586-023-06734-w);
-[Dai et al., 2024](https://doi.org/10.1038/s41586-024-08173-7)).
+[Dai et al., 2024](https://doi.org/10.1038/s41586-024-08173-7);
+[Panapitiya et al., 2026](https://doi.org/10.1038/s41598-026-45593-z);
+[Pilon et al., 2026](https://doi.org/10.1038/s44160-026-01053-0)).
+
+Recent instrument agents also preclude treating autonomous stepwise operation
+as unique. Agents have orchestrated an X-ray nanoprobe and a robotic materials
+station while retaining instructions from human feedback. An agentic X-ray
+scientist went further: it selected commands from observations in a virtual
+beamline and transferred the workflow to a real synchrotron, with commands
+relayed unmodified by a human for safety. These studies are stronger on
+instrument fidelity, multimodal perception, deployment, and adaptation to
+real anomalies. Their principal estimand is task and operational success in a
+specific facility, rather than the effect of randomized information conditions
+on replicated experimental trajectories
+([Vriza et al., 2026](https://doi.org/10.1038/s41524-026-02005-0);
+[Chen et al., 2026](https://doi.org/10.1038/s42256-026-01261-5)).
 
 Virtual environments address complementary constraints. Summit and Olympus
 already support reproducible in-silico reaction optimization, PC-Gym supports
 nonlinear chemical-process control, and ChemGymRL provides interconnected
-virtual chemistry benches with fine-grained agent actions. We therefore do not
-claim the first virtual chemistry laboratory or use optimizer ranking as the
-primary novelty. ChemWorld instead combines chemical primitive control with
-controlled interventions on the experimenting agent, campaign-wide physical
-resource accounting, immutable failure evidence, and state-level replay
+virtual chemistry benches with fine-grained agent actions. MADE now provides a
+modular, budget-constrained benchmark for closed-loop materials discovery in
+which pipelines propose crystal candidates and receive formation-energy-oracle
+feedback. It is stronger than ChemWorld in systematic algorithmic comparison
+across chemical-system complexity. We therefore do not claim the first virtual
+chemistry laboratory, budgeted closed loop, or agentic materials-discovery
+environment, and do not use optimizer ranking as the primary novelty. ChemWorld
+uses a different unit of action: an agent constructs and advances each physical
+experiment through additions, control, characterization, termination, and final
+assay, with campaign-wide material, instrument, vessel, failure, and provider
+accounts. This runtime is then used for paired interventions on the experimenting
+agent and state-level replay
 ([Felton et al., 2021](https://doi.org/10.1002/cmtd.202000051);
 [Häse et al., 2021](https://doi.org/10.1088/2632-2153/abedc8);
 [Beeler et al., 2024](https://doi.org/10.1039/D3DD00183K);
-[Bloor et al., 2024](https://arxiv.org/abs/2410.22093)).
+[Bloor et al., 2024](https://arxiv.org/abs/2410.22093);
+[Malik et al., 2026](https://arxiv.org/abs/2601.20996)).
 
 Interactive discovery benchmarks already test hypothesis formation,
 experimentation, and explanation. DiscoveryWorld supplies long-horizon
@@ -141,29 +165,38 @@ opportunity costs rather than only select the next query or initial condition
 
 Prediction--understanding dissociation and process-level evaluation are also
 not unique claims. CausaLab separates task success from recovered causal
-structure, and ReplaySCM evaluates executable mechanism replay. Most directly,
-Corral reports across more than 25,000 runs that successful outcomes can conceal
-evidence neglect and failures of belief revision. A July 2026 robotic-chemistry
-stress test likewise makes physical executability and evidence-driven
-replanning measurable. ChemWorld complements these studies by grounding
-process evidence in chemical actions, measurements, resources, and subsequent
-physical consequences, while permitting paired interventions on prior
-information and repeat trajectories in the same physical world
+structure, and ReplaySCM evaluates executable mechanism replay. More broadly,
+the AI-agent-behavioral-science literature explicitly advocates systematic
+observation and interventions on situated agents. Most directly for scientific
+agents, Corral reports across more than 25,000 runs that successful outcomes can
+conceal evidence neglect and failures of belief revision. A July 2026 robotic-
+chemistry stress test likewise makes physical executability and evidence-driven
+replanning measurable. ChemWorld therefore does not claim to invent behavioral
+evaluation. It instantiates that lens as a chemistry-grounded apparatus in which
+actions, measurements, resources, and subsequent physical consequences are
+observable, while prior information can be paired and fresh trajectories can be
+replicated within the same physical world
 ([Yang et al., 2026](https://arxiv.org/abs/2605.26029);
 [Batzoglou, 2026](https://arxiv.org/abs/2605.08197);
+[Chen et al., 2026](https://doi.org/10.1057/s41599-026-07316-7);
 [Ríos-García et al., 2026](https://arxiv.org/abs/2604.18805);
 [Guo et al., 2026](https://arxiv.org/abs/2607.23045)).
 
-Finally, LabUtopia and MATTERIX provide substantially richer perception,
-manipulation, laboratory geometry, and sim-to-real capabilities, while
-LabOSBench and LabRobFail isolate instrument-control and robotic-failure
-competencies. ChemWorld intentionally abstracts those problems. Its niche is
-not a more realistic robot simulator, but a controlled experimental science of
-experimenting agents grounded in executable chemistry
+Finally, LabUtopia, MATTERIX, and Labimus provide substantially richer
+perception, manipulation, laboratory geometry, powder physics, and sim-to-real
+capabilities, while LabOSBench and LabRobFail isolate instrument-control and
+robotic-failure competencies. The ADePT framework appropriately evaluates this
+robotic-autonomy axis through adaptability, dexterity, perception, and task
+complexity. ChemWorld intentionally abstracts those problems---especially
+dexterity and perception. Its
+niche is not a more realistic robot simulator, but controlled experiments on
+the behavior of experimenting agents, grounded in executable chemistry
 ([Li et al., 2025](https://arxiv.org/abs/2505.22634);
 [Darvish et al., 2026](https://doi.org/10.1038/s43588-025-00924-4);
+[Wu et al., 2026](https://arxiv.org/abs/2606.31037);
 [Zou et al., 2026](https://arxiv.org/abs/2606.16802);
-[Wang et al., 2026](https://arxiv.org/abs/2607.23704)).
+[Wang et al., 2026](https://arxiv.org/abs/2607.23704);
+[Salazar-Villacis and Benyahia, 2026](https://doi.org/10.1038/s42004-026-01932-9)).
 
 ## 3. ChemWorld as an apparatus for studying agents
 
@@ -605,9 +638,9 @@ durable archive location for the full local raw corpus. The manifest remains
 
 ## 11. Remaining work before arXiv
 
-1. Terminalize and audit the remaining G2 v0.5 cells. At the 2026-08-02 01:11
-   (Asia/Shanghai) operational snapshot, 4 cells were complete, 1 was right-
-   censored, 15 remained pending, and 90 of 120 planned vessel-opportunity
+1. Terminalize and audit the remaining G2 v0.5 cells. At the 2026-08-02 02:14
+   (Asia/Shanghai) operational snapshot, 8 cells were complete, 1 was right-
+   censored, 11 remained pending, and 66 of 120 planned vessel-opportunity
    slots remained unresolved. These live counts are not scientific results.
 2. Re-run the currently passing 55-node evidence graph after the final source
    commit, clean-wheel build, and independent-checkout verification.
@@ -623,7 +656,9 @@ durable archive location for the full local raw corpus. The manifest remains
    style, then complete the statistical-language and final-claim audits.
 
 No new G0 scientific experiment is required for this manuscript. The only
-required new scientific matrix contains 20 G2 v0.5 cells; these comprise 120 G2 experiment opportunities.
+required new scientific matrix contains 20 G2 v0.5 cells and 120 G2 experiment
+opportunities. It is already running; 11 cells and 66 planned experiment-
+opportunity slots remain unresolved at this snapshot.
 
 ## 12. Display items
 
