@@ -35,6 +35,16 @@ Four G0 raw roots exist locally: 1,441 files and 17,725,724,603 bytes. Their his
 
 G2 v0.5 is still running. Live trajectories are not promoted into the paper count; only terminal, identity-checked, ledger-audited, exact-replay-verified cells may enter the final derived table.
 
+## Derived-data and figure state
+
+`arxiv-v1-derived-data.json` is the sole numeric source for manuscript tables
+and figures. Its current status is `provisional_awaiting_g2_v0_5`: it contains
+only formal G0 summaries and the completed G2 v0.4 audit. Five CSV views and
+Figures 1--4 and 6 are generated from this object. G2 v0.5 is explicitly
+`null`, and Figure 5 is not rendered, until all twenty cells are terminal and
+the fail-closed replication audit passes. The provisional artifacts therefore
+close the pipeline-design gap but not the final-result gate.
+
 ## Sensitive and excluded content
 
 Provider authentication, private evaluation seeds, hidden physical identities, unrestricted provider response bodies, and any secrets are excluded from the public package. Necessary provider accounting is published through redacted receipts and aggregate token/session fields.

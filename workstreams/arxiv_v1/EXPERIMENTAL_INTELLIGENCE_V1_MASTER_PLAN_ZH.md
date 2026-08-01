@@ -424,7 +424,10 @@ G2 v0.5 正式结果、完整 Methods、参考文献和最终图表尚未填实�
 
 ### B7 — 图表流水线缺失
 
-必须建立单一 frozen derived table 和自动出图脚本；禁止手工复制摘要数字。
+部分解决。已经建立单一 provisional derived-data JSON、五个 CSV 视图和只读取该
+JSON 的自动出图脚本；Figures 1--4 与 6 已生成。G2 v0.5 在 JSON 中保持 `null`，
+Figure 5 不生成。剩余工作是终态审计后写入 v0.5、冻结 derived hash 并重生成全部图。
+禁止手工复制摘要数字。
 
 ## 13. 执行顺序与完成判据
 

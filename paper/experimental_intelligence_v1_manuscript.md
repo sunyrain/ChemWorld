@@ -585,12 +585,14 @@ checkout.
 ## 10. Data and code availability
 
 `benchmark/releases/chemworld-serious-v1` contains a fail-closed manifest, data
-card, claim boundaries, and the deterministic G0 raw-file index. The index
-contains no raw content or absolute path. Before release we will add the frozen
-derived cell table, terminal G2 trajectory and receipt index, a small replayable
-trajectory subset, and a durable archive location for the full local raw
-corpus. The manifest remains `publication_ready=false` until every stated gate
-passes.
+card, claim boundaries, the deterministic G0 raw-file index, a provisional
+single-source derived-data object, and five CSV views. Figures 1--4 and 6 are
+generated only from that object. The index contains no raw content or absolute
+path. G2 v0.5 is represented as null and Figure 5 is deliberately absent until
+the terminal audit passes. Before release we will freeze the derived object,
+add the terminal G2 trajectory and receipt index, a small replayable trajectory
+subset, and a durable archive location for the full local raw corpus. The
+manifest remains `publication_ready=false` until every stated gate passes.
 
 ## 11. Remaining work before arXiv
 
@@ -600,8 +602,9 @@ passes.
 3. Archive the four G0 raw roots. Their public 1,441-file hash index and data
    card now exist, and the four historical source commits are immutable
    ancestors of `origin/main`.
-4. Build one frozen derived table and generate all figures from it.
-5. Populate the release directory and complete clean-wheel, full-test, replay,
+4. Insert the audited G2 v0.5 rows into the existing provisional derived-data
+   source, freeze it, render Figure 5, and regenerate all figures.
+5. Complete the release directory, clean-wheel, full-test, replay,
    and independent-checkout attestations.
 6. Complete references, statistical-language review, data card, and final
    claim audit.
