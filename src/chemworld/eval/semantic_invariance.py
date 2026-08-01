@@ -121,8 +121,13 @@ class MaterialCodeRemap:
     def opaque_catalog(self, catalog: Mapping[str, Any]) -> dict[str, Any]:
         """Return an identity-neutral public catalog aligned with the remapped codes."""
 
-        def remap_group(group: str, permutation: tuple[int, ...]) -> list[dict[str, Any]]:
+        def remap_group(
+            group: str,
+            permutation: tuple[int, ...],
+        ) -> list[dict[str, Any]] | None:
             entries = catalog.get(group)
+            if entries is None:
+                return None
             if not isinstance(entries, list) or len(entries) != len(permutation):
                 raise ValueError(f"material catalog {group!r} does not match permutation")
             return [
@@ -134,12 +139,20 @@ class MaterialCodeRemap:
                 for public_index in range(len(permutation))
             ]
 
-        return {
+        opaque: dict[str, Any] = {
             "catalog_version": "chemworld-public-material-remap-candidate-0.1",
-            "solvents": remap_group("solvents", self.solvent_public_to_canonical),
-            "catalysts": remap_group("catalysts", self.catalyst_public_to_canonical),
             "mapping_visibility_policy": "public codes only; canonical mapping remains private",
         }
+        for group, permutation in (
+            ("solvents", self.solvent_public_to_canonical),
+            ("catalysts", self.catalyst_public_to_canonical),
+        ):
+            remapped = remap_group(group, permutation)
+            if remapped is not None:
+                opaque[group] = remapped
+        if not any(group in opaque for group in ("solvents", "catalysts")):
+            raise ValueError("material catalog has no remappable material group")
+        return opaque
 
 
 def nested_equivalent_action(action: Mapping[str, Any]) -> dict[str, Any]:
@@ -250,7 +263,8 @@ def _paired_task_run(
     canonical_ids = {
         str(entry["canonical_id"])
         for group in ("solvents", "catalysts")
-        for entry in variant_task_info["material_catalog"][group]
+        for entry in variant_task_info["material_catalog"].get(group, [])
+        if "canonical_id" in entry
     }
     opaque_text = json.dumps(opaque_catalog, sort_keys=True)
     catalog_opaque = all(canonical_id not in opaque_text for canonical_id in canonical_ids)

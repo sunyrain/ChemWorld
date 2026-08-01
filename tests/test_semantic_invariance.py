@@ -45,6 +45,19 @@ def test_material_remap_round_trips_and_hides_canonical_ids() -> None:
     assert opaque["mapping_visibility_policy"].startswith("public codes only")
 
 
+def test_material_remap_accepts_task_catalog_without_catalysts() -> None:
+    catalog = public_material_catalog()
+    solvent_only = {
+        "catalog_version": catalog["catalog_version"],
+        "solvents": catalog["solvents"],
+    }
+
+    opaque = _remap().opaque_catalog(solvent_only)
+
+    assert len(opaque["solvents"]) == 4
+    assert "catalysts" not in opaque
+
+
 def test_material_remap_rejects_invalid_permutations_and_codes() -> None:
     with pytest.raises(ValueError, match="permutation"):
         MaterialCodeRemap((0, 0, 1, 2), (0, 1, 2, 3))
