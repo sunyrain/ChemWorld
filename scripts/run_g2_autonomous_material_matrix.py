@@ -446,27 +446,32 @@ def _pair_config_sha256(
     world_seed: int,
     card: CampaignResourceCard,
     method_limits: Mapping[str, Any],
+    trajectory_replicate_id: str | None = None,
+    agent_seed: int | None = None,
 ) -> str:
     task = deepcopy(dict(protocol["task"]))
     task.pop("world_seeds", None)
-    return canonical_json_sha256(
-        {
-            "protocol_id": protocol["protocol_id"],
-            "source_tree_sha256": source["material_source_tree_sha256"],
-            "task": task,
-            "world_seed": world_seed,
-            "observation_seed": exploration_observation_seed(
-                str(task["task_id"]),
-                world_seed,
-            ),
-            "campaign_resource_card_sha256": card.card_sha256,
-            "method_resource_limits": {
-                key: list(value) if isinstance(value, tuple) else value
-                for key, value in method_limits.items()
-            },
-            "agent": protocol["agent"],
-        }
-    )
+    payload: dict[str, Any] = {
+        "protocol_id": protocol["protocol_id"],
+        "source_tree_sha256": source["material_source_tree_sha256"],
+        "task": task,
+        "world_seed": world_seed,
+        "observation_seed": exploration_observation_seed(
+            str(task["task_id"]),
+            world_seed,
+        ),
+        "campaign_resource_card_sha256": card.card_sha256,
+        "method_resource_limits": {
+            key: list(value) if isinstance(value, tuple) else value
+            for key, value in method_limits.items()
+        },
+        "agent": protocol["agent"],
+    }
+    if trajectory_replicate_id is not None:
+        payload["trajectory_replicate_id"] = trajectory_replicate_id
+    if agent_seed is not None:
+        payload["agent_seed"] = agent_seed
+    return canonical_json_sha256(payload)
 
 
 def _cell_config(
@@ -486,6 +491,16 @@ def _cell_config(
         world_seed=world_seed,
         card=card,
         method_limits=method_limits,
+        trajectory_replicate_id=(
+            str(cell["trajectory_replicate_id"])
+            if cell.get("trajectory_replicate_id") is not None
+            else None
+        ),
+        agent_seed=(
+            int(cell["agent_seed"])
+            if cell.get("agent_seed") is not None
+            else None
+        ),
     )
     payload: dict[str, Any] = {
         "schema_version": "chemworld-g2-autonomous-material-cell-0.1",
@@ -518,6 +533,12 @@ def _cell_config(
         "pair_config_sha256": pair_hash,
         "pair_invariants_exclude": ["material_information", "execution_order"],
     }
+    if cell.get("trajectory_replicate_id") is not None:
+        payload["trajectory_replicate_id"] = str(
+            cell["trajectory_replicate_id"]
+        )
+    if cell.get("agent_seed") is not None:
+        payload["agent_seed"] = int(cell["agent_seed"])
     payload["config_sha256"] = canonical_json_sha256(payload)
     return payload
 
@@ -1052,6 +1073,10 @@ def _run_cell(
         card=card,
         operation_limit=int(method_limits["operation_limit"]),
     )
+    write_json_atomic(
+        cell_root / "environment_contract.json",
+        environment_contract,
+    )
     trajectory_path = cell_root / "trajectory.jsonl"
     summary_path = cell_root / "run_summary.json"
     resource_path = cell_root / "campaign_resource_ledger.json"
@@ -1133,7 +1158,7 @@ def _run_cell(
                 budget=int(method_limits["operation_limit"]),
                 objective=str(task["objective"]),
                 seed=int(cell["world_seed"]),
-                agent_seed=int(cell["world_seed"]),
+                agent_seed=int(cell.get("agent_seed", cell["world_seed"])),
                 observation_seed=exploration_observation_seed(
                     str(task["task_id"]),
                     int(cell["world_seed"]),
@@ -1614,6 +1639,22 @@ def _pair_audit(
         left.get("pair_config_sha256")
         == right.get("pair_config_sha256")
     )
+    if (
+        left["cell"].get("trajectory_replicate_id") is not None
+        or right["cell"].get("trajectory_replicate_id") is not None
+    ):
+        invariants["trajectory_replicate_id"] = (
+            left["cell"].get("trajectory_replicate_id")
+            == right["cell"].get("trajectory_replicate_id")
+        )
+    if (
+        left["cell"].get("agent_seed") is not None
+        or right["cell"].get("agent_seed") is not None
+    ):
+        invariants["agent_seed"] = (
+            left["cell"].get("agent_seed")
+            == right["cell"].get("agent_seed")
+        )
     left_public = left["environment_contract"]["public_contract"]
     right_public = right["environment_contract"]["public_contract"]
     for key in (
@@ -1626,6 +1667,10 @@ def _pair_audit(
         invariants[key] = left_public.get(key) == right_public.get(key)
     return {
         "world_seed": left["cell"]["world_seed"],
+        "trajectory_replicate_id": left["cell"].get(
+            "trajectory_replicate_id"
+        ),
+        "agent_seed": left["cell"].get("agent_seed"),
         "conditions": [
             left["cell"]["condition_id"],
             right["cell"]["condition_id"],
@@ -1811,6 +1856,16 @@ def _validated_resume_result(
         world_seed=int(cell["world_seed"]),
         card=card,
         method_limits=method_limits,
+        trajectory_replicate_id=(
+            str(cell["trajectory_replicate_id"])
+            if cell.get("trajectory_replicate_id") is not None
+            else None
+        ),
+        agent_seed=(
+            int(cell["agent_seed"])
+            if cell.get("agent_seed") is not None
+            else None
+        ),
     )
     config_without_hash = dict(config)
     declared_config_hash = config_without_hash.pop("config_sha256", None)
@@ -1847,6 +1902,9 @@ def _validated_resume_result(
         "protocol_id": config.get("protocol_id") == protocol["protocol_id"],
         "cell": config.get("cell") == dict(cell),
         "world_seed": config.get("world_seed") == int(cell["world_seed"]),
+        "trajectory_replicate_id": config.get("trajectory_replicate_id")
+        == cell.get("trajectory_replicate_id"),
+        "agent_seed": config.get("agent_seed") == cell.get("agent_seed"),
         "material_information": config.get("material_information")
         == dict(cell["material_information"]),
         "source_tree": (

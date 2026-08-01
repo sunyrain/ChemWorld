@@ -1,0 +1,149 @@
+{
+  "schema_version": "chemworld-g2-autonomous-material-trajectory-replication-0.5",
+  "protocol_id": "g2-electrochemical-autonomous-material-information-seed1-seed3-r5-v0.5",
+  "status": "development-preregistered-trajectory-replication",
+  "claim_policy": {
+    "confirmatory": false,
+    "intended_use": "test whether the opposing seed-1 and seed-3 trajectory patterns recur across fresh Codex trajectories under fixed physical worlds",
+    "estimand": "within-world nominal-minus-opaque trajectory difference across fresh provider trajectories",
+    "analysis_unit": "fixed physical world by fresh trajectory replicate",
+    "not_intended_to_test": [
+      "a population-level material-information effect across chemical worlds",
+      "LLM superiority over Bayesian optimization",
+      "a deterministic effect of nominal material information",
+      "causal mediation by diagnostic or control changes"
+    ]
+  },
+  "task": {
+    "task_id": "electrochemical-conversion",
+    "world_split": "public-test",
+    "world_seeds": [1, 3],
+    "objective": "balanced",
+    "episode_mode": "campaign",
+    "electrochemical_workflow_mode": "autonomous_open_v1",
+    "electrochemical_material_family_id": "nominal-prior-latent-v2",
+    "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+    "observation_noise_mode": "keyed",
+    "observation_noise_namespace": "g2-autonomous-material-information-v1"
+  },
+  "paired_conditions": [
+    {
+      "condition_id": "opaque_codes",
+      "material_information": {"mode": "opaque_codes"}
+    },
+    {
+      "condition_id": "anonymous_nominal_properties",
+      "material_information": {"mode": "anonymous_nominal_properties"}
+    }
+  ],
+  "trajectory_replication": {
+    "fresh_replicates_per_world": 5,
+    "replicate_ids": ["r01", "r02", "r03", "r04", "r05"],
+    "development_trajectory_excluded_from_replication_estimand": true,
+    "development_trajectory_role": "seed selection and metric design only",
+    "provider_sampling_seed_control": "unavailable in native Codex CLI; replicate denotes a fresh independent provider trajectory, not a reproducible model RNG seed",
+    "agent_seed_role": "bind any local method RNG and provenance while leaving the physical world and keyed observation stream unchanged",
+    "pairing_scope": "physical evaluator, observation stream, resource card, method envelope, model and local agent seed; provider sampling randomness is independent and uncontrolled",
+    "pair_blocks": [
+      {"pair_order": 1, "world_seed": 1, "replicate_id": "r01", "agent_seed": 120101, "condition_order": ["anonymous_nominal_properties", "opaque_codes"]},
+      {"pair_order": 2, "world_seed": 3, "replicate_id": "r01", "agent_seed": 120301, "condition_order": ["opaque_codes", "anonymous_nominal_properties"]},
+      {"pair_order": 3, "world_seed": 3, "replicate_id": "r02", "agent_seed": 120302, "condition_order": ["anonymous_nominal_properties", "opaque_codes"]},
+      {"pair_order": 4, "world_seed": 1, "replicate_id": "r02", "agent_seed": 120102, "condition_order": ["opaque_codes", "anonymous_nominal_properties"]},
+      {"pair_order": 5, "world_seed": 1, "replicate_id": "r03", "agent_seed": 120103, "condition_order": ["anonymous_nominal_properties", "opaque_codes"]},
+      {"pair_order": 6, "world_seed": 3, "replicate_id": "r03", "agent_seed": 120303, "condition_order": ["opaque_codes", "anonymous_nominal_properties"]},
+      {"pair_order": 7, "world_seed": 3, "replicate_id": "r04", "agent_seed": 120304, "condition_order": ["anonymous_nominal_properties", "opaque_codes"]},
+      {"pair_order": 8, "world_seed": 1, "replicate_id": "r04", "agent_seed": 120104, "condition_order": ["opaque_codes", "anonymous_nominal_properties"]},
+      {"pair_order": 9, "world_seed": 1, "replicate_id": "r05", "agent_seed": 120105, "condition_order": ["anonymous_nominal_properties", "opaque_codes"]},
+      {"pair_order": 10, "world_seed": 3, "replicate_id": "r05", "agent_seed": 120305, "condition_order": ["opaque_codes", "anonymous_nominal_properties"]}
+    ]
+  },
+  "campaign_resource_card": {
+    "factory": "generous_electrochemical_max_envelope_card",
+    "card_id": "electrochemical-k6-shared-two-charge-envelope-v3",
+    "complete_experiments": 6,
+    "operation_attempt_limit": 144,
+    "vessel_start_limit": 6,
+    "final_assay_limit": 6,
+    "nonfinal_instrument_use_limit": 18,
+    "stock_action_envelopes_per_experiment": 2.0,
+    "stock_limits": {"reagent_mol": 0.48, "solvent_L": 0.96},
+    "semantics": {
+      "attempts": "every submitted primitive action, including invalid and resource-rejected proposals",
+      "physical_debits": "committed transactions only",
+      "allocation": "one campaign-wide pool per cell; no hidden future-vessel reservation",
+      "operation_ceiling": "non-primary 144-attempt loop-safety and interaction-cost ceiling",
+      "automatic_repair": false,
+      "automatic_terminate": false,
+      "automatic_final_assay": false
+    }
+  },
+  "method_resource_limits_per_cell": {
+    "operation_limit": 144,
+    "complete_experiment_limit": 6,
+    "checkpoint_complete_experiments": [1, 2, 3, 4, 5, 6],
+    "wall_time_limit_s": 21600.0,
+    "model_call_limit": 6,
+    "input_token_limit": 72000000,
+    "output_token_limit": 1200000,
+    "training_environment_step_limit": 0
+  },
+  "agent": {
+    "agent_id": "interactive_codex_experiment_v0.4",
+    "provider": "OpenAI Codex CLI with ChatGPT subscription",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "medium",
+    "one_codex_exec_per_complete_experiment": true,
+    "experiment_tool_transport": "host_owned_stdio_mcp",
+    "codex_approval_policy": "never",
+    "request_timeout_s": 900.0,
+    "finalization_timeout_s": 300.0,
+    "pre_action_restart_limit": 0,
+    "forced_notebook": false,
+    "agent_directory_optional": true,
+    "authoritative_trajectory_in_agent_workspace": false,
+    "automatic_action_repair": false,
+    "automatic_closeout": false
+  },
+  "attempt_policy": {
+    "attempt_directories_are_immutable": true,
+    "maximum_pre_action_provider_attempts_per_cell": 3,
+    "automatic_replacement_allowed_only_when": "provider_infrastructure_failure and accepted_operation_count equals zero",
+    "failure_after_any_accepted_operation": "terminal right-censored cell; never replace or overwrite",
+    "non_provider_failure": "stop for code or protocol audit; never auto-retry",
+    "outcome_dependent_stopping": false,
+    "completed_or_right_censored_cells_are_never_rerun": true
+  },
+  "analysis": {
+    "development_trajectory_metrics_frozen_before_fresh_runs": true,
+    "primary_trajectory_endpoints": [
+      "global-best discovery fraction",
+      "90-percent online incumbent retention rate",
+      "maximum absolute drawdown from prior incumbent",
+      "terminal-to-global-best ratio",
+      "loss, recovery, recovery-delay and terminally unresolved episodes"
+    ],
+    "co_primary_resource_and_optimization_endpoints": [
+      "six-vessel lifecycle completion",
+      "batch running-best AUC",
+      "realized-operation running-best AUC",
+      "fixed-144-operation running-best AUC",
+      "best and mean final score"
+    ],
+    "diagnostic_endpoint": "batch-level temporal alignment from diagnostic-aligned control change to the next final score; descriptive and non-causal",
+    "reporting": "report all five fresh nominal-minus-opaque trajectories separately within each selected world, then medians, ranges and sign consistency; do not pool the two selected worlds into a general-world p-value",
+    "stopping_rule": "materialize all 20 planned cells unless infrastructure or lifecycle censoring occurs; never stop from observed scores or arm differences"
+  },
+  "planned_resources": {
+    "cells": 20,
+    "physical_vessels_and_final_assays": 120,
+    "nonfinal_instrument_quota": 360,
+    "primitive_operation_ceiling": 2880,
+    "provider_sessions": 120,
+    "observed_v0.4_projection": {
+      "primitive_operations": 1725,
+      "input_tokens": 81802465,
+      "output_tokens": 368170,
+      "basis": "five times the combined seed-1 and seed-3 opaque-plus-nominal v0.4 usage"
+    }
+  }
+}
