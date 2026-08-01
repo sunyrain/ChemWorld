@@ -162,11 +162,23 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     )
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False
+    publication = current["publication"]
+    assert publication["manuscript"] == (
+        "paper/experimental_intelligence_v1_manuscript.md"
+    )
+    assert publication["bibliography"] == (
+        "paper/experimental_intelligence_v1_references.bib"
+    )
+    assert publication["scope"] == (
+        "experimental_intelligence_in_executable_chemical_worlds"
+    )
+    assert publication["new_scientific_experiments_required_for_first_arxiv"] is True
+    assert publication["required_new_scientific_matrix"]["planned_cells"] == 20
     assert (
-        current["publication"][
-            "new_scientific_experiments_required_for_narrow_scope"
+        publication["required_new_scientific_matrix"][
+            "planned_vessel_opportunities"
         ]
-        is False
+        == 120
     )
     assert current["publication"]["stronger_claim_experiments_pending"] is True
 

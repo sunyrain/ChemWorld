@@ -1981,12 +1981,28 @@ def _write_current_registry() -> None:
     current.pop("history_policy", None)
     current["publication"] = {
         "status": "working_manuscript_not_submission_ready",
-        "manuscript": "paper/chemworld_benchmark_manuscript.md",
-        "claim_evidence_ledger": node_map()[
-            "pre_arxiv_claim_evidence_ledger"
-        ].path,
-        "scope": "narrow_two_task_fixed_world_descriptive_benchmark",
-        "new_scientific_experiments_required_for_narrow_scope": False,
+        "manuscript": "paper/experimental_intelligence_v1_manuscript.md",
+        "bibliography": "paper/experimental_intelligence_v1_references.bib",
+        "master_plan": (
+            "workstreams/arxiv_v1/"
+            "EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md"
+        ),
+        "experiment_ledger": (
+            "workstreams/arxiv_v1/reports/"
+            "experimental-intelligence-experiment-ledger-v0.1.json"
+        ),
+        "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
+        "scope": "experimental_intelligence_in_executable_chemical_worlds",
+        "new_scientific_experiments_required_for_first_arxiv": True,
+        "required_new_scientific_matrix": {
+            "protocol_id": (
+                "g2-electrochemical-autonomous-material-information-"
+                "seed1-seed3-r5-v0.5"
+            ),
+            "planned_cells": 20,
+            "planned_vessel_opportunities": 120,
+            "status": "running",
+        },
         "stronger_claim_experiments_pending": True,
         "publication_ready": False,
     }
@@ -2447,6 +2463,35 @@ def check_current_evidence() -> list[str]:
         errors.append("current registry mechanism benchmark readiness is inconsistent")
     if publication.get("status") != "working_manuscript_not_submission_ready":
         errors.append("current registry manuscript state is inconsistent")
+    expected_publication_paths = {
+        "manuscript": "paper/experimental_intelligence_v1_manuscript.md",
+        "bibliography": "paper/experimental_intelligence_v1_references.bib",
+        "master_plan": (
+            "workstreams/arxiv_v1/"
+            "EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md"
+        ),
+        "experiment_ledger": (
+            "workstreams/arxiv_v1/reports/"
+            "experimental-intelligence-experiment-ledger-v0.1.json"
+        ),
+        "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
+    }
+    for field, expected_path in expected_publication_paths.items():
+        if publication.get(field) != expected_path:
+            errors.append(f"current registry publication {field} is inconsistent")
+        elif not (ROOT / expected_path).is_file():
+            errors.append(f"current registry publication {field} is missing")
+    if publication.get("scope") != (
+        "experimental_intelligence_in_executable_chemical_worlds"
+    ):
+        errors.append("current registry first-arXiv scope is inconsistent")
+    if publication.get("new_scientific_experiments_required_for_first_arxiv") is not True:
+        errors.append("current registry hides the required first-arXiv experiment matrix")
+    required_matrix = publication.get("required_new_scientific_matrix", {})
+    if required_matrix.get("planned_cells") != 20:
+        errors.append("current registry first-arXiv cell count is inconsistent")
+    if required_matrix.get("planned_vessel_opportunities") != 120:
+        errors.append("current registry first-arXiv opportunity count is inconsistent")
     if publication.get("publication_ready") is not False:
         errors.append("current registry publication state is inconsistent")
     return errors

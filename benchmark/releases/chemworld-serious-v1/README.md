@@ -13,6 +13,8 @@ This directory is the single tracked entry point for the first ChemWorld arXiv e
 - a deterministic 1,441-file G0 raw-data hash index with no absolute paths or raw content.
 - a provisional single-source derived-data JSON, five deterministic CSV views,
   and Figures 1--4 and 6 generated only from that JSON.
+- the populated first-version manuscript and a 22-entry working bibliography;
+- a current 55-node evidence graph with a clean source-tree attestation.
 
 ## Still required
 
@@ -20,6 +22,6 @@ This directory is the single tracked entry point for the first ChemWorld arXiv e
 - Figure 5 and regeneration of all figures against the terminal table;
 - a compact replay subset and the G2 terminal file-hash index;
 - durable external archive identifiers for the local raw roots;
-- refreshed evidence registry, clean-wheel, full-test, replay, and independent-checkout attestations.
+- clean-wheel, full-test, terminal replay, and independent-checkout attestations.
 
 No file in this directory should be interpreted as lifting those gates unless `manifest.json` has `publication_ready: true` and every item in `gates` is `passed`.
