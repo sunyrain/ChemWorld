@@ -1,7 +1,7 @@
 # Experimental Intelligence in Executable Chemical Worlds: display items
 
 Status: `provisional_awaiting_g2_v0_5`.
-Derived-data SHA-256: `0db51cf17139a319eed39499f24e7681400744f06cab4577e35cd0b2f48da803`.
+Derived-data SHA-256: `d2e31955c0e688a6af4ceba41fcabaccf3074fac6bf2bc733fba8dcd806df390`.
 
 Every number in the tables below is rendered from the self-hashed arXiv derived-data
 object. This file is intended for direct inclusion during manuscript typesetting.
