@@ -15,6 +15,8 @@ ChemWorld 不应再声称：
 - 首个虚拟化学实验室；
 - 首个隐藏规律或主动机制发现 benchmark；
 - 首个测量科学 Agent 过程而非终点的工作；
+- 首个在未知物理系统中自由选择实验并恢复规律的 Agent；
+- 首个长程或端到端自主科学发现系统；
 - 最完整、近乎无限或可以生成任意物理规律的化学世界；
 - 比真实自主实验室、机器人系统或主动学习算法“更强”。
 
@@ -131,6 +133,24 @@ RoboChem-Flex（Nature Synthesis 2026）以约 5,000 美元的基础配置、开
 
 来源：<https://doi.org/10.1038/s44160-026-01053-0>。
 
+#### Co-Scientist 与 Robin
+
+Co-Scientist（Nature 2026）以多 Agent tournament、批判和演化过程扩展 test-time compute，
+生成并排序生物医学假设，在专家参与下完成三类湿实验验证。Robin（Nature 2026）把文献检索、
+假设生成、实验建议与新实验数据的自主分析连成连续反馈环，识别并验证候选治疗药物；其湿实验
+由研究者按 human-generated protocol 执行，再把数据交还 Agent。
+
+- 它们比 ChemWorld 强的地方：大规模文献综合、生物医学假设新颖性、真实湿实验验证、专业数据
+  分析，以及对有意义科学结论的直接证据。
+- ChemWorld 的差异：Agent 直接控制样品从加料到终点检测的 primitive lifecycle；研究者可克隆
+  同一物理身份并干预先验条件，以新轨迹估计行为差异。Co-Scientist/Robin 的核心对象是高质量
+  假设及分析，不是固定物理身份下的实验操作表型。
+- 公允表述：不能把 ChemWorld 当前的 synthetic-world 结果写成比这两项工作的现实发现“更深”；
+  也不能把它们写成完全自主湿实验室，因为实验执行仍有人类和专家在环。
+
+来源：<https://doi.org/10.1038/s41586-026-10644-y>、
+<https://doi.org/10.1038/s41586-026-10652-y>。
+
 #### 可学习仪器 Agent 与 X-ray scientist
 
 Vriza 等人（npj Computational Materials 2026）让多 Agent 编排 X-ray nanoprobe 与材料机器人，
@@ -222,6 +242,23 @@ BoxingGym 用 10 个生成概率环境评价实验设计和模型发现，并以
 
 ### 2.4 2025—2026 主动规律发现与因果机制恢复
 
+#### SciExplorer
+
+SciExplorer（Physical Review X 2026）给 Agent 一个最小的通用工具集，让其在事先未知的机械、
+波动和量子多体模型中自由选择数值实验、编写分析代码和形成假设，并评价运动方程或 Hamiltonian
+恢复。论文每个系统运行五个独立尝试，也系统报告复杂或非典型模型中的提前收敛、符号/尺度错误和
+先验知识依赖。
+
+- 它比 ChemWorld 强的地方：跨物理域的未知系统自由探索、显式规律恢复、标准符号回归比较，
+  以及对噪声、工具和模型配置的消融。
+- 它占据的主张：ChemWorld 不能声称首次让 LLM Agent 在未知物理世界中自主选择实验、分析并
+  恢复规律；“没有 domain-specific blueprint”也不是独占点。
+- ChemWorld 的差异：基本行动不是选择数值初始条件后分析轨迹，而是构造有状态化学样品并承担
+  库存、容器、仪器、失败和终止后果；第一版的因果设计还配对干预 prior 与物理身份，并以 fresh
+  trajectories 测量策略是否复现。
+
+来源：<https://doi.org/10.1103/xnqc-q6nt>。
+
 #### NewtonBench、DiscoverPhysics 与 ActiveSciBench-Chem
 
 NewtonBench（ICLR 2026）包含 12 个物理域、324 个反事实规律任务，要求 Agent 主动探测复杂
@@ -285,6 +322,23 @@ physics criticism、hardware abstraction、system-integrity monitoring 与 quant
   reproducibility of experimental behavior in executable chemistry”。
 
 来源：<https://arxiv.org/abs/2606.26722>。
+
+#### Qiushi Discovery Engine
+
+Qiushi（2026 preprint）在真实光学平台上以 nonlinear research phases、Meta-Trace memory 和
+双层架构维持长程研究。其开放研究报告 145.9M tokens、3,242 次 LLM calls、1,242 次 tool calls、
+163 条研究笔记和 44 个脚本，并声称提出及实验证实一种此前未报告的 optical bilinear interaction
+机制。
+
+- 它比 ChemWorld 强的地方：真实平台、开放式研究目标、轨迹长度、研究记忆、从假设到机制证据的
+  端到端闭环，以及实质性新发现。
+- 它占据的主张：ChemWorld 不能声称首个 end-to-end autonomous discovery、首个长程研究轨迹，
+  或首个 Agent 自主提出并验证非平凡机制。
+- ChemWorld 的差异：Qiushi 以一条大型发现轨迹证明“能做到什么”；ChemWorld 以多个固定身份、
+  配对信息干预和 fresh trajectories 问“观察到的实验策略是否由干预造成、是否可重复”。这是
+  discovery demonstration 与 controlled measurement apparatus 的区别，不是优劣排序。
+
+来源：<https://arxiv.org/abs/2604.27092>。
 
 #### Corral
 
@@ -369,6 +423,7 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 | ChemGymRL | ✓ | ✓ | △ | △ | — | △ | — | — |
 | MADE | 计算材料 | 候选结构提议 | oracle query | 查询预算 | 系统条件 | △ | — | — |
 | Coscientist / ChemCrow | ✓ | ✓ | ✓ | △ | — | △ | — | ✓ |
+| Co-Scientist / Robin | 数据与假设 | protocol proposal | 数据分析 | 人类执行成本 | expert-in-loop | ✓ | — | ✓ |
 | A-Lab GPSS / robot chemistry | ✓ | ✓ | ✓ | ✓ | — | ✓ | — | ✓ |
 | ORGANA / ChemAgents | ✓ | ✓ | ✓ | ✓ | — | △ | — | ✓ |
 | AutoLabs | protocol 表示 | protocol compilation | — | 硬件约束 | — | ✓ | — | hardware-ready |
@@ -376,11 +431,13 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 | X-ray / teachable instrument agents | 仪器状态 | ✓ | ✓ | ✓ | — | ✓ | — | ✓ |
 | DiscoveryWorld | △ | ✓ | ✓ | △ | △ | ✓ | — | — |
 | BoxingGym / SciGym | △ | △ | ✓ | 预算 | ✓ | △ | — | — |
+| SciExplorer | 数值物理模型 | ✓ | ✓ | 查询/计算成本 | 系统条件 | ✓ | 独立尝试 | — |
 | NewtonBench / DiscoverPhysics | — | △ | ✓ | 查询预算 | ✓ | △ | — | — |
 | ActiveSciBench-Chem | 动力学 | △ | assay query | 查询预算 | ✓ | △ | — | — |
 | CausaLab / ReplaySCM | 抽象 SCM | △ | 干预 | 查询预算 | ✓ | ✓ | — | — |
 | Corral | 依赖底层环境 | 依赖底层环境 | 依赖底层环境 | △ | △ | ✓ | — | — |
 | AHOIS | 真实光学系统 | ✓ | ✓ | △ | critic ablation | ✓ | — | ✓ |
+| Qiushi | 真实光学系统 | ✓ | ✓ | 真实平台成本 | — | ✓ | 单一长程研究 | ✓ |
 | LabUtopia / MATTERIX / Labimus | ✓ | ✓ | △ | ✓ | 场景变化 | △ | — | △/✓ |
 | LabOSBench / LabRobFail | △ | workflow | ✓ | ✓ | failure injection | ✓ | — | △ |
 | **ChemWorld 当前版本** | **✓** | **✓** | **✓** | **✓** | **✓** | **✓** | **✓** | **—** |

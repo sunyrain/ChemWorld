@@ -109,6 +109,19 @@ and produce useful outcomes in, the real laboratory
 [Panapitiya et al., 2026](https://doi.org/10.1038/s41598-026-45593-z);
 [Pilon et al., 2026](https://doi.org/10.1038/s44160-026-01053-0)).
 
+Hypothesis-centred systems provide another important, but distinct, comparison.
+Co-Scientist uses a multi-agent tournament to generate and refine biomedical
+hypotheses that were subsequently tested with expert oversight. Robin closes
+the intellectual loop from literature-derived hypotheses to autonomous analysis
+of newly generated biological data, while scientists execute human-authored
+laboratory protocols and return the results. These systems are stronger than
+ChemWorld on literature-scale synthesis, biomedical novelty, and empirical
+wet-laboratory validation. They do not give the agent primitive control of the
+sample lifecycle, nor are they designed to estimate behavioral effects under
+cloned physical and informational conditions
+([Gottweis et al., 2026](https://doi.org/10.1038/s41586-026-10644-y);
+[Ghareeb et al., 2026](https://doi.org/10.1038/s41586-026-10652-y)).
+
 Long-horizon and strategy-level claims also have strong physical precedents.
 ORGANA plans with visual feedback and executes diverse chemistry procedures,
 including a parallel nineteen-step electrochemical workflow. ChemAgents spans
@@ -162,18 +175,22 @@ Interactive discovery benchmarks already test hypothesis formation,
 experimentation, and explanation. DiscoveryWorld supplies long-horizon
 fictional scientific tasks; BoxingGym evaluates experimental design and model
 discovery in generative probabilistic environments; and SciGym supplies a dry
-laboratory of hundreds of systems-biology models. More recent benchmarks go
-further in explicit law recovery. NewtonBench contains 324 counterfactual
+laboratory of hundreds of systems-biology models. SciExplorer goes further by
+letting an agent select numerical experiments and analysis procedures for
+initially unknown mechanical, wave, and quantum systems, recovering equations
+of motion and Hamiltonians without task-specific exploration blueprints. More
+recent benchmarks formalize this law-recovery problem at scale. NewtonBench contains 324 counterfactual
 physics-law tasks, DiscoverPhysics evaluates prediction and explanation in 22
 non-canonical physical worlds, and ActiveSciBench-Chem contains 57 enzyme-
 kinetics mechanism tasks. These systems currently exceed ChemWorld in the
-scale and formal evaluation of law recovery. ChemWorld addresses a different
+generality, scale, and formal evaluation of law recovery. ChemWorld addresses a different
 unit of interaction: the agent must construct and advance a stateful chemical
 experiment, decide when to characterize it, and bear inventory and vessel
 opportunity costs rather than only select the next query or initial condition
 ([Jansen et al., 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/13836f251823945316ae067350a5c366-Abstract-Datasets_and_Benchmarks_Track.html);
 [Gandhi et al., 2025](https://arxiv.org/abs/2501.01540);
 [Duan et al., 2025](https://arxiv.org/abs/2507.02083);
+[Nägele and Marquardt, 2026](https://doi.org/10.1103/xnqc-q6nt);
 [Zheng et al., 2025](https://arxiv.org/abs/2510.07172);
 [Wiemann et al., 2026](https://arxiv.org/abs/2605.26087);
 [Kabra et al., 2026](https://arxiv.org/abs/2605.24043)).
@@ -201,6 +218,17 @@ study's identity control, resource provenance, and trajectory replication
 [Ríos-García et al., 2026](https://arxiv.org/abs/2604.18805);
 [Guo et al., 2026](https://arxiv.org/abs/2607.23045);
 [Zeng et al., 2026](https://arxiv.org/abs/2606.26722)).
+
+Qiushi Discovery Engine sets an even stronger boundary for claims about
+end-to-end autonomy and long-horizon research. On a real optical platform it
+maintained a nonlinear research trajectory over thousands of model and tool
+calls and reported experimental validation of a previously unreported physical
+mechanism. ChemWorld therefore does not claim the first long-horizon autonomous
+research trajectory, end-to-end discovery, or agent-generated mechanism. Its
+empirical contribution is the complementary ability to repeat controlled
+interventions on an experimenting agent within an identity-bound chemical
+substrate and to quantify whether its strategy survives fresh sampling
+([Yang et al., 2026](https://arxiv.org/abs/2604.27092)).
 
 Finally, LabUtopia, MATTERIX, and Labimus provide substantially richer
 perception, manipulation, laboratory geometry, powder physics, and sim-to-real
