@@ -108,7 +108,9 @@ primitive operation 仍是非主要绑定的安全护栏；材料、容器和仪
 - 门槛 3 已通过：immutable attempt、零动作 provider retry、动作后 right censor、resume 身份验证均有自动化测试。
 - 门槛 4 已通过：replication audit 拒绝缺失/重复 replicate、身份篡改和选择性替换；仅对两 arm 都完整的 replicate 计算配对差。
 - 静态检查与相关回归已通过：Ruff 全绿；167 passed，1 个与本协议无关的既有测试显式 deselect。
-- 门槛 5 尚待真实 K1 qualification；在它通过并随证据形成干净 commit 前，禁止启动 20-cell 正式矩阵。
+- 门槛 5 已通过：opaque K1 以 17 个自主原始操作完成一个完整实验，provider-session audit 与 17/17 exact replay 全部通过；详见 `workstreams/G2_TRAJECTORY_REPLICATION_QUALIFICATION_REPORT_ZH.md`。
+- 首个 nominal K1 因外层 120 秒启动器截止在 11 个有效操作后右删失，证据被原样保留且未重跑；这直接冻结了正式矩阵必须使用持久后台 launcher 的部署要求。
+- 门槛 6 已通过：资格报告与 persistent detached launcher 已进入版本控制；正式运行必须绑定包含它们的 clean commit。
 
 可复现命令：
 
@@ -120,9 +122,14 @@ primitive operation 仍是非主要绑定的安全护栏；材料、容器和仪
 .\.venv\Scripts\python.exe -m scripts.run_g2_trajectory_replication_qualification `
   --allow-external-provider --pair-order 1 --condition nominal --experiments 1
 
-# qualification 通过后才允许启动冻结的 20-cell 矩阵
-.\.venv\Scripts\python.exe -m scripts.run_g2_trajectory_replication `
-  --allow-external-provider
+# qualification 通过后，先验证 persistent launcher 与十个 pair
+.\.venv\Scripts\python.exe -m scripts.launch_g2_trajectory_replication --dry-run
+
+# 以独立后台进程启动冻结的 20-cell 矩阵；stdout/stderr/PID receipt 独立落盘
+.\.venv\Scripts\python.exe -m scripts.launch_g2_trajectory_replication
+
+# 仅在进程已结束且 manifest 尚未 finalise 时才允许创建新的 immutable resume launch
+.\.venv\Scripts\python.exe -m scripts.launch_g2_trajectory_replication --resume
 
 # 完成后生成 fail-closed JSON 与中文报告
 .\.venv\Scripts\python.exe -m chemworld.eval.autonomous_material_replication_audit `
