@@ -11,6 +11,13 @@ LEDGER_PATH = (
     / "workstreams/arxiv_v1/reports/"
     "experimental-intelligence-experiment-ledger-v0.1.json"
 )
+RELATED_WORK_EVIDENCE_PATH = (
+    ROOT
+    / "workstreams/arxiv_v1/reports/related-work-evidence-v0.1.json"
+)
+RELATED_WORK_AUDIT_PATH = (
+    ROOT / "workstreams/arxiv_v1/RELATED_WORK_AUDIT_2026_08_ZH.md"
+)
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -139,6 +146,18 @@ def test_paper_scope_keeps_g2_primary_and_claims_bounded() -> None:
     assert scope["general_population_prior_effect_claim"] is False
     assert "no pooled general-world p-value" in g2["claim_boundary"]
     assert len(ledger["publication_blockers"]) == 7
+    assert g2["status"] == (
+        "restart_required_after_excluded_host_interruption"
+    )
+    assert g2["excluded_launch_01"]["disposition"].startswith(
+        "exclude the entire launch"
+    )
+    assert g2["restart_policy"]["protocol_changed"] is False
+    assert g2["restart_policy"]["outcomes_inspected_for_restart_decision"] is False
+    assert g2["excluded_launch_01"]["source_commit"] == (
+        "f539bfa7af5e3846ef56a842fd56b990cdd8bd07"
+    )
+    assert ledger["launch_decision"]["formal_run_started"] is False
 
 
 def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
@@ -186,3 +205,37 @@ def test_all_tracked_evidence_and_execution_entrypoints_exist() -> None:
     )
     blocker_ids = [item["id"] for item in ledger["publication_blockers"]]
     assert blocker_ids == ["B1", "B2", "B3", "B4", "B5", "B6", "B7"]
+
+
+def test_related_work_audit_is_current_bounded_and_synchronized() -> None:
+    evidence = _load(RELATED_WORK_EVIDENCE_PATH)
+    audit = RELATED_WORK_AUDIT_PATH.read_text(encoding="utf-8")
+    manuscript = (
+        ROOT / "paper/experimental_intelligence_v1_manuscript.md"
+    ).read_text(encoding="utf-8")
+    works = {item["id"]: item for item in evidence["works"]}
+
+    assert evidence["reviewed_at"] == "2026-08-01"
+    assert len(works) >= 18
+    assert {
+        "chemgymrl",
+        "discoveryworld",
+        "newtonbench",
+        "active_scibench_chem",
+        "causalab",
+        "corral",
+        "robotic_chemistry_stress_test",
+        "labutopia",
+        "matterix",
+        "labosbench",
+        "labrobfail",
+    } <= works.keys()
+    assert all(
+        item["status"] in {"peer_reviewed", "preprint"}
+        for item in works.values()
+    )
+    assert len(evidence["absolute_claims_rejected"]) >= 6
+    assert len(evidence["chemworld_current_limitations"]) >= 7
+    assert "controlled experimental science of experimenting agents" in audit
+    assert "ChemWorld intentionally abstracts those problems" in manuscript
+    assert "first virtual chemistry laboratory" in manuscript

@@ -1,6 +1,6 @@
 # Experimental Intelligence in Executable Chemical Worlds
 
-Status: working manuscript skeleton, 2026-08-01. Not submission-ready.
+Status: working manuscript v0.2, 2026-08-01. Not submission-ready.
 
 Evidence and experiment authority:
 `workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md` and
@@ -87,9 +87,84 @@ Fifth, it uses fresh trajectories within fixed physical worlds to test whether
 observed experimental phenotypes are repeatable or dominated by one-off model
 sampling.
 
-## 2. ChemWorld as an apparatus for studying agents
+## 2. Relation to existing systems
 
-### 2.1 Stateful chemical worlds
+Chemistry agents and self-driving laboratories have established that language-
+model systems can retrieve chemical knowledge, call specialist tools, compile
+protocols, and act through cloud or robotic laboratories. Coscientist connected
+planning, documentation search, code, and experimental automation, while
+ChemCrow combined a language model with eighteen chemistry tools and physical
+synthesis. A-Lab and mobile robotic laboratories provide stronger evidence than
+ChemWorld for real chemical execution and deployment. These systems answer
+whether an agent can be connected to, and produce useful outcomes in, the real
+laboratory. They do not generally provide the cloned physical identities,
+paired information interventions, or fresh-trajectory replication needed to
+estimate whether the resulting experimental behavior is stable
+([Boiko et al., 2023](https://doi.org/10.1038/s41586-023-06792-0);
+[Bran et al., 2024](https://doi.org/10.1038/s42256-024-00832-8);
+[Szymanski et al., 2023](https://doi.org/10.1038/s41586-023-06734-w);
+[Kotopanov et al., 2024](https://doi.org/10.1038/s41586-024-08173-7)).
+
+Virtual environments address complementary constraints. Summit and Olympus
+already support reproducible in-silico reaction optimization, PC-Gym supports
+nonlinear chemical-process control, and ChemGymRL provides interconnected
+virtual chemistry benches with fine-grained agent actions. We therefore do not
+claim the first virtual chemistry laboratory or use optimizer ranking as the
+primary novelty. ChemWorld instead combines chemical primitive control with
+controlled interventions on the experimenting agent, campaign-wide physical
+resource accounting, immutable failure evidence, and state-level replay
+([Beeler et al., 2024](https://doi.org/10.1039/D3DD00183K);
+[Bloor et al., 2024](https://arxiv.org/abs/2410.22093)).
+
+Interactive discovery benchmarks already test hypothesis formation,
+experimentation, and explanation. DiscoveryWorld supplies long-horizon
+fictional scientific tasks; BoxingGym evaluates experimental design and model
+discovery in generative probabilistic environments; and SciGym supplies a dry
+laboratory of hundreds of systems-biology models. More recent benchmarks go
+further in explicit law recovery. NewtonBench contains 324 counterfactual
+physics-law tasks, DiscoverPhysics evaluates prediction and explanation in 22
+non-canonical physical worlds, and ActiveSciBench-Chem contains 57 enzyme-
+kinetics mechanism tasks. These systems currently exceed ChemWorld in the
+scale and formal evaluation of law recovery. ChemWorld addresses a different
+unit of interaction: the agent must construct and advance a stateful chemical
+experiment, decide when to characterize it, and bear inventory and vessel
+opportunity costs rather than only select the next query or initial condition
+([Jansen et al., 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/13836f251823945316ae067350a5c366-Abstract-Datasets_and_Benchmarks_Track.html);
+[Gandhi et al., 2025](https://arxiv.org/abs/2501.01540);
+[Duan et al., 2025](https://arxiv.org/abs/2507.02083);
+[Zheng et al., 2025](https://arxiv.org/abs/2510.07172);
+[Wiemann et al., 2026](https://arxiv.org/abs/2605.26087);
+[Kabra et al., 2026](https://arxiv.org/abs/2605.24043)).
+
+Prediction--understanding dissociation and process-level evaluation are also
+not unique claims. CausaLab separates task success from recovered causal
+structure, and ReplaySCM evaluates executable mechanism replay. Most directly,
+Corral reports across more than 25,000 runs that successful outcomes can conceal
+evidence neglect and failures of belief revision. A July 2026 robotic-chemistry
+stress test likewise makes physical executability and evidence-driven
+replanning measurable. ChemWorld complements these studies by grounding
+process evidence in chemical actions, measurements, resources, and subsequent
+physical consequences, while permitting paired interventions on prior
+information and repeat trajectories in the same physical world
+([Yang et al., 2026](https://arxiv.org/abs/2605.26029);
+[Batzoglou, 2026](https://arxiv.org/abs/2605.08197);
+[Ríos-García et al., 2026](https://arxiv.org/abs/2604.18805);
+[Guo et al., 2026](https://arxiv.org/abs/2607.23045)).
+
+Finally, LabUtopia and MATTERIX provide substantially richer perception,
+manipulation, laboratory geometry, and sim-to-real capabilities, while
+LabOSBench and LabRobFail isolate instrument-control and robotic-failure
+competencies. ChemWorld intentionally abstracts those problems. Its niche is
+not a more realistic robot simulator, but a controlled experimental science of
+experimenting agents grounded in executable chemistry
+([Li et al., 2025](https://arxiv.org/abs/2505.22634);
+[Darvish et al., 2026](https://doi.org/10.1038/s43588-025-00924-4);
+[Zou et al., 2026](https://arxiv.org/abs/2606.16802);
+[Wang et al., 2026](https://arxiv.org/abs/2607.23704)).
+
+## 3. ChemWorld as an apparatus for studying agents
+
+### 3.1 Stateful chemical worlds
 
 ChemWorld separates a physical causal substrate, an experimental interaction
 runtime, and a versioned task/evaluation contract. The substrate contains typed
@@ -107,7 +182,7 @@ this manuscript are limited to electrochemical conversion and reaction-to-
 crystallization, with autonomous primitive-control results currently limited to
 electrochemical conversion.
 
-### 2.2 Agent-directed experimentation
+### 3.2 Agent-directed experimentation
 
 In agent-directed control, each decision selects exactly one typed operation.
 The environment validates the operation, preflights the resource ledger,
@@ -123,7 +198,7 @@ attempt and remain in the trajectory. Material, solvent, vessel, instrument,
 operation, model-call, token, and wall-time resources are recorded on separate
 axes rather than combined into a hidden scalar budget.
 
-### 2.3 Controlled identities and replay
+### 3.3 Controlled identities and replay
 
 Each run binds the task and scoring contracts, physical world and material
 instance, observation-noise namespace, resource card, method envelope, model
@@ -138,7 +213,7 @@ a fresh model trajectory. Native Codex does not expose a reproducible provider
 sampling seed; a fresh trajectory is therefore an independent session-level
 realization, not a deterministically replayed model random-number stream.
 
-## 3. Compiled experiments reveal task- and prior-dependent behavior
+## 4. Compiled experiments reveal task- and prior-dependent behavior
 
 Compiled-experiment control is used here as a low-agency calibration, not as the
 ontological starting point of ChemWorld. On each exploration turn the agent
@@ -152,7 +227,7 @@ misindexed material-information conditions. The opaque participant slice is
 shared between the original two-task study and the three-arm study and is
 counted only once.
 
-### 3.1 Optimization performance depends on the chemical task
+### 4.1 Optimization performance depends on the chemical task
 
 In electrochemical conversion, the participant mean was 0.7150, compared with
 0.6159 for the strongest information-matched structured RF-EI baseline. The
@@ -167,7 +242,7 @@ superiority tests and do not support a general language-model-versus-classic-
 optimization ranking. They instead establish task-dependent behavior under a
 shared participant scaffold.
 
-### 3.2 Correct material information has task-dependent value
+### 4.2 Correct material information has task-dependent value
 
 Anonymous nominal material properties increased the electrochemical mean from
 0.7150 to 0.7874, a paired difference of +0.0724 with a familywise 97.5%
@@ -176,7 +251,7 @@ to 0.5615, but its interval of -0.0130 to +0.0630 included zero. Correct
 material information therefore had clear value in the sampled electrochemical
 worlds but uncertain value in crystallization.
 
-### 3.3 Prior manipulation, action correction, and recovery are distinct
+### 4.3 Prior manipulation, action correction, and recovery are distinct
 
 Deliberately misindexed material properties increased the first misleading-
 action rate from zero to 0.7 in electrochemistry and to 1.0 in crystallization.
@@ -189,7 +264,7 @@ The result does not show that agents generally recover from incorrect priors.
 It shows that prior manipulation, later behavioral change, and performance
 recovery are empirically separable events.
 
-## 4. Optimization and cognition provide different capability profiles
+## 5. Optimization and cognition provide different capability profiles
 
 The electrochemical participant combined a final recommendation score of
 0.7150 with held-out directional accuracy of 0.744 and a Brier score of 0.186.
@@ -205,9 +280,9 @@ They demonstrate why endpoint optimization, outcome-held-out prediction,
 declared confidence, structural explanation, and method synthesis must remain
 separate endpoints when evaluating scientific agents.
 
-## 5. Autonomous experimentation exposes discovery, loss, and recovery
+## 6. Autonomous experimentation exposes discovery, loss, and recovery
 
-### 5.1 Native Codex closes complete experimental lifecycles
+### 6.1 Native Codex closes complete experimental lifecycles
 
 The autonomous development matrix placed native Codex (`gpt-5.6-sol`, medium
 reasoning) in five paired electrochemical worlds under opaque or anonymous
@@ -221,7 +296,7 @@ assays (224 measurement operations in total), with no invalid or resource-
 rejected operation. All sixty provider sessions completed, and all resource,
 replay, and physical-pair audits passed.
 
-### 5.2 Endpoint summaries conceal different learning trajectories
+### 6.2 Endpoint summaries conceal different learning trajectories
 
 The opaque and nominal arms had mean best scores of 0.6314 and 0.7093, but the
 direction and magnitude varied strongly by world. Different time and resource
@@ -236,7 +311,7 @@ the matched nominal campaign recovered from several declines and ended at
 0.7894. Similar endpoint summaries can therefore obscure early discovery,
 catastrophic loss, stable retention, and late recovery.
 
-### 5.3 Material information is associated with trajectory stability, not a
+### 6.3 Material information is associated with trajectory stability, not a
 uniform performance gain
 
 The global best appeared at mean normalized progress 0.32 in the opaque arm and
@@ -251,7 +326,7 @@ drawdown, and terminal-to-best effects reversed. The apparent average stability
 of the nominal arm may therefore reflect physical-world context, a single
 provider trajectory, or their interaction.
 
-## 6. Fresh trajectories test within-world repeatability
+## 7. Fresh trajectories test within-world repeatability
 
 [PENDING EXPERIMENTAL RESULTS]
 
@@ -277,7 +352,7 @@ This section will choose exactly one preregistered interpretation branch:
 
 The branch is selected by the frozen audit output, not by narrative preference.
 
-## 7. Discussion
+## 8. Discussion
 
 ChemWorld changes what can be measured about a scientific agent. A high endpoint
 can result from early luck followed by abandonment, while slower improvement can
@@ -308,51 +383,51 @@ studied as experimental systems, and their competence is multidimensional.
 Executable chemical worlds provide the controlled apparatus required to expose
 that structure.
 
-## 8. Methods
+## 9. Methods
 
-### 8.1 Environment and task qualification
+### 9.1 Environment and task qualification
 
 [Describe state ledgers, runtime services, operations, instruments, task
 contracts, the 415-case design audit, and 62 endpoint bindings.]
 
-### 8.2 Compiled-experiment protocols
+### 9.2 Compiled-experiment protocols
 
 [Describe v1.0 and v1.2 freezes, ten independent worlds per task, twenty
 exploration experiments, predictive checks, blind validation, classic methods,
 paired intervals, multiplicity boundaries, and nonduplicated accounting.]
 
-### 8.3 Agent-directed primitive protocol
+### 9.3 Agent-directed primitive protocol
 
 [Describe MCP transport, one decision per operation, no repair/closeout,
 campaign resource card, six-vessel campaign, persistent file-backed memory,
 public affordances, and hidden-information boundary.]
 
-### 8.4 Trajectory endpoints
+### 9.4 Trajectory endpoints
 
 [Give exact definitions of discovery fraction, 90% online retention, frozen-
 incumbent loss/recovery, drawdown, terminal-to-best, three running-best AUCs,
 and diagnostic-aligned control change.]
 
-### 8.5 Fresh-trajectory replication
+### 9.5 Fresh-trajectory replication
 
 [Describe selected-world status, exclusion of development trajectories,
 trajectory replicate semantics, pair schedule, immutable attempts, retries,
 right-censoring, and per-world descriptive analysis.]
 
-### 8.6 Provenance, provider accounting, and replay
+### 9.6 Provenance, provider accounting, and replay
 
 [Describe source/config/physical identity hashes, provider receipts, resource
 ledger reconstruction, exact replay, local raw data, release snapshots, and
 the independent-checkout attestation required before submission.]
 
-## 9. Data and code availability
+## 10. Data and code availability
 
 [BLOCKED: `benchmark/releases/chemworld-serious-v1` is empty. Before release,
 provide a frozen derived cell table, trajectory and receipt hash index, a small
 replayable trajectory subset, a data card, and a durable archive location for
 the full local raw corpus.]
 
-## 10. Remaining work before arXiv
+## 11. Remaining work before arXiv
 
 1. Execute and audit 20 G2 v0.5 cells, representing 120 planned physical
    experiment opportunities and 120 provider sessions.

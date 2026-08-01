@@ -6,7 +6,11 @@
 
 机器总账：`workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json`
 
-审计基线：`main@5b9ededb8bb50a31d3ed70c85af17c8d715b4e12`
+G2 v0.5 执行源码：`main@f539bfa7af5e3846ef56a842fd56b990cdd8bd07`
+
+第一次启动基础设施中断记录：`workstreams/arxiv_v1/G2_V05_EXECUTION_INCIDENT_2026_08_01_ZH.md`
+
+相关工作审计：`workstreams/arxiv_v1/RELATED_WORK_AUDIT_2026_08_ZH.md`
 
 ## 0. 决策摘要
 
@@ -19,7 +23,10 @@
 - G1 是开发期接口诊断，不进入论文科学本体；
 - 不进行“G2 是否胜过 G0”或“LLM 是否胜过 BO”的总体胜负叙事。
 
-截至审计日，第一版唯一尚需执行的新科学矩阵是 G2 v0.5：20 cells、120 个 fresh-vessel 实验机会、120 个原生 Codex sessions。G0 不需要新科学实验。旧的 matched G0/G2 40-cell 矩阵和 G2 三臂扩展均移到 arXiv 之后。
+第一版唯一新增科学矩阵 G2 v0.5 已于 2026-08-01 23:30（Asia/Shanghai）从干净的
+`f539bfa7` commit 以持久后台进程启动：20 cells、120 个 fresh-vessel 实验机会、120 个
+原生 Codex sessions。运行期间只读监控，不依据中途结果改变顺序、停止或重抽样。G0 不需要
+新科学实验。旧的 matched G0/G2 40-cell 矩阵和 G2 三臂扩展均移到 arXiv 之后。
 
 ## 1. 科学对象与中心问题
 

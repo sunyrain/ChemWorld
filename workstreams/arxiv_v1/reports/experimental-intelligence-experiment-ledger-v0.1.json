@@ -137,9 +137,36 @@
     "g2_v0_5_fresh_trajectory_replication": {
       "paper_role": "required new experiment measuring within-world repeatability of experimental behavior",
       "evidence_level": "development_preregistered_selected_world_replication",
-      "status": "ready_not_started",
-      "formal_output_exists_at_audit": false,
-      "launcher_output_exists_at_audit": false,
+      "status": "restart_required_after_excluded_host_interruption",
+      "formal_output_exists_at_audit": true,
+      "launcher_output_exists_at_audit": true,
+      "excluded_launch_01": {
+        "launched_at": "2026-08-01T15:30:48.109942+00:00",
+        "source_commit": "f539bfa7af5e3846ef56a842fd56b990cdd8bd07",
+        "process_id_at_launch": 15984,
+        "receipt_sha256": "d317b7089193ac12f67a6ca545344c9cef97fbcf803224149e7c1ab4e5f20259",
+        "receipt_path": "runs/development/g2-autonomous-material-seed1-seed3-r5-codex-sol-medium-v1-launcher/launch-01/launch_receipt.json",
+        "last_durable_event_at": "2026-08-01T15:44:02.8410346+00:00",
+        "observed_state": {
+          "completed_cells": 1,
+          "completed_physical_experiments": 6,
+          "incomplete_cells": 1,
+          "incomplete_cell_accepted_operations": 4,
+          "remaining_pending_cells": 18
+        },
+        "termination_evidence": "the detached Python PID disappeared without stderr, Python exception summary, or Windows application-error event; cell-002 lacks run_summary.json and is therefore audit_required",
+        "disposition": "exclude the entire launch from the confirmatory estimand; retain all bytes as an immutable infrastructure-incident record",
+        "counting_note": "no operation, vessel, or cell from the excluded launch is promoted to the formal scientific total"
+      },
+      "restart_policy": {
+        "protocol_changed": false,
+        "schedule_changed": false,
+        "selection_changed": false,
+        "outcomes_inspected_for_restart_decision": false,
+        "new_output_root_required": true,
+        "execution_mode": "foreground_supervised_process",
+        "reason": "avoid detached-process reclamation while preserving the frozen scientific design"
+      },
       "worlds": 2,
       "selected_world_seeds": [
         1,
@@ -216,8 +243,8 @@
     {
       "id": "B1",
       "kind": "scientific_experiment",
-      "status": "open",
-      "blocker": "G2 v0.5 has 0/20 terminal cells and 0/120 physical experiment opportunities materialized"
+      "status": "in_progress",
+      "blocker": "the first detached launch was excluded after a host-process interruption; a clean foreground-supervised restart still requires 20 terminal cells and 120 audited physical experiment opportunities"
     },
     {
       "id": "B2",
@@ -263,6 +290,6 @@
     "dry_run_pair_audits_passed": 10,
     "dry_run_pair_audits_planned": 10,
     "formal_run_started": false,
-    "next_scientific_action": "launch the frozen G2 v0.5 detached matrix without changing prompt, endpoints, schedule or stopping rules"
+    "next_scientific_action": "commit the incident record, start the unchanged schedule in a new output root under a foreground-supervised process, allow all cells to materialize, then run the fail-closed replication audit without outcome-dependent intervention"
   }
 }

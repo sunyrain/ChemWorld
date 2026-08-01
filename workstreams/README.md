@@ -11,3 +11,8 @@ The active first-arXiv research specification is
 `workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md`. Its
 machine-readable experiment accounting is
 `workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json`.
+The current primary-source related-work audit and its machine-readable evidence are
+`workstreams/arxiv_v1/RELATED_WORK_AUDIT_2026_08_ZH.md` and
+`workstreams/arxiv_v1/reports/related-work-evidence-v0.1.json`.
+The excluded first-launch infrastructure interruption is recorded in
+`workstreams/arxiv_v1/G2_V05_EXECUTION_INCIDENT_2026_08_01_ZH.md`.
