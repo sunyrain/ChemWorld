@@ -1,7 +1,7 @@
 # Experimental Intelligence in Executable Chemical Worlds: display items
 
-Status: `provisional_awaiting_g2_v0_5`.
-Derived-data SHA-256: `69bca7b10d656c92392de76e3ac93562cb77edfe6bf43018fad43f3e395be093`.
+Status: `frozen_complete`.
+Derived-data SHA-256: `12e9b122cac0f9c69523aeffb53e78dd13812d1da2e63e3236501fbe6b9b4d42`.
 
 Every number in the tables below is rendered from the self-hashed arXiv derived-data
 object. This file is intended for direct inclusion during manuscript typesetting.
@@ -50,11 +50,25 @@ the worlds and endpoints for G2 v0.5 and are excluded from its replication estim
 
 ### Table 4 | Fresh-trajectory replication (G2 v0.5)
 
-G2 v0.5 is not terminal. The preregistered 20-cell matrix remains absent from the
-paper data object, so no interim replication values are rendered here.
+| World | Replicate | Opaque state | Nominal state | Δ best score | Δ mean score | Δ discovery | Δ retention | Δ drawdown | Δ terminal / best |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | r01 | completed | right_censored | not measured | not measured | not measured | not measured | not measured | not measured |
+| 1 | r02 | completed | completed | 0.285 | 0.304 | 0.000 | 0.200 | -0.273 | 0.035 |
+| 1 | r03 | completed | completed | -0.143 | -0.074 | 0.400 | 0.400 | -0.306 | 0.173 |
+| 1 | r04 | completed | completed | 0.170 | 0.144 | -0.400 | 0.000 | 0.045 | -0.073 |
+| 1 | r05 | completed | completed | 0.381 | 0.429 | -0.400 | 0.000 | -0.040 | 0.319 |
+| 3 | r01 | completed | completed | -0.167 | -0.121 | 0.600 | 0.400 | -0.463 | 0.486 |
+| 3 | r02 | completed | completed | -0.368 | -0.236 | -0.800 | -0.200 | 0.057 | -0.007 |
+| 3 | r03 | completed | completed | 0.001 | -0.009 | 0.000 | 0.000 | -0.028 | 0.000 |
+| 3 | r04 | completed | completed | 0.253 | 0.291 | -0.200 | 0.000 | 0.030 | -0.060 |
+| 3 | r05 | right_censored | completed | not measured | not measured | not measured | not measured | not measured | not measured |
 
 Deltas are nominal minus opaque within the same physical world and replicate block.
 The two deliberately selected worlds are not pooled into a population-level estimate.
+Terminal coverage: 18 completed cells, 2 right-censored cells, and 8 complete pairs (4 in world 1; 4 in world 3).
+The frozen interpretation mapping selected `frequent_within_world_reversal`: 6 of 8 world-by-core-lifecycle classifications were mixed. Policy SHA-256: `93604ce8af7211f35c5d3b896609addef6d436f3248f45aba3cc04a11da9d67e`.
+Frozen policy language: Fresh trajectories frequently reversed sign within a fixed physical world, indicating that provider-trajectory variability dominated any stable material-information pattern.
+Provider sampling was not seed-controlled; this language is descriptive and does not identify a causal provider effect.
 
 ## Figure legends
 
@@ -92,9 +106,10 @@ physical worlds; points are worlds and horizontal bars are descriptive means. Po
 drawdown differences indicate larger drawdown under nominal information.
 
 **Figure 5 | Fresh trajectories test within-world repeatability.**
-Nominal-minus-opaque paired differences for best score, online incumbent retention,
-maximum absolute drawdown and terminal-to-best ratio across five fresh replicates in each
-of selected physical worlds 1 and 3. This legend becomes active only after the terminal G2 v0.5 audit is incorporated.
+Nominal-minus-opaque paired differences for best score and four core lifecycle
+endpoints---global-best discovery fraction, online incumbent retention, maximum absolute
+drawdown and terminal-to-best ratio---across five fresh replicates in each
+of selected physical worlds 1 and 3. All ten pre-specified trajectory pairs are shown; an x marks a right-censored pair. Six of eight world-by-core-lifecycle classifications were mixed, selecting the frozen `frequent_within_world_reversal` interpretation branch.
 Selection used the prior development matrix; those trajectories are excluded. Effects are
 reported within world, with no pooled population-level test.
 

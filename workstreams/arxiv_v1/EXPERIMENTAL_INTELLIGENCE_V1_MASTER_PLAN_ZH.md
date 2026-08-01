@@ -1,115 +1,84 @@
 # ChemWorld 第一版 arXiv 总规格：可执行化学世界中的实验智能
 
-状态：`authoritative working plan; claims remain evidence-bounded`
+状态：`authoritative working plan; terminal scientific matrix incorporated`
 
-工作标题：**Experimental Intelligence in Executable Chemical Worlds**
+工作标题：*Experimental Intelligence in Executable Chemical Worlds*
 
 机器总账：`workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json`
 
-G2 v0.5 当前执行源码：`main@aae0edac12c849bc4246ca5ac9359a2d00d9f660`
-
-进度快照（2026-08-02 02:47，Asia/Shanghai）：10 completed cells、1 right-censored
-cell、9 cells 待终态化；66/120 vessel opportunity slots 已解析，54 slots 待解析；
-4/10 pair 完整、1/10 pair 右删失、5/10 pair 未决。实时数字只用于运行审计，不进入正文
-结果；固定设计总账与动态运行审计的机器可读权威分别为
-`workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json` 和
-`workstreams/arxiv_v1/reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json`。
-
-第一次启动基础设施中断记录：`workstreams/arxiv_v1/G2_V05_EXECUTION_INCIDENT_2026_08_01_ZH.md`
+终态实验审计：`workstreams/arxiv_v1/ARXIV_V1_READINESS_AUDIT_ZH.md`
 
 相关工作审计：`workstreams/arxiv_v1/RELATED_WORK_AUDIT_2026_08_ZH.md`
 
-## 0. 决策摘要
-
-第一版论文不再以“从 recipe optimization 走向 G2”作为叙事。ChemWorld 的核心贡献是把实验智能本身变成可操作、可干预、可重复测量的对象：Agent 在隐藏物理世界中选择操作和表征，承担资源与失败后果，并通过完整轨迹暴露其发现、保留、回撤、恢复、预测和先验响应。
-
-内部 G0/G2 术语只保留在协议和方法中：
-
-- G2 `closed_loop_primitive` 是论文主实验界面；
-- G0 `compiled_recipe` 是低行动权校准与既有先验干预证据，不是故事起点；
-- G1 是开发期接口诊断，不进入论文科学本体；
-- 不进行“G2 是否胜过 G0”或“LLM 是否胜过 BO”的总体胜负叙事。
-
-第一版唯一新增科学矩阵 G2 v0.5 的第一次 detached 启动因宿主进程中断被整体排除并原样保留。
-同一冻结协议已于 2026-08-01 23:51（Asia/Shanghai）从干净的 `aae0edac` commit 写入新目录，
-以前台托管方式完整重启：20 cells、120 个 fresh-vessel 实验机会、120 个原生 Codex sessions。
-运行期间只读监控，不依据中途结果改变顺序、停止或重抽样。G0 不需要新科学实验。旧的
-matched G0/G2 40-cell 矩阵和 G2 三臂扩展均移到 arXiv 之后。
-
-## 1. 科学对象与中心问题
-
-### 1.1 科学对象
-
-本文研究的对象不是某个优化器的排行榜位置，而是 **experimental intelligence**：
-
-> 一个 Agent 在部分观测、有限资源和有后果的干预中选择实验、使用证据、修正策略并完成实验生命周期的能力结构。
-
-实验智能至少分为六个不可互换的维度：
-
-1. **Lifecycle autonomy**：能否自主建立、推进、结束并 final-assay 一个实验；
-2. **Discovery**：何时首次发现高质量条件；
-3. **Retention**：发现后是否能保持接近 incumbent 的性能；
-4. **Recovery**：回撤后是否、何时重新达到冻结阈值；
-5. **Evidence response**：表征之后是否改变可比较控制，以及结果如何变化；
-6. **Cognitive reliability**：预测、校准、结构声明和不受证据支持的断言是否可靠。
-
-### 1.2 中心问题
-
-主问题不是“Agent 最后拿到多少分”，而是：
-
-> **终点性能是否足以刻画一个正在做实验的科学 Agent？如果不足，哪些实验行为维度是可重复的，哪些依赖具体物理世界、先验和单次模型轨迹？**
-
-对应四个研究问题：
-
-- **RQ1 — Endpoint underdetermination**：相似的 best/mean score 是否可以来自不同的发现、回撤和恢复轨迹？
-- **RQ2 — Prior intervention**：材料信息首先改变终点分数，还是改变实验选择与轨迹稳定性？
-- **RQ3 — World-conditioned repeatability**：相反的 seed 1/seed 3 行为模式能否在固定世界内跨 fresh trajectories 重现？
-- **RQ4 — Optimization–cognition dissociation**：优化、held-out prediction、声明可靠性和性能恢复是否给出一致能力排序？
-
-RQ1、RQ2 和 RQ4 目前已有 G0/G2 开发证据；RQ3 是 G2 v0.5 的唯一新科学实验目标。
-
-## 2. ChemWorld 的方法学定位
-
-### 2.1 不是机器人实验室的替代品
-
-现实自动化实验室主要回答设备编排、现实可执行性和部署可靠性。ChemWorld 主要回答实验决策、证据使用和科学行为能否在受控条件下被隔离测量。
-
-本文不声称：
-
-- sim-to-real；
-- 工业数字孪生；
-- 任意真实化学反应预测；
-- 任意物理规律生成；
-- 真实仪器队列、审批或异步结果申请已经实现。
-
-### 2.2 作为研究 Agent 的实验装置
-
-ChemWorld 允许分别控制：
-
-| 干预对象 | 当前可用控制 | 本文作用 |
-|---|---|---|
-| 物理世界 | seed、材料实例、有限机制/参数变化、keyed noise | 配对、重复和世界异质性 |
-| Agent 先验 | opaque、anonymous nominal、misindexed | 行为操纵和先验依赖 |
-| 行动权 | compiled complete experiment、primitive operations | 低行动权校准与主实验界面 |
-| 测量 | 仪器选择、时机、历史 spectrum 访问 | 主动表征和时间对齐行为 |
-| 资源后果 | 原料、容器、仪器机会、操作尝试、成本、风险 | 资源分配与失败进入结果 |
-| 可重复性 | world/config/source hash、immutable attempt、exact replay | 区分物理身份与轨迹随机性 |
-
-一句话定位：
+## 0. 第一版的一句话故事
 
 > **The agent is the subject; the chemical world is the apparatus.**
 
-## 3. 贡献声明
+ChemWorld 的第一版不讲“从配方优化走向自主实验”，也不以 LLM 是否胜过 BO 为中心。它把正在做实验的 Agent 变成一个可受控干预、可重复测量、可逐步回放的科学对象：Agent 在隐藏化学世界中选择操作、表征、停止与 final assay，承担材料、仪器、容器和失败后果；我们由此测量端点分数之外的 discovery、retention、drawdown、recovery、evidence response 和 cognition。
 
-论文按以下顺序声明贡献：
+第一版的核心经验发现是：
 
-1. **Executable chemical worlds**：有状态、部分可观测、带任务合同的化学/化工运行时；
-2. **Experimental interaction substrate**：逐操作、主动测量、事务、失败、资源账本、生命周期和回放；
-3. **Experimental-intelligence measurement**：把 discovery、retention、recovery、evidence response、cognition 和 utility 分开；
-4. **Controlled behavioral evidence**：G0 中的任务异质性、先验操纵和优化—认知分离；G2 中的自主实验轨迹；
-5. **Trajectory-level replication design**：在固定物理世界中分离 world identity 与 fresh provider trajectory。
+> **端点方向性不保证产生它的实验生命周期可重复。**
 
-平台贡献与行为发现必须并列：只有平台而没有现象会像软件论文；只有现象而没有运行时则无法说明为何此前不能严格测量。
+在固定物理世界与配对身份下，fresh trajectories 的 prior effect 仍频繁翻转。部分 endpoint 在某个世界中保持方向性，但 discovery、retention、drawdown 与 terminal behavior 大多不形成稳定 phenotype。这不是“先验好或坏”的结论，而是一个此前难以严格测量的实验智能结构。
+
+## 1. 科学对象与研究问题
+
+本文把 experimental intelligence 定义为：Agent 在部分可观测、有限资源且操作有后果的世界中，选择实验、使用证据、修正策略并完成实验生命周期的能力结构。
+
+它至少包含六个不能互换的维度：
+
+1. lifecycle autonomy：能否自主建立、推进、停止并 final-assay 实验；
+2. discovery：何时首次找到高质量条件；
+3. retention：找到条件后能否继续保持；
+4. drawdown/recovery：离开 incumbent 后损失多少、是否以及何时恢复；
+5. evidence response：表征之后如何改变可比较的控制动作；
+6. cognitive reliability：held-out prediction、calibration、结构声明和 unsupported claims 是否可靠。
+
+四个研究问题为：
+
+- RQ1 — Endpoint underdetermination：相似 endpoint 是否来自不同生命周期？
+- RQ2 — Prior intervention：先验首先改变分数，还是改变实验选择与轨迹稳定性？
+- RQ3 — Within-world repeatability：开发期观察到的行为模式能否在固定世界内跨 fresh trajectories 重现？
+- RQ4 — Optimization–cognition dissociation：优化、预测、声明可靠性和恢复是否给出一致能力排序？
+
+## 2. ChemWorld 的方法学位置
+
+ChemWorld 不是机器人实验室的替代品。现实自动化实验室回答物理可执行性、硬件编排与部署可靠性；ChemWorld 回答 Agent 的实验决策、证据使用和行为结构能否在受控条件下被隔离测量。
+
+ChemWorld 也不是一个只返回目标函数值的优化 oracle。每个实验由有状态 primitive operations 构成；Agent 选择加料、过程控制、表征、终止和 final assay，并在 campaign-wide 资源账本下承担真实机会成本。
+
+当前可独立控制的实验轴包括：
+
+| 干预轴 | 当前实现 | 科学用途 |
+| --- | --- | --- |
+| 物理身份 | world、material instance、mechanism、keyed noise | 克隆世界、配对与世界异质性 |
+| Agent 先验 | opaque、anonymous nominal、misindexed | 受控信息干预 |
+| 行动权限 | compiled complete experiment、primitive operations | 低行动权校准与自主主界面 |
+| 证据权限 | 仪器选择、测量时机、历史 artifact 访问 | 主动表征与证据响应 |
+| 资源 | 原料、溶剂、vessel、instrument、operation、provider | 资源分配和失败进入结果 |
+| 复现身份 | config/source/world hashes、immutable attempts、exact replay | 区分物理身份与 Agent 新轨迹 |
+
+第一版的可辩护独占交集是：
+
+1. chemistry-native、stateful、partially observable runtime；
+2. Agent 自主选择操作、测量、终止和 final assay；
+3. campaign-wide material/instrument/vessel/operation/provider ledger；
+4. matched physical identity 下的 paired prior intervention；
+5. immutable trajectories、exact replay 与 fixed-world fresh replication；
+6. 用 discovery/retention/drawdown/recovery 而非单一 endpoint 研究 Agent。
+
+## 3. 贡献顺序
+
+论文按下列顺序声明贡献：
+
+1. **Executable chemical worlds**：提供有状态、部分可观测、任务约束的化学/化工运行时；
+2. **Experimental interaction substrate**：逐操作、主动测量、事务、失败、资源账本、生命周期与回放；
+3. **Experimental-intelligence measurement**：把 lifecycle、discovery、retention、recovery、evidence response 与 cognition 分开；
+4. **Controlled intervention evidence**：展示任务依赖、先验操纵以及优化—认知解耦；
+5. **Fresh-trajectory replication**：揭示 endpoint directionality 与 lifecycle repeatability 的分离。
+
+环境贡献与行为发现必须并列。只讲平台会像软件论文，只讲现象则无法说明为什么过去难以严格测量。
 
 ## 4. 证据层级
 
@@ -117,416 +86,220 @@ ChemWorld 允许分别控制：
 
 - 15 个注册任务；
 - 28 类 operation；
-- 5 类仪器；
+- 5 类 instrument；
 - 415 个 deterministic complete-experiment cases；
-- 62/62 个声明端点绑定 evaluator；
-- 仅证明可执行性与端点设计，不证明 15 任务 Agent 性能。
+- 62/62 declared endpoints 绑定 evaluator。
 
-### 4.2 G0 正式描述性证据
+这只证明声明能力、可达性和 evaluator binding，不证明 Agent 在 15 个任务上的性能，也不支持“任意化学”或“无限物理规律”。
 
-非重复 active corpus：
+### 4.2 G0 compiled control
 
-- 1,050 classic baseline cells、27,300 次物理实验；
-- 60 个 opaque/nominal/misindexed participant cells、2,280 次物理实验；
-- 合计 1,110 cells、29,580 次物理实验。
+- classic baselines：1,050 cells、27,300 个物理实验；
+- three-arm participant：60 cells、2,280 个物理实验；
+- opaque slice 与 v1.0 重用，只计一次；
+- 去重总计：29,580 个物理实验。
 
-Opaque 是 v1.0 participant 的复用切片，不能再次把 v1.0 的 760 次实验加到总数。
+论文作用：低行动权校准、任务异质性、正确/错误先验干预、优化与 prediction/cognition 端点解耦。G0 不是故事起点，也不与 G2 形成“谁更强”的总体比赛。
 
-证据等级：正式描述性结果，但各 arm 与 baseline 来自多个历史 source commit。发布前必须统一重认证或随每个 arm 发布精确 source snapshot。
+### 4.3 G2 v0.4 autonomous development
 
-### 4.3 G2 v0.4 开发行为证据
+- 5 worlds × 2 information arms = 10 cells；
+- 60/60 vessels 完成；
+- 815 个 Agent 自主 primitive operations；
+- 164 次 nonfinal characterization + 60 次 final assay；
+- 60 provider sessions；
+- exact replay、资源账本和物理配对全部通过。
 
-- 5 worlds × 2 arms = 10 cells；
-- 60/60 fresh vessels 完成；
-- 815 个自主 primitive operations；
-- 164 次非终点表征，加上 60 次 final assay，共 224 个 `measure` 操作；
-- 60/60 provider sessions；
-- 0 invalid/resource rejection；
-- exact replay、资源账本和物理配对审计全部通过。
-
-证据等级：完整审计的开发性 hypothesis-generating matrix。可以展示行为现象和冻结后续指标，不能从 n=5 单轨迹 worlds 推断总体先验效应。
+论文作用：证明 Agent 的确逐步完成实验，建立 lifecycle endpoints，并产生需要 fresh trajectories 检验的开发期现象。它是 hypothesis-generating matrix，不用于总体 prior-effect 推断。
 
 ### 4.4 G2 v0.5 fresh-trajectory replication
 
-- 固定 seed 1、seed 3；
-- 每个 world 5 个 fresh trajectory replicate；
-- 每 replicate 两个 information arms；
-- 10 pair blocks、20 cells、120 个实验机会；
-- 旧 v0.4 trajectory 用于 seed/metric 选择，不进入 fresh estimand。
+- 固定 world seeds 1 与 3；
+- 每个 world 5 个 replicate block；
+- 每个 block 配对 opaque 与 anonymous nominal；
+- 10 pair blocks、20 cells、120 个预设 vessel opportunities；
+- 18 completed cells、2 right-censored cells；
+- 114 executed vessels、112 completed final assays；
+- 8 complete pairs、2 right-censored pairs；每世界 4 complete + 1 censored；
+- 1,615 个 accepted primitive operations；
+- attempt selection、physical identity、resource replay、exact replay 全部通过。
 
-证据等级：development-preregistered selected-world replication。它回答两个被选择世界内的重复性，不估计一般世界总体信息效应。
+证据等级：development-selected, pre-specified fresh-trajectory replication。它回答两个被选择世界内的重复性，不估计一般世界总体 prior effect。
 
-## 5. 当前行为结果与允许解释
+## 5. 终态行为发现
 
-### 5.1 G0：任务异质性
+### 5.1 G0：能力不是单一标量
 
-| Task | Participant | strongest information-matched classic | paired difference |
-|---|---:|---:|---:|
-| Electrochemical | .7150 | Structured RF-EI .6159 | +.0991 `[+.0103,+.1748]` |
-| Crystallization | .5355 | LHS .5708 | −.0353 `[−.0650,−.0085]` |
+同一 participant scaffold 相对经典方法的表现依赖任务；正确与 misindexed material information 能改变选择，却不统一地产生 recovery。优化得分、held-out directional prediction、Brier calibration、structural/mechanistic declarations 和 unsupported claims 构成不同 profile。
 
-允许解释：同一 Agent/scaffold 的相对表现依赖化学任务。禁止解释：Codex 普遍优于或劣于经典优化。
+允许结论：optimization 和 cognition endpoints 不可互换。
 
-### 5.2 G0：正确与错误先验
+禁止结论：LLM 普遍优于或劣于 BO。
 
-| Task | Opaque | Nominal | Δ nominal | familywise 97.5% interval |
-|---|---:|---:|---:|---:|
-| Electrochemical | .7150 | .7874 | +.0724 | `[+.0074,+.1546]` |
-| Crystallization | .5355 | .5615 | +.0260 | `[−.0130,+.0630]` |
+### 5.2 G2 v0.4：端点掩盖生命周期
 
-错误先验在两任务中都通过早期行为操纵，但都没有通过联合恢复规则。允许解释：先验改变行动；行为纠偏、认知纠偏和性能恢复不是同一个事件。禁止解释：结晶 misindexed 分数较高证明 Agent 发现先验错误。
+Agent 可在 6-vessel campaign 中自主选择操作、表征、停止和 final assay。相似或较高的 best/mean endpoint 可能对应早期发现后丢失、逐步改善、严重回撤或终局恢复等不同轨迹。开发期 nominal arm 平均更晚发现，但 retention 更高、drawdown 更低；一个世界出现反向模式，因此必须复制。
 
-### 5.3 G0：优化—认知分离
+### 5.3 G2 v0.5：端点方向性与生命周期可重复性分离
 
-电化学与结晶在 final score、held-out directional accuracy、Brier、declared accuracy、edge/mechanism F1 和 unsupported claim rate 上呈不同排序。该结果用于展示可分解端点，而不是建立普遍 Agent 心理学定律。
+冻结 outcome-blind mapping 机械选择 `frequent_within_world_reversal`：
 
-### 5.4 G2 v0.4：发现—保留—恢复
+- 8 个 world × core-lifecycle 分类中，6 个为 mixed；
+- 0/4 core metrics 在两个世界中形成各自稳定、方向相反的模式；
+- world 1 的 best 和 mean endpoint 均为 3 正 1 负，但 discovery/retention mixed；
+- world 3 的 mean endpoint 为 3 负 1 正，但 best 为 2 正 2 负，四个 lifecycle metrics 全 mixed。
 
-| Arm | discovery progress | online retention | max drawdown | terminal/global best | losses recovered/unresolved |
-|---|---:|---:|---:|---:|---:|
-| Opaque | 32% | 52% | .3326 | 67% | 3/3 |
-| Nominal | 80% | 72% | .0915 | 94% | 4/1 |
+因此不能把 prior response 写成模型或世界的稳定标量属性。更准确的经验描述是：信息、物理上下文和 fresh Agent trajectory 共同决定可观察行为；在当前两个 selected worlds 中，轨迹波动足以频繁翻转 lifecycle effect。
 
-当前候选结构是：nominal 未必更早发现自身最佳，却更常保留已获得性能并以接近历史最佳的状态结束。seed 3 对 retention、drawdown 和 terminal/global-best 反向，因此不能写成总体稳定规律。
+“provider-trajectory variability”是冻结 policy 的原句，但 provider sampling seed 未受控，因此只能描述 fresh-trajectory variability，不能声称 provider 是已识别的因果来源。
 
-## 6. G2 v0.5 的冻结分析
+## 6. 论文结构
 
-### 6.1 统计单位
+1. Introduction — Experimental intelligence is not an endpoint score
+2. Relation to existing systems
+3. ChemWorld as an apparatus for studying agents
+4. Compiled experiments reveal task- and prior-dependent behavior
+5. Optimization, prediction and explanation do not collapse to one competence
+6. Agent-directed campaigns expose experimental lifecycles
+7. Fresh trajectories test within-world repeatability
+8. Discussion
+9. Methods
+10. Data and code availability
 
-统计单位是 `fixed physical world × fresh trajectory replicate`。每个 replicate 的 nominal/opaque 共享物理 evaluator、观测流、资源卡、模型配置和本地 agent seed；provider sampling randomness 不可冻结且两 arm 独立。
+G0/G2 是协议术语，不进入标题和主叙事起点。
 
-### 6.2 主要轨迹端点
+## 7. 图表设计
 
-运行前已冻结：
+### Figure 1 — ChemWorld is a controlled apparatus for experimental intelligence
 
-- global-best discovery fraction；
-- 90% online incumbent retention；
-- maximum absolute drawdown from prior incumbent；
-- terminal-to-global-best ratio；
-- loss episode、recovery、recovery delay 和 terminal unresolved。
+展示 closed-loop interaction、可独立控制的 physics/prior/agency/evidence/resources、transaction-to-replay spine 和 qualified environment surface。
 
-### 6.3 联合报告端点
+### Figure 2 — One complete agent-directed experiment and its ledger
 
-- lifecycle completion/right-censor；
-- best 和 mean final score；
-- batch running-best AUC；
-- realized-operation running-best AUC；
-- fixed-144-operation running-best AUC；
-- operations、measurements、stocks、sessions、tokens；
-- diagnostic-aligned control change 到下一 final score 的时间对齐描述。
+用一个 v0.4 vessel 展示七个自主 primitive operations 与 campaign resource receipt，证明不是固定步骤参数填表。
 
-最后一项不是因果反馈估计。本文不能写“测量导致改进”，只能写“在含诊断后可比较控制变化的 batch 中，下一 final score 的时间对齐方向”。
+### Figure 3 — Endpoint summaries conceal distinct trajectories
 
-### 6.4 报告规则
-
-- 每个 world 单独列出 5 个 nominal-minus-opaque replicate；
-- 报告 median、min/max、正负号计数与 sign consistency；
-- seed 1 与 seed 3 不合并成总体 p 值；
-- completed 与 right-censored 全部进入总账；
-- 不因 interim score、arm difference 或叙事方向停止；
-- 只有 `provider_infrastructure_failure && accepted_operation_count == 0` 可按冻结规则重试；
-- 动作后的失败永久 right-censored，不替换。
-
-### 6.5 四分支 outcome-blind 结果映射
-
-按冻结优先级机械选择：
-
-1. **paired coverage 不足**：任一 world 少于 3 个完整 pair，只报告可用 pair，不作定性重复性分类；
-2. **world 内稳定、world 间相反**：4 个 core metrics 中至少 3 个在两个 world 内均达到
-   75% 同号且 world 间符号相反；
-3. **world 内频繁翻转**：8 个 world × core-metric 分类中至少 4 个为 mixed；
-4. **metric-specific 或非相反重复性**：前三项均不满足时的兜底分支。
-
-四分支都保留；没有“必须复现 nominal 优势”的成功判据。阈值映射是在运行中期、未读取
-v0.5 结果时补充冻结的，不称为 run 前预注册。
-
-## 7. 第一版主张账本
-
-### 7.1 可以写入摘要/主文
-
-- ChemWorld 实现任务约束下的有状态、逐操作、部分可观测和可回放化学过程交互；
-- Agent 能主动选择测量并根据公开结果继续当前实验；
-- 15 个任务的 complete-experiment design 与 62 个端点通过资格审计；
-- G0 双任务结果展示任务依赖的优化表现、先验操纵和优化—认知端点分离；
-- G2 v0.4 展示原生 Codex 可以自主完成多容器电化学 campaign；
-- 相同/相近 endpoint 可以对应明显不同的 discovery、retention 和 recovery trajectories；
-- v0.5 在两个选定世界内测量这些轨迹结构的 fresh-trajectory repeatability。
-
-### 7.2 只能写入 Results/Limitations 的限定性发现
-
-- nominal 在 v0.4 五世界平均具有更高 retention、更低 drawdown；
-- seed 3 的反向结果；
-- diagnostic-aligned control changes 的下一批结果方向；
-- G0 中 participant 与经典方法的描述性差异。
-
-### 7.3 禁止主张
-
-- ChemWorld 是首个或最完整的虚拟化学实验室；
-- 能生成任意物理规律或任意现实化学；
-- LLM 普遍优于 BO；
-- G2 优于 G0；
-- nominal 材料信息具有一般总体正效应；
-- Agent 形成了正确机制理解；
-- 时间对齐的诊断—改控关系是因果效应；
-- 当前结果迁移到现实机器人实验室或工业系统。
-
-## 8. 图表冻结设计
-
-### Figure 1 — A controlled laboratory for experimental intelligence
-
-**问题**：ChemWorld 新增的科学对象是什么？
-
-Panels：
-
-- A：hidden chemical world → operation → state transition → measurement → next action；
-- B：可独立控制的 physics/prior/agency/evidence/resources；
-- C：typed state、transaction、resource ledger、immutable trajectory、exact replay；
-- D：当前覆盖边界：15 tasks、28 operations、5 instruments、415 cases、62 endpoints。
-
-状态：系统数据已具备；需要新绘图。
-
-### Figure 2 — One autonomous experiment
-
-**问题**：Agent 是否真正逐步做实验？
-
-使用成功 opaque K1 qualification 或 v0.4 代表 cell：显示加料、setpoint、pH/UV–vis、重复电解、terminate、final assay，以及同步资源余额。
-
-状态：数据已具备；qualification 只能标为 infrastructure demonstration，不进入效应统计。
-
-### Figure 3 — Endpoint-equivalent trajectories are behaviorally distinct
-
-**问题**：终点分数为何不足？
-
-Panels：seed 0、2、4 的 running final scores；标出 discovery、loss、recovery、terminal unresolved。将相近 best/mean 但轨迹形状不同的 arm 并列。
-
-状态：G2 v0.4 已具备。
+展示多个 development worlds 的 final-assay sequences、first maximum、loss 与 terminal recovery。
 
 ### Figure 4 — Prior interventions reshape behavior without guaranteeing recovery
 
-**问题**：先验影响的是什么？
+并列 G0 prior effect、misindexed manipulation/action correction/recovery 与 G2 v0.4 world-wise lifecycle effects。
 
-Panels：
+### Figure 5 — Fresh trajectories test within-world repeatability
 
-- G0 nominal information value by task；
-- misindexed early/late misleading-action share；
-- manipulation/correction/performance recovery 三组件；
-- G2 v0.4 discovery/retention/drawdown/terminal-best paired world differences。
+显示两个 selected worlds 的全部十个 pre-specified pairs；右删失 pair 用 `x` 保留，不插补。图注必须报告 8 complete pairs、2 right-censored pairs、6/8 mixed classifications 和 selected branch，不合并总体 p 值。
 
-状态：已有数据；必须并列显示任务/世界异质性。
+### Figure 6 — Experimental intelligence is a profile, not a scalar
 
-### Figure 5 — Within-world replication of experimental behavior
+并列 compiled control 的 endpoint/prediction/calibration/unsupported claims 与 autonomous control 的 completion/retention/recovery/terminal-best，禁止构造跨协议 composite score。
 
-**问题**：行为结构在 fresh trajectories 中是否可重复？
+主表为：环境与证据范围、G0 capability profiles、G2 v0.4 development summaries、G2 v0.5 all-pair terminal table。
 
-Panels：seed 1、seed 3 各5个 paired replicate；主要轨迹端点的 dot/range/sign；完成与右删失状态。
+## 8. 主张边界
 
-状态：缺 G2 v0.5 的20 cells/120实验。
+### 8.1 可写入摘要与主文
 
-### Figure 6 — Experimental-intelligence profiles
+- ChemWorld 使实验 Agent 成为可受控、可重复研究的对象；
+- Agent 在 stateful chemical world 中自主逐操作、主动测量并承担资源后果；
+- endpoint、prediction、cognition 与 lifecycle metrics 不构成单一能力；
+- G2 v0.5 中 6/8 core world-metric classifications mixed；
+- endpoint directionality 不保证 lifecycle phenotype 可重复。
 
-**问题**：优化、预测、行为稳定和认知是否是同一个能力？
+### 8.2 只能限定性描述
 
-展示 endpoint utility、completion、retention/recovery、held-out prediction、calibration 和 unsupported claims。只能按 task/world/experiment layer 展示，不能制造跨协议综合总分。
+- G0 participant 与经典方法的任务内差异；
+- G2 v0.4 的 arm average 与 diagnostic-aligned temporal association；
+- G2 v0.5 两个 selected worlds 内的 sign patterns；
+- provider sampling 不可控带来的 fresh-trajectory limitation。
 
-状态：部分具备；最终布局待 v0.5。
+### 8.3 禁止主张
 
-### Main tables
+- 首个或最完整虚拟化学实验室；
+- 任意化学、任意现实反应或无限物理规律；
+- 首次 stepwise operation、closed loop、agent behavioral science 或 environment engineering；
+- LLM 普遍优于 BO，或 G2 优于 G0；
+- correct material information 具有一般总体正效应；
+- Agent 形成正确机制理解；
+- diagnostic-to-control temporal alignment 是因果反馈效应；
+- provider 是轨迹翻转的已识别因果来源；
+- 结果可直接迁移到现实机器人实验室。
 
-1. Table 1：环境和交互能力及证据等级；
-2. Table 2：G0 双任务与三臂核心结果；
-3. Table 3：G2 v0.4/v0.5 completion、资源和轨迹端点；
-4. Extended Data：逐 world/replicate、right-censor、provider/resource accounting。
+## 9. 实验数量终态审计
 
-## 9. 论文结构
+### 9.1 第一版完成量
 
-1. **Introduction — Experimental intelligence is not an endpoint score**
-2. **ChemWorld as a controlled apparatus for studying scientific agents**
-3. **Agents act in stateful chemical worlds**
-4. **Task and runtime qualification**
-5. **Prior knowledge changes experimental choices without guaranteeing recovery**
-6. **Autonomous agents discover, lose and recover experimental performance**
-7. **Within-world replication separates physical context from trajectory randomness**
-8. **Experimental-intelligence profiles dissociate optimization and cognition**
-9. **Discussion and limitations**
-10. **Methods, audit and release**
+| Layer | Executed physical experiments | Completed experiments/final assays |
+| --- | ---: | ---: |
+| G0 | 29,580 | 29,580 |
+| G2 v0.4 | 60 | 60 |
+| G2 v0.5 | 114 | 112 |
+| 合计 | **29,754** | **29,752** |
 
-G0 的 recipe protocol 放在第5节的方法入口，不作为第1—3节的历史起点。
+两次 G2 qualification vessels 和整个第一次被排除的 G2 v0.5 detached launch 均不进入科学总量。
 
-## 10. 摘要蓝图
-
-摘要必须按以下六句逻辑写：
-
-1. AI scientist 常由终点结果或少量现实实验评估，难以区分幸运发现、稳定学习和证据使用；
-2. ChemWorld 是一个用于研究实验智能的有状态、可执行化学世界；
-3. Agent 可以逐操作控制实验、主动选择表征并承担资源和失败后果；
-4. G0 受控先验实验显示任务依赖、行为操纵与恢复分离；
-5. G2 显示相似 endpoint 可对应不同的 discovery/retention/recovery dynamics，并用 fresh trajectories 测量其稳定性；
-6. ChemWorld 因而提供了研究科学 Agent 行为的受控方法，而不是新的总体算法排行榜。
-
-在 v0.5 完成前，第5句必须保留占位符，不能提前写稳定方向。
-
-G2 指标和逐 world 报告计划在 fresh run 前已经冻结，但原稿的三个定性叙事分支没有数值化
-判定。为消除终态后的叙事选择自由度，2026-08-02 02:38（Asia/Shanghai）在 9 completed、
-1 right-censored、10 pending 且未读取任何 v0.5 score、trajectory content 或 paired effect 时，
-新增 outcome-blind mapping supplement：
-`configs/benchmark/g2_autonomous_electrochemical_material_seed1_seed3_r5_v0.5_interpretation_policy.json`。
-它只机械选择中性结果语言，不改变 endpoint、estimand、停止规则或推断；且必须明确写成
-mid-execution supplement，而非首个 provider call 前的 preregistration。
-
-## 11. 实验数量审计
-
-### 11.1 已完成并计入第一版科学语料
-
-| Layer | Physical experiments |
-|---|---:|
-| G0 classic baselines | 27,300 |
-| G0 three-arm participant | 2,280 |
-| G2 v0.4 autonomous development | 60 |
-| 合计 | **29,640** |
-
-Qualification 的2个 attempted vessels不计入科学语料；其中1个完成、1个动作后右删失。
-
-### 11.2 唯一必需的新科学矩阵
-
-| Layer | Cells | Physical experiment opportunities | Provider sessions |
-|---|---:|---:|---:|
-| G2 v0.5 replication | 20 | **120** | 120 |
-
-因此第一版的计划机会分母为：
+### 9.2 固定机会分母
 
 ```text
-29,640 existing + 120 new = 29,760
+29,640 existing + 120 pre-specified opportunities = 29,760
 ```
 
-这不是对最终实际执行实验数或成功 final assay 数的承诺。如果出现预注册
-right-censor，120 个计划机会全部留在设计分母；未启动的 vessel slot 不计为
-executed physical experiment，已启动但右删失的 vessel 计为 executed、但不计为
-completed final-assay experiment。两个最终总数只能在 terminal audit 后填写。
+29,760 不是最终执行数。两个 right-censored cells 各有一个 started-but-incomplete vessel 和三个 never-started slots，因此得到 114 executed 与 112 completed。
 
-截至上述快照，正式终态证据为：10 个 completed cells、1 个 right-censored cell，
-对应 63 个已启动 vessel 和 62 个 completed final assays；右删失 cell 中另有 3 个
-从未启动的 slots。因此还需要让 **9 个 cells 终态化并解析 54 个 vessel opportunity
-slots**。如果此后所有未决 slots 都完成，G2 v0.5 最多得到 117 个 executed vessels 与
-116 个 completed final assays；加上已有 29,640 个实验后，最终最多分别为 29,757 个
-executed physical experiments 与 29,756 个 completed experiments。29,760 始终只是
-计划机会分母。
+### 9.3 还需多少实验
 
-### 11.3 不属于第一版必需实验
+- G0 新实验：0；
+- G2 v0.5 新实验：0；
+- pending cells：0；
+- unresolved opportunities：0；
+- optional post-arXiv experiments required for v1：0。
 
-- 旧 matched G0/G2：40 cells，按 K6 约240次实验；
-- G2 opaque/nominal/misindexed 三臂：30 cells，约180次实验；
-- true/masked/delayed/permuted feedback branching：尚未单独预注册；
-- 更多任务、world、provider 或现实 bridge。
+## 10. 剩余发布门禁
 
-这些不能悄悄加入首版分母，也不能延迟首版发布。
+### 已解决
 
-## 12. 非实验发布阻断
+- B1 科学矩阵：20/20 terminal，audit passed；
+- B4 G0 source binding：四个历史 commits 均存在且为 `origin/main` ancestors；
+- B7 figures：frozen derived JSON、6 CSV、Figures 1--6、Tables 1--4；
+- G2 terminal data：677-file index 与四-cell replay subset 已生成。
 
-### B1 — G2 v0.5 正在运行
+### 仍开放
 
-第一次 detached 启动已按预定规则整体排除；干净的前台托管重启已开始。只有 20/20 cells
-终态化且通过 fail-closed audit 后，120 个 experiment opportunities 才能进入正文。
+1. 最终 source commit 后刷新 55-node evidence graph；
+2. clean-wheel、full-test、terminal replay；
+3. 独立 checkout 重建与一致性验证；
+4. 约 17.7 GB G0 raw roots 的持久外部 archive identifier；
+5. 参考文献目标格式、statistical-language 和 final-claim audit。
 
-### B2 — Evidence graph 已闭合
+在这些门禁完成前，release manifest 必须保持 `publication_ready=false`。外部 archive identifier 不能伪造；它是目前唯一需要用户或外部服务完成的依赖。
 
-2026-08-02 完成全量 `--refresh` 后，`scripts/evidence_pipeline.py --check` 的 55 个节点
-全部通过，graph SHA-256 为
-`8f6a86b90628d2d61a9da2b582977863329953dd30f2c57d0c14ec03e9f7d12b`。刷新期间发现并修复了
-空 NumPy operation 在 campaign-control 分支触发布尔歧义的边界缺陷；28 类公共操作的
-状态转移审计现为 0 defects。该门禁在最终 commit、clean wheel 和独立 checkout 后仍需
-再运行一次，但已不是当前设计阻断。
+## 11. 第一版摘要逻辑
 
-### B3 — Release 已初始化，终态工件待补
+摘要按六步收束：
 
-`benchmark/releases/chemworld-serious-v1` 已包含 fail-closed manifest、data card、claim
-boundaries、G0 原始文件哈希索引、单一 provisional derived-data JSON、五个 CSV 视图和
-figure manifest；正文主表、完整图注及正文图表调用也已建立。`publication_ready=false`
-保持正确；终态 G2 表、Figure 5、最终 attestations 和外部 archive identifier 尚未补齐。
+1. endpoint 或少量现实实验无法区分 lucky discovery、stable learning 与 evidence use；
+2. ChemWorld 提供研究 experimental intelligence 的 executable chemical worlds；
+3. Agent 逐操作控制实验、主动测量并承担资源和失败后果；
+4. G0 显示 task dependence、prior manipulation 与 optimization–cognition dissociation；
+5. G2 显示 endpoint 掩盖 lifecycle，fresh replication 中 6/8 core classifications mixed；
+6. controlled chemical worlds 因而成为研究 experimenting agents 的实验装置，而非新 leaderboard。
 
-### B4 — G0 source binding 已解决
+## 12. arXiv 后路线
 
-classic、opaque、nominal、misindexed 所绑定的四个历史 commit 均存在且都是 `origin/main`
-祖先。无需把多 commit 本身误判为失效；剩余任务归入 B5 的 raw archive 与公开哈希索引。
+按科学价值而非第一版补洞排序：
 
-### B5 — 数据身份已冻结，外部原始档案未发布
+1. misindexed prior × G2：研究错误先验锁定、修正与 recovery；
+2. counterfactual feedback branching：因果分离证据敏感性；
+3. 多任务、多模型与可控 provider sampling 复制；
+4. world diversity 与规律结构泛化；
+5. 窄现实体系 bridge，连接 controlled behavior 与 physical deployment。
 
-G0 的 1,441 个文件、17,725,724,603 bytes 已有逐文件 SHA-256 索引和 data card；四个
-历史 source commits 也已绑定。G2 终态 file index 与 compact exact-replay subset 的构建器
-和测试已完成，待矩阵终态后执行。唯一无法由仓库内部完成的部分是为约 17.7 GB G0 raw
-roots 取得持久外部 archive identifier；该标识不能伪造。
+这些是下一篇或增强版的经验外推，不是第一版成立的先决条件。
 
-### B6 — 主文稿与 Methods 已建立，结果槽待闭合
+## 13. 最终故事
 
-旧的 `paper/chemworld_benchmark_manuscript.md` 已标记 superseded；新的
-`paper/experimental_intelligence_v1_manuscript.md` 已建立完整论证骨架。当前剩余阻塞是
-G2 v0.5 正式结果、摘要结果句、目标模板中的参考文献格式化、统计措辞终审和最终排版。
-Methods 9.1--9.6、22 条工作参考文献、正文图表调用和显示项图注已经填实；不再把 Methods、
-叙事结构或图表设计列为缺失。
-
-### B7 — 图表流水线已建立，终态冻结待执行
-
-部分解决。已经建立单一 provisional derived-data JSON、五个 CSV 视图、只读取该 JSON
-的自动出图脚本，以及同源生成四张主表和六份完整图注的 display-item renderer；Figures
-1--4 与 6 已生成，Table 4 只显示无结果占位。G2 v0.5 在 JSON 中保持 `null`，Figure 5
-不生成。实验固定总账与动态剩余量审计现已使用不同文件，CLI 会拒绝用动态审计覆盖固定
-总账。剩余工作只有终态审计后写入 v0.5、冻结 derived hash 并重生成全部图表。禁止手工
-复制摘要数字或把 pending-cell 预览写入结果。
-
-## 13. 执行顺序与完成判据
-
-### Phase A — 本轮文稿冻结
-
-- 新主计划、机器实验总账和新 manuscript skeleton 进入 main；
-- 旧稿标记 superseded；
-- 所有数字有来源路径或明确 placeholder。
-
-### Phase B — G2 v0.5 运行
-
-- clean main commit；
-- foreground-supervised process；
-- 10/10 frozen pair dry-run；
-- 不看 interim 故事方向；
-- 20 cells 全部进入 completed、right-censored 或 audit-required terminal state。
-
-### Phase C — Postrun audit
-
-- manifest/hash/attempt/replay/resource/provider 全部 fail-closed；
-- 每个 world 有5个 replicate 状态；
-- 缺失、重复或选择性替换直接阻止论文结果表；
-- 生成 JSON、中文审计和 frozen derived rows。
-
-### Phase D — Evidence/release closure
-
-- evidence pipeline pass；
-- G0 recertification/source archive；
-- clean wheel/full tests/independent checkout；
-- release目录、data card、hash index、replay subset完成。
-
-### Phase E — Manuscript freeze
-
-- v0.5 四分支 outcome-blind 映射的机械结果进入 Figure 5；
-- abstract不越过证据等级；
-- 全部图从单一 derived table生成；
-- 对外术语使用 compiled control / agent-directed control，不以 G0/G2 作为标题叙事。
-
-## 14. arXiv 后路线
-
-首版之后再决定：
-
-1. misindexed prior × G2，研究错误先验锁定与恢复；
-2. counterfactual feedback branching，因果分离证据敏感性；
-3. 多任务/多 provider 复现；
-4. world diversity 或规律结构泛化；
-5. 窄现实系统 bridge。
-
-这些属于更强经验规律或更高层级论文，不是首版环境—行为论文的启动条件。
-
-## 15. 最终故事
-
-第一版完整后，应能够以证据约束的方式说：
-
-> **ChemWorld makes scientific agents experimentally measurable. Across compiled and agent-directed chemical campaigns, endpoint performance, prior response, prediction, discovery, retention and recovery do not collapse into a single notion of competence. By repeating autonomous trajectories inside fixed chemical worlds, ChemWorld separates properties of the physical context from the stochastic behavior of the experimenting agent.**
+> **ChemWorld makes scientific agents experimentally measurable. Across compiled and agent-directed chemical campaigns, endpoint performance, prior response, prediction, discovery, retention and recovery do not collapse into a single notion of competence. Fresh trajectories within fixed chemical worlds further show that directional endpoint effects need not correspond to repeatable experimental lifecycles.**
 
 中文：
 
-> **ChemWorld 让科学 Agent 本身成为可以被实验研究的系统。现有编译式与自主化学 campaign 表明，终点性能、先验响应、预测、发现、保留和恢复不能压缩为单一能力；固定物理世界中的多轨迹重复进一步区分世界条件与实验 Agent 的随机行为。**
+> **ChemWorld 让科学 Agent 本身成为可被实验研究的系统。编译式与自主化学 campaign 表明，端点性能、先验响应、预测、发现、保持与恢复不能压缩成单一能力；固定化学世界中的 fresh trajectories 进一步显示，有方向性的端点效应并不必然对应可重复的实验生命周期。**

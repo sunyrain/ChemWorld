@@ -29,6 +29,21 @@ def test_display_items_are_regenerated_from_the_bound_data(tmp_path: Path) -> No
     assert "**Figure 6" in rendered
     if data["g2_v0_5"] is None:
         assert "no interim replication values are rendered" in rendered
+    else:
+        replication = data["g2_v0_5"]
+        branch = replication["interpretation"]["selected_branch"]
+        policy = replication["interpretation"]["mapping_policy"]
+        matrix = replication["matrix"]
+        assert branch["branch_id"] in rendered
+        assert branch["manuscript_language"] in rendered
+        assert policy["sha256"] in rendered
+        assert f"{matrix['completed_cell_count']} completed cells" in rendered
+        assert f"{matrix['right_censored_cell_count']} right-censored cells" in rendered
+        assert f"{matrix['completed_pair_count']} complete pairs" in rendered
+        assert "pre-specified trajectory pairs" in rendered
+        assert "Δ mean score" in rendered
+        assert "Δ discovery" in rendered
+        assert "does not identify a causal provider effect" in rendered
 
 
 def test_tracked_display_items_match_a_fresh_render(tmp_path: Path) -> None:

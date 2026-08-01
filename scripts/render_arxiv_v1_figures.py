@@ -436,11 +436,15 @@ def figure_5(data: dict[str, Any], output_dir: Path) -> list[Path]:
         return []
     metrics = [
         ("best_final_score", "best score"),
+        ("global_best_discovery_fraction", "discovery"),
         ("online_incumbent_retention_rate", "retention"),
         ("maximum_absolute_incumbent_drawdown", "drawdown"),
         ("terminal_to_global_best_ratio", "terminal / best"),
     ]
-    fig, axes = plt.subplots(2, 4, figsize=(13, 6.2), sharex="col")
+    classifications = replication["interpretation"]["selected_branch"][
+        "world_metric_classifications"
+    ]
+    fig, axes = plt.subplots(2, 5, figsize=(15, 6.2), sharex="col")
     fig.suptitle(
         "Fresh trajectories test within-world repeatability",
         fontsize=15,
@@ -475,6 +479,18 @@ def figure_5(data: dict[str, Any], output_dir: Path) -> list[Path]:
                         linewidth=0.6,
                     )
             ax.axvline(0, color="#6F7782", lw=1)
+            classification = classifications[str(seed)][metric].replace("directionally_", "")
+            ax.text(
+                0.97,
+                1.02,
+                classification,
+                transform=ax.transAxes,
+                ha="right",
+                va="bottom",
+                fontsize=7.5,
+                color="#6F7782",
+                bbox={"boxstyle": "round,pad=0.2", "fc": "white", "ec": "none", "alpha": 0.8},
+            )
             ax.set_yticks(y, labels if col_index == 0 else [])
             if col_index == 0:
                 ax.set_ylabel(f"world {seed}\nreplicate")

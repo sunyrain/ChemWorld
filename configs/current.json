@@ -13,10 +13,10 @@
     "backend": "configs/foundation/backend_v0.5.json",
     "backend_report": "workstreams/world_foundation/reports/backend-v0.5.json",
     "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
-    "status": "candidate_backend_clean_attested",
+    "status": "candidate_backend_validated_dirty_tree",
     "contract_validation": "passed",
-    "clean_release_attestation": "passed",
-    "source_tree_dirty": false,
+    "clean_release_attestation": "pending_clean_tree",
+    "source_tree_dirty": true,
     "world_law_id": "chemworld-physical-chemistry-v0.5",
     "task_contract_version": "chemworld-task-contract-1.1"
   },
@@ -147,9 +147,9 @@
     "publication_ready": false
   },
   "repository_integrity": {
-    "status": "stale_evidence_bindings",
+    "status": "stale_evidence_bindings_worktree_dirty",
     "current_evidence_coherent": false,
-    "tracked_source_tree_dirty": false,
+    "tracked_source_tree_dirty": true,
     "stale_binding_count": 10,
     "stale_binding_ids": [
       "mechanism_a2_structural_receipt",
@@ -164,6 +164,10 @@
       "pre_arxiv_claim_evidence_ledger"
     ],
     "blockers": [
+      {
+        "id": "clean_release_attestation_pending",
+        "scope": "backend_release"
+      },
       {
         "id": "mechanism_gates_remaining",
         "scope": "mechanism_benchmark",
@@ -245,7 +249,7 @@
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
     "graph_sha256": "8f6a86b90628d2d61a9da2b582977863329953dd30f2c57d0c14ec03e9f7d12b",
-    "repository_source_sha256": "5f6a796ef8a3b3885fe9eb6a559f03e6c0824a0815991f677b5a835c47ad4498",
+    "repository_source_sha256": "00e1928e8120d66444df52e5de6d8bc04221026de29a604f6d1e30ea2f1a6a83",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -419,7 +423,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "cd497d97e73a92c77cb4a9f9355424157d133e596ca2f2500b41443f169539cb",
+        "sha256": "e8d304ef73b97380b1ef2d481b692e53f0ef4b8f5dc909d7b2fc2a799af58aee",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -675,7 +679,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "f88419cb5cf715d089b35d9515bdc5aea92b425dd0a6bd7efce88e5f7faf2e19",
+        "sha256": "5f86b27aff036105a56c795dd06307a449853f5cf9f203f6d0d2e1b0bc1a7034",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -690,7 +694,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "f9f560591f4b35bf918e125638fc0a244e2220e08ab90fa937fe9f828d7e807e",
+        "sha256": "3c5b0caf4d81bd6b4702701587f69c38da1c8a702e7c18599ca6a190ade95254",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -755,7 +759,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "ae28e9fa72c028c7f40545698f8d79507ebd1e49078d52560a8e8b8f896a42e1",
+        "sha256": "f7e22daa69c653789684c65c91fe44b576eca235ec86383d13c6b704efa721f9",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -858,7 +862,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "31250fb24789c4bc8db17352f9621814329551bd20c2befc114effeb24c30cea",
+        "sha256": "ee5218e5a16ff676a1790d7611f00e97640ff2e06f7bfa960a9ba4cabdaf8609",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -903,7 +907,7 @@
         "dependencies": [
           "static_s0_formal_campaign_summary"
         ],
-        "sha256": "8ed89870feb529acd2568ce28641ef65c5356c6569775daa0efe820bb8d87ba5",
+        "sha256": "40fa2e7f4a59abc39d5e5f2fb14b2a57a2d3d7de94934463612ccbd71f984fd1",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"

@@ -179,6 +179,8 @@ def _g2_v05_table(data: Mapping[str, Any]) -> list[str]:
                 row["opaque_state"],
                 row["nominal_state"],
                 None if delta is None else delta["best_final_score"],
+                None if delta is None else delta["final_score_mean"],
+                None if delta is None else delta["global_best_discovery_fraction"],
                 None if delta is None else delta["online_incumbent_retention_rate"],
                 None if delta is None else delta["maximum_absolute_incumbent_drawdown"],
                 None if delta is None else delta["terminal_to_global_best_ratio"],
@@ -191,6 +193,8 @@ def _g2_v05_table(data: Mapping[str, Any]) -> list[str]:
             "Opaque state",
             "Nominal state",
             "Δ best score",
+            "Δ mean score",
+            "Δ discovery",
             "Δ retention",
             "Δ drawdown",
             "Δ terminal / best",
@@ -199,11 +203,39 @@ def _g2_v05_table(data: Mapping[str, Any]) -> list[str]:
     )
 
 
+def _g2_v05_terminal_note(data: Mapping[str, Any]) -> list[str]:
+    replication = data["g2_v0_5"]
+    if replication is None:
+        return []
+    matrix = replication["matrix"]
+    interpretation = replication["interpretation"]
+    branch = interpretation["selected_branch"]
+    policy = interpretation["mapping_policy"]
+    return [
+        f"Terminal coverage: {matrix['completed_cell_count']} completed cells, "
+        f"{matrix['right_censored_cell_count']} right-censored cells, and "
+        f"{matrix['completed_pair_count']} complete pairs "
+        f"({branch['completed_pairs_by_world']['1']} in world 1; "
+        f"{branch['completed_pairs_by_world']['3']} in world 3).",
+        f"The frozen interpretation mapping selected `{branch['branch_id']}`: "
+        f"{branch['mixed_world_by_core_metric_count']} of "
+        f"{branch['world_by_core_metric_count']} world-by-core-lifecycle classifications were "
+        f"mixed. Policy SHA-256: `{policy['sha256']}`.",
+        f"Frozen policy language: {branch['manuscript_language']}",
+        "Provider sampling was not seed-controlled; this language is descriptive and does not "
+        "identify a causal provider effect.",
+    ]
+
+
 def render(data: Mapping[str, Any]) -> str:
     figure_5_state = (
         "This legend becomes active only after the terminal G2 v0.5 audit is incorporated."
         if data["g2_v0_5"] is None
-        else "All ten preregistered trajectory pairs are shown; an x marks an incomplete pair."
+        else (
+            "All ten pre-specified trajectory pairs are shown; an x marks a right-censored "
+            "pair. Six of eight world-by-core-lifecycle classifications were mixed, selecting "
+            "the frozen `frequent_within_world_reversal` interpretation branch."
+        )
     )
     sections: list[str] = [
         "# Experimental Intelligence in Executable Chemical Worlds: display items",
@@ -244,6 +276,7 @@ def render(data: Mapping[str, Any]) -> str:
         "",
         "Deltas are nominal minus opaque within the same physical world and replicate block.",
         "The two deliberately selected worlds are not pooled into a population-level estimate.",
+        *_g2_v05_terminal_note(data),
         "",
         "## Figure legends",
         "",
@@ -281,8 +314,9 @@ def render(data: Mapping[str, Any]) -> str:
         "drawdown differences indicate larger drawdown under nominal information.",
         "",
         "**Figure 5 | Fresh trajectories test within-world repeatability.**",
-        "Nominal-minus-opaque paired differences for best score, online incumbent retention,",
-        "maximum absolute drawdown and terminal-to-best ratio across five fresh replicates in each",
+        "Nominal-minus-opaque paired differences for best score and four core lifecycle",
+        "endpoints---global-best discovery fraction, online incumbent retention, maximum absolute",
+        "drawdown and terminal-to-best ratio---across five fresh replicates in each",
         f"of selected physical worlds 1 and 3. {figure_5_state}",
         "Selection used the prior development matrix; those trajectories are excluded. Effects are",
         "reported within world, with no pooled population-level test.",

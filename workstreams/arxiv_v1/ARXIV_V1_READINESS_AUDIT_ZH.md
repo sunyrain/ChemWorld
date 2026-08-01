@@ -1,111 +1,130 @@
-# ChemWorld 第一版 arXiv 完成度与剩余实验审计
+# ChemWorld 第一版 arXiv 完成度与剩余实验终态审计
 
-审计快照：2026-08-02 02:47（Asia/Shanghai）。
+审计日期：2026-08-02（Asia/Shanghai）
 
-机器权威：
-`reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json`，审计 SHA-256 为
-`e319cf43cd877bada5af007f30ec28f3846f34dd3053c818aa1e0e4b0b4afb85`。
+机器权威：`reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json`
 
-本文件区分三件事：已经完成的科学证据、仍需终态化的预定实验，以及不需要新增实验但
-仍须完成的发布工件。所有 pending-cell 字节只用于运行监控，不进入论文结果。
+实验量审计 SHA-256：`c609cd34867331d6df41e7b72a1c01429fd48c42b3400f9e9a331956b49a5563`
 
-## 1. 第一版已经具备什么
+G2 v0.5 科学审计 SHA-256：`7bb4045fa1ca041de047d967a31ed3d89d5f8ad83851aa7b469144b4da37f28d`
 
-| 层级 | 当前状态 | 第一版中的作用 |
+## 结论
+
+第一版所需的新科学实验已经全部终态化并通过 fail-closed 审计。必需新增实验数为 **0**，待终态 cell 为 **0**，待解析 vessel opportunity 为 **0**。现在剩余的是发布、归档、格式和独立复现工作，不是补做科学矩阵。
+
+论文应同时报告三种不能互换的总量：
+
+| 计数口径 | G2 v0.5 | 项目总计 |
+| --- | ---: | ---: |
+| 预设实验机会 | 120 | 29,760 |
+| 已启动/执行的物理实验 | 114 | 29,754 |
+| 完成实验或 final assay | 112 | 29,752 |
+
+29,760 只是固定设计分母，不能称为实际执行或完成实验数。
+
+## 1. 第一版证据矩阵
+
+| 层级 | 终态 | 第一版作用 |
 | --- | --- | --- |
-| 环境资格 | 15 个任务、28 类操作、5 类仪器、415 个确定性完整实验用例、62 个显式绑定端点 | 证明 apparatus 的声明能力与可达性，不外推为 15 个任务上的 Agent 性能 |
-| G0 compiled control | 29,580 个去重物理实验，双任务、三信息臂及经典方法均已有正式汇总 | 任务依赖优化、先验干预、优化与认知端点分离 |
-| G2 v0.4 autonomous development | 10 个 cell、60/60 个完整实验、815 个自主 primitive operations | 建立逐操作生命周期、发现、保留、回撤和恢复指标，并选择复制世界 |
-| G2 v0.5 fresh trajectories | 20-cell 固定矩阵正在执行 | 判断选定世界内的实验行为是否能跨新轨迹重复 |
-| 主文稿 | Introduction、Related work、Results 3--6、Discussion、Methods 9.1--9.6 已写实 | Section 7 和摘要中的 v0.5 结果句保持占位 |
-| 显示项 | Figures 1--4、6；Tables 1--3；六份完整图注 | Figure 5 与 Table 4 的数值内容由终态 v0.5 自动解锁 |
-| 数据链 | self-hashed derived JSON、五个 CSV、figure manifest、display-item renderer | 禁止手工复制主表数值，所有显示项绑定一个数据源 |
-| 终态叙事映射 | 四分支 outcome-blind policy 已冻结并纳入 G2 审计代码 | 终态只机械选择分支；该文件是 mid-execution supplement，不伪称 run 前预注册 |
-| 证据门禁 | 55/55 evidence nodes 通过 | 最终 commit、clean wheel 和独立 checkout 后仍须再验证 |
+| 环境资格 | 15 tasks、28 operations、5 instruments、415 deterministic cases、62/62 evaluator-bound endpoints | 证明声明能力与可达性，不外推为全部任务上的 Agent 性能 |
+| G0 compiled control | 29,580 个去重物理实验 | 任务依赖优化、先验干预、优化与认知端点解耦 |
+| G2 v0.4 autonomous development | 10 cells、60/60 vessels、815 个自主 primitive operations | 建立逐操作生命周期与 discovery/retention/drawdown/recovery 指标，选择复制世界 |
+| G2 v0.5 fresh trajectories | 20/20 cells 终态；18 completed、2 right-censored | 检验固定物理世界内行为结构能否跨新 Agent 轨迹重复 |
+| 主文稿 | 摘要、Results 3--7、Discussion、Methods 9.1--9.6 均已写入终态结果 | 只剩引用格式、统计措辞和最终 claim audit |
+| 显示项 | Tables 1--4、Figures 1--6 | 均由 frozen derived JSON 生成 |
+| 数据链 | self-hashed derived JSON、6 CSV、figure manifest、G2 终态索引、compact replay subset | 禁止手工复制主表数字 |
 
-## 2. 还差多少科学实验
+## 2. G2 v0.5 终态实验量
 
-第一版不再需要任何新的 G0 实验，也不要求额外 G1、misindexed-G2、feedback branching、
-多任务自主矩阵或现实实验室 bridge。唯一必须完成的新科学矩阵是 G2 v0.5。
+### 2.1 Cell、vessel 与配对
 
-### 2.1 固定设计与当前终态量
+| 对象 | 固定总量 | 完成 | 右删失 | 未决 |
+| --- | ---: | ---: | ---: | ---: |
+| cells | 20 | 18 | 2 | 0 |
+| vessel opportunities | 120 | 112 个 final assays | 2 个已启动未完成；6 个未启动 | 0 |
+| trajectory pairs | 10 | 8 | 2 | 0 |
 
-| 计数对象 | 固定总量 | 当前正式终态 | 尚待解析 |
-| --- | ---: | ---: | ---: |
-| G2 v0.5 cells | 20 | 10 completed + 1 right-censored | 9 cells |
-| vessel opportunity slots | 120 | 66 slots 已由终态 cell 解析 | 54 slots |
-| 已执行 vessel，仅计终态 cell | 最终值未知 | 63 | 不用 120 减 63 解释“剩余实验” |
-| completed final assays，仅计终态 cell | 最终值未知 | 62 | 终态审计后冻结 |
-| trajectory pairs | 10 | 4 completed + 1 right-censored | 5 unresolved pairs |
+每个世界均有 4 个完整 pair 和 1 个 right-censored pair，超过冻结策略要求的每世界至少 3 个完整 pair。不存在补抽、替换或结果依赖停止。
 
-因此，最清晰的答案是：**还差 9 个 cell 终态化，对应 54 个尚未解析的预定实验机会位**。
-“54”是剩余设计机会，不保证最终会形成 54 个已执行且完成终测的实验；方法失败可产生
-新的右删失。
+### 2.2 两个右删失 cell
 
-### 2.2 为什么 120、117、116 不能混用
+- `cell-001`：world 1、r01、nominal；50 个 accepted operations；3 个 vessel starts；2 个 final assays。
+- `cell-019`：world 3、r05、opaque；56 个 accepted operations；3 个 vessel starts；2 个 final assays。
 
-已右删失的 `cell-001` 启动了 3 个 vessel，但只完成 2 次 final assay。该 cell 的另外 3 个
-机会位因 cell 终态而永远不会启动。由此即使所有尚未解析机会都完成：
+两者均为动作后的 `provider_infrastructure_failure`：各有一个已启动但未完成 vessel，并各失去三个未启动机会。每个 cell 只有一个正式 attempt。内部 `codex.exe` session 轮换不构成 attempt-level retry。全部终态 cell 的 attempt-selection、物理配对、资源重放和 exact replay 门禁均通过。
 
-- G2 v0.5 的最大已执行 vessel 数是 117；
-- G2 v0.5 的最大 completed final-assay 数是 116；
-- 加上既有 G0 和 G2 v0.4，最大已执行物理实验总数是 29,757；
-- 最大完成实验总数是 29,756；
-- 29,760 只是不因删失而改变的 planned-opportunity denominator。
-
-论文最终必须同时报告 planned opportunities、executed vessels 和 completed final assays，
-不能把三者写成一个“实验数量”。
-
-### 2.3 当前可见但未晋升的运行字节
-
-在本快照时，全部目录中可读到 68 次 vessel start、66 次 final assay 和 893 次 primitive
-operation。其中 pending cells 比正式终态量多 5 次 start、4 次 final assay；这些值只证明
-运行仍在推进，不得进入摘要、Figure 5、Table 4 或结果解释。
-
-### 2.4 配对分析容量
-
-| 选定物理世界 | 计划 pairs | 完整 pairs | 右删失 pairs | 未解析 pairs | 最终最多完整 pairs |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| world 1 | 5 | 2 | 1 | 2 | 4 |
-| world 3 | 5 | 2 | 0 | 3 | 5 |
-| 合计 | 10 | 4 | 1 | 5 | 9 |
-
-右删失 pair 保留在设计分母中，但不制造 nominal-minus-opaque 差值。两个选定世界分别报告
-五个 replicate 的状态和可用差值，不合并成一般世界分布上的 p-value。
-
-## 3. 实验结束后仍要完成什么
-
-这些工作不增加科学实验数量，但都是 arXiv 发布门禁：
-
-1. 对 20/20 cells 运行 attempt-selection、identity pairing、resource、provider、trajectory、
-   exact-replay 和 censoring 的 fail-closed 终态审计。
-2. 生成终态 G2 文件哈希索引与 compact replay subset。
-3. 把通过审计的 v0.5 数据一次性写入 derived JSON，冻结新 hash，并重生成全部 CSV、
-   Tables 1--4、Figures 1--6 和 figure manifest。
-4. 根据冻结 audit 和 mid-execution outcome-blind policy 在 Section 7 的四个解释分支中
-   机械选择一个，并补摘要结果句；不得依据叙事偏好选分支，也不得把该 policy 称为 run 前预注册。
-5. 完成统计语言、claim boundary、参考文献格式和逐数字一致性审计。
-6. 运行完整测试、clean-wheel 安装、终态 replay 和独立 checkout 重建。
-7. 为约 17.7 GB 的 G0 原始根目录取得持久外部 archive identifier。仓库已有 1,441 文件、
-   17,725,724,603 bytes 的逐文件 SHA-256 索引，但不能伪造外部归档标识。
-
-## 4. 当前真正的阻塞关系
+### 2.3 为什么三个总数不同
 
 ```text
-9 cells terminalize
+29,640 已有完成/审计实验
++ 114 G2 v0.5 已执行 vessels
+= 29,754 已执行物理实验
+
+29,640 已有完成/审计实验
++ 112 G2 v0.5 final assays
+= 29,752 完成实验
+
+29,640 + 120 预设机会 = 29,760 设计分母
+```
+
+差额不是数据缺失：两个已启动 vessel 因基础设施失败没有 final assay，六个机会因 cell 永久右删失从未启动。
+
+## 3. 终态科学结果
+
+冻结解释映射机械选择 `frequent_within_world_reversal`：8 个 world × core-lifecycle 分类中有 6 个为 mixed，没有任何 core lifecycle metric 在两个世界中呈现各自稳定而方向相反的模式。
+
+- world 1：best-score 中位差 `+0.228`、mean-score 中位差 `+0.224`，均为 3 正 1 负；discovery 和 retention 为 mixed；drawdown 为 3 负 1 正（nominal 回撤通常更小）；terminal/best 为 3 正 1 负。
+- world 3：mean-score 中位差 `-0.065`，3 负 1 正；best-score 为 2 正 2 负；discovery、retention、drawdown、terminal/best 全部 mixed。
+
+第一版最有力且证据匹配的结论不是“先验有益/有害”，而是：**端点方向性不保证产生它的实验生命周期可重复。** 固定物理身份以后，新 Agent 轨迹仍频繁翻转 discovery、retention、drawdown 和 terminal behavior；prior response 不能被压缩成模型或世界的单一标量属性。
+
+该结论只适用于两个经开发结果选择的世界。不得合并总体 p 值，不得估计一般世界中的先验效应频率，也不得把未受控的 provider sampling 写成已识别的因果来源。
+
+## 4. 还差多少实验
+
+| 类别 | 第一版必需剩余量 |
+| --- | ---: |
+| G0 新实验 | 0 |
+| G2 v0.5 新实验 | 0 |
+| G2 待终态 cells | 0 |
+| G2 待解析 opportunities | 0 |
+| 可选 post-arXiv 实验 | 0（对第一版） |
+
+以下矩阵具有后续研究价值，但不是第一版的隐藏门槛：matched compiled-vs-agent-directed control（约 240 次）、G2 misindexed-prior 三臂扩展（约 180 次）、counterfactual feedback branching、多任务/多模型/多 provider 复制和现实实验 bridge。
+
+## 5. 非实验发布门禁
+
+已经完成：
+
+1. G2 v0.5 terminal audit；
+2. frozen derived JSON、六个 CSV、Table 4 和 Figure 5；
+3. 677-file G2 终态 SHA-256 索引（279,923,501 bytes）；
+4. 四 cell compact replay subset：一个完整 pair 与两个 right-censored cells；
+5. 摘要与 Section 7 终态结果写入。
+
+仍需完成：
+
+1. 在最终 source commit 上刷新 evidence graph；
+2. full tests、clean-wheel 安装和 terminal replay；
+3. 从独立 checkout 重建 derived data、图表和审计；
+4. 给约 17.7 GB G0 原始根目录取得持久外部 archive identifier；
+5. 参考文献目标格式、统计语言与最终主张审计。
+
+依赖关系为：
+
+```text
+terminal G2 audit（完成）
         |
         v
-terminal G2 audit -> frozen derived data -> Figure 5 / Table 4 -> Section 7 / Abstract
-        |                    |                         |
-        +--------------------+-------------------------+
-                             v
-              final evidence + replay + release checks
-                             |
-                             v
-                         arXiv package
+frozen derived data + Figures/Tables（完成）
+        |
+        v
+final evidence + wheel + replay + independent checkout（待完成）
+        |
+        v
+arXiv package
 
 external G0 archive identifier ------------------------^
 ```
 
-截至本快照，没有理由新增实验矩阵或暂停修改科学设计。第一版的内部关键路径只剩既定 G2
-终态化和随后的冻结流水线；外部关键路径只剩 G0 原始数据的持久归档标识。
+因此，当前不应暂停来修改科学设计或追加矩阵；应继续完成证据与发布闭环。

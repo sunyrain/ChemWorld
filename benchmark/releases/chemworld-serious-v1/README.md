@@ -11,8 +11,10 @@ This directory is the single tracked entry point for the first ChemWorld arXiv e
 - explicit claim and exclusion boundaries;
 - immutable paths and hashes for the formal G0 summaries and the audited G2 v0.4 development result.
 - a deterministic 1,441-file G0 raw-data hash index with no absolute paths or raw content.
-- a provisional single-source derived-data JSON, five deterministic CSV views,
-  and Figures 1--4 and 6 generated only from that JSON.
+- a frozen single-source derived-data JSON, six deterministic CSV views, and
+  Figures 1--6 generated only from that JSON;
+- the terminal G2 v0.5 audit bindings, 677-file hash index, and a compact
+  four-cell replay subset;
 - the populated first-version manuscript, four generated main tables, six complete
   figure legends, and a 22-entry working bibliography;
 - a Chinese readiness audit separating required experiments, censor-aware counts,
@@ -21,10 +23,8 @@ This directory is the single tracked entry point for the first ChemWorld arXiv e
 
 ## Still required
 
-- terminal G2 v0.5 replication audit and final freeze of the derived table;
-- Figure 5 and regeneration of all figures against the terminal table;
-- a compact replay subset and the G2 terminal file-hash index;
 - durable external archive identifiers for the local raw roots;
-- clean-wheel, full-test, terminal replay, and independent-checkout attestations.
+- clean-wheel, full-test, terminal replay, and independent-checkout attestations;
+- target-style reference formatting and final statistical-language/claim audit.
 
 No file in this directory should be interpreted as lifting those gates unless `manifest.json` has `publication_ready: true` and every item in `gates` is `passed`.

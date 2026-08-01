@@ -1,7 +1,7 @@
 # Experimental Intelligence in Executable Chemical Worlds
 
-Status: working manuscript v0.3, 2026-08-02. Experimental results in Section 7
-remain pending; the rest of the first-version argument and Methods are populated.
+Status: working manuscript v0.4, 2026-08-02. The terminal G2 v0.5 audit is
+incorporated; release and independent-reproduction gates remain open.
 
 Evidence and experiment authority:
 `workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md` and
@@ -33,9 +33,14 @@ loss, retention, and recovery: material information was associated with later
 discovery but stronger retention and smaller drawdown on average, with a
 reversal in one physical world.
 
-[PENDING G2 v0.5: report the within-world five-trajectory replication for each
-of two deliberately selected physical worlds. Do not pool the worlds into a
-general-population prior-effect estimate.]
+In a fresh-trajectory replication, 18 of 20 cells completed and two were
+right-censored by provider-infrastructure failure, yielding eight complete
+paired trajectories. Six of eight world-by-core-lifecycle classifications were
+mixed within a fixed physical world. World 1 nevertheless retained positive
+endpoint effects in three of four complete pairs, whereas world 3 retained
+negative mean-score effects in three of four pairs but a mixed best-score sign.
+Thus endpoint directionality did not imply a repeatable phenotype of discovery,
+retention, drawdown, or terminal behavior.
 
 ChemWorld therefore treats a scientific agent not only as a task participant
 but as an experimentally measurable system. The results show why scientific
@@ -424,8 +429,6 @@ provider trajectory, or their interaction (Fig. 4D, Fig. 6B and Table 3).
 
 ## 7. Fresh trajectories test within-world repeatability
 
-[PENDING EXPERIMENTAL RESULTS]
-
 We selected two physical worlds only after the development study because their
 nominal-minus-opaque trajectory patterns opposed one another. The development
 trajectories are excluded from the replication estimand. In each world, five
@@ -433,27 +436,53 @@ fresh trajectory replicates pair opaque and nominal information, producing ten
 pair blocks and twenty cells. Pair order and arm-first order are frozen and
 balanced.
 
-The analysis reports all five paired differences separately within each world,
-followed by the median, range, sign count, and sign consistency. The two worlds
-are not pooled into a population-level p-value. Completed and right-censored
-cells remain in the manifest, and no cell is replaced after an accepted
-operation.
+Eighteen cells completed and two were right-censored, leaving eight complete
+pairs: four in each world. The two right-censored cells were the nominal arm of
+world 1 replicate r01 and the opaque arm of world 3 replicate r05. Each ended
+after a provider-infrastructure failure with three vessel starts, two completed
+final assays, one started but incomplete vessel, and three unstarted vessel
+opportunities. No cell was replaced. Across the matrix, agents started 114
+vessels and completed 112 final assays; six of the 120 pre-specified vessel
+opportunities were never started because of censoring. Attempt selection,
+within-pair physical identity, terminal resource reconstruction, and exact
+physical replay all passed the fail-closed audit.
 
-This section will choose exactly one outcome-blind interpretation branch:
+Fresh trajectories did not reproduce a stable opposing-world pattern (Fig. 5
+and Table 4). In world 1, the median nominal-minus-opaque difference was +0.228
+for best score and +0.224 for mean final-assay score; both were positive in
+three of four complete pairs. Among the four core lifecycle endpoints, however,
+discovery fraction (median -0.200) and retention (median +0.100) were mixed.
+Drawdown was smaller under nominal information in three of four pairs (median
+difference -0.156), and terminal-to-best ratio was higher in three of four
+pairs (median +0.104).
 
-1. repeatable within-world but opposing between-world patterns;
-2. frequent within-world reversals indicating large trajectory stochasticity;
-3. metric-specific or non-opposing repeatability; or
-4. insufficient paired coverage after right-censoring.
+In world 3, mean final-assay score was lower under nominal information in three
+of four pairs (median -0.065), but best score reversed sign evenly across pairs
+(median -0.083; two positive and two negative). Every core lifecycle endpoint
+was mixed: median differences were -0.100 for discovery fraction, 0.000 for
+retention, +0.001 for drawdown, and -0.003 for terminal-to-best ratio. Across
+both worlds, six of eight world-by-core-lifecycle classifications were mixed,
+and no core lifecycle metric showed directionally consistent opposite signs in
+the two worlds.
 
-The numeric endpoints and within-world reporting plan were frozen before the
-fresh runs. The qualitative mapping was operationalized in a supplemental
-policy while 9 cells were complete, 1 was right-censored, and 10 were pending,
-without inspecting terminal scores, trajectory contents, or paired effects.
-The audit selects the branch mechanically, not by narrative preference; the
-supplement is explicitly not described as preregistered before execution.
-The complete paired effects will appear in Fig. 5 and Table 4; neither display
-is permitted to contain live values before all cells reach a terminal state.
+The frozen interpretation policy therefore selected
+`frequent_within_world_reversal`. The qualitative mapping was added while 9
+cells were complete, 1 was right-censored, and 10 were pending, before terminal
+scores, trajectory contents, or paired effects were inspected; it is an
+outcome-blind supplement, not a claim of preregistration before execution. Its
+frozen sentence attributes the observed instability to
+"provider-trajectory variability." Because native Codex provider sampling was
+not seed-controlled and provider conditions were not experimentally varied, we
+use that phrase descriptively: the data establish frequent reversal across
+fresh agent trajectories, not a causal provider effect.
+
+The main result is therefore not that material information is beneficial or
+harmful. It is that an endpoint effect can look directional while the
+experimental lifecycle producing it is not reproducible. Prior response is not
+a scalar property of the model or physical world; it is expressed through an
+interaction between information, physical context, and a sampled experimental
+trajectory. The selected two-world design characterizes this instability but
+does not estimate its frequency in a population of chemical worlds.
 
 ## 8. Discussion
 
@@ -627,10 +656,10 @@ This temporal alignment did not identify a causal effect of measurement.
 
 The fresh-trajectory study fixed physical world seeds 1 and 3 because their
 nominal-minus-opaque development patterns opposed one another on selected
-trajectory endpoints. This is therefore a development-preregistered replication
-within two deliberately selected worlds, not a confirmatory random sample of
-chemical worlds. The development sessions selected the worlds and endpoints
-and were excluded from the replication estimand.
+trajectory endpoints. This is therefore a development-selected, pre-specified
+replication within two deliberately selected worlds, not a confirmatory random
+sample of chemical worlds. The development sessions selected the worlds and
+endpoints and were excluded from the replication estimand.
 
 Within each world, five replicate blocks (`r01`--`r05`) paired opaque material
 codes with anonymous nominal properties. The physical evaluator, material
@@ -686,50 +715,48 @@ estimated from an unrelated API tariff.
 The four G0 raw roots comprise 1,441 files and 17,725,724,603 bytes. A tracked
 index binds every root-relative path, byte count and file SHA-256; the two
 tracked formal JSON summaries are bound by canonical-JSON SHA-256 so checkout
-line-ending conversion cannot change their identity. Before public release we
-require a durable archive identifier for the raw bytes, a compact replay subset
-for G2, a terminal G2 file index, a current evidence graph, clean-wheel and full
-test passes, and reproduction of the declared artifacts from an independent
-checkout.
+line-ending conversion cannot change their identity. The release now contains
+a compact G2 replay subset and a terminal 677-file G2 index. Before public
+release we still require a durable archive identifier for the G0 raw bytes, a
+current evidence graph, clean-wheel and full-test passes, and reproduction of
+the declared artifacts from an independent checkout.
 
 ## 10. Data and code availability
 
 `benchmark/releases/chemworld-serious-v1` contains a fail-closed manifest, data
-card, claim boundaries, the deterministic G0 raw-file index, a provisional
-single-source derived-data object, and five CSV views. Figures 1--4 and 6 are
-generated only from that object. Main tables and complete figure legends are
-rendered from the same source into
-`paper/experimental_intelligence_v1_display_items.md`. The index contains no
-raw content or absolute path. G2 v0.5 is represented as null, Figure 5 is
-deliberately absent, and Table 4 contains no interim values until the terminal
-audit passes. Before release we will freeze the derived object, add the terminal
-G2 trajectory and receipt index, a small replayable trajectory subset, and a
-durable archive location for the full local raw corpus. The manifest remains
-`publication_ready=false` until every stated gate passes.
+card, claim boundaries, the deterministic G0 raw-file index, a frozen
+single-source derived-data object, and six CSV views. Figures 1--6 are generated
+only from that object. Main tables and complete figure legends are rendered
+from the same source into
+`paper/experimental_intelligence_v1_display_items.md`. The G0 index and terminal
+G2 index contain no raw content or absolute path. The G2 package includes a
+677-file terminal hash index and a compact four-cell replay subset containing
+one complete pair and both right-censored cells. Before release we will add a
+durable archive location for the full local G0 corpus and complete the clean-
+wheel, full-test, evidence, replay, and independent-checkout attestations. The
+manifest remains `publication_ready=false` until every stated gate passes.
 
 ## 11. Remaining work before arXiv
 
-1. Terminalize and audit the remaining G2 v0.5 cells. At the 2026-08-02 02:47
-   (Asia/Shanghai) operational snapshot, 10 cells were complete, 1 was right-
-   censored, 9 remained pending, and 54 of 120 planned vessel-opportunity
-   slots remained unresolved. These live counts are not scientific results.
-2. Re-run the currently passing 55-node evidence graph after the final source
+1. Re-run the currently passing 55-node evidence graph after the final source
    commit, clean-wheel build, and independent-checkout verification.
-3. Archive the four G0 raw roots. Their public 1,441-file hash index and data
+2. Archive the four G0 raw roots. Their public 1,441-file hash index and data
    card now exist, and the four historical source commits are immutable
    ancestors of `origin/main`.
-4. Insert the audited G2 v0.5 rows into the existing provisional derived-data
-   source, freeze it, render Figure 5, and regenerate all figures.
-5. Complete the release directory, clean-wheel, full-test, replay,
+3. Complete the release directory, clean-wheel, full-test, replay,
    and independent-checkout attestations.
-6. Convert the frozen working bibliography in
+4. Convert the frozen working bibliography in
    `paper/experimental_intelligence_v1_references.bib` to the target journal
    style, then complete the statistical-language and final-claim audits.
 
-No new G0 scientific experiment is required for this manuscript. The only
-required new scientific matrix contains 20 G2 v0.5 cells and 120 G2 experiment
-opportunities. It is already running; 9 cells and 54 planned experiment-
-opportunity slots remain unresolved at this snapshot.
+No new G0 or G2 scientific experiment is required for this manuscript. G2 v0.5
+has zero pending cells and zero unresolved vessel opportunities. The complete
+first-version evidence base contains 29,754 executed physical experiments and
+29,752 completed experiments/final assays. The larger value 29,760 is only the
+pre-specified opportunity denominator: two started vessels lacked a final assay
+and six opportunities were never started after right-censoring. Additional
+worlds, tasks, models, or provider-seed experiments are optional post-arXiv
+extensions, not hidden requirements for the present claims.
 
 ## 12. Display items
 

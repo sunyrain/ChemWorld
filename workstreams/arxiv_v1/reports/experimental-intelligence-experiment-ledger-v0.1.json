@@ -17,7 +17,7 @@
     "primary_interface": "agent-directed closed-loop primitive experimentation",
     "compiled_recipe_role": "low-agency calibration and prior-intervention evidence, not the narrative starting point or a direct competitor",
     "g1_role": "development-only interface diagnostic; excluded from the paper ontology",
-    "required_new_scientific_experiment": "within-world fresh-trajectory replication in G2 v0.5",
+    "required_new_scientific_experiment": "none; the required G2 v0.5 within-world fresh-trajectory replication is terminal and audited",
     "direct_g0_vs_g2_superiority_claim": false,
     "general_population_prior_effect_claim": false
   },
@@ -130,9 +130,9 @@
       "report": "workstreams/G2_TRAJECTORY_REPLICATION_QUALIFICATION_REPORT_ZH.md"
     },
     "g2_v0_5_fresh_trajectory_replication": {
-      "paper_role": "required new experiment measuring within-world repeatability of experimental behavior",
-      "evidence_level": "development_preregistered_selected_world_replication",
-      "status": "running_unaudited_after_clean_restart",
+      "paper_role": "terminal experiment measuring within-world repeatability of experimental behavior",
+      "evidence_level": "development_selected_prespecified_fresh_trajectory_replication",
+      "status": "completed_audited_with_right_censoring",
       "formal_output_exists_at_audit": true,
       "launcher_output_exists_at_audit": true,
       "excluded_launch_01": {
@@ -173,7 +173,7 @@
         "protocol_file_sha256": "2d2685b67c47a276c9b7eb7e3575313fe264dfc6ba65d708d60e0a98e8127cbf",
         "schedule_sha256": "d8c75528c82ea0181b7da880088c3f0663a7f4d1026b9e03d93fe2cc7f0b13af",
         "campaign_resource_card_sha256": "43eebc9c84399655d979c7524f9dbeda5b963b5c5f495ed7287a5aca1cb6f37a",
-        "counting_note": "live operations are not promoted until terminal cell materialization and fail-closed audit"
+        "counting_note": "all terminal cells were promoted only after identity, attempt-selection, resource-replay, and exact-replay audit"
       },
       "worlds": 2,
       "selected_world_seeds": [
@@ -185,25 +185,32 @@
       "pair_blocks": 10,
       "cells": {
         "planned": 20,
-        "completed": 0,
-        "right_censored": 0,
-        "remaining": 20
+        "completed": 18,
+        "right_censored": 2,
+        "remaining": 0
       },
       "physical_experiment_opportunities": {
         "planned": 120,
-        "completed": 0,
-        "remaining": 120
+        "executed_vessels": 114,
+        "completed_final_assays": 112,
+        "started_incomplete_vessels": 2,
+        "unstarted_due_to_right_censoring": 6,
+        "remaining": 0
       },
       "provider_sessions": {
         "planned": 120,
-        "completed": 0,
-        "remaining": 120
+        "started": 114,
+        "completed": 112,
+        "interrupted": 2,
+        "unstarted": 6,
+        "remaining": 0
       },
       "nonfinal_instrument_quota": 360,
       "primitive_operation_ceiling": 2880,
       "projected_primitive_operations": 1725,
       "projected_input_tokens": 81802465,
       "projected_output_tokens": 368170,
+      "accepted_primitive_operations_observed": 1615,
       "protocol": "configs/benchmark/g2_autonomous_electrochemical_material_seed1_seed3_r5_v0.5_dev.json",
       "runner": "scripts/run_g2_trajectory_replication.py",
       "launcher": "scripts/launch_g2_trajectory_replication.py",
@@ -211,14 +218,27 @@
       "remaining_audit": {
         "path": "workstreams/arxiv_v1/reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json",
         "schema_version": "chemworld-arxiv-v1-remaining-experiment-audit-0.1",
-        "role": "regenerable operational snapshot; never a scientific-result authority"
+        "audit_sha256": "c609cd34867331d6df41e7b72a1c01429fd48c42b3400f9e9a331956b49a5563",
+        "role": "regenerable terminal experiment-accounting audit; the formal replication audit remains the scientific-result authority"
       },
+      "terminal_audit": {
+        "schema_version": "chemworld-autonomous-material-trajectory-replication-audit-0.1",
+        "audit_sha256": "7bb4045fa1ca041de047d967a31ed3d89d5f8ad83851aa7b469144b4da37f28d",
+        "manifest_sha256": "e6c74e782d672e21948e041992ae9afe8c68577edac6a80852941e956ac002ac",
+        "completed_pairs": 8,
+        "right_censored_pairs": 2,
+        "selected_interpretation_branch": "frequent_within_world_reversal",
+        "mixed_world_by_core_metric_classifications": 6,
+        "world_by_core_metric_classifications": 8
+      },
+      "terminal_file_index": "benchmark/releases/chemworld-serious-v1/g2-v0.5-terminal-file-index.json",
+      "compact_replay_subset": "benchmark/releases/chemworld-serious-v1/g2-v0.5-replay-subset",
       "schedule_sha256": "d8c75528c82ea0181b7da880088c3f0663a7f4d1026b9e03d93fe2cc7f0b13af",
-      "claim_boundary": "report five nominal-minus-opaque trajectories separately within each selected world; no pooled general-world p-value"
+      "claim_boundary": "report every available nominal-minus-opaque trajectory separately within each selected world, retain two right-censored pairs, and perform no pooled general-world p-value"
     }
   },
   "scientific_experiment_accounting": {
-    "definition": "a physical experiment is one fresh-vessel executed experimental unit; G2 planned opportunities may terminate by final assay or preregistered right-censoring",
+    "definition": "a physical experiment is one fresh-vessel executed experimental unit; G2 planned opportunities may terminate by final assay or pre-specified right-censoring",
     "completed_or_audited_before_v0_5": {
       "g0_physical_experiments": 29580,
       "g2_v0_4_completed_physical_experiments": 60,
@@ -226,13 +246,14 @@
     },
     "required_remaining_for_arxiv_v1": {
       "g0_new_physical_experiments": 0,
-      "g2_v0_5_physical_experiment_opportunities": 120,
-      "total": 120
+      "g2_v0_5_physical_experiment_opportunities": 0,
+      "total": 0
     },
+    "g2_v0_5_prespecified_opportunity_total": 120,
     "planned_opportunity_denominator_after_g2_v0_5": 29760,
-    "final_executed_physical_experiment_total": null,
-    "final_completed_experiment_total": null,
-    "right_censoring_counting_rule": "the 120 planned G2 opportunities remain the design denominator, but unstarted slots are not executed physical experiments and action-bearing right-censored vessels are not completed final-assay experiments; populate both final totals only after terminal audit",
+    "final_executed_physical_experiment_total": 29754,
+    "final_completed_experiment_total": 29752,
+    "right_censoring_counting_rule": "the 120 planned G2 opportunities remain the design denominator, but six unstarted slots are not executed physical experiments and two started right-censored vessels are executed but not completed final-assay experiments",
     "qualification_attempts_excluded_from_scientific_total": 2,
     "no_additional_matched_g0_g2_matrix_required": true
   },
@@ -259,20 +280,20 @@
     {
       "id": "B1",
       "kind": "scientific_experiment",
-      "status": "in_progress",
-      "blocker": "the clean foreground-supervised restart is running; it still requires 20 terminal cells and 120 audited physical experiment opportunities"
+      "status": "resolved",
+      "blocker": "none: all 20 cells are terminal, the fail-closed audit passed, and no additional scientific experiment is required for v1"
     },
     {
       "id": "B2",
       "kind": "evidence_graph",
-      "status": "open",
-      "blocker": "evidence_pipeline --check fails with five registry/freshness inconsistencies"
+      "status": "pending_final_refresh",
+      "blocker": "the 55-node evidence graph passed before the terminal manuscript freeze and must be refreshed after the final source commit"
     },
     {
       "id": "B3",
       "kind": "release",
       "status": "partially_resolved",
-      "blocker": "the tracked release entrypoint, manifest, data card, claim boundaries, and deterministic G0 raw-file hash index exist; G2 result tables/index/subset, archive identifiers and final attestations remain open"
+      "blocker": "the tracked release entrypoint, terminal G2 tables, file index, replay subset, and final figures exist; the external G0 archive identifier and final verification attestations remain open"
     },
     {
       "id": "B4",
@@ -284,19 +305,19 @@
       "id": "B5",
       "kind": "data_release",
       "status": "partially_resolved",
-      "blocker": "the G0 data card and 1,441-file public hash index are tracked, but the approximately 17.7 GB raw roots still need a durable external archive and G2 still needs a terminal file index plus compact replay subset"
+      "blocker": "the G0 data card, 1,441-file public hash index, G2 terminal file index, and compact replay subset are tracked, but the approximately 17.7 GB G0 raw roots still need a durable external archive"
     },
     {
       "id": "B6",
       "kind": "manuscript",
       "status": "partially_resolved",
-      "blocker": "the experimental-intelligence manuscript and detailed Methods now exist, but the G2 v0.5 Results, formatted reference list, and final figures remain unfinished"
+      "blocker": "the terminal G2 Results and figures are incorporated; target-style reference formatting and the final statistical-language and claim audits remain"
     },
     {
       "id": "B7",
       "kind": "figures",
-      "status": "partially_resolved",
-      "blocker": "a provisional single-source derived-data JSON, five CSV views, and deterministic Figures 1--4 and 6 now exist; terminal G2 v0.5 rows, Figure 5, and the final all-figure freeze remain open"
+      "status": "resolved",
+      "blocker": "none: the frozen single-source derived-data JSON, six CSV views, and deterministic Figures 1--6 include the terminal G2 result"
     }
   ],
   "launch_decision": {
@@ -306,6 +327,6 @@
     "dry_run_pair_audits_passed": 10,
     "dry_run_pair_audits_planned": 10,
     "formal_run_started": true,
-    "next_scientific_action": "hold the foreground process, monitor read-only, allow all cells to materialize, then run the fail-closed replication audit without outcome-dependent intervention"
+    "next_scientific_action": "none required for arXiv v1; complete release, archive, and independent-verification gates"
   }
 }

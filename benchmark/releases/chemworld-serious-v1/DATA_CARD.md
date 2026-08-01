@@ -19,31 +19,40 @@ G1 is a development-only interface diagnostic and is not a scientific layer in t
 | Existing audited total |  | 29,640 |
 | G2 v0.5 | planned fresh-trajectory replication opportunities | 120 |
 | Planned opportunity denominator after terminal audit |  | 29,760 |
+| G2 v0.5 | executed vessels | 114 |
+| G2 v0.5 | completed final assays | 112 |
+| Final project total | executed physical experiments | 29,754 |
+| Final project total | completed experiments/final assays | 29,752 |
 
 An opaque G0 slice occurs in both the v1.0 and v1.2 summaries and is counted only once. Two G2 qualification attempts and the entire first interrupted G2 v0.5 launch are excluded.
 
-The 29,760 figure is a design denominator, not a guaranteed count of executed
-or completed experiments. If a G2 cell is right-censored, its unstarted vessel
-slots remain visible in the 120-opportunity denominator but are not counted as
-executed physical experiments; a started right-censored vessel is executed but
-is not a completed final-assay experiment. Both final totals remain unset until
-the terminal audit.
+The 29,760 figure is a design denominator, not the count of executed or
+completed experiments. Eighteen G2 cells completed and two were right-censored.
+Those cells left six opportunities unstarted and two started vessels without a
+final assay, yielding the distinct final totals above. There are zero pending
+cells and zero unresolved opportunities.
 
 ## Current raw-data state
 
 Four G0 raw roots exist locally: 1,441 files and 17,725,724,603 bytes. Their historical source commits are all immutable ancestors of `origin/main`. A deterministic public index now binds every file by root-relative path, byte count, and SHA-256 (`g0-raw-file-index.json`, index SHA-256 `f49884b6e2d2b87a707dce9f93f96041dd7b3636b8e97ea4de93f0b3b429d961`). The raw bytes have not yet been deposited in a durable external archive. Until an archive identifier is added, this release candidate is not publication-ready.
 
-G2 v0.5 is still running. Live trajectories are not promoted into the paper count; only terminal, identity-checked, ledger-audited, exact-replay-verified cells may enter the final derived table.
+G2 v0.5 is terminal. Its 18 completed and two right-censored cells passed
+attempt-selection, within-pair identity, resource-replay, and exact-replay
+checks. The terminal package is bound by a 677-file hash index and includes a
+compact replay subset containing one complete pair and both right-censored
+cells.
 
 ## Derived-data and figure state
 
 `arxiv-v1-derived-data.json` is the sole numeric source for manuscript tables
-and figures. Its current status is `provisional_awaiting_g2_v0_5`: it contains
-only formal G0 summaries and the completed G2 v0.4 audit. Five CSV views and
-Figures 1--4 and 6 are generated from this object. G2 v0.5 is explicitly
-`null`, and Figure 5 is not rendered, until all twenty cells are terminal and
-the fail-closed replication audit passes. The provisional artifacts therefore
-close the pipeline-design gap but not the final-result gate.
+and figures. Its status is `frozen_complete`: it contains formal G0 summaries,
+the completed G2 v0.4 audit, and the terminal G2 v0.5 audit. Six CSV views and
+Figures 1--6 are generated from this object. G2 v0.5 contributes eight complete
+pairs and retains two right-censored pairs without imputation. The selected
+frozen interpretation branch is `frequent_within_world_reversal`; six of eight
+world-by-core-lifecycle classifications were mixed. These selected worlds are
+reported descriptively and are not pooled into a population-level prior-effect
+test.
 
 ## Sensitive and excluded content
 
