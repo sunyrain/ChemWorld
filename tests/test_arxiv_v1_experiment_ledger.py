@@ -269,3 +269,17 @@ def test_g0_historical_source_binding_is_reachable_and_data_release_is_honest() 
     }
     assert provenance["release_status"]["source_binding_blocker_resolved"] is True
     assert provenance["release_status"]["durable_external_archive_exists"] is False
+
+
+def test_release_candidate_is_populated_but_fails_closed() -> None:
+    release_root = ROOT / "benchmark/releases/chemworld-serious-v1"
+    manifest = _load(release_root / "manifest.json")
+
+    assert (release_root / "README.md").is_file()
+    assert (release_root / manifest["data_card"]).is_file()
+    assert (release_root / manifest["claim_boundaries"]).is_file()
+    assert manifest["status"] == "building_not_publication_ready"
+    assert manifest["publication_ready"] is False
+    assert manifest["evidence"]["g2_v0_5_result"] is None
+    assert manifest["gates"]["tracked_release_populated"] == "passed"
+    assert manifest["gates"]["raw_data_archive"] == "open"

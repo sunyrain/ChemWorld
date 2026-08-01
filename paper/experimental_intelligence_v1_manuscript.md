@@ -422,10 +422,10 @@ the independent-checkout attestation required before submission.]
 
 ## 10. Data and code availability
 
-[BLOCKED: `benchmark/releases/chemworld-serious-v1` is empty. Before release,
-provide a frozen derived cell table, trajectory and receipt hash index, a small
-replayable trajectory subset, a data card, and a durable archive location for
-the full local raw corpus.]
+[PARTIALLY RESOLVED: `benchmark/releases/chemworld-serious-v1` now contains a
+fail-closed manifest, data card, and claim boundaries. Before release, add the
+frozen derived cell table, trajectory and receipt hash index, a small replayable
+trajectory subset, and a durable archive location for the full local raw corpus.]
 
 ## 11. Remaining work before arXiv
 
