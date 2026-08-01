@@ -431,9 +431,9 @@ the full local raw corpus.]
 
 1. Execute and audit 20 G2 v0.5 cells, representing 120 planned physical
    experiment opportunities and 120 provider sessions.
-2. Close the five current evidence-pipeline registry/freshness errors.
-3. Recertify G0 artifacts on one release candidate or publish exact historical
-   source snapshots for every arm.
+2. Close the current evidence-pipeline registry/freshness errors.
+3. Archive the four G0 raw roots and publish a public file-hash index; the four
+   historical source commits are already immutable ancestors of `origin/main`.
 4. Build one frozen derived table and generate all figures from it.
 5. Populate the release directory and complete clean-wheel, full-test, replay,
    and independent-checkout attestations.

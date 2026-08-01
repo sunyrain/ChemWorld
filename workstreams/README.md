@@ -16,3 +16,6 @@ The current primary-source related-work audit and its machine-readable evidence 
 `workstreams/arxiv_v1/reports/related-work-evidence-v0.1.json`.
 The excluded first-launch infrastructure interruption is recorded in
 `workstreams/arxiv_v1/G2_V05_EXECUTION_INCIDENT_2026_08_01_ZH.md`.
+The G0 historical-source and local-data inventory is recorded in
+`workstreams/arxiv_v1/G0_SOURCE_DATA_PROVENANCE_AUDIT_ZH.md` and
+`workstreams/arxiv_v1/reports/g0-source-and-data-provenance-v0.1.json`.

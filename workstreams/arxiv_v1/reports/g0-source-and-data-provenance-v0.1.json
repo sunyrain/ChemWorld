@@ -1,0 +1,106 @@
+{
+  "schema_version": "chemworld-g0-source-data-provenance-0.1",
+  "as_of": "2026-08-01",
+  "scope": "nonduplicated G0 evidence used by the first arXiv manuscript",
+  "source_binding": {
+    "status": "resolved_by_reachable_immutable_git_commits",
+    "all_commits_exist_locally": true,
+    "all_commits_are_ancestors_of_origin_main": true,
+    "commits": [
+      {
+        "commit": "4a72320585166f4f063749e7d06068b42f7b7b68",
+        "role": "v1.0 baseline execution and formal experiment source",
+        "committed_at": "2026-07-29T02:06:06+08:00",
+        "subject": "preserve separate formal campaign execution logs"
+      },
+      {
+        "commit": "555896ce3f6b6d6455ab9e0605e01063057889da",
+        "role": "v1.0 opaque participant postrun audit and execution binding",
+        "committed_at": "2026-07-29T05:46:13+08:00",
+        "subject": "fix static optimization world understanding audit"
+      },
+      {
+        "commit": "52d317e49887d4b918eb65319d57542126c6bb17",
+        "role": "v1.1 nominal participant execution",
+        "committed_at": "2026-07-29T10:55:41+08:00",
+        "subject": "bind refreshed evidence registry"
+      },
+      {
+        "commit": "5f5d8b51bb7b987a3de5ac57e1890abcdc4ff0f2",
+        "role": "v1.2 misindexed participant freeze and execution",
+        "committed_at": "2026-07-29T15:55:22+08:00",
+        "subject": "freeze targeted misindexed material campaign"
+      }
+    ]
+  },
+  "tracked_summaries": [
+    {
+      "path": "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json",
+      "sha256": "309db48ff0f60b6f00ad4b40ec0bb5cdba19b8810c7239cd3e3b826dfde96001",
+      "physical_experiments_in_summary": 28060,
+      "nonduplicated_role": "27300 classic-baseline experiments plus the 760 opaque participant experiments reused by v1.2"
+    },
+    {
+      "path": "workstreams/flagship_tasks/reports/static-s0-v1.2-three-arm-information-campaign-summary.json",
+      "sha256": "6a05f6cca2a3a60cbbd0e4b07b5b5fe9c813977bf5a85a4ab45a84482c3e7b3a",
+      "physical_experiments_in_summary": 2280,
+      "nonduplicated_role": "all three participant arms; opaque is shared with v1.0"
+    }
+  ],
+  "local_raw_roots": [
+    {
+      "id": "v10_baselines",
+      "path": "runs/formal/static-s0-v10-baselines-20260729",
+      "source_commit": "4a72320585166f4f063749e7d06068b42f7b7b68",
+      "file_count": 1133,
+      "byte_count": 16239891581,
+      "campaign_index_sha256": "9451f67aed59481cc4c2f3c29eff241b1deea9aaccef6d43efe86cc4ca5c0238",
+      "index_hash_declared_in_formal_summary": true,
+      "index_hash_matches_declared": true
+    },
+    {
+      "id": "v10_opaque",
+      "path": "runs/formal/static-s0-v10-codex-subscription-20260729",
+      "source_commit": "555896ce3f6b6d6455ab9e0605e01063057889da",
+      "file_count": 105,
+      "byte_count": 494951408,
+      "campaign_index_sha256": "5b8acfce111109f49a736ac601ad9c197adae9313020bc61ec9ff026ed9419e8",
+      "index_hash_declared_in_formal_summary": true,
+      "index_hash_matches_declared": true
+    },
+    {
+      "id": "v11_nominal",
+      "path": "runs/formal/static-s0-v11-nominal-codex-subscription-20260729",
+      "source_commit": "52d317e49887d4b918eb65319d57542126c6bb17",
+      "file_count": 102,
+      "byte_count": 495504956,
+      "campaign_index_sha256": "744a9de8ef3a239d0fa3ff4f9e037c11a232a8cc9902342c8aec86dac6e4e511",
+      "index_hash_declared_in_formal_summary": false,
+      "index_hash_matches_local_bytes": true
+    },
+    {
+      "id": "v12_misindexed",
+      "path": "runs/formal/static-s0-v12-misindexed-codex-subscription-20260729",
+      "source_commit": "5f5d8b51bb7b987a3de5ac57e1890abcdc4ff0f2",
+      "file_count": 101,
+      "byte_count": 495376658,
+      "campaign_index_sha256": "8cedb86a93a0c9348462b5229981085e74ed5b71511f4b8c97792b4760f05fb3",
+      "index_hash_declared_in_formal_summary": false,
+      "index_hash_matches_local_bytes": true
+    }
+  ],
+  "raw_data_accounting": {
+    "root_count": 4,
+    "file_count": 1441,
+    "byte_count": 17725724603,
+    "note": "sum of the four audited local raw roots at the stated as_of date"
+  },
+  "release_status": {
+    "source_binding_blocker_resolved": true,
+    "local_raw_bytes_exist": true,
+    "durable_external_archive_exists": false,
+    "public_hash_index_exists": false,
+    "data_card_exists": false,
+    "remaining_blocker": "build a compact public artifact and deposit or otherwise durably archive the raw run roots; do not place approximately 17.7 GB of raw data in Git"
+  }
+}

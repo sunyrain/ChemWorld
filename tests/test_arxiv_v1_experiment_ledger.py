@@ -146,9 +146,7 @@ def test_paper_scope_keeps_g2_primary_and_claims_bounded() -> None:
     assert scope["general_population_prior_effect_claim"] is False
     assert "no pooled general-world p-value" in g2["claim_boundary"]
     assert len(ledger["publication_blockers"]) == 7
-    assert g2["status"] == (
-        "restart_required_after_excluded_host_interruption"
-    )
+    assert g2["status"] == "running_unaudited_after_clean_restart"
     assert g2["excluded_launch_01"]["disposition"].startswith(
         "exclude the entire launch"
     )
@@ -157,7 +155,11 @@ def test_paper_scope_keeps_g2_primary_and_claims_bounded() -> None:
     assert g2["excluded_launch_01"]["source_commit"] == (
         "f539bfa7af5e3846ef56a842fd56b990cdd8bd07"
     )
-    assert ledger["launch_decision"]["formal_run_started"] is False
+    assert g2["active_launch_02"]["source_commit"] == (
+        "aae0edac12c849bc4246ca5ac9359a2d00d9f660"
+    )
+    assert g2["active_launch_02"]["worktree_clean_at_start"] is True
+    assert ledger["launch_decision"]["formal_run_started"] is True
 
 
 def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
@@ -239,3 +241,31 @@ def test_related_work_audit_is_current_bounded_and_synchronized() -> None:
     assert "controlled experimental science of experimenting agents" in audit
     assert "ChemWorld intentionally abstracts those problems" in manuscript
     assert "first virtual chemistry laboratory" in manuscript
+
+
+def test_g0_historical_source_binding_is_reachable_and_data_release_is_honest() -> None:
+    ledger = _load(LEDGER_PATH)
+    provenance_path = (
+        ROOT
+        / ledger["experiment_layers"]["g0_compiled_recipe"][
+            "source_and_data_provenance"
+        ]
+    )
+    provenance = _load(provenance_path)
+
+    assert provenance["source_binding"]["all_commits_exist_locally"] is True
+    assert (
+        provenance["source_binding"][
+            "all_commits_are_ancestors_of_origin_main"
+        ]
+        is True
+    )
+    assert len(provenance["source_binding"]["commits"]) == 4
+    assert provenance["raw_data_accounting"] == {
+        "root_count": 4,
+        "file_count": 1441,
+        "byte_count": 17725724603,
+        "note": "sum of the four audited local raw roots at the stated as_of date",
+    }
+    assert provenance["release_status"]["source_binding_blocker_resolved"] is True
+    assert provenance["release_status"]["durable_external_archive_exists"] is False

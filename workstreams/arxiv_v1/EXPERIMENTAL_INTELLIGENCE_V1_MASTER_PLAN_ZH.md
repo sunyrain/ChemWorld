@@ -6,7 +6,7 @@
 
 机器总账：`workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json`
 
-G2 v0.5 执行源码：`main@f539bfa7af5e3846ef56a842fd56b990cdd8bd07`
+G2 v0.5 当前执行源码：`main@aae0edac12c849bc4246ca5ac9359a2d00d9f660`
 
 第一次启动基础设施中断记录：`workstreams/arxiv_v1/G2_V05_EXECUTION_INCIDENT_2026_08_01_ZH.md`
 
@@ -23,10 +23,11 @@ G2 v0.5 执行源码：`main@f539bfa7af5e3846ef56a842fd56b990cdd8bd07`
 - G1 是开发期接口诊断，不进入论文科学本体；
 - 不进行“G2 是否胜过 G0”或“LLM 是否胜过 BO”的总体胜负叙事。
 
-第一版唯一新增科学矩阵 G2 v0.5 已于 2026-08-01 23:30（Asia/Shanghai）从干净的
-`f539bfa7` commit 以持久后台进程启动：20 cells、120 个 fresh-vessel 实验机会、120 个
-原生 Codex sessions。运行期间只读监控，不依据中途结果改变顺序、停止或重抽样。G0 不需要
-新科学实验。旧的 matched G0/G2 40-cell 矩阵和 G2 三臂扩展均移到 arXiv 之后。
+第一版唯一新增科学矩阵 G2 v0.5 的第一次 detached 启动因宿主进程中断被整体排除并原样保留。
+同一冻结协议已于 2026-08-01 23:51（Asia/Shanghai）从干净的 `aae0edac` commit 写入新目录，
+以前台托管方式完整重启：20 cells、120 个 fresh-vessel 实验机会、120 个原生 Codex sessions。
+运行期间只读监控，不依据中途结果改变顺序、停止或重抽样。G0 不需要新科学实验。旧的
+matched G0/G2 40-cell 矩阵和 G2 三臂扩展均移到 arXiv 之后。
 
 ## 1. 科学对象与中心问题
 
@@ -390,9 +391,10 @@ Qualification 的2个 attempted vessels不计入科学语料；其中1个完成�
 
 ## 12. 非实验发布阻断
 
-### B1 — G2 v0.5 未运行
+### B1 — G2 v0.5 正在运行
 
-正式输出目录与 launcher log 均不存在，0/20 cells、0/120 experiment opportunities。
+第一次 detached 启动已按预定规则整体排除；干净的前台托管重启已开始。只有 20/20 cells
+终态化且通过 fail-closed audit 后，120 个 experiment opportunities 才能进入正文。
 
 ### B2 — Evidence graph 未闭合
 
@@ -402,9 +404,10 @@ Qualification 的2个 attempted vessels不计入科学语料；其中1个完成�
 
 `benchmark/releases/chemworld-serious-v1` 当前没有可发布工件。
 
-### B4 — G0 source binding 分散
+### B4 — G0 source binding 已解决
 
-classic、opaque、nominal、misindexed 来自多个历史 commit。推荐在单一 release candidate 上做 deterministic recertification；如果无法做到，则必须 archive-first 发布各自精确 snapshot。
+classic、opaque、nominal、misindexed 所绑定的四个历史 commit 均存在且都是 `origin/main`
+祖先。无需把多 commit 本身误判为失效；剩余任务归入 B5 的 raw archive 与公开哈希索引。
 
 ### B5 — Raw data 未发布
 
@@ -431,7 +434,7 @@ G2 v0.5 正式结果、完整 Methods、参考文献和最终图表尚未填实�
 ### Phase B — G2 v0.5 运行
 
 - clean main commit；
-- persistent detached launcher；
+- foreground-supervised process；
 - 10/10 frozen pair dry-run；
 - 不看 interim 故事方向；
 - 20 cells 全部进入 completed、right-censored 或 audit-required terminal state。

@@ -81,7 +81,8 @@
         "v1_0": "309db48ff0f60b6f00ad4b40ec0bb5cdba19b8810c7239cd3e3b826dfde96001",
         "v1_2": "6a05f6cca2a3a60cbbd0e4b07b5b5fe9c813977bf5a85a4ab45a84482c3e7b3a"
       },
-      "release_caveat": "opaque, nominal, misindexed and classic evidence bind multiple historical commits; recertification or archived source snapshots are required before release"
+      "release_caveat": "opaque, nominal, misindexed and classic evidence bind four immutable historical commits that are all ancestors of origin/main; raw-run archival remains open",
+      "source_and_data_provenance": "workstreams/arxiv_v1/reports/g0-source-and-data-provenance-v0.1.json"
     },
     "g2_v0_4_autonomous_development": {
       "paper_role": "audited autonomous behavior discovery and metric design",
@@ -137,7 +138,7 @@
     "g2_v0_5_fresh_trajectory_replication": {
       "paper_role": "required new experiment measuring within-world repeatability of experimental behavior",
       "evidence_level": "development_preregistered_selected_world_replication",
-      "status": "restart_required_after_excluded_host_interruption",
+      "status": "running_unaudited_after_clean_restart",
       "formal_output_exists_at_audit": true,
       "launcher_output_exists_at_audit": true,
       "excluded_launch_01": {
@@ -166,6 +167,19 @@
         "new_output_root_required": true,
         "execution_mode": "foreground_supervised_process",
         "reason": "avoid detached-process reclamation while preserving the frozen scientific design"
+      },
+      "active_launch_02": {
+        "started_at": "2026-08-01T15:51:33.590357+00:00",
+        "source_commit": "aae0edac12c849bc4246ca5ac9359a2d00d9f660",
+        "worktree_clean_at_start": true,
+        "output_root": "runs/development/g2-autonomous-material-seed1-seed3-r5-codex-sol-medium-v2",
+        "execution_mode": "foreground_supervised_process",
+        "codex_cli_version": "codex-cli 0.145.0",
+        "material_source_tree_sha256": "9a7fc95c8a46bb0d094adf57bdfe381c4b41115cbb60aa18caff601bec7e12e9",
+        "protocol_file_sha256": "2d2685b67c47a276c9b7eb7e3575313fe264dfc6ba65d708d60e0a98e8127cbf",
+        "schedule_sha256": "d8c75528c82ea0181b7da880088c3f0663a7f4d1026b9e03d93fe2cc7f0b13af",
+        "campaign_resource_card_sha256": "43eebc9c84399655d979c7524f9dbeda5b963b5c5f495ed7287a5aca1cb6f37a",
+        "counting_note": "live operations are not promoted until terminal cell materialization and fail-closed audit"
       },
       "worlds": 2,
       "selected_world_seeds": [
@@ -244,7 +258,7 @@
       "id": "B1",
       "kind": "scientific_experiment",
       "status": "in_progress",
-      "blocker": "the first detached launch was excluded after a host-process interruption; a clean foreground-supervised restart still requires 20 terminal cells and 120 audited physical experiment opportunities"
+      "blocker": "the clean foreground-supervised restart is running; it still requires 20 terminal cells and 120 audited physical experiment opportunities"
     },
     {
       "id": "B2",
@@ -261,8 +275,8 @@
     {
       "id": "B4",
       "kind": "source_binding",
-      "status": "open",
-      "blocker": "G0 arms and classic baselines bind multiple historical source commits"
+      "status": "resolved",
+      "blocker": "none: all four G0 source commits exist and are ancestors of origin/main; see the source-and-data provenance report"
     },
     {
       "id": "B5",
@@ -289,7 +303,7 @@
     "persistent_launcher_ready": true,
     "dry_run_pair_audits_passed": 10,
     "dry_run_pair_audits_planned": 10,
-    "formal_run_started": false,
-    "next_scientific_action": "commit the incident record, start the unchanged schedule in a new output root under a foreground-supervised process, allow all cells to materialize, then run the fail-closed replication audit without outcome-dependent intervention"
+    "formal_run_started": true,
+    "next_scientific_action": "hold the foreground process, monitor read-only, allow all cells to materialize, then run the fail-closed replication audit without outcome-dependent intervention"
   }
 }
