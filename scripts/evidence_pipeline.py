@@ -1991,6 +1991,9 @@ def _write_current_registry() -> None:
             "workstreams/arxiv_v1/reports/"
             "experimental-intelligence-experiment-ledger-v0.1.json"
         ),
+        "claim_evidence_ledger": node_map()[
+            "pre_arxiv_claim_evidence_ledger"
+        ].path,
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
         "scope": "experimental_intelligence_in_executable_chemical_worlds",
         "new_scientific_experiments_required_for_first_arxiv": True,
