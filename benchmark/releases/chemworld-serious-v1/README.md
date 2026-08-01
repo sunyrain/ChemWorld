@@ -15,6 +15,8 @@ This directory is the single tracked entry point for the first ChemWorld arXiv e
   and Figures 1--4 and 6 generated only from that JSON.
 - the populated first-version manuscript, four generated main tables, six complete
   figure legends, and a 22-entry working bibliography;
+- a Chinese readiness audit separating required experiments, censor-aware counts,
+  generated artifacts, release gates, and the external archive dependency;
 - a current 55-node evidence graph with a clean source-tree attestation.
 
 ## Still required

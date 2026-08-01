@@ -1,5 +1,5 @@
 {
-  "audit_sha256": "6c251d6dd71f7d629d3c4b727afb2f45da2ec7654fae902899e948f1719b8074",
+  "audit_sha256": "e9ef5f9e51f9a01c4bd2ef0431ac29020bcbebdf4dcf5313dbc6d2a4ac431266",
   "cells": [
     {
       "cell_id": "cell-001",
@@ -90,8 +90,8 @@
       "condition_id": "anonymous_nominal_properties",
       "discarded_vessels": 0,
       "final_assays": 6,
-      "formally_promotable": false,
-      "manifest_state": "pending",
+      "formally_promotable": true,
+      "manifest_state": "completed",
       "operation_count_observed": 65,
       "trajectory_replicate_id": "r02",
       "vessel_starts": 6,
@@ -101,12 +101,12 @@
       "cell_id": "cell-009",
       "condition_id": "anonymous_nominal_properties",
       "discarded_vessels": 0,
-      "final_assays": 0,
+      "final_assays": 4,
       "formally_promotable": false,
       "manifest_state": "pending",
-      "operation_count_observed": 0,
+      "operation_count_observed": 67,
       "trajectory_replicate_id": "r03",
-      "vessel_starts": 0,
+      "vessel_starts": 5,
       "world_seed": 1
     },
     {
@@ -243,12 +243,12 @@
     }
   ],
   "durable_live_preview_not_promoted": {
-    "additional_final_assays_in_pending_cells": 6,
-    "additional_vessel_starts_in_pending_cells": 6,
+    "additional_final_assays_in_pending_cells": 4,
+    "additional_vessel_starts_in_pending_cells": 5,
     "caveat": "pending-cell bytes are a read-only progress preview and cannot enter the paper until the cell is terminal and passes the frozen audit",
-    "observed_final_assays": 44,
-    "observed_operation_count": 622,
-    "observed_vessel_starts": 45
+    "observed_final_assays": 48,
+    "observed_operation_count": 689,
+    "observed_vessel_starts": 50
   },
   "final_count_bounds_if_all_unresolved_slots_complete": {
     "counting_warning": "the planned opportunity denominator is not the executed-vessel or completed-final-assay total when right-censoring leaves slots unstarted",
@@ -270,20 +270,20 @@
     "g2_v0_5_vessels_per_cell": 6
   },
   "formal_terminal_accounting": {
-    "cells_still_to_terminalize": 13,
-    "completed_cells": 6,
-    "completed_final_assays_in_terminal_cells": 38,
+    "cells_still_to_terminalize": 12,
+    "completed_cells": 7,
+    "completed_final_assays_in_terminal_cells": 44,
     "discarded_vessels_in_terminal_cells": 0,
-    "executed_vessels_in_terminal_cells": 39,
-    "resolved_vessel_opportunity_slots": 42,
+    "executed_vessels_in_terminal_cells": 45,
+    "resolved_vessel_opportunity_slots": 48,
     "right_censored_cells": 1,
     "started_right_censored_vessels_in_terminal_cells": 1,
     "unstarted_slots_lost_to_terminal_cell_censoring": 3,
-    "vessel_opportunity_slots_still_to_resolve": 78
+    "vessel_opportunity_slots_still_to_resolve": 72
   },
   "manifest_path": "D:/Projects/ChemWorld/runs/development/g2-autonomous-material-seed1-seed3-r5-codex-sol-medium-v2/matrix_manifest.json",
   "paired_analysis_capacity": {
-    "completed_pairs": 2,
+    "completed_pairs": 3,
     "maximum_possible_completed_pairs": 9,
     "pairs": [
       {
@@ -296,10 +296,10 @@
         "world_seed": 1
       },
       {
-        "classification": "unresolved_pair",
+        "classification": "completed_pair",
         "states": [
           "completed",
-          "pending"
+          "completed"
         ],
         "trajectory_replicate_id": "r02",
         "world_seed": 1
@@ -379,11 +379,11 @@
     ],
     "per_world": {
       "1": {
-        "completed_pairs": 0,
+        "completed_pairs": 1,
         "maximum_possible_completed_pairs": 4,
         "planned_pairs": 5,
         "right_censored_pairs": 1,
-        "unresolved_pairs": 4
+        "unresolved_pairs": 3
       },
       "3": {
         "completed_pairs": 2,
@@ -395,11 +395,11 @@
     },
     "planned_pairs": 10,
     "right_censored_pairs": 1,
-    "unresolved_pairs": 7
+    "unresolved_pairs": 6
   },
   "remaining_required_scientific_work": {
-    "g2_cells_to_terminalize": 13,
-    "g2_vessel_opportunity_slots_to_resolve": 78,
+    "g2_cells_to_terminalize": 12,
+    "g2_vessel_opportunity_slots_to_resolve": 72,
     "new_g0_experiments": 0,
     "optional_post_arxiv_experiments_required": 0
   },
