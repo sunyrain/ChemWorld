@@ -157,9 +157,13 @@ relayed unmodified by a human for safety. These studies are stronger on
 instrument fidelity, multimodal perception, deployment, and adaptation to
 real anomalies. Their principal estimand is task and operational success in a
 specific facility, rather than the effect of randomized information conditions
-on replicated experimental trajectories
+on replicated experimental trajectories. AgentChemist likewise uses visual
+chemical perception to adjust robotic dispensing during a real titration,
+which means that state-responsive physical operation is not an exclusive
+ChemWorld capability
 ([Vriza et al., 2026](https://doi.org/10.1038/s41524-026-02005-0);
-[Chen et al., 2026](https://doi.org/10.1038/s42256-026-01261-5)).
+[Chen et al., 2026](https://doi.org/10.1038/s42256-026-01261-5);
+[Wei et al., 2026](https://arxiv.org/abs/2603.23886)).
 
 Virtual environments address complementary constraints. Summit and Olympus
 already support reproducible in-silico reaction optimization, PC-Gym supports
@@ -167,20 +171,24 @@ nonlinear chemical-process control, and ChemGymRL provides interconnected
 virtual chemistry benches with fine-grained agent actions. MADE now provides a
 modular, budget-constrained benchmark for closed-loop materials discovery in
 which pipelines propose crystal candidates and receive formation-energy-oracle
-feedback. It is stronger than ChemWorld in systematic algorithmic comparison
-across chemical-system complexity. We therefore do not claim the first virtual
-chemistry laboratory, budgeted closed loop, or agentic materials-discovery
-environment, and do not use optimizer ranking as the primary novelty. ChemWorld
-uses a different unit of action: an agent constructs and advances each physical
-experiment through additions, control, characterization, termination, and final
-assay, with campaign-wide material, instrument, vessel, failure, and provider
-accounts. This runtime is then used for paired interventions on the experimenting
-agent and state-level replay
+feedback. LLEMA separately combines LLM candidate generation, chemical rules,
+memory, surrogate prediction, and evolutionary search across fourteen
+multi-objective materials tasks. These systems are stronger than ChemWorld in
+systematic algorithmic comparison, candidate generation, and materials-design
+breadth. We therefore do not claim the first virtual chemistry laboratory,
+budgeted closed loop, agentic materials-discovery environment, or memory-guided
+materials search, and do not use optimizer ranking as the primary novelty.
+ChemWorld uses a different unit of action: an agent constructs and advances each
+physical experiment through additions, control, characterization, termination,
+and final assay, with campaign-wide material, instrument, vessel, failure, and
+provider accounts. This runtime is then used for paired interventions on the
+experimenting agent and state-level replay
 ([Felton et al., 2021](https://doi.org/10.1002/cmtd.202000051);
 [Häse et al., 2021](https://doi.org/10.1088/2632-2153/abedc8);
 [Beeler et al., 2024](https://doi.org/10.1039/D3DD00183K);
 [Bloor et al., 2024](https://arxiv.org/abs/2410.22093);
-[Malik et al., 2026](https://arxiv.org/abs/2601.20996)).
+[Malik et al., 2026](https://arxiv.org/abs/2601.20996);
+[Abhyankar et al., 2026](https://openreview.net/forum?id=TIqzhBvCNB)).
 
 Interactive discovery benchmarks already test hypothesis formation,
 experimentation, and explanation. DiscoveryWorld supplies long-horizon
@@ -205,6 +213,30 @@ opportunity costs rather than only select the next query or initial condition
 [Zheng et al., 2025](https://arxiv.org/abs/2510.07172);
 [Wiemann et al., 2026](https://arxiv.org/abs/2605.26087);
 [Kabra et al., 2026](https://arxiv.org/abs/2605.24043)).
+
+HExA and its Interphyre benchmark create a particularly important boundary for
+the phrase *learning through experimentation*: agents actively intervene in a
+procedural-physics environment, test hypotheses, acquire composable skills, and
+transfer them to harder tasks. ChemWorld does not claim to originate active
+experimental learning or reusable experimental skills. Its complementary unit
+is a chemistry-native sample lifecycle with characterization choices, entity
+resources, failure consequences, paired prior interventions, and fixed-world
+fresh-trajectory replication
+([Chandra et al., 2026](https://arxiv.org/abs/2606.29315)).
+
+Static procedural and realistic workflow benchmarks cover still different
+competencies. ChemReason-Bench supplies 7,306 human-validated tasks for ordering,
+validating, completing, and rationalizing experimental procedures. ScienceBoard
+and SciAgentArena evaluate agents in professional scientific software and about
+two hundred real research scenarios, respectively, with state- or step-level
+verification. They are stronger on task breadth, procedural validation, software
+realism, and multi-domain workflows. They generally evaluate whether an agent
+can execute or reason about a specified workflow, whereas ChemWorld asks how an
+agent produces evidence by altering a hidden chemical process and whether the
+resulting behavior survives controlled replication
+([Zhang et al., 2026](https://doi.org/10.18653/v1/2026.acl-long.1535);
+[Sun et al., 2026](https://openreview.net/forum?id=bJvwJahJeF);
+[Liu et al., 2026](https://arxiv.org/abs/2606.12736)).
 
 Prediction--understanding dissociation and process-level evaluation are also
 not unique claims. CausaLab separates task success from recovered causal

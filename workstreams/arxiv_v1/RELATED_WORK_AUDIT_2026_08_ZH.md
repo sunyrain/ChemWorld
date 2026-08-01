@@ -6,6 +6,8 @@
 
 证据范围：优先使用论文原文、出版商页面和正式会议页面；预印本明确标为 preprint。
 本文档比较的是各系统**实际回答的研究问题**，不是用一个总分判断谁“更先进”。
+这是一份面向主张边界的 representative audit，而不是穷尽所有 AI-for-science 论文：一项工作只要
+直接占据本文五项能力交集中的一个维度，或会使某个拟议 novelty 句失真，就进入证据表。
 
 ## 1. 审计后的定位
 
@@ -16,6 +18,7 @@ ChemWorld 不应再声称：
 - 首个隐藏规律或主动机制发现 benchmark；
 - 首个测量科学 Agent 过程而非终点的工作；
 - 首个在未知物理系统中自由选择实验并恢复规律的 Agent；
+- 首个通过主动实验学习或积累可复用实验技能的 Agent；
 - 首个长程或端到端自主科学发现系统；
 - 首个提出 Agent environment engineering 的工作；
 - 最完整、近乎无限或可以生成任意物理规律的化学世界；
@@ -104,6 +107,19 @@ Agent 与文献、protocol、model 和 automated-lab 资源完成六类递增复
 
 来源：<https://doi.org/10.1016/j.matt.2024.10.015>、
 <https://doi.org/10.1021/jacs.4c17738>。
+
+#### AgentChemist
+
+AgentChemist（2026 preprint）用多 Agent 分解、化学视觉感知和反馈控制执行真实酸碱滴定，能够
+根据反应进度调整加液，而不是只回放固定脚本。
+
+- 它比 ChemWorld 强的地方：真实视觉、精密加液、物理反应进度监测和闭环机器人执行。
+- 公允边界：当前验证集中在一个滴定案例，论文目标是证明感知—控制集成，而不是在克隆化学身份
+  中估计先验干预或 fresh trajectory 的行为效应；这不削弱其机器人贡献。
+- 对 ChemWorld 的约束：不能把“根据化学状态逐步调整操作”写成独占主张。ChemWorld 的增量仍是
+  可配对干预、实体资源账本、不可覆盖轨迹和重复性 estimand 的组合。
+
+来源：<https://arxiv.org/abs/2603.23886>。
 
 #### AutoLabs
 
@@ -231,6 +247,35 @@ MADE（ICML 2026）是当前与“可扩展、预算受限、闭环材料发现�
 
 来源：<https://openreview.net/forum?id=nrXxVDYMMF>、<https://arxiv.org/abs/2601.20996>。
 
+#### LLEMA
+
+LLEMA（ICLR 2026）把 LLM 候选生成、化学规则、成功/失败 memory、surrogate oracle 和
+multi-objective evolutionary search 组成闭环，在 14 个电子、能源、涂层、光学与航空材料任务上
+比较 hit rate、Pareto front、稳定性和记忆化。
+
+- 它比 ChemWorld 强的地方：多目标材料设计广度、候选结构生成、化学可行性约束、系统消融和
+  与生成式/LLM-only baselines 的算法比较。
+- 相对边界：它的行动单元是提出 crystallographically specified candidate 并查询属性 oracle，
+  不是构造和推进带中间表征、失败及共享库存的实验样品。
+- 对 ChemWorld 的约束：不能把 LLM closed-loop materials search、memory-guided refinement 或
+  多目标发现本身作为独占点。
+
+来源：<https://openreview.net/forum?id=TIqzhBvCNB>。
+
+#### ChemReason-Bench
+
+ChemReason-Bench（ACL 2026）从 500 个有机反应构造 7,306 个经人工验证的程序推理任务，覆盖步骤
+排序、步骤/条件验证、schema completion、对比选择和 evidence-grounded rationalization。
+
+- 它比 ChemWorld 强的地方：实验 procedure reasoning 的任务规模、人工验证、自动约束检查、
+  多模型比较和 adaptation study。
+- ChemWorld 的差异：ChemReason-Bench 判断给定 procedure 表示是否正确；G2 让 Agent 在未知
+  过程里通过实际操作和测量决定 procedure 本身，并让错误承担物理与资源后果。
+- 正确关系：前者测 procedural competence，后者测 evidence-conditioned experimental control；
+  两者可以成为 future model qualification 与 environment execution 的上下游。
+
+来源：<https://doi.org/10.18653/v1/2026.acl-long.1535>。
+
 ### 2.3 交互式科学发现环境
 
 #### ScienceWorld 与 DiscoveryWorld
@@ -258,6 +303,22 @@ BoxingGym 用 10 个生成概率环境评价实验设计和模型发现，并以
   测量、终止和检测组织为带资源后果的化学实验生命周期。
 
 来源：<https://arxiv.org/abs/2501.01540>、<https://arxiv.org/abs/2507.02083>。
+
+#### HExA 与 Interphyre
+
+HExA（2026 preprint）在 Interphyre 的 2D procedural-physics 环境中让 Agent 主动提出干预、检验
+假设、把经验抽象成可组合 skill library，并将从简单关卡学到的技能迁移到更难任务；论文报告
+Claude Sonnet 4.6 从 2% 提升到最高 77%，仅迁移已学技能时达到 44%。
+
+- 它比 ChemWorld 强的地方：明确训练并评价“从主动实验中学习”的 Agent 方法、技能抽象与跨任务
+  迁移，并与 ReAct/Reflexion 等方法比较。
+- 它占据的主张：ChemWorld 不能声称首次让 black-box LLM 通过主动干预形成可复用实验知识，或
+  首次把 active experimentation 作为长程 Agent 能力。
+- ChemWorld 的差异：Interphyre 的实验是模拟 API 上的 2D 物理干预；ChemWorld 的实验是有守恒、
+  样品生命周期、主动表征、终点检测、失败和 campaign-wide 实体资源的化学过程。第一版进一步
+  估计 prior intervention 下的 fixed-world trajectory repeatability，而不是提出新的学习算法。
+
+来源：<https://arxiv.org/abs/2606.29315>。
 
 ### 2.4 2025—2026 主动规律发现与因果机制恢复
 
@@ -405,8 +466,9 @@ Ríos-García 等人的 Corral（2026 preprint）在八个科学环境、超过 
 
 #### ScienceBoard 与 SciAgentArena
 
-ScienceBoard（ICLR 2026）用 169 个多模态真实科学 workflow 任务评价 computer-use agents；
-SciAgentArena（2026 preprint）以约 200 个真实科研情境和 stepwise verification 评价多领域 Agent。
+ScienceBoard（ICLR 2026）用 169 个经人工验证、横跨六个领域的多模态真实科学 workflow 任务
+评价 GUI/CLI computer-use agents；SciAgentArena（2026 preprint）以约 200 个真实科研情境、
+stepwise verification 和 agent-agnostic interactive environment 评价多领域 Agent。
 
 - 它们比 ChemWorld 强的地方：专业软件、视觉界面、多领域真实工作流和更广的任务真实性。
 - ChemWorld 的差异：不是完成已有软件 workflow，而是在隐藏化学过程中用实验行动生产证据；
@@ -469,16 +531,20 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 | Summit / Olympus / PC-Gym | ✓ | △ | — | △ | △ | △ | — | — |
 | ChemGymRL | ✓ | ✓ | △ | △ | — | △ | — | — |
 | MADE | 计算材料 | 候选结构提议 | oracle query | 查询预算 | 系统条件 | △ | — | — |
+| LLEMA | 计算材料 | 候选结构提议 | surrogate oracle | 查询预算 | 任务/规则消融 | ✓ | — | — |
+| ChemReason-Bench | procedure 表示 | — | — | — | task templates | 步骤级静态评价 | — | — |
 | Coscientist / ChemCrow | ✓ | ✓ | ✓ | △ | — | △ | — | ✓ |
 | Co-Scientist / Robin | 数据与假设 | protocol proposal | 数据分析 | 人类执行成本 | expert-in-loop | ✓ | — | ✓ |
 | A-Lab GPSS / robot chemistry | ✓ | ✓ | ✓ | ✓ | — | ✓ | — | ✓ |
 | ORGANA / ChemAgents | ✓ | ✓ | ✓ | ✓ | — | △ | — | ✓ |
+| AgentChemist | ✓ | ✓ | ✓ | ✓ | — | △ | — | ✓ |
 | AutoLabs | protocol 表示 | protocol compilation | — | 硬件约束 | — | ✓ | — | hardware-ready |
 | ACRA / PRISM | procedure / protocol | protocol compilation | 分析验证 | 硬件约束 | workflow ablation | ✓ | — | ✓ |
 | RoboChem-Flex | ✓ | 优化闭环 | ✓ | ✓ | — | △ | — | ✓ |
 | X-ray / teachable instrument agents | 仪器状态 | ✓ | ✓ | ✓ | — | ✓ | — | ✓ |
 | DiscoveryWorld | △ | ✓ | ✓ | △ | △ | ✓ | — | — |
 | BoxingGym / SciGym | △ | △ | ✓ | 预算 | ✓ | △ | — | — |
+| HExA / Interphyre | 2D procedural physics | ✓ | intervention feedback | 查询/步骤预算 | task levels | ✓ | skill transfer | — |
 | SciExplorer | 数值物理模型 | ✓ | ✓ | 查询/计算成本 | 系统条件 | ✓ | 独立尝试 | — |
 | Self-evolving fluid control | 流固模拟 | ✓ | 多模态诊断 | 计算成本 | 控制目标 | ✓ | 泛化目标 | — |
 | NewtonBench / DiscoverPhysics | — | △ | ✓ | 查询预算 | ✓ | △ | — | — |
@@ -488,6 +554,7 @@ LabOSBench（2026 preprint）以八个 web 仪器模拟器和 96 个 subtasks �
 | EurekAgent | 可计算环境 | ✓ | 工具反馈 | 显式预算 | 环境组件消融 | ✓ | — | — |
 | AHOIS | 真实光学系统 | ✓ | ✓ | △ | critic ablation | ✓ | — | ✓ |
 | Qiushi | 真实光学系统 | ✓ | ✓ | 真实平台成本 | — | ✓ | 单一长程研究 | ✓ |
+| ScienceBoard / SciAgentArena | 科研软件/数据状态 | workflow | 工具输出 | 计算/步骤成本 | 多任务 | ✓ | — | — |
 | LabUtopia / MATTERIX / Labimus | ✓ | ✓ | △ | ✓ | 场景变化 | △ | — | △/✓ |
 | LabOSBench / LabRobFail | △ | workflow | ✓ | ✓ | failure injection | ✓ | — | △ |
 | **ChemWorld 当前版本** | **✓** | **✓** | **✓** | **✓** | **✓** | **✓** | **✓** | **—** |

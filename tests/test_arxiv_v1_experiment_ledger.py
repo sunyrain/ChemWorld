@@ -240,7 +240,8 @@ def test_related_work_audit_is_current_bounded_and_synchronized() -> None:
     works = {item["id"]: item for item in evidence["works"]}
 
     assert evidence["reviewed_at"] == "2026-08-02"
-    assert len(works) >= 18
+    assert len(works) == len(evidence["works"])
+    assert len(works) >= 45
     assert {
         "chemgymrl",
         "discoveryworld",
@@ -253,8 +254,16 @@ def test_related_work_audit_is_current_bounded_and_synchronized() -> None:
         "matterix",
         "labosbench",
         "labrobfail",
+        "scienceboard",
+        "sciagentarena",
+        "chemreason_bench",
+        "llema",
+        "hexa_interphyre",
+        "agentchemist",
     } <= works.keys()
     assert all(item["status"] in {"peer_reviewed", "preprint"} for item in works.values())
+    assert all(item["url"].startswith("https://") for item in works.values())
+    assert "representative claim-preemption audit" in evidence["selection_policy"]
     assert len(evidence["absolute_claims_rejected"]) >= 6
     assert len(evidence["chemworld_current_limitations"]) >= 7
     assert "controlled experimental science of experimenting agents" in audit
@@ -289,6 +298,8 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
     assert (release_root / "README.md").is_file()
     assert (release_root / manifest["data_card"]).is_file()
     assert (release_root / manifest["claim_boundaries"]).is_file()
+    assert (ROOT / manifest["paper"]["related_work_audit"]).is_file()
+    assert (ROOT / manifest["paper"]["related_work_evidence"]).is_file()
     assert manifest["status"] == "building_not_publication_ready"
     assert manifest["publication_ready"] is False
     result = manifest["evidence"]["g2_v0_5_result"]

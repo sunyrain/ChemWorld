@@ -16,7 +16,7 @@ This directory is the single tracked entry point for the first ChemWorld arXiv e
 - the terminal G2 v0.5 audit bindings, 677-file hash index, and a compact
   four-cell replay subset;
 - the populated first-version manuscript, four generated main tables, six complete
-  figure legends, and a 22-entry working bibliography;
+  figure legends, and a 48-entry working bibliography;
 - a Chinese readiness audit separating required experiments, censor-aware counts,
   generated artifacts, release gates, and the external archive dependency;
 - a current 55-node evidence graph with a clean source-tree attestation.
