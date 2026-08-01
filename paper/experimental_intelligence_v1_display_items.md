@@ -1,7 +1,7 @@
 # Experimental Intelligence in Executable Chemical Worlds: display items
 
 Status: `frozen_complete`.
-Derived-data SHA-256: `a4b68c4762f5fd82b54fad72127eee7f60519f596687823a4dac6d23a3539e41`.
+Derived-data SHA-256: `3e8baff97198db7a6c889d6bdae3b9ace36b9d9370a85e39c73da9198f9f372a`.
 
 Every number in the tables below is rendered from the self-hashed arXiv derived-data
 object. This file is intended for direct inclusion during manuscript typesetting.
