@@ -13,7 +13,8 @@ This directory is the single tracked entry point for the first ChemWorld arXiv e
 - a deterministic 1,441-file G0 raw-data hash index with no absolute paths or raw content.
 - a provisional single-source derived-data JSON, five deterministic CSV views,
   and Figures 1--4 and 6 generated only from that JSON.
-- the populated first-version manuscript and a 22-entry working bibliography;
+- the populated first-version manuscript, four generated main tables, six complete
+  figure legends, and a 22-entry working bibliography;
 - a current 55-node evidence graph with a clean source-tree attestation.
 
 ## Still required

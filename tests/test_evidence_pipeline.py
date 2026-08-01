@@ -166,11 +166,18 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert publication["manuscript"] == (
         "paper/experimental_intelligence_v1_manuscript.md"
     )
+    assert publication["display_items"] == (
+        "paper/experimental_intelligence_v1_display_items.md"
+    )
     assert publication["bibliography"] == (
         "paper/experimental_intelligence_v1_references.bib"
     )
     assert publication["claim_evidence_ledger"] == (
         "workstreams/flagship_tasks/reports/pre-arxiv-claim-evidence-ledger-v1.json"
+    )
+    assert publication["remaining_experiment_audit"] == (
+        "workstreams/arxiv_v1/reports/"
+        "g2-v0.5-remaining-experiment-audit-live-v0.1.json"
     )
     assert publication["scope"] == (
         "experimental_intelligence_in_executable_chemical_worlds"

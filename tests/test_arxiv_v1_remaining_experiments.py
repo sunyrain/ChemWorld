@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 from scripts.audit_arxiv_v1_remaining_experiments import (
@@ -95,3 +97,50 @@ def test_remaining_audit_separates_opportunities_starts_and_final_assays(
     assert report["paired_analysis_capacity"][
         "maximum_possible_completed_pairs"
     ] == 9
+
+
+def test_remaining_audit_cli_refuses_experiment_ledger_output(tmp_path: Path) -> None:
+    cells = []
+    cell_number = 0
+    for world_seed in (1, 3):
+        for replicate_number in range(1, 6):
+            for condition in ("opaque_codes", "anonymous_nominal_properties"):
+                cell_number += 1
+                cells.append(
+                    {
+                        "cell": {
+                            "cell_id": f"cell-{cell_number:03d}",
+                            "world_seed": world_seed,
+                            "trajectory_replicate_id": f"r{replicate_number:02d}",
+                            "condition_id": condition,
+                        },
+                        "state": "pending",
+                        "authoritative_attempt_dir": None,
+                    }
+                )
+    manifest_path = tmp_path / "matrix_manifest.json"
+    manifest_path.write_text(
+        json.dumps({"planned_physical_experiment_count": 120, "cells": cells}),
+        encoding="utf-8",
+    )
+    protected = tmp_path / "experimental-intelligence-experiment-ledger-v0.1.json"
+    audit_script = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "audit_arxiv_v1_remaining_experiments.py"
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(audit_script),
+            str(manifest_path),
+            "--json-output",
+            str(protected),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert "cannot overwrite the fixed experiment ledger" in result.stderr
+    assert not protected.exists()

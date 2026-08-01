@@ -426,8 +426,8 @@ executed physical experiments 与 29,756 个 completed experiments。29,760 始�
 
 `benchmark/releases/chemworld-serious-v1` 已包含 fail-closed manifest、data card、claim
 boundaries、G0 原始文件哈希索引、单一 provisional derived-data JSON、五个 CSV 视图和
-figure manifest。`publication_ready=false` 保持正确；终态 G2 表、Figure 5、最终 attestations
-和外部 archive identifier 尚未补齐。
+figure manifest；正文主表、完整图注及正文图表调用也已建立。`publication_ready=false`
+保持正确；终态 G2 表、Figure 5、最终 attestations 和外部 archive identifier 尚未补齐。
 
 ### B4 — G0 source binding 已解决
 
@@ -445,15 +445,18 @@ roots 取得持久外部 archive identifier；该标识不能伪造。
 
 旧的 `paper/chemworld_benchmark_manuscript.md` 已标记 superseded；新的
 `paper/experimental_intelligence_v1_manuscript.md` 已建立完整论证骨架。当前剩余阻塞是
-G2 v0.5 正式结果、摘要结果句、格式化参考文献、统计措辞终审和最终图表。Methods 9.1--9.6
-已经填实；不再把 Methods 或叙事结构列为缺失。
+G2 v0.5 正式结果、摘要结果句、目标模板中的参考文献格式化、统计措辞终审和最终排版。
+Methods 9.1--9.6、22 条工作参考文献、正文图表调用和显示项图注已经填实；不再把 Methods、
+叙事结构或图表设计列为缺失。
 
 ### B7 — 图表流水线已建立，终态冻结待执行
 
-部分解决。已经建立单一 provisional derived-data JSON、五个 CSV 视图和只读取该
-JSON 的自动出图脚本；Figures 1--4 与 6 已生成。G2 v0.5 在 JSON 中保持 `null`，
-Figure 5 不生成。剩余工作是终态审计后写入 v0.5、冻结 derived hash 并重生成全部图。
-禁止手工复制摘要数字。
+部分解决。已经建立单一 provisional derived-data JSON、五个 CSV 视图、只读取该 JSON
+的自动出图脚本，以及同源生成四张主表和六份完整图注的 display-item renderer；Figures
+1--4 与 6 已生成，Table 4 只显示无结果占位。G2 v0.5 在 JSON 中保持 `null`，Figure 5
+不生成。实验固定总账与动态剩余量审计现已使用不同文件，CLI 会拒绝用动态审计覆盖固定
+总账。剩余工作只有终态审计后写入 v0.5、冻结 derived hash 并重生成全部图表。禁止手工
+复制摘要数字或把 pending-cell 预览写入结果。
 
 ## 13. 执行顺序与完成判据
 

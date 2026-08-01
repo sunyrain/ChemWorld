@@ -304,6 +304,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     report = audit_remaining_experiments(args.manifest)
     if args.json_output is not None:
+        if "experiment-ledger" in args.json_output.name.lower():
+            raise ValueError(
+                "remaining-experiment audit cannot overwrite the fixed experiment ledger"
+            )
         write_json_atomic(args.json_output, report)
     print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
     return 0

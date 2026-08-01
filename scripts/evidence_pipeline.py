@@ -1982,6 +1982,7 @@ def _write_current_registry() -> None:
     current["publication"] = {
         "status": "working_manuscript_not_submission_ready",
         "manuscript": "paper/experimental_intelligence_v1_manuscript.md",
+        "display_items": "paper/experimental_intelligence_v1_display_items.md",
         "bibliography": "paper/experimental_intelligence_v1_references.bib",
         "master_plan": (
             "workstreams/arxiv_v1/"
@@ -1995,6 +1996,10 @@ def _write_current_registry() -> None:
             "pre_arxiv_claim_evidence_ledger"
         ].path,
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
+        "remaining_experiment_audit": (
+            "workstreams/arxiv_v1/reports/"
+            "g2-v0.5-remaining-experiment-audit-live-v0.1.json"
+        ),
         "scope": "experimental_intelligence_in_executable_chemical_worlds",
         "new_scientific_experiments_required_for_first_arxiv": True,
         "required_new_scientific_matrix": {
@@ -2468,6 +2473,7 @@ def check_current_evidence() -> list[str]:
         errors.append("current registry manuscript state is inconsistent")
     expected_publication_paths = {
         "manuscript": "paper/experimental_intelligence_v1_manuscript.md",
+        "display_items": "paper/experimental_intelligence_v1_display_items.md",
         "bibliography": "paper/experimental_intelligence_v1_references.bib",
         "master_plan": (
             "workstreams/arxiv_v1/"
@@ -2478,6 +2484,10 @@ def check_current_evidence() -> list[str]:
             "experimental-intelligence-experiment-ledger-v0.1.json"
         ),
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
+        "remaining_experiment_audit": (
+            "workstreams/arxiv_v1/reports/"
+            "g2-v0.5-remaining-experiment-audit-live-v0.1.json"
+        ),
     }
     for field, expected_path in expected_publication_paths.items():
         if publication.get(field) != expected_path:

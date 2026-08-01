@@ -183,7 +183,7 @@ execution cases. Sixty-two declared success metrics bind to explicit evaluator
 endpoints. These are environment-design qualifications; formal agent results in
 this manuscript are limited to electrochemical conversion and reaction-to-
 crystallization, with autonomous primitive-control results currently limited to
-electrochemical conversion.
+electrochemical conversion (Fig. 1 and Table 1).
 
 ### 3.2 Agent-directed experimentation
 
@@ -265,7 +265,7 @@ criterion. Neither task passed the preregistered joint recovery rule.
 
 The result does not show that agents generally recover from incorrect priors.
 It shows that prior manipulation, later behavioral change, and performance
-recovery are empirically separable events.
+recovery are empirically separable events (Fig. 4A--C and Table 2).
 
 ## 5. Optimization and cognition provide different capability profiles
 
@@ -281,7 +281,7 @@ cells.
 These measurements do not establish a general psychology of language models.
 They demonstrate why endpoint optimization, outcome-held-out prediction,
 declared confidence, structural explanation, and method synthesis must remain
-separate endpoints when evaluating scientific agents.
+separate endpoints when evaluating scientific agents (Fig. 6A and Table 2).
 
 ## 6. Autonomous experimentation exposes discovery, loss, and recovery
 
@@ -297,7 +297,8 @@ All ten cells and all sixty vessels completed. The agent submitted 815 primitive
 operations, including 164 nonfinal instrument measurements and sixty final
 assays (224 measurement operations in total), with no invalid or resource-
 rejected operation. All sixty provider sessions completed, and all resource,
-replay, and physical-pair audits passed.
+replay, and physical-pair audits passed. Figure 2 follows one complete vessel
+from primitive actions to its reconstructable campaign receipt.
 
 ### 6.2 Endpoint summaries conceal different learning trajectories
 
@@ -312,7 +313,7 @@ nominal counterpart rose from 0.2492 to a best of 0.8544 and ended at 0.8352.
 Another opaque campaign ended at zero after previously scoring 0.6050, while
 the matched nominal campaign recovered from several declines and ended at
 0.7894. Similar endpoint summaries can therefore obscure early discovery,
-catastrophic loss, stable retention, and late recovery.
+catastrophic loss, stable retention, and late recovery (Fig. 3).
 
 ### 6.3 Material information is associated with trajectory stability, not a
 uniform performance gain
@@ -327,7 +328,7 @@ positive next-batch score change in 4/14 opaque and 8/17 nominal batches.
 These are descriptive development results. In one selected world, retention,
 drawdown, and terminal-to-best effects reversed. The apparent average stability
 of the nominal arm may therefore reflect physical-world context, a single
-provider trajectory, or their interaction.
+provider trajectory, or their interaction (Fig. 4D, Fig. 6B and Table 3).
 
 ## 7. Fresh trajectories test within-world repeatability
 
@@ -354,6 +355,8 @@ This section will choose exactly one preregistered interpretation branch:
    metrics.
 
 The branch is selected by the frozen audit output, not by narrative preference.
+The complete paired effects will appear in Fig. 5 and Table 4; neither display
+is permitted to contain live values before all cells reach a terminal state.
 
 ## 8. Discussion
 
@@ -590,12 +593,15 @@ checkout.
 `benchmark/releases/chemworld-serious-v1` contains a fail-closed manifest, data
 card, claim boundaries, the deterministic G0 raw-file index, a provisional
 single-source derived-data object, and five CSV views. Figures 1--4 and 6 are
-generated only from that object. The index contains no raw content or absolute
-path. G2 v0.5 is represented as null and Figure 5 is deliberately absent until
-the terminal audit passes. Before release we will freeze the derived object,
-add the terminal G2 trajectory and receipt index, a small replayable trajectory
-subset, and a durable archive location for the full local raw corpus. The
-manifest remains `publication_ready=false` until every stated gate passes.
+generated only from that object. Main tables and complete figure legends are
+rendered from the same source into
+`paper/experimental_intelligence_v1_display_items.md`. The index contains no
+raw content or absolute path. G2 v0.5 is represented as null, Figure 5 is
+deliberately absent, and Table 4 contains no interim values until the terminal
+audit passes. Before release we will freeze the derived object, add the terminal
+G2 trajectory and receipt index, a small replayable trajectory subset, and a
+durable archive location for the full local raw corpus. The manifest remains
+`publication_ready=false` until every stated gate passes.
 
 ## 11. Remaining work before arXiv
 
@@ -617,4 +623,11 @@ manifest remains `publication_ready=false` until every stated gate passes.
    style, then complete the statistical-language and final-claim audits.
 
 No new G0 scientific experiment is required for this manuscript. The only
-required new scientific matrix contains 120 G2 experiment opportunities.
+required new scientific matrix contains 20 G2 v0.5 cells; these comprise 120 G2 experiment opportunities.
+
+## 12. Display items
+
+The submission-ready main tables and full figure legends are maintained in
+`paper/experimental_intelligence_v1_display_items.md`. That file is regenerated
+from the self-hashed paper-data object and is therefore the numeric authority
+for typesetting; prose values in this working manuscript must agree with it.
