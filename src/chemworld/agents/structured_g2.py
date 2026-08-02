@@ -11,7 +11,7 @@ from chemworld.agents.decision_schema import build_decision_output_schema
 from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.live_llm import JsonCompletionLike, LiveLLMAgent
 
-STRUCTURED_G2_PROMPT_CONTRACT_VERSION = "chemworld-structured-g2-operation-0.3"
+STRUCTURED_G2_PROMPT_CONTRACT_VERSION = "chemworld-structured-g2-operation-0.4"
 
 STRUCTURED_G2_SYSTEM_PROMPT = """You are the operation-level experimental agent in ChemWorld.
 Choose exactly one currently legal primitive operation from the compact public decision state.
@@ -62,10 +62,12 @@ class StructuredG2Agent(LiveLLMAgent):
     ) -> dict[str, Any]:
         action = super().act_with_public_view(context, public_view)
         if self._last_decision is not None:
+            provider_enforced = bool(getattr(self.client, "strict_tool_calls", False))
             self._last_decision["structured_output"] = {
                 "schema_sha256": self._last_output_schema_sha256,
                 "action_variant_count": self._last_output_schema_action_variant_count,
-                "strict": True,
+                "provider_enforced": provider_enforced,
+                "locally_validated": True,
             }
         return action
 
@@ -114,13 +116,16 @@ class StructuredG2Agent(LiveLLMAgent):
     def manifest(self) -> dict[str, Any]:
         payload = super().manifest()
         attempt_limit = max(int(getattr(self.client, "max_attempts", 1)), 1)
+        provider_enforced = bool(getattr(self.client, "strict_tool_calls", False))
         payload.update(
             {
                 "prompt_contract_version": STRUCTURED_G2_PROMPT_CONTRACT_VERSION,
                 "decision_transport": "one_logical_provider_decision_per_primitive_operation",
                 "provider_attempt_limit_per_operation": attempt_limit,
                 "structured_output_policy": (
-                    "provider_enforced_dynamic_strict_json_schema_from_current_affordances"
+                    "provider_enforced_plus_locally_validated_dynamic_json_schema"
+                    if provider_enforced
+                    else "json_object_plus_locally_validated_dynamic_json_schema"
                 ),
                 "shell_tools_enabled": False,
                 "lab_tool_used": False,
@@ -132,13 +137,18 @@ class StructuredG2Agent(LiveLLMAgent):
     def method_resource_usage(self) -> dict[str, Any]:
         usage = super().method_resource_usage()
         attempt_limit = max(int(getattr(self.client, "max_attempts", 1)), 1)
+        provider_enforced = bool(getattr(self.client, "strict_tool_calls", False))
         provenance = usage.get("model_provenance")
         if isinstance(provenance, dict):
             parameters = provenance.get("request_parameters")
             if isinstance(parameters, dict):
                 parameters.update(
                     {
-                        "response_format": "dynamic_strict_json_schema",
+                        "response_format": (
+                            "dynamic_strict_json_schema"
+                            if provider_enforced
+                            else "json_object_plus_local_dynamic_schema_validation"
+                        ),
                         "shell_tools": False,
                         "one_logical_provider_decision_per_primitive_operation": True,
                         "provider_attempt_limit_per_operation": attempt_limit,

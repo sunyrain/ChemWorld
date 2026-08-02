@@ -22,7 +22,7 @@ from chemworld.agents.base import HistoryRecord
 from chemworld.agents.interactive_codex_experiment import (
     InteractiveCodexExperimentAgent,
 )
-from chemworld.agents.structured_g2 import StructuredG2Agent
+from chemworld.agents.structured_g2 import StructuredG2Agent, StructuredG2InterfaceError
 from chemworld.campaign_resources import (
     CampaignResourceCard,
     CampaignResourceIntegrityError,
@@ -700,6 +700,48 @@ def _history_summary(history: list[HistoryRecord]) -> dict[str, Any]:
     }
 
 
+def _task_outcome(
+    resources: Mapping[str, Any],
+    behavior: Mapping[str, Any],
+    *,
+    target_batches: int,
+) -> dict[str, Any]:
+    state = resources.get("state")
+    if not isinstance(state, Mapping):
+        raise ValueError("campaign resource snapshot lacks state")
+    remaining = state.get("remaining")
+    remaining_mapping = remaining if isinstance(remaining, Mapping) else {}
+    remaining_stocks = remaining_mapping.get("stocks")
+    stock_mapping = remaining_stocks if isinstance(remaining_stocks, Mapping) else {}
+    target_met = (
+        int(state.get("vessel_starts", 0)) == target_batches
+        and int(state.get("closed_batches", 0)) == target_batches
+        and behavior.get("right_censored_open_experiment") is False
+    )
+    if target_met:
+        terminal_reason = "campaign_target_met"
+    elif any(
+        isinstance(value, int | float) and not isinstance(value, bool) and value <= 0.0
+        for value in stock_mapping.values()
+    ):
+        terminal_reason = "shared_stock_exhausted_before_target"
+    elif int(remaining_mapping.get("operation_attempts", 0)) <= 0:
+        terminal_reason = "operation_budget_exhausted_before_target"
+    elif behavior.get("right_censored_open_experiment") is True:
+        terminal_reason = "open_batch_at_environment_termination"
+    else:
+        terminal_reason = "environment_terminal_before_target"
+    return {
+        "target_closed_batches": int(target_batches),
+        "started_batches": int(state.get("vessel_starts", 0)),
+        "closed_batches": int(state.get("closed_batches", 0)),
+        "final_assays": int(state.get("final_assays", 0)),
+        "discarded_batches": int(state.get("discarded_batches", 0)),
+        "target_met": target_met,
+        "terminal_reason": terminal_reason,
+    }
+
+
 def _provider_decision_audit(
     receipts: list[dict[str, Any]],
     method_resources: Mapping[str, Any],
@@ -796,8 +838,12 @@ def _provider_decision_audit(
         "logical_decisions_match_operations": (
             parameter_mapping.get("logical_decisions") == target_operations
         ),
-        "strict_json_schema_declared": (
-            parameter_mapping.get("response_format") == "dynamic_strict_json_schema"
+        "structured_decision_contract_declared": (
+            parameter_mapping.get("response_format")
+            in {
+                "dynamic_strict_json_schema",
+                "json_object_plus_local_dynamic_schema_validation",
+            }
         ),
         "shell_tools_disabled": (parameter_mapping.get("shell_tools") is False),
         "logical_decision_transport_declared": (
@@ -981,6 +1027,15 @@ def _provider_failure_metadata(
     }
 
 
+def _terminal_provider_failure(receipts: list[dict[str, Any]]) -> bool:
+    """Return true only when the final logical decision exhausted provider attempts."""
+
+    if not receipts:
+        return False
+    final = receipts[-1]
+    return final.get("status") == "failed" and bool(final.get("failure_type"))
+
+
 def _direct_provider_runtime(protocol: Mapping[str, Any]) -> dict[str, Any] | None:
     """Resolve the auditable direct-operation runtime frozen by a G2 protocol."""
 
@@ -989,15 +1044,26 @@ def _direct_provider_runtime(protocol: Mapping[str, Any]) -> dict[str, Any] | No
         return None
     provider = str(agent.get("provider") or "").strip().lower()
     if provider.startswith("deepseek direct"):
+        strict_tool_calls = bool(
+            agent.get("strict_tool_calls", "strict tool" in provider)
+        )
         return {
             "transport": "direct_deepseek_chat_completions",
             "provider_id": "deepseek",
             "provider_name": "DeepSeek",
-            "provider_base_url": "https://api.deepseek.com/beta",
+            "provider_base_url": (
+                "https://api.deepseek.com/beta"
+                if strict_tool_calls
+                else "https://api.deepseek.com"
+            ),
             "provider_env_key": "DEEPSEEK_API_KEY",
             "wire_api": "chat_completions",
             "model_catalog_endpoint": "https://api.deepseek.com/models",
-            "structured_output_transport": "beta_strict_forced_tool_call",
+            "structured_output_transport": (
+                "beta_strict_forced_tool_call"
+                if strict_tool_calls
+                else "json_object_plus_local_dynamic_schema_validation"
+            ),
         }
     if provider.startswith("wellau direct"):
         return {
@@ -1324,7 +1390,10 @@ def _run_cell_light(
         ),
         "shell_tools_enabled": False,
         "lab_tool_used": False,
-        "strict_json_schema": True,
+        "provider_enforced_strict_json_schema": bool(
+            protocol["agent"].get("strict_tool_calls", False)
+        ),
+        "local_dynamic_json_schema_validation": True,
     }
     config["config_sha256"] = canonical_json_sha256(
         {key: value for key, value in config.items() if key != "config_sha256"}
@@ -1394,7 +1463,7 @@ def _run_cell_light(
                 model=str(agent_config["model"]),
                 thinking=bool(agent_config.get("thinking", True)),
                 reasoning_effort=cast(Any, reasoning_effort),
-                strict_tool_calls=True,
+                strict_tool_calls=bool(agent_config.get("strict_tool_calls", False)),
                 timeout_s=float(agent_config.get("provider_timeout_s", 180.0)),
                 max_attempts=int(agent_config.get("provider_max_attempts", 1)),
             )
@@ -1456,10 +1525,10 @@ def _run_cell_light(
         )
         behavior = _history_summary(history)
         target_batches = int(card.vessel_start_limit)
-        physical_lifecycle_completed = (
-            int(resources["state"].get("vessel_starts", 0)) == target_batches
-            and int(resources["state"].get("closed_batches", 0)) == target_batches
-            and not behavior["right_censored_open_experiment"]
+        task_outcome = _task_outcome(
+            resources,
+            behavior,
+            target_batches=target_batches,
         )
         method_resources = agent.method_resource_usage()
         receipts = agent.provider_receipts()
@@ -1469,10 +1538,11 @@ def _run_cell_light(
             target_operations=len(history),
             expected_provider=str(provider_runtime.get("provider_name") or "WellAU"),
         )
-        completed = physical_lifecycle_completed and provider_decision_audit["passed"]
+        execution_valid = bool(exact_replay["verified"] and provider_decision_audit["passed"])
         summary: dict[str, Any] = {
-            "schema_version": "chemworld-g2-autonomous-material-cell-result-0.2",
-            "run_status": "completed" if completed else "provider_decision_audit_failed",
+            "schema_version": "chemworld-g2-autonomous-material-cell-result-0.3",
+            "run_status": "completed" if execution_valid else "provider_decision_audit_failed",
+            "execution_valid": execution_valid,
             "formal_result": False,
             "confirmatory_claim_allowed": False,
             "qualification_only": qualification,
@@ -1495,6 +1565,7 @@ def _run_cell_light(
             "environment_contract": environment_contract,
             "evaluator_provenance": deepcopy(dict(environment_contract["evaluator_identity"])),
             "behavior": behavior,
+            "task_outcome": task_outcome,
             "method_resources": method_resources,
             "provider_receipts": receipts,
             "provider_decision_audit": provider_decision_audit,
@@ -1505,7 +1576,10 @@ def _run_cell_light(
                 "provider_attempt_limit_per_operation": int(
                     agent_config.get("provider_max_attempts", 1)
                 ),
-                "strict_provider_json_schema": True,
+                "strict_provider_json_schema": bool(
+                    agent_config.get("strict_tool_calls", False)
+                ),
+                "local_dynamic_json_schema_validation": True,
                 "shell_tools_enabled": False,
                 "lab_tool_used": False,
                 "automatic_action_repair": False,
@@ -1555,8 +1629,12 @@ def _run_cell_light(
                 "schema_version": "chemworld-g2-autonomous-material-cell-result-0.2",
                 "run_status": (
                     "provider_infrastructure_failure"
-                    if _provider_failure_metadata(receipts)
-                    else "infrastructure_or_execution_failure"
+                    if _terminal_provider_failure(receipts)
+                    else (
+                        "structured_decision_validation_failure"
+                        if isinstance(error, StructuredG2InterfaceError)
+                        else "infrastructure_or_execution_failure"
+                    )
                 ),
                 "started_at": started_at,
                 "finished_at": _now(),
@@ -1809,6 +1887,10 @@ def _validated_resume_result(
             target_experiments=int(card.vessel_start_limit),
         )
     )
+    summary_task_outcome = summary.get("task_outcome")
+    task_outcome_mapping = (
+        summary_task_outcome if isinstance(summary_task_outcome, Mapping) else {}
+    )
     checks = {
         "completed": summary.get("run_status") == "completed",
         "runner_version": config.get("runner_version") == RUNNER_VERSION,
@@ -1844,11 +1926,18 @@ def _validated_resume_result(
             and summary.get("config_sha256") == observed_config_hash
         ),
         "summary_cell": summary.get("cell") == dict(cell),
-        "summary_closed_batches": (
-            summary.get("behavior", {}).get("closed_batch_count") == int(card.vessel_start_limit)
+        "summary_task_outcome": (
+            task_outcome_mapping.get("target_closed_batches") == int(card.vessel_start_limit)
+            and task_outcome_mapping.get("closed_batches")
+            == summary.get("behavior", {}).get("closed_batch_count")
+            if light_execution
+            else summary.get("behavior", {}).get("closed_batch_count")
+            == int(card.vessel_start_limit)
         ),
         "summary_not_censored": (
-            summary.get("behavior", {}).get("right_censored_open_experiment") is False
+            True
+            if light_execution
+            else summary.get("behavior", {}).get("right_censored_open_experiment") is False
         ),
         "evaluator_provenance": isinstance(
             summary.get("evaluator_provenance"),
@@ -1879,13 +1968,24 @@ def _validated_resume_result(
     ledger_state = ledger.snapshot()["state"]
     expected_batches = int(card.vessel_start_limit)
     events = resources.get("events")
+    light_resource_binding = (
+        int(ledger_state["vessel_starts"]) == task_outcome_mapping.get("started_batches")
+        and int(ledger_state["closed_batches"]) == task_outcome_mapping.get("closed_batches")
+        and int(ledger_state["final_assays"]) == task_outcome_mapping.get("final_assays")
+        and int(ledger_state.get("discarded_batches", 0))
+        == task_outcome_mapping.get("discarded_batches")
+    )
+    legacy_resource_binding = (
+        int(ledger_state["vessel_starts"]) == expected_batches
+        and int(ledger_state["final_assays"])
+        + int(ledger_state.get("discarded_batches", 0))
+        == expected_batches
+    )
     if (
         resources.get("ledger_sha256") != summary.get("campaign_resource_ledger_sha256")
         or resources.get("ledger_sha256") != replay.get("campaign_resource_ledger_sha256")
         or ledger.card.card_sha256 != card.card_sha256
-        or int(ledger_state["vessel_starts"]) != expected_batches
-        or int(ledger_state["final_assays"]) + int(ledger_state.get("discarded_batches", 0))
-        != expected_batches
+        or not (light_resource_binding if light_execution else legacy_resource_binding)
         or not isinstance(events, list)
         or len(events) != len(records)
     ):

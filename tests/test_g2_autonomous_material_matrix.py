@@ -244,7 +244,7 @@ def test_direct_provider_qualification_uses_operation_runner(
     config = (
         matrix.ROOT
         / "configs/benchmark/"
-        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.5_dev.json"
+        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.6_dev.json"
     )
     captured: dict[str, Any] = {}
 
@@ -275,7 +275,10 @@ def test_direct_provider_qualification_uses_operation_runner(
 
     assert matrix.main() == 0
     assert captured["provider_runtime"]["provider_id"] == "deepseek"
-    assert captured["provider_runtime"]["provider_base_url"].endswith("/beta")
+    assert captured["provider_runtime"]["provider_base_url"] == "https://api.deepseek.com"
+    assert captured["provider_runtime"]["structured_output_transport"] == (
+        "json_object_plus_local_dynamic_schema_validation"
+    )
     assert captured["qualification"] is True
 
 
@@ -283,7 +286,7 @@ def test_direct_provider_qualification_budgets_every_transport_attempt() -> None
     config = (
         matrix.ROOT
         / "configs/benchmark/"
-        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.5_dev.json"
+        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.6_dev.json"
     )
     protocol = matrix._load_protocol(config)
 
@@ -510,6 +513,28 @@ def test_history_summary_counts_discard_as_one_closed_batch() -> None:
     assert summary["complete_experiment_count"] == 1
     assert summary["discarded_batch_count"] == 1
     assert summary["closed_batch_count"] == 2
+
+
+def test_task_outcome_separates_valid_termination_from_target_attainment() -> None:
+    resources = {
+        "state": {
+            "vessel_starts": 3,
+            "closed_batches": 3,
+            "final_assays": 3,
+            "discarded_batches": 0,
+            "remaining": {
+                "operation_attempts": 61,
+                "stocks": {"reagent_mol": 0.0, "solvent_L": 0.84},
+            },
+        }
+    }
+    behavior = {"right_censored_open_experiment": False}
+
+    outcome = matrix._task_outcome(resources, behavior, target_batches=6)
+
+    assert outcome["target_met"] is False
+    assert outcome["closed_batches"] == 3
+    assert outcome["terminal_reason"] == "shared_stock_exhausted_before_target"
 
 
 def test_provider_session_audit_requires_six_fully_qualified_turns() -> None:

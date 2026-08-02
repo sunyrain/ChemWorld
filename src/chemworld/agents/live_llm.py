@@ -650,7 +650,7 @@ class LiveLLMAgent(BaseAgent):
             )
             receipts.append(
                 {
-                    "schema_version": "chemworld-provider-receipt-0.4",
+                    "schema_version": "chemworld-provider-receipt-0.5",
                     "request_id": raw.get("request_id"),
                     "logical_decision_index": raw["logical_decision_index"],
                     "attempt_index": raw["attempt_index"],
@@ -680,6 +680,8 @@ class LiveLLMAgent(BaseAgent):
                     ),
                     "billed_cost_usd": billed_cost,
                     "failure_type": raw.get("failure_type"),
+                    "failure_detail_type": raw.get("parse_error_type"),
+                    "finish_reason": raw.get("finish_reason"),
                 }
             )
         return receipts

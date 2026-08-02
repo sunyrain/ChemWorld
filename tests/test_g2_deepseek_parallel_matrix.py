@@ -13,6 +13,10 @@ def test_parallel_protocol_freezes_exact_matched_matrix() -> None:
 
     assert protocol["agent"]["model"] == "deepseek-v4-flash"
     assert protocol["agent"]["provider_attempt_limit_per_operation"] == 6
+    assert protocol["agent"]["strict_tool_calls"] is False
+    assert campaign._provider_runtime(protocol)["provider_base_url"] == (
+        "https://api.deepseek.com"
+    )
     assert len(cells) == 10
     assert len(pairs) == 5
     assert all(len(pair) == 2 for pair in pairs)

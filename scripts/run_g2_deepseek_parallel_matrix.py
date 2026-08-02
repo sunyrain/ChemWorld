@@ -23,9 +23,9 @@ from chemworld.eval.provenance import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = (
-    ROOT / "configs/benchmark/g2_autonomous_electrochemical_material_5x2_deepseek_v0.5_dev.json"
+    ROOT / "configs/benchmark/g2_autonomous_electrochemical_material_5x2_deepseek_v0.6_dev.json"
 )
-DEFAULT_OUTPUT_ROOT = ROOT / "runs/development/g2-autonomous-material-5x2-deepseek-v4-flash-v5"
+DEFAULT_OUTPUT_ROOT = ROOT / "runs/development/g2-autonomous-material-5x2-deepseek-v4-flash-v6"
 RUNNER_VERSION = "chemworld-g2-deepseek-parallel-matrix-runner-0.1"
 MANIFEST_SCHEMA_VERSION = "chemworld-g2-parallel-agent-matrix-run-0.1"
 
@@ -45,6 +45,8 @@ def _load_protocol(path: Path) -> dict[str, Any]:
     attempt_limit = int(agent.get("provider_max_attempts", 0))
     if attempt_limit != 6 or agent.get("provider_attempt_limit_per_operation") != 6:
         raise ValueError("six fail-closed provider attempts per operation must be frozen")
+    if agent.get("strict_tool_calls") is not False:
+        raise ValueError("v0.6 must freeze json_object transport with local schema validation")
     operation_limit = int(protocol["campaign_resource_card"]["operation_attempt_limit"])
     if int(protocol["method_resource_limits_per_cell"]["model_call_limit"]) != (
         operation_limit * attempt_limit
@@ -78,16 +80,25 @@ def _source_manifest(config_path: Path) -> dict[str, Any]:
     return source
 
 
-def _provider_runtime() -> dict[str, Any]:
+def _provider_runtime(protocol: Mapping[str, Any]) -> dict[str, Any]:
+    strict_tool_calls = bool(protocol["agent"].get("strict_tool_calls", False))
     return {
         "transport": "direct_deepseek_chat_completions",
         "provider_id": "deepseek",
         "provider_name": "DeepSeek",
-        "provider_base_url": "https://api.deepseek.com/beta",
+        "provider_base_url": (
+            "https://api.deepseek.com/beta"
+            if strict_tool_calls
+            else "https://api.deepseek.com"
+        ),
         "provider_env_key": "DEEPSEEK_API_KEY",
         "wire_api": "chat_completions",
         "model_catalog_endpoint": "https://api.deepseek.com/models",
-        "structured_output_transport": "beta_strict_forced_tool_call",
+        "structured_output_transport": (
+            "beta_strict_forced_tool_call"
+            if strict_tool_calls
+            else "json_object_plus_local_dynamic_schema_validation"
+        ),
     }
 
 
@@ -254,10 +265,13 @@ def _manifest(
                 "within_pair_order": int(cell["within_pair_order"]),
                 "material_information": deepcopy(dict(cell["material_information"])),
                 "run_status": summary.get("run_status"),
+                "execution_valid": summary.get("execution_valid"),
                 "authoritative_attempt_dir": item["authoritative_attempt_dir"],
                 "attempts": deepcopy(list(item["attempts"])),
                 "accepted_operation_count": _accepted_operations(summary),
                 "closed_batch_count": behavior.get("closed_batch_count"),
+                "task_target_met": summary.get("task_outcome", {}).get("target_met"),
+                "terminal_reason": summary.get("task_outcome", {}).get("terminal_reason"),
                 "best_final_score": behavior.get("best_final_score"),
                 "mean_final_score": behavior.get("mean_final_score"),
                 "incumbent_auc_per_operation": behavior.get("incumbent_auc_per_operation"),
@@ -287,6 +301,8 @@ def _manifest(
         "world_seeds": list(protocol["task"]["world_seeds"]),
         "planned_cell_count": len(planned_cells),
         "completed_cell_count": sum(row["run_status"] == "completed" for row in rows),
+        "execution_valid_cell_count": sum(row["execution_valid"] is True for row in rows),
+        "task_target_met_cell_count": sum(row["task_target_met"] is True for row in rows),
         "planned_physical_experiment_count": len(planned_cells)
         * int(protocol["campaign_resource_card"]["complete_experiments"]),
         "completed_physical_experiment_count": sum(
@@ -362,7 +378,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise RuntimeError("external execution requires --allow-external-provider")
     if source["worktree_dirty"]:
         raise RuntimeError("DeepSeek matrix requires a clean source worktree")
-    runtime = _provider_runtime()
+    runtime = _provider_runtime(protocol)
     env_key = str(runtime["provider_env_key"])
     if not os.environ.get(env_key, "").strip():
         raise RuntimeError(f"required provider environment variable is not set: {env_key}")

@@ -12,6 +12,7 @@ class _StrictClient:
     model = "gpt-5.6-sol"
     thinking = True
     reasoning_effort = "medium"
+    strict_tool_calls = True
 
     def __init__(self) -> None:
         self.prompts: list[dict[str, Any]] = []
@@ -67,6 +68,10 @@ class _StrictClient:
                 },
             ),
         )
+
+
+class _JsonObjectClient(_StrictClient):
+    strict_tool_calls = False
 
 
 def test_structured_g2_uses_strict_schema_and_public_campaign_ledger() -> None:
@@ -174,3 +179,32 @@ def test_structured_g2_uses_strict_schema_and_public_campaign_ledger() -> None:
     assert client.schemas[0]["additionalProperties"] is False
     assert agent.manifest()["lab_tool_used"] is False
     assert agent.manifest()["shell_tools_enabled"] is False
+    assert "provider_enforced" in agent.manifest()["structured_output_policy"]
+
+
+def test_structured_g2_declares_local_validation_for_json_object_transport() -> None:
+    agent = StructuredG2Agent(
+        _JsonObjectClient(),
+        role_id="test-json-object",
+        prompt_token_estimate_cap=3200,
+        response_max_tokens=1800,
+    )
+    agent.reset(
+        {
+            "task_id": "electrochemical-conversion",
+            "objective": "balanced",
+            "budget": 24,
+            "episode_mode": "campaign",
+        },
+        seed=0,
+    )
+
+    manifest = agent.manifest()
+    resources = agent.method_resource_usage()
+
+    assert manifest["structured_output_policy"] == (
+        "json_object_plus_locally_validated_dynamic_json_schema"
+    )
+    assert resources["model_provenance"]["request_parameters"]["response_format"] == (
+        "json_object_plus_local_dynamic_schema_validation"
+    )
