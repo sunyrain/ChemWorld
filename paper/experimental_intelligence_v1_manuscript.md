@@ -1,7 +1,7 @@
 ---
-title: "Executable Chemical Worlds for Measuring Experimental Agency"
-title_line_one: "Executable Chemical Worlds for"
-title_line_two: "Measuring Experimental Agency"
+title: "Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency"
+title_line_one: "Executable Chemical Worlds Reveal the"
+title_line_two: "Hidden Dynamics of Experimental Agency"
 subject: "Executable environments for controlled measurement of AI experimental behavior"
 keywords: "executable chemical worlds; experimental agency; autonomous experimentation; AI agents; reproducibility"
 author:
