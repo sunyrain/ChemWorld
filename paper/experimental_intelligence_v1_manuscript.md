@@ -445,8 +445,7 @@ the matched nominal campaign recovered from several declines and ended at
 0.7894. Similar endpoint summaries can therefore obscure early discovery,
 catastrophic loss, stable retention, and late recovery (Fig. 3).
 
-### 6.3 Material information is associated with trajectory stability, not a
-uniform performance gain
+### 6.3 Material information is associated with trajectory stability, not a uniform performance gain
 
 The global best appeared at mean normalized progress 0.32 in the opaque arm and
 0.80 in the nominal arm. Online incumbent retention was 0.52 and 0.72;

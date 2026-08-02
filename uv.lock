@@ -472,6 +472,9 @@ notebooks = [
     { name = "jupyter" },
     { name = "matplotlib" },
 ]
+paper = [
+    { name = "markdown" },
+]
 physchem-ref = [
     { name = "cantera" },
     { name = "chemicals" },
@@ -490,6 +493,7 @@ requires-dist = [
     { name = "gymnasium", specifier = ">=0.29,<1.1" },
     { name = "ipykernel", marker = "extra == 'notebooks'", specifier = ">=6.29" },
     { name = "jupyter", marker = "extra == 'notebooks'", specifier = ">=1.1" },
+    { name = "markdown", marker = "extra == 'paper'", specifier = ">=3.7,<4.0" },
     { name = "matplotlib", marker = "extra == 'notebooks'", specifier = ">=3.8,<3.11" },
     { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.6" },
     { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.5" },
@@ -507,7 +511,7 @@ requires-dist = [
     { name = "thermo", marker = "extra == 'physchem-ref'", specifier = ">=0.4" },
     { name = "types-pyyaml", marker = "extra == 'dev'", specifier = ">=6.0" },
 ]
-provides-extras = ["dev", "docs", "notebooks", "rl", "physchem-ref"]
+provides-extras = ["dev", "docs", "notebooks", "paper", "rl", "physchem-ref"]
 
 [[package]]
 name = "click"

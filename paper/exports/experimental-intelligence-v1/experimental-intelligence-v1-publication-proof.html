@@ -1,0 +1,1083 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experimental Intelligence in Executable Chemical Worlds | publication proof</title><style>
+:root { --ink:#17222e; --muted:#66727e; --rule:#cfd7dd; --wash:#f4f7f8;
+        --navy:#26577c; --coral:#d95f52; --teal:#3d9487; }
+@page { size: A4; margin: 15mm 16mm 17mm 16mm; }
+* { box-sizing: border-box; }
+html { color: var(--ink); background: #fff; font-family: Arial, "Helvetica Neue", sans-serif; }
+body { margin: 0; font-size: 8.2pt; line-height: 1.38; text-rendering: optimizeLegibility; }
+a { color: var(--navy); text-decoration: none; }
+.cover { display: flex; flex-direction: column; page-break-after: always; break-inside:avoid-page; }
+.kicker { margin-top: 4mm; color: var(--coral); font-size: 7.5pt; font-weight: 700;
+          text-transform: uppercase; letter-spacing: .12em; }
+h1 { font-family: Georgia, "Times New Roman", serif; font-size: 27pt; line-height: 1.03;
+     letter-spacing: -.025em; max-width: 165mm; margin: 5mm 0 3mm; font-weight: 600; }
+.deck { font-family: Georgia, "Times New Roman", serif; font-size: 11.2pt; line-height: 1.28;
+        color: #394550; max-width: 155mm; margin: 0 0 5mm; }
+.proof-meta { color: var(--muted); border-top: 1px solid var(--rule); padding-top: 3mm; }
+.scope-ribbon { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; margin: 6mm 0 5mm; }
+.scope-ribbon div { border-top: 2px solid var(--navy); padding-top: 2.5mm; }
+.scope-ribbon strong { display:block; font-size: 15pt; line-height:1; }
+.scope-ribbon span { color:var(--muted); font-size:7pt; }
+.abstract { border-top: 2px solid var(--ink); padding-top: 3.5mm; }
+.abstract h2 { margin:0 0 3mm; font-size:10pt; text-transform:uppercase; letter-spacing:.08em; }
+.abstract p { font-family: Georgia, "Times New Roman", serif; font-size: 8.7pt; line-height:1.37;
+              margin: 0 0 2.1mm; }
+.scope-note { color:var(--muted); font-size:6.5pt; margin-top:3mm; }
+.article { column-count: 2; column-gap: 7mm; }
+.article > section.prose { break-inside: auto; }
+h2 { column-span: none; font-family: Georgia, "Times New Roman", serif; font-size: 13pt;
+     line-height:1.15; margin: 5mm 0 2.2mm; break-after: avoid; }
+h3 { font-size: 8.3pt; line-height:1.2; margin:3.4mm 0 1.6mm; break-after:avoid; }
+p { margin:0 0 2.6mm; text-align: justify; hyphens:auto; orphans:3; widows:3; }
+code { font-family: "Cascadia Mono", Consolas, monospace; font-size:.86em; overflow-wrap:anywhere; }
+.result-figure, .table-block, .references { column-span: all; break-inside: avoid-page;
+                  background:#fff; margin: 7mm 0 5mm; }
+.result-figure { break-before: auto; }
+.result-figure img { width:100%; max-height: 200mm; object-fit:contain; display:block; }
+figcaption { border-top:.55px solid var(--rule); margin-top:2.2mm; padding-top:2mm;
+             font-size:6.6pt; line-height:1.35; color:#34404b; }
+figcaption p { display:inline; text-align:left; margin:0; }
+.table-block { break-before: auto; }
+.table-block h3 { font-size:9pt; border-top:2px solid var(--ink); padding-top:2.2mm; }
+table { border-collapse: collapse; width:100%; margin:2mm 0; font-size:6.15pt; line-height:1.22; }
+th { border-top:1.2px solid var(--ink); border-bottom:.8px solid var(--ink); text-align:left;
+     padding:1.2mm 1mm; vertical-align:bottom; }
+td { border-bottom:.35px solid var(--rule); padding:1.05mm 1mm; vertical-align:top; }
+.table-3 table, .table-4 table { font-size:5.4pt; }
+.table-block > p { font-size:6.3pt; text-align:left; color:#43505b; }
+.references { break-before: page; column-count:2; column-gap:7mm; }
+.references h2 { column-span:all; border-top:2px solid var(--ink); padding-top:3mm; }
+.references-list { margin:0; padding-left:4.5mm; font-size:6.2pt; line-height:1.28; }
+.references-list li { margin:0 0 1.5mm; padding-left:.6mm; break-inside:avoid; }
+.end-note { column-span:all; margin-top:6mm; padding:3mm; background:var(--wash);
+            color:var(--muted); font-size:6.2pt; }
+</style></head>
+<body>
+<header class="cover">
+  <div class="kicker">ChemWorld | arXiv v1 publication proof</div>
+  <h1>Experimental Intelligence in Executable Chemical Worlds</h1>
+  <p class="deck">A controlled apparatus for measuring how scientific agents discover,
+  retain, lose and recover experimental knowledge.</p>
+  <p class="proof-meta">Working proof | 2 August 2026 | Author list and durable raw-data
+  archive identifier pending</p>
+  <div class="scope-ribbon">
+    <div><strong>29,754</strong><span>executed physical experiments</span></div>
+    <div><strong>15</strong><span>registered task designs</span></div>
+    <div><strong>28</strong><span>typed operation types</span></div>
+    <div><strong>5</strong><span>instrument types</span></div>
+  </div>
+  <section class="abstract"><h2>Abstract</h2><p>Artificial-intelligence systems for science are commonly evaluated by endpoint
+predictions, optimized conditions, or a small number of experiments in a fixed
+physical setting. These evaluations cannot reliably distinguish a lucky
+discovery from stable experimental learning, nor separate the effects of prior
+information, physical context, evidence use, and stochastic agent behavior.
+Here we introduce ChemWorld, an executable chemical-world environment for
+studying experimental intelligence under controlled conditions. Agents act on
+stateful chemical processes through typed operations, actively select
+measurements, incur material and instrument costs, encounter explicit failures,
+and must autonomously terminate and assay experiments. Every transition is
+transactional, resource-accounted, identity-bound, and exactly replayable.</p>
+<p>Across 29,580 compiled-experiment physical trials, the same language-model
+scaffold showed task-dependent optimization, while correct and deliberately
+misindexed material information altered experimental choices without producing
+uniform performance recovery. Optimization, held-out prediction, declared
+directional knowledge, and unsupported mechanistic claims provided different
+capability profiles. In a separate agent-directed study, native Codex completed
+60 of 60 electrochemical experiments through 815 self-selected primitive
+operations. Endpoint performance concealed distinct trajectories of discovery,
+loss, retention, and recovery: material information was associated with later
+discovery but stronger retention and smaller drawdown on average, with a
+reversal in one physical world.</p>
+<p>In a fresh-trajectory replication, 18 of 20 cells completed and two were
+right-censored by provider-infrastructure failure, yielding eight complete
+paired trajectories. Six of eight world-by-core-lifecycle classifications were
+mixed within a fixed physical world. World 1 nevertheless retained positive
+endpoint effects in three of four complete pairs, whereas world 3 retained
+negative mean-score effects in three of four pairs but a mixed best-score sign.
+Thus endpoint directionality did not imply a repeatable phenotype of discovery,
+retention, drawdown, or terminal behavior.</p>
+<p>ChemWorld therefore treats a scientific agent not only as a task participant
+but as an experimentally measurable system. The results show why scientific
+competence cannot be reduced to an endpoint score and establish controlled
+chemical worlds as a complementary instrument for studying how agents
+experiment.</p>
+    <p class="scope-note">Environment counts qualify the release surface; formal agent
+    evidence covers the tasks stated in the manuscript.</p>
+  </section>
+</header>
+<main class="article"><section class="prose"><h2>1. Introduction</h2><p>Scientific agents are increasingly asked to propose experiments, interpret
+measurements, and operate automated laboratories. Their evaluation, however,
+usually compresses experimental work into a prediction or a vector-valued
+query. Even when an agent produces a high-scoring condition, the observed
+endpoint does not reveal whether the condition was discovered by chance,
+whether the agent used intermediate evidence, whether it retained the resulting
+strategy, or whether it could recover after abandoning it.</p>
+<p>Real laboratories provide indispensable evidence about physical execution and
+deployment. They are less suited to repeatedly cloning a hidden physical
+system, changing only the information supplied to the agent, matching the
+observation stream, and sampling many independent decision trajectories. Static
+optimization benchmarks provide scale and clean objective functions but remove
+the stateful experimental process whose scientific use is at issue. These two
+settings therefore leave a methodological gap: a controlled apparatus for
+studying the behavior of the experimenting agent.</p>
+<p>ChemWorld fills this gap with executable, task-bounded chemical and chemical-
+engineering worlds. An experiment is a state-changing sequence of operations
+and measurements. The agent controls additions, process conditions,
+measurements, termination, and final assay under a campaign-wide resource
+endowment. Invalid operations and failures are retained rather than repaired
+into valid actions. Hidden evaluator state is separated from the public agent
+view, while world, source, observation, resource, and trajectory identities are
+cryptographically bound for audit and replay.</p>
+<p>We use ChemWorld to study experimental intelligence: the structured response of
+an agent to interventions, observations, and experimental consequences. Our
+experiments intervene on prior material information, physical world identity,
+and experimental control authority. We measure lifecycle autonomy, discovery,
+retention, drawdown, recovery, predictive calibration, and resource use rather
+than collapsing them into a single leaderboard score.</p>
+<p>The study makes five contributions. First, it provides an executable chemical-
+world substrate spanning stateful operations, instruments, failures, resources,
+and replay. Second, it introduces an agent-directed primitive-control interface
+in which measurement and lifecycle decisions remain with the agent. Third, it
+formalizes trajectory-level measures of experimental behavior. Fourth, it shows
+that task performance, prior response, prediction, and recovery need not agree.
+Fifth, it uses fresh trajectories within fixed physical worlds to test whether
+observed experimental phenotypes are repeatable or dominated by one-off model
+sampling.</p></section><section class="prose"><h2>2. Relation to existing systems</h2><p>Chemistry agents and self-driving laboratories have established that language-
+model systems can retrieve chemical knowledge, call specialist tools, compile
+protocols, and act through cloud or robotic laboratories. Coscientist connected
+planning, documentation search, code, and experimental automation, while
+ChemCrow combined a language model with eighteen chemistry tools and physical
+synthesis. A-Lab and mobile robotic laboratories provide stronger evidence than
+ChemWorld for real chemical execution and deployment. AutoLabs adds a systematic
+twenty-configuration evaluation of natural-language-to-liquid-handler protocol
+generation, whereas RoboChem-Flex demonstrates affordable, modular closed-loop
+Bayesian reaction optimization across six real chemical case studies. ACRA
+translates literature procedures into hardware-checked XDL and executes them on
+two robotic platforms; PRISM connects agent-generated protocols, digital-twin
+validation, and coordinated multi-instrument execution. These
+systems answer whether agents, protocols, and optimizers can be connected to,
+and produce useful outcomes in, the real laboratory
+(<a href="https://doi.org/10.1038/s41586-023-06792-0">Boiko et al., 2023</a>;
+<a href="https://doi.org/10.1038/s42256-024-00832-8">Bran et al., 2024</a>;
+<a href="https://doi.org/10.1038/s41586-023-06734-w">Szymanski et al., 2023</a>;
+<a href="https://doi.org/10.1038/s41586-024-08173-7">Dai et al., 2024</a>;
+<a href="https://doi.org/10.1038/s41598-026-45593-z">Panapitiya et al., 2026</a>;
+<a href="https://doi.org/10.1038/s44160-026-01053-0">Pilon et al., 2026</a>;
+<a href="https://doi.org/10.1038/s42004-026-01993-w">Pagel et al., 2026</a>;
+<a href="https://doi.org/10.1039/D6DD00004E">Hsu et al., 2026</a>).</p>
+<p>Hypothesis-centred systems provide another important, but distinct, comparison.
+Co-Scientist uses a multi-agent tournament to generate and refine biomedical
+hypotheses that were subsequently tested with expert oversight. Robin closes
+the intellectual loop from literature-derived hypotheses to autonomous analysis
+of newly generated biological data, while scientists execute human-authored
+laboratory protocols and return the results. These systems are stronger than
+ChemWorld on literature-scale synthesis, biomedical novelty, and empirical
+wet-laboratory validation. They do not give the agent primitive control of the
+sample lifecycle, nor are they designed to estimate behavioral effects under
+cloned physical and informational conditions
+(<a href="https://doi.org/10.1038/s41586-026-10644-y">Gottweis et al., 2026</a>;
+<a href="https://doi.org/10.1038/s41586-026-10652-y">Ghareeb et al., 2026</a>).</p>
+<p>Long-horizon and strategy-level claims also have strong physical precedents.
+ORGANA plans with visual feedback and executes diverse chemistry procedures,
+including a parallel nineteen-step electrochemical workflow. ChemAgents spans
+six task types and transfers to a seventh robotic organic-chemistry setting.
+Most directly, A-Lab GPSS reports a 352-sample air-sensitive solid-state
+campaign and distinguishes abductive local interrogation from inductive search
+expansion in its agents' proposal traces. This evidence is stronger than ours
+on real chemical discovery and campaign duration, and it means that observing
+different experimental strategies is not itself novel. ChemWorld's additional
+question is whether such strategy phenotypes survive paired information
+interventions and fresh trajectories in a fixed physical identity
+(<a href="https://doi.org/10.1016/j.matt.2024.10.015">Darvish et al., 2025</a>;
+<a href="https://doi.org/10.1021/jacs.4c17738">Song et al., 2025</a>;
+<a href="https://arxiv.org/abs/2604.11957">Fei et al., 2026</a>).</p>
+<p>Recent instrument agents also preclude treating autonomous stepwise operation
+as unique. Agents have orchestrated an X-ray nanoprobe and a robotic materials
+station while retaining instructions from human feedback. An agentic X-ray
+scientist went further: it selected commands from observations in a virtual
+beamline and transferred the workflow to a real synchrotron, with commands
+relayed unmodified by a human for safety. These studies are stronger on
+instrument fidelity, multimodal perception, deployment, and adaptation to
+real anomalies. Their principal estimand is task and operational success in a
+specific facility, rather than the effect of randomized information conditions
+on replicated experimental trajectories. AgentChemist likewise uses visual
+chemical perception to adjust robotic dispensing during a real titration,
+which means that state-responsive physical operation is not an exclusive
+ChemWorld capability
+(<a href="https://doi.org/10.1038/s41524-026-02005-0">Vriza et al., 2026</a>;
+<a href="https://doi.org/10.1038/s42256-026-01261-5">Chen et al., 2026</a>;
+<a href="https://arxiv.org/abs/2603.23886">Wei et al., 2026</a>).</p>
+<p>Virtual environments address complementary constraints. Summit and Olympus
+already support reproducible in-silico reaction optimization, PC-Gym supports
+nonlinear chemical-process control, and ChemGymRL provides interconnected
+virtual chemistry benches with fine-grained agent actions. MADE now provides a
+modular, budget-constrained benchmark for closed-loop materials discovery in
+which pipelines propose crystal candidates and receive formation-energy-oracle
+feedback. LLEMA separately combines LLM candidate generation, chemical rules,
+memory, surrogate prediction, and evolutionary search across fourteen
+multi-objective materials tasks. These systems are stronger than ChemWorld in
+systematic algorithmic comparison, candidate generation, and materials-design
+breadth. We therefore do not claim the first virtual chemistry laboratory,
+budgeted closed loop, agentic materials-discovery environment, or memory-guided
+materials search, and do not use optimizer ranking as the primary novelty.
+ChemWorld uses a different unit of action: an agent constructs and advances each
+physical experiment through additions, control, characterization, termination,
+and final assay, with campaign-wide material, instrument, vessel, failure, and
+provider accounts. This runtime is then used for paired interventions on the
+experimenting agent and state-level replay
+(<a href="https://doi.org/10.1002/cmtd.202000051">Felton et al., 2021</a>;
+<a href="https://doi.org/10.1088/2632-2153/abedc8">Häse et al., 2021</a>;
+<a href="https://doi.org/10.1039/D3DD00183K">Beeler et al., 2024</a>;
+<a href="https://arxiv.org/abs/2410.22093">Bloor et al., 2024</a>;
+<a href="https://arxiv.org/abs/2601.20996">Malik et al., 2026</a>;
+<a href="https://openreview.net/forum?id=TIqzhBvCNB">Abhyankar et al., 2026</a>).</p>
+<p>Interactive discovery benchmarks already test hypothesis formation,
+experimentation, and explanation. DiscoveryWorld supplies long-horizon
+fictional scientific tasks; BoxingGym evaluates experimental design and model
+discovery in generative probabilistic environments; and SciGym supplies a dry
+laboratory of hundreds of systems-biology models. SciExplorer goes further by
+letting an agent select numerical experiments and analysis procedures for
+initially unknown mechanical, wave, and quantum systems, recovering equations
+of motion and Hamiltonians without task-specific exploration blueprints. More
+recent benchmarks formalize this law-recovery problem at scale. NewtonBench contains 324 counterfactual
+physics-law tasks, DiscoverPhysics evaluates prediction and explanation in 22
+non-canonical physical worlds, and ActiveSciBench-Chem contains 57 enzyme-
+kinetics mechanism tasks. These systems currently exceed ChemWorld in the
+generality, scale, and formal evaluation of law recovery. ChemWorld addresses a different
+unit of interaction: the agent must construct and advance a stateful chemical
+experiment, decide when to characterize it, and bear inventory and vessel
+opportunity costs rather than only select the next query or initial condition
+(<a href="https://proceedings.neurips.cc/paper_files/paper/2024/hash/13836f251823945316ae067350a5c366-Abstract-Datasets_and_Benchmarks_Track.html">Jansen et al., 2024</a>;
+<a href="https://arxiv.org/abs/2501.01540">Gandhi et al., 2025</a>;
+<a href="https://arxiv.org/abs/2507.02083">Duan et al., 2025</a>;
+<a href="https://doi.org/10.1103/xnqc-q6nt">Nägele and Marquardt, 2026</a>;
+<a href="https://arxiv.org/abs/2510.07172">Zheng et al., 2025</a>;
+<a href="https://arxiv.org/abs/2605.26087">Wiemann et al., 2026</a>;
+<a href="https://arxiv.org/abs/2605.24043">Kabra et al., 2026</a>).</p>
+<p>HExA and its Interphyre benchmark create a particularly important boundary for
+the phrase <em>learning through experimentation</em>: agents actively intervene in a
+procedural-physics environment, test hypotheses, acquire composable skills, and
+transfer them to harder tasks. ChemWorld does not claim to originate active
+experimental learning or reusable experimental skills. Its complementary unit
+is a chemistry-native sample lifecycle with characterization choices, entity
+resources, failure consequences, paired prior interventions, and fixed-world
+fresh-trajectory replication
+(<a href="https://arxiv.org/abs/2606.29315">Chandra et al., 2026</a>).</p>
+<p>Static procedural and realistic workflow benchmarks cover still different
+competencies. ChemReason-Bench supplies 7,306 human-validated tasks for ordering,
+validating, completing, and rationalizing experimental procedures. ScienceBoard
+and SciAgentArena evaluate agents in professional scientific software and about
+two hundred real research scenarios, respectively, with state- or step-level
+verification. They are stronger on task breadth, procedural validation, software
+realism, and multi-domain workflows. They generally evaluate whether an agent
+can execute or reason about a specified workflow, whereas ChemWorld asks how an
+agent produces evidence by altering a hidden chemical process and whether the
+resulting behavior survives controlled replication
+(<a href="https://doi.org/10.18653/v1/2026.acl-long.1535">Zhang et al., 2026</a>;
+<a href="https://openreview.net/forum?id=bJvwJahJeF">Sun et al., 2026</a>;
+<a href="https://arxiv.org/abs/2606.12736">Liu et al., 2026</a>).</p>
+<p>Prediction--understanding dissociation and process-level evaluation are also
+not unique claims. CausaLab separates task success from recovered causal
+structure, and ReplaySCM evaluates executable mechanism replay. More broadly,
+the AI-agent-behavioral-science literature explicitly advocates systematic
+observation and interventions on situated agents. EurekAgent separately argues
+that permissions, artifacts, budgets, and human interfaces should be treated as
+an engineered agent environment, although its demonstrations are metric-driven
+mathematics, kernel, and machine-learning tasks rather than physical experiments.
+ChemWorld therefore does not claim the general concept of environment engineering.
+Most directly for scientific
+agents, Corral reports across more than 25,000 runs that successful outcomes can
+conceal evidence neglect and failures of belief revision. A July 2026 robotic-
+chemistry stress test likewise makes physical executability and evidence-driven
+replanning measurable. ChemWorld therefore does not claim to invent behavioral
+evaluation. It instantiates that lens as a chemistry-grounded apparatus in which
+actions, measurements, resources, and subsequent physical consequences are
+observable, while prior information can be paired and fresh trajectories can be
+replicated within the same physical world. AHOIS is another important boundary:
+on a real optical platform it proposes and tests physical hypotheses, diagnoses
+failure modes, and ablates a Socratic critic. It is stronger on hypothesis-level
+epistemic autonomy and real discovery; ChemWorld is stronger only on the present
+study's identity control, resource provenance, and trajectory replication
+(<a href="https://arxiv.org/abs/2605.26029">Yang et al., 2026</a>;
+<a href="https://arxiv.org/abs/2605.08197">Batzoglou, 2026</a>;
+<a href="https://doi.org/10.1057/s41599-026-07316-7">Chen et al., 2026</a>;
+<a href="https://arxiv.org/abs/2606.13662">Xin et al., 2026</a>;
+<a href="https://arxiv.org/abs/2604.18805">Ríos-García et al., 2026</a>;
+<a href="https://arxiv.org/abs/2607.23045">Guo et al., 2026</a>;
+<a href="https://arxiv.org/abs/2606.26722">Zeng et al., 2026</a>).</p>
+<p>Qiushi Discovery Engine sets an even stronger boundary for claims about
+end-to-end autonomy and long-horizon research. On a real optical platform it
+maintained a nonlinear research trajectory over thousands of model and tool
+calls and reported experimental validation of a previously unreported physical
+mechanism. ChemWorld therefore does not claim the first long-horizon autonomous
+research trajectory, end-to-end discovery, or agent-generated mechanism. Its
+empirical contribution is the complementary ability to repeat controlled
+interventions on an experimenting agent within an identity-bound chemical
+substrate and to quantify whether its strategy survives fresh sampling
+(<a href="https://arxiv.org/abs/2604.27092">Yang et al., 2026</a>).</p>
+<p>Finally, LabUtopia, MATTERIX, and Labimus provide substantially richer
+perception, manipulation, laboratory geometry, powder physics, and sim-to-real
+capabilities, while LabOSBench and LabRobFail isolate instrument-control and
+robotic-failure competencies. The ADePT framework appropriately evaluates this
+robotic-autonomy axis through adaptability, dexterity, perception, and task
+complexity. ChemWorld intentionally abstracts those problems---especially
+dexterity and perception. Its
+niche is not a more realistic robot simulator, but controlled experiments on
+the behavior of experimenting agents, grounded in executable chemistry
+(<a href="https://arxiv.org/abs/2505.22634">Li et al., 2025</a>;
+<a href="https://doi.org/10.1038/s43588-025-00924-4">Darvish et al., 2026</a>;
+<a href="https://arxiv.org/abs/2606.31037">Wu et al., 2026</a>;
+<a href="https://arxiv.org/abs/2606.16802">Zou et al., 2026</a>;
+<a href="https://arxiv.org/abs/2607.23704">Wang et al., 2026</a>;
+<a href="https://doi.org/10.1038/s42004-026-01932-9">Salazar-Villacis and Benyahia, 2026</a>).</p></section><section class="prose"><h2>3. ChemWorld as an apparatus for studying agents</h2><h3>3.1 Stateful chemical worlds</h3>
+<p>ChemWorld separates a physical causal substrate, an experimental interaction
+runtime, and a versioned task/evaluation contract. The substrate contains typed
+material, phase, vessel, equipment, thermal, and process states. Operations
+route through task-allowed domain services and update these states atomically.
+The task contract determines the public objective, allowed operations and
+instruments, observation mask, budget, scoring law, and termination semantics.</p>
+<p>The present release registers 15 tasks, 28 operation types, five instrument
+types, and 37 public scalar observation keys. All registered complete-
+experiment adapters pass 415 midpoint, coordinate-boundary, and categorical
+execution cases. Sixty-two declared success metrics bind to explicit evaluator
+endpoints. These are environment-design qualifications; formal agent results in
+this manuscript are limited to electrochemical conversion and reaction-to-
+crystallization, with autonomous primitive-control results currently limited to
+electrochemical conversion (Fig. 1 and Table 1).</p>
+<h3>3.2 Agent-directed experimentation</h3>
+<p>In agent-directed control, each decision selects exactly one typed operation.
+The environment validates the operation, preflights the resource ledger,
+commits or rejects the state transition, and returns only public outcomes. The
+agent may then select a new operation or request an allowed measurement. An
+experiment is not complete when the process is merely terminated: the agent
+must also request a final assay. A valid final assay closes the vessel and, in
+campaign mode, makes a fresh vessel available in the same hidden world.</p>
+<p>The official runner performs no automatic action repair, termination, or final
+assay. Invalid and resource-rejected proposals consume their declared operation
+attempt and remain in the trajectory. Material, solvent, vessel, instrument,
+operation, model-call, token, and wall-time resources are recorded on separate
+axes rather than combined into a hidden scalar budget.</p>
+<h3>3.3 Controlled identities and replay</h3>
+<p>Each run binds the task and scoring contracts, physical world and material
+instance, observation-noise namespace, resource card, method envelope, model
+configuration, source tree, and agent-local seed. Primitive transitions can be
+replayed from the durable trajectory, and resource receipts can be reconstructed
+from the same operations. Provider-session receipts remain separate from
+physical-transition replay.</p>
+<p>This design makes it possible to hold a chemical world fixed while changing the
+information given to the agent, and to distinguish physical-world identity from
+a fresh model trajectory. Native Codex does not expose a reproducible provider
+sampling seed; a fresh trajectory is therefore an independent session-level
+realization, not a deterministically replayed model random-number stream.</p></section><figure class="result-figure figure-1"><img src="../../figures/experimental-intelligence-v1/publication/figure-1-controlled-apparatus.svg" alt="Figure 1: ChemWorld is a controlled apparatus for experimental intelligence"><figcaption><strong>Figure 1 | ChemWorld is a controlled apparatus for experimental intelligence.</strong> <p><strong>A,</strong> Closed-loop interaction between a hidden chemical world, one typed agent action,
+the resulting state transition and a public measurement. <strong>B,</strong> Physical world, prior
+information, agent authority, evidence access and resources are independently controlled
+experimental axes. <strong>C,</strong> The auditable transition spine binds typed state, atomic
+transaction, resource receipt, immutable trace and exact replay; invalid actions and
+failures remain evidence. <strong>D,</strong> Qualified release surface. Counts establish declared
+reachability and evaluator binding, not agent performance across all registered tasks.</p></figcaption></figure><section class="table-block table-1"><h3>Table 1 | Qualified environment surface and formal evidence scope</h3><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Count</th>
+<th>Evidence level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>registered task designs</td>
+<td>15</td>
+<td>release surface</td>
+</tr>
+<tr>
+<td>typed operation types</td>
+<td>28</td>
+<td>release surface</td>
+</tr>
+<tr>
+<td>instrument types</td>
+<td>5</td>
+<td>release surface</td>
+</tr>
+<tr>
+<td>deterministic complete-experiment cases</td>
+<td>415</td>
+<td>design qualification</td>
+</tr>
+<tr>
+<td>declared endpoints bound to evaluators</td>
+<td>62</td>
+<td>design qualification</td>
+</tr>
+<tr>
+<td>tasks with formal compiled-agent results</td>
+<td>2</td>
+<td>paper evidence</td>
+</tr>
+<tr>
+<td>tasks with autonomous-agent results</td>
+<td>1</td>
+<td>paper evidence</td>
+</tr>
+</tbody>
+</table>
+<p>Counts for the environment surface are design qualifications, not claims of agent
+competence. Formal paper evidence covers fewer tasks than the registered surface.</p></section><section class="prose"><h2>4. Compiled experiments reveal task- and prior-dependent behavior</h2><p>Compiled-experiment control is used here as a low-agency calibration, not as the
+ontological starting point of ChemWorld. On each exploration turn the agent
+selects a complete experiment and a compiler executes the task-defined
+procedure. This interface supports direct calibration against Latin hypercube,
+Gaussian-process, random-forest, and related typed optimization methods.</p>
+<p>The nonduplicated active corpus contains 27,300 classic-baseline physical
+experiments and 2,280 participant experiments across opaque, nominal, and
+misindexed material-information conditions. The opaque participant slice is
+shared between the original two-task study and the three-arm study and is
+counted only once.</p>
+<h3>4.1 Optimization performance depends on the chemical task</h3>
+<p>In electrochemical conversion, the participant mean was 0.7150, compared with
+0.6159 for the strongest information-matched structured RF-EI baseline. The
+paired descriptive difference was +0.0991 with a world-bootstrap 95% interval
+of +0.0103 to +0.1748. The strongest privileged-descriptor calibration scored
+0.6441, and its comparison interval crossed zero.</p>
+<p>In reaction-to-crystallization, the participant mean was 0.5355 and the best
+classic method, LHS, scored 0.5708. The paired difference was -0.0353 with a
+95% interval of -0.0650 to -0.0085. These comparisons were not preregistered as
+superiority tests and do not support a general language-model-versus-classic-
+optimization ranking. They instead establish task-dependent behavior under a
+shared participant scaffold.</p>
+<h3>4.2 Correct material information has task-dependent value</h3>
+<p>Anonymous nominal material properties increased the electrochemical mean from
+0.7150 to 0.7874, a paired difference of +0.0724 with a familywise 97.5%
+interval of +0.0074 to +0.1546. The crystallization mean increased from 0.5355
+to 0.5615, but its interval of -0.0130 to +0.0630 included zero. Correct
+material information therefore had clear value in the sampled electrochemical
+worlds but uncertain value in crystallization.</p>
+<h3>4.3 Prior manipulation, action correction, and recovery are distinct</h3>
+<p>Deliberately misindexed material properties increased the first misleading-
+action rate from zero to 0.7 in electrochemistry and to 1.0 in crystallization.
+Electrochemical misleading-action share declined later in the campaign, but
+performance did not recover to the opaque condition. Crystallization recovered
+in endpoint performance but did not satisfy the differential action-correction
+criterion. Neither task passed the preregistered joint recovery rule.</p>
+<p>The result does not show that agents generally recover from incorrect priors.
+It shows that prior manipulation, later behavioral change, and performance
+recovery are empirically separable events (Fig. 4A--C and Table 2).</p></section><figure class="result-figure figure-4"><img src="../../figures/experimental-intelligence-v1/publication/figure-4-prior-reshapes-behavior.svg" alt="Figure 4: Prior interventions reshape behavior without guaranteeing recovery"><figcaption><strong>Figure 4 | Prior interventions reshape behavior without guaranteeing recovery.</strong> <p><strong>A,</strong> Paired nominal-minus-opaque effects on compiled-experiment final score with
+familywise 97.5% world-bootstrap intervals. <strong>B,</strong> Early and late shares of
+actions aligned with deliberately misindexed material information. <strong>C,</strong> Separate
+preregistered checks
+for manipulation, differential action correction, performance restoration and their joint
+recovery rule. <strong>D,</strong> Nominal-minus-opaque autonomous development effects across five
+physical worlds; points are worlds and horizontal bars are descriptive means. Positive
+drawdown differences indicate larger drawdown under nominal information.</p></figcaption></figure><section class="table-block table-2"><h3>Table 2 | Compiled-experiment capability profiles</h3><table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Information arm</th>
+<th>Worlds</th>
+<th>Final score</th>
+<th>Held-out accuracy</th>
+<th>Brier</th>
+<th>Structure F1</th>
+<th>Mechanism F1</th>
+<th>Unsupported claims</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>electrochemical-conversion</td>
+<td>opaque</td>
+<td>10</td>
+<td>0.715</td>
+<td>0.744</td>
+<td>0.186</td>
+<td>0.389</td>
+<td>0.190</td>
+<td>0.611</td>
+</tr>
+<tr>
+<td>electrochemical-conversion</td>
+<td>nominal</td>
+<td>10</td>
+<td>0.787</td>
+<td>0.778</td>
+<td>0.149</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+</tr>
+<tr>
+<td>electrochemical-conversion</td>
+<td>misindexed</td>
+<td>10</td>
+<td>0.685</td>
+<td>0.711</td>
+<td>0.209</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+</tr>
+<tr>
+<td>reaction-to-crystallization</td>
+<td>opaque</td>
+<td>10</td>
+<td>0.535</td>
+<td>0.478</td>
+<td>0.298</td>
+<td>0.275</td>
+<td>0.144</td>
+<td>0.714</td>
+</tr>
+<tr>
+<td>reaction-to-crystallization</td>
+<td>nominal</td>
+<td>10</td>
+<td>0.562</td>
+<td>0.433</td>
+<td>0.316</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+</tr>
+<tr>
+<td>reaction-to-crystallization</td>
+<td>misindexed</td>
+<td>10</td>
+<td>0.584</td>
+<td>0.433</td>
+<td>0.316</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+</tr>
+</tbody>
+</table>
+<p>Scores are means across ten physical worlds. Dashes indicate endpoints that were not
+defined for that information arm; they are not zeroes. No composite score is formed.</p></section><section class="prose"><h2>5. Optimization and cognition provide different capability profiles</h2><p>The electrochemical participant combined a final recommendation score of
+0.7150 with held-out directional accuracy of 0.744 and a Brier score of 0.186.
+Crystallization scored 0.5355 with held-out accuracy of 0.478 and Brier score of
+0.298, despite higher declared directional accuracy. Structural-edge and
+mechanism-tag F1 scores were low in both tasks, and unsupported-claim rates were
+0.611 and 0.714. All final recommendations reproduced tested conditions and
+produced no gain over the validated incumbent in any of the twenty task-world
+cells.</p>
+<p>These measurements do not establish a general psychology of language models.
+They demonstrate why endpoint optimization, outcome-held-out prediction,
+declared confidence, structural explanation, and method synthesis must remain
+separate endpoints when evaluating scientific agents (Fig. 6A and Table 2).</p></section><figure class="result-figure figure-6"><img src="../../figures/experimental-intelligence-v1/publication/figure-6-experimental-intelligence-profiles.svg" alt="Figure 6: Experimental intelligence is a profile, not a scalar"><figcaption><strong>Figure 6 | Experimental intelligence is a profile, not a scalar.</strong> <p><strong>A,</strong> Compiled-experiment endpoint score, held-out directional accuracy, Brier score and
+unsupported-claim rate for the opaque participant in two chemical tasks.
+<strong>B,</strong> Autonomous
+completion, retention, recovery and terminal-to-best summaries by information arm. Metric
+directions differ and no composite score is computed; the panel demonstrates the need to
+retain a capability profile rather than rank systems on these bars.</p></figcaption></figure><section class="prose"><h2>6. Autonomous experimentation exposes discovery, loss, and recovery</h2><h3>6.1 Native Codex closes complete experimental lifecycles</h3>
+<p>The autonomous development matrix placed native Codex (<code>gpt-5.6-sol</code>, medium
+reasoning) in five paired electrochemical worlds under opaque or anonymous
+nominal material information. Each cell received a campaign-wide endowment of
+six vessels, six final assays, eighteen nonfinal instrument uses, 0.48 mol of
+reagent, 0.96 L of solvent, and a nonbinding 144-attempt safety ceiling.</p>
+<p>All ten cells and all sixty vessels completed. The agent submitted 815 primitive
+operations, including 164 nonfinal instrument measurements and sixty final
+assays (224 measurement operations in total), with no invalid or resource-
+rejected operation. All sixty provider sessions completed, and all resource,
+replay, and physical-pair audits passed. Figure 2 follows one complete vessel
+from primitive actions to its reconstructable campaign receipt.</p>
+<h3>6.2 Endpoint summaries conceal different learning trajectories</h3>
+<p>The opaque and nominal arms had mean best scores of 0.6314 and 0.7093, but the
+direction and magnitude varied strongly by world. Different time and resource
+estimands also disagreed: nominal-minus-opaque was negative for mean batch AUC
+and realized-attempt AUC but positive for fixed-144-operation AUC.</p>
+<p>Individual campaigns revealed more substantial differences. One opaque agent
+found a score of 0.7865 in its first experiment and ended at 0.3824, whereas its
+nominal counterpart rose from 0.2492 to a best of 0.8544 and ended at 0.8352.
+Another opaque campaign ended at zero after previously scoring 0.6050, while
+the matched nominal campaign recovered from several declines and ended at
+0.7894. Similar endpoint summaries can therefore obscure early discovery,
+catastrophic loss, stable retention, and late recovery (Fig. 3).</p>
+<h3>6.3 Material information is associated with trajectory stability, not a uniform performance gain</h3>
+<p>The global best appeared at mean normalized progress 0.32 in the opaque arm and
+0.80 in the nominal arm. Online incumbent retention was 0.52 and 0.72;
+maximum absolute drawdown was 0.3326 and 0.0915; terminal-to-global-best ratio
+was 0.67 and 0.94. Three of six opaque loss episodes and four of five nominal
+episodes recovered. Diagnostic-aligned control changes were followed by a
+positive next-batch score change in 4/14 opaque and 8/17 nominal batches.</p>
+<p>These are descriptive development results. In one selected world, retention,
+drawdown, and terminal-to-best effects reversed. The apparent average stability
+of the nominal arm may therefore reflect physical-world context, a single
+provider trajectory, or their interaction (Fig. 4D, Fig. 6B and Table 3).</p></section><figure class="result-figure figure-2"><img src="../../figures/experimental-intelligence-v1/publication/figure-2-one-autonomous-experiment.svg" alt="Figure 2: One complete agent-directed experiment and its campaign ledger"><figcaption><strong>Figure 2 | One complete agent-directed experiment and its campaign ledger.</strong> <p><strong>A,</strong> The first vessel from the opaque world-0 development campaign: the agent selected
+reagent and solvent addition, potential setting, electrolysis, a UV-visible measurement,
+termination and final assay in seven primitive operations. This example illustrates the
+interface and is excluded from prior-effect inference. <strong>B,</strong> Independently debited
+campaign resources reconstructed from the immutable trajectory; physical inventory and
+instrument use are not collapsed into a scalar token budget.</p></figcaption></figure><figure class="result-figure figure-3"><img src="../../figures/experimental-intelligence-v1/publication/figure-3-behaviorally-distinct-trajectories.svg" alt="Figure 3: Endpoint summaries conceal distinct experimental trajectories"><figcaption><strong>Figure 3 | Endpoint summaries conceal distinct experimental trajectories.</strong> <p>Final-assay sequences for opaque and anonymous nominal-information agents in development
+worlds 0, 2 and 4. Open circles identify the first campaign maximum. The examples expose
+early discovery followed by abandonment, gradual improvement, drawdown and terminal
+recovery that a best-score endpoint alone cannot distinguish.</p></figcaption></figure><section class="table-block table-3"><h3>Table 3 | Autonomous development trajectories (G2 v0.4)</h3><table>
+<thead>
+<tr>
+<th>Arm</th>
+<th>Cells</th>
+<th>Completion</th>
+<th>Operations</th>
+<th>Best score</th>
+<th>Batch AUC</th>
+<th>Realized-op AUC</th>
+<th>Fixed-budget AUC</th>
+<th>Discovery fraction</th>
+<th>Retention</th>
+<th>Max drawdown</th>
+<th>Terminal / best</th>
+<th>Recovery</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>opaque</td>
+<td>5</td>
+<td>1.000</td>
+<td>82.600</td>
+<td>0.631</td>
+<td>0.617</td>
+<td>0.520</td>
+<td>0.563</td>
+<td>0.320</td>
+<td>0.520</td>
+<td>0.333</td>
+<td>0.671</td>
+<td>0.500</td>
+</tr>
+<tr>
+<td>nominal</td>
+<td>5</td>
+<td>1.000</td>
+<td>80.400</td>
+<td>0.709</td>
+<td>0.589</td>
+<td>0.501</td>
+<td>0.591</td>
+<td>0.800</td>
+<td>0.720</td>
+<td>0.092</td>
+<td>0.941</td>
+<td>0.800</td>
+</tr>
+</tbody>
+</table>
+<p>Each arm contains five physical-world cells and six completed vessels per cell.
+Operations are mean submitted primitive attempts per cell. These development data select
+the worlds and endpoints for G2 v0.5 and are excluded from its replication estimand.</p></section><section class="prose"><h2>7. Fresh trajectories test within-world repeatability</h2><p>We selected two physical worlds only after the development study because their
+nominal-minus-opaque trajectory patterns opposed one another. The development
+trajectories are excluded from the replication estimand. In each world, five
+fresh trajectory replicates pair opaque and nominal information, producing ten
+pair blocks and twenty cells. Pair order and arm-first order are frozen and
+balanced.</p>
+<p>Eighteen cells completed and two were right-censored, leaving eight complete
+pairs: four in each world. The two right-censored cells were the nominal arm of
+world 1 replicate r01 and the opaque arm of world 3 replicate r05. Each ended
+after a provider-infrastructure failure with three vessel starts, two completed
+final assays, one started but incomplete vessel, and three unstarted vessel
+opportunities. No cell was replaced. Across the matrix, agents started 114
+vessels and completed 112 final assays; six of the 120 pre-specified vessel
+opportunities were never started because of censoring. Attempt selection,
+within-pair physical identity, terminal resource reconstruction, and exact
+physical replay all passed the fail-closed audit.</p>
+<p>Fresh trajectories did not reproduce a stable opposing-world pattern (Fig. 5
+and Table 4). In world 1, the median nominal-minus-opaque difference was +0.228
+for best score and +0.224 for mean final-assay score; both were positive in
+three of four complete pairs. Among the four core lifecycle endpoints, however,
+discovery fraction (median -0.200) and retention (median +0.100) were mixed.
+Drawdown was smaller under nominal information in three of four pairs (median
+difference -0.156), and terminal-to-best ratio was higher in three of four
+pairs (median +0.104).</p>
+<p>In world 3, mean final-assay score was lower under nominal information in three
+of four pairs (median -0.065), but best score reversed sign evenly across pairs
+(median -0.083; two positive and two negative). Every core lifecycle endpoint
+was mixed: median differences were -0.100 for discovery fraction, 0.000 for
+retention, +0.001 for drawdown, and -0.003 for terminal-to-best ratio. Across
+both worlds, six of eight world-by-core-lifecycle classifications were mixed,
+and no core lifecycle metric showed directionally consistent opposite signs in
+the two worlds.</p>
+<p>The frozen interpretation policy therefore selected
+<code>frequent_within_world_reversal</code>. The qualitative mapping was added while 9
+cells were complete, 1 was right-censored, and 10 were pending, before terminal
+scores, trajectory contents, or paired effects were inspected; it is an
+outcome-blind supplement, not a claim of preregistration before execution. Its
+frozen sentence attributes the observed instability to
+"provider-trajectory variability." Because native Codex provider sampling was
+not seed-controlled and provider conditions were not experimentally varied, we
+use that phrase descriptively: the data establish frequent reversal across
+fresh agent trajectories, not a causal provider effect.</p>
+<p>The main result is therefore not that material information is beneficial or
+harmful. It is that an endpoint effect can look directional while the
+experimental lifecycle producing it is not reproducible. Prior response is not
+a scalar property of the model or physical world; it is expressed through an
+interaction between information, physical context, and a sampled experimental
+trajectory. The selected two-world design characterizes this instability but
+does not estimate its frequency in a population of chemical worlds.</p></section><figure class="result-figure figure-5"><img src="../../figures/experimental-intelligence-v1/publication/figure-5-within-world-replication.svg" alt="Figure 5: Fresh trajectories test within-world repeatability"><figcaption><strong>Figure 5 | Fresh trajectories test within-world repeatability.</strong> <p>Nominal-minus-opaque paired differences for best score and four core lifecycle
+endpoints---global-best discovery fraction, online incumbent retention, maximum absolute
+drawdown and terminal-to-best ratio---across five fresh replicates in each
+of selected physical worlds 1 and 3. All ten pre-specified trajectory pairs are shown; an x marks a right-censored pair. Six of eight world-by-core-lifecycle classifications were mixed, selecting the frozen <code>frequent_within_world_reversal</code> interpretation branch.
+Selection used the prior development matrix; those trajectories are excluded. Effects are
+reported within world, with no pooled population-level test.</p></figcaption></figure><section class="table-block table-4"><h3>Table 4 | Fresh-trajectory replication (G2 v0.5)</h3><table>
+<thead>
+<tr>
+<th>World</th>
+<th>Replicate</th>
+<th>Opaque state</th>
+<th>Nominal state</th>
+<th>Δ best score</th>
+<th>Δ mean score</th>
+<th>Δ discovery</th>
+<th>Δ retention</th>
+<th>Δ drawdown</th>
+<th>Δ terminal / best</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>r01</td>
+<td>completed</td>
+<td>right_censored</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+</tr>
+<tr>
+<td>1</td>
+<td>r02</td>
+<td>completed</td>
+<td>completed</td>
+<td>0.285</td>
+<td>0.304</td>
+<td>0.000</td>
+<td>0.200</td>
+<td>-0.273</td>
+<td>0.035</td>
+</tr>
+<tr>
+<td>1</td>
+<td>r03</td>
+<td>completed</td>
+<td>completed</td>
+<td>-0.143</td>
+<td>-0.074</td>
+<td>0.400</td>
+<td>0.400</td>
+<td>-0.306</td>
+<td>0.173</td>
+</tr>
+<tr>
+<td>1</td>
+<td>r04</td>
+<td>completed</td>
+<td>completed</td>
+<td>0.170</td>
+<td>0.144</td>
+<td>-0.400</td>
+<td>0.000</td>
+<td>0.045</td>
+<td>-0.073</td>
+</tr>
+<tr>
+<td>1</td>
+<td>r05</td>
+<td>completed</td>
+<td>completed</td>
+<td>0.381</td>
+<td>0.429</td>
+<td>-0.400</td>
+<td>0.000</td>
+<td>-0.040</td>
+<td>0.319</td>
+</tr>
+<tr>
+<td>3</td>
+<td>r01</td>
+<td>completed</td>
+<td>completed</td>
+<td>-0.167</td>
+<td>-0.121</td>
+<td>0.600</td>
+<td>0.400</td>
+<td>-0.463</td>
+<td>0.486</td>
+</tr>
+<tr>
+<td>3</td>
+<td>r02</td>
+<td>completed</td>
+<td>completed</td>
+<td>-0.368</td>
+<td>-0.236</td>
+<td>-0.800</td>
+<td>-0.200</td>
+<td>0.057</td>
+<td>-0.007</td>
+</tr>
+<tr>
+<td>3</td>
+<td>r03</td>
+<td>completed</td>
+<td>completed</td>
+<td>0.001</td>
+<td>-0.009</td>
+<td>0.000</td>
+<td>0.000</td>
+<td>-0.028</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>3</td>
+<td>r04</td>
+<td>completed</td>
+<td>completed</td>
+<td>0.253</td>
+<td>0.291</td>
+<td>-0.200</td>
+<td>0.000</td>
+<td>0.030</td>
+<td>-0.060</td>
+</tr>
+<tr>
+<td>3</td>
+<td>r05</td>
+<td>right_censored</td>
+<td>completed</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+<td>not measured</td>
+</tr>
+</tbody>
+</table>
+<p>Deltas are nominal minus opaque within the same physical world and replicate block.
+The two deliberately selected worlds are not pooled into a population-level estimate.
+Terminal coverage: 18 completed cells, 2 right-censored cells, and 8 complete pairs (4 in world 1; 4 in world 3).
+The frozen interpretation mapping selected <code>frequent_within_world_reversal</code>: 6 of 8 world-by-core-lifecycle classifications were mixed. Policy SHA-256: <code>93604ce8af7211f35c5d3b896609addef6d436f3248f45aba3cc04a11da9d67e</code>.
+Frozen policy language: Fresh trajectories frequently reversed sign within a fixed physical world, indicating that provider-trajectory variability dominated any stable material-information pattern.
+Provider sampling was not seed-controlled; this language is descriptive and does not identify a causal provider effect.</p></section><section class="prose"><h2>8. Discussion</h2><p>ChemWorld changes what can be measured about a scientific agent. A high endpoint
+can result from early luck followed by abandonment, while slower improvement can
+produce a more stable terminal policy. Correct prior information can alter
+actions without uniformly improving outcomes. Later action correction need not
+imply cognitive correction or performance recovery. These distinctions are
+invisible when an experiment is represented only as an input vector and final
+score.</p>
+<p>The environment is complementary to physical laboratory automation. It does not
+test robot manipulation, real instrument integration, or sim-to-real transfer.
+Instead, it enables repeated, identity-controlled experiments on agent behavior
+that would be difficult or costly to isolate in a single real chemical system.
+Physical deployment and controlled behavioral evaluation address different
+parts of the scientific-agent problem.</p>
+<p>The present work also has important limits. ChemWorld contains a bounded set of
+physical and constitutive models rather than arbitrary chemistry. Its spectra
+and assays are synthetic state-coupled instruments, not empirical spectral
+predictors. Formal compiled-experiment results cover two tasks; autonomous
+results cover one task and selected worlds. Native Codex sampling is not seed-
+controlled. Diagnostic-to-control temporal alignment is not a causal estimate
+of feedback value. No claim is made about general prior benefit, superiority to
+classic optimization, or real-laboratory transfer.</p>
+<p>The central result is methodological and empirical: scientific agents can be
+studied as experimental systems, and their competence is multidimensional.
+Executable chemical worlds provide the controlled apparatus required to expose
+that structure.</p></section><section class="prose"><h2>9. Methods</h2><h3>9.1 Environment and task qualification</h3>
+<p>ChemWorld represents an experiment with typed species, phase, vessel,
+equipment, thermal, process, and observation state. A submitted action is first
+validated against the public action schema and the current task preconditions,
+then preflighted against the campaign resource card. An allowed action is
+routed to its task-declared domain service and committed as an atomic state
+transaction; a failed precondition, invalid parameter, or resource rejection
+is retained as an attempted but uncommitted transition. Public observations
+are constructed from the committed state through the task observation
+contract. Hidden species, constitutive parameters, material instances, and
+evaluator-only score components are not copied into the public view.</p>
+<p>A versioned task contract binds the world split, allowed operation and
+instrument types, public parameter bounds, observation mask, objective and
+scoring contract, safety limit, operation budget, termination semantics, and
+declared success endpoints. The release contains 15 registered task designs,
+28 operation types and five instrument types. We executed every registered
+complete-experiment adapter at its parameter midpoint and at each numeric
+coordinate boundary, and traversed every declared category, giving 415
+deterministic cases. Every transaction required by these compiled cases
+committed, the final assay was reachable, no recipe coordinate was dead, and
+all 62 declared success metrics were bound to an executable evaluator. This is
+a design and reachability audit over declared cases, not a proof over the
+continuous state--action space or evidence of agent performance on all 15
+tasks.</p>
+<h3>9.2 Compiled-experiment protocols</h3>
+<p>The compiled-experiment studies used electrochemical conversion and
+reaction-to-crystallization with world seeds 0--9. In each participant cell,
+the model selected 20 complete experiments sequentially, receiving the public
+result of each compiled procedure before selecting the next. After exploration
+it produced a committed final recommendation and world-understanding output.
+Twelve separately executed predictive queries assessed held-out directional
+predictions, and the recommendation was evaluated by six blind physical
+validation executions. Thus each task--world--information cell contained 38
+physical experiments and 21 provider calls. The primary performance endpoint
+was the mean blind-validated recommendation score, paired by task and world.</p>
+<p>The opaque v1.0 freeze included 14 electrochemical and seven crystallization
+classic algorithms, each with five nested technical algorithm seeds, for 1,050
+algorithm cells. Seven methods per task were information-matched; seven
+additional electrochemical descriptor methods were privileged calibrations or
+negative controls and were not treated as information-matched competitors.
+Classic comparisons were descriptive because no superiority threshold or
+multiplicity plan had been preregistered. Paired differences used 200,000
+world-cluster bootstrap resamples with seed 20260729 and percentile 95%
+intervals; algorithm seeds remained nested within each independent world.</p>
+<p>The nominal v1.1 intervention supplied anonymous family-level material
+properties without real material names or world-specific residuals. The
+misindexed v1.2 intervention transposed one fixed pair of material-property
+rows per task while leaving the other material field correct; it was frozen
+after nominal execution and before any v1.2 provider call. Information-value
+and wrong-prior contrasts used 100,000 paired-world bootstrap resamples with
+seed 20260729. A 97.5% interval was reported for each of the two tasks to bound
+the task family. Recovery was a joint rule: differential early-to-late
+misleading-action correction and performance restoration to within 0.05 of the
+reference arm both had to pass their frozen one-sided familywise bounds.</p>
+<p>The classic matrix contains 27,300 physical experiments. The three participant
+arms contain 2,280 experiments: 1,200 exploration, 720 predictive, and 360
+blind validation executions. The opaque participant cells occur in both the
+v1.0 and three-arm summaries but are the same executions and are counted once,
+giving a nonduplicated G0 total of 29,580 physical experiments.</p>
+<h3>9.3 Agent-directed primitive protocol</h3>
+<p>Agent-directed campaigns used native Codex CLI with <code>gpt-5.6-sol</code> at medium
+reasoning effort. One Codex session controlled one complete vessel through a
+host-owned standard-input/output MCP bridge. At every step the agent could
+inspect the public status and history, inspect previously returned public
+artifacts, optionally maintain files in an agent-owned working directory, and
+submit exactly one typed laboratory action. The host retained the authoritative
+trajectory and resource ledger outside that workspace. The bridge exposed no
+hidden state and verified its generated tool source before every accepted
+action and after each session.</p>
+<p>The runner performed no action repair, automatic termination, or automatic
+final assay. To close a vessel, the agent had to terminate the process and then
+request the final assay itself; a new vessel then opened in the same physical
+world. Invalid and resource-rejected proposals remained in the trajectory and
+consumed an operation attempt. Provider failure after any accepted action
+right-censored the cell. Only a provider-infrastructure failure before the
+first accepted action could be retried, at most twice, in a new immutable
+attempt directory.</p>
+<p>Each cell received one campaign-wide resource card for six vessels: at most six
+vessel starts and six final assays, 18 nonfinal instrument uses, 0.48 mol of
+reagent, 0.96 L of solvent, and 144 submitted operations. The pool was shared
+across vessels without a hidden per-vessel allocation. Model use was separately
+bounded at six sessions, 72 million input tokens, 1.2 million output tokens and
+six hours of wall time; these method limits were not converted into chemical
+inventory. Operation attempts were debited when submitted, whereas stock,
+sample, physical cost, time and risk changed only on committed transitions.
+The 144-operation bound was a safety and interaction-cost ceiling, not the
+primary experimental resource.</p>
+<h3>9.4 Trajectory endpoints</h3>
+<p>All performance trajectories used committed final-assay scores. The global-best
+discovery fraction was the zero-based position of the first observed campaign
+maximum divided by the five intervals between six planned assays; it was zero
+when the first assay was best and one when the sixth was first best. At every
+assay after the first, online incumbent retention indicated whether the new
+score was at least 90% of the best preceding score. Maximum absolute drawdown
+was the largest preceding incumbent minus current score. Terminal-to-global-
+best was the last score divided by the campaign maximum, defined as one if that
+maximum was zero.</p>
+<p>A loss episode began when an assay fell below 90% of the preceding incumbent.
+That incumbent and its 90% recovery threshold were frozen for the episode;
+recovery was the first later assay that regained the threshold. Recovery delay
+was counted in subsequent final assays and batches. A loss still open at the
+terminal assay was retained with right-censored recovery time. These definitions
+distinguish loss of a previously attained condition from failure to discover a
+good condition in the first place.</p>
+<p>Three optimization integrals used discrete arithmetic means of running-best
+score. Batch AUC weighted each committed final assay equally. Realized-operation
+AUC evaluated the incumbent after every submitted primitive attempt, including
+invalid or rejected attempts and zeros before the first assay. Fixed-budget AUC
+right-padded that curve with its terminal incumbent to 144 attempts before
+averaging. Consequently, realized-operation AUC describes the path actually
+taken, whereas fixed-budget AUC compares cells on a common opportunity horizon.</p>
+<p>For the descriptive diagnostic endpoint, each committed nonfinal measurement
+was aligned to the first later committed <code>set_potential</code> or <code>electrolyze</code>
+operation in the same vessel. A control change required a comparable earlier
+operation of the same type and a changed field value. The analysis unit was the
+vessel: vessels with at least one diagnostic-aligned change were related to the
+next final score and its change from the previous assay and prior incumbent.
+This temporal alignment did not identify a causal effect of measurement.</p>
+<h3>9.5 Fresh-trajectory replication</h3>
+<p>The fresh-trajectory study fixed physical world seeds 1 and 3 because their
+nominal-minus-opaque development patterns opposed one another on selected
+trajectory endpoints. This is therefore a development-selected, pre-specified
+replication within two deliberately selected worlds, not a confirmatory random
+sample of chemical worlds. The development sessions selected the worlds and
+endpoints and were excluded from the replication estimand.</p>
+<p>Within each world, five replicate blocks (<code>r01</code>--<code>r05</code>) paired opaque material
+codes with anonymous nominal properties. The physical evaluator, material
+instance, keyed observation stream, task and score contracts, resource card,
+model configuration, and local agent seed were identical within a pair. Arm
+order alternated within and across worlds according to a frozen ten-block
+schedule. Native Codex exposes no provider sampling seed; a replicate therefore
+means a fresh independent session-level trajectory and the two arms do not
+share provider randomness.</p>
+<p>The matrix contained 20 cells and 120 six-vessel opportunities. Attempts were
+immutable. A zero-action provider-infrastructure failure could be followed by a
+new attempt, with at most three attempts per cell. Any provider failure after
+an accepted action and any action-bearing method-limit failure permanently
+right-censored the cell; completed or right-censored cells were never replaced.
+Execution did not stop in response to scores or arm differences.</p>
+<p>For every endpoint, all available nominal-minus-opaque pair differences are
+listed separately by world and replicate. Each world is summarized by the
+median, range, positive/negative/zero counts and sign consistency. An incomplete
+pair remains in the denominator and contributes no invented paired difference.
+The two selected worlds are not pooled into a population p-value. The final
+narrative mapping uses four core metrics: discovery fraction, retention,
+drawdown and terminal-to-best ratio. A world--metric is directionally consistent
+when at least 75% of its available paired effects have the same nonzero sign;
+at least three complete pairs are required per world. Three of four core metrics
+must be consistent in both worlds with opposite signs for the opposing-world
+branch. At least four of eight world--metric classifications must be mixed for
+the frequent-reversal branch. Remaining adequate-coverage outcomes enter the
+metric-specific/non-opposing branch; inadequate coverage enters its own branch.
+This hierarchy and its neutral manuscript sentences are bound in
+<code>configs/benchmark/g2_autonomous_electrochemical_material_seed1_seed3_r5_v0.5_interpretation_policy.json</code>.</p>
+<h3>9.6 Provenance, provider accounting, and replay</h3>
+<p>Every formal artifact binds its source commit; task, scoring and observation
+contracts; physical world, mechanism, material-family and material-instance
+identities; observation-noise namespace and seed; resource card; model and
+method envelope; and run configuration. Pair audits require equality of the
+physical and public-contract identities while requiring the information arms
+to differ. Attempts, trajectories, environment contracts, provider receipts,
+resource ledgers and summaries carry content hashes and are never overwritten.</p>
+<p>Exact replay starts from the bound initial state and reapplies the durable
+primitive actions without calling the model. It must reproduce every committed
+transition, terminal score, campaign resource receipt and final ledger hash.
+Provider-session audit is separate: it checks session count, completion,
+model/provenance fields and reported token usage, but does not claim to replay
+private model sampling. Subscription use has no attributable per-run dollar
+price, so monetary provider accounting is explicitly incomplete rather than
+estimated from an unrelated API tariff.</p>
+<p>The four G0 raw roots comprise 1,441 files and 17,725,724,603 bytes. A tracked
+index binds every root-relative path, byte count and file SHA-256; the two
+tracked formal JSON summaries are bound by canonical-JSON SHA-256 so checkout
+line-ending conversion cannot change their identity. The release now contains
+a compact G2 replay subset and a terminal 677-file G2 index. The 55-node
+evidence graph, clean-wheel smoke test, 1,827-test suite, terminal replay checks
+and independent-checkout reproduction have passed. A durable archive
+identifier for the G0 raw bytes remains required before public release.</p></section><section class="prose"><h2>10. Data and code availability</h2><p><code>benchmark/releases/chemworld-serious-v1</code> contains a fail-closed manifest, data
+card, claim boundaries, the deterministic G0 raw-file index, a frozen
+single-source derived-data object, and six CSV views. Figures 1--6 are generated
+only from that object. Main tables and complete figure legends are rendered
+from the same source into
+<code>paper/experimental_intelligence_v1_display_items.md</code>. The G0 index and terminal
+G2 index contain no raw content or absolute path. The G2 package includes a
+677-file terminal hash index and a compact four-cell replay subset containing
+one complete pair and both right-censored cells. The release verification
+attestation records 1,813 passing and 14 skipped tests, a clean-wheel smoke
+pass, a passing 55-node evidence graph, and zero-difference regeneration of the
+declared artifacts from an independent checkout. Before release we will add a
+durable archive location for the full local G0 corpus. The manifest remains
+<code>publication_ready=false</code> until the external-archive and final
+submission-language gates pass.</p></section>
+  <section class="references"><h2>References</h2><ol class="references-list"><li id="ref-1"><span class="ref-authors">Boiko, D.A.; MacKnight, R.; Kline, B.; Gomes, G.</span> <span class="ref-title">Autonomous chemical research with large language models.</span> <em>Nature <strong>624</strong>, 570–578 (2023)</em>. <a href="https://doi.org/10.1038/s41586-023-06792-0">doi</a></li><li id="ref-2"><span class="ref-authors">Bran, A.M.; Cox, S.; Schilter, O.; Baldassari, C.; White, A.D.; Schwaller, P.</span> <span class="ref-title">Augmenting large language models with chemistry tools.</span> <em>Nature Machine Intelligence <strong>6</strong>, 525–535 (2024)</em>. <a href="https://doi.org/10.1038/s42256-024-00832-8">doi</a></li><li id="ref-3"><span class="ref-authors">Szymanski, N.J. et al.</span> <span class="ref-title">An autonomous laboratory for the accelerated synthesis of inorganic materials.</span> <em>Nature <strong>624</strong>, 86–91 (2023)</em>. <a href="https://doi.org/10.1038/s41586-023-06734-w">doi</a></li><li id="ref-4"><span class="ref-authors">Dai, T.; Vijayakrishnan, S.; Szczypiński, F.T. et al.</span> <span class="ref-title">Autonomous mobile robots for exploratory synthetic chemistry.</span> <em>Nature <strong>635</strong>, 890–897 (2024)</em>. <a href="https://doi.org/10.1038/s41586-024-08173-7">doi</a></li><li id="ref-5"><span class="ref-authors">Darvish, K.; Skreta, M.; Zhao, Y. et al.</span> <span class="ref-title">ORGANA: A robotic assistant for automated chemistry experimentation and characterization.</span> <em>Matter <strong>8</strong> (2025)</em>. <a href="https://doi.org/10.1016/j.matt.2024.10.015">doi</a></li><li id="ref-6"><span class="ref-authors">Song, T.; Luo, M.; Zhang, X. et al.</span> <span class="ref-title">A Multiagent-Driven Robotic AI Chemist Enabling Autonomous Chemical Research On Demand.</span> <em>Journal of the American Chemical Society <strong>147</strong>, 12534–12545 (2025)</em>. <a href="https://doi.org/10.1021/jacs.4c17738">doi</a></li><li id="ref-7"><span class="ref-authors">Fei, Y.; Rendy, B.; Yang, X. et al.</span> <span class="ref-title">Agentic LLM Reasoning in a Self-Driving Laboratory for Air-Sensitive Lithium Halide Spinel Conductors.</span> <em>arXiv, 2604.11957 (2026)</em>. Preprint.</li><li id="ref-8"><span class="ref-authors">Panapitiya, G.; Saldanha, E.; Job, H. et al.</span> <span class="ref-title">AutoLabs: cognitive multi-agent systems with self-correction for autonomous chemical experimentation.</span> <em>Scientific Reports <strong>16</strong>, 19554 (2026)</em>. <a href="https://doi.org/10.1038/s41598-026-45593-z">doi</a></li><li id="ref-9"><span class="ref-authors">Pilon, S.; Savino, E.; Bayley, O.M. et al.</span> <span class="ref-title">A flexible and affordable self-driving laboratory for automated reaction optimization.</span> <em>Nature Synthesis (2026)</em>. <a href="https://doi.org/10.1038/s44160-026-01053-0">doi</a></li><li id="ref-10"><span class="ref-authors">Pagel, S.; Jirasek, M.; Cronin, L.</span> <span class="ref-title">Verification and execution of the scientific literature via chemputation augmented by large language models.</span> <em>Communications Chemistry <strong>9</strong>, 191 (2026)</em>. <a href="https://doi.org/10.1038/s42004-026-01993-w">doi</a></li><li id="ref-11"><span class="ref-authors">Hsu, B.; Setty, P.V.; Butler, R.M. et al.</span> <span class="ref-title">PRISM: protocol refinement through intelligent simulation modeling.</span> <em>Digital Discovery <strong>5</strong>, 2613–2628 (2026)</em>. <a href="https://doi.org/10.1039/D6DD00004E">doi</a></li><li id="ref-12"><span class="ref-authors">Gottweis, J.; Weng, W.H.; Daryin, A. et al.</span> <span class="ref-title">Accelerating scientific discovery with Co-Scientist.</span> <em>Nature <strong>655</strong>, 487–496 (2026)</em>. <a href="https://doi.org/10.1038/s41586-026-10644-y">doi</a></li><li id="ref-13"><span class="ref-authors">Ghareeb, A.E.; Chang, B.; Mitchener, L. et al.</span> <span class="ref-title">A multi-agent system for automating scientific discovery.</span> <em>Nature <strong>655</strong>, 497–505 (2026)</em>. <a href="https://doi.org/10.1038/s41586-026-10652-y">doi</a></li><li id="ref-14"><span class="ref-authors">Vriza, A.; Prince, M.H.; Zhou, T.; Chan, H.; Cherukara, M.J.</span> <span class="ref-title">Operating advanced scientific instruments with AI agents that learn on the job.</span> <em>npj Computational Materials <strong>12</strong>, 160 (2026)</em>. <a href="https://doi.org/10.1038/s41524-026-02005-0">doi</a></li><li id="ref-15"><span class="ref-authors">Chen, Z.; Petsch, A.N.; Israelski, A.J. et al.</span> <span class="ref-title">An agentic artificially intelligent X-ray scientist.</span> <em>Nature Machine Intelligence <strong>8</strong>, 1075–1086 (2026)</em>. <a href="https://doi.org/10.1038/s42256-026-01261-5">doi</a></li><li id="ref-16"><span class="ref-authors">Felton, K.C.; Rittig, J.G.; Lapkin, A.A.</span> <span class="ref-title">Summit: Benchmarking Machine Learning Methods for Reaction Optimisation.</span> <em>Chemistry–Methods <strong>1</strong>, 116–122 (2021)</em>. <a href="https://doi.org/10.1002/cmtd.202000051">doi</a></li><li id="ref-17"><span class="ref-authors">Häse, F.; Aldeghi, M.; Hickman, R.J. et al.</span> <span class="ref-title">Olympus: a benchmarking framework for noisy optimization and experiment planning.</span> <em>Machine Learning: Science and Technology <strong>2</strong>, 035021 (2021)</em>. <a href="https://doi.org/10.1088/2632-2153/abedc8">doi</a></li><li id="ref-18"><span class="ref-authors">Beeler, C.; Subramanian, S.G.; Sprague, K. et al.</span> <span class="ref-title">ChemGymRL: A customizable interactive framework for reinforcement learning for digital chemistry.</span> <em>Digital Discovery <strong>3</strong>, 742–758 (2024)</em>. <a href="https://doi.org/10.1039/D3DD00183K">doi</a></li><li id="ref-19"><span class="ref-authors">Bloor, M.; Torraca, J.; Sandoval, I.O. et al.</span> <span class="ref-title">PC-Gym: Benchmark Environments For Process Control Problems.</span> <em>arXiv, 2410.22093 (2024)</em>. Preprint.</li><li id="ref-20"><span class="ref-authors">Malik, S.A.; Doherty, T.; Tigas, P. et al.</span> <span class="ref-title">MADE: Benchmark Environments for Closed-Loop Materials Discovery.</span> <em>arXiv, 2601.20996 (2026)</em>.</li><li id="ref-21"><span class="ref-authors">Jansen, P.; C^oté, M.A.; Khot, T. et al.</span> <span class="ref-title">DiscoveryWorld: A Virtual Environment for Developing and Evaluating Automated Scientific Discovery Agents.</span> <em>Preprint <strong>37</strong> (2024)</em>. <a href="https://doi.org/10.52202/079017-0324">doi</a></li><li id="ref-22"><span class="ref-authors">Gandhi, K.; Li, M.Y.; Goodyear, L. et al.</span> <span class="ref-title">BoxingGym: Benchmarking Progress in Automated Experimental Design and Model Discovery.</span> <em>arXiv, 2501.01540 (2025)</em>. Preprint.</li><li id="ref-23"><span class="ref-authors">Duan, H.; Lu, S.Z.; Harrigan, C.F. et al.</span> <span class="ref-title">Measuring Scientific Capabilities of Language Models with a Systems Biology Dry Lab.</span> <em>arXiv, 2507.02083 (2025)</em>. Preprint.</li><li id="ref-24"><span class="ref-authors">Nägele, M.; Marquardt, F.</span> <span class="ref-title">Agentic Exploration of Physics Models.</span> <em>Physical Review X <strong>16</strong>, 031002 (2026)</em>. <a href="https://doi.org/10.1103/xnqc-q6nt">doi</a></li><li id="ref-25"><span class="ref-authors">Sun, B.; Guo, W.; Yu, Z.; Yang, L.</span> <span class="ref-title">Self-Evolving Scientific Agent Discovers Generalizable Physically-Reasoned Fluid Control.</span> <em>arXiv, 2606.08405 (2026)</em>. Preprint.</li><li id="ref-26"><span class="ref-authors">Zheng, T.; Tam, K.K.W.; Nguyen, N.H.N.K. et al.</span> <span class="ref-title">NewtonBench: Benchmarking Generalizable Scientific Law Discovery in LLM Agents.</span> <em>arXiv, 2510.07172 (2026)</em>.</li><li id="ref-27"><span class="ref-authors">Wiemann, M.L.; Smith, L.M.; Melchior, P. et al.</span> <span class="ref-title">DiscoverPhysics: Benchmarking LLMs for Out-of-the-Box Scientific Thinking.</span> <em>arXiv, 2605.26087 (2026)</em>. Preprint.</li><li id="ref-28"><span class="ref-authors">Kabra, S.; Abhyankar, N.; Desai, S.; Iyer, P.; Reddy, C.K.</span> <span class="ref-title">LLM-AutoSciLab: Closed-Loop Scientific Discovery via Active Experimentation with LLMs.</span> <em>arXiv, 2605.24043 (2026)</em>. Preprint.</li><li id="ref-29"><span class="ref-authors">Yang, J.; Zhang, D.; Song, X. et al.</span> <span class="ref-title">CausaLab: A Scalable Environment for Interactive Causal Discovery Toward AI Scientists.</span> <em>arXiv, 2605.26029 (2026)</em>. Preprint.</li><li id="ref-30"><span class="ref-authors">Batzoglou, S.</span> <span class="ref-title">ReplaySCM: A Benchmark for Executable Causal Mechanism Induction from Interventions.</span> <em>arXiv, 2605.08197 (2026)</em>. Preprint.</li><li id="ref-31"><span class="ref-authors">Ríos-García, M.n.; Alampara, N.; Gupta, C. et al.</span> <span class="ref-title">AI scientists produce results without reasoning scientifically.</span> <em>arXiv, 2604.18805 (2026)</em>. Preprint.</li><li id="ref-32"><span class="ref-authors">Chen, L.; Zhang, Y.; Feng, J. et al.</span> <span class="ref-title">AI agent behavioral science.</span> <em>Humanities and Social Sciences Communications <strong>13</strong>, 1011 (2026)</em>. <a href="https://doi.org/10.1057/s41599-026-07316-7">doi</a></li><li id="ref-33"><span class="ref-authors">Xin, A.; Siow, J.; Wang, J. et al.</span> <span class="ref-title">EurekAgent: Agent Environment Engineering is All You Need For Autonomous Scientific Discovery.</span> <em>arXiv, 2606.13662 (2026)</em>. Preprint.</li><li id="ref-34"><span class="ref-authors">Zeng, X.; Liu, P.; Zang, Y. et al.</span> <span class="ref-title">Socratic agents for autonomous scientific discovery in high-dimensional physical systems.</span> <em>arXiv, 2606.26722 (2026)</em>. Preprint.</li><li id="ref-35"><span class="ref-authors">Yang, S.; Chen, F.; Zhao, R. et al.</span> <span class="ref-title">End-to-end autonomous scientific discovery on a real optical platform.</span> <em>arXiv, 2604.27092 (2026)</em>. Preprint.</li><li id="ref-36"><span class="ref-authors">Guo, L.; Sun, Y.; Li, X. et al.</span> <span class="ref-title">Stress-testing large language model agents in a robotic chemistry laboratory.</span> <em>arXiv, 2607.23045 (2026)</em>. Preprint.</li><li id="ref-37"><span class="ref-authors">Li, R.; Hu, Z.; Qu, W. et al.</span> <span class="ref-title">LabUtopia: High-Fidelity Simulation and Hierarchical Benchmark for Scientific Embodied Agents.</span> <em>arXiv, 2505.22634 (2025)</em>.</li><li id="ref-38"><span class="ref-authors">Wu, Y.; Jin, Z.; Li, T. et al.</span> <span class="ref-title">Labimus: A Simulation and Benchmark for Humanoid Dexterous Manipulation in Chemical Laboratory.</span> <em>arXiv, 2606.31037 (2026)</em>. Preprint.</li><li id="ref-39"><span class="ref-authors">Salazar-Villacis, P.; Benyahia, B.</span> <span class="ref-title">The ADePT framework for assessing autonomous laboratory robotics.</span> <em>Communications Chemistry <strong>9</strong>, 99 (2026)</em>. Perspective. <a href="https://doi.org/10.1038/s42004-026-01932-9">doi</a></li><li id="ref-40"><span class="ref-authors">Darvish, K.; Sohal, A.; Mandal, A. et al.</span> <span class="ref-title">MATTERIX: toward a digital twin for robotics-assisted chemistry laboratory automation.</span> <em>Nature Computational Science (2026)</em>. <a href="https://doi.org/10.1038/s43588-025-00924-4">doi</a></li><li id="ref-41"><span class="ref-authors">Zou, A.; Deng, H.; Zhang, C. et al.</span> <span class="ref-title">LabOSBench: Benchmarking Computer Use Agents for Scientific Instrument Control.</span> <em>arXiv, 2606.16802 (2026)</em>. Preprint.</li><li id="ref-42"><span class="ref-authors">Wang, H.; Sun, B.; Zou, A. et al.</span> <span class="ref-title">LabRobFail: A Benchmark for Robotic Failure Analysis in Chemical Self-driving Laboratory.</span> <em>arXiv, 2607.23704 (2026)</em>. Preprint; under review.</li><li id="ref-43"><span class="ref-authors">Sun, Q.; Liu, Z.; Ma, C. et al.</span> <span class="ref-title">ScienceBoard: Evaluating Multimodal Autonomous Agents in Realistic Scientific Workflows.</span> <em>arXiv, 2505.19897 (2026)</em>.</li><li id="ref-44"><span class="ref-authors">Liu, T.; Wang, A.X.; Panescu, A. et al.</span> <span class="ref-title">Benchmarking AI Agents for Addressing Scientific Challenges Across Scales.</span> <em>arXiv, 2606.12736 (2026)</em>. Preprint.</li><li id="ref-45"><span class="ref-authors">Zhang, J.; Liang, X.; Zhang, Y. et al.</span> <span class="ref-title">ChemReason-Bench: Benchmarking Large Language Models for Procedural Reasoning in Experimental Chemistry.</span> <em>Preprint, 33211–33248 (2026)</em>. <a href="https://doi.org/10.18653/v1/2026.acl-long.1535">doi</a></li><li id="ref-46"><span class="ref-authors">Abhyankar, N.; Kabra, S.; Desai, S.; Reddy, C.K.</span> <span class="ref-title">LLEMA: Evolutionary Search with LLMs for Multi-Objective Materials Discovery.</span> <em>Preprint (2026)</em>.</li><li id="ref-47"><span class="ref-authors">Chandra, A.; Vaidyanathan, S.; Dhanuka, U.; Gandhi, V.; Niekum, S.</span> <span class="ref-title">Hierarchical Experimentalist Agents.</span> <em>arXiv, 2606.29315 (2026)</em>. Preprint.</li><li id="ref-48"><span class="ref-authors">Wei, X.; Wang, F.; Zhang, H. et al.</span> <span class="ref-title">AgentChemist: A Multi-Agent Experimental Robotic Platform Integrating Chemical Perception and Precise Control.</span> <em>arXiv, 2603.23886 (2026)</em>. Preprint.</li></ol></section>
+  <aside class="end-note">This PDF is generated from the frozen paper-data object
+  <code>66e40a968ea037a3a00b1afdc5fd39ba10fe637e26934b153d4f28f043ca6e5d</code>. Result figures are deterministic SVGs. Image-generated concept
+  art is kept in a separate visual-development atlas and is not evidence.</aside>
+</main></body></html>
