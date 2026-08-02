@@ -526,8 +526,10 @@ def _save(
         kwargs: dict[str, Any] = {"metadata": metadata}
         if tight:
             kwargs |= {"bbox_inches": "tight", "pad_inches": 0.035}
-        if suffix == "png":
-            kwargs["dpi"] = 360
+        # SVG/PDF preserve vector primitives, but Matplotlib still rasterizes each
+        # embedded scientific sprite at the save DPI.  Keep those crops at print
+        # resolution instead of silently reducing them to the 100-DPI figure default.
+        kwargs["dpi"] = 480 if suffix in {"svg", "pdf"} else 360
         fig.savefig(path, **kwargs)
         if suffix == "svg":
             normalized = "\n".join(
@@ -548,14 +550,14 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     teal = "#078b78"
     amber = "#e18b00"
     purple = "#7651b2"
-    reference = (
+    icon_atlas = (
         ROOT
-        / "paper/figures/experimental-intelligence-v1/concept-image2"
-        / "figure-1-controlled-apparatus-image2-reference.png"
+        / "paper/figures/experimental-intelligence-v1/assets"
+        / "figure-1-scientific-icons-hd-v2.png"
     )
 
     # Geometry is a normalized transcription of the 1632 x 963 image2 reference.
-    fig = plt.figure(figsize=(7.2, 4.25), facecolor="#fdfdfc")
+    fig = plt.figure(figsize=(7.2, 4.25), facecolor="#ffffff")
     ax = fig.add_axes([0, 0, 1, 1])
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
@@ -602,15 +604,23 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
 
     heading("A", "The chemical world is the experimental apparatus", 0.009, 0.980)
     primary_cards = [
-        (0.034, 0.736, 0.115, 0.137, teal, "#f7fbfa"),
-        (0.196, 0.726, 0.136, 0.158, blue, "#f8fbfc"),
-        (0.381, 0.736, 0.104, 0.136, amber, "#fffaf3"),
+        (0.034, 0.736, 0.115, 0.137, teal, "#ffffff"),
+        (0.196, 0.726, 0.136, 0.158, blue, "#ffffff"),
+        (0.381, 0.736, 0.104, 0.136, amber, "#ffffff"),
     ]
     for x, y, width, height, edge, face in primary_cards:
         _workflow_card(ax, (x, y), width, height, edge=edge, face=face)
-    _reference_icon_crop(ax, reference, (63, 137, 136, 230), (0.044, 0.087, 0.753, 0.850))
-    _reference_icon_crop(ax, reference, (335, 117, 526, 194), (0.207, 0.321, 0.796, 0.872))
-    _reference_icon_crop(ax, reference, (638, 134, 722, 190), (0.393, 0.444, 0.797, 0.855))
+    _atlas_icon_crop(ax, icon_atlas, 0, 0, (0.044, 0.087, 0.753, 0.850))
+    _atlas_icon_crop(
+        ax,
+        icon_atlas,
+        0,
+        1,
+        (0.207, 0.321, 0.796, 0.872),
+        inset=0.015,
+        bleed=(0.0, 0.20, 0.0, 0.0),
+    )
+    _atlas_icon_crop(ax, icon_atlas, 0, 2, (0.393, 0.444, 0.797, 0.855), inset=0.14)
     ax.text(
         0.111,
         0.786,
@@ -665,11 +675,18 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
         color=ink,
     )
 
-    _workflow_card(ax, (0.098, 0.530), 0.152, 0.100, edge=purple, face="#fbfafd")
-    _workflow_card(ax, (0.283, 0.530), 0.145, 0.098, edge=purple, face="#fbfafd")
-    _reference_icon_crop(ax, reference, (171, 365, 244, 445), (0.105, 0.150, 0.542, 0.620))
-    _reference_icon_crop(ax, reference, (470, 365, 540, 425), (0.291, 0.333, 0.558, 0.620))
-    _reference_icon_crop(ax, reference, (515, 402, 635, 445), (0.316, 0.386, 0.540, 0.583))
+    _workflow_card(ax, (0.098, 0.530), 0.152, 0.100, edge=purple, face="#ffffff")
+    _workflow_card(ax, (0.283, 0.530), 0.145, 0.098, edge=purple, face="#ffffff")
+    _atlas_icon_crop(ax, icon_atlas, 0, 3, (0.105, 0.150, 0.542, 0.620))
+    _atlas_icon_crop(
+        ax,
+        icon_atlas,
+        0,
+        4,
+        (0.290, 0.420, 0.535, 0.600),
+        inset=0.015,
+        bleed=(0.0, 0.10, 0.0, 0.0),
+    )
     ax.text(
         0.154,
         0.581,
@@ -681,30 +698,37 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
         color=ink,
     )
     ax.text(
-        0.332,
-        0.590,
+        0.356,
+        0.603,
         "immutable trace",
         transform=ax.transAxes,
-        ha="left",
+        ha="center",
         va="center",
         fontsize=6.0,
         color=ink,
+        zorder=8,
     )
     arrow((0.218, 0.661), (0.204, 0.632))
     arrow((0.298, 0.661), (0.320, 0.632))
 
     heading("B", "Controlled contrasts separate agent from world", 0.543, 0.980, size=8.0)
     contrast_rows = [
-        (0.852, blue, "hidden physical identity", "matched", (946, 84, 1008, 140)),
-        (0.770, red, "material information", "intervened", (949, 162, 1008, 218)),
-        (0.687, teal, "action authority", "compiled / primitive", (946, 242, 1010, 299)),
-        (0.606, amber, "evidence access", "accounted", (951, 322, 1010, 376)),
-        (0.524, purple, "resource endowment", "accounted", (949, 398, 1008, 457)),
+        (0.852, blue, "hidden physical identity", "matched", (0, 5)),
+        (0.770, red, "material information", "intervened", (1, 0)),
+        (0.687, teal, "action authority", "compiled / primitive", (1, 1)),
+        (0.606, amber, "evidence access", "accounted", (1, 2)),
+        (0.524, purple, "resource endowment", "accounted", (1, 3)),
     ]
-    for y, color, control, role, crop in contrast_rows:
-        _workflow_card(ax, (0.570, y), 0.236, 0.065, edge=color, face="#fdfdfc")
-        _workflow_card(ax, (0.825, y), 0.161, 0.065, edge=color, face="#fdfdfc")
-        _reference_icon_crop(ax, reference, crop, (0.580, 0.619, y + 0.007, y + 0.058))
+    for y, color, control, role, atlas_cell in contrast_rows:
+        _workflow_card(ax, (0.570, y), 0.236, 0.065, edge=color, face="#ffffff")
+        _workflow_card(ax, (0.825, y), 0.161, 0.065, edge=color, face="#ffffff")
+        _atlas_icon_crop(
+            ax,
+            icon_atlas,
+            atlas_cell[0],
+            atlas_cell[1],
+            (0.580, 0.619, y + 0.007, y + 0.058),
+        )
         ax.text(
             0.632,
             y + 0.0325,
@@ -732,13 +756,13 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     for left, right in pairwise(stage_x):
         arrow((left + 0.018, 0.350), (right - 0.018, 0.350), color="#b8c4cc")
     stage_data = [
-        ("typed\nstate", (70, 662, 133, 748), (0.043, 0.081, 0.223, 0.308)),
-        ("transaction", (212, 672, 290, 738), (0.130, 0.178, 0.232, 0.301)),
-        ("resource\nreceipt", (393, 661, 443, 750), (0.240, 0.273, 0.221, 0.309)),
-        ("trace", (536, 669, 611, 741), (0.329, 0.375, 0.229, 0.304)),
-        ("physical\nreplay", (677, 660, 758, 751), (0.416, 0.466, 0.220, 0.309)),
+        ("typed\nstate", (1, 4), (0.043, 0.081, 0.223, 0.308)),
+        ("transaction", (1, 5), (0.130, 0.178, 0.232, 0.301)),
+        ("resource\nreceipt", (2, 0), (0.240, 0.273, 0.221, 0.309)),
+        ("trace", (2, 1), (0.329, 0.375, 0.229, 0.304)),
+        ("physical\nreplay", (2, 2), (0.416, 0.466, 0.220, 0.309)),
     ]
-    for index, (x, (label, crop, extent)) in enumerate(
+    for index, (x, (label, atlas_cell, extent)) in enumerate(
         zip(stage_x, stage_data, strict=True), start=1
     ):
         ax.add_patch(
@@ -765,7 +789,7 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             color="white",
             zorder=5,
         )
-        _reference_icon_crop(ax, reference, crop, extent)
+        _atlas_icon_crop(ax, icon_atlas, atlas_cell[0], atlas_cell[1], extent)
         ax.text(
             x,
             0.194,
@@ -776,8 +800,8 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             fontsize=6.1,
             color=ink,
         )
-    _workflow_card(ax, (0.055, 0.063), 0.400, 0.071, edge=red, face="#fffaf9")
-    _reference_icon_crop(ax, reference, (96, 838, 149, 895), (0.061, 0.093, 0.072, 0.128))
+    _workflow_card(ax, (0.055, 0.063), 0.400, 0.071, edge=red, face="#ffffff")
+    _atlas_icon_crop(ax, icon_atlas, 2, 3, (0.061, 0.093, 0.072, 0.128))
     ax.text(
         0.098,
         0.099,
@@ -799,7 +823,7 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             blue,
             qualification["registered_tasks"],
             "tasks",
-            (912, 611, 986, 704),
+            (2, 4),
             (0.560, 0.606, 0.258, 0.355),
         ),
         (
@@ -810,7 +834,7 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             teal,
             qualification["registered_operations"],
             "operations",
-            (1126, 610, 1211, 707),
+            (2, 5),
             (0.694, 0.747, 0.255, 0.357),
         ),
         (
@@ -821,7 +845,7 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             amber,
             qualification["registered_instruments"],
             "instruments",
-            (1377, 610, 1459, 713),
+            (3, 0),
             (0.844, 0.894, 0.253, 0.359),
         ),
         (
@@ -832,7 +856,7 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             purple,
             qualification["deterministic_complete_experiment_cases"],
             "boundary cases",
-            (957, 751, 1037, 839),
+            (3, 1),
             (0.588, 0.637, 0.119, 0.216),
         ),
         (
@@ -843,13 +867,13 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             red,
             qualification["bound_success_endpoints"],
             "bound endpoints",
-            (1270, 752, 1356, 842),
+            (3, 2),
             (0.777, 0.830, 0.117, 0.216),
         ),
     ]
-    for x, y, width, height, color, value, label, crop, extent in surface_cards:
-        _workflow_card(ax, (x, y), width, height, edge=color, face="#fdfdfc")
-        _reference_icon_crop(ax, reference, crop, extent)
+    for x, y, width, height, color, value, label, atlas_cell, extent in surface_cards:
+        _workflow_card(ax, (x, y), width, height, edge=color, face="#ffffff")
+        _atlas_icon_crop(ax, icon_atlas, atlas_cell[0], atlas_cell[1], extent)
         value_x = x + width * 0.66
         ax.text(
             value_x,
@@ -1127,6 +1151,94 @@ def _reference_icon_crop(
     ax.imshow(
         segment,
         extent=extent,
+        origin="upper",
+        interpolation="lanczos",
+        aspect="auto",
+        zorder=6,
+    )
+
+
+def _atlas_icon_crop(
+    ax: plt.Axes,
+    atlas: Path,
+    row: int,
+    column: int,
+    extent: tuple[float, float, float, float],
+    *,
+    rows: int = 4,
+    columns: int = 6,
+    inset: float = 0.08,
+    bleed: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0),
+) -> None:
+    """Embed one high-resolution sprite while preserving its physical aspect ratio."""
+    source = _REFERENCE_IMAGE_CACHE.get(atlas)
+    if source is None:
+        source = np.asarray(plt.imread(atlas), dtype=float)
+        _REFERENCE_IMAGE_CACHE[atlas] = source
+    height, width = source.shape[:2]
+    cell_width = width / columns
+    cell_height = height / rows
+    bleed_left, bleed_right, bleed_top, bleed_bottom = bleed
+    x0 = round((column - bleed_left + inset) * cell_width)
+    x1 = round((column + 1 + bleed_right - inset) * cell_width)
+    y0 = round((row - bleed_top + inset) * cell_height)
+    y1 = round((row + 1 + bleed_bottom - inset) * cell_height)
+    x0, x1 = max(0, x0), min(width, x1)
+    y0, y1 = max(0, y0), min(height, y1)
+    segment = source[y0:y1, x0:x1].copy()
+    if segment.max() > 1.0:
+        segment /= 255.0
+    rgb = segment[..., :3]
+    border = np.concatenate(
+        (
+            rgb[:6].reshape(-1, 3),
+            rgb[-6:].reshape(-1, 3),
+            rgb[:, :6].reshape(-1, 3),
+            rgb[:, -6:].reshape(-1, 3),
+        )
+    )
+    background = np.median(border, axis=0)
+    distance = np.sqrt(np.sum((rgb - background) ** 2, axis=2))
+    alpha = np.clip((distance - 0.005) / 0.040, 0.0, 1.0)
+    foreground = np.argwhere(alpha > 0.04)
+    if foreground.size:
+        fy0, fx0 = foreground.min(axis=0)
+        fy1, fx1 = foreground.max(axis=0) + 1
+        pad = max(4, round(min(segment.shape[:2]) * 0.035))
+        fy0 = max(0, fy0 - pad)
+        fx0 = max(0, fx0 - pad)
+        fy1 = min(segment.shape[0], fy1 + pad)
+        fx1 = min(segment.shape[1], fx1 + pad)
+        segment = segment[fy0:fy1, fx0:fx1]
+        alpha = alpha[fy0:fy1, fx0:fx1]
+    keep_white_matte = atlas.name.startswith("figure-1-scientific-icons")
+    if segment.shape[2] == 3:
+        segment = np.dstack((segment, np.ones_like(alpha) if keep_white_matte else alpha))
+    elif keep_white_matte:
+        segment[..., 3] = 1.0
+    else:
+        segment[..., 3] *= alpha
+
+    left, right, bottom, top = extent
+    available_width = right - left
+    available_height = top - bottom
+    image_aspect = segment.shape[1] / segment.shape[0]
+    axes_box = ax.get_position()
+    figure = ax.get_figure()
+    normalized_aspect = image_aspect * (
+        figure.get_figheight() * axes_box.height / (figure.get_figwidth() * axes_box.width)
+    )
+    if available_width / available_height > normalized_aspect:
+        fitted_width = available_height * normalized_aspect
+        midpoint = (left + right) / 2
+        left, right = midpoint - fitted_width / 2, midpoint + fitted_width / 2
+    else:
+        fitted_height = available_width / normalized_aspect
+        midpoint = (bottom + top) / 2
+        bottom, top = midpoint - fitted_height / 2, midpoint + fitted_height / 2
+    ax.imshow(
+        segment,
+        extent=(left, right, bottom, top),
         origin="upper",
         interpolation="lanczos",
         aspect="auto",
@@ -1566,10 +1678,10 @@ def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     red = "#ef432f"
     amber = "#e18b00"
     grid = "#dce3e7"
-    reference = (
+    icon_atlas = (
         ROOT
-        / "paper/figures/experimental-intelligence-v1/concept-image2"
-        / "figure-3-autonomous-lifecycle-image2-reference.png"
+        / "paper/figures/experimental-intelligence-v1/assets"
+        / "figure-3-workflow-icons-hd-v2.png"
     )
 
     # Geometry is a normalized transcription of the 1840 x 850 image2 reference.
@@ -1605,18 +1717,21 @@ def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     top_y = 0.572
     top_height = 0.271
     top_cards = [
-        (0.040, "add\nreagent", (105, 145, 210, 285)),
-        (0.162, "add\nsolvent", (330, 145, 442, 285)),
-        (0.286, "set\npotential", (552, 155, 669, 280)),
-        (0.408, "electrolyze", (776, 145, 897, 286)),
+        (0.040, "add\nreagent", (0, 0)),
+        (0.162, "add\nsolvent", (0, 1)),
+        (0.286, "set\npotential", (0, 2)),
+        (0.408, "electrolyze", (0, 3)),
     ]
-    for x, text_label, crop in top_cards:
+    for x, text_label, atlas_cell in top_cards:
         _workflow_card(ax, (x, top_y), card_width, top_height, edge=teal, face="#fbfdfc")
-        _reference_icon_crop(
+        _atlas_icon_crop(
             ax,
-            reference,
-            crop,
+            icon_atlas,
+            atlas_cell[0],
+            atlas_cell[1],
             (x + 0.017, x + card_width - 0.017, top_y + 0.085, top_y + 0.237),
+            rows=2,
+            columns=4,
         )
         if text_label == "set\npotential":
             ax.add_patch(
@@ -1692,24 +1807,27 @@ def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     bottom_y = 0.236
     bottom_height = 0.216
     bottom_cards = [
-        (0.040, 0.097, red, "#fff9f7", "final assay\n0.531", (108, 472, 213, 570)),
+        (0.040, 0.097, red, "#fff9f7", "final assay\n0.531", (1, 0)),
         (
             0.227,
             0.094,
             blue,
             "#fbfcfd",
             "agent selects\nterminate",
-            (450, 470, 571, 587),
+            (1, 1),
         ),
-        (0.408, 0.093, amber, "#fffaf3", "UV-vis\nobservation", (775, 470, 903, 587)),
+        (0.408, 0.093, amber, "#fffaf3", "UV-vis\nobservation", (1, 2)),
     ]
-    for x, width, edge, face, text_label, crop in bottom_cards:
+    for x, width, edge, face, text_label, atlas_cell in bottom_cards:
         _workflow_card(ax, (x, bottom_y), width, bottom_height, edge=edge, face=face)
-        _reference_icon_crop(
+        _atlas_icon_crop(
             ax,
-            reference,
-            crop,
+            icon_atlas,
+            atlas_cell[0],
+            atlas_cell[1],
             (x + 0.015, x + width - 0.015, bottom_y + 0.075, bottom_y + 0.197),
+            rows=2,
+            columns=4,
         )
         ax.text(
             x + width / 2,

@@ -13,10 +13,10 @@
     "backend": "configs/foundation/backend_v0.5.json",
     "backend_report": "workstreams/world_foundation/reports/backend-v0.5.json",
     "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
-    "status": "candidate_backend_clean_attested",
+    "status": "candidate_backend_validated_dirty_tree",
     "contract_validation": "passed",
-    "clean_release_attestation": "passed",
-    "source_tree_dirty": false,
+    "clean_release_attestation": "pending_clean_tree",
+    "source_tree_dirty": true,
     "world_law_id": "chemworld-physical-chemistry-v0.5",
     "task_contract_version": "chemworld-task-contract-1.1"
   },
@@ -147,9 +147,9 @@
     "publication_ready": false
   },
   "repository_integrity": {
-    "status": "stale_evidence_bindings",
+    "status": "stale_evidence_bindings_worktree_dirty",
     "current_evidence_coherent": false,
-    "tracked_source_tree_dirty": false,
+    "tracked_source_tree_dirty": true,
     "stale_binding_count": 10,
     "stale_binding_ids": [
       "mechanism_a2_structural_receipt",
@@ -164,6 +164,10 @@
       "pre_arxiv_claim_evidence_ledger"
     ],
     "blockers": [
+      {
+        "id": "clean_release_attestation_pending",
+        "scope": "backend_release"
+      },
       {
         "id": "mechanism_gates_remaining",
         "scope": "mechanism_benchmark",
@@ -419,7 +423,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "a98cfb16fff784bb7c090aab8fc19300ce8d99accff0f6949abe3501c6789a45",
+        "sha256": "76005a4cd37a6e5690bf26c91d428d3fb8972a3e4fd63ba2739659c5e0ebf557",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -675,7 +679,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "af6022325ee2d2c1de400f29a6a2a06c4131b5836c39bb705c31ecb7333c9572",
+        "sha256": "834d23e27e8f6c16e516e422de683be88610a801710ab9db7f17c55cec3fd08d",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -690,7 +694,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "bad5110f22d8899b7872a36951316ecc6fd05bf8f6352785817e706a7ae296a2",
+        "sha256": "deeb2b8d08d423c9f838a41b016280c159d42d8caabbcd7081e7e2800782cd3f",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -755,7 +759,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "55f0ef0221a2a6e096dea9d7ccb7b4f1533849b77ef32222ac7e404386d28a74",
+        "sha256": "23e865ccdb76db3d78bdc8ad7dab69457b36a2fcc3795e1b10c1898ed952e4de",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -858,7 +862,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "e149ffa13d15153987c453420b369d19fbbe63b6f5d6353a16065dacf87c97d3",
+        "sha256": "17cadca925c561e2c018120264495b15befecedb1599ac88e4d1e0883f2d4882",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -903,7 +907,7 @@
         "dependencies": [
           "static_s0_formal_campaign_summary"
         ],
-        "sha256": "95975528785c89ec032c012288f5ab0a264fc2c2c9136f98da30b8fd952de186",
+        "sha256": "bf7c615d4e804c71b0706d5fdf4155ddbfdda3a0d4276564bb5c778892163eea",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"

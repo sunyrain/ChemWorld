@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
+import re
+import struct
 import tarfile
 import zipfile
 from pathlib import Path
@@ -94,23 +97,33 @@ def test_key_workflow_svgs_keep_structure_editable_and_icons_independent() -> No
     required_labels = {
         "figure-1-controlled-apparatus.svg": (
             ("executable world", "resource ledger", "immutable trace", "physical"),
-            22,
+            21,
             80,
+            100,
         ),
         "figure-3-autonomous-lifecycle.svg": (
             ("reagent", "UV-vis", "agent selects", "final assay"),
             7,
             100,
+            140,
         ),
     }
-    for filename, (labels, image_count, minimum_paths) in required_labels.items():
+    for filename, settings in required_labels.items():
+        labels, image_count, minimum_paths, minimum_long_edge = settings
         svg = (ARXIV / "figures" / filename).read_text(encoding="utf-8")
-        # Complex apparatus icons are isolated reference crops.  Text, cards,
-        # arrows, and charts remain native SVG rather than a flattened plate.
+        # Complex apparatus icons are isolated high-resolution crops. Text,
+        # cards, arrows, and charts remain native SVG rather than a flattened plate.
         assert svg.count("<image") == image_count
         assert svg.count("<text") >= 20
         assert svg.count("<path") >= minimum_paths
         assert all(label in svg for label in labels)
+        payloads = re.findall(r'data:image/png;base64,\s*([^\"]+)', svg)
+        dimensions = []
+        for payload in payloads:
+            raw = base64.b64decode(re.sub(r"\s+", "", payload))
+            assert raw.startswith(b"\x89PNG\r\n\x1a\n")
+            dimensions.append(struct.unpack(">II", raw[16:24]))
+        assert min(max(width, height) for width, height in dimensions) >= minimum_long_edge
 
     derived = json.loads((RELEASE / "arxiv-v1-derived-data.json").read_text(encoding="utf-8"))
     potential = derived["g2_v0_4"]["one_experiment_demonstration"]["setpoint_policy"][0][
