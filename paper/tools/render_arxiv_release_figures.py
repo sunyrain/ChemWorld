@@ -503,7 +503,13 @@ def _icon(
     raise ValueError(f"unsupported icon kind: {kind}")
 
 
-def _save(fig: plt.Figure, output_dir: Path, stem: str) -> list[Path]:
+def _save(
+    fig: plt.Figure,
+    output_dir: Path,
+    stem: str,
+    *,
+    tight: bool = True,
+) -> list[Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     outputs: list[Path] = []
     for suffix in ("pdf", "svg", "png"):
@@ -516,11 +522,9 @@ def _save(fig: plt.Figure, output_dir: Path, stem: str) -> list[Path]:
             }
         elif suffix == "svg":
             metadata["Date"] = "2026-08-02T00:00:00Z"
-        kwargs: dict[str, Any] = {
-            "bbox_inches": "tight",
-            "pad_inches": 0.035,
-            "metadata": metadata,
-        }
+        kwargs: dict[str, Any] = {"metadata": metadata}
+        if tight:
+            kwargs |= {"bbox_inches": "tight", "pad_inches": 0.035}
         if suffix == "png":
             kwargs["dpi"] = 360
         fig.savefig(path, **kwargs)
@@ -919,146 +923,763 @@ def figure_2(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     return _save(fig, output_dir, "figure-2-compiled-controls")
 
 
+def _workflow_card(
+    ax: plt.Axes,
+    position: tuple[float, float],
+    width: float,
+    height: float,
+    *,
+    edge: str,
+    face: str,
+) -> None:
+    x, y = position
+    for offset, alpha in (((0.004, -0.007), 0.08), ((0.002, -0.003), 0.045)):
+        ax.add_patch(
+            FancyBboxPatch(
+                (x + offset[0], y + offset[1]),
+                width,
+                height,
+                boxstyle="round,pad=0.002,rounding_size=0.012",
+                transform=ax.transAxes,
+                fc="#071929",
+                ec="none",
+                alpha=alpha,
+                clip_on=False,
+                zorder=0,
+            )
+        )
+    ax.add_patch(
+        FancyBboxPatch(
+            (x, y),
+            width,
+            height,
+            boxstyle="round,pad=0.002,rounding_size=0.012",
+            transform=ax.transAxes,
+            fc=face,
+            ec=edge,
+            lw=0.95,
+            clip_on=False,
+            zorder=1,
+        )
+    )
+
+
+def _workflow_icon(
+    ax: plt.Axes,
+    kind: str,
+    center: tuple[float, float],
+    *,
+    label: str | None = None,
+) -> None:
+    """Draw the image2 workflow-reference icons as independent vector elements."""
+    x, y = center
+    navy = "#071929"
+
+    def line(points: Sequence[tuple[float, float]], *, color: str = navy, lw: float = 0.75) -> None:
+        ax.plot(
+            [point[0] for point in points],
+            [point[1] for point in points],
+            transform=ax.transAxes,
+            color=color,
+            lw=lw,
+            solid_capstyle="round",
+            solid_joinstyle="round",
+            clip_on=False,
+            zorder=5,
+        )
+
+    def ellipse(
+        xy: tuple[float, float],
+        width: float,
+        height: float,
+        *,
+        face: str = "white",
+        edge: str = navy,
+        lw: float = 0.65,
+        angle: float = 0,
+        zorder: float = 4,
+    ) -> None:
+        ax.add_patch(
+            Ellipse(
+                xy,
+                width,
+                height,
+                angle=angle,
+                transform=ax.transAxes,
+                fc=face,
+                ec=edge,
+                lw=lw,
+                clip_on=False,
+                zorder=zorder,
+            )
+        )
+
+    def beaker(*, liquid: str) -> None:
+        ax.add_patch(
+            Polygon(
+                [
+                    (x - 0.014, y + 0.002),
+                    (x - 0.014, y - 0.049),
+                    (x - 0.011, y - 0.056),
+                    (x + 0.014, y - 0.056),
+                    (x + 0.017, y - 0.049),
+                    (x + 0.017, y + 0.002),
+                ],
+                transform=ax.transAxes,
+                fc="#fbfdfd",
+                ec=navy,
+                lw=0.7,
+                zorder=3,
+            )
+        )
+        ax.add_patch(
+            Rectangle(
+                (x - 0.0115, y - 0.049),
+                0.026,
+                0.030,
+                transform=ax.transAxes,
+                fc=liquid,
+                ec="none",
+                alpha=0.72,
+                zorder=4,
+            )
+        )
+        line([(x - 0.011, y - 0.019), (x + 0.014, y - 0.019)], color=liquid, lw=0.9)
+        for yy, length in ((-0.029, 0.006), (-0.039, 0.0045), (-0.048, 0.006)):
+            line([(x + 0.006, y + yy), (x + 0.006 + length, y + yy)], lw=0.45)
+        line([(x - 0.016, y + 0.002), (x - 0.007, y + 0.002)], lw=0.55)
+
+    if kind == "reagent":
+        beaker(liquid="#66cdbf")
+        ax.add_patch(
+            Polygon(
+                [
+                    (x - 0.012, y + 0.020),
+                    (x + 0.011, y + 0.071),
+                    (x + 0.016, y + 0.064),
+                    (x - 0.007, y + 0.014),
+                ],
+                transform=ax.transAxes,
+                fc="#f4f7f6",
+                ec=navy,
+                lw=0.65,
+                zorder=5,
+            )
+        )
+        ellipse((x + 0.014, y + 0.070), 0.011, 0.024, face="#61c7b7", angle=-38, zorder=5)
+        line([(x - 0.010, y + 0.017), (x - 0.015, y + 0.006)], lw=0.65)
+        for dx, dy, scale in ((-0.015, -0.003, 1.0), (-0.011, -0.012, 0.65)):
+            ellipse(
+                (x + dx, y + dy),
+                0.0045 * scale,
+                0.009 * scale,
+                face="#73d4c5",
+                edge="#4eb9aa",
+                lw=0.35,
+            )
+        return
+
+    if kind == "solvent":
+        beaker(liquid="#73b6df")
+        ax.add_patch(
+            Polygon(
+                [
+                    (x - 0.010, y + 0.018),
+                    (x + 0.010, y + 0.068),
+                    (x + 0.028, y + 0.047),
+                    (x + 0.004, y + 0.009),
+                ],
+                transform=ax.transAxes,
+                fc="#f8faf9",
+                ec=navy,
+                lw=0.65,
+                zorder=5,
+            )
+        )
+        line([(x + 0.003, y + 0.051), (x + 0.017, y + 0.038)], color="#60717d", lw=0.45)
+        line([(x + 0.001, y + 0.044), (x + 0.014, y + 0.032)], color="#60717d", lw=0.45)
+        line([(x - 0.010, y + 0.018), (x - 0.014, y + 0.006)], lw=0.65)
+        ellipse((x - 0.013, y - 0.003), 0.0045, 0.009, face="#72b9e3", edge="#4c9fce", lw=0.35)
+        return
+
+    if kind == "potential":
+        ax.add_patch(
+            FancyBboxPatch(
+                (x - 0.029, y - 0.045),
+                0.058,
+                0.094,
+                boxstyle="round,pad=0.001,rounding_size=0.007",
+                transform=ax.transAxes,
+                fc="#f2f4f3",
+                ec=navy,
+                lw=0.75,
+                zorder=4,
+            )
+        )
+        ax.add_patch(
+            FancyBboxPatch(
+                (x - 0.023, y + 0.003),
+                0.046,
+                0.034,
+                boxstyle="round,pad=0.001,rounding_size=0.003",
+                transform=ax.transAxes,
+                fc="#0c2638",
+                ec=navy,
+                lw=0.55,
+                zorder=5,
+            )
+        )
+        ax.text(
+            x,
+            y + 0.019,
+            label or "potential",
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=5.0,
+            fontweight="bold",
+            color="white",
+            zorder=6,
+        )
+        ax.add_patch(
+            Rectangle(
+                (x - 0.024, y - 0.005),
+                0.048,
+                0.009,
+                transform=ax.transAxes,
+                fc="#72b9dd",
+                ec="none",
+                alpha=0.8,
+                zorder=5,
+            )
+        )
+        ellipse((x - 0.017, y - 0.030), 0.010, 0.020, face="#f3f5f4", edge=navy, lw=0.7)
+        ellipse((x - 0.017, y - 0.030), 0.0045, 0.009, face=navy, edge=navy, lw=0.3)
+        ellipse((x + 0.017, y - 0.030), 0.010, 0.020, face="#ef392c", edge=navy, lw=0.7)
+        ellipse((x + 0.017, y - 0.030), 0.0045, 0.009, face="#9f2019", edge=navy, lw=0.3)
+        return
+
+    if kind == "cell":
+        ax.add_patch(
+            FancyBboxPatch(
+                (x - 0.029, y - 0.048),
+                0.058,
+                0.081,
+                boxstyle="round,pad=0.001,rounding_size=0.006",
+                transform=ax.transAxes,
+                fc="#eef7fb",
+                ec=navy,
+                lw=0.75,
+                zorder=3,
+            )
+        )
+        ax.add_patch(
+            Rectangle(
+                (x - 0.026, y - 0.045),
+                0.052,
+                0.049,
+                transform=ax.transAxes,
+                fc="#8bc8e7",
+                ec="none",
+                alpha=0.72,
+                zorder=4,
+            )
+        )
+        for yy, length in ((-0.008, 0.010), (-0.019, 0.006), (-0.030, 0.012)):
+            line([(x - 0.004, y + yy), (x - 0.004 + length, y + yy)], color="white", lw=0.45)
+        ax.add_patch(
+            FancyBboxPatch(
+                (x - 0.023, y - 0.038),
+                0.008,
+                0.095,
+                boxstyle="round,pad=0.001,rounding_size=0.002",
+                transform=ax.transAxes,
+                fc="#0e273a",
+                ec=navy,
+                lw=0.55,
+                zorder=5,
+            )
+        )
+        ax.add_patch(
+            FancyBboxPatch(
+                (x + 0.015, y - 0.038),
+                0.008,
+                0.074,
+                boxstyle="round,pad=0.001,rounding_size=0.002",
+                transform=ax.transAxes,
+                fc="#d9e0e3",
+                ec=navy,
+                lw=0.55,
+                zorder=5,
+            )
+        )
+        line(
+            [
+                (x - 0.019, y + 0.057),
+                (x - 0.019, y + 0.074),
+                (x + 0.019, y + 0.074),
+                (x + 0.019, y + 0.054),
+            ],
+            lw=0.75,
+        )
+        ax.text(x - 0.013, y + 0.061, "-", transform=ax.transAxes, fontsize=5.0, color=navy)
+        ax.text(x + 0.022, y + 0.061, "+", transform=ax.transAxes, fontsize=5.0, color=navy)
+        return
+
+    if kind == "assay":
+        ax.add_patch(
+            Polygon(
+                [
+                    (x - 0.007, y + 0.057),
+                    (x - 0.007, y + 0.012),
+                    (x - 0.022, y - 0.045),
+                    (x - 0.018, y - 0.054),
+                    (x + 0.018, y - 0.054),
+                    (x + 0.022, y - 0.045),
+                    (x + 0.007, y + 0.012),
+                    (x + 0.007, y + 0.057),
+                ],
+                transform=ax.transAxes,
+                fc="#fff7f3",
+                ec=navy,
+                lw=0.75,
+                zorder=4,
+            )
+        )
+        line([(x - 0.008, y + 0.058), (x + 0.008, y + 0.058)], lw=0.8)
+        ax.add_patch(
+            Polygon(
+                [
+                    (x - 0.017, y - 0.030),
+                    (x - 0.019, y - 0.046),
+                    (x + 0.019, y - 0.046),
+                    (x + 0.016, y - 0.030),
+                ],
+                transform=ax.transAxes,
+                fc="#f18b78",
+                ec="none",
+                alpha=0.9,
+                zorder=5,
+            )
+        )
+        for dx, dy in ((-0.008, -0.037), (0.002, -0.032), (0.010, -0.041)):
+            ellipse(
+                (x + dx, y + dy), 0.003, 0.006, face="#bd493a", edge="#bd493a", lw=0.2, zorder=6
+            )
+        return
+
+    if kind == "agent":
+        lobes = [
+            (-0.016, 0.030, 0.020, 0.034),
+            (-0.026, 0.009, 0.019, 0.034),
+            (-0.020, -0.019, 0.022, 0.038),
+            (-0.008, -0.038, 0.020, 0.032),
+            (0.016, 0.030, 0.020, 0.034),
+            (0.026, 0.009, 0.019, 0.034),
+            (0.020, -0.019, 0.022, 0.038),
+            (0.008, -0.038, 0.020, 0.032),
+        ]
+        for dx, dy, width, height in lobes:
+            ellipse((x + dx, y + dy), width, height, face="#fbfcfc", edge=navy, lw=0.65)
+        line([(x, y + 0.047), (x, y - 0.052)], lw=0.8)
+        nodes = [
+            (-0.017, 0.019),
+            (-0.022, -0.008),
+            (-0.012, -0.030),
+            (0.016, 0.026),
+            (0.021, -0.005),
+            (0.013, -0.031),
+        ]
+        for dx, dy in nodes:
+            ellipse((x + dx, y + dy), 0.0045, 0.009, face="white", edge=navy, lw=0.5, zorder=6)
+        line([(x - 0.017, y + 0.019), (x - 0.006, y + 0.010), (x - 0.022, y - 0.008)], lw=0.45)
+        line([(x + 0.016, y + 0.026), (x + 0.006, y + 0.012), (x + 0.021, y - 0.005)], lw=0.45)
+        line([(x - 0.012, y - 0.030), (x - 0.004, y - 0.019)], lw=0.45)
+        line([(x + 0.013, y - 0.031), (x + 0.004, y - 0.020)], lw=0.45)
+        return
+
+    if kind == "uvvis":
+        ax.add_patch(
+            FancyBboxPatch(
+                (x - 0.031, y - 0.048),
+                0.062,
+                0.091,
+                boxstyle="round,pad=0.001,rounding_size=0.006",
+                transform=ax.transAxes,
+                fc="#cfd5d8",
+                ec=navy,
+                lw=0.75,
+                zorder=4,
+            )
+        )
+        ax.add_patch(
+            Polygon(
+                [
+                    (x - 0.031, y + 0.043),
+                    (x - 0.021, y + 0.059),
+                    (x + 0.025, y + 0.059),
+                    (x + 0.031, y + 0.043),
+                ],
+                transform=ax.transAxes,
+                fc="#eef1f2",
+                ec=navy,
+                lw=0.6,
+                zorder=4,
+            )
+        )
+        ax.add_patch(
+            Rectangle(
+                (x - 0.014, y - 0.030),
+                0.035,
+                0.060,
+                transform=ax.transAxes,
+                fc="#10283a",
+                ec=navy,
+                lw=0.6,
+                zorder=5,
+            )
+        )
+        ax.add_patch(
+            Rectangle(
+                (x - 0.010, y - 0.022),
+                0.027,
+                0.045,
+                transform=ax.transAxes,
+                fc="#fbfcfb",
+                ec="#526775",
+                lw=0.4,
+                zorder=6,
+            )
+        )
+        line(
+            [
+                (x - 0.008, y - 0.014),
+                (x - 0.003, y + 0.015),
+                (x + 0.002, y + 0.021),
+                (x + 0.008, y - 0.009),
+                (x + 0.015, y - 0.013),
+            ],
+            color="#14619b",
+            lw=0.65,
+        )
+        ax.add_patch(
+            Rectangle(
+                (x - 0.027, y - 0.033),
+                0.010,
+                0.044,
+                transform=ax.transAxes,
+                fc="#163247",
+                ec=navy,
+                lw=0.45,
+                zorder=5,
+            )
+        )
+        for yy in (-0.024, -0.010, 0.004):
+            ellipse(
+                (x - 0.022, y + yy), 0.003, 0.006, face="#91bbcf", edge="#91bbcf", lw=0.2, zorder=6
+            )
+        return
+
+    raise ValueError(f"unsupported workflow icon: {kind}")
+
+
 def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     demo = data["g2_v0_4"]["one_experiment_demonstration"]
     potential_label = f"{demo['setpoint_policy'][0]['potential_V']:g} V"
     cells = data["g2_v0_4"]["cell_rows"]
-    fig = plt.figure(figsize=(7.2, 3.35))
-    grid = fig.add_gridspec(
-        2, 2, width_ratios=[1.65, 1], height_ratios=[1, 0.72], wspace=0.29, hspace=0.48
-    )
-    ax = fig.add_subplot(grid[:, 0])
-    bx = fig.add_subplot(grid[0, 1])
-    cx = fig.add_subplot(grid[1, 1])
+    ledger = demo["campaign_resource_endpoints"]
 
-    _panel(ax, "A", "One vessel closes through agent-selected primitive operations")
+    ink = "#071929"
+    muted = "#41556a"
+    teal = "#078b78"
+    blue = "#004c73"
+    red = "#ef432f"
+    amber = "#e18b00"
+    grid = "#dce3e7"
+
+    # Geometry is a normalized transcription of the 1840 x 850 image2 reference.
+    # Keep the reference's panel boundaries and element order; do not auto-reflow.
+    fig = plt.figure(figsize=(7.2, 3.33), facecolor="#fdfdfc")
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
     ax.axis("off")
-    sequence = [
-        ("add\nreagent", TEAL, "flask"),
-        ("add\nsolvent", TEAL, "flask"),
-        ("set\npotential", TEAL, "potential"),
-        ("electrolyze", TEAL, "cell"),
-        ("UV-vis\nobservation", AMBER, "spectrometer"),
-        ("agent selects\nterminate", OPAQUE, "agent"),
-        ("final assay\n0.531", NOMINAL, "assay"),
+
+    ax.text(
+        0.010,
+        0.966,
+        "A",
+        transform=ax.transAxes,
+        fontsize=13.8,
+        fontweight="bold",
+        color=ink,
+        va="top",
+    )
+    ax.text(
+        0.054,
+        0.958,
+        "One vessel closes through agent-selected primitive operations",
+        transform=ax.transAxes,
+        fontsize=8.2,
+        fontweight="bold",
+        color=ink,
+        va="top",
+    )
+
+    card_width = 0.090
+    top_y = 0.572
+    top_height = 0.271
+    top_cards = [
+        (0.040, "add\nreagent", "reagent"),
+        (0.162, "add\nsolvent", "solvent"),
+        (0.286, "set\npotential", "potential"),
+        (0.408, "electrolyze", "cell"),
     ]
-    positions = [
-        (0.05, 0.67),
-        (0.30, 0.67),
-        (0.55, 0.67),
-        (0.80, 0.67),
-        (0.80, 0.29),
-        (0.43, 0.29),
-        (0.05, 0.29),
-    ]
-    for (label, color, icon_kind), (x, y) in zip(sequence, positions, strict=True):
-        _box(
-            ax,
-            (x, y),
-            0.16,
-            0.21,
-            "",
-            edge=color,
-            face=WASH,
-        )
-        _icon(
+    for x, text_label, icon_kind in top_cards:
+        _workflow_card(ax, (x, top_y), card_width, top_height, edge=teal, face="#fbfdfc")
+        _workflow_icon(
             ax,
             icon_kind,
-            (x + 0.08, y + 0.135),
-            0.070,
-            color=INK,
-            accent=color,
+            (x + card_width / 2, top_y + 0.160),
             label=potential_label if icon_kind == "potential" else None,
         )
         ax.text(
-            x + 0.08,
-            y + 0.040,
-            label,
+            x + card_width / 2,
+            top_y + 0.043,
+            text_label,
             transform=ax.transAxes,
             ha="center",
             va="center",
-            fontsize=5.7,
-            fontweight="semibold" if "agent" in label else "normal",
+            fontsize=7.0,
+            fontweight="bold",
+            color=ink,
+            zorder=8,
         )
-    for start, end in pairwise(positions[:4]):
-        _arrow(ax, (start[0] + 0.16, start[1] + 0.105), (end[0], end[1] + 0.105))
-    _arrow(ax, (0.88, 0.66), (0.88, 0.51))
-    _arrow(ax, (0.80, 0.395), (0.60, 0.395))
-    _arrow(ax, (0.43, 0.395), (0.22, 0.395))
+
+    def arrow(start: tuple[float, float], end: tuple[float, float]) -> None:
+        ax.add_patch(
+            FancyArrowPatch(
+                start,
+                end,
+                transform=ax.transAxes,
+                arrowstyle="-|>",
+                mutation_scale=8.5,
+                color=ink,
+                lw=0.85,
+                shrinkA=0,
+                shrinkB=0,
+                clip_on=False,
+                zorder=3,
+            )
+        )
+
+    for start_x, end_x in ((0.130, 0.160), (0.252, 0.284), (0.376, 0.406)):
+        arrow((start_x, 0.731), (end_x, 0.731))
+    arrow((0.453, 0.570), (0.453, 0.455))
+
+    bottom_y = 0.236
+    bottom_height = 0.216
+    bottom_cards = [
+        (0.040, 0.097, red, "#fff9f7", "final assay\n0.531", "assay"),
+        (0.227, 0.094, blue, "#fbfcfd", "agent selects\nterminate", "agent"),
+        (0.408, 0.093, amber, "#fffaf3", "UV-vis\nobservation", "uvvis"),
+    ]
+    for x, width, edge, face, text_label, icon_kind in bottom_cards:
+        _workflow_card(ax, (x, bottom_y), width, bottom_height, edge=edge, face=face)
+        _workflow_icon(ax, icon_kind, (x + width / 2, bottom_y + 0.134))
+        ax.text(
+            x + width / 2,
+            bottom_y + 0.044,
+            text_label,
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=6.9,
+            fontweight="bold" if icon_kind in {"agent", "uvvis"} else "normal",
+            color=ink,
+            zorder=8,
+        )
+    arrow((0.408, 0.359), (0.323, 0.359))
+    arrow((0.227, 0.359), (0.139, 0.359))
+
+    feedback_color = "#3b566f"
+    ax.plot(
+        [0.453, 0.453, 0.088, 0.088],
+        [0.233, 0.155, 0.155, 0.211],
+        transform=ax.transAxes,
+        color=feedback_color,
+        lw=0.9,
+        linestyle=(0, (4, 3)),
+        solid_capstyle="round",
+        clip_on=False,
+        zorder=2,
+    )
+    ax.add_patch(
+        FancyArrowPatch(
+            (0.088, 0.207),
+            (0.088, 0.233),
+            transform=ax.transAxes,
+            arrowstyle="-|>",
+            mutation_scale=8.0,
+            color=feedback_color,
+            lw=0.85,
+            clip_on=False,
+            zorder=3,
+        )
+    )
     ax.text(
-        0.50,
-        0.12,
+        0.270,
+        0.104,
         "measurement enters the public state before the stop decision",
         transform=ax.transAxes,
         ha="center",
+        va="center",
         fontsize=6.5,
-        color=MUTED,
+        color=muted,
     )
 
-    _panel(bx, "B", "Ten campaigns completed all 60 vessels")
-    bx.set_xlim(-0.8, 6.6)
-    bx.set_ylim(-0.8, 9.8)
-    for row_index, cell in enumerate(cells):
-        color = OPAQUE if cell["arm"] == "opaque" else NOMINAL
-        bx.scatter(
-            np.arange(6),
-            np.full(6, row_index),
-            marker="s",
-            s=35,
-            color=color,
-            edgecolor=PAPER,
-            linewidth=0.6,
+    ax.text(
+        0.570,
+        0.966,
+        "B",
+        transform=ax.transAxes,
+        fontsize=13.8,
+        fontweight="bold",
+        color=ink,
+        va="top",
+    )
+    ax.text(
+        0.607,
+        0.958,
+        "Ten campaigns completed all 60 vessels",
+        transform=ax.transAxes,
+        fontsize=8.4,
+        fontweight="bold",
+        color=ink,
+        va="top",
+    )
+    row_y = [0.889 - index * 0.0415 for index in range(10)]
+    vessel_x = [0.647 + index * 0.0405 for index in range(6)]
+    for cell, y in zip(cells, row_y, strict=True):
+        ax.text(
+            0.614,
+            y,
+            f"w{cell['world_seed']} {cell['arm'][0]}",
+            transform=ax.transAxes,
+            ha="right",
+            va="center",
+            fontsize=6.9,
+            color=ink,
         )
-    bx.set_xticks(range(6), [f"v{i}" for i in range(1, 7)])
-    bx.set_yticks(range(10), [f"w{cell['world_seed']} {cell['arm'][0]}" for cell in cells])
-    bx.invert_yaxis()
-    bx.tick_params(length=0)
-    for spine in bx.spines.values():
-        spine.set_visible(False)
-    bx.text(
-        0.99,
-        -0.18,
+        square_color = blue if cell["arm"] == "opaque" else red
+        for x in vessel_x:
+            ax.add_patch(
+                Rectangle(
+                    (x - 0.0055, y - 0.0115),
+                    0.011,
+                    0.023,
+                    transform=ax.transAxes,
+                    fc=square_color,
+                    ec="white",
+                    lw=0.35,
+                    zorder=3,
+                )
+            )
+    for index, x in enumerate(vessel_x, start=1):
+        ax.text(
+            x,
+            0.456,
+            f"v{index}",
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=6.8,
+            color=ink,
+        )
+    ax.text(
+        0.743,
+        0.414,
         "815 accepted primitive operations",
-        transform=bx.transAxes,
-        ha="right",
-        fontsize=6.3,
-        fontweight="semibold",
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        fontsize=6.8,
+        fontweight="bold",
+        color=ink,
     )
 
-    _panel(cx, "C", "The campaign ledger makes resource use reconstructable")
-    cx.axis("off")
-    ledger = demo["campaign_resource_endpoints"]
-    rows = [
+    ax.text(
+        0.570,
+        0.376,
+        "C",
+        transform=ax.transAxes,
+        fontsize=13.8,
+        fontweight="bold",
+        color=ink,
+        va="top",
+    )
+    ax.text(
+        0.607,
+        0.366,
+        "The campaign ledger makes resource use reconstructable",
+        transform=ax.transAxes,
+        fontsize=7.2,
+        fontweight="bold",
+        color=ink,
+        va="top",
+    )
+    ledger_rows = [
         ("vessels", ledger["vessel_starts"], 6),
         ("final assays", ledger["final_assays"], 6),
         ("instruments", ledger["nonfinal_instrument_uses"], 18),
         ("operations", ledger["operation_attempts"], 144),
     ]
-    for index, (label, used, total) in enumerate(rows):
-        y = 0.77 - index * 0.22
-        cx.text(0.02, y + 0.06, label, transform=cx.transAxes, fontsize=6.3, color=MUTED)
-        cx.text(
-            0.98,
-            y + 0.06,
-            f"{used}/{total}",
-            transform=cx.transAxes,
-            fontsize=6.4,
-            ha="right",
-            fontweight="semibold",
+    for index, (label_text, used, total) in enumerate(ledger_rows):
+        y = 0.281 - index * 0.066
+        ax.text(
+            0.594,
+            y + 0.022,
+            label_text,
+            transform=ax.transAxes,
+            ha="left",
+            va="center",
+            fontsize=6.7,
+            color=muted,
         )
-        cx.add_patch(Rectangle((0.02, y), 0.96, 0.055, transform=cx.transAxes, fc=GRID, ec="none"))
-        cx.add_patch(
+        ax.text(
+            0.932,
+            y + 0.022,
+            f"{used}/{total}",
+            transform=ax.transAxes,
+            ha="right",
+            va="center",
+            fontsize=6.7,
+            fontweight="bold",
+            color=ink,
+        )
+        ax.add_patch(
             Rectangle(
-                (0.02, y),
-                0.96 * min(float(used) / float(total), 1),
-                0.055,
-                transform=cx.transAxes,
-                fc=TEAL if used < total else AMBER,
+                (0.594, y),
+                0.338,
+                0.012,
+                transform=ax.transAxes,
+                fc=grid,
                 ec="none",
+                zorder=1,
             )
         )
-    fig.subplots_adjust(left=0.06, right=0.995, top=0.92, bottom=0.10)
-    return _save(fig, output_dir, "figure-3-autonomous-lifecycle")
+        ax.add_patch(
+            Rectangle(
+                (0.594, y),
+                0.338 * min(float(used) / float(total), 1.0),
+                0.012,
+                transform=ax.transAxes,
+                fc=amber if used == total else teal,
+                ec="none",
+                zorder=2,
+            )
+        )
+    return _save(fig, output_dir, "figure-3-autonomous-lifecycle", tight=False)
 
 
 def figure_4(data: Mapping[str, Any], output_dir: Path) -> list[Path]:

@@ -120,6 +120,9 @@ def test_key_workflow_svgs_are_editable_vectors_without_embedded_bitmaps() -> No
         encoding="utf-8"
     )
     assert f">{potential:g} V<" in lifecycle_svg
+    assert 'viewBox="0 0 518.4 239.76"' in lifecycle_svg
+    assert lifecycle_svg.count("<path") >= 170
+    assert all(color in lifecycle_svg for color in ("#078b78", "#004c73", "#ef432f", "#e18b00"))
 
 
 def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
