@@ -89,6 +89,7 @@ def _configure() -> None:
             "lines.linewidth": 1.25,
             "svg.hashsalt": "chemworld-arxiv-release-v1",
             "svg.fonttype": "none",
+            "image.composite_image": False,
             "pdf.fonttype": 42,
             "ps.fonttype": 42,
             "savefig.facecolor": PAPER,
@@ -540,223 +541,348 @@ def _save(
 
 def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     qualification = data["environment_qualification"]
-    fig, axes = plt.subplots(2, 2, figsize=(7.2, 4.55))
+    ink = "#071929"
+    muted = "#53657a"
+    blue = "#004c73"
+    red = "#ef432f"
+    teal = "#078b78"
+    amber = "#e18b00"
+    purple = "#7651b2"
+    reference = (
+        ROOT
+        / "paper/figures/experimental-intelligence-v1/concept-image2"
+        / "figure-1-controlled-apparatus-image2-reference.png"
+    )
 
-    ax = axes[0, 0]
-    _panel(ax, "A", "The chemical world is the experimental apparatus")
+    # Geometry is a normalized transcription of the 1632 x 963 image2 reference.
+    fig = plt.figure(figsize=(7.2, 4.25), facecolor="#fdfdfc")
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
     ax.axis("off")
-    _box(ax, (0.02, 0.47), 0.20, 0.20, "", edge=TEAL, face="#EDF7F5")
-    _icon(ax, "flask", (0.12, 0.60), 0.055, color=TEAL, accent=TEAL)
+
+    def heading(letter: str, title: str, x: float, y: float, *, size: float = 8.2) -> None:
+        ax.text(
+            x,
+            y,
+            letter,
+            transform=ax.transAxes,
+            va="top",
+            fontsize=13.6,
+            fontweight="bold",
+            color=ink,
+        )
+        ax.text(
+            x + 0.043,
+            y - 0.003,
+            title,
+            transform=ax.transAxes,
+            va="top",
+            fontsize=size,
+            fontweight="bold",
+            color=ink,
+        )
+
+    def arrow(start: tuple[float, float], end: tuple[float, float], *, color: str = ink) -> None:
+        ax.add_patch(
+            FancyArrowPatch(
+                start,
+                end,
+                transform=ax.transAxes,
+                arrowstyle="-|>",
+                mutation_scale=8.5,
+                color=color,
+                lw=0.85,
+                shrinkA=0,
+                shrinkB=0,
+                clip_on=False,
+                zorder=3,
+            )
+        )
+
+    heading("A", "The chemical world is the experimental apparatus", 0.009, 0.980)
+    primary_cards = [
+        (0.034, 0.736, 0.115, 0.137, teal, "#f7fbfa"),
+        (0.196, 0.726, 0.136, 0.158, blue, "#f8fbfc"),
+        (0.381, 0.736, 0.104, 0.136, amber, "#fffaf3"),
+    ]
+    for x, y, width, height, edge, face in primary_cards:
+        _workflow_card(ax, (x, y), width, height, edge=edge, face=face)
+    _reference_icon_crop(ax, reference, (63, 137, 136, 230), (0.044, 0.087, 0.753, 0.850))
+    _reference_icon_crop(ax, reference, (335, 117, 526, 194), (0.207, 0.321, 0.796, 0.872))
+    _reference_icon_crop(ax, reference, (638, 134, 722, 190), (0.393, 0.444, 0.797, 0.855))
     ax.text(
-        0.12,
-        0.515,
-        "agent\nselects action",
+        0.111,
+        0.786,
+        "agent\nselects\naction",
         transform=ax.transAxes,
         ha="center",
         va="center",
-        fontsize=5.7,
+        fontsize=6.6,
+        color=ink,
     )
-    _box(
-        ax,
-        (0.38, 0.43),
-        0.25,
-        0.28,
-        "",
-        edge=OPAQUE,
-        face="#ECF3F7",
-        weight="semibold",
-    )
-    _icon(ax, "molecule", (0.505, 0.63), 0.065, color=OPAQUE)
     ax.text(
-        0.505,
-        0.515,
+        0.264,
+        0.763,
         "executable world\nchanges state",
         transform=ax.transAxes,
         ha="center",
         va="center",
-        fontsize=5.9,
-        fontweight="semibold",
+        fontsize=6.6,
+        fontweight="bold",
+        color=ink,
     )
-    _box(ax, (0.78, 0.47), 0.20, 0.20, "", edge=AMBER, face="#FBF4E8")
-    _icon(ax, "eye", (0.88, 0.60), 0.055, color=INK)
     ax.text(
-        0.88,
-        0.515,
+        0.433,
+        0.762,
         "public\nobservation",
         transform=ax.transAxes,
         ha="center",
         va="center",
-        fontsize=5.7,
+        fontsize=6.5,
+        color=ink,
     )
-    _arrow(ax, (0.23, 0.57), (0.37, 0.57))
-    _arrow(ax, (0.64, 0.57), (0.77, 0.57))
-    _arrow(ax, (0.87, 0.42), (0.13, 0.42))
+    arrow((0.151, 0.808), (0.194, 0.808))
+    arrow((0.334, 0.808), (0.379, 0.808))
+
+    ax.plot(
+        [0.433, 0.433, 0.076],
+        [0.733, 0.699, 0.699],
+        transform=ax.transAxes,
+        color=ink,
+        lw=0.8,
+        zorder=2,
+    )
+    arrow((0.076, 0.699), (0.076, 0.733))
     ax.text(
-        0.50,
-        0.33,
+        0.260,
+        0.675,
         "observation-conditioned next decision",
         transform=ax.transAxes,
         ha="center",
-        fontsize=6.6,
-        bbox={"facecolor": PAPER, "edgecolor": "none", "pad": 0.8},
+        va="center",
+        fontsize=6.2,
+        color=ink,
     )
-    _box(ax, (0.18, 0.07), 0.27, 0.13, "", edge=MISINDEXED)
-    _icon(ax, "ledger", (0.225, 0.135), 0.060, color=OPAQUE)
+
+    _workflow_card(ax, (0.098, 0.530), 0.152, 0.100, edge=purple, face="#fbfafd")
+    _workflow_card(ax, (0.283, 0.530), 0.145, 0.098, edge=purple, face="#fbfafd")
+    _reference_icon_crop(ax, reference, (171, 365, 244, 445), (0.105, 0.150, 0.542, 0.620))
+    _reference_icon_crop(ax, reference, (470, 365, 540, 425), (0.291, 0.333, 0.558, 0.620))
+    _reference_icon_crop(ax, reference, (515, 402, 635, 445), (0.316, 0.386, 0.540, 0.583))
     ax.text(
-        0.35,
-        0.135,
+        0.154,
+        0.581,
         "resource ledger",
         transform=ax.transAxes,
-        ha="center",
+        ha="left",
         va="center",
         fontsize=6.0,
+        color=ink,
     )
-    _box(ax, (0.55, 0.07), 0.27, 0.13, "", edge=MISINDEXED)
-    _icon(ax, "trace", (0.60, 0.135), 0.060, color=OPAQUE)
     ax.text(
-        0.75,
-        0.135,
+        0.332,
+        0.590,
         "immutable trace",
         transform=ax.transAxes,
-        ha="center",
+        ha="left",
         va="center",
         fontsize=6.0,
+        color=ink,
     )
-    _arrow(ax, (0.45, 0.42), (0.34, 0.21))
-    _arrow(ax, (0.56, 0.42), (0.68, 0.21))
+    arrow((0.218, 0.661), (0.204, 0.632))
+    arrow((0.298, 0.661), (0.320, 0.632))
 
-    ax = axes[0, 1]
-    _panel(ax, "B", "Controlled contrasts separate agent from world")
-    ax.axis("off")
-    rows = [
-        ("hidden physical identity", "matched", OPAQUE, "molecule"),
-        ("material information", "intervened", NOMINAL, "document"),
-        ("action authority", "compiled / primitive", TEAL, "sliders"),
-        ("evidence access", "accounted", AMBER, "folder"),
-        ("resource endowment", "accounted", MISINDEXED, "database"),
+    heading("B", "Controlled contrasts separate agent from world", 0.543, 0.980, size=8.0)
+    contrast_rows = [
+        (0.852, blue, "hidden physical identity", "matched", (946, 84, 1008, 140)),
+        (0.770, red, "material information", "intervened", (949, 162, 1008, 218)),
+        (0.687, teal, "action authority", "compiled / primitive", (946, 242, 1010, 299)),
+        (0.606, amber, "evidence access", "accounted", (951, 322, 1010, 376)),
+        (0.524, purple, "resource endowment", "accounted", (949, 398, 1008, 457)),
     ]
-    for index, (control, role, color, icon_kind) in enumerate(rows):
-        y = 0.82 - index * 0.17
-        _box(ax, (0.03, y), 0.53, 0.11, "", edge=color, fontsize=6.8)
-        _icon(ax, icon_kind, (0.09, y + 0.055), 0.055, color=color, accent=color)
+    for y, color, control, role, crop in contrast_rows:
+        _workflow_card(ax, (0.570, y), 0.236, 0.065, edge=color, face="#fdfdfc")
+        _workflow_card(ax, (0.825, y), 0.161, 0.065, edge=color, face="#fdfdfc")
+        _reference_icon_crop(ax, reference, crop, (0.580, 0.619, y + 0.007, y + 0.058))
         ax.text(
-            0.34,
-            y + 0.055,
+            0.632,
+            y + 0.0325,
             control,
             transform=ax.transAxes,
+            ha="left",
+            va="center",
+            fontsize=6.3,
+            color=ink,
+        )
+        ax.text(
+            0.906,
+            y + 0.0325,
+            role,
+            transform=ax.transAxes,
             ha="center",
             va="center",
-            fontsize=6.5,
-        )
-        _box(
-            ax,
-            (0.64, y),
-            0.31,
-            0.11,
-            role,
-            edge=color,
-            face=WASH,
-            fontsize=6.5,
-            weight="semibold",
+            fontsize=6.3,
+            fontweight="bold",
+            color=ink,
         )
 
-    ax = axes[1, 0]
-    _panel(ax, "C", "Each transition remains auditable")
-    ax.axis("off")
-    stages = [
-        ("typed\nstate", "document"),
-        ("transaction", "transaction"),
-        ("resource\nreceipt", "tube"),
-        ("trace", "chain"),
-        ("physical\nreplay", "flask"),
+    heading("C", "Each transition remains auditable", 0.009, 0.447, size=8.2)
+    stage_x = [0.061, 0.154, 0.256, 0.352, 0.435]
+    for left, right in pairwise(stage_x):
+        arrow((left + 0.018, 0.350), (right - 0.018, 0.350), color="#b8c4cc")
+    stage_data = [
+        ("typed\nstate", (70, 662, 133, 748), (0.043, 0.081, 0.223, 0.308)),
+        ("transaction", (212, 672, 290, 738), (0.130, 0.178, 0.232, 0.301)),
+        ("resource\nreceipt", (393, 661, 443, 750), (0.240, 0.273, 0.221, 0.309)),
+        ("trace", (536, 669, 611, 741), (0.329, 0.375, 0.229, 0.304)),
+        ("physical\nreplay", (677, 660, 758, 751), (0.416, 0.466, 0.220, 0.309)),
     ]
-    xs = np.linspace(0.08, 0.92, len(stages))
-    ax.plot([xs[0], xs[-1]], [0.64, 0.64], transform=ax.transAxes, color=GRID, lw=4)
-    for index, (x, (label, icon_kind)) in enumerate(zip(xs, stages, strict=True), start=1):
-        ax.scatter(
-            x,
-            0.64,
-            transform=ax.transAxes,
-            s=150,
-            color=OPAQUE,
-            edgecolor=PAPER,
-            linewidth=1.1,
-            zorder=3,
+    for index, (x, (label, crop, extent)) in enumerate(
+        zip(stage_x, stage_data, strict=True), start=1
+    ):
+        ax.add_patch(
+            Ellipse(
+                (x, 0.350),
+                0.026,
+                0.044,
+                transform=ax.transAxes,
+                fc=blue,
+                ec="white",
+                lw=0.65,
+                zorder=4,
+            )
         )
         ax.text(
             x,
-            0.64,
+            0.350,
             str(index),
             transform=ax.transAxes,
-            color=PAPER,
             ha="center",
             va="center",
-            fontsize=6.8,
+            fontsize=6.3,
             fontweight="bold",
+            color="white",
+            zorder=5,
         )
-        _icon(ax, icon_kind, (x, 0.42), 0.075, color=OPAQUE, accent=TEAL)
-        ax.text(x, 0.27, label, transform=ax.transAxes, ha="center", va="top", fontsize=5.7)
-    _box(
-        ax,
-        (0.12, 0.04),
-        0.76,
-        0.09,
-        "invalid actions, failures and costs remain part of the evidence",
-        edge=NOMINAL,
-        fontsize=6.2,
-    )
-
-    ax = axes[1, 1]
-    _panel(ax, "D", "Qualified surface and evidence scope")
-    ax.axis("off")
-    cards = [
-        (qualification["registered_tasks"], "tasks", OPAQUE, "ledger"),
-        (qualification["registered_operations"], "operations", TEAL, "sliders"),
-        (qualification["registered_instruments"], "instruments", AMBER, "flask"),
-        (
-            qualification["deterministic_complete_experiment_cases"],
-            "boundary cases",
-            MISINDEXED,
-            "bars",
-        ),
-        (qualification["bound_success_endpoints"], "bound endpoints", NOMINAL, "target"),
-    ]
-    positions = [(0.02, 0.58), (0.35, 0.58), (0.68, 0.58), (0.18, 0.27), (0.53, 0.27)]
-    for (value, label, color, icon_kind), (x, y) in zip(cards, positions, strict=True):
-        width = 0.29 if y > 0.5 else 0.31
-        _box(ax, (x, y), width, 0.22, "", edge=color, face=WASH)
-        _icon(ax, icon_kind, (x + 0.060, y + 0.125), 0.065, color=OPAQUE, accent=color)
+        _reference_icon_crop(ax, reference, crop, extent)
         ax.text(
-            x + width * 0.64,
-            y + 0.145,
-            f"{value:,}",
-            transform=ax.transAxes,
-            ha="center",
-            va="center",
-            fontsize=12,
-            fontweight="bold",
-            color=color,
-        )
-        ax.text(
-            x + width * 0.64,
-            y + 0.06,
+            x,
+            0.194,
             label,
             transform=ax.transAxes,
             ha="center",
             va="center",
-            fontsize=6.5,
+            fontsize=6.1,
+            color=ink,
+        )
+    _workflow_card(ax, (0.055, 0.063), 0.400, 0.071, edge=red, face="#fffaf9")
+    _reference_icon_crop(ax, reference, (96, 838, 149, 895), (0.061, 0.093, 0.072, 0.128))
+    ax.text(
+        0.098,
+        0.099,
+        "invalid actions, failures and costs remain part of the evidence",
+        transform=ax.transAxes,
+        ha="left",
+        va="center",
+        fontsize=5.9,
+        color=ink,
+    )
+
+    heading("D", "Qualified surface and evidence scope", 0.543, 0.447, size=8.1)
+    surface_cards = [
+        (
+            0.551,
+            0.245,
+            0.128,
+            0.125,
+            blue,
+            qualification["registered_tasks"],
+            "tasks",
+            (912, 611, 986, 704),
+            (0.560, 0.606, 0.258, 0.355),
+        ),
+        (
+            0.685,
+            0.245,
+            0.144,
+            0.125,
+            teal,
+            qualification["registered_operations"],
+            "operations",
+            (1126, 610, 1211, 707),
+            (0.694, 0.747, 0.255, 0.357),
+        ),
+        (
+            0.835,
+            0.245,
+            0.151,
+            0.125,
+            amber,
+            qualification["registered_instruments"],
+            "instruments",
+            (1377, 610, 1459, 713),
+            (0.844, 0.894, 0.253, 0.359),
+        ),
+        (
+            0.578,
+            0.109,
+            0.181,
+            0.119,
+            purple,
+            qualification["deterministic_complete_experiment_cases"],
+            "boundary cases",
+            (957, 751, 1037, 839),
+            (0.588, 0.637, 0.119, 0.216),
+        ),
+        (
+            0.766,
+            0.109,
+            0.187,
+            0.119,
+            red,
+            qualification["bound_success_endpoints"],
+            "bound endpoints",
+            (1270, 752, 1356, 842),
+            (0.777, 0.830, 0.117, 0.216),
+        ),
+    ]
+    for x, y, width, height, color, value, label, crop, extent in surface_cards:
+        _workflow_card(ax, (x, y), width, height, edge=color, face="#fdfdfc")
+        _reference_icon_crop(ax, reference, crop, extent)
+        value_x = x + width * 0.66
+        ax.text(
+            value_x,
+            y + height * 0.62,
+            f"{value:,}",
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=11.4,
+            fontweight="bold",
+            color=color,
+        )
+        ax.text(
+            value_x,
+            y + height * 0.28,
+            label,
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=6.0,
+            color=ink,
         )
     ax.text(
-        0.5,
-        0.09,
+        0.778,
+        0.064,
         "paper evidence: 2 compiled tasks · 1 autonomous task",
         transform=ax.transAxes,
         ha="center",
-        fontsize=6.6,
-        color=MUTED,
+        va="center",
+        fontsize=6.0,
+        color=muted,
     )
-    fig.subplots_adjust(left=0.06, right=0.995, top=0.94, bottom=0.08, wspace=0.27, hspace=0.50)
-    return _save(fig, output_dir, "figure-1-controlled-apparatus")
+    return _save(fig, output_dir, "figure-1-controlled-apparatus", tight=False)
 
 
 def _g0_world_lookup(data: Mapping[str, Any]) -> dict[tuple[str, int, str], float]:
@@ -961,6 +1087,50 @@ def _workflow_card(
             clip_on=False,
             zorder=1,
         )
+    )
+
+
+_REFERENCE_IMAGE_CACHE: dict[Path, np.ndarray] = {}
+
+
+def _reference_icon_crop(
+    ax: plt.Axes,
+    reference: Path,
+    crop: tuple[int, int, int, int],
+    extent: tuple[float, float, float, float],
+) -> None:
+    """Embed one isolated image2 icon crop, never the complete reference plate."""
+    source = _REFERENCE_IMAGE_CACHE.get(reference)
+    if source is None:
+        source = np.asarray(plt.imread(reference), dtype=float)
+        _REFERENCE_IMAGE_CACHE[reference] = source
+    x0, y0, x1, y1 = crop
+    segment = source[y0:y1, x0:x1].copy()
+    if segment.max() > 1.0:
+        segment /= 255.0
+    rgb = segment[..., :3]
+    corner_pixels = np.concatenate(
+        (
+            rgb[:4, :4].reshape(-1, 3),
+            rgb[:4, -4:].reshape(-1, 3),
+            rgb[-4:, :4].reshape(-1, 3),
+            rgb[-4:, -4:].reshape(-1, 3),
+        )
+    )
+    background = np.median(corner_pixels, axis=0)
+    distance = np.sqrt(np.sum((rgb - background) ** 2, axis=2))
+    alpha = np.clip((distance - 0.012) / 0.075, 0.0, 1.0)
+    if segment.shape[2] == 3:
+        segment = np.dstack((segment, alpha))
+    else:
+        segment[..., 3] *= alpha
+    ax.imshow(
+        segment,
+        extent=extent,
+        origin="upper",
+        interpolation="lanczos",
+        aspect="auto",
+        zorder=6,
     )
 
 
@@ -1396,6 +1566,11 @@ def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     red = "#ef432f"
     amber = "#e18b00"
     grid = "#dce3e7"
+    reference = (
+        ROOT
+        / "paper/figures/experimental-intelligence-v1/concept-image2"
+        / "figure-3-autonomous-lifecycle-image2-reference.png"
+    )
 
     # Geometry is a normalized transcription of the 1840 x 850 image2 reference.
     # Keep the reference's panel boundaries and element order; do not auto-reflow.
@@ -1430,19 +1605,56 @@ def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     top_y = 0.572
     top_height = 0.271
     top_cards = [
-        (0.040, "add\nreagent", "reagent"),
-        (0.162, "add\nsolvent", "solvent"),
-        (0.286, "set\npotential", "potential"),
-        (0.408, "electrolyze", "cell"),
+        (0.040, "add\nreagent", (105, 145, 210, 285)),
+        (0.162, "add\nsolvent", (330, 145, 442, 285)),
+        (0.286, "set\npotential", (552, 155, 669, 280)),
+        (0.408, "electrolyze", (776, 145, 897, 286)),
     ]
-    for x, text_label, icon_kind in top_cards:
+    for x, text_label, crop in top_cards:
         _workflow_card(ax, (x, top_y), card_width, top_height, edge=teal, face="#fbfdfc")
-        _workflow_icon(
+        _reference_icon_crop(
             ax,
-            icon_kind,
-            (x + card_width / 2, top_y + 0.160),
-            label=potential_label if icon_kind == "potential" else None,
+            reference,
+            crop,
+            (x + 0.017, x + card_width - 0.017, top_y + 0.085, top_y + 0.237),
         )
+        if text_label == "set\npotential":
+            ax.add_patch(
+                Rectangle(
+                    (x + 0.027, top_y + 0.148),
+                    0.036,
+                    0.017,
+                    transform=ax.transAxes,
+                    fc="#8fc6df",
+                    ec="none",
+                    zorder=7,
+                )
+            )
+            ax.add_patch(
+                FancyBboxPatch(
+                    (x + 0.027, top_y + 0.163),
+                    0.036,
+                    0.033,
+                    boxstyle="round,pad=0.001,rounding_size=0.002",
+                    transform=ax.transAxes,
+                    fc="#0c2638",
+                    ec="#071929",
+                    lw=0.45,
+                    zorder=7,
+                )
+            )
+            ax.text(
+                x + card_width / 2,
+                top_y + 0.179,
+                potential_label,
+                transform=ax.transAxes,
+                ha="center",
+                va="center",
+                fontsize=4.8,
+                fontweight="bold",
+                color="white",
+                zorder=8,
+            )
         ax.text(
             x + card_width / 2,
             top_y + 0.043,
@@ -1480,13 +1692,25 @@ def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     bottom_y = 0.236
     bottom_height = 0.216
     bottom_cards = [
-        (0.040, 0.097, red, "#fff9f7", "final assay\n0.531", "assay"),
-        (0.227, 0.094, blue, "#fbfcfd", "agent selects\nterminate", "agent"),
-        (0.408, 0.093, amber, "#fffaf3", "UV-vis\nobservation", "uvvis"),
+        (0.040, 0.097, red, "#fff9f7", "final assay\n0.531", (108, 472, 213, 570)),
+        (
+            0.227,
+            0.094,
+            blue,
+            "#fbfcfd",
+            "agent selects\nterminate",
+            (450, 470, 571, 587),
+        ),
+        (0.408, 0.093, amber, "#fffaf3", "UV-vis\nobservation", (775, 470, 903, 587)),
     ]
-    for x, width, edge, face, text_label, icon_kind in bottom_cards:
+    for x, width, edge, face, text_label, crop in bottom_cards:
         _workflow_card(ax, (x, bottom_y), width, bottom_height, edge=edge, face=face)
-        _workflow_icon(ax, icon_kind, (x + width / 2, bottom_y + 0.134))
+        _reference_icon_crop(
+            ax,
+            reference,
+            crop,
+            (x + 0.015, x + width - 0.015, bottom_y + 0.075, bottom_y + 0.197),
+        )
         ax.text(
             x + width / 2,
             bottom_y + 0.044,
@@ -1495,7 +1719,7 @@ def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             ha="center",
             va="center",
             fontsize=6.9,
-            fontweight="bold" if icon_kind in {"agent", "uvvis"} else "normal",
+            fontweight="bold" if "agent" in text_label or "UV-vis" in text_label else "normal",
             color=ink,
             zorder=8,
         )

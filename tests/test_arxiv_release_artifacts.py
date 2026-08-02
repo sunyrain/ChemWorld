@@ -90,26 +90,26 @@ def test_arxiv_figure_manifest_binds_all_release_formats() -> None:
         assert _sha(artifact) == row["sha256"]
 
 
-def test_key_workflow_svgs_are_editable_vectors_without_embedded_bitmaps() -> None:
+def test_key_workflow_svgs_keep_structure_editable_and_icons_independent() -> None:
     required_labels = {
         "figure-1-controlled-apparatus.svg": (
-            "executable world",
-            "resource ledger",
-            "immutable trace",
-            "physical",
+            ("executable world", "resource ledger", "immutable trace", "physical"),
+            22,
+            80,
         ),
         "figure-3-autonomous-lifecycle.svg": (
-            "reagent",
-            "UV-vis",
-            "agent selects",
-            "final assay",
+            ("reagent", "UV-vis", "agent selects", "final assay"),
+            7,
+            100,
         ),
     }
-    for filename, labels in required_labels.items():
+    for filename, (labels, image_count, minimum_paths) in required_labels.items():
         svg = (ARXIV / "figures" / filename).read_text(encoding="utf-8")
-        assert "<image" not in svg
+        # Complex apparatus icons are isolated reference crops.  Text, cards,
+        # arrows, and charts remain native SVG rather than a flattened plate.
+        assert svg.count("<image") == image_count
         assert svg.count("<text") >= 20
-        assert svg.count("<path") >= 30
+        assert svg.count("<path") >= minimum_paths
         assert all(label in svg for label in labels)
 
     derived = json.loads((RELEASE / "arxiv-v1-derived-data.json").read_text(encoding="utf-8"))
@@ -121,7 +121,6 @@ def test_key_workflow_svgs_are_editable_vectors_without_embedded_bitmaps() -> No
     )
     assert f">{potential:g} V<" in lifecycle_svg
     assert 'viewBox="0 0 518.4 239.76"' in lifecycle_svg
-    assert lifecycle_svg.count("<path") >= 170
     assert all(color in lifecycle_svg for color in ("#078b78", "#004c73", "#ef432f", "#e18b00"))
 
 
