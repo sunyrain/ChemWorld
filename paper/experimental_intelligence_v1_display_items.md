@@ -1,7 +1,7 @@
 # Executable Chemical Worlds Make Experimental Agency Measurable: numeric display items
 
 Status: `frozen_complete`.
-Derived-data SHA-256: `aa0811f03925f53696322511f7f76a1eb4ce308a643c59a2ae80aef7c5922e62`.
+Derived-data SHA-256: `6117442a96704bd45df400800565f7c4bd2a3a0e5cefa5a42e65baa1fc8362d5`.
 
 Every number in the tables below is rendered from the self-hashed arXiv derived-data
 object. This file is intended for direct inclusion during manuscript typesetting.
@@ -50,24 +50,24 @@ the worlds and endpoints for G2 v0.5 and are excluded from its replication estim
 
 ### Table 4 | Fresh-trajectory replication (G2 v0.5)
 
-| World | Replicate | Opaque state | Nominal state | Δ best score | Δ mean score | Δ discovery | Δ retention | Δ drawdown | Δ terminal / best |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | r01 | completed | right_censored | not measured | not measured | not measured | not measured | not measured | not measured |
-| 1 | r02 | completed | completed | 0.285 | 0.304 | 0.000 | 0.200 | -0.273 | 0.035 |
-| 1 | r03 | completed | completed | -0.143 | -0.074 | 0.400 | 0.400 | -0.306 | 0.173 |
-| 1 | r04 | completed | completed | 0.170 | 0.144 | -0.400 | 0.000 | 0.045 | -0.073 |
-| 1 | r05 | completed | completed | 0.381 | 0.429 | -0.400 | 0.000 | -0.040 | 0.319 |
-| 3 | r01 | completed | completed | -0.167 | -0.121 | 0.600 | 0.400 | -0.463 | 0.486 |
-| 3 | r02 | completed | completed | -0.368 | -0.236 | -0.800 | -0.200 | 0.057 | -0.007 |
-| 3 | r03 | completed | completed | 0.001 | -0.009 | 0.000 | 0.000 | -0.028 | 0.000 |
-| 3 | r04 | completed | completed | 0.253 | 0.291 | -0.200 | 0.000 | 0.030 | -0.060 |
-| 3 | r05 | right_censored | completed | not measured | not measured | not measured | not measured | not measured | not measured |
+| World | Replicate | Opaque state | Nominal state | Δ best score | Δ raw terminal | Δ mean score | Δ discovery | Δ retention | Δ drawdown | Δ terminal / best |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | r01 | completed | right_censored | not measured | not measured | not measured | not measured | not measured | not measured | not measured |
+| 1 | r02 | completed | completed | 0.285 | 0.301 | 0.304 | 0.000 | 0.200 | -0.273 | 0.035 |
+| 1 | r03 | completed | completed | -0.143 | 0.003 | -0.074 | 0.400 | 0.400 | -0.306 | 0.173 |
+| 1 | r04 | completed | completed | 0.170 | 0.114 | 0.144 | -0.400 | 0.000 | 0.045 | -0.073 |
+| 1 | r05 | completed | completed | 0.381 | 0.473 | 0.429 | -0.400 | 0.000 | -0.040 | 0.319 |
+| 3 | r01 | completed | completed | -0.167 | 0.240 | -0.121 | 0.600 | 0.400 | -0.463 | 0.486 |
+| 3 | r02 | completed | completed | -0.368 | -0.372 | -0.236 | -0.800 | -0.200 | 0.057 | -0.007 |
+| 3 | r03 | completed | completed | 0.001 | 0.001 | -0.009 | 0.000 | 0.000 | -0.028 | 0.000 |
+| 3 | r04 | completed | completed | 0.253 | 0.204 | 0.291 | -0.200 | 0.000 | 0.030 | -0.060 |
+| 3 | r05 | right_censored | completed | not measured | not measured | not measured | not measured | not measured | not measured | not measured |
 
 Deltas are nominal minus opaque within the same physical world and replicate block.
 The two deliberately selected worlds are not pooled into a population-level estimate.
 Terminal coverage: 18 completed cells, 2 right-censored cells, and 8 complete pairs (4 in world 1; 4 in world 3).
 The frozen interpretation mapping selected `frequent_within_world_reversal`: 6 of 8 world-by-core-lifecycle classifications were mixed. Policy SHA-256: `93604ce8af7211f35c5d3b896609addef6d436f3248f45aba3cc04a11da9d67e`.
-Frozen descriptive summary: the available fresh-session contrasts frequently changed direction within the selected physical worlds.
+The frozen categorical lifecycle summary is supporting; the main continuous endpoint diagnostic compares best score with algebraically independent raw terminal score.
 Provider sampling was not seed-controlled; the summary does not identify a causal provider effect or a variance-dominance relation.
 
 ## Figure legends
@@ -105,19 +105,16 @@ campaign best; squares mark terminal assays. Navy denotes opaque material codes 
 denotes nominal material properties. These examples motivate the lifecycle readouts but
 are not the replication estimand.
 
-**Figure 5 | Fresh trajectories test within-world repeatability.**
-Nominal-minus-opaque paired differences for best score and four core lifecycle
-endpoints---within-campaign best-discovery position, online incumbent retention,
-maximum absolute drawdown and terminal-to-best ratio---across five fresh replicates
-in each
-of selected physical worlds 1 and 3. All ten pre-specified trajectory pairs are shown; an x marks a right-censored pair. Six of eight world-by-core-lifecycle classifications were mixed, selecting the frozen `frequent_within_world_reversal` interpretation branch.
-Selection used the prior development matrix; those trajectories are excluded. Effects are
-reported within world, with no pooled population-level test.
+**Figure 5 | Fresh trajectories expose information that endpoint summaries omit.**
+**A,** Best-of-campaign and raw terminal contrasts for eight complete matched pairs;
+shaded quadrants mark the two sign-discordant pairs. **B,** Continuous signed contrasts
+for best score, raw terminal, discovery, retention, drawdown and relative retention.
+All ten pre-specified trajectory pairs are shown; a dagger marks a right-censored pair. Continuous signed contrasts are displayed without thresholding; the frozen six-of-eight mixed classification remains a supporting sensitivity summary.
+Selection used the prior development matrix; those trajectories are excluded. Effects
+are reported within world, with no pooled population-level test.
 
-**Figure 6 | Experimental intelligence is a profile, not a scalar.**
-**A,** Compiled-experiment endpoint score, held-out directional accuracy, Brier score and
-unsupported-claim rate for the opaque participant in two chemical tasks.
-**B,** Autonomous
-completion, retention, recovery and terminal-to-best summaries by information arm. Metric
-directions differ and no composite score is computed; the panel demonstrates the need to
-retain a capability profile rather than rank systems on these bars.
+**Figure 6 | Lifecycle completion does not specify experimental policy.**
+**A,** Both complete agent systems closed all 60 matched batch lifecycles, but their
+final-assay and explicit-discard policies differed. **B,** Non-final instrument and
+primitive-operation use as shares of common campaign allowances. Counts are
+complete-system profiles, not an isolated model-backend comparison.

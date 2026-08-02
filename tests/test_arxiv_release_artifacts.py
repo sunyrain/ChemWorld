@@ -81,8 +81,14 @@ def test_public_trajectory_archive_is_complete_and_bound() -> None:
 
 def test_arxiv_figure_manifest_binds_all_release_formats() -> None:
     manifest = json.loads((ARXIV / "figure-manifest.json").read_text(encoding="utf-8"))
+    comparison = json.loads(
+        (ROOT / "workstreams/arxiv_v1/reports/g2-agent-system-comparison-v0.1.json").read_text(
+            encoding="utf-8"
+        )
+    )
     declared = manifest.pop("manifest_sha256")
     assert declared == _canonical_sha(manifest)
+    assert manifest["agent_system_comparison_sha256"] == comparison["comparison_sha256"]
     assert manifest["status"] == "frozen_complete"
     assert manifest["style_version"] == "arxiv-release-v1"
     assert len(manifest["files"]) == 18
@@ -178,7 +184,7 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
 
 def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
     tex = (ARXIV / "main.tex").read_text(encoding="utf-8")
-    assert "\\begin{abstract}\nA best-of-campaign score is an incomplete readout" in tex
+    assert "\\begin{abstract}\nScientific agents are commonly judged" in tex
     assert "\\subsection{Abstract}" not in tex
     assert "\\section{1. Introduction}" in tex
     assert "\\section{12. Conclusion}" in tex

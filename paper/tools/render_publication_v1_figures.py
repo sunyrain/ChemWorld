@@ -648,10 +648,10 @@ def figure_5(data: dict[str, Any], output_dir: Path) -> list[Path]:
         return []
     metrics = [
         ("best_final_score", "Best score"),
+        ("terminal_final_score", "Raw terminal"),
         ("global_best_discovery_fraction", "Discovery"),
         ("online_incumbent_retention_rate", "Retention"),
         ("maximum_absolute_incumbent_drawdown", "Drawdown"),
-        ("terminal_to_global_best_ratio", "Terminal/best"),
     ]
     classifications = replication["interpretation"]["selected_branch"][
         "world_metric_classifications"
@@ -685,7 +685,11 @@ def figure_5(data: dict[str, Any], output_dir: Path) -> list[Path]:
                         zorder=3,
                     )
             ax.axvline(0, color=MUTED, lw=0.7)
-            classification = classifications[str(seed)][metric].replace("directionally_", "")
+            classification = (
+                "raw endpoint"
+                if metric == "terminal_final_score"
+                else classifications[str(seed)][metric].replace("directionally_", "")
+            )
             pill_color = {"positive": NOMINAL, "negative": OPAQUE, "mixed": MUTED}.get(
                 classification, MUTED
             )

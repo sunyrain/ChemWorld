@@ -179,6 +179,7 @@ def _g2_v05_table(data: Mapping[str, Any]) -> list[str]:
                 row["opaque_state"],
                 row["nominal_state"],
                 None if delta is None else delta["best_final_score"],
+                None if delta is None else delta["terminal_final_score"],
                 None if delta is None else delta["final_score_mean"],
                 None if delta is None else delta["global_best_discovery_fraction"],
                 None if delta is None else delta["online_incumbent_retention_rate"],
@@ -193,6 +194,7 @@ def _g2_v05_table(data: Mapping[str, Any]) -> list[str]:
             "Opaque state",
             "Nominal state",
             "Δ best score",
+            "Δ raw terminal",
             "Δ mean score",
             "Δ discovery",
             "Δ retention",
@@ -221,8 +223,8 @@ def _g2_v05_terminal_note(data: Mapping[str, Any]) -> list[str]:
         f"{branch['mixed_world_by_core_metric_count']} of "
         f"{branch['world_by_core_metric_count']} world-by-core-lifecycle classifications were "
         f"mixed. Policy SHA-256: `{policy['sha256']}`.",
-        "Frozen descriptive summary: the available fresh-session contrasts frequently changed "
-        "direction within the selected physical worlds.",
+        "The frozen categorical lifecycle summary is supporting; the main continuous endpoint "
+        "diagnostic compares best score with algebraically independent raw terminal score.",
         "Provider sampling was not seed-controlled; the summary does not identify a causal "
         "provider effect or a variance-dominance relation.",
     ]
@@ -233,9 +235,9 @@ def render(data: Mapping[str, Any]) -> str:
         "This legend becomes active only after the terminal G2 v0.5 audit is incorporated."
         if data["g2_v0_5"] is None
         else (
-            "All ten pre-specified trajectory pairs are shown; an x marks a right-censored "
-            "pair. Six of eight world-by-core-lifecycle classifications were mixed, selecting "
-            "the frozen `frequent_within_world_reversal` interpretation branch."
+            "All ten pre-specified trajectory pairs are shown; a dagger marks a right-censored "
+            "pair. Continuous signed contrasts are displayed without thresholding; the frozen "
+            "six-of-eight mixed classification remains a supporting sensitivity summary."
         )
     )
     sections: list[str] = [
@@ -323,22 +325,19 @@ def render(data: Mapping[str, Any]) -> str:
         "denotes nominal material properties. These examples motivate the lifecycle readouts but",
         "are not the replication estimand.",
         "",
-        "**Figure 5 | Fresh trajectories test within-world repeatability.**",
-        "Nominal-minus-opaque paired differences for best score and four core lifecycle",
-        "endpoints---within-campaign best-discovery position, online incumbent retention,",
-        "maximum absolute drawdown and terminal-to-best ratio---across five fresh replicates",
-        "in each",
-        f"of selected physical worlds 1 and 3. {figure_5_state}",
-        "Selection used the prior development matrix; those trajectories are excluded. Effects are",
-        "reported within world, with no pooled population-level test.",
+        "**Figure 5 | Fresh trajectories expose information that endpoint summaries omit.**",
+        "**A,** Best-of-campaign and raw terminal contrasts for eight complete matched pairs;",
+        "shaded quadrants mark the two sign-discordant pairs. **B,** Continuous signed contrasts",
+        "for best score, raw terminal, discovery, retention, drawdown and relative retention.",
+        f"{figure_5_state}",
+        "Selection used the prior development matrix; those trajectories are excluded. Effects",
+        "are reported within world, with no pooled population-level test.",
         "",
-        "**Figure 6 | Experimental intelligence is a profile, not a scalar.**",
-        "**A,** Compiled-experiment endpoint score, held-out directional accuracy, Brier score and",
-        "unsupported-claim rate for the opaque participant in two chemical tasks.",
-        "**B,** Autonomous",
-        "completion, retention, recovery and terminal-to-best summaries by information arm. Metric",
-        "directions differ and no composite score is computed; the panel demonstrates the need to",
-        "retain a capability profile rather than rank systems on these bars.",
+        "**Figure 6 | Lifecycle completion does not specify experimental policy.**",
+        "**A,** Both complete agent systems closed all 60 matched batch lifecycles, but their",
+        "final-assay and explicit-discard policies differed. **B,** Non-final instrument and",
+        "primitive-operation use as shares of common campaign allowances. Counts are",
+        "complete-system profiles, not an isolated model-backend comparison.",
         "",
     ]
     return "\n".join(sections)

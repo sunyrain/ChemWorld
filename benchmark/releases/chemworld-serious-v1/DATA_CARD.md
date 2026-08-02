@@ -4,7 +4,7 @@
 
 The evidence package combines two interfaces rather than treating them as interchangeable competitors:
 
-- G0 `compiled_recipe`: low-action-authority calibration and prior-information interventions;
+- G0 `compiled_recipe`: low-action-authority calibration and sequential matched prior-information conditions;
 - G2 `closed_loop_primitive`: agent-directed additions, controls, characterization, termination, and final assay under a campaign resource ledger.
 
 G1 is a development-only interface diagnostic and is not a scientific layer in the manuscript.
@@ -14,7 +14,7 @@ G1 is a development-only interface diagnostic and is not a scientific layer in t
 | Layer | Role | Nonduplicated physical experiments |
 |---|---|---:|
 | G0 classic baselines | calibration | 27,300 |
-| G0 three-arm participant study | prior intervention and cognition diagnostics | 2,280 |
+| G0 three-arm participant study | matched prior conditions and cognition diagnostics | 2,280 |
 | G2 v0.4 | autonomous development / hypothesis generation | 60 |
 | Existing audited total |  | 29,640 |
 | G2 v0.5 | planned fresh-trajectory replication opportunities | 120 |
@@ -59,10 +59,12 @@ and 889 replay-verified primitive operations under the same public boundary.
 `arxiv-v1-p0-sensitivity.json` adds the self-hashed robustness layer without
 changing that primary analysis. The release figures are generated only from
 these frozen objects. G2 v0.5 contributes eight complete pairs and retains two
-right-censored pairs without imputation. Six of eight world-by-core-lifecycle
-classifications were mixed; at least six remain mixed under every possible sign
-of the two missing pair differences. The result is also stable at 80%, 90% and
-95% retention definitions. These matched-world readouts are reported
+right-censored pairs without imputation. Best-score and algebraically independent
+raw-terminal contrasts were sign-discordant in two of eight complete pairs
+($r=+0.826$). All ten planned pairs remain visible as continuous process
+profiles. Six of eight world-by-core-lifecycle classifications were mixed under
+the frozen rule; this thresholded count and its missing-sign grid are retained as
+supporting sensitivity analyses. These matched-world readouts are reported
 descriptively rather than pooled into a population-level prior-effect test.
 
 ## Paper artifact state

@@ -35,7 +35,7 @@ def test_display_items_are_regenerated_from_the_bound_data(tmp_path: Path) -> No
         policy = replication["interpretation"]["mapping_policy"]
         matrix = replication["matrix"]
         assert branch["branch_id"] in rendered
-        assert "contrasts frequently changed direction" in rendered
+        assert "main continuous endpoint diagnostic" in rendered
         assert "does not identify a causal provider effect" in rendered
         assert "variance-dominance relation" in rendered
         assert "provider-trajectory variability dominated" not in rendered
@@ -45,6 +45,7 @@ def test_display_items_are_regenerated_from_the_bound_data(tmp_path: Path) -> No
         assert f"{matrix['completed_pair_count']} complete pairs" in rendered
         assert "pre-specified trajectory pairs" in rendered
         assert "Δ mean score" in rendered
+        assert "Δ raw terminal" in rendered
         assert "Δ discovery" in rendered
         assert "does not identify a causal provider effect" in rendered
 

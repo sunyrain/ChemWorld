@@ -338,6 +338,18 @@ def _g2_v05_rows(audit: Mapping[str, Any]) -> dict[str, Any]:
     )
     pairs = []
     for row in audit["paired_trajectories"]:
+        contrast = row["nominal_minus_opaque"]
+        if contrast is not None:
+            contrast = dict(contrast)
+            score_sequence = contrast.get("final_score_sequence")
+            _require(
+                isinstance(score_sequence, list) and bool(score_sequence),
+                "a complete G2 v0.5 pair is missing final-score contrasts",
+            )
+            # The last element is the nominal-minus-opaque raw terminal score.
+            # Keep it explicit so downstream analyses do not confuse it with the
+            # algebraically coupled terminal-to-best retention ratio.
+            contrast["terminal_final_score"] = score_sequence[-1]
         pairs.append(
             {
                 "world_seed": row["world_seed"],
@@ -345,7 +357,7 @@ def _g2_v05_rows(audit: Mapping[str, Any]) -> dict[str, Any]:
                 "opaque_state": row["opaque_state"],
                 "nominal_state": row["nominal_state"],
                 "pair_complete": row["pair_complete"],
-                "nominal_minus_opaque": row["nominal_minus_opaque"],
+                "nominal_minus_opaque": contrast,
             }
         )
     return {

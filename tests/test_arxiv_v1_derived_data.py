@@ -91,6 +91,13 @@ def test_derived_g0_and_g2_v04_accounting_matches_audited_totals() -> None:
     assert sum(row["operation_count"] for row in cells) == 815
     assert sum(row["invalid_operation_count"] for row in cells) == 0
     assert all(len(row["final_score_sequence"]) == 6 for row in cells)
+    complete_pairs = [
+        row for row in data["g2_v0_5"]["paired_trajectories"] if row["pair_complete"]
+    ]
+    assert len(complete_pairs) == 8
+    for row in complete_pairs:
+        contrast = row["nominal_minus_opaque"]
+        assert contrast["terminal_final_score"] == contrast["final_score_sequence"][-1]
 
 
 def test_csv_views_are_generated_from_the_same_derived_rows() -> None:

@@ -170,7 +170,7 @@ def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
     )
     assert "[PENDING G2 v0.5" not in manuscript
     assert "29,580 simulator executions" in compact_manuscript
-    assert "closed all 120 allocated batch lifecycles" in compact_manuscript
+    assert "closed 120 batch lifecycles in five matched worlds" in compact_manuscript
     assert "Eighteen of 20 cells completed" in compact_manuscript
     assert "29,754" in data_card
     assert "29,752" in data_card
@@ -200,9 +200,10 @@ def test_terminal_g2_narrative_is_bound_to_the_frozen_derived_data() -> None:
     assert matrix["completed_pair_count"] == 8
     assert branch["mixed_world_by_core_metric_count"] == 6
     assert branch["world_by_core_metric_count"] == 8
-    assert "six of eight world-by-metric classifications were mixed" in compact_section
-    assert "arbitrary positive, negative or zero sign" in compact_section
-    assert "five at 80% and six at 95%" in compact_section
+    assert "six of eight selected world-by-lifecycle cells as mixed" in compact_section
+    assert "That categorical count is supporting rather than the main result" in compact_section
+    assert "best-of-campaign and raw terminal contrasts were sign-discordant in two pairs" in compact_section
+    assert "Pearson correlation was $+0.826$" in compact_section
 
 
 def test_all_tracked_evidence_and_execution_entrypoints_exist() -> None:

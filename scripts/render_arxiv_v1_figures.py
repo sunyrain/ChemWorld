@@ -82,11 +82,10 @@ def _save(fig: plt.Figure, output_dir: Path, stem: str) -> list[Path]:
         bbox_inches="tight",
         metadata={"Date": None, "Creator": "ChemWorld arXiv v1 figure pipeline"},
     )
-    outputs[0].write_text(
-        outputs[0].read_text(encoding="utf-8"),
-        encoding="utf-8",
-        newline="\n",
+    normalized_svg = "\n".join(
+        line.rstrip() for line in outputs[0].read_text(encoding="utf-8").splitlines()
     )
+    outputs[0].write_text(normalized_svg + "\n", encoding="utf-8", newline="\n")
     fig.savefig(
         outputs[1],
         bbox_inches="tight",
@@ -441,17 +440,17 @@ def figure_5(data: dict[str, Any], output_dir: Path) -> list[Path]:
         return []
     metrics = [
         ("best_final_score", "best score"),
+        ("terminal_final_score", "raw terminal"),
         ("global_best_discovery_fraction", "discovery"),
         ("online_incumbent_retention_rate", "retention"),
         ("maximum_absolute_incumbent_drawdown", "drawdown"),
-        ("terminal_to_global_best_ratio", "terminal / best"),
     ]
     classifications = replication["interpretation"]["selected_branch"][
         "world_metric_classifications"
     ]
     fig, axes = plt.subplots(2, 5, figsize=(15, 6.2), sharex="col")
     fig.suptitle(
-        "Fresh trajectories test within-world repeatability",
+        "Fresh trajectories expose endpoint and process profiles",
         fontsize=15,
         fontweight="bold",
         color=TEXT,
@@ -484,7 +483,11 @@ def figure_5(data: dict[str, Any], output_dir: Path) -> list[Path]:
                         linewidth=0.6,
                     )
             ax.axvline(0, color="#6F7782", lw=1)
-            classification = classifications[str(seed)][metric].replace("directionally_", "")
+            classification = (
+                "raw endpoint"
+                if metric == "terminal_final_score"
+                else classifications[str(seed)][metric].replace("directionally_", "")
+            )
             ax.text(
                 0.97,
                 1.02,

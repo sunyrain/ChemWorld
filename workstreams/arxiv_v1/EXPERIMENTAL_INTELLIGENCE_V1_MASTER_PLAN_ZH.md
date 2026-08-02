@@ -174,27 +174,31 @@ G0/G2 是协议术语，不进入标题和主叙事起点。
 
 展示 closed-loop interaction、可独立控制的 physics/prior/agency/evidence/resources、transaction-to-replay spine 和 qualified environment surface。
 
-### Figure 2 — One complete agent-directed experiment and its ledger
+### Figure 2 — Compiled controls separate outcome and epistemic readouts
 
-用一个 v0.4 vessel 展示七个自主 primitive operations 与 campaign resource receipt，证明不是固定步骤参数填表。
+展示 G0 paired outcome、misindexed action shift、correction/recovery gates 与 endpoint/prediction/calibration/claims profile。
 
-### Figure 3 — Endpoint summaries conceal distinct trajectories
+### Figure 3 — One complete agent-directed experiment and its ledger
 
-展示多个 development worlds 的 final-assay sequences、first maximum、loss 与 terminal recovery。
+用一个 v0.4 vessel 展示七个自主 primitive operations、观测进入 public state 的时序与 campaign resource receipt，证明不是固定步骤参数填表。
 
-### Figure 4 — Prior interventions reshape behavior without guaranteeing recovery
+### Figure 4 — Endpoint summaries conceal distinct trajectories
 
-并列 G0 prior effect、misindexed manipulation/action correction/recovery 与 G2 v0.4 world-wise lifecycle effects。
+展示多个 development worlds 的 final-assay sequences、first maximum、loss 与 terminal divergence。
 
 ### Figure 5 — Fresh trajectories test within-world repeatability
 
-显示两个 selected worlds 的全部十个 pre-specified pairs；右删失 pair 用 `x` 保留，不插补。图注必须报告 8 complete pairs、2 right-censored pairs、6/8 mixed classifications 和 selected branch，不合并总体 p 值。
+Panel A 使用 best-score 与 raw-terminal 的连续 contrast，报告 2/8 sign-discordant pairs 与
+$r=+0.826$；Panel B 显示两个 selected worlds 的全部十个 pre-specified pairs，右删失
+pair 显式保留，不插补。terminal-to-best 和 6/8 mixed classification 作为 sensitivity，
+不再作为主图 headline。
 
-### Figure 6 — Experimental intelligence is a profile, not a scalar
+### Figure 6 — Lifecycle completion does not specify experimental policy
 
-并列 compiled control 的 endpoint/prediction/calibration/unsupported claims 与 autonomous control 的 completion/retention/recovery/terminal-best，禁止构造跨协议 composite score。
+并列 Codex 与 DeepSeek complete-system 的 60/60 closeout、final-assay/discard 政策、
+non-final instrument use 与 primitive-operation budget，突出相同 completion 下可分辨的实验政策。
 
-主表为：环境与证据范围、G0 capability profiles、G2 v0.4 development summaries、G2 v0.5 all-pair terminal table。
+主文以六幅图完成论证；原 agent-system 主表的数字并入 Figure 6，supporting sensitivity table 留在 Appendix。
 
 ## 8. 主张边界
 
@@ -203,8 +207,9 @@ G0/G2 是协议术语，不进入标题和主叙事起点。
 - ChemWorld 使实验 Agent 成为可受控、可重复研究的对象；
 - Agent 在 stateful chemical world 中自主逐操作、主动测量并承担资源后果；
 - endpoint、prediction、cognition 与 lifecycle metrics 不构成单一能力；
-- G2 v0.5 中 6/8 core world-metric classifications mixed；
-- endpoint directionality 不保证 lifecycle phenotype 可重复。
+- G2 v0.5 中 raw-terminal 与 best-score 在 2/8 complete pairs 中方向不一致，完整连续
+  process profile 在同一 physical world 内随 fresh session 改变；
+- 6/8 core world-metric classifications mixed 仅作为冻结的支持性 sensitivity；
 
 ### 8.2 只能限定性描述
 
@@ -281,7 +286,9 @@ G0/G2 是协议术语，不进入标题和主叙事起点。
 2. ChemWorld 提供研究 experimental intelligence 的 executable chemical worlds；
 3. Agent 逐操作控制实验、主动测量并承担资源和失败后果；
 4. G0 显示 task dependence、prior manipulation 与 optimization–cognition dissociation；
-5. G2 显示 endpoint 掩盖 lifecycle，fresh replication 中 6/8 core classifications mixed；
+5. G2 显示相同 lifecycle completion 可对应不同 assay/discard policy；fresh replication
+   中 raw terminal 与 best 在 2/8 pairs 方向不一致，连续 process profile 提供 endpoint
+   无法包含的信息；
 6. controlled chemical worlds 因而成为研究 experimenting agents 的实验装置，而非新 leaderboard。
 
 ## 12. arXiv 后路线

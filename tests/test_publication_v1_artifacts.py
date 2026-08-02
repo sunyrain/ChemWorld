@@ -101,8 +101,8 @@ def test_display_legend_order_and_data_card_match_the_arxiv_release() -> None:
         "Compiled controls distinguish task outcome, information response and epistemic readouts.",
         "Primitive-control agents close complete experimental lifecycles.",
         "Similar endpoints can arise from different experimental trajectories.",
-        "Fresh trajectories test within-world repeatability.",
-        "Experimental intelligence is a profile, not a scalar.",
+        "Fresh trajectories expose information that endpoint summaries omit.",
+        "Lifecycle completion does not specify experimental policy.",
     ]
     positions = [
         display.index(f"**Figure {number} | {title}**")

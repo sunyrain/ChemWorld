@@ -19,6 +19,7 @@ from matplotlib.patches import Circle, Ellipse, FancyArrowPatch, FancyBboxPatch,
 ROOT = Path(__file__).resolve().parents[2]
 DERIVED_SCHEMA = "chemworld-arxiv-v1-derived-data-0.1"
 SENSITIVITY_SCHEMA = "chemworld-arxiv-v1-p0-sensitivity-0.1"
+AGENT_SYSTEM_COMPARISON_SCHEMA = "chemworld-g2-agent-system-comparison-0.1"
 MANIFEST_SCHEMA = "chemworld-arxiv-release-figure-manifest-0.1"
 
 INK = "#17222E"
@@ -2096,22 +2097,20 @@ def figure_4(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
 
 def figure_5(
     data: Mapping[str, Any],
-    sensitivity: Mapping[str, Any],
     output_dir: Path,
 ) -> list[Path]:
     replication = data["g2_v0_5"]
     complete = [row for row in replication["paired_trajectories"] if row["pair_complete"]]
-    classes = replication["interpretation"]["selected_branch"]["world_metric_classifications"]
     fig, (ax, bx) = plt.subplots(
         1,
         2,
-        figsize=(7.2, 3.35),
-        gridspec_kw={"width_ratios": (1.28, 1.0), "wspace": 0.42},
+        figsize=(7.2, 3.75),
+        gridspec_kw={"width_ratios": (1.02, 1.45), "wspace": 0.42},
     )
 
-    _panel(ax, "A", "Best-score direction does not fix terminal retention")
+    _panel(ax, "A", "Best and raw terminal scores can disagree")
     x_limit = 0.43
-    y_limit = 0.55
+    y_limit = 0.52
     for origin, width, height in (
         ((-x_limit, 0), x_limit, y_limit),
         ((0, -y_limit), x_limit, y_limit),
@@ -2132,7 +2131,7 @@ def figure_5(
     for row in complete:
         delta = row["nominal_minus_opaque"]
         endpoint = float(delta["best_final_score"])
-        terminal = float(delta["terminal_to_global_best_ratio"])
+        terminal = float(delta["terminal_final_score"])
         endpoints.append(endpoint)
         terminals.append(terminal)
         color = TEAL if int(row["world_seed"]) == 1 else AMBER
@@ -2150,15 +2149,14 @@ def figure_5(
     ax.set_xlim(-x_limit, x_limit)
     ax.set_ylim(-y_limit, y_limit)
     ax.set_xlabel("nominal - opaque best-of-campaign contrast")
-    ax.set_ylabel("nominal - opaque terminal / best contrast")
+    ax.set_ylabel("nominal - opaque raw terminal contrast")
     ax.grid(color=GRID, lw=0.45, zorder=0)
     correlation = float(np.corrcoef(np.asarray(endpoints), np.asarray(terminals))[0, 1])
     opposite = sum(x * y < 0 for x, y in zip(endpoints, terminals, strict=True))
-    zero_terminal = sum(abs(value) <= 1e-12 for value in terminals)
     ax.text(
         0.02,
         0.98,
-        f"{opposite}/8 sign reversals + {zero_terminal} zero\nPearson r = {correlation:.3f}",
+        f"{opposite}/8 sign-discordant pairs\nPearson r = {correlation:+.3f}",
         transform=ax.transAxes,
         va="top",
         fontsize=6.4,
@@ -2174,151 +2172,181 @@ def figure_5(
         ncol=2,
     )
 
-    _panel(bx, "B", "Six of eight selected cells are mixed")
+    _panel(bx, "B", "Every planned pair leaves a process profile")
     metric_specs = [
+        ("best_final_score", "best\nscore", 1),
+        ("terminal_final_score", "raw\nterminal", 1),
         ("global_best_discovery_fraction", "earlier\ndiscovery", -1),
-        ("online_incumbent_retention_rate", "retention", 1),
+        ("online_incumbent_retention_rate", "online\nretention", 1),
         ("maximum_absolute_incumbent_drawdown", "smaller\ndrawdown", -1),
-        ("terminal_to_global_best_ratio", "terminal /\nbest", 1),
+        ("terminal_to_global_best_ratio", "relative\nretention", 1),
     ]
-    matrix = np.zeros((2, len(metric_specs)), dtype=float)
-    labels: list[list[str]] = []
-    for row_index, seed in enumerate((1, 3)):
-        row_labels = []
+    planned = replication["paired_trajectories"]
+    matrix = np.full((len(planned), len(metric_specs)), np.nan, dtype=float)
+    for row_index, row in enumerate(planned):
+        delta = row["nominal_minus_opaque"]
+        if delta is None:
+            continue
         for column_index, (metric, _label, direction) in enumerate(metric_specs):
-            raw = str(classes[str(seed)][metric])
-            value = {
-                "directionally_positive": 1,
-                "directionally_negative": -1,
-                "mixed": 0,
-                "stable_zero": 0,
-            }[raw]
-            value *= direction
-            matrix[row_index, column_index] = value
-            row_labels.append({1: "nominal", -1: "opaque", 0: "mixed"}[value])
-        labels.append(row_labels)
-    cmap = mpl.colors.ListedColormap(["#F5E7D0", "#EEF1F3", "#DDF0EC"])
-    bx.imshow(matrix, cmap=cmap, vmin=-1, vmax=1, aspect="auto")
+            matrix[row_index, column_index] = direction * float(delta[metric])
+    cmap = mpl.colors.LinearSegmentedColormap.from_list(
+        "information-favouring", (OPAQUE, WASH, NOMINAL)
+    )
+    cmap.set_bad("#E8ECEF")
+    finite = np.abs(matrix[np.isfinite(matrix)])
+    limit = max(0.50, float(finite.max(initial=0.0)))
+    bx.imshow(
+        matrix,
+        cmap=cmap,
+        norm=mpl.colors.TwoSlopeNorm(vmin=-limit, vcenter=0.0, vmax=limit),
+        aspect="auto",
+    )
     bx.set_xticks(range(len(metric_specs)), [item[1] for item in metric_specs])
-    bx.set_yticks((0, 1), ("world 1", "world 3"))
+    bx.set_yticks(
+        range(len(planned)),
+        [
+            f"w{row['world_seed']} {row['trajectory_replicate_id']}"
+            + (" †" if not row["pair_complete"] else "")
+            for row in planned
+        ],
+    )
     bx.tick_params(length=0)
     for row_index in range(matrix.shape[0]):
         for column_index in range(matrix.shape[1]):
+            value = matrix[row_index, column_index]
             bx.text(
                 column_index,
                 row_index,
-                labels[row_index][column_index],
+                "—" if not np.isfinite(value) else f"{value:+.2f}",
                 ha="center",
                 va="center",
-                fontsize=6.2,
-                fontweight="semibold",
-                color=INK,
+                fontsize=5.3,
+                fontweight="semibold" if np.isfinite(value) else "normal",
+                color=(PAPER if np.isfinite(value) and abs(value) > 0.22 else INK),
             )
     for spine in bx.spines.values():
         spine.set_visible(False)
-    censoring = sensitivity["g2_v0_5"]["right_censoring_missing_sign_sensitivity"]
-    minimum_mixed = censoring["minimum_possible_mixed_core_classifications"]
     bx.text(
         0.5,
-        -0.20,
-        f"6/8 mixed; at least {minimum_mixed}/8 remain mixed\n"
-        "under every sign assignment to the two censored pairs",
+        -0.18,
+        "signed values favour nominal (coral) or opaque (navy);\n"
+        "relative retention is supporting; † right-censored",
         transform=bx.transAxes,
         ha="center",
         va="top",
         fontsize=6.2,
         color=MUTED,
     )
-    fig.subplots_adjust(left=0.085, right=0.985, top=0.88, bottom=0.24)
+    fig.subplots_adjust(left=0.085, right=0.99, top=0.89, bottom=0.22)
     return _save(fig, output_dir, "figure-5-within-world-replication")
 
 
-def figure_6(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
-    fig, (ax, bx) = plt.subplots(1, 2, figsize=(7.2, 3.28), gridspec_kw={"wspace": 0.52})
-    opaque_rows = [row for row in data["g0"]["task_arm_rows"] if row["arm"] == "opaque"]
-    compiled = [
-        ("primary_score_mean", "endpoint score", False),
-        ("heldout_directional_accuracy", "held-out accuracy", False),
-        ("heldout_brier_score", "Brier score", True),
-        ("unsupported_claim_rate", "unsupported claims", True),
-    ]
-    _panel(ax, "A", "Compiled control: task-conditioned readouts")
-    for row_index, row in enumerate(opaque_rows):
-        color = TEAL if row_index == 0 else AMBER
-        for metric_index, (key, _label, lower_better) in enumerate(compiled):
-            raw = float(row[key])
-            favourable = 1.0 - raw if lower_better else raw
-            ax.scatter(
-                favourable,
-                metric_index + (row_index - 0.5) * 0.16,
-                s=36,
-                color=color,
-                edgecolor=PAPER,
-                linewidth=0.6,
-                label=row["task_id"].replace("-", " ") if metric_index == 0 else None,
-            )
-            ax.text(
-                favourable + 0.025,
-                metric_index + (row_index - 0.5) * 0.16,
-                f"{raw:.2f}",
-                va="center",
-                fontsize=5.9,
-                color=color,
-            )
-    ax.set_yticks(
-        range(len(compiled)), [label + (" ↓" if lower else " ↑") for _key, label, lower in compiled]
+def figure_6(comparison: Mapping[str, Any], output_dir: Path) -> list[Path]:
+    fig, (ax, bx) = plt.subplots(
+        1,
+        2,
+        figsize=(7.2, 3.15),
+        gridspec_kw={"width_ratios": (1.0, 1.08), "wspace": 0.48},
     )
-    ax.set_xlim(-0.02, 1.10)
-    ax.set_xlabel("column-specific favourable direction")
-    ax.invert_yaxis()
-    ax.grid(axis="x", color=GRID, lw=0.5)
-    ax.legend(loc="upper left")
+    codex = comparison["systems"]["codex_sol_medium_mcp"]
+    deepseek = comparison["systems"]["deepseek_v4_flash_direct"]
+    systems = (("Codex", codex), ("DeepSeek", deepseek))
 
-    _panel(bx, "B", "Primitive control: lifecycle readouts")
-    aggregate = data["g2_v0_4"]["arm_descriptive_aggregates"]
-    lifecycle = [
-        ("mean_completion_rate", None, "completion"),
-        ("trajectory_learning", "mean_online_retention_rate", "retention"),
-        ("trajectory_learning", "pooled_recovery_rate", "recovery"),
-        ("trajectory_learning", "mean_terminal_to_global_best_ratio", "terminal / best"),
-    ]
-    for arm_index, (arm, color) in enumerate((("opaque", OPAQUE), ("nominal", NOMINAL))):
-        for metric_index, (parent, child, _label) in enumerate(lifecycle):
-            value = float(
-                aggregate[arm][parent] if child is None else aggregate[arm][parent][child]
+    _panel(ax, "A", "Completion masks terminal policy")
+    for row_index, (_label, system) in enumerate(systems):
+        closed = float(system["closed_batch_count"])
+        assay = float(system["final_assay_count"]) / closed
+        discard = float(system["discarded_batch_count"]) / closed
+        ax.barh(
+            row_index,
+            assay,
+            color=TEAL,
+            height=0.48,
+            label="final assay" if row_index == 0 else None,
+        )
+        ax.barh(
+            row_index,
+            discard,
+            left=assay,
+            color=AMBER,
+            height=0.48,
+            label="explicit discard" if row_index == 0 else None,
+        )
+        if assay > 0.12:
+            ax.text(
+                assay / 2,
+                row_index,
+                f"{int(system['final_assay_count'])}/60",
+                ha="center",
+                va="center",
+                color=PAPER,
+                fontweight="semibold",
+                fontsize=7,
             )
-            bx.scatter(
-                value,
-                metric_index + (arm_index - 0.5) * 0.16,
-                s=36,
+        if discard > 0.12:
+            ax.text(
+                assay + discard / 2,
+                row_index,
+                f"{int(system['discarded_batch_count'])}/60",
+                ha="center",
+                va="center",
+                color=INK,
+                fontweight="semibold",
+                fontsize=7,
+            )
+    ax.set_yticks(range(len(systems)), [item[0] for item in systems])
+    ax.set_xlim(0, 1.0)
+    ax.set_xticks((0, 0.5, 1.0), ("0%", "50%", "100%"))
+    ax.set_xlabel("share of 60 closed batch lifecycles")
+    ax.invert_yaxis()
+    ax.grid(axis="x", color=GRID, lw=0.5, zorder=0)
+    ax.legend(loc="lower center", bbox_to_anchor=(0.5, -0.34), ncol=2)
+
+    _panel(bx, "B", "Resource traces distinguish system policies")
+    resource_metrics = (
+        ("nonfinal_instrument_use_count", 180.0, "non-final instruments"),
+        ("operation_attempt_count", 1440.0, "primitive operations"),
+    )
+    system_colors = (OPAQUE, NOMINAL)
+    for system_index, ((label, system), color) in enumerate(
+        zip(systems, system_colors, strict=True)
+    ):
+        for metric_index, (key, allowance, _metric_label) in enumerate(resource_metrics):
+            raw = int(system[key])
+            fraction = raw / allowance
+            y = metric_index + (system_index - 0.5) * 0.19
+            bx.barh(
+                y,
+                fraction,
+                height=0.16,
                 color=color,
-                edgecolor=PAPER,
-                linewidth=0.6,
-                label=arm if metric_index == 0 else None,
+                label=label if metric_index == 0 else None,
             )
             bx.text(
-                value + 0.025,
-                metric_index + (arm_index - 0.5) * 0.16,
-                f"{value:.2f}",
+                fraction + 0.02,
+                y,
+                f"{raw}/{int(allowance)}",
                 va="center",
-                fontsize=5.9,
+                fontsize=6.2,
                 color=color,
+                fontweight="semibold",
             )
-    bx.set_yticks(range(len(lifecycle)), [label + " ↑" for _parent, _child, label in lifecycle])
-    bx.set_xlim(-0.02, 1.10)
-    bx.set_xlabel("reported metric value")
+    bx.set_yticks(range(len(resource_metrics)), [item[2] for item in resource_metrics])
+    bx.set_xlim(0, 1.08)
+    bx.set_xticks((0, 0.5, 1.0), ("0%", "50%", "100%"))
+    bx.set_xlabel("share of matched campaign allowance")
     bx.invert_yaxis()
-    bx.grid(axis="x", color=GRID, lw=0.5)
-    bx.legend(loc="upper left")
+    bx.grid(axis="x", color=GRID, lw=0.5, zorder=0)
+    bx.legend(loc="lower center", bbox_to_anchor=(0.5, -0.34), ncol=2)
     fig.text(
         0.995,
         0.01,
-        "Metrics remain separate readouts; no cross-metric composite is computed.",
+        "Counts are complete-system behavioral profiles, not an isolated model-backend comparison.",
         ha="right",
         fontsize=5.9,
         color=MUTED,
     )
-    fig.subplots_adjust(left=0.145, right=0.995, top=0.90, bottom=0.20)
+    fig.subplots_adjust(left=0.115, right=0.985, top=0.89, bottom=0.27)
     return _save(fig, output_dir, "figure-6-experimental-agency-profile")
 
 
@@ -2333,6 +2361,11 @@ def _parser() -> argparse.ArgumentParser:
         "--sensitivity",
         type=Path,
         default=ROOT / "benchmark/releases/chemworld-serious-v1/arxiv-v1-p0-sensitivity.json",
+    )
+    parser.add_argument(
+        "--agent-system-comparison",
+        type=Path,
+        default=ROOT / "workstreams/arxiv_v1/reports/g2-agent-system-comparison-v0.1.json",
     )
     parser.add_argument(
         "--output-dir",
@@ -2355,6 +2388,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     sensitivity = _load_hashed(
         args.sensitivity.resolve(), schema=SENSITIVITY_SCHEMA, hash_key="sensitivity_sha256"
     )
+    comparison = _load_hashed(
+        args.agent_system_comparison.resolve(),
+        schema=AGENT_SYSTEM_COMPARISON_SCHEMA,
+        hash_key="comparison_sha256",
+    )
     _configure()
     output_dir = args.output_dir.resolve()
     outputs: list[Path] = []
@@ -2362,14 +2400,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     outputs.extend(figure_2(data, output_dir))
     outputs.extend(figure_3(data, output_dir))
     outputs.extend(figure_4(data, output_dir))
-    outputs.extend(figure_5(data, sensitivity, output_dir))
-    outputs.extend(figure_6(data, output_dir))
+    outputs.extend(figure_5(data, output_dir))
+    outputs.extend(figure_6(comparison, output_dir))
     manifest: dict[str, Any] = {
         "schema_version": MANIFEST_SCHEMA,
         "status": "frozen_complete",
         "style_version": "arxiv-release-v1",
         "derived_data_sha256": data["derived_data_sha256"],
         "sensitivity_sha256": sensitivity["sensitivity_sha256"],
+        "agent_system_comparison_sha256": comparison["comparison_sha256"],
         "files": [
             {
                 "path": path.relative_to(ROOT).as_posix(),
