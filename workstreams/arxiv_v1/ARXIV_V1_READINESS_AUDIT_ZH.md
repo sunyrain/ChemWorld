@@ -102,14 +102,15 @@ G2 v0.5 科学审计 SHA-256：`7bb4045fa1ca041de047d967a31ed3d89d5f8ad83851aa7b
 4. 四 cell compact replay subset：一个完整 pair 与两个 right-censored cells；
 5. 摘要与 Section 7 终态结果写入；
 6. 55-node evidence graph：55/55 passed；
-7. 全测试：1,813 passed、14 skipped、0 failed；
+7. 全测试：1,833 passed、14 skipped、0 failed；
 8. clean-wheel smoke test 与 terminal replay；
-9. 独立 checkout 中 derived data、图表、display items 零差异重建，release suite 26 passed。
+9. 独立 checkout 中 derived data、sensitivity、三套图表与 display items 零差异重建，release suite 42 passed。
+10. 参考文献解析、统计措辞与最终主张审计通过。
 
 仍需完成：
 
 1. 给约 17.7 GB G0 原始根目录取得持久外部 archive identifier；
-2. 参考文献目标格式、统计语言与最终主张审计。
+2. 用真实作者与单位替换集中式稿件中的占位元数据。
 
 依赖关系为：
 

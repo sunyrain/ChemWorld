@@ -329,13 +329,18 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
     verification = _load(ROOT / manifest["evidence"]["verification_attestation"])
     assert verification["status"] == "passed"
     assert verification["full_test_suite"] == {
-        "collected": 1827,
-        "passed": 1813,
+        "collected": 1847,
+        "passed": 1833,
         "skipped": 14,
         "failed": 0,
         "note": (
-            "The suite was run in alphabetic shards because a single invocation "
-            "exceeded the execution-cell time limit."
+            "The suite was run in 13 alphabetic shards with all declared optional "
+            "dependencies; two release-state assertions were executed after the "
+            "attestation and manifest were bound."
         ),
     }
+    assert verification["clean_wheel"]["status"] == "passed"
+    assert verification["clean_wheel"]["contract_ready_count"] == 6
+    assert verification["clean_wheel"]["serious_suite_status"] == "candidate"
     assert verification["independent_checkout"]["status"] == "passed_zero_diff"
+    assert verification["independent_checkout"]["regenerated_outputs_differed"] == 0

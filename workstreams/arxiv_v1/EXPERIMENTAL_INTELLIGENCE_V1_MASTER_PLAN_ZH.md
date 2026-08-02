@@ -263,13 +263,13 @@ G0/G2 是协议术语，不进入标题和主叙事起点。
 - B7 figures：frozen derived JSON、6 CSV、Figures 1--6、Tables 1--4；
 - G2 terminal data：677-file index 与四-cell replay subset 已生成。
 - B2 evidence graph：55/55 nodes passed；
-- release verification：1,813 tests passed、14 skipped、0 failed；clean-wheel
-  smoke、terminal replay 与独立 checkout 零差异重建通过。
+- release verification：1,833 tests passed、14 skipped、0 failed；clean-wheel
+  smoke、terminal replay 与独立 checkout 中 42 项 release suite 及全部派生产物零差异重建通过。
 
 ### 仍开放
 
 1. 约 17.7 GB G0 raw roots 的持久外部 archive identifier；
-2. 参考文献目标格式、statistical-language 和 final-claim audit。
+2. 用真实作者与单位替换集中式稿件中的占位元数据。
 
 在这些门禁完成前，release manifest 必须保持 `publication_ready=false`。外部 archive identifier 不能伪造；它是目前唯一需要用户或外部服务完成的依赖。
 
