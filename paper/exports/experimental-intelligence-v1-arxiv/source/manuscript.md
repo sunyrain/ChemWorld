@@ -1,7 +1,7 @@
 ---
-title: "Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency"
-title_line_one: "Executable Chemical Worlds Reveal the"
-title_line_two: "Hidden Dynamics of Experimental Agency"
+title: "Executable Chemical Worlds Make Experimental Agency Measurable"
+title_line_one: "Executable Chemical Worlds Make"
+title_line_two: "Experimental Agency Measurable"
 subject: "Executable environments for controlled measurement of AI experimental behavior"
 keywords: "executable chemical worlds; experimental agency; autonomous experimentation; AI agents; reproducibility"
 pdf_author: "ChemWorld Authors"
@@ -28,19 +28,20 @@ abstract: |
 
   Compiled controls comprising 29,580 simulator executions across two chemical
   task families show that endpoint outcome, held-out prediction, calibration and
-  unsupported claims form non-interchangeable readouts. Under primitive control,
-  native Codex completed 60 of 60 autonomous electrochemical experiments through
-  815 self-selected operations in five matched worlds. Matched information arms
-  differed not only in best score but in when conditions were discovered, how
-  strongly incumbents were retained and whether losses were recovered. A
-  commit-frozen fresh-session replication in two deliberately selected worlds
-  completed eight within-world pairs. Best-score and terminal-to-best contrasts
-  had opposite signs in four of eight pairs. Across four lifecycle readouts, six
-  of eight selected world-by-metric directional classifications were mixed, a
-  result unchanged by every possible sign assignment to the two censored pairs.
-  ChemWorld thus exposes an operational directional non-identifiability hidden
-  by endpoint evaluation: the sign of a best-score contrast does not determine
-  the sign of a lifecycle contrast.
+  unsupported claims form non-interchangeable readouts. Two independently
+  configured primitive-control agent systems then closed all 120 allocated batch
+  lifecycles on the same five matched worlds. Native Codex used 815 self-selected
+  operations and requested 60 final assays; DeepSeek V4 Flash used 889 operations,
+  requested 24 final assays and explicitly discarded 36 batches, despite nearly
+  identical non-final instrument use. This is a comparison of complete agent
+  systems, not an isolated model-backend effect: it demonstrates that the same
+  apparatus resolves differences in experimental commitment and resource policy.
+  For Codex, a commit-frozen fresh-session replication in two deliberately
+  selected worlds completed eight within-world pairs. Best-score and
+  terminal-to-best contrasts had opposite signs in four of eight pairs, and that
+  directional discordance remained visible under the pre-specified censoring
+  analysis. ChemWorld thus establishes experimentation itself as a controllable
+  scientific object whose trajectory cannot be recovered from its endpoint.
 ---
 
 # 1. Introduction
@@ -84,8 +85,9 @@ arise from different experimental histories and capabilities.
 We use three evidence layers. First, compiled experiments intervene on material
 information across two task families and separate optimization from prediction,
 calibration and claim reliability. Second, primitive-control campaigns show that
-a general agent can close complete experimental lifecycles under a shared
-resource ledger. Third, fresh trajectories in matched physical worlds reveal
+distinct complete agent systems can close experimental lifecycles under a shared
+resource ledger while expressing different assay and discard policies. Third,
+fresh trajectories in matched physical worlds reveal
 which behavioral features recur and which vary between sessions. Together they
 establish the paper's central result: **an experimental endpoint is an
 incomplete readout of experimental agency**.
@@ -95,8 +97,9 @@ Our contributions are:
 1. an executable, chemistry-native apparatus with stateful operations, active
    measurements, failures, resource accounting, identity control and exact
    physical replay;
-2. a primitive-control protocol in which the agent---rather than a fixed
-   recipe---chooses operations, observations and lifecycle termination;
+2. a primitive-control protocol, exercised by two complete agent systems, in
+   which the agent---rather than a fixed recipe---chooses operations,
+   observations, assay commitment and lifecycle termination;
 3. controlled information and fresh-session interventions that separate endpoint
    optimization, prediction, claims, discovery, retention, drawdown and recovery;
    and
@@ -205,7 +208,7 @@ Evidence layer & Purpose & Executions & Primary analysis unit \\
 \midrule
 Platform qualification & Reachability and evaluator binding & 415 boundary cases & declared task/endpoint \\
 Compiled control & Task, information and diagnostic calibration & 29,580 simulator executions & paired physical world; 10 per task and arm \\
-Primitive-control development & Lifecycle autonomy and trajectory construction & 60 completed vessels; 815 operations & world by arm; 5 worlds, one session per arm \\
+Primitive-control systems & Lifecycle autonomy, interface portability and trajectory policy & 120 closed vessels; 1,704 operations & complete agent system by world and arm; 2 systems, 5 worlds \\
 Fresh-session replication & Within-world directional repeatability & 114 started vessels; 112 final assays & world by session-level arm pair; 4 complete pairs per world \\
 \bottomrule
 \end{tabularx}
@@ -263,36 +266,72 @@ the sensitivity artifact. This keeps the empirical question aligned with the
 paper's contribution: what aspects of experimental behavior become measurable
 once the world is a controlled apparatus?
 
-# 5. Primitive control closes full experimental lifecycles
+# 5. One apparatus resolves distinct autonomous experimental policies
 
-In a separate primitive-control study, native Codex, configured as
-`gpt-5.6-sol` at medium reasoning effort, received a public workspace and typed
-tools. For each vessel it selected material additions, process setpoints,
-electrolysis operations, measurements, termination and final assay. The model
-could inspect status and history artifacts, but the complete resource ledger was
-not inserted into the prompt.
+We exercised the primitive-control protocol with two complete agent systems on
+the same five physical worlds and two material-information arms. Both received
+the same typed action space, instrument access, campaign resource card, hidden
+world and material identities, observation noise and scoring contract. Native
+Codex (`gpt-5.6-sol`, medium reasoning) acted through a fresh MCP session for
+each vessel. DeepSeek V4 Flash made one schema-validated JSON decision per
+primitive operation through a direct provider loop. Because model and scaffold
+change together, this is not an isolated backend comparison. It asks a more
+basic apparatus question: can distinct autonomous systems inhabit the same
+experimental world and leave comparable, auditable behavioral traces?
 
-All ten development cells completed all six vessels: 60 complete autonomous
-experiments through 815 accepted primitive operations (Fig. 3). The agent used
-18 non-final measurements per campaign at most, while every campaign had a
-144-operation ceiling and fixed stocks of reagents and solvents. Physical-pair,
-resource-ledger and exact-transition replay audits passed for all cells.
+Both systems passed that test. Each closed all six batch opportunities in all
+ten cells, yielding 120 closed lifecycles under matched physical identity
+(Table 2). Their closure policies were sharply different. Codex requested a
+final assay for all 60 batches and discarded none. DeepSeek requested 24 final
+assays and explicitly discarded 36 batches. Yet their use of non-final
+instruments was nearly identical (164 versus 163), while their operation totals
+were 815 and 889. Thus a scalar completion flag would call both systems
+identical, and a score-only view would omit 36 deliberate abandonment decisions.
+The executable apparatus instead separates evidence acquisition, continued
+investment, terminal assay commitment and discard.
 
-Figure 3A reconstructs one vessel. The important feature is not the particular
-seven-operation sequence; it is the placement of observation before the next
-agent decision. A
-UV--visible measurement entered the public state before the agent chose to
-terminate and request the final assay. Figure 3B then shows that this lifecycle
-closed across every vessel and information arm, while Fig. 3C reconstructs the
-campaign-level resource receipt.
+Material information also altered these policies within the DeepSeek system.
+Across the five nominal-information cells it committed 16 batches to final
+assay and discarded 14; under opaque codes it committed eight and discarded 22.
+The nominal arm additionally used 67 more primitive operations. Codex committed
+all 30 batches in each arm to final assay. With five paired worlds these are
+descriptive system-specific profiles, not a population estimate, but they show
+that the same information intervention can be expressed through resource and
+lifecycle decisions rather than endpoint score alone.
+
+```{=latex}
+\begin{table*}[t]
+\centering
+\caption{\textbf{The same matched apparatus exposes different complete-system experimental policies.} Every cell passed physical-identity, resource-ledger, provider-decision or provider-session, and exact-replay audits. Counts describe behavior and are not a model leaderboard.}
+\label{tab:agent-systems}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.25\textwidth}rrrrrX@{}}
+\toprule
+Complete agent system & Closed & Final assay & Discard & Operations & Non-final instruments & Assay commitment \\
+\midrule
+Codex 5.6 Sol, MCP vessel sessions & 60 & 60 & 0 & 815 & 164 & 100\% \\
+DeepSeek V4 Flash, direct primitive decisions & 60 & 24 & 36 & 889 & 163 & 40\% \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+```
+
+Figure 3 reconstructs the Codex implementation, for which each vessel received
+a public workspace and typed tools while the complete ledger remained external
+to the prompt. Figure 3A shows one vessel. The important feature is not the
+particular seven-operation sequence; it is the placement of observation before
+the next agent decision. A UV--visible measurement entered public state before
+the agent chose to terminate and request the final assay. Figure 3B shows this
+lifecycle across every Codex vessel and information arm, while Fig. 3C
+reconstructs its campaign-level resource receipt.
 
 ```{=latex}
 \begin{figure*}[!tbp]
 \centering
 \includegraphics[width=\textwidth]{figures/figure-3-autonomous-lifecycle.pdf}
-\caption{\textbf{Primitive-control agents close complete experimental lifecycles.}
+\caption{\textbf{A primitive-control agent closes complete experimental lifecycles.}
 \textbf{A,} One seven-operation vessel in which a UV--visible observation is available before agent-selected termination and explicit final assay.
-\textbf{B,} All six vessels completed in each of ten world-by-information campaigns; navy denotes opaque codes and coral denotes nominal properties.
+\textbf{B,} All six Codex vessels reached final assay in each of ten world-by-information campaigns; navy denotes opaque codes and coral denotes nominal properties.
 \textbf{C,} The immutable trajectory reconstructs the campaign resource receipt. The example is descriptive and is not part of the fresh-session replication estimand.}
 \label{fig:autonomy}
 \end{figure*}
@@ -300,7 +339,8 @@ campaign-level resource receipt.
 
 # 6. Endpoint scores conceal experimental trajectories
 
-Primitive control exposes structure that a final recommendation cannot contain.
+The six-assay Codex campaigns expose structure that a final recommendation
+cannot contain.
 Figure 4 follows six final assays in three development worlds. In world 0, the
 opaque trajectory lost its initial score, recovered by the fourth assay and
 finished near the nominal trajectory. In world 2, the opaque arm discovered its
@@ -419,7 +459,7 @@ them into a composite score.
 \includegraphics[width=\textwidth]{figures/figure-6-experimental-agency-profile.pdf}
 \caption{\textbf{Experimental agency is resolved as a profile of separate readouts.}
 \textbf{A,} Opaque-arm compiled-control profiles for two task families. For lower-is-better measures, horizontal position is transformed to the favourable direction while labels retain raw values.
-\textbf{B,} Primitive-control lifecycle summaries by information arm across five development worlds. Dots are not connected and no cross-metric composite is computed.}
+\textbf{B,} Codex primitive-control lifecycle summaries by information arm across five development worlds. Dots are not connected and no cross-metric composite is computed.}
 \label{fig:profile}
 \end{figure*}
 ```
@@ -440,10 +480,13 @@ optimization suite calibrates search; an executable chemical world can clone
 physical identity, intervene on information and authority, preserve failures,
 and sample fresh decision trajectories at low marginal cost.
 
-The present experiments demonstrate three consequences. First, information can
+The present experiments demonstrate four consequences. First, information can
 change actions, endpoint outcome, prediction and claim reliability along
-different axes. Second, autonomous lifecycle completion does not specify how a
-high-performing condition was discovered, retained or recovered. Third,
+different axes. Second, two complete agent systems can close the same matched
+batch lifecycles while allocating terminal assays and discards very differently;
+the apparatus therefore measures experimental policy rather than merely
+interface compliance. Third, autonomous lifecycle completion does not specify
+how a high-performing condition was discovered, retained or recovered. Fourth,
 best-score and terminal-retention contrasts can reverse sign across matched
 fresh sessions. We call this operational directional non-identifiability: within
 the controlled contrast used here, the sign of best-of-campaign improvement
@@ -451,10 +494,11 @@ does not determine the sign of terminal-retention improvement. This is a bounded
 measurement claim, not a population-frequency or formal parameter-
 identifiability claim.
 
-The next scientific use of this apparatus is not simply a larger leaderboard.
-It is a factorial measurement program: randomly sampled worlds, multiple
-mechanism families, multiple agents, controlled evidence access and matched
-resource endowments. Such experiments can estimate world heterogeneity,
+The second agent system supplies an initial interface-portability demonstration,
+not a general agent ranking. The next scientific use of this apparatus is a
+factorial measurement program: randomly sampled worlds, multiple mechanism
+families, multiple complete agent systems, controlled evidence access and
+matched resource endowments. Such experiments can estimate world heterogeneity,
 trajectory variability and intervention response hierarchically, and can test
 whether lifecycle reliability predicts transfer, recovery from misinformation
 or behavior under scarcity.
@@ -567,19 +611,43 @@ others.
 The autonomous electrochemical protocol exposed typed tools for adding reagent
 and solvent, setting potential/current/material profile, electrolyzing,
 measuring, inspecting public status/history, terminating and requesting the
-final assay. Each cell contained six vessel opportunities. The campaign card
+final assay or explicitly discarding a batch. Each cell contained six vessel
+opportunities. The campaign card
 bounded vessels, raw stocks, non-final instrument uses, operation attempts and
-provider sessions. Resource state was stored in an external artifact and exposed
-through compact queries; it was not repeatedly copied into the model context.
+provider decisions. Resource state was stored in an external artifact and
+exposed through compact queries or a bounded public state view; it was not
+repeatedly copied into the model context.
 
 Native Codex used model alias `gpt-5.6-sol` with medium reasoning effort. Each
 vessel used a fresh provider session. The environment accepted only typed tool
-transactions; explanatory prose could not change physical state. A cell was
-complete only when every vessel was terminated and had a committed final assay.
+transactions; explanatory prose could not change physical state. All 60 Codex
+vessels terminated with a committed final assay.
+
+DeepSeek used the exact model identifier `deepseek-v4-flash`. One provider
+decision was requested for each primitive operation, with JSON-object transport
+and local validation against the dynamically available action schema. The
+provider had no shell or MCP authority. A failed structured response could be
+retried up to six times before the corresponding logical decision failed; failed
+receipts and their token accounting remained in the audit. Five world pairs ran
+concurrently, with arms serialized within each physical pair. The formal run
+used 901 provider calls for 889 accepted operations; 12 malformed responses were
+recovered without replacing an observed trajectory. Maximum estimated prompt
+size was 3,996 tokens under a frozen 4,800-token cap.
+
+For the shared cross-system analysis, a batch lifecycle was closed by either a
+committed final assay or an explicit discard. Execution validity required all
+six vessel starts and closures, a reconciled resource ledger, exact transition
+replay and a complete provider-decision or provider-session audit. Task outcome
+was recorded separately from transport validity. The two systems shared all
+physical identity, material, noise, workflow, scoring and resource-card fields
+in each of the ten cells. Their model and decision transports intentionally
+differed, so cross-system results were interpreted as complete-system behavioral
+profiles and not as a causal model-backend contrast.
 
 ## 10.4 Operational trajectory readouts
 
-Let $s_1,\ldots,s_K$ be the final-assay scores in a campaign, with $K=6$, and
+For the Codex development and fresh-session analyses, let
+$s_1,\ldots,s_K$ be the final-assay scores in a campaign, with $K=6$, and
 let $b_t=\max_{j\leq t}s_j$ be the online incumbent.
 
 Within-campaign best-discovery position is the first index of the observed
@@ -694,9 +762,14 @@ and its manifest binds every paper artifact to its SHA-256 identity. The G0
 raw-file index covers 1,441 files across four immutable source roots; the tracked
 world-level summaries and public derived-data object reproduce every main-text
 number, table and figure. The G2 public archive contains compact replayable
-trajectories for all formal cells and for the first-launch infrastructure
-incident. Provider authentication, unrestricted provider responses and hidden
-evaluator identities are excluded from the public package.
+Codex trajectories for all formal replication cells and for the first-launch
+infrastructure incident. A separate self-hashed artifact binds the matched
+Codex/DeepSeek complete-system comparison to both source audit identities and
+reports all ten physical-identity checks. The release additionally contains all
+ten compact DeepSeek trajectories (889 replay-verified primitive operations)
+and a terminal file-level hash index. Provider authentication, unrestricted
+provider responses and hidden evaluator identities are excluded from the public
+package.
 The 17.7-GB G0 raw roots are bound by the public file-level hash index but are not
 included in the repository and have not yet received a durable external archive
 identifier; raw-byte access is therefore not presently available from a permanent
@@ -709,9 +782,10 @@ ChemWorld turns the act of experimentation into a controlled scientific object.
 Its executable worlds allow an agent to choose operations, seek evidence, spend
 resources, experience failure and close experimental lifecycles while physical
 identity remains matched and every consequence remains replayable. The resulting
-evidence separates an endpoint from the process that produced it: task outcome,
-prediction, retention, recovery and fresh-session repeatability form distinct
-readouts. The central message is therefore simple and actionable: **an endpoint
+evidence separates an endpoint from the process that produced it: distinct
+complete agent systems express different assay and discard policies, while task
+outcome, prediction, retention, recovery and fresh-session repeatability remain
+separate readouts. The central message is therefore simple and actionable: **an endpoint
 is a result, not an explanation of experimental agency; the process itself can
 now be measured.**
 
@@ -743,10 +817,12 @@ Arbitrary missing-pair signs & 6--8/8 \\
 
 # Appendix B. Reproducibility artifacts
 
-The paper-data object, sensitivity object and figure manifest are self-hashed.
-All figures are rendered from these frozen objects. The public trajectory archive
-contains 20 formal cells---18 complete and two right-censored---plus the two
-durable first-launch cells. Each compact trajectory passes the repository's
+The paper-data object, sensitivity object, cross-agent-system comparison and
+figure manifest are self-hashed.
+All figures are rendered from these frozen objects. The public trajectory archives
+contain 20 formal Codex replication cells---18 complete and two right-censored---,
+the two durable first-launch cells, and all ten DeepSeek demonstration cells.
+Each compact trajectory passes the repository's
 physical replay verifier. The arXiv bundle includes the exact figure PDFs,
 BibTeX database, generated `main.tex` and source Markdown used to produce the
 submitted PDF. A self-hashed build manifest accompanies the bundle and records

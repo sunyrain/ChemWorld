@@ -414,6 +414,22 @@ def apply_preflight_blockers() -> list[str]:
             "Python package 'markdown' is unavailable; run with "
             "`uv run --extra paper python paper/tools/finalize_arxiv_release.py ...`"
         )
+    tool_candidates = {
+        "pandoc": Path.home() / "AppData/Local/Pandoc/pandoc.exe",
+        "pdflatex": (
+            Path.home()
+            / "AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe"
+        ),
+        "bibtex": (
+            Path.home()
+            / "AppData/Local/Programs/MiKTeX/miktex/bin/x64/bibtex.exe"
+        ),
+    }
+    for name, fallback in tool_candidates.items():
+        if shutil.which(name) is None and not fallback.is_file():
+            blockers.append(
+                f"required release build tool is unavailable: {name}"
+            )
     return blockers
 
 
@@ -498,7 +514,67 @@ def _extract_verified_source_zip(zip_path: Path, destination: Path) -> int:
     return member_count
 
 
-def _verify_isolated_source_build(zip_path: Path) -> dict[str, Any]:
+def _extract_verified_source_tar(tar_path: Path, destination: Path) -> int:
+    member_count = 0
+    destination_root = destination.resolve()
+    with tarfile.open(tar_path, mode="r:gz") as archive:
+        for info in archive.getmembers():
+            member = PurePosixPath(info.name)
+            if (
+                not info.isfile()
+                or member.is_absolute()
+                or ".." in member.parts
+                or "\\" in info.name
+            ):
+                raise RuntimeError(
+                    f"unsafe or unexpected arXiv TAR member: {info.name}"
+                )
+            target = (destination / Path(*member.parts)).resolve()
+            if destination_root not in target.parents:
+                raise RuntimeError(
+                    f"arXiv TAR member escapes extraction root: {info.name}"
+                )
+            extracted = archive.extractfile(info)
+            if extracted is None:
+                raise RuntimeError(f"arXiv TAR member is unreadable: {info.name}")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(extracted.read())
+            member_count += 1
+    return member_count
+
+
+def _archive_member_hashes(path: Path) -> dict[str, str]:
+    hashes: dict[str, str] = {}
+    if path.suffix.lower() == ".zip":
+        with zipfile.ZipFile(path) as archive:
+            rows = [
+                (info.filename, archive.read(info))
+                for info in archive.infolist()
+                if not info.is_dir()
+            ]
+    else:
+        rows = []
+        with tarfile.open(path, mode="r:gz") as archive:
+            for info in archive.getmembers():
+                if not info.isfile():
+                    continue
+                extracted = archive.extractfile(info)
+                if extracted is None:
+                    raise RuntimeError(
+                        f"arXiv TAR member is unreadable: {info.name}"
+                    )
+                rows.append((info.name, extracted.read()))
+    for name, content in rows:
+        member = PurePosixPath(name)
+        if member.is_absolute() or ".." in member.parts or "\\" in name:
+            raise RuntimeError(f"unsafe arXiv source archive member: {name}")
+        if name in hashes:
+            raise RuntimeError(f"duplicate arXiv source archive member: {name}")
+        hashes[name] = hashlib.sha256(content).hexdigest()
+    return dict(sorted(hashes.items()))
+
+
+def _verify_isolated_source_build(source_archive: Path) -> dict[str, Any]:
     pdflatex = shutil.which("pdflatex")
     if pdflatex is None:
         fallback = (
@@ -519,7 +595,11 @@ def _verify_isolated_source_build(zip_path: Path) -> dict[str, Any]:
 
     with tempfile.TemporaryDirectory(prefix="chemworld-arxiv-source-") as temporary:
         directory = Path(temporary)
-        member_count = _extract_verified_source_zip(zip_path, directory)
+        member_count = (
+            _extract_verified_source_zip(source_archive, directory)
+            if source_archive.suffix.lower() == ".zip"
+            else _extract_verified_source_tar(source_archive, directory)
+        )
         environment = os.environ.copy()
         environment["SOURCE_DATE_EPOCH"] = "1785628800"
         environment["FORCE_SOURCE_DATE"] = "1"
@@ -556,9 +636,9 @@ def _verify_isolated_source_build(zip_path: Path) -> dict[str, Any]:
                 "isolated arXiv source compile has unresolved citations or references"
             )
         page_match = re.search(r"Output written on main\.pdf \((\d+) pages?", log)
-        if page_match is None or int(page_match.group(1)) != 11:
+        if page_match is None or int(page_match.group(1)) != 12:
             raise RuntimeError(
-                "isolated arXiv source compile did not produce the expected 11 pages"
+                "isolated arXiv source compile did not produce the expected 12 pages"
             )
         pdf = directory / "main.pdf"
         if not pdf.is_file() or not pdf.read_bytes().startswith(b"%PDF-"):
@@ -597,7 +677,7 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
 
     build_manifest_path = ARXIV_EXPORT / "build-manifest.json"
     build = _verified_self_hashed_manifest(build_manifest_path)
-    if build.get("status") != "compiled_arxiv_release" or build.get("pdf_page_count") != 11:
+    if build.get("status") != "compiled_arxiv_release" or build.get("pdf_page_count") != 12:
         raise RuntimeError("arXiv build manifest has an unexpected status or page count")
     build_file_count = _verify_file_rows(build.get("files"), label="arXiv build manifest")
     pdf = ROOT / build["pdf"]
@@ -605,12 +685,11 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
         raise RuntimeError("arXiv PDF signature is invalid")
     zip_path = ROOT / build["source_zip"]
     tar_path = ROOT / build["source_tar_gz"]
-    with zipfile.ZipFile(zip_path) as archive:
-        zip_members = set(archive.namelist())
-    with tarfile.open(tar_path, mode="r:gz") as archive:
-        tar_members = {member.name for member in archive.getmembers() if member.isfile()}
+    zip_hashes = _archive_member_hashes(zip_path)
+    tar_hashes = _archive_member_hashes(tar_path)
+    zip_members = set(zip_hashes)
     required = {"main.tex", "main.bbl", "manuscript.md", "references.bib"}
-    if zip_members != tar_members or not required <= zip_members:
+    if zip_hashes != tar_hashes or not required <= zip_members:
         raise RuntimeError("arXiv source archives are incomplete or disagree")
     if not all(
         any(
@@ -620,7 +699,11 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
         for number in range(1, 7)
     ):
         raise RuntimeError("arXiv source archive is missing a release figure")
-    isolated_source = _verify_isolated_source_build(zip_path)
+    isolated_source = {
+        "zip": _verify_isolated_source_build(zip_path),
+        "tar_gz": _verify_isolated_source_build(tar_path),
+        "member_hashes_match": True,
+    }
 
     proof = _verified_self_hashed_manifest(PROOF_EXPORT / "publication-proof-manifest.json")
     if proof.get("status") != "publication_ready" or proof.get("publication_ready") is not True:
@@ -682,7 +765,7 @@ def apply_release_metadata(metadata: Mapping[str, Any]) -> dict[str, Any]:
         _atomic_write_json(RELEASE_MANIFEST, ready_manifest)
         _run([sys.executable, str(PROOF_BUILDER)])
         verification = verify_finalized_outputs(metadata)
-    except Exception:
+    except BaseException:
         for path, value in originals.items():
             _atomic_write_text(path, value)
         _restore_generated_files(generated_snapshot)

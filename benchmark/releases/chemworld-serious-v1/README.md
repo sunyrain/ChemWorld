@@ -2,8 +2,8 @@
 
 Status: **P0 paper package complete; durable raw-data deposit pending**
 
-This directory is the evidence entry point for *Executable Chemical Worlds for
-Measuring Experimental Agency*. The release binds the controlled-world apparatus,
+This directory is the evidence entry point for *Executable Chemical Worlds Make
+Experimental Agency Measurable*. The release binds the controlled-world apparatus,
 compiled calibration, autonomous primitive-control campaigns and fresh-session
 replication to immutable evidence objects. It is organized around the paper's
 central measurement claim: experimental success and reproducible experimental
@@ -12,8 +12,10 @@ behavior are distinct observables.
 ## Included
 
 - formal G0 summaries and a deterministic 1,441-file raw-data index;
-- audited G2 v0.4 autonomous development campaigns and the terminal G2 v0.5
+- audited G2 v0.4 autonomous development campaigns, the terminal G2 v0.5
   fresh-session matrix;
+- a matched DeepSeek V4 Flash G2 demonstration with a self-hashed complete-system
+  comparison, terminal file index, and ten-cell exact-replay public archive;
 - a compact, exact-replay public archive for all 20 formal G2 v0.5 cells plus
   both durable trajectories from the excluded first launch;
 - the frozen derived-data object and a self-hashed P0 sensitivity object covering

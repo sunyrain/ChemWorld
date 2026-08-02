@@ -1,4 +1,4 @@
-# Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency: numeric display items
+# Executable Chemical Worlds Make Experimental Agency Measurable: numeric display items
 
 Status: `frozen_complete`.
 Derived-data SHA-256: `94224bb50f382195427fff96c5b80cc134a805fa1f996b71520f98c73f36cdc9`.

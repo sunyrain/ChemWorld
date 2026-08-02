@@ -63,7 +63,7 @@ world population 的平均效应估计。
 
 标题采用：
 
-> **Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency**
+> **Executable Chemical Worlds Make Experimental Agency Measurable**
 
 主文不使用“LLM 胜过 BO”“world law 来自一个分布”或“等待大规模 population
 confirmation”作为中心比赛项目。

@@ -240,7 +240,7 @@ def render(data: Mapping[str, Any]) -> str:
     )
     sections: list[str] = [
         (
-            "# Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency: "
+            "# Executable Chemical Worlds Make Experimental Agency Measurable: "
             "numeric display items"
         ),
         "",

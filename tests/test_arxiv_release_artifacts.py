@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import copy
 import hashlib
+import io
 import json
 import re
 import struct
@@ -145,7 +146,7 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
     declared = manifest.pop("manifest_sha256")
     assert declared == _canonical_sha(manifest)
     assert manifest["status"] == "compiled_arxiv_release"
-    assert manifest["pdf_page_count"] == 11
+    assert manifest["pdf_page_count"] == 12
     for row in manifest["files"]:
         artifact = ROOT / row["path"]
         assert artifact.stat().st_size == row["bytes"]
@@ -189,7 +190,7 @@ def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
 def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     manifest = json.loads((RELEASE / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["paper"]["working_title"] == (
-        "Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency"
+            "Executable Chemical Worlds Make Experimental Agency Measurable"
     )
     if manifest["publication_ready"]:
         assert manifest["status"] == "publication_ready"
@@ -292,3 +293,16 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
         assert "unsafe or unexpected arXiv ZIP member" in str(exc)
     else:
         raise AssertionError("path-traversing arXiv source member was accepted")
+
+    zip_archive = tmp_path / "source.zip"
+    with zipfile.ZipFile(zip_archive, mode="w") as archive:
+        archive.writestr("main.tex", "zip-content")
+    tar_archive = tmp_path / "source.tar.gz"
+    with tarfile.open(tar_archive, mode="w:gz") as archive:
+        content = b"tar-content"
+        info = tarfile.TarInfo("main.tex")
+        info.size = len(content)
+        archive.addfile(info, io.BytesIO(content))
+    assert finalizer._archive_member_hashes(zip_archive) != (
+        finalizer._archive_member_hashes(tar_archive)
+    )

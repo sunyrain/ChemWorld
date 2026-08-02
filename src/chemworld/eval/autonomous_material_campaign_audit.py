@@ -2134,6 +2134,13 @@ def _provider_session_qualification(
     expected_experiments: int,
     allow_incomplete: bool = False,
 ) -> dict[str, Any]:
+    decision_audit = summary.get("provider_decision_audit")
+    if isinstance(decision_audit, Mapping):
+        return _provider_decision_qualification(
+            summary,
+            cell_id=cell_id,
+        )
+
     receipts = summary.get("provider_receipts")
     method_resources = summary.get("method_resources")
     declared_audit = summary.get("provider_session_audit")
@@ -2264,6 +2271,7 @@ def _provider_session_qualification(
         )
     return {
         "verified": True,
+        "qualification_kind": "experiment_session",
         "receipt_count": len(receipts),
         "model_call_count": int(method_resources["model_call_count"]),
         "all_receipts_completed": True,
@@ -2274,6 +2282,142 @@ def _provider_session_qualification(
         "lifecycle_qualified": declared_passed,
         "right_censored": not declared_passed,
         "incomplete_terminal_sessions": incomplete_terminal_sessions,
+    }
+
+
+def _provider_decision_qualification(
+    summary: Mapping[str, Any],
+    *,
+    cell_id: str,
+) -> dict[str, Any]:
+    """Qualify direct providers that make one decision per primitive operation."""
+
+    receipts = summary.get("provider_receipts")
+    method_resources = summary.get("method_resources")
+    declared_audit = summary.get("provider_decision_audit")
+    if not isinstance(receipts, list) or not all(
+        isinstance(item, Mapping) for item in receipts
+    ):
+        raise AutonomousMaterialCampaignAuditError(
+            f"{cell_id}: provider receipts are absent or malformed"
+        )
+    if not isinstance(method_resources, Mapping):
+        raise AutonomousMaterialCampaignAuditError(
+            f"{cell_id}: method resource accounting is absent"
+        )
+    if not isinstance(declared_audit, Mapping):
+        raise AutonomousMaterialCampaignAuditError(
+            f"{cell_id}: provider decision audit is absent"
+        )
+
+    decisions = declared_audit.get("decisions")
+    if not isinstance(decisions, list) or not all(
+        isinstance(item, Mapping) for item in decisions
+    ):
+        raise AutonomousMaterialCampaignAuditError(
+            f"{cell_id}: provider decision rows are absent or malformed"
+        )
+    operation_count_raw = _first_value(
+        (summary,),
+        ("behavior.operation_count", "operation_count"),
+    )
+    if operation_count_raw is None:
+        raise AutonomousMaterialCampaignAuditError(
+            f"{cell_id}: operation count is absent"
+        )
+    operation_count = int(operation_count_raw)
+    logical_indices = [
+        int(receipt.get("logical_decision_index", -1))
+        for receipt in receipts
+    ]
+    grouped_receipt_counts = Counter(logical_indices)
+    expected_indices = list(range(1, operation_count + 1))
+    decision_indices = [
+        int(decision.get("operation_index", -1)) for decision in decisions
+    ]
+    decision_attempt_counts_match = all(
+        int(decision.get("attempt_count", -1))
+        == grouped_receipt_counts[int(decision.get("operation_index", -1))]
+        for decision in decisions
+    )
+    successful_final_attempts = all(
+        bool(decision.get("attempts"))
+        and isinstance(decision["attempts"][-1], Mapping)
+        and decision["attempts"][-1].get("status") == "succeeded"
+        for decision in decisions
+    )
+    method_checks = {
+        "provider_usage_accounting_complete": method_resources.get(
+            "provider_usage_accounting_complete"
+        )
+        is True,
+        "provider_token_accounting_complete": method_resources.get(
+            "provider_token_accounting_complete"
+        )
+        is True,
+        "provider_call_accounting_complete": method_resources.get(
+            "provider_call_accounting_complete"
+        )
+        is True,
+        "model_call_count_matches_receipts": int(
+            method_resources.get("model_call_count", -1)
+        )
+        == len(receipts),
+    }
+    declared_checks = {
+        "passed": declared_audit.get("passed") is True,
+        "all_decisions_passed": declared_audit.get("all_decisions_passed")
+        is True,
+        "all_method_resource_checks_passed": declared_audit.get(
+            "all_method_resource_checks_passed"
+        )
+        is True,
+        "logical_indices_match_operations": declared_audit.get(
+            "logical_indices_match_operations"
+        )
+        is True,
+        "logical_decision_count": int(
+            declared_audit.get("logical_decision_count", -1)
+        )
+        == operation_count,
+        "target_operation_count": int(
+            declared_audit.get("target_operation_count", -1)
+        )
+        == operation_count,
+        "receipt_count": int(declared_audit.get("receipt_count", -1))
+        == len(receipts),
+        "decision_indices": decision_indices == expected_indices,
+        "receipt_indices": sorted(set(logical_indices)) == expected_indices,
+        "decision_attempt_counts": decision_attempt_counts_match,
+        "successful_final_attempts": successful_final_attempts,
+    }
+    if (
+        summary.get("run_status") != "completed"
+        or not all(method_checks.values())
+        or not all(declared_checks.values())
+    ):
+        failed = [
+            key
+            for key, passed in {**method_checks, **declared_checks}.items()
+            if not passed
+        ]
+        raise AutonomousMaterialCampaignAuditError(
+            f"{cell_id}: provider decision qualification failed; failed={failed}"
+        )
+    return {
+        "verified": True,
+        "qualification_kind": "primitive_operation_decision",
+        "receipt_count": len(receipts),
+        "model_call_count": int(method_resources["model_call_count"]),
+        "logical_decision_count": operation_count,
+        "all_receipts_completed": True,
+        "all_usage_accounting_complete": True,
+        "all_lab_tool_integrity_verified_after_session": None,
+        "all_experiment_tool_integrity_verified_after_session": None,
+        "integrity_receipt_fields": [],
+        "lifecycle_qualified": True,
+        "right_censored": False,
+        "incomplete_terminal_sessions": [],
     }
 
 
@@ -2638,7 +2782,13 @@ def _audit_cell(
     cell_id = str(cell.get("cell_id", f"world-{seed}-{arm}"))
     run_dir_raw = _required_value(
         (cell,),
-        ("run_dir", "run_root", "output_dir", "path"),
+        (
+            "run_dir",
+            "run_root",
+            "output_dir",
+            "path",
+            "authoritative_attempt_dir",
+        ),
         label="run_dir",
         cell_id=cell_id,
     )
@@ -3077,10 +3227,15 @@ def _paired_delta(nominal: Mapping[str, Any], opaque: Mapping[str, Any]) -> dict
         ),
         "file_count": "files.total_count",
     }
-    deltas = {
-        name: float(_dig(nominal, path)) - float(_dig(opaque, path))
-        for name, path in scalar_paths.items()
-    }
+    deltas: dict[str, float | None] = {}
+    for name, path in scalar_paths.items():
+        nominal_value = _dig(nominal, path)
+        opaque_value = _dig(opaque, path)
+        deltas[name] = (
+            None
+            if nominal_value is None or opaque_value is None
+            else float(nominal_value) - float(opaque_value)
+        )
     nominal_components = nominal["scores"]["final_assay_score_components"]
     opaque_components = opaque["scores"]["final_assay_score_components"]
     component_names = sorted(
@@ -3161,6 +3316,15 @@ def _trajectory_learning_arm_aggregate(
         and row["previous_final_score"] is not None
     ]
 
+    def observed_mean(field: str) -> float | None:
+        return _mean_or_none(
+            [
+                float(value)
+                for row in discovery_rows
+                if (value := row.get(field)) is not None
+            ]
+        )
+
     def pooled_conversion(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         positive_count = sum(
             row["positive_delta_vs_previous_final"] is True for row in rows
@@ -3190,23 +3354,18 @@ def _trajectory_learning_arm_aggregate(
     return {
         "cell_count": len(cells),
         "retention_fraction": TRAJECTORY_RETENTION_FRACTION,
-        "mean_global_best_discovery_fraction": _mean(
-            [row["global_best_discovery_fraction"] for row in discovery_rows]
+        "mean_global_best_discovery_fraction": observed_mean(
+            "global_best_discovery_fraction"
         ),
-        "mean_incumbent_update_count": _mean(
-            [row["incumbent_update_count"] for row in discovery_rows]
+        "mean_incumbent_update_count": observed_mean(
+            "incumbent_update_count"
         ),
-        "mean_online_retention_rate": _mean(
-            [row["online_retention_rate"] for row in discovery_rows]
+        "mean_online_retention_rate": observed_mean("online_retention_rate"),
+        "mean_maximum_absolute_drawdown": observed_mean(
+            "maximum_absolute_drawdown_from_prior_incumbent"
         ),
-        "mean_maximum_absolute_drawdown": _mean(
-            [
-                row["maximum_absolute_drawdown_from_prior_incumbent"]
-                for row in discovery_rows
-            ]
-        ),
-        "mean_terminal_to_global_best_ratio": _mean(
-            [row["terminal_to_global_best_ratio"] for row in discovery_rows]
+        "mean_terminal_to_global_best_ratio": observed_mean(
+            "terminal_to_global_best_ratio"
         ),
         "loss_episode_count": len(loss_episodes),
         "recovered_loss_episode_count": len(recovered),
@@ -3404,21 +3563,20 @@ def audit_autonomous_material_campaign(
         "material_information_file_read_count",
         "file_count",
     )
-    paired_descriptive = {
-        name: {
+    paired_descriptive: dict[str, Any] = {}
+    for name in paired_metric_names:
+        values = [
+            float(value)
+            for row in pair_rows
+            if (value := row["nominal_minus_opaque"][name]) is not None
+        ]
+        paired_descriptive[name] = {
             "n_pairs": len(pair_rows),
-            "mean_nominal_minus_opaque": _mean(
-                [row["nominal_minus_opaque"][name] for row in pair_rows]
-            ),
-            "minimum": min(
-                float(row["nominal_minus_opaque"][name]) for row in pair_rows
-            ),
-            "maximum": max(
-                float(row["nominal_minus_opaque"][name]) for row in pair_rows
-            ),
+            "n_observed_pairs": len(values),
+            "mean_nominal_minus_opaque": _mean(values) if values else None,
+            "minimum": min(values) if values else None,
+            "maximum": max(values) if values else None,
         }
-        for name in paired_metric_names
-    }
     report: dict[str, Any] = {
         "schema_version": AUTONOMOUS_MATERIAL_CAMPAIGN_AUDIT_VERSION,
         "status": (
@@ -3557,12 +3715,15 @@ def render_autonomous_material_campaign_markdown(
 ) -> str:
     """Render the audited matrix as a compact UTF-8 Chinese Markdown report."""
 
+    def optional(value: Any, spec: str) -> str:
+        return "—" if value is None else format(float(value), spec)
+
     lines = [
         "# 自主逐操作材料信息配对实验审计",
         "",
         (
             "状态: 10 个 cell 均通过物理配对、资源账本重放、轨迹精确重放"
-            "和 Codex 会话完整性审计。"
+            "和 provider 决策/会话完整性审计。"
             if report["matrix"]["all_cells_complete"]
             else "状态: 矩阵未完整完成。"
         ),
@@ -3621,10 +3782,10 @@ def render_autonomous_material_campaign_markdown(
             f"| {cell['world_seed']} | {cell['arm']} | "
             f"{discovery['global_best_first_batch_number']} | "
             f"{discovery['incumbent_update_count']} | "
-            f"{discovery['online_retention_rate']:.0%} | "
+            f"{optional(discovery['online_retention_rate'], '.0%')} | "
             f"{('—' if post_best_retention is None else f'{post_best_retention:.0%}')} | "
-            f"{discovery['maximum_absolute_drawdown_from_prior_incumbent']:.4f} | "
-            f"{discovery['terminal_to_global_best_ratio']:.0%} | "
+            f"{optional(discovery['maximum_absolute_drawdown_from_prior_incumbent'], '.4f')} | "
+            f"{optional(discovery['terminal_to_global_best_ratio'], '.0%')} | "
             f"{discovery['loss_episode_count']}:"
             f"{discovery['recovered_loss_episode_count']}/"
             f"{discovery['unresolved_loss_episode_count']} | "
@@ -3651,10 +3812,10 @@ def render_autonomous_material_campaign_markdown(
         ]
         conversion_rate = conversion["positive_next_final_delta_rate"]
         lines.append(
-            f"| {arm} | {aggregate['mean_global_best_discovery_fraction']:.0%} | "
-            f"{aggregate['mean_online_retention_rate']:.0%} | "
-            f"{aggregate['mean_maximum_absolute_drawdown']:.4f} | "
-            f"{aggregate['mean_terminal_to_global_best_ratio']:.0%} | "
+            f"| {arm} | {optional(aggregate['mean_global_best_discovery_fraction'], '.0%')} | "
+            f"{optional(aggregate['mean_online_retention_rate'], '.0%')} | "
+            f"{optional(aggregate['mean_maximum_absolute_drawdown'], '.4f')} | "
+            f"{optional(aggregate['mean_terminal_to_global_best_ratio'], '.0%')} | "
             f"{aggregate['loss_episode_count']}:"
             f"{aggregate['recovered_loss_episode_count']}/"
             f"{aggregate['unresolved_loss_episode_count']} | "
@@ -3701,13 +3862,13 @@ def render_autonomous_material_campaign_markdown(
         delta = row["nominal_minus_opaque"]
         lines.append(
             f"| {row['world_seed']} | "
-            f"{delta['global_best_discovery_fraction']:+.0%} | "
-            f"{delta['online_incumbent_retention_rate']:+.0%} | "
-            f"{delta['maximum_absolute_incumbent_drawdown']:+.4f} | "
-            f"{delta['terminal_to_global_best_ratio']:+.0%} | "
-            f"{delta['loss_episode_count']:+.0f} | "
-            f"{delta['recovered_loss_episode_count']:+.0f} | "
-            f"{delta['unresolved_loss_episode_count']:+.0f} |"
+            f"{optional(delta['global_best_discovery_fraction'], '+.0%')} | "
+            f"{optional(delta['online_incumbent_retention_rate'], '+.0%')} | "
+            f"{optional(delta['maximum_absolute_incumbent_drawdown'], '+.4f')} | "
+            f"{optional(delta['terminal_to_global_best_ratio'], '+.0%')} | "
+            f"{optional(delta['loss_episode_count'], '+.0f')} | "
+            f"{optional(delta['recovered_loss_episode_count'], '+.0f')} | "
+            f"{optional(delta['unresolved_loss_episode_count'], '+.0f')} |"
         )
     lines.extend(
         [

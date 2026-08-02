@@ -118,4 +118,4 @@ def test_display_legend_order_and_data_card_match_the_arxiv_release() -> None:
     data_card = (ROOT / "benchmark/releases/chemworld-serious-v1/DATA_CARD.md").read_text(
         encoding="utf-8"
     )
-    assert f"an {build_manifest['pdf_page_count']}-page, two-column arXiv PDF" in data_card
+    assert f"{build_manifest['pdf_page_count']}-page, two-column arXiv PDF" in data_card

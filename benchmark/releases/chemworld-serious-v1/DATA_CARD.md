@@ -21,13 +21,20 @@ G1 is a development-only interface diagnostic and is not a scientific layer in t
 | Planned opportunity denominator after terminal audit |  | 29,760 |
 | G2 v0.5 | executed vessels | 114 |
 | G2 v0.5 | completed final assays | 112 |
-| Final project total | executed physical experiments | 29,754 |
-| Final project total | completed experiments/final assays | 29,752 |
+| Pre-parallel-agent total | executed physical experiments | 29,754 |
+| Pre-parallel-agent total | completed experiments/final assays | 29,752 |
+| G2 DeepSeek v0.6 | closed batch lifecycles | 60 |
+| G2 DeepSeek v0.6 | final assays / explicit discards | 24 / 36 |
+| Current full evidence total | executed or closed lifecycles | 29,814 |
+| Current full evidence total | final assays | 29,776 |
 
 An opaque G0 slice occurs in both the v1.0 and v1.2 summaries and is counted only once. Two G2 qualification attempts and the entire first interrupted G2 v0.5 launch are excluded.
 
 The 29,760 figure is a design denominator, not the count of executed or
 completed experiments. Eighteen G2 cells completed and two were right-censored.
+For the DeepSeek v0.6 complete-system demonstration, all 60 started batches
+closed: 24 by final assay and 36 by explicit discard. Closure and final-assay
+counts are therefore reported separately.
 Those cells left six opportunities unstarted and two started vessels without a
 final assay, yielding the distinct final totals above. There are zero pending
 cells and zero unresolved opportunities.
@@ -42,7 +49,9 @@ checks. The terminal package is bound by a 677-file hash index. A paper-sufficie
 public archive contains compact physical-transition trajectories for all 20
 formal cells, plus the completed and partial durable trajectories from the
 excluded first launch. All 22 compact trajectories pass exact physical replay;
-provider response content and hidden evaluator identity are omitted.
+provider response content and hidden evaluator identity are omitted. The
+DeepSeek v0.6 archive separately contains all ten matched demonstration cells
+and 889 replay-verified primitive operations under the same public boundary.
 
 ## Derived-data and figure state
 
@@ -58,7 +67,7 @@ descriptively rather than pooled into a population-level prior-effect test.
 
 ## Paper artifact state
 
-The P0 manuscript is rendered as an 11-page, two-column arXiv PDF with six
+The P0 manuscript is rendered as a 12-page, two-column arXiv PDF with six
 publication figures. The upload bundle includes generated `main.tex`, the
 BibTeX database, `main.bbl`, source Markdown and exact figure PDFs. Its build
 manifest records byte counts and SHA-256 hashes for every submitted artifact.

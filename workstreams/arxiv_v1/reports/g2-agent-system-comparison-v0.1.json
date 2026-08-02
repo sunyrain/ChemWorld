@@ -1,0 +1,216 @@
+{
+  "claim_boundary": {
+    "allowed": "The same executable-world apparatus supports distinct autonomous agent systems and exposes differences in their experimental trajectories, resource allocation, assay commitment and within-system information response.",
+    "descriptive_only": true,
+    "leaderboard_interpretation": false,
+    "n_worlds": 5,
+    "not_allowed": "The design does not isolate a causal model-backend effect because the complete systems also differ in decision transport and scaffold."
+  },
+  "comparison_sha256": "5d534615aa0eb070b1a8ddf7cf123c2548bc8e4c948a98ffe2eafb0b545ef93e",
+  "comparison_unit": "complete agent system on a matched world-by-information cell",
+  "formal_result": false,
+  "physical_matching": {
+    "all_cells_matched": true,
+    "cells": [
+      {
+        "arm": "nominal",
+        "matched": true,
+        "mismatched_fields": [],
+        "world_seed": 0
+      },
+      {
+        "arm": "opaque",
+        "matched": true,
+        "mismatched_fields": [],
+        "world_seed": 0
+      },
+      {
+        "arm": "nominal",
+        "matched": true,
+        "mismatched_fields": [],
+        "world_seed": 1
+      },
+      {
+        "arm": "opaque",
+        "matched": true,
+        "mismatched_fields": [],
+        "world_seed": 1
+      },
+      {
+        "arm": "nominal",
+        "matched": true,
+        "mismatched_fields": [],
+        "world_seed": 2
+      },
+      {
+        "arm": "opaque",
+        "matched": true,
+        "mismatched_fields": [],
+        "world_seed": 2
+      },
+      {
+        "arm": "nominal",
+        "matched": true,
+        "mismatched_fields": [],
+        "world_seed": 3
+      },
+      {
+        "arm": "opaque",
+        "matched": true,
+        "mismatched_fields": [],
+        "world_seed": 3
+      },
+      {
+        "arm": "nominal",
+        "matched": true,
+        "mismatched_fields": [],
+        "world_seed": 4
+      },
+      {
+        "arm": "opaque",
+        "matched": true,
+        "mismatched_fields": [],
+        "world_seed": 4
+      }
+    ],
+    "intentionally_not_matched": [
+      "model_id",
+      "decision_transport",
+      "provider retry behavior",
+      "source code hash",
+      "run configuration hash"
+    ],
+    "matched_cell_count": 10,
+    "matched_fields": [
+      "world_seed",
+      "world_id",
+      "world_family_version",
+      "mechanism_hash",
+      "material_family_id",
+      "material_family_sha256",
+      "material_instance_sha256",
+      "scoring_contract_hash",
+      "workflow_mode",
+      "observation_noise_mode",
+      "observation_noise_namespace",
+      "observation_seed",
+      "resource_card_sha256"
+    ]
+  },
+  "schema_version": "chemworld-g2-agent-system-comparison-0.1",
+  "source_files": {
+    "codex": {
+      "audit_sha256": "bc7495315745272c95fb326b7b50fb509081ad70323354899a233abac6c7b4a9",
+      "file_sha256": "4471f623dfb707873a39ffa6ec44a4376a21598a991edde5ddd8aed12574887e"
+    },
+    "deepseek": {
+      "audit_sha256": "74b08ec6cf318f8fa7739ba133fa3f09d69964d40b3a6279cd82e40b91ba5d6a",
+      "file_sha256": "f4c6f71a02a20b4cbda3db65c01b5c5c16fd5a4edc508a1328190ecfbf9a8e50"
+    }
+  },
+  "status": "completed_audited_two_agent-system_demonstration",
+  "systems": {
+    "codex_sol_medium_mcp": {
+      "arms": {
+        "nominal": {
+          "cell_count": 5,
+          "closed_batch_count": 30,
+          "discarded_batch_count": 0,
+          "final_assay_count": 30,
+          "mean_best_final_score": 0.7092503575335055,
+          "mean_operation_attempt_running_best_auc": 0.5013673167973394,
+          "nonfinal_instrument_use_count": 75,
+          "operation_attempt_count": 402
+        },
+        "opaque": {
+          "cell_count": 5,
+          "closed_batch_count": 30,
+          "discarded_batch_count": 0,
+          "final_assay_count": 30,
+          "mean_best_final_score": 0.6314413829174935,
+          "mean_operation_attempt_running_best_auc": 0.5203748427683009,
+          "nonfinal_instrument_use_count": 89,
+          "operation_attempt_count": 413
+        }
+      },
+      "assay_commitment_fraction": 1.0,
+      "audit_gates_passed": true,
+      "cell_count": 10,
+      "closed_batch_count": 60,
+      "decision_transport": "native Codex MCP session per vessel",
+      "discarded_batch_count": 0,
+      "final_assay_count": 60,
+      "invalid_operation_count": 0,
+      "model_id": "gpt-5.6-sol",
+      "nonfinal_instrument_use_count": 164,
+      "operation_attempt_count": 815,
+      "provider_qualification_kinds": {
+        "legacy_experiment_session": 10
+      },
+      "source_audit_sha256": "bc7495315745272c95fb326b7b50fb509081ad70323354899a233abac6c7b4a9",
+      "system_id": "codex_sol_medium_mcp",
+      "within_system_information_contrast": {
+        "discarded_batch_delta": 0,
+        "estimand": "nominal minus opaque within the same physical world",
+        "final_assay_delta": 0,
+        "mean_best_final_score_delta": 0.07780897461601194,
+        "mean_operation_attempt_auc_delta": -0.019007525970961624,
+        "n_paired_worlds": 5,
+        "nominal_higher_best_world_count": 4,
+        "nonfinal_instrument_use_delta": -14,
+        "operation_attempt_delta": -11
+      }
+    },
+    "deepseek_v4_flash_direct": {
+      "arms": {
+        "nominal": {
+          "cell_count": 5,
+          "closed_batch_count": 30,
+          "discarded_batch_count": 14,
+          "final_assay_count": 16,
+          "mean_best_final_score": 0.3563490997713538,
+          "mean_operation_attempt_running_best_auc": 0.18702460856621111,
+          "nonfinal_instrument_use_count": 90,
+          "operation_attempt_count": 478
+        },
+        "opaque": {
+          "cell_count": 5,
+          "closed_batch_count": 30,
+          "discarded_batch_count": 22,
+          "final_assay_count": 8,
+          "mean_best_final_score": 0.23250374375987373,
+          "mean_operation_attempt_running_best_auc": 0.15088528916426097,
+          "nonfinal_instrument_use_count": 73,
+          "operation_attempt_count": 411
+        }
+      },
+      "assay_commitment_fraction": 0.4,
+      "audit_gates_passed": true,
+      "cell_count": 10,
+      "closed_batch_count": 60,
+      "decision_transport": "direct JSON decision per primitive operation with local dynamic schema validation",
+      "discarded_batch_count": 36,
+      "final_assay_count": 24,
+      "invalid_operation_count": 0,
+      "model_id": "deepseek-v4-flash",
+      "nonfinal_instrument_use_count": 163,
+      "operation_attempt_count": 889,
+      "provider_qualification_kinds": {
+        "primitive_operation_decision": 10
+      },
+      "source_audit_sha256": "74b08ec6cf318f8fa7739ba133fa3f09d69964d40b3a6279cd82e40b91ba5d6a",
+      "system_id": "deepseek_v4_flash_direct",
+      "within_system_information_contrast": {
+        "discarded_batch_delta": -8,
+        "estimand": "nominal minus opaque within the same physical world",
+        "final_assay_delta": 8,
+        "mean_best_final_score_delta": 0.1238453560114801,
+        "mean_operation_attempt_auc_delta": 0.03613931940195009,
+        "n_paired_worlds": 5,
+        "nominal_higher_best_world_count": 4,
+        "nonfinal_instrument_use_delta": 17,
+        "operation_attempt_delta": 67
+      }
+    }
+  }
+}

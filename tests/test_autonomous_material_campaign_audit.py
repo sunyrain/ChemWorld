@@ -535,6 +535,86 @@ def test_audit_validates_and_summarizes_full_paired_matrix(
     assert "鑷" not in markdown
 
 
+def test_audit_accepts_retry_aware_authoritative_attempt_directories(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _build_matrix(tmp_path)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for cell in manifest["cells"]:
+        cell["authoritative_attempt_dir"] = cell.pop("run_dir")
+    _write_json(manifest_path, manifest)
+
+    report = audit_autonomous_material_campaign(manifest_path)
+
+    assert report["matrix"]["cell_count"] == 10
+    assert report["matrix"]["all_cells_complete"] is True
+
+
+def test_direct_provider_decisions_are_qualified_per_primitive_operation() -> None:
+    receipts = [
+        {
+            "logical_decision_index": 1,
+            "status": "failed",
+            "usage_complete": True,
+        },
+        {
+            "logical_decision_index": 1,
+            "status": "succeeded",
+            "usage_complete": True,
+        },
+        {
+            "logical_decision_index": 2,
+            "status": "succeeded",
+            "usage_complete": True,
+        },
+    ]
+    decisions = [
+        {
+            "operation_index": 1,
+            "attempt_count": 2,
+            "attempts": receipts[:2],
+            "passed": True,
+        },
+        {
+            "operation_index": 2,
+            "attempt_count": 1,
+            "attempts": receipts[2:],
+            "passed": True,
+        },
+    ]
+    summary = {
+        "run_status": "completed",
+        "behavior": {"operation_count": 2},
+        "provider_receipts": receipts,
+        "method_resources": {
+            "model_call_count": 3,
+            "provider_usage_accounting_complete": True,
+            "provider_token_accounting_complete": True,
+            "provider_call_accounting_complete": True,
+        },
+        "provider_decision_audit": {
+            "passed": True,
+            "all_decisions_passed": True,
+            "all_method_resource_checks_passed": True,
+            "logical_indices_match_operations": True,
+            "logical_decision_count": 2,
+            "target_operation_count": 2,
+            "receipt_count": 3,
+            "decisions": decisions,
+        },
+    }
+
+    qualified = audit_module._provider_session_qualification(
+        summary,
+        cell_id="direct-cell",
+        expected_experiments=6,
+    )
+
+    assert qualified["verified"] is True
+    assert qualified["qualification_kind"] == "primitive_operation_decision"
+    assert qualified["logical_decision_count"] == 2
+
+
 def _legacy_test_writer_emits_json_and_markdown(tmp_path: Path) -> None:
     manifest = _build_matrix(tmp_path)
     json_path = tmp_path / "audit" / "report.json"
