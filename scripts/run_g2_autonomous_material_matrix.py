@@ -43,6 +43,7 @@ from chemworld.eval.runner import run_agent
 from chemworld.eval.static_optimization_seeds import exploration_observation_seed
 from chemworld.eval.verify import verify_records
 from chemworld.providers.codex_subscription import HTTPS_PROVIDER_ID
+from chemworld.providers.deepseek import DeepSeekClient
 from chemworld.providers.wellau import ReasoningEffort as WellAUReasoningEffort
 from chemworld.providers.wellau import WellAUClient
 from chemworld.tasks import get_task
@@ -1208,7 +1209,7 @@ def _run_cell_light(
     method_limits: Mapping[str, Any],
     qualification: bool,
 ) -> dict[str, Any]:
-    """Run one cell with one direct strict WellAU call per primitive operation."""
+    """Run one cell with one direct strict provider call per primitive operation."""
 
     if cell_root.exists():
         raise FileExistsError(f"refusing to overwrite cell: {cell_root}")
@@ -1275,28 +1276,48 @@ def _run_cell_light(
         )
 
     try:
-        if str(provider_runtime.get("provider_id")) != "wellau":
-            raise ValueError("light G2 execution currently requires provider_id=wellau")
-        env_key = str(provider_runtime.get("provider_env_key") or "WELLAU_API_KEY")
+        provider_id = str(provider_runtime.get("provider_id") or "")
+        if provider_id not in {"deepseek", "wellau"}:
+            raise ValueError("light G2 execution requires provider_id=deepseek or wellau")
+        default_env_key = "DEEPSEEK_API_KEY" if provider_id == "deepseek" else "WELLAU_API_KEY"
+        env_key = str(provider_runtime.get("provider_env_key") or default_env_key)
         api_key = os.environ.get(env_key, "").strip()
         if not api_key:
             raise RuntimeError(f"required provider environment variable is not set: {env_key}")
         task = protocol["task"]
         agent_config = protocol["agent"]
-        reasoning_effort = str(agent_config.get("reasoning_effort", "medium"))
-        if reasoning_effort not in {"medium", "high"}:
-            raise ValueError("WellAU reasoning_effort must be medium or high")
-        client = WellAUClient(
-            api_key=api_key,
-            base_url=str(provider_runtime.get("provider_base_url") or "https://api.wellau.com/v1"),
-            model=str(agent_config["model"]),
-            reasoning_effort=cast(WellAUReasoningEffort, reasoning_effort),
-            timeout_s=float(agent_config.get("provider_timeout_s", 180.0)),
-            max_attempts=int(agent_config.get("provider_max_attempts", 1)),
-        )
+        reasoning_effort = str(agent_config.get("reasoning_effort") or "high")
+        if provider_id == "deepseek":
+            if reasoning_effort not in {"high", "max"}:
+                raise ValueError("DeepSeek reasoning_effort must be high or max")
+            client = DeepSeekClient(
+                api_key=api_key,
+                base_url=str(
+                    provider_runtime.get("provider_base_url") or "https://api.deepseek.com"
+                ),
+                model=str(agent_config["model"]),
+                thinking=bool(agent_config.get("thinking", True)),
+                reasoning_effort=cast(Any, reasoning_effort),
+                strict_tool_calls=True,
+                timeout_s=float(agent_config.get("provider_timeout_s", 180.0)),
+                max_attempts=int(agent_config.get("provider_max_attempts", 1)),
+            )
+        else:
+            if reasoning_effort not in {"medium", "high"}:
+                raise ValueError("WellAU reasoning_effort must be medium or high")
+            client = WellAUClient(
+                api_key=api_key,
+                base_url=str(
+                    provider_runtime.get("provider_base_url") or "https://api.wellau.com/v1"
+                ),
+                model=str(agent_config["model"]),
+                reasoning_effort=cast(WellAUReasoningEffort, reasoning_effort),
+                timeout_s=float(agent_config.get("provider_timeout_s", 180.0)),
+                max_attempts=int(agent_config.get("provider_max_attempts", 1)),
+            )
         agent = StructuredG2Agent(
             client,
-            role_id="g2_autonomous_material_triarm_light_v01",
+            role_id="g2_autonomous_material_direct_operation_v01",
             spectrum_disclosure="assigned",
             response_max_tokens=int(agent_config.get("response_max_tokens", 1800)),
             prompt_token_estimate_cap=int(agent_config.get("prompt_token_estimate_cap", 3200)),
@@ -1365,7 +1386,7 @@ def _run_cell_light(
             "world_seed": int(cell["world_seed"]),
             "seed": int(cell["world_seed"]),
             "condition_id": str(cell["condition_id"]),
-            "arm": str(cell["arm"]),
+            "arm": str(cell.get("arm", cell["condition_id"])),
             "material_information": deepcopy(dict(cell["material_information"])),
             "config_sha256": config["config_sha256"],
             "pair_config_sha256": config["pair_config_sha256"],
@@ -1395,8 +1416,13 @@ def _run_cell_light(
                 "invalid_actions_retained": True,
             },
             "accounting_note": (
-                "WellAU calls and reported tokens are retained exactly; provider pricing "
-                "is unavailable, so billed USD is not inferred."
+                "DeepSeek calls, reported token/cache usage, and the frozen pricing snapshot "
+                "are retained exactly; billed USD is derived only when accounting is complete."
+                if provider_id == "deepseek"
+                else (
+                    "WellAU calls and reported tokens are retained exactly; provider pricing "
+                    "is unavailable, so billed USD is not inferred."
+                )
             ),
         }
         write_json_atomic(summary_path, summary)

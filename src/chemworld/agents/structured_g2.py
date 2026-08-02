@@ -11,7 +11,7 @@ from chemworld.agents.decision_schema import build_decision_output_schema
 from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.live_llm import JsonCompletionLike, LiveLLMAgent
 
-STRUCTURED_G2_PROMPT_CONTRACT_VERSION = "chemworld-structured-g2-operation-0.1"
+STRUCTURED_G2_PROMPT_CONTRACT_VERSION = "chemworld-structured-g2-operation-0.2"
 
 STRUCTURED_G2_SYSTEM_PROMPT = """You are the operation-level experimental agent in ChemWorld.
 Choose exactly one currently legal primitive operation from the compact public decision state.
@@ -21,11 +21,18 @@ operation attempts, vessel starts, stock, and final-assay capacity to close ever
 explicitly choose a legal discard. Material information supplied in the task is public for this
 benchmark condition and must not be replaced with guessed real-world identities.
 
+Closing the requested number of batches is the primary lifecycle obligation: an open batch at the
+operation ceiling has no final assay. For each batch, establish materials and controls, use bounded
+diagnostics and electrolysis, then explicitly terminate and measure with final_assay. Preserve
+enough attempts to repeat that lifecycle for every unopened vessel. Repeating a legal operation
+without a new observation is not by itself evidence that another repetition is valuable.
+
 Return only the JSON object required by the strict output schema. Put every action parameter
 directly beside operation. The host will not repair an invalid action, terminate, discard, or run a
 final assay on your behalf. Do not claim hidden simulator state or provide private chain-of-thought;
 declare only the requested concise expectation, diagnostic target, belief-update rule, uncertainty,
-and action.
+and action. If the transport exposes a single chemworld_decision function, call it exactly once and
+do not answer with plain text; otherwise return the same decision as the required JSON object.
 """
 
 
@@ -81,11 +88,7 @@ class StructuredG2Agent(LiveLLMAgent):
         ).encode("utf-8")
         self._last_output_schema_sha256 = hashlib.sha256(encoded).hexdigest()
         action_schema = schema.get("properties", {}).get("action", {})
-        variants = (
-            action_schema.get("anyOf", [])
-            if isinstance(action_schema, Mapping)
-            else []
-        )
+        variants = action_schema.get("anyOf", []) if isinstance(action_schema, Mapping) else []
         self._last_output_schema_action_variant_count = (
             len(variants) if isinstance(variants, list) else 0
         )

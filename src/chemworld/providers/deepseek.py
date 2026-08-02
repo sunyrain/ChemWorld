@@ -108,6 +108,7 @@ class DeepSeekClient:
         timeout_s: float = 120.0,
         thinking: bool = False,
         reasoning_effort: ReasoningEffort = "max",
+        strict_tool_calls: bool = False,
         max_attempts: int = 3,
         retry_backoff_s: float = 0.25,
         sleep: Callable[[float], None] = time.sleep,
@@ -132,6 +133,9 @@ class DeepSeekClient:
         self.timeout_s = float(timeout_s)
         self.thinking = bool(thinking)
         self.reasoning_effort = reasoning_effort
+        self.strict_tool_calls = bool(strict_tool_calls)
+        if self.strict_tool_calls and not self.base_url.endswith("/beta"):
+            raise ValueError("DeepSeek strict tool calls require a /beta base URL")
         self.max_attempts = int(max_attempts)
         self.retry_backoff_s = float(retry_backoff_s)
         self._sleep = sleep
@@ -255,8 +259,15 @@ class DeepSeekClient:
                     )
                 choice = envelope["choices"][0]
                 message = choice["message"]
-                content = message["content"]
                 finish_reason = _optional_text(choice.get("finish_reason"))
+                if self.strict_tool_calls and resolved_output_schema is not None:
+                    content = _strict_tool_call_arguments(message)
+                    if finish_reason != "tool_calls":
+                        raise ValueError(
+                            "strict structured response did not finish with tool_calls"
+                        )
+                else:
+                    content = message["content"]
                 content_character_count = len(content) if isinstance(content, str) else 0
                 reasoning = message.get("reasoning_content")
                 reasoning_character_count = len(reasoning) if isinstance(reasoning, str) else 0
@@ -339,31 +350,54 @@ class DeepSeekClient:
             if retry
             else ""
         )
+        schema_note = (
+            "\nReturn a JSON object conforming to this schema: "
+            + json.dumps(
+                output_schema,
+                allow_nan=False,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            if output_schema is not None and not self.strict_tool_calls
+            else ""
+        )
         body: dict[str, Any] = {
             "model": self.model,
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt + retry_note},
+                {"role": "user", "content": user_prompt + schema_note + retry_note},
             ],
-            "response_format": (
-                {
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": "chemworld_decision",
-                        "strict": True,
-                        "schema": output_schema,
-                    },
-                }
-                if output_schema is not None
-                else {"type": "json_object"}
-            ),
             "thinking": {"type": "enabled" if self.thinking else "disabled"},
             "stream": False,
             "max_tokens": int(max_tokens),
         }
+        if output_schema is not None and self.strict_tool_calls:
+            body["tools"] = [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "chemworld_decision",
+                        "description": "Submit exactly one validated ChemWorld decision.",
+                        "strict": True,
+                        "parameters": _deepseek_strict_schema(output_schema),
+                    },
+                }
+            ]
+            # DeepSeek thinking mode rejects every explicit tool_choice value.
+            # The system prompt requires this single tool; the response parser
+            # fails closed unless the model calls it exactly once.
+            if not self.thinking:
+                body["tool_choice"] = {
+                    "type": "function",
+                    "function": {"name": "chemworld_decision"},
+                }
+        else:
+            body["response_format"] = {"type": "json_object"}
         if self.thinking:
             body["reasoning_effort"] = self.reasoning_effort
         return body
+
     def _send(self, body: dict[str, Any]) -> tuple[str, str | None]:
         request = urllib.request.Request(
             f"{self.base_url}/chat/completions",
@@ -434,6 +468,46 @@ def _parse_json_content(content: object) -> Any:
     if text.endswith("```"):
         text = text[:-3]
     return json.loads(text.strip())
+
+
+def _strict_tool_call_arguments(message: object) -> str:
+    if not isinstance(message, Mapping):
+        raise TypeError("strict tool response message is not an object")
+    calls = message.get("tool_calls")
+    if not isinstance(calls, list) or len(calls) != 1:
+        raise ValueError("strict tool response must contain exactly one tool call")
+    call = calls[0]
+    if not isinstance(call, Mapping) or call.get("type") != "function":
+        raise TypeError("strict tool response is not a function call")
+    function = call.get("function")
+    if not isinstance(function, Mapping):
+        raise TypeError("strict tool response lacks its function object")
+    if function.get("name") != "chemworld_decision":
+        raise ValueError("strict tool response used an unexpected function")
+    arguments = function.get("arguments")
+    if not isinstance(arguments, str) or not arguments.strip():
+        raise ValueError("strict tool response lacks JSON arguments")
+    return arguments
+
+
+def _deepseek_strict_schema(value: Any) -> Any:
+    """Remove JSON-Schema keywords unsupported by DeepSeek strict tools.
+
+    The full schema remains authoritative in the local decision validator. This
+    transport projection preserves object shape, required fields, enums and
+    numeric bounds while omitting provider-unsupported string/array length hints.
+    """
+
+    unsupported = {"minLength", "maxLength", "minItems", "maxItems"}
+    if isinstance(value, Mapping):
+        return {
+            str(key): _deepseek_strict_schema(item)
+            for key, item in value.items()
+            if key not in unsupported
+        }
+    if isinstance(value, list):
+        return [_deepseek_strict_schema(item) for item in value]
+    return value
 
 
 def _merge_usage(total: dict[str, int], usage: object) -> None:
