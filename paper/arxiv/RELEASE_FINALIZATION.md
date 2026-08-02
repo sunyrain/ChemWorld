@@ -59,7 +59,10 @@ ORCIDs, non-HTTPS archive URLs, an absent operator confirmation, mismatched
 raw-index identity, mismatched byte count, and the absence of exactly one
 corresponding author. It marks the release ready only after the author block and
 archive citation are written, both paper packages rebuild, and the built-in release
-integrity verifier passes. A missing paper-render dependency is rejected before any mutation. If any
+integrity verifier passes. The verifier also extracts the source ZIP into an isolated
+temporary directory and compiles it twice with shell escape disabled, rejecting
+missing files and unresolved citations or references. A missing paper-render dependency
+is rejected before any mutation. If any
 later build or integrity verification fails, the canonical source/status files and all generated
 PDF/source/proof artifacts are restored byte-for-byte, and `publication_ready`
 retains its pre-run value.

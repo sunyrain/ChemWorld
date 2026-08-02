@@ -14,13 +14,16 @@ import copy
 import hashlib
 import importlib.util
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
 import tarfile
+import tempfile
 import zipfile
 from collections.abc import Mapping, Sequence
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import urlparse
 
@@ -470,6 +473,106 @@ def _verify_file_rows(rows: Any, *, label: str) -> int:
     return len(rows)
 
 
+def _extract_verified_source_zip(zip_path: Path, destination: Path) -> int:
+    member_count = 0
+    destination_root = destination.resolve()
+    with zipfile.ZipFile(zip_path) as archive:
+        for info in archive.infolist():
+            member = PurePosixPath(info.filename)
+            if (
+                info.is_dir()
+                or member.is_absolute()
+                or ".." in member.parts
+                or "\\" in info.filename
+            ):
+                raise RuntimeError(f"unsafe or unexpected arXiv ZIP member: {info.filename}")
+            mode = (info.external_attr >> 16) & 0o170000
+            if mode not in (0, 0o100000):
+                raise RuntimeError(f"non-regular arXiv ZIP member: {info.filename}")
+            target = (destination / Path(*member.parts)).resolve()
+            if destination_root not in target.parents:
+                raise RuntimeError(f"arXiv ZIP member escapes extraction root: {info.filename}")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(archive.read(info))
+            member_count += 1
+    return member_count
+
+
+def _verify_isolated_source_build(zip_path: Path) -> dict[str, Any]:
+    pdflatex = shutil.which("pdflatex")
+    if pdflatex is None:
+        fallback = (
+            Path.home()
+            / "AppData"
+            / "Local"
+            / "Programs"
+            / "MiKTeX"
+            / "miktex"
+            / "bin"
+            / "x64"
+            / "pdflatex.exe"
+        )
+        if fallback.is_file():
+            pdflatex = str(fallback)
+    if pdflatex is None:
+        raise RuntimeError("pdflatex is unavailable for isolated source-bundle verification")
+
+    with tempfile.TemporaryDirectory(prefix="chemworld-arxiv-source-") as temporary:
+        directory = Path(temporary)
+        member_count = _extract_verified_source_zip(zip_path, directory)
+        environment = os.environ.copy()
+        environment["SOURCE_DATE_EPOCH"] = "1785628800"
+        environment["FORCE_SOURCE_DATE"] = "1"
+        command = [
+            pdflatex,
+            "-interaction=nonstopmode",
+            "-halt-on-error",
+            "-no-shell-escape",
+            "main.tex",
+        ]
+        for pass_number in (1, 2):
+            completed = subprocess.run(
+                command,
+                cwd=directory,
+                env=environment,
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+            if completed.returncode != 0:
+                tail = "\n".join(completed.stdout.splitlines()[-100:])
+                raise RuntimeError(
+                    f"isolated arXiv source compile pass {pass_number} failed\n{tail}"
+                )
+        log = (directory / "main.log").read_text(encoding="utf-8", errors="replace")
+        unresolved = re.findall(
+            r"(?:Citation .* undefined|Reference .* undefined|undefined references)",
+            log,
+            flags=re.IGNORECASE,
+        )
+        if unresolved:
+            raise RuntimeError(
+                "isolated arXiv source compile has unresolved citations or references"
+            )
+        page_match = re.search(r"Output written on main\.pdf \((\d+) pages?", log)
+        if page_match is None or int(page_match.group(1)) != 11:
+            raise RuntimeError(
+                "isolated arXiv source compile did not produce the expected 11 pages"
+            )
+        pdf = directory / "main.pdf"
+        if not pdf.is_file() or not pdf.read_bytes().startswith(b"%PDF-"):
+            raise RuntimeError("isolated arXiv source compile did not produce a valid PDF")
+        return {
+            "member_count": member_count,
+            "page_count": int(page_match.group(1)),
+            "underfull_warning_count": len(re.findall(r"Underfull \\[hv]box", log)),
+            "overfull_warning_count": len(re.findall(r"Overfull \\[hv]box", log)),
+            "undefined_reference_count": 0,
+            "shell_escape": "disabled",
+        }
+
+
 def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
     release = json.loads(RELEASE_MANIFEST.read_text(encoding="utf-8"))
     if release.get("status") != "publication_ready" or release.get("publication_ready") is not True:
@@ -512,6 +615,7 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
         for number in range(1, 7)
     ):
         raise RuntimeError("arXiv source archive is missing a release figure")
+    isolated_source = _verify_isolated_source_build(zip_path)
 
     proof = _verified_self_hashed_manifest(PROOF_EXPORT / "publication-proof-manifest.json")
     if proof.get("status") != "publication_ready" or proof.get("publication_ready") is not True:
@@ -540,6 +644,7 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
         "arxiv_pdf_pages": build["pdf_page_count"],
         "arxiv_bound_file_count": build_file_count,
         "source_archive_member_count": len(zip_members),
+        "isolated_source_build": isolated_source,
         "publication_proof_output_count": proof_output_count,
     }
 

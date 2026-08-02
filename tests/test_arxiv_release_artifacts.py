@@ -282,3 +282,13 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     finalizer._restore_generated_files(snapshot, (generated,))
     assert original.read_bytes() == b"original-pdf"
     assert not created.exists()
+
+    unsafe_zip = tmp_path / "unsafe-source.zip"
+    with zipfile.ZipFile(unsafe_zip, mode="w") as archive:
+        archive.writestr("../escape.tex", "unsafe")
+    try:
+        finalizer._extract_verified_source_zip(unsafe_zip, tmp_path / "extracted")
+    except RuntimeError as exc:
+        assert "unsafe or unexpected arXiv ZIP member" in str(exc)
+    else:
+        raise AssertionError("path-traversing arXiv source member was accepted")
