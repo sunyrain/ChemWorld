@@ -1,7 +1,7 @@
 # Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency: numeric display items
 
 Status: `frozen_complete`.
-Derived-data SHA-256: `f2f4a88885a021d547cd7552fd20d9a6ab149fd8995b492820e53c5a30a73f33`.
+Derived-data SHA-256: `4a212613c66856895c22c1581a469e33f82ab4d26305a0ca81e25b6b23c531c0`.
 
 Every number in the tables below is rendered from the self-hashed arXiv derived-data
 object. This file is intended for direct inclusion during manuscript typesetting.
