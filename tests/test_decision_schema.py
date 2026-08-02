@@ -133,8 +133,16 @@ def test_builds_closed_discriminated_decision_schema() -> None:
     assert _variant(schema, "terminate")["required"] == ["operation"]
 
     properties = schema["properties"]
-    assert properties["expected_effect"] == {"type": "string"}
-    assert properties["diagnostic_target"] == {"type": "string"}
+    assert properties["expected_effect"] == {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512,
+    }
+    assert properties["diagnostic_target"] == {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512,
+    }
     assert properties["expected_information_gain"] == {
         "type": "number",
         "minimum": 0.0,
@@ -150,9 +158,14 @@ def test_builds_closed_discriminated_decision_schema() -> None:
         "if_not_supported",
     ]
     assert properties["belief_update_rule"]["additionalProperties"] is False
+    assert properties["belief_update_rule"]["properties"]["if_supported"] == {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512,
+    }
     assert properties["request_historical_spectrum_id"] == {
         "anyOf": [
-            {"type": "string"},
+            {"type": "string", "minLength": 1, "maxLength": 256},
             {"type": "null"},
         ]
     }

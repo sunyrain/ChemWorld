@@ -12,6 +12,7 @@ def test_parallel_protocol_freezes_exact_matched_matrix() -> None:
     pairs = campaign._group_pairs(cells)
 
     assert protocol["agent"]["model"] == "deepseek-v4-flash"
+    assert protocol["agent"]["provider_attempt_limit_per_operation"] == 6
     assert len(cells) == 10
     assert len(pairs) == 5
     assert all(len(pair) == 2 for pair in pairs)

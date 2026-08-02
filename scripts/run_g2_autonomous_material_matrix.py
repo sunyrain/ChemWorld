@@ -638,7 +638,8 @@ def _experiment_rows(history: list[HistoryRecord]) -> list[dict[str, Any]]:
 
 def _history_summary(history: list[HistoryRecord]) -> dict[str, Any]:
     experiments = _experiment_rows(history)
-    discarded_batches = [record for record in history if record.event_type == "batch_discard"]
+    completed_experiments = [row for row in experiments if row["outcome"] == "completed"]
+    discarded_experiments = [row for row in experiments if row["outcome"] == "discarded"]
     terminal_scores = [
         float(row["leaderboard_score"])
         for row in experiments
@@ -664,9 +665,9 @@ def _history_summary(history: list[HistoryRecord]) -> dict[str, Any]:
     ]
     return {
         "operation_count": len(history),
-        "complete_experiment_count": len(experiments),
-        "discarded_batch_count": len(discarded_batches),
-        "closed_batch_count": len(experiments) + len(discarded_batches),
+        "complete_experiment_count": len(completed_experiments),
+        "discarded_batch_count": len(discarded_experiments),
+        "closed_batch_count": len(experiments),
         "action_counts": dict(
             sorted(Counter(str(record.action.get("operation")) for record in history).items())
         ),

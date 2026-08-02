@@ -244,7 +244,7 @@ def test_direct_provider_qualification_uses_operation_runner(
     config = (
         matrix.ROOT
         / "configs/benchmark/"
-        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.4_dev.json"
+        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.5_dev.json"
     )
     captured: dict[str, Any] = {}
 
@@ -283,7 +283,7 @@ def test_direct_provider_qualification_budgets_every_transport_attempt() -> None
     config = (
         matrix.ROOT
         / "configs/benchmark/"
-        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.4_dev.json"
+        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.5_dev.json"
     )
     protocol = matrix._load_protocol(config)
 
@@ -294,7 +294,7 @@ def test_direct_provider_qualification_budgets_every_transport_attempt() -> None
     )
 
     assert limits["operation_limit"] == 24
-    assert limits["model_call_limit"] == 72
+    assert limits["model_call_limit"] == 144
 
 
 def test_qualification_experiment_cli_rejects_values_outside_frozen_counts() -> None:
@@ -483,6 +483,33 @@ def test_experiment_summary_reads_electrolyte_from_set_potential() -> None:
     rows = matrix._experiment_rows(history)
 
     assert rows[0]["electrolyte_choices"] == [2]
+
+
+def test_history_summary_counts_discard_as_one_closed_batch() -> None:
+    history = [
+        HistoryRecord(
+            step=1,
+            action={"operation": "discard_batch", "reason": "screened out"},
+            observation={},
+            reward=0.0,
+            info={"transaction_status": "committed"},
+            event_type="batch_discard",
+        ),
+        HistoryRecord(
+            step=2,
+            action={"operation": "measure", "instrument": "final_assay"},
+            observation={},
+            reward=0.5,
+            info={"transaction_status": "committed", "leaderboard_score": 0.5},
+            event_type="experiment_end",
+        ),
+    ]
+
+    summary = matrix._history_summary(history)
+
+    assert summary["complete_experiment_count"] == 1
+    assert summary["discarded_batch_count"] == 1
+    assert summary["closed_batch_count"] == 2
 
 
 def test_provider_session_audit_requires_six_fully_qualified_turns() -> None:

@@ -23,9 +23,9 @@ from chemworld.eval.provenance import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = (
-    ROOT / "configs/benchmark/g2_autonomous_electrochemical_material_5x2_deepseek_v0.4_dev.json"
+    ROOT / "configs/benchmark/g2_autonomous_electrochemical_material_5x2_deepseek_v0.5_dev.json"
 )
-DEFAULT_OUTPUT_ROOT = ROOT / "runs/development/g2-autonomous-material-5x2-deepseek-v4-flash-v4"
+DEFAULT_OUTPUT_ROOT = ROOT / "runs/development/g2-autonomous-material-5x2-deepseek-v4-flash-v5"
 RUNNER_VERSION = "chemworld-g2-deepseek-parallel-matrix-runner-0.1"
 MANIFEST_SCHEMA_VERSION = "chemworld-g2-parallel-agent-matrix-run-0.1"
 
@@ -43,8 +43,8 @@ def _load_protocol(path: Path) -> dict[str, Any]:
     if agent.get("model") != "deepseek-v4-flash":
         raise ValueError("parallel protocol must freeze model=deepseek-v4-flash")
     attempt_limit = int(agent.get("provider_max_attempts", 0))
-    if attempt_limit != 3 or agent.get("provider_attempt_limit_per_operation") != 3:
-        raise ValueError("three fail-closed provider attempts per operation must be frozen")
+    if attempt_limit != 6 or agent.get("provider_attempt_limit_per_operation") != 6:
+        raise ValueError("six fail-closed provider attempts per operation must be frozen")
     operation_limit = int(protocol["campaign_resource_card"]["operation_attempt_limit"])
     if int(protocol["method_resource_limits_per_cell"]["model_call_limit"]) != (
         operation_limit * attempt_limit

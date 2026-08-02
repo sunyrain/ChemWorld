@@ -598,10 +598,16 @@ def _validate_schema_instance(
     elif isinstance(value, int | float) and not isinstance(value, bool):
         minimum = schema.get("minimum")
         maximum = schema.get("maximum")
+        exclusive_minimum = schema.get("exclusiveMinimum")
+        exclusive_maximum = schema.get("exclusiveMaximum")
         if isinstance(minimum, int | float) and value < minimum:
             raise ValueError(f"{path} is below its minimum")
         if isinstance(maximum, int | float) and value > maximum:
             raise ValueError(f"{path} is above its maximum")
+        if isinstance(exclusive_minimum, int | float) and value <= exclusive_minimum:
+            raise ValueError(f"{path} is not above its exclusive minimum")
+        if isinstance(exclusive_maximum, int | float) and value >= exclusive_maximum:
+            raise ValueError(f"{path} is not below its exclusive maximum")
 
 
 def _schema_type_matches(value: Any, expected: str) -> bool:

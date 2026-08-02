@@ -72,8 +72,8 @@ def _build_from_available_actions(
         "type": "object",
         "properties": {
             "action": {"anyOf": variants},
-            "expected_effect": {"type": "string"},
-            "diagnostic_target": {"type": "string"},
+            "expected_effect": {"type": "string", "minLength": 1, "maxLength": 512},
+            "diagnostic_target": {"type": "string", "minLength": 1, "maxLength": 512},
             "expected_information_gain": {
                 "type": "number",
                 "minimum": 0.0,
@@ -82,8 +82,12 @@ def _build_from_available_actions(
             "belief_update_rule": {
                 "type": "object",
                 "properties": {
-                    "if_supported": {"type": "string"},
-                    "if_not_supported": {"type": "string"},
+                    "if_supported": {"type": "string", "minLength": 1, "maxLength": 512},
+                    "if_not_supported": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 512,
+                    },
                 },
                 "required": ["if_supported", "if_not_supported"],
                 "additionalProperties": False,
@@ -95,7 +99,7 @@ def _build_from_available_actions(
             },
             "request_historical_spectrum_id": {
                 "anyOf": [
-                    {"type": "string"},
+                    {"type": "string", "minLength": 1, "maxLength": 256},
                     {"type": "null"},
                 ]
             },
