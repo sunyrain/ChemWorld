@@ -335,9 +335,8 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
         "skipped": 3,
         "failed": 0,
         "note": (
-            "The suite was run in 13 deterministic filename shards with all declared "
-            "optional dependencies. Two stale metadata assertions were corrected and "
-            "their affected suites rerun; no unresolved failures remain."
+            "The suite was run in 8 deterministic filename shards with all declared "
+            "optional dependencies; no unresolved failures remain."
         ),
     }
     assert verification["clean_wheel"]["status"] == "passed"

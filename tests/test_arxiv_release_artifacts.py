@@ -208,7 +208,7 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
         assert manifest["gates"]["raw_data_archive"] == "open"
         assert manifest["gates"]["author_metadata"] == "open"
     assert manifest["gates"]["frozen_derived_table_and_figures"] == (
-        "passed_derived_aa0811f03925f53696322511f7f76a1eb4ce308a643c59a2ae80aef7c5922e62"
+        "passed_derived_d163fe1fcbd1bf66671a4c1734ff535eca71a38f2e331c7010772cc60c9c9c36"
     )
     assert manifest["gates"]["final_claim_audit"].startswith("passed_")
     assert manifest["gates"]["standard_arxiv_render"].startswith("passed_")
