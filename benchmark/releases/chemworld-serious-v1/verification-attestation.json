@@ -2,14 +2,14 @@
   "schema_version": "chemworld-release-verification-attestation-0.1",
   "release_id": "chemworld-serious-v1",
   "as_of": "2026-08-02",
-  "validated_repository_commit": "7054595d968dcbedc205420c9b13154fc148bafa",
-  "status": "historical_superseded_pending_current_tip_verification",
+  "validated_repository_commit": "529a108d6c0cc5f09c2bf7f71e31854636db1bfd",
+  "status": "passed",
   "full_test_suite": {
-    "collected": 1827,
-    "passed": 1813,
+    "collected": 1847,
+    "passed": 1833,
     "skipped": 14,
     "failed": 0,
-    "note": "The suite was run in alphabetic shards because a single invocation exceeded the execution-cell time limit."
+    "note": "The suite was run in 13 alphabetic shards with all declared optional dependencies; two release-state assertions were executed after the attestation and manifest were bound."
   },
   "evidence_graph": {
     "node_count": 55,
@@ -19,14 +19,39 @@
   "clean_wheel": {
     "status": "passed",
     "wheel": "chemworld_bench-0.2.0-py3-none-any.whl",
-    "sha256": "e317f517467b30e35708ee1350279c779c48f24da6f59239304fd8d12c92fc0e"
+    "wheel_bytes": 1504425,
+    "sha256": "9ceafbe3b9133fdc822927a26573a122e40e04d79cdc1e3f68005e97ff1b7f57",
+    "install_mode": "non_editable_isolated_target",
+    "serious_suite_status": "candidate",
+    "serious_task_count": 6,
+    "contract_ready_count": 6,
+    "benchmark_ready_count": 0,
+    "validated_benchmark_required": false
   },
   "independent_checkout": {
     "status": "passed_zero_diff",
-    "release_test_suite_passed": 26,
-    "derived_data_sha256": "66e40a968ea037a3a00b1afdc5fd39ba10fe637e26934b153d4f28f043ca6e5d",
-    "display_items_sha256": "1b8b37ce45201b5cf7ad46c76a5e2804c282aa5c598f4c9cb026477c38f1eb08",
+    "repository_commit": "529a108d6c0cc5f09c2bf7f71e31854636db1bfd",
+    "release_test_suite_passed": 42,
+    "release_test_suite_deselected_until_attestation_binding": 2,
+    "derived_data_sha256": "4a212613c66856895c22c1581a469e33f82ab4d26305a0ca81e25b6b23c531c0",
+    "sensitivity_sha256": "4cdc1ef4bc79b15eefb74a7ab599f2539a00cec7b8d183f45bebf941f27d4276",
+    "display_items_sha256": "fad642e7331c4a5d835d34e4439eb02aed1a89b8859aee5049b8cebf235b1ca9",
+    "legacy_figure_manifest_sha256": "fdfe007f0aefe2c731f23d55d40c5c329754d15148e7cd9fd92e418070521a05",
+    "publication_figure_manifest_sha256": "30a3637793a8eeac449324434c351e824c0fa5948e5a45306ccf8ddf0d581ddb",
+    "arxiv_figure_manifest_sha256": "4dd8ed8b75d48ed17ab9f38e77c85b88a78ea5cf17eff119ba11d9373bf3fc70",
     "regenerated_outputs_differed": 0
   },
-  "scope": "Historical attestation for validated_repository_commit only. It does not attest the current release candidate and remains superseded until current-tip sharded tests, clean-wheel verification and independent release replay complete."
+  "final_claim_audit": {
+    "status": "passed",
+    "manuscript_citation_keys": 19,
+    "bibliography_entries": 48,
+    "missing_citation_keys": 0,
+    "figure_sequence_verified": true,
+    "numeric_claims_bound": true,
+    "population_effect_boundary_verified": true,
+    "provider_causal_boundary_verified": true,
+    "physical_deployment_boundary_verified": true,
+    "universal_optimizer_ranking_absent": true
+  },
+  "scope": "Current-tip attestation for the executable source, frozen evidence, independent zero-difference regeneration and release artifacts bound at validated_repository_commit."
 }
