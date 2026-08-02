@@ -4,6 +4,8 @@ import pytest
 from scripts.smoke_test_wheel import (
     _validate_current_registry_payload,
     _validate_readiness_payload,
+    _wheel_build_command,
+    _wheel_install_command,
 )
 
 
@@ -66,3 +68,28 @@ def test_wheel_smoke_uses_current_registry_claim_boundary() -> None:
     stale = dict(payload, current_registry_schema="chemworld-current-surface-registry-0.3")
     with pytest.raises(RuntimeError, match="claim boundaries"):
         _validate_current_registry_payload(stale)
+
+
+def test_wheel_smoke_prefers_uv_without_requiring_pip(tmp_path) -> None:
+    repository = tmp_path / "repository"
+    wheel_dir = tmp_path / "wheel"
+    install_dir = tmp_path / "install"
+    wheel = wheel_dir / "chemworld_bench-0.2.0-py3-none-any.whl"
+
+    assert _wheel_build_command(repository, wheel_dir, uv_executable="uv") == [
+        "uv",
+        "build",
+        "--wheel",
+        "--out-dir",
+        str(wheel_dir),
+        str(repository),
+    ]
+    assert _wheel_install_command(wheel, install_dir, uv_executable="uv") == [
+        "uv",
+        "pip",
+        "install",
+        "--no-deps",
+        "--target",
+        str(install_dir),
+        str(wheel),
+    ]

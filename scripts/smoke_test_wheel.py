@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -13,6 +15,69 @@ from pathlib import Path
 
 def _run(command: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> None:
     subprocess.run(command, cwd=cwd, env=env, check=True)
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _wheel_build_command(
+    repository_root: Path,
+    wheel_dir: Path,
+    *,
+    uv_executable: str | None,
+) -> list[str]:
+    if uv_executable:
+        return [
+            uv_executable,
+            "build",
+            "--wheel",
+            "--out-dir",
+            str(wheel_dir),
+            str(repository_root),
+        ]
+    return [
+        sys.executable,
+        "-m",
+        "pip",
+        "wheel",
+        str(repository_root),
+        "--no-deps",
+        "--wheel-dir",
+        str(wheel_dir),
+    ]
+
+
+def _wheel_install_command(
+    wheel: Path,
+    install_dir: Path,
+    *,
+    uv_executable: str | None,
+) -> list[str]:
+    if uv_executable:
+        return [
+            uv_executable,
+            "pip",
+            "install",
+            "--no-deps",
+            "--target",
+            str(install_dir),
+            str(wheel),
+        ]
+    return [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--no-deps",
+        "--target",
+        str(install_dir),
+        str(wheel),
+    ]
 
 
 def _validate_readiness_payload(
@@ -77,34 +142,25 @@ def main() -> int:
         install_dir = workspace / "install"
         wheel_dir.mkdir()
         install_dir.mkdir()
+        uv_executable = shutil.which("uv")
 
         _run(
-            [
-                sys.executable,
-                "-m",
-                "pip",
-                "wheel",
-                str(repository_root),
-                "--no-deps",
-                "--wheel-dir",
-                str(wheel_dir),
-            ],
+            _wheel_build_command(
+                repository_root,
+                wheel_dir,
+                uv_executable=uv_executable,
+            ),
             cwd=workspace,
         )
         wheels = sorted(wheel_dir.glob("chemworld_bench-*.whl"))
         if len(wheels) != 1:
             raise RuntimeError(f"Expected exactly one ChemWorld wheel, found {wheels}")
         _run(
-            [
-                sys.executable,
-                "-m",
-                "pip",
-                "install",
-                "--no-deps",
-                "--target",
-                str(install_dir),
-                str(wheels[0]),
-            ],
+            _wheel_install_command(
+                wheels[0],
+                install_dir,
+                uv_executable=uv_executable,
+            ),
             cwd=workspace,
         )
 
@@ -168,7 +224,19 @@ def main() -> int:
                 raise RuntimeError(
                     f"Wheel evaluation surface used a non-packaged config path: {payload}"
                 )
-        print(json.dumps({"wheel_smoke": "passed", **payload}, indent=2, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "wheel_smoke": "passed",
+                    "wheel": wheels[0].name,
+                    "wheel_bytes": wheels[0].stat().st_size,
+                    "wheel_sha256": _sha256(wheels[0]),
+                    **payload,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
     return 0
 
 
