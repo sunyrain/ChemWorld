@@ -303,8 +303,8 @@ def inject_manuscript_metadata(text: str, metadata: Mapping[str, Any]) -> str:
     new_paragraph = (
         f"The indexed 17.7-GB G0 raw roots are publicly archived by "
         f"{provider} under [{identifier}]({archive['url']}). "
-        f"The deposit is bound to the tracked {EXPECTED_RAW_FILE_COUNT:,}-file index by "
-        f"SHA-256 `{EXPECTED_RAW_INDEX_SHA256}` and contains "
+        f"The deposit is bound to the tracked {EXPECTED_RAW_FILE_COUNT:,}-file index recorded "
+        "in the versioned release manifest and contains "
         f"{EXPECTED_RAW_BYTE_COUNT:,} bytes. The tracked world-level summaries and "
         "derived-data object regenerate the paper's reported analyses."
     )
@@ -563,11 +563,16 @@ def _verify_isolated_source_build(zip_path: Path) -> dict[str, Any]:
         pdf = directory / "main.pdf"
         if not pdf.is_file() or not pdf.read_bytes().startswith(b"%PDF-"):
             raise RuntimeError("isolated arXiv source compile did not produce a valid PDF")
+        overfull_warning_count = len(re.findall(r"Overfull \\[hv]box", log))
+        if overfull_warning_count:
+            raise RuntimeError(
+                f"isolated arXiv source compile contains overfull boxes: {overfull_warning_count}"
+            )
         return {
             "member_count": member_count,
             "page_count": int(page_match.group(1)),
             "underfull_warning_count": len(re.findall(r"Underfull \\[hv]box", log)),
-            "overfull_warning_count": len(re.findall(r"Overfull \\[hv]box", log)),
+            "overfull_warning_count": overfull_warning_count,
             "undefined_reference_count": 0,
             "shell_escape": "disabled",
         }
