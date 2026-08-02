@@ -9,10 +9,11 @@ author:
 date: ""
 bibliography: experimental_intelligence_v1_references.bib
 abstract: |
-  A final score is a many-to-one projection of experimentation: it cannot reveal
+  A best-of-campaign score is an incomplete readout of experimentation: by
+  construction it cannot reveal
   whether a scientific agent used evidence, found a condition early and retained
-  it, lost and recovered it, or arrived there only at the end. Yet these processes
-  are routinely treated as observationally equivalent. We introduce ChemWorld, an
+  it, lost and recovered it, or arrived there only at the end. Yet endpoint-only
+  evaluation leaves these processes unresolved. We introduce ChemWorld, an
   executable chemical-world apparatus that makes the process of experimentation
   manipulable and measurable. Agents act through typed state-changing operations,
   choose when and what to measure, spend materials, vessels, instrument uses and
@@ -25,17 +26,17 @@ abstract: |
   task families show that endpoint outcome, held-out prediction, calibration and
   unsupported claims form non-interchangeable readouts. Under primitive control,
   native Codex completed 60 of 60 autonomous electrochemical experiments through
-  815 self-selected operations in five matched worlds. Information changed not
-  only the best score but when conditions were discovered, how strongly incumbents
-  were retained and whether losses were recovered. A commit-frozen fresh-session
-  replication completed eight within-world pairs. Best-score and terminal-to-best
-  contrasts had opposite signs in four of eight pairs and zero terminal contrast
-  in another; their descriptive correlation was -0.120. Across four lifecycle
-  readouts, six of eight world-level directional classifications were mixed, a
+  815 self-selected operations in five matched worlds. Matched information arms
+  differed not only in best score but in when conditions were discovered, how
+  strongly incumbents were retained and whether losses were recovered. A
+  commit-frozen fresh-session replication in two deliberately selected worlds
+  completed eight within-world pairs. Best-score and terminal-to-best contrasts
+  had opposite signs in four of eight pairs. Across four lifecycle readouts, six
+  of eight selected world-by-metric directional classifications were mixed, a
   result unchanged by every possible sign assignment to the two censored pairs.
-  ChemWorld thus exposes an empirical non-identifiability hidden by endpoint
-  evaluation: experimental success does not determine the experimental process
-  that produced it.
+  ChemWorld thus exposes an operational directional non-identifiability hidden
+  by endpoint evaluation: the sign of a best-score contrast does not determine
+  the sign of a lifecycle contrast.
 ---
 
 # 1. Introduction
@@ -73,8 +74,8 @@ reducing performance to one leaderboard value, we can measure lifecycle
 completion, within-campaign best-discovery position, retention of an incumbent,
 drawdown, recovery, terminal quality, prediction and claim reliability. These
 are operational readouts of behavior, not inferred mental states. Their
-non-equivalence is itself a scientific result: the same endpoint can be
-compatible with different experimental histories and capabilities.
+non-equivalence is itself a scientific result: similar endpoint outcomes can
+arise from different experimental histories and capabilities.
 
 We use three evidence layers. First, compiled experiments intervene on material
 information across two task families and separate optimization from prediction,
@@ -82,8 +83,8 @@ calibration and claim reliability. Second, primitive-control campaigns show that
 a general agent can close complete experimental lifecycles under a shared
 resource ledger. Third, fresh trajectories in matched physical worlds reveal
 which behavioral features recur and which vary between sessions. Together they
-establish the paper's central result: **an experimental endpoint is not a
-sufficient statistic for experimental agency**.
+establish the paper's central result: **an experimental endpoint is an
+incomplete readout of experimental agency**.
 
 Our contributions are:
 
@@ -95,9 +96,10 @@ Our contributions are:
 3. controlled information and fresh-session interventions that separate endpoint
    optimization, prediction, claims, discovery, retention, drawdown and recovery;
    and
-4. empirical evidence that endpoint contrasts do not identify lifecycle
-   contrasts, establishing experimentation itself as the object that scientific-
-   agent evaluation must measure.
+4. empirical evidence of operational directional non-identifiability---the sign
+   of a best-of-campaign contrast does not fix the sign of terminal retention---
+   establishing experimentation itself as the object that scientific-agent
+   evaluation must measure.
 
 # 2. Relation to existing systems
 
@@ -216,8 +218,8 @@ Across ten paired worlds, the nominal-information arm produced a mean
 nominal-minus-opaque score difference of 0.072 in electrochemical conversion
 (8/10 positive worlds; 97.5% per-task world-bootstrap interval 0.007 to
 0.155) and 0.026 in reaction-to-crystallization (7/10 positive; interval -0.013
-to 0.063). The two 97.5% intervals provide 95% Bonferroni family coverage for
-the pre-specified two-task analysis. Thus the same information intervention
+to 0.063). The two 97.5% intervals are multiplicity-adjusted descriptive
+stability intervals for the pre-specified two-task analysis. Thus the same information intervention
 produced distinct outcome profiles in the two executable task families
 (Fig. 2A).
 
@@ -242,7 +244,7 @@ substitute for another (Fig. 2D).
 \centering
 \includegraphics[width=\textwidth]{figures/figure-2-compiled-controls.pdf}
 \caption{\textbf{Compiled controls distinguish task outcome, information response and epistemic readouts.}
-\textbf{A,} Paired nominal-minus-opaque score differences across ten worlds per task; squares show means and 97.5\% per-task world-bootstrap intervals, providing 95\% Bonferroni family coverage across the two tasks.
+\textbf{A,} Paired nominal-minus-opaque score differences across ten worlds per task; squares show means and multiplicity-adjusted 97.5\% per-task world-bootstrap stability intervals.
 \textbf{B,} World-level early-to-late misleading-action shares under a deliberately misindexed material prior.
 \textbf{C,} Commit-frozen manipulation, correction, performance-restoration and joint criteria.
 \textbf{D,} Raw task-level endpoint, held-out prediction, calibration and unsupported-claim readouts. Circle area follows the favourable direction within each metric column; the printed number is the raw value.}
@@ -343,8 +345,9 @@ not expose a controllable sampling seed.
 
 Eighteen of 20 cells completed. Two cells were right-censored after 50 and 56
 accepted operations by provider-infrastructure failures, leaving four complete
-pairs in each world. All ten planned pairs remain visible in Fig. 5. The
-pre-specified rule classified a world-by-metric result as directional when at
+pairs in each world. All ten planned pairs remain visible in Fig. 5. The 75%
+classification rule was frozen after launch while endpoint and lifecycle
+outcomes remained uninspected; it classified a world-by-metric result as directional when at
 least three of four available differences shared a sign and the median shared
 that direction.
 
@@ -366,8 +369,8 @@ an exactly zero terminal contrast in another. Their descriptive Pearson
 correlation was $-0.120$. For example, one pair had a best-score contrast of
 $-0.167$ but a terminal-to-best contrast of $+0.486$, whereas another had a
 best-score contrast of $+0.253$ and a terminal-to-best contrast of $-0.060$.
-These are direct instances of endpoint observational equivalence: outcome
-direction does not recover lifecycle direction.
+These are direct instances of endpoint--lifecycle directional discordance:
+best-of-campaign direction does not recover terminal-retention direction.
 
 This result is robust to the two missing pair differences: assigning each
 missing difference an arbitrary positive, negative or zero sign leaves at least
@@ -384,9 +387,9 @@ labels depends on how exact-zero contrasts are treated.
 \begin{figure*}[!tbp]
 \centering
 \includegraphics[width=\textwidth]{figures/figure-5-within-world-replication.pdf}
-\caption{\textbf{Fresh trajectories separate endpoint direction from lifecycle repeatability.}
+\caption{\textbf{Fresh trajectories separate best-of-campaign direction from lifecycle repeatability.}
 \textbf{A,} Each point is one complete fresh-session pair in a fixed physical world. Shaded quadrants mark opposite signs for the best-score and terminal-to-best contrasts; four of eight pairs occupy them, and another has exactly zero terminal contrast. Labels identify trajectory replicate, not shared model randomness.
-\textbf{B,} Directional classifications for four lifecycle readouts. Six of eight are mixed, and at least six remain mixed under every possible sign assignment to the two right-censored pairs.}
+\textbf{B,} Directional classifications for four lifecycle readouts in the two deliberately selected worlds. Six of eight selected world-by-metric cells are mixed under the frozen 75\% rule, and at least six remain mixed under every possible sign assignment to the two right-censored pairs.}
 \label{fig:replication}
 \end{figure*}
 ```
@@ -438,9 +441,11 @@ change actions, endpoint outcome, prediction and claim reliability along
 different axes. Second, autonomous lifecycle completion does not specify how a
 high-performing condition was discovered, retained or recovered. Third,
 best-score and terminal-retention contrasts can reverse sign across matched
-fresh sessions. The apparatus therefore reveals an empirical
-non-identifiability: experimental success does not determine experimental
-behavior.
+fresh sessions. We call this operational directional non-identifiability: within
+the controlled contrast used here, the sign of best-of-campaign improvement
+does not determine the sign of terminal-retention improvement. This is a bounded
+measurement claim, not a population-frequency or formal parameter-
+identifiability claim.
 
 The next scientific use of this apparatus is not simply a larger leaderboard.
 It is a factorial measurement program: randomly sampled worlds, multiple
@@ -513,8 +518,9 @@ report mean and median world differences, positive/negative counts, exact sign
 summaries,
 leave-one-world-out mean ranges and 100,000-draw, commit-frozen percentile
 world-bootstrap intervals as finite-world stability summaries. A 97.5% interval
-is reported for each task, giving 95% Bonferroni family coverage across the two
-pre-specified tasks.
+is reported for each task as a multiplicity-adjusted descriptive stability
+interval across the two pre-specified tasks; no world-superpopulation coverage
+claim is made.
 
 The information-matched classical suite comprised uniform random search, Latin
 hypercube sampling, local greedy perturbation, Gaussian-process expected
@@ -608,7 +614,8 @@ made the cell terminal and right-censored. Completed and right-censored cells in
 the authoritative launch were not replaced. Pair differences were computed only
 when both arms completed; no missing outcome was imputed.
 
-For each world and metric, the primary descriptive rule classified a direction
+For each world and metric, the primary descriptive rule---frozen after launch
+while endpoint and lifecycle outcomes remained uninspected---classified a direction
 when at least 75% of available differences shared a sign and the median shared
 that direction. With four complete pairs this is a three-of-four rule.
 Otherwise the result was mixed. The four primary lifecycle metrics were
@@ -646,7 +653,17 @@ terminal contrasts and a smaller drawdown. This direction is compatible with,
 and not required for, the primary conclusion that at least six lifecycle
 classifications remain mixed.
 
-## 10.8 Provenance, public boundary and replay
+## 10.8 Scope-stopped multiworld extension
+
+After the primary replication, a prospective 16-world extension was launched to
+estimate broader heterogeneity. The owner stopped it as a scope decision after
+three complete pairs and one right-censored cell, without inspecting any
+complete-pair scores or arm contrasts. The parent matrix was incomplete, all
+partial trajectories were retained, and none of its outcomes enters the present
+estimand, figures or inferential language. This extension is an execution record
+for future multiworld work, not an additional result of this paper.
+
+## 10.9 Provenance, public boundary and replay
 
 Source, configuration, world, material, observation and trajectory identities
 are SHA-256 bound. The evaluator trajectory contains hidden physical identity;

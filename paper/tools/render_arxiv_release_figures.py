@@ -714,7 +714,7 @@ def figure_5(
         gridspec_kw={"width_ratios": (1.28, 1.0), "wspace": 0.42},
     )
 
-    _panel(ax, "A", "Endpoint direction does not identify terminal retention")
+    _panel(ax, "A", "Best-score direction does not fix terminal retention")
     x_limit = 0.43
     y_limit = 0.55
     for origin, width, height in (
@@ -754,7 +754,7 @@ def figure_5(
     ax.axvline(0, color=MUTED, lw=0.8)
     ax.set_xlim(-x_limit, x_limit)
     ax.set_ylim(-y_limit, y_limit)
-    ax.set_xlabel("nominal - opaque best-score contrast")
+    ax.set_xlabel("nominal - opaque best-of-campaign contrast")
     ax.set_ylabel("nominal - opaque terminal / best contrast")
     ax.grid(color=GRID, lw=0.45, zorder=0)
     correlation = float(np.corrcoef(np.asarray(endpoints), np.asarray(terminals))[0, 1])
@@ -779,7 +779,7 @@ def figure_5(
         ncol=2,
     )
 
-    _panel(bx, "B", "Lifecycle direction is usually not session-stable")
+    _panel(bx, "B", "Six of eight selected cells are mixed")
     metric_specs = [
         ("global_best_discovery_fraction", "earlier\ndiscovery", -1),
         ("online_incumbent_retention_rate", "retention", 1),

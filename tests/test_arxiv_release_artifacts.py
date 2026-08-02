@@ -127,7 +127,7 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
 
 def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
     tex = (ARXIV / "main.tex").read_text(encoding="utf-8")
-    assert "\\begin{abstract}\nA final score is a many-to-one projection" in tex
+    assert "\\begin{abstract}\nA best-of-campaign score is an incomplete readout" in tex
     assert "\\subsection{Abstract}" not in tex
     assert "\\section{1. Introduction}" in tex
     assert "\\section{12. Conclusion}" in tex

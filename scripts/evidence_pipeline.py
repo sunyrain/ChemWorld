@@ -2001,7 +2001,7 @@ def _write_current_registry() -> None:
             "g2-v0.5-remaining-experiment-audit-live-v0.1.json"
         ),
         "scope": "experimental_intelligence_in_executable_chemical_worlds",
-        "new_scientific_experiments_required_for_first_arxiv": True,
+        "new_scientific_experiments_required_for_first_arxiv": False,
         "required_new_scientific_matrix": {
             "protocol_id": (
                 "g2-electrochemical-autonomous-material-information-"
@@ -2009,9 +2009,12 @@ def _write_current_registry() -> None:
             ),
             "planned_cells": 20,
             "planned_vessel_opportunities": 120,
-            "status": "running",
+            "completed_cells": 18,
+            "right_censored_cells": 2,
+            "completed_pairs": 8,
+            "status": "completed_audited_with_right_censoring",
         },
-        "stronger_claim_experiments_pending": True,
+        "stronger_claim_experiments_pending": False,
         "publication_ready": False,
     }
     blockers: list[dict[str, Any]] = []
@@ -2498,13 +2501,23 @@ def check_current_evidence() -> list[str]:
         "experimental_intelligence_in_executable_chemical_worlds"
     ):
         errors.append("current registry first-arXiv scope is inconsistent")
-    if publication.get("new_scientific_experiments_required_for_first_arxiv") is not True:
-        errors.append("current registry hides the required first-arXiv experiment matrix")
+    if publication.get("new_scientific_experiments_required_for_first_arxiv") is not False:
+        errors.append("current registry incorrectly marks first-arXiv experiments as pending")
     required_matrix = publication.get("required_new_scientific_matrix", {})
     if required_matrix.get("planned_cells") != 20:
         errors.append("current registry first-arXiv cell count is inconsistent")
     if required_matrix.get("planned_vessel_opportunities") != 120:
         errors.append("current registry first-arXiv opportunity count is inconsistent")
+    if required_matrix.get("completed_cells") != 18:
+        errors.append("current registry first-arXiv completed-cell count is inconsistent")
+    if required_matrix.get("right_censored_cells") != 2:
+        errors.append("current registry first-arXiv censoring count is inconsistent")
+    if required_matrix.get("completed_pairs") != 8:
+        errors.append("current registry first-arXiv completed-pair count is inconsistent")
+    if required_matrix.get("status") != "completed_audited_with_right_censoring":
+        errors.append("current registry first-arXiv matrix status is inconsistent")
+    if publication.get("stronger_claim_experiments_pending") is not False:
+        errors.append("current registry incorrectly requires stronger-claim experiments")
     if publication.get("publication_ready") is not False:
         errors.append("current registry publication state is inconsistent")
     return errors

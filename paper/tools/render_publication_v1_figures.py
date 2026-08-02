@@ -124,7 +124,10 @@ def _save(fig: plt.Figure, output_dir: Path, stem: str) -> list[Path]:
         pad_inches=0.04,
         metadata={"Date": None, "Creator": "ChemWorld publication figure pipeline"},
     )
-    svg.write_text(svg.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
+    normalized_svg = "\n".join(
+        line.rstrip() for line in svg.read_text(encoding="utf-8").splitlines()
+    )
+    svg.write_text(normalized_svg + "\n", encoding="utf-8", newline="\n")
     fig.savefig(
         png,
         bbox_inches="tight",

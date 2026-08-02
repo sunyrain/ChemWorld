@@ -182,7 +182,7 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert publication["scope"] == (
         "experimental_intelligence_in_executable_chemical_worlds"
     )
-    assert publication["new_scientific_experiments_required_for_first_arxiv"] is True
+    assert publication["new_scientific_experiments_required_for_first_arxiv"] is False
     assert publication["required_new_scientific_matrix"]["planned_cells"] == 20
     assert (
         publication["required_new_scientific_matrix"][
@@ -190,7 +190,12 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
         ]
         == 120
     )
-    assert current["publication"]["stronger_claim_experiments_pending"] is True
+    matrix = publication["required_new_scientific_matrix"]
+    assert matrix["completed_cells"] == 18
+    assert matrix["right_censored_cells"] == 2
+    assert matrix["completed_pairs"] == 8
+    assert matrix["status"] == "completed_audited_with_right_censoring"
+    assert current["publication"]["stronger_claim_experiments_pending"] is False
 
 
 def test_generated_evidence_paths_do_not_make_source_tree_dirty() -> None:
