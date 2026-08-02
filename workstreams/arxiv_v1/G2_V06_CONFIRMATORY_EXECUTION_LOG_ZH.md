@@ -18,3 +18,15 @@
 - 推断边界：执行本身仍完全遵循冻结方案，主推断仍只在全部 cell 终态后对完整 pair
   运行预注册分析；最终工件不再表述为“分析者全程未见任何单臂局部分数”，而准确记录
   此次不改变决策的监控偏差。
+
+## `owner-stop-001`：按第一版概念论文范围停止扩展矩阵
+
+- 停止时间：2026-08-02 14:37（Asia/Shanghai）。
+- 决策：第一版论文以既有五 world 自主实验作为主要 G2 能力与现象证据，不再为
+  16-world 总体确证矩阵继续消耗 provider 资源。
+- 决策依据：论文范围与资源配置；停止前没有查看任何完整 pair 的分数或 arm contrast。
+- 停止时正式 manifest：7 completed cells、1 right-censored cell、3 complete pair audits、
+  152 pending cells。第二个 time block 的 `cell-009/011/013/015` 在运行中被终止，
+  其目录原样保留，不覆盖、不补跑、不纳入正式推断。
+- 数据定位：该矩阵只作为扩展性和执行记录，不表述为完成的 prospective confirmation。
+  运行根目录写入 `OWNER_STOP.json`；除非先做专门的 partial-cell 审计，否则禁止 resume。

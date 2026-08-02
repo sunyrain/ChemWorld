@@ -9,34 +9,33 @@ author:
 date: ""
 bibliography: experimental_intelligence_v1_references.bib
 abstract: |
-  A successful experiment does not by itself show how an artificial-intelligence
-  agent arrived there, whether it used intermediate evidence, whether it retained
-  the discovered condition, or whether the same behavior would recur. Existing
-  evaluations usually observe either an endpoint prediction, an optimized
-  condition, or physical execution in a single laboratory system. We introduce
-  ChemWorld, an executable chemical-world apparatus that makes the process of
-  experimentation measurable. Agents act through typed, state-changing operations;
-  choose when and what to measure; spend materials, vessels, instrument uses and
-  operations from a campaign ledger; encounter explicit failures; and decide when
-  to terminate and request a final assay. Hidden physical identity, material
-  information and fresh agent trajectories can be controlled independently, while
-  every accepted transition is identity-bound and physically replayable.
+  A final score is a many-to-one projection of experimentation: it cannot reveal
+  whether a scientific agent used evidence, found a condition early and retained
+  it, lost and recovered it, or arrived there only at the end. Yet these processes
+  are routinely treated as observationally equivalent. We introduce ChemWorld, an
+  executable chemical-world apparatus that makes the process of experimentation
+  manipulable and measurable. Agents act through typed state-changing operations,
+  choose when and what to measure, spend materials, vessels, instrument uses and
+  operations from a campaign ledger, encounter explicit failures, and decide when
+  to terminate and request a final assay. Physical identity, material information
+  and fresh decision trajectories can be controlled independently, while every
+  accepted transition is identity-bound and exactly replayable.
 
-  Compiled controls comprising 29,580 simulator executions, organized around ten
-  paired physical worlds per task and information arm, show that task outcome,
-  held-out prediction, calibration and unsupported claims are non-interchangeable
-  readouts. Under primitive control, native Codex completed 60 of 60 autonomous
-  electrochemical experiments through 815 self-selected operations. Similar
-  endpoints arose through visibly different sequences of discovery, loss,
-  retention and recovery. A commit-frozen fresh-session replication then completed
-  18 of 20 cells; two cells were right-censored by provider-infrastructure failure,
-  leaving eight complete within-world pairs. Six of eight pre-specified
-  world-by-lifecycle classifications were mixed, and at least six remained mixed
-  under every possible sign of the two missing pair differences. The result was
-  also stable across 80%, 90% and 95% retention definitions. ChemWorld therefore
-  turns experimental agency from an endpoint score into a controlled object of
-  study: experimental success can be distinguished from reproducible experimental
-  behavior.
+  Compiled controls comprising 29,580 simulator executions across two chemical
+  task families show that endpoint outcome, held-out prediction, calibration and
+  unsupported claims form non-interchangeable readouts. Under primitive control,
+  native Codex completed 60 of 60 autonomous electrochemical experiments through
+  815 self-selected operations in five matched worlds. Information changed not
+  only the best score but when conditions were discovered, how strongly incumbents
+  were retained and whether losses were recovered. A commit-frozen fresh-session
+  replication completed eight within-world pairs. Best-score and terminal-to-best
+  contrasts had opposite signs in four of eight pairs and zero terminal contrast
+  in another; their descriptive correlation was -0.120. Across four lifecycle
+  readouts, six of eight world-level directional classifications were mixed, a
+  result unchanged by every possible sign assignment to the two censored pairs.
+  ChemWorld thus exposes an empirical non-identifiability hidden by endpoint
+  evaluation: experimental success does not determine the experimental process
+  that produced it.
 ---
 
 # 1. Introduction
@@ -73,17 +72,18 @@ This apparatus changes what can be asked of a scientific agent. Instead of
 reducing performance to one leaderboard value, we can measure lifecycle
 completion, within-campaign best-discovery position, retention of an incumbent,
 drawdown, recovery, terminal quality, prediction and claim reliability. These
-are operational readouts of behavior, not inferred mental states, and they need
-not move together.
+are operational readouts of behavior, not inferred mental states. Their
+non-equivalence is itself a scientific result: the same endpoint can be
+compatible with different experimental histories and capabilities.
 
-We use three evidence layers. First, compiled experiments provide a
-low-authority calibration in two task families and show that information changes
-actions and outcomes in task-dependent ways. Second, primitive-control campaigns
-show that a general agent can close complete experimental lifecycles under a
-resource ledger. Third, fresh trajectories in matched physical worlds test
-whether an observed information response reappears. Together they establish the
-paper's central result: **an experimental endpoint is insufficient evidence for
-a reproducible experimental strategy**.
+We use three evidence layers. First, compiled experiments intervene on material
+information across two task families and separate optimization from prediction,
+calibration and claim reliability. Second, primitive-control campaigns show that
+a general agent can close complete experimental lifecycles under a shared
+resource ledger. Third, fresh trajectories in matched physical worlds reveal
+which behavioral features recur and which vary between sessions. Together they
+establish the paper's central result: **an experimental endpoint is not a
+sufficient statistic for experimental agency**.
 
 Our contributions are:
 
@@ -92,10 +92,12 @@ Our contributions are:
    physical replay;
 2. a primitive-control protocol in which the agent---rather than a fixed
    recipe---chooses operations, observations and lifecycle termination;
-3. trajectory-level measures that separate discovery, retention, drawdown,
-   recovery and terminal behavior; and
-4. a matched-world fresh-session design showing how to test the repeatability of
-   an agent's experimental behavior rather than only its endpoint.
+3. controlled information and fresh-session interventions that separate endpoint
+   optimization, prediction, claims, discovery, retention, drawdown and recovery;
+   and
+4. empirical evidence that endpoint contrasts do not identify lifecycle
+   contrasts, establishing experimentation itself as the object that scientific-
+   agent evaluation must measure.
 
 # 2. Relation to existing systems
 
@@ -324,8 +326,11 @@ later within-campaign best discovery on average (0.80 versus 0.32 of the
 six-assay horizon), together with higher retention (0.72 versus 0.52), smaller
 mean maximum drawdown (0.092 versus 0.333), greater pooled recovery (0.80 versus
 0.50) and higher terminal-to-best ratio (0.941 versus 0.671). Because each arm
-contains one session per development world, these values define hypotheses for
-fresh-session replication rather than a population effect.
+contains one session per development world, these values describe the five
+matched demonstration worlds. More importantly for the measurement question,
+the nominal-minus-opaque best-score and terminal-to-best contrasts had opposite
+signs in two of the five worlds. The endpoint therefore did not identify even
+the direction of terminal retention within this controlled set.
 
 # 7. Fresh sessions test within-world repeatability
 
@@ -354,6 +359,16 @@ while discovery and retention were mixed. World 3 was mixed for all five
 displayed readouts. Across the four pre-specified lifecycle metrics, six of
 eight world-by-metric classifications were mixed.
 
+The separation is also visible without a directional-classification rule.
+Across the eight complete fresh-session pairs, the nominal-minus-opaque
+best-score and terminal-to-best contrasts had opposite signs in four pairs and
+an exactly zero terminal contrast in another. Their descriptive Pearson
+correlation was $-0.120$. For example, one pair had a best-score contrast of
+$-0.167$ but a terminal-to-best contrast of $+0.486$, whereas another had a
+best-score contrast of $+0.253$ and a terminal-to-best contrast of $-0.060$.
+These are direct instances of endpoint observational equivalence: outcome
+direction does not recover lifecycle direction.
+
 This result is robust to the two missing pair differences: assigning each
 missing difference an arbitrary positive, negative or zero sign leaves at least
 six of eight lifecycle classifications mixed. At the 90% retention definition,
@@ -370,15 +385,17 @@ labels depends on how exact-zero contrasts are treated.
 \centering
 \includegraphics[width=\textwidth]{figures/figure-5-within-world-replication.pdf}
 \caption{\textbf{Fresh trajectories separate endpoint direction from lifecycle repeatability.}
-Each point is the nominal-minus-opaque difference for a fresh session-level pair in a fixed physical world. Discovery position and drawdown are sign-flipped so that positive values consistently favour the nominal arm. All panels share one numerical scale. Right-censored pairs are marked outside the value axis as RC and are not imputed. At least six of eight core world-by-lifecycle classifications remain mixed under every possible sign of the missing pair differences.}
+\textbf{A,} Each point is one complete fresh-session pair in a fixed physical world. Shaded quadrants mark opposite signs for the best-score and terminal-to-best contrasts; four of eight pairs occupy them, and another has exactly zero terminal contrast. Labels identify trajectory replicate, not shared model randomness.
+\textbf{B,} Directional classifications for four lifecycle readouts. Six of eight are mixed, and at least six remain mixed under every possible sign assignment to the two right-censored pairs.}
 \label{fig:replication}
 \end{figure*}
 ```
 
-The empirical statement is deliberately precise: the opposing development
-phenotypes did not become stable directional lifecycle contrasts across the
-available fresh sessions in these two physical worlds. That observation is
-exactly what matched executable worlds make visible and testable.
+The fresh sessions therefore expose two forms of information that an endpoint
+cannot contain: trajectory-to-trajectory variation within a fixed physical
+world, and pair-level reversals between outcome and lifecycle direction. Both
+become directly observable only because world identity, observation stream,
+resource card and action authority remain controlled.
 
 # 8. Experimental agency is a profile, not a scalar
 
@@ -417,12 +434,13 @@ physical identity, intervene on information and authority, preserve failures,
 and sample fresh decision trajectories at low marginal cost.
 
 The present experiments demonstrate three consequences. First, information can
-change actions without producing a uniform task-independent endpoint effect.
-Second, autonomous lifecycle completion does not specify how a high-performing
-condition was discovered, retained or recovered. Third, a directional endpoint
-contrast can coexist with mixed lifecycle contrasts across fresh sessions. The
-apparatus therefore distinguishes experimental success from reproducible
-experimental behavior.
+change actions, endpoint outcome, prediction and claim reliability along
+different axes. Second, autonomous lifecycle completion does not specify how a
+high-performing condition was discovered, retained or recovered. Third,
+best-score and terminal-retention contrasts can reverse sign across matched
+fresh sessions. The apparatus therefore reveals an empirical
+non-identifiability: experimental success does not determine experimental
+behavior.
 
 The next scientific use of this apparatus is not simply a larger leaderboard.
 It is a factorial measurement program: randomly sampled worlds, multiple
@@ -576,7 +594,7 @@ These are operational trajectory readouts. “Discovery” refers to discovery o
 the best condition observed within that campaign, not identification of the
 global optimum of the hidden world.
 
-## 10.5 Development replication and metric qualification
+## 10.5 Fresh-session replication
 
 The replication crossed physical world seeds 1 and 3, trajectory replicates
 `r01`--`r05`, and opaque/nominal information conditions. Worlds were selected
@@ -597,64 +615,7 @@ Otherwise the result was mixed. The four primary lifecycle metrics were
 best-discovery position, online retention, maximum absolute drawdown and
 terminal-to-best ratio; best and mean scores were endpoint diagnostics.
 
-## 10.6 Prospective multi-world endpoint--lifecycle confirmation
-
-The development replication was used to select the confirmatory question,
-metrics, substantive margin and sample size, and none of its worlds or
-trajectories enter the confirmatory estimand. Before the first confirmatory
-provider call, all candidate worlds 10--49 were checked only for dual-arm
-instantiation, finite bound scoring/runtime contracts, matched physical and
-keyed-observation identities, and availability of the six-vessel lifecycle.
-All 40 qualified. Sixteen worlds were selected by ascending
-SHA-256 rank under a frozen salt; this outcome-blind rule selected seeds 24, 39,
-17, 10, 34, 35, 46, 23, 15, 26, 49, 28, 43, 31, 13 and 36. Development seeds
-0--9 were ineligible.
-
-The design crosses 16 physical worlds, five fresh trajectory replicates and two
-material-information arms, yielding 80 within-world fresh-session pairs and 160
-campaign cells. Each cell gives the agent six vessels and a single shared
-campaign ledger: 0.48 mol reagent, 0.96 L solvent, six vessel starts, six final
-assays, 18 non-final instrument uses and 144 submitted primitive-operation
-attempts. This corresponds to 960 autonomous experiments and a ceiling of
-23,040 primitive operations. Pair order, arm order and time block were frozen;
-up to four pairs execute concurrently, with arms adjacent within a worker and a
-barrier between time blocks. Scores and arm contrasts are not inspected until
-all planned cells are terminal.
-
-For world $w$ and fresh-session pair $r$, let
-$E_{wr}$ be the nominal-minus-opaque difference in best final-assay score and
-$L_{wr}$ the corresponding difference in terminal-to-global-best ratio. The
-pre-specified random-intercept model is
-
-```{=latex}
-\[
-L_{wr}=\alpha+\beta E_{wr}+\gamma_{b(wr)}+u_w+\epsilon_{wr},
-\qquad u_w\sim\mathcal N(0,\tau^2),\quad
-\epsilon_{wr}\sim\mathcal N(0,\sigma^2).
-\]
-```
-
-Parameters are estimated by restricted maximum likelihood. The primary
-estimand is the endpoint-adjusted residual standard deviation
-$\sigma_{\mathrm{unexplained}}$. Confirmation requires both the frozen coverage
-gate---at least 64 of 80 complete pairs and at least ten worlds with three
-complete pairs---and a one-sided 95% profile-likelihood lower bound for
-$\sigma_{\mathrm{unexplained}}$ greater than 0.15 terminal-to-best units. The
-pre-run 20,000-draw power simulation gave 0.862 success probability under
-$\sigma_{\mathrm{unexplained}}=0.20$ with exactly 20% pair loss. Secondary
-readouts include the endpoint slope, leave-one-world-out prediction $R^2$, the
-mean information effect, world-level heterogeneity and Holm-adjusted additional
-lifecycle metrics.
-
-A provider-infrastructure failure before any accepted operation may create up
-to three immutable attempts. A failure after an accepted operation permanently
-right-censors the cell; completed or censored cells cannot be replaced or
-rerun. Analysis uses complete pairs and reports censoring by arm, world, time
-block and accepted-operation count. Protocol, world qualification, complete
-schedule, power report, analysis plan, implementation and tests were committed
-together before launch and are byte-hash bound by the run manifest.
-
-## 10.7 Development sensitivity analyses
+## 10.6 Sensitivity analyses
 
 The frozen primary analysis was not changed. A separately hashed P0 sensitivity
 artifact evaluated directional thresholds 0.60, 0.75 and 0.80; inclusion or
@@ -664,7 +625,7 @@ differences. Because lifecycle metrics share the same six assay outcomes, the
 eight world-by-metric classifications are treated as a descriptive summary, not
 as eight independent inferential units.
 
-## 10.8 Development first-launch infrastructure incident
+## 10.7 First-launch infrastructure incident
 
 The commit-frozen replication protocol was first launched on 1 August 2026. A
 detached outer Python process disappeared after `cell-001` had completed six
@@ -685,7 +646,7 @@ terminal contrasts and a smaller drawdown. This direction is compatible with,
 and not required for, the primary conclusion that at least six lifecycle
 classifications remain mixed.
 
-## 10.9 Provenance, public boundary and replay
+## 10.8 Provenance, public boundary and replay
 
 Source, configuration, world, material, observation and trajectory identities
 are SHA-256 bound. The evaluator trajectory contains hidden physical identity;
@@ -729,9 +690,9 @@ resources, experience failure and close experimental lifecycles while physical
 identity remains matched and every consequence remains replayable. The resulting
 evidence separates an endpoint from the process that produced it: task outcome,
 prediction, retention, recovery and fresh-session repeatability form distinct
-readouts. The central message is therefore simple and actionable: **a successful
-experiment is a result; reproducible experimental agency is a stronger
-capability, and it can now be measured.**
+readouts. The central message is therefore simple and actionable: **an endpoint
+is a result, not an explanation of experimental agency; the process itself can
+now be measured.**
 
 # Appendix A. P0 robustness summary
 

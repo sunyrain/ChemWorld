@@ -29,8 +29,8 @@
   linkcolor=chemlink,
   citecolor=chemlink,
   urlcolor=chemlink,
-  pdftitle={Executable Chemical Worlds for Measuring Experimental
-Agency},
+  pdftitle={Executable Chemical Worlds Reveal the Hidden Dynamics of
+Experimental Agency},
   pdfauthor={ChemWorld Authors},
   pdfsubject={Executable environments for controlled measurement of AI
 experimental behavior},
@@ -65,8 +65,8 @@ autonomous experimentation; AI agents; reproducibility}
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
-\title{\vspace{-1.8em}\textbf{Executable Chemical Worlds for\\Measuring
-Experimental Agency}}
+\title{\vspace{-1.8em}\textbf{Executable Chemical Worlds Reveal
+the\\Hidden Dynamics of Experimental Agency}}
 \author{ChemWorld Authors}
 \date{}
 
@@ -76,37 +76,37 @@ Experimental Agency}}
 \begin{@twocolumnfalse}
 \maketitle
 \begin{abstract}
-A successful experiment does not by itself show how an
-artificial-intelligence agent arrived there, whether it used
-intermediate evidence, whether it retained the discovered condition, or
-whether the same behavior would recur. Existing evaluations usually
-observe either an endpoint prediction, an optimized condition, or
-physical execution in a single laboratory system. We introduce
-ChemWorld, an executable chemical-world apparatus that makes the process
-of experimentation measurable. Agents act through typed, state-changing
-operations; choose when and what to measure; spend materials, vessels,
-instrument uses and operations from a campaign ledger; encounter
-explicit failures; and decide when to terminate and request a final
-assay. Hidden physical identity, material information and fresh agent
-trajectories can be controlled independently, while every accepted
-transition is identity-bound and physically replayable.
+A final score is a many-to-one projection of experimentation: it cannot
+reveal whether a scientific agent used evidence, found a condition early
+and retained it, lost and recovered it, or arrived there only at the
+end. Yet these processes are routinely treated as observationally
+equivalent. We introduce ChemWorld, an executable chemical-world
+apparatus that makes the process of experimentation manipulable and
+measurable. Agents act through typed state-changing operations, choose
+when and what to measure, spend materials, vessels, instrument uses and
+operations from a campaign ledger, encounter explicit failures, and
+decide when to terminate and request a final assay. Physical identity,
+material information and fresh decision trajectories can be controlled
+independently, while every accepted transition is identity-bound and
+exactly replayable.
 
-Compiled controls comprising 29,580 simulator executions, organized
-around ten paired physical worlds per task and information arm, show
-that task outcome, held-out prediction, calibration and unsupported
-claims are non-interchangeable readouts. Under primitive control, native
-Codex completed 60 of 60 autonomous electrochemical experiments through
-815 self-selected operations. Similar endpoints arose through visibly
-different sequences of discovery, loss, retention and recovery. A
-commit-frozen fresh-session replication then completed 18 of 20 cells;
-two cells were right-censored by provider-infrastructure failure,
-leaving eight complete within-world pairs. Six of eight pre-specified
-world-by-lifecycle classifications were mixed, and at least six remained
-mixed under every possible sign of the two missing pair differences. The
-result was also stable across 80\%, 90\% and 95\% retention definitions.
-ChemWorld therefore turns experimental agency from an endpoint score
-into a controlled object of study: experimental success can be
-distinguished from reproducible experimental behavior.
+Compiled controls comprising 29,580 simulator executions across two
+chemical task families show that endpoint outcome, held-out prediction,
+calibration and unsupported claims form non-interchangeable readouts.
+Under primitive control, native Codex completed 60 of 60 autonomous
+electrochemical experiments through 815 self-selected operations in five
+matched worlds. Information changed not only the best score but when
+conditions were discovered, how strongly incumbents were retained and
+whether losses were recovered. A commit-frozen fresh-session replication
+completed eight within-world pairs. Best-score and terminal-to-best
+contrasts had opposite signs in four of eight pairs and zero terminal
+contrast in another; their descriptive correlation was -0.120. Across
+four lifecycle readouts, six of eight world-level directional
+classifications were mixed, a result unchanged by every possible sign
+assignment to the two censored pairs. ChemWorld thus exposes an
+empirical non-identifiability hidden by endpoint evaluation:
+experimental success does not determine the experimental process that
+produced it.
 \end{abstract}
 \vspace{0.6em}
 \end{@twocolumnfalse}
@@ -150,17 +150,19 @@ of reducing performance to one leaderboard value, we can measure
 lifecycle completion, within-campaign best-discovery position, retention
 of an incumbent, drawdown, recovery, terminal quality, prediction and
 claim reliability. These are operational readouts of behavior, not
-inferred mental states, and they need not move together.
+inferred mental states. Their non-equivalence is itself a scientific
+result: the same endpoint can be compatible with different experimental
+histories and capabilities.
 
-We use three evidence layers. First, compiled experiments provide a
-low-authority calibration in two task families and show that information
-changes actions and outcomes in task-dependent ways. Second,
+We use three evidence layers. First, compiled experiments intervene on
+material information across two task families and separate optimization
+from prediction, calibration and claim reliability. Second,
 primitive-control campaigns show that a general agent can close complete
-experimental lifecycles under a resource ledger. Third, fresh
-trajectories in matched physical worlds test whether an observed
-information response reappears. Together they establish the paper's
-central result: \textbf{an experimental endpoint is insufficient
-evidence for a reproducible experimental strategy}.
+experimental lifecycles under a shared resource ledger. Third, fresh
+trajectories in matched physical worlds reveal which behavioral features
+recur and which vary between sessions. Together they establish the
+paper's central result: \textbf{an experimental endpoint is not a
+sufficient statistic for experimental agency}.
 
 Our contributions are:
 
@@ -175,12 +177,13 @@ Our contributions are:
   a primitive-control protocol in which the agent---rather than a fixed
   recipe---chooses operations, observations and lifecycle termination;
 \item
-  trajectory-level measures that separate discovery, retention,
-  drawdown, recovery and terminal behavior; and
+  controlled information and fresh-session interventions that separate
+  endpoint optimization, prediction, claims, discovery, retention,
+  drawdown and recovery; and
 \item
-  a matched-world fresh-session design showing how to test the
-  repeatability of an agent's experimental behavior rather than only its
-  endpoint.
+  empirical evidence that endpoint contrasts do not identify lifecycle
+  contrasts, establishing experimentation itself as the object that
+  scientific- agent evaluation must measure.
 \end{enumerate}
 
 \section{2. Relation to existing
@@ -307,11 +310,12 @@ classical optimization policies.
 
 Across ten paired worlds, the nominal-information arm produced a mean
 nominal-minus-opaque score difference of 0.072 in electrochemical
-conversion (8/10 positive worlds; familywise 97.5\% world-bootstrap
+conversion (8/10 positive worlds; 97.5\% per-task world-bootstrap
 interval 0.007 to 0.155) and 0.026 in reaction-to-crystallization (7/10
-positive; interval -0.013 to 0.063). The contrast is therefore
-task-conditioned rather than a universal benefit of material information
-(Fig. 2A).
+positive; interval -0.013 to 0.063). The two 97.5\% intervals provide
+95\% Bonferroni family coverage for the pre-specified two-task analysis.
+Thus the same information intervention produced distinct outcome
+profiles in the two executable task families (Fig. 2A).
 
 The deliberately misindexed arm provides a manipulation check. It
 redirected the first material-sensitive action in 70\% of
@@ -334,7 +338,7 @@ separately because none is a substitute for another (Fig. 2D).
 \centering
 \includegraphics[width=\textwidth]{figures/figure-2-compiled-controls.pdf}
 \caption{\textbf{Compiled controls distinguish task outcome, information response and epistemic readouts.}
-\textbf{A,} Paired nominal-minus-opaque score differences across ten worlds per task; squares show means and familywise 97.5\% world-bootstrap intervals.
+\textbf{A,} Paired nominal-minus-opaque score differences across ten worlds per task; squares show means and 97.5\% per-task world-bootstrap intervals, providing 95\% Bonferroni family coverage across the two tasks.
 \textbf{B,} World-level early-to-late misleading-action shares under a deliberately misindexed material prior.
 \textbf{C,} Commit-frozen manipulation, correction, performance-restoration and joint criteria.
 \textbf{D,} Raw task-level endpoint, held-out prediction, calibration and unsupported-claim readouts. Circle area follows the favourable direction within each metric column; the printed number is the raw value.}
@@ -421,8 +425,12 @@ of the six-assay horizon), together with higher retention (0.72 versus
 0.52), smaller mean maximum drawdown (0.092 versus 0.333), greater
 pooled recovery (0.80 versus 0.50) and higher terminal-to-best ratio
 (0.941 versus 0.671). Because each arm contains one session per
-development world, these values define hypotheses for fresh-session
-replication rather than a population effect.
+development world, these values describe the five matched demonstration
+worlds. More importantly for the measurement question, the
+nominal-minus-opaque best-score and terminal-to-best contrasts had
+opposite signs in two of the five worlds. The endpoint therefore did not
+identify even the direction of terminal retention within this controlled
+set.
 
 \section{7. Fresh sessions test within-world
 repeatability}\label{fresh-sessions-test-within-world-repeatability}
@@ -455,6 +463,17 @@ terminal-to-best ratio, while discovery and retention were mixed. World
 pre-specified lifecycle metrics, six of eight world-by-metric
 classifications were mixed.
 
+The separation is also visible without a directional-classification
+rule. Across the eight complete fresh-session pairs, the
+nominal-minus-opaque best-score and terminal-to-best contrasts had
+opposite signs in four pairs and an exactly zero terminal contrast in
+another. Their descriptive Pearson correlation was \(-0.120\). For
+example, one pair had a best-score contrast of \(-0.167\) but a
+terminal-to-best contrast of \(+0.486\), whereas another had a
+best-score contrast of \(+0.253\) and a terminal-to-best contrast of
+\(-0.060\). These are direct instances of endpoint observational
+equivalence: outcome direction does not recover lifecycle direction.
+
 This result is robust to the two missing pair differences: assigning
 each missing difference an arbitrary positive, negative or zero sign
 leaves at least six of eight lifecycle classifications mixed. At the
@@ -471,15 +490,17 @@ depends on how exact-zero contrasts are treated.
 \centering
 \includegraphics[width=\textwidth]{figures/figure-5-within-world-replication.pdf}
 \caption{\textbf{Fresh trajectories separate endpoint direction from lifecycle repeatability.}
-Each point is the nominal-minus-opaque difference for a fresh session-level pair in a fixed physical world. Discovery position and drawdown are sign-flipped so that positive values consistently favour the nominal arm. All panels share one numerical scale. Right-censored pairs are marked outside the value axis as RC and are not imputed. At least six of eight core world-by-lifecycle classifications remain mixed under every possible sign of the missing pair differences.}
+\textbf{A,} Each point is one complete fresh-session pair in a fixed physical world. Shaded quadrants mark opposite signs for the best-score and terminal-to-best contrasts; four of eight pairs occupy them, and another has exactly zero terminal contrast. Labels identify trajectory replicate, not shared model randomness.
+\textbf{B,} Directional classifications for four lifecycle readouts. Six of eight are mixed, and at least six remain mixed under every possible sign assignment to the two right-censored pairs.}
 \label{fig:replication}
 \end{figure*}
 
-The empirical statement is deliberately precise: the opposing
-development phenotypes did not become stable directional lifecycle
-contrasts across the available fresh sessions in these two physical
-worlds. That observation is exactly what matched executable worlds make
-visible and testable.
+The fresh sessions therefore expose two forms of information that an
+endpoint cannot contain: trajectory-to-trajectory variation within a
+fixed physical world, and pair-level reversals between outcome and
+lifecycle direction. Both become directly observable only because world
+identity, observation stream, resource card and action authority remain
+controlled.
 
 \section{8. Experimental agency is a profile, not a
 scalar}\label{experimental-agency-is-a-profile-not-a-scalar}
@@ -519,13 +540,14 @@ authority, preserve failures, and sample fresh decision trajectories at
 low marginal cost.
 
 The present experiments demonstrate three consequences. First,
-information can change actions without producing a uniform
-task-independent endpoint effect. Second, autonomous lifecycle
+information can change actions, endpoint outcome, prediction and claim
+reliability along different axes. Second, autonomous lifecycle
 completion does not specify how a high-performing condition was
-discovered, retained or recovered. Third, a directional endpoint
-contrast can coexist with mixed lifecycle contrasts across fresh
-sessions. The apparatus therefore distinguishes experimental success
-from reproducible experimental behavior.
+discovered, retained or recovered. Third, best-score and
+terminal-retention contrasts can reverse sign across matched fresh
+sessions. The apparatus therefore reveals an empirical
+non-identifiability: experimental success does not determine
+experimental behavior.
 
 The next scientific use of this apparatus is not simply a larger
 leaderboard. It is a factorial measurement program: randomly sampled
@@ -571,6 +593,25 @@ replay verifier recomputed all scores from the immutable reports.
 Classical policies used the same world identities, budgets and
 information contracts.
 
+The opaque condition replaced material identities by stable anonymous
+codes. The nominal condition exposed the correct anonymous
+material-family property rows without revealing latent world residuals.
+The misindexed condition transposed one targeted material row chosen
+using independent qualification worlds before the formal campaigns; the
+affected mapping was fixed across the ten formal worlds. These
+conditions therefore intervene on the supplied prior while holding the
+physical world, action space, score and budget fixed.
+
+The electrochemical endpoint is the gated weighted sum of selective
+product yield (0.30), electrochemical selectivity (0.15), conversion
+(0.10), Faradaic efficiency (0.12), transport efficiency (0.10), ohmic
+efficiency (0.08) and energy efficiency (0.15); selective yield supplies
+the multiplicative gate. The reaction-to-crystallization endpoint
+combines reaction score (0.25), crystal yield (0.25), crystal purity
+(0.20), crystal size (0.10), crystal-size- distribution quality (0.20)
+and a fines-fraction penalty (-0.10). The scoring contract was identical
+across information arms within a task.
+
 Compiled participants used the Codex subscription transport with model
 alias \texttt{gpt-5.6-sol} at medium reasoning effort, structured
 response output, Codex tools disabled and no session persistence. G0 and
@@ -581,16 +622,51 @@ not a matched causal comparison of authority.
 The nonduplicated total comprises 2,280 participant executions and
 27,300 classical-control executions. Statistical summaries treat the
 paired physical world, not each simulator execution, as the analysis
-unit. Information contrasts report mean and median world differences,
-positive/negative counts, exact sign summaries, leave-one-world-out mean
-ranges and commit-frozen world-bootstrap intervals. Classical
-comparisons remain descriptive and all policies are shown in the public
-sensitivity artifact.
+unit. Seeds 0--9 form the complete designed set for the intervention
+analysis. Information contrasts report mean and median world
+differences, positive/negative counts, exact sign summaries,
+leave-one-world-out mean ranges and 100,000-draw, commit-frozen
+percentile world-bootstrap intervals as finite-world stability
+summaries. A 97.5\% interval is reported for each task, giving 95\%
+Bonferroni family coverage across the two pre-specified tasks.
+
+The information-matched classical suite comprised uniform random search,
+Latin hypercube sampling, local greedy perturbation, Gaussian-process
+expected improvement, random-forest expected improvement,
+safety-constrained Gaussian-process expected improvement and a
+multi-output telemetry random-forest policy. Electrochemical calibration
+additionally included privileged material-descriptor and transport-prior
+policies together with commit-frozen shuffled-descriptor negative
+controls. The privileged policies calibrate what the environment
+permits; they are not information-matched agent comparators.
 
 The misindexing manipulation transposed one targeted material row
 selected on independent qualification worlds. Commit-frozen checks
 separately evaluated initial behavior change, later action correction,
 performance restoration and their joint criterion.
+
+Epistemic diagnostics were scored independently of the optimized
+endpoint. At final synthesis, the agent predicted increase, decrease or
+no material change for three frozen one-factor intervention queries and
+their three registered metrics. Each query was then executed as paired
+reference/intervention experiments with two replicates and common
+observation-noise identities. The executed difference was labelled
+increase or decrease when it crossed the frozen absolute threshold of
+0.01 and no material change otherwise. Held-out directional accuracy is
+the fraction of these query-by-metric labels predicted correctly; the
+prediction call could not alter the submitted recommendation. The
+held-out Brier score is the mean of \((c-y)^2\), where \(c\) is the
+submitted confidence and \(y\) indicates whether that directional
+prediction was correct.
+
+Declared world-understanding claims were matched against a frozen
+vocabulary of observable cause sets, effects, admissible directional
+relations and mechanism tags. Unsupported-claim rate is the fraction of
+submitted declarations whose cause-set/effect structure has no reference
+match. Directional accuracy among matched declarations, structural edge
+precision/recall, mechanism-tag scores and a declaration-level
+confidence Brier score were retained as separate diagnostics, so no
+single epistemic statistic was treated as a proxy for the others.
 
 \subsection{10.3 Primitive-control protocol and resource
 ledger}\label{primitive-control-protocol-and-resource-ledger}
@@ -747,9 +823,9 @@ lifecycles while physical identity remains matched and every consequence
 remains replayable. The resulting evidence separates an endpoint from
 the process that produced it: task outcome, prediction, retention,
 recovery and fresh-session repeatability form distinct readouts. The
-central message is therefore simple and actionable: \textbf{a successful
-experiment is a result; reproducible experimental agency is a stronger
-capability, and it can now be measured.}
+central message is therefore simple and actionable: \textbf{an endpoint
+is a result, not an explanation of experimental agency; the process
+itself can now be measured.}
 
 \section{Appendix A. P0 robustness
 summary}\label{appendix-a.-p0-robustness-summary}

@@ -705,92 +705,136 @@ def figure_5(
     output_dir: Path,
 ) -> list[Path]:
     replication = data["g2_v0_5"]
-    metrics = [
-        ("best_final_score", "Best score", 1.0),
-        ("global_best_discovery_fraction", "Earlier discovery", -1.0),
-        ("online_incumbent_retention_rate", "Retention", 1.0),
-        ("maximum_absolute_incumbent_drawdown", "Smaller drawdown", -1.0),
-        ("terminal_to_global_best_ratio", "Terminal / best", 1.0),
-    ]
+    complete = [row for row in replication["paired_trajectories"] if row["pair_complete"]]
     classes = replication["interpretation"]["selected_branch"]["world_metric_classifications"]
-    fig, axes = plt.subplots(2, 5, figsize=(7.2, 3.62), sharex=True)
-    x_limit = 0.88
+    fig, (ax, bx) = plt.subplots(
+        1,
+        2,
+        figsize=(7.2, 3.35),
+        gridspec_kw={"width_ratios": (1.28, 1.0), "wspace": 0.42},
+    )
+
+    _panel(ax, "A", "Endpoint direction does not identify terminal retention")
+    x_limit = 0.43
+    y_limit = 0.55
+    for origin, width, height in (
+        ((-x_limit, 0), x_limit, y_limit),
+        ((0, -y_limit), x_limit, y_limit),
+    ):
+        ax.add_patch(
+            Rectangle(
+                origin,
+                width,
+                height,
+                facecolor=NOMINAL,
+                alpha=0.055,
+                edgecolor="none",
+                zorder=0,
+            )
+        )
+    endpoints = []
+    terminals = []
+    for row in complete:
+        delta = row["nominal_minus_opaque"]
+        endpoint = float(delta["best_final_score"])
+        terminal = float(delta["terminal_to_global_best_ratio"])
+        endpoints.append(endpoint)
+        terminals.append(terminal)
+        color = TEAL if int(row["world_seed"]) == 1 else AMBER
+        ax.scatter(endpoint, terminal, s=54, color=color, edgecolor=PAPER, linewidth=0.8, zorder=3)
+        ax.annotate(
+            str(row["trajectory_replicate_id"]),
+            (endpoint, terminal),
+            xytext=(4, 3),
+            textcoords="offset points",
+            fontsize=5.8,
+            color=INK,
+        )
+    ax.axhline(0, color=MUTED, lw=0.8)
+    ax.axvline(0, color=MUTED, lw=0.8)
+    ax.set_xlim(-x_limit, x_limit)
+    ax.set_ylim(-y_limit, y_limit)
+    ax.set_xlabel("nominal - opaque best-score contrast")
+    ax.set_ylabel("nominal - opaque terminal / best contrast")
+    ax.grid(color=GRID, lw=0.45, zorder=0)
+    correlation = float(np.corrcoef(np.asarray(endpoints), np.asarray(terminals))[0, 1])
+    opposite = sum(x * y < 0 for x, y in zip(endpoints, terminals, strict=True))
+    zero_terminal = sum(abs(value) <= 1e-12 for value in terminals)
+    ax.text(
+        0.02,
+        0.98,
+        f"{opposite}/8 sign reversals + {zero_terminal} zero\nPearson r = {correlation:.3f}",
+        transform=ax.transAxes,
+        va="top",
+        fontsize=6.4,
+        fontweight="semibold",
+        bbox={"facecolor": PAPER, "edgecolor": GRID, "boxstyle": "round,pad=0.25"},
+    )
+    ax.legend(
+        handles=[
+            plt.Line2D([], [], marker="o", color="none", markerfacecolor=TEAL, label="world 1"),
+            plt.Line2D([], [], marker="o", color="none", markerfacecolor=AMBER, label="world 3"),
+        ],
+        loc="lower left",
+        ncol=2,
+    )
+
+    _panel(bx, "B", "Lifecycle direction is usually not session-stable")
+    metric_specs = [
+        ("global_best_discovery_fraction", "earlier\ndiscovery", -1),
+        ("online_incumbent_retention_rate", "retention", 1),
+        ("maximum_absolute_incumbent_drawdown", "smaller\ndrawdown", -1),
+        ("terminal_to_global_best_ratio", "terminal /\nbest", 1),
+    ]
+    matrix = np.zeros((2, len(metric_specs)), dtype=float)
+    labels: list[list[str]] = []
     for row_index, seed in enumerate((1, 3)):
-        pair_rows = [row for row in replication["paired_trajectories"] if row["world_seed"] == seed]
-        for column_index, (metric, label, direction) in enumerate(metrics):
-            ax = axes[row_index, column_index]
-            if row_index == 0:
-                _panel(ax, chr(ord("A") + column_index), label)
-            y = np.arange(len(pair_rows))
-            for yi, row in zip(y, pair_rows, strict=True):
-                delta = row["nominal_minus_opaque"]
-                if delta is None:
-                    ax.text(
-                        1.03,
-                        yi,
-                        "RC",
-                        transform=ax.get_yaxis_transform(),
-                        ha="left",
-                        va="center",
-                        fontsize=6.0,
-                        color=MUTED,
-                        fontweight="semibold",
-                        clip_on=False,
-                    )
-                    continue
-                favourable = direction * float(delta[metric])
-                ax.plot([0, favourable], [yi, yi], color=GRID, lw=1.25, zorder=1)
-                ax.scatter(
-                    favourable, yi, color=INK, s=24, edgecolor=PAPER, linewidth=0.5, zorder=3
-                )
-            ax.axvline(0, color=MUTED, lw=0.8)
-            raw_class = classes[str(seed)][metric]
-            if direction < 0:
-                raw_class = (
-                    raw_class.replace("positive", "TEMP")
-                    .replace("negative", "positive")
-                    .replace("TEMP", "negative")
-                )
-            readable = {
-                "directionally_positive": "nominal-favouring",
-                "directionally_negative": "opaque-favouring",
-                "mixed": "mixed",
-                "stable_zero": "stable zero",
-            }[raw_class]
-            ax.text(
-                0.97,
-                1.02,
-                readable,
-                transform=ax.transAxes,
-                ha="right",
-                va="bottom",
-                fontsize=5.7,
-                color=INK if readable != "mixed" else MUTED,
+        row_labels = []
+        for column_index, (metric, _label, direction) in enumerate(metric_specs):
+            raw = str(classes[str(seed)][metric])
+            value = {
+                "directionally_positive": 1,
+                "directionally_negative": -1,
+                "mixed": 0,
+                "stable_zero": 0,
+            }[raw]
+            value *= direction
+            matrix[row_index, column_index] = value
+            row_labels.append({1: "nominal", -1: "opaque", 0: "mixed"}[value])
+        labels.append(row_labels)
+    cmap = mpl.colors.ListedColormap(["#F5E7D0", "#EEF1F3", "#DDF0EC"])
+    bx.imshow(matrix, cmap=cmap, vmin=-1, vmax=1, aspect="auto")
+    bx.set_xticks(range(len(metric_specs)), [item[1] for item in metric_specs])
+    bx.set_yticks((0, 1), ("world 1", "world 3"))
+    bx.tick_params(length=0)
+    for row_index in range(matrix.shape[0]):
+        for column_index in range(matrix.shape[1]):
+            bx.text(
+                column_index,
+                row_index,
+                labels[row_index][column_index],
+                ha="center",
+                va="center",
+                fontsize=6.2,
                 fontweight="semibold",
+                color=INK,
             )
-            ax.set_xlim(-x_limit, x_limit)
-            ax.set_xticks([-0.8, -0.4, 0, 0.4, 0.8])
-            ax.set_yticks(
-                y,
-                [row["trajectory_replicate_id"] for row in pair_rows] if column_index == 0 else [],
-            )
-            if column_index == 0:
-                ax.set_ylabel(f"world {seed}\nreplicate")
-            if row_index == 1:
-                ax.set_xlabel("arm contrast\n(favourable direction)", fontsize=6.1)
-            ax.grid(axis="x", color=GRID, lw=0.45)
+    for spine in bx.spines.values():
+        spine.set_visible(False)
     censoring = sensitivity["g2_v0_5"]["right_censoring_missing_sign_sensitivity"]
     minimum_mixed = censoring["minimum_possible_mixed_core_classifications"]
-    fig.text(
-        0.995,
-        0.01,
-        f"RC = right-censored · at least {minimum_mixed}/8 core classifications "
-        "remain mixed under any missing sign",
-        ha="right",
-        fontsize=5.7,
+    bx.text(
+        0.5,
+        -0.20,
+        f"6/8 mixed; at least {minimum_mixed}/8 remain mixed\n"
+        "under every sign assignment to the two censored pairs",
+        transform=bx.transAxes,
+        ha="center",
+        va="top",
+        fontsize=6.2,
         color=MUTED,
     )
-    fig.subplots_adjust(left=0.075, right=0.965, top=0.89, bottom=0.21, wspace=0.30, hspace=0.29)
+    fig.subplots_adjust(left=0.085, right=0.985, top=0.88, bottom=0.24)
     return _save(fig, output_dir, "figure-5-within-world-replication")
 
 
