@@ -245,7 +245,11 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     )
     injected = finalizer.inject_manuscript_metadata(manuscript, ready)
     assert "pdf_author: 'Jane Q. Scientist'" in injected
-    assert r"Jane Q. Scientist\textsuperscript{1,*}" in injected
+    assert "  - name: 'Jane Q. Scientist'" in injected
+    assert "    affiliation_markers: '1,*'" in injected
+    assert "affiliation:" in injected
+    assert "correspondence: 'jane.scientist@university.edu'" in injected
+    assert "author_block:" not in injected
     assert "publicly archived by Zenodo" in injected
     assert finalizer.EXPECTED_RAW_INDEX_SHA256 in injected
     assert finalizer.inject_manuscript_metadata(injected, ready) == injected

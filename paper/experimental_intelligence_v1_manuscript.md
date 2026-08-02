@@ -5,9 +5,11 @@ title_line_two: "Hidden Dynamics of Experimental Agency"
 subject: "Executable environments for controlled measurement of AI experimental behavior"
 keywords: "executable chemical worlds; experimental agency; autonomous experimentation; AI agents; reproducibility"
 pdf_author: "ChemWorld Authors"
-author_block: "ChemWorld Authors"
 author:
-  - "ChemWorld Authors"
+  - name: "ChemWorld Authors"
+    affiliation_markers: ""
+affiliation: []
+correspondence: ""
 date: ""
 bibliography: experimental_intelligence_v1_references.bib
 abstract: |

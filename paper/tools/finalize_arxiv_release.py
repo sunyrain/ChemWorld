@@ -240,62 +240,59 @@ def _markdown_escape(value: str) -> str:
     return value
 
 
-def render_author_metadata(metadata: Mapping[str, Any]) -> tuple[str, str, list[str]]:
-    """Return PDF author metadata, the LaTeX title block, and plain author names."""
+def render_author_frontmatter(metadata: Mapping[str, Any]) -> tuple[str, str, list[str]]:
+    """Return PDF metadata and structured author/affiliation YAML for Pandoc."""
     authors = metadata["authors"]
     affiliations = metadata["affiliations"]
     names = [str(author["name"]).strip() for author in authors]
-    rendered_names: list[str] = []
+    lines = ["author:"]
     for author in authors:
         markers = [str(value) for value in author["affiliation_ids"]]
         if author["corresponding"]:
             markers.append("*")
-        rendered_names.append(
-            f"{_latex_escape(str(author['name']).strip())}"
-            rf"\textsuperscript{{{','.join(markers)}}}"
+        lines.extend(
+            (
+                f"  - name: {_yaml_quote(str(author['name']).strip())}",
+                f"    affiliation_markers: {_yaml_quote(','.join(markers))}",
+            )
         )
-    lines = [", ".join(rendered_names) + r"\\[0.35em]"]
+    lines.append("affiliation:")
     for affiliation in affiliations:
-        lines.append(
-            rf"\small \textsuperscript{{{_latex_escape(str(affiliation['id']))}}}"
-            f"{_latex_escape(str(affiliation['name']).strip())}" + r"\\"
+        lines.extend(
+            (
+                f"  - id: {_yaml_quote(str(affiliation['id']))}",
+                f"    name: {_yaml_quote(str(affiliation['name']).strip())}",
+            )
         )
     corresponding = next(author for author in authors if author["corresponding"])
-    lines.append(
-        r"\small *Correspondence: \texttt{"
-        + _latex_escape(str(corresponding["email"]).strip())
-        + "}"
-    )
-    return "; ".join(names), " ".join(lines), names
+    lines.append(f"correspondence: {_yaml_quote(str(corresponding['email']).strip())}")
+    return "; ".join(names), "\n".join(lines), names
 
 
 def inject_manuscript_metadata(text: str, metadata: Mapping[str, Any]) -> str:
-    pdf_author, author_block, names = render_author_metadata(metadata)
-    replacements = {
-        "pdf_author": _yaml_quote(pdf_author),
-        "author_block": _yaml_quote(author_block),
-    }
+    pdf_author, people_frontmatter, _names = render_author_frontmatter(metadata)
     updated = text
-    for key, value in replacements.items():
-        pattern = rf"(?m)^{re.escape(key)}:\s*.*$"
-        replacement = f"{key}: {value}"
-        updated, count = re.subn(
-            pattern,
-            lambda _match, replacement=replacement: replacement,
-            updated,
-            count=1,
-        )
-        if count != 1:
-            raise ValueError(f"manuscript front matter is missing {key}")
-    author_lines = "author:\n" + "".join(f"  - {_yaml_quote(name)}\n" for name in names)
+    pdf_line = f"pdf_author: {_yaml_quote(pdf_author)}"
     updated, count = re.subn(
-        r"(?m)^author:\s*\n(?:\s{2}-[^\n]*\n)+",
-        lambda _match: author_lines,
+        r"(?m)^pdf_author:\s*.*$",
+        lambda _match: pdf_line,
         updated,
         count=1,
     )
     if count != 1:
-        raise ValueError("manuscript front matter is missing the author list")
+        raise ValueError("manuscript front matter is missing pdf_author")
+    people_pattern = re.compile(
+        r"^(?:author_block:[^\n]*\n)?author:\n.*?^date:[^\n]*$",
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    people_replacement = people_frontmatter + '\ndate: ""'
+    updated, count = people_pattern.subn(
+        lambda _match: people_replacement,
+        updated,
+        count=1,
+    )
+    if count != 1:
+        raise ValueError("manuscript front matter is missing the structured author region")
 
     archive = metadata["archive"]
     provider = _markdown_escape(str(archive["provider"]))
@@ -537,6 +534,8 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
         raise RuntimeError("archive URL is absent from a final publication artifact")
     if "ChemWorld Authors" in generated_tex:
         raise RuntimeError("generated TeX still contains the author placeholder")
+    if r"\textbackslash{[}" in generated_tex or r"\[0.35em]" not in generated_tex:
+        raise RuntimeError("generated TeX has an escaped or missing author-block line break")
     return {
         "arxiv_pdf_pages": build["pdf_page_count"],
         "arxiv_bound_file_count": build_file_count,

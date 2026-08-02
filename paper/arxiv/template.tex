@@ -63,7 +63,13 @@
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
 \title{\vspace{-1.8em}\textbf{$title_line_one$\\$title_line_two$}}
-\author{$if(author_block)$$author_block$$else$$for(author)$$author$$sep$ \and $endfor$$endif$}
+\author{%
+$for(author)$$author.name$$if(author.affiliation_markers)$\textsuperscript{$author.affiliation_markers$}$endif$$sep$, $endfor$%
+$if(affiliation)$\\[0.35em]
+$for(affiliation)$\small\textsuperscript{$affiliation.id$}$affiliation.name$$sep$\\
+$endfor$$endif$%
+$if(correspondence)$\\[-0.1em]\small *Correspondence: \texttt{$correspondence$}$endif$%
+}
 \date{$date$}
 
 \begin{document}
