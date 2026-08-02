@@ -239,7 +239,10 @@ def render(data: Mapping[str, Any]) -> str:
         )
     )
     sections: list[str] = [
-        "# Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency: numeric display items",
+        (
+            "# Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency: "
+            "numeric display items"
+        ),
         "",
         f"Status: `{data['status']}`.",
         f"Derived-data SHA-256: `{data['derived_data_sha256']}`.",
@@ -290,29 +293,35 @@ def render(data: Mapping[str, Any]) -> str:
         "failures remain evidence. **D,** Qualified release surface. Counts establish declared",
         "reachability and evaluator binding, not agent performance across all registered tasks.",
         "",
-        "**Figure 2 | One complete agent-directed experiment and its campaign ledger.**",
-        "**A,** The first vessel from the opaque world-0 development campaign: the agent selected",
-        "reagent and solvent addition, potential setting, electrolysis, a UV-visible measurement,",
-        "termination and final assay in seven primitive operations. This example illustrates the",
-        "interface and is excluded from prior-effect inference. **B,** Independently debited",
-        "campaign resources reconstructed from the immutable trajectory; physical inventory and",
-        "instrument use are not collapsed into a scalar token budget.",
+        (
+            "**Figure 2 | Compiled controls distinguish task outcome, information response "
+            "and epistemic readouts.**"
+        ),
+        "**A,** Paired nominal-minus-opaque score differences across ten worlds per task; squares",
+        "show means and multiplicity-adjusted 97.5% per-task world-bootstrap stability intervals.",
+        "**B,** World-level early-to-late misleading-action shares under a deliberately misindexed",
+        (
+            "material prior. **C,** Commit-frozen manipulation, correction, "
+            "performance-restoration and"
+        ),
+        "joint criteria. **D,** Raw task-level endpoint, held-out prediction, calibration and",
+        "unsupported-claim readouts. Circle area follows the favourable direction within each",
+        "metric column; printed labels retain the raw values.",
         "",
-        "**Figure 3 | Endpoint summaries conceal distinct experimental trajectories.**",
-        "Final-assay sequences for opaque and anonymous nominal-information agents in development",
-        "worlds 0, 2 and 4. Open circles identify the first campaign maximum. The examples expose",
-        "early discovery followed by abandonment, gradual improvement, drawdown and terminal",
-        "recovery that a best-score endpoint alone cannot distinguish.",
+        "**Figure 3 | Primitive-control agents close complete experimental lifecycles.**",
+        "**A,** One seven-operation vessel in which a UV-visible observation is available before",
+        "agent-selected termination and explicit final assay. **B,** All six vessels completed in",
+        "each of ten world-by-information development campaigns; navy denotes opaque codes and",
+        "coral denotes nominal properties. **C,** The immutable trajectory reconstructs the",
+        "campaign resource receipt. The example is descriptive and is not part of the",
+        "fresh-session replication estimand.",
         "",
-        "**Figure 4 | Prior interventions reshape behavior without guaranteeing recovery.**",
-        "**A,** Paired nominal-minus-opaque effects on compiled-experiment final score with",
-        "familywise 97.5% world-bootstrap intervals. **B,** Early and late shares of",
-        "actions aligned with deliberately misindexed material information. **C,** Separate",
-        "pre-specified, commit-frozen checks",
-        "for manipulation, differential action correction, performance restoration and their joint",
-        "recovery rule. **D,** Nominal-minus-opaque autonomous development effects across five",
-        "physical worlds; points are worlds and horizontal bars are descriptive means. Positive",
-        "drawdown differences indicate larger drawdown under nominal information.",
+        "**Figure 4 | Similar endpoints can arise from different experimental trajectories.**",
+        "Selected development worlds illustrate early discovery followed by loss, gradual",
+        "improvement, retention and terminal divergence. Open circles mark the first observed",
+        "campaign best; squares mark terminal assays. Navy denotes opaque material codes and coral",
+        "denotes nominal material properties. These examples motivate the lifecycle readouts but",
+        "are not the replication estimand.",
         "",
         "**Figure 5 | Fresh trajectories test within-world repeatability.**",
         "Nominal-minus-opaque paired differences for best score and four core lifecycle",

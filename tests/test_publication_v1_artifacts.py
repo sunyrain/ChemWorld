@@ -84,3 +84,33 @@ def test_publication_proof_manifest_binds_sources_and_outputs() -> None:
     assert concept_pdf.read_bytes().startswith(b"%PDF-")
     assert publication_pdf.stat().st_size > 100_000
     assert concept_pdf.stat().st_size > 1_000_000
+
+
+def test_display_legend_order_and_data_card_match_the_arxiv_release() -> None:
+    display = (ROOT / "paper/experimental_intelligence_v1_display_items.md").read_text(
+        encoding="utf-8"
+    )
+    expected_titles = [
+        "ChemWorld is a controlled apparatus for experimental intelligence.",
+        "Compiled controls distinguish task outcome, information response and epistemic readouts.",
+        "Primitive-control agents close complete experimental lifecycles.",
+        "Similar endpoints can arise from different experimental trajectories.",
+        "Fresh trajectories test within-world repeatability.",
+        "Experimental intelligence is a profile, not a scalar.",
+    ]
+    positions = [
+        display.index(f"**Figure {number} | {title}**")
+        for number, title in enumerate(expected_titles, start=1)
+    ]
+    assert positions == sorted(positions)
+
+    build_manifest = json.loads(
+        (
+            ROOT
+            / "paper/exports/experimental-intelligence-v1-arxiv/build-manifest.json"
+        ).read_text(encoding="utf-8")
+    )
+    data_card = (
+        ROOT / "benchmark/releases/chemworld-serious-v1/DATA_CARD.md"
+    ).read_text(encoding="utf-8")
+    assert f"an {build_manifest['pdf_page_count']}-page, two-column arXiv PDF" in data_card

@@ -58,7 +58,7 @@ descriptively rather than pooled into a population-level prior-effect test.
 
 ## Paper artifact state
 
-The P0 manuscript is rendered as a 10-page, two-column arXiv PDF with six
+The P0 manuscript is rendered as an 11-page, two-column arXiv PDF with six
 publication figures. The upload bundle includes generated `main.tex`, the
 BibTeX database, `main.bbl`, source Markdown and exact figure PDFs. Its build
 manifest records byte counts and SHA-256 hashes for every submitted artifact.
