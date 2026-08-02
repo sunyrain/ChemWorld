@@ -159,12 +159,19 @@ def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
         ROOT / "workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md"
     ).read_text(encoding="utf-8")
     compact_manuscript = " ".join(manuscript.split())
+    data_card = (ROOT / "benchmark/releases/chemworld-serious-v1/DATA_CARD.md").read_text(
+        encoding="utf-8"
+    )
 
-    assert manuscript.startswith("# Experimental Intelligence in Executable Chemical Worlds")
+    assert manuscript.startswith(
+        '---\ntitle: "Executable Chemical Worlds for Measuring Experimental Agency"'
+    )
     assert "[PENDING G2 v0.5" not in manuscript
-    assert "No new G0 or G2 scientific experiment is required" in manuscript
-    assert "29,754 executed physical experiments" in compact_manuscript
-    assert "29,752 completed experiments/final assays" in compact_manuscript
+    assert "29,580 simulator executions" in compact_manuscript
+    assert "completed 60 of 60 autonomous electrochemical experiments" in compact_manuscript
+    assert "Eighteen of 20 cells completed" in compact_manuscript
+    assert "29,754" in data_card
+    assert "29,752" in data_card
     assert "29,640 existing + 120 pre-specified opportunities = 29,760" in master_plan
     assert "29,760 不是最终执行数" in master_plan
     assert "From Recipe Optimization" not in manuscript
@@ -175,36 +182,25 @@ def test_terminal_g2_narrative_is_bound_to_the_frozen_derived_data() -> None:
     manuscript = (ROOT / "paper/experimental_intelligence_v1_manuscript.md").read_text(
         encoding="utf-8"
     )
-    section = manuscript.split("## 7. Fresh trajectories test within-world repeatability", 1)[
-        1
-    ].split("## 8. Discussion", 1)[0]
+    section = manuscript.split("# 7. Fresh sessions test within-world repeatability", 1)[1].split(
+        "# 8. Experimental agency is a profile, not a scalar", 1
+    )[0]
+    compact_section = " ".join(section.split())
     derived = _load(ROOT / "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json")
     replication = derived["g2_v0_5"]
     branch = replication["interpretation"]["selected_branch"]
     matrix = replication["matrix"]
 
-    assert "Eighteen cells completed and two were right-censored" in section
+    assert "Eighteen of 20 cells completed" in section
+    assert "Two cells were right-censored" in section
     assert matrix["completed_cell_count"] == 18
     assert matrix["right_censored_cell_count"] == 2
     assert matrix["completed_pair_count"] == 8
-    assert branch["branch_id"] in section
     assert branch["mixed_world_by_core_metric_count"] == 6
     assert branch["world_by_core_metric_count"] == 8
-    for rendered_value in (
-        "+0.228",
-        "+0.224",
-        "-0.200",
-        "+0.100",
-        "-0.156",
-        "+0.104",
-        "-0.065",
-        "-0.083",
-        "-0.100",
-        "0.000",
-        "+0.001",
-        "-0.003",
-    ):
-        assert rendered_value in section
+    assert "six of eight world-by-metric classifications were mixed" in compact_section
+    assert "arbitrary positive, negative or zero sign" in compact_section
+    assert "five at 80% and six at 95%" in compact_section
 
 
 def test_all_tracked_evidence_and_execution_entrypoints_exist() -> None:
@@ -267,8 +263,9 @@ def test_related_work_audit_is_current_bounded_and_synchronized() -> None:
     assert len(evidence["absolute_claims_rejected"]) >= 6
     assert len(evidence["chemworld_current_limitations"]) >= 7
     assert "controlled experimental science of experimenting agents" in audit
-    assert "ChemWorld intentionally abstracts those problems" in compact_manuscript
-    assert "first virtual chemistry laboratory" in compact_manuscript
+    assert "does not replace a robotic laboratory" in compact_manuscript
+    assert "controlled measurement apparatus" in compact_manuscript
+    assert "first virtual chemistry laboratory" not in compact_manuscript
 
 
 def test_g0_historical_source_binding_is_reachable_and_data_release_is_honest() -> None:
@@ -327,9 +324,7 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
     assert manifest["gates"]["raw_data_archive"] == "open"
     assert manifest["gates"]["clean_wheel_and_full_tests"].startswith("passed_")
     assert manifest["gates"]["independent_checkout"].startswith("passed_")
-    verification = _load(
-        ROOT / manifest["evidence"]["verification_attestation"]
-    )
+    verification = _load(ROOT / manifest["evidence"]["verification_attestation"])
     assert verification["status"] == "passed"
     assert verification["full_test_suite"] == {
         "collected": 1827,

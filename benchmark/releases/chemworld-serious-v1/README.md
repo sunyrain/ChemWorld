@@ -1,31 +1,38 @@
-# ChemWorld serious v1 release candidate
+# ChemWorld serious v1 arXiv evidence release
 
-Status: **building — not publication-ready**
+Status: **P0 paper package complete; durable raw-data deposit pending**
 
-This directory is the single tracked entry point for the first ChemWorld arXiv evidence package. It is not a leaderboard release and does not certify broad scientific-agent performance. The package will expose the evidence needed for the manuscript *Experimental Intelligence in Executable Chemical Worlds* while keeping private world internals and large raw provider archives outside Git.
+This directory is the evidence entry point for *Executable Chemical Worlds for
+Measuring Experimental Agency*. The release binds the controlled-world apparatus,
+compiled calibration, autonomous primitive-control campaigns and fresh-session
+replication to immutable evidence objects. It is organized around the paper's
+central measurement claim: experimental success and reproducible experimental
+behavior are distinct observables.
 
-## Included now
+## Included
 
-- a machine-readable release manifest;
-- a data card with nonduplicated experiment accounting;
-- explicit claim and exclusion boundaries;
-- immutable paths and hashes for the formal G0 summaries and the audited G2 v0.4 development result.
-- a deterministic 1,441-file G0 raw-data hash index with no absolute paths or raw content.
-- a frozen single-source derived-data JSON, six deterministic CSV views, and
-  Figures 1--6 generated only from that JSON;
-- the terminal G2 v0.5 audit bindings, 677-file hash index, and a compact
-  four-cell replay subset;
-- the populated first-version manuscript, four generated main tables, six complete
-  figure legends, and a 48-entry working bibliography;
-- a Chinese readiness audit separating required experiments, censor-aware counts,
-  generated artifacts, release gates, and the external archive dependency;
-- a current 55-node evidence graph with a clean source-tree attestation.
-- a release verification attestation recording the full test suite, clean-wheel
-  smoke, terminal replay, and independent-checkout zero-difference rebuild.
+- formal G0 summaries and a deterministic 1,441-file raw-data index;
+- audited G2 v0.4 autonomous development campaigns and the terminal G2 v0.5
+  fresh-session matrix;
+- a compact, exact-replay public archive for all 20 formal G2 v0.5 cells plus
+  both durable trajectories from the excluded first launch;
+- the frozen derived-data object and a self-hashed P0 sensitivity object covering
+  censoring signs, directional thresholds, retention definitions, leave-one-world-
+  out ranges and familywise world-bootstrap intervals;
+- six deterministic release figures in PDF, SVG and PNG formats;
+- a standard two-column arXiv PDF and self-contained `.tar.gz`/`.zip` source
+  bundles, including the generated TeX, BibTeX database, BBL and figure PDFs;
+- claim boundaries, experiment accounting, provenance indexes and replay/test
+  attestations.
 
-## Still required
+The paper PDF, source bundle and build manifest live under
+`paper/exports/experimental-intelligence-v1-arxiv/`. The exact paths and hashes
+of P0 evidence are recorded in `manifest.json`.
 
-- durable external archive identifiers for the local raw roots;
-- target-style reference formatting and final statistical-language/claim audit.
+## External release gate
 
-No file in this directory should be interpreted as lifting those gates unless `manifest.json` has `publication_ready: true` and every item in `gates` is `passed`.
+The four indexed G0 raw roots total 17,725,724,603 bytes. Their file-level hashes
+are frozen, but a durable public archive identifier has not yet been attached.
+Accordingly `manifest.json` remains `publication_ready: false` until that external
+deposit is completed. Author names and affiliations are also release metadata and
+must replace the centralized manuscript placeholder before upload.

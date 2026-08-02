@@ -5,7 +5,7 @@
   "status": "building_not_publication_ready",
   "publication_ready": false,
   "paper": {
-    "working_title": "Experimental Intelligence in Executable Chemical Worlds",
+    "working_title": "Executable Chemical Worlds for Measuring Experimental Agency",
     "manuscript": "paper/experimental_intelligence_v1_manuscript.md",
     "display_items": "paper/experimental_intelligence_v1_display_items.md",
     "bibliography": "paper/experimental_intelligence_v1_references.bib",
@@ -71,7 +71,24 @@
       "status": "frozen_complete",
       "derived_data_sha256": "66e40a968ea037a3a00b1afdc5fd39ba10fe637e26934b153d4f28f043ca6e5d"
     },
-    "figure_manifest": "benchmark/releases/chemworld-serious-v1/figure-manifest.json",
+    "p0_sensitivity": {
+      "path": "benchmark/releases/chemworld-serious-v1/arxiv-v1-p0-sensitivity.json",
+      "sensitivity_sha256": "8fb2484e0648dcba3cd8177d78fa72f9d5426796076f4066fb936fcf647eb842",
+      "status": "frozen_complete"
+    },
+    "g2_v0_5_public_trajectory_archive": {
+      "path": "benchmark/releases/chemworld-serious-v1/g2-v0.5-public-trajectory-archive/manifest.json",
+      "formal_cell_count": 20,
+      "excluded_first_launch_cell_count": 2,
+      "archive_sha256": "ae6426bc6dcee68778608f808cbdf5051b48c0478de4dd775ad3f94819603b11",
+      "exact_physical_replay_verified": true
+    },
+    "legacy_figure_manifest": "benchmark/releases/chemworld-serious-v1/figure-manifest.json",
+    "arxiv_figure_manifest": {
+      "path": "paper/arxiv/figure-manifest.json",
+      "manifest_sha256": "b8046d56918c1670dc5c9aad81eb32328d18abe2d1715553944434f6fc3746e2"
+    },
+    "arxiv_release_build_manifest": "paper/exports/experimental-intelligence-v1-arxiv/build-manifest.json",
     "verification_attestation": "benchmark/releases/chemworld-serious-v1/verification-attestation.json"
   },
   "experiment_accounting": {
@@ -100,7 +117,10 @@
     "frozen_derived_table_and_figures": "passed_derived_66e40a968ea037a3a00b1afdc5fd39ba10fe637e26934b153d4f28f043ca6e5d",
     "clean_wheel_and_full_tests": "passed_1813_passed_14_skipped_clean_wheel_smoke",
     "independent_checkout": "passed_zero_diff_release_suite_26_passed",
-    "final_claim_audit": "open"
+    "public_g2_trajectory_archive": "passed_22_of_22_exact_physical_replay",
+    "p0_sensitivity": "passed_censoring_threshold_retention_and_g0_robustness",
+    "standard_arxiv_render": "passed_two_column_10_page_pdf_and_self_contained_source",
+    "final_claim_audit": "passed_p0_claim_evidence_alignment"
   },
   "claim_boundaries": "CLAIM_BOUNDARIES.md",
   "data_card": "DATA_CARD.md"

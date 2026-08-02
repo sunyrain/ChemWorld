@@ -22,17 +22,50 @@ DEFAULT_DISPLAY = Path("paper/experimental_intelligence_v1_display_items.md")
 DEFAULT_BIBLIOGRAPHY = Path("paper/experimental_intelligence_v1_references.bib")
 DEFAULT_DATA = Path("benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json")
 DEFAULT_RELEASE_MANIFEST = Path("benchmark/releases/chemworld-serious-v1/manifest.json")
-DEFAULT_FIGURES = Path("paper/figures/experimental-intelligence-v1/publication")
+DEFAULT_FIGURES = Path("paper/arxiv/figures")
 DEFAULT_CONCEPTS = Path("paper/figures/experimental-intelligence-v1/concept-placeholders")
 DEFAULT_OUTPUT = Path("paper/exports/experimental-intelligence-v1")
 
 FIGURE_STEMS = {
     1: "figure-1-controlled-apparatus.svg",
-    2: "figure-2-one-autonomous-experiment.svg",
-    3: "figure-3-behaviorally-distinct-trajectories.svg",
-    4: "figure-4-prior-reshapes-behavior.svg",
+    2: "figure-2-compiled-controls.svg",
+    3: "figure-3-autonomous-lifecycle.svg",
+    4: "figure-4-trajectory-dynamics.svg",
     5: "figure-5-within-world-replication.svg",
-    6: "figure-6-experimental-intelligence-profiles.svg",
+    6: "figure-6-experimental-agency-profile.svg",
+}
+
+FIGURE_COPY = {
+    1: (
+        "ChemWorld is a controlled apparatus for measuring experimental agency",
+        "Typed state transitions couple public observations to resource receipts, "
+        "immutable traces and exact physical replay while experimental contrasts remain explicit.",
+    ),
+    2: (
+        "Compiled controls distinguish task outcome, information response and epistemic readouts",
+        "Paired worlds, a misindexed-prior manipulation and separate outcome and "
+        "epistemic measures establish the low-authority calibration layer.",
+    ),
+    3: (
+        "Primitive-control agents close complete experimental lifecycles",
+        "The agent selects operations, observes intermediate evidence, decides when to stop and "
+        "requests final assay under a reconstructable campaign ledger.",
+    ),
+    4: (
+        "Similar endpoints can arise from different experimental trajectories",
+        "Development worlds expose early discovery, loss, gradual improvement, retention and "
+        "terminal divergence that an endpoint alone cannot resolve.",
+    ),
+    5: (
+        "Fresh trajectories separate endpoint direction from lifecycle repeatability",
+        "Matched-world session pairs keep right-censored cells visible and show mixed lifecycle "
+        "directions under every possible sign of the missing differences.",
+    ),
+    6: (
+        "Experimental agency is resolved as a profile of separate readouts",
+        "Outcome, prediction, calibration, claim reliability, completion, retention, recovery and "
+        "terminal behavior remain separate rather than being collapsed into a composite score.",
+    ),
 }
 
 CONCEPT_STEMS = {
@@ -77,16 +110,36 @@ def _md(value: str) -> str:
     )
 
 
-def _sections(markdown_text: str) -> tuple[str, list[tuple[str, str]]]:
-    title_match = re.search(r"^#\s+(.+)$", markdown_text, flags=re.MULTILINE)
+def _sections(markdown_text: str) -> tuple[str, str, list[tuple[str, str]]]:
+    front_match = re.match(r"\A---\s*\n(?P<front>.*?)\n---\s*\n", markdown_text, re.DOTALL)
+    if front_match is None:
+        raise ValueError("manuscript YAML metadata is missing")
+    front = front_match.group("front")
+    title_match = re.search(r'^title:\s*["\']?(.*?)["\']?\s*$', front, re.MULTILINE)
     if title_match is None:
         raise ValueError("manuscript title is missing")
-    matches = list(re.finditer(r"^##\s+(.+)$", markdown_text, flags=re.MULTILINE))
+    lines = front.splitlines()
+    try:
+        abstract_index = next(
+            index for index, line in enumerate(lines) if line.strip() == "abstract: |"
+        )
+    except StopIteration as exc:
+        raise ValueError("manuscript abstract is missing") from exc
+    abstract_lines: list[str] = []
+    for line in lines[abstract_index + 1 :]:
+        if line and not line.startswith("  "):
+            break
+        abstract_lines.append(line[2:] if line.startswith("  ") else "")
+    abstract = "\n".join(abstract_lines).strip()
+    body = markdown_text[front_match.end() :]
+    matches = list(re.finditer(r"^#(?!#)\s+(.+)$", body, flags=re.MULTILINE))
     values: list[tuple[str, str]] = []
     for index, match in enumerate(matches):
-        end = matches[index + 1].start() if index + 1 < len(matches) else len(markdown_text)
-        values.append((match.group(1).strip(), markdown_text[match.end() : end].strip()))
-    return title_match.group(1).strip(), values
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(body)
+        section = body[match.end() : end].strip()
+        section = re.sub(r"```\{=latex\}.*?```", "", section, flags=re.DOTALL)
+        values.append((match.group(1).strip(), section.strip()))
+    return title_match.group(1).strip(), abstract, values
 
 
 def _extract_table(display: str, number: int) -> tuple[str, str]:
@@ -248,7 +301,8 @@ def _relative_path(target: Path, base: Path) -> str:
 
 
 def _figure_html(number: int, display: str, figures: Path, html_path: Path) -> str:
-    title, legend = _extract_legend(display, number)
+    del display
+    title, legend = FIGURE_COPY[number]
     image = figures / FIGURE_STEMS[number]
     if not image.is_file():
         raise FileNotFoundError(image)
@@ -358,26 +412,20 @@ def _publication_html(
     display = display_path.read_text(encoding="utf-8")
     data = json.loads(data_path.read_text(encoding="utf-8"))
     release_manifest = json.loads(release_manifest_path.read_text(encoding="utf-8"))
-    title, sections = _sections(manuscript)
-    abstract = next(body for heading, body in sections if heading == "Abstract")
+    title, abstract, sections = _sections(manuscript)
     body_sections = [
-        (heading, body)
-        for heading, body in sections
-        if heading != "Abstract" and not heading.startswith("11.") and not heading.startswith("12.")
+        (heading, body) for heading, body in sections if not heading.startswith("Appendix")
     ]
     executed = release_manifest["experiment_accounting"]["final_executed_physical_experiment_total"]
     q = data["environment_qualification"]
     derived_sha = data["derived_data_sha256"]
     inserts: dict[str, list[str]] = {
         "3.": [_figure_html(1, display, figures, html_path), _table_html(1, display)],
-        "4.": [_figure_html(4, display, figures, html_path), _table_html(2, display)],
-        "5.": [_figure_html(6, display, figures, html_path)],
-        "6.": [
-            _figure_html(2, display, figures, html_path),
-            _figure_html(3, display, figures, html_path),
-            _table_html(3, display),
-        ],
+        "4.": [_figure_html(2, display, figures, html_path), _table_html(2, display)],
+        "5.": [_figure_html(3, display, figures, html_path), _table_html(3, display)],
+        "6.": [_figure_html(4, display, figures, html_path)],
         "7.": [_figure_html(5, display, figures, html_path), _table_html(4, display)],
+        "8.": [_figure_html(6, display, figures, html_path)],
     }
     article_parts: list[str] = []
     for heading, body in body_sections:
@@ -396,10 +444,9 @@ def _publication_html(
 <header class="cover">
   <div class="kicker">ChemWorld | arXiv v1 publication proof</div>
   <h1>{html.escape(title)}</h1>
-  <p class="deck">A controlled apparatus for measuring how scientific agents discover,
-  retain, lose and recover experimental knowledge.</p>
-  <p class="proof-meta">Working proof | 2 August 2026 | Author list and durable raw-data
-  archive identifier pending</p>
+  <p class="deck">An executable, chemistry-native apparatus that separates experimental
+  success from reproducible experimental behavior.</p>
+  <p class="proof-meta">P0 release proof | 2 August 2026 | Frozen evidence and claim audit</p>
   <div class="scope-ribbon">
     <div><strong>{executed:,}</strong><span>executed physical experiments</span></div>
     <div><strong>{q["registered_tasks"]}</strong><span>registered task designs</span></div>
@@ -495,6 +542,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--chrome", type=Path)
     parser.add_argument("--html-only", action="store_true")
+    parser.add_argument(
+        "--refresh-concept-pdf",
+        action="store_true",
+        help="re-render the static image-generated concept atlas PDF",
+    )
     return parser
 
 
@@ -533,17 +585,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         publication_pdf = output / "experimental-intelligence-v1-publication-proof.pdf"
         concept_pdf = output / "experimental-intelligence-v1-concept-atlas.pdf"
         _print_pdf(chrome, publication_html, publication_pdf)
-        _print_pdf(chrome, concept_html, concept_pdf)
+        if args.refresh_concept_pdf or not concept_pdf.is_file():
+            _print_pdf(chrome, concept_html, concept_pdf)
         outputs.extend([publication_pdf, concept_pdf])
     source_paths = [
         Path(__file__).resolve(),
-        ROOT / "paper/tools/render_publication_v1_figures.py",
+        ROOT / "paper/tools/render_arxiv_release_figures.py",
         manuscript,
         display,
         bibliography,
         data,
         release_manifest,
-        figures.parent / "publication-figure-manifest.json",
+        figures.parent / "figure-manifest.json",
         concepts / "README.md",
         *[concepts / CONCEPT_STEMS[number] for number in range(1, 7)],
     ]

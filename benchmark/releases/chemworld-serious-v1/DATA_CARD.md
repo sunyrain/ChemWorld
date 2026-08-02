@@ -38,21 +38,30 @@ Four G0 raw roots exist locally: 1,441 files and 17,725,724,603 bytes. Their his
 
 G2 v0.5 is terminal. Its 18 completed and two right-censored cells passed
 attempt-selection, within-pair identity, resource-replay, and exact-replay
-checks. The terminal package is bound by a 677-file hash index and includes a
-compact replay subset containing one complete pair and both right-censored
-cells.
+checks. The terminal package is bound by a 677-file hash index. A paper-sufficient
+public archive contains compact physical-transition trajectories for all 20
+formal cells, plus the completed and partial durable trajectories from the
+excluded first launch. All 22 compact trajectories pass exact physical replay;
+provider response content and hidden evaluator identity are omitted.
 
 ## Derived-data and figure state
 
-`arxiv-v1-derived-data.json` is the sole numeric source for manuscript tables
-and figures. Its status is `frozen_complete`: it contains formal G0 summaries,
-the completed G2 v0.4 audit, and the terminal G2 v0.5 audit. Six CSV views and
-Figures 1--6 are generated from this object. G2 v0.5 contributes eight complete
-pairs and retains two right-censored pairs without imputation. The selected
-frozen interpretation branch is `frequent_within_world_reversal`; six of eight
-world-by-core-lifecycle classifications were mixed. These selected worlds are
-reported descriptively and are not pooled into a population-level prior-effect
-test.
+`arxiv-v1-derived-data.json` is the frozen source for primary manuscript values.
+`arxiv-v1-p0-sensitivity.json` adds the self-hashed robustness layer without
+changing that primary analysis. The release figures are generated only from
+these frozen objects. G2 v0.5 contributes eight complete pairs and retains two
+right-censored pairs without imputation. Six of eight world-by-core-lifecycle
+classifications were mixed; at least six remain mixed under every possible sign
+of the two missing pair differences. The result is also stable at 80%, 90% and
+95% retention definitions. These matched-world readouts are reported
+descriptively rather than pooled into a population-level prior-effect test.
+
+## Paper artifact state
+
+The P0 manuscript is rendered as a 10-page, two-column arXiv PDF with six
+publication figures. The upload bundle includes generated `main.tex`, the
+BibTeX database, `main.bbl`, source Markdown and exact figure PDFs. Its build
+manifest records byte counts and SHA-256 hashes for every submitted artifact.
 
 ## Sensitive and excluded content
 

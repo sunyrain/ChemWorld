@@ -1,0 +1,83 @@
+\documentclass[10pt,twocolumn]{article}
+
+\usepackage[letterpaper,top=0.67in,bottom=0.72in,left=0.67in,right=0.67in,columnsep=0.24in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{dblfloatfix}
+\usepackage{balance}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{amsmath,amssymb}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[font=small,labelfont=bf,labelsep=period]{caption}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[hidelinks,breaklinks=true]{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+\definecolor{chemblue}{HTML}{26577C}
+\definecolor{chemlink}{HTML}{234F70}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=chemlink,
+  citecolor=chemlink,
+  urlcolor=chemlink,
+  pdftitle={$title$},
+  pdfauthor={$for(author)$$author$$sep$; $endfor$}
+}
+
+\setlength{\parindent}{1em}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{1.5em}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{7pt plus 2pt minus 2pt}
+\setlength{\intextsep}{7pt plus 2pt minus 2pt}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\dblfloatpagefraction}{0.75}
+\captionsetup{justification=justified,singlelinecheck=false}
+% Headings carry their frozen manuscript numbers so the Markdown and TeX
+% sources expose the same navigation without duplicate LaTeX counter labels.
+\titleformat{\section}{\large\bfseries\color{chemblue}}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries}{}{0pt}{}
+\titlespacing*{\section}{0pt}{10pt plus 2pt minus 1pt}{4pt}
+\titlespacing*{\subsection}{0pt}{7pt plus 2pt minus 1pt}{3pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize Executable Chemical Worlds}
+\fancyhead[R]{\footnotesize arXiv preprint}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.25pt}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\title{\vspace{-1.8em}\textbf{$title$}}
+\author{$for(author)$$author$$sep$ \and $endfor$}
+\date{$date$}
+
+\begin{document}
+
+\twocolumn[
+\begin{@twocolumnfalse}
+\maketitle
+\begin{abstract}
+$abstract$
+\end{abstract}
+\vspace{0.6em}
+\end{@twocolumnfalse}
+]
+
+$body$
+
+\balance
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\end{document}
