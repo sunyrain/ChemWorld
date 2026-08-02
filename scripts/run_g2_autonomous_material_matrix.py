@@ -973,6 +973,37 @@ def _provider_failure_metadata(
     }
 
 
+def _direct_provider_runtime(protocol: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Resolve the auditable direct-operation runtime frozen by a G2 protocol."""
+
+    agent = protocol.get("agent")
+    if not isinstance(agent, Mapping):
+        return None
+    provider = str(agent.get("provider") or "").strip().lower()
+    if provider.startswith("deepseek direct"):
+        return {
+            "transport": "direct_deepseek_chat_completions",
+            "provider_id": "deepseek",
+            "provider_name": "DeepSeek",
+            "provider_base_url": "https://api.deepseek.com/beta",
+            "provider_env_key": "DEEPSEEK_API_KEY",
+            "wire_api": "chat_completions",
+            "model_catalog_endpoint": "https://api.deepseek.com/models",
+            "structured_output_transport": "beta_strict_forced_tool_call",
+        }
+    if provider.startswith("wellau direct"):
+        return {
+            "transport": "direct_wellau_chat_completions",
+            "provider_id": "wellau",
+            "provider_name": "WellAU",
+            "provider_base_url": "https://api.wellau.com/v1",
+            "provider_env_key": "WELLAU_API_KEY",
+            "wire_api": "chat_completions",
+            "structured_output_transport": "json_object",
+        }
+    return None
+
+
 def _run_cell(
     *,
     protocol: Mapping[str, Any],
@@ -2071,7 +2102,8 @@ def main() -> int:
         return 0
     if not args.allow_external_provider:
         raise RuntimeError("external execution requires --allow-external-provider")
-    cli = _codex_cli_manifest()
+    direct_provider_runtime = _direct_provider_runtime(protocol)
+    cli = direct_provider_runtime or _codex_cli_manifest()
 
     qualification = bool(args.qualification)
     qualification_condition = str(args.qualification_condition)
@@ -2134,15 +2166,22 @@ def main() -> int:
             world_seed=qualification_world_seed,
         )
         cell_run_dir = str(cell["cell_id"])
-        result = _run_cell(
-            protocol=protocol,
-            source=source,
-            cli=cli,
-            cell=cell,
-            cell_root=output_root / cell_run_dir,
-            card=card,
-            method_limits=limits,
-            qualification=True,
+        common_cell_arguments = {
+            "protocol": protocol,
+            "source": source,
+            "cell": cell,
+            "cell_root": output_root / cell_run_dir,
+            "card": card,
+            "method_limits": limits,
+            "qualification": True,
+        }
+        result = (
+            _run_cell_light(
+                provider_runtime=direct_provider_runtime,
+                **common_cell_arguments,
+            )
+            if direct_provider_runtime is not None
+            else _run_cell(cli=cli, **common_cell_arguments)
         )
         write_json_atomic(
             output_root / "qualification_summary.json",
@@ -2184,15 +2223,22 @@ def main() -> int:
         for cell in _scheduled_cells(protocol):
             if str(cell["cell_id"]) in completed_cell_ids:
                 continue
-            result = _run_cell(
-                protocol=protocol,
-                source=source,
-                cli=cli,
-                cell=cell,
-                cell_root=output_root / str(cell["cell_id"]),
-                card=card,
-                method_limits=limits,
-                qualification=False,
+            common_cell_arguments = {
+                "protocol": protocol,
+                "source": source,
+                "cell": cell,
+                "cell_root": output_root / str(cell["cell_id"]),
+                "card": card,
+                "method_limits": limits,
+                "qualification": False,
+            }
+            result = (
+                _run_cell_light(
+                    provider_runtime=direct_provider_runtime,
+                    **common_cell_arguments,
+                )
+                if direct_provider_runtime is not None
+                else _run_cell(cli=cli, **common_cell_arguments)
             )
             results.append(result)
             _write_matrix_manifest(

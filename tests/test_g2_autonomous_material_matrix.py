@@ -236,6 +236,49 @@ def test_qualification_cli_selects_nominal_same_cell_k2_without_provider(
     assert summary["cell_run_dir"] == "qualification-seed3-nominal-k2"
 
 
+def test_direct_provider_qualification_uses_operation_runner(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_root = tmp_path / "deepseek-k1"
+    config = (
+        matrix.ROOT
+        / "configs/benchmark/"
+        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.3_dev.json"
+    )
+    captured: dict[str, Any] = {}
+
+    def run_cell_light(**kwargs: Any) -> dict[str, Any]:
+        captured.update(kwargs)
+        return {"run_status": "completed"}
+
+    monkeypatch.setattr(matrix, "_source_manifest", lambda path: _source())
+    monkeypatch.setattr(matrix, "_run_cell_light", run_cell_light)
+    monkeypatch.setattr(
+        matrix,
+        "_codex_cli_manifest",
+        lambda: pytest.fail("direct qualification must not inspect Codex"),
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_g2_autonomous_material_matrix.py",
+            "--config",
+            str(config),
+            "--qualification",
+            "--output-root",
+            str(output_root),
+            "--allow-external-provider",
+        ],
+    )
+
+    assert matrix.main() == 0
+    assert captured["provider_runtime"]["provider_id"] == "deepseek"
+    assert captured["provider_runtime"]["provider_base_url"].endswith("/beta")
+    assert captured["qualification"] is True
+
+
 def test_qualification_experiment_cli_rejects_values_outside_frozen_counts() -> None:
     with pytest.raises(SystemExit):
         matrix._parser().parse_args(
