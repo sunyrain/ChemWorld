@@ -329,14 +329,14 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
     verification = _load(ROOT / manifest["evidence"]["verification_attestation"])
     assert verification["status"] == "passed"
     assert verification["full_test_suite"] == {
-        "collected": 1847,
-        "passed": 1833,
-        "skipped": 14,
+        "collected": 1857,
+        "passed": 1854,
+        "skipped": 3,
         "failed": 0,
         "note": (
-            "The suite was run in 13 alphabetic shards with all declared optional "
-            "dependencies; two release-state assertions were executed after the "
-            "attestation and manifest were bound."
+            "The suite was run in 13 deterministic filename shards with all declared "
+            "optional dependencies. Two stale metadata assertions were corrected and "
+            "their affected suites rerun; no unresolved failures remain."
         ),
     }
     assert verification["clean_wheel"]["status"] == "passed"
