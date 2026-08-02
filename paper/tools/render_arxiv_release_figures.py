@@ -190,6 +190,7 @@ def _icon(
     *,
     color: str = INK,
     accent: str = TEAL,
+    label: str | None = None,
 ) -> None:
     """Draw a small code-native scientific icon in axes coordinates."""
     x, y = center
@@ -436,7 +437,7 @@ def _icon(
         ax.text(
             x,
             y,
-            "-0.75 V",
+            label or "potential",
             transform=ax.transAxes,
             ha="center",
             va="center",
@@ -920,6 +921,7 @@ def figure_2(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
 
 def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     demo = data["g2_v0_4"]["one_experiment_demonstration"]
+    potential_label = f"{demo['setpoint_policy'][0]['potential_V']:g} V"
     cells = data["g2_v0_4"]["cell_rows"]
     fig = plt.figure(figsize=(7.2, 3.35))
     grid = fig.add_gridspec(
@@ -959,7 +961,15 @@ def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             edge=color,
             face=WASH,
         )
-        _icon(ax, icon_kind, (x + 0.08, y + 0.135), 0.070, color=INK, accent=color)
+        _icon(
+            ax,
+            icon_kind,
+            (x + 0.08, y + 0.135),
+            0.070,
+            color=INK,
+            accent=color,
+            label=potential_label if icon_kind == "potential" else None,
+        )
         ax.text(
             x + 0.08,
             y + 0.040,

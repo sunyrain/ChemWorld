@@ -112,6 +112,15 @@ def test_key_workflow_svgs_are_editable_vectors_without_embedded_bitmaps() -> No
         assert svg.count("<path") >= 30
         assert all(label in svg for label in labels)
 
+    derived = json.loads((RELEASE / "arxiv-v1-derived-data.json").read_text(encoding="utf-8"))
+    potential = derived["g2_v0_4"]["one_experiment_demonstration"]["setpoint_policy"][0][
+        "potential_V"
+    ]
+    lifecycle_svg = (ARXIV / "figures" / "figure-3-autonomous-lifecycle.svg").read_text(
+        encoding="utf-8"
+    )
+    assert f">{potential:g} V<" in lifecycle_svg
+
 
 def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
     manifest = json.loads((EXPORT / "build-manifest.json").read_text(encoding="utf-8"))
