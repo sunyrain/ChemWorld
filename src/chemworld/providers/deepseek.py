@@ -498,13 +498,21 @@ def _deepseek_strict_schema(value: Any) -> Any:
     numeric bounds while omitting provider-unsupported string/array length hints.
     """
 
-    unsupported = {"minLength", "maxLength", "minItems", "maxItems"}
     if isinstance(value, Mapping):
-        return {
+        projected = {
             str(key): _deepseek_strict_schema(item)
             for key, item in value.items()
-            if key not in unsupported
+            if key not in {"minLength", "maxLength", "minItems", "maxItems"}
         }
+        if value.get("type") == "string" and "pattern" not in projected:
+            minimum = value.get("minLength")
+            maximum = value.get("maxLength")
+            if isinstance(minimum, int) and minimum >= 0:
+                upper = str(maximum) if isinstance(maximum, int) else ""
+                projected["pattern"] = f"^.{{{minimum},{upper}}}$"
+            elif isinstance(maximum, int) and maximum >= 0:
+                projected["pattern"] = f"^.{{0,{maximum}}}$"
+        return projected
     if isinstance(value, list):
         return [_deepseek_strict_schema(item) for item in value]
     return value

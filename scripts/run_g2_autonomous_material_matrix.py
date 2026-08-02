@@ -699,28 +699,73 @@ def _provider_decision_audit(
     target_operations: int,
     expected_provider: str = "WellAU",
 ) -> dict[str, Any]:
-    """Qualify the one strict provider response per primitive operation contract."""
+    """Qualify one logical strict decision, with bounded attempts, per operation."""
 
-    receipt_audits: list[dict[str, Any]] = []
-    for index, receipt in enumerate(receipts, start=1):
-        checks = {
-            "status_succeeded": receipt.get("status") == "succeeded",
-            "provider_matches_runtime": (receipt.get("provider") == expected_provider),
-            "attempt_index_one": receipt.get("attempt_index") == 1,
-            "logical_decision_index_matches": (receipt.get("logical_decision_index") == index),
-            "provider_token_accounting_complete": (
-                receipt.get("provider_token_accounting_complete") is True
-            ),
-            "input_tokens_reported": int(receipt.get("input_token_count", 0) or 0) > 0,
-            "output_tokens_reported": int(receipt.get("output_token_count", 0) or 0) > 0,
-            "no_failure_type": receipt.get("failure_type") is None,
+    attempt_limit = int(
+        method_resources.get("model_provenance", {})
+        .get("request_parameters", {})
+        .get("provider_attempt_limit_per_operation", 1)
+    )
+    grouped: dict[int, list[dict[str, Any]]] = {}
+    for receipt in receipts:
+        logical_index = int(receipt.get("logical_decision_index", 0) or 0)
+        grouped.setdefault(logical_index, []).append(receipt)
+    decision_audits: list[dict[str, Any]] = []
+    for operation_index in range(1, target_operations + 1):
+        attempts = sorted(
+            grouped.get(operation_index, []),
+            key=lambda item: int(item.get("attempt_index", 0) or 0),
+        )
+        attempt_audits: list[dict[str, Any]] = []
+        for attempt_position, receipt in enumerate(attempts, start=1):
+            billable = receipt.get("billable") is True
+            succeeded = receipt.get("status") == "succeeded"
+            checks = {
+                "provider_matches_runtime": receipt.get("provider") == expected_provider,
+                "logical_decision_index_matches": (
+                    receipt.get("logical_decision_index") == operation_index
+                ),
+                "attempt_index_matches": receipt.get("attempt_index") == attempt_position,
+                "status_matches_position": (
+                    succeeded if attempt_position == len(attempts) else not succeeded
+                ),
+                "token_accounting_matches_billability": (
+                    receipt.get("provider_token_accounting_complete") is True
+                    and int(receipt.get("input_token_count", 0) or 0) > 0
+                    and int(receipt.get("output_token_count", 0) or 0) > 0
+                    if billable
+                    else int(receipt.get("input_token_count", 0) or 0) == 0
+                    and int(receipt.get("output_token_count", 0) or 0) == 0
+                ),
+                "failure_type_matches_status": (
+                    receipt.get("failure_type") is None
+                    if succeeded
+                    else bool(receipt.get("failure_type"))
+                ),
+            }
+            attempt_audits.append(
+                {
+                    "attempt_index": attempt_position,
+                    "request_id": receipt.get("request_id"),
+                    "status": receipt.get("status"),
+                    "billable": billable,
+                    "checks": checks,
+                    "passed": all(checks.values()),
+                }
+            )
+        decision_checks = {
+            "attempt_count_in_range": 1 <= len(attempts) <= attempt_limit,
+            "final_attempt_succeeded": bool(attempts) and attempts[-1].get("status") == "succeeded",
+            "all_attempts_passed": bool(attempt_audits)
+            and all(item["passed"] for item in attempt_audits),
         }
-        receipt_audits.append(
+        decision_audits.append(
             {
-                "operation_index": index,
-                "request_id": receipt.get("request_id"),
-                "checks": checks,
-                "passed": all(checks.values()),
+                "operation_index": operation_index,
+                "attempt_count": len(attempts),
+                "attempts": attempt_audits,
+                "checks": decision_checks,
+                "passed": all(decision_checks.values()),
             }
         )
     provenance = method_resources.get("model_provenance")
@@ -738,7 +783,7 @@ def _provider_decision_audit(
             method_resources.get("provider_call_accounting_complete") is True
         ),
         "model_call_count_matches_operations": (
-            method_resources.get("model_call_count") == target_operations
+            method_resources.get("model_call_count") == len(receipts)
         ),
         "logical_decisions_match_operations": (
             parameter_mapping.get("logical_decisions") == target_operations
@@ -747,26 +792,35 @@ def _provider_decision_audit(
             parameter_mapping.get("response_format") == "dynamic_strict_json_schema"
         ),
         "shell_tools_disabled": (parameter_mapping.get("shell_tools") is False),
+        "logical_decision_transport_declared": (
+            parameter_mapping.get("one_logical_provider_decision_per_primitive_operation") is True
+        ),
+        "provider_attempt_limit_declared": (
+            parameter_mapping.get("provider_attempt_limit_per_operation") == attempt_limit
+            and attempt_limit >= 1
+        ),
     }
-    count_matches = len(receipts) == target_operations
+    logical_indices_match = sorted(grouped) == list(range(1, target_operations + 1))
     return {
-        "schema_version": "chemworld-g2-provider-decision-audit-0.1",
+        "schema_version": "chemworld-g2-provider-decision-audit-0.2",
         "target_operation_count": target_operations,
         "expected_provider": expected_provider,
+        "provider_attempt_limit_per_operation": attempt_limit,
         "receipt_count": len(receipts),
-        "receipt_count_matches_target": count_matches,
-        "receipts": receipt_audits,
-        "all_receipts_passed": (
-            count_matches
-            and len(receipt_audits) == target_operations
-            and all(item["passed"] for item in receipt_audits)
+        "logical_decision_count": len(grouped),
+        "logical_indices_match_operations": logical_indices_match,
+        "decisions": decision_audits,
+        "all_decisions_passed": (
+            logical_indices_match
+            and len(decision_audits) == target_operations
+            and all(item["passed"] for item in decision_audits)
         ),
         "method_resource_checks": method_checks,
         "all_method_resource_checks_passed": all(method_checks.values()),
         "passed": (
-            count_matches
-            and len(receipt_audits) == target_operations
-            and all(item["passed"] for item in receipt_audits)
+            logical_indices_match
+            and len(decision_audits) == target_operations
+            and all(item["passed"] for item in decision_audits)
             and all(method_checks.values())
         ),
     }
@@ -1225,7 +1279,10 @@ def _run_cell_light(
     )
     config["provider_runtime"] = config.pop("codex_cli")
     config["execution_layer"] = {
-        "decision_transport": "one_provider_json_call_per_primitive_operation",
+        "decision_transport": "one_logical_provider_decision_per_primitive_operation",
+        "provider_attempt_limit_per_operation": int(
+            protocol["agent"].get("provider_max_attempts", 1)
+        ),
         "shell_tools_enabled": False,
         "lab_tool_used": False,
         "strict_json_schema": True,
@@ -1405,7 +1462,10 @@ def _run_cell_light(
             "agent_manifest": agent.manifest(),
             "strict_autonomy_contract": {
                 "one_agent_decision_per_primitive_operation": True,
-                "one_provider_call_per_primitive_operation": True,
+                "one_logical_provider_decision_per_primitive_operation": True,
+                "provider_attempt_limit_per_operation": int(
+                    agent_config.get("provider_max_attempts", 1)
+                ),
                 "strict_provider_json_schema": True,
                 "shell_tools_enabled": False,
                 "lab_tool_used": False,

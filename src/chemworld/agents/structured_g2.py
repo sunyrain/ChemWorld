@@ -11,7 +11,7 @@ from chemworld.agents.decision_schema import build_decision_output_schema
 from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.live_llm import JsonCompletionLike, LiveLLMAgent
 
-STRUCTURED_G2_PROMPT_CONTRACT_VERSION = "chemworld-structured-g2-operation-0.2"
+STRUCTURED_G2_PROMPT_CONTRACT_VERSION = "chemworld-structured-g2-operation-0.3"
 
 STRUCTURED_G2_SYSTEM_PROMPT = """You are the operation-level experimental agent in ChemWorld.
 Choose exactly one currently legal primitive operation from the compact public decision state.
@@ -113,10 +113,12 @@ class StructuredG2Agent(LiveLLMAgent):
 
     def manifest(self) -> dict[str, Any]:
         payload = super().manifest()
+        attempt_limit = max(int(getattr(self.client, "max_attempts", 1)), 1)
         payload.update(
             {
                 "prompt_contract_version": STRUCTURED_G2_PROMPT_CONTRACT_VERSION,
-                "decision_transport": "one_provider_json_call_per_primitive_operation",
+                "decision_transport": "one_logical_provider_decision_per_primitive_operation",
+                "provider_attempt_limit_per_operation": attempt_limit,
                 "structured_output_policy": (
                     "provider_enforced_dynamic_strict_json_schema_from_current_affordances"
                 ),
@@ -129,6 +131,7 @@ class StructuredG2Agent(LiveLLMAgent):
 
     def method_resource_usage(self) -> dict[str, Any]:
         usage = super().method_resource_usage()
+        attempt_limit = max(int(getattr(self.client, "max_attempts", 1)), 1)
         provenance = usage.get("model_provenance")
         if isinstance(provenance, dict):
             parameters = provenance.get("request_parameters")
@@ -137,7 +140,8 @@ class StructuredG2Agent(LiveLLMAgent):
                     {
                         "response_format": "dynamic_strict_json_schema",
                         "shell_tools": False,
-                        "one_provider_call_per_primitive_operation": True,
+                        "one_logical_provider_decision_per_primitive_operation": True,
+                        "provider_attempt_limit_per_operation": attempt_limit,
                     }
                 )
         return usage

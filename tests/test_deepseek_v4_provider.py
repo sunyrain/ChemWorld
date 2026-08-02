@@ -88,6 +88,7 @@ def test_strict_tool_transport_projects_schema_to_supported_keywords() -> None:
     assert function["parameters"]["properties"]["status"] == {
         "type": "string",
         "enum": ["ok"],
+        "pattern": "^.{1,}$",
     }
     assert "response_format" not in body
 

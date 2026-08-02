@@ -80,3 +80,53 @@ def test_only_pre_action_provider_failure_can_be_retried(
     assert result["attempts"][0]["retryable_pre_action_provider_failure"] is True
     assert result["attempts"][1]["retryable_pre_action_provider_failure"] is False
     assert result["summary"]["accepted_operation_count"] == 1
+
+
+def test_provider_audit_accepts_nested_fail_closed_attempts() -> None:
+    def receipt(logical: int, attempt: int, status: str) -> dict[str, object]:
+        succeeded = status == "succeeded"
+        return {
+            "logical_decision_index": logical,
+            "attempt_index": attempt,
+            "status": status,
+            "provider": "DeepSeek",
+            "billable": True,
+            "provider_token_accounting_complete": True,
+            "input_token_count": 10,
+            "output_token_count": 5,
+            "failure_type": None if succeeded else "invalid_structured_output",
+            "request_id": f"request-{logical}-{attempt}",
+        }
+
+    receipts = [
+        receipt(1, 1, "failed"),
+        receipt(1, 2, "succeeded"),
+        receipt(2, 1, "succeeded"),
+    ]
+    resources = {
+        "provider_usage_accounting_complete": True,
+        "provider_token_accounting_complete": True,
+        "provider_call_accounting_complete": True,
+        "model_call_count": 3,
+        "model_provenance": {
+            "request_parameters": {
+                "logical_decisions": 2,
+                "response_format": "dynamic_strict_json_schema",
+                "shell_tools": False,
+                "one_logical_provider_decision_per_primitive_operation": True,
+                "provider_attempt_limit_per_operation": 3,
+            }
+        },
+    }
+
+    audit = campaign.matrix._provider_decision_audit(
+        receipts,
+        resources,
+        target_operations=2,
+        expected_provider="DeepSeek",
+    )
+
+    assert audit["passed"] is True
+    assert audit["receipt_count"] == 3
+    assert audit["logical_decision_count"] == 2
+    assert audit["decisions"][0]["attempt_count"] == 2
