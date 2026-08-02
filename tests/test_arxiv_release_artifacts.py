@@ -95,7 +95,7 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
     declared = manifest.pop("manifest_sha256")
     assert declared == _canonical_sha(manifest)
     assert manifest["status"] == "compiled_arxiv_release"
-    assert manifest["pdf_page_count"] == 10
+    assert manifest["pdf_page_count"] == 11
     for row in manifest["files"]:
         artifact = ROOT / row["path"]
         assert artifact.stat().st_size == row["bytes"]
@@ -127,7 +127,7 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
 
 def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
     tex = (ARXIV / "main.tex").read_text(encoding="utf-8")
-    assert "\\begin{abstract}\nA successful experiment" in tex
+    assert "\\begin{abstract}\nA final score is a many-to-one projection" in tex
     assert "\\subsection{Abstract}" not in tex
     assert "\\section{1. Introduction}" in tex
     assert "\\section{12. Conclusion}" in tex
@@ -139,7 +139,7 @@ def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
 def test_release_manifest_records_completed_p0_gates() -> None:
     manifest = json.loads((RELEASE / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["paper"]["working_title"] == (
-        "Executable Chemical Worlds for Measuring Experimental Agency"
+        "Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency"
     )
     assert manifest["gates"]["raw_data_archive"] == "open"
     assert manifest["publication_ready"] is False

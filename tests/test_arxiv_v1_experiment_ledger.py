@@ -130,7 +130,9 @@ def test_paper_scope_keeps_g2_primary_and_claims_bounded() -> None:
     scope = ledger["paper_scope"]
     g2 = ledger["experiment_layers"]["g2_v0_5_fresh_trajectory_replication"]
 
-    assert scope["working_title"] == ("Experimental Intelligence in Executable Chemical Worlds")
+    assert scope["working_title"] == (
+        "Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency"
+    )
     assert scope["primary_interface"] == ("agent-directed closed-loop primitive experimentation")
     assert scope["direct_g0_vs_g2_superiority_claim"] is False
     assert scope["general_population_prior_effect_claim"] is False
@@ -164,7 +166,7 @@ def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
     )
 
     assert manuscript.startswith(
-        '---\ntitle: "Executable Chemical Worlds for Measuring Experimental Agency"'
+        '---\ntitle: "Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency"'
     )
     assert "[PENDING G2 v0.5" not in manuscript
     assert "29,580 simulator executions" in compact_manuscript

@@ -552,9 +552,22 @@ def _execution_probes() -> tuple[dict[str, bool], dict[str, Any]]:
         )
         wheel_files = sorted(wheels.glob("*.whl"))
         install_ok = False
+        install: subprocess.CompletedProcess[str] | None = None
         if build.returncode == 0 and len(wheel_files) == 1:
-            install = subprocess.run(
+            install_command = (
                 [
+                    uv,
+                    "pip",
+                    "install",
+                    "--python",
+                    sys.executable,
+                    "--no-deps",
+                    "--target",
+                    str(target),
+                    str(wheel_files[0]),
+                ]
+                if uv
+                else [
                     sys.executable,
                     "-m",
                     "pip",
@@ -563,7 +576,10 @@ def _execution_probes() -> tuple[dict[str, bool], dict[str, Any]]:
                     "--target",
                     str(target),
                     str(wheel_files[0]),
-                ],
+                ]
+            )
+            install = subprocess.run(
+                install_command,
                 cwd=temporary_path,
                 check=False,
                 capture_output=True,
@@ -582,6 +598,7 @@ def _execution_probes() -> tuple[dict[str, bool], dict[str, Any]]:
                 "passed": False,
                 "error": "wheel_build_or_install_failed",
                 "build_returncode": build.returncode,
+                "install_returncode": None if install is None else install.returncode,
             }
     probes = {
         "windows_source_process": sys.platform == "win32",

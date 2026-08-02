@@ -239,7 +239,7 @@ def render(data: Mapping[str, Any]) -> str:
         )
     )
     sections: list[str] = [
-        "# Executable Chemical Worlds for Measuring Experimental Agency: numeric display items",
+        "# Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency: numeric display items",
         "",
         f"Status: `{data['status']}`.",
         f"Derived-data SHA-256: `{data['derived_data_sha256']}`.",

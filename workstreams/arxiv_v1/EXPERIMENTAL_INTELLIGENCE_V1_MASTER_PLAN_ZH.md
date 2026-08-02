@@ -2,7 +2,7 @@
 
 状态：`authoritative working plan; terminal scientific matrix incorporated`
 
-工作标题：*Experimental Intelligence in Executable Chemical Worlds*
+工作标题：*Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency*
 
 机器总账：`workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json`
 
