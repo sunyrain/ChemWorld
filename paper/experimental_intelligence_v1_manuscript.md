@@ -212,10 +212,12 @@ across tasks, information conditions and classical optimization policies.
 
 Across ten paired worlds, the nominal-information arm produced a mean
 nominal-minus-opaque score difference of 0.072 in electrochemical conversion
-(8/10 positive worlds; familywise 97.5% world-bootstrap interval 0.007 to
+(8/10 positive worlds; 97.5% per-task world-bootstrap interval 0.007 to
 0.155) and 0.026 in reaction-to-crystallization (7/10 positive; interval -0.013
-to 0.063). The contrast is therefore task-conditioned rather than a universal
-benefit of material information (Fig. 2A).
+to 0.063). The two 97.5% intervals provide 95% Bonferroni family coverage for
+the pre-specified two-task analysis. Thus the same information intervention
+produced distinct outcome profiles in the two executable task families
+(Fig. 2A).
 
 The deliberately misindexed arm provides a manipulation check. It redirected
 the first material-sensitive action in 70% of electrochemical worlds and 100% of
@@ -238,7 +240,7 @@ substitute for another (Fig. 2D).
 \centering
 \includegraphics[width=\textwidth]{figures/figure-2-compiled-controls.pdf}
 \caption{\textbf{Compiled controls distinguish task outcome, information response and epistemic readouts.}
-\textbf{A,} Paired nominal-minus-opaque score differences across ten worlds per task; squares show means and familywise 97.5\% world-bootstrap intervals.
+\textbf{A,} Paired nominal-minus-opaque score differences across ten worlds per task; squares show means and 97.5\% per-task world-bootstrap intervals, providing 95\% Bonferroni family coverage across the two tasks.
 \textbf{B,} World-level early-to-late misleading-action shares under a deliberately misindexed material prior.
 \textbf{C,} Commit-frozen manipulation, correction, performance-restoration and joint criteria.
 \textbf{D,} Raw task-level endpoint, held-out prediction, calibration and unsupported-claim readouts. Circle area follows the favourable direction within each metric column; the printed number is the raw value.}
@@ -462,6 +464,23 @@ complete experiments, after which a replay verifier recomputed all scores from
 the immutable reports. Classical policies used the same world identities,
 budgets and information contracts.
 
+The opaque condition replaced material identities by stable anonymous codes.
+The nominal condition exposed the correct anonymous material-family property
+rows without revealing latent world residuals. The misindexed condition
+transposed one targeted material row chosen using independent qualification
+worlds before the formal campaigns; the affected mapping was fixed across the
+ten formal worlds. These conditions therefore intervene on the supplied prior
+while holding the physical world, action space, score and budget fixed.
+
+The electrochemical endpoint is the gated weighted sum of selective product
+yield (0.30), electrochemical selectivity (0.15), conversion (0.10), Faradaic
+efficiency (0.12), transport efficiency (0.10), ohmic efficiency (0.08) and
+energy efficiency (0.15); selective yield supplies the multiplicative gate.
+The reaction-to-crystallization endpoint combines reaction score (0.25), crystal
+yield (0.25), crystal purity (0.20), crystal size (0.10), crystal-size-
+distribution quality (0.20) and a fines-fraction penalty (-0.10). The scoring
+contract was identical across information arms within a task.
+
 Compiled participants used the Codex subscription transport with model alias
 `gpt-5.6-sol` at medium reasoning effort, structured response output, Codex tools
 disabled and no session persistence. G0 and G2 therefore share a model alias and
@@ -470,16 +489,50 @@ complementary evidence layers, not a matched causal comparison of authority.
 
 The nonduplicated total comprises 2,280 participant executions and 27,300
 classical-control executions. Statistical summaries treat the paired physical
-world, not each simulator execution, as the analysis unit. Information contrasts
+world, not each simulator execution, as the analysis unit. Seeds 0--9 form the
+complete designed set for the intervention analysis. Information contrasts
 report mean and median world differences, positive/negative counts, exact sign
-summaries, leave-one-world-out mean ranges and commit-frozen world-bootstrap
-intervals. Classical comparisons remain descriptive and all policies are shown
-in the public sensitivity artifact.
+summaries,
+leave-one-world-out mean ranges and 100,000-draw, commit-frozen percentile
+world-bootstrap intervals as finite-world stability summaries. A 97.5% interval
+is reported for each task, giving 95% Bonferroni family coverage across the two
+pre-specified tasks.
+
+The information-matched classical suite comprised uniform random search, Latin
+hypercube sampling, local greedy perturbation, Gaussian-process expected
+improvement, random-forest expected improvement, safety-constrained
+Gaussian-process expected improvement and a multi-output telemetry
+random-forest policy. Electrochemical calibration additionally included
+privileged material-descriptor and transport-prior policies together with
+commit-frozen shuffled-descriptor negative controls. The privileged policies
+calibrate what the environment permits; they are not information-matched agent
+comparators.
 
 The misindexing manipulation transposed one targeted material row selected on
 independent qualification worlds. Commit-frozen checks separately evaluated
 initial behavior change, later action correction, performance restoration and
 their joint criterion.
+
+Epistemic diagnostics were scored independently of the optimized endpoint. At
+final synthesis, the agent predicted increase, decrease or no material change
+for three frozen one-factor intervention queries and their three registered
+metrics. Each query was then executed as paired reference/intervention
+experiments with two replicates and common observation-noise identities. The
+executed difference was labelled increase or decrease when it crossed the
+frozen absolute threshold of 0.01 and no material change otherwise. Held-out
+directional accuracy is the fraction of these query-by-metric labels predicted
+correctly; the prediction call could not alter the submitted recommendation.
+The held-out Brier score is the mean of $(c-y)^2$, where $c$ is the submitted
+confidence and $y$ indicates whether that directional prediction was correct.
+
+Declared world-understanding claims were matched against a frozen vocabulary of
+observable cause sets, effects, admissible directional relations and mechanism
+tags. Unsupported-claim rate is the fraction of submitted declarations whose
+cause-set/effect structure has no reference match. Directional accuracy among
+matched declarations, structural edge precision/recall, mechanism-tag scores
+and a declaration-level confidence Brier score were retained as separate
+diagnostics, so no single epistemic statistic was treated as a proxy for the
+others.
 
 ## 10.3 Primitive-control protocol and resource ledger
 
