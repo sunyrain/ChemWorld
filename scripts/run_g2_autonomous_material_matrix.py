@@ -782,7 +782,7 @@ def _provider_decision_audit(
         "provider_call_accounting_complete": (
             method_resources.get("provider_call_accounting_complete") is True
         ),
-        "model_call_count_matches_operations": (
+        "model_call_count_matches_receipts": (
             method_resources.get("model_call_count") == len(receipts)
         ),
         "logical_decisions_match_operations": (

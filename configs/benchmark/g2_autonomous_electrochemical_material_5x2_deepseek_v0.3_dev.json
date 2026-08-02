@@ -1,0 +1,124 @@
+{
+  "schema_version": "chemworld-g2-autonomous-material-matrix-0.4",
+  "protocol_id": "g2-electrochemical-autonomous-material-information-5x2-deepseek-v0.3",
+  "status": "development-exploratory-frozen",
+  "claim_policy": {
+    "confirmatory": false,
+    "intended_use": "matched five-world parallel agent-system characterization under the existing G2 material-information intervention",
+    "estimand": "descriptive agent-system-by-world profiles under fixed world, information, action, resource, observation, and scoring contracts",
+    "comparison_unit": "complete agent system, including backend and direct-operation scaffold",
+    "frozen_before_first_provider_call": true,
+    "not_intended_to_test": [
+      "a provider-backend causal effect isolated from scaffold",
+      "LLM superiority over Bayesian optimization",
+      "population-level significance from five development worlds",
+      "real-laboratory robot manipulation"
+    ]
+  },
+  "task": {
+    "task_id": "electrochemical-conversion",
+    "world_split": "public-test",
+    "world_seeds": [0, 1, 2, 3, 4],
+    "objective": "balanced",
+    "episode_mode": "campaign",
+    "electrochemical_workflow_mode": "autonomous_open_v1",
+    "electrochemical_material_family_id": "nominal-prior-latent-v2",
+    "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+    "observation_noise_mode": "keyed",
+    "observation_noise_namespace": "g2-autonomous-material-information-v1"
+  },
+  "paired_conditions": [
+    {
+      "condition_id": "opaque_codes",
+      "material_information": {"mode": "opaque_codes"}
+    },
+    {
+      "condition_id": "anonymous_nominal_properties",
+      "material_information": {"mode": "anonymous_nominal_properties"}
+    }
+  ],
+  "execution_order": {
+    "pair_adjacent": true,
+    "alternate_first_condition_by_world_seed": true,
+    "even_seed_order": ["opaque_codes", "anonymous_nominal_properties"],
+    "odd_seed_order": ["anonymous_nominal_properties", "opaque_codes"],
+    "rationale": "run each matched pair serially while executing five independent world pairs concurrently"
+  },
+  "parallel_execution": {
+    "unit": "world_pair",
+    "maximum_concurrent_pairs": 5,
+    "conditions_within_pair_are_serial": true,
+    "maximum_pre_action_provider_attempts_per_cell": 3,
+    "observed_trajectories_are_never_retried": true
+  },
+  "campaign_resource_card": {
+    "factory": "generous_electrochemical_max_envelope_card",
+    "card_id": "electrochemical-k6-shared-two-charge-envelope-v3",
+    "complete_experiments": 6,
+    "operation_attempt_limit": 144,
+    "vessel_start_limit": 6,
+    "final_assay_limit": 6,
+    "nonfinal_instrument_use_limit": 18,
+    "stock_action_envelopes_per_experiment": 2.0,
+    "stock_limits": {"reagent_mol": 0.48, "solvent_L": 0.96},
+    "semantics": {
+      "attempts": "every submitted primitive action, including invalid and resource-rejected proposals",
+      "physical_debits": "committed transactions only",
+      "allocation": "one campaign-wide pool; no per-vessel equal split and no hidden future-vessel reservation",
+      "stock_envelope": "two public maximum single-addition envelopes per planned vessel, shared globally to preserve semibatch freedom",
+      "operation_ceiling": "24 attempts per planned vessel in aggregate; a loop-safety and interaction-cost ceiling intended not to be the primary binding physical resource",
+      "automatic_repair": false,
+      "automatic_terminate": false,
+      "automatic_final_assay": false
+    }
+  },
+  "method_resource_limits_per_cell": {
+    "operation_limit": 144,
+    "complete_experiment_limit": 6,
+    "checkpoint_complete_experiments": [1, 2, 3, 4, 5, 6],
+    "wall_time_limit_s": 21600.0,
+    "model_call_limit": 432,
+    "input_token_limit": 3000000,
+    "output_token_limit": 900000,
+    "training_environment_step_limit": 0
+  },
+  "agent": {
+    "agent_id": "structured_g2_deepseek_v4_flash_v0.3",
+    "provider": "DeepSeek direct strict tool JSON",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "thinking": false,
+    "one_logical_provider_decision_per_operation": true,
+    "provider_attempt_limit_per_operation": 3,
+    "provider_timeout_s": 180.0,
+    "provider_max_attempts": 3,
+    "response_max_tokens": 1800,
+    "prompt_token_estimate_cap": 4800,
+    "recent_decision_limit": 4,
+    "experiment_memory_limit": 4,
+    "decision_transport": "one_logical_provider_decision_per_primitive_operation",
+    "transport_retry_role": "retry only provider or structured-output failure before the corresponding environment operation",
+    "wire_api": "beta_chat_completions_strict_tool_call",
+    "structured_output": "strict_forced_function_schema_plus_full_local_validation",
+    "shell_tools_enabled": false,
+    "lab_tool_used": false,
+    "forced_notebook": false,
+    "automatic_action_repair": false,
+    "automatic_closeout": false
+  },
+  "analysis": {
+    "scope": "five-world parallel agent-system demonstration under the published G2 physical and information contracts",
+    "primary_descriptive_endpoints": [
+      "complete lifecycle and exact replay",
+      "best and mean final score",
+      "best-discovery position",
+      "terminal-to-best retention",
+      "drawdown and recovery",
+      "operation-normalized incumbent AUC",
+      "invalid and resource-rejected operations",
+      "provider calls, tokens, wall time, retries, and billed cost"
+    ],
+    "cross_agent_policy": "compare full behavioral profiles at matched worlds and arms; do not attribute differences to backend alone",
+    "small_n_policy": "report all ten trajectories and paired world values descriptively; do not use population-level significance language"
+  }
+}

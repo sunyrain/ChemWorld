@@ -23,9 +23,9 @@ from chemworld.eval.provenance import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = (
-    ROOT / "configs/benchmark/g2_autonomous_electrochemical_material_5x2_deepseek_v0.2_dev.json"
+    ROOT / "configs/benchmark/g2_autonomous_electrochemical_material_5x2_deepseek_v0.3_dev.json"
 )
-DEFAULT_OUTPUT_ROOT = ROOT / "runs/development/g2-autonomous-material-5x2-deepseek-v4-flash-v2"
+DEFAULT_OUTPUT_ROOT = ROOT / "runs/development/g2-autonomous-material-5x2-deepseek-v4-flash-v3"
 RUNNER_VERSION = "chemworld-g2-deepseek-parallel-matrix-runner-0.1"
 MANIFEST_SCHEMA_VERSION = "chemworld-g2-parallel-agent-matrix-run-0.1"
 

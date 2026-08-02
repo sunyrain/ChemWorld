@@ -56,6 +56,52 @@ class _StrictResponseClient(DeepSeekClient):
         )
 
 
+class _RetryingStrictResponseClient(DeepSeekClient):
+    def __init__(self, **kwargs):  # type: ignore[no-untyped-def]
+        super().__init__(**kwargs)
+        self.send_count = 0
+
+    def _send(self, body):  # type: ignore[no-untyped-def]
+        del body
+        self.send_count += 1
+        value = 0 if self.send_count == 1 else 1
+        return (
+            json.dumps(
+                {
+                    "id": f"request-{self.send_count}",
+                    "model": "deepseek-v4-flash",
+                    "choices": [
+                        {
+                            "finish_reason": "tool_calls",
+                            "message": {
+                                "content": None,
+                                "tool_calls": [
+                                    {
+                                        "type": "function",
+                                        "function": {
+                                            "name": "chemworld_decision",
+                                            "arguments": json.dumps(
+                                                {"status": "ok", "value": value}
+                                            ),
+                                        },
+                                    }
+                                ],
+                            },
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 10,
+                        "completion_tokens": 5,
+                        "total_tokens": 15,
+                        "prompt_cache_hit_tokens": 4,
+                        "prompt_cache_miss_tokens": 6,
+                    },
+                }
+            ),
+            f"request-{self.send_count}",
+        )
+
+
 def test_strict_tool_transport_requires_beta_endpoint() -> None:
     with pytest.raises(ValueError, match="/beta"):
         DeepSeekClient(
@@ -112,6 +158,32 @@ def test_strict_tool_response_is_parsed_and_accounted() -> None:
     assert completion.finish_reason == "tool_calls"
     assert completion.reasoning_content_present is True
     assert completion.attempt_records[0]["usage_complete"] is True
+
+
+def test_full_local_schema_validation_retries_before_returning_payload() -> None:
+    client = _RetryingStrictResponseClient(
+        api_key="test",
+        base_url="https://api.deepseek.com/beta",
+        model="deepseek-v4-flash",
+        strict_tool_calls=True,
+        max_attempts=2,
+        retry_backoff_s=0.0,
+    )
+
+    completion = client.complete_json(
+        system_prompt="Return JSON.",
+        user_prompt="Submit the decision.",
+        output_schema=SCHEMA,
+    )
+
+    assert completion.payload == {"status": "ok", "value": 1}
+    assert completion.attempts == 2
+    assert completion.usage["total_tokens"] == 30
+    assert [record["status"] for record in completion.attempt_records] == [
+        "failed",
+        "succeeded",
+    ]
+    assert completion.attempt_records[0]["failure_type"] == "invalid_structured_output"
 
 
 def test_non_strict_schema_falls_back_to_json_object_with_schema_in_prompt() -> None:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import time
 import urllib.error
 import urllib.request
@@ -274,6 +275,8 @@ class DeepSeekClient:
                 payload = _parse_json_content(content)
                 if not isinstance(payload, dict):
                     raise TypeError("JSON output is not an object")
+                if resolved_output_schema is not None:
+                    _validate_schema_instance(payload, resolved_output_schema)
                 attempt_records.append(
                     _attempt_record(
                         attempt_index=attempt,
@@ -516,6 +519,107 @@ def _deepseek_strict_schema(value: Any) -> Any:
     if isinstance(value, list):
         return [_deepseek_strict_schema(item) for item in value]
     return value
+
+
+def _validate_schema_instance(
+    value: Any,
+    schema: Mapping[str, Any],
+    *,
+    path: str = "$",
+) -> None:
+    """Validate the JSON-Schema subset used by ChemWorld decision contracts."""
+
+    alternatives = schema.get("anyOf")
+    if isinstance(alternatives, list):
+        for alternative in alternatives:
+            if not isinstance(alternative, Mapping):
+                continue
+            try:
+                _validate_schema_instance(value, alternative, path=path)
+            except (TypeError, ValueError):
+                continue
+            break
+        else:
+            raise ValueError(f"{path} does not match any allowed schema")
+        return
+
+    raw_type = schema.get("type")
+    allowed_types = (
+        tuple(str(item) for item in raw_type)
+        if isinstance(raw_type, list)
+        else ((str(raw_type),) if raw_type is not None else ())
+    )
+    if allowed_types and not any(_schema_type_matches(value, item) for item in allowed_types):
+        raise TypeError(f"{path} has the wrong JSON type")
+
+    enum = schema.get("enum")
+    if isinstance(enum, list) and value not in enum:
+        raise ValueError(f"{path} is outside its enum")
+    if "const" in schema and value != schema["const"]:
+        raise ValueError(f"{path} does not match its constant")
+
+    if isinstance(value, Mapping):
+        properties = schema.get("properties")
+        property_map = properties if isinstance(properties, Mapping) else {}
+        required = schema.get("required")
+        if isinstance(required, list):
+            missing = [str(key) for key in required if key not in value]
+            if missing:
+                raise ValueError(f"{path} lacks required fields")
+        if schema.get("additionalProperties") is False and any(
+            key not in property_map for key in value
+        ):
+            raise ValueError(f"{path} contains undeclared fields")
+        for key, item in value.items():
+            child_schema = property_map.get(key)
+            if isinstance(child_schema, Mapping):
+                _validate_schema_instance(item, child_schema, path=f"{path}.{key}")
+    elif isinstance(value, list):
+        minimum_items = schema.get("minItems")
+        maximum_items = schema.get("maxItems")
+        if isinstance(minimum_items, int) and len(value) < minimum_items:
+            raise ValueError(f"{path} contains too few items")
+        if isinstance(maximum_items, int) and len(value) > maximum_items:
+            raise ValueError(f"{path} contains too many items")
+        item_schema = schema.get("items")
+        if isinstance(item_schema, Mapping):
+            for index, item in enumerate(value):
+                _validate_schema_instance(item, item_schema, path=f"{path}[{index}]")
+    elif isinstance(value, str):
+        minimum_length = schema.get("minLength")
+        maximum_length = schema.get("maxLength")
+        if isinstance(minimum_length, int) and len(value) < minimum_length:
+            raise ValueError(f"{path} is shorter than allowed")
+        if isinstance(maximum_length, int) and len(value) > maximum_length:
+            raise ValueError(f"{path} is longer than allowed")
+        pattern = schema.get("pattern")
+        if isinstance(pattern, str) and re.search(pattern, value) is None:
+            raise ValueError(f"{path} does not match its pattern")
+    elif isinstance(value, int | float) and not isinstance(value, bool):
+        minimum = schema.get("minimum")
+        maximum = schema.get("maximum")
+        if isinstance(minimum, int | float) and value < minimum:
+            raise ValueError(f"{path} is below its minimum")
+        if isinstance(maximum, int | float) and value > maximum:
+            raise ValueError(f"{path} is above its maximum")
+
+
+def _schema_type_matches(value: Any, expected: str) -> bool:
+    if expected == "null":
+        return value is None
+    if expected == "object":
+        return isinstance(value, Mapping)
+    if expected == "array":
+        return isinstance(value, list)
+    if expected == "string":
+        return isinstance(value, str)
+    if expected == "boolean":
+        return isinstance(value, bool)
+    if expected == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if expected == "number":
+        return isinstance(value, int | float) and not isinstance(value, bool)
+    return False
 
 
 def _merge_usage(total: dict[str, int], usage: object) -> None:
