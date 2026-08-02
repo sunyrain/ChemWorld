@@ -47,6 +47,21 @@ def _write_jsonl(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
     )
 
 
+def _final_assay_scores(rows: Sequence[Mapping[str, Any]]) -> list[float]:
+    scores: list[float] = []
+    for row in rows:
+        if (
+            row.get("transaction_status") == "committed"
+            and row.get("operation_type") == "measure"
+            and row.get("instrument") == "final_assay"
+        ):
+            score = row.get("leaderboard_score")
+            if not isinstance(score, int | float):
+                raise ValueError("committed final assay is missing a leaderboard score")
+            scores.append(float(score))
+    return scores
+
+
 def _completed_lookup(audit: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
     return {str(row["cell_id"]): row for row in audit["completed_cells"]}
 
@@ -72,7 +87,10 @@ def _formal_archive(run_root: Path, output_root: Path) -> dict[str, Any]:
         audited = completed.get(cell_id) or censored.get(cell_id)
         if audited is None:
             raise ValueError(f"cell is absent from terminal audit: {cell_id}")
-        scores = audited.get("scores", {})
+        trajectory_scores = _final_assay_scores(rows)
+        audited_scores = audited.get("scores", {}).get("final_score_sequence", [])
+        if state["state"] == "completed" and audited_scores != trajectory_scores:
+            raise ValueError(f"completed-cell assay scores disagree with audit: {cell_id}")
         cells.append(
             {
                 "cell_id": cell_id,
@@ -81,10 +99,8 @@ def _formal_archive(run_root: Path, output_root: Path) -> dict[str, Any]:
                 "condition_id": str(cell["condition_id"]),
                 "terminal_state": str(state["state"]),
                 "operation_count": len(rows),
-                "completed_final_assays": int(
-                    audited.get("completion", {}).get("completed_vessels", 0)
-                ),
-                "final_score_sequence": scores.get("final_score_sequence", []),
+                "completed_final_assays": len(trajectory_scores),
+                "final_score_sequence": trajectory_scores,
                 "compact_path": target.relative_to(output_root).as_posix(),
                 "compact_bytes": target.stat().st_size,
                 "compact_sha256": file_sha256(target),
@@ -100,6 +116,7 @@ def _formal_archive(run_root: Path, output_root: Path) -> dict[str, Any]:
         "right_censored_cell_count": sum(
             row["terminal_state"] == "right_censored" for row in cells
         ),
+        "completed_final_assay_count": sum(row["completed_final_assays"] for row in cells),
         "cells": cells,
     }
 
@@ -116,7 +133,12 @@ def _excluded_launch_archive(run_root: Path, output_root: Path) -> dict[str, Any
         config = _load(attempt_dir / "run_config.json")
         summary_path = attempt_dir / "run_summary.json"
         summary = _load(summary_path) if summary_path.is_file() else None
-        behavior = {} if summary is None else summary["behavior"]
+        trajectory_scores = _final_assay_scores(rows)
+        if (
+            summary is not None
+            and summary["behavior"].get("terminal_scores", []) != trajectory_scores
+        ):
+            raise ValueError(f"first-launch assay scores disagree with summary: {cell_id}")
         cells.append(
             {
                 "cell_id": cell_id,
@@ -125,8 +147,8 @@ def _excluded_launch_archive(run_root: Path, output_root: Path) -> dict[str, Any
                 "condition_id": str(config["condition_id"]),
                 "incident_state": state,
                 "accepted_operation_count": len(rows),
-                "completed_final_assays": int(behavior.get("complete_experiment_count", 0)),
-                "final_score_sequence": behavior.get("terminal_scores", []),
+                "completed_final_assays": len(trajectory_scores),
+                "final_score_sequence": trajectory_scores,
                 "compact_path": target.relative_to(output_root).as_posix(),
                 "compact_bytes": target.stat().st_size,
                 "compact_sha256": file_sha256(target),
@@ -139,6 +161,7 @@ def _excluded_launch_archive(run_root: Path, output_root: Path) -> dict[str, Any
         "primary_analysis_included": False,
         "source_manifest_sha256": canonical_json_sha256(manifest),
         "cell_count": len(cells),
+        "completed_final_assay_count": sum(row["completed_final_assays"] for row in cells),
         "cells": cells,
     }
 

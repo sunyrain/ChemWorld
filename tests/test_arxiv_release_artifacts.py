@@ -43,6 +43,7 @@ def test_public_trajectory_archive_is_complete_and_bound() -> None:
     assert manifest["formal_matrix"]["cell_count"] == 20
     assert manifest["formal_matrix"]["completed_cell_count"] == 18
     assert manifest["formal_matrix"]["right_censored_cell_count"] == 2
+    assert manifest["formal_matrix"]["completed_final_assay_count"] == 112
     assert manifest["excluded_first_launch"]["cell_count"] == 2
     assert manifest["excluded_first_launch"]["primary_analysis_included"] is False
     cells = [
@@ -55,6 +56,20 @@ def test_public_trajectory_archive_is_complete_and_bound() -> None:
         assert trajectory.stat().st_size == cell["compact_bytes"]
         assert _sha(trajectory) == cell["compact_sha256"]
         assert cell["exact_physical_replay_verified"] is True
+        rows = [
+            json.loads(line)
+            for line in trajectory.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        scores = [
+            row["leaderboard_score"]
+            for row in rows
+            if row.get("transaction_status") == "committed"
+            and row.get("operation_type") == "measure"
+            and row.get("instrument") == "final_assay"
+        ]
+        assert cell["completed_final_assays"] == len(scores)
+        assert cell["final_score_sequence"] == scores
 
 
 def test_arxiv_figure_manifest_binds_all_release_formats() -> None:

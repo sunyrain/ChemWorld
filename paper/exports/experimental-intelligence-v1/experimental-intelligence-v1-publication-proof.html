@@ -365,7 +365,7 @@ once the world is a controlled apparatus?</p></section><figure class="result-fig
 </tbody>
 </table>
 <p>Scores are means across ten physical worlds. Dashes indicate endpoints that were not
-defined for that information arm; they are not zeroes. No composite score is formed.</p></section><section class="prose"><h2>5. Primitive control closes full experimental lifecycles</h2><p>We next removed the compiled recipe interface. Native Codex, configured as
+defined for that information arm; they are not zeroes. No composite score is formed.</p></section><section class="prose"><h2>5. Primitive control closes full experimental lifecycles</h2><p>In a separate primitive-control study, native Codex, configured as
 <code>gpt-5.6-sol</code> at medium reasoning effort, received a public workspace and typed
 tools. For each vessel it selected material additions, process setpoints,
 electrolysis operations, measurements, termination and final assay. The model
@@ -377,7 +377,8 @@ experiments through 815 accepted primitive operations (Fig. 3). The agent used
 144-operation ceiling and fixed stocks of reagents and solvents. Physical-pair,
 resource-ledger and exact-transition replay audits passed for all cells.</p>
 <p>Figure 3A reconstructs one vessel. The important feature is not the particular
-seven-operation sequence; it is the causal position of the observation. A
+seven-operation sequence; it is the placement of observation before the next
+agent decision. A
 UV--visible measurement entered the public state before the agent chose to
 terminate and request the final assay. Figure 3B then shows that this lifecycle
 closed across every vessel and information arm, while Fig. 3C reconstructs the
@@ -467,6 +468,10 @@ pairs in each world. All ten planned pairs remain visible in Fig. 5. The
 pre-specified rule classified a world-by-metric result as directional when at
 least three of four available differences shared a sign and the median shared
 that direction.</p>
+<p>The authoritative matrix followed a launcher-level restart after an
+infrastructure incident in the first launch; the restart decision was recorded
+before outcome inspection. The protocol deviation, excluded trajectories and
+separate sensitivity check are reported in Methods 10.7.</p>
 <p>Endpoint direction alone did not determine lifecycle direction. World 1 was
 nominal-favouring for best score, smaller drawdown and terminal-to-best ratio,
 while discovery and retention were mixed. World 3 was mixed for all five
@@ -477,8 +482,11 @@ missing difference an arbitrary positive, negative or zero sign leaves at least
 six of eight lifecycle classifications mixed. At the 90% retention definition,
 six of eight were mixed; the count was five at 80% and six at 95%. Requiring
 four of four matching signs (an 80% directional threshold with four complete
-pairs) classified all eight as mixed. These analyses preserve the primary
-commit-frozen result while showing which parts depend on operational choices.</p>
+pairs) classified all eight as mixed. Across the full threshold-by-zero-handling
+grid, the count ranged from two to eight; the minimum occurred at a 60%
+threshold when exact zeros were excluded. Thus the pre-specified result and its
+missing-sign robustness are preserved, while the broader frequency of mixed
+labels depends on how exact-zero contrasts are treated.</p>
 <p>The empirical statement is deliberately precise: the opposing development
 phenotypes did not become stable directional lifecycle contrasts across the
 available fresh sessions in these two physical worlds. That observation is
@@ -624,8 +632,8 @@ exactly what matched executable worlds make visible and testable.</p></section><
 The two deliberately selected worlds are not pooled into a population-level estimate.
 Terminal coverage: 18 completed cells, 2 right-censored cells, and 8 complete pairs (4 in world 1; 4 in world 3).
 The frozen interpretation mapping selected <code>frequent_within_world_reversal</code>: 6 of 8 world-by-core-lifecycle classifications were mixed. Policy SHA-256: <code>93604ce8af7211f35c5d3b896609addef6d436f3248f45aba3cc04a11da9d67e</code>.
-Frozen policy language: Fresh trajectories frequently reversed sign within a fixed physical world, indicating that provider-trajectory variability dominated any stable material-information pattern.
-Provider sampling was not seed-controlled; this language is descriptive and does not identify a causal provider effect.</p></section><section class="prose"><h2>8. Experimental agency is a profile, not a scalar</h2><p>The compiled and primitive-control studies measure complementary parts of
+Frozen descriptive summary: the available fresh-session contrasts frequently changed direction within the selected physical worlds.
+Provider sampling was not seed-controlled; the summary does not identify a causal provider effect or a variance-dominance relation.</p></section><section class="prose"><h2>8. Experimental agency is a profile, not a scalar</h2><p>The compiled and primitive-control studies measure complementary parts of
 experimental agency. Compiled control offers repeated task and information
 contrasts together with prediction, calibration and claim diagnostics.
 Primitive control reveals lifecycle completion, retention, recovery and
@@ -633,8 +641,8 @@ terminal behavior. Figure 6 places these readouts side by side without combining
 them into a composite score.</p>
 <p>The profile view supports a stronger evaluation standard for scientific agents.
 Success should be accompanied by evidence that the agent can complete the
-experimental lifecycle, use observations, retain or recover a productive
-strategy and reproduce the relevant behavior in a fresh session. ChemWorld
+experimental lifecycle, make observations available to later decisions, retain
+or recover a productive strategy and reproduce the relevant behavior in a fresh session. ChemWorld
 provides the controls needed to measure those properties separately.</p></section><figure class="result-figure figure-6"><img src="../../arxiv/figures/figure-6-experimental-agency-profile.svg" alt="Figure 6: Experimental agency is resolved as a profile of separate readouts"><figcaption><strong>Figure 6 | Experimental agency is resolved as a profile of separate readouts.</strong> <p>Outcome, prediction, calibration, claim reliability, completion, retention, recovery and terminal behavior remain separate rather than being collapsed into a composite score.</p></figcaption></figure><section class="prose"><h2>9. Discussion</h2><p>ChemWorld contributes a new experimental object: the process by which an agent
 experiments. Its value does not depend on replacing a self-driving laboratory or
 winning a universal optimization leaderboard. It occupies a different and
@@ -676,6 +684,11 @@ a commit-frozen misindexing intervention. Each participant session selected 20
 complete experiments, after which a replay verifier recomputed all scores from
 the immutable reports. Classical policies used the same world identities,
 budgets and information contracts.</p>
+<p>Compiled participants used the Codex subscription transport with model alias
+<code>gpt-5.6-sol</code> at medium reasoning effort, structured response output, Codex tools
+disabled and no session persistence. G0 and G2 therefore share a model alias and
+reasoning setting but use different scaffolds and action interfaces; they are
+complementary evidence layers, not a matched causal comparison of authority.</p>
 <p>The nonduplicated total comprises 2,280 participant executions and 27,300
 classical-control executions. Statistical summaries treat the paired physical
 world, not each simulator execution, as the analysis unit. Information contrasts
@@ -777,7 +790,11 @@ world-level summaries and public derived-data object reproduce every main-text
 number, table and figure. The G2 public archive contains compact replayable
 trajectories for all formal cells and for the first-launch infrastructure
 incident. Provider authentication, unrestricted provider responses and hidden
-evaluator identities are excluded from the public package.</p></section><section class="prose"><h2>12. Conclusion</h2><p>ChemWorld turns the act of experimentation into a controlled scientific object.
+evaluator identities are excluded from the public package.
+The 17.7-GB G0 raw roots are bound by the public file-level hash index but have
+not yet received a durable external archive identifier; the tracked world-level
+summaries and derived-data object are sufficient to regenerate the paper's
+reported analyses.</p></section><section class="prose"><h2>12. Conclusion</h2><p>ChemWorld turns the act of experimentation into a controlled scientific object.
 Its executable worlds allow an agent to choose operations, seek evidence, spend
 resources, experience failure and close experimental lifecycles while physical
 identity remains matched and every consequence remains replayable. The resulting

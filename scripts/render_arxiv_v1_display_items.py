@@ -221,9 +221,10 @@ def _g2_v05_terminal_note(data: Mapping[str, Any]) -> list[str]:
         f"{branch['mixed_world_by_core_metric_count']} of "
         f"{branch['world_by_core_metric_count']} world-by-core-lifecycle classifications were "
         f"mixed. Policy SHA-256: `{policy['sha256']}`.",
-        f"Frozen policy language: {branch['manuscript_language']}",
-        "Provider sampling was not seed-controlled; this language is descriptive and does not "
-        "identify a causal provider effect.",
+        "Frozen descriptive summary: the available fresh-session contrasts frequently changed "
+        "direction within the selected physical worlds.",
+        "Provider sampling was not seed-controlled; the summary does not identify a causal "
+        "provider effect or a variance-dominance relation.",
     ]
 
 
@@ -238,7 +239,7 @@ def render(data: Mapping[str, Any]) -> str:
         )
     )
     sections: list[str] = [
-        "# Experimental Intelligence in Executable Chemical Worlds: display items",
+        "# Executable Chemical Worlds for Measuring Experimental Agency: numeric display items",
         "",
         f"Status: `{data['status']}`.",
         f"Derived-data SHA-256: `{data['derived_data_sha256']}`.",
@@ -307,7 +308,7 @@ def render(data: Mapping[str, Any]) -> str:
         "**A,** Paired nominal-minus-opaque effects on compiled-experiment final score with",
         "familywise 97.5% world-bootstrap intervals. **B,** Early and late shares of",
         "actions aligned with deliberately misindexed material information. **C,** Separate",
-        "preregistered checks",
+        "pre-specified, commit-frozen checks",
         "for manipulation, differential action correction, performance restoration and their joint",
         "recovery rule. **D,** Nominal-minus-opaque autonomous development effects across five",
         "physical worlds; points are worlds and horizontal bars are descriptive means. Positive",
@@ -315,8 +316,9 @@ def render(data: Mapping[str, Any]) -> str:
         "",
         "**Figure 5 | Fresh trajectories test within-world repeatability.**",
         "Nominal-minus-opaque paired differences for best score and four core lifecycle",
-        "endpoints---global-best discovery fraction, online incumbent retention, maximum absolute",
-        "drawdown and terminal-to-best ratio---across five fresh replicates in each",
+        "endpoints---within-campaign best-discovery position, online incumbent retention,",
+        "maximum absolute drawdown and terminal-to-best ratio---across five fresh replicates",
+        "in each",
         f"of selected physical worlds 1 and 3. {figure_5_state}",
         "Selection used the prior development matrix; those trajectories are excluded. Effects are",
         "reported within world, with no pooled population-level test.",

@@ -1,5 +1,7 @@
 ---
 title: "Executable Chemical Worlds for Measuring Experimental Agency"
+title_line_one: "Executable Chemical Worlds for"
+title_line_two: "Measuring Experimental Agency"
 author:
   - "ChemWorld Authors"
 date: ""
@@ -251,7 +253,7 @@ once the world is a controlled apparatus?
 
 # 5. Primitive control closes full experimental lifecycles
 
-We next removed the compiled recipe interface. Native Codex, configured as
+In a separate primitive-control study, native Codex, configured as
 `gpt-5.6-sol` at medium reasoning effort, received a public workspace and typed
 tools. For each vessel it selected material additions, process setpoints,
 electrolysis operations, measurements, termination and final assay. The model
@@ -265,7 +267,8 @@ experiments through 815 accepted primitive operations (Fig. 3). The agent used
 resource-ledger and exact-transition replay audits passed for all cells.
 
 Figure 3A reconstructs one vessel. The important feature is not the particular
-seven-operation sequence; it is the causal position of the observation. A
+seven-operation sequence; it is the placement of observation before the next
+agent decision. A
 UV--visible measurement entered the public state before the agent chose to
 terminate and request the final assay. Figure 3B then shows that this lifecycle
 closed across every vessel and information arm, while Fig. 3C reconstructs the
@@ -276,7 +279,7 @@ campaign-level resource receipt.
 \centering
 \includegraphics[width=\textwidth]{figures/figure-3-autonomous-lifecycle.pdf}
 \caption{\textbf{Primitive-control agents close complete experimental lifecycles.}
-\textbf{A,} One seven-operation vessel, including an observation-conditioned stop decision and explicit final assay.
+\textbf{A,} One seven-operation vessel in which a UV--visible observation is available before agent-selected termination and explicit final assay.
 \textbf{B,} All six vessels completed in each of ten world-by-information campaigns; navy denotes opaque codes and coral denotes nominal properties.
 \textbf{C,} The immutable trajectory reconstructs the campaign resource receipt. The example is descriptive and is not part of the fresh-session replication estimand.}
 \label{fig:autonomy}
@@ -336,6 +339,11 @@ pre-specified rule classified a world-by-metric result as directional when at
 least three of four available differences shared a sign and the median shared
 that direction.
 
+The authoritative matrix followed a launcher-level restart after an
+infrastructure incident in the first launch; the restart decision was recorded
+before outcome inspection. The protocol deviation, excluded trajectories and
+separate sensitivity check are reported in Methods 10.7.
+
 Endpoint direction alone did not determine lifecycle direction. World 1 was
 nominal-favouring for best score, smaller drawdown and terminal-to-best ratio,
 while discovery and retention were mixed. World 3 was mixed for all five
@@ -347,8 +355,11 @@ missing difference an arbitrary positive, negative or zero sign leaves at least
 six of eight lifecycle classifications mixed. At the 90% retention definition,
 six of eight were mixed; the count was five at 80% and six at 95%. Requiring
 four of four matching signs (an 80% directional threshold with four complete
-pairs) classified all eight as mixed. These analyses preserve the primary
-commit-frozen result while showing which parts depend on operational choices.
+pairs) classified all eight as mixed. Across the full threshold-by-zero-handling
+grid, the count ranged from two to eight; the minimum occurred at a 60%
+threshold when exact zeros were excluded. Thus the pre-specified result and its
+missing-sign robustness are preserved, while the broader frequency of mixed
+labels depends on how exact-zero contrasts are treated.
 
 ```{=latex}
 \begin{figure*}[!tbp]
@@ -387,8 +398,8 @@ them into a composite score.
 
 The profile view supports a stronger evaluation standard for scientific agents.
 Success should be accompanied by evidence that the agent can complete the
-experimental lifecycle, use observations, retain or recover a productive
-strategy and reproduce the relevant behavior in a fresh session. ChemWorld
+experimental lifecycle, make observations available to later decisions, retain
+or recover a productive strategy and reproduce the relevant behavior in a fresh session. ChemWorld
 provides the controls needed to measure those properties separately.
 
 # 9. Discussion
@@ -423,6 +434,10 @@ trajectory phenomena transfer to a particular laboratory system. The two forms
 of evidence are complementary: executable worlds identify controlled behavioral
 structure; physical laboratories establish deployment validity.
 
+```{=latex}
+\FloatBarrier
+```
+
 # 10. Methods
 
 ## 10.1 Environment qualification
@@ -444,6 +459,12 @@ a commit-frozen misindexing intervention. Each participant session selected 20
 complete experiments, after which a replay verifier recomputed all scores from
 the immutable reports. Classical policies used the same world identities,
 budgets and information contracts.
+
+Compiled participants used the Codex subscription transport with model alias
+`gpt-5.6-sol` at medium reasoning effort, structured response output, Codex tools
+disabled and no session persistence. G0 and G2 therefore share a model alias and
+reasoning setting but use different scaffolds and action interfaces; they are
+complementary evidence layers, not a matched causal comparison of authority.
 
 The nonduplicated total comprises 2,280 participant executions and 27,300
 classical-control executions. Statistical summaries treat the paired physical
@@ -578,6 +599,10 @@ number, table and figure. The G2 public archive contains compact replayable
 trajectories for all formal cells and for the first-launch infrastructure
 incident. Provider authentication, unrestricted provider responses and hidden
 evaluator identities are excluded from the public package.
+The 17.7-GB G0 raw roots are bound by the public file-level hash index but have
+not yet received a durable external archive identifier; the tracked world-level
+summaries and derived-data object are sufficient to regenerate the paper's
+reported analyses.
 
 # 12. Conclusion
 
@@ -594,9 +619,9 @@ capability, and it can now be measured.**
 # Appendix A. P0 robustness summary
 
 ```{=latex}
-\begin{table}[t]
+\begin{table}[H]
 \centering
-\caption{\textbf{Sensitivity of the descriptive replication summary.} Exact-zero handling affects retention classifications because several paired retention differences are zero. Under every missing-sign assignment, at least six core classifications remain mixed.}
+\caption{\textbf{Sensitivity of the descriptive replication summary.} Exact-zero handling affects retention classifications because several paired retention differences are zero. The complete threshold-by-zero grid spans 2--8 mixed classifications; under every missing-sign assignment at the frozen rule, at least six remain mixed.}
 \label{tab:sensitivity}
 \small
 \begin{tabular}{@{}p{0.72\columnwidth}r@{}}
@@ -605,8 +630,10 @@ Sensitivity setting & Mixed \\
 \midrule
 Primary: 75\% direction, zeros included, 90\% retention & 6/8 \\
 60\% direction, zeros included & 6/8 \\
-80\% direction, zeros included & 8/8 \\
+60\% direction, zeros excluded & 2/8 \\
 75\% direction, zeros excluded & 5/8 \\
+80\% direction, zeros included & 8/8 \\
+80\% direction, zeros excluded & 7/8 \\
 80\% retention definition & 5/8 \\
 95\% retention definition & 6/8 \\
 Arbitrary missing-pair signs & 6--8/8 \\

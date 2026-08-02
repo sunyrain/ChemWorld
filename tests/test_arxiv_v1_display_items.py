@@ -35,7 +35,10 @@ def test_display_items_are_regenerated_from_the_bound_data(tmp_path: Path) -> No
         policy = replication["interpretation"]["mapping_policy"]
         matrix = replication["matrix"]
         assert branch["branch_id"] in rendered
-        assert branch["manuscript_language"] in rendered
+        assert "contrasts frequently changed direction" in rendered
+        assert "does not identify a causal provider effect" in rendered
+        assert "variance-dominance relation" in rendered
+        assert "provider-trajectory variability dominated" not in rendered
         assert policy["sha256"] in rendered
         assert f"{matrix['completed_cell_count']} completed cells" in rendered
         assert f"{matrix['right_censored_cell_count']} right-censored cells" in rendered

@@ -1,4 +1,4 @@
-# Experimental Intelligence in Executable Chemical Worlds: display items
+# Executable Chemical Worlds for Measuring Experimental Agency: numeric display items
 
 Status: `frozen_complete`.
 Derived-data SHA-256: `66e40a968ea037a3a00b1afdc5fd39ba10fe637e26934b153d4f28f043ca6e5d`.
@@ -67,8 +67,8 @@ Deltas are nominal minus opaque within the same physical world and replicate blo
 The two deliberately selected worlds are not pooled into a population-level estimate.
 Terminal coverage: 18 completed cells, 2 right-censored cells, and 8 complete pairs (4 in world 1; 4 in world 3).
 The frozen interpretation mapping selected `frequent_within_world_reversal`: 6 of 8 world-by-core-lifecycle classifications were mixed. Policy SHA-256: `93604ce8af7211f35c5d3b896609addef6d436f3248f45aba3cc04a11da9d67e`.
-Frozen policy language: Fresh trajectories frequently reversed sign within a fixed physical world, indicating that provider-trajectory variability dominated any stable material-information pattern.
-Provider sampling was not seed-controlled; this language is descriptive and does not identify a causal provider effect.
+Frozen descriptive summary: the available fresh-session contrasts frequently changed direction within the selected physical worlds.
+Provider sampling was not seed-controlled; the summary does not identify a causal provider effect or a variance-dominance relation.
 
 ## Figure legends
 
@@ -99,7 +99,7 @@ recovery that a best-score endpoint alone cannot distinguish.
 **A,** Paired nominal-minus-opaque effects on compiled-experiment final score with
 familywise 97.5% world-bootstrap intervals. **B,** Early and late shares of
 actions aligned with deliberately misindexed material information. **C,** Separate
-preregistered checks
+pre-specified, commit-frozen checks
 for manipulation, differential action correction, performance restoration and their joint
 recovery rule. **D,** Nominal-minus-opaque autonomous development effects across five
 physical worlds; points are worlds and horizontal bars are descriptive means. Positive
@@ -107,8 +107,9 @@ drawdown differences indicate larger drawdown under nominal information.
 
 **Figure 5 | Fresh trajectories test within-world repeatability.**
 Nominal-minus-opaque paired differences for best score and four core lifecycle
-endpoints---global-best discovery fraction, online incumbent retention, maximum absolute
-drawdown and terminal-to-best ratio---across five fresh replicates in each
+endpoints---within-campaign best-discovery position, online incumbent retention,
+maximum absolute drawdown and terminal-to-best ratio---across five fresh replicates
+in each
 of selected physical worlds 1 and 3. All ten pre-specified trajectory pairs are shown; an x marks a right-censored pair. Six of eight world-by-core-lifecycle classifications were mixed, selecting the frozen `frequent_within_world_reversal` interpretation branch.
 Selection used the prior development matrix; those trajectories are excluded. Effects are
 reported within world, with no pooled population-level test.

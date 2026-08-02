@@ -8,6 +8,8 @@
 \usepackage{graphicx}
 \usepackage{dblfloatfix}
 \usepackage{balance}
+\usepackage{float}
+\usepackage{placeins}
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{array}
@@ -42,7 +44,7 @@
 \captionsetup{justification=justified,singlelinecheck=false}
 % Headings carry their frozen manuscript numbers so the Markdown and TeX
 % sources expose the same navigation without duplicate LaTeX counter labels.
-\titleformat{\section}{\large\bfseries\color{chemblue}}{}{0pt}{}
+\titleformat{\section}{\large\bfseries\color{chemblue}\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000}{}{0pt}{}
 \titleformat{\subsection}{\normalsize\bfseries}{}{0pt}{}
 \titlespacing*{\section}{0pt}{10pt plus 2pt minus 1pt}{4pt}
 \titlespacing*{\subsection}{0pt}{7pt plus 2pt minus 1pt}{3pt}
@@ -58,7 +60,7 @@
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
-\title{\vspace{-1.8em}\textbf{$title$}}
+\title{\vspace{-1.8em}\textbf{$title_line_one$\\$title_line_two$}}
 \author{$for(author)$$author$$sep$ \and $endfor$}
 \date{$date$}
 
