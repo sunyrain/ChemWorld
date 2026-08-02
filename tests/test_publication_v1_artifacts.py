@@ -72,7 +72,13 @@ def test_publication_proof_manifest_binds_sources_and_outputs() -> None:
     manifest = json.loads(path.read_text(encoding="utf-8"))
     declared = manifest.pop("manifest_sha256")
     assert declared == _canonical_sha(manifest)
-    assert manifest["status"] == "working_proof"
+    release = json.loads(
+        (ROOT / "benchmark/releases/chemworld-serious-v1/manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["publication_ready"] is release["publication_ready"]
+    assert manifest["status"] == (
+        "publication_ready" if release["publication_ready"] else "working_proof"
+    )
     for collection in ("sources", "outputs"):
         for row in manifest[collection]:
             artifact = ROOT / row["path"]
@@ -105,12 +111,11 @@ def test_display_legend_order_and_data_card_match_the_arxiv_release() -> None:
     assert positions == sorted(positions)
 
     build_manifest = json.loads(
-        (
-            ROOT
-            / "paper/exports/experimental-intelligence-v1-arxiv/build-manifest.json"
-        ).read_text(encoding="utf-8")
+        (ROOT / "paper/exports/experimental-intelligence-v1-arxiv/build-manifest.json").read_text(
+            encoding="utf-8"
+        )
     )
-    data_card = (
-        ROOT / "benchmark/releases/chemworld-serious-v1/DATA_CARD.md"
-    ).read_text(encoding="utf-8")
+    data_card = (ROOT / "benchmark/releases/chemworld-serious-v1/DATA_CARD.md").read_text(
+        encoding="utf-8"
+    )
     assert f"an {build_manifest['pdf_page_count']}-page, two-column arXiv PDF" in data_card

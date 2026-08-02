@@ -4,7 +4,7 @@ The scientific artifacts can be built while public author metadata and a durable
 raw-data archive are still pending.  This command is the only supported path for
 crossing those two external release gates.  ``--check`` is read-only; ``--apply``
 validates all metadata before changing any tracked source, rebuilds both paper
-packages, and marks the release ready only after the focused release tests pass.
+packages, and marks the release ready only after output integrity verification passes.
 """
 
 from __future__ import annotations
@@ -17,6 +17,8 @@ import json
 import re
 import subprocess
 import sys
+import tarfile
+import zipfile
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -64,6 +66,14 @@ def _canonical_sha(value: Mapping[str, Any]) -> str:
             sort_keys=True,
         ).encode("utf-8")
     ).hexdigest()
+
+
+def _sha(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _nonplaceholder(value: Any) -> bool:
@@ -335,7 +345,7 @@ def render_release_readme(text: str, metadata: Mapping[str, Any]) -> str:
         f"{EXPECTED_RAW_FILE_COUNT:,}-file index (`{EXPECTED_RAW_INDEX_SHA256}`). Public author, "
         "affiliation and correspondence metadata have been injected into the manuscript, and "
         "the release manifest is marked ready only after the standard PDF/source rebuild and "
-        "release-artifact tests succeed.\n"
+        "release-artifact integrity verification succeeds.\n"
     )
     updated, count = re.subn(
         r"## External release gate\n\n.*\Z",
@@ -440,6 +450,101 @@ def _restore_generated_files(
         temporary.replace(path)
 
 
+def _verified_self_hashed_manifest(path: Path) -> dict[str, Any]:
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    declared = manifest.pop("manifest_sha256", None)
+    if declared != _canonical_sha(manifest):
+        raise RuntimeError(f"self-hash mismatch: {path.relative_to(ROOT).as_posix()}")
+    return manifest
+
+
+def _verify_file_rows(rows: Any, *, label: str) -> int:
+    if not isinstance(rows, list) or not rows:
+        raise RuntimeError(f"{label} has no file records")
+    root = ROOT.resolve()
+    for row in rows:
+        path = (ROOT / row["path"]).resolve()
+        if root != path and root not in path.parents:
+            raise RuntimeError(f"{label} records a path outside the repository: {path}")
+        if not path.is_file():
+            raise RuntimeError(f"{label} output is missing: {row['path']}")
+        if path.stat().st_size != row["bytes"] or _sha(path) != row["sha256"]:
+            raise RuntimeError(f"{label} output hash or byte count is stale: {row['path']}")
+    return len(rows)
+
+
+def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
+    release = json.loads(RELEASE_MANIFEST.read_text(encoding="utf-8"))
+    if release.get("status") != "publication_ready" or release.get("publication_ready") is not True:
+        raise RuntimeError("release manifest did not enter publication_ready state")
+    archived = release.get("evidence", {}).get("g0_raw_data_archive", {})
+    for field in (
+        "provider",
+        "identifier",
+        "url",
+        "raw_file_index_sha256",
+        "byte_count",
+    ):
+        if archived.get(field) != metadata["archive"].get(field):
+            raise RuntimeError(f"release manifest archive field is stale: {field}")
+    if archived.get("release_metadata_sha256") != _canonical_sha(metadata):
+        raise RuntimeError("release manifest metadata hash is stale")
+
+    build_manifest_path = ARXIV_EXPORT / "build-manifest.json"
+    build = _verified_self_hashed_manifest(build_manifest_path)
+    if build.get("status") != "compiled_arxiv_release" or build.get("pdf_page_count") != 11:
+        raise RuntimeError("arXiv build manifest has an unexpected status or page count")
+    build_file_count = _verify_file_rows(build.get("files"), label="arXiv build manifest")
+    pdf = ROOT / build["pdf"]
+    if not pdf.read_bytes().startswith(b"%PDF-"):
+        raise RuntimeError("arXiv PDF signature is invalid")
+    zip_path = ROOT / build["source_zip"]
+    tar_path = ROOT / build["source_tar_gz"]
+    with zipfile.ZipFile(zip_path) as archive:
+        zip_members = set(archive.namelist())
+    with tarfile.open(tar_path, mode="r:gz") as archive:
+        tar_members = {member.name for member in archive.getmembers() if member.isfile()}
+    required = {"main.tex", "main.bbl", "manuscript.md", "references.bib"}
+    if zip_members != tar_members or not required <= zip_members:
+        raise RuntimeError("arXiv source archives are incomplete or disagree")
+    if not all(
+        any(
+            member.startswith(f"figures/figure-{number}-") and member.endswith(".pdf")
+            for member in zip_members
+        )
+        for number in range(1, 7)
+    ):
+        raise RuntimeError("arXiv source archive is missing a release figure")
+
+    proof = _verified_self_hashed_manifest(PROOF_EXPORT / "publication-proof-manifest.json")
+    if proof.get("status") != "publication_ready" or proof.get("publication_ready") is not True:
+        raise RuntimeError("publication proof did not enter publication_ready state")
+    proof_output_count = _verify_file_rows(proof.get("outputs"), label="publication proof manifest")
+    _verify_file_rows(proof.get("sources"), label="publication proof sources")
+
+    manuscript = MANUSCRIPT.read_text(encoding="utf-8")
+    bundled_manuscript = (ARXIV_EXPORT / "source" / "manuscript.md").read_text(encoding="utf-8")
+    generated_tex = (ROOT / "paper" / "arxiv" / "main.tex").read_text(encoding="utf-8")
+    for author in metadata["authors"]:
+        name = str(author["name"])
+        if name not in manuscript or name not in bundled_manuscript:
+            raise RuntimeError(f"author is absent from canonical or bundled manuscript: {name}")
+        if _latex_escape(name) not in generated_tex:
+            raise RuntimeError(f"author is absent from generated TeX: {name}")
+    if metadata["archive"]["url"] not in manuscript or metadata["archive"]["url"] not in (
+        PROOF_EXPORT / "experimental-intelligence-v1-publication-proof.html"
+    ).read_text(encoding="utf-8"):
+        raise RuntimeError("archive URL is absent from a final publication artifact")
+    if "ChemWorld Authors" in generated_tex:
+        raise RuntimeError("generated TeX still contains the author placeholder")
+    return {
+        "arxiv_pdf_pages": build["pdf_page_count"],
+        "arxiv_bound_file_count": build_file_count,
+        "source_archive_member_count": len(zip_members),
+        "publication_proof_output_count": proof_output_count,
+    }
+
+
 def apply_release_metadata(metadata: Mapping[str, Any]) -> dict[str, Any]:
     blockers = validate_release_metadata(metadata)
     if blockers:
@@ -467,16 +572,7 @@ def apply_release_metadata(metadata: Mapping[str, Any]) -> dict[str, Any]:
         _run([sys.executable, str(ARXIV_BUILDER)])
         _atomic_write_json(RELEASE_MANIFEST, ready_manifest)
         _run([sys.executable, str(PROOF_BUILDER)])
-        _run(
-            [
-                sys.executable,
-                "-m",
-                "pytest",
-                "-q",
-                "tests/test_arxiv_release_artifacts.py",
-                "--no-cov",
-            ]
-        )
+        verification = verify_finalized_outputs(metadata)
     except Exception:
         for path, value in originals.items():
             _atomic_write_text(path, value)
@@ -493,6 +589,7 @@ def apply_release_metadata(metadata: Mapping[str, Any]) -> dict[str, Any]:
             "paper/exports/experimental-intelligence-v1-arxiv/"
             "chemworld-experimental-agency-arxiv.pdf"
         ),
+        "verification": verification,
     }
 
 

@@ -600,9 +600,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         concepts / "README.md",
         *[concepts / CONCEPT_STEMS[number] for number in range(1, 7)],
     ]
+    release_payload = json.loads(release_manifest.read_text(encoding="utf-8"))
+    publication_ready = release_payload.get("publication_ready") is True
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-publication-proof-manifest-0.1",
-        "status": "working_proof",
+        "status": "publication_ready" if publication_ready else "working_proof",
+        "publication_ready": publication_ready,
         "sources": [
             {
                 "path": path.relative_to(ROOT).as_posix(),

@@ -58,8 +58,8 @@ indexed deposit. The tool rejects placeholders, missing affiliations, invalid
 ORCIDs, non-HTTPS archive URLs, an absent operator confirmation, mismatched
 raw-index identity, mismatched byte count, and the absence of exactly one
 corresponding author. It marks the release ready only after the author block and
-archive citation are written, both paper packages rebuild, and the release tests
-pass. A missing paper-render dependency is rejected before any mutation. If any
-later build or test fails, the canonical source/status files and all generated
+archive citation are written, both paper packages rebuild, and the built-in release
+integrity verifier passes. A missing paper-render dependency is rejected before any mutation. If any
+later build or integrity verification fails, the canonical source/status files and all generated
 PDF/source/proof artifacts are restored byte-for-byte, and `publication_ready`
 retains its pre-run value.
