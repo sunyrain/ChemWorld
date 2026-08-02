@@ -244,7 +244,7 @@ def test_direct_provider_qualification_uses_operation_runner(
     config = (
         matrix.ROOT
         / "configs/benchmark/"
-        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.3_dev.json"
+        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.4_dev.json"
     )
     captured: dict[str, Any] = {}
 
@@ -277,6 +277,24 @@ def test_direct_provider_qualification_uses_operation_runner(
     assert captured["provider_runtime"]["provider_id"] == "deepseek"
     assert captured["provider_runtime"]["provider_base_url"].endswith("/beta")
     assert captured["qualification"] is True
+
+
+def test_direct_provider_qualification_budgets_every_transport_attempt() -> None:
+    config = (
+        matrix.ROOT
+        / "configs/benchmark/"
+        "g2_autonomous_electrochemical_material_5x2_deepseek_v0.4_dev.json"
+    )
+    protocol = matrix._load_protocol(config)
+
+    limits = matrix._method_limits(
+        protocol,
+        qualification=True,
+        qualification_experiments=1,
+    )
+
+    assert limits["operation_limit"] == 24
+    assert limits["model_call_limit"] == 72
 
 
 def test_qualification_experiment_cli_rejects_values_outside_frozen_counts() -> None:

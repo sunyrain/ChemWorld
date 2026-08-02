@@ -193,12 +193,19 @@ def _method_limits(
     if qualification:
         if qualification_experiments not in QUALIFICATION_EXPERIMENT_COUNTS:
             raise ValueError("qualification_experiments must be one of 1, 2, or 6")
+        operation_limit = attempts_per_experiment * qualification_experiments
+        direct_provider_runtime = _direct_provider_runtime(protocol)
+        provider_attempt_limit = int(protocol.get("agent", {}).get("provider_max_attempts", 1))
         return {
-            "operation_limit": (attempts_per_experiment * qualification_experiments),
+            "operation_limit": operation_limit,
             "complete_experiment_limit": qualification_experiments,
             "checkpoint_complete_experiments": tuple(range(1, qualification_experiments + 1)),
             "wall_time_limit_s": 3_600.0 * qualification_experiments,
-            "model_call_limit": qualification_experiments,
+            "model_call_limit": (
+                operation_limit * provider_attempt_limit
+                if direct_provider_runtime is not None
+                else qualification_experiments
+            ),
             # Codex reports cumulative multi-turn input, including cache hits.
             # That quantity grows faster than the number of physical batches,
             # so bind the hard envelope to primitive-operation capacity rather
