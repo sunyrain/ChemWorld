@@ -14,7 +14,7 @@ from typing import Any
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle
+from matplotlib.patches import Circle, Ellipse, FancyArrowPatch, FancyBboxPatch, Polygon, Rectangle
 
 ROOT = Path(__file__).resolve().parents[2]
 DERIVED_SCHEMA = "chemworld-arxiv-v1-derived-data-0.1"
@@ -163,6 +163,345 @@ def _arrow(ax: plt.Axes, start: tuple[float, float], end: tuple[float, float]) -
     )
 
 
+def _icon_line(
+    ax: plt.Axes,
+    points: Sequence[tuple[float, float]],
+    *,
+    color: str = INK,
+    lw: float = 0.8,
+) -> None:
+    ax.plot(
+        [point[0] for point in points],
+        [point[1] for point in points],
+        transform=ax.transAxes,
+        color=color,
+        lw=lw,
+        solid_capstyle="round",
+        solid_joinstyle="round",
+        clip_on=False,
+    )
+
+
+def _icon(
+    ax: plt.Axes,
+    kind: str,
+    center: tuple[float, float],
+    size: float,
+    *,
+    color: str = INK,
+    accent: str = TEAL,
+) -> None:
+    """Draw a small code-native scientific icon in axes coordinates."""
+    x, y = center
+    s = size
+    patch_kwargs = {
+        "transform": ax.transAxes,
+        "fc": "none",
+        "ec": color,
+        "lw": 0.8,
+        "clip_on": False,
+    }
+
+    if kind in {"flask", "assay"}:
+        ax.add_patch(Rectangle((x - 0.10 * s, y + 0.13 * s), 0.20 * s, 0.30 * s, **patch_kwargs))
+        ax.add_patch(
+            Polygon(
+                [
+                    (x - 0.10 * s, y + 0.13 * s),
+                    (x - 0.38 * s, y - 0.35 * s),
+                    (x - 0.32 * s, y - 0.47 * s),
+                    (x + 0.32 * s, y - 0.47 * s),
+                    (x + 0.38 * s, y - 0.35 * s),
+                    (x + 0.10 * s, y + 0.13 * s),
+                ],
+                **patch_kwargs,
+            )
+        )
+        _icon_line(ax, [(x - 0.27 * s, y - 0.25 * s), (x + 0.27 * s, y - 0.25 * s)], color=accent)
+        if kind == "assay":
+            for dx in (-0.16, 0.0, 0.16):
+                ax.add_patch(
+                    Circle(
+                        (x + dx * s, y - 0.34 * s),
+                        0.035 * s,
+                        transform=ax.transAxes,
+                        fc=accent,
+                        ec="none",
+                        clip_on=False,
+                    )
+                )
+        return
+
+    if kind == "molecule":
+        nodes = [(-0.34, 0.05), (-0.12, 0.30), (0.16, 0.18), (0.34, -0.12), (0.02, -0.28)]
+        for first, second in pairwise(nodes):
+            _icon_line(
+                ax,
+                [(x + first[0] * s, y + first[1] * s), (x + second[0] * s, y + second[1] * s)],
+                color=color,
+            )
+        _icon_line(ax, [(x - 0.34 * s, y + 0.05 * s), (x + 0.02 * s, y - 0.28 * s)], color=color)
+        for dx, dy in nodes:
+            ax.add_patch(
+                Circle(
+                    (x + dx * s, y + dy * s),
+                    0.07 * s,
+                    transform=ax.transAxes,
+                    fc=PAPER,
+                    ec=color,
+                    lw=0.8,
+                    clip_on=False,
+                )
+            )
+        return
+
+    if kind == "eye":
+        ax.add_patch(Ellipse((x, y), 0.85 * s, 0.52 * s, **patch_kwargs))
+        ax.add_patch(
+            Circle((x, y), 0.14 * s, transform=ax.transAxes, fc=color, ec="none", clip_on=False)
+        )
+        ax.add_patch(
+            Circle(
+                (x + 0.04 * s, y + 0.05 * s),
+                0.035 * s,
+                transform=ax.transAxes,
+                fc=PAPER,
+                ec="none",
+                clip_on=False,
+            )
+        )
+        return
+
+    if kind in {"ledger", "document"}:
+        ax.add_patch(Rectangle((x - 0.32 * s, y - 0.40 * s), 0.52 * s, 0.74 * s, **patch_kwargs))
+        if kind == "ledger":
+            ax.add_patch(
+                Rectangle((x - 0.10 * s, y + 0.27 * s), 0.18 * s, 0.13 * s, **patch_kwargs)
+            )
+        for offset in (0.14, -0.02, -0.18):
+            _icon_line(
+                ax,
+                [(x - 0.20 * s, y + offset * s), (x + 0.10 * s, y + offset * s)],
+                color=color,
+                lw=0.65,
+            )
+        return
+
+    if kind == "trace":
+        cube = [
+            (-0.34, 0.18),
+            (-0.16, 0.31),
+            (0.02, 0.18),
+            (0.02, -0.08),
+            (-0.16, -0.21),
+            (-0.34, -0.08),
+        ]
+        ax.add_patch(Polygon([(x + dx * s, y + dy * s) for dx, dy in cube], **patch_kwargs))
+        _icon_line(
+            ax,
+            [
+                (x - 0.34 * s, y + 0.18 * s),
+                (x - 0.16 * s, y + 0.05 * s),
+                (x + 0.02 * s, y + 0.18 * s),
+            ],
+            color=color,
+        )
+        _icon_line(ax, [(x - 0.16 * s, y + 0.05 * s), (x - 0.16 * s, y - 0.21 * s)], color=color)
+        for index in range(4):
+            cx = x + (0.14 + 0.16 * index) * s
+            cy = y - (0.10 + 0.045 * (index % 2)) * s
+            ax.add_patch(
+                Circle(
+                    (cx, cy),
+                    0.045 * s,
+                    transform=ax.transAxes,
+                    fc=PAPER,
+                    ec=color,
+                    lw=0.7,
+                    clip_on=False,
+                )
+            )
+            if index:
+                previous_x = x + (0.14 + 0.16 * (index - 1)) * s
+                previous_y = y - (0.10 + 0.045 * ((index - 1) % 2)) * s
+                _icon_line(ax, [(previous_x, previous_y), (cx, cy)], color=color, lw=0.65)
+        return
+
+    if kind == "sliders":
+        for index, knob in enumerate((-0.18, 0.16, -0.02)):
+            yy = y + (0.22 - 0.22 * index) * s
+            _icon_line(ax, [(x - 0.38 * s, yy), (x + 0.38 * s, yy)], color=color)
+            ax.add_patch(
+                Circle(
+                    (x + knob * s, yy),
+                    0.075 * s,
+                    transform=ax.transAxes,
+                    fc=PAPER,
+                    ec=color,
+                    lw=0.8,
+                    clip_on=False,
+                )
+            )
+        return
+
+    if kind == "folder":
+        ax.add_patch(
+            Polygon(
+                [
+                    (x - 0.39 * s, y - 0.30 * s),
+                    (x - 0.39 * s, y + 0.24 * s),
+                    (x - 0.08 * s, y + 0.24 * s),
+                    (x + 0.02 * s, y + 0.10 * s),
+                    (x + 0.39 * s, y + 0.10 * s),
+                    (x + 0.39 * s, y - 0.30 * s),
+                ],
+                **patch_kwargs,
+            )
+        )
+        return
+
+    if kind == "database":
+        ax.add_patch(Ellipse((x, y + 0.26 * s), 0.64 * s, 0.22 * s, **patch_kwargs))
+        _icon_line(ax, [(x - 0.32 * s, y + 0.26 * s), (x - 0.32 * s, y - 0.28 * s)], color=color)
+        _icon_line(ax, [(x + 0.32 * s, y + 0.26 * s), (x + 0.32 * s, y - 0.28 * s)], color=color)
+        for yy in (0.0, -0.26):
+            ax.add_patch(Ellipse((x, y + yy * s), 0.64 * s, 0.22 * s, **patch_kwargs))
+        return
+
+    if kind == "transaction":
+        ax.add_patch(
+            FancyArrowPatch(
+                (x - 0.38 * s, y + 0.13 * s),
+                (x + 0.38 * s, y + 0.13 * s),
+                transform=ax.transAxes,
+                arrowstyle="->",
+                mutation_scale=6,
+                lw=0.8,
+                color=color,
+            )
+        )
+        ax.add_patch(
+            FancyArrowPatch(
+                (x + 0.38 * s, y - 0.13 * s),
+                (x - 0.38 * s, y - 0.13 * s),
+                transform=ax.transAxes,
+                arrowstyle="->",
+                mutation_scale=6,
+                lw=0.8,
+                color=color,
+            )
+        )
+        return
+
+    if kind == "tube":
+        ax.add_patch(Rectangle((x - 0.16 * s, y - 0.34 * s), 0.32 * s, 0.68 * s, **patch_kwargs))
+        ax.add_patch(Ellipse((x, y - 0.34 * s), 0.32 * s, 0.18 * s, **patch_kwargs))
+        _icon_line(ax, [(x - 0.13 * s, y - 0.10 * s), (x + 0.13 * s, y - 0.10 * s)], color=accent)
+        return
+
+    if kind == "chain":
+        ax.add_patch(Ellipse((x - 0.16 * s, y), 0.50 * s, 0.25 * s, angle=45, **patch_kwargs))
+        ax.add_patch(Ellipse((x + 0.16 * s, y), 0.50 * s, 0.25 * s, angle=45, **patch_kwargs))
+        return
+
+    if kind == "bars":
+        for index, height in enumerate((0.26, 0.48, 0.70)):
+            ax.add_patch(
+                Rectangle(
+                    (x + (-0.33 + index * 0.24) * s, y - 0.34 * s),
+                    0.13 * s,
+                    height * s,
+                    **patch_kwargs,
+                )
+            )
+        _icon_line(ax, [(x - 0.40 * s, y - 0.34 * s), (x + 0.38 * s, y - 0.34 * s)], color=color)
+        return
+
+    if kind == "target":
+        for radius in (0.34, 0.22, 0.10):
+            ax.add_patch(Circle((x, y), radius * s, **patch_kwargs))
+        _icon_line(ax, [(x, y), (x + 0.38 * s, y + 0.38 * s)], color=color)
+        return
+
+    if kind == "potential":
+        ax.add_patch(
+            FancyBboxPatch(
+                (x - 0.40 * s, y - 0.28 * s),
+                0.80 * s,
+                0.56 * s,
+                boxstyle="round,pad=0.004,rounding_size=0.012",
+                **patch_kwargs,
+            )
+        )
+        ax.text(
+            x,
+            y,
+            "-0.75 V",
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=4.5,
+            fontweight="semibold",
+            color=color,
+        )
+        return
+
+    if kind == "cell":
+        ax.add_patch(Rectangle((x - 0.35 * s, y - 0.38 * s), 0.70 * s, 0.55 * s, **patch_kwargs))
+        _icon_line(
+            ax, [(x - 0.22 * s, y + 0.35 * s), (x - 0.22 * s, y - 0.22 * s)], color=color, lw=1.5
+        )
+        _icon_line(
+            ax, [(x + 0.22 * s, y + 0.35 * s), (x + 0.22 * s, y - 0.22 * s)], color=color, lw=1.0
+        )
+        _icon_line(ax, [(x - 0.30 * s, y - 0.12 * s), (x + 0.30 * s, y - 0.12 * s)], color=accent)
+        return
+
+    if kind == "spectrometer":
+        ax.add_patch(Rectangle((x - 0.40 * s, y - 0.32 * s), 0.80 * s, 0.62 * s, **patch_kwargs))
+        ax.add_patch(Rectangle((x - 0.27 * s, y - 0.17 * s), 0.52 * s, 0.34 * s, **patch_kwargs))
+        _icon_line(
+            ax,
+            [
+                (x - 0.22 * s, y - 0.10 * s),
+                (x - 0.10 * s, y + 0.08 * s),
+                (x + 0.02 * s, y - 0.04 * s),
+                (x + 0.20 * s, y + 0.12 * s),
+            ],
+            color=accent,
+        )
+        return
+
+    if kind == "agent":
+        ax.add_patch(Circle((x, y), 0.38 * s, **patch_kwargs))
+        nodes = [(-0.18, 0.14), (-0.20, -0.12), (0.02, 0.0), (0.20, 0.18), (0.20, -0.18)]
+        for dx, dy in nodes:
+            ax.add_patch(
+                Circle(
+                    (x + dx * s, y + dy * s),
+                    0.045 * s,
+                    transform=ax.transAxes,
+                    fc=PAPER,
+                    ec=color,
+                    lw=0.7,
+                    clip_on=False,
+                )
+            )
+        for start, end in ((0, 2), (1, 2), (2, 3), (2, 4)):
+            _icon_line(
+                ax,
+                [
+                    (x + nodes[start][0] * s, y + nodes[start][1] * s),
+                    (x + nodes[end][0] * s, y + nodes[end][1] * s),
+                ],
+                color=color,
+                lw=0.6,
+            )
+        return
+
+    raise ValueError(f"unsupported icon kind: {kind}")
+
+
 def _save(fig: plt.Figure, output_dir: Path, stem: str) -> list[Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     outputs: list[Path] = []
@@ -201,18 +540,49 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     ax = axes[0, 0]
     _panel(ax, "A", "The chemical world is the experimental apparatus")
     ax.axis("off")
-    _box(ax, (0.02, 0.47), 0.20, 0.20, "agent\nselects action", edge=TEAL, face="#EDF7F5")
+    _box(ax, (0.02, 0.47), 0.20, 0.20, "", edge=TEAL, face="#EDF7F5")
+    _icon(ax, "flask", (0.12, 0.60), 0.055, color=TEAL, accent=TEAL)
+    ax.text(
+        0.12,
+        0.515,
+        "agent\nselects action",
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        fontsize=5.7,
+    )
     _box(
         ax,
         (0.38, 0.43),
         0.25,
         0.28,
-        "executable world\nchanges state",
+        "",
         edge=OPAQUE,
         face="#ECF3F7",
         weight="semibold",
     )
-    _box(ax, (0.78, 0.47), 0.20, 0.20, "public\nobservation", edge=AMBER, face="#FBF4E8")
+    _icon(ax, "molecule", (0.505, 0.63), 0.065, color=OPAQUE)
+    ax.text(
+        0.505,
+        0.515,
+        "executable world\nchanges state",
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        fontsize=5.9,
+        fontweight="semibold",
+    )
+    _box(ax, (0.78, 0.47), 0.20, 0.20, "", edge=AMBER, face="#FBF4E8")
+    _icon(ax, "eye", (0.88, 0.60), 0.055, color=INK)
+    ax.text(
+        0.88,
+        0.515,
+        "public\nobservation",
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        fontsize=5.7,
+    )
     _arrow(ax, (0.23, 0.57), (0.37, 0.57))
     _arrow(ax, (0.64, 0.57), (0.77, 0.57))
     _arrow(ax, (0.87, 0.42), (0.13, 0.42))
@@ -225,8 +595,28 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
         fontsize=6.6,
         bbox={"facecolor": PAPER, "edgecolor": "none", "pad": 0.8},
     )
-    _box(ax, (0.18, 0.07), 0.27, 0.13, "resource ledger", edge=MISINDEXED)
-    _box(ax, (0.55, 0.07), 0.27, 0.13, "immutable trace", edge=MISINDEXED)
+    _box(ax, (0.18, 0.07), 0.27, 0.13, "", edge=MISINDEXED)
+    _icon(ax, "ledger", (0.225, 0.135), 0.060, color=OPAQUE)
+    ax.text(
+        0.35,
+        0.135,
+        "resource ledger",
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        fontsize=6.0,
+    )
+    _box(ax, (0.55, 0.07), 0.27, 0.13, "", edge=MISINDEXED)
+    _icon(ax, "trace", (0.60, 0.135), 0.060, color=OPAQUE)
+    ax.text(
+        0.75,
+        0.135,
+        "immutable trace",
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        fontsize=6.0,
+    )
     _arrow(ax, (0.45, 0.42), (0.34, 0.21))
     _arrow(ax, (0.56, 0.42), (0.68, 0.21))
 
@@ -234,15 +624,25 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     _panel(ax, "B", "Controlled contrasts separate agent from world")
     ax.axis("off")
     rows = [
-        ("hidden physical identity", "matched", OPAQUE),
-        ("material information", "intervened", NOMINAL),
-        ("action authority", "compiled / primitive", TEAL),
-        ("evidence access", "accounted", AMBER),
-        ("resource endowment", "accounted", MISINDEXED),
+        ("hidden physical identity", "matched", OPAQUE, "molecule"),
+        ("material information", "intervened", NOMINAL, "document"),
+        ("action authority", "compiled / primitive", TEAL, "sliders"),
+        ("evidence access", "accounted", AMBER, "folder"),
+        ("resource endowment", "accounted", MISINDEXED, "database"),
     ]
-    for index, (control, role, color) in enumerate(rows):
+    for index, (control, role, color, icon_kind) in enumerate(rows):
         y = 0.82 - index * 0.17
-        _box(ax, (0.03, y), 0.53, 0.11, control, edge=color, fontsize=6.8)
+        _box(ax, (0.03, y), 0.53, 0.11, "", edge=color, fontsize=6.8)
+        _icon(ax, icon_kind, (0.09, y + 0.055), 0.055, color=color, accent=color)
+        ax.text(
+            0.34,
+            y + 0.055,
+            control,
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=6.5,
+        )
         _box(
             ax,
             (0.64, y),
@@ -258,13 +658,19 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     ax = axes[1, 0]
     _panel(ax, "C", "Each transition remains auditable")
     ax.axis("off")
-    stages = ["typed\nstate", "transaction", "resource\nreceipt", "trace", "physical\nreplay"]
+    stages = [
+        ("typed\nstate", "document"),
+        ("transaction", "transaction"),
+        ("resource\nreceipt", "tube"),
+        ("trace", "chain"),
+        ("physical\nreplay", "flask"),
+    ]
     xs = np.linspace(0.08, 0.92, len(stages))
-    ax.plot([xs[0], xs[-1]], [0.56, 0.56], transform=ax.transAxes, color=GRID, lw=4)
-    for index, (x, label) in enumerate(zip(xs, stages, strict=True), start=1):
+    ax.plot([xs[0], xs[-1]], [0.64, 0.64], transform=ax.transAxes, color=GRID, lw=4)
+    for index, (x, (label, icon_kind)) in enumerate(zip(xs, stages, strict=True), start=1):
         ax.scatter(
             x,
-            0.56,
+            0.64,
             transform=ax.transAxes,
             s=150,
             color=OPAQUE,
@@ -274,7 +680,7 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
         )
         ax.text(
             x,
-            0.56,
+            0.64,
             str(index),
             transform=ax.transAxes,
             color=PAPER,
@@ -283,12 +689,13 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             fontsize=6.8,
             fontweight="bold",
         )
-        ax.text(x, 0.37, label, transform=ax.transAxes, ha="center", va="top", fontsize=6.5)
+        _icon(ax, icon_kind, (x, 0.42), 0.075, color=OPAQUE, accent=TEAL)
+        ax.text(x, 0.27, label, transform=ax.transAxes, ha="center", va="top", fontsize=5.7)
     _box(
         ax,
-        (0.12, 0.08),
+        (0.12, 0.04),
         0.76,
-        0.13,
+        0.09,
         "invalid actions, failures and costs remain part of the evidence",
         edge=NOMINAL,
         fontsize=6.2,
@@ -298,18 +705,24 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     _panel(ax, "D", "Qualified surface and evidence scope")
     ax.axis("off")
     cards = [
-        (qualification["registered_tasks"], "tasks", OPAQUE),
-        (qualification["registered_operations"], "operations", TEAL),
-        (qualification["registered_instruments"], "instruments", AMBER),
-        (qualification["deterministic_complete_experiment_cases"], "boundary cases", MISINDEXED),
-        (qualification["bound_success_endpoints"], "bound endpoints", NOMINAL),
+        (qualification["registered_tasks"], "tasks", OPAQUE, "ledger"),
+        (qualification["registered_operations"], "operations", TEAL, "sliders"),
+        (qualification["registered_instruments"], "instruments", AMBER, "flask"),
+        (
+            qualification["deterministic_complete_experiment_cases"],
+            "boundary cases",
+            MISINDEXED,
+            "bars",
+        ),
+        (qualification["bound_success_endpoints"], "bound endpoints", NOMINAL, "target"),
     ]
     positions = [(0.02, 0.58), (0.35, 0.58), (0.68, 0.58), (0.18, 0.27), (0.53, 0.27)]
-    for (value, label, color), (x, y) in zip(cards, positions, strict=True):
+    for (value, label, color, icon_kind), (x, y) in zip(cards, positions, strict=True):
         width = 0.29 if y > 0.5 else 0.31
         _box(ax, (x, y), width, 0.22, "", edge=color, face=WASH)
+        _icon(ax, icon_kind, (x + 0.060, y + 0.125), 0.065, color=OPAQUE, accent=color)
         ax.text(
-            x + width / 2,
+            x + width * 0.64,
             y + 0.145,
             f"{value:,}",
             transform=ax.transAxes,
@@ -320,7 +733,7 @@ def figure_1(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
             color=color,
         )
         ax.text(
-            x + width / 2,
+            x + width * 0.64,
             y + 0.06,
             label,
             transform=ax.transAxes,
@@ -519,13 +932,13 @@ def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
     _panel(ax, "A", "One vessel closes through agent-selected primitive operations")
     ax.axis("off")
     sequence = [
-        ("add\nreagent", TEAL),
-        ("add\nsolvent", TEAL),
-        ("set\npotential", TEAL),
-        ("electrolyze", TEAL),
-        ("UV-vis\nobservation", AMBER),
-        ("agent selects\nterminate", OPAQUE),
-        ("final assay\n0.531", NOMINAL),
+        ("add\nreagent", TEAL, "flask"),
+        ("add\nsolvent", TEAL, "flask"),
+        ("set\npotential", TEAL, "potential"),
+        ("electrolyze", TEAL, "cell"),
+        ("UV-vis\nobservation", AMBER, "spectrometer"),
+        ("agent selects\nterminate", OPAQUE, "agent"),
+        ("final assay\n0.531", NOMINAL, "assay"),
     ]
     positions = [
         (0.05, 0.67),
@@ -536,23 +949,32 @@ def figure_3(data: Mapping[str, Any], output_dir: Path) -> list[Path]:
         (0.43, 0.29),
         (0.05, 0.29),
     ]
-    for (label, color), (x, y) in zip(sequence, positions, strict=True):
+    for (label, color, icon_kind), (x, y) in zip(sequence, positions, strict=True):
         _box(
             ax,
             (x, y),
             0.16,
-            0.16,
-            label,
+            0.21,
+            "",
             edge=color,
             face=WASH,
-            fontsize=6.4,
-            weight="semibold" if "agent" in label else "normal",
+        )
+        _icon(ax, icon_kind, (x + 0.08, y + 0.135), 0.070, color=INK, accent=color)
+        ax.text(
+            x + 0.08,
+            y + 0.040,
+            label,
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=5.7,
+            fontweight="semibold" if "agent" in label else "normal",
         )
     for start, end in pairwise(positions[:4]):
-        _arrow(ax, (start[0] + 0.16, start[1] + 0.08), (end[0], end[1] + 0.08))
-    _arrow(ax, (0.88, 0.66), (0.88, 0.46))
-    _arrow(ax, (0.80, 0.37), (0.60, 0.37))
-    _arrow(ax, (0.43, 0.37), (0.22, 0.37))
+        _arrow(ax, (start[0] + 0.16, start[1] + 0.105), (end[0], end[1] + 0.105))
+    _arrow(ax, (0.88, 0.66), (0.88, 0.51))
+    _arrow(ax, (0.80, 0.395), (0.60, 0.395))
+    _arrow(ax, (0.43, 0.395), (0.22, 0.395))
     ax.text(
         0.50,
         0.12,

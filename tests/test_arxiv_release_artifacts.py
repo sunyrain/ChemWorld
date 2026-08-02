@@ -90,6 +90,29 @@ def test_arxiv_figure_manifest_binds_all_release_formats() -> None:
         assert _sha(artifact) == row["sha256"]
 
 
+def test_key_workflow_svgs_are_editable_vectors_without_embedded_bitmaps() -> None:
+    required_labels = {
+        "figure-1-controlled-apparatus.svg": (
+            "executable world",
+            "resource ledger",
+            "immutable trace",
+            "physical",
+        ),
+        "figure-3-autonomous-lifecycle.svg": (
+            "reagent",
+            "UV-vis",
+            "agent selects",
+            "final assay",
+        ),
+    }
+    for filename, labels in required_labels.items():
+        svg = (ARXIV / "figures" / filename).read_text(encoding="utf-8")
+        assert "<image" not in svg
+        assert svg.count("<text") >= 20
+        assert svg.count("<path") >= 30
+        assert all(label in svg for label in labels)
+
+
 def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
     manifest = json.loads((EXPORT / "build-manifest.json").read_text(encoding="utf-8"))
     declared = manifest.pop("manifest_sha256")
