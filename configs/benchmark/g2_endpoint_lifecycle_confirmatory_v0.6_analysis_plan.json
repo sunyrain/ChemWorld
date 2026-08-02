@@ -1,0 +1,89 @@
+{
+  "schema_version": "chemworld-g2-endpoint-lifecycle-analysis-plan-0.1",
+  "analysis_id": "g2-endpoint-lifecycle-confirmatory-v0.6",
+  "status": "prospective-frozen-before-first-confirmatory-provider-call",
+  "scientific_question": "Does knowing the nominal-minus-opaque endpoint contrast make the corresponding experimental-lifecycle contrast a reliable surrogate?",
+  "analysis_unit": "world by fresh provider-trajectory pair; vessels and primitive operations are repeated observations within an arm campaign, not independent samples",
+  "development_data_policy": {
+    "world_seeds_0_through_9": "excluded from all confirmatory estimands; used only to choose metrics, threshold and sample size",
+    "g2_v0_4_and_v0_5": "pilot evidence only and never pooled with v0.6",
+    "confirmatory_world_selection_uses_agent_outcomes": false
+  },
+  "primary_estimand": {
+    "name": "sigma_unexplained",
+    "lifecycle_contrast": "L_wr = terminal_to_global_best_ratio_nominal - terminal_to_global_best_ratio_opaque",
+    "endpoint_contrast": "E_wr = best_final_score_nominal - best_final_score_opaque",
+    "terminal_to_global_best_ratio": "score of the sixth final assay divided by the maximum of the six final-assay scores, with the audited metric implementation authoritative",
+    "model": "L_wr = alpha + beta * E_wr + categorical_time_block + u_world + epsilon_wr",
+    "world_effect": "u_world is a zero-mean Gaussian random intercept",
+    "residual": "epsilon_wr is zero-mean Gaussian with standard deviation sigma_unexplained; parameters are estimated by REML",
+    "interval": "one-sided 95-percent profile-likelihood lower confidence bound",
+    "substantive_margin_tbr_units": 0.15,
+    "success_rule": "coverage gate passes and the one-sided 95-percent lower bound for sigma_unexplained is greater than 0.15"
+  },
+  "coverage_gate": {
+    "minimum_completed_pair_fraction": 0.8,
+    "minimum_worlds_with_three_completed_pairs": 10,
+    "failure_branch": "confirmatory evidence is inconclusive; no replacement, rerun, outcome-dependent expansion or alternative primary estimand is permitted"
+  },
+  "censoring_policy": {
+    "before_any_accepted_operation": "at most three immutable attempts for provider infrastructure failure",
+    "after_any_accepted_operation": "permanent right censoring with no replacement or rerun",
+    "primary_analysis": "complete paired contrasts",
+    "required_reporting": [
+      "censoring by arm",
+      "censoring by world",
+      "censoring by schedule time block",
+      "accepted-operation count before censoring"
+    ],
+    "tipping_point": "jointly vary missing lifecycle and endpoint pair contrasts over their mathematical bounds and minimize the primary lower bound; report whether any admissible completion crosses 0.15"
+  },
+  "secondary_estimands_in_order": [
+    {
+      "name": "endpoint_lifecycle_slope_and_prediction",
+      "outputs": ["beta", "leave-one-world-out fixed-effect prediction R-squared"]
+    },
+    {
+      "name": "mean_nominal_information_lifecycle_effect",
+      "metric": "terminal_to_global_best_ratio"
+    },
+    {
+      "name": "world_level_treatment_heterogeneity",
+      "metric": "terminal_to_global_best_ratio",
+      "symbol": "tau_world"
+    },
+    {
+      "name": "additional_lifecycle_profile",
+      "metrics": [
+        "maximum_absolute_incumbent_drawdown",
+        "global_best_discovery_fraction",
+        "online_incumbent_retention_rate"
+      ],
+      "multiplicity": "Holm adjustment across the three additional lifecycle metrics"
+    }
+  ],
+  "robustness": [
+    "Student-t residual hierarchical model with degrees of freedom fixed to four",
+    "world-cluster bootstrap with 10000 frozen-seed resamples",
+    "leave-one-world-out refits",
+    "bounded censoring tipping-point analysis"
+  ],
+  "prohibited_adaptations": [
+    "inspection of interim confirmatory scores or arm contrasts",
+    "outcome-dependent stopping or sample-size expansion",
+    "replacement of action-bearing censored cells",
+    "switching the primary lifecycle or endpoint metric",
+    "reintroducing mixed-label, sign-count or exact-zero classification as a confirmatory test"
+  ],
+  "result_branches": {
+    "primary_success": "Endpoint contrast is not a reliable surrogate for experimental lifecycle response in the pre-defined ChemWorld electrochemical world generator: material within-world fresh-trajectory variation remains after endpoint adjustment.",
+    "coverage_inconclusive": "The frozen coverage gate was not met; the audited trajectories remain a complete resource-accounted record but do not decide the primary claim.",
+    "margin_not_crossed": "The endpoint-adjusted lifecycle variation did not clear the pre-defined substantive margin under this design."
+  },
+  "implementation": {
+    "module": "src/chemworld/eval/endpoint_lifecycle_confirmatory.py",
+    "cli": "scripts/analyze_g2_endpoint_lifecycle_confirmatory.py",
+    "numerical_method": "bounded log-variance REML optimization with profile likelihood and deterministic seeds",
+    "freeze_requirement": "implementation, tests, this plan, world qualification, full schedule and power report must share an immutable Git commit before the first confirmatory provider call"
+  }
+}

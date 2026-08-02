@@ -43,23 +43,17 @@ from chemworld.eval.runner import run_agent
 from chemworld.eval.static_optimization_seeds import exploration_observation_seed
 from chemworld.eval.verify import verify_records
 from chemworld.providers.codex_subscription import HTTPS_PROVIDER_ID
+from chemworld.providers.wellau import ReasoningEffort as WellAUReasoningEffort
 from chemworld.providers.wellau import WellAUClient
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONFIG = (
-    ROOT
-    / "configs/benchmark/"
-    "g2_autonomous_electrochemical_material_5x2_v0.4_dev.json"
-)
+DEFAULT_CONFIG = ROOT / "configs/benchmark/g2_autonomous_electrochemical_material_5x2_v0.4_dev.json"
 DEFAULT_MATRIX_ROOT = (
-    ROOT
-    / "runs/development/"
-    "g2-autonomous-electrochemical-material-5x2-codex-sol-medium-mcp-v2"
+    ROOT / "runs/development/g2-autonomous-electrochemical-material-5x2-codex-sol-medium-mcp-v2"
 )
 DEFAULT_QUALIFICATION_ROOT = (
-    ROOT
-    / "runs/development/"
+    ROOT / "runs/development/"
     "g2-autonomous-electrochemical-seed0-opaque-k1-qualification-mcp-medium-v2"
 )
 QUALIFICATION_CONDITION_IDS = {
@@ -90,11 +84,7 @@ def _load_protocol(path: Path) -> dict[str, Any]:
     conditions = payload.get("paired_conditions")
     if not isinstance(task, dict) or not isinstance(conditions, list):
         raise ValueError("protocol task and paired_conditions are required")
-    condition_ids = [
-        str(item.get("condition_id"))
-        for item in conditions
-        if isinstance(item, dict)
-    ]
+    condition_ids = [str(item.get("condition_id")) for item in conditions if isinstance(item, dict)]
     if sorted(condition_ids) != [
         "anonymous_nominal_properties",
         "opaque_codes",
@@ -108,8 +98,7 @@ def _load_protocol(path: Path) -> dict[str, Any]:
 
 def _conditions(protocol: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     return {
-        str(item["condition_id"]): deepcopy(dict(item))
-        for item in protocol["paired_conditions"]
+        str(item["condition_id"]): deepcopy(dict(item)) for item in protocol["paired_conditions"]
     }
 
 
@@ -119,11 +108,7 @@ def _scheduled_cells(protocol: Mapping[str, Any]) -> list[dict[str, Any]]:
     cells: list[dict[str, Any]] = []
     ordinal = 0
     for seed in protocol["task"]["world_seeds"]:
-        order = (
-            schedule["even_seed_order"]
-            if int(seed) % 2 == 0
-            else schedule["odd_seed_order"]
-        )
+        order = schedule["even_seed_order"] if int(seed) % 2 == 0 else schedule["odd_seed_order"]
         for within_pair_order, condition_id in enumerate(order, start=1):
             ordinal += 1
             cells.append(
@@ -152,14 +137,10 @@ def _campaign_card(
     )
     if qualification:
         if qualification_experiments not in QUALIFICATION_EXPERIMENT_COUNTS:
-            raise ValueError(
-                "qualification_experiments must be one of 1, 2, or 6"
-            )
+            raise ValueError("qualification_experiments must be one of 1, 2, or 6")
         return generous_electrochemical_max_envelope_card(
             experiment_count=qualification_experiments,
-            operation_attempt_limit=(
-                attempts_per_experiment * qualification_experiments
-            ),
+            operation_attempt_limit=(attempts_per_experiment * qualification_experiments),
             nonfinal_instrument_use_limit=3 * qualification_experiments,
             stock_action_envelopes_per_experiment=float(
                 protocol["campaign_resource_card"].get(
@@ -175,9 +156,7 @@ def _campaign_card(
     card = generous_electrochemical_max_envelope_card(
         experiment_count=int(requested["complete_experiments"]),
         operation_attempt_limit=int(requested["operation_attempt_limit"]),
-        nonfinal_instrument_use_limit=int(
-            requested["nonfinal_instrument_use_limit"]
-        ),
+        nonfinal_instrument_use_limit=int(requested["nonfinal_instrument_use_limit"]),
         stock_action_envelopes_per_experiment=float(
             requested.get("stock_action_envelopes_per_experiment", 1.0)
         ),
@@ -192,8 +171,7 @@ def _campaign_card(
         "vessel_start_limit": int(requested["vessel_start_limit"]),
         "final_assay_limit": int(requested["final_assay_limit"]),
         "stock_limits": {
-            str(key): float(value)
-            for key, value in requested["stock_limits"].items()
+            str(key): float(value) for key, value in requested["stock_limits"].items()
         },
     }
     if expected != observed:
@@ -213,17 +191,11 @@ def _method_limits(
     )
     if qualification:
         if qualification_experiments not in QUALIFICATION_EXPERIMENT_COUNTS:
-            raise ValueError(
-                "qualification_experiments must be one of 1, 2, or 6"
-            )
+            raise ValueError("qualification_experiments must be one of 1, 2, or 6")
         return {
-            "operation_limit": (
-                attempts_per_experiment * qualification_experiments
-            ),
+            "operation_limit": (attempts_per_experiment * qualification_experiments),
             "complete_experiment_limit": qualification_experiments,
-            "checkpoint_complete_experiments": tuple(
-                range(1, qualification_experiments + 1)
-            ),
+            "checkpoint_complete_experiments": tuple(range(1, qualification_experiments + 1)),
             "wall_time_limit_s": 3_600.0 * qualification_experiments,
             "model_call_limit": qualification_experiments,
             # Codex reports cumulative multi-turn input, including cache hits.
@@ -253,26 +225,20 @@ def _qualification_cell(
     world_seed: int = 0,
 ) -> dict[str, Any]:
     if condition not in QUALIFICATION_CONDITION_IDS:
-        raise ValueError(
-            "qualification condition must be either 'opaque' or 'nominal'"
-        )
+        raise ValueError("qualification condition must be either 'opaque' or 'nominal'")
     if experiment_count not in QUALIFICATION_EXPERIMENT_COUNTS:
         raise ValueError("qualification experiment count must be one of 1, 2, or 6")
     condition_id = QUALIFICATION_CONDITION_IDS[condition]
     selected = _conditions(protocol)[condition_id]
     if world_seed not in protocol["task"]["world_seeds"]:
         raise ValueError("qualification world seed must be in the frozen matrix")
-    cell_id = (
-        f"qualification-seed{world_seed}-{condition}-k{experiment_count}"
-    )
+    cell_id = f"qualification-seed{world_seed}-{condition}-k{experiment_count}"
     return {
         "cell_id": cell_id,
         "world_seed": world_seed,
         "condition_id": condition_id,
         "within_pair_order": 1,
-        "material_information": deepcopy(
-            dict(selected["material_information"])
-        ),
+        "material_information": deepcopy(dict(selected["material_information"])),
         "qualification_condition": condition,
         "qualification_experiments": experiment_count,
     }
@@ -285,13 +251,9 @@ def _qualification_output_root(
     world_seed: int = 0,
 ) -> Path:
     if condition not in QUALIFICATION_CONDITION_IDS:
-        raise ValueError(
-            "qualification condition must be either 'opaque' or 'nominal'"
-        )
+        raise ValueError("qualification condition must be either 'opaque' or 'nominal'")
     if experiment_count not in QUALIFICATION_EXPERIMENT_COUNTS:
-        raise ValueError(
-            "qualification experiment count must be one of 1, 2, or 6"
-        )
+        raise ValueError("qualification experiment count must be one of 1, 2, or 6")
     if condition == "opaque" and experiment_count == 1 and world_seed == 0:
         return DEFAULT_QUALIFICATION_ROOT
     return (
@@ -346,9 +308,7 @@ def _codex_cli_manifest() -> dict[str, Any]:
         timeout=20,
     )
     login = "\n".join(
-        part.strip()
-        for part in (login_result.stdout, login_result.stderr)
-        if part.strip()
+        part.strip() for part in (login_result.stdout, login_result.stderr) if part.strip()
     )
     if "logged in" not in login.lower():
         raise RuntimeError("Codex CLI is not logged in")
@@ -381,16 +341,10 @@ def _env_kwargs(
             seed,
         ),
         "observation_noise_mode": str(task["observation_noise_mode"]),
-        "observation_noise_namespace": str(
-            task["observation_noise_namespace"]
-        ),
+        "observation_noise_namespace": str(task["observation_noise_namespace"]),
         "material_information": deepcopy(dict(cell["material_information"])),
-        "electrochemical_material_family_id": str(
-            task["electrochemical_material_family_id"]
-        ),
-        "electrochemical_workflow_mode": str(
-            task["electrochemical_workflow_mode"]
-        ),
+        "electrochemical_material_family_id": str(task["electrochemical_material_family_id"]),
+        "electrochemical_workflow_mode": str(task["electrochemical_workflow_mode"]),
         "scoring_contract_id": str(task["scoring_contract_id"]),
         "campaign_resource_card": card.to_dict(),
     }
@@ -424,12 +378,8 @@ def _inspect_cell_environment(
                 "task_contract_hash": public.get("task_contract_hash"),
                 "runtime_profile_hash": public.get("runtime_profile_hash"),
                 "scoring_contract_hash": public.get("scoring_contract_hash"),
-                "observation_contract_hash": public.get(
-                    "observation_contract_hash"
-                ),
-                "workflow_mode": public.get(
-                    "electrochemical_workflow_mode"
-                ),
+                "observation_contract_hash": public.get("observation_contract_hash"),
+                "workflow_mode": public.get("electrochemical_workflow_mode"),
                 "material_information": public.get("material_information"),
             },
             "evaluator_identity": private,
@@ -496,11 +446,7 @@ def _cell_config(
             if cell.get("trajectory_replicate_id") is not None
             else None
         ),
-        agent_seed=(
-            int(cell["agent_seed"])
-            if cell.get("agent_seed") is not None
-            else None
-        ),
+        agent_seed=(int(cell["agent_seed"]) if cell.get("agent_seed") is not None else None),
     )
     payload: dict[str, Any] = {
         "schema_version": "chemworld-g2-autonomous-material-cell-0.1",
@@ -534,9 +480,7 @@ def _cell_config(
         "pair_invariants_exclude": ["material_information", "execution_order"],
     }
     if cell.get("trajectory_replicate_id") is not None:
-        payload["trajectory_replicate_id"] = str(
-            cell["trajectory_replicate_id"]
-        )
+        payload["trajectory_replicate_id"] = str(cell["trajectory_replicate_id"])
     if cell.get("agent_seed") is not None:
         payload["agent_seed"] = int(cell["agent_seed"])
     payload["config_sha256"] = canonical_json_sha256(payload)
@@ -560,8 +504,7 @@ def _resource_snapshot_from_history(
         event_id = str(preflight["event_id"])
         proposed = preflight.get("proposed_delta")
         starts_vessel = bool(
-            isinstance(proposed, Mapping)
-            and int(proposed.get("vessel_starts", 0)) == 1
+            isinstance(proposed, Mapping) and int(proposed.get("vessel_starts", 0)) == 1
         )
         replayed = ledger.preflight(
             event_id,
@@ -569,39 +512,28 @@ def _resource_snapshot_from_history(
             starts_vessel=starts_vessel,
         )
         if replayed.to_dict() != dict(preflight):
-            raise CampaignResourceIntegrityError(
-                f"step {record.step} preflight replay mismatch"
-            )
+            raise CampaignResourceIntegrityError(f"step {record.step} preflight replay mismatch")
         report = delta.get("report_only")
         if not isinstance(report, Mapping):
-            raise CampaignResourceIntegrityError(
-                f"step {record.step} resource report is missing"
-            )
+            raise CampaignResourceIntegrityError(f"step {record.step} resource report is missing")
         replayed_delta = ledger.record_outcome(
             event_id,
             record.action,
             {
-                "operation_committed": (
-                    record.info.get("transaction_status") == "committed"
-                ),
+                "operation_committed": (record.info.get("transaction_status") == "committed"),
                 "campaign_resource_report_delta": dict(report),
             },
             starts_vessel=starts_vessel,
         )
         if replayed_delta.to_dict() != dict(delta):
-            raise CampaignResourceIntegrityError(
-                f"step {record.step} outcome replay mismatch"
-            )
+            raise CampaignResourceIntegrityError(f"step {record.step} outcome replay mismatch")
         public_resources = record.info.get("campaign_resources")
         if isinstance(public_resources, Mapping):
             candidate = public_resources.get("ledger_sha256")
             if isinstance(candidate, str):
                 expected_final_hash = candidate
     snapshot = ledger.snapshot()
-    if (
-        expected_final_hash is not None
-        and snapshot["ledger_sha256"] != expected_final_hash
-    ):
+    if expected_final_hash is not None and snapshot["ledger_sha256"] != expected_final_hash:
         raise CampaignResourceIntegrityError(
             "final public campaign resource hash does not match replay"
         )
@@ -624,17 +556,12 @@ def _write_exact_replay_receipt(
         "trajectory_path": trajectory_path.name,
         "trajectory_sha256": file_sha256(trajectory_path),
         "trajectory_record_count": len(records),
-        "campaign_resource_ledger_sha256": (
-            campaign_resource_ledger_sha256
-        ),
+        "campaign_resource_ledger_sha256": (campaign_resource_ledger_sha256),
         **verification.to_dict(),
     }
     write_json_atomic(receipt_path, receipt)
     if not verification.verified:
-        raise RuntimeError(
-            "exact deterministic trajectory replay failed; "
-            f"see {receipt_path}"
-        )
+        raise RuntimeError(f"exact deterministic trajectory replay failed; see {receipt_path}")
     return receipt
 
 
@@ -671,8 +598,7 @@ def _experiment_rows(history: list[HistoryRecord]) -> list[dict[str, Any]]:
                 "end_step": actions[-1].step,
                 "operation_count": len(actions),
                 "invalid_operation_count": sum(
-                    item.info.get("transaction_status") != "committed"
-                    for item in actions
+                    item.info.get("transaction_status") != "committed" for item in actions
                 ),
                 "solvent_choices": solvents,
                 "electrolyte_choices": electrolytes,
@@ -686,24 +612,15 @@ def _experiment_rows(history: list[HistoryRecord]) -> list[dict[str, Any]]:
                     if item.action.get("operation") == "set_potential"
                 ],
                 "electrolysis_stages": [
-                    {
-                        key: item.action.get(key)
-                        for key in ("duration_s",)
-                        if key in item.action
-                    }
+                    {key: item.action.get(key) for key in ("duration_s",) if key in item.action}
                     for item in actions
                     if item.action.get("operation") == "electrolyze"
                 ],
                 "measurements": measurements,
                 "diagnostic_measurement_count": sum(
-                    instrument != "final_assay"
-                    for instrument in measurements
+                    instrument != "final_assay" for instrument in measurements
                 ),
-                "outcome": (
-                    "discarded"
-                    if record.event_type == "batch_discard"
-                    else "completed"
-                ),
+                "outcome": ("discarded" if record.event_type == "batch_discard" else "completed"),
                 "leaderboard_score": record.info.get("leaderboard_score"),
             }
         )
@@ -713,9 +630,7 @@ def _experiment_rows(history: list[HistoryRecord]) -> list[dict[str, Any]]:
 
 def _history_summary(history: list[HistoryRecord]) -> dict[str, Any]:
     experiments = _experiment_rows(history)
-    discarded_batches = [
-        record for record in history if record.event_type == "batch_discard"
-    ]
+    discarded_batches = [record for record in history if record.event_type == "batch_discard"]
     terminal_scores = [
         float(row["leaderboard_score"])
         for row in experiments
@@ -745,11 +660,7 @@ def _history_summary(history: list[HistoryRecord]) -> dict[str, Any]:
         "discarded_batch_count": len(discarded_batches),
         "closed_batch_count": len(experiments) + len(discarded_batches),
         "action_counts": dict(
-            sorted(
-                Counter(
-                    str(record.action.get("operation")) for record in history
-                ).items()
-            )
+            sorted(Counter(str(record.action.get("operation")) for record in history).items())
         ),
         "measurement_counts": dict(
             sorted(
@@ -763,26 +674,19 @@ def _history_summary(history: list[HistoryRecord]) -> dict[str, Any]:
         "invalid_operation_count": len(invalid),
         "invalid_operations": invalid,
         "resource_rejection_count": sum(
-            record.info.get("campaign_resource_rejected") is True
-            for record in history
+            record.info.get("campaign_resource_rejected") is True for record in history
         ),
         "experiments": experiments,
         "terminal_scores": terminal_scores,
         "best_final_score": max(terminal_scores) if terminal_scores else None,
         "mean_final_score": (
-            sum(terminal_scores) / len(terminal_scores)
-            if terminal_scores
-            else None
+            sum(terminal_scores) / len(terminal_scores) if terminal_scores else None
         ),
         "incumbent_auc_per_operation": (
-            sum(incumbent_curve) / len(incumbent_curve)
-            if incumbent_curve
-            else None
+            sum(incumbent_curve) / len(incumbent_curve) if incumbent_curve else None
         ),
         "right_censored_open_experiment": bool(
-            history
-            and history[-1].event_type
-            not in {"experiment_end", "batch_discard"}
+            history and history[-1].event_type not in {"experiment_end", "batch_discard"}
         ),
     }
 
@@ -800,22 +704,14 @@ def _provider_decision_audit(
     for index, receipt in enumerate(receipts, start=1):
         checks = {
             "status_succeeded": receipt.get("status") == "succeeded",
-            "provider_matches_runtime": (
-                receipt.get("provider") == expected_provider
-            ),
+            "provider_matches_runtime": (receipt.get("provider") == expected_provider),
             "attempt_index_one": receipt.get("attempt_index") == 1,
-            "logical_decision_index_matches": (
-                receipt.get("logical_decision_index") == index
-            ),
+            "logical_decision_index_matches": (receipt.get("logical_decision_index") == index),
             "provider_token_accounting_complete": (
                 receipt.get("provider_token_accounting_complete") is True
             ),
-            "input_tokens_reported": int(
-                receipt.get("input_token_count", 0) or 0
-            ) > 0,
-            "output_tokens_reported": int(
-                receipt.get("output_token_count", 0) or 0
-            ) > 0,
+            "input_tokens_reported": int(receipt.get("input_token_count", 0) or 0) > 0,
+            "output_tokens_reported": int(receipt.get("output_token_count", 0) or 0) > 0,
             "no_failure_type": receipt.get("failure_type") is None,
         }
         receipt_audits.append(
@@ -832,31 +728,24 @@ def _provider_decision_audit(
     parameter_mapping = parameters if isinstance(parameters, Mapping) else {}
     method_checks = {
         "provider_usage_accounting_complete": (
-            method_resources.get("provider_usage_accounting_complete")
-            is True
+            method_resources.get("provider_usage_accounting_complete") is True
         ),
         "provider_token_accounting_complete": (
-            method_resources.get("provider_token_accounting_complete")
-            is True
+            method_resources.get("provider_token_accounting_complete") is True
         ),
         "provider_call_accounting_complete": (
-            method_resources.get("provider_call_accounting_complete")
-            is True
+            method_resources.get("provider_call_accounting_complete") is True
         ),
         "model_call_count_matches_operations": (
-            method_resources.get("model_call_count")
-            == target_operations
+            method_resources.get("model_call_count") == target_operations
         ),
         "logical_decisions_match_operations": (
             parameter_mapping.get("logical_decisions") == target_operations
         ),
         "strict_json_schema_declared": (
-            parameter_mapping.get("response_format")
-            == "dynamic_strict_json_schema"
+            parameter_mapping.get("response_format") == "dynamic_strict_json_schema"
         ),
-        "shell_tools_disabled": (
-            parameter_mapping.get("shell_tools") is False
-        ),
+        "shell_tools_disabled": (parameter_mapping.get("shell_tools") is False),
     }
     count_matches = len(receipts) == target_operations
     return {
@@ -872,9 +761,7 @@ def _provider_decision_audit(
             and all(item["passed"] for item in receipt_audits)
         ),
         "method_resource_checks": method_checks,
-        "all_method_resource_checks_passed": all(
-            method_checks.values()
-        ),
+        "all_method_resource_checks_passed": all(method_checks.values()),
         "passed": (
             count_matches
             and len(receipt_audits) == target_operations
@@ -926,8 +813,7 @@ def _provider_session_audit(
             }
         )
     method_checks = {
-        "provider_usage_not_pending": method_resources.get("provider_usage_pending")
-        is False,
+        "provider_usage_not_pending": method_resources.get("provider_usage_pending") is False,
         "provider_usage_accounting_complete": method_resources.get(
             "provider_usage_accounting_complete"
         )
@@ -1020,20 +906,14 @@ def _provider_failure_metadata(
         receipt
         for receipt in receipts
         if isinstance(receipt, Mapping)
-        and (
-            receipt.get("status") != "succeeded"
-            or receipt.get("failure_type") is not None
-        )
+        and (receipt.get("status") != "succeeded" or receipt.get("failure_type") is not None)
     ]
     if not failures:
         return {}
     return {
         "provider_failure_count": len(failures),
         "provider_failure_types": sorted(
-            {
-                str(item.get("failure_type") or "unknown")
-                for item in failures
-            }
+            {str(item.get("failure_type") or "unknown") for item in failures}
         ),
     }
 
@@ -1085,9 +965,7 @@ def _run_cell(
     workspace_archive: dict[str, Any] | None = None
     history: list[HistoryRecord] = []
     completed_progress = 0
-    with tempfile.TemporaryDirectory(
-        prefix="chemworld-g2-opaque-workspace-"
-    ) as temporary:
+    with tempfile.TemporaryDirectory(prefix="chemworld-g2-opaque-workspace-") as temporary:
         workspace = Path(temporary) / "workspace"
         agent = InteractiveCodexExperimentAgent(
             workspace=workspace,
@@ -1099,15 +977,9 @@ def _run_cell(
             model_provider_base_url=model_provider_base_url,
             model_provider_env_key=model_provider_env_key,
             model_provider_wire_api=model_provider_wire_api,
-            request_timeout_s=float(
-                protocol["agent"]["request_timeout_s"]
-            ),
-            finalization_timeout_s=float(
-                protocol["agent"]["finalization_timeout_s"]
-            ),
-            pre_action_restart_limit=int(
-                protocol["agent"]["pre_action_restart_limit"]
-            ),
+            request_timeout_s=float(protocol["agent"]["request_timeout_s"]),
+            finalization_timeout_s=float(protocol["agent"]["finalization_timeout_s"]),
+            pre_action_restart_limit=int(protocol["agent"]["pre_action_restart_limit"]),
         )
 
         def progress(
@@ -1119,16 +991,8 @@ def _run_cell(
             if record.event_type == "experiment_end":
                 completed_progress += 1
             resources = record.info.get("campaign_resources")
-            state = (
-                resources.get("state")
-                if isinstance(resources, Mapping)
-                else None
-            )
-            remaining = (
-                state.get("remaining")
-                if isinstance(state, Mapping)
-                else None
-            )
+            state = resources.get("state") if isinstance(resources, Mapping) else None
+            remaining = state.get("remaining") if isinstance(state, Mapping) else None
             print(
                 json.dumps(
                     {
@@ -1136,9 +1000,7 @@ def _run_cell(
                         "step": record.step,
                         "operation": record.action.get("operation"),
                         "instrument": record.action.get("instrument"),
-                        "transaction_status": record.info.get(
-                            "transaction_status"
-                        ),
+                        "transaction_status": record.info.get("transaction_status"),
                         "event_type": record.event_type,
                         "complete_experiments": completed_progress,
                         "campaign_resources_remaining": remaining,
@@ -1171,17 +1033,11 @@ def _run_cell(
                 method_resource_limits=dict(method_limits),
                 evaluation_policy="task_contract",
                 material_information=dict(cell["material_information"]),
-                electrochemical_material_family_id=str(
-                    task["electrochemical_material_family_id"]
-                ),
-                electrochemical_workflow_mode=str(
-                    task["electrochemical_workflow_mode"]
-                ),
+                electrochemical_material_family_id=str(task["electrochemical_material_family_id"]),
+                electrochemical_workflow_mode=str(task["electrochemical_workflow_mode"]),
                 scoring_contract_id=str(task["scoring_contract_id"]),
                 observation_noise_mode=str(task["observation_noise_mode"]),
-                observation_noise_namespace=str(
-                    task["observation_noise_namespace"]
-                ),
+                observation_noise_namespace=str(task["observation_noise_namespace"]),
                 campaign_resource_card=card.to_dict(),
             )
             resources = _resource_snapshot_from_history(history, card=card)
@@ -1189,9 +1045,7 @@ def _run_cell(
             exact_replay = _write_exact_replay_receipt(
                 trajectory_path,
                 replay_path,
-                campaign_resource_ledger_sha256=str(
-                    resources["ledger_sha256"]
-                ),
+                campaign_resource_ledger_sha256=str(resources["ledger_sha256"]),
             )
             behavior = _history_summary(history)
             target_batches = int(card.vessel_start_limit)
@@ -1208,10 +1062,7 @@ def _run_cell(
                 method_resources,
                 target_experiments=target_batches,
             )
-            completed = (
-                physical_lifecycle_completed
-                and provider_session_audit["passed"]
-            )
+            completed = physical_lifecycle_completed and provider_session_audit["passed"]
             summary: dict[str, Any] = {
                 "schema_version": "chemworld-g2-autonomous-material-cell-result-0.1",
                 "run_status": (
@@ -1233,23 +1084,17 @@ def _run_cell(
                 "seed": int(cell["world_seed"]),
                 "condition_id": str(cell["condition_id"]),
                 "arm": str(cell["condition_id"]),
-                "material_information": deepcopy(
-                    dict(cell["material_information"])
-                ),
+                "material_information": deepcopy(dict(cell["material_information"])),
                 "config_sha256": config["config_sha256"],
                 "pair_config_sha256": config["pair_config_sha256"],
                 "trajectory_sha256": file_sha256(trajectory_path),
                 "campaign_resource_card_sha256": card.card_sha256,
                 "campaign_resource_ledger_path": resource_path.name,
-                "campaign_resource_ledger_sha256": resources[
-                    "ledger_sha256"
-                ],
+                "campaign_resource_ledger_sha256": resources["ledger_sha256"],
                 "exact_replay_path": replay_path.name,
                 "exact_replay_verified": exact_replay["verified"],
                 "environment_contract": environment_contract,
-                "evaluator_provenance": deepcopy(
-                    dict(environment_contract["evaluator_identity"])
-                ),
+                "evaluator_provenance": deepcopy(dict(environment_contract["evaluator_identity"])),
                 "behavior": behavior,
                 "method_resources": method_resources,
                 "provider_receipts": receipts,
@@ -1292,9 +1137,7 @@ def _run_cell(
                     },
                     "trajectory_materialized": trajectory_path.exists(),
                     "trajectory_sha256": (
-                        file_sha256(trajectory_path)
-                        if trajectory_path.exists()
-                        else None
+                        file_sha256(trajectory_path) if trajectory_path.exists() else None
                     ),
                     "accepted_operation_count": _materialized_operation_count(
                         trajectory_path,
@@ -1326,9 +1169,7 @@ def _run_cell(
                     },
                     "trajectory_materialized": trajectory_path.exists(),
                     "trajectory_sha256": (
-                        file_sha256(trajectory_path)
-                        if trajectory_path.exists()
-                        else None
+                        file_sha256(trajectory_path) if trajectory_path.exists() else None
                     ),
                     "accepted_operation_count": _materialized_operation_count(
                         trajectory_path,
@@ -1442,11 +1283,14 @@ def _run_cell_light(
             raise RuntimeError(f"required provider environment variable is not set: {env_key}")
         task = protocol["task"]
         agent_config = protocol["agent"]
+        reasoning_effort = str(agent_config.get("reasoning_effort", "medium"))
+        if reasoning_effort not in {"medium", "high"}:
+            raise ValueError("WellAU reasoning_effort must be medium or high")
         client = WellAUClient(
             api_key=api_key,
             base_url=str(provider_runtime.get("provider_base_url") or "https://api.wellau.com/v1"),
             model=str(agent_config["model"]),
-            reasoning_effort=str(agent_config.get("reasoning_effort", "medium")),
+            reasoning_effort=cast(WellAUReasoningEffort, reasoning_effort),
             timeout_s=float(agent_config.get("provider_timeout_s", 180.0)),
             max_attempts=int(agent_config.get("provider_max_attempts", 1)),
         )
@@ -1455,9 +1299,7 @@ def _run_cell_light(
             role_id="g2_autonomous_material_triarm_light_v01",
             spectrum_disclosure="assigned",
             response_max_tokens=int(agent_config.get("response_max_tokens", 1800)),
-            prompt_token_estimate_cap=int(
-                agent_config.get("prompt_token_estimate_cap", 3200)
-            ),
+            prompt_token_estimate_cap=int(agent_config.get("prompt_token_estimate_cap", 3200)),
             recent_decision_limit=int(agent_config.get("recent_decision_limit", 4)),
             experiment_memory_limit=int(agent_config.get("experiment_memory_limit", 4)),
             fail_fast_on_unbillable_provider_failure=True,
@@ -1508,9 +1350,7 @@ def _run_cell_light(
             receipts,
             method_resources,
             target_operations=len(history),
-            expected_provider=str(
-                provider_runtime.get("provider_name") or "WellAU"
-            ),
+            expected_provider=str(provider_runtime.get("provider_name") or "WellAU"),
         )
         completed = physical_lifecycle_completed and provider_decision_audit["passed"]
         summary: dict[str, Any] = {
@@ -1575,9 +1415,7 @@ def _run_cell_light(
                 "failure": {**_redacted_failure(error), **_provider_failure_metadata(receipts)},
                 "trajectory_materialized": trajectory_path.exists(),
                 "trajectory_sha256": (
-                    file_sha256(trajectory_path)
-                    if trajectory_path.exists()
-                    else None
+                    file_sha256(trajectory_path) if trajectory_path.exists() else None
                 ),
                 "accepted_operation_count": _materialized_operation_count(trajectory_path, history),
                 "provider_receipts": receipts,
@@ -1603,9 +1441,7 @@ def _run_cell_light(
                 "failure": {**_redacted_failure(error), **_provider_failure_metadata(receipts)},
                 "trajectory_materialized": trajectory_path.exists(),
                 "trajectory_sha256": (
-                    file_sha256(trajectory_path)
-                    if trajectory_path.exists()
-                    else None
+                    file_sha256(trajectory_path) if trajectory_path.exists() else None
                 ),
                 "accepted_operation_count": _materialized_operation_count(trajectory_path, history),
                 "provider_receipts": receipts,
@@ -1631,30 +1467,19 @@ def _pair_audit(
         "observation_noise_mode",
         "observation_noise_namespace",
     )
-    invariants = {
-        key: left_identity.get(key) == right_identity.get(key)
-        for key in identity_keys
-    }
-    invariants["pair_config_sha256"] = (
-        left.get("pair_config_sha256")
-        == right.get("pair_config_sha256")
+    invariants = {key: left_identity.get(key) == right_identity.get(key) for key in identity_keys}
+    invariants["pair_config_sha256"] = left.get("pair_config_sha256") == right.get(
+        "pair_config_sha256"
     )
     if (
         left["cell"].get("trajectory_replicate_id") is not None
         or right["cell"].get("trajectory_replicate_id") is not None
     ):
-        invariants["trajectory_replicate_id"] = (
-            left["cell"].get("trajectory_replicate_id")
-            == right["cell"].get("trajectory_replicate_id")
-        )
-    if (
-        left["cell"].get("agent_seed") is not None
-        or right["cell"].get("agent_seed") is not None
-    ):
-        invariants["agent_seed"] = (
-            left["cell"].get("agent_seed")
-            == right["cell"].get("agent_seed")
-        )
+        invariants["trajectory_replicate_id"] = left["cell"].get(
+            "trajectory_replicate_id"
+        ) == right["cell"].get("trajectory_replicate_id")
+    if left["cell"].get("agent_seed") is not None or right["cell"].get("agent_seed") is not None:
+        invariants["agent_seed"] = left["cell"].get("agent_seed") == right["cell"].get("agent_seed")
     left_public = left["environment_contract"]["public_contract"]
     right_public = right["environment_contract"]["public_contract"]
     for key in (
@@ -1667,9 +1492,7 @@ def _pair_audit(
         invariants[key] = left_public.get(key) == right_public.get(key)
     return {
         "world_seed": left["cell"]["world_seed"],
-        "trajectory_replicate_id": left["cell"].get(
-            "trajectory_replicate_id"
-        ),
+        "trajectory_replicate_id": left["cell"].get("trajectory_replicate_id"),
         "agent_seed": left["cell"].get("agent_seed"),
         "conditions": [
             left["cell"]["condition_id"],
@@ -1694,9 +1517,7 @@ def _write_matrix_manifest(
     for item in cell_results:
         by_seed.setdefault(int(item["cell"]["world_seed"]), []).append(item)
     pair_audits = [
-        _pair_audit(items[0], items[1])
-        for _, items in sorted(by_seed.items())
-        if len(items) == 2
+        _pair_audit(items[0], items[1]) for _, items in sorted(by_seed.items()) if len(items) == 2
     ]
     payload: dict[str, Any] = {
         "schema_version": "chemworld-g2-autonomous-material-matrix-run-0.1",
@@ -1709,21 +1530,15 @@ def _write_matrix_manifest(
         "updated_at": _now(),
         "source": deepcopy(dict(source)),
         "codex_cli": deepcopy(dict(cli)),
-        "world_seeds": [
-            int(seed) for seed in protocol["task"]["world_seeds"]
-        ],
+        "world_seeds": [int(seed) for seed in protocol["task"]["world_seeds"]],
         "expected_vessels_per_cell": int(
             protocol["campaign_resource_card"]["complete_experiments"]
         ),
         "planned_cell_count": 10,
-        "completed_cell_count": sum(
-            item.get("run_status") == "completed"
-            for item in cell_results
-        ),
+        "completed_cell_count": sum(item.get("run_status") == "completed" for item in cell_results),
         "planned_physical_experiment_count": 60,
         "completed_physical_experiment_count": sum(
-            int(item.get("behavior", {}).get("closed_batch_count", 0))
-            for item in cell_results
+            int(item.get("behavior", {}).get("closed_batch_count", 0)) for item in cell_results
         ),
         "cells": [
             {
@@ -1733,27 +1548,19 @@ def _write_matrix_manifest(
                 "condition_id": item["cell"]["condition_id"],
                 "arm": item["cell"]["condition_id"],
                 "within_pair_order": item["cell"]["within_pair_order"],
-                "material_information": deepcopy(
-                    dict(item["cell"]["material_information"])
-                ),
+                "material_information": deepcopy(dict(item["cell"]["material_information"])),
                 "run_dir": item["cell"]["cell_id"],
                 "config_path": "run_config.json",
                 "summary_path": "run_summary.json",
                 "trajectory_path": "trajectory.jsonl",
-                "campaign_resource_ledger_path": (
-                    "campaign_resource_ledger.json"
-                ),
+                "campaign_resource_ledger_path": ("campaign_resource_ledger.json"),
                 "exact_replay_path": "exact_replay.json",
                 "run_status": item.get("run_status"),
                 "config_sha256": item.get("config_sha256"),
                 "pair_config_sha256": item.get("pair_config_sha256"),
                 "trajectory_sha256": item.get("trajectory_sha256"),
-                "campaign_resource_card_sha256": item.get(
-                    "campaign_resource_card_sha256"
-                ),
-                "campaign_resource_ledger_sha256": item.get(
-                    "campaign_resource_ledger_sha256"
-                ),
+                "campaign_resource_card_sha256": item.get("campaign_resource_card_sha256"),
+                "campaign_resource_ledger_sha256": item.get("campaign_resource_ledger_sha256"),
                 "provider_session_audit_passed": item.get(
                     "provider_session_audit",
                     {},
@@ -1765,22 +1572,14 @@ def _write_matrix_manifest(
                 "complete_experiment_count": item.get("behavior", {}).get(
                     "complete_experiment_count"
                 ),
-                "discarded_batch_count": item.get("behavior", {}).get(
-                    "discarded_batch_count"
-                ),
-                "closed_batch_count": item.get("behavior", {}).get(
-                    "closed_batch_count"
-                ),
-                "best_final_score": item.get("behavior", {}).get(
-                    "best_final_score"
-                ),
+                "discarded_batch_count": item.get("behavior", {}).get("discarded_batch_count"),
+                "closed_batch_count": item.get("behavior", {}).get("closed_batch_count"),
+                "best_final_score": item.get("behavior", {}).get("best_final_score"),
             }
             for item in cell_results
         ],
         "pair_audits": pair_audits,
-        "all_materialized_pair_audits_passed": all(
-            item["passed"] for item in pair_audits
-        ),
+        "all_materialized_pair_audits_passed": all(item["passed"] for item in pair_audits),
         "protocol_file_sha256": source["protocol_file_sha256"],
     }
     payload["manifest_sha256"] = canonical_json_sha256(payload)
@@ -1814,18 +1613,13 @@ def _validated_resume_result(
         "run config": cell_root / "run_config.json",
         "run summary": cell_root / "run_summary.json",
         "trajectory": cell_root / "trajectory.jsonl",
-        "campaign resource ledger": (
-            cell_root / "campaign_resource_ledger.json"
-        ),
+        "campaign resource ledger": (cell_root / "campaign_resource_ledger.json"),
         "exact replay receipt": cell_root / "exact_replay.json",
     }
-    missing = [
-        label for label, path in required_paths.items() if not path.is_file()
-    ]
+    missing = [label for label, path in required_paths.items() if not path.is_file()]
     if missing:
         raise RuntimeError(
-            f"resume refuses incomplete cell {cell['cell_id']}: "
-            + ", ".join(missing)
+            f"resume refuses incomplete cell {cell['cell_id']}: " + ", ".join(missing)
         )
     config = _load_json_object(
         required_paths["run config"],
@@ -1861,11 +1655,7 @@ def _validated_resume_result(
             if cell.get("trajectory_replicate_id") is not None
             else None
         ),
-        agent_seed=(
-            int(cell["agent_seed"])
-            if cell.get("agent_seed") is not None
-            else None
-        ),
+        agent_seed=(int(cell["agent_seed"]) if cell.get("agent_seed") is not None else None),
     )
     config_without_hash = dict(config)
     declared_config_hash = config_without_hash.pop("config_sha256", None)
@@ -1878,9 +1668,7 @@ def _validated_resume_result(
         else []
     )
     resume_method_resources = (
-        dict(raw_method_resources)
-        if isinstance(raw_method_resources, Mapping)
-        else {}
+        dict(raw_method_resources) if isinstance(raw_method_resources, Mapping) else {}
     )
     recomputed_provider_audit = (
         _provider_decision_audit(
@@ -1912,22 +1700,16 @@ def _validated_resume_result(
             == source["material_source_tree_sha256"]
         ),
         "protocol_file": (
-            config.get("source", {}).get("protocol_file_sha256")
-            == source["protocol_file_sha256"]
+            config.get("source", {}).get("protocol_file_sha256") == source["protocol_file_sha256"]
         ),
         "provider_runtime": (
             config.get("provider_runtime") == dict(cli)
             if light_execution
             else config.get("codex_cli") == dict(cli)
         ),
-        "campaign_card": config.get("campaign_resource_card")
-        == card.to_dict(),
-        "campaign_card_sha256": (
-            config.get("campaign_resource_card_sha256")
-            == card.card_sha256
-        ),
-        "method_limits": config.get("method_resource_limits")
-        == expected_limits,
+        "campaign_card": config.get("campaign_resource_card") == card.to_dict(),
+        "campaign_card_sha256": (config.get("campaign_resource_card_sha256") == card.card_sha256),
+        "method_limits": config.get("method_resource_limits") == expected_limits,
         "pair_config_sha256": (
             config.get("pair_config_sha256") == expected_pair_hash
             and summary.get("pair_config_sha256") == expected_pair_hash
@@ -1938,14 +1720,10 @@ def _validated_resume_result(
         ),
         "summary_cell": summary.get("cell") == dict(cell),
         "summary_closed_batches": (
-            summary.get("behavior", {}).get("closed_batch_count")
-            == int(card.vessel_start_limit)
+            summary.get("behavior", {}).get("closed_batch_count") == int(card.vessel_start_limit)
         ),
         "summary_not_censored": (
-            summary.get("behavior", {}).get(
-                "right_censored_open_experiment"
-            )
-            is False
+            summary.get("behavior", {}).get("right_censored_open_experiment") is False
         ),
         "evaluator_provenance": isinstance(
             summary.get("evaluator_provenance"),
@@ -1954,19 +1732,14 @@ def _validated_resume_result(
         "provider_audit": (
             recomputed_provider_audit["passed"] is True
             and summary.get(
-                "provider_decision_audit"
-                if light_execution
-                else "provider_session_audit"
+                "provider_decision_audit" if light_execution else "provider_session_audit"
             )
             == recomputed_provider_audit
         ),
     }
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
-        raise RuntimeError(
-            f"resume validation failed for {cell['cell_id']}: "
-            + ", ".join(failed)
-        )
+        raise RuntimeError(f"resume validation failed for {cell['cell_id']}: " + ", ".join(failed))
 
     trajectory_hash = file_sha256(trajectory_path)
     if (
@@ -1976,29 +1749,22 @@ def _validated_resume_result(
         or replay.get("checked_steps") != len(records)
         or replay.get("verified") is not True
     ):
-        raise RuntimeError(
-            f"resume trajectory/replay binding failed for {cell['cell_id']}"
-        )
+        raise RuntimeError(f"resume trajectory/replay binding failed for {cell['cell_id']}")
     ledger = CampaignResourceLedger.from_snapshot(resources)
     ledger_state = ledger.snapshot()["state"]
     expected_batches = int(card.vessel_start_limit)
     events = resources.get("events")
     if (
-        resources.get("ledger_sha256")
-        != summary.get("campaign_resource_ledger_sha256")
-        or resources.get("ledger_sha256")
-        != replay.get("campaign_resource_ledger_sha256")
+        resources.get("ledger_sha256") != summary.get("campaign_resource_ledger_sha256")
+        or resources.get("ledger_sha256") != replay.get("campaign_resource_ledger_sha256")
         or ledger.card.card_sha256 != card.card_sha256
         or int(ledger_state["vessel_starts"]) != expected_batches
-        or int(ledger_state["final_assays"])
-        + int(ledger_state.get("discarded_batches", 0))
+        or int(ledger_state["final_assays"]) + int(ledger_state.get("discarded_batches", 0))
         != expected_batches
         or not isinstance(events, list)
         or len(events) != len(records)
     ):
-        raise RuntimeError(
-            f"resume resource binding failed for {cell['cell_id']}"
-        )
+        raise RuntimeError(f"resume resource binding failed for {cell['cell_id']}")
     for index, (event, record) in enumerate(
         zip(events, records, strict=True),
         start=1,
@@ -2012,18 +1778,14 @@ def _validated_resume_result(
             not isinstance(event, Mapping)
             or event.get("action") != record.get("action")
             or not isinstance(outcome, Mapping)
-            or (outcome.get("committed") is True)
-            != (recorded_status == "committed")
+            or (outcome.get("committed") is True) != (recorded_status == "committed")
         ):
             raise RuntimeError(
-                f"resume ledger/trajectory mismatch for {cell['cell_id']} "
-                f"at event {index}"
+                f"resume ledger/trajectory mismatch for {cell['cell_id']} at event {index}"
             )
     verification = verify_records(records)
     if not verification.verified:
-        raise RuntimeError(
-            f"resume exact replay failed for {cell['cell_id']}"
-        )
+        raise RuntimeError(f"resume exact replay failed for {cell['cell_id']}")
     return summary
 
 
@@ -2042,9 +1804,7 @@ def _load_resume_results(
     children = list(output_root.iterdir())
     if not manifest_path.is_file():
         if children:
-            raise RuntimeError(
-                "resume requires matrix_manifest.json for a non-empty output root"
-            )
+            raise RuntimeError("resume requires matrix_manifest.json for a non-empty output root")
         return [], _now()
     manifest = _load_json_object(
         manifest_path,
@@ -2055,22 +1815,18 @@ def _load_resume_results(
     checks = {
         "runner_version": manifest.get("runner_version") == RUNNER_VERSION,
         "protocol_id": manifest.get("protocol_id") == protocol["protocol_id"],
-        "world_seeds": manifest.get("world_seeds")
-        == list(protocol["task"]["world_seeds"]),
+        "world_seeds": manifest.get("world_seeds") == list(protocol["task"]["world_seeds"]),
         "source": (
             isinstance(manifest_source, Mapping)
             and manifest_source.get("material_source_tree_sha256")
             == source["material_source_tree_sha256"]
-            and manifest_source.get("protocol_file_sha256")
-            == source["protocol_file_sha256"]
+            and manifest_source.get("protocol_file_sha256") == source["protocol_file_sha256"]
         ),
         "codex_cli": manifest_cli == dict(cli),
     }
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
-        raise RuntimeError(
-            "resume matrix identity mismatch: " + ", ".join(failed)
-        )
+        raise RuntimeError("resume matrix identity mismatch: " + ", ".join(failed))
     scheduled = _scheduled_cells(protocol)
     expected_ids = {str(cell["cell_id"]) for cell in scheduled}
     unexpected = sorted(
@@ -2079,32 +1835,19 @@ def _load_resume_results(
         if path.name.startswith("cell-") and path.name not in expected_ids
     )
     if unexpected:
-        raise RuntimeError(
-            "resume found unexpected cell directories: "
-            + ", ".join(unexpected)
-        )
-    present_flags = [
-        (output_root / str(cell["cell_id"])).exists()
-        for cell in scheduled
-    ]
+        raise RuntimeError("resume found unexpected cell directories: " + ", ".join(unexpected))
+    present_flags = [(output_root / str(cell["cell_id"])).exists() for cell in scheduled]
     prefix_length = 0
-    while (
-        prefix_length < len(present_flags)
-        and present_flags[prefix_length]
-    ):
+    while prefix_length < len(present_flags) and present_flags[prefix_length]:
         prefix_length += 1
     if any(present_flags[prefix_length:]):
-        raise RuntimeError(
-            "resume cell directories are not an exact frozen-schedule prefix"
-        )
+        raise RuntimeError("resume cell directories are not an exact frozen-schedule prefix")
     manifest_cells = manifest.get("cells")
     if not isinstance(manifest_cells, list):
         raise RuntimeError("resume matrix manifest cells must be a list")
     manifest_prefix = scheduled[:prefix_length]
     if len(manifest_cells) != prefix_length:
-        raise RuntimeError(
-            "resume manifest cell list does not bind the materialized prefix"
-        )
+        raise RuntimeError("resume manifest cell list does not bind the materialized prefix")
     for expected, observed in zip(
         manifest_prefix,
         manifest_cells,
@@ -2151,29 +1894,20 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--qualification",
         action="store_true",
-        help=(
-            "Run one seed-0 lifecycle qualification cell instead of the "
-            "frozen ten-cell matrix."
-        ),
+        help=("Run one seed-0 lifecycle qualification cell instead of the frozen ten-cell matrix."),
     )
     parser.add_argument(
         "--qualification-condition",
         choices=tuple(QUALIFICATION_CONDITION_IDS),
         default="opaque",
-        help=(
-            "Material-information condition for --qualification "
-            "(default: opaque)."
-        ),
+        help=("Material-information condition for --qualification (default: opaque)."),
     )
     parser.add_argument(
         "--qualification-experiments",
         type=int,
         choices=QUALIFICATION_EXPERIMENT_COUNTS,
         default=1,
-        help=(
-            "Fresh-vessel experiments in the same qualification cell "
-            "(default: 1)."
-        ),
+        help=("Fresh-vessel experiments in the same qualification cell (default: 1)."),
     )
     parser.add_argument(
         "--qualification-world-seed",
@@ -2232,10 +1966,7 @@ def main() -> int:
                     ),
                 }
             )
-        audits = [
-            _pair_audit(items[0], items[1])
-            for _, items in sorted(inspections.items())
-        ]
+        audits = [_pair_audit(items[0], items[1]) for _, items in sorted(inspections.items())]
         print(
             json.dumps(
                 {
@@ -2253,9 +1984,7 @@ def main() -> int:
         )
         return 0
     if not args.allow_external_provider:
-        raise RuntimeError(
-            "external execution requires --allow-external-provider"
-        )
+        raise RuntimeError("external execution requires --allow-external-provider")
     cli = _codex_cli_manifest()
 
     qualification = bool(args.qualification)
@@ -2287,9 +2016,7 @@ def main() -> int:
         )
     )
     if output_root.exists() and not args.resume:
-        raise FileExistsError(
-            f"refusing to overwrite existing output root: {output_root}"
-        )
+        raise FileExistsError(f"refusing to overwrite existing output root: {output_root}")
     if not output_root.exists():
         output_root.mkdir(parents=True)
     card = _campaign_card(
@@ -2366,9 +2093,7 @@ def main() -> int:
         cell_results=results,
         status="running",
     )
-    completed_cell_ids = {
-        str(result["cell"]["cell_id"]) for result in results
-    }
+    completed_cell_ids = {str(result["cell"]["cell_id"]) for result in results}
     try:
         for cell in _scheduled_cells(protocol):
             if str(cell["cell_id"]) in completed_cell_ids:
@@ -2413,8 +2138,7 @@ def main() -> int:
         cell_results=results,
         status=(
             "completed"
-            if len(results) == 10
-            and all(item.get("run_status") == "completed" for item in results)
+            if len(results) == 10 and all(item.get("run_status") == "completed" for item in results)
             else "incomplete"
         ),
     )

@@ -39,11 +39,31 @@ def test_qualification_cell_is_an_exact_frozen_schedule_selection() -> None:
     assert cell["trajectory_replicate_id"] == "r01"
     assert cell["agent_seed"] == 120101
     assert cell["condition_id"] == "anonymous_nominal_properties"
-    assert cell["material_information"] == {
-        "mode": "anonymous_nominal_properties"
-    }
+    assert cell["material_information"] == {"mode": "anonymous_nominal_properties"}
     assert cell["qualification_pair_order"] == 1
     assert cell["qualification_condition"] == "nominal"
+
+
+def test_confirmatory_qualification_uses_a_world_outside_the_formal_sample() -> None:
+    config = Path("configs/benchmark/g2_endpoint_lifecycle_confirmatory_v0.6.json")
+    protocol = replication._load_protocol(config.resolve())
+    cell = qualification._qualification_cell(
+        protocol,
+        pair_order=1,
+        condition="nominal",
+        world_seed=99,
+    )
+
+    assert cell["world_seed"] == 99
+    assert cell["agent_seed"] == 900099
+    assert 99 not in protocol["task"]["world_seeds"]
+    with pytest.raises(ValueError, match="outside"):
+        qualification._qualification_cell(
+            protocol,
+            pair_order=1,
+            condition="nominal",
+            world_seed=protocol["task"]["world_seeds"][0],
+        )
 
 
 @pytest.mark.parametrize(
@@ -134,24 +154,23 @@ def test_qualification_retries_only_a_zero_action_provider_failure(
 
     _patch_qualification_runtime(monkeypatch, run_cell)
     output_root = tmp_path / "qualification-retry"
-    assert qualification.main(
-        [
-            "--allow-external-provider",
-            "--output-root",
-            str(output_root),
-        ]
-    ) == 0
+    assert (
+        qualification.main(
+            [
+                "--allow-external-provider",
+                "--output-root",
+                str(output_root),
+            ]
+        )
+        == 0
+    )
 
     assert calls == ["attempt-01", "attempt-02"]
-    manifest = json.loads(
-        (output_root / "qualification_manifest.json").read_text(encoding="utf-8")
-    )
+    manifest = json.loads((output_root / "qualification_manifest.json").read_text(encoding="utf-8"))
     assert manifest["run_status"] == "completed"
     attempts = manifest["cell_state"]["attempts"]
     assert [item["accepted_operation_count"] for item in attempts] == [0, 11]
-    assert attempts[0]["classification"] == (
-        "retryable_pre_action_provider_failure"
-    )
+    assert attempts[0]["classification"] == ("retryable_pre_action_provider_failure")
     assert attempts[1]["classification"] == "completed"
 
 
@@ -176,22 +195,21 @@ def test_qualification_preserves_post_action_failure_as_right_censored(
 
     _patch_qualification_runtime(monkeypatch, run_cell)
     output_root = tmp_path / "qualification-censored"
-    assert qualification.main(
-        [
-            "--allow-external-provider",
-            "--output-root",
-            str(output_root),
-        ]
-    ) == 2
+    assert (
+        qualification.main(
+            [
+                "--allow-external-provider",
+                "--output-root",
+                str(output_root),
+            ]
+        )
+        == 2
+    )
 
     assert calls == ["attempt-01"]
-    manifest = json.loads(
-        (output_root / "qualification_manifest.json").read_text(encoding="utf-8")
-    )
+    manifest = json.loads((output_root / "qualification_manifest.json").read_text(encoding="utf-8"))
     assert manifest["run_status"] == "right_censored"
-    assert manifest["cell_state"]["authoritative_attempt_dir"].endswith(
-        "attempt-01"
-    )
+    assert manifest["cell_state"]["authoritative_attempt_dir"].endswith("attempt-01")
 
 
 def test_resume_manifest_rejects_a_different_qualification_cell(

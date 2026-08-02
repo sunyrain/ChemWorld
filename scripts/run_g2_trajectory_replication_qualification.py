@@ -24,14 +24,10 @@ from chemworld.eval.provenance import (
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = replication.DEFAULT_CONFIG
 DEFAULT_OUTPUT_ROOT = (
-    ROOT
-    / "runs/development/"
-    "g2-trajectory-replication-seed1-r01-nominal-k1-qualification-v1"
+    ROOT / "runs/development/g2-trajectory-replication-seed1-r01-nominal-k1-qualification-v1"
 )
 RUNNER_VERSION = "chemworld-g2-trajectory-replication-qualification-runner-0.1"
-MANIFEST_SCHEMA_VERSION = (
-    "chemworld-g2-trajectory-replication-qualification-run-0.1"
-)
+MANIFEST_SCHEMA_VERSION = "chemworld-g2-trajectory-replication-qualification-run-0.1"
 CONDITION_LABELS = {
     "nominal": "anonymous_nominal_properties",
     "opaque": "opaque_codes",
@@ -72,20 +68,24 @@ def _qualification_cell(
     *,
     pair_order: int,
     condition: str,
+    world_seed: int | None = None,
 ) -> dict[str, Any]:
     condition_id = CONDITION_LABELS[condition]
     matches = [
         cell
         for cell in replication._scheduled_cells(protocol)
-        if int(cell["pair_order"]) == pair_order
-        and cell["condition_id"] == condition_id
+        if int(cell["pair_order"]) == pair_order and cell["condition_id"] == condition_id
     ]
     if len(matches) != 1:
         raise ValueError("qualification cell is not unique in the frozen schedule")
     cell = deepcopy(matches[0])
+    if world_seed is not None:
+        if world_seed in {int(seed) for seed in protocol["task"]["world_seeds"]}:
+            raise ValueError("qualification world must be outside the formal confirmatory sample")
+        cell["world_seed"] = int(world_seed)
+        cell["agent_seed"] = 900_000 + int(world_seed)
     cell["cell_id"] = (
-        f"qualification-seed{cell['world_seed']}-"
-        f"{cell['trajectory_replicate_id']}-{condition}"
+        f"qualification-seed{cell['world_seed']}-{cell['trajectory_replicate_id']}-{condition}"
     )
     cell["qualification_pair_order"] = pair_order
     cell["qualification_condition"] = condition
@@ -179,15 +179,12 @@ def _validate_resume_manifest(
         "source": isinstance(manifest_source, Mapping)
         and manifest_source.get("material_source_tree_sha256")
         == source["material_source_tree_sha256"]
-        and manifest_source.get("protocol_file_sha256")
-        == source["protocol_file_sha256"],
+        and manifest_source.get("protocol_file_sha256") == source["protocol_file_sha256"],
         "cli": manifest.get("codex_cli") == dict(cli),
     }
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
-        raise RuntimeError(
-            "qualification resume identity mismatch: " + ", ".join(failed)
-        )
+        raise RuntimeError("qualification resume identity mismatch: " + ", ".join(failed))
     return str(manifest.get("started_at") or _now())
 
 
@@ -235,8 +232,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--pair-order",
         type=int,
-        choices=range(1, 11),
         default=1,
+    )
+    parser.add_argument(
+        "--qualification-world-seed",
+        type=int,
+        help="Use a dedicated world outside the formal protocol world sample.",
     )
     parser.add_argument(
         "--condition",
@@ -271,6 +272,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         protocol,
         pair_order=int(args.pair_order),
         condition=condition,
+        world_seed=args.qualification_world_seed,
     )
     output_root = (
         args.output_root.resolve()
@@ -282,9 +284,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     )
     if output_root.exists() and not args.resume:
-        raise FileExistsError(
-            f"refusing to overwrite existing output root: {output_root}"
-        )
+        raise FileExistsError(f"refusing to overwrite existing output root: {output_root}")
     output_root.mkdir(parents=True, exist_ok=True)
     manifest_path = output_root / "qualification_manifest.json"
     cli = base._codex_cli_manifest()
@@ -299,9 +299,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         qualification_experiments=experiments,
     )
     maximum_attempts = int(
-        protocol["attempt_policy"][
-            "maximum_pre_action_provider_attempts_per_cell"
-        ]
+        protocol["attempt_policy"]["maximum_pre_action_provider_attempts_per_cell"]
     )
     started_at = _now()
     if args.resume:
@@ -351,9 +349,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if state["state"] == "right_censored":
             return 2
         if state["state"] not in {"pending", "pending_provider_retry"}:
-            raise RuntimeError(
-                f"qualification cannot continue: {manifest['run_status']}"
-            )
+            raise RuntimeError(f"qualification cannot continue: {manifest['run_status']}")
         cell_root = output_root / str(cell["cell_id"])
         cell_root.mkdir(parents=True, exist_ok=True)
         attempt_number = len(state["attempts"]) + 1
@@ -391,9 +387,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "right_censored",
             }:
                 continue
-            raise RuntimeError(
-                f"qualification stopped: {refreshed['state']}"
-            ) from error
+            raise RuntimeError(f"qualification stopped: {refreshed['state']}") from error
 
 
 if __name__ == "__main__":

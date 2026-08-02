@@ -1,7 +1,7 @@
 # Executable Chemical Worlds for Measuring Experimental Agency: numeric display items
 
 Status: `frozen_complete`.
-Derived-data SHA-256: `66e40a968ea037a3a00b1afdc5fd39ba10fe637e26934b153d4f28f043ca6e5d`.
+Derived-data SHA-256: `9d48c7d5bebc66100e363001d78c99e412f124088606835308e72fff37361f51`.
 
 Every number in the tables below is rendered from the self-hashed arXiv derived-data
 object. This file is intended for direct inclusion during manuscript typesetting.

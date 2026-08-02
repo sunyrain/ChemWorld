@@ -2,6 +2,8 @@
 title: "Executable Chemical Worlds for Measuring Experimental Agency"
 title_line_one: "Executable Chemical Worlds for"
 title_line_two: "Measuring Experimental Agency"
+subject: "Executable environments for controlled measurement of AI experimental behavior"
+keywords: "executable chemical worlds; experimental agency; autonomous experimentation; AI agents; reproducibility"
 author:
   - "ChemWorld Authors"
 date: ""
@@ -591,18 +593,23 @@ physical-transition and resource replay.
 # 11. Data and code availability
 
 Code, configuration, derived data, figure generators, the arXiv source package
-and paper-sufficient public trajectories are included in the ChemWorld release.
-The release manifest binds every paper artifact to its SHA-256 identity. The G0
+and paper-sufficient public trajectories are publicly available in the MIT-licensed
+ChemWorld repository at
+[github.com/sunyrain/ChemWorld/tree/arxiv-v1](https://github.com/sunyrain/ChemWorld/tree/arxiv-v1).
+The versioned paper release is rooted at
+[`benchmark/releases/chemworld-serious-v1`](https://github.com/sunyrain/ChemWorld/tree/arxiv-v1/benchmark/releases/chemworld-serious-v1),
+and its manifest binds every paper artifact to its SHA-256 identity. The G0
 raw-file index covers 1,441 files across four immutable source roots; the tracked
 world-level summaries and public derived-data object reproduce every main-text
 number, table and figure. The G2 public archive contains compact replayable
 trajectories for all formal cells and for the first-launch infrastructure
 incident. Provider authentication, unrestricted provider responses and hidden
 evaluator identities are excluded from the public package.
-The 17.7-GB G0 raw roots are bound by the public file-level hash index but have
-not yet received a durable external archive identifier; the tracked world-level
-summaries and derived-data object are sufficient to regenerate the paper's
-reported analyses.
+The 17.7-GB G0 raw roots are bound by the public file-level hash index but are not
+included in the repository and have not yet received a durable external archive
+identifier; raw-byte access is therefore not presently available from a permanent
+archive. The tracked world-level summaries and derived-data object are sufficient
+to regenerate the paper's reported analyses.
 
 # 12. Conclusion
 
@@ -649,5 +656,6 @@ All figures are rendered from these frozen objects. The public trajectory archiv
 contains 20 formal cells---18 complete and two right-censored---plus the two
 durable first-launch cells. Each compact trajectory passes the repository's
 physical replay verifier. The arXiv bundle includes the exact figure PDFs,
-BibTeX database, generated `main.tex`, source Markdown and build manifest used to
-produce the submitted PDF.
+BibTeX database, generated `main.tex` and source Markdown used to produce the
+submitted PDF. A self-hashed build manifest accompanies the bundle and records
+the identities of the PDF, source archives and included source files.
