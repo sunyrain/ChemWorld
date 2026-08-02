@@ -30,7 +30,7 @@
   citecolor=chemlink,
   urlcolor=chemlink,
   pdftitle={$title$},
-  pdfauthor={$for(author)$$author$$sep$; $endfor$},
+  pdfauthor={$if(pdf_author)$$pdf_author$$else$$for(author)$$author$$sep$; $endfor$$endif$},
   pdfsubject={$subject$},
   pdfkeywords={$keywords$}
 }
@@ -63,7 +63,7 @@
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
 \title{\vspace{-1.8em}\textbf{$title_line_one$\\$title_line_two$}}
-\author{$for(author)$$author$$sep$ \and $endfor$}
+\author{$if(author_block)$$author_block$$else$$for(author)$$author$$sep$ \and $endfor$$endif$}
 \date{$date$}
 
 \begin{document}

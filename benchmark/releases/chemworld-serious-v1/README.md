@@ -29,6 +29,9 @@ The paper PDF, source bundle and build manifest live under
 `paper/exports/experimental-intelligence-v1-arxiv/`. The exact paths and hashes
 of P0 evidence are recorded in `manifest.json`.
 
+The fail-closed metadata check and one-command finalization procedure are
+documented in `paper/arxiv/RELEASE_FINALIZATION.md`.
+
 ## External release gate
 
 The four indexed G0 raw roots total 17,725,724,603 bytes. Their file-level hashes

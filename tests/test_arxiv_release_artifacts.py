@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import copy
 import hashlib
 import json
 import re
@@ -9,6 +10,8 @@ import tarfile
 import zipfile
 from pathlib import Path
 from typing import Any
+
+from paper.tools import finalize_arxiv_release as finalizer
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE = ROOT / "benchmark/releases/chemworld-serious-v1"
@@ -117,7 +120,7 @@ def test_key_workflow_svgs_keep_structure_editable_and_icons_independent() -> No
         assert svg.count("<text") >= 20
         assert svg.count("<path") >= minimum_paths
         assert all(label in svg for label in labels)
-        payloads = re.findall(r'data:image/png;base64,\s*([^\"]+)', svg)
+        payloads = re.findall(r"data:image/png;base64,\s*([^\"]+)", svg)
         dimensions = []
         for payload in payloads:
             raw = base64.b64decode(re.sub(r"\s+", "", payload))
@@ -188,7 +191,77 @@ def test_release_manifest_records_completed_p0_gates() -> None:
     assert manifest["paper"]["working_title"] == (
         "Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency"
     )
-    assert manifest["gates"]["raw_data_archive"] == "open"
-    assert manifest["publication_ready"] is False
+    if manifest["publication_ready"]:
+        assert manifest["status"] == "publication_ready"
+        assert manifest["gates"]["raw_data_archive"].startswith("passed_")
+        assert manifest["gates"]["author_metadata"].startswith("passed_")
+        assert "g0_raw_data_archive" in manifest["evidence"]
+    else:
+        assert manifest["status"] == "building_not_publication_ready"
+        assert manifest["gates"]["raw_data_archive"] == "open"
+        assert manifest["gates"]["author_metadata"] == "open"
+    assert manifest["gates"]["frozen_derived_table_and_figures"] == (
+        "passed_derived_4662fbd768ed3490d3347cf63f79e8538c39e5baa697ec0f18a4b6569ef616a0"
+    )
     assert manifest["gates"]["final_claim_audit"].startswith("passed_")
     assert manifest["gates"]["standard_arxiv_render"].startswith("passed_")
+
+    pending = json.loads((ARXIV / "release-metadata.pending.json").read_text(encoding="utf-8"))
+    pending_blockers = finalizer.validate_release_metadata(pending)
+    assert "status must equal ready" in pending_blockers
+    assert "at least one author is required" in pending_blockers
+    assert "archive.publicly_resolvable must be explicitly true" in pending_blockers
+
+    ready = {
+        "schema_version": finalizer.SCHEMA,
+        "status": "ready",
+        "authors": [
+            {
+                "name": "Jane Q. Scientist",
+                "affiliation_ids": ["1"],
+                "corresponding": True,
+                "email": "jane.scientist@university.edu",
+                "orcid": "0000-0002-1825-0097",
+            }
+        ],
+        "affiliations": [
+            {
+                "id": "1",
+                "name": "Institute of Molecular Systems, Research City, Country",
+            }
+        ],
+        "archive": {
+            "provider": "Zenodo",
+            "identifier": "10.5281/zenodo.12345678",
+            "url": "https://doi.org/10.5281/zenodo.12345678",
+            "publicly_resolvable": True,
+            "raw_file_index_sha256": finalizer.EXPECTED_RAW_INDEX_SHA256,
+            "byte_count": finalizer.EXPECTED_RAW_BYTE_COUNT,
+        },
+    }
+    assert finalizer.validate_release_metadata(ready) == []
+    manuscript = (ROOT / "paper/experimental_intelligence_v1_manuscript.md").read_text(
+        encoding="utf-8"
+    )
+    injected = finalizer.inject_manuscript_metadata(manuscript, ready)
+    assert "pdf_author: 'Jane Q. Scientist'" in injected
+    assert r"Jane Q. Scientist\textsuperscript{1,*}" in injected
+    assert "publicly archived by Zenodo" in injected
+    assert finalizer.EXPECTED_RAW_INDEX_SHA256 in injected
+    assert finalizer.inject_manuscript_metadata(injected, ready) == injected
+    rendered_readme = finalizer.render_release_readme(
+        (RELEASE / "README.md").read_text(encoding="utf-8"), ready
+    )
+    assert "publication package finalized and externally archived" in rendered_readme
+    assert "[10.5281/zenodo.12345678]" in rendered_readme
+    finalized = finalizer.finalized_manifest(manifest, ready)
+    assert finalized["publication_ready"] is True
+    assert finalized["status"] == "publication_ready"
+    assert finalized["evidence"]["g0_raw_data_archive"]["file_count"] == 1441
+
+    invalid = copy.deepcopy(ready)
+    invalid["authors"][0]["orcid"] = "0000-0002-1825-0098"
+    invalid["archive"]["byte_count"] -= 1
+    invalid_blockers = finalizer.validate_release_metadata(invalid)
+    assert "authors[0].orcid has invalid syntax or checksum" in invalid_blockers
+    assert "archive.byte_count does not match the frozen G0 byte count" in invalid_blockers
