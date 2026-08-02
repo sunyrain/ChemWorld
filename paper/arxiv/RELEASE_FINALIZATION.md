@@ -40,7 +40,7 @@ this shape:
 Validate without changing the repository:
 
 ```powershell
-uv run python paper/tools/finalize_arxiv_release.py `
+uv run --extra paper python paper/tools/finalize_arxiv_release.py `
   --metadata D:\secure\chemworld-release-metadata.json --check
 ```
 
@@ -48,7 +48,7 @@ After the archive record resolves publicly, apply the metadata and rebuild the
 upload package:
 
 ```powershell
-uv run python paper/tools/finalize_arxiv_release.py `
+uv run --extra paper python paper/tools/finalize_arxiv_release.py `
   --metadata D:\secure\chemworld-release-metadata.json --apply
 ```
 
@@ -59,5 +59,7 @@ ORCIDs, non-HTTPS archive URLs, an absent operator confirmation, mismatched
 raw-index identity, mismatched byte count, and the absence of exactly one
 corresponding author. It marks the release ready only after the author block and
 archive citation are written, both paper packages rebuild, and the release tests
-pass. If any build or test fails, the three canonical source/status files are
-restored and `publication_ready` remains false.
+pass. A missing paper-render dependency is rejected before any mutation. If any
+later build or test fails, the canonical source/status files and all generated
+PDF/source/proof artifacts are restored byte-for-byte, and `publication_ready`
+retains its pre-run value.

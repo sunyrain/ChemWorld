@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import copy
 import hashlib
+import importlib.util
 import json
 import re
 import subprocess
@@ -27,6 +28,16 @@ RELEASE_README = ROOT / "benchmark" / "releases" / "chemworld-serious-v1" / "REA
 RELEASE_MANIFEST = ROOT / "benchmark" / "releases" / "chemworld-serious-v1" / "manifest.json"
 ARXIV_BUILDER = ROOT / "paper" / "tools" / "build_arxiv_release.py"
 PROOF_BUILDER = ROOT / "paper" / "tools" / "render_publication_v1_pdf.py"
+ARXIV_BUILD = ROOT / "paper" / "arxiv" / "build"
+ARXIV_EXPORT = ROOT / "paper" / "exports" / "experimental-intelligence-v1-arxiv"
+PROOF_EXPORT = ROOT / "paper" / "exports" / "experimental-intelligence-v1"
+GENERATED_ROLLBACK_TARGETS = (
+    ROOT / "paper" / "arxiv" / "main.tex",
+    ROOT / "paper" / "arxiv" / "references.bib",
+    ARXIV_BUILD,
+    ARXIV_EXPORT,
+    PROOF_EXPORT,
+)
 
 SCHEMA = "chemworld-arxiv-release-metadata-0.1"
 EXPECTED_RAW_INDEX_SHA256 = "f49884b6e2d2b87a707dce9f93f96041dd7b3636b8e97ea4de93f0b3b429d961"
@@ -386,16 +397,65 @@ def _run(command: Sequence[str]) -> None:
         raise RuntimeError(f"command failed ({completed.returncode}): {' '.join(command)}\n{tail}")
 
 
+def apply_preflight_blockers() -> list[str]:
+    blockers: list[str] = []
+    if importlib.util.find_spec("markdown") is None:
+        blockers.append(
+            "Python package 'markdown' is unavailable; run with "
+            "`uv run --extra paper python paper/tools/finalize_arxiv_release.py ...`"
+        )
+    return blockers
+
+
+def _snapshot_generated_files(
+    targets: Sequence[Path] = GENERATED_ROLLBACK_TARGETS,
+) -> dict[Path, bytes]:
+    snapshot: dict[Path, bytes] = {}
+    for target in targets:
+        if target.is_file():
+            snapshot[target] = target.read_bytes()
+        elif target.is_dir():
+            for path in sorted(target.rglob("*")):
+                if path.is_file():
+                    snapshot[path] = path.read_bytes()
+    return snapshot
+
+
+def _restore_generated_files(
+    snapshot: Mapping[Path, bytes],
+    targets: Sequence[Path] = GENERATED_ROLLBACK_TARGETS,
+) -> None:
+    current: set[Path] = set()
+    for target in targets:
+        if target.is_file():
+            current.add(target)
+        elif target.is_dir():
+            current.update(path for path in target.rglob("*") if path.is_file())
+    for path in sorted(current - set(snapshot), reverse=True):
+        path.unlink()
+    for path, value in snapshot.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_name(path.name + ".rollback-tmp")
+        temporary.write_bytes(value)
+        temporary.replace(path)
+
+
 def apply_release_metadata(metadata: Mapping[str, Any]) -> dict[str, Any]:
     blockers = validate_release_metadata(metadata)
     if blockers:
         raise ValueError("release metadata is not ready:\n- " + "\n- ".join(blockers))
+    preflight_blockers = apply_preflight_blockers()
+    if preflight_blockers:
+        raise RuntimeError(
+            "release environment is incomplete:\n- " + "\n- ".join(preflight_blockers)
+        )
 
     originals = {
         MANUSCRIPT: MANUSCRIPT.read_text(encoding="utf-8"),
         RELEASE_README: RELEASE_README.read_text(encoding="utf-8"),
         RELEASE_MANIFEST: RELEASE_MANIFEST.read_text(encoding="utf-8"),
     }
+    generated_snapshot = _snapshot_generated_files()
     manifest = json.loads(originals[RELEASE_MANIFEST])
     manuscript = inject_manuscript_metadata(originals[MANUSCRIPT], metadata)
     readme = render_release_readme(originals[RELEASE_README], metadata)
@@ -420,6 +480,7 @@ def apply_release_metadata(metadata: Mapping[str, Any]) -> dict[str, Any]:
     except Exception:
         for path, value in originals.items():
             _atomic_write_text(path, value)
+        _restore_generated_files(generated_snapshot)
         raise
 
     return {

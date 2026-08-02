@@ -186,7 +186,7 @@ def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
     assert "\\titleformat{\\section}" not in tex or "{\\thesection.}" not in tex
 
 
-def test_release_manifest_records_completed_p0_gates() -> None:
+def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     manifest = json.loads((RELEASE / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["paper"]["working_title"] == (
         "Executable Chemical Worlds Reveal the Hidden Dynamics of Experimental Agency"
@@ -265,3 +265,16 @@ def test_release_manifest_records_completed_p0_gates() -> None:
     invalid_blockers = finalizer.validate_release_metadata(invalid)
     assert "authors[0].orcid has invalid syntax or checksum" in invalid_blockers
     assert "archive.byte_count does not match the frozen G0 byte count" in invalid_blockers
+
+    assert finalizer.apply_preflight_blockers() == []
+    generated = tmp_path / "generated"
+    generated.mkdir()
+    original = generated / "artifact.pdf"
+    original.write_bytes(b"original-pdf")
+    snapshot = finalizer._snapshot_generated_files((generated,))
+    original.write_bytes(b"partial-build")
+    created = generated / "partial-source.zip"
+    created.write_bytes(b"partial")
+    finalizer._restore_generated_files(snapshot, (generated,))
+    assert original.read_bytes() == b"original-pdf"
+    assert not created.exists()
