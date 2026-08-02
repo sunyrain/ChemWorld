@@ -576,7 +576,7 @@ These are operational trajectory readouts. “Discovery” refers to discovery o
 the best condition observed within that campaign, not identification of the
 global optimum of the hidden world.
 
-## 10.5 Fresh-session replication
+## 10.5 Development replication and metric qualification
 
 The replication crossed physical world seeds 1 and 3, trajectory replicates
 `r01`--`r05`, and opaque/nominal information conditions. Worlds were selected
@@ -597,7 +597,64 @@ Otherwise the result was mixed. The four primary lifecycle metrics were
 best-discovery position, online retention, maximum absolute drawdown and
 terminal-to-best ratio; best and mean scores were endpoint diagnostics.
 
-## 10.6 Sensitivity analyses
+## 10.6 Prospective multi-world endpoint--lifecycle confirmation
+
+The development replication was used to select the confirmatory question,
+metrics, substantive margin and sample size, and none of its worlds or
+trajectories enter the confirmatory estimand. Before the first confirmatory
+provider call, all candidate worlds 10--49 were checked only for dual-arm
+instantiation, finite bound scoring/runtime contracts, matched physical and
+keyed-observation identities, and availability of the six-vessel lifecycle.
+All 40 qualified. Sixteen worlds were selected by ascending
+SHA-256 rank under a frozen salt; this outcome-blind rule selected seeds 24, 39,
+17, 10, 34, 35, 46, 23, 15, 26, 49, 28, 43, 31, 13 and 36. Development seeds
+0--9 were ineligible.
+
+The design crosses 16 physical worlds, five fresh trajectory replicates and two
+material-information arms, yielding 80 within-world fresh-session pairs and 160
+campaign cells. Each cell gives the agent six vessels and a single shared
+campaign ledger: 0.48 mol reagent, 0.96 L solvent, six vessel starts, six final
+assays, 18 non-final instrument uses and 144 submitted primitive-operation
+attempts. This corresponds to 960 autonomous experiments and a ceiling of
+23,040 primitive operations. Pair order, arm order and time block were frozen;
+up to four pairs execute concurrently, with arms adjacent within a worker and a
+barrier between time blocks. Scores and arm contrasts are not inspected until
+all planned cells are terminal.
+
+For world $w$ and fresh-session pair $r$, let
+$E_{wr}$ be the nominal-minus-opaque difference in best final-assay score and
+$L_{wr}$ the corresponding difference in terminal-to-global-best ratio. The
+pre-specified random-intercept model is
+
+```{=latex}
+\[
+L_{wr}=\alpha+\beta E_{wr}+\gamma_{b(wr)}+u_w+\epsilon_{wr},
+\qquad u_w\sim\mathcal N(0,\tau^2),\quad
+\epsilon_{wr}\sim\mathcal N(0,\sigma^2).
+\]
+```
+
+Parameters are estimated by restricted maximum likelihood. The primary
+estimand is the endpoint-adjusted residual standard deviation
+$\sigma_{\mathrm{unexplained}}$. Confirmation requires both the frozen coverage
+gate---at least 64 of 80 complete pairs and at least ten worlds with three
+complete pairs---and a one-sided 95% profile-likelihood lower bound for
+$\sigma_{\mathrm{unexplained}}$ greater than 0.15 terminal-to-best units. The
+pre-run 20,000-draw power simulation gave 0.862 success probability under
+$\sigma_{\mathrm{unexplained}}=0.20$ with exactly 20% pair loss. Secondary
+readouts include the endpoint slope, leave-one-world-out prediction $R^2$, the
+mean information effect, world-level heterogeneity and Holm-adjusted additional
+lifecycle metrics.
+
+A provider-infrastructure failure before any accepted operation may create up
+to three immutable attempts. A failure after an accepted operation permanently
+right-censors the cell; completed or censored cells cannot be replaced or
+rerun. Analysis uses complete pairs and reports censoring by arm, world, time
+block and accepted-operation count. Protocol, world qualification, complete
+schedule, power report, analysis plan, implementation and tests were committed
+together before launch and are byte-hash bound by the run manifest.
+
+## 10.7 Development sensitivity analyses
 
 The frozen primary analysis was not changed. A separately hashed P0 sensitivity
 artifact evaluated directional thresholds 0.60, 0.75 and 0.80; inclusion or
@@ -607,7 +664,7 @@ differences. Because lifecycle metrics share the same six assay outcomes, the
 eight world-by-metric classifications are treated as a descriptive summary, not
 as eight independent inferential units.
 
-## 10.7 First-launch infrastructure incident
+## 10.8 Development first-launch infrastructure incident
 
 The commit-frozen replication protocol was first launched on 1 August 2026. A
 detached outer Python process disappeared after `cell-001` had completed six
@@ -628,7 +685,7 @@ terminal contrasts and a smaller drawdown. This direction is compatible with,
 and not required for, the primary conclusion that at least six lifecycle
 classifications remain mixed.
 
-## 10.8 Provenance, public boundary and replay
+## 10.9 Provenance, public boundary and replay
 
 Source, configuration, world, material, observation and trajectory identities
 are SHA-256 bound. The evaluator trajectory contains hidden physical identity;
