@@ -88,7 +88,41 @@
     "frozen_derived_data": {
       "path": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json",
       "status": "frozen_complete",
-      "derived_data_sha256": "62500476b1666bfc19c4b1a4f0f00b60b8fffff49cfc56495396f856248edd7c"
+      "derived_data_sha256": "1d639b09215ade3b84e9c2e5a9e30479fed1387890ab272d29b0996e7a06a2c4",
+      "manifest_path": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.manifest.json",
+      "manifest_sha256": "deb80ae1e0fd40cb0bf40cee34d79e3450167624739dc990f4197be2ba6b542f",
+      "manifest_file_count": 16,
+      "csv_view_count": 15
+    },
+    "work_i_fvl_incremental_evidence": {
+      "status": "frozen_source_bound_with_explicit_latent_incompleteness",
+      "data_contract_path": "configs/benchmark/work_i_incremental_data_contract_v0.1.json",
+      "data_contract_sha256": "e3a941c5a4d958b8284a244947a4c3e1b4ae3639576d12e27a005dbb9baa363c",
+      "evidence_registry_path": "configs/current.json",
+      "evidence_graph_sha256": "a7f7ef76e69fb9532197f8b7352da24ecd6103cdc1ced11f68f86bde5577a2af",
+      "evidence_graph_node_count": 68,
+      "work_i_fvl_node_count": 13,
+      "work_i_fvl_nodes_current": 13,
+      "F_record_counts": {
+        "world_fork_pairs": 6,
+        "world_fork_expectations": 12,
+        "world_fork_traces": 24
+      },
+      "V_record_counts": {
+        "policy_campaign_profiles": 30,
+        "policy_lifecycles": 180,
+        "policy_retest_campaigns": 30
+      },
+      "L_record_counts": {
+        "terminal_lifecycles": 60,
+        "latent_discard_units": 36,
+        "campaign_cells": 10
+      },
+      "latent_resolved_shadow_receipts": 6,
+      "latent_unresolved_shadow_receipts": 30,
+      "latent_complete_case_substitution_used": false,
+      "latent_main_text_eligible": false,
+      "provider_calls_by_fvl_derived_assembly": 0
     },
     "p0_sensitivity": {
       "path": "benchmark/releases/chemworld-serious-v1/arxiv-v1-p0-sensitivity.json",
@@ -133,12 +167,14 @@
   },
   "gates": {
     "g2_v0_5_terminal_audit": "passed_audit_7bb4045fa1ca041de047d967a31ed3d89d5f8ad83851aa7b469144b4da37f28d",
-    "evidence_graph_current": "passed_55_nodes_graph_8f6a86b90628d2d61a9da2b582977863329953dd30f2c57d0c14ec03e9f7d12b",
+    "evidence_graph_current": "partial_68_nodes_13_fvl_current_11_explicit_stale_bindings_graph_a7f7ef76e69fb9532197f8b7352da24ecd6103cdc1ced11f68f86bde5577a2af",
     "tracked_release_populated": "passed",
     "g0_source_binding": "passed",
     "g0_raw_data_hash_index": "passed",
     "raw_data_archive": "open",
-    "frozen_derived_table_and_figures": "passed_derived_62500476b1666bfc19c4b1a4f0f00b60b8fffff49cfc56495396f856248edd7c",
+    "frozen_derived_table_and_figures": "passed_derived_1d639b09215ade3b84e9c2e5a9e30479fed1387890ab272d29b0996e7a06a2c4",
+    "work_i_fvl_release_binding": "passed_13_of_13_nodes_current_15_csv_views_manifest_deb80ae1e0fd40cb0bf40cee34d79e3450167624739dc990f4197be2ba6b542f",
+    "latent_terminal_primary_analysis": "blocked_6_resolved_30_unresolved_no_complete_case_substitution",
     "clean_wheel_and_full_tests": "passed_1854_tests_3_skipped_wheel_5a1d8b1debbd",
     "independent_checkout": "passed_zero_diff_commit_b60211e6_50_release_tests",
     "public_g2_trajectory_archive": "passed_22_of_22_exact_physical_replay",
