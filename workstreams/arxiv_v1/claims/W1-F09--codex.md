@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-F09
 title: "Audit the publication display scope for tasks, operations, instruments, and endpoints"
-status: REVIEW
+status: DONE
 
 owner: codex
 collaborators: []
@@ -54,6 +54,6 @@ handoff_eta: 2026-08-03T05:35:00Z
 
 final_commit: "96f35a70888cce2b24a26b8f8f2434b403be3463"
 reviewer: coordinator
-review_result: "pending"
+review_result: "accepted after independent live-registry and frozen-matrix reconstruction"
 notes: "Audit SHA-256: 941278c0c5d3419989d5d93e187fc73494e05be5bb8c622c8f776978c6106b77. Registered platform scope is explicitly distinguished from empirical agent coverage."
 ```
