@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-D06
 title: "Record first-paper authors and affiliation metadata"
-status: CLAIMED
+status: ACTIVE
 
 owner: "codex-1"
 collaborators: []
@@ -35,15 +35,16 @@ validation:
   - "git diff --check"
 
 completed_since_last_heartbeat: []
-current_validation: "Claim registration before manuscript writes"
+current_validation: "Author and affiliation front matter updated; arXiv artifact rebuild pending"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D06--codex-1.md
+  - paper/experimental_intelligence_v1_manuscript.md
 blockers:
   - "Corresponding author, public email, and ORCID metadata have not been supplied"
 blocked_by: "project owner metadata input for the remaining W1-D06 fields"
 unblock_condition: "Receive corresponding-author designation/email and any ORCID values"
 next_check_at_utc: null
-next_24h: "Apply the supplied author and affiliation metadata and rebuild once"
+next_24h: "Rebuild the arXiv artifacts once and hand off the partial W1-D06 metadata update"
 handoff_eta: 2026-08-03T15:02:52Z
 
 final_commit: null

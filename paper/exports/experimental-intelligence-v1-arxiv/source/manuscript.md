@@ -4,11 +4,15 @@ title_line_one: "Executable Chemical Worlds Make"
 title_line_two: "Experimental Agency Measurable"
 subject: "Executable environments for controlled measurement of AI experimental behavior"
 keywords: "executable chemical worlds; experimental agency; autonomous experimentation; AI agents; reproducibility"
-pdf_author: "ChemWorld Authors"
+pdf_author: "Jiangjie Qiu; Yijun Li"
 author:
-  - name: "ChemWorld Authors"
-    affiliation_markers: ""
-affiliation: []
+  - name: "Jiangjie Qiu"
+    affiliation_markers: "1"
+  - name: "Yijun Li"
+    affiliation_markers: "1"
+affiliation:
+  - id: "1"
+    name: "Beijing Key Laboratory of Artificial Intelligence for Advanced Chemical Engineering Materials, State Key Laboratory of Chemical Engineering and Low-Carbon Technology, Department of Chemical Engineering, Tsinghua University, Beijing 100084, China"
 correspondence: ""
 date: ""
 bibliography: experimental_intelligence_v1_references.bib
