@@ -1,0 +1,300 @@
+{
+  "audit_id": "work-i-w1-s07-manuscript-language-lock-audit-v0.1",
+  "claim_boundary": {
+    "six_of_eight_promoted_to_primary_result": false,
+    "two_selected_worlds_generalized_to_population": false,
+    "work_ii_rule_learning_claimed": false
+  },
+  "current_manuscript_audit": {
+    "counting_lock": {
+      "explicit_36_lines": [
+        31,
+        280,
+        283,
+        430
+      ],
+      "explicit_84_lines": [],
+      "first_120_line": 28,
+      "passed": false,
+      "required_first_mention": "120 closed lifecycles: 84 final assays and 36 explicit discards"
+    },
+    "current_manuscript_compliant": false,
+    "figure_first_references": {
+      "expected_sequence": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "first_reference_by_figure": [
+        {
+          "figure": 1,
+          "line": 148,
+          "text": "cases and 62 evaluator-bound endpoints (Fig. 1). Qualification establishes"
+        },
+        {
+          "figure": 2,
+          "line": null,
+          "text": null
+        },
+        {
+          "figure": 3,
+          "line": 296,
+          "text": "Figure 3 reconstructs the Codex implementation, for which each vessel received"
+        },
+        {
+          "figure": 4,
+          "line": 321,
+          "text": "Figure 4 follows six final assays in three development worlds. In world 0, the"
+        },
+        {
+          "figure": 5,
+          "line": 369,
+          "text": "pairs in each world. All ten planned pairs remain visible in Fig. 5. The 75%"
+        },
+        {
+          "figure": 6,
+          "line": 278,
+          "text": "(Fig. 6). Their closure policies were sharply different. Codex requested a"
+        }
+      ],
+      "observed_sequence": [
+        1,
+        6,
+        3,
+        4,
+        5
+      ],
+      "passed": false
+    },
+    "finding_count": 5,
+    "findings": [
+      {
+        "current": "observed first-reference sequence [1, 6, 3, 4, 5]; Figure 2 is absent",
+        "finding_id": "FIGURE_FIRST_REFERENCE_ORDER",
+        "lines": [
+          148,
+          278,
+          296,
+          321,
+          369
+        ],
+        "lock": "figures_1_through_6_first_referenced_in_numeric_order",
+        "required": "integrate first textual references in the exact sequence [1, 2, 3, 4, 5, 6]",
+        "severity": "blocking_for_final_manuscript_integration"
+      },
+      {
+        "current": "the first mention gives 120 plus system-specific counts but never states 84 total final assays",
+        "finding_id": "FIRST_120_COUNT_LOCK",
+        "lines": [
+          28
+        ],
+        "lock": "first_120_mention_states_full_terminal_partition",
+        "required": "120 closed lifecycles: 84 final assays and 36 explicit discards",
+        "severity": "blocking_for_final_manuscript_integration"
+      },
+      {
+        "current": "independently configured primitive-control systems then closed 120 batch",
+        "finding_id": "TERMINOLOGY_INDEPENDENTLY_CONFIGURED",
+        "lines": [
+          28
+        ],
+        "lock": "frozen_story_terminology",
+        "required": "distinct complete agent systems",
+        "severity": "blocking_for_final_manuscript_integration"
+      },
+      {
+        "current": "Primitive-control systems & Lifecycle autonomy, interface portability and trajectory policy & 120 closed vessels; 1,704 operations & complete agent system by world and arm; 2 systems, 5 worlds \\\\",
+        "finding_id": "TERMINOLOGY_CLOSED_VESSELS",
+        "lines": [
+          204
+        ],
+        "lock": "frozen_story_terminology",
+        "required": "closed lifecycles",
+        "severity": "blocking_for_final_manuscript_integration"
+      },
+      {
+        "current": "imposed by one physical laboratory. They can therefore be recombined while agent",
+        "finding_id": "TERMINOLOGY_ARBITRARY_RECOMBINATION",
+        "lines": [
+          468
+        ],
+        "lock": "frozen_story_terminology",
+        "required": "preregistered, qualified interventions on named world components; no arbitrary-recombination claim",
+        "severity": "blocking_for_final_manuscript_integration"
+      }
+    ],
+    "sensitivity_lock": {
+      "passed": true,
+      "six_of_eight_role": "threshold_sensitive_supporting_evidence",
+      "two_of_eight_role": "endpoint_diagnostic"
+    },
+    "terminology_lock": {
+      "allowed_context_hits": {
+        "g0": [
+          {
+            "line": 536,
+            "text": "disabled and no session persistence. G0 and G2 therefore share a model alias and"
+          },
+          {
+            "line": 747,
+            "text": "and its manifest binds every paper artifact to its SHA-256 identity. The G0"
+          },
+          {
+            "line": 759,
+            "text": "The 17.7-GB G0 raw roots are bound by the public file-level hash index but are not"
+          }
+        ],
+        "g2": [
+          {
+            "line": 536,
+            "text": "disabled and no session persistence. G0 and G2 therefore share a model alias and"
+          },
+          {
+            "line": 750,
+            "text": "number, table and figure. The G2 public archive contains compact replayable"
+          }
+        ],
+        "negative_leaderboard_boundary": []
+      },
+      "passed": false,
+      "prohibited_hits": {
+        "arbitrary_recombination": [
+          {
+            "line": 468,
+            "text": "imposed by one physical laboratory. They can therefore be recombined while agent"
+          }
+        ],
+        "closed_vessels": [
+          {
+            "line": 204,
+            "text": "Primitive-control systems & Lifecycle autonomy, interface portability and trajectory policy & 120 closed vessels; 1,704 operations & complete agent system by world and arm; 2 systems, 5 worlds \\\\"
+          }
+        ],
+        "independently_configured": [
+          {
+            "line": 28,
+            "text": "independently configured primitive-control systems then closed 120 batch"
+          }
+        ]
+      }
+    }
+  },
+  "frozen_counting_evidence": {
+    "closed_lifecycles": 120,
+    "distinct_complete_agent_systems": 2,
+    "explicit_discards": 36,
+    "final_assays": 84,
+    "system_partition": {
+      "codex": {
+        "assays": 60,
+        "closed": 60,
+        "discards": 0
+      },
+      "deepseek": {
+        "assays": 24,
+        "closed": 60,
+        "discards": 36
+      }
+    }
+  },
+  "frozen_figure_and_sensitivity_contract": {
+    "expected_first_reference_order": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "fresh_complete_pairs": 8,
+    "selected_worlds": 2,
+    "six_of_eight_role": "threshold_sensitive_supporting_evidence",
+    "two_of_eight_role": "endpoint_diagnostic"
+  },
+  "integration_actions": [
+    {
+      "action_id": "S07-A1",
+      "lines": [
+        148,
+        278,
+        296,
+        321,
+        369
+      ],
+      "owner_handoff": "W1-S10 manuscript integrator",
+      "replacement_or_rule": "First-reference sequence must be F1 apparatus, F2 known-policy validity, F3 terminal policy, F4 compiled controls, F5 primitive lifecycle, F6 fresh process."
+    },
+    {
+      "action_id": "S07-A2",
+      "lines": [
+        28
+      ],
+      "owner_handoff": "W1-S03/W1-S10 abstract integration",
+      "replacement_or_rule": "Two distinct complete agent systems produced 120 closed lifecycles: 84 final assays and 36 explicit discards across five matched worlds."
+    },
+    {
+      "action_id": "S07-A3",
+      "lines": [
+        204
+      ],
+      "owner_handoff": "W1-S10 display-item integration",
+      "replacement_or_rule": "Replace '120 closed vessels' with the frozen lifecycle partition."
+    },
+    {
+      "action_id": "S07-A4",
+      "lines": [
+        468
+      ],
+      "owner_handoff": "W1-S09/W1-S10 limitations integration",
+      "replacement_or_rule": "Replace arbitrary recombination wording with preregistered, qualified interventions on named components while authority and audit semantics remain fixed."
+    },
+    {
+      "action_id": "S07-A5",
+      "lines": [],
+      "owner_handoff": "W1-S10 final scan",
+      "replacement_or_rule": "Retain the current semantic hierarchy: 2/8 endpoint diagnostic; 6/8 threshold-sensitive supporting evidence; selected worlds are descriptive."
+    }
+  ],
+  "owner_task": "W1-S07",
+  "receipt_sha256": "26ff46b73c8e584b65e18eff06f0440539f77a8e62a8a0e601c6aa41204e8969",
+  "schema_id": "chemworld.work_i_manuscript_language_lock_audit",
+  "schema_version": "0.1.0",
+  "source_bindings": [
+    {
+      "bytes": 48515,
+      "path": "paper/experimental_intelligence_v1_manuscript.md",
+      "sha256": "0eeac2c3f3be5cb3823736a7b92869be15390d74e0240a3643af422518c44717"
+    },
+    {
+      "bytes": 13337,
+      "path": "workstreams/arxiv_v1/story/work-i-story-architecture-v0.1.md",
+      "sha256": "de686d923df53c3754694eb2dca9550b1fc9fb6877848654760b73507dda4f9b"
+    },
+    {
+      "bytes": 7190,
+      "path": "workstreams/arxiv_v1/reports/g2-agent-system-comparison-v0.1.json",
+      "sha256": "a200ba914a3d6324daa6a8c359b771aaf11346382ca3bbebb317c1913a2d67a6"
+    },
+    {
+      "bytes": 11935,
+      "path": "paper/figures/experimental-intelligence-v1/figure-system-v0.1.json",
+      "sha256": "42b069db7c1c19b3c7759858ea3f7287669112a1239b3117a839e31fb5207735"
+    },
+    {
+      "bytes": 5140,
+      "path": "paper/figures/experimental-intelligence-v1/publication/figure-6-fresh-trajectories.manifest.json",
+      "sha256": "8d664eb0061b9a05fd2c815d81f36f0ab10f0c5c73e4dd007287aa6dc1258dca"
+    }
+  ],
+  "status": "integration_changes_required",
+  "write_boundary": {
+    "display_items_edited": false,
+    "figure_assets_edited": false,
+    "manuscript_edited": false,
+    "paper_arxiv_main_edited": false,
+    "proposal_is_line_addressed_to_bound_manuscript_sha256": true
+  }
+}
