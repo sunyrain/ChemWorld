@@ -1,0 +1,52 @@
+# Work I Task Claim
+
+```yaml
+task_id: W1-F07
+title: "Publish machine-readable and human-readable world-fork certificates"
+status: CLAIMED
+
+owner: codex
+collaborators: []
+claimed_at_utc: 2026-08-03T05:15:58Z
+lease_expires_at_utc: 2026-08-05T05:15:58Z
+heartbeat_at_utc: 2026-08-03T05:15:58Z
+
+base_commit: "352678ef5f6b191f94bc0182accb026913c73b93"
+branch: work1/w1-f07-world-fork-certificate
+worktree: ../ChemWorld-W1-F07
+supersedes: null
+
+declared_write_set:
+  - workstreams/arxiv_v1/claims/W1-F07--codex.md
+  - scripts/summarize_work_i_world_fork.py
+  - tests/test_world_fork_report.py
+  - workstreams/arxiv_v1/reports/work-i-world-fork-certificate-v0.1.json
+  - workstreams/arxiv_v1/reports/work-i-world-fork-certificate-v0.1.md
+shared_hot_file_requests: []
+
+deliverables:
+  - Concise content-addressed machine certificate derived only from the frozen F06 artifact.
+  - Human report stating the supported claim, design, counts, outcomes, and explicit claim boundary.
+  - Deterministic rebuild test binding both reports to the formal report SHA-256.
+validation:
+  - uv run python scripts/summarize_work_i_world_fork.py
+  - uv run python scripts/summarize_work_i_world_fork.py --check
+  - uv run pytest -q tests/test_world_fork_report.py
+  - uv run ruff check scripts/summarize_work_i_world_fork.py tests/test_world_fork_report.py
+  - git diff --check
+
+completed_since_last_heartbeat: []
+current_validation: "F06 formal report accepted; report synthesis has not started."
+files_touched: []
+blockers: []
+blocked_by: null
+unblock_condition: null
+next_check_at_utc: 2026-08-03T17:15:58Z
+next_24h: "Generate, independently rebuild, and hand off both certificate formats."
+handoff_eta: 2026-08-03T06:00:00Z
+
+final_commit: null
+reviewer: null
+review_result: null
+notes: "This task summarizes frozen evidence; it cannot reinterpret failures or change the qualification protocol."
+```
