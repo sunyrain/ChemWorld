@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-L01
 title: "Correct and re-freeze latent-terminal estimands and entry rules"
-status: ACTIVE
+status: REVIEW
 
 owner: "codex-1"
 collaborators: []
@@ -38,21 +38,27 @@ validation:
   - "uv run mypy src/chemworld/eval/latent_terminal_contract.py scripts/freeze_work_i_latent_terminal_contract.py"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Three outcome-blind contract corrections implemented; deterministic regeneration and focused validation pending"
+completed_since_last_heartbeat:
+  - "Defined campaign_oracle_regret over the 9 frozen discard-opportunity cells and retained cell-02 as a null no-opportunity census row"
+  - "Exact-bound estimands, denominators, aggregation, missingness, censoring sensitivity, and evidence-entry rules in the standalone validator"
+  - "Defined mandatory unresolved-outcome bounds and censoring rows for all eight estimands"
+  - "Regenerated the machine and human contracts without shadow execution or latent-outcome access"
+current_validation: "PASS: deterministic generation/check; 8 focused tests; Ruff; Mypy; git diff --check. Contract SHA-256 55a0d6a7cb983ce4099dbea24586ea63ccc9433e106d36011d349472809efe30; population SHA-256 unchanged at ab35b3214c4cdf9003afff3f0d6b9205e615b5c76afa4664677bc9b95c19a9ae."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-L01--codex-1.md
   - src/chemworld/eval/latent_terminal_contract.py
   - scripts/freeze_work_i_latent_terminal_contract.py
   - tests/test_latent_terminal_contract.py
+  - configs/benchmark/work_i_latent_terminal_contract_v0.1.json
+  - workstreams/arxiv_v1/reports/work-i-latent-terminal-contract-v0.1.md
 blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: 2026-08-03T16:11:23Z
-next_24h: "Apply the three outcome-blind corrections, regenerate once, and hand off for later independent review"
-handoff_eta: 2026-08-03T18:11:23Z
+next_24h: "Await independent review when the coordinator permits a reviewer; L02 may proceed because its dependency is none"
+handoff_eta: 2026-08-03T14:15:00Z
 
-final_commit: null
+final_commit: "4a0aaa62b5c854ae6e2489f636b3029ac546db46"
 reviewer: null
 review_result: null
 notes: "Coordinator takeover after an independent CHANGES_REQUESTED verdict and the user's single-agent directive. No formal shadow execution, hidden-state read, or latent-outcome read is authorized."
