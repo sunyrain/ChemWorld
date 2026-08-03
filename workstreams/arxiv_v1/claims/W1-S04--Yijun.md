@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-S04
 title: "Draft the isolated platform and world-programmability Results/Methods sections"
-status: CLAIMED
+status: ACTIVE
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T15:57:03Z
-lease_expires_at_utc: 2026-08-05T15:57:03Z
-heartbeat_at_utc: 2026-08-03T15:57:03Z
+lease_expires_at_utc: 2026-08-05T16:02:42Z
+heartbeat_at_utc: 2026-08-03T16:02:42Z
 
 base_commit: "09e6c67d6ebfc8bb2a03e568dc16a349bd9959af"
 branch: work1/w1-s04-platform-programmability-yijun
@@ -32,15 +32,17 @@ validation:
   - "Confirm only the declared claim and isolated story file are modified"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared for main registration before substantive drafting"
+completed_since_last_heartbeat:
+  - "Verified that the W1-S04 claim commit is present on origin/main at 4288df164c47aba17210dd178dafd1be016d575c"
+  - "Merged current origin/main into the isolated task branch and pushed the synchronized branch before substantive drafting"
+current_validation: "Reading the frozen F09/F10/world-fork evidence and independently checking all interface, binding, and execution counts"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-S04--Yijun.md
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-04T03:57:03Z
-next_24h: "Draft and validate bounded platform/world-programmability prose, then hand off the isolated section for independent review and manuscript integration."
+next_check_at_utc: 2026-08-04T04:02:42Z
+next_24h: "Finish the source-bound platform/world-programmability section, run focused provider-free checks and language scans, then hand off for independent review and manuscript integration."
 handoff_eta: 2026-08-03T23:57:03Z
 
 final_commit: null
