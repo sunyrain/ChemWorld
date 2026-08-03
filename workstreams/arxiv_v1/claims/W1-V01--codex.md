@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-V01
 title: "Freeze the experimental-agency construct and profile schema"
-status: REVIEW
+status: DONE
 
 owner: codex
 collaborators: []
@@ -57,7 +57,7 @@ next_24h: "Coordinator review, independent deterministic rebuild on main, and me
 handoff_eta: 2026-08-03T07:00:00Z
 
 final_commit: "523f08fd3e67dc7d9cd0c94ca32027f7371e1811"
-reviewer: null
-review_result: null
+reviewer: coordinator
+review_result: "accepted after an independent Python 3.12 deterministic rebuild on main, five focused tests, ruff, mypy, schema-boundary review, and git diff validation"
 notes: "Frozen contract SHA-256: 01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262. The contract is intentionally multidimensional and outcome-independent: it does not introduce a composite intelligence score or encode endpoint quality as experimental agency."
 ```

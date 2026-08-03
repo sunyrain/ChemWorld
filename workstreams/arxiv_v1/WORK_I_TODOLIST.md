@@ -270,7 +270,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 
 | ID | P | 状态 | 任务 | 硬依赖 | 可并行 |
 | --- | --- | --- | --- | --- | --- |
-| W1-V01 | P0 | CLAIMED | 冻结 experimental-agency construct 与 profile schema | M02 | 是 |
+| W1-V01 | P0 | DONE | 冻结 experimental-agency construct 与 profile schema | M02 | 是 |
 | W1-V02 | P0 | OPEN | 冻结三种 known policies 和预期 profile ordering | M02 | 是 |
 | W1-V03 | P0 | OPEN | 在独立 qualification worlds 冻结 threshold | V02 | 是 |
 | W1-V04 | P0 | OPEN | 实现 deterministic policy implementations | V02 draft | 是 |
