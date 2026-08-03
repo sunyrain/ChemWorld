@@ -8,8 +8,8 @@ status: ACTIVE
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T15:57:03Z
-lease_expires_at_utc: 2026-08-05T16:02:26Z
-heartbeat_at_utc: 2026-08-03T16:02:26Z
+lease_expires_at_utc: 2026-08-05T16:08:12Z
+heartbeat_at_utc: 2026-08-03T16:08:12Z
 
 base_commit: "09e6c67d6ebfc8bb2a03e568dc16a349bd9959af"
 branch: work1/w1-s05-measurement-validity-yijun
@@ -23,7 +23,7 @@ shared_hot_file_requests: []
 
 deliverables:
   - "Standalone integration-ready Results and Methods sections for the frozen known-policy construct and discriminant-validity experiment"
-  - "Exact 5-profile by 2-arm by 3-seed design, 30 primary trials and 180 task-level observations, frozen nulls/orderings/resources, and retest-exclusion rule"
+  - "Exact 5 formal world seeds x 2 information arms x 3 frozen policies = 30 primary campaigns; each campaign has 6 closed lifecycles, giving 180 primary closed lifecycles; plus frozen nulls/orderings/resources and the retest-exclusion rule"
   - "Figure 2 narrative responsibilities, source paths and SHA-256 evidence bindings, plus bounded wording that does not promote a positive control into chemical intelligence or physical transfer"
 validation:
   - "Cross-check every count, ordering, null, inclusion rule, path, and SHA-256 against the frozen W1-V protocol and report artifacts"
@@ -34,9 +34,12 @@ validation:
 
 completed_since_last_heartbeat:
   - "Verified the claim is effective on origin/main, synchronized the task branch with origin/main, and pushed the synchronized branch before substantive drafting."
-current_validation: "Reading the frozen W1-V evidence stack and independent chemistry-semantics review; no substantive story file has been written yet."
+  - "Source verification corrected the initial factor labels: five levels are formal world seeds, three levels are frozen policies, one cell is one primary campaign profile, and each campaign contributes six closed lifecycles."
+  - "Drafted the isolated Results/Methods handoff with Figure 2 responsibilities, bounded interpretation, and byte-hash evidence bindings."
+current_validation: "Checking exact counts, nulls, orderings, resource rules, forbidden wording, source hashes, declared write set, and provider-free focused tests."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-S05--Yijun.md
+  - workstreams/arxiv_v1/story/work-i-measurement-validity-sections-v0.1.md
 blockers: []
 blocked_by: null
 unblock_condition: null
@@ -47,5 +50,5 @@ handoff_eta: 2026-08-03T23:57:03Z
 final_commit: null
 reviewer: null
 review_result: null
-notes: "This task writes an isolated story handoff only. It does not edit paper/arxiv/main.tex, alter the frozen V protocol or results, rerun providers, or claim a general model ranking or physical-laboratory validity."
+notes: "Source verification supersedes the initial claim shorthand: the authoritative design is 5 formal world seeds x 2 information arms x 3 frozen policies = 30 primary campaigns, with 6 closed lifecycles per campaign = 180 primary closed lifecycles. This task writes an isolated story handoff only. It does not edit paper/arxiv/main.tex, alter the frozen V protocol or results, rerun providers, or claim a general model ranking or physical-laboratory validity."
 ```
