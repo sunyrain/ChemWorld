@@ -3,14 +3,14 @@
 ```yaml
 task_id: W1-V05
 title: "Implement the 5x2x3 known-policy matrix runner, immutable manifest, and resume policy"
-status: REVIEW
+status: DONE
 
 owner: codex
 collaborators:
   - "agent:/root/w1_v05"
 claimed_at_utc: 2026-08-03T06:54:12Z
 lease_expires_at_utc: 2026-08-05T06:54:12Z
-heartbeat_at_utc: 2026-08-03T07:39:53Z
+heartbeat_at_utc: 2026-08-03T07:46:53Z
 
 base_commit: "1831d56f1f1ecfb83abab944f8548cd62b0dfcc6"
 branch: work1/w1-v05-policy-control-matrix
@@ -48,7 +48,7 @@ completed_since_last_heartbeat:
   - "Recorded an outcome-blind preflight bound to the merged V01-V04 contracts and source identities; no formal outcome was read and no provider call or formal execution occurred."
   - "Addressed review by requiring an explicit self-hashed W1-V07 receipt with true runner-qualified/protocol-frozen gates and current matrix-protocol, source-manifest, preflight, and controller bindings before any formal executor call."
   - "Removed the test-file EOF blank line and added an explicit base-commit-to-HEAD whitespace validation command."
-current_validation: "Preflight generation and exact --check pass (30 campaigns, 180 lifecycles, controller available, formal_result=false, preflight SHA-256 58dc11556051faf44e495b6709dc91f5d04e47ca96399ccf7f65bed6660afdb0); CLI allow flag alone is rejected before output creation; 46/46 related tests pass with coverage; ruff, mypy, git diff --check, and git diff --check 1831d56f1f1ecfb83abab944f8548cd62b0dfcc6...HEAD pass."
+current_validation: "Coordinator rerun on main passed deterministic preflight generation and exact --check (formal_result=false; SHA-256 58dc11556051faf44e495b6709dc91f5d04e47ca96399ccf7f65bed6660afdb0), all 46 related tests, ruff, mypy, working-tree diff check, and base-to-HEAD whitespace validation."
 files_touched:
   - src/chemworld/eval/policy_validity_matrix.py
   - scripts/run_work_i_policy_controls.py
@@ -63,8 +63,8 @@ next_check_at_utc: 2026-08-03T08:54:12Z
 next_24h: "Coordinator review and integration; formal qualification/execution remain with W1-V07/W1-V08."
 handoff_eta: 2026-08-03T07:39:53Z
 
-final_commit: "2886d6165a61c8930e585affad5acc7ef73e8445"
+final_commit: "8b15b31f1d29678f614bfbf8f2bd223a63be41c5"
 reviewer: "codex-1"
-review_result: "CHANGES_ADDRESSED: EOF whitespace corrected and base-to-HEAD validation recorded; W1-V07 receipt validation now fails closed on missing, false, tampered, or stale qualification before executor invocation. Awaiting coordinator re-review."
+review_result: "APPROVED after changes: exact preflight reconstruction and 46 tests pass; formal execution fails closed before executor invocation unless a self-hashed W1-V07 qualification/freeze receipt matches the current protocol, source, preflight, and controller bindings."
 notes: "Merged W1-V04 controller surface is bound in the preflight. Formal execution requires explicit opt-in plus a valid W1-V07 qualification receipt and was not invoked. Retest and replay evidence never count toward the frozen 30-campaign/180-lifecycle primary estimand."
 ```
