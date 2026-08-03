@@ -3,14 +3,14 @@
 ```yaml
 task_id: W1-V06
 title: "Implement construct-validity, resource, and exact-replay audit"
-status: CLAIMED
+status: ACTIVE
 
 owner: codex
 collaborators:
   - "agent:/root/w1_v06"
 claimed_at_utc: 2026-08-03T06:54:12Z
 lease_expires_at_utc: 2026-08-05T06:54:12Z
-heartbeat_at_utc: 2026-08-03T06:54:12Z
+heartbeat_at_utc: 2026-08-03T06:56:22Z
 
 base_commit: "1831d56f1f1ecfb83abab944f8548cd62b0dfcc6"
 branch: work1/w1-v06-policy-validity-audit
@@ -37,8 +37,9 @@ validation:
   - uv run mypy src/chemworld/eval/policy_validity_audit.py scripts/audit_work_i_policy_validity.py
   - git diff --check
 
-completed_since_last_heartbeat: []
-current_validation: ""
+completed_since_last_heartbeat:
+  - "Completed read-only contract, dependency, repository, and write-set reconnaissance."
+current_validation: "Claim activated; implementation has not started."
 files_touched: []
 blockers: []
 blocked_by: null
