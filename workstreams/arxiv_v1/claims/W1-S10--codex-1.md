@@ -9,7 +9,7 @@ owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-03T18:59:43Z
 lease_expires_at_utc: 2026-08-05T18:59:43Z
-heartbeat_at_utc: 2026-08-03T18:59:43Z
+heartbeat_at_utc: 2026-08-03T19:45:00Z
 
 base_commit: "34695690510a74c2db745955e6fbf44d13f93b9a"
 branch: work1/w1-s10-final-manuscript
@@ -35,15 +35,22 @@ validation:
   - "Run focused manuscript/ledger tests, prohibited-language scan, and git diff --check once after final assembly"
   - "Confirm S03 Introduction and S08 Related Work changes are preserved byte-for-byte outside S10-owned regions"
 
-completed_since_last_heartbeat: []
-current_validation: "F/V/L reports and the D03–D05 release truth chain are integrated. W1-S03 and W1-S08 remain actively claimed by Yijun with no substantive remote handoff yet."
+completed_since_last_heartbeat:
+  - "Reordered Results into the frozen Figure 1–6 sequence and integrated the F/V/G0/G2/L evidence boundaries."
+  - "Integrated the L05/L06 failed-gate disposition: 36 retained receipts, 6 resolved, 30 unresolved, point estimates withheld, no complete-case substitution."
+  - "Rewrote Discussion and Conclusion within the simulated-apparatus, finite-world, complete-system and Work II boundaries."
+  - "Pushed the first manuscript integration commit 317f1e8a to origin/work1/w1-s10-final-manuscript."
+current_validation: "Results first-reference order is now 1–6 and the frozen numeric/language surfaces are represented. W1-S03 and W1-S08 still contain activation commits only; Figure 3 remains a pre-L pending render for W1-P09 update."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-S10--codex-1.md
+  - workstreams/arxiv_v1/story/work-i-final-manuscript-integration-v0.1.md
+  - paper/experimental_intelligence_v1_manuscript.md
+  - tests/test_arxiv_v1_experiment_ledger.py
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-03T20:59:43Z
-next_24h: "Complete non-overlapping Results/Conclusion integration, then merge S03/S08 handoffs before final Title/Abstract closure."
+next_check_at_utc: 2026-08-03T21:45:00Z
+next_24h: "Finish focused machine bindings and Methods dependency reconciliation without touching S03/S08 regions; merge their handoffs when substantive commits arrive, then close Title/Abstract and hand off to P09."
 handoff_eta: 2026-08-03T22:59:43Z
 
 final_commit: null

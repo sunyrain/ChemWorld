@@ -118,8 +118,9 @@ def test_fvl_ledger_binding_preserves_distinct_units_and_latent_missingness() ->
     derived_manifest = _load(ROOT / fvl["derived_data"]["manifest_path"])
     current = _load(ROOT / fvl["evidence_graph"]["path"])
 
-    assert fvl["data_contract"]["contract_sha256"] == (
-        derived["work_i_incremental"]["data_contract_sha256"]
+    assert (
+        fvl["data_contract"]["contract_sha256"]
+        == (derived["work_i_incremental"]["data_contract_sha256"])
     )
     assert fvl["derived_data"]["derived_data_sha256"] == derived["derived_data_sha256"]
     assert fvl["derived_data"]["manifest_sha256"] == derived_manifest["manifest_sha256"]
@@ -197,7 +198,7 @@ def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
     )
     assert "[PENDING G2 v0.5" not in manuscript
     assert "29,580 simulator executions" in compact_manuscript
-    assert "closed 120 batch lifecycles in five matched worlds" in compact_manuscript
+    assert "120 closed lifecycles: 84 final assays and 36 explicit discards" in compact_manuscript
     assert "Eighteen of 20 cells completed" in compact_manuscript
     assert "29,754" in data_card
     assert "29,752" in data_card
@@ -211,9 +212,9 @@ def test_terminal_g2_narrative_is_bound_to_the_frozen_derived_data() -> None:
     manuscript = (ROOT / "paper/experimental_intelligence_v1_manuscript.md").read_text(
         encoding="utf-8"
     )
-    section = manuscript.split("# 7. Fresh sessions test within-world repeatability", 1)[1].split(
-        "# 8. Experimental agency is a profile, not a scalar", 1
-    )[0]
+    section = manuscript.split(
+        "# 8. Fresh trajectories reveal process structure omitted by endpoints", 1
+    )[1].split("# 9. Discussion", 1)[0]
     compact_section = " ".join(section.split())
     derived = _load(ROOT / "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json")
     replication = derived["g2_v0_5"]
@@ -227,13 +228,41 @@ def test_terminal_g2_narrative_is_bound_to_the_frozen_derived_data() -> None:
     assert matrix["completed_pair_count"] == 8
     assert branch["mixed_world_by_core_metric_count"] == 6
     assert branch["world_by_core_metric_count"] == 8
-    assert "six of eight selected world-by-lifecycle cells as mixed" in compact_section
-    assert "That categorical count is supporting rather than the main result" in compact_section
-    assert (
-        "best-of-campaign and raw terminal contrasts were sign-discordant in two pairs"
-        in compact_section
+    assert "6/8 selected world-by-lifecycle cells were mixed" in compact_section
+    assert "threshold-sensitive supporting evidence, not the primary diagnostic" in compact_section
+    assert "best-of-campaign and raw terminal contrasts were sign-discordant in 2/8 pairs" in (
+        compact_section
     )
-    assert "Pearson correlation was $+0.826$" in compact_section
+    assert "descriptive Pearson correlation of $+0.826$" in compact_section
+
+
+def test_manuscript_results_follow_the_frozen_six_figure_contract() -> None:
+    manuscript = (ROOT / "paper/experimental_intelligence_v1_manuscript.md").read_text(
+        encoding="utf-8"
+    )
+    compact = " ".join(manuscript.split())
+    figure_paths = [
+        "figure-1-apparatus-world-forks.pdf",
+        "figure-2-known-policy-validity.pdf",
+        "figure-3-terminal-policy.pdf",
+        "figure-4-compiled-controls.pdf",
+        "figure-5-complete-lifecycles.pdf",
+        "figure-6-fresh-trajectories.pdf",
+    ]
+    figure_positions = [manuscript.index(path) for path in figure_paths]
+
+    assert figure_positions == sorted(figure_positions)
+    assert len(set(figure_positions)) == 6
+    assert "six parent--child pairs" in compact
+    assert "=24$ traces" in compact
+    assert "30 primary campaigns contained 180/180 closed lifecycles" in compact
+    assert "additional 30 campaigns and 180 lifecycles are reliability evidence only" in compact
+    assert "120 closed lifecycles: 84 final assays and 36 explicit discards" in compact
+    assert "All 36 receipts were retained: 6 resolved and 30 remained unresolved" in compact
+    assert "never as a complete-case result" in compact
+    assert "2/8 pairs" in compact
+    assert "6/8 selected world-by-lifecycle cells were mixed" in compact
+    assert "population-level model or information-effect claim" in compact
 
 
 def test_all_tracked_evidence_and_execution_entrypoints_exist() -> None:
