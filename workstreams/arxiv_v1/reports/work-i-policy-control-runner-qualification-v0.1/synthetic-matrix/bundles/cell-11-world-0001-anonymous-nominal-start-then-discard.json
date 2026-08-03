@@ -1,0 +1,3822 @@
+{
+  "bundle_sha256": "a4f6b998d3ea306da85be6239d103e1221ecc3e0dab35ef0390a2e33ad9921de",
+  "campaign_resource_card_sha256": "c7f7575b07380e084b33e0397d004b5d505f5c9f372bf5f991df3ffa8dfb80aa",
+  "cell": {
+    "cell_id": "cell-11-world-0001-anonymous-nominal-start-then-discard",
+    "information_arm": "anonymous_nominal_properties",
+    "material_information": {
+      "mode": "anonymous_nominal_properties"
+    },
+    "ordinal": 11,
+    "policy_id": "start_then_discard",
+    "world_seed": 1
+  },
+  "counting": {
+    "primary_campaigns": 1,
+    "primary_closed_lifecycles": 6,
+    "provider_calls": 0,
+    "retest_campaigns": 1,
+    "retest_closed_lifecycles": 6,
+    "retest_in_primary_estimand": false
+  },
+  "dependency_bindings": {
+    "controller": {
+      "path": "src/chemworld/agents/known_policy.py",
+      "required_task": "W1-V04",
+      "sha256": "b6c3b1c2c42c415c5317c10f2ef03c3d623639532a065fa88dda7e838ce5ef84",
+      "status": "available"
+    },
+    "execution_apparatus": {
+      "numpy_version": "2.2.6",
+      "numpy_wheel_filename": "numpy-2.2.6-cp311-cp311-win_amd64.whl",
+      "numpy_wheel_sha256": "e8213002e427c69c45a52bbd94163084025f533a55a59d6f9c5b820774ef3303",
+      "numpy_wheel_tag": "cp311-cp311-win_amd64",
+      "python_abi": "cp311",
+      "python_cache_tag": "cpython-311",
+      "python_implementation": "cpython",
+      "python_version": "3.11.15",
+      "scipy_version": "1.17.1",
+      "scipy_wheel_filename": "scipy-1.17.1-cp311-cp311-win_amd64.whl",
+      "scipy_wheel_sha256": "d30e57c72013c2a4fe441c2fcb8e77b14e152ad48b5464858e07e2ad9fbfceff",
+      "scipy_wheel_tag": "cp311-cp311-win_amd64",
+      "sysconfig_platform": "win-amd64",
+      "uv_lock_path": "uv.lock",
+      "uv_lock_sha256": "e79dbec48a50730499e96806b0ae7ccd989eaf67693009143b55901b6e2fc9b7"
+    },
+    "execution_apparatus_sha256": "e56f897906bfc2a345ba5d667ae08d87b07b3e886cf42a6cfbfb8383dbedb8d0",
+    "formal_retuning_forbidden": true,
+    "known_policy_contract_sha256": "79681abfa92af758af8326db1727b865376ad0da192ea13552b68fd94a66dd45",
+    "profile_contract_sha256": "01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262",
+    "qualification_report_sha256": "9a928c28862099049c560b7135067ea86dc6535a7077926b66f39221abbe924e",
+    "threshold": 0.007984561379998922,
+    "threshold_binding_sha256": "8a55b713ca900a644a301ecd8e83a0a686f9a28b3f60a18a85a4e57b66288c6a",
+    "threshold_comparator": ">="
+  },
+  "original": {
+    "campaign_resource_ledger": {
+      "card": {
+        "card_id": "work-i-known-policy-formal-k6-v1",
+        "card_sha256": "c7f7575b07380e084b33e0397d004b5d505f5c9f372bf5f991df3ffa8dfb80aa",
+        "hard_limits": {
+          "final_assays": 6,
+          "nonfinal_instrument_uses": 6,
+          "operation_attempts": 48,
+          "per_instrument": {
+            "uvvis": 6
+          },
+          "stocks": {
+            "reagent_mol": 0.09,
+            "solvent_L": 0.15
+          },
+          "vessel_starts": 6
+        },
+        "metadata": {
+          "planned_lifecycles": 6,
+          "provider_calls": 0,
+          "role": "known_policy_construct_validity_formal_matrix",
+          "shared_across_world_arm_policy_cells": true,
+          "task_id": "electrochemical-conversion"
+        },
+        "schema_version": "chemworld-campaign-resource-card-0.1"
+      },
+      "events": [
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.025
+          },
+          "action_sha256": "2e6882bf15f9facffa955c5f3feee4a378d95d7e79e80d57e90b9c23cdcc9cce",
+          "event_id": "campaign-resource-000001-ee912be0020e27fc",
+          "ordinal": 1,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000001-ee912be0020e27fc",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000002-0bf86cafeaccd8f7",
+          "ordinal": 2,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000002-0bf86cafeaccd8f7",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 1,
+            "volume_L": 0.025
+          },
+          "action_sha256": "7f2fcbc5eecdcd4e9ac75bba5f7edb2c23dca458a9cd7e4e93f8a3ed36e2d49d",
+          "event_id": "campaign-resource-000003-0f1aa5325ec9ae5c",
+          "ordinal": 3,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000003-0f1aa5325ec9ae5c",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000004-30612a0f92202fb5",
+          "ordinal": 4,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000004-30612a0f92202fb5",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.025
+          },
+          "action_sha256": "e33e51923a499e31513a2e64d5fa16bae293de9dd307ad51a396dcf6c582ac5e",
+          "event_id": "campaign-resource-000005-2050d9981e5c66dc",
+          "ordinal": 5,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000005-2050d9981e5c66dc",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000006-d31b4e3b065fcb8b",
+          "ordinal": 6,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000006-d31b4e3b065fcb8b",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 3,
+            "volume_L": 0.025
+          },
+          "action_sha256": "a14357f69d9f6162f41b3a4e07a4023230d9d1f8b426a1f956fc69e3fcd667ee",
+          "event_id": "campaign-resource-000007-9137d93df77e067e",
+          "ordinal": 7,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000007-9137d93df77e067e",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000008-5eb7ab03d6d56ef4",
+          "ordinal": 8,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000008-5eb7ab03d6d56ef4",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.025
+          },
+          "action_sha256": "2e6882bf15f9facffa955c5f3feee4a378d95d7e79e80d57e90b9c23cdcc9cce",
+          "event_id": "campaign-resource-000009-4931192b015462d9",
+          "ordinal": 9,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000009-4931192b015462d9",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000010-66f7a3d356c752dd",
+          "ordinal": 10,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000010-66f7a3d356c752dd",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.025
+          },
+          "action_sha256": "e33e51923a499e31513a2e64d5fa16bae293de9dd307ad51a396dcf6c582ac5e",
+          "event_id": "campaign-resource-000011-be09af30403ac3b5",
+          "ordinal": 11,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000011-be09af30403ac3b5",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000012-78ccd5a346ec3963",
+          "ordinal": 12,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000012-78ccd5a346ec3963",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        }
+      ],
+      "last_event_id": "campaign-resource-000012-78ccd5a346ec3963",
+      "ledger_sha256": "623bc3e6ca269d2ae1792ef54bdf65ef33ff57c420e84bdeba2e05de7f570669",
+      "schema_version": "chemworld-campaign-resource-ledger-0.1",
+      "state": {
+        "closed_batches": 6,
+        "discarded_batches": 6,
+        "final_assays": 0,
+        "instrument_uses": {},
+        "nonfinal_instrument_uses": 0,
+        "operation_attempts": 12,
+        "remaining": {
+          "final_assays": 6,
+          "nonfinal_instrument_uses": 6,
+          "operation_attempts": 36,
+          "per_instrument": {
+            "uvvis": 6
+          },
+          "stocks": {
+            "reagent_mol": 0.09,
+            "solvent_L": 0.0
+          },
+          "vessel_starts": 0
+        },
+        "report_only": {
+          "accumulated_risk": 0.11999999999999998,
+          "peak_risk": 0.0,
+          "physical_cost": 1.2,
+          "process_time_s": 0.0,
+          "sample_consumed_L": 0.0
+        },
+        "stocks_used": {
+          "solvent_L": 0.15
+        },
+        "vessel_starts": 6
+      }
+    },
+    "component_hashes": {
+      "controller_sha256": "688989da2c459e27ef4f10e6818564494c35e7125eac45bd471379b23a427cf2",
+      "decision_audit_sha256": "5da7c721316c82f3c5fb79294f5b87ab6f22106b4bf3310e6cc92b1013deaf11",
+      "endpoint_sha256": "2422425a3d72c7a883ca7ba636928ade890702e4c33ab236576e044e65837ed8",
+      "event_sha256": "3a3526e8115d0e353e6a24fc0d5a13fc748062e7b4db55ba5e3c160b9ae0bbc4",
+      "profile_sha256": "f636421843a5f25864df20e7f59f2f85244200032f952d6caedea4af43e2eaa5",
+      "resource_sha256": "ea1d121bab0a161e76867535421eec718995ac7a80ff01372b95aed5bbf485dd",
+      "state_sha256": "a8b743d5377de185bc1ac055e7247c5a6d792da64a80924dacb5152299ea51d5",
+      "terminal_sha256": "49d32d336da9ee5e20e697dc3ddc240731e728a918d6647fe5f69c65b5fc0f39"
+    },
+    "controller_manifest": {
+      "artifact_bindings": {
+        "comparator": ">=",
+        "diagnostic_signal": "observation.conversion",
+        "known_policy_contract_sha256": "79681abfa92af758af8326db1727b865376ad0da192ea13552b68fd94a66dd45",
+        "threshold": 0.007984561379998922,
+        "threshold_binding_sha256": "8a55b713ca900a644a301ecd8e83a0a686f9a28b3f60a18a85a4e57b66288c6a"
+      },
+      "controller_sha256": "db8de8b963c95460515dc9e82f31067a52ee23c6770e3eec63e8ff428ede7a06",
+      "policy_id": "start_then_discard",
+      "provider_call_count": 0,
+      "qualification_only": true,
+      "reads_material_information": false,
+      "schema_id": "chemworld.known_policy_controller",
+      "schema_version": "0.1.0"
+    },
+    "counts": {
+      "attempted_operation_count": 12,
+      "closed_lifecycle_count": 6,
+      "committed_operation_count": 12,
+      "discard_count": 6,
+      "final_assay_count": 0,
+      "measured_lifecycle_count": 0,
+      "planned_lifecycle_count": 6,
+      "provider_call_count": 0,
+      "threshold_eligible_lifecycle_count": 0
+    },
+    "decision_audits": [
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 3,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      }
+    ],
+    "execution_role": "original",
+    "execution_sha256": "b28f91a1255a0fb7056ee8d6dcc330a09ed3d4bb243d8f4f8a8bd7cc253eb27e",
+    "identity": {
+      "campaign_id": "cell-11-world-0001-anonymous-nominal-start-then-discard",
+      "cell_id": "cell-11-world-0001-anonymous-nominal-start-then-discard",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information_sha256": "f84c420f3b4d3f460768fd01718e9a04031c678eb73e04c4419d1a3b547cb930",
+      "observation_noise_namespace": "injected-synthetic-keyed-v07-qualification--world-0001",
+      "physical_identity": {
+        "formal_chemical_world": false,
+        "physics": "injected-synthetic-v07-qualification",
+        "world_id": "qualification-synthetic-world-0001",
+        "world_seed_schedule_coordinate": 1
+      },
+      "policy_id": "start_then_discard",
+      "qualification_namespace": "work-i-policy-control-runner-qualification-v0.1",
+      "qualification_only": true,
+      "qualification_role": "injected_synthetic_runner_audit",
+      "resource_card_sha256": "c7f7575b07380e084b33e0397d004b5d505f5c9f372bf5f991df3ffa8dfb80aa",
+      "world_id": "qualification-synthetic-world-0001",
+      "world_seed": 1
+    },
+    "lifecycle_terminals": [
+      {
+        "lifecycle_index": 0,
+        "terminal_event_index": 2,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      },
+      {
+        "lifecycle_index": 1,
+        "terminal_event_index": 4,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      },
+      {
+        "lifecycle_index": 2,
+        "terminal_event_index": 6,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      },
+      {
+        "lifecycle_index": 3,
+        "terminal_event_index": 8,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      },
+      {
+        "lifecycle_index": 4,
+        "terminal_event_index": 10,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      },
+      {
+        "lifecycle_index": 5,
+        "terminal_event_index": 12,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      }
+    ],
+    "profile_record": {
+      "construct_axes": {
+        "evidence_acquisition": {
+          "mean_first_measurement_operation_fraction": null,
+          "measured_lifecycle_fraction": 0.0,
+          "nonfinal_instrument_uses_per_closed_lifecycle": 0.0
+        },
+        "evidence_conditioned_action": {
+          "continued_after_measurement_fraction": 0.0,
+          "post_measure_process_operations_per_closed_lifecycle": 0.0,
+          "threshold_decision_concordance": null,
+          "threshold_eligible_fraction": 0.0
+        },
+        "outcome_trajectory": {
+          "global_best_discovery_fraction": null,
+          "loss_episode_recovery_rate": null,
+          "maximum_absolute_incumbent_drawdown": null,
+          "online_incumbent_retention_rate": null,
+          "terminal_to_global_best_ratio": null
+        },
+        "resource_deployment": {
+          "attempted_operations_per_closed_lifecycle": 2.0,
+          "committed_operations_per_closed_lifecycle": 2.0,
+          "total_cost_per_closed_lifecycle": 0.19999999999999998,
+          "total_risk_per_closed_lifecycle": 0.019999999999999997
+        },
+        "terminal_commitment": {
+          "assay_fraction": 0.0,
+          "closed_lifecycle_fraction": 1.0,
+          "discard_fraction": 1.0
+        }
+      },
+      "contract_sha256": "01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262",
+      "counts": {
+        "closed_lifecycle_count": 6,
+        "discard_count": 6,
+        "final_assay_count": 0,
+        "measured_lifecycle_count": 0,
+        "planned_lifecycle_count": 6,
+        "threshold_eligible_lifecycle_count": 0
+      },
+      "endpoint_context": {
+        "best_assayed_score": null,
+        "mean_assayed_score": null
+      },
+      "identity": {
+        "campaign_id": "cell-11-world-0001-anonymous-nominal-start-then-discard",
+        "information_arm": "anonymous_nominal_properties",
+        "policy_id": "start_then_discard",
+        "resource_card_sha256": "c7f7575b07380e084b33e0397d004b5d505f5c9f372bf5f991df3ffa8dfb80aa",
+        "trajectory_manifest_sha256": "3a3526e8115d0e353e6a24fc0d5a13fc748062e7b4db55ba5e3c160b9ae0bbc4",
+        "world_id": "qualification-synthetic-world-0001"
+      },
+      "reliability": {
+        "profile_exact_rebuild_match": true,
+        "provider_call_count": 0,
+        "trajectory_exact_replay_match": true
+      },
+      "schema_id": "chemworld.experimental_agency_profile",
+      "schema_version": "0.1.0"
+    },
+    "schema_id": "chemworld.policy_control_campaign_execution",
+    "schema_version": "0.1.0",
+    "trajectory_records": [
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 0,
+          "discarded_batches": 0,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 1,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 47,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.125
+            },
+            "vessel_starts": 5
+          },
+          "report_only": {
+            "accumulated_risk": 0.01,
+            "peak_risk": 0.0,
+            "physical_cost": 0.1,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.025
+          },
+          "vessel_starts": 1
+        },
+        "campaign_resource_state_sha256": "3d2cf4a9fb0bf71d69aa84a921aafb722357e5d4fdf2d5f4937f2ad7443f9ada",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 1,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 0,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 0,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "1a1e319c33791a0b9e37a61c7b0590fd4945e1af6dcb93a81abedda470c930fa",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 1,
+          "discarded_batches": 1,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 2,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 46,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.125
+            },
+            "vessel_starts": 5
+          },
+          "report_only": {
+            "accumulated_risk": 0.02,
+            "peak_risk": 0.0,
+            "physical_cost": 0.2,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.025
+          },
+          "vessel_starts": 1
+        },
+        "campaign_resource_state_sha256": "e6586e73de03380c6628b579caa052c5c53069a846d539a0438263bc37b0474e",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 2,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 0,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 0,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "92168bffd3562f509e2cc83c4b2a87ef7a46135607461483d91e9314ac4340af",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 1,
+          "discarded_batches": 1,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 3,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 45,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.09999999999999999
+            },
+            "vessel_starts": 4
+          },
+          "report_only": {
+            "accumulated_risk": 0.03,
+            "peak_risk": 0.0,
+            "physical_cost": 0.30000000000000004,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.05
+          },
+          "vessel_starts": 2
+        },
+        "campaign_resource_state_sha256": "a4d9859767fd61ca589aea062f35f0f6bff9bd3a1ae8ec5cff40e5e5c6b63252",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 1,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 3,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 1,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 1,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "c55f09533952009f2c319ac3e7f1c4ae25e84e959df227f18fe917419e464a5d",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 2,
+          "discarded_batches": 2,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 4,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 44,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.09999999999999999
+            },
+            "vessel_starts": 4
+          },
+          "report_only": {
+            "accumulated_risk": 0.04,
+            "peak_risk": 0.0,
+            "physical_cost": 0.4,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.05
+          },
+          "vessel_starts": 2
+        },
+        "campaign_resource_state_sha256": "0a534d94897f734c901cf265c95740e7891ca576a59ed49d461307a41f7ba0b1",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 4,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 1,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 1,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "6bd1650860d67324c1fd37ec242c65cd594e5fb9a27b8242da65b3015b30896a",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 2,
+          "discarded_batches": 2,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 5,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 43,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.07499999999999998
+            },
+            "vessel_starts": 3
+          },
+          "report_only": {
+            "accumulated_risk": 0.05,
+            "peak_risk": 0.0,
+            "physical_cost": 0.5,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.07500000000000001
+          },
+          "vessel_starts": 3
+        },
+        "campaign_resource_state_sha256": "c0a5d0a954a912c76481bb1c0197393653e9d6b5ecba337ad7c96e8b66e5dde9",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 5,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 2,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 2,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "0ca65a2cedc2a6a5ef0986bf6d7645f706873f7534b161a16a94c6b21ab12cb1",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 3,
+          "discarded_batches": 3,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 6,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 42,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.07499999999999998
+            },
+            "vessel_starts": 3
+          },
+          "report_only": {
+            "accumulated_risk": 0.060000000000000005,
+            "peak_risk": 0.0,
+            "physical_cost": 0.6,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.07500000000000001
+          },
+          "vessel_starts": 3
+        },
+        "campaign_resource_state_sha256": "36dcc4a4c0ce48c0e602358c1d4a5a5bcadb13b1a0675ace4b30b463f8ec15ba",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 6,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 2,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 2,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "6fb6317b5633ff8aaf1be7e7426f70dd8b6740ee3e81935568fc4b5c794ac068",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 3,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 3,
+          "discarded_batches": 3,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 7,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 41,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.04999999999999999
+            },
+            "vessel_starts": 2
+          },
+          "report_only": {
+            "accumulated_risk": 0.07,
+            "peak_risk": 0.0,
+            "physical_cost": 0.7,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.1
+          },
+          "vessel_starts": 4
+        },
+        "campaign_resource_state_sha256": "f3a0a9e38ecc7ca6b87f3e32ebdf655791af8b98aa8daa60c62b1c6b41d08aac",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 3,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 7,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 3,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 3,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "6bf082fdd446f961005d90d11cda40f4d465de836c5e70130b3db4124d5a0aba",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 4,
+          "discarded_batches": 4,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 8,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 40,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.04999999999999999
+            },
+            "vessel_starts": 2
+          },
+          "report_only": {
+            "accumulated_risk": 0.08,
+            "peak_risk": 0.0,
+            "physical_cost": 0.7999999999999999,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.1
+          },
+          "vessel_starts": 4
+        },
+        "campaign_resource_state_sha256": "87a3c0b2aa5077f078e2f0a09325906ae334feedbe1b258def5575783df69e68",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 8,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 3,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 3,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "0e5c82147c2aefdcff092bcb83e65a635bd747616e6e2b6da1be0bae050cda7a",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 4,
+          "discarded_batches": 4,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 9,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 39,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.024999999999999994
+            },
+            "vessel_starts": 1
+          },
+          "report_only": {
+            "accumulated_risk": 0.09,
+            "peak_risk": 0.0,
+            "physical_cost": 0.8999999999999999,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.125
+          },
+          "vessel_starts": 5
+        },
+        "campaign_resource_state_sha256": "87e64e888eb556e2ba94e6c1a310716b61a00db393fcfced5bea428edc055e46",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 9,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 4,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 4,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "2a5f44463d21a66ea812c466c05f217fde31afc1b748b42337f52e3fd66ca310",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 5,
+          "discarded_batches": 5,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 10,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 38,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.024999999999999994
+            },
+            "vessel_starts": 1
+          },
+          "report_only": {
+            "accumulated_risk": 0.09999999999999999,
+            "peak_risk": 0.0,
+            "physical_cost": 0.9999999999999999,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.125
+          },
+          "vessel_starts": 5
+        },
+        "campaign_resource_state_sha256": "56897ee3f6b862fb8334ce75946ff97e40cbce4ea4535269833a4717609492a7",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 10,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 4,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 4,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "37ff20507ecad0920ef25e8550ca3c60e7b972223da67823832f73420a4cf989",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 5,
+          "discarded_batches": 5,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 11,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 37,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.0
+            },
+            "vessel_starts": 0
+          },
+          "report_only": {
+            "accumulated_risk": 0.10999999999999999,
+            "peak_risk": 0.0,
+            "physical_cost": 1.0999999999999999,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.15
+          },
+          "vessel_starts": 6
+        },
+        "campaign_resource_state_sha256": "416e52d92214984367d92b6094b0a131792a13c9cd865cbf270fdce94c26392c",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 11,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 5,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 5,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "77761aea3dd8bf6327e9efb34ecb383c0ec528772f706f82796e0fe6f60308ef",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 6,
+          "discarded_batches": 6,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 12,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 36,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.0
+            },
+            "vessel_starts": 0
+          },
+          "report_only": {
+            "accumulated_risk": 0.11999999999999998,
+            "peak_risk": 0.0,
+            "physical_cost": 1.2,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.15
+          },
+          "vessel_starts": 6
+        },
+        "campaign_resource_state_sha256": "4985bd90c9f2296666593cd3383776d5417be487fa298fcf1393fb65fa204e1b",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 12,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 5,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 5,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "632ae74eef6889d05d7fd7ab43f1ba069681ceb78be582f7e25f09fe0cc3779a",
+        "terminated": false,
+        "truncated": false
+      }
+    ]
+  },
+  "protocol_sha256": "413fe9bf3a6a9718e7481e6e0d36e93ec799bae30815f43655b44db5c17ed972",
+  "retest": {
+    "campaign_resource_ledger": {
+      "card": {
+        "card_id": "work-i-known-policy-formal-k6-v1",
+        "card_sha256": "c7f7575b07380e084b33e0397d004b5d505f5c9f372bf5f991df3ffa8dfb80aa",
+        "hard_limits": {
+          "final_assays": 6,
+          "nonfinal_instrument_uses": 6,
+          "operation_attempts": 48,
+          "per_instrument": {
+            "uvvis": 6
+          },
+          "stocks": {
+            "reagent_mol": 0.09,
+            "solvent_L": 0.15
+          },
+          "vessel_starts": 6
+        },
+        "metadata": {
+          "planned_lifecycles": 6,
+          "provider_calls": 0,
+          "role": "known_policy_construct_validity_formal_matrix",
+          "shared_across_world_arm_policy_cells": true,
+          "task_id": "electrochemical-conversion"
+        },
+        "schema_version": "chemworld-campaign-resource-card-0.1"
+      },
+      "events": [
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.025
+          },
+          "action_sha256": "2e6882bf15f9facffa955c5f3feee4a378d95d7e79e80d57e90b9c23cdcc9cce",
+          "event_id": "campaign-resource-000001-ee912be0020e27fc",
+          "ordinal": 1,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000001-ee912be0020e27fc",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000002-0bf86cafeaccd8f7",
+          "ordinal": 2,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000002-0bf86cafeaccd8f7",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 1,
+            "volume_L": 0.025
+          },
+          "action_sha256": "7f2fcbc5eecdcd4e9ac75bba5f7edb2c23dca458a9cd7e4e93f8a3ed36e2d49d",
+          "event_id": "campaign-resource-000003-0f1aa5325ec9ae5c",
+          "ordinal": 3,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000003-0f1aa5325ec9ae5c",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000004-30612a0f92202fb5",
+          "ordinal": 4,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000004-30612a0f92202fb5",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.025
+          },
+          "action_sha256": "e33e51923a499e31513a2e64d5fa16bae293de9dd307ad51a396dcf6c582ac5e",
+          "event_id": "campaign-resource-000005-2050d9981e5c66dc",
+          "ordinal": 5,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000005-2050d9981e5c66dc",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000006-d31b4e3b065fcb8b",
+          "ordinal": 6,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000006-d31b4e3b065fcb8b",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 3,
+            "volume_L": 0.025
+          },
+          "action_sha256": "a14357f69d9f6162f41b3a4e07a4023230d9d1f8b426a1f956fc69e3fcd667ee",
+          "event_id": "campaign-resource-000007-9137d93df77e067e",
+          "ordinal": 7,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000007-9137d93df77e067e",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000008-5eb7ab03d6d56ef4",
+          "ordinal": 8,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000008-5eb7ab03d6d56ef4",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.025
+          },
+          "action_sha256": "2e6882bf15f9facffa955c5f3feee4a378d95d7e79e80d57e90b9c23cdcc9cce",
+          "event_id": "campaign-resource-000009-4931192b015462d9",
+          "ordinal": 9,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000009-4931192b015462d9",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000010-66f7a3d356c752dd",
+          "ordinal": 10,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000010-66f7a3d356c752dd",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.025
+          },
+          "action_sha256": "e33e51923a499e31513a2e64d5fa16bae293de9dd307ad51a396dcf6c582ac5e",
+          "event_id": "campaign-resource-000011-be09af30403ac3b5",
+          "ordinal": 11,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "outcome_sha256": "de173a75f4c52381039aaf8bb67edd75f3fa83025e10e034c9176e79bd9113b1"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000011-be09af30403ac3b5",
+            "proposed_delta": {
+              "discarded_batches": 0,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {
+                "solvent_L": 0.025
+              },
+              "vessel_starts": 1
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": true
+        },
+        {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "action_sha256": "23eb77a32d89492413fc9792fce4b3ab196b853b332a699c5934bbcb0e6acacd",
+          "event_id": "campaign-resource-000012-78ccd5a346ec3963",
+          "ordinal": 12,
+          "outcome": {
+            "committed": true,
+            "delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.01,
+                "observed_risk": 0.0,
+                "physical_cost": 0.1,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "outcome_sha256": "1291e29c6008587f5314048a74a1bfaab05d2b2a1c2e37a7525c7f0314727cee"
+          },
+          "preflight": {
+            "allowed": true,
+            "attempt_charged": true,
+            "event_id": "campaign-resource-000012-78ccd5a346ec3963",
+            "proposed_delta": {
+              "discarded_batches": 1,
+              "final_assays": 0,
+              "instrument_uses": {},
+              "nonfinal_instrument_uses": 0,
+              "operation_attempts": 1,
+              "report_only": {
+                "accumulated_risk": 0.0,
+                "observed_risk": 0.0,
+                "physical_cost": 0.0,
+                "process_time_s": 0.0,
+                "sample_consumed_L": 0.0
+              },
+              "schema_version": "chemworld-campaign-resource-delta-0.1",
+              "stocks": {},
+              "vessel_starts": 0
+            },
+            "rejection_reasons": []
+          },
+          "starts_vessel": false
+        }
+      ],
+      "last_event_id": "campaign-resource-000012-78ccd5a346ec3963",
+      "ledger_sha256": "623bc3e6ca269d2ae1792ef54bdf65ef33ff57c420e84bdeba2e05de7f570669",
+      "schema_version": "chemworld-campaign-resource-ledger-0.1",
+      "state": {
+        "closed_batches": 6,
+        "discarded_batches": 6,
+        "final_assays": 0,
+        "instrument_uses": {},
+        "nonfinal_instrument_uses": 0,
+        "operation_attempts": 12,
+        "remaining": {
+          "final_assays": 6,
+          "nonfinal_instrument_uses": 6,
+          "operation_attempts": 36,
+          "per_instrument": {
+            "uvvis": 6
+          },
+          "stocks": {
+            "reagent_mol": 0.09,
+            "solvent_L": 0.0
+          },
+          "vessel_starts": 0
+        },
+        "report_only": {
+          "accumulated_risk": 0.11999999999999998,
+          "peak_risk": 0.0,
+          "physical_cost": 1.2,
+          "process_time_s": 0.0,
+          "sample_consumed_L": 0.0
+        },
+        "stocks_used": {
+          "solvent_L": 0.15
+        },
+        "vessel_starts": 6
+      }
+    },
+    "component_hashes": {
+      "controller_sha256": "688989da2c459e27ef4f10e6818564494c35e7125eac45bd471379b23a427cf2",
+      "decision_audit_sha256": "5da7c721316c82f3c5fb79294f5b87ab6f22106b4bf3310e6cc92b1013deaf11",
+      "endpoint_sha256": "2422425a3d72c7a883ca7ba636928ade890702e4c33ab236576e044e65837ed8",
+      "event_sha256": "3a3526e8115d0e353e6a24fc0d5a13fc748062e7b4db55ba5e3c160b9ae0bbc4",
+      "profile_sha256": "f636421843a5f25864df20e7f59f2f85244200032f952d6caedea4af43e2eaa5",
+      "resource_sha256": "ea1d121bab0a161e76867535421eec718995ac7a80ff01372b95aed5bbf485dd",
+      "state_sha256": "a8b743d5377de185bc1ac055e7247c5a6d792da64a80924dacb5152299ea51d5",
+      "terminal_sha256": "49d32d336da9ee5e20e697dc3ddc240731e728a918d6647fe5f69c65b5fc0f39"
+    },
+    "controller_manifest": {
+      "artifact_bindings": {
+        "comparator": ">=",
+        "diagnostic_signal": "observation.conversion",
+        "known_policy_contract_sha256": "79681abfa92af758af8326db1727b865376ad0da192ea13552b68fd94a66dd45",
+        "threshold": 0.007984561379998922,
+        "threshold_binding_sha256": "8a55b713ca900a644a301ecd8e83a0a686f9a28b3f60a18a85a4e57b66288c6a"
+      },
+      "controller_sha256": "db8de8b963c95460515dc9e82f31067a52ee23c6770e3eec63e8ff428ede7a06",
+      "policy_id": "start_then_discard",
+      "provider_call_count": 0,
+      "qualification_only": true,
+      "reads_material_information": false,
+      "schema_id": "chemworld.known_policy_controller",
+      "schema_version": "0.1.0"
+    },
+    "counts": {
+      "attempted_operation_count": 12,
+      "closed_lifecycle_count": 6,
+      "committed_operation_count": 12,
+      "discard_count": 6,
+      "final_assay_count": 0,
+      "measured_lifecycle_count": 0,
+      "planned_lifecycle_count": 6,
+      "provider_call_count": 0,
+      "threshold_eligible_lifecycle_count": 0
+    },
+    "decision_audits": [
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 3,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.025
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "adaptation_source": "none",
+        "material_information_accessed": false,
+        "provider_call_count": 0,
+        "status": "provided"
+      }
+    ],
+    "execution_role": "retest",
+    "execution_sha256": "7ac158528ee14613403a503ef849b191cc544c729d441465bc3b1cce6fd75c19",
+    "identity": {
+      "campaign_id": "cell-11-world-0001-anonymous-nominal-start-then-discard",
+      "cell_id": "cell-11-world-0001-anonymous-nominal-start-then-discard",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information_sha256": "f84c420f3b4d3f460768fd01718e9a04031c678eb73e04c4419d1a3b547cb930",
+      "observation_noise_namespace": "injected-synthetic-keyed-v07-qualification--world-0001",
+      "physical_identity": {
+        "formal_chemical_world": false,
+        "physics": "injected-synthetic-v07-qualification",
+        "world_id": "qualification-synthetic-world-0001",
+        "world_seed_schedule_coordinate": 1
+      },
+      "policy_id": "start_then_discard",
+      "qualification_namespace": "work-i-policy-control-runner-qualification-v0.1",
+      "qualification_only": true,
+      "qualification_role": "injected_synthetic_runner_audit",
+      "resource_card_sha256": "c7f7575b07380e084b33e0397d004b5d505f5c9f372bf5f991df3ffa8dfb80aa",
+      "world_id": "qualification-synthetic-world-0001",
+      "world_seed": 1
+    },
+    "lifecycle_terminals": [
+      {
+        "lifecycle_index": 0,
+        "terminal_event_index": 2,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      },
+      {
+        "lifecycle_index": 1,
+        "terminal_event_index": 4,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      },
+      {
+        "lifecycle_index": 2,
+        "terminal_event_index": 6,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      },
+      {
+        "lifecycle_index": 3,
+        "terminal_event_index": 8,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      },
+      {
+        "lifecycle_index": 4,
+        "terminal_event_index": 10,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      },
+      {
+        "lifecycle_index": 5,
+        "terminal_event_index": 12,
+        "terminal_kind": "discard",
+        "terminal_score": null
+      }
+    ],
+    "profile_record": {
+      "construct_axes": {
+        "evidence_acquisition": {
+          "mean_first_measurement_operation_fraction": null,
+          "measured_lifecycle_fraction": 0.0,
+          "nonfinal_instrument_uses_per_closed_lifecycle": 0.0
+        },
+        "evidence_conditioned_action": {
+          "continued_after_measurement_fraction": 0.0,
+          "post_measure_process_operations_per_closed_lifecycle": 0.0,
+          "threshold_decision_concordance": null,
+          "threshold_eligible_fraction": 0.0
+        },
+        "outcome_trajectory": {
+          "global_best_discovery_fraction": null,
+          "loss_episode_recovery_rate": null,
+          "maximum_absolute_incumbent_drawdown": null,
+          "online_incumbent_retention_rate": null,
+          "terminal_to_global_best_ratio": null
+        },
+        "resource_deployment": {
+          "attempted_operations_per_closed_lifecycle": 2.0,
+          "committed_operations_per_closed_lifecycle": 2.0,
+          "total_cost_per_closed_lifecycle": 0.19999999999999998,
+          "total_risk_per_closed_lifecycle": 0.019999999999999997
+        },
+        "terminal_commitment": {
+          "assay_fraction": 0.0,
+          "closed_lifecycle_fraction": 1.0,
+          "discard_fraction": 1.0
+        }
+      },
+      "contract_sha256": "01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262",
+      "counts": {
+        "closed_lifecycle_count": 6,
+        "discard_count": 6,
+        "final_assay_count": 0,
+        "measured_lifecycle_count": 0,
+        "planned_lifecycle_count": 6,
+        "threshold_eligible_lifecycle_count": 0
+      },
+      "endpoint_context": {
+        "best_assayed_score": null,
+        "mean_assayed_score": null
+      },
+      "identity": {
+        "campaign_id": "cell-11-world-0001-anonymous-nominal-start-then-discard",
+        "information_arm": "anonymous_nominal_properties",
+        "policy_id": "start_then_discard",
+        "resource_card_sha256": "c7f7575b07380e084b33e0397d004b5d505f5c9f372bf5f991df3ffa8dfb80aa",
+        "trajectory_manifest_sha256": "3a3526e8115d0e353e6a24fc0d5a13fc748062e7b4db55ba5e3c160b9ae0bbc4",
+        "world_id": "qualification-synthetic-world-0001"
+      },
+      "reliability": {
+        "profile_exact_rebuild_match": true,
+        "provider_call_count": 0,
+        "trajectory_exact_replay_match": true
+      },
+      "schema_id": "chemworld.experimental_agency_profile",
+      "schema_version": "0.1.0"
+    },
+    "schema_id": "chemworld.policy_control_campaign_execution",
+    "schema_version": "0.1.0",
+    "trajectory_records": [
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 0,
+          "discarded_batches": 0,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 1,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 47,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.125
+            },
+            "vessel_starts": 5
+          },
+          "report_only": {
+            "accumulated_risk": 0.01,
+            "peak_risk": 0.0,
+            "physical_cost": 0.1,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.025
+          },
+          "vessel_starts": 1
+        },
+        "campaign_resource_state_sha256": "3d2cf4a9fb0bf71d69aa84a921aafb722357e5d4fdf2d5f4937f2ad7443f9ada",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 1,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 0,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 0,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "1a1e319c33791a0b9e37a61c7b0590fd4945e1af6dcb93a81abedda470c930fa",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 1,
+          "discarded_batches": 1,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 2,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 46,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.125
+            },
+            "vessel_starts": 5
+          },
+          "report_only": {
+            "accumulated_risk": 0.02,
+            "peak_risk": 0.0,
+            "physical_cost": 0.2,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.025
+          },
+          "vessel_starts": 1
+        },
+        "campaign_resource_state_sha256": "e6586e73de03380c6628b579caa052c5c53069a846d539a0438263bc37b0474e",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 2,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 0,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 0,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "92168bffd3562f509e2cc83c4b2a87ef7a46135607461483d91e9314ac4340af",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 1,
+          "discarded_batches": 1,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 3,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 45,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.09999999999999999
+            },
+            "vessel_starts": 4
+          },
+          "report_only": {
+            "accumulated_risk": 0.03,
+            "peak_risk": 0.0,
+            "physical_cost": 0.30000000000000004,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.05
+          },
+          "vessel_starts": 2
+        },
+        "campaign_resource_state_sha256": "a4d9859767fd61ca589aea062f35f0f6bff9bd3a1ae8ec5cff40e5e5c6b63252",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 1,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 3,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 1,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 1,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "c55f09533952009f2c319ac3e7f1c4ae25e84e959df227f18fe917419e464a5d",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 2,
+          "discarded_batches": 2,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 4,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 44,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.09999999999999999
+            },
+            "vessel_starts": 4
+          },
+          "report_only": {
+            "accumulated_risk": 0.04,
+            "peak_risk": 0.0,
+            "physical_cost": 0.4,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.05
+          },
+          "vessel_starts": 2
+        },
+        "campaign_resource_state_sha256": "0a534d94897f734c901cf265c95740e7891ca576a59ed49d461307a41f7ba0b1",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 4,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 1,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 1,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "6bd1650860d67324c1fd37ec242c65cd594e5fb9a27b8242da65b3015b30896a",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 2,
+          "discarded_batches": 2,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 5,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 43,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.07499999999999998
+            },
+            "vessel_starts": 3
+          },
+          "report_only": {
+            "accumulated_risk": 0.05,
+            "peak_risk": 0.0,
+            "physical_cost": 0.5,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.07500000000000001
+          },
+          "vessel_starts": 3
+        },
+        "campaign_resource_state_sha256": "c0a5d0a954a912c76481bb1c0197393653e9d6b5ecba337ad7c96e8b66e5dde9",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 5,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 2,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 2,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "0ca65a2cedc2a6a5ef0986bf6d7645f706873f7534b161a16a94c6b21ab12cb1",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 3,
+          "discarded_batches": 3,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 6,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 42,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.07499999999999998
+            },
+            "vessel_starts": 3
+          },
+          "report_only": {
+            "accumulated_risk": 0.060000000000000005,
+            "peak_risk": 0.0,
+            "physical_cost": 0.6,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.07500000000000001
+          },
+          "vessel_starts": 3
+        },
+        "campaign_resource_state_sha256": "36dcc4a4c0ce48c0e602358c1d4a5a5bcadb13b1a0675ace4b30b463f8ec15ba",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 6,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 2,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 2,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "6fb6317b5633ff8aaf1be7e7426f70dd8b6740ee3e81935568fc4b5c794ac068",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 3,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 3,
+          "discarded_batches": 3,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 7,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 41,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.04999999999999999
+            },
+            "vessel_starts": 2
+          },
+          "report_only": {
+            "accumulated_risk": 0.07,
+            "peak_risk": 0.0,
+            "physical_cost": 0.7,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.1
+          },
+          "vessel_starts": 4
+        },
+        "campaign_resource_state_sha256": "f3a0a9e38ecc7ca6b87f3e32ebdf655791af8b98aa8daa60c62b1c6b41d08aac",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 3,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 7,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 3,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 3,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "6bf082fdd446f961005d90d11cda40f4d465de836c5e70130b3db4124d5a0aba",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 4,
+          "discarded_batches": 4,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 8,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 40,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.04999999999999999
+            },
+            "vessel_starts": 2
+          },
+          "report_only": {
+            "accumulated_risk": 0.08,
+            "peak_risk": 0.0,
+            "physical_cost": 0.7999999999999999,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.1
+          },
+          "vessel_starts": 4
+        },
+        "campaign_resource_state_sha256": "87a3c0b2aa5077f078e2f0a09325906ae334feedbe1b258def5575783df69e68",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 8,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 3,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 3,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "0e5c82147c2aefdcff092bcb83e65a635bd747616e6e2b6da1be0bae050cda7a",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 4,
+          "discarded_batches": 4,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 9,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 39,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.024999999999999994
+            },
+            "vessel_starts": 1
+          },
+          "report_only": {
+            "accumulated_risk": 0.09,
+            "peak_risk": 0.0,
+            "physical_cost": 0.8999999999999999,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.125
+          },
+          "vessel_starts": 5
+        },
+        "campaign_resource_state_sha256": "87e64e888eb556e2ba94e6c1a310716b61a00db393fcfced5bea428edc055e46",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 9,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 4,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 4,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "2a5f44463d21a66ea812c466c05f217fde31afc1b748b42337f52e3fd66ca310",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 5,
+          "discarded_batches": 5,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 10,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 38,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.024999999999999994
+            },
+            "vessel_starts": 1
+          },
+          "report_only": {
+            "accumulated_risk": 0.09999999999999999,
+            "peak_risk": 0.0,
+            "physical_cost": 0.9999999999999999,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.125
+          },
+          "vessel_starts": 5
+        },
+        "campaign_resource_state_sha256": "56897ee3f6b862fb8334ce75946ff97e40cbce4ea4535269833a4717609492a7",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 10,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 4,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 4,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "37ff20507ecad0920ef25e8550ca3c60e7b972223da67823832f73420a4cf989",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.025
+        },
+        "campaign_resource_state": {
+          "closed_batches": 5,
+          "discarded_batches": 5,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 11,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 37,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.0
+            },
+            "vessel_starts": 0
+          },
+          "report_only": {
+            "accumulated_risk": 0.10999999999999999,
+            "peak_risk": 0.0,
+            "physical_cost": 1.0999999999999999,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.15
+          },
+          "vessel_starts": 6
+        },
+        "campaign_resource_state_sha256": "416e52d92214984367d92b6094b0a131792a13c9cd865cbf270fdce94c26392c",
+        "decision_audit": {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.025
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 11,
+        "event_type": "operation_result",
+        "info": {
+          "experiment_ended": false,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 5,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 5,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 0
+        },
+        "state_sha256": "77761aea3dd8bf6327e9efb34ecb383c0ec528772f706f82796e0fe6f60308ef",
+        "terminated": false,
+        "truncated": false
+      },
+      {
+        "action": {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        },
+        "campaign_resource_state": {
+          "closed_batches": 6,
+          "discarded_batches": 6,
+          "final_assays": 0,
+          "instrument_uses": {},
+          "nonfinal_instrument_uses": 0,
+          "operation_attempts": 12,
+          "remaining": {
+            "final_assays": 6,
+            "nonfinal_instrument_uses": 6,
+            "operation_attempts": 36,
+            "per_instrument": {
+              "uvvis": 6
+            },
+            "stocks": {
+              "reagent_mol": 0.09,
+              "solvent_L": 0.0
+            },
+            "vessel_starts": 0
+          },
+          "report_only": {
+            "accumulated_risk": 0.11999999999999998,
+            "peak_risk": 0.0,
+            "physical_cost": 1.2,
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0
+          },
+          "stocks_used": {
+            "solvent_L": 0.15
+          },
+          "vessel_starts": 6
+        },
+        "campaign_resource_state_sha256": "4985bd90c9f2296666593cd3383776d5417be487fa298fcf1393fb65fa204e1b",
+        "decision_audit": {
+          "action": {
+            "operation": "discard_batch",
+            "reason": "known_policy_immediate_discard"
+          },
+          "adaptation_source": "none",
+          "material_information_accessed": false,
+          "provider_call_count": 0,
+          "status": "provided"
+        },
+        "event_index": 12,
+        "event_type": "batch_discard",
+        "info": {
+          "experiment_ended": true,
+          "transaction_status": "committed"
+        },
+        "lifecycle_index": 5,
+        "observation": {},
+        "observation_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "reward": 0.0,
+        "state": {
+          "lifecycle_index": 5,
+          "policy_id": "start_then_discard",
+          "qualification_identity": "injected-synthetic-v07-qualification",
+          "schedule_coordinate": 1,
+          "within_lifecycle_index": 1
+        },
+        "state_sha256": "632ae74eef6889d05d7fd7ab43f1ba069681ceb78be582f7e25f09fe0cc3779a",
+        "terminated": false,
+        "truncated": false
+      }
+    ]
+  },
+  "retest_audit": {
+    "all_components_match": true,
+    "component_matches": {
+      "controller_sha256": true,
+      "decision_audit_sha256": true,
+      "endpoint_sha256": true,
+      "event_sha256": true,
+      "profile_sha256": true,
+      "resource_sha256": true,
+      "state_sha256": true,
+      "terminal_sha256": true
+    },
+    "same_identity": true
+  },
+  "runner_version": "chemworld-policy-control-matrix-runner-0.1",
+  "schema_id": "chemworld.policy_control_cell_bundle",
+  "schema_version": "0.1.0",
+  "source_manifest_sha256": "481f38d1427d476ecac2cef543aca6e57bbd73de4a5fa5a5bdbf3c7a5737c38b"
+}
