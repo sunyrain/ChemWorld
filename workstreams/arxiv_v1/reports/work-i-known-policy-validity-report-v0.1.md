@@ -37,10 +37,10 @@ Explicit non-orderings remain descriptive and are not promoted to gates: mean_as
 
 ## Reliability and evidence
 
-All 30 original/retest pairs matched in controller, trajectory identity, profile, and component hashes. V06 independently rebuilt all profiles and resource ledgers, and its reconstruction exactly matched the immutable formal audit receipt.
+All 30 original/retest pairs matched in controller, trajectory identity, profile, and component hashes. V06 independently rebuilt all campaign profiles. V06 independently replayed all campaign resource ledgers. The V06 reconstruction exactly matched the immutable formal audit receipt.
 
 ## Interpretation boundary
 
 This is a bounded construct/discriminant-validity positive control for three deterministic policies in five simulated worlds and two information arms. It is not an endpoint ranking, causal information-null result, provider/model capability claim, scalar intelligence score, or real-laboratory generalization.
 
-Machine report SHA-256: `07b491c843e2496a983bcf864f91ac230df7b303e35104f4b092d862ba9a213f`
+Machine report SHA-256: `ebb56a052929944330acdf594e4a341c8c8fdb2b4ea2e276556384e7ce6b2064`
