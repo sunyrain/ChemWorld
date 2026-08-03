@@ -327,7 +327,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-D01 | P0 | REVIEW | 冻结新增实验的数据 schema、单位和 counting rules | M02 | 是 |
 | W1-D02 | P0 | BLOCKED | 17.7 GB G0 raw roots 持久归档与公开 identifier | 外部服务 | 是 |
 | W1-D03 | P0 | REVIEW | 构建单一 frozen derived-data layer | F/V/L reports | 否 |
-| W1-D04 | P0 | OPEN | 为 F/V/L 新增 evidence DAG nodes 与 source binding | reports ready | 是 |
+| W1-D04 | P0 | CLAIMED | 为 F/V/L 新增 evidence DAG nodes 与 source binding | reports ready | 是 |
 | W1-D05 | P0 | OPEN | 更新 experiment ledger、release manifest 和 data card | D03–D04 | 否 |
 | W1-D06 | P0 | BLOCKED | 作者、单位、corresponding author 与 ORCID metadata | 项目负责人 | 是 |
 | W1-D07 | P0 | OPEN | 标准 arXiv PDF、ZIP、TAR.GZ 与 proof rebuild | S/P/D 完成 | 否 |
