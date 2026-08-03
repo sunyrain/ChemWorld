@@ -1,0 +1,360 @@
+{
+  "certificate_id": "chemworld-work-i-world-fork-c4c3bce535ce5eb5",
+  "certificate_sha256": "c4c3bce535ce5eb5b8f189c57786f1551a54829261fe68833474cf81b4beb554",
+  "claim_boundary": {
+    "agent_performance_claim": false,
+    "arbitrary_world_dsl_claim": false,
+    "exact_replay": true,
+    "expected_response_divergence": true,
+    "fixed_sequence_executability": true,
+    "physical_laboratory_transfer_claim": false,
+    "programmable_world_apparatus": true,
+    "public_contract_invariance": true,
+    "single_private_component_fork": true
+  },
+  "design": {
+    "executions_per_variant": 2,
+    "intervention_class_count": 2,
+    "parent_child_pair_count": 6,
+    "provider_call_count": 0,
+    "same_public_midpoint_action_sequence_within_pair": true,
+    "seed_count_per_class": 3,
+    "trace_count": 24,
+    "world_variants_per_pair": 2
+  },
+  "result": {
+    "case_summaries": [
+      {
+        "case_id": "electrochemical-material-law-counterfactual",
+        "expectation_summaries": [
+          {
+            "channel": "physical_state",
+            "expectation_id": "terminal-selective-product-amount",
+            "maximum_absolute_delta": 4.519935729999997e-06,
+            "maximum_relative_delta": 0.05246771347220017,
+            "minimum_absolute_delta": 2.10683291e-06,
+            "minimum_relative_delta": 0.024202454560630086,
+            "seed_pass_count": 3
+          },
+          {
+            "channel": "public_observation",
+            "expectation_id": "assayed-ohmic-efficiency",
+            "maximum_absolute_delta": 0.20553219318389893,
+            "maximum_relative_delta": 0.21161887248719857,
+            "minimum_absolute_delta": 0.12095260620117188,
+            "minimum_relative_delta": 0.12369842972788452,
+            "seed_pass_count": 3
+          }
+        ],
+        "intervention_class": "material_law_counterfactual",
+        "pair_pass_count": 3,
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "target_component_id": "private_physics.material_laws"
+      },
+      {
+        "case_id": "partition-constitutive-law-family",
+        "expectation_summaries": [
+          {
+            "channel": "physical_state",
+            "expectation_id": "terminal-product-organic-amount",
+            "maximum_absolute_delta": 0.0017476230214899992,
+            "maximum_relative_delta": 0.2136267864027609,
+            "minimum_absolute_delta": 0.0011028142894999992,
+            "minimum_relative_delta": 0.213446059260661,
+            "seed_pass_count": 3
+          },
+          {
+            "channel": "public_observation",
+            "expectation_id": "assayed-product-organic-fraction",
+            "maximum_absolute_delta": 0.05307811498641968,
+            "maximum_relative_delta": 0.07694703201910319,
+            "minimum_absolute_delta": 0.03866004943847656,
+            "minimum_relative_delta": 0.047379523196651015,
+            "seed_pass_count": 3
+          }
+        ],
+        "intervention_class": "mechanism_or_constitutive_law",
+        "pair_pass_count": 3,
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "target_component_id": "private_physics.constitutive_laws"
+      }
+    ],
+    "gate_pass_counts": {
+      "exact_replay": 6,
+      "expected_response_divergence": 6,
+      "public_contract_invariance": 6,
+      "same_sequence_executability": 6,
+      "single_target_lineage": 6,
+      "zero_provider_calls": 6
+    },
+    "pair_pass_count": 6,
+    "pairs": [
+      {
+        "action_count_per_execution": 10,
+        "case_id": "partition-constitutive-law-family",
+        "child_world_sha256": "f785619d8ea83db2b53f1cd745227009bf9f4f3783b9ee1551adb399c8659388",
+        "expectations": [
+          {
+            "absolute_delta": 0.0011028142894999992,
+            "channel": "physical_state",
+            "expectation_id": "terminal-product-organic-amount",
+            "passed": true,
+            "relative_delta": 0.2136267864027609,
+            "signed_delta": 0.0011028142894999992
+          },
+          {
+            "absolute_delta": 0.04930967092514038,
+            "channel": "public_observation",
+            "expectation_id": "assayed-product-organic-fraction",
+            "passed": true,
+            "relative_delta": 0.06725670551660444,
+            "signed_delta": 0.04930967092514038
+          }
+        ],
+        "fork_id": "chemworld-work-i-fork-555deeddee4146ec",
+        "fork_spec_sha256": "7872ba48b39e2d7f006924d3244c2c04cf56ed646298ecf3c162dd1685dbb57b",
+        "gates": {
+          "exact_replay": true,
+          "expected_response_divergence": true,
+          "public_contract_invariance": true,
+          "same_sequence_executability": true,
+          "single_target_lineage": true,
+          "zero_provider_calls": true
+        },
+        "identity_leakage_finding_count": 0,
+        "intervention_class": "mechanism_or_constitutive_law",
+        "parent_world_sha256": "2c436384ceea3d7df90bdf9f514cdce08d9915ed1feeb855cacd763dd27b539e",
+        "passed": true,
+        "public_component_count": 9,
+        "public_invariant_component_count": 9,
+        "seed": 0,
+        "target_component_id": "private_physics.constitutive_laws"
+      },
+      {
+        "action_count_per_execution": 10,
+        "case_id": "partition-constitutive-law-family",
+        "child_world_sha256": "8057cd233e21d99190287e90409a86c1c91b919c8a83e60d41b4e8aee420b5b6",
+        "expectations": [
+          {
+            "absolute_delta": 0.0013695866047799994,
+            "channel": "physical_state",
+            "expectation_id": "terminal-product-organic-amount",
+            "passed": true,
+            "relative_delta": 0.213446059260661,
+            "signed_delta": 0.0013695866047799994
+          },
+          {
+            "absolute_delta": 0.05307811498641968,
+            "channel": "public_observation",
+            "expectation_id": "assayed-product-organic-fraction",
+            "passed": true,
+            "relative_delta": 0.07694703201910319,
+            "signed_delta": 0.05307811498641968
+          }
+        ],
+        "fork_id": "chemworld-work-i-fork-6193914a042f04ed",
+        "fork_spec_sha256": "29a77b03813176ae8c06682b08cf2ad5300d59930744c123b18585a49f7d97f1",
+        "gates": {
+          "exact_replay": true,
+          "expected_response_divergence": true,
+          "public_contract_invariance": true,
+          "same_sequence_executability": true,
+          "single_target_lineage": true,
+          "zero_provider_calls": true
+        },
+        "identity_leakage_finding_count": 0,
+        "intervention_class": "mechanism_or_constitutive_law",
+        "parent_world_sha256": "12045c19e1475382c9c4caee8f45996aed9a3a7065394e3e53e03fdbe922347f",
+        "passed": true,
+        "public_component_count": 9,
+        "public_invariant_component_count": 9,
+        "seed": 1,
+        "target_component_id": "private_physics.constitutive_laws"
+      },
+      {
+        "action_count_per_execution": 10,
+        "case_id": "partition-constitutive-law-family",
+        "child_world_sha256": "fed891ee6143abcb034ae8f0a91334728aa5f2735556198796949eb338ad420e",
+        "expectations": [
+          {
+            "absolute_delta": 0.0017476230214899992,
+            "channel": "physical_state",
+            "expectation_id": "terminal-product-organic-amount",
+            "passed": true,
+            "relative_delta": 0.21359358866273767,
+            "signed_delta": 0.0017476230214899992
+          },
+          {
+            "absolute_delta": 0.03866004943847656,
+            "channel": "public_observation",
+            "expectation_id": "assayed-product-organic-fraction",
+            "passed": true,
+            "relative_delta": 0.047379523196651015,
+            "signed_delta": 0.03866004943847656
+          }
+        ],
+        "fork_id": "chemworld-work-i-fork-def45ef172cdd016",
+        "fork_spec_sha256": "447ff71660feb48636f89c85f2454cc931983b53846307f6948dac18b8e01e1f",
+        "gates": {
+          "exact_replay": true,
+          "expected_response_divergence": true,
+          "public_contract_invariance": true,
+          "same_sequence_executability": true,
+          "single_target_lineage": true,
+          "zero_provider_calls": true
+        },
+        "identity_leakage_finding_count": 0,
+        "intervention_class": "mechanism_or_constitutive_law",
+        "parent_world_sha256": "6ffaf9df138f4ec942aa0e19b7c587521649133c013406c391f339d4114f12a5",
+        "passed": true,
+        "public_component_count": 9,
+        "public_invariant_component_count": 9,
+        "seed": 2,
+        "target_component_id": "private_physics.constitutive_laws"
+      },
+      {
+        "action_count_per_execution": 11,
+        "case_id": "electrochemical-material-law-counterfactual",
+        "child_world_sha256": "fdc3b26a4593c33c596222f17f7f040a24cc9b86c4c7525713406f4235da55d1",
+        "expectations": [
+          {
+            "absolute_delta": 4.519935729999997e-06,
+            "channel": "physical_state",
+            "expectation_id": "terminal-selective-product-amount",
+            "passed": true,
+            "relative_delta": 0.05246771347220017,
+            "signed_delta": -4.519935729999997e-06
+          },
+          {
+            "absolute_delta": 0.12095260620117188,
+            "channel": "public_observation",
+            "expectation_id": "assayed-ohmic-efficiency",
+            "passed": true,
+            "relative_delta": 0.12369842972788452,
+            "signed_delta": -0.12095260620117188
+          }
+        ],
+        "fork_id": "chemworld-work-i-fork-f6fac321257655f4",
+        "fork_spec_sha256": "179a4ec8c517bf2273e1c9f01ba57125da1f8da433279f51879101c5ca5c74f0",
+        "gates": {
+          "exact_replay": true,
+          "expected_response_divergence": true,
+          "public_contract_invariance": true,
+          "same_sequence_executability": true,
+          "single_target_lineage": true,
+          "zero_provider_calls": true
+        },
+        "identity_leakage_finding_count": 0,
+        "intervention_class": "material_law_counterfactual",
+        "parent_world_sha256": "01d494bee0832d0cff3a2ab401888f1ceeec155b8b9641ed73fac62372b722ee",
+        "passed": true,
+        "public_component_count": 9,
+        "public_invariant_component_count": 9,
+        "seed": 0,
+        "target_component_id": "private_physics.material_laws"
+      },
+      {
+        "action_count_per_execution": 11,
+        "case_id": "electrochemical-material-law-counterfactual",
+        "child_world_sha256": "27bbaac7c650760c985df44cfee6af6b62c6ff74fc1272e67fd4401cdf7f1e9a",
+        "expectations": [
+          {
+            "absolute_delta": 4.333492260000002e-06,
+            "channel": "physical_state",
+            "expectation_id": "terminal-selective-product-amount",
+            "passed": true,
+            "relative_delta": 0.05026482137163836,
+            "signed_delta": -4.333492260000002e-06
+          },
+          {
+            "absolute_delta": 0.12448567152023315,
+            "channel": "public_observation",
+            "expectation_id": "assayed-ohmic-efficiency",
+            "passed": true,
+            "relative_delta": 0.13005300325412258,
+            "signed_delta": -0.12448567152023315
+          }
+        ],
+        "fork_id": "chemworld-work-i-fork-6dff4f864c3b30c6",
+        "fork_spec_sha256": "2f0eac3ab09709f1862719cbadecfa104d54a00a81bad093953234c87f2a9e43",
+        "gates": {
+          "exact_replay": true,
+          "expected_response_divergence": true,
+          "public_contract_invariance": true,
+          "same_sequence_executability": true,
+          "single_target_lineage": true,
+          "zero_provider_calls": true
+        },
+        "identity_leakage_finding_count": 0,
+        "intervention_class": "material_law_counterfactual",
+        "parent_world_sha256": "29f7e359efd559cd7d39ec3957c7e8a6eb8408dec34f3e6e71fce2b5bdd59ef2",
+        "passed": true,
+        "public_component_count": 9,
+        "public_invariant_component_count": 9,
+        "seed": 1,
+        "target_component_id": "private_physics.material_laws"
+      },
+      {
+        "action_count_per_execution": 11,
+        "case_id": "electrochemical-material-law-counterfactual",
+        "child_world_sha256": "433e30c8b144245ce4fa944ea5c7294fb965bbf341aec0e7707a17e4e47c1df7",
+        "expectations": [
+          {
+            "absolute_delta": 2.10683291e-06,
+            "channel": "physical_state",
+            "expectation_id": "terminal-selective-product-amount",
+            "passed": true,
+            "relative_delta": 0.024202454560630086,
+            "signed_delta": -2.10683291e-06
+          },
+          {
+            "absolute_delta": 0.20553219318389893,
+            "channel": "public_observation",
+            "expectation_id": "assayed-ohmic-efficiency",
+            "passed": true,
+            "relative_delta": 0.21161887248719857,
+            "signed_delta": -0.20553219318389893
+          }
+        ],
+        "fork_id": "chemworld-work-i-fork-d6c6999ec2f957a8",
+        "fork_spec_sha256": "1a749db423801657c261892420b257b889123bfad8d5e9c0d739fa4fa8ee5474",
+        "gates": {
+          "exact_replay": true,
+          "expected_response_divergence": true,
+          "public_contract_invariance": true,
+          "same_sequence_executability": true,
+          "single_target_lineage": true,
+          "zero_provider_calls": true
+        },
+        "identity_leakage_finding_count": 0,
+        "intervention_class": "material_law_counterfactual",
+        "parent_world_sha256": "0c4e3cca626404ea4dda0647ff0fa34cdd0beab0ac6743c7e50d478f507cf328",
+        "passed": true,
+        "public_component_count": 9,
+        "public_invariant_component_count": 9,
+        "seed": 2,
+        "target_component_id": "private_physics.material_laws"
+      }
+    ],
+    "passed": true
+  },
+  "schema_version": "chemworld-work-i-world-fork-certificate-0.1",
+  "source": {
+    "formal_report_content_sha256": "97867c1c1bbadc2b00832c9609e920ed71656d04ed8ba3c193bd353ae1336bba",
+    "formal_report_file_sha256": "47bc69afa0a7d3e6a8872d34004b6187773eed10cd0efb4d51c940fbd3da8b91",
+    "inventory_id": "chemworld-work-i-world-components-v0.1",
+    "inventory_sha256": "654b710fcfb0a66232e4a3c6e14f1abb1dd6c24357e7eac995d23d11f64ee6da",
+    "path": "workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json",
+    "protocol_id": "chemworld-work-i-world-fork-qualification-v0.1",
+    "protocol_sha256": "52e8846f0fdf28492ea2141fc008efe56d1b269f869678fdf017e65da9cbb7f8"
+  },
+  "supported_claim": "ChemWorld constructs content-addressed single-private-component world forks that preserve the complete declared public experimental contract, execute an identical typed operation sequence, produce preregistered physical and public observation divergence, and replay exactly."
+}
