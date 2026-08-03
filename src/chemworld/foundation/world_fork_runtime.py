@@ -104,6 +104,26 @@ def _without_intervention_metadata(payload: Mapping[str, Any]) -> dict[str, Any]
     }
 
 
+def _checkout_independent_sources(value: Any) -> Any:
+    """Normalize provenance paths without removing the referenced source identity."""
+
+    if isinstance(value, Mapping):
+        normalized: dict[str, Any] = {}
+        for key, item in sorted(value.items()):
+            if key == "source_path" and isinstance(item, str):
+                source = item.replace("\\", "/")
+                marker = "/configs/"
+                normalized[str(key)] = (
+                    f"configs/{source.split(marker, 1)[1]}" if marker in source else source
+                )
+            else:
+                normalized[str(key)] = _checkout_independent_sources(item)
+        return normalized
+    if isinstance(value, list):
+        return [_checkout_independent_sources(item) for item in value]
+    return value
+
+
 def _initial_condition_payload(env: Any) -> dict[str, Any]:
     state = _json_value(env.scenario_instance.initial_state.to_dict(include_hidden=True))
     state["metadata"] = _without_intervention_metadata(state.get("metadata", {}))
@@ -186,8 +206,8 @@ def _component_payloads(env: Any) -> dict[str, dict[str, Any]]:
             "observation_noise_mode": env.observation_noise_mode,
             "observation_noise_namespace": env.observation_noise_namespace,
         },
-        "private_physics.reaction_mechanism": _json_value(
-            env.scenario_instance.compiled_mechanism.to_dict()
+        "private_physics.reaction_mechanism": _checkout_independent_sources(
+            _json_value(env.scenario_instance.compiled_mechanism.to_dict())
         ),
         "private_physics.runtime_kernels": {
             "backend": _json_value(task_info["backend"]),
