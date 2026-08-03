@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-F04
 title: "Define the expected physical and observation divergence oracle"
-status: REVIEW
+status: DONE
 
 owner: codex
 collaborators: []
@@ -54,6 +54,6 @@ handoff_eta: 2026-08-03T05:48:37Z
 
 final_commit: "e1951a26ee31566aab4d3da8ee138508bafd1cee"
 reviewer: coordinator
-review_result: pending
-notes: "F04 defines expected response evidence only; actual runtime traces and replay are F05-F06."
+review_result: PASS
+notes: "Coordinator verified the declared write set, dependency boundary, paired-channel requirement, content-addressed oracle identity, and deterministic failure for weak, wrong-direction, missing, and nonfinite responses. F04 defines expected response evidence only; actual runtime traces and replay are F05-F06."
 ```
