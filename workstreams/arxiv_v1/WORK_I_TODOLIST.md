@@ -257,7 +257,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | --- | --- | --- | --- | --- | --- |
 | W1-F01 | P0 | DONE | 冻结 world component inventory 与 manifest schema | M02 | 是 |
 | W1-F02 | P0 | DONE | 定义 WorldForkSpec、parent/child lineage 和 component diff | M02 | 是 |
-| W1-F03 | P0 | CLAIMED | 定义 public-contract invariance certificate | M02 | 是 |
+| W1-F03 | P0 | DONE | 定义 public-contract invariance certificate | M02 | 是 |
 | W1-F04 | P0 | OPEN | 定义预期物理/观测 divergence oracle | M02 | 是 |
 | W1-F05 | P0 | OPEN | 实现 world-fork builder、runner 与 audit | F01–F04 freeze | 是 |
 | W1-F06 | P0 | OPEN | 执行并冻结 24 条 world-fork qualification traces | F05 | 否 |

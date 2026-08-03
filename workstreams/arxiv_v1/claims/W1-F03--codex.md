@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-F03
 title: "Define the public-contract invariance certificate"
-status: REVIEW
+status: DONE
 
 owner: codex
 collaborators: []
@@ -54,6 +54,6 @@ handoff_eta: 2026-08-03T05:41:10Z
 
 final_commit: "5718254cf1ceae8eb9aac964210c700ec16def3d"
 reviewer: coordinator
-review_result: pending
-notes: "F03 certifies interface equality only; it does not establish physical divergence, replay, or agent performance."
+review_result: PASS
+notes: "Coordinator verified the declared write set, dependency boundary, nine-component binding, contract-mutation failure, and both identity-key and exact-value leakage rejection. F03 certifies interface equality only; it does not establish physical divergence, replay, or agent performance."
 ```
