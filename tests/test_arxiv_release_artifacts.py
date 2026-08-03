@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import copy
 import hashlib
+import importlib.util
 import io
 import json
 import re
@@ -282,7 +283,13 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     assert "authors[0].orcid has invalid syntax or checksum" in invalid_blockers
     assert "archive.byte_count does not match the frozen G0 byte count" in invalid_blockers
 
-    assert finalizer.apply_preflight_blockers() == []
+    expected_preflight_blockers = []
+    if importlib.util.find_spec("markdown") is None:
+        expected_preflight_blockers.append(
+            "Python package 'markdown' is unavailable; run with "
+            "`uv run --extra paper python paper/tools/finalize_arxiv_release.py ...`"
+        )
+    assert finalizer.apply_preflight_blockers() == expected_preflight_blockers
     generated = tmp_path / "generated"
     generated.mkdir()
     original = generated / "artifact.pdf"
