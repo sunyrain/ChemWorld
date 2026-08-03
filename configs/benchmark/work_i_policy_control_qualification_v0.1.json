@@ -1,0 +1,100 @@
+{
+  "schema_id": "chemworld.policy_control_runner_qualification_protocol",
+  "schema_version": "0.1.0",
+  "protocol_id": "work-i-policy-control-runner-qualification-v0.1",
+  "formal_matrix_protocol_path": "configs/benchmark/work_i_policy_control_matrix_v0.1.json",
+  "formal_preflight_path": "workstreams/arxiv_v1/reports/work-i-policy-control-matrix-runner-preflight-v0.1.json",
+  "formal_world_seeds_excluded": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "synthetic_matrix": {
+    "execution_mode": "injected_test",
+    "world_identity_prefix": "qualification-synthetic-world",
+    "physics_identity": "injected-synthetic-v07-qualification",
+    "noise_identity": "injected-synthetic-keyed-v07-qualification",
+    "threshold_signals": [
+      0.0,
+      0.02,
+      0.0,
+      0.02,
+      0.0,
+      0.02
+    ],
+    "expected_primary_campaigns": 30,
+    "expected_primary_closed_lifecycles": 180,
+    "expected_retest_campaigns": 30,
+    "expected_retest_closed_lifecycles": 180,
+    "expected_threshold_assays": 30,
+    "expected_threshold_discards": 30,
+    "provider_calls": 0
+  },
+  "live_smoke": {
+    "world_seed": 20000,
+    "information_arms": [
+      "opaque_codes",
+      "anonymous_nominal_properties"
+    ],
+    "policy_ids": [
+      "assay_all",
+      "start_then_discard",
+      "measure_then_threshold"
+    ],
+    "observation_seed_offset": 400000,
+    "observation_noise_namespace_template": "work-i-policy-control-v07-live-qualification-world-{world_seed:04d}",
+    "expected_primary_campaigns": 6,
+    "expected_primary_closed_lifecycles": 36,
+    "expected_retest_campaigns": 6,
+    "expected_retest_closed_lifecycles": 36,
+    "provider_calls": 0
+  },
+  "output_paths": {
+    "artifact_root": "workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1",
+    "report": "workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1.json",
+    "markdown": "workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1.md",
+    "receipt": "configs/benchmark/work_i_policy_control_formal_qualification_receipt_v0.1.json"
+  },
+  "counting_rules": {
+    "synthetic_matrix_role": "runner and auditor qualification only; no chemical-world execution and no formal estimand contribution",
+    "live_smoke_role": "nonformal controller/interface qualification only; no formal estimand contribution",
+    "primary_qualification_campaign": "one original execution in the declared qualification schedule",
+    "retest_qualification_campaign": "one same-identity deterministic retest excluded from primary qualification counts",
+    "closed_lifecycle": "one started vessel closed by exactly one committed final assay or discard",
+    "formal_campaigns_produced": 0,
+    "formal_lifecycles_produced": 0,
+    "provider_calls": 0
+  },
+  "source_paths": [
+    "configs/benchmark/work_i_known_policy_contract_v0.1.json",
+    "configs/benchmark/work_i_known_policy_threshold_v0.1.json",
+    "configs/benchmark/work_i_policy_control_matrix_v0.1.json",
+    "configs/benchmark/work_i_policy_control_qualification_v0.1.json",
+    "configs/benchmark/work_i_policy_profile_contract_v0.1.json",
+    "scripts/audit_work_i_policy_validity.py",
+    "scripts/qualify_work_i_policy_controls.py",
+    "scripts/run_work_i_policy_controls.py",
+    "src/chemworld/agents/known_policy.py",
+    "src/chemworld/campaign_resources.py",
+    "src/chemworld/eval/known_policy_contract.py",
+    "src/chemworld/eval/known_policy_threshold.py",
+    "src/chemworld/eval/policy_validity_audit.py",
+    "src/chemworld/eval/policy_validity_contract.py",
+    "src/chemworld/eval/policy_validity_matrix.py",
+    "src/chemworld/eval/policy_validity_qualification.py",
+    "tests/test_policy_validity_qualification.py",
+    "workstreams/arxiv_v1/reports/work-i-known-policy-threshold-qualification-v0.1.json",
+    "workstreams/arxiv_v1/reports/work-i-policy-control-matrix-runner-preflight-v0.1.json"
+  ],
+  "freeze_rules": {
+    "formal_environment_execution_forbidden": true,
+    "formal_outcome_read_forbidden": true,
+    "formal_retuning_forbidden": true,
+    "qualification_failure_is_terminal": true,
+    "seed_substitution_forbidden": true,
+    "threshold_change_forbidden": true,
+    "acceptance_rule_change_forbidden": true
+  }
+}
