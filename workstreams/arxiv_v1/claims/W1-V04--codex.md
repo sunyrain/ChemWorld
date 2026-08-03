@@ -50,7 +50,7 @@ next_check_at_utc: 2026-08-03T08:45:52Z
 next_24h: "Coordinator integration review, then release the controllers to V05/V06."
 handoff_eta: 2026-08-03T07:00:19Z
 
-final_commit: "49dc6b75e8922df139b7557e9e1c389df68657d1"
+final_commit: "fcdd07057752f1354884d7a4cf44b3466a1b45b1"
 reviewer: null
 review_result: null
 notes: "V04 implements frozen contracts only; formal execution belongs to V08."
