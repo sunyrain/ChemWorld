@@ -12,8 +12,8 @@ claimed_at_utc: 2026-08-03T08:24:08Z
 lease_expires_at_utc: 2026-08-05T08:24:08Z
 heartbeat_at_utc: 2026-08-03T09:12:30Z
 
-base_commit: "53e30431fde9cd15c4f3a632e9a7214b8ac2c79d"
-branch: work1/w1-v07-runner-qualification-freeze
+base_commit: "82051ba99fe82fb432e5459c2dc372839d8db5a4"
+branch: work1/w1-v07-byte-rebuild-correction
 worktree: ../ChemWorld-W1-V07
 supersedes: null
 
@@ -53,7 +53,7 @@ validation:
   - Verify native live executions bind material_information_sha256 to the frozen canonical arm descriptor and reject a null, stale, or cross-arm digest.
   - Verify the independent V06 native adapter rejects null, stale, and cross-arm-swapped material-information digests even after all producer self-hashes are recomputed.
   - git diff --check
-  - git diff --check 53e30431fde9cd15c4f3a632e9a7214b8ac2c79d...HEAD
+  - git diff --check 82051ba99fe82fb432e5459c2dc372839d8db5a4...HEAD
 
 completed_since_last_heartbeat:
   - "Qualification discovery fail-closed exposed and corrected the pre-freeze V05 producer/V06 adapter material-information identity binding under coordinator reservations; null, stale, and cross-arm-swapped rehashed evidence is rejected."
@@ -88,5 +88,5 @@ handoff_eta: 2026-08-03T09:10:00Z
 final_commit: null
 reviewer: "/root/w1_v07_review"
 review_result: "CHANGES_REQUESTED by coordinator after main integration byte-rebuild failure; prior branch-level approval remains preserved in Git history."
-notes: "Formal seeds 0-4 may appear only as frozen schedule coordinates in injected synthetic artifacts; no formal environment, controller execution, or outcome may be accessed. To exercise the exact V05/V06 contracts, synthetic cell/campaign/profile IDs remain the canonical schedule coordinates; injected_test mode, formal_result=false, explicit qualification-only role/namespace fields, and qualification-only world/noise/physical identities distinguish the evidence from V08. Noise identity remains paired across information arms. The native producer and independent auditor bind material_information_sha256 to semantic_sha256(cell.material_information), matching the frozen arm descriptor; null, stale, or swapped values remain invalid after rehashing. This changes no world, seed, controller, threshold, estimand, stopping rule, or acceptance rule. Any failed gate is reported without retuning."
+notes: "The original work1/w1-v07-runner-qualification-freeze branch and rejected receipt remain preserved. The correction continues from integrated main on work1/w1-v07-byte-rebuild-correction. Formal seeds 0-4 may appear only as frozen schedule coordinates in injected synthetic artifacts; no formal environment, controller execution, or outcome may be accessed. To exercise the exact V05/V06 contracts, synthetic cell/campaign/profile IDs remain the canonical schedule coordinates; injected_test mode, formal_result=false, explicit qualification-only role/namespace fields, and qualification-only world/noise/physical identities distinguish the evidence from V08. Noise identity remains paired across information arms. The native producer and independent auditor bind material_information_sha256 to semantic_sha256(cell.material_information), matching the frozen arm descriptor; null, stale, or swapped values remain invalid after rehashing. This changes no world, seed, controller, threshold, estimand, stopping rule, or acceptance rule. Any failed gate is reported without retuning."
 ```
