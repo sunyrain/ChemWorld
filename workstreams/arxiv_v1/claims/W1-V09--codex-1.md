@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-V09
 title: "Report known-policy profile recovery, discriminant validity, and test-retest reliability"
-status: CHANGES_REQUESTED
+status: REVIEW
 
 owner: codex-1
 collaborators:
@@ -11,7 +11,7 @@ collaborators:
   - "agent:/root/w1_v08 (takeover and handoff)"
 claimed_at_utc: 2026-08-03T08:32:31Z
 lease_expires_at_utc: 2026-08-05T08:32:31Z
-heartbeat_at_utc: 2026-08-03T10:48:37Z
+heartbeat_at_utc: 2026-08-03T10:53:41Z
 
 base_commit: "933e69f87e135734997252452f601a783752f221"
 branch: work1/w1-v09-policy-validity-report
@@ -51,7 +51,10 @@ completed_since_last_heartbeat:
   - "Published self-hashed JSON 07b491c843e2496a983bcf864f91ac230df7b303e35104f4b092d862ba9a213f, Markdown, and independent delivery manifest 6baf95f7e74d6e6c9b3a664fa5e0b6fab531d7021a9ab8e3a8a85763a4ab311c; byte-exact --check passed."
   - "V06 tests passed 17/17. After correcting a shared Git-commit-length validator before output generation, V09 tests passed 12/12; ruff, mypy, and git diff --check passed."
   - "Pushed code/tests checkpoint 4c9d3e822396134f1bed75db252f1be49d41bf6f and report outputs 25f05f04297f9fbbbac726ab7ffad77484c049c7."
-current_validation: "CHANGES_REQUESTED: current 12/12 gates and positive_control_established result are correct, but a valid self-hashed failed audit receipt would still produce hard-coded success assertions for retest/profile/resource reliability. Drive every JSON/Markdown reliability assertion from its corresponding frozen gate and add one self-consistent gate-failure test before regenerating report hashes."
+  - "Addressed the sole review defect: retest, profile-rebuild, and resource-replay JSON booleans and Markdown assertions now derive independently from their frozen gates; a self-consistent rehashed failed receipt verifies false booleans and fail-honest prose."
+  - "Focused V09 tests passed 13/13; ruff, mypy, byte-exact report --check, and git diff --check passed without rerunning formal execution or the V06 full suite."
+  - "Pushed review fix 9ac541dcf1b4a083ca465b556362c40480a4cde7 and regenerated outputs fc120816f9e04ca34f2a78bdaebab8dda1351799 with report SHA256 ebb56a052929944330acdf594e4a341c8c8fdb2b4ea2e276556384e7ce6b2064 and delivery SHA256 9127224b38ae9af94f8c003bb4f55a8c256b89e4ca4cce5d17d92798ef179e4c."
+current_validation: "PASS / REVIEW: the requested fail-honest path is covered and all focused validation passes; current formal evidence remains positive_control_established, while any failed retest/profile/resource gate now publishes false booleans and non-success Markdown."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-V09--codex-1.md
   - src/chemworld/eval/policy_validity_report.py
@@ -63,12 +66,12 @@ files_touched:
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-03T11:15:00Z
-next_24h: "Apply the single fail-honest reporting correction, regenerate the report chain once, complete independent review, integrate, then stop V implementation and run the requested V-series audit."
-handoff_eta: 2026-08-03T12:00:00Z
+next_check_at_utc: 2026-08-04T10:53:41Z
+next_24h: "Await independent re-review; make no further V implementation or evidence changes unless a reproducible blocker is found."
+handoff_eta: 2026-08-03T10:53:41Z
 
-final_commit: "25f05f04297f9fbbbac726ab7ffad77484c049c7"
+final_commit: "fc120816f9e04ca34f2a78bdaebab8dda1351799"
 reviewer: "/root/w1_v07_review"
-review_result: "CHANGES_REQUESTED: all current-data bindings, counts, summaries, gates, hashes, and bounded conclusions pass, but the supported positive_control_unestablished path must not retain hard-coded success claims for retest/profile/resource reliability."
+review_result: "CHANGES_REQUESTED addressed; awaiting re-review. Retest/profile/resource reliability claims are now independently gate-driven in JSON and Markdown with a self-consistent failed-receipt regression test."
 notes: "Formal outcome access is authorized only for deterministic read-only reporting from the pushed V08 DONE baseline. The reporter consumes both work-i-policy-control-formal-v0.1/matrix_manifest.json and work-i-policy-control-formal-audit-v0.1.json and executes no world, controller, provider, or formal cell. A scientific gate failure still yields the complete frozen report with status positive_control_unestablished; invalid evidence bindings yield invalid_evidence and no unsupported summary. Global ledger, evidence DAG, manuscript, figure/release manifests, configs/current.json, and every V08 artifact are excluded from the write set."
 ```
