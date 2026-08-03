@@ -68,4 +68,3 @@ The completed output was invoked once with the frozen formal command plus `--res
 - Completed-output `--resume` no-op: passed with zero file mutations.
 - `git diff --check`: passed before handoff.
 - An initial custom validation probe looked for the apparatus hash at the manifest top level; inspection showed the frozen schema correctly stores it at `dependency_bindings.execution_apparatus_sha256`. The corrected read-only probe passed. No output was changed and the formal command was not rerun.
-
