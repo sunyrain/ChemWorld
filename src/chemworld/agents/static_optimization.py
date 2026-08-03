@@ -100,38 +100,6 @@ STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION = "chemworld-static-final-synth
 STATIC_PREDICTIVE_SYNTHESIS_VERSION = "chemworld-static-predictive-synthesis-0.1-s0-dev"
 
 
-def _prediction_queries_for_parser(
-    queries: Sequence[
-        ElectrochemicalPredictionQuery | CrystallizationPredictionQuery
-    ],
-) -> tuple[ElectrochemicalPredictionQuery, ...]:
-    """Materialize the structurally shared query contract for the common parser."""
-
-    normalized: list[ElectrochemicalPredictionQuery] = []
-    for query in queries:
-        if isinstance(query, ElectrochemicalPredictionQuery):
-            normalized.append(query)
-            continue
-        normalized.append(
-            ElectrochemicalPredictionQuery(
-                schema_version=query.schema_version,
-                standardized_measurement_slots=query.standardized_measurement_slots,
-                query_id=query.query_id,
-                reference_experiment_index=query.reference_experiment_index,
-                intervention_variable=query.intervention_variable,
-                reference_recipe_parameters=dict(query.reference_recipe_parameters),
-                intervention_recipe_parameters=dict(
-                    query.intervention_recipe_parameters
-                ),
-                metric_ids=query.metric_ids,
-                metric_sources=dict(query.metric_sources),
-                direction_thresholds=dict(query.direction_thresholds),
-                query_sha256=query.query_sha256,
-            )
-        )
-    return tuple(normalized)
-
-
 DECLARED_CLAIM_VALIDATION_STRICT = "strict"
 DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN = "unscored_unknown_terms"
 DECLARED_CLAIM_VALIDATION_POLICIES = frozenset(
@@ -1994,7 +1962,7 @@ class StaticFinalRecommendationValidator:
             try:
                 parsed_predictions = parse_counterfactual_predictions(
                     payload["counterfactual_predictions"],
-                    queries=_prediction_queries_for_parser(prediction_queries),
+                    queries=prediction_queries,
                 )
             except ValueError as error:
                 raise ScientificPlanValidationError(
@@ -2765,7 +2733,7 @@ class StaticOptimizationAgent:
         try:
             parsed = parse_counterfactual_predictions(
                 payload["counterfactual_predictions"],
-                queries=_prediction_queries_for_parser(prediction_queries),
+                queries=prediction_queries,
             )
         except ValueError as error:
             raise ScientificPlanValidationError(
