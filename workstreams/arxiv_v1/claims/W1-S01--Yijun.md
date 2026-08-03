@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-S01
 title: "Build the Work I claim-evidence-figure map"
-status: CLAIMED
+status: ACTIVE
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T14:53:36Z
 lease_expires_at_utc: 2026-08-05T14:53:36Z
-heartbeat_at_utc: 2026-08-03T14:53:36Z
+heartbeat_at_utc: 2026-08-03T14:59:39Z
 
 base_commit: "b4c643dbd65af934b40678e5c82f63fdcdefeef8"
 branch: work1/w1-s01-claim-evidence-map
@@ -32,8 +32,9 @@ validation:
   - "Verify no pending or development-only evidence is promoted to a completed publication claim"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared on the current origin/main baseline; no manuscript or hot-file edits performed."
+completed_since_last_heartbeat:
+  - "Read the collaboration contract, development guide, Work I execution authority, claim protocol, master scientific plan, current manuscript/display/figure/derived-data surfaces, and current registry before evidence synthesis."
+current_validation: "ACTIVE on the committed claim baseline; evidence synthesis remains read-only outside the declared story outputs."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-S01--Yijun.md
 blockers: []
