@@ -1,0 +1,1094 @@
+{
+  "approved_display_wording": "ChemWorld exposes 15 registered task contracts spanning all 28 typed operation kinds and five instrument contracts; qualification executed 415 complete-experiment boundary recipes and bound all 62 task-specific metric endpoints to executable evaluators.",
+  "audit_id": "chemworld-work-i-platform-surface-941278c0c5d34199",
+  "audit_sha256": "941278c0c5d3419989d5d93e187fc73494e05be5bb8c622c8f776978c6106b77",
+  "claim_boundary": {
+    "all_registered_tasks_empirically_compared_with_agents": false,
+    "physical_laboratory_validation": false,
+    "registered_and_qualified_platform_surface": true,
+    "sixty_two_unique_metric_definitions": false
+  },
+  "counting_rules": {
+    "boundary_cases": "one executed complete-experiment boundary recipe in the frozen design matrix; these are qualification executions, not additional tasks or agent trials",
+    "endpoints": "one ordered (task_id, success_metric_id) evaluator binding; repeated metric names in different task contracts are distinct bindings",
+    "instruments": "one public INSTRUMENTS contract, counted once even when exposed by multiple tasks",
+    "operations": "one globally typed OPERATION_TYPES entry, counted once even when exposed by multiple tasks",
+    "tasks": "one entry in the live TASK_REGISTRY; aliases are not counted"
+  },
+  "diagnostics": {
+    "dead_recipe_coordinate_count": 0,
+    "executable_boundary_task_count": 15,
+    "executable_midpoint_task_count": 15,
+    "formalization_blocker_count": 0,
+    "unique_metric_id_count": 43,
+    "unique_metric_ids": [
+      "acid_dissociation_fraction",
+      "constraint_violations",
+      "cost",
+      "crystal_csd_quality",
+      "crystal_fines_fraction",
+      "crystal_purity",
+      "crystal_size",
+      "crystal_yield",
+      "distillate_purity",
+      "distillate_recovery",
+      "electrochemical_selectivity",
+      "energy_efficiency",
+      "equilibrium_confidence",
+      "equilibrium_residual",
+      "explanation",
+      "failure_analysis",
+      "faradaic_efficiency",
+      "final_assay_score",
+      "flow_conversion",
+      "local_model_quality",
+      "mechanism_explanation",
+      "ohmic_efficiency",
+      "pH_normalized",
+      "phase_ratio",
+      "precipitation_signal",
+      "process_mass_balance_error",
+      "product_in_aqueous",
+      "product_in_organic",
+      "public_private_gap",
+      "purity",
+      "rank_confidence",
+      "recovery",
+      "safety_risk",
+      "sample_efficiency",
+      "score",
+      "selective_product_yield",
+      "selectivity",
+      "solvent_loss",
+      "trajectory_validity",
+      "transport_efficiency",
+      "uncertainty",
+      "validator_use",
+      "yield"
+    ]
+  },
+  "display_counts": {
+    "complete_experiment_boundary_cases": 415,
+    "instrument_contracts": 5,
+    "registered_task_contracts": 15,
+    "task_specific_evaluator_endpoint_bindings": 62,
+    "typed_operation_kinds": 28
+  },
+  "endpoint_rows": [
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "selective_product_yield",
+      "source_layer": "terminal_observation",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "electrochemical_selectivity",
+      "source_layer": "terminal_observation",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "score",
+      "source_layer": "terminal_observation",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "faradaic_efficiency",
+      "source_layer": "terminal_observation",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "transport_efficiency",
+      "source_layer": "terminal_observation",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "ohmic_efficiency",
+      "source_layer": "terminal_observation",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "energy_efficiency",
+      "source_layer": "terminal_observation",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "pH_normalized",
+      "source_layer": "terminal_observation",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "precipitation_signal",
+      "source_layer": "terminal_observation",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "safety_risk",
+      "source_layer": "terminal_observation",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "pH_normalized",
+      "source_layer": "terminal_observation",
+      "task_id": "equilibrium-characterization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "acid_dissociation_fraction",
+      "source_layer": "terminal_observation",
+      "task_id": "equilibrium-characterization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "precipitation_signal",
+      "source_layer": "terminal_observation",
+      "task_id": "equilibrium-characterization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "equilibrium_residual",
+      "source_layer": "terminal_observation",
+      "task_id": "equilibrium-characterization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "equilibrium_confidence",
+      "source_layer": "terminal_observation",
+      "task_id": "equilibrium-characterization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "score",
+      "source_layer": "terminal_observation",
+      "task_id": "flow-reaction-optimization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "flow_conversion",
+      "source_layer": "terminal_observation",
+      "task_id": "flow-reaction-optimization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "yield",
+      "source_layer": "terminal_observation",
+      "task_id": "flow-reaction-optimization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "safety_risk",
+      "source_layer": "terminal_observation",
+      "task_id": "flow-reaction-optimization"
+    },
+    {
+      "evaluator_id": "threshold_hit_by_completed_experiment",
+      "implementation_status": "executable",
+      "metric_id": "sample_efficiency",
+      "source_layer": "trajectory_aggregate",
+      "task_id": "low-budget-characterization"
+    },
+    {
+      "evaluator_id": "frozen_holdout_normal_interval_score",
+      "implementation_status": "executable",
+      "metric_id": "uncertainty",
+      "source_layer": "predictive_holdout",
+      "task_id": "low-budget-characterization"
+    },
+    {
+      "evaluator_id": "frozen_holdout_one_minus_rmse",
+      "implementation_status": "executable",
+      "metric_id": "local_model_quality",
+      "source_layer": "predictive_holdout",
+      "task_id": "low-budget-characterization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "phase_ratio",
+      "source_layer": "terminal_observation",
+      "task_id": "partition-discovery"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "product_in_organic",
+      "source_layer": "terminal_observation",
+      "task_id": "partition-discovery"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "product_in_aqueous",
+      "source_layer": "terminal_observation",
+      "task_id": "partition-discovery"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "score",
+      "source_layer": "terminal_observation",
+      "task_id": "public-private-generalization"
+    },
+    {
+      "evaluator_id": "absolute_public_private_mean_shift",
+      "implementation_status": "executable",
+      "metric_id": "public_private_gap",
+      "source_layer": "paired_split_campaign",
+      "task_id": "public-private-generalization"
+    },
+    {
+      "evaluator_id": "world_bootstrap_pairwise_rank_agreement",
+      "implementation_status": "executable",
+      "metric_id": "rank_confidence",
+      "source_layer": "paired_split_campaign",
+      "task_id": "public-private-generalization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "yield",
+      "source_layer": "terminal_observation",
+      "task_id": "purity-yield-tradeoff"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "purity",
+      "source_layer": "terminal_observation",
+      "task_id": "purity-yield-tradeoff"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "recovery",
+      "source_layer": "terminal_observation",
+      "task_id": "purity-yield-tradeoff"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "cost",
+      "source_layer": "terminal_observation",
+      "task_id": "purity-yield-tradeoff"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "score",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-mechanism-explanation"
+    },
+    {
+      "evaluator_id": "transparent_mechanism_rubric",
+      "implementation_status": "executable",
+      "metric_id": "mechanism_explanation",
+      "source_layer": "structured_artifact",
+      "task_id": "reaction-mechanism-explanation"
+    },
+    {
+      "evaluator_id": "structured_failure_analysis_rubric",
+      "implementation_status": "executable",
+      "metric_id": "failure_analysis",
+      "source_layer": "structured_artifact",
+      "task_id": "reaction-mechanism-explanation"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "score",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-optimization-standard"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "yield",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-optimization-standard"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "selectivity",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-optimization-standard"
+    },
+    {
+      "evaluator_id": "threshold_hit_by_completed_experiment",
+      "implementation_status": "executable",
+      "metric_id": "sample_efficiency",
+      "source_layer": "trajectory_aggregate",
+      "task_id": "reaction-optimization-standard"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "score",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-safety-constrained"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "safety_risk",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-safety-constrained"
+    },
+    {
+      "evaluator_id": "trajectory_constraint_event_count",
+      "implementation_status": "executable",
+      "metric_id": "constraint_violations",
+      "source_layer": "trajectory_aggregate",
+      "task_id": "reaction-safety-constrained"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_score",
+      "implementation_status": "executable",
+      "metric_id": "final_assay_score",
+      "source_layer": "trajectory_aggregate",
+      "task_id": "reaction-to-assay"
+    },
+    {
+      "evaluator_id": "committed_valid_operation_fraction_with_final_assay_gate",
+      "implementation_status": "executable",
+      "metric_id": "trajectory_validity",
+      "source_layer": "trajectory_aggregate",
+      "task_id": "reaction-to-assay"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "crystal_yield",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-crystallization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "score",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-crystallization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "crystal_purity",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-crystallization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "crystal_size",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-crystallization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "crystal_csd_quality",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-crystallization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "crystal_fines_fraction",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-crystallization"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "score",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-distillation"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "distillate_purity",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-distillation"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "distillate_recovery",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-distillation"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "solvent_loss",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-distillation"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "score",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-purification"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "purity",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-purification"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "recovery",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-purification"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "process_mass_balance_error",
+      "source_layer": "terminal_observation",
+      "task_id": "reaction-to-purification"
+    },
+    {
+      "evaluator_id": "committed_valid_operation_fraction_with_final_assay_gate",
+      "implementation_status": "executable",
+      "metric_id": "trajectory_validity",
+      "source_layer": "trajectory_aggregate",
+      "task_id": "tool-agent-planning"
+    },
+    {
+      "evaluator_id": "validator_evidence_fraction",
+      "implementation_status": "executable",
+      "metric_id": "validator_use",
+      "source_layer": "trajectory_aggregate",
+      "task_id": "tool-agent-planning"
+    },
+    {
+      "evaluator_id": "last_committed_final_assay_observation",
+      "implementation_status": "executable",
+      "metric_id": "score",
+      "source_layer": "terminal_observation",
+      "task_id": "tool-agent-planning"
+    },
+    {
+      "evaluator_id": "structured_explanation_rubric",
+      "implementation_status": "executable",
+      "metric_id": "explanation",
+      "source_layer": "structured_artifact",
+      "task_id": "tool-agent-planning"
+    }
+  ],
+  "gates": {
+    "all_five_instruments_reachable": true,
+    "all_task_metric_bindings_executable": true,
+    "all_tasks_have_midpoint_and_boundary_execution": true,
+    "all_twenty_eight_operations_reachable": true,
+    "endpoint_keys_not_duplicated": true,
+    "fifteen_registered_task_contracts": true,
+    "frozen_matrix_counts_agree": true,
+    "no_dead_coordinates_or_formalization_blockers": true,
+    "sixty_two_task_metric_bindings": true,
+    "task_ids_match_frozen_design_matrix": true
+  },
+  "instrument_rows": [
+    {
+      "contract_sha256": "0992be930b26db4b2d3b1bffc5030511aa734e514186b85b956396762200e986",
+      "instrument_id": "hplc",
+      "reachable_task_ids": [
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_sha256": "f7b19e11fab1cd858f9706a4a70f96add44625ee2459939a5ea52a659424ca5f",
+      "instrument_id": "gc",
+      "reachable_task_ids": [
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_sha256": "6f66f7acbede0ddae5a00e44bcd5eb525a150c471fe20dc91f51c5e15997f6a5",
+      "instrument_id": "uvvis",
+      "reachable_task_ids": [
+        "electrochemical-conversion",
+        "equilibrium-characterization",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_sha256": "801bb7e73d73f769cf684d64373a35ad476d158761183ae9c652cc95e0830784",
+      "instrument_id": "ph_meter",
+      "reachable_task_ids": [
+        "electrochemical-conversion",
+        "equilibrium-characterization"
+      ]
+    },
+    {
+      "contract_sha256": "06278ec32b755c0078a8e6f36ce2ede4ab4f222e6f162db340a132294a51755f",
+      "instrument_id": "final_assay",
+      "reachable_task_ids": [
+        "electrochemical-conversion",
+        "equilibrium-characterization",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    }
+  ],
+  "operation_rows": [
+    {
+      "contract_kind": "primitive",
+      "operation_id": "add_reagent",
+      "reachable_task_ids": [
+        "electrochemical-conversion",
+        "equilibrium-characterization",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "add_solvent",
+      "reachable_task_ids": [
+        "electrochemical-conversion",
+        "equilibrium-characterization",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "add_catalyst",
+      "reachable_task_ids": [
+        "equilibrium-characterization",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "heat",
+      "reachable_task_ids": [
+        "equilibrium-characterization",
+        "low-budget-characterization",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "wait",
+      "reachable_task_ids": [
+        "equilibrium-characterization",
+        "low-budget-characterization",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "sample",
+      "reachable_task_ids": [
+        "equilibrium-characterization",
+        "low-budget-characterization",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "quench",
+      "reachable_task_ids": [
+        "equilibrium-characterization",
+        "low-budget-characterization",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "add_phase",
+      "reachable_task_ids": [
+        "partition-discovery",
+        "purity-yield-tradeoff",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "add_extractant",
+      "reachable_task_ids": [
+        "partition-discovery",
+        "purity-yield-tradeoff",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "mix",
+      "reachable_task_ids": [
+        "partition-discovery",
+        "purity-yield-tradeoff",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "settle",
+      "reachable_task_ids": [
+        "partition-discovery",
+        "purity-yield-tradeoff",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "separate_phase",
+      "reachable_task_ids": [
+        "partition-discovery",
+        "purity-yield-tradeoff",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "macro",
+      "operation_id": "wash",
+      "reachable_task_ids": [
+        "purity-yield-tradeoff",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "macro",
+      "operation_id": "dry",
+      "reachable_task_ids": [
+        "purity-yield-tradeoff",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "macro",
+      "operation_id": "concentrate",
+      "reachable_task_ids": [
+        "purity-yield-tradeoff",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "transfer",
+      "reachable_task_ids": [
+        "purity-yield-tradeoff",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "domain",
+      "operation_id": "seed_crystals",
+      "reachable_task_ids": [
+        "reaction-to-crystallization"
+      ]
+    },
+    {
+      "contract_kind": "domain",
+      "operation_id": "cool_crystallize",
+      "reachable_task_ids": [
+        "reaction-to-crystallization"
+      ]
+    },
+    {
+      "contract_kind": "domain",
+      "operation_id": "filter_crystals",
+      "reachable_task_ids": [
+        "reaction-to-crystallization"
+      ]
+    },
+    {
+      "contract_kind": "domain",
+      "operation_id": "evaporate",
+      "reachable_task_ids": [
+        "reaction-to-distillation"
+      ]
+    },
+    {
+      "contract_kind": "domain",
+      "operation_id": "distill",
+      "reachable_task_ids": [
+        "reaction-to-distillation"
+      ]
+    },
+    {
+      "contract_kind": "domain",
+      "operation_id": "collect_fraction",
+      "reachable_task_ids": [
+        "reaction-to-distillation"
+      ]
+    },
+    {
+      "contract_kind": "domain",
+      "operation_id": "set_flow_rate",
+      "reachable_task_ids": [
+        "flow-reaction-optimization"
+      ]
+    },
+    {
+      "contract_kind": "domain",
+      "operation_id": "run_flow",
+      "reachable_task_ids": [
+        "flow-reaction-optimization"
+      ]
+    },
+    {
+      "contract_kind": "domain",
+      "operation_id": "set_potential",
+      "reachable_task_ids": [
+        "electrochemical-conversion"
+      ]
+    },
+    {
+      "contract_kind": "domain",
+      "operation_id": "electrolyze",
+      "reachable_task_ids": [
+        "electrochemical-conversion"
+      ]
+    },
+    {
+      "contract_kind": "terminal",
+      "operation_id": "terminate",
+      "reachable_task_ids": [
+        "electrochemical-conversion",
+        "equilibrium-characterization",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    {
+      "contract_kind": "primitive",
+      "operation_id": "measure",
+      "reachable_task_ids": [
+        "electrochemical-conversion",
+        "equilibrium-characterization",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    }
+  ],
+  "passed": true,
+  "schema_version": "chemworld-work-i-platform-surface-audit-0.1",
+  "source_bindings": {
+    "endpoint_registry": "chemworld.eval.task_metric_endpoints",
+    "frozen_task_design_matrix_file_sha256": "e40dd70709f6775f63d2ca533db71134b5648c71313102638bfccfa7937c695b",
+    "frozen_task_design_matrix_path": "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
+    "frozen_task_design_matrix_schema_version": "chemworld-task-design-matrix-1.2",
+    "instrument_registry": "chemworld.world.operations.INSTRUMENTS",
+    "operation_registry": "chemworld.world.operations.OPERATION_TYPES",
+    "task_registry": "chemworld.tasks.list_tasks"
+  },
+  "task_rows": [
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 3,
+      "allowed_operation_count": 6,
+      "declared_endpoint_count": 10,
+      "metric_contract_hash": "688fb204baab4c6a1c2c95b1de602cb77ea7704e3bd43c4ddd052cb3aea9916c",
+      "task_contract_hash": "c93f5daf6e0c8643f7e8899e0d71086fd912853be17e39bb1879f7b880d9f43b",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 3,
+      "allowed_operation_count": 9,
+      "declared_endpoint_count": 5,
+      "metric_contract_hash": "c2cde2d9e09921dfa91568080c9c8498f096fd427005699807502c489ad5bcf6",
+      "task_contract_hash": "77e1c30cd83e1a09363cef3ea58b1ddefb415bb1d790d6d63a3c519f45325917",
+      "task_id": "equilibrium-characterization"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 7,
+      "declared_endpoint_count": 4,
+      "metric_contract_hash": "0ad4167ac2a89a5dcdaeab731c1bdb67b57a47fa18595ab3925b9fffaa251d5b",
+      "task_contract_hash": "bc14f63f753c830e34b50487b1c44bcc8a20e11e07d5ee8fe557d001a85ee0a8",
+      "task_id": "flow-reaction-optimization"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 9,
+      "declared_endpoint_count": 3,
+      "metric_contract_hash": "8eac9c7a83603b663a9ded3b1fb74645fbddaaa0267bc13ec2b3f404194fc463",
+      "task_contract_hash": "2cd44cd76937b9e95a9ae4282994a540f4d390b3f9a59c963ca60ff2db72706b",
+      "task_id": "low-budget-characterization"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 9,
+      "declared_endpoint_count": 3,
+      "metric_contract_hash": "6bc2e7d119e63dc0d99a1f6ea6e92aa590a7a0e3c5797c9db1e5a2d69555e23e",
+      "task_contract_hash": "ade27680a38ff18e4c47e63116aaf75c9482543795b15bb62dee2e7525a5bff9",
+      "task_id": "partition-discovery"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 9,
+      "declared_endpoint_count": 3,
+      "metric_contract_hash": "d8de6c4de59ac84c497323d2460a4763d203e053788a6851c49e91db4cc3a22c",
+      "task_contract_hash": "bf092340dfcbb59fe261a7e73b3042449d57858a60f73d3b19336f15b627e8b8",
+      "task_id": "public-private-generalization"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 18,
+      "declared_endpoint_count": 4,
+      "metric_contract_hash": "11117e589b59ba602e29c74b04f18117376d6a0f33665b5087ea616e9fc68eb9",
+      "task_contract_hash": "2d2ab14c61e90b87c1c530f74b9e6fbf0c82966199d78e99ec755ba5ba208e76",
+      "task_id": "purity-yield-tradeoff"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 9,
+      "declared_endpoint_count": 3,
+      "metric_contract_hash": "5e15f24d56e66677088f8621db18a10fec2866d245cd66ebeb6f9ae0ff0fb4df",
+      "task_contract_hash": "097bd39293eae4063dc84ed0af299935aefce5c391183944302431d5d6c93f6e",
+      "task_id": "reaction-mechanism-explanation"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 9,
+      "declared_endpoint_count": 4,
+      "metric_contract_hash": "af3f6275db95559013759a2ee9956f7dfd17f3956cf31a58e03fbbe4397c2385",
+      "task_contract_hash": "c7a5bee5dffa318f30097f745a043ca1c6521f4b5770e48023c067206bd6c902",
+      "task_id": "reaction-optimization-standard"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 9,
+      "declared_endpoint_count": 3,
+      "metric_contract_hash": "5b241fd6450378f38b019e9b63bb900cdbf459639cb0387d6f3c125b32de3a76",
+      "task_contract_hash": "a7a705dc87bce6684aa8022439c4cb256486df875bbce9a624111e51047bd102",
+      "task_id": "reaction-safety-constrained"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 9,
+      "declared_endpoint_count": 2,
+      "metric_contract_hash": "ba9f22fb66e1fcd69b08ab6159a42483b33351a8124d3eb7d00008c1ff22d135",
+      "task_contract_hash": "afb93071e7571ec58206a4eb62170e39c7982bd15f0dd12db97ceb08f42df49b",
+      "task_id": "reaction-to-assay"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 2,
+      "allowed_operation_count": 12,
+      "declared_endpoint_count": 6,
+      "metric_contract_hash": "d7777fba3f5f03a738f408a5e3fe2a6d91b9aec562bc939b83dd77c542f9821b",
+      "task_contract_hash": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416",
+      "task_id": "reaction-to-crystallization"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 12,
+      "declared_endpoint_count": 4,
+      "metric_contract_hash": "0f7253cb9dacb2522c7780a478f5db848722240cdfccdb1b95f83e4c2f745ce2",
+      "task_contract_hash": "49e465bce0c5d2fd4a8f73d298cf9d4d2d37c2ca0605aaf6caaab8a9358bff74",
+      "task_id": "reaction-to-distillation"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 18,
+      "declared_endpoint_count": 4,
+      "metric_contract_hash": "c2f0c490545cd5b246c9b1fcfacb72264fc21f03c422665ccd116e9357c1fbd1",
+      "task_contract_hash": "17dd0ecbb478790013f511f373cbc3ca9c9489240b1dce0e35c84bfcd3a661e0",
+      "task_id": "reaction-to-purification"
+    },
+    {
+      "all_endpoints_bound": true,
+      "allowed_instrument_count": 4,
+      "allowed_operation_count": 18,
+      "declared_endpoint_count": 4,
+      "metric_contract_hash": "3636cc17695855ccde92c2a344d671c032a8973a221c2d2ebc1d8c64e186a728",
+      "task_contract_hash": "2d0309f3ad1bef65d2f1cf65d8ef778d980143305bfb201df26a713f944b5aba",
+      "task_id": "tool-agent-planning"
+    }
+  ]
+}
