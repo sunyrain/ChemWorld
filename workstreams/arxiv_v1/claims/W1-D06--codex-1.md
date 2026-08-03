@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-D06
 title: "Record first-paper authors and affiliation metadata"
-status: ACTIVE
+status: BLOCKED
 
 owner: "codex-1"
 collaborators: []
 claimed_at_utc: 2026-08-03T14:02:52Z
 lease_expires_at_utc: 2026-08-05T14:02:52Z
-heartbeat_at_utc: 2026-08-03T14:02:52Z
+heartbeat_at_utc: 2026-08-03T14:04:32Z
 
 base_commit: "969f4cd66b79857dbcd82c66cba2574cad1eef45"
 branch: main
@@ -34,20 +34,25 @@ validation:
   - "Confirm placeholder author text is absent from current manuscript artifacts"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Author and affiliation front matter updated; arXiv artifact rebuild pending"
+completed_since_last_heartbeat:
+  - "Recorded Jiangjie Qiu and Yijun Li in the supplied order"
+  - "Assigned both authors to the supplied Tsinghua University affiliation"
+  - "Rebuilt the PDF and ZIP/TAR arXiv artifacts once"
+current_validation: "ArXiv build passed; placeholder-author scan passed; git diff --check passed"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D06--codex-1.md
   - paper/experimental_intelligence_v1_manuscript.md
+  - paper/arxiv/main.tex
+  - paper/exports/experimental-intelligence-v1-arxiv/**
 blockers:
   - "Corresponding author, public email, and ORCID metadata have not been supplied"
 blocked_by: "project owner metadata input for the remaining W1-D06 fields"
 unblock_condition: "Receive corresponding-author designation/email and any ORCID values"
-next_check_at_utc: null
-next_24h: "Rebuild the arXiv artifacts once and hand off the partial W1-D06 metadata update"
-handoff_eta: 2026-08-03T15:02:52Z
+next_check_at_utc: 2026-08-04T14:04:32Z
+next_24h: "Await the remaining corresponding-author metadata; do not repeat the build until new metadata arrives"
+handoff_eta: 2026-08-03T14:04:32Z
 
-final_commit: null
+final_commit: "eec0b2bbd42c7eb4b68b27236557ea3e3fa03693"
 reviewer: null
 review_result: null
 notes: "The external 17.7 GB archive is explicitly out of scope for this claim. Main is used because the coordinator requested a visible main-branch claim and directly assigned this shared manuscript metadata update."
