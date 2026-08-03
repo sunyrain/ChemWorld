@@ -300,7 +300,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-S03 | P0 | CLAIMED | 重写 title/abstract/introduction 的占位版本 | S01 draft | 是 |
 | W1-S04 | P0 | REVIEW | 重写 platform/world programmability Results 与 Methods | F protocol | 是 |
 | W1-S05 | P0 | REVIEW | 重写 measurement-validity Results 与 Methods | V protocol | 是 |
-| W1-S06 | P0 | CLAIMED | 重写 complete-system policy 与 latent audit 结果结构 | L protocol | 是 |
+| W1-S06 | P0 | REVIEW | 重写 complete-system policy 与 latent audit 结果结构 | L protocol | 是 |
 | W1-S07 | P0 | REVIEW | 修正 figure first-reference、120 closure、6/8 和术语残留 | 无 | 是 |
 | W1-S08 | P0 | CLAIMED | 重构 related work：SDL 互补、agent evaluation、virtual worlds | M02 | 是 |
 | W1-S09 | P0 | OPEN | 完成 limitations/boundaries，不扩大第一篇责任 | S01 | 是 |
