@@ -316,7 +316,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-P04 | P0 | REVIEW | Fig. 3 same completion, different terminal policy | 现有数据；L 可后补 | 是 |
 | W1-P05 | P0 | REVIEW | Fig. 4 compiled information controls | 现有数据 | 是 |
 | W1-P06 | P0 | REVIEW | Fig. 5 autonomous lifecycle/process profile | 现有数据 | 是 |
-| W1-P07 | P0 | OPEN | Fig. 6 fresh-session trajectory variation | 现有数据 | 是 |
+| W1-P07 | P0 | CLAIMED | Fig. 6 fresh-session trajectory variation | 现有数据 | 是 |
 | W1-P08 | P0 | OPEN | SVG editability、高清素材、PDF 字体与双栏尺寸审计 | P02–P07 | 否 |
 | W1-P09 | P0 | OPEN | caption、正文引用、display items 与 manifest 一致性 | P08、S10 | 否 |
 
