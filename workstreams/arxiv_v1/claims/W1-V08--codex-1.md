@@ -3,16 +3,16 @@
 ```yaml
 task_id: W1-V08
 title: "Execute the frozen 30-campaign / 180-lifecycle known-policy matrix"
-status: CLAIMED
+status: ACTIVE
 
 owner: codex-1
 collaborators:
   - "agent:/root/w1_v08"
 claimed_at_utc: 2026-08-03T08:31:36Z
 lease_expires_at_utc: 2026-08-05T08:31:36Z
-heartbeat_at_utc: 2026-08-03T08:31:36Z
+heartbeat_at_utc: 2026-08-03T09:57:32Z
 
-base_commit: "dc636000d0914977191b8a9a02ff683ec33a8cc6"
+base_commit: "f1452b5c5904c4b2cc6fabb2cd0387c43feb1d46"
 branch: work1/w1-v08-formal-policy-controls
 worktree: ../ChemWorld-W1-V08
 supersedes: null
@@ -31,26 +31,29 @@ deliverables:
   - Fail-closed resume evidence that accepts only a canonical validated prefix and never overwrites or replaces an accepted or failed frozen result.
   - V06 audit output and a concise execution handoff recording every failed cell or gate without retuning seeds, thresholds, protocol, estimand, stopping rules, or acceptance rules.
 validation:
-  - uv run python scripts/run_work_i_policy_controls.py --config configs/benchmark/work_i_policy_control_matrix_v0.1.json --execute --allow-formal-execution --qualification-receipt configs/benchmark/work_i_policy_control_formal_qualification_receipt_v0.1.json --output-root workstreams/arxiv_v1/reports/work-i-policy-control-formal-v0.1
-  - uv run python scripts/audit_work_i_policy_validity.py --manifest workstreams/arxiv_v1/reports/work-i-policy-control-formal-v0.1/matrix_manifest.json --output workstreams/arxiv_v1/reports/work-i-policy-control-formal-audit-v0.1.json
-  - uv run python scripts/audit_work_i_policy_validity.py --manifest workstreams/arxiv_v1/reports/work-i-policy-control-formal-v0.1/matrix_manifest.json --output workstreams/arxiv_v1/reports/work-i-policy-control-formal-audit-v0.1.json --check
-  - Verify immutable manifest hashes, file hashes, byte counts, 30/180 primary counts, retest exclusion, zero provider calls, and a completed-output --resume refusal/no-op from a clean checkout.
+  - uv run --isolated --frozen --python 3.11.15 python scripts/run_work_i_policy_controls.py --config configs/benchmark/work_i_policy_control_matrix_v0.1.json --execute --allow-formal-execution --qualification-receipt configs/benchmark/work_i_policy_control_formal_qualification_receipt_v0.1.json --output-root workstreams/arxiv_v1/reports/work-i-policy-control-formal-v0.1
+  - uv run --isolated --frozen --python 3.11.15 python scripts/audit_work_i_policy_validity.py --manifest workstreams/arxiv_v1/reports/work-i-policy-control-formal-v0.1/matrix_manifest.json --output workstreams/arxiv_v1/reports/work-i-policy-control-formal-audit-v0.1.json
+  - uv run --isolated --frozen --python 3.11.15 python scripts/audit_work_i_policy_validity.py --manifest workstreams/arxiv_v1/reports/work-i-policy-control-formal-v0.1/matrix_manifest.json --output workstreams/arxiv_v1/reports/work-i-policy-control-formal-audit-v0.1.json --check
+  - Verify immutable manifest hashes, file hashes, byte counts, 30/180 primary counts, 30/180 retest exclusion, zero provider calls, and a completed-output --resume validated no-op from a clean checkout.
+  - Verify matrix_progress.json independently closes its self-hash, accepted-bundle count/list, and canonical prefix before relying on the terminal manifest.
+  - Hard-stop before commit if any single generated file is at least 50 MiB or total output size is abnormal relative to the approximately 40 MiB plan.
   - git diff --check
   - git diff --check dc636000d0914977191b8a9a02ff683ec33a8cc6...HEAD
 
-completed_since_last_heartbeat: []
-current_validation: "Read-only planning only; formal execution is prohibited until W1-V07 is DONE and its frozen receipt is present on main."
+completed_since_last_heartbeat:
+  - "W1-V07 is DONE on pushed main f1452b5c; its receipt, apparatus, preflight, qualification report, and independent APPROVE are available."
+  - "V08 execution plan is locked to the original CPython 3.11.15/NumPy 2.2.6/SciPy 1.17.1 apparatus and receipt bb3b6170e654cd74122ff719ac9a01d55bc163e8f2ca57046245139d9d3c60fa."
+current_validation: "ACTIVE: create the dedicated worktree from f1452b5c, verify the frozen apparatus before output/world construction, execute the formal matrix exactly once, then audit and publish immutable evidence without retuning."
 files_touched: []
-blockers:
-  - "W1-V07 qualification, protocol freeze, receipt merge, and independent acceptance are not complete."
-blocked_by: W1-V07
-unblock_condition: "W1-V07 is DONE on main and the exact V05 validator accepts its merged self-hashed qualification receipt."
-next_check_at_utc: 2026-08-03T10:31:36Z
-next_24h: "Remain read-only until V07 acceptance; then create the dedicated branch/worktree from updated main and execute the frozen matrix exactly once."
-handoff_eta: 2026-08-04T08:31:36Z
+blockers: []
+blocked_by: null
+unblock_condition: null
+next_check_at_utc: 2026-08-03T10:30:00Z
+next_24h: "Execute the frozen matrix exactly once, audit it, push immutable evidence by layer, and hand off without changing any frozen input or rule."
+handoff_eta: 2026-08-03T11:30:00Z
 
 final_commit: null
 reviewer: null
 review_result: null
-notes: "This advance claim reserves V08 without authorizing early formal execution. No source, frozen config, current pointer, evidence DAG, experiment ledger, manuscript, figure manifest, release manifest, raw provider payload, or global hot file is in scope. An interrupted formal run may resume only with the identical frozen inputs and the runner's fail-closed --resume path."
+notes: "Formal execution is now authorized only from the pushed V07 DONE baseline and only under the exact frozen apparatus. No source, frozen config, current pointer, evidence DAG, experiment ledger, manuscript, figure manifest, release manifest, raw provider payload, or global hot file is in scope. An interrupted formal run may resume only with identical frozen inputs through the fail-closed --resume path. A completed --resume is a fully validated no-op, not permission to overwrite or replace accepted evidence."
 ```
