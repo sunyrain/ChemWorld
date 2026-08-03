@@ -10,7 +10,7 @@ collaborators:
   - "agent:/root/w1_v07"
 claimed_at_utc: 2026-08-03T08:24:08Z
 lease_expires_at_utc: 2026-08-05T08:24:08Z
-heartbeat_at_utc: 2026-08-03T09:12:30Z
+heartbeat_at_utc: 2026-08-03T09:28:53Z
 
 base_commit: "82051ba99fe82fb432e5459c2dc372839d8db5a4"
 branch: work1/w1-v07-byte-rebuild-correction
@@ -23,6 +23,7 @@ declared_write_set:
   - src/chemworld/eval/policy_validity_matrix.py
   - src/chemworld/eval/policy_validity_audit.py
   - scripts/qualify_work_i_policy_controls.py
+  - configs/benchmark/work_i_policy_control_matrix_v0.1.json
   - configs/benchmark/work_i_policy_control_qualification_v0.1.json
   - configs/benchmark/work_i_policy_control_formal_qualification_receipt_v0.1.json
   - tests/test_policy_validity_qualification.py
@@ -35,6 +36,7 @@ declared_write_set:
 shared_hot_file_requests:
   - "GRANTED by coordinator at 2026-08-03T08:42:54Z: src/chemworld/eval/policy_validity_matrix.py and its task-local test/preflight, solely to correct the qualification-discovered native material-information identity binding before protocol freeze."
   - "GRANTED by coordinator at 2026-08-03T08:47:00Z: src/chemworld/eval/policy_validity_audit.py and its task-local tests, solely to make the independent native adapter bind that corrected digest to the frozen bundle cell descriptor before its SHA is frozen in the V07 receipt."
+  - "GRANTED by coordinator at 2026-08-03T09:28:53Z: configs/benchmark/work_i_policy_control_matrix_v0.1.json, solely to freeze and bind the exact CPython, NumPy, SciPy, platform, and uv.lock identity required for byte-exact V07 qualification and subsequent V08 formal execution; no scientific protocol field may change."
 
 deliverables:
   - Outcome-free qualification of the exact V05 runner through an injected synthetic 5 x 2 x 3 matrix with identities explicitly distinct from formal chemical worlds.
@@ -63,7 +65,7 @@ completed_since_last_heartbeat:
   - "Exact preflight and qualification byte rebuilds passed; full V01-V07 task-local suite passed 79 tests in 134.51s; ruff, mypy, both diff checks, and clean/upstream parity passed."
   - "Independent reviewer /root/w1_v07_review returned APPROVE: qualification --check passed in 27.4s; seven tamper negatives, ruff, mypy, preflight check, and diff checks passed; source/auditor/controller/preflight bindings agreed; formal environment/outcome counts were 0/0."
   - "Coordinator integration reproduced a byte-exact rebuild failure on main: semantic values differed only in non-frozen floating tails, but 19 generated artifact files changed bytes. No formal world or outcome was accessed."
-current_validation: "CHANGES_REQUESTED: apply the already frozen V03 numeric normalization to raw producer evidence before serialization/self-hashing, regenerate every dependent artifact/report/receipt, and prove cross-process byte-exact rebuild on main. Scientific seeds, threshold, protocol, estimand, stopping rule, and acceptance gates remain unchanged."
+current_validation: "CHANGES_REQUESTED: the main rebuild exposed an unrecorded runtime split (old V07 artifacts used CPython 3.11.15/SciPy 1.17.1; main uses CPython 3.12.10/SciPy 1.18.0). Freeze the exact main runtime/dependency identity and uv.lock SHA, fail before output/world construction on mismatch, regenerate the invalidated V07 chain in that environment, and prove cross-process byte-exact rebuild without normalizing any frozen controller, action, conversion, or decision evidence. Scientific seeds, threshold, protocol, estimand, stopping rule, and acceptance gates remain unchanged."
 files_touched:
   - src/chemworld/eval/policy_validity_qualification.py
   - src/chemworld/eval/policy_validity_matrix.py
@@ -74,6 +76,7 @@ files_touched:
   - tests/test_policy_validity_matrix.py
   - tests/test_policy_validity_audit.py
   - workstreams/arxiv_v1/reports/work-i-policy-control-matrix-runner-preflight-v0.1.json
+  - configs/benchmark/work_i_policy_control_matrix_v0.1.json
   - configs/benchmark/work_i_policy_control_formal_qualification_receipt_v0.1.json
   - workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1.json
   - workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1.md
@@ -81,12 +84,12 @@ files_touched:
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-03T09:20:00Z
-next_24h: "Correct raw numeric canonicalization, regenerate the invalidated V07 chain with preserved failure history, and repeat full plus independent validation; do not execute W1-V08."
-handoff_eta: 2026-08-03T09:10:00Z
+next_check_at_utc: 2026-08-03T09:45:00Z
+next_24h: "Freeze and test exact runtime identity, regenerate the invalidated V07 chain under CPython 3.12.10/NumPy 2.2.6/SciPy 1.18.0 with preserved failure history, and repeat full plus independent validation; do not execute W1-V08."
+handoff_eta: 2026-08-03T10:30:00Z
 
 final_commit: null
 reviewer: "/root/w1_v07_review"
 review_result: "CHANGES_REQUESTED by coordinator after main integration byte-rebuild failure; prior branch-level approval remains preserved in Git history."
-notes: "The original work1/w1-v07-runner-qualification-freeze branch and rejected receipt remain preserved. The correction continues from integrated main on work1/w1-v07-byte-rebuild-correction. Formal seeds 0-4 may appear only as frozen schedule coordinates in injected synthetic artifacts; no formal environment, controller execution, or outcome may be accessed. To exercise the exact V05/V06 contracts, synthetic cell/campaign/profile IDs remain the canonical schedule coordinates; injected_test mode, formal_result=false, explicit qualification-only role/namespace fields, and qualification-only world/noise/physical identities distinguish the evidence from V08. Noise identity remains paired across information arms. The native producer and independent auditor bind material_information_sha256 to semantic_sha256(cell.material_information), matching the frozen arm descriptor; null, stale, or swapped values remain invalid after rehashing. This changes no world, seed, controller, threshold, estimand, stopping rule, or acceptance rule. Any failed gate is reported without retuning."
+notes: "The original work1/w1-v07-runner-qualification-freeze branch and rejected receipt remain preserved. The correction continues from integrated main on work1/w1-v07-byte-rebuild-correction. Formal seeds 0-4 may appear only as frozen schedule coordinates in injected synthetic artifacts; no formal environment, controller execution, or outcome may be accessed. To exercise the exact V05/V06 contracts, synthetic cell/campaign/profile IDs remain the canonical schedule coordinates; injected_test mode, formal_result=false, explicit qualification-only role/namespace fields, and qualification-only world/noise/physical identities distinguish the evidence from V08. Noise identity remains paired across information arms. The native producer and independent auditor bind material_information_sha256 to semantic_sha256(cell.material_information), matching the frozen arm descriptor; null, stale, or swapped values remain invalid after rehashing. CPython 3.12.10, cpython-312, NumPy 2.2.6, SciPy 1.18.0, Windows win-amd64, and the exact uv.lock file SHA are the frozen execution apparatus; a mismatch must fail before any output or world construction. This changes no world, seed, controller, threshold, estimand, stopping rule, or acceptance rule. Any failed gate is reported without retuning."
 ```
