@@ -9,7 +9,7 @@ import json
 import statistics
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, NotRequired, TypedDict
 
 import numpy as np
 
@@ -18,6 +18,19 @@ from chemworld.eval.provenance import canonical_json_sha256
 STATIC_S0_NOMINAL_INFORMATION_INTERIM_VERSION = (
     "chemworld-static-s0-nominal-information-interim-1.0"
 )
+
+
+class _ScoreSummary(TypedDict):
+    count: int
+    mean: float | None
+    median: float | None
+    sample_standard_deviation: float | None
+    minimum: float | None
+    maximum: float | None
+    world_bootstrap_95_interval: NotRequired[list[float]]
+    world_bootstrap_97_5_interval: NotRequired[list[float]]
+    paired_win_tie_loss: NotRequired[dict[str, int]]
+    familywise_result: NotRequired[str]
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -31,7 +44,7 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _summary(values: Sequence[float]) -> dict[str, float | int | None]:
+def _summary(values: Sequence[float]) -> _ScoreSummary:
     normalized = [float(value) for value in values]
     return {
         "count": len(normalized),
