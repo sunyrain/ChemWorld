@@ -13,6 +13,7 @@ import json
 import math
 import statistics
 from collections.abc import Mapping, Sequence
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, cast
 
@@ -30,6 +31,7 @@ from chemworld.eval.known_policy_contract import (
     build_known_policy_contract,
     known_policy_contract_sha256,
 )
+from chemworld.eval.known_policy_threshold import stable_numeric_payload
 from chemworld.eval.policy_validity_contract import (
     AXES,
     ENDPOINT_CONTEXT,
@@ -38,6 +40,24 @@ from chemworld.eval.policy_validity_contract import (
     PROFILE_SCHEMA_VERSION,
     profile_contract_sha256,
     validate_profile_record,
+)
+from chemworld.eval.policy_validity_matrix import (
+    CELL_BUNDLE_SCHEMA_ID as PRODUCER_CELL_SCHEMA_ID,
+)
+from chemworld.eval.policy_validity_matrix import (
+    CELL_BUNDLE_SCHEMA_VERSION as PRODUCER_CELL_SCHEMA_VERSION,
+)
+from chemworld.eval.policy_validity_matrix import (
+    EXECUTION_SCHEMA_ID as PRODUCER_EXECUTION_SCHEMA_ID,
+)
+from chemworld.eval.policy_validity_matrix import (
+    EXECUTION_SCHEMA_VERSION as PRODUCER_EXECUTION_SCHEMA_VERSION,
+)
+from chemworld.eval.policy_validity_matrix import (
+    MANIFEST_SCHEMA_ID as PRODUCER_MANIFEST_SCHEMA_ID,
+)
+from chemworld.eval.policy_validity_matrix import (
+    MANIFEST_SCHEMA_VERSION as PRODUCER_MANIFEST_SCHEMA_VERSION,
 )
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 
@@ -125,6 +145,18 @@ def _close(left: Any, right: Any) -> bool:
             abs_tol=FLOAT_TOLERANCE,
         )
     return left == right
+
+
+def _semantic_sha256(value: Any) -> str:
+    """Independently rebuild the V05 stable-numeric artifact identity."""
+
+    return canonical_json_sha256(stable_numeric_payload(deepcopy(value)))
+
+
+def _without(payload: Mapping[str, Any], field: str) -> dict[str, Any]:
+    result = deepcopy(dict(payload))
+    result.pop(field, None)
+    return result
 
 
 def _action(record: Mapping[str, Any], label: str) -> Mapping[str, Any]:
@@ -679,7 +711,9 @@ def build_campaign_profile(
             nonfinal_uses / closed if closed else None
         ),
         "mean_first_measurement_operation_fraction": (
-            statistics.fmean(first_measurement_fractions) if first_measurement_fractions else None
+            sum(first_measurement_fractions) / len(first_measurement_fractions)
+            if first_measurement_fractions
+            else None
         ),
     }
     axes["evidence_conditioned_action"] = {
@@ -726,7 +760,7 @@ def build_campaign_profile(
         },
         "construct_axes": axes,
         "endpoint_context": {
-            "mean_assayed_score": statistics.fmean(scores) if scores else None,
+            "mean_assayed_score": sum(scores) / len(scores) if scores else None,
             "best_assayed_score": max(scores) if scores else None,
         },
         "reliability": {
@@ -908,7 +942,15 @@ def _audit_execution(
             )
 
     base_hashes = _base_component_hashes(records, str(resource["ledger_sha256"]))
-    trajectory_hash = _trajectory_manifest_sha256(base_hashes)
+    producer_trajectory_hash = execution.get("profile_trajectory_manifest_sha256")
+    trajectory_hash = (
+        _digest(
+            producer_trajectory_hash,
+            f"{cell_id}.{execution_name}.profile_trajectory_manifest_sha256",
+        )
+        if producer_trajectory_hash is not None
+        else _trajectory_manifest_sha256(base_hashes)
+    )
     profile = build_campaign_profile(
         records,
         resource_state,
@@ -1317,7 +1359,11 @@ def audit_policy_validity_matrix(payload: Mapping[str, Any]) -> dict[str, Any]:
         "status": "passed" if all(gates.values()) else "positive_control_unestablished",
         "passed": all(gates.values()),
         "formal_execution_performed_by_auditor": False,
-        "manifest_sha256": canonical_json_sha256(payload),
+        "manifest_sha256": (
+            _digest(payload["producer_manifest_sha256"], "matrix.producer_manifest_sha256")
+            if "producer_manifest_sha256" in payload
+            else canonical_json_sha256(payload)
+        ),
         "source_manifest_sha256": source_manifest_sha256,
         "dependencies": expected_dependencies,
         "counts": {
@@ -1354,6 +1400,454 @@ def audit_policy_validity_matrix(payload: Mapping[str, Any]) -> dict[str, Any]:
     return report
 
 
+def _producer_execution_components(execution: Mapping[str, Any]) -> dict[str, str]:
+    records = _sequence(execution.get("trajectory_records"), "producer trajectory_records")
+    states = [
+        _mapping(record, "producer trajectory record").get("state")
+        for record in records
+    ]
+    profile = _mapping(execution.get("profile_record"), "producer profile_record")
+    return {
+        "event_sha256": _semantic_sha256(records),
+        "state_sha256": _semantic_sha256(states),
+        "resource_sha256": _semantic_sha256(execution.get("campaign_resource_ledger")),
+        "terminal_sha256": _semantic_sha256(execution.get("lifecycle_terminals")),
+        "profile_sha256": _semantic_sha256(profile),
+        "endpoint_sha256": _semantic_sha256(profile.get("endpoint_context")),
+        "controller_sha256": _semantic_sha256(execution.get("controller_manifest")),
+        "decision_audit_sha256": _semantic_sha256(execution.get("decision_audits")),
+    }
+
+
+def _normalize_producer_execution(
+    payload: Any,
+    *,
+    cell: Mapping[str, Any],
+    card_sha256: str,
+    execution_role: str,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, str]]:
+    cell_id = _nonempty_string(cell.get("cell_id"), "producer cell.cell_id")
+    label = f"{cell_id}.{execution_role}"
+    execution = dict(_mapping(payload, label))
+    if execution.get("schema_id") != PRODUCER_EXECUTION_SCHEMA_ID:
+        raise PolicyValidityAuditError(f"{label} producer execution schema_id mismatch")
+    if execution.get("schema_version") != PRODUCER_EXECUTION_SCHEMA_VERSION:
+        raise PolicyValidityAuditError(f"{label} producer execution schema_version mismatch")
+    if execution.get("execution_role") != execution_role:
+        raise PolicyValidityAuditError(f"{label} producer execution role mismatch")
+    if _digest(execution.get("execution_sha256"), f"{label}.execution_sha256") != (
+        _semantic_sha256(_without(execution, "execution_sha256"))
+    ):
+        raise PolicyValidityAuditError(f"{label} producer execution self-hash mismatch")
+    observed_components = _producer_execution_components(execution)
+    supplied_components = dict(
+        _mapping(execution.get("component_hashes"), f"{label}.component_hashes")
+    )
+    if supplied_components != observed_components:
+        raise PolicyValidityAuditError(
+            f"{label} producer component hashes do not bind the immutable evidence"
+        )
+
+    raw_identity = dict(_mapping(execution.get("identity"), f"{label}.identity"))
+    expected_identity = {
+        "campaign_id": cell_id,
+        "cell_id": cell_id,
+        "world_seed": _integer(cell.get("world_seed"), f"{cell_id}.world_seed"),
+        "information_arm": cell.get("information_arm"),
+        "policy_id": cell.get("policy_id"),
+        "resource_card_sha256": card_sha256,
+    }
+    for field, expected in expected_identity.items():
+        if raw_identity.get(field) != expected:
+            raise PolicyValidityAuditError(f"{label} producer identity mismatch: {field}")
+    world_id = _nonempty_string(raw_identity.get("world_id"), f"{label}.identity.world_id")
+    namespace = _nonempty_string(
+        raw_identity.get("observation_noise_namespace"),
+        f"{label}.identity.observation_noise_namespace",
+    )
+    physical_identity = _mapping(
+        raw_identity.get("physical_identity"), f"{label}.identity.physical_identity"
+    )
+    material_information_sha256 = _digest(
+        raw_identity.get("material_information_sha256"),
+        f"{label}.identity.material_information_sha256",
+    )
+    identity = {
+        "campaign_id": cell_id,
+        "world_id": world_id,
+        "world_seed": expected_identity["world_seed"],
+        "information_arm": expected_identity["information_arm"],
+        "policy_id": expected_identity["policy_id"],
+        "resource_card_sha256": card_sha256,
+        "physical_identity_sha256": _semantic_sha256(physical_identity),
+        "noise_identity_sha256": _semantic_sha256(
+            {"observation_noise_namespace": namespace}
+        ),
+        "material_information_sha256": material_information_sha256,
+    }
+    controller = dict(
+        _mapping(execution.get("controller_manifest"), f"{label}.controller_manifest")
+    )
+
+    raw_records = [
+        dict(_mapping(record, f"{label}.trajectory_record"))
+        for record in _sequence(execution.get("trajectory_records"), f"{label}.trajectory_records")
+    ]
+    raw_audits = [
+        dict(_mapping(audit, f"{label}.decision_audit"))
+        for audit in _sequence(execution.get("decision_audits"), f"{label}.decision_audits")
+    ]
+    if len(raw_audits) != len(raw_records) or to_builtin(raw_audits) != to_builtin(
+        [record.get("decision_audit") for record in raw_records]
+    ):
+        raise PolicyValidityAuditError(
+            f"{label} producer decision audits do not align with trajectory records"
+        )
+    terminal_by_event: dict[int, Mapping[str, Any]] = {}
+    for terminal_index, raw_terminal in enumerate(
+        _sequence(execution.get("lifecycle_terminals"), f"{label}.lifecycle_terminals")
+    ):
+        terminal = _mapping(raw_terminal, f"{label}.lifecycle_terminals[{terminal_index}]")
+        if _integer(terminal.get("lifecycle_index"), f"{label}.terminal.lifecycle_index") != (
+            terminal_index
+        ):
+            raise PolicyValidityAuditError(f"{label} producer terminal order is not canonical")
+        event_index = _integer(
+            terminal.get("terminal_event_index"),
+            f"{label}.terminal.terminal_event_index",
+            minimum=1,
+        )
+        if event_index in terminal_by_event:
+            raise PolicyValidityAuditError(f"{label} producer terminal event is duplicated")
+        terminal_by_event[event_index] = terminal
+    if len(terminal_by_event) != LIFECYCLES_PER_CELL:
+        raise PolicyValidityAuditError(f"{label} producer must contain six terminals")
+
+    policy_id = _nonempty_string(cell.get("policy_id"), f"{cell_id}.policy_id")
+    seen_signals: dict[int, float | None] = dict.fromkeys(range(LIFECYCLES_PER_CELL))
+    records: list[dict[str, Any]] = []
+    for ordinal, raw_record in enumerate(raw_records, start=1):
+        record_label = f"{label}.trajectory_records[{ordinal - 1}]"
+        if _integer(raw_record.get("event_index"), f"{record_label}.event_index", minimum=1) != (
+            ordinal
+        ):
+            raise PolicyValidityAuditError(
+                f"{record_label}.event_index must equal the immutable ordinal"
+            )
+        lifecycle_index = _integer(
+            raw_record.get("lifecycle_index"), f"{record_label}.lifecycle_index"
+        )
+        if lifecycle_index not in seen_signals:
+            raise PolicyValidityAuditError(f"{record_label}.lifecycle_index is outside 0..5")
+        info = _mapping(raw_record.get("info"), f"{record_label}.info")
+        if info.get("transaction_status") != "committed":
+            raise PolicyValidityAuditError(f"{record_label} is not committed")
+        action = dict(_mapping(raw_record.get("action"), f"{record_label}.action"))
+        state = dict(_mapping(raw_record.get("state"), f"{record_label}.state"))
+        observation = dict(
+            _mapping(raw_record.get("observation"), f"{record_label}.observation")
+        )
+        resource_state = dict(
+            _mapping(
+                raw_record.get("campaign_resource_state"),
+                f"{record_label}.campaign_resource_state",
+            )
+        )
+        for field, value in (
+            ("state_sha256", state),
+            ("observation_sha256", observation),
+            ("campaign_resource_state_sha256", resource_state),
+        ):
+            if _digest(raw_record.get(field), f"{record_label}.{field}") != _semantic_sha256(
+                value
+            ):
+                raise PolicyValidityAuditError(
+                    f"{record_label}.{field} does not bind producer evidence"
+                )
+
+        raw_decision = _mapping(raw_record.get("decision_audit"), f"{record_label}.decision_audit")
+        if to_builtin(raw_decision.get("action")) != to_builtin(action):
+            raise PolicyValidityAuditError(
+                f"{record_label}.decision_audit.action does not bind action"
+            )
+        if raw_decision.get("status") != "provided":
+            raise PolicyValidityAuditError(f"{record_label}.decision_audit is not provided")
+        if raw_decision.get("material_information_accessed") not in (None, False):
+            raise PolicyValidityAuditError(
+                f"{record_label}.decision_audit reports material-information access"
+            )
+        if raw_decision.get("provider_call_count") not in (None, 0):
+            raise PolicyValidityAuditError(
+                f"{record_label}.decision_audit reports provider calls"
+            )
+        operation = _nonempty_string(action.get("operation"), f"{record_label}.operation")
+        instrument = action.get("instrument") if operation == "measure" else None
+        expected_adaptation = (
+            "measurement"
+            if policy_id == "measure_then_threshold"
+            and seen_signals[lifecycle_index] is not None
+            else "none"
+        )
+        if raw_decision.get("adaptation_source") != expected_adaptation:
+            raise PolicyValidityAuditError(
+                f"{record_label}.decision_audit violates the observation boundary"
+            )
+        decision = {
+            "policy_id": policy_id,
+            "action_sha256": canonical_json_sha256(action),
+            "material_information_accessed": False,
+            "provider_call_count": 0,
+            "adaptation_source": expected_adaptation,
+            "observed_signal_access": expected_adaptation == "measurement",
+            "diagnostic_signal": (
+                seen_signals[lifecycle_index]
+                if expected_adaptation == "measurement"
+                else None
+            ),
+            "controller_identity_sha256": controller.get("controller_sha256"),
+            "known_policy_contract_sha256": known_policy_contract_sha256(),
+            "threshold_binding_sha256": (
+                FROZEN_THRESHOLD_BINDING_SHA256
+                if policy_id == "measure_then_threshold"
+                else None
+            ),
+        }
+        producer_terminal = terminal_by_event.get(ordinal)
+        terminal_kind: str | None = None
+        terminal_score: Any = None
+        if producer_terminal is not None:
+            if producer_terminal.get("lifecycle_index") != lifecycle_index:
+                raise PolicyValidityAuditError(
+                    f"{record_label} terminal lifecycle identity mismatch"
+                )
+            producer_kind = producer_terminal.get("terminal_kind")
+            if producer_kind not in {"assay", "discard"}:
+                raise PolicyValidityAuditError(f"{record_label} producer terminal kind is invalid")
+            terminal_kind = "final_assay" if producer_kind == "assay" else "discard"
+            terminal_score = producer_terminal.get("terminal_score")
+        normalized_record = {
+            "operation_attempt_index": ordinal,
+            "lifecycle_index": lifecycle_index,
+            "action": action,
+            "transaction_status": "committed",
+            "state": state,
+            "state_sha256": canonical_json_sha256(state),
+            "observation": observation,
+            "observation_sha256": canonical_json_sha256(observation),
+            "campaign_resource_state": resource_state,
+            "campaign_resource_state_sha256": canonical_json_sha256(resource_state),
+            "terminal_kind": terminal_kind,
+            "terminal_score": terminal_score,
+            "decision_audit": decision,
+        }
+        records.append(normalized_record)
+        if operation == "measure" and instrument == "uvvis":
+            seen_signals[lifecycle_index] = _finite(
+                observation.get("conversion"), f"{record_label}.observation.conversion"
+            )
+
+    profile = dict(_mapping(execution.get("profile_record"), f"{label}.profile_record"))
+    trajectory_manifest_sha256 = _semantic_sha256(raw_records)
+    profile_identity = _mapping(profile.get("identity"), f"{label}.profile_record.identity")
+    if profile_identity.get("trajectory_manifest_sha256") != trajectory_manifest_sha256:
+        raise PolicyValidityAuditError(
+            f"{label} producer profile trajectory identity does not bind the records"
+        )
+    ledger = dict(
+        _mapping(execution.get("campaign_resource_ledger"), f"{label}.campaign_resource_ledger")
+    )
+    counts = _mapping(execution.get("counts"), f"{label}.counts")
+    provider_calls = _integer(
+        counts.get("provider_call_count"), f"{label}.counts.provider_call_count"
+    )
+    normalized_execution = {
+        "schema_id": EXECUTION_SCHEMA_ID,
+        "schema_version": EXECUTION_SCHEMA_VERSION,
+        "provider_call_count": provider_calls,
+        "records": records,
+        "campaign_resource_ledger_snapshot": ledger,
+        "profile_record": profile,
+        "profile_trajectory_manifest_sha256": trajectory_manifest_sha256,
+    }
+    normalized_execution["hashes"] = build_execution_hashes(records, ledger, profile)
+    return normalized_execution, identity, controller, observed_components
+
+
+def _normalize_producer_bundle(
+    payload: Mapping[str, Any],
+    *,
+    reference: Mapping[str, Any],
+    manifest: Mapping[str, Any],
+) -> dict[str, Any]:
+    if payload.get("schema_id") != PRODUCER_CELL_SCHEMA_ID:
+        raise PolicyValidityAuditError("producer campaign bundle schema_id mismatch")
+    if payload.get("schema_version") != PRODUCER_CELL_SCHEMA_VERSION:
+        raise PolicyValidityAuditError("producer campaign bundle schema_version mismatch")
+    if _digest(payload.get("bundle_sha256"), "producer bundle.bundle_sha256") != (
+        _semantic_sha256(_without(payload, "bundle_sha256"))
+    ):
+        raise PolicyValidityAuditError("producer campaign bundle self-hash mismatch")
+    if payload.get("bundle_sha256") != reference.get("bundle_sha256"):
+        raise PolicyValidityAuditError("producer bundle semantic hash/reference mismatch")
+    cell = dict(_mapping(payload.get("cell"), "producer bundle.cell"))
+    cell_id = _nonempty_string(cell.get("cell_id"), "producer bundle.cell.cell_id")
+    for field in ("ordinal", "cell_id", "world_seed", "information_arm", "policy_id"):
+        if cell.get(field) != reference.get(field):
+            raise PolicyValidityAuditError(
+                f"{cell_id} producer bundle/reference identity mismatch: {field}"
+            )
+    card = _mapping(manifest.get("campaign_resource_card"), "producer manifest resource card")
+    card_sha256 = _digest(card.get("card_sha256"), "producer resource card hash")
+    bindings = {
+        "protocol_sha256": manifest.get("protocol_sha256"),
+        "source_manifest_sha256": manifest.get("source_manifest_sha256"),
+        "dependency_bindings": manifest.get("dependency_bindings"),
+        "campaign_resource_card_sha256": card_sha256,
+        "runner_version": manifest.get("runner_version"),
+    }
+    for field, expected in bindings.items():
+        if payload.get(field) != expected:
+            raise PolicyValidityAuditError(f"{cell_id} producer bundle binding mismatch: {field}")
+
+    original, original_identity, original_controller, original_components = (
+        _normalize_producer_execution(
+            payload.get("original"),
+            cell=cell,
+            card_sha256=card_sha256,
+            execution_role="original",
+        )
+    )
+    retest, retest_identity, retest_controller, retest_components = (
+        _normalize_producer_execution(
+            payload.get("retest"),
+            cell=cell,
+            card_sha256=card_sha256,
+            execution_role="retest",
+        )
+    )
+    raw_original = _mapping(payload.get("original"), f"{cell_id}.original")
+    raw_retest = _mapping(payload.get("retest"), f"{cell_id}.retest")
+    component_matches = {
+        field: original_components[field] == retest_components[field]
+        for field in original_components
+    }
+    expected_retest_audit = {
+        "same_identity": raw_original.get("identity") == raw_retest.get("identity"),
+        "component_matches": component_matches,
+        "all_components_match": all(component_matches.values()),
+    }
+    if to_builtin(payload.get("retest_audit")) != to_builtin(expected_retest_audit):
+        raise PolicyValidityAuditError(f"{cell_id} producer retest audit does not rebuild")
+    if not expected_retest_audit["same_identity"] or not expected_retest_audit[
+        "all_components_match"
+    ]:
+        raise PolicyValidityAuditError(f"{cell_id} producer retest gate failed")
+    if original_identity != retest_identity or original_controller != retest_controller:
+        raise PolicyValidityAuditError(f"{cell_id} normalized retest identity differs")
+    return {
+        "schema_id": CELL_SCHEMA_ID,
+        "schema_version": CELL_SCHEMA_VERSION,
+        "cell_id": cell_id,
+        "identity": original_identity,
+        "controller_manifest": original_controller,
+        "original": original,
+        "retest": retest,
+    }
+
+
+def _load_producer_manifest(path: Path, manifest: Mapping[str, Any]) -> dict[str, Any]:
+    if manifest.get("schema_version") != PRODUCER_MANIFEST_SCHEMA_VERSION:
+        raise PolicyValidityAuditError("producer matrix manifest schema_version mismatch")
+    if manifest.get("status") != "complete" or manifest.get("immutable") is not True:
+        raise PolicyValidityAuditError("producer matrix manifest is not immutable-complete")
+    if _digest(manifest.get("manifest_sha256"), "producer manifest.manifest_sha256") != (
+        _semantic_sha256(_without(manifest, "manifest_sha256"))
+    ):
+        raise PolicyValidityAuditError("producer matrix manifest self-hash mismatch")
+    source_manifest = _mapping(
+        manifest.get("source_manifest"), "producer manifest.source_manifest"
+    )
+    source_manifest_sha256 = _digest(
+        manifest.get("source_manifest_sha256"),
+        "producer manifest.source_manifest_sha256",
+    )
+    if source_manifest_sha256 != _semantic_sha256(source_manifest):
+        raise PolicyValidityAuditError("producer source-manifest hash mismatch")
+    mode = manifest.get("execution_mode")
+    if mode not in {"injected_test", "formal"}:
+        raise PolicyValidityAuditError("producer matrix execution_mode is invalid")
+    if manifest.get("formal_result") is not (mode == "formal"):
+        raise PolicyValidityAuditError("producer formal-result identity is inconsistent")
+    expected_counts = {
+        "primary_campaigns": 30,
+        "primary_closed_lifecycles": 180,
+        "retest_campaigns": 30,
+        "retest_closed_lifecycles": 180,
+        "provider_calls": 0,
+    }
+    if manifest.get("expected_counts") != expected_counts:
+        raise PolicyValidityAuditError("producer expected matrix counts are stale")
+    if manifest.get("materialized_counts") != expected_counts:
+        raise PolicyValidityAuditError("producer matrix is incomplete")
+
+    references = [
+        dict(_mapping(reference, f"producer manifest.cells[{index}]"))
+        for index, reference in enumerate(
+            _sequence(manifest.get("cells"), "producer manifest.cells")
+        )
+    ]
+    if len(references) != 30:
+        raise PolicyValidityAuditError("producer matrix must reference exactly 30 bundles")
+    root = path.parent
+    cells: list[dict[str, Any]] = []
+    for index, reference in enumerate(references, start=1):
+        if _integer(reference.get("ordinal"), "producer cell ordinal", minimum=1) != index:
+            raise PolicyValidityAuditError("producer matrix cell references are not canonical")
+        relative = Path(
+            _nonempty_string(reference.get("bundle_path"), "producer bundle_path")
+        )
+        if relative.is_absolute():
+            raise PolicyValidityAuditError("campaign bundle paths must be relative")
+        bundle_path = (root / relative).resolve()
+        try:
+            bundle_path.relative_to(root)
+        except ValueError as exc:
+            raise PolicyValidityAuditError(
+                "campaign bundle path escapes the manifest directory"
+            ) from exc
+        supplied_file_hash = _digest(
+            reference.get("file_sha256"), f"producer {relative}.file_sha256"
+        )
+        if file_sha256(bundle_path) != supplied_file_hash:
+            raise PolicyValidityAuditError(f"campaign bundle file hash mismatch: {relative}")
+        byte_count = _integer(reference.get("byte_count"), f"producer {relative}.byte_count")
+        if bundle_path.stat().st_size != byte_count:
+            raise PolicyValidityAuditError(f"campaign bundle byte count mismatch: {relative}")
+        bundle = _load_json_object(bundle_path, "producer campaign bundle")
+        cells.append(
+            _normalize_producer_bundle(bundle, reference=reference, manifest=manifest)
+        )
+
+    dependencies = _mapping(
+        manifest.get("dependency_bindings"), "producer manifest.dependency_bindings"
+    )
+    return {
+        "schema_id": MATRIX_SCHEMA_ID,
+        "schema_version": MATRIX_SCHEMA_VERSION,
+        "dependencies": {
+            field: dependencies.get(field)
+            for field in (
+                "profile_contract_sha256",
+                "known_policy_contract_sha256",
+                "threshold_binding_sha256",
+            )
+        },
+        "source_manifest_sha256": source_manifest_sha256,
+        "producer_manifest_sha256": manifest["manifest_sha256"],
+        "cells": cells,
+    }
+
+
 def _load_json_object(path: Path, label: str) -> dict[str, Any]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -1367,6 +1861,8 @@ def load_matrix_manifest(path: Path) -> dict[str, Any]:
 
     manifest_path = path.resolve()
     manifest = _load_json_object(manifest_path, "matrix manifest")
+    if manifest.get("schema_id") == PRODUCER_MANIFEST_SCHEMA_ID:
+        return _load_producer_manifest(manifest_path, manifest)
     raw_cells = _sequence(manifest.get("cells"), "matrix manifest cells")
     if not raw_cells:
         raise PolicyValidityAuditError("matrix manifest has no campaign bundles")

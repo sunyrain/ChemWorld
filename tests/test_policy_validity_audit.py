@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -32,12 +33,23 @@ from chemworld.eval.policy_validity_audit import (
     MATRIX_SCHEMA_VERSION,
     PolicyValidityAuditError,
     audit_campaign_bundle,
+    audit_policy_validity_manifest,
     audit_policy_validity_matrix,
     build_campaign_profile,
     build_execution_hashes,
     load_matrix_manifest,
 )
 from chemworld.eval.policy_validity_contract import profile_contract_sha256
+from chemworld.eval.policy_validity_matrix import (
+    MANIFEST_FILENAME as PRODUCER_MANIFEST_FILENAME,
+)
+from chemworld.eval.policy_validity_matrix import (
+    MatrixCell,
+    build_profile_record_from_execution,
+    campaign_resource_card,
+    run_matrix,
+    semantic_sha256,
+)
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 
 CONTROLLER_HASHES = {
@@ -45,6 +57,8 @@ CONTROLLER_HASHES = {
     for policy_id in POLICY_IDS
 }
 SOURCE_MANIFEST_SHA256 = canonical_json_sha256({"role": "synthetic immutable V06 fixture"})
+ROOT = Path(__file__).resolve().parents[1]
+PROTOCOL_PATH = ROOT / "configs/benchmark/work_i_policy_control_matrix_v0.1.json"
 
 
 def _resource_card() -> CampaignResourceCard:
@@ -351,6 +365,168 @@ def _matrix(
     }
 
 
+def _producer_execution(
+    cell: MatrixCell,
+    protocol: Mapping[str, Any],
+    *,
+    execution_role: str,
+) -> dict[str, Any]:
+    """Build synthetic evidence through the V05 injected-executor contract."""
+
+    card = campaign_resource_card(protocol)
+    ledger = CampaignResourceLedger(card)
+    records: list[dict[str, Any]] = []
+    terminals: list[dict[str, Any]] = []
+    operation_attempt = 0
+    threshold_signals = (0.0, 0.02, 0.0, 0.02, 0.0, 0.02)
+    logical_campaign_id = (
+        f"work-i-known-policy-world-{cell.world_seed:04d}-{cell.policy_id}"
+    )
+    for lifecycle_index, signal in enumerate(threshold_signals):
+        measurement_seen = False
+        for within_lifecycle_index, action in enumerate(
+            _actions(cell.policy_id, lifecycle_index, signal)
+        ):
+            operation_attempt += 1
+            event_id = campaign_resource_event_id(logical_campaign_id, operation_attempt)
+            starts_vessel = within_lifecycle_index == 0
+            preflight = ledger.preflight(event_id, action, starts_vessel=starts_vessel)
+            assert preflight.allowed
+            ledger.record_outcome(
+                event_id,
+                action,
+                {
+                    "transaction_status": "committed",
+                    "campaign_resource_report_delta": {
+                        "physical_cost": 0.1,
+                        "accumulated_risk": 0.01,
+                    },
+                },
+                starts_vessel=starts_vessel,
+            )
+            operation = action["operation"]
+            instrument = action.get("instrument")
+            observation: dict[str, Any] = {}
+            if operation == "measure" and instrument == "uvvis":
+                observation = {"conversion": signal}
+            terminal_kind = _terminal_kind(action)
+            terminal_score = (
+                0.5 + lifecycle_index * 0.01
+                if terminal_kind == "final_assay"
+                else None
+            )
+            if terminal_score is not None:
+                observation = {"score": terminal_score}
+            state = {
+                "world_seed": cell.world_seed,
+                "policy_id": cell.policy_id,
+                "lifecycle_index": lifecycle_index,
+                "within_lifecycle_index": within_lifecycle_index,
+            }
+            resource_state = deepcopy(ledger.snapshot()["state"])
+            decision_audit = {
+                "action": deepcopy(action),
+                "adaptation_source": "measurement" if measurement_seen else "none",
+                "status": "provided",
+            }
+            producer_terminal_kind = (
+                "assay" if terminal_kind == "final_assay" else terminal_kind
+            )
+            if producer_terminal_kind is not None:
+                terminals.append(
+                    {
+                        "lifecycle_index": lifecycle_index,
+                        "terminal_kind": producer_terminal_kind,
+                        "terminal_score": terminal_score,
+                        "terminal_event_index": operation_attempt,
+                    }
+                )
+            record = {
+                "event_index": operation_attempt,
+                "lifecycle_index": lifecycle_index,
+                "action": deepcopy(action),
+                "observation": observation,
+                "reward": 0.0,
+                "terminated": False,
+                "truncated": False,
+                "event_type": (
+                    "experiment_end"
+                    if terminal_kind == "final_assay"
+                    else "batch_discard"
+                    if terminal_kind == "discard"
+                    else "operation_result"
+                ),
+                "info": {
+                    "transaction_status": "committed",
+                    "experiment_ended": terminal_kind is not None,
+                },
+                "state": state,
+                "campaign_resource_state": resource_state,
+                "decision_audit": decision_audit,
+            }
+            record["observation_sha256"] = semantic_sha256(observation)
+            record["state_sha256"] = semantic_sha256(state)
+            record["campaign_resource_state_sha256"] = semantic_sha256(resource_state)
+            records.append(record)
+            if operation == "measure" and instrument == "uvvis":
+                measurement_seen = True
+    snapshot = ledger.snapshot()
+    world_id = f"synthetic-world-{cell.world_seed:04d}"
+    profile = build_profile_record_from_execution(
+        cell=cell,
+        world_id=world_id,
+        resource_card_sha256=card.card_sha256,
+        trajectory_records=records,
+        campaign_resource_ledger=snapshot,
+        lifecycle_terminals=terminals,
+        threshold=FROZEN_THRESHOLD,
+    )
+    return {
+        "schema_id": "chemworld.policy_control_campaign_execution",
+        "schema_version": "0.1.0",
+        "execution_role": execution_role,
+        "identity": {
+            "campaign_id": cell.cell_id,
+            "cell_id": cell.cell_id,
+            "world_seed": cell.world_seed,
+            "world_id": world_id,
+            "information_arm": cell.information_arm,
+            "policy_id": cell.policy_id,
+            "resource_card_sha256": card.card_sha256,
+            "observation_noise_namespace": f"synthetic-world-{cell.world_seed:04d}",
+            "physical_identity": {
+                "world_seed": cell.world_seed,
+                "world_id": world_id,
+                "physics": "injected-synthetic-v06-acceptance",
+            },
+            "material_information_sha256": semantic_sha256(
+                cell.material_information
+            ),
+        },
+        "controller_manifest": _controller_manifest(cell.policy_id),
+        "trajectory_records": records,
+        "campaign_resource_ledger": snapshot,
+        "lifecycle_terminals": terminals,
+        "profile_record": profile,
+        "decision_audits": [record["decision_audit"] for record in records],
+        "counts": {
+            **profile["counts"],
+            "attempted_operation_count": len(records),
+            "committed_operation_count": len(records),
+            "provider_call_count": 0,
+        },
+    }
+
+
+def _producer_executor(
+    cell: MatrixCell, protocol: Mapping[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    return (
+        _producer_execution(cell, protocol, execution_role="original"),
+        _producer_execution(cell, protocol, execution_role="retest"),
+    )
+
+
 @pytest.fixture(scope="module")
 def valid_matrix() -> dict[str, Any]:
     return _matrix()
@@ -533,6 +709,40 @@ def test_manifest_loader_verifies_relative_path_hash_and_byte_count(
     manifest_path.write_text(json.dumps(bad), encoding="utf-8")
     with pytest.raises(PolicyValidityAuditError, match="bundle hash mismatch"):
         load_matrix_manifest(manifest_path)
+
+
+def test_v05_run_matrix_manifest_passes_all_v06_audit_gates(tmp_path: Path) -> None:
+    output_root = tmp_path / "producer-matrix"
+    manifest = run_matrix(
+        root=ROOT,
+        protocol_path=PROTOCOL_PATH,
+        output_root=output_root,
+        executor=_producer_executor,
+        resume=False,
+    )
+    assert manifest["execution_mode"] == "injected_test"
+    assert manifest["formal_result"] is False
+    assert manifest["materialized_counts"] == {
+        "primary_campaigns": 30,
+        "primary_closed_lifecycles": 180,
+        "retest_campaigns": 30,
+        "retest_closed_lifecycles": 180,
+        "provider_calls": 0,
+    }
+
+    report = audit_policy_validity_manifest(
+        output_root / PRODUCER_MANIFEST_FILENAME
+    )
+    assert report["passed"] is True
+    assert all(report["gates"].values())
+    assert report["manifest_sha256"] == manifest["manifest_sha256"]
+    assert report["counts"] == {
+        "campaigns": 30,
+        "closed_lifecycles": 180,
+        "threshold_assays": 30,
+        "threshold_discards": 30,
+        "provider_calls": 0,
+    }
 
 
 def test_cli_stdout_is_one_read_only_json_receipt(
