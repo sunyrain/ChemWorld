@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-Q04
 title: "Independently review world and experiment chemistry semantics"
-status: CLAIMED
+status: ACTIVE
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T15:31:09Z
 lease_expires_at_utc: 2026-08-05T15:31:09Z
-heartbeat_at_utc: 2026-08-03T15:31:09Z
+heartbeat_at_utc: 2026-08-03T15:35:03Z
 
 base_commit: "cc5140e071bd766836c0305ed4f11cfa4d6860ea"
 branch: work1/w1-q04-chemistry-review-yijun
@@ -32,8 +32,10 @@ validation:
   - "Confirm only the declared claim and review report are modified"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared for main registration before read-only chemistry review"
+completed_since_last_heartbeat:
+  - "Read the repository and Work I startup contract, claim rules/template, authoritative TODO, and deeper scientific specification."
+  - "Confirmed the claim is registered on main and the branch is restricted to the declared claim and review report."
+current_validation: "Read-only F/V chemistry-semantics evidence audit in progress"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-Q04--Yijun.md
 blockers: []
