@@ -22,7 +22,17 @@ declared_write_set:
   - tests/test_work_i_experiment_semantics.py
   - workstreams/arxiv_v1/reports/work-i-experiment-semantics-v0.1.json
   - workstreams/arxiv_v1/reports/work-i-experiment-semantics-v0.1.md
-shared_hot_file_requests: []
+  - src/chemworld/foundation/world_fork_runtime.py
+  - tests/test_world_fork_runtime.py
+  - workstreams/arxiv_v1/reports/work-i-world-fork-runtime-preflight-v0.1.json
+  - workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json
+  - workstreams/arxiv_v1/reports/work-i-world-fork-certificate-v0.1.json
+  - workstreams/arxiv_v1/reports/work-i-world-fork-certificate-v0.1.md
+  - workstreams/arxiv_v1/claims/W1-F05--codex.md
+  - workstreams/arxiv_v1/claims/W1-F06--codex.md
+  - workstreams/arxiv_v1/claims/W1-F07--codex.md
+shared_hot_file_requests:
+  - "Correct the F05 reconstructed public failure-contract status vocabulary and deterministically reissue its F06/F07 derived artifacts."
 
 deliverables:
   - Per-operation transaction, precondition, failure, and runtime-route qualification table.
@@ -48,5 +58,5 @@ handoff_eta: 2026-08-03T07:00:00Z
 final_commit: null
 reviewer: null
 review_result: null
-notes: "The table must distinguish declared contracts from behavior exercised by an executable probe."
+notes: "The table must distinguish declared contracts from behavior exercised by an executable probe. Initial read-only probing found the F05 reconstructed failure-status vocabulary omitted validation_failed, rolled_back, and campaign_resource_rejected; coordinator reserved the affected derived artifacts for correction in this task."
 ```
