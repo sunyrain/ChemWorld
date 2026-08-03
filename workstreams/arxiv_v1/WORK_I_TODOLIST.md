@@ -286,7 +286,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | --- | --- | --- | --- | --- | --- |
 | W1-L01 | P0 | REVIEW | 冻结 shadow-state estimands 与主文进入规则 | M02 | 是 |
 | W1-L02 | P0 | REVIEW | 审计 36 个 discard 的 pre-discard state 可重建性 | 无 | 是 |
-| W1-L03 | P0 | CLAIMED | 实现 prefix-identity replay 与 terminal branch replacement | L01 draft | 是 |
+| W1-L03 | P0 | REVIEW | 实现 prefix-identity replay 与 terminal branch replacement | L01 draft | 是 |
 | W1-L04 | P0 | OPEN | 实现 latent-score、regret、false-discard 与 commitment audit | L01 draft | 是 |
 | W1-L05 | P0 | OPEN | qualification、protocol freeze 与 36 shadow assays | L02–L04 | 否 |
 | W1-L06 | P0 | OPEN | 输出连续主分析和阈值敏感性报告 | L05 | 是 |
