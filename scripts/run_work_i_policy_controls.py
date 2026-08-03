@@ -9,6 +9,7 @@ from pathlib import Path
 from chemworld.eval.policy_validity_matrix import (
     build_preflight,
     known_policy_cell_executor,
+    load_formal_qualification_receipt,
     run_matrix,
     validate_preflight,
 )
@@ -43,7 +44,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--allow-formal-execution",
         action="store_true",
-        help="Required explicit opt-in for --execute; V07/V08 governance still applies.",
+        help="Required explicit opt-in for --execute.",
+    )
+    parser.add_argument(
+        "--qualification-receipt",
+        type=Path,
+        help="Required self-hashed W1-V07 runner-qualification/protocol-freeze receipt.",
     )
     parser.add_argument(
         "--check",
@@ -54,9 +60,15 @@ def parse_args() -> argparse.Namespace:
 
 
 def _run_preflight(args: argparse.Namespace) -> int:
-    if args.resume or args.allow_formal_execution or args.output_root is not None:
+    if (
+        args.resume
+        or args.allow_formal_execution
+        or args.output_root is not None
+        or args.qualification_receipt is not None
+    ):
         raise RuntimeError(
-            "--resume, --allow-formal-execution, and --output-root apply only to --execute"
+            "--resume, --allow-formal-execution, --qualification-receipt, and "
+            "--output-root apply only to --execute"
         )
     report = build_preflight(ROOT, args.config.resolve())
     errors = validate_preflight(report)
@@ -104,6 +116,9 @@ def _run_formal(args: argparse.Namespace) -> int:
         raise RuntimeError("--execute requires an explicit --output-root")
     if not args.allow_formal_execution:
         raise RuntimeError("--execute requires --allow-formal-execution")
+    if args.qualification_receipt is None:
+        raise RuntimeError("--execute requires --qualification-receipt from W1-V07")
+    receipt = load_formal_qualification_receipt(args.qualification_receipt.resolve())
     manifest = run_matrix(
         root=ROOT,
         protocol_path=args.config.resolve(),
@@ -112,6 +127,7 @@ def _run_formal(args: argparse.Namespace) -> int:
         resume=bool(args.resume),
         execution_mode="formal",
         allow_formal_execution=True,
+        formal_qualification_receipt=receipt,
     )
     print(
         json.dumps(
