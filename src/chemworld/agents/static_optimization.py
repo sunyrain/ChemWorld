@@ -2568,27 +2568,31 @@ class StaticOptimizationAgent:
             working_explanation_shape.update(structured_claim_shape)
         required_json_shape: dict[str, object] = {
             "schema_version": self.final_synthesis_version,
-            "recommended_measurement_slots": ["public diagnostic slot ID"],
-            "recommendation_type": "tested|interpolated|extrapolated",
-            "source_experiment_indices": ["integer experiment index"],
-            "predicted_score": "number in [0,1]",
-            "confidence": "number in [0,1]",
-            "method_summary": "string",
-            "evidence_refs": ["at most 16 public evidence IDs"],
-            "working_explanation": working_explanation_shape,
-            "remaining_risks": ["at most 16 strings"],
-            "recommended_followup": "string",
         }
         required_json_shape.update(recommendation_field)
+        required_json_shape.update(
+            {
+                "recommended_measurement_slots": ["public diagnostic slot ID"],
+                "recommendation_type": "tested|interpolated|extrapolated",
+                "source_experiment_indices": ["integer experiment index"],
+                "predicted_score": "number in [0,1]",
+                "confidence": "number in [0,1]",
+                "method_summary": "string",
+                "evidence_refs": ["at most 16 public evidence IDs"],
+                "working_explanation": working_explanation_shape,
+                "remaining_risks": ["at most 16 strings"],
+                "recommended_followup": "string",
+            }
+        )
         required_json_shape.update(counterfactual_prediction_shape)
         prompt_payload: dict[str, object] = {
             "schema_version": self.final_synthesis_version,
             "public_final_synthesis_context": context,
             "public_context_sha256": context_sha256,
-            "required_json_shape": required_json_shape,
         }
         if self.predictive_world_understanding_enabled and not include_prediction_queries:
             prompt_payload["forbidden_json_fields"] = ["counterfactual_predictions"]
+        prompt_payload["required_json_shape"] = required_json_shape
         prompt = json.dumps(
             prompt_payload,
             ensure_ascii=False,
