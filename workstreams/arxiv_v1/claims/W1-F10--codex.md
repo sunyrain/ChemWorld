@@ -28,11 +28,12 @@ declared_write_set:
   - workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json
   - workstreams/arxiv_v1/reports/work-i-world-fork-certificate-v0.1.json
   - workstreams/arxiv_v1/reports/work-i-world-fork-certificate-v0.1.md
+  - scripts/summarize_work_i_world_fork.py
   - workstreams/arxiv_v1/claims/W1-F05--codex.md
   - workstreams/arxiv_v1/claims/W1-F06--codex.md
   - workstreams/arxiv_v1/claims/W1-F07--codex.md
 shared_hot_file_requests:
-  - "Correct the F05 reconstructed public failure-contract status vocabulary and deterministically reissue its F06/F07 derived artifacts."
+  - "Correct the F05 reconstructed public failure-contract status vocabulary, remove trailing-whitespace generation in the F07 certificate renderer, and deterministically reissue the affected F06/F07 artifacts."
 
 deliverables:
   - Per-operation transaction, precondition, failure, and runtime-route qualification table.
