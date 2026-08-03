@@ -3,14 +3,14 @@
 ```yaml
 task_id: W1-V07
 title: "Qualify the known-policy matrix runner and freeze the formal protocol"
-status: ACTIVE
+status: REVIEW
 
 owner: codex-1
 collaborators:
   - "agent:/root/w1_v07"
 claimed_at_utc: 2026-08-03T08:24:08Z
 lease_expires_at_utc: 2026-08-05T08:24:08Z
-heartbeat_at_utc: 2026-08-03T08:42:54Z
+heartbeat_at_utc: 2026-08-03T09:05:04Z
 
 base_commit: "53e30431fde9cd15c4f3a632e9a7214b8ac2c79d"
 branch: work1/w1-v07-runner-qualification-freeze
@@ -56,9 +56,13 @@ validation:
   - git diff --check 53e30431fde9cd15c4f3a632e9a7214b8ac2c79d...HEAD
 
 completed_since_last_heartbeat:
-  - "Pushed qualification implementation checkpoint e51088a6 and live-arm assembly checkpoint ee086839."
-  - "Synthetic exact-runner chain passed all V06 gates; live seed-20000 chain fail-closed before receipt generation and exposed a native V05 material-information identity bug."
-current_validation: "Correct the native producer identity binding and strengthen qualification-only identity separation, then rebuild preflight and rerun both nonformal chains without changing frozen scientific rules."
+  - "Qualification discovery fail-closed exposed and corrected the pre-freeze V05 producer/V06 adapter material-information identity binding under coordinator reservations; null, stale, and cross-arm-swapped rehashed evidence is rejected."
+  - "Pushed implementation hardening 9a65b0c8, deterministic preflight 5361cf7b, immutable artifacts/delivery manifest 1e09cb48, report/Markdown bfb16215, and formal receipt 7021e407."
+  - "Complete injected synthetic V05 matrix passed every V06 gate: 30 campaigns, 180 closed lifecycles, 30 threshold assays, 30 threshold discards, and zero provider calls."
+  - "Fixed seed-20000 nonformal smoke passed all gates: 6 original plus 6 exact retest campaigns, 36 plus 36 closed lifecycles, matched-arm invariance, and zero provider calls."
+  - "Exact preflight and qualification byte rebuilds passed; full V01-V07 task-local suite passed 79 tests in 134.51s; ruff, mypy, both diff checks, and clean/upstream parity passed."
+  - "Independent reviewer /root/w1_v07_review returned APPROVE and independently confirmed the frozen report, receipt, and delivery bindings."
+current_validation: "REVIEW: all declared validations pass; qualification report c3f3985784187dbd77c9ef5f08744646bf79c052be5f1112e8daea016ec69b51, receipt 7cde7677d28943d50c6ddf12540513b91f3e88ec55b39d69a3caf50d646ad305, delivery manifest 7e97061bcbcc7708618153014b08c5218ea2fd544213c9498bf8494ca6f41661; formal environment executions/outcome reads remain 0/0."
 files_touched:
   - src/chemworld/eval/policy_validity_qualification.py
   - src/chemworld/eval/policy_validity_matrix.py
@@ -69,15 +73,19 @@ files_touched:
   - tests/test_policy_validity_matrix.py
   - tests/test_policy_validity_audit.py
   - workstreams/arxiv_v1/reports/work-i-policy-control-matrix-runner-preflight-v0.1.json
+  - configs/benchmark/work_i_policy_control_formal_qualification_receipt_v0.1.json
+  - workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1.json
+  - workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1.md
+  - workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1/**
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-03T12:24:08Z
-next_24h: "Apply the coordinator-approved pre-freeze native identity correction, qualify synthetic and fixed nonformal execution paths, freeze the receipt, and stop before any formal execution."
-handoff_eta: 2026-08-03T16:24:08Z
+next_check_at_utc: 2026-08-03T09:20:00Z
+next_24h: "Await coordinator integration/DONE bookkeeping; do not execute W1-V08 from this branch."
+handoff_eta: 2026-08-03T09:10:00Z
 
-final_commit: null
-reviewer: null
-review_result: null
+final_commit: "7021e4076f3fcfa67c5374f593c7b0aa0d151143"
+reviewer: "/root/w1_v07_review"
+review_result: "APPROVED"
 notes: "Formal seeds 0-4 may appear only as frozen schedule coordinates in injected synthetic artifacts; no formal environment, controller execution, or outcome may be accessed. To exercise the exact V05/V06 contracts, synthetic cell/campaign/profile IDs remain the canonical schedule coordinates; injected_test mode, formal_result=false, explicit qualification-only role/namespace fields, and qualification-only world/noise/physical identities distinguish the evidence from V08. Noise identity remains paired across information arms. The native producer and independent auditor bind material_information_sha256 to semantic_sha256(cell.material_information), matching the frozen arm descriptor; null, stale, or swapped values remain invalid after rehashing. This changes no world, seed, controller, threshold, estimand, stopping rule, or acceptance rule. Any failed gate is reported without retuning."
 ```
