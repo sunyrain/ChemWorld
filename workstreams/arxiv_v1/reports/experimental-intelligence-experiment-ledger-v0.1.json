@@ -1,13 +1,17 @@
 {
   "schema_version": "chemworld-arxiv-v1-experimental-intelligence-ledger-0.1",
-  "as_of": "2026-08-02",
+  "as_of": "2026-08-03",
   "audit_basis": {
-    "git_commit": "b38ba5123e6fe1db4f723cd2196783c1475d1807",
-    "branch": "codex/evidence-semantic-invariance",
-    "remote_synced_at_audit_start": false,
+    "git_commit": "14ec4a63",
+    "branch": "main",
+    "remote_synced_at_audit_start": true,
     "tracked_worktree_clean_at_audit_start": true,
     "evidence_pipeline_status": "passed",
-    "evidence_pipeline_graph_sha256": "8f6a86b90628d2d61a9da2b582977863329953dd30f2c57d0c14ec03e9f7d12b",
+    "evidence_pipeline_graph_sha256": "a7f7ef76e69fb9532197f8b7352da24ecd6103cdc1ced11f68f86bde5577a2af",
+    "evidence_pipeline_node_count": 68,
+    "work_i_fvl_node_count": 13,
+    "work_i_fvl_nodes_current": 13,
+    "repository_stale_binding_count": 11,
     "evidence_pipeline_errors": []
   },
   "paper_scope": {
@@ -264,6 +268,64 @@
       "claim_boundary": "report every available nominal-minus-opaque trajectory separately within each selected world, retain two right-censored pairs, and perform no pooled general-world p-value"
     }
   },
+  "work_i_fvl_incremental_evidence": {
+    "status": "frozen_source_bound_with_explicit_latent_incompleteness",
+    "data_contract": {
+      "path": "configs/benchmark/work_i_incremental_data_contract_v0.1.json",
+      "contract_sha256": "e3a941c5a4d958b8284a244947a4c3e1b4ae3639576d12e27a005dbb9baa363c"
+    },
+    "derived_data": {
+      "path": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json",
+      "derived_data_sha256": "1d639b09215ade3b84e9c2e5a9e30479fed1387890ab272d29b0996e7a06a2c4",
+      "manifest_path": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.manifest.json",
+      "manifest_sha256": "deb80ae1e0fd40cb0bf40cee34d79e3450167624739dc990f4197be2ba6b542f",
+      "manifest_file_count": 16,
+      "csv_view_count": 15
+    },
+    "evidence_graph": {
+      "path": "configs/current.json",
+      "graph_sha256": "a7f7ef76e69fb9532197f8b7352da24ecd6103cdc1ced11f68f86bde5577a2af",
+      "node_count": 68,
+      "work_i_fvl_node_count": 13,
+      "work_i_fvl_nodes_current": 13,
+      "preexisting_stale_binding_count": 11,
+      "scope_note": "the graph is structurally current and all F/V/L nodes are current; ten historical RC28/pre-arXiv bindings and one runtime-affordance guarded-source binding remain explicitly stale"
+    },
+    "F_world_fork": {
+      "primary_unit": "one frozen parent-child pair",
+      "pair_count": 6,
+      "within_pair_expectation_count": 12,
+      "original_and_exact_replay_trace_count": 24,
+      "provider_calls": 0,
+      "replays_in_primary_denominator": false
+    },
+    "V_known_policy_validity": {
+      "primary_unit": "one original campaign profile",
+      "primary_campaign_count": 30,
+      "primary_closed_lifecycle_count": 180,
+      "deterministic_retest_campaign_count": 30,
+      "provider_calls": 0,
+      "retests_in_primary_estimand": false
+    },
+    "L_latent_terminal": {
+      "primary_unit": "one frozen discarded lifecycle",
+      "terminal_lifecycle_count": 60,
+      "observed_assay_count": 24,
+      "discarded_lifecycle_count": 36,
+      "campaign_cell_count": 10,
+      "resolved_shadow_receipt_count": 6,
+      "unresolved_shadow_receipt_count": 30,
+      "complete_case_primary_used": false,
+      "main_text_eligible": false,
+      "scientific_gate_status": "blocked_on_30_unresolved_latent_receipts"
+    },
+    "counting_boundary": {
+      "adds_to_historical_physical_experiment_total": false,
+      "reason": "F replays, V deterministic controls/retests, and L evaluator shadows are apparatus, validity, reliability, or missingness evidence with separately declared units; none is silently pooled into G0/G2 physical-experiment accounting",
+      "cross_track_primary_units_pooled": false,
+      "raw_hidden_state_or_provider_payloads_published": false
+    }
+  },
   "scientific_experiment_accounting": {
     "definition": "a physical experiment is one fresh-vessel executed experimental unit; G2 planned opportunities may terminate by final assay or pre-specified right-censoring",
     "completed_or_audited_before_v0_5": {
@@ -318,8 +380,8 @@
     {
       "id": "B2",
       "kind": "evidence_graph",
-      "status": "resolved",
-      "blocker": "none: the 55-node evidence graph passed with the terminal release bindings"
+      "status": "partially_resolved",
+      "blocker": "the 68-node graph passes its consistency check and all 13 F/V/L nodes are current; ten historical RC28/pre-arXiv bindings and one runtime-affordance guarded-source binding remain explicitly stale"
     },
     {
       "id": "B3",
@@ -348,8 +410,8 @@
     {
       "id": "B7",
       "kind": "figures",
-      "status": "resolved",
-      "blocker": "none: the frozen single-source derived-data JSON, six CSV views, and deterministic Figures 1--6 include the terminal G2 result"
+      "status": "partially_resolved",
+      "blocker": "the frozen single-source derived-data JSON, immutable 16-file manifest, and 15 CSV views include F/V/L; figure/manuscript consumption of the incremental layers remains downstream work"
     }
   ],
   "launch_decision": {

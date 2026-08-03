@@ -39,6 +39,25 @@ Those cells left six opportunities unstarted and two started vessels without a
 final assay, yielding the distinct final totals above. There are zero pending
 cells and zero unresolved opportunities.
 
+## Incremental F/V/L evidence layers
+
+The frozen incremental layer reports three distinct measurement objects. They
+are not pooled with each other or added to the historical G0/G2 physical-
+experiment totals above.
+
+| Track | Primary or audit unit | Frozen rows | Counting boundary |
+|---|---|---:|---|
+| F world forks | parent-child pair | 6 pairs, 12 within-pair expectations, 24 original/replay traces | exact replays are audit evidence, not new primary pairs |
+| V known policies | original campaign profile | 30 profiles, 180 original lifecycles, 30 deterministic retests | retests are reliability-only and excluded from the primary estimand |
+| L latent terminals | discarded lifecycle | 60 terminal lifecycles, 36 discard units, 10 campaign cells | evaluator shadows are not original agent experiments or choices |
+
+These additions made zero provider calls. The L execution retained all 36
+registered discard units but resolved only 6; 30 remain unresolved because of
+the frozen evaluator/binding failure. Complete-case substitution is forbidden
+and was not used, so latent-dependent primary point estimates are withheld and
+the L result is not main-text eligible in its current state. This is a published
+negative audit boundary, not a reason to replace or rerun the frozen result.
+
 ## Current raw-data state
 
 Four G0 raw roots exist locally: 1,441 files and 17,725,724,603 bytes. Their historical source commits are all immutable ancestors of `origin/main`. A deterministic public index now binds every file by root-relative path, byte count, and SHA-256 (`g0-raw-file-index.json`, index SHA-256 `f49884b6e2d2b87a707dce9f93f96041dd7b3636b8e97ea4de93f0b3b429d961`). The raw bytes have not yet been deposited in a durable external archive. Until an archive identifier is added, this release candidate is not publication-ready.
@@ -56,6 +75,12 @@ and 889 replay-verified primitive operations under the same public boundary.
 ## Derived-data and figure state
 
 `arxiv-v1-derived-data.json` is the frozen source for primary manuscript values.
+It is bound at SHA-256
+`1d639b09215ade3b84e9c2e5a9e30479fed1387890ab272d29b0996e7a06a2c4`.
+The immutable 16-file manifest
+`arxiv-v1-derived-data.manifest.json` binds that JSON and 15 CSV views at
+manifest SHA-256
+`deb80ae1e0fd40cb0bf40cee34d79e3450167624739dc990f4197be2ba6b542f`.
 `arxiv-v1-p0-sensitivity.json` adds the self-hashed robustness layer without
 changing that primary analysis. The release figures are generated only from
 these frozen objects. G2 v0.5 contributes eight complete pairs and retains two
