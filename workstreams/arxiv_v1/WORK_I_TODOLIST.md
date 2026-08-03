@@ -289,7 +289,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-L03 | P0 | REVIEW | 实现 prefix-identity replay 与 terminal branch replacement | L01 draft | 是 |
 | W1-L04 | P0 | REVIEW | 实现 latent-score、regret、false-discard 与 commitment audit | L01 draft | 是 |
 | W1-L05 | P0 | REVIEW | qualification、protocol freeze 与 36 shadow assays | L02–L04 | 否 |
-| W1-L06 | P0 | CLAIMED | 输出连续主分析和阈值敏感性报告 | L05 | 是 |
+| W1-L06 | P0 | REVIEW | 输出连续主分析和阈值敏感性报告 | L05 | 是 |
 
 ### 5.5 Story & manuscript
 
