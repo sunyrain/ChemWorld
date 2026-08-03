@@ -1,6 +1,6 @@
 # Work I historical report alignment
 
-Status: **target_reports_aligned_global_refresh_queued**  
+Status: **target_reports_aligned_global_refresh_queued**
 Receipt SHA-256: `301a3316654c38a3b273db57cdebb589026f90683a92b8e3da5632a5e0d3ced1`
 
 Both historical generated reports are tracked, byte-identical to their Git index
