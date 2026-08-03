@@ -21,6 +21,7 @@ PRICING_SOURCE = "https://api-docs.deepseek.com/quick_start/pricing/"
 MODEL_SOURCE = "https://api-docs.deepseek.com/api/list-models"
 SUPPORTED_MODELS = ("deepseek-v4-flash", "deepseek-v4-pro")
 ReasoningEffort = Literal["high", "max"]
+StoredReasoningEffort = Literal["medium", "high", "max"]
 
 
 @dataclass(frozen=True)
@@ -133,7 +134,7 @@ class DeepSeekClient:
             raise ValueError("retry_backoff_s must be non-negative")
         self.timeout_s = float(timeout_s)
         self.thinking = bool(thinking)
-        self.reasoning_effort = reasoning_effort
+        self.reasoning_effort: StoredReasoningEffort = reasoning_effort
         self.strict_tool_calls = bool(strict_tool_calls)
         if self.strict_tool_calls and not self.base_url.endswith("/beta"):
             raise ValueError("DeepSeek strict tool calls require a /beta base URL")
