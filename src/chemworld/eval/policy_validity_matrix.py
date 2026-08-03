@@ -613,6 +613,9 @@ def validate_execution_record(
             "information_arm": cell.information_arm,
             "policy_id": cell.policy_id,
             "resource_card_sha256": card_sha256,
+            "material_information_sha256": semantic_sha256(
+                cell.material_information
+            ),
         }
         for field, value in expected.items():
             if identity.get(field) != value:
@@ -1898,7 +1901,7 @@ def execute_known_policy_campaign(
     terminals: list[dict[str, Any]] = []
     lifecycle_index = 0
     try:
-        _, reset_info = env.reset(seed=cell.world_seed)
+        env.reset(seed=cell.world_seed)
         base_env: Any = env.unwrapped
         task_info = base_env.task_info()
         agent = make_known_policy_agent(cell.policy_id)
@@ -2016,8 +2019,8 @@ def execute_known_policy_campaign(
                 "resource_card_sha256": card.card_sha256,
                 "observation_noise_namespace": namespace,
                 "physical_identity": _physical_identity(provenance),
-                "material_information_sha256": reset_info.get(
-                    "material_information_sha256"
+                "material_information_sha256": semantic_sha256(
+                    cell.material_information
                 ),
             },
             "controller_manifest": controller_manifest,

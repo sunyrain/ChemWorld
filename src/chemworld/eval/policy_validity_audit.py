@@ -1472,6 +1472,16 @@ def _normalize_producer_execution(
         raw_identity.get("material_information_sha256"),
         f"{label}.identity.material_information_sha256",
     )
+    material_information = _mapping(
+        cell.get("material_information"), f"{cell_id}.material_information"
+    )
+    expected_material_information_sha256 = _semantic_sha256(
+        material_information
+    )
+    if material_information_sha256 != expected_material_information_sha256:
+        raise PolicyValidityAuditError(
+            f"{label} producer material-information descriptor mismatch"
+        )
     identity = {
         "campaign_id": cell_id,
         "world_id": world_id,

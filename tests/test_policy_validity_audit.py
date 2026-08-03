@@ -50,7 +50,11 @@ from chemworld.eval.policy_validity_matrix import (
     run_matrix,
     semantic_sha256,
 )
-from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.provenance import (
+    canonical_json_sha256,
+    file_sha256,
+    write_json_atomic,
+)
 
 CONTROLLER_HASHES = {
     policy_id: canonical_json_sha256({"synthetic_controller": policy_id})
@@ -743,6 +747,66 @@ def test_v05_run_matrix_manifest_passes_all_v06_audit_gates(tmp_path: Path) -> N
         "threshold_discards": 30,
         "provider_calls": 0,
     }
+
+
+@pytest.mark.parametrize("drift", ["null", "stale", "cross_arm"])
+def test_v06_native_adapter_rejects_material_descriptor_drift(
+    tmp_path: Path, drift: str
+) -> None:
+    output_root = tmp_path / "producer-matrix"
+    run_matrix(
+        root=ROOT,
+        protocol_path=PROTOCOL_PATH,
+        output_root=output_root,
+        executor=_producer_executor,
+        resume=False,
+    )
+    manifest_path = output_root / PRODUCER_MANIFEST_FILENAME
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    entry = manifest["cells"][0]
+    bundle_path = output_root / entry["bundle_path"]
+    bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+    if drift == "null":
+        replacement: str | None = None
+    elif drift == "stale":
+        replacement = "0" * 64
+    else:
+        replacement = semantic_sha256(
+            {"mode": "anonymous_nominal_properties"}
+        )
+    for role in ("original", "retest"):
+        execution = bundle[role]
+        execution["identity"]["material_information_sha256"] = replacement
+        execution["execution_sha256"] = semantic_sha256(
+            {
+                key: value
+                for key, value in execution.items()
+                if key != "execution_sha256"
+            }
+        )
+    bundle["bundle_sha256"] = semantic_sha256(
+        {key: value for key, value in bundle.items() if key != "bundle_sha256"}
+    )
+    write_json_atomic(bundle_path, bundle)
+    entry["bundle_sha256"] = bundle["bundle_sha256"]
+    entry["file_sha256"] = file_sha256(bundle_path)
+    entry["byte_count"] = bundle_path.stat().st_size
+    manifest["manifest_sha256"] = semantic_sha256(
+        {
+            key: value
+            for key, value in manifest.items()
+            if key != "manifest_sha256"
+        }
+    )
+    write_json_atomic(manifest_path, manifest)
+
+    expected = (
+        "material_information_sha256 must be a non-empty string"
+        if drift == "null"
+        else "producer material-information descriptor mismatch"
+    )
+    with pytest.raises(PolicyValidityAuditError, match=expected):
+        audit_policy_validity_manifest(manifest_path)
 
 
 def test_cli_stdout_is_one_read_only_json_receipt(

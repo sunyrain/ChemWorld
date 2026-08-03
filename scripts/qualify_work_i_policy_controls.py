@@ -9,7 +9,9 @@ from pathlib import Path
 
 from chemworld.eval.policy_validity_qualification import (
     PolicyQualificationError,
+    assert_qualification_outputs_absent,
     build_qualification,
+    build_qualification_delivery_manifest,
     load_qualification_protocol,
 )
 from chemworld.eval.provenance import write_json_atomic
@@ -40,6 +42,13 @@ def _directory_bytes(root: Path) -> dict[str, bytes]:
     }
 
 
+def _write_text_atomic(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp")
+    temporary.write_text(content, encoding="utf-8", newline="\n")
+    temporary.replace(path)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -65,6 +74,15 @@ def main() -> int:
     report_path = ROOT / str(paths["report"])
     markdown_path = ROOT / str(paths["markdown"])
     receipt_path = ROOT / str(paths["receipt"])
+    delivery_manifest_path = ROOT / str(paths["delivery_manifest"])
+    try:
+        delivery_manifest_relative = delivery_manifest_path.relative_to(
+            committed_artifact_root
+        )
+    except ValueError as exc:
+        raise PolicyQualificationError(
+            "delivery manifest must be inside the qualification artifact root"
+        ) from exc
 
     if args.check:
         with tempfile.TemporaryDirectory(prefix="chemworld-v07-check-") as temporary:
@@ -73,6 +91,17 @@ def main() -> int:
                 root=ROOT,
                 protocol_path=config_path,
                 artifact_root=temporary_root,
+            )
+            delivery_manifest = build_qualification_delivery_manifest(
+                qualification_protocol=protocol,
+                artifact_root=temporary_root,
+                report=report,
+                receipt=receipt,
+                markdown=markdown,
+            )
+            write_json_atomic(
+                temporary_root / delivery_manifest_relative,
+                delivery_manifest,
             )
             if _directory_bytes(temporary_root) != _directory_bytes(
                 committed_artifact_root
@@ -92,16 +121,30 @@ def main() -> int:
                 raise PolicyQualificationError(
                     "committed qualification markdown differs from rebuild"
                 )
+            if delivery_manifest_path.read_text(encoding="utf-8") != _json_text(
+                delivery_manifest
+            ):
+                raise PolicyQualificationError(
+                    "committed qualification delivery manifest differs from rebuild"
+                )
     else:
+        assert_qualification_outputs_absent(ROOT, protocol)
         report, receipt, markdown = build_qualification(
             root=ROOT,
             protocol_path=config_path,
             artifact_root=committed_artifact_root,
         )
+        delivery_manifest = build_qualification_delivery_manifest(
+            qualification_protocol=protocol,
+            artifact_root=committed_artifact_root,
+            report=report,
+            receipt=receipt,
+            markdown=markdown,
+        )
         write_json_atomic(report_path, report)
         write_json_atomic(receipt_path, receipt)
-        markdown_path.parent.mkdir(parents=True, exist_ok=True)
-        markdown_path.write_text(markdown, encoding="utf-8", newline="\n")
+        _write_text_atomic(markdown_path, markdown)
+        write_json_atomic(delivery_manifest_path, delivery_manifest)
 
     print(
         json.dumps(

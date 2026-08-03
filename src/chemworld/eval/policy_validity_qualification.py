@@ -12,6 +12,7 @@ separate W1-V08 formal task only when every frozen gate passes.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
@@ -57,6 +58,10 @@ QUALIFICATION_PROTOCOL_SCHEMA_ID = (
 QUALIFICATION_PROTOCOL_SCHEMA_VERSION = "0.1.0"
 LIVE_MANIFEST_SCHEMA_ID = "chemworld.policy_control_live_qualification_manifest"
 LIVE_MANIFEST_SCHEMA_VERSION = "0.1.0"
+DELIVERY_MANIFEST_SCHEMA_ID = (
+    "chemworld.policy_control_runner_qualification_delivery_manifest"
+)
+DELIVERY_MANIFEST_SCHEMA_VERSION = "0.1.0"
 QUALIFICATION_VERSION = "work-i-policy-control-runner-qualification-0.1"
 
 
@@ -165,6 +170,21 @@ def validate_qualification_protocol(protocol: Mapping[str, Any]) -> list[str]:
         or len(source_paths) != len(set(source_paths))
     ):
         errors.append("source_paths must be a non-empty unique string list")
+    output_paths = protocol.get("output_paths")
+    required_outputs = {
+        "artifact_root",
+        "report",
+        "markdown",
+        "receipt",
+        "delivery_manifest",
+    }
+    if not isinstance(output_paths, Mapping) or set(output_paths) != required_outputs:
+        errors.append("qualification output paths are incomplete")
+    elif any(
+        not isinstance(output_paths[field], str) or not output_paths[field]
+        for field in required_outputs
+    ):
+        errors.append("qualification output paths must be non-empty strings")
     freeze = protocol.get("freeze_rules")
     required_freeze = (
         "formal_environment_execution_forbidden",
@@ -201,6 +221,29 @@ def qualification_source_manifest(
             raise PolicyQualificationError(f"missing qualification source: {relative}")
         result[str(relative)] = file_sha256(path)
     return result
+
+
+def assert_qualification_outputs_absent(
+    root: Path, protocol: Mapping[str, Any]
+) -> None:
+    """Fail closed before a non-check run can overwrite any frozen deliverable."""
+
+    paths = protocol["output_paths"]
+    candidates = {
+        str(paths[field]): root / str(paths[field])
+        for field in (
+            "artifact_root",
+            "report",
+            "markdown",
+            "receipt",
+            "delivery_manifest",
+        )
+    }
+    occupied = sorted(relative for relative, path in candidates.items() if path.exists())
+    if occupied:
+        raise PolicyQualificationError(
+            "refusing to overwrite qualification outputs: " + ", ".join(occupied)
+        )
 
 
 def _synthetic_actions(
@@ -301,7 +344,8 @@ def synthetic_qualification_execution(
     terminals: list[dict[str, Any]] = []
     operation_attempt = 0
     logical_campaign_id = (
-        f"work-i-known-policy-world-{cell.world_seed:04d}-{cell.policy_id}"
+        f"{qualification_protocol['protocol_id']}--synthetic-resource--"
+        f"world-{cell.world_seed:04d}-{cell.policy_id}"
     )
     for lifecycle_index, signal in enumerate(signals):
         measurement_seen = False
@@ -414,7 +458,9 @@ def synthetic_qualification_execution(
             "information_arm": cell.information_arm,
             "policy_id": cell.policy_id,
             "resource_card_sha256": card.card_sha256,
-            "observation_noise_namespace": str(synthetic["noise_identity"]),
+            "observation_noise_namespace": (
+                f"{synthetic['noise_identity']}--world-{cell.world_seed:04d}"
+            ),
             "physical_identity": {
                 "world_seed_schedule_coordinate": cell.world_seed,
                 "world_id": world_id,
@@ -422,6 +468,9 @@ def synthetic_qualification_execution(
                 "formal_chemical_world": False,
             },
             "material_information_sha256": semantic_sha256(cell.material_information),
+            "qualification_only": True,
+            "qualification_namespace": qualification_protocol["protocol_id"],
+            "qualification_role": "injected_synthetic_runner_audit",
         },
         "controller_manifest": _synthetic_controller_manifest(cell.policy_id),
         "trajectory_records": records,
@@ -449,6 +498,91 @@ def _artifact_entries(root: Path) -> list[dict[str, Any]]:
             }
         )
     return entries
+
+
+def _rendered_json_bytes(payload: Mapping[str, Any]) -> bytes:
+    return (
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    ).encode("utf-8")
+
+
+def build_qualification_delivery_manifest(
+    *,
+    qualification_protocol: Mapping[str, Any],
+    artifact_root: Path,
+    report: Mapping[str, Any],
+    receipt: Mapping[str, Any],
+    markdown: str,
+) -> dict[str, Any]:
+    """Bind every payload artifact plus the three top-level deliverables by byte."""
+
+    artifact_entries = _artifact_entries(artifact_root)
+    if artifact_entries != report.get("artifact_manifest"):
+        raise PolicyQualificationError(
+            "qualification artifact payload differs from report inventory"
+        )
+    paths = qualification_protocol["output_paths"]
+    artifact_root_path = str(paths["artifact_root"]).replace("\\", "/").rstrip("/")
+    entries: list[dict[str, Any]] = []
+    for entry in artifact_entries:
+        entries.append(
+            {
+                "role": "qualification_artifact",
+                "path": f"{artifact_root_path}/{entry['path']}",
+                "file_sha256": entry["file_sha256"],
+                "byte_count": entry["byte_count"],
+            }
+        )
+    top_level = (
+        ("qualification_report", str(paths["report"]), _rendered_json_bytes(report)),
+        (
+            "formal_qualification_receipt",
+            str(paths["receipt"]),
+            _rendered_json_bytes(receipt),
+        ),
+        ("qualification_markdown", str(paths["markdown"]), markdown.encode("utf-8")),
+    )
+    for role, path, content in top_level:
+        entries.append(
+            {
+                "role": role,
+                "path": path.replace("\\", "/"),
+                "file_sha256": hashlib.sha256(content).hexdigest(),
+                "byte_count": len(content),
+            }
+        )
+    entries.sort(key=lambda entry: str(entry["path"]))
+    manifest: dict[str, Any] = {
+        "schema_id": DELIVERY_MANIFEST_SCHEMA_ID,
+        "schema_version": DELIVERY_MANIFEST_SCHEMA_VERSION,
+        "task_id": "W1-V07",
+        "status": "complete",
+        "immutable": True,
+        "formal_result": False,
+        "entry_count": len(entries),
+        "entries": entries,
+        "bindings": {
+            "qualification_report_sha256": report["report_sha256"],
+            "formal_qualification_receipt_sha256": receipt["receipt_sha256"],
+            "qualification_artifact_manifest_sha256": report[
+                "artifact_manifest_sha256"
+            ],
+        },
+        "counting_rule": (
+            "Every generated qualification payload file and each top-level report, "
+            "receipt, and Markdown deliverable appears exactly once. This manifest "
+            "excludes only its own file to avoid a circular byte hash."
+        ),
+    }
+    manifest["delivery_manifest_sha256"] = semantic_sha256(manifest)
+    return manifest
 
 
 def _live_pair_audits(
@@ -510,6 +644,94 @@ def _live_pair_audits(
     return audits
 
 
+def derive_live_smoke_protocol(
+    matrix_protocol: Mapping[str, Any],
+    qualification_protocol: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Derive the self-describing 1 x 2 x 3 nonformal live protocol."""
+
+    live = qualification_protocol["live_smoke"]
+    protocol = deepcopy(dict(matrix_protocol))
+    protocol["protocol_id"] = (
+        f"{qualification_protocol['protocol_id']}-live-smoke"
+    )
+    protocol["matrix"] = {
+        "world_seeds": [int(live["world_seed"])],
+        "information_arms": list(live["information_arms"]),
+        "policy_ids": list(live["policy_ids"]),
+        "lifecycles_per_campaign": LIFECYCLES_PER_CELL,
+        "primary_campaign_count": int(live["expected_primary_campaigns"]),
+        "primary_closed_lifecycle_count": int(
+            live["expected_primary_closed_lifecycles"]
+        ),
+        "provider_call_count": int(live["provider_calls"]),
+        "schedule_order": "world_then_arm_then_policy",
+    }
+    protocol["task"]["observation_seed_offset"] = int(
+        live["observation_seed_offset"]
+    )
+    protocol["task"]["observation_noise_namespace_template"] = str(
+        live["observation_noise_namespace_template"]
+    )
+    protocol["qualification_context"] = {
+        "formal_result": False,
+        "qualification_only": True,
+        "role": "fixed_nonformal_controller_runtime_smoke",
+        "source_protocol_id": matrix_protocol["protocol_id"],
+    }
+    errors = validate_live_smoke_protocol(protocol, qualification_protocol)
+    if errors:
+        raise PolicyQualificationError(
+            "invalid derived live-smoke protocol: " + "; ".join(errors)
+        )
+    return protocol
+
+
+def validate_live_smoke_protocol(
+    protocol: Mapping[str, Any], qualification_protocol: Mapping[str, Any]
+) -> list[str]:
+    """Validate that a derived live protocol exactly describes its 1 x 2 x 3 run."""
+
+    errors: list[str] = []
+    live = qualification_protocol["live_smoke"]
+    matrix = protocol.get("matrix")
+    if not isinstance(matrix, Mapping):
+        return ["derived live protocol matrix must be an object"]
+    expected_matrix = {
+        "world_seeds": [int(live["world_seed"])],
+        "information_arms": list(INFORMATION_ARMS),
+        "policy_ids": list(POLICY_IDS),
+        "lifecycles_per_campaign": LIFECYCLES_PER_CELL,
+        "primary_campaign_count": 6,
+        "primary_closed_lifecycle_count": 36,
+        "provider_call_count": 0,
+        "schedule_order": "world_then_arm_then_policy",
+    }
+    if dict(matrix) != expected_matrix:
+        errors.append("derived live protocol matrix is not the frozen 1 x 2 x 3 smoke")
+    if int(live["world_seed"]) in FORMAL_WORLD_SEEDS:
+        errors.append("derived live protocol overlaps a formal world")
+    task = protocol.get("task")
+    if not isinstance(task, Mapping):
+        errors.append("derived live protocol task must be an object")
+    else:
+        if task.get("observation_seed_offset") != live["observation_seed_offset"]:
+            errors.append("derived live protocol observation seed offset is stale")
+        if (
+            task.get("observation_noise_namespace_template")
+            != live["observation_noise_namespace_template"]
+        ):
+            errors.append("derived live protocol noise namespace is stale")
+    context = protocol.get("qualification_context")
+    if not isinstance(context, Mapping) or (
+        context.get("formal_result") is not False
+        or context.get("qualification_only") is not True
+        or context.get("role") != "fixed_nonformal_controller_runtime_smoke"
+    ):
+        errors.append("derived live protocol qualification context is incomplete")
+    return errors
+
+
 def run_live_smoke(
     *,
     root: Path,
@@ -524,15 +746,8 @@ def run_live_smoke(
     world_seed = int(live["world_seed"])
     if world_seed in FORMAL_WORLD_SEEDS:
         raise PolicyQualificationError("live smoke seed overlaps formal worlds")
-    live_protocol = deepcopy(dict(matrix_protocol))
-    live_protocol["protocol_id"] = (
-        f"{qualification_protocol['protocol_id']}-live-smoke"
-    )
-    live_protocol["task"]["observation_seed_offset"] = int(
-        live["observation_seed_offset"]
-    )
-    live_protocol["task"]["observation_noise_namespace_template"] = str(
-        live["observation_noise_namespace_template"]
+    live_protocol = derive_live_smoke_protocol(
+        matrix_protocol, qualification_protocol
     )
     card = campaign_resource_card(live_protocol)
     dependencies = dependency_bindings(root, matrix_protocol)
@@ -609,6 +824,9 @@ def run_live_smoke(
     )
     gates = {
         "fixed_nonformal_seed": world_seed == 20_000 and world_seed not in FORMAL_WORLD_SEEDS,
+        "self_consistent_derived_protocol": not validate_live_smoke_protocol(
+            live_protocol, qualification_protocol
+        ),
         "six_primary_campaigns": len(entries) == 6,
         "all_36_primary_lifecycles_closed": all(
             bundle["original"]["counts"]["closed_lifecycle_count"] == 6
@@ -642,6 +860,7 @@ def run_live_smoke(
         "world_seed": world_seed,
         "formal_world_seeds_excluded": list(FORMAL_WORLD_SEEDS),
         "live_protocol_sha256": live_protocol_sha256,
+        "live_protocol": live_protocol,
         "qualification_source_manifest_sha256": qualification_source_sha256,
         "controller_source_sha256": controller_source_sha256,
         "campaign_resource_card_sha256": card.card_sha256,
@@ -747,28 +966,77 @@ def build_qualification(
         qualification_sources=sources,
     )
     synthetic_config = protocol["synthetic_matrix"]
+    synthetic_bundles = [
+        _read_json_object(
+            synthetic_root / str(entry["bundle_path"]),
+            label="synthetic bundle",
+        )
+        for entry in synthetic_manifest["cells"]
+    ]
+    synthetic_executions = [
+        (bundle, role, bundle[role])
+        for bundle in synthetic_bundles
+        for role in ("original", "retest")
+    ]
+    noise_by_match: dict[tuple[int, str, str], set[str]] = {}
+    for bundle, role, execution in synthetic_executions:
+        cell = bundle["cell"]
+        key = (int(cell["world_seed"]), str(cell["policy_id"]), role)
+        noise_by_match.setdefault(key, set()).add(
+            str(execution["identity"]["observation_noise_namespace"])
+        )
     synthetic_identity_gates = {
         "execution_mode_injected_test": synthetic_manifest.get("execution_mode")
         == "injected_test",
         "formal_result_false": synthetic_manifest.get("formal_result") is False,
+        "all_original_retest_identities_match": all(
+            bundle["original"]["identity"] == bundle["retest"]["identity"]
+            for bundle in synthetic_bundles
+        ),
+        "all_roles_are_explicit": all(
+            execution["execution_role"] == role
+            for _, role, execution in synthetic_executions
+        ),
+        "all_qualification_markers_are_explicit": all(
+            execution["identity"].get("qualification_only") is True
+            and execution["identity"].get("qualification_namespace")
+            == protocol["protocol_id"]
+            and execution["identity"].get("qualification_role")
+            == "injected_synthetic_runner_audit"
+            for _, _, execution in synthetic_executions
+        ),
         "all_world_ids_are_synthetic": all(
-            str(
-                _read_json_object(
-                    synthetic_root / str(entry["bundle_path"]),
-                    label="synthetic bundle",
-                )["original"]["identity"]["world_id"]
-            ).startswith(str(synthetic_config["world_identity_prefix"]))
-            for entry in synthetic_manifest["cells"]
+            str(execution["identity"]["world_id"]).startswith(
+                str(synthetic_config["world_identity_prefix"])
+            )
+            for _, _, execution in synthetic_executions
+        ),
+        "all_noise_namespaces_are_synthetic": all(
+            str(execution["identity"]["observation_noise_namespace"]).startswith(
+                f"{synthetic_config['noise_identity']}--world-"
+            )
+            for _, _, execution in synthetic_executions
+        ),
+        "matched_arm_noise_namespaces_are_paired": all(
+            len(namespaces) == 1 for namespaces in noise_by_match.values()
+        )
+        and len(noise_by_match) == len(FORMAL_WORLD_SEEDS) * len(POLICY_IDS) * 2,
+        "campaign_profile_ids_are_schedule_coordinate_exception": all(
+            execution["identity"]["campaign_id"] == bundle["cell"]["cell_id"]
+            and execution["identity"]["cell_id"] == bundle["cell"]["cell_id"]
+            and execution["profile_record"]["identity"]["campaign_id"]
+            == bundle["cell"]["cell_id"]
+            and str(execution["profile_record"]["identity"]["world_id"]).startswith(
+                str(synthetic_config["world_identity_prefix"])
+            )
+            for bundle, _, execution in synthetic_executions
         ),
         "all_physics_identities_are_nonformal": all(
-            _read_json_object(
-                synthetic_root / str(entry["bundle_path"]),
-                label="synthetic bundle",
-            )["original"]["identity"]["physical_identity"].get(
-                "formal_chemical_world"
-            )
+            execution["identity"]["physical_identity"].get("formal_chemical_world")
             is False
-            for entry in synthetic_manifest["cells"]
+            and execution["identity"]["physical_identity"].get("physics")
+            == synthetic_config["physics_identity"]
+            for _, _, execution in synthetic_executions
         ),
     }
     gates = {
@@ -835,6 +1103,11 @@ def build_qualification(
         "counting_rules": deepcopy(protocol["counting_rules"]),
         "artifact_manifest": artifact_entries,
         "artifact_manifest_sha256": semantic_sha256(artifact_entries),
+        "outer_delivery_manifest": {
+            "path": protocol["output_paths"]["delivery_manifest"],
+            "self_hash_field": "delivery_manifest_sha256",
+            "self_excluded_to_avoid_circular_byte_hash": True,
+        },
         "claim_boundary": (
             "V07 qualifies and freezes the runner protocol. Synthetic matrix evidence "
             "and seed-20000 live smoke are excluded from the W1-V08 formal estimand and "
@@ -944,6 +1217,8 @@ def build_qualification_markdown(
 
 
 __all__ = [
+    "DELIVERY_MANIFEST_SCHEMA_ID",
+    "DELIVERY_MANIFEST_SCHEMA_VERSION",
     "LIVE_MANIFEST_SCHEMA_ID",
     "LIVE_MANIFEST_SCHEMA_VERSION",
     "QUALIFICATION_PROTOCOL_SCHEMA_ID",
@@ -951,11 +1226,15 @@ __all__ = [
     "QUALIFICATION_SCHEMA_ID",
     "QUALIFICATION_SCHEMA_VERSION",
     "PolicyQualificationError",
+    "assert_qualification_outputs_absent",
     "build_qualification",
+    "build_qualification_delivery_manifest",
     "build_qualification_markdown",
+    "derive_live_smoke_protocol",
     "load_qualification_protocol",
     "qualification_source_manifest",
     "run_live_smoke",
     "synthetic_qualification_execution",
+    "validate_live_smoke_protocol",
     "validate_qualification_protocol",
 ]
