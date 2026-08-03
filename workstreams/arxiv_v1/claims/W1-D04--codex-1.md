@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-D04
 title: "Register frozen F/V/L evidence DAG nodes and source bindings"
-status: CLAIMED
+status: READY_FOR_REVIEW
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-03T18:41:41Z
 lease_expires_at_utc: 2026-08-05T18:41:41Z
-heartbeat_at_utc: 2026-08-03T18:41:41Z
+heartbeat_at_utc: 2026-08-03T18:50:33Z
 
 base_commit: "730d53532443809703c95bcb93a4b9cae926d9cb"
 branch: work1/w1-d04-fvl-evidence-dag
@@ -36,18 +36,25 @@ validation:
   - "Run the D04 DAG/source-binding tests and evidence pipeline --check once after a clean deterministic refresh"
   - "Confirm new nodes are current, existing intentionally stale mechanism bindings are neither hidden nor rewritten, and git diff --check passes"
 
-completed_since_last_heartbeat: []
-current_validation: "D03 is integrated at main 730d5353 with derived-data SHA-256 1d639b09215ade3b84e9c2e5a9e30479fed1387890ab272d29b0996e7a06a2c4."
+completed_since_last_heartbeat:
+  - "Registered 13 acyclic F/V/L contract, report, analysis, derived-data, and manifest nodes with explicit source-binding validation."
+  - "Refreshed configs/current.json with 13/13 new nodes current and the 6-resolved/30-unresolved latent gate visibly blocked."
+  - "Preserved ten historical stale bindings and exposed one pre-existing runtime_affordance guarded-source drift without overwriting that independent audit."
+current_validation: "PASS: evidence_pipeline.py --check (68 nodes); 15 focused evidence/current-registry pytest cases; Ruff; py_compile; git diff --check."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D04--codex-1.md
+  - scripts/evidence_pipeline.py
+  - tests/test_evidence_pipeline.py
+  - configs/current.json
+  - workstreams/arxiv_v1/reports/work-i-fvl-evidence-binding-v0.1.md
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-03T20:41:41Z
-next_24h: "Register, refresh, validate, and publish F/V/L evidence bindings without modifying frozen source artifacts."
-handoff_eta: 2026-08-03T20:41:41Z
+next_check_at_utc: null
+next_24h: "Coordinator integration and W1-D05 ledger/release/data-card binding."
+handoff_eta: 2026-08-03T18:51:00Z
 
-final_commit: null
+final_commit: 666a1bf3
 reviewer: null
 review_result: null
 notes: "D04 owns the global evidence-DAG integration window only. It does not update the experiment ledger, release manifest, data card, manuscript, figures, or frozen F/V/L inputs; D05/P09 own those surfaces."
