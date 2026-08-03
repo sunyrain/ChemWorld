@@ -14,6 +14,8 @@ from chemworld.campaign_resources import (
 )
 from chemworld.eval.policy_validity_matrix import (
     BUNDLE_DIRECTORY,
+    FORMAL_QUALIFICATION_RECEIPT_SCHEMA_ID,
+    FORMAL_QUALIFICATION_RECEIPT_SCHEMA_VERSION,
     MANIFEST_FILENAME,
     PROGRESS_FILENAME,
     MatrixCell,
@@ -153,6 +155,29 @@ def _fake_executor(
         _fake_execution(cell, protocol, execution_role="original"),
         _fake_execution(cell, protocol, execution_role="retest"),
     )
+
+
+def _synthetic_formal_qualification_receipt() -> dict[str, Any]:
+    preflight = build_preflight(ROOT, PROTOCOL_PATH)
+    receipt: dict[str, Any] = {
+        "schema_id": FORMAL_QUALIFICATION_RECEIPT_SCHEMA_ID,
+        "schema_version": FORMAL_QUALIFICATION_RECEIPT_SCHEMA_VERSION,
+        "task_id": "W1-V07",
+        "qualification_gates": {
+            "runner_qualified": True,
+            "protocol_frozen": True,
+        },
+        "bindings": {
+            "matrix_protocol_sha256": preflight["protocol_sha256"],
+            "source_manifest_sha256": preflight["source_manifest_sha256"],
+            "preflight_sha256": preflight["preflight_sha256"],
+            "controller_sha256": preflight["dependency_bindings"]["controller"][
+                "sha256"
+            ],
+        },
+    }
+    receipt["receipt_sha256"] = semantic_sha256(receipt)
+    return receipt
 
 
 def test_preflight_is_outcome_blind_and_deterministic() -> None:
@@ -338,7 +363,9 @@ def test_resume_rejects_missing_root_and_nonresume_rejects_overwrite(
         )
 
 
-def test_formal_execution_is_double_gated(tmp_path: Path) -> None:
+def test_formal_execution_requires_explicit_authorization_before_executor(
+    tmp_path: Path,
+) -> None:
     with pytest.raises(PolicyMatrixError, match="explicit authorization"):
         run_matrix(
             root=ROOT,
@@ -348,6 +375,128 @@ def test_formal_execution_is_double_gated(tmp_path: Path) -> None:
             resume=False,
             execution_mode="formal",
             allow_formal_execution=False,
+        )
+
+
+def test_formal_allow_flag_alone_fails_before_executor(tmp_path: Path) -> None:
+    with pytest.raises(PolicyMatrixError, match="W1-V07 qualification receipt"):
+        run_matrix(
+            root=ROOT,
+            protocol_path=PROTOCOL_PATH,
+            output_root=tmp_path / "formal",
+            executor=lambda *_: pytest.fail("missing receipt must precede execution"),
+            resume=False,
+            execution_mode="formal",
+            allow_formal_execution=True,
+        )
+
+
+def test_valid_synthetic_formal_receipt_reaches_only_injected_executor(
+    tmp_path: Path,
+) -> None:
+    called: list[str] = []
+    receipt = _synthetic_formal_qualification_receipt()
+
+    def injected(
+        cell: MatrixCell, protocol: Mapping[str, Any]
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        called.append(cell.cell_id)
+        if len(called) == 2:
+            raise RuntimeError("synthetic executor reached")
+        return _fake_executor(cell, protocol)
+
+    with pytest.raises(RuntimeError, match="synthetic executor reached"):
+        run_matrix(
+            root=ROOT,
+            protocol_path=PROTOCOL_PATH,
+            output_root=tmp_path / "formal",
+            executor=injected,
+            resume=False,
+            execution_mode="formal",
+            allow_formal_execution=True,
+            formal_qualification_receipt=receipt,
+        )
+    assert called == [
+        "cell-01-world-0000-opaque-assay-all",
+        "cell-02-world-0000-opaque-start-then-discard",
+    ]
+    progress = json.loads(
+        (tmp_path / "formal" / PROGRESS_FILENAME).read_text(encoding="utf-8")
+    )
+    assert progress["formal_qualification_receipt_sha256"] == receipt[
+        "receipt_sha256"
+    ]
+
+
+@pytest.mark.parametrize("gate", ["runner_qualified", "protocol_frozen"])
+def test_false_formal_qualification_gate_fails_before_executor(
+    tmp_path: Path,
+    gate: str,
+) -> None:
+    receipt = _synthetic_formal_qualification_receipt()
+    receipt["qualification_gates"][gate] = False
+    receipt["receipt_sha256"] = semantic_sha256(
+        {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+    )
+    with pytest.raises(PolicyMatrixError, match=f"{gate} gate is false"):
+        run_matrix(
+            root=ROOT,
+            protocol_path=PROTOCOL_PATH,
+            output_root=tmp_path / gate,
+            executor=lambda *_: pytest.fail("false gate must precede execution"),
+            resume=False,
+            execution_mode="formal",
+            allow_formal_execution=True,
+            formal_qualification_receipt=receipt,
+        )
+
+
+def test_tampered_formal_qualification_receipt_fails_before_executor(
+    tmp_path: Path,
+) -> None:
+    receipt = _synthetic_formal_qualification_receipt()
+    receipt["task_id"] = "W1-V08"
+    with pytest.raises(PolicyMatrixError, match=r"task_id.*self-hash mismatch"):
+        run_matrix(
+            root=ROOT,
+            protocol_path=PROTOCOL_PATH,
+            output_root=tmp_path / "tampered",
+            executor=lambda *_: pytest.fail("tamper gate must precede execution"),
+            resume=False,
+            execution_mode="formal",
+            allow_formal_execution=True,
+            formal_qualification_receipt=receipt,
+        )
+
+
+@pytest.mark.parametrize(
+    "binding",
+    [
+        "matrix_protocol_sha256",
+        "source_manifest_sha256",
+        "preflight_sha256",
+        "controller_sha256",
+    ],
+)
+def test_stale_formal_qualification_binding_fails_before_executor(
+    tmp_path: Path,
+    binding: str,
+) -> None:
+    receipt = _synthetic_formal_qualification_receipt()
+    receipt["bindings"][binding] = "0" * 64
+    receipt["receipt_sha256"] = semantic_sha256(
+        {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+    )
+    with pytest.raises(PolicyMatrixError, match=f"binding is stale: {binding}"):
+        run_matrix(
+            root=ROOT,
+            protocol_path=PROTOCOL_PATH,
+            output_root=tmp_path / binding,
+            executor=lambda *_: pytest.fail("stale binding must precede execution"),
+            resume=False,
+            execution_mode="formal",
+            allow_formal_execution=True,
+            formal_qualification_receipt=receipt,
         )
 
 
@@ -380,4 +529,3 @@ def test_live_nonformal_retest_excludes_random_runtime_identity() -> None:
         and "operation_id" not in record["info"]
         for record in original["trajectory_records"]
     )
-

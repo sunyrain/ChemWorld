@@ -49,6 +49,10 @@ PROTOCOL_SCHEMA_ID = "chemworld.policy_control_matrix_protocol"
 PROTOCOL_SCHEMA_VERSION = "0.1.0"
 PREFLIGHT_SCHEMA_ID = "chemworld.policy_control_matrix_preflight"
 PREFLIGHT_SCHEMA_VERSION = "0.1.0"
+FORMAL_QUALIFICATION_RECEIPT_SCHEMA_ID = (
+    "chemworld.policy_control_matrix_formal_qualification_receipt"
+)
+FORMAL_QUALIFICATION_RECEIPT_SCHEMA_VERSION = "0.1.0"
 EXECUTION_SCHEMA_ID = "chemworld.policy_control_campaign_execution"
 EXECUTION_SCHEMA_VERSION = "0.1.0"
 CELL_BUNDLE_SCHEMA_ID = "chemworld.policy_control_cell_bundle"
@@ -400,6 +404,10 @@ def build_preflight(root: Path, protocol_path: Path) -> dict[str, Any]:
             "provider_calls": PROVIDER_CALL_COUNT,
         },
         "artifact_schemas": {
+            "formal_qualification_receipt": (
+                f"{FORMAL_QUALIFICATION_RECEIPT_SCHEMA_ID}@"
+                f"{FORMAL_QUALIFICATION_RECEIPT_SCHEMA_VERSION}"
+            ),
             "execution": f"{EXECUTION_SCHEMA_ID}@{EXECUTION_SCHEMA_VERSION}",
             "cell_bundle": f"{CELL_BUNDLE_SCHEMA_ID}@{CELL_BUNDLE_SCHEMA_VERSION}",
             "progress": f"{PROGRESS_SCHEMA_ID}@{PROGRESS_SCHEMA_VERSION}",
@@ -440,6 +448,79 @@ def validate_preflight(report: Mapping[str, Any]) -> list[str]:
         report.get("source_manifest")
     ):
         errors.append("preflight source-manifest hash mismatch")
+    return errors
+
+
+def load_formal_qualification_receipt(path: Path) -> dict[str, Any]:
+    """Load a separately owned W1-V07 formal-execution receipt."""
+
+    return _read_json_object(path, label="W1-V07 formal qualification receipt")
+
+
+def formal_qualification_receipt_sha256(receipt: Mapping[str, Any]) -> str:
+    """Return the receipt self-hash after excluding its hash field."""
+
+    return _self_hash(receipt, "receipt_sha256")
+
+
+def validate_formal_qualification_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    preflight: Mapping[str, Any],
+) -> list[str]:
+    """Validate that W1-V07 qualified and froze the exact current runner."""
+
+    errors: list[str] = []
+    if receipt.get("schema_id") != FORMAL_QUALIFICATION_RECEIPT_SCHEMA_ID:
+        errors.append("formal qualification receipt schema_id mismatch")
+    if (
+        receipt.get("schema_version")
+        != FORMAL_QUALIFICATION_RECEIPT_SCHEMA_VERSION
+    ):
+        errors.append("formal qualification receipt schema_version mismatch")
+    if receipt.get("task_id") != "W1-V07":
+        errors.append("formal qualification receipt task_id must be W1-V07")
+
+    gates = receipt.get("qualification_gates")
+    if not isinstance(gates, Mapping):
+        errors.append("formal qualification receipt gates must be an object")
+    else:
+        if gates.get("runner_qualified") is not True:
+            errors.append("formal qualification receipt runner_qualified gate is false")
+        if gates.get("protocol_frozen") is not True:
+            errors.append("formal qualification receipt protocol_frozen gate is false")
+
+    preflight_errors = validate_preflight(preflight)
+    if preflight_errors:
+        errors.append("formal qualification receipt is bound to an invalid preflight")
+    dependency_bindings = preflight.get("dependency_bindings")
+    controller = (
+        dependency_bindings.get("controller")
+        if isinstance(dependency_bindings, Mapping)
+        else None
+    )
+    if not isinstance(controller, Mapping) or controller.get("status") != "available":
+        errors.append("formal qualification receipt requires the available V04 controller")
+        controller_sha256 = None
+    else:
+        controller_sha256 = controller.get("sha256")
+
+    expected_bindings = {
+        "matrix_protocol_sha256": preflight.get("protocol_sha256"),
+        "source_manifest_sha256": preflight.get("source_manifest_sha256"),
+        "preflight_sha256": preflight.get("preflight_sha256"),
+        "controller_sha256": controller_sha256,
+    }
+    bindings = receipt.get("bindings")
+    if not isinstance(bindings, Mapping):
+        errors.append("formal qualification receipt bindings must be an object")
+    else:
+        for key, expected in expected_bindings.items():
+            if not isinstance(expected, str) or bindings.get(key) != expected:
+                errors.append(f"formal qualification receipt binding is stale: {key}")
+
+    if receipt.get("receipt_sha256") != formal_qualification_receipt_sha256(receipt):
+        errors.append("formal qualification receipt self-hash mismatch")
     return errors
 
 
@@ -831,6 +912,7 @@ def _common_matrix_payload(
     schedule: Sequence[MatrixCell],
     card: CampaignResourceCard,
     execution_mode: str,
+    formal_qualification_receipt_sha256: str | None,
     entries: Sequence[Mapping[str, Any]],
 ) -> dict[str, Any]:
     return {
@@ -843,6 +925,9 @@ def _common_matrix_payload(
         "schedule_sha256": semantic_sha256([cell.to_dict() for cell in schedule]),
         "campaign_resource_card": card.to_dict(),
         "execution_mode": execution_mode,
+        "formal_qualification_receipt_sha256": (
+            formal_qualification_receipt_sha256
+        ),
         "formal_result": execution_mode == "formal",
         "expected_counts": {
             "primary_campaigns": PRIMARY_CAMPAIGN_COUNT,
@@ -977,6 +1062,7 @@ def _validate_matrix_identity(
     schedule: Sequence[MatrixCell],
     card: CampaignResourceCard,
     execution_mode: str,
+    formal_qualification_receipt_sha256: str | None,
 ) -> list[str]:
     checks = {
         "runner_version": payload.get("runner_version") == RUNNER_VERSION,
@@ -993,6 +1079,10 @@ def _validate_matrix_identity(
         "campaign_resource_card": payload.get("campaign_resource_card")
         == card.to_dict(),
         "execution_mode": payload.get("execution_mode") == execution_mode,
+        "formal_qualification_receipt_sha256": payload.get(
+            "formal_qualification_receipt_sha256"
+        )
+        == formal_qualification_receipt_sha256,
     }
     return [f"matrix identity mismatch: {key}" for key, passed in checks.items() if not passed]
 
@@ -1045,6 +1135,7 @@ def _load_resume_prefix(
     schedule: Sequence[MatrixCell],
     card: CampaignResourceCard,
     execution_mode: str,
+    formal_qualification_receipt_sha256: str | None,
 ) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]], bool]:
     manifest_path = output_root / MANIFEST_FILENAME
     progress_path = output_root / PROGRESS_FILENAME
@@ -1086,6 +1177,9 @@ def _load_resume_prefix(
             schedule=schedule,
             card=card,
             execution_mode=execution_mode,
+            formal_qualification_receipt_sha256=(
+                formal_qualification_receipt_sha256
+            ),
         )
         if manifest.get("schema_id") != MANIFEST_SCHEMA_ID:
             errors.append("completed manifest schema mismatch")
@@ -1129,6 +1223,9 @@ def _load_resume_prefix(
                 schedule=schedule,
                 card=card,
                 execution_mode=execution_mode,
+                formal_qualification_receipt_sha256=(
+                    formal_qualification_receipt_sha256
+                ),
                 entries=typed_entries,
             ),
             bundles=completed_bundles,
@@ -1149,6 +1246,9 @@ def _load_resume_prefix(
             schedule=schedule,
             card=card,
             execution_mode=execution_mode,
+            formal_qualification_receipt_sha256=(
+                formal_qualification_receipt_sha256
+            ),
         )
         if progress.get("schema_id") != PROGRESS_SCHEMA_ID:
             errors.append("progress schema mismatch")
@@ -1229,6 +1329,9 @@ def _load_resume_prefix(
             schedule=schedule,
             card=card,
             execution_mode=execution_mode,
+            formal_qualification_receipt_sha256=(
+                formal_qualification_receipt_sha256
+            ),
             entries=entries,
         )
         write_json_atomic(progress_path, _progress_payload(common=common))
@@ -1244,11 +1347,12 @@ def run_matrix(
     resume: bool,
     execution_mode: str = "injected_test",
     allow_formal_execution: bool = False,
+    formal_qualification_receipt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Execute or resume the immutable schedule through an injected executor.
 
-    Formal execution is deliberately double-gated and additionally requires the
-    separately owned V04 controller file.  W1-V05 tests use ``injected_test``.
+    Formal execution requires explicit opt-in plus a current, self-hashed W1-V07
+    qualification receipt. W1-V05 tests use an injected synthetic executor.
     """
 
     if execution_mode not in {"injected_test", "formal"}:
@@ -1256,11 +1360,30 @@ def run_matrix(
     protocol = load_matrix_protocol(protocol_path)
     sources = source_manifest(root, protocol)
     dependencies = dependency_bindings(root, protocol)
+    formal_receipt_sha256: str | None = None
     if execution_mode == "formal":
         if not allow_formal_execution:
             raise PolicyMatrixError("formal matrix execution requires explicit authorization")
         if dependencies["controller"]["status"] != "available":
             raise PolicyMatrixError("formal matrix execution requires merged W1-V04")
+        if formal_qualification_receipt is None:
+            raise PolicyMatrixError(
+                "formal matrix execution requires a W1-V07 qualification receipt"
+            )
+        current_preflight = build_preflight(root, protocol_path)
+        receipt_errors = validate_formal_qualification_receipt(
+            formal_qualification_receipt,
+            preflight=current_preflight,
+        )
+        if receipt_errors:
+            raise PolicyMatrixError("; ".join(receipt_errors))
+        formal_receipt_sha256 = str(
+            formal_qualification_receipt["receipt_sha256"]
+        )
+    elif formal_qualification_receipt is not None:
+        raise PolicyMatrixError(
+            "formal qualification receipt is valid only for formal execution"
+        )
     schedule = canonical_schedule(protocol)
     card = campaign_resource_card(protocol)
     resolved_output = output_root.resolve()
@@ -1284,6 +1407,7 @@ def run_matrix(
             schedule=schedule,
             card=card,
             execution_mode=execution_mode,
+            formal_qualification_receipt_sha256=formal_receipt_sha256,
         )
     if complete:
         return _read_json_object(
@@ -1318,6 +1442,7 @@ def run_matrix(
             schedule=schedule,
             card=card,
             execution_mode=execution_mode,
+            formal_qualification_receipt_sha256=formal_receipt_sha256,
             entries=entries,
         )
         write_json_atomic(
@@ -1332,6 +1457,7 @@ def run_matrix(
         schedule=schedule,
         card=card,
         execution_mode=execution_mode,
+        formal_qualification_receipt_sha256=formal_receipt_sha256,
         entries=entries,
     )
     manifest = _manifest_payload(common=common, bundles=bundles, schedule=schedule)
@@ -1931,6 +2057,8 @@ __all__ = [
     "CELL_BUNDLE_SCHEMA_VERSION",
     "EXECUTION_SCHEMA_ID",
     "EXECUTION_SCHEMA_VERSION",
+    "FORMAL_QUALIFICATION_RECEIPT_SCHEMA_ID",
+    "FORMAL_QUALIFICATION_RECEIPT_SCHEMA_VERSION",
     "MANIFEST_FILENAME",
     "MANIFEST_SCHEMA_ID",
     "MANIFEST_SCHEMA_VERSION",
@@ -1956,7 +2084,9 @@ __all__ = [
     "execute_known_policy_campaign",
     "execution_component_hashes",
     "finalize_execution_record",
+    "formal_qualification_receipt_sha256",
     "known_policy_cell_executor",
+    "load_formal_qualification_receipt",
     "load_matrix_protocol",
     "matrix_protocol_sha256",
     "profile_record_identity",
@@ -1965,6 +2095,7 @@ __all__ = [
     "source_manifest",
     "validate_cell_bundle",
     "validate_execution_record",
+    "validate_formal_qualification_receipt",
     "validate_matrix_protocol",
     "validate_preflight",
 ]
