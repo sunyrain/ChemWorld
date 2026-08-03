@@ -1,0 +1,622 @@
+{
+  "artifact_roles": {
+    "allowed": [
+      "immutable_protocol_input",
+      "immutable_formal_report",
+      "immutable_summary_certificate",
+      "immutable_delivery_manifest",
+      "immutable_outcome_blind_audit",
+      "immutable_synthetic_qualification"
+    ],
+    "rule": "Protocol, formal, replay/retest, qualification, and derived roles remain explicit and may never be inferred from a filename."
+  },
+  "claim_boundary": {
+    "does_not_change_any_frozen_protocol_estimand_threshold_or_outcome": true,
+    "does_not_construct_the_final_derived_data_layer": true,
+    "does_not_execute_worlds_agents_providers_or_shadow_assays": true,
+    "does_not_make_cross_track_performance_comparisons": true,
+    "freezes_interfaces_not_results": true
+  },
+  "common_record_fields": {
+    "analysis_role": {
+      "enum": [
+        "primary",
+        "reliability",
+        "qualification",
+        "audit_only"
+      ],
+      "json_type": "string",
+      "nullable": false
+    },
+    "execution_role": {
+      "enum": [
+        "original_primary",
+        "exact_replay",
+        "deterministic_retest",
+        "synthetic_qualification",
+        "evaluator_shadow",
+        "observed_terminal"
+      ],
+      "json_type": "string",
+      "nullable": false
+    },
+    "failure_reasons": {
+      "json_type": "array[string]",
+      "nullable": false
+    },
+    "information_arm": {
+      "json_type": "string",
+      "nullable": true
+    },
+    "provider_call_count": {
+      "json_type": "integer",
+      "nullable": false,
+      "unit_id": "count"
+    },
+    "quality_status": {
+      "enum": [
+        "valid",
+        "unresolved",
+        "invalid"
+      ],
+      "json_type": "string",
+      "nullable": false
+    },
+    "record_id": {
+      "json_type": "string",
+      "nullable": false
+    },
+    "record_type": {
+      "json_type": "string",
+      "nullable": false
+    },
+    "source_artifact_id": {
+      "json_type": "string",
+      "nullable": false
+    },
+    "source_artifact_sha256": {
+      "json_type": "string",
+      "nullable": false,
+      "unit_id": "sha256"
+    },
+    "source_row_sha256": {
+      "json_type": "string",
+      "nullable": false,
+      "unit_id": "sha256"
+    },
+    "track": {
+      "enum": [
+        "F",
+        "V",
+        "L"
+      ],
+      "json_type": "string",
+      "nullable": false
+    },
+    "world_seed": {
+      "json_type": "integer",
+      "nullable": false,
+      "unit_id": "world_seed"
+    }
+  },
+  "contract_id": "work-i-fvl-incremental-data-contract-v0.1",
+  "contract_sha256": "e3a941c5a4d958b8284a244947a4c3e1b4ae3639576d12e27a005dbb9baa363c",
+  "cross_track_counting_rules": {
+    "deterministic_retests_are_reliability_not_additional_primary_units": true,
+    "duplicate_primary_keys": "fatal_validation_error",
+    "evaluator_shadow_is_not_an_original_agent_decision_or_experiment": true,
+    "every_summary_discloses_numerator_denominator_and_unit": true,
+    "exact_replays_are_verification_not_additional_primary_units": true,
+    "never_pool_distinct_primary_units": true,
+    "primary_units": {
+      "F": "parent_child_pair",
+      "L": "discarded_lifecycle",
+      "V": "original_campaign_profile"
+    },
+    "primitive_operations_are_repeated_events_not_independent_samples": true,
+    "provider_call_count_is_reported_not_used_as_a_sample_size": true,
+    "row_deduplication_key": [
+      "track",
+      "record_type",
+      "record_id"
+    ],
+    "synthetic_qualification_is_never_formal_evidence": true
+  },
+  "derived_layer_requirements": {
+    "consumer_task": "W1-D03",
+    "file_hashes_and_byte_counts_required": true,
+    "global_artifact_mutation_authorized_by_d01": false,
+    "immutable_manifest_required": true,
+    "raw_hidden_state_or_provider_payloads_allowed": false,
+    "record_counts_by_track_type_role_required": true,
+    "required_contract_binding": "contract_sha256",
+    "required_source_binding_fields": [
+      "source_artifact_id",
+      "source_artifact_sha256",
+      "source_row_sha256"
+    ]
+  },
+  "freeze": {
+    "formal_latent_outcomes_read": false,
+    "global_derived_data_regenerated": false,
+    "global_evidence_dag_regenerated": false,
+    "mutable_after_freeze": false,
+    "owner": "codex-1",
+    "task_id": "W1-D01",
+    "timing": "before W1-L05 formal shadow outcomes and before W1-D03 assembly"
+  },
+  "nullability_and_failure": {
+    "complete_case_substitution_for_registered_primary": false,
+    "failed_or_incomplete_unit": "retain identity, quality_status, failure reasons, and registered denominator",
+    "latent_unresolved_unit": "retain all 36 units; withhold registered point estimates where required and publish frozen worst/best/sharp bounds",
+    "nan_infinity_or_string_sentinels_forbidden": true,
+    "only_json_null_represents_missing_numeric_values": true,
+    "structurally_inapplicable_metrics": "null with an explicit applicability reason; never numeric zero",
+    "zero_denominator": "null value plus exact zero denominator"
+  },
+  "purpose": "Define one auditable schema, unit registry, and counting boundary for the incremental F/V/L evidence consumed by W1-D03 and later release tasks.",
+  "relationship_constraints": [
+    "F: exactly four traces join to each of six fork pairs: parent/child by original/exact_replay",
+    "V: exactly six primary lifecycle rows join to each of 30 original campaign profiles",
+    "V: exactly one same-identity retest joins to each original campaign and remains excluded",
+    "L: 24 observed-assay plus 36 original-discard rows partition all 60 terminal lifecycles",
+    "L: exactly one evaluator-shadow result joins to each of 36 discard_id values",
+    "L: campaign-oracle summaries use nine discard-opportunity cells; cell-02 remains null"
+  ],
+  "schema_id": "chemworld.work_i_incremental_data_contract",
+  "schema_version": "0.1.0",
+  "serialization_contract": {
+    "canonical_json": "sort_keys=true,separators=(',',':'),ensure_ascii=false",
+    "computational_precision": "preserve source numeric values without display rounding",
+    "encoding": "UTF-8",
+    "missing_numeric_representation": null,
+    "nonfinite_numbers_allowed": false,
+    "self_hash_rule": "remove contract_sha256 before canonical SHA-256",
+    "source_row_hash_rule": "canonical SHA-256 of the complete immutable source row before projection"
+  },
+  "source_bindings": [
+    {
+      "artifact_id": "world_fork_qualification",
+      "embedded_hash_field": "report_sha256",
+      "embedded_hash_mode": "json_ascii_without_hash",
+      "embedded_sha256": "62684d414e9f9037b70d170abc6b29b442a928cf76df900a6bb53a3d60f2ee02",
+      "file_sha256": "d16981dd3937d661ae65a972bcaacd22c793f086403410f78d103078d25288b8",
+      "path": "workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json",
+      "role": "immutable_formal_report"
+    },
+    {
+      "artifact_id": "world_fork_certificate",
+      "embedded_hash_field": "certificate_sha256",
+      "embedded_hash_mode": "json_ascii_core_without_certificate_identity",
+      "embedded_sha256": "5b09842469956d749370ace16d2b0698ec55eb69f46a13044810f6b2ca63ef78",
+      "file_sha256": "8a0299b6957a700e720f46401a62b30a1da4ac2f8d71d57f00071805abcf9ad9",
+      "path": "workstreams/arxiv_v1/reports/work-i-world-fork-certificate-v0.1.json",
+      "role": "immutable_summary_certificate"
+    },
+    {
+      "artifact_id": "known_policy_validity_report",
+      "embedded_hash_field": "report_sha256",
+      "embedded_hash_mode": "repository_canonical_without_hash",
+      "embedded_sha256": "ebb56a052929944330acdf594e4a341c8c8fdb2b4ea2e276556384e7ce6b2064",
+      "file_sha256": "58458670f1db62a1f048a778539e054131a125941ff04fa38d5892d27c382dee",
+      "path": "workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.json",
+      "role": "immutable_formal_report"
+    },
+    {
+      "artifact_id": "known_policy_delivery_manifest",
+      "embedded_hash_field": "delivery_manifest_sha256",
+      "embedded_hash_mode": "repository_canonical_without_hash",
+      "embedded_sha256": "9127224b38ae9af94f8c003bb4f55a8c256b89e4ca4cce5d17d92798ef179e4c",
+      "file_sha256": "8742ac12ee336b5d84b65523e92d0262adb148440257c40a16bdfd6d1972c96e",
+      "path": "workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.manifest.json",
+      "role": "immutable_delivery_manifest"
+    },
+    {
+      "artifact_id": "latent_terminal_estimand_contract",
+      "embedded_hash_field": "contract_sha256",
+      "embedded_hash_mode": "repository_canonical_without_hash",
+      "embedded_sha256": "55a0d6a7cb983ce4099dbea24586ea63ccc9433e106d36011d349472809efe30",
+      "file_sha256": "e69db432f7018a3cc41287fa02335337c624caf5ba7f0b487a0695809e052ce5",
+      "path": "configs/benchmark/work_i_latent_terminal_contract_v0.1.json",
+      "role": "immutable_protocol_input"
+    },
+    {
+      "artifact_id": "latent_terminal_reconstructability",
+      "embedded_hash_field": "report_sha256",
+      "embedded_hash_mode": "repository_canonical_without_hash",
+      "embedded_sha256": "995f16032de09044ecf11a54b7d6fef9f0b3463eab2dad331adc52f7c4533857",
+      "file_sha256": "ec18b041543f44b9c2d2f16ee56a08da727efbe0128622778a8ae6d688afcba3",
+      "path": "workstreams/arxiv_v1/reports/work-i-latent-terminal-reconstructability-v0.1.json",
+      "role": "immutable_outcome_blind_audit"
+    },
+    {
+      "artifact_id": "latent_terminal_replay_qualification",
+      "embedded_hash_field": "report_sha256",
+      "embedded_hash_mode": "repository_canonical_without_hash",
+      "embedded_sha256": "14d0e3358fe4ae00b13e2705519e64f3b8a8644f987dd878b6814fc61247b10f",
+      "file_sha256": "ac3023715ab027221887b5a0b3404a655064939444c63241e9459a88c2cbcde5",
+      "path": "workstreams/arxiv_v1/reports/work-i-latent-terminal-replay-qualification-v0.1.json",
+      "role": "immutable_synthetic_qualification"
+    }
+  ],
+  "source_code_manifest": {
+    "scripts/build_work_i_data_contract.py": "8f466ed0d3049562eb37dd16cc028d3c795db91cd73e2eddc61e37a6f8daf607",
+    "src/chemworld/eval/work_i_data_contract.py": "7ebf77d4c5a8368eb94593264ee13ec34bd1afa28111bfb0c77f3f71a2a94efd"
+  },
+  "source_validation_gates": {
+    "known_policy_counts_match": true,
+    "known_policy_delivery_manifest_passes": true,
+    "known_policy_report_passes": true,
+    "known_policy_retests_are_excluded": true,
+    "latent_estimand_contract_passes": true,
+    "latent_population_counts_match": true,
+    "latent_reconstructability_passes_without_outcomes": true,
+    "latent_replay_is_synthetic_only": true,
+    "world_fork_certificate_binds_formal_report": true,
+    "world_fork_counts_match": true,
+    "world_fork_reports_pass": true
+  },
+  "status": "frozen",
+  "track_contracts": {
+    "F": {
+      "counting_rules": {
+        "expectation_rows_are_repeated_measures_within_pair": true,
+        "parent_and_child_are_members_of_one_pair_not_two_independent_pairs": true,
+        "primary_analysis_unit": "one frozen parent-child pair",
+        "qualification_or_provider_calls_in_primary_denominator": false,
+        "trace_replays_in_primary_denominator": false
+      },
+      "formal_population": {
+        "case_count": 2,
+        "executions_per_variant": 2,
+        "parent_child_pair_count": 6,
+        "provider_call_count": 0,
+        "trace_count": 24,
+        "world_seed_count_per_case": 3,
+        "world_variants_per_pair": 2
+      },
+      "record_schemas": {
+        "world_fork_expectation": {
+          "analysis_role": "primary",
+          "expected_row_count": 12,
+          "primary_key": [
+            "fork_id",
+            "expectation_id"
+          ],
+          "relative_delta_unit_id": "dimensionless_ratio",
+          "value_units_by_expectation_id": {
+            "assayed-ohmic-efficiency": "dimensionless_fraction",
+            "assayed-product-organic-fraction": "dimensionless_fraction",
+            "terminal-product-organic-amount": "mole",
+            "terminal-selective-product-amount": "mole"
+          }
+        },
+        "world_fork_pair": {
+          "analysis_role": "primary",
+          "expected_row_count": 6,
+          "primary_key": [
+            "fork_id",
+            "world_seed"
+          ],
+          "required_fields": [
+            "case_id",
+            "fork_id",
+            "world_seed",
+            "intervention_class",
+            "target_component_id",
+            "parent_world_sha256",
+            "child_world_sha256",
+            "action_count_per_execution",
+            "gates"
+          ],
+          "weighting": "one_parent_child_pair_one_equal_weight"
+        },
+        "world_fork_trace": {
+          "allowed_execution_roles": [
+            "original_primary",
+            "exact_replay"
+          ],
+          "allowed_world_variants": [
+            "parent",
+            "child"
+          ],
+          "analysis_role": "audit_only",
+          "expected_row_count": 24,
+          "primary_key": [
+            "fork_id",
+            "world_seed",
+            "world_variant",
+            "execution_role"
+          ]
+        }
+      },
+      "track_name": "world_fork_programmability"
+    },
+    "L": {
+      "counting_rules": {
+        "all_36_retained_in_fixed_denominators": true,
+        "campaign_oracle_denominator_excludes_only_no_opportunity_cells": true,
+        "campaign_oracle_opportunity_cell_count": 9,
+        "complete_case_primary_allowed": false,
+        "one_shadow_result_per_discard_id": true,
+        "primary_analysis_unit": "one frozen discarded lifecycle",
+        "shadow_result_counts_as_agent_assay_decision": false,
+        "shadow_result_counts_as_original_agent_experiment": false,
+        "unresolved_units_retained_with_reason_and_bounds": true,
+        "zero_denominator_returns_null_with_denominator": true
+      },
+      "estimand_fields": [
+        {
+          "denominator": "all 36 valid shadow evaluations",
+          "estimand_id": "latent_terminal_score",
+          "unit": "discarded lifecycle",
+          "value_unit_id": "normalized_score"
+        },
+        {
+          "denominator": "all 36 valid shadow evaluations",
+          "estimand_id": "discard_to_observed_best_delta",
+          "unit": "discarded lifecycle",
+          "value_unit_id": "normalized_score_difference"
+        },
+        {
+          "denominator": "all 36 valid shadow evaluations",
+          "estimand_id": "positive_discard_regret",
+          "unit": "discarded lifecycle",
+          "value_unit_id": "normalized_score_difference"
+        },
+        {
+          "denominator": "the 9 frozen campaign cells with at least one committed discard",
+          "estimand_id": "campaign_oracle_regret",
+          "unit": "campaign cell",
+          "value_unit_id": "normalized_score_difference"
+        },
+        {
+          "denominator": "all 36 discard decisions",
+          "estimand_id": "false_discard_fraction",
+          "unit": "discarded lifecycle",
+          "value_unit_id": "dimensionless_fraction"
+        },
+        {
+          "denominator": "all 24 observed assay decisions",
+          "estimand_id": "assay_commitment_precision",
+          "unit": "assayed lifecycle",
+          "value_unit_id": "dimensionless_fraction"
+        },
+        {
+          "denominator": "all near-best lifecycles among the frozen 60",
+          "estimand_id": "assay_commitment_recall",
+          "unit": "high-value lifecycle",
+          "value_unit_id": "dimensionless_fraction"
+        },
+        {
+          "denominator": "discard decisions with at least one earlier assay in the same campaign",
+          "estimand_id": "decision_time_discard_regret",
+          "unit": "discarded lifecycle with a prior assayed incumbent",
+          "value_unit_id": "normalized_score_difference"
+        }
+      ],
+      "formal_population": {
+        "agent_provider_call_count": 0,
+        "campaign_cell_count": 10,
+        "closed_lifecycle_count": 60,
+        "discard_opportunity_cell_count": 9,
+        "discarded_lifecycle_count": 36,
+        "no_discard_opportunity_cell_ids": [
+          "cell-02"
+        ],
+        "observed_assay_count": 24,
+        "shadow_evaluation_count": 36
+      },
+      "record_schemas": {
+        "latent_campaign_cell": {
+          "analysis_role": "primary",
+          "discard_opportunity_row_count": 9,
+          "expected_row_count": 10,
+          "primary_key": [
+            "cell_id"
+          ]
+        },
+        "latent_discard_unit": {
+          "analysis_role": "primary",
+          "expected_row_count": 36,
+          "primary_key": [
+            "discard_id"
+          ],
+          "required_identity_fields": [
+            "cell_id",
+            "world_seed",
+            "information_arm",
+            "lifecycle_index",
+            "terminal_step",
+            "terminal_action_sha256",
+            "public_prefix_sha256",
+            "hidden_state_sha256",
+            "campaign_resource_snapshot_sha256"
+          ]
+        },
+        "terminal_lifecycle": {
+          "analysis_role": "primary",
+          "expected_row_count": 60,
+          "primary_key": [
+            "cell_id",
+            "lifecycle_index"
+          ],
+          "terminal_partition": {
+            "observed_assay": 24,
+            "original_discard": 36
+          }
+        }
+      },
+      "track_name": "discarded_state_latent_terminal_audit"
+    },
+    "V": {
+      "counting_rules": {
+        "campaigns_are_equally_weighted_within_policy": true,
+        "deterministic_retest_in_primary_estimand": false,
+        "failed_or_incomplete_cells_silently_coerced_to_complete": false,
+        "lifecycle_rows_pooled_before_profile_construction": false,
+        "primary_analysis_unit": "one scheduled original campaign profile",
+        "provider_calls_must_be_zero_in_original_and_retest": true,
+        "retest_role": "same_identity_deterministic_reliability_only"
+      },
+      "formal_population": {
+        "closed_lifecycles_per_campaign": 6,
+        "deterministic_retest_campaign_count": 30,
+        "deterministic_retest_closed_lifecycle_count": 180,
+        "information_arm_count": 2,
+        "policy_count": 3,
+        "primary_campaign_count": 30,
+        "primary_closed_lifecycle_count": 180,
+        "provider_call_count": 0,
+        "world_count": 5
+      },
+      "metric_units": {
+        "assay_fraction": "dimensionless_fraction",
+        "attempted_operations_per_closed_lifecycle": "dimensionless_ratio",
+        "best_assayed_score": "normalized_score",
+        "closed_lifecycle_fraction": "dimensionless_fraction",
+        "committed_operations_per_closed_lifecycle": "dimensionless_ratio",
+        "continued_after_measurement_fraction": "dimensionless_fraction",
+        "discard_fraction": "dimensionless_fraction",
+        "global_best_discovery_fraction": "dimensionless_fraction",
+        "loss_episode_recovery_rate": "dimensionless_fraction",
+        "maximum_absolute_incumbent_drawdown": "normalized_score_difference",
+        "mean_assayed_score": "normalized_score",
+        "measured_lifecycle_fraction": "dimensionless_fraction",
+        "nonfinal_instrument_uses_per_closed_lifecycle": "dimensionless_ratio",
+        "online_incumbent_retention_rate": "dimensionless_fraction",
+        "post_measure_process_operations_per_closed_lifecycle": "dimensionless_ratio",
+        "terminal_to_global_best_ratio": "dimensionless_ratio",
+        "threshold_decision_concordance": "dimensionless_fraction",
+        "threshold_eligible_fraction": "dimensionless_fraction",
+        "total_cost_per_closed_lifecycle": "currency",
+        "total_risk_per_closed_lifecycle": "risk"
+      },
+      "record_schemas": {
+        "policy_campaign_profile": {
+          "analysis_role": "primary",
+          "expected_row_count": 30,
+          "primary_key": [
+            "campaign_id"
+          ],
+          "required_identity_fields": [
+            "world_seed",
+            "information_arm",
+            "policy_id",
+            "physical_identity_sha256",
+            "noise_identity_sha256",
+            "material_information_sha256",
+            "resource_card_sha256"
+          ],
+          "weighting": "one_campaign_one_equal_weight_within_policy"
+        },
+        "policy_lifecycle": {
+          "analysis_role": "primary",
+          "expected_primary_row_count": 180,
+          "independent_analysis_unit": false,
+          "primary_key": [
+            "campaign_id",
+            "lifecycle_index"
+          ]
+        },
+        "policy_retest_campaign": {
+          "analysis_role": "reliability",
+          "execution_role": "deterministic_retest",
+          "expected_row_count": 30,
+          "primary_key": [
+            "campaign_id",
+            "execution_role"
+          ]
+        }
+      },
+      "track_name": "known_policy_measurement_validity"
+    }
+  },
+  "unit_registry": {
+    "count": {
+      "canonical_unit": "count",
+      "json_type": "integer",
+      "minimum": 0
+    },
+    "currency": {
+      "canonical_unit": "currency",
+      "json_type": "number",
+      "minimum": 0.0
+    },
+    "dimensionless_fraction": {
+      "canonical_unit": "1",
+      "json_type": "number",
+      "maximum": 1.0,
+      "minimum": 0.0
+    },
+    "dimensionless_ratio": {
+      "canonical_unit": "1",
+      "json_type": "number",
+      "minimum": 0.0
+    },
+    "joule": {
+      "canonical_unit": "J",
+      "json_type": "number"
+    },
+    "kelvin": {
+      "canonical_unit": "K",
+      "json_type": "number"
+    },
+    "liter": {
+      "canonical_unit": "L",
+      "json_type": "number"
+    },
+    "milliampere": {
+      "canonical_unit": "mA",
+      "json_type": "number"
+    },
+    "mole": {
+      "canonical_unit": "mol",
+      "json_type": "number"
+    },
+    "normalized_score": {
+      "canonical_unit": "1",
+      "json_type": "number",
+      "maximum": 1.0,
+      "minimum": 0.0
+    },
+    "normalized_score_difference": {
+      "canonical_unit": "1",
+      "json_type": "number",
+      "maximum": 1.0,
+      "minimum": -1.0
+    },
+    "ordinal": {
+      "canonical_unit": "ordinal",
+      "json_type": "integer",
+      "minimum": 0
+    },
+    "pascal": {
+      "canonical_unit": "Pa",
+      "json_type": "number"
+    },
+    "risk": {
+      "canonical_unit": "risk",
+      "json_type": "number",
+      "minimum": 0.0
+    },
+    "second": {
+      "canonical_unit": "s",
+      "json_type": "number"
+    },
+    "sha256": {
+      "canonical_unit": "sha256_hex",
+      "json_type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "volt": {
+      "canonical_unit": "V",
+      "json_type": "number"
+    },
+    "world_seed": {
+      "canonical_unit": "seed",
+      "json_type": "integer",
+      "minimum": 0
+    }
+  }
+}
