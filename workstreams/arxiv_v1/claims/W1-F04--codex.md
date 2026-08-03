@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-F04
 title: "Define the expected physical and observation divergence oracle"
-status: CLAIMED
+status: REVIEW
 
 owner: codex
 collaborators: []
 claimed_at_utc: 2026-08-03T04:42:33Z
 lease_expires_at_utc: 2026-08-05T04:42:33Z
-heartbeat_at_utc: 2026-08-03T04:42:33Z
+heartbeat_at_utc: 2026-08-03T04:48:37Z
 
 base_commit: "e44e996e440248f282268ed0016be7365855eecb"
 branch: work1/w1-f04-divergence-oracle
@@ -34,18 +34,26 @@ validation:
   - uv run mypy src/chemworld/foundation/world_fork_divergence.py
   - git diff --check
 
-completed_since_last_heartbeat: []
-current_validation: "Claim registration only; implementation has not started."
-files_touched: []
+completed_since_last_heartbeat:
+  - Defined content-addressed divergence oracles for both Work I intervention classes.
+  - Required paired physical-state and public-observation expectations at aligned checkpoints.
+  - Implemented absolute, relative, and directional tolerance evaluation with deterministic failures.
+  - Added frozen definition fixtures, reports, and missing/nonfinite/wrong-direction tests.
+current_validation: "9/9 focused tests passed; 96/96 combined fork and mechanism regression tests passed; ruff, mypy, format check, and git diff check passed."
+files_touched:
+  - src/chemworld/foundation/world_fork_divergence.py
+  - configs/benchmark/work_i_world_fork_divergence_v0.1.json
+  - tests/test_world_fork_divergence.py
+  - workstreams/arxiv_v1/reports/work-i-world-fork-divergence-v0.1.json
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-03T16:42:33Z
-next_24h: "Freeze paired checkpoint semantics and tolerance evaluation for both Work I intervention classes."
-handoff_eta: 2026-08-04T04:42:33Z
+next_check_at_utc: 2026-08-03T16:48:37Z
+next_24h: "Coordinator review and merge; F05 can then feed actual aligned runtime checkpoints into the frozen oracle."
+handoff_eta: 2026-08-03T05:48:37Z
 
-final_commit: null
-reviewer: null
-review_result: null
+final_commit: "e1951a26ee31566aab4d3da8ee138508bafd1cee"
+reviewer: coordinator
+review_result: pending
 notes: "F04 defines expected response evidence only; actual runtime traces and replay are F05-F06."
 ```
