@@ -3,14 +3,14 @@
 ```yaml
 task_id: W1-V07
 title: "Qualify the known-policy matrix runner and freeze the formal protocol"
-status: CLAIMED
+status: ACTIVE
 
 owner: codex-1
 collaborators:
   - "agent:/root/w1_v07"
 claimed_at_utc: 2026-08-03T08:24:08Z
 lease_expires_at_utc: 2026-08-05T08:24:08Z
-heartbeat_at_utc: 2026-08-03T08:24:08Z
+heartbeat_at_utc: 2026-08-03T08:25:41Z
 
 base_commit: "53e30431fde9cd15c4f3a632e9a7214b8ac2c79d"
 branch: work1/w1-v07-runner-qualification-freeze
@@ -46,9 +46,11 @@ validation:
   - git diff --check
   - git diff --check 53e30431fde9cd15c4f3a632e9a7214b8ac2c79d...HEAD
 
-completed_since_last_heartbeat: []
-current_validation: ""
-files_touched: []
+completed_since_last_heartbeat:
+  - "Confirmed the V06 DONE dependency, dedicated branch/worktree, clean starting state, and coordinator-pushed codex-1 claim."
+current_validation: "Implementation has not started; claim activation checkpoint only."
+files_touched:
+  - workstreams/arxiv_v1/claims/W1-V07--codex-1.md
 blockers: []
 blocked_by: null
 unblock_condition: null
