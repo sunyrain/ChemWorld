@@ -2,9 +2,9 @@
 
 Status: **qualified_and_frozen**
 
-Qualification report SHA-256: `83dda122d0687bdcb53087004c408411cb83d7aa16909af8a7907d3cff1439e4`
+Qualification report SHA-256: `a22cf42c415aa94bb16aaf83e3049fda371fe85c69766c46e18525258676d7aa`
 
-Threshold binding SHA-256: `dc85e38ce9684b8cf90a15edbf267e2875f7d33af2602b7980dfdb653e30660d`
+Threshold binding SHA-256: `12b661d19e1b9ecb12570e96bba1d89a5f4497f939aa3154d0b15896f946a0b3`
 
 ## Frozen result
 
@@ -54,7 +54,9 @@ The paired arms must have identical vectors because the policies do not read the
 | `selected_threshold_has_both_branches_in_every_arm` | True |
 | `ten_original_and_ten_replay_campaigns` | True |
 
-The source manifest contains 12 files and has SHA-256 `d38f7d163c4cfd172e6403a8a51d8c6077e6433b93135051553ecdb0fed9e352`. Execution comprised 10 original campaigns plus 10 exact replays, 720 committed actions, and zero provider calls.
+The source manifest contains 12 files and has SHA-256 `e7a8a09d119ef2b5f04019fa343a0a5b8585dadc01ea8dbf996c9f678831518e`. Execution comprised 10 original campaigns plus 10 exact replays, 720 committed actions, and zero provider calls.
+
+State/resource evidence is canonically serialized to 15 significant digits to remove sub-1e-15 runtime-library tails; raw public diagnostic values remain the input to threshold selection.
 
 ## Claim boundary
 

@@ -45,6 +45,7 @@ SOURCE_PATHS = (
     "src/chemworld/world/scoring.py",
     "scripts/qualify_work_i_known_policy_threshold.py",
 )
+ARTIFACT_FLOAT_SIGNIFICANT_DIGITS = 15
 
 
 def qualification_resource_card() -> CampaignResourceCard:
@@ -74,6 +75,27 @@ def source_manifest(root: Path) -> dict[str, str]:
     """Hash the complete declared qualification source surface."""
 
     return {path: file_sha256(root / path) for path in SOURCE_PATHS}
+
+
+def stable_numeric_payload(value: Any) -> Any:
+    """Normalize negligible libm/runtime float tails for artifact identity.
+
+    Qualification decisions retain their raw public diagnostic values.  This
+    normalization is used only for state/resource evidence hashes and report-
+    only ledger values so Python runtimes that differ below 1e-15 rebuild the
+    same audit artifact.
+    """
+
+    if isinstance(value, Mapping):
+        return {str(key): stable_numeric_payload(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [stable_numeric_payload(item) for item in value]
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError("qualification artifacts cannot contain non-finite floats")
+        normalized = float(format(value, f".{ARTIFACT_FLOAT_SIGNIFICANT_DIGITS}g"))
+        return 0.0 if normalized == 0.0 else normalized
+    return value
 
 
 def _probe_prefix(probe: Any) -> list[dict[str, Any]]:
@@ -177,12 +199,14 @@ def execute_qualification_campaign(world_seed: int, information_arm: str) -> dic
                     "operation_type": info.get("operation_type"),
                     "instrument": info.get("instrument"),
                     "kernel_id": info.get("kernel_id"),
-                    "state_sha256": canonical_json_sha256(to_builtin(state_payload)),
+                    "state_sha256": canonical_json_sha256(
+                        stable_numeric_payload(to_builtin(state_payload))
+                    ),
                     "public_observation_sha256": canonical_json_sha256(
-                        to_builtin(observation)
+                        stable_numeric_payload(to_builtin(observation))
                     ),
                     "campaign_resource_state_sha256": canonical_json_sha256(
-                        info["campaign_resources"]["state"]
+                        stable_numeric_payload(info["campaign_resources"]["state"])
                     ),
                     "terminated": bool(terminated),
                     "truncated": bool(truncated),
@@ -206,7 +230,9 @@ def execute_qualification_campaign(world_seed: int, information_arm: str) -> dic
         if last_info is None:
             raise RuntimeError("qualification campaign executed no operations")
         provenance = base_env.evaluator_provenance()
-        resource_state = to_builtin(last_info["campaign_resources"]["state"])
+        resource_state = stable_numeric_payload(
+            to_builtin(last_info["campaign_resources"]["state"])
+        )
         report = {
             "world_seed": world_seed,
             "information_arm": information_arm,
@@ -416,6 +442,11 @@ def build_qualification_report(root: Path) -> dict[str, Any]:
         "information_arms": list(INFORMATION_ARMS),
         "diagnostic_signal": "observation.conversion",
         "comparator": ">=",
+        "artifact_float_canonicalization": {
+            "scope": "state/resource evidence hashes and report-only ledger values",
+            "significant_digits": ARTIFACT_FLOAT_SIGNIFICANT_DIGITS,
+            "threshold_selection_uses_raw_diagnostic_values": True,
+        },
         "resource_card": qualification_resource_card().to_dict(),
         "source_manifest": manifest,
         "source_manifest_sha256": canonical_json_sha256(manifest),
@@ -528,6 +559,7 @@ def validate_threshold_binding(
 
 
 __all__ = [
+    "ARTIFACT_FLOAT_SIGNIFICANT_DIGITS",
     "INFORMATION_ARMS",
     "NOISE_NAMESPACE_PREFIX",
     "OBSERVATION_SEED_OFFSET",
@@ -547,6 +579,7 @@ __all__ = [
     "qualification_resource_card",
     "select_threshold",
     "source_manifest",
+    "stable_numeric_payload",
     "threshold_binding_sha256",
     "validate_qualification_report",
     "validate_threshold_binding",

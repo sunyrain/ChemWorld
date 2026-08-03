@@ -15,6 +15,7 @@ from chemworld.eval.known_policy_threshold import (
     qualification_report_sha256,
     select_threshold,
     source_manifest,
+    stable_numeric_payload,
     threshold_binding_sha256,
     validate_qualification_report,
     validate_threshold_binding,
@@ -46,6 +47,15 @@ def test_midpoint_candidates_are_unique_sorted_and_finite() -> None:
     assert midpoint_candidates([0.2, 0.2]) == ()
     with pytest.raises(ValueError, match="finite"):
         midpoint_candidates([0.1, float("nan")])
+
+
+def test_report_only_numeric_canonicalization_removes_runtime_float_tails() -> None:
+    assert stable_numeric_payload(0.1729546623067752) == (
+        stable_numeric_payload(0.17295466230677525)
+    )
+    assert stable_numeric_payload({"x": [1.0e-18, -0.0]}) == {
+        "x": [1.0e-18, 0.0]
+    }
 
 
 def test_selector_applies_admissibility_median_and_lower_tie_break() -> None:
