@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-V04
 title: "Implement deterministic known-policy controllers"
-status: REVIEW
+status: DONE
 
 owner: codex
 collaborators: []
 claimed_at_utc: 2026-08-03T06:45:52Z
 lease_expires_at_utc: 2026-08-05T06:45:52Z
-heartbeat_at_utc: 2026-08-03T07:00:19Z
+heartbeat_at_utc: 2026-08-03T07:02:06Z
 
 base_commit: "e0ad2cbceef68e7eb764c7d0b88894d4bb09f63b"
 branch: work1/w1-v04-known-policy-controllers
@@ -51,7 +51,7 @@ next_24h: "Coordinator integration review, then release the controllers to V05/V
 handoff_eta: 2026-08-03T07:00:19Z
 
 final_commit: "fcdd07057752f1354884d7a4cf44b3466a1b45b1"
-reviewer: null
-review_result: null
-notes: "V04 implements frozen contracts only; formal execution belongs to V08."
+reviewer: "coordinator"
+review_result: "APPROVED: exact action paths, terminal branches, artifact roots, no-information-access boundary, fail-closed behavior, and nonformal environment integration all satisfy the V02/V03 contracts."
+notes: "V04 implements frozen contracts only; formal execution belongs to V08. No formal world seed was executed or inspected."
 ```
