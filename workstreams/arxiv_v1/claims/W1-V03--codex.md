@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-V03
 title: "Qualify and freeze the known-policy threshold on disjoint worlds"
-status: CLAIMED
+status: ACTIVE
 
 owner: codex
 collaborators: []
@@ -40,7 +40,7 @@ validation:
   - git diff --check
 
 completed_since_last_heartbeat: []
-current_validation: "V03 scope is bound to the V02 threshold firewall and excludes formal worlds by construction."
+current_validation: "Qualification executor, candidate selection, provenance, pairing, and replay gates are being implemented."
 files_touched: []
 blockers: []
 blocked_by: null
