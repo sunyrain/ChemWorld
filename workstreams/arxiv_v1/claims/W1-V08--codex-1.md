@@ -3,14 +3,14 @@
 ```yaml
 task_id: W1-V08
 title: "Execute the frozen 30-campaign / 180-lifecycle known-policy matrix"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators:
   - "agent:/root/w1_v08"
 claimed_at_utc: 2026-08-03T08:31:36Z
 lease_expires_at_utc: 2026-08-05T08:31:36Z
-heartbeat_at_utc: 2026-08-03T10:12:04Z
+heartbeat_at_utc: 2026-08-03T10:15:38Z
 
 base_commit: "716ee1ff6a5c32d987ae7cdcc6dfda9606ef5b8c"
 branch: work1/w1-v08-formal-policy-controls
@@ -47,7 +47,7 @@ completed_since_last_heartbeat:
   - "Generated and byte-checked the V06 audit; all 12 gates passed, including the non-degenerate 28-assay/32-discard threshold branches."
   - "Validated completed --resume as a no-op: 32 files and all per-file SHA-256/byte counts were unchanged."
   - "Pushed raw evidence 55b7b3c1908a6bec8ee3dbc4b5e3efcbd3599ab6, audit 7e3337b7cbcb83248a88dceef31bcb635468d680, and execution handoff 75c9fcd831b7a3af4cdb24e551a8f3b367cbc251."
-current_validation: "PASS: all claim-listed formal execution, immutable evidence, progress, size, provider-zero, retest-exclusion, V06 audit/check, completed-resume no-op, and diff checks passed; ready for independent review."
+current_validation: "DONE: all claim-listed formal execution, immutable evidence, progress, size, provider-zero, retest-exclusion, V06 audit/check, completed-resume no-op, diff, and independent-review gates passed. Manifest SHA256 d15c7af5d96fd0d99006a3da8b2f1c18b3c357cb1ee4bd81cb1c75675ae1cdcc; progress SHA256 b3c4f143b437ca524d3426890ebfd85b73ad0bf2cd8a71ac941bc8c58c3db906; audit SHA256 661d42eced2097e159b9d36059715ae8a354167c48353d1c37b0f8a9678abe95."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-V08--codex-1.md
   - workstreams/arxiv_v1/reports/work-i-policy-control-formal-v0.1/matrix_manifest.json
@@ -58,12 +58,12 @@ files_touched:
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-04T10:12:04Z
-next_24h: "Await coordinator-assigned independent review; make no evidence or rule changes."
+next_check_at_utc: null
+next_24h: "Handoff complete; V09 may activate from the pushed V08 DONE baseline and must treat all formal evidence as immutable."
 handoff_eta: 2026-08-03T10:12:04Z
 
 final_commit: "75c9fcd831b7a3af4cdb24e551a8f3b367cbc251"
-reviewer: null
-review_result: null
+reviewer: "/root/w1_v07_review"
+review_result: "APPROVE: one concentrated read-only review closed the V07 apparatus/receipt chain, 30/180 primary and excluded 30/180 retest counts, provider-zero proof, all 32 evidence files, progress/manifest hashes, 12/12 V06 audit gates, size gates, resume byte invariance, and no-retuning boundary."
 notes: "Formal execution is now authorized only from the pushed V07 DONE baseline and only under the exact frozen apparatus. No source, frozen config, current pointer, evidence DAG, experiment ledger, manuscript, figure manifest, release manifest, raw provider payload, or global hot file is in scope. An interrupted formal run may resume only with identical frozen inputs through the fail-closed --resume path. A completed --resume is a fully validated no-op, not permission to overwrite or replace accepted evidence."
 ```
