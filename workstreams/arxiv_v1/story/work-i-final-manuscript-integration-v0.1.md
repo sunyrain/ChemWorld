@@ -87,6 +87,28 @@ W1-P09 owns final caption/display/manifest consistency and must preserve each fi
 sole narrative job. In particular, the current Figure 3 render still shows pre-result
 pending slots even though the manuscript now contains the frozen L disposition.
 
+## Pending S03/S08 replacement ledger
+
+This ledger fixes the integration target without pre-empting either active owner's
+isolated handoff. Line numbers are advisory; the anchors and semantic replacements are
+binding.
+
+| Region/anchor | Current migration residue | Required final resolution | Handoff |
+| --- | --- | --- | --- |
+| YAML `title` and title lines | Existing title predates the final S03 candidate ranking. | Select the bounded S03 recommendation centered on the measurement apparatus; keep the two-line PDF title synchronized. | S03 → S10 |
+| YAML `abstract` around `independently configured primitive-control systems` | Backend-like system wording and `120 batch lifecycles` omit the frozen partition. | Use **distinct complete agent systems** and the first exact string **120 closed lifecycles: 84 final assays and 36 explicit discards**. | S03 → S10 |
+| YAML `abstract` evidence escalation | Abstract begins at compiled controls and omits apparatus programmability, known-policy validation and the unresolved latent gate. | Compress the six-beat order: apparatus/forks, known policies, terminal policy/L boundary, compiled decomposition, lifecycle process and fresh trajectories. Do not insert a scalar or directional latent result. | S03 → S10 |
+| Introduction anchor `same physical world` | Implies physical duplication. | Describe matched hidden simulator-world/material identity; reserve physical claims for laboratory complementarity. | S03 → S10 |
+| Introduction contribution `exact physical replay` | Overstates replay scope. | Use exact executable-environment/trajectory and resource replay; explicitly exclude model-token and physical-batch reproduction. | S03 → S10 |
+| Introduction anchor `We use three evidence layers` | Pre-F/V migration structure starts at compiled controls. | Replace with the frozen staged apparatus → validity → application → process escalation and keep registered platform scope distinct from formal empirical scope. | S03 → S10 |
+| Related Work anchor `matched physical identity` | Overstates the controlled identity. | Use matched simulator-world identity while preserving self-driving-laboratory complementarity and physical deployment validity. | S08 → S10 |
+| Related Work citations | Existing prose must not be overwritten until source-level S08 verification arrives. | Preserve verified primary-source keys, reject novelty/priority and replacement claims, and keep Work II rule adaptation outside the comparison. | S08 → S10 |
+
+After both handoffs, W1-S10 must replace these regions in one assembly commit, then scan
+the whole manuscript for `independently configured`, `exact physical replay`, unmatched
+uses of `physical identity/world`, the obsolete three-layer framing, and any first-120
+mention that lacks the 84/36 partition.
+
 ## Remaining W1-S10 closure work
 
 1. Receive and preserve the W1-S03 Title/Abstract/Introduction handoff, then replace

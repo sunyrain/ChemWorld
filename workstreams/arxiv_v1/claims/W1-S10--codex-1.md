@@ -41,6 +41,7 @@ completed_since_last_heartbeat:
   - "Rewrote Discussion and Conclusion within the simulated-apparatus, finite-world, complete-system and Work II boundaries."
   - "Inserted the missing F/V/L Methods in frozen dependency order and corrected simulator-versus-physical replay terminology in S10-owned regions."
   - "Integrated the S09 limitations handoff into explicit Discussion subsections covering platform scope, deterministic validity, complete-system confounding, latent censoring, finite-world evidence, and virtual-to-physical boundaries."
+  - "Recorded an anchor-level S03/S08 replacement ledger for the remaining title, abstract, introduction, and related-work migration residues without editing either active owner's region."
   - "Pushed the first manuscript integration commit 317f1e8a to origin/work1/w1-s10-final-manuscript."
 current_validation: "Results first-reference order is 1–6, Discussion has explicit interpretation/limitations/next-step boundaries, Methods order is 10.1–10.12 with F/V/L protocols, and focused no-dependency manuscript locks pass. W1-S03 and W1-S08 still contain activation commits only; Figure 3 remains a pre-L pending render for W1-P09 update."
 files_touched:
