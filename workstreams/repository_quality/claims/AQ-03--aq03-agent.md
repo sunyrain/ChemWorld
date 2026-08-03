@@ -3,7 +3,7 @@
 ```yaml
 task_id: AQ-03
 title: "Type world-understanding, single-stage, predictive, and electrochemical service paths"
-status: CLAIMED
+status: CHANGES_REQUESTED
 owner: aq03-agent
 claimed_at_utc: 2026-08-03T14:14:34Z
 base_commit: "05e6324352eedea0dcf291ef0410c86cd3da983e"
@@ -17,6 +17,7 @@ declared_write_set:
   - src/chemworld/eval/electrochemical_predictive.py
   - src/chemworld/eval/crystallization_predictive.py
   - src/chemworld/runtime/electrochemical_services.py
+  - src/chemworld/physchem/electrochemical_task_contract.py
 deliverables:
   - "Resolve current Mypy errors in the declared source files without changing runtime or scientific behavior"
 validation:
@@ -27,9 +28,9 @@ validation:
 completed: []
 files_touched: []
 final_commit: null
-reviewer: null
-review_result: null
-notes: ""
+reviewer: coordinator
+review_result: changes_requested
+notes: "Write set expanded to fix the source Protocol as read-only and collection-covariant; remove the service-layer validation adapter so compiled mechanisms are validated directly without runtime conversion."
 ```
 
 The worker commits this claim before implementation, edits only its own claim, and changes the status
