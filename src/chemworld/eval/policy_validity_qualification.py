@@ -538,6 +538,7 @@ def run_live_smoke(
     dependencies = dependency_bindings(root, matrix_protocol)
     qualification_source_sha256 = semantic_sha256(qualification_sources)
     cells: list[MatrixCell] = []
+    arm_payloads = matrix_protocol["material_information_by_arm"]
     for arm in INFORMATION_ARMS:
         arm_slug = "opaque" if arm == INFORMATION_ARMS[0] else "anonymous-nominal"
         for policy_id in POLICY_IDS:
@@ -552,7 +553,7 @@ def run_live_smoke(
                     world_seed=world_seed,
                     information_arm=arm,
                     policy_id=policy_id,
-                    material_information={"mode": arm},
+                    material_information=deepcopy(dict(arm_payloads[arm])),
                 )
             )
 
