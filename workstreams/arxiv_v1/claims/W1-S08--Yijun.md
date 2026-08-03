@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-S08
 title: "Draft the isolated related-work reconstruction"
-status: CLAIMED
+status: ACTIVE
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T16:32:50Z
 lease_expires_at_utc: 2026-08-05T16:32:50Z
-heartbeat_at_utc: 2026-08-03T16:32:50Z
+heartbeat_at_utc: 2026-08-03T16:38:48Z
 
 base_commit: "628478aa3f01023c249f08fddb8a35ecd6429803"
 branch: work1/w1-s08-related-work-yijun
@@ -32,15 +32,17 @@ validation:
   - "Confirm only the declared claim and isolated story file are modified"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared for main registration before primary-source literature verification and drafting"
+completed_since_last_heartbeat:
+  - "Read the collaboration/development contracts, Work I TODO and master plan, claim protocol/template, current registry, S02 story architecture, related-work evidence record, current manuscript related-work/discussion, and active arXiv bibliography."
+  - "Fetched and fast-forwarded to origin/main 905d57c76dbf5b9ad24bb6f8e784df70afa07496, confirmed the S08 claim is registered on main, and pushed branch parity before literature work."
+current_validation: "ACTIVE: claim and write set verified; primary-source metadata and claim-level literature verification in progress"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-S08--Yijun.md
 blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: 2026-08-04T04:32:50Z
-next_24h: "Verify the literature evidence and draft bounded related-work prose plus a citation-integration handoff."
+next_24h: "Verify primary literature and exact citation metadata, then draft bounded related-work prose, source table, comparison matrix, and bibliography-integration handoff."
 handoff_eta: 2026-08-04T04:32:50Z
 
 final_commit: null
