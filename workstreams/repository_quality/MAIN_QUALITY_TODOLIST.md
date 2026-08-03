@@ -40,16 +40,29 @@ frozen evidence, or benchmark semantics.
 
 | ID | Status | Scope | Validation |
 | --- | --- | --- | --- |
-| AQ-01 | REVIEW | Make optional RL tests collect safely in default `dev`; fix the Ruff failure | focused pytest; Ruff on touched tests |
-| AQ-02 | REVIEW | Type-safe provider and cross-platform process guards | focused tests; Ruff; Mypy on touched files |
-| AQ-03 | REVIEW | Type world-understanding, single-stage, predictive, and electrochemical service paths | focused tests; Ruff; Mypy on touched files |
-| AQ-04 | REVIEW | Type live-LLM and static-optimization agent paths | focused tests; Ruff; Mypy on touched files |
-| AQ-05 | REVIEW | Type static campaign, baseline, and material-information evaluators | focused tests; Ruff; Mypy on touched files |
-| AQ-06 | REVIEW | Type replication audit, arXiv derived data, and participant qualification | focused tests; Ruff; Mypy on touched files |
-| AQ-07 | REVIEW | Type mechanism-adaptation execution | focused tests; Ruff; Mypy on touched files |
-| AQ-08 | ACTIVE | Coordinator integration and full quality-gate verification | default-dev tests; Ruff; Mypy; docs audit; diff check |
-| AQ-09 | REVIEW | Make the release-finalizer test honor the optional `paper` dependency contract | focused/default-dev pytest; Ruff on touched tests |
-| AQ-10 | OPEN | Make trajectory-launcher path assertions platform-neutral | focused pytest; Ruff on touched files |
+| AQ-01 | DONE | Make optional RL tests collect safely in default `dev`; fix the Ruff failure | focused pytest; Ruff on touched tests |
+| AQ-02 | DONE | Type-safe provider and cross-platform process guards | focused tests; Ruff; Mypy on touched files |
+| AQ-03 | DONE | Type world-understanding, single-stage, predictive, and electrochemical service paths | focused tests; Ruff; Mypy on touched files |
+| AQ-04 | DONE | Type live-LLM and static-optimization agent paths | focused tests; Ruff; Mypy on touched files |
+| AQ-05 | DONE | Type static campaign, baseline, and material-information evaluators | focused tests; Ruff; Mypy on touched files |
+| AQ-06 | DONE | Type replication audit, arXiv derived data, and participant qualification | focused tests; Ruff; Mypy on touched files |
+| AQ-07 | DONE | Type mechanism-adaptation execution | focused tests; Ruff; Mypy on touched files |
+| AQ-08 | BLOCKED | Coordinator integration and full quality-gate verification | Windows evidence refresh required |
+| AQ-09 | DONE | Make the release-finalizer test honor the optional `paper` dependency contract | focused/default-dev pytest; Ruff on touched tests |
+| AQ-10 | DONE | Make trajectory-launcher path assertions platform-neutral | focused pytest; Ruff on touched files |
+
+## Integration outcome
+
+All implementation tasks were claimed before work, reviewed after handoff, and marked `DONE` only
+after integration. Mypy passes across 324 source files; Ruff, the 64-file public-doc audit, diff
+checking, focused default-dev tests, and the locked RL-present tests pass.
+
+AQ-08 remains `BLOCKED`, not `DONE`: the official current-evidence refresh reaches the
+`public_boundary` node on this Linux host and correctly refuses to issue a Windows source-process
+qualification. The generated changes from that failed refresh were reverted. In addition, the
+frozen V03 known-policy qualification detects the updated electrochemical service source manifest
+and must be formally requalified rather than repaired by editing hashes. A Windows qualification
+host is therefore required before the full current-evidence and frozen-artifact gates can pass.
 
 ## Completion criteria
 

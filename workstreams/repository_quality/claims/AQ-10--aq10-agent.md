@@ -3,7 +3,7 @@
 ```yaml
 task_id: AQ-10
 title: "Make trajectory-launcher path assertions platform-neutral"
-status: REVIEW
+status: DONE
 owner: aq10-agent
 claimed_at_utc: 2026-08-03T14:52:20Z
 base_commit: "cbcf2f77696a399b081ef23c7590d16cb3fb1f2d"
@@ -28,7 +28,7 @@ completed:
 files_touched:
   - tests/test_g2_trajectory_replication_launcher.py
 final_commit: "065367fad53301d194a288a2d0fd0cf415dbf375"
-reviewer: null
-review_result: null
+reviewer: coordinator
+review_result: "PASS: native-path assertion fix integrated; production launcher remained unchanged."
 notes: "The Linux failure was a platform-specific test expectation, not a production path bug. Path.__str__ supplies the native representation consumed by subprocess on each platform."
 ```

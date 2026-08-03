@@ -3,7 +3,7 @@
 ```yaml
 task_id: AQ-06
 title: "Type replication audit, arXiv derived data, and participant qualification"
-status: REVIEW
+status: DONE
 owner: aq06-agent
 claimed_at_utc: 2026-08-03T14:14:55Z
 base_commit: "05e6324352eedea0dcf291ef0410c86cd3da983e"
@@ -33,8 +33,8 @@ files_touched:
   - src/chemworld/eval/arxiv_v1_derived_data.py
   - src/chemworld/eval/participant_prompt_qualification.py
 final_commit: "9a1c66dbfd25011b15877a419121bea81965ac5d"
-reviewer: null
-review_result: null
+reviewer: coordinator
+review_result: "PASS: fail-closed audit narrowing integrated and focused checks passed."
 notes: "No tests, frozen protocols, evidence, reports, dependencies, or scientific claims changed. Invalid audit payloads continue to fail closed."
 ```
 

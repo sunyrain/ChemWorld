@@ -3,7 +3,7 @@
 ```yaml
 task_id: AQ-08
 title: "Integrate claimed fixes and verify all repository quality gates"
-status: CLAIMED
+status: BLOCKED
 owner: coordinator
 claimed_at_utc: 2026-08-03T14:44:01Z
 base_commit: "183fd22415ed5067bbb6911708a8c0403a9f871b"
@@ -24,7 +24,7 @@ declared_write_set:
   - workstreams/flagship_tasks/reports/task-design-matrix-v1.json
   - workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-preflight.json
 deliverables:
-  - "Reviewed integration of AQ-01 through AQ-07 and AQ-09"
+  - "Reviewed integration of AQ-01 through AQ-07 and AQ-09 through AQ-10"
   - "Truthfully refreshed generated current-evidence nodes after executable-source changes"
   - "Complete default-dev and optional-backend quality-gate evidence"
 validation:
@@ -40,10 +40,19 @@ completed:
   - "Integrated all worker claim, implementation, review-correction, and handoff commits"
   - "Mypy passes on 324 source files"
   - "Ruff, public-doc audit, and diff check pass before evidence refresh"
+  - "Fast/current excluding the evidence test reached 652 passed and 13 skipped before the frozen V03 manifest stopped it"
+  - "Locked RL-present replay and accounting coverage passes: 13 tests"
+  - "Failed Linux refresh outputs were reverted; no generated evidence was hand-edited"
 files_touched:
   - workstreams/repository_quality/claims/AQ-08--coordinator.md
 final_commit: null
-reviewer: null
-review_result: null
-notes: "The refresh is limited to generated DAG nodes; immutable evidence remains read-only. AQ-08 does not authorize new scientific results or stronger claims."
+reviewer: coordinator
+review_result: >-
+  BLOCKED: official evidence refresh requires a Windows source-process qualification, and the
+  frozen V03 known-policy manifest requires formal requalification after guarded source changes.
+notes: >-
+  The refresh is limited to generated DAG nodes; immutable evidence remains read-only. The Linux
+  refresh passed runtime_affordance, runtime_integration, and mechanism_public_matrix, then stopped
+  at public_boundary because windows_source_process=false. Its generated working-tree changes were
+  reverted. AQ-08 does not authorize new scientific results, hand-edited hashes, or stronger claims.
 ```

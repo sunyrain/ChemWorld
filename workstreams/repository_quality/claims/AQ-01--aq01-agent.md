@@ -3,7 +3,7 @@
 ```yaml
 task_id: AQ-01
 title: "Collect optional RL tests safely and fix touched-test Ruff failure"
-status: REVIEW
+status: DONE
 owner: "aq01-agent"
 claimed_at_utc: 2026-08-03T14:14:09Z
 base_commit: "05e6324352eedea0dcf291ef0410c86cd3da983e"
@@ -34,8 +34,8 @@ files_touched:
   - tests/test_rl_training_accounting.py
   - tests/test_arxiv_v1_experiment_ledger.py
 final_commit: "38f3edd8ec025ca40ff795a7ac1f02992d2b100c"
-reviewer: null
-review_result: null
+reviewer: "coordinator"
+review_result: "PASS: integrated; default-dev and locked RL-present coverage reviewed."
 notes: >-
   Ready for review at 2026-08-03T14:30:53Z. The default-dev fast/current gate now collects the RL
   tests safely. Its first unrelated failure is

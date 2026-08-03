@@ -3,7 +3,7 @@
 ```yaml
 task_id: AQ-03
 title: "Type world-understanding, single-stage, predictive, and electrochemical service paths"
-status: REVIEW
+status: DONE
 owner: aq03-agent
 claimed_at_utc: 2026-08-03T14:14:34Z
 base_commit: "05e6324352eedea0dcf291ef0410c86cd3da983e"
@@ -42,7 +42,7 @@ files_touched:
   - src/chemworld/physchem/electrochemical_task_contract.py
 final_commit: "a026f9bc20059f54d5a48910d83eb526bbf6da02"
 reviewer: coordinator
-review_result: pending
+review_result: "PASS: protocol-based narrowing integrated; focused and repository typing checks passed."
 notes: "Ready for coordinator review at 2026-08-03T14:29:24Z. The requested service-layer adapter removal is complete; validation now receives the original compiled mechanism directly. AQ-04 should remove its crystallization-to-electrochemical query copying helper and pass the native query sequence to parse_counterfactual_predictions."
 ```
 

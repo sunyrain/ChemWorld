@@ -3,7 +3,7 @@
 ```yaml
 task_id: AQ-09
 title: "Honor the optional paper dependency contract in the release-finalizer test"
-status: REVIEW
+status: DONE
 owner: aq09-agent
 claimed_at_utc: 2026-08-03T14:19:09Z
 base_commit: d07da8553a08220911bb3da4c98ed849bc12e948
@@ -27,7 +27,7 @@ completed:
 files_touched:
   - tests/test_arxiv_release_artifacts.py
 final_commit: 94bab88d32f07a449ea83108efd5521fb40c3e2d
-reviewer: null
-review_result: null
+reviewer: coordinator
+review_result: "PASS: exact optional-paper blocker behavior verified in both dependency modes."
 notes: "Implementation uses exact-list equality so any unrelated preflight blocker still fails the test. Ready for coordinator review at 2026-08-03T14:21:08Z."
 ```
