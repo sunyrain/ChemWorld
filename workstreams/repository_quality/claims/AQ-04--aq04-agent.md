@@ -28,10 +28,10 @@ completed:
 files_touched:
   - src/chemworld/agents/live_llm.py
   - src/chemworld/agents/static_optimization.py
-final_commit: "2ef19ddc717cb74fe3ce6625e270e7a7c6b9f020"
+final_commit: "27b9da7828674abfc079cce7d0502dcc29823057"
 reviewer: null
 review_result: null
-notes: "Implementation preserves provider-cost accounting, prompt JSON, and predictive parsing behavior while expressing callable and query/container invariants through control flow and concrete types."
+notes: "Implementation preserves provider-cost accounting and predictive parsing behavior while expressing callable and query/container invariants through control flow and concrete types. Review correction 27b9da7828674abfc079cce7d0502dcc29823057 also restores the original prompt mapping field order, including recommendation and optional forbidden fields."
 ```
 
 The worker commits this claim before implementation, edits only its own claim, and changes the status
