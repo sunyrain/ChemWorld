@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-Q01
 title: "Independently review the Work I world-fork, policy-control, and latent-terminal protocols"
-status: ACTIVE
+status: REVIEW
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T14:53:36Z
 lease_expires_at_utc: 2026-08-05T14:53:36Z
-heartbeat_at_utc: 2026-08-03T15:01:40Z
+heartbeat_at_utc: 2026-08-03T15:23:10Z
 
 base_commit: "b4c643dbd65af934b40678e5c82f63fdcdefeef8"
 branch: work1/w1-q01-protocol-review-yijun
@@ -32,20 +32,23 @@ validation:
   - "git diff --check"
 
 completed_since_last_heartbeat:
-  - "Read the Work I collaboration contract, development guide, master TODO, claim rules/template, authoritative master plan, current registry, and the complete F/V/L claim history."
-  - "Established the frozen protocol, human/machine report, source-binding, and claim-boundary inventory for independent review without executing formal shadow outcomes."
-current_validation: "Read-only evidence review active on b4c643db baseline; no verdict issued and no reviewed artifact modified."
+  - "Issued requirement-by-requirement verdicts for the world-fork, known-policy measurement-validity, corrected L01 latent contract, and L02 reconstructability surfaces."
+  - "Approved world fork, known-policy validity, and corrected L01 within their frozen claim boundaries."
+  - "Requested a bounded L02 correction for tolerant rather than exact prefix comparison, missing independent keyed-noise receipt binding, and absent negative tamper tests."
+  - "Recorded the formal-entry impact without executing a shadow terminal, reading a latent discard outcome, calling a provider, or modifying a reviewed artifact."
+current_validation: "PASS: all 8 cited paths exist; file SHA-256 values independently recorded; F/V/L01/L02 protocol rules cross-checked against the TODO and master plan; read-only boundary preserved; declared write set only; git diff --check PASS. Overall verdict CHANGES_REQUESTED solely because L02 does not yet prove the 36/36 exact prefix-and-keyed-receipt gate."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-Q01--Yijun.md
+  - workstreams/arxiv_v1/reviews/W1-Q01-protocol-review--Yijun.md
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-04T02:53:36Z
-next_24h: "Complete requirement-by-requirement F/V/L protocol review, verify cited bindings and hashes, and hand off bounded verdicts."
-handoff_eta: 2026-08-04T08:53:36Z
+next_check_at_utc: null
+next_24h: "Await coordinator handoff and an independently reviewable L02 correction; L03/L04 may continue, but L05 formal shadow execution remains gated."
+handoff_eta: 2026-08-03T15:23:10Z
 
-final_commit: null
-reviewer: null
-review_result: null
-notes: "Review work is read-only outside this claim and the dedicated Q01 report; it does not authorize formal shadow execution or edits to reviewed artifacts."
+final_commit: "662159f0"
+reviewer: "Yijun"
+review_result: "CHANGES_REQUESTED"
+notes: "The review deliverable is complete. World fork, known-policy validity, and corrected L01 are APPROVE; L02 is CHANGES_REQUESTED. This review does not authorize formal shadow execution, latent-outcome access, or edits to the reviewed artifacts."
 ```
