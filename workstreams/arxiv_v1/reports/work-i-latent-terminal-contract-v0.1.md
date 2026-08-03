@@ -2,7 +2,7 @@
 
 Status: **frozen before shadow outcomes**
 
-Contract SHA-256: `2059f0b97952296fc57e5121ac0868ecd2a01a3b7afc026a0ee7b7ddce4a4737`
+Contract SHA-256: `55a0d6a7cb983ce4099dbea24586ea63ccc9433e106d36011d349472809efe30`
 
 ## Scientific question
 
@@ -48,11 +48,13 @@ For campaign `c`, `B_c` is the best score among that campaign's original assay d
 | `latent_terminal_score` | `primary_continuous` | discarded lifecycle | `S_i` | all 36 valid shadow evaluations |
 | `discard_to_observed_best_delta` | `primary_continuous` | discarded lifecycle | `Delta_i = S_i - B_c` | all 36 valid shadow evaluations |
 | `positive_discard_regret` | `primary_continuous` | discarded lifecycle | `R_i = max(0, S_i - B_c)` | all 36 valid shadow evaluations |
-| `campaign_oracle_regret` | `primary_campaign` | campaign cell | `R_c = max(0, max_{i in discarded(c)} S_i - B_c)` | all 10 campaign cells |
+| `campaign_oracle_regret` | `primary_campaign` | campaign cell | `R_c = max(0, max_{i in discarded(c)} S_i - B_c)` | the 9 frozen campaign cells with at least one committed discard |
 | `false_discard_fraction` | `primary_classification` | discarded lifecycle | `FN / (FN + TN)` | all 36 discard decisions |
 | `assay_commitment_precision` | `primary_classification` | assayed lifecycle | `TP / (TP + FP)` | all 24 observed assay decisions |
 | `assay_commitment_recall` | `secondary_classification` | high-value lifecycle | `TP / (TP + FN)` | all near-best lifecycles among the frozen 60 |
 | `decision_time_discard_regret` | `secondary_temporal` | discarded lifecycle with a prior assayed incumbent | `max(0, S_i - I_i^-)` | discard decisions with at least one earlier assay in the same campaign |
+
+`campaign_oracle_regret` is defined over the **9 frozen cells with at least one discard opportunity**. `cell-02` remains in the 10-cell census but has a pre-outcome null oracle-regret value because it contains zero discards; it is not assigned zero regret.
 
 The 60-lifecycle selection table is defined as: TP = assayed and near-best; FP = assayed and below threshold; FN = discarded with a near-best shadow score; TN = discarded below threshold. Thus the primary false-discard fraction is `FN/(FN+TN)`, assay commitment precision is `TP/(TP+FP)`, and commitment recall is `TP/(TP+FN)`.
 
@@ -63,10 +65,11 @@ The 60-lifecycle selection table is defined as: TP = assayed and near-best; FP =
 - Continuous score, signed delta, positive regret, and campaign oracle regret distributions are mandatory.
 - Relative threshold sensitivities at `0.80`, `0.90`, and `1.00` times the observed campaign best, the registered absolute threshold, and the decision-time incumbent analysis are all mandatory.
 - A discard before any assay has null decision-time regret; a future assay is never imputed as a past incumbent.
+- Censoring means only an unresolved shadow evaluation; the 60 original lifecycles are all closed. Mandatory rows report unresolved counts/reasons, all-zero and all-one assignments, and estimand-specific sharp bounds at every registered threshold.
 
 ## Missingness and fail-closed behavior
 
-All 36 shadow evaluations are required for primary point estimates. A non-finite score, prefix mismatch, or evaluator failure is retained as an unresolved receipt: no complete-case substitution, clamping, semantic repair, or favorable rerun is allowed. The full report must then provide sharp missing-outcome bounds and remain incomplete.
+All 36 shadow evaluations are required for primary point estimates. A non-finite score, prefix mismatch, or evaluator failure is retained as an unresolved receipt: no complete-case substitution, clamping, semantic repair, or favorable rerun is allowed. The full report must then provide the pre-registered bounds for all eight estimands and remain incomplete. Observed-only rows are diagnostic, never replacement primary estimates.
 
 ## Evidence-entry rule
 
@@ -98,4 +101,4 @@ Not allowed:
 - Public archive: `3362ea0a2f6349e6528fde3e2ac23f4de3580ae4d8ce750163dc4e181498a3f6`
 - Terminal index: `6c4c9a933e1a3cc0c6ead749892bf90b0abf2e3fc33fb796497d7bd3a99f82b3`
 - Population manifest: `ab35b3214c4cdf9003afff3f0d6b9205e615b5c76afa4664677bc9b95c19a9ae`
-- Source manifest: `6975e7b53969274fc3319c631ab0190cfae34a4b4edf1baedbca69733fdff324`
+- Source manifest: `213baef2d70cce8f94d7ba318d88b9818e7a180efd3d84360676ea4ae66e3bfd`

@@ -28,6 +28,7 @@ EXPECTED_LIFECYCLE_COUNT = 60
 EXPECTED_ASSAY_COUNT = 24
 EXPECTED_DISCARD_COUNT = 36
 EXPECTED_OPERATION_COUNT = 889
+EXPECTED_DISCARD_OPPORTUNITY_CELL_COUNT = 9
 EXPECTED_ARM_COUNTS = {
     "opaque_codes": {"cells": 5, "assays": 8, "discards": 22},
     "anonymous_nominal_properties": {
@@ -451,10 +452,19 @@ def _estimands() -> list[dict[str, Any]]:
             "unit": "campaign cell",
             "definition": (
                 "Improvement available from the best discarded state over the campaign's "
-                "best actually assayed state."
+                "best actually assayed state, among cells where the agent made at least "
+                "one discard decision."
             ),
             "formula": "R_c = max(0, max_{i in discarded(c)} S_i - B_c)",
-            "denominator": "all 10 campaign cells",
+            "denominator": (
+                "the 9 frozen campaign cells with at least one committed discard"
+            ),
+            "null_rule": (
+                "A campaign with zero committed discards is retained in the 10-cell "
+                "census with null campaign_oracle_regret and is excluded from this "
+                "estimand denominator by the pre-outcome opportunity rule. It is never "
+                "assigned zero regret."
+            ),
             "range": [0.0, 1.0],
         },
         {
@@ -509,6 +519,210 @@ def _estimands() -> list[dict[str, Any]]:
             "range": [0.0, 1.0],
         },
     ]
+
+
+def _aggregation() -> dict[str, Any]:
+    return {
+        "finite_population_primary": True,
+        "primary_overall_units": {
+            "discarded_lifecycles": EXPECTED_DISCARD_COUNT,
+            "all_lifecycles_for_classification": EXPECTED_LIFECYCLE_COUNT,
+            "campaign_cells": EXPECTED_CELL_COUNT,
+            "campaign_cells_with_discard_opportunity": (
+                EXPECTED_DISCARD_OPPORTUNITY_CELL_COUNT
+            ),
+        },
+        "campaign_oracle_opportunity_rule": {
+            "defined_when": "observed_discard_count >= 1",
+            "defined_cell_count": EXPECTED_DISCARD_OPPORTUNITY_CELL_COUNT,
+            "no_opportunity_cell_ids": ["cell-02"],
+            "no_opportunity_value": None,
+            "exclude_no_opportunity_from_denominator": True,
+            "freeze_timing": "before latent outcomes",
+        },
+        "continuous_summary": [
+            "count",
+            "mean",
+            "standard_deviation",
+            "minimum",
+            "25th_percentile_linear",
+            "median_linear",
+            "75th_percentile_linear",
+            "maximum",
+            "empirical_cdf",
+        ],
+        "required_strata": [
+            "overall",
+            "information_arm",
+            "world_seed",
+            "campaign_cell",
+        ],
+        "micro_average": (
+            "Lifecycle-level overall and arm fractions use their exact lifecycle "
+            "denominators."
+        ),
+        "cell_macro_average": (
+            "Report separately across cells with defined denominators; do not replace "
+            "the finite-population micro estimate."
+        ),
+        "paired_arm_contrast": (
+            "Descriptive nominal-minus-opaque world-paired contrasts are secondary "
+            "and defined only where both arm-specific denominators exist."
+        ),
+        "uncertainty": (
+            "Counts and fractions describe the complete frozen population; no "
+            "super-population p-values or confidence intervals are primary."
+        ),
+    }
+
+
+def _missingness_and_failure() -> dict[str, Any]:
+    return {
+        "complete_case_primary_allowed": False,
+        "all_36_required_for_primary_point_estimates": True,
+        "nonfinite_score_policy": "invalid shadow evaluation; never clamp or impute",
+        "prefix_mismatch_policy": "fail closed and retain the mismatch receipt",
+        "resource_or_precondition_failure_policy": (
+            "retain as an unresolved shadow evaluation; do not change the state or "
+            "counterfactual semantics to obtain a score"
+        ),
+        "retry_policy": (
+            "Only an exact replay under the same source, identity, and noise bindings "
+            "is allowed; retries never replace a valid first result."
+        ),
+        "zero_denominator_policy": "return null with the exact denominator disclosed",
+        "unresolved_unit_policy": (
+            "Retain every unresolved unit in its frozen denominator and publish its "
+            "failure reason; observed-only estimates are descriptive diagnostics and "
+            "never substitute for the registered finite-population point estimate."
+        ),
+        "point_estimate_policy_by_estimand": {
+            "latent_terminal_score": "withhold if any of 36 shadow scores is unresolved",
+            "discard_to_observed_best_delta": (
+                "withhold if any of 36 shadow scores is unresolved"
+            ),
+            "positive_discard_regret": (
+                "withhold if any of 36 shadow scores is unresolved"
+            ),
+            "campaign_oracle_regret": (
+                "withhold if any discard in any of the 9 opportunity cells is unresolved"
+            ),
+            "false_discard_fraction": (
+                "withhold if any of 36 shadow classifications is unresolved"
+            ),
+            "assay_commitment_precision": (
+                "compute exactly from the 24 observed assays, but do not promote the "
+                "terminal-selection result to main text while the 36-score gate fails"
+            ),
+            "assay_commitment_recall": (
+                "withhold if any of 36 shadow classifications is unresolved"
+            ),
+            "decision_time_discard_regret": (
+                "withhold if any eligible shadow score is unresolved"
+            ),
+        },
+        "unresolved_bounds": {
+            "latent_terminal_score": (
+                "assign each unresolved S_i its sharp support [0,1]; report mean and "
+                "order-statistic bounds on the fixed 36-unit denominator"
+            ),
+            "discard_to_observed_best_delta": (
+                "for unresolved unit i in cell c use [-B_c, 1-B_c], then report sharp "
+                "fixed-denominator aggregate bounds"
+            ),
+            "positive_discard_regret": (
+                "for unresolved unit i in cell c use [0, 1-B_c], then report sharp "
+                "fixed-denominator aggregate bounds"
+            ),
+            "campaign_oracle_regret": (
+                "for each of the 9 opportunity cells, the lower endpoint is the best "
+                "resolved positive regret or 0 and the upper endpoint additionally lets "
+                "each unresolved discard attain 1-B_c; aggregate over the same 9 cells"
+            ),
+            "false_discard_fraction": (
+                "lower/upper bounds assign every unresolved discard below/at-or-above "
+                "the frozen threshold on the fixed 36-decision denominator"
+            ),
+            "assay_commitment_precision": (
+                "exact from the frozen 24 observed assays; unresolved shadows do not "
+                "change TP/(TP+FP)"
+            ),
+            "assay_commitment_recall": (
+                "hold observed-assay TP fixed and assign every unresolved discard to "
+                "TN/FN extremes before evaluating TP/(TP+FN)"
+            ),
+            "decision_time_discard_regret": (
+                "for each unresolved eligible unit with prior incumbent I_i^- use "
+                "[0, 1-I_i^-]; units without a prior assay remain null in both bounds"
+            ),
+        },
+        "formal_status_if_any_unresolved": "incomplete_full_report_required",
+    }
+
+
+def _sensitivity_analysis() -> dict[str, Any]:
+    return {
+        "relative_near_best_fractions": list(RELATIVE_THRESHOLD_SENSITIVITY),
+        "registered_absolute_score_threshold": REGISTERED_TASK_THRESHOLD,
+        "decision_time_incumbent_analysis": True,
+        "first_discard_without_prior_assay": "retain as null, never use a future assay",
+        "censoring_definition": (
+            "Censoring in this audit means an unresolved shadow evaluation; the frozen "
+            "60 original lifecycles are all closed and are not right-censored."
+        ),
+        "mandatory_censoring_rows": [
+            "unresolved count and fraction overall, by information arm, and by campaign cell",
+            "unresolved reasons by prefix, identity, evaluator, resource, and nonfinite-score gate",
+            "worst-case assignment S_i=0 for every unresolved shadow evaluation",
+            "best-case assignment S_i=1 for every unresolved shadow evaluation",
+            "sharp estimand-specific bounds from missingness_and_failure.unresolved_bounds",
+        ],
+        "censoring_rows_apply_to": [
+            "primary threshold",
+            "relative threshold sensitivities 0.80, 0.90, and 1.00",
+            "registered absolute threshold 0.58",
+            "decision-time incumbent analysis",
+        ],
+        "observed_only_rows_are_diagnostic_not_primary": True,
+        "all_sensitivity_rows_mandatory": True,
+        "primary_threshold_may_not_change": True,
+    }
+
+
+def _entry_rules() -> dict[str, Any]:
+    return {
+        "complete_report": (
+            "Always publish all 36 unit rows, execution gates, continuous summaries, "
+            "classification tables, sensitivity rows, and unresolved receipts."
+        ),
+        "main_text_requires": [
+            "36/36 exact pre-discard prefix reconstructions",
+            "36/36 valid evaluator-only shadow scores",
+            "36/36 exact same-identity shadow replays",
+            "zero agent/provider calls",
+            "no mutation of original trajectories or resource ledgers",
+        ],
+        "main_text_items_if_gate_passes": [
+            "latent-terminal score distribution",
+            "false-discard fraction at q_c = 0.90 B_c",
+            "campaign oracle-regret distribution over 9 discard-opportunity cells",
+            "60-lifecycle assay/discard selection table",
+            "assay commitment precision and recall",
+        ],
+        "main_text_if_gate_fails": (
+            "State that terminal quality remains unresolved and report only the frozen "
+            "failure status and pre-registered bounds; do not publish a complete-case "
+            "latent-dependent point estimate or a favorable censoring assignment."
+        ),
+        "result_direction_gate": False,
+        "significance_gate": False,
+        "arm_difference_gate": False,
+        "threshold_selection_after_outcomes": False,
+        "failure_handling": (
+            "If the gate fails, publish the complete bounded audit and mark the "
+            "terminal-quality result unresolved; do not substitute a favorable subset."
+        ),
+    }
 
 
 def build_latent_terminal_contract(root: Path) -> dict[str, Any]:
@@ -616,108 +830,10 @@ def build_latent_terminal_contract(root: Path) -> dict[str, Any]:
             "equality_rule": "scores exactly equal to q_c are classified as near-best",
         },
         "estimands": _estimands(),
-        "aggregation": {
-            "finite_population_primary": True,
-            "primary_overall_units": {
-                "discarded_lifecycles": EXPECTED_DISCARD_COUNT,
-                "all_lifecycles_for_classification": EXPECTED_LIFECYCLE_COUNT,
-                "campaign_cells": EXPECTED_CELL_COUNT,
-            },
-            "continuous_summary": [
-                "count",
-                "mean",
-                "standard_deviation",
-                "minimum",
-                "25th_percentile_linear",
-                "median_linear",
-                "75th_percentile_linear",
-                "maximum",
-                "empirical_cdf",
-            ],
-            "required_strata": [
-                "overall",
-                "information_arm",
-                "world_seed",
-                "campaign_cell",
-            ],
-            "micro_average": (
-                "Lifecycle-level overall and arm fractions use their exact lifecycle "
-                "denominators."
-            ),
-            "cell_macro_average": (
-                "Report separately across cells with defined denominators; do not replace "
-                "the finite-population micro estimate."
-            ),
-            "paired_arm_contrast": (
-                "Descriptive nominal-minus-opaque world-paired contrasts are secondary "
-                "and defined only where both arm-specific denominators exist."
-            ),
-            "uncertainty": (
-                "Counts and fractions describe the complete frozen population; no "
-                "super-population p-values or confidence intervals are primary."
-            ),
-        },
-        "missingness_and_failure": {
-            "complete_case_primary_allowed": False,
-            "all_36_required_for_primary_point_estimates": True,
-            "nonfinite_score_policy": "invalid shadow evaluation; never clamp or impute",
-            "prefix_mismatch_policy": "fail closed and retain the mismatch receipt",
-            "resource_or_precondition_failure_policy": (
-                "retain as an unresolved shadow evaluation; do not change the state or "
-                "counterfactual semantics to obtain a score"
-            ),
-            "retry_policy": (
-                "Only an exact replay under the same source, identity, and noise bindings "
-                "is allowed; retries never replace a valid first result."
-            ),
-            "zero_denominator_policy": "return null with the exact denominator disclosed",
-            "unresolved_bounds": {
-                "false_discard_fraction": (
-                    "report sharp lower/upper bounds by assigning all unresolved discards "
-                    "below/above the frozen threshold"
-                ),
-                "latent_score_mean": (
-                    "report [sum(observed)/36, (sum(observed)+unresolved)/36] using [0,1]"
-                ),
-            },
-            "formal_status_if_any_unresolved": "incomplete_full_report_required",
-        },
-        "sensitivity_analysis": {
-            "relative_near_best_fractions": list(RELATIVE_THRESHOLD_SENSITIVITY),
-            "registered_absolute_score_threshold": REGISTERED_TASK_THRESHOLD,
-            "decision_time_incumbent_analysis": True,
-            "first-discard_without_prior_assay": "retain as null, never use a future assay",
-            "all_sensitivity_rows_mandatory": True,
-            "primary_threshold_may_not_change": True,
-        },
-        "entry_rules": {
-            "complete_report": (
-                "Always publish all 36 unit rows, execution gates, continuous summaries, "
-                "classification tables, sensitivity rows, and unresolved receipts."
-            ),
-            "main_text_requires": [
-                "36/36 exact pre-discard prefix reconstructions",
-                "36/36 valid evaluator-only shadow scores",
-                "36/36 exact same-identity shadow replays",
-                "zero agent/provider calls",
-                "no mutation of original trajectories or resource ledgers",
-            ],
-            "main_text_items_if_gate_passes": [
-                "latent-terminal score distribution",
-                "false-discard fraction at q_c = 0.90 B_c",
-                "campaign oracle-regret distribution",
-                "60-lifecycle assay/discard selection table",
-                "assay commitment precision and recall",
-            ],
-            "result_direction_gate": False,
-            "significance_gate": False,
-            "arm_difference_gate": False,
-            "threshold_selection_after_outcomes": False,
-            "failure_handling": (
-                "If the gate fails, publish the complete bounded audit and mark the "
-                "terminal-quality result unresolved; do not substitute a favorable subset."
-            ),
-        },
+        "aggregation": _aggregation(),
+        "missingness_and_failure": _missingness_and_failure(),
+        "sensitivity_analysis": _sensitivity_analysis(),
+        "entry_rules": _entry_rules(),
         "claim_boundary": {
             "allowed": [
                 "quality of discarded states in this frozen complete-system demonstration",
@@ -815,31 +931,16 @@ def validate_latent_terminal_contract(
             errors.append("primary near-best threshold changed")
         if reference.get("registered_absolute_threshold") != REGISTERED_TASK_THRESHOLD:
             errors.append("registered absolute threshold changed")
-    sensitivity = payload.get("sensitivity_analysis")
-    if not isinstance(sensitivity, Mapping) or sensitivity.get(
-        "relative_near_best_fractions"
-    ) != list(RELATIVE_THRESHOLD_SENSITIVITY):
-        errors.append("relative threshold sensitivity changed")
-    estimands = payload.get("estimands")
-    expected_ids = [item["estimand_id"] for item in _estimands()]
-    if not isinstance(estimands, list) or [
-        item.get("estimand_id") if isinstance(item, Mapping) else None
-        for item in estimands
-    ] != expected_ids:
-        errors.append("estimand surface is incomplete or reordered")
-    entry = payload.get("entry_rules")
-    if not isinstance(entry, Mapping):
-        errors.append("entry_rules must be an object")
-    elif any(
-        entry.get(field) is not False
-        for field in (
-            "result_direction_gate",
-            "significance_gate",
-            "arm_difference_gate",
-            "threshold_selection_after_outcomes",
-        )
-    ):
-        errors.append("entry rules permit outcome-dependent selection")
+    if payload.get("estimands") != _estimands():
+        errors.append("estimand definitions or denominators changed")
+    if payload.get("aggregation") != _aggregation():
+        errors.append("aggregation or campaign opportunity rules changed")
+    if payload.get("missingness_and_failure") != _missingness_and_failure():
+        errors.append("missingness or estimand-bound rules changed")
+    if payload.get("sensitivity_analysis") != _sensitivity_analysis():
+        errors.append("threshold or censoring sensitivity rules changed")
+    if payload.get("entry_rules") != _entry_rules():
+        errors.append("evidence-entry rules changed")
     freeze = payload.get("freeze")
     if not isinstance(freeze, Mapping):
         errors.append("freeze must be an object")
@@ -868,6 +969,7 @@ __all__ = [
     "EXPECTED_ASSAY_COUNT",
     "EXPECTED_CELL_COUNT",
     "EXPECTED_DISCARD_COUNT",
+    "EXPECTED_DISCARD_OPPORTUNITY_CELL_COUNT",
     "EXPECTED_LIFECYCLE_COUNT",
     "EXPECTED_OPERATION_COUNT",
     "EXPERIMENT_LEDGER_PATH",
