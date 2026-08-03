@@ -3,14 +3,14 @@
 ```yaml
 task_id: W1-V06
 title: "Implement construct-validity, resource, and exact-replay audit"
-status: ACTIVE
+status: REVIEW
 
 owner: codex
 collaborators:
   - "agent:/root/w1_v06"
 claimed_at_utc: 2026-08-03T06:54:12Z
 lease_expires_at_utc: 2026-08-05T06:54:12Z
-heartbeat_at_utc: 2026-08-03T07:50:26Z
+heartbeat_at_utc: 2026-08-03T08:07:28Z
 
 base_commit: "1831d56f1f1ecfb83abab944f8548cd62b0dfcc6"
 branch: work1/w1-v06-policy-validity-audit
@@ -31,7 +31,9 @@ deliverables:
   - Matched-arm identity/action invariance checks that preserve the boundary between interface validation and a material-information null claim.
   - Deterministic, source-bound audit receipt and read-only CLI suitable for V07 qualification and V09 reporting without freezing a protocol or consuming formal outcomes during this task.
 validation:
+  - uv run pytest -q tests/test_policy_validity_audit.py::test_v05_run_matrix_manifest_passes_all_v06_audit_gates --no-cov
   - uv run pytest -q tests/test_policy_validity_audit.py
+  - uv run pytest -q tests/test_policy_validity_matrix.py tests/test_policy_validity_audit.py tests/test_policy_validity_contract.py tests/test_known_policy_contract.py tests/test_known_policy_threshold.py tests/test_campaign_resources.py
   - uv run pytest -q tests/test_policy_validity_contract.py tests/test_known_policy_contract.py tests/test_known_policy_threshold.py tests/test_campaign_resources.py tests/test_policy_validity_audit.py
   - uv run ruff check src/chemworld/eval/policy_validity_audit.py scripts/audit_work_i_policy_validity.py tests/test_policy_validity_audit.py
   - uv run mypy src/chemworld/eval/policy_validity_audit.py scripts/audit_work_i_policy_validity.py
@@ -42,7 +44,9 @@ completed_since_last_heartbeat:
   - "Implemented a fail-closed, source-bound audit over the exact 30-cell factorial matrix and all 180 closed lifecycles."
   - "Added independent V01 profile reconstruction, V02 contract checks, full resource-ledger prefix reconciliation, replay/retest component verification, matched-arm invariance checks, and a read-only CLI."
   - "Added 13 synthetic immutable-record tests covering the valid matrix, tampering, conditional nulls, threshold degeneracy, replay/retest mismatches, arm drift, endpoint non-ordering, manifest bindings, and CLI behavior."
-current_validation: "Cross-task compatibility acceptance against the merged W1-V05 producer is in progress; prior 13-test and 42-test validations passed."
+  - "Added strict native V05 manifest, bundle, execution, stable-numeric hash, controller-decision, and retest normalization into the existing independent V06 gates."
+  - "Qualified the real V05 run_matrix producer API with an injected synthetic executor over all 30 cells and 180 primary lifecycles without executing or reading formal-world outcomes."
+current_validation: "PASS: focused V05 producer-to-V06 all-gates test (1); PASS: V06 tests (14); PASS: joint V05/V06/contracts/threshold/resource regression (62); PASS: ruff, mypy, and git diff --check."
 files_touched:
   - src/chemworld/eval/policy_validity_audit.py
   - scripts/audit_work_i_policy_validity.py
@@ -51,12 +55,12 @@ files_touched:
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-03T09:50:26Z
-next_24h: "Validate the real W1-V05 run_matrix producer with an injected synthetic executor, fixing only the V06 consumer if required; no formal execution."
-handoff_eta: 2026-08-03T11:50:26Z
+next_check_at_utc: null
+next_24h: "Coordinator review of the native V05 compatibility checkpoint and downstream W1-V07 receipt binding; no formal execution is authorized by this claim."
+handoff_eta: 2026-08-03T08:07:28Z
 
-final_commit: null
+final_commit: "e3cfbc4aa5a3589711d2c724633fcc649d3d67bc"
 reviewer: null
 review_result: null
-notes: "W1-V06 owns audit mechanics only. W1-V07 owns runner qualification and protocol freeze; W1-V09 owns the formal profile-recovery report. Integration must preserve the normalized W1-V04 controller/action evidence and the full W1-V05 original-plus-retest immutable bundle schema; no formal outcomes were read or produced."
+notes: "W1-V06 owns audit mechanics only. W1-V07 owns runner qualification and protocol freeze; W1-V09 owns the formal profile-recovery report. The compatibility acceptance used V05 execution_mode=injected_test with synthetic immutable evidence and formal_result=false; no chemical world, live controller, provider, or formal outcome was invoked or read."
 ```
