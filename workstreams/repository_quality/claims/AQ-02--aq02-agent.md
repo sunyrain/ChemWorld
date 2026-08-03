@@ -3,7 +3,7 @@
 ```yaml
 task_id: AQ-02
 title: "Type-safe provider and cross-platform process guards"
-status: REVIEW
+status: CHANGES_REQUESTED
 owner: "aq02-agent"
 claimed_at_utc: 2026-08-03T14:14:23Z
 base_commit: "05e6324352eedea0dcf291ef0410c86cd3da983e"
@@ -11,6 +11,7 @@ branch: agent/aq02-platform-typing
 worktree: "/home/chenhh/python_projects/chemworld/ChemWorld-AQ02"
 declared_write_set:
   - workstreams/repository_quality/claims/AQ-02--aq02-agent.md
+  - src/chemworld/providers/deepseek.py
   - src/chemworld/providers/wellau.py
   - src/chemworld/providers/codex_subscription.py
   - src/chemworld/agents/interactive_codex_experiment.py
@@ -33,10 +34,14 @@ files_touched:
   - src/chemworld/agents/interactive_codex_experiment.py
   - src/chemworld/rl/training.py
 final_commit: "d424d2fd844307eba5b1cf938a14754eb0c936b3"
-reviewer: null
-review_result: null
+reviewer: "coordinator"
+review_result: >-
+  Replace the broad Any cast with an exact shared stored reasoning-effort type covering the DeepSeek
+  and WellAU provider contracts.
 notes: >-
-  PASS: uv run --cache-dir /tmp/chemworld-aq02-uv-cache --frozen --extra dev mypy
+  Coordinator-authorized write-set expansion adds src/chemworld/providers/deepseek.py for the shared
+  reasoning-effort storage contract. PASS: uv run --cache-dir /tmp/chemworld-aq02-uv-cache --frozen
+  --extra dev mypy
   src/chemworld/providers/wellau.py src/chemworld/providers/codex_subscription.py
   src/chemworld/agents/interactive_codex_experiment.py src/chemworld/rl/training.py (no issues in
   4 files); PASS: same uv prefix with ruff check on the four source files; PASS: same dev prefix with
