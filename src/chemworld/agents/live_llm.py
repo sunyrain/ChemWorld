@@ -522,11 +522,9 @@ class LiveLLMAgent(BaseAgent):
         accounting_complete = bool(
             provider_usage_accounting_complete and monetary_accounting_complete
         )
-        cost = (
-            float(cost_factory(self._usage))
-            if monetary_accounting_complete
-            else 0.0
-        )
+        cost = 0.0
+        if monetary_accounting_complete and callable(cost_factory):
+            cost = float(cost_factory(self._usage))
         provider = _provider_name(self.client, pricing)
         model_access_date = _model_access_date(pricing)
         return {
@@ -641,13 +639,15 @@ class LiveLLMAgent(BaseAgent):
                     )
                 )
             )
-            billed_cost = (
-                float(cost_factory(normalized))
-                if monetary_accounting_complete
+            billed_cost: float | None = None
+            if not billable:
+                billed_cost = 0.0
+            elif (
+                monetary_accounting_complete
                 and token_accounting_complete
-                and billable
-                else (0.0 if not billable else None)
-            )
+                and callable(cost_factory)
+            ):
+                billed_cost = float(cost_factory(normalized))
             receipts.append(
                 {
                     "schema_version": "chemworld-provider-receipt-0.5",
