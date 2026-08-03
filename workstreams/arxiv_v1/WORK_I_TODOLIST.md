@@ -264,7 +264,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-F07 | P0 | DONE | 将 fork certificate 写入 machine/human reports | F06 | 是 |
 | W1-F08 | P1 | OPEN | 完善 world-authoring contract、示例和 validator 文档 | F01 | 是 |
 | W1-F09 | P0 | DONE | 审计 15 tasks/28 operations/5 instruments/62 endpoints 的展示口径 | M02 | 是 |
-| W1-F10 | P0 | CLAIMED | 完成 transaction、resource、failure、instrument semantics 总资格表 | F01 | 是 |
+| W1-F10 | P0 | DONE | 完成 transaction、resource、failure、instrument semantics 总资格表 | F01 | 是 |
 
 ### 5.3 Measurement-validity positive controls
 
