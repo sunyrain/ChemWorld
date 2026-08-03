@@ -303,7 +303,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-S06 | P0 | REVIEW | 重写 complete-system policy 与 latent audit 结果结构 | L protocol | 是 |
 | W1-S07 | P0 | REVIEW | 修正 figure first-reference、120 closure、6/8 和术语残留 | 无 | 是 |
 | W1-S08 | P0 | CLAIMED | 重构 related work：SDL 互补、agent evaluation、virtual worlds | M02 | 是 |
-| W1-S09 | P0 | CLAIMED | 完成 limitations/boundaries，不扩大第一篇责任 | S01 | 是 |
+| W1-S09 | P0 | REVIEW | 完成 limitations/boundaries，不扩大第一篇责任 | S01 | 是 |
 | W1-S10 | P0 | OPEN | 读取冻结结果后完成最终 title/abstract/results/conclusion | F/V/L reports | 否 |
 
 ### 5.6 Figures & visual system
