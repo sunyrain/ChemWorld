@@ -1,6 +1,6 @@
 {
   "schema_version": "chemworld-current-surface-registry-0.4",
-  "updated_at": "2026-08-03",
+  "updated_at": "2026-08-04",
   "project": {
     "distribution": "chemworld-bench",
     "version": "0.2.0",
@@ -150,7 +150,7 @@
     "status": "stale_evidence_bindings",
     "current_evidence_coherent": false,
     "tracked_source_tree_dirty": false,
-    "stale_binding_count": 10,
+    "stale_binding_count": 11,
     "stale_binding_ids": [
       "mechanism_a2_structural_receipt",
       "mechanism_a3_structural_receipt",
@@ -161,7 +161,8 @@
       "mechanism_preregistration",
       "mechanism_public_gate_a_decision",
       "mechanism_release_qualification",
-      "pre_arxiv_claim_evidence_ledger"
+      "pre_arxiv_claim_evidence_ledger",
+      "runtime_affordance"
     ],
     "blockers": [
       {
@@ -188,7 +189,8 @@
           "mechanism_preregistration",
           "mechanism_public_gate_a_decision",
           "mechanism_release_qualification",
-          "pre_arxiv_claim_evidence_ledger"
+          "pre_arxiv_claim_evidence_ledger",
+          "runtime_affordance"
         ]
       }
     ]
@@ -207,6 +209,7 @@
         "development_diagnostic",
         "fixture",
         "formal_result",
+        "frozen_derived_data",
         "generated_current",
         "protocol_input",
         "release_attestation",
@@ -244,8 +247,8 @@
     "schema_version": "chemworld-current-evidence-dag-0.3",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "8f6a86b90628d2d61a9da2b582977863329953dd30f2c57d0c14ec03e9f7d12b",
-    "repository_source_sha256": "ebf50549348321d02653490f8d38fa7a6c1877bb744f13c489a5fb436e2f9524",
+    "graph_sha256": "a7f7ef76e69fb9532197f8b7352da24ecd6103cdc1ced11f68f86bde5577a2af",
+    "repository_source_sha256": "b95e28f79f031e994ffdfff31d0d0a92b24ed38ebdf1cf67dec3177196986af5",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -272,6 +275,9 @@
       "static_s0_electrochemical_world_understanding",
       "static_s0_five_task_campaign_plan",
       "static_s0_five_task_participant_method",
+      "work_i_known_policy_formal_audit",
+      "work_i_latent_terminal_estimand_contract",
+      "work_i_world_fork_qualification",
       "mechanism_agent_pilot",
       "mechanism_gate_a_plan",
       "mechanism_public_matrix",
@@ -281,22 +287,32 @@
       "static_s0_crystallization_qualification",
       "static_s0_electrochemical_qualification",
       "static_s0_freeze_manifest",
+      "work_i_known_policy_validity_report",
+      "work_i_latent_terminal_reconstructability",
+      "work_i_world_fork_certificate",
       "maturity_truth",
       "mechanism_diagnostic_relation_graph",
       "mechanism_participant_preregistration_candidate",
       "mechanism_sample_size_audit",
       "static_s0_formal_campaign_summary",
       "static_s0_replacement_readiness",
+      "work_i_known_policy_delivery_manifest",
+      "work_i_latent_terminal_replay_qualification",
       "backend_candidate",
       "mechanism_preregistration",
       "static_s0_nominal_information_freeze_manifest",
       "task_design_matrix",
+      "work_i_incremental_data_contract",
+      "work_i_latent_terminal_formal_shadow",
       "mechanism_confirmatory_task_semantics_audit",
       "static_s0_five_task_postqualification_summary",
       "static_s0_misindexed_information_freeze_manifest",
+      "work_i_latent_terminal_analysis",
       "mechanism_design_audit",
       "static_s0_material_information_triarm_summary",
+      "work_i_fvl_derived_data",
       "mechanism_release_qualification",
+      "work_i_fvl_derived_manifest",
       "mechanism_a2_structural_receipt",
       "mechanism_a3_structural_receipt",
       "mechanism_preflight",
@@ -420,9 +436,9 @@
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
         "sha256": "87fd852ce0469084facee70a1457ecbb9dd7d01b22c488da6656e84bebc9e277",
-        "artifact_state": "current",
-        "freshness": "fresh",
-        "gate_state": "passed"
+        "artifact_state": "stale",
+        "freshness": "stale_dependency_binding",
+        "gate_state": "invalidated"
       },
       "runtime_integration": {
         "path": "workstreams/world_foundation/reports/wf-110-runtime-integration.json",
@@ -604,6 +620,42 @@
         "freshness": "fresh",
         "gate_state": "not_applicable"
       },
+      "work_i_known_policy_formal_audit": {
+        "path": "workstreams/arxiv_v1/reports/work-i-policy-control-formal-audit-v0.1.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
+        "dependencies": [],
+        "sha256": "d4c539048dd4463b5e281fe7bec014fd11e87809057b32c34a3d99b08f900b55",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
+      "work_i_latent_terminal_estimand_contract": {
+        "path": "configs/benchmark/work_i_latent_terminal_contract_v0.1.json",
+        "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
+        "dependencies": [],
+        "sha256": "e69db432f7018a3cc41287fa02335337c624caf5ba7f0b487a0695809e052ce5",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
+      },
+      "work_i_world_fork_qualification": {
+        "path": "workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
+        "dependencies": [],
+        "sha256": "d16981dd3937d661ae65a972bcaacd22c793f086403410f78d103078d25288b8",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
       "mechanism_agent_pilot": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-agent-pilot-v0.2.1.json",
         "role": "development_diagnostic",
@@ -744,6 +796,48 @@
         "freshness": "fresh",
         "gate_state": "not_applicable"
       },
+      "work_i_known_policy_validity_report": {
+        "path": "workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
+        "dependencies": [
+          "work_i_known_policy_formal_audit"
+        ],
+        "sha256": "58458670f1db62a1f048a778539e054131a125941ff04fa38d5892d27c382dee",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
+      "work_i_latent_terminal_reconstructability": {
+        "path": "workstreams/arxiv_v1/reports/work-i-latent-terminal-reconstructability-v0.1.json",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
+        "dependencies": [
+          "work_i_latent_terminal_estimand_contract"
+        ],
+        "sha256": "ec18b041543f44b9c2d2f16ee56a08da727efbe0128622778a8ae6d688afcba3",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
+      },
+      "work_i_world_fork_certificate": {
+        "path": "workstreams/arxiv_v1/reports/work-i-world-fork-certificate-v0.1.json",
+        "role": "release_attestation",
+        "lifecycle": "immutable",
+        "producer": "frozen_release_qualification",
+        "source_binding": "preregistered_source_commit_and_protocol_plan_sha256",
+        "dependencies": [
+          "work_i_world_fork_qualification"
+        ],
+        "sha256": "8a0299b6957a700e720f46401a62b30a1da4ac2f8d71d57f00071805abcf9ad9",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
       "maturity_truth": {
         "path": "workstreams/world_foundation/reports/maturity-truth-vnext.json",
         "role": "generated_current",
@@ -844,6 +938,36 @@
         "freshness": "fresh",
         "gate_state": "not_applicable"
       },
+      "work_i_known_policy_delivery_manifest": {
+        "path": "workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.manifest.json",
+        "role": "release_attestation",
+        "lifecycle": "immutable",
+        "producer": "frozen_release_qualification",
+        "source_binding": "preregistered_source_commit_and_protocol_plan_sha256",
+        "dependencies": [
+          "work_i_known_policy_formal_audit",
+          "work_i_known_policy_validity_report"
+        ],
+        "sha256": "8742ac12ee336b5d84b65523e92d0262adb148440257c40a16bdfd6d1972c96e",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
+      "work_i_latent_terminal_replay_qualification": {
+        "path": "workstreams/arxiv_v1/reports/work-i-latent-terminal-replay-qualification-v0.1.json",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
+        "dependencies": [
+          "work_i_latent_terminal_estimand_contract",
+          "work_i_latent_terminal_reconstructability"
+        ],
+        "sha256": "ac3023715ab027221887b5a0b3404a655064939444c63241e9459a88c2cbcde5",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
+      },
       "backend_candidate": {
         "path": "workstreams/world_foundation/reports/backend-v0.5.json",
         "role": "generated_current",
@@ -908,6 +1032,42 @@
         "freshness": "fresh",
         "gate_state": "passed"
       },
+      "work_i_incremental_data_contract": {
+        "path": "configs/benchmark/work_i_incremental_data_contract_v0.1.json",
+        "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
+        "dependencies": [
+          "work_i_world_fork_qualification",
+          "work_i_world_fork_certificate",
+          "work_i_known_policy_validity_report",
+          "work_i_known_policy_delivery_manifest",
+          "work_i_latent_terminal_estimand_contract",
+          "work_i_latent_terminal_reconstructability",
+          "work_i_latent_terminal_replay_qualification"
+        ],
+        "sha256": "9ba95bb0d64d188d381f95184c21257cc677cab0e609b0a74cb7c1b326f219f8",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "not_applicable"
+      },
+      "work_i_latent_terminal_formal_shadow": {
+        "path": "workstreams/arxiv_v1/reports/work-i-latent-terminal-shadow-assays-v0.1.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
+        "dependencies": [
+          "work_i_latent_terminal_estimand_contract",
+          "work_i_latent_terminal_reconstructability",
+          "work_i_latent_terminal_replay_qualification"
+        ],
+        "sha256": "98c7b28f244f17c5c1fa6902aad1edae07a43c9104a333097f48e4c1c2c5bd3e",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "blocked"
+      },
       "mechanism_confirmatory_task_semantics_audit": {
         "path": "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc28.json",
         "role": "generated_current",
@@ -956,6 +1116,21 @@
         "freshness": "fresh",
         "gate_state": "not_applicable"
       },
+      "work_i_latent_terminal_analysis": {
+        "path": "workstreams/arxiv_v1/reports/work-i-latent-terminal-analysis-v0.1.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
+        "dependencies": [
+          "work_i_latent_terminal_estimand_contract",
+          "work_i_latent_terminal_formal_shadow"
+        ],
+        "sha256": "27f95a28f2eefd9c4a0e9838a4c7f570fc890f26d3085e994e4185742ece0d62",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "blocked"
+      },
       "mechanism_design_audit": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc28.json",
         "role": "generated_current",
@@ -984,7 +1159,30 @@
           "static_s0_nominal_information_freeze_manifest",
           "static_s0_misindexed_information_freeze_manifest"
         ],
-        "sha256": "6a05f6cca2a3a60cbbd0e4b07b5b5fe9c813977bf5a85a4ab45a84482c3e7b3a",
+        "sha256": "af8e56c1bd42d02efde7680dab3fa9453f7bd69d450a450a71aade1afb15d8fb",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
+      "work_i_fvl_derived_data": {
+        "path": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json",
+        "role": "frozen_derived_data",
+        "lifecycle": "immutable",
+        "producer": "frozen_d03_source_bound_assembly",
+        "source_binding": "immutable_source_manifest_sha256",
+        "dependencies": [
+          "work_i_incremental_data_contract",
+          "work_i_world_fork_qualification",
+          "work_i_world_fork_certificate",
+          "work_i_known_policy_formal_audit",
+          "work_i_known_policy_validity_report",
+          "work_i_known_policy_delivery_manifest",
+          "work_i_latent_terminal_estimand_contract",
+          "work_i_latent_terminal_reconstructability",
+          "work_i_latent_terminal_formal_shadow",
+          "work_i_latent_terminal_analysis"
+        ],
+        "sha256": "9094181694f9be27c487601cb43f8c9df874abba1b53d6662bd6b3860072611e",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -1007,6 +1205,20 @@
         "artifact_state": "stale",
         "freshness": "stale_dependency_binding",
         "gate_state": "invalidated"
+      },
+      "work_i_fvl_derived_manifest": {
+        "path": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.manifest.json",
+        "role": "release_attestation",
+        "lifecycle": "immutable",
+        "producer": "frozen_release_qualification",
+        "source_binding": "preregistered_source_commit_and_protocol_plan_sha256",
+        "dependencies": [
+          "work_i_fvl_derived_data"
+        ],
+        "sha256": "1dde91c4661a4a20ef67709aae7b7b34847114acb9d22a8b0d5f7e75c3e2f487",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
       },
       "mechanism_a2_structural_receipt": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json",
@@ -1115,6 +1327,8 @@
     "master_plan": "workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md",
     "experiment_ledger": "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json",
     "claim_evidence_ledger": "workstreams/flagship_tasks/reports/pre-arxiv-claim-evidence-ledger-v1.json",
+    "derived_data": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json",
+    "derived_data_manifest": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.manifest.json",
     "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
     "remaining_experiment_audit": "workstreams/arxiv_v1/reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json",
     "scope": "experimental_intelligence_in_executable_chemical_worlds",
@@ -1407,5 +1621,60 @@
       "reaction-to-distillation": 0.47951357082381535
     },
     "interpretation": "Completed audited development comparison. It extends comparative coverage to five tasks but does not promote the results to formal benchmark evidence or a broad provider ranking."
+  },
+  "work_i_fvl": {
+    "status": "frozen_derived_layer_with_explicit_latent_incompleteness",
+    "all_source_bindings_current": true,
+    "registered_node_count": 13,
+    "registered_node_ids": [
+      "work_i_fvl_derived_data",
+      "work_i_fvl_derived_manifest",
+      "work_i_incremental_data_contract",
+      "work_i_known_policy_delivery_manifest",
+      "work_i_known_policy_formal_audit",
+      "work_i_known_policy_validity_report",
+      "work_i_latent_terminal_analysis",
+      "work_i_latent_terminal_estimand_contract",
+      "work_i_latent_terminal_formal_shadow",
+      "work_i_latent_terminal_reconstructability",
+      "work_i_latent_terminal_replay_qualification",
+      "work_i_world_fork_certificate",
+      "work_i_world_fork_qualification"
+    ],
+    "data_contract": "configs/benchmark/work_i_incremental_data_contract_v0.1.json",
+    "world_fork_report": "workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json",
+    "world_fork_certificate": "workstreams/arxiv_v1/reports/work-i-world-fork-certificate-v0.1.json",
+    "policy_audit": "workstreams/arxiv_v1/reports/work-i-policy-control-formal-audit-v0.1.json",
+    "policy_report": "workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.json",
+    "policy_manifest": "workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.manifest.json",
+    "latent_contract": "configs/benchmark/work_i_latent_terminal_contract_v0.1.json",
+    "latent_formal_report": "workstreams/arxiv_v1/reports/work-i-latent-terminal-shadow-assays-v0.1.json",
+    "latent_analysis": "workstreams/arxiv_v1/reports/work-i-latent-terminal-analysis-v0.1.json",
+    "derived_data": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json",
+    "derived_manifest": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.manifest.json",
+    "data_contract_sha256": "e3a941c5a4d958b8284a244947a4c3e1b4ae3639576d12e27a005dbb9baa363c",
+    "derived_data_sha256": "1d639b09215ade3b84e9c2e5a9e30479fed1387890ab272d29b0996e7a06a2c4",
+    "derived_manifest_sha256": "deb80ae1e0fd40cb0bf40cee34d79e3450167624739dc990f4197be2ba6b542f",
+    "record_counts": {
+      "F": {
+        "world_fork_expectations": 12,
+        "world_fork_pairs": 6,
+        "world_fork_traces": 24
+      },
+      "L": {
+        "campaign_cells": 10,
+        "latent_discard_units": 36,
+        "terminal_lifecycles": 60
+      },
+      "V": {
+        "policy_campaign_profiles": 30,
+        "policy_lifecycles": 180,
+        "policy_retest_campaigns": 30
+      }
+    },
+    "latent_resolved_shadow_receipts": 6,
+    "latent_unresolved_shadow_receipts": 30,
+    "latent_complete_case_substitution_used": false,
+    "scientific_gate_status": "blocked_on_30_unresolved_latent_receipts"
   }
 }
