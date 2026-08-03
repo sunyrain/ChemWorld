@@ -500,20 +500,108 @@ explicit, then test selected process phenomena against calibrated physical syste
 
 # 10. Methods
 
-## 10.1 Environment qualification
+## 10.1 Registered apparatus and transaction qualification
 
-The task registry and runtime-domain audit declare task contracts, typed
-operations, instrument interfaces, state invariants and evaluator-bound success
-metrics. Qualification required deterministic reachability through 415 complete
-boundary cases and binding of all 62 declared endpoints to evaluator state. The
-qualified surface contains 15 tasks, 28 operation types and five instruments.
-These counts characterize supported environment capabilities; empirical agent
-results are reported only for the task families actually exercised.
+We rebuilt the platform inventory from live registries. A task was one non-alias entry
+in `TASK_REGISTRY`; an operation kind was one globally unique `OPERATION_TYPES` entry;
+and an instrument was one entry in the five-member public `INSTRUMENTS` contract.
+`discard_batch` was counted separately as campaign control. An evaluator binding was
+one ordered `(task_id, success_metric_id)` entry; reuse of a metric across tasks created
+separate bindings. The boundary-recipe count was the executed case count in the frozen
+task-design matrix. The audit required every live task to match the matrix, all
+operations and instruments to be reachable, all task-metric bindings to be executable
+and unique, and every task to have executable midpoint and boundary recipes.
 
-## 10.2 Compiled-control protocol
+For each of the 28 registered operation kinds, qualification executed a valid action
+through the runtime kernel and then submitted a paired invalid action from a fresh
+deterministic environment. A probe passed only when the valid action committed and the
+invalid action returned `validation_failed` or `rolled_back` without changing the
+hidden simulator-state projection. A constitution probe required atomic rollback of an
+invalid negative-volume candidate, and a hard resource-envelope probe exercised
+`campaign_resource_rejected`.
+
+Campaign limits use a two-phase event-hashed ledger. Preflight derives and reserves the
+proposed resource delta; outcome recording applies committed-only material, vessel,
+instrument, assay and discard quantities while retaining operation attempts at
+preflight. Normalized action and outcome share a deterministic event identifier, and
+ledger state is reconstructed from ordered events and checked against its canonical
+snapshot hash. A rejected or rolled-back attempt may therefore consume attempt budget
+without installing a stock, vessel, instrument or terminal debit.
+
+Executable probes for HPLC, GC, UV--visible, pH and final assay checked declared cost,
+destructive sample-volume change and terminal preconditions. The first four instruments
+were permitted before termination; final assay required a terminated state. Instrument
+latencies are scheduling-contract fields and were not added to the process-state clock.
+All instrument maturity and calibration labels are interpreted only inside their
+synthetic/reference-tested model-card boundary.
+
+## 10.2 Frozen world-fork protocol
+
+The formal protocol fixed seeds 0, 1 and 2, a keyed-noise namespace, a public midpoint
+policy generated from a unit vector of 0.5, two intervention cases, their private target
+components, divergence oracles and an all-gates pass rule before execution. For each
+case and seed, a content-addressed parent and child were derived from the frozen
+component inventory. A pair was rejected unless exactly its declared private target
+changed and all nine public-contract component hashes remained equal.
+
+The same typed sequence ran on parent and child, and each execution was repeated from
+the same bound identity and noise contract. Exact replay, same-sequence executability,
+identity leakage, expected simulator-state and public-observation divergence, provider-
+call and lineage checks were evaluated for every pair. The scientific unit was one of
+the six parent--child pairs. The 24 traces are execution and replay accounting, not 24
+independent experiments or agent trials. No target, seed, threshold, oracle, gate or
+display rule changed after formal outcomes.
+
+## 10.3 Frozen known-policy validation
+
+Experimental agency was operationalized as the observable organization of resource-
+constrained typed actions, active evidence acquisition, post-evidence action and
+lifecycle termination. The frozen profile contains 19 metrics across five construct
+axes. Mean and best assayed scores are separate endpoint-context fields and do not enter
+a composite. One primary observation is the campaign profile for a fixed world, arm and
+policy cell. Profiles were constructed within campaigns before ten equal-weight
+world-arm campaigns were aggregated for each policy; lifecycle rows and primitive
+operations were not pooled as independent samples.
+
+The schedule crossed five formal world seeds (0--4), two information arms and three
+policies, with six lifecycles per campaign. A primary lifecycle was a started vessel
+closed by one committed `final_assay` or `discard_batch`. Only original executions had
+the primary role. Same-identity retests were excluded from the primary estimand, and
+provider calls had to remain zero. Within a world-policy pair, physics, probe order,
+keyed noise, policy code and resource card matched; only the material dossier changed.
+Because the deterministic policies did not consume the dossier, arm equality was a
+preregistered interface-invariance check.
+
+All policies received the same six probe cards. `assay_all` used add-solvent,
+add-reagent, set-potential, electrolysis, termination and assay. `start_then_discard`
+used add-solvent and discard. `measure_then_threshold` executed the shared four-action
+physical prefix, measured public UV--visible conversion and compared the finite signal
+with the frozen threshold 0.007984561379998922 using `>=`. Below-threshold vessels were
+discarded after six operations; eligible vessels received another electrolysis,
+termination and assay for eight operations. The threshold was selected before formal
+execution from disjoint qualification seeds 1000--1004 and could not be retuned from
+formal outcomes.
+
+Each campaign used resource card `work-i-known-policy-formal-k6-v1`, with hard limits of
+48 operation attempts, six vessel starts, six final assays, six non-final/UV--visible
+uses, 0.09 mol reagent and 0.15 L solvent. Only committed non-final measurements counted
+as evidence acquisition. Campaign cost and risk were ledger deltas: charged attempt
+penalties remained included, while rejected candidate-state changes remained excluded.
+
+Signature recovery ran only after execution validity required all planned lifecycles to
+close, all submitted actions to commit, no validation or resource rejection and exact
+event/state/resource replay. Undefined conditional metrics retained their declared
+nulls: for example, endpoint and trajectory context were null without an assay,
+retention and drawdown required at least two assays, and recovery was null without a
+loss episode. Nulls were never replaced by zeros. Read-only analysis independently
+rebuilt all profiles and ledgers from immutable evidence. A reliability execution then
+reran every deterministic policy from the same identities; all 30 primary/retest pairs
+matched controller, trajectory, profile and component hashes.
+
+## 10.4 Compiled-control protocol
 
 Compiled control covered electrochemical conversion and
-reaction-to-crystallization. Each task used physical world seeds 0--9 and three
+reaction-to-crystallization. Each task used simulator-world seeds 0--9 and three
 information conditions: opaque material codes, anonymous nominal properties and
 a commit-frozen misindexed prior. Each participant session selected 20
 complete experiments, after which a replay verifier recomputed all scores from
@@ -526,7 +614,7 @@ rows without revealing latent world residuals. The misindexed condition
 transposed one targeted material row chosen using independent qualification
 worlds before the formal campaigns; the affected mapping was fixed across the
 ten formal worlds. These conditions therefore modify the supplied prior while
-holding the physical world, action space, score and budget fixed.
+holding the simulator world, action space, score and budget fixed.
 Opaque, nominal and misindexed campaigns entered the release as sequential
 commit-frozen extensions that reused the earlier matched cells. We therefore
 report matched-world associations and do not use execution order as a causal
@@ -548,8 +636,8 @@ reasoning setting but use different scaffolds and action interfaces; they are
 complementary evidence layers, not a matched causal comparison of authority.
 
 The nonduplicated total comprises 2,280 participant executions and 27,300
-classical-control executions. Statistical summaries treat the paired physical
-world, not each simulator execution, as the analysis unit. Seeds 0--9 form the
+classical-control executions. Statistical summaries treat the paired simulator
+world, not each execution, as the analysis unit. Seeds 0--9 form the
 complete designed set for the matched-condition analysis. Information contrasts
 report mean and median world differences, positive/negative counts, exact sign
 summaries,
@@ -595,7 +683,7 @@ and a declaration-level confidence Brier score were retained as separate
 diagnostics, so no single epistemic statistic was treated as a proxy for the
 others.
 
-## 10.3 Primitive-control protocol and resource ledger
+## 10.5 Primitive-control protocol and resource ledger
 
 The autonomous electrochemical protocol exposed typed tools for adding reagent
 and solvent, setting potential/current/material profile, electrolyzing,
@@ -618,7 +706,7 @@ and local validation against the dynamically available action schema. The
 provider had no shell or MCP authority. A failed structured response could be
 retried up to six times before the corresponding logical decision failed; failed
 receipts and their token accounting remained in the audit. Five world pairs ran
-concurrently, with arms serialized within each physical pair. The formal run
+concurrently, with arms serialized within each simulator-world pair. The formal run
 used 901 provider calls for 889 accepted operations; 12 malformed responses were
 recovered without replacing an observed trajectory. Maximum estimated prompt
 size was 3,996 tokens under a frozen 4,800-token cap.
@@ -628,12 +716,49 @@ committed final assay or an explicit discard. Execution validity required all
 six vessel starts and closures, a reconciled resource ledger, exact transition
 replay and a complete provider-decision or provider-session audit. Task outcome
 was recorded separately from transport validity. The two systems shared all
-physical identity, material, noise, workflow, scoring and resource-card fields
+simulator-world identity, material, noise, workflow, scoring and resource-card fields
 in each of the ten cells. Their model and decision transports intentionally
 differed, so cross-system results were interpreted as complete-system behavioral
 profiles and not as a causal model-backend contrast.
 
-## 10.4 Operational trajectory readouts
+## 10.6 Latent-terminal counterfactual and censoring
+
+The latent-audit population was the DeepSeek-based system's frozen set of 60 original
+terminal lifecycles: 24 observed assays and 36 committed discards across ten cells. One
+latent unit was one registered discard. The intended counterfactual reconstructed the
+exact environment immediately before that discard, retaining every earlier action,
+public observation, keyed-noise draw, hidden state and historical resource prefix. The
+only replacement was an evaluator-only final assay. It could bypass the agent-facing
+assay-readiness check but could not add process actions, repair state, call a provider,
+charge the original ledger or count as an original experiment or agent decision.
+
+The contract fixed relative thresholds $0.80B_c$, $0.90B_c$ and $1.00B_c$, plus absolute
+score 0.58; equality counted as near-best. The primary threshold was $0.90B_c$, where
+$B_c$ is the best observed assay score in cell $c$. Continuous latent score, discard-
+to-best delta, positive discard regret, false-discard fraction, assay precision/recall,
+campaign-oracle regret and decision-time regret retained their frozen lifecycle or cell
+denominators.
+
+An outcome-blind audit reproduced all 36 pre-discard identities, and synthetic
+qualification exercised terminal replacement, same-identity replay and fail-closed
+probes on disjoint worlds. Formal eligibility required 36 valid scores, 36 passing
+same-identity receipts, zero provider calls and no mutation of original trajectories or
+ledgers. Although 36/36 checkpoints passed preflight, formal execution yielded a
+complete receipt report with only 6 valid scores and 30 unresolved receipts. The
+resource-ledger gate therefore retained the run as `incomplete_full_report_required`;
+it was not altered or repeated.
+
+Every unresolved unit remained in its original denominator with score support $[0,1]$.
+Delta and regret bounds additionally used the cell's observed best; decision-time
+regret used the strictly prior assayed incumbent and left pre-assay discards null;
+campaign-oracle bounds used the nine cells with a discard opportunity. When any score
+was unresolved, latent-dependent point estimates were withheld. Observed-only summaries
+remained diagnostic and could not replace the finite-population estimand. Classification
+bounds assigned unresolved scores to registered all-zero and all-one endpoints while
+preserving the 60-lifecycle and 36-discard denominators. No super-population p-value or
+confidence interval was primary.
+
+## 10.7 Operational trajectory readouts
 
 For the Codex development and fresh-session analyses, let
 $s_1,\ldots,s_K$ be the final-assay scores in a campaign, with $K=6$, and
@@ -666,9 +791,9 @@ These are operational trajectory readouts. “Discovery” refers to discovery o
 the best condition observed within that campaign, not identification of the
 global optimum of the hidden world.
 
-## 10.5 Fresh-session replication
+## 10.8 Fresh-session replication
 
-The replication crossed physical world seeds 1 and 3, trajectory replicates
+The replication crossed simulator-world seeds 1 and 3, trajectory replicates
 `r01`--`r05`, and opaque/nominal information conditions. Worlds were selected
 from the development set before launch because their observed development
 directions differed. Development trajectories were excluded from the replication
@@ -688,7 +813,7 @@ Otherwise the result was mixed. The four primary lifecycle metrics were
 best-discovery position, online retention, maximum absolute drawdown and
 terminal-to-best ratio; best and mean scores were endpoint diagnostics.
 
-## 10.6 Sensitivity analyses
+## 10.9 Sensitivity analyses
 
 The frozen primary analysis was not changed. A separately hashed P0 sensitivity
 artifact evaluated directional thresholds 0.60, 0.75 and 0.80; inclusion or
@@ -700,7 +825,7 @@ as eight independent inferential units. The raw-terminal diagnostic was computed
 directly from the last paired assay contrast and does not alter the frozen
 classification artifact.
 
-## 10.7 First-launch infrastructure incident
+## 10.10 First-launch infrastructure incident
 
 The commit-frozen replication protocol was first launched on 1 August 2026. A
 detached outer Python process disappeared after `cell-001` had completed six
@@ -721,7 +846,7 @@ terminal contrasts and a smaller drawdown. This direction is compatible with,
 and not required for, the primary conclusion that at least six lifecycle
 classifications remain mixed.
 
-## 10.8 Scope-stopped multiworld extension
+## 10.11 Scope-stopped multiworld extension
 
 After the primary replication, a prospective 16-world extension was launched to
 estimate broader heterogeneity. The owner stopped it as a scope decision after
@@ -731,10 +856,10 @@ partial trajectories were retained, and none of its outcomes enters the present
 estimand, figures or inferential language. This extension is an execution record
 for future multiworld work, not an additional result of this paper.
 
-## 10.9 Provenance, public boundary and replay
+## 10.12 Provenance, public boundary and replay
 
 Source, configuration, world, material, observation and trajectory identities
-are SHA-256 bound. The evaluator trajectory contains hidden physical identity;
+are SHA-256 bound. The evaluator trajectory contains hidden simulator identity;
 the agent-facing `current.json` and `history.jsonl` expose only the public schema.
 Public-boundary tests compare those schemas and inspect representative workspaces
 for hidden-field leakage.
@@ -744,7 +869,7 @@ world-level tables, all 20 compact formal trajectories, both durable trajectorie
 from the excluded first launch, a terminal file index and an independent
 verification attestation. Compact trajectories omit provider response content
 and hidden evaluator identity while retaining the fields required for exact
-physical-transition and resource replay.
+simulator-transition and resource replay.
 
 # 11. Data and code availability
 
@@ -761,7 +886,7 @@ number, table and figure. The G2 public archive contains compact replayable
 Codex trajectories for all formal replication cells and for the first-launch
 infrastructure incident. A separate self-hashed artifact binds the matched
 Codex/DeepSeek complete-system comparison to both source audit identities and
-reports all ten physical-identity checks. The release additionally contains all
+reports all ten simulator-identity checks. The release additionally contains all
 ten compact DeepSeek trajectories (889 replay-verified primitive operations)
 and a terminal file-level hash index. Provider authentication, unrestricted
 provider responses and hidden evaluator identities are excluded from the public
@@ -824,7 +949,7 @@ All figures are rendered from these frozen objects. The public trajectory archiv
 contain 20 formal Codex replication cells---18 complete and two right-censored---,
 the two durable first-launch cells, and all ten DeepSeek demonstration cells.
 Each compact trajectory passes the repository's
-physical replay verifier. The arXiv bundle includes the exact figure PDFs,
+simulator-transition replay verifier. The arXiv bundle includes the exact figure PDFs,
 BibTeX database, generated `main.tex` and source Markdown used to produce the
 submitted PDF. A self-hashed build manifest accompanies the bundle and records
 the identities of the PDF, source archives and included source files.

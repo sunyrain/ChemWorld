@@ -250,9 +250,25 @@ def test_manuscript_results_follow_the_frozen_six_figure_contract() -> None:
         "figure-6-fresh-trajectories.pdf",
     ]
     figure_positions = [manuscript.index(path) for path in figure_paths]
+    method_headings = [
+        "## 10.1 Registered apparatus and transaction qualification",
+        "## 10.2 Frozen world-fork protocol",
+        "## 10.3 Frozen known-policy validation",
+        "## 10.4 Compiled-control protocol",
+        "## 10.5 Primitive-control protocol and resource ledger",
+        "## 10.6 Latent-terminal counterfactual and censoring",
+        "## 10.7 Operational trajectory readouts",
+        "## 10.8 Fresh-session replication",
+        "## 10.9 Sensitivity analyses",
+        "## 10.10 First-launch infrastructure incident",
+        "## 10.11 Scope-stopped multiworld extension",
+        "## 10.12 Provenance, public boundary and replay",
+    ]
+    method_positions = [manuscript.index(heading) for heading in method_headings]
 
     assert figure_positions == sorted(figure_positions)
     assert len(set(figure_positions)) == 6
+    assert method_positions == sorted(method_positions)
     assert "six parent--child pairs" in compact
     assert "=24$ traces" in compact
     assert "30 primary campaigns contained 180/180 closed lifecycles" in compact
@@ -263,6 +279,8 @@ def test_manuscript_results_follow_the_frozen_six_figure_contract() -> None:
     assert "2/8 pairs" in compact
     assert "6/8 selected world-by-lifecycle cells were mixed" in compact
     assert "population-level model or information-effect claim" in compact
+    assert "0.007984561379998922" in compact
+    assert "incomplete_full_report_required" in compact
 
 
 def test_all_tracked_evidence_and_execution_entrypoints_exist() -> None:

@@ -17,7 +17,10 @@ The manuscript Results now follow the frozen evidence escalation and Figure 1--6
 5. primitive-control lifecycle mechanics; and
 6. fresh-session process profiles.
 
-The Discussion and Conclusion now synthesize F/V/G0/G2/L without pooling their analysis
+Methods now mirror the dependency order: apparatus and transactions, world forks,
+known-policy validation, compiled controls, primitive-control systems, latent-terminal
+censoring, trajectory readouts, fresh sessions, sensitivities/incidents and provenance.
+The Discussion and Conclusion synthesize F/V/G0/G2/L without pooling their analysis
 units or enlarging the claim ceiling. The active W1-S03 Title/Abstract/Introduction and
 W1-S08 Related Work regions have not been edited by this integration. Their remote
 branches still contain activation commits only at this checkpoint, so the legacy
@@ -86,10 +89,9 @@ pending slots even though the manuscript now contains the frozen L disposition.
 1. Receive and preserve the W1-S03 Title/Abstract/Introduction handoff, then replace
    legacy frontmatter language with the frozen F/V/L counts and system terminology.
 2. Receive and preserve the W1-S08 Related Work handoff.
-3. Reconcile any cross-references without altering the six-figure order or result
-   direction.
+3. Reconcile final cross-references without altering the six-figure or Methods dependency
+   order or result direction.
 4. Run the focused manuscript/ledger tests, prohibited-language scan and
    `git diff --check` once after final assembly.
 5. Hand the completed manuscript and this record to W1-P09; do not mark W1-S10 complete
    while Figure 3, S03 or S08 still carries a pending integration state.
-

@@ -9,7 +9,7 @@ owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-03T18:59:43Z
 lease_expires_at_utc: 2026-08-05T18:59:43Z
-heartbeat_at_utc: 2026-08-03T19:45:00Z
+heartbeat_at_utc: 2026-08-03T20:05:00Z
 
 base_commit: "34695690510a74c2db745955e6fbf44d13f93b9a"
 branch: work1/w1-s10-final-manuscript
@@ -39,8 +39,9 @@ completed_since_last_heartbeat:
   - "Reordered Results into the frozen Figure 1–6 sequence and integrated the F/V/G0/G2/L evidence boundaries."
   - "Integrated the L05/L06 failed-gate disposition: 36 retained receipts, 6 resolved, 30 unresolved, point estimates withheld, no complete-case substitution."
   - "Rewrote Discussion and Conclusion within the simulated-apparatus, finite-world, complete-system and Work II boundaries."
+  - "Inserted the missing F/V/L Methods in frozen dependency order and corrected simulator-versus-physical replay terminology in S10-owned regions."
   - "Pushed the first manuscript integration commit 317f1e8a to origin/work1/w1-s10-final-manuscript."
-current_validation: "Results first-reference order is now 1–6 and the frozen numeric/language surfaces are represented. W1-S03 and W1-S08 still contain activation commits only; Figure 3 remains a pre-L pending render for W1-P09 update."
+current_validation: "Results first-reference order is 1–6, Methods order is 10.1–10.12 with F/V/L protocols, and focused no-dependency manuscript locks pass. W1-S03 and W1-S08 still contain activation commits only; Figure 3 remains a pre-L pending render for W1-P09 update."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-S10--codex-1.md
   - workstreams/arxiv_v1/story/work-i-final-manuscript-integration-v0.1.md
@@ -50,7 +51,7 @@ blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: 2026-08-03T21:45:00Z
-next_24h: "Finish focused machine bindings and Methods dependency reconciliation without touching S03/S08 regions; merge their handoffs when substantive commits arrive, then close Title/Abstract and hand off to P09."
+next_24h: "Merge S03/S08 handoffs when substantive commits arrive, then close Title/Abstract, run the one final focused validation pass, and hand the manuscript to P09."
 handoff_eta: 2026-08-03T22:59:43Z
 
 final_commit: null
