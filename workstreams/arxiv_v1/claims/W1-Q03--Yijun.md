@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-Q03
 title: "Independently review construct validity, estimands, aggregation, and censoring"
-status: CLAIMED
+status: ACTIVE
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T15:57:03Z
 lease_expires_at_utc: 2026-08-05T15:57:03Z
-heartbeat_at_utc: 2026-08-03T15:57:03Z
+heartbeat_at_utc: 2026-08-03T16:04:18Z
 
 base_commit: "09e6c67d6ebfc8bb2a03e568dc16a349bd9959af"
 branch: work1/w1-q03-methods-review-yijun
@@ -33,8 +33,10 @@ validation:
   - "Confirm only the declared claim and independent review report are modified"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared for main registration before independent read-only methods review"
+completed_since_last_heartbeat:
+  - "Read the repository and Work I startup/development contracts, claim rules/template, authoritative TODO, and deeper scientific specification."
+  - "Fetched and fast-forwarded the task branch to origin/main b871c34221d5d96e77ba95fcecff662bcee6663d, confirmed the Q03 claim on origin/main, and pushed branch parity."
+current_validation: "Independent read-only methods audit of frozen V/L contracts and pushed W1-L04 implementation in progress"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-Q03--Yijun.md
 blockers: []
