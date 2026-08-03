@@ -287,7 +287,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-L01 | P0 | REVIEW | 冻结 shadow-state estimands 与主文进入规则 | M02 | 是 |
 | W1-L02 | P0 | REVIEW | 审计 36 个 discard 的 pre-discard state 可重建性 | 无 | 是 |
 | W1-L03 | P0 | REVIEW | 实现 prefix-identity replay 与 terminal branch replacement | L01 draft | 是 |
-| W1-L04 | P0 | OPEN | 实现 latent-score、regret、false-discard 与 commitment audit | L01 draft | 是 |
+| W1-L04 | P0 | CLAIMED | 实现 latent-score、regret、false-discard 与 commitment audit | L01 draft | 是 |
 | W1-L05 | P0 | OPEN | qualification、protocol freeze 与 36 shadow assays | L02–L04 | 否 |
 | W1-L06 | P0 | OPEN | 输出连续主分析和阈值敏感性报告 | L05 | 是 |
 
@@ -295,7 +295,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 
 | ID | P | 状态 | 任务 | 硬依赖 | 可并行 |
 | --- | --- | --- | --- | --- | --- |
-| W1-S01 | P0 | OPEN | 建立逐主张 claim–evidence–figure map | M02 | 是 |
+| W1-S01 | P0 | CLAIMED | 建立逐主张 claim–evidence–figure map | M02 | 是 |
 | W1-S02 | P0 | OPEN | 冻结发布会式故事结构与章节职责 | M02 | 是 |
 | W1-S03 | P0 | OPEN | 重写 title/abstract/introduction 的占位版本 | S01 draft | 是 |
 | W1-S04 | P0 | OPEN | 重写 platform/world programmability Results 与 Methods | F protocol | 是 |
@@ -338,7 +338,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 
 | ID | P | 状态 | 任务 | 硬依赖 | 可并行 |
 | --- | --- | --- | --- | --- | --- |
-| W1-Q01 | P0 | OPEN | protocol reviewer：world fork、policy control、latent audit | draft protocols | 是 |
+| W1-Q01 | P0 | CLAIMED | protocol reviewer：world fork、policy control、latent audit | draft protocols | 是 |
 | W1-Q02 | P0 | OPEN | systems reviewer：security、identity、ledger、replay | implementations | 是 |
 | W1-Q03 | P0 | OPEN | methods reviewer：construct validity、estimands、censoring | analysis drafts | 是 |
 | W1-Q04 | P0 | OPEN | chemistry/chemical-engineering reviewer：世界与实验语义 | F/V reports | 是 |
