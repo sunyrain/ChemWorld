@@ -21,17 +21,20 @@ declared_write_set:
   - workstreams/arxiv_v1/claims/W1-V07--codex-1.md
   - src/chemworld/eval/policy_validity_qualification.py
   - src/chemworld/eval/policy_validity_matrix.py
+  - src/chemworld/eval/policy_validity_audit.py
   - scripts/qualify_work_i_policy_controls.py
   - configs/benchmark/work_i_policy_control_qualification_v0.1.json
   - configs/benchmark/work_i_policy_control_formal_qualification_receipt_v0.1.json
   - tests/test_policy_validity_qualification.py
   - tests/test_policy_validity_matrix.py
+  - tests/test_policy_validity_audit.py
   - workstreams/arxiv_v1/reports/work-i-policy-control-matrix-runner-preflight-v0.1.json
   - workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1.json
   - workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1.md
   - workstreams/arxiv_v1/reports/work-i-policy-control-runner-qualification-v0.1/**
 shared_hot_file_requests:
   - "GRANTED by coordinator at 2026-08-03T08:42:54Z: src/chemworld/eval/policy_validity_matrix.py and its task-local test/preflight, solely to correct the qualification-discovered native material-information identity binding before protocol freeze."
+  - "GRANTED by coordinator at 2026-08-03T08:47:00Z: src/chemworld/eval/policy_validity_audit.py and its task-local tests, solely to make the independent native adapter bind that corrected digest to the frozen bundle cell descriptor before its SHA is frozen in the V07 receipt."
 
 deliverables:
   - Outcome-free qualification of the exact V05 runner through an injected synthetic 5 x 2 x 3 matrix with identities explicitly distinct from formal chemical worlds.
@@ -48,6 +51,7 @@ validation:
   - uv run ruff check src/chemworld/eval/policy_validity_qualification.py scripts/qualify_work_i_policy_controls.py tests/test_policy_validity_qualification.py
   - uv run mypy src/chemworld/eval/policy_validity_qualification.py scripts/qualify_work_i_policy_controls.py
   - Verify native live executions bind material_information_sha256 to the frozen canonical arm descriptor and reject a null, stale, or cross-arm digest.
+  - Verify the independent V06 native adapter rejects null, stale, and cross-arm-swapped material-information digests even after all producer self-hashes are recomputed.
   - git diff --check
   - git diff --check 53e30431fde9cd15c4f3a632e9a7214b8ac2c79d...HEAD
 
@@ -58,10 +62,12 @@ current_validation: "Correct the native producer identity binding and strengthen
 files_touched:
   - src/chemworld/eval/policy_validity_qualification.py
   - src/chemworld/eval/policy_validity_matrix.py
+  - src/chemworld/eval/policy_validity_audit.py
   - scripts/qualify_work_i_policy_controls.py
   - configs/benchmark/work_i_policy_control_qualification_v0.1.json
   - tests/test_policy_validity_qualification.py
   - tests/test_policy_validity_matrix.py
+  - tests/test_policy_validity_audit.py
   - workstreams/arxiv_v1/reports/work-i-policy-control-matrix-runner-preflight-v0.1.json
 blockers: []
 blocked_by: null
@@ -73,5 +79,5 @@ handoff_eta: 2026-08-03T16:24:08Z
 final_commit: null
 reviewer: null
 review_result: null
-notes: "Formal seeds 0-4 may appear only as frozen schedule coordinates in injected synthetic artifacts; no formal environment, controller execution, or outcome may be accessed. To exercise the exact V05/V06 contracts, synthetic cell/campaign/profile IDs remain the canonical schedule coordinates; injected_test mode, formal_result=false, explicit qualification-only role/namespace fields, and qualification-only world/noise/physical identities distinguish the evidence from V08. Noise identity remains paired across information arms. The native producer correction binds material_information_sha256 to semantic_sha256(cell.material_information), matching the frozen arm descriptor and the existing synthetic/native audit contract; it changes no world, seed, controller, threshold, estimand, stopping rule, or acceptance rule. Any failed gate is reported without retuning."
+notes: "Formal seeds 0-4 may appear only as frozen schedule coordinates in injected synthetic artifacts; no formal environment, controller execution, or outcome may be accessed. To exercise the exact V05/V06 contracts, synthetic cell/campaign/profile IDs remain the canonical schedule coordinates; injected_test mode, formal_result=false, explicit qualification-only role/namespace fields, and qualification-only world/noise/physical identities distinguish the evidence from V08. Noise identity remains paired across information arms. The native producer and independent auditor bind material_information_sha256 to semantic_sha256(cell.material_information), matching the frozen arm descriptor; null, stale, or swapped values remain invalid after rehashing. This changes no world, seed, controller, threshold, estimand, stopping rule, or acceptance rule. Any failed gate is reported without retuning."
 ```
