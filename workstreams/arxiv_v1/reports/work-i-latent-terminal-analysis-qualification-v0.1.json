@@ -1,0 +1,198 @@
+{
+  "coverage": {
+    "absolute_threshold": 0.58,
+    "all_eight_frozen_estimands": true,
+    "all_registered_unresolved_bounds": true,
+    "all_zero_and_all_one_censoring_endpoints": true,
+    "complete_case_primary_forbidden": true,
+    "decision_time_null_rule": true,
+    "finite_population_micro_cell_macro_and_paired": true,
+    "nine_cell_campaign_oracle_rule": true,
+    "relative_thresholds": [
+      0.8,
+      0.9,
+      1.0
+    ],
+    "selection_table": true,
+    "unresolved_counts_and_reasons_by_registered_strata": true
+  },
+  "evidence_bindings": {
+    "latent_terminal_contract_sha256": "55a0d6a7cb983ce4099dbea24586ea63ccc9433e106d36011d349472809efe30",
+    "population_manifest_sha256": "ab35b3214c4cdf9003afff3f0d6b9205e615b5c76afa4664677bc9b95c19a9ae",
+    "source_manifest": {
+      "configs/benchmark/work_i_latent_terminal_contract_v0.1.json": "e69db432f7018a3cc41287fa02335337c624caf5ba7f0b487a0695809e052ce5",
+      "scripts/qualify_work_i_latent_terminal_analysis.py": "672f64682530bfac87e4d729f9abace79b769f1bb744ec549e38def8f85cdaa2",
+      "src/chemworld/eval/latent_terminal_analysis.py": "3cd94f7609916877b33007dd7671c957acfcd96520f367a6ec95e2002f03f297",
+      "tests/test_latent_terminal_analysis.py": "cf522eee2a1bec1406a87641dd14bd7f70228c09b83df751ed5fa70a6ce73956"
+    },
+    "source_manifest_sha256": "d876af98bb146441147491c32efae829c4788821ce66b3c846155adaac601391"
+  },
+  "purpose": "Qualify the frozen estimand, selection, aggregation, and missingness implementation using synthetic scores only.",
+  "qualification_cases": [
+    {
+      "analysis_sha256": "4b38aa4ef88a28a54dc009a6ed04082f3e9281c83b42a09c4a2a7dd886eb4393",
+      "case_id": "complete_synthetic_population",
+      "checks": {
+        "all_36_resolved": true,
+        "all_eight_estimands_present": true,
+        "analysis_validator_passed": true,
+        "cell_02_oracle_is_null_not_zero": true,
+        "finite_population_micro_and_macro_present": true,
+        "four_registered_threshold_rows": true,
+        "no_complete_case_substitution": true,
+        "oracle_has_nine_defined_cells": true
+      },
+      "evidence": {
+        "decision_time_null_count": 2,
+        "estimand_ids": [
+          "assay_commitment_precision",
+          "assay_commitment_recall",
+          "campaign_oracle_regret",
+          "decision_time_discard_regret",
+          "discard_to_observed_best_delta",
+          "false_discard_fraction",
+          "latent_terminal_score",
+          "positive_discard_regret"
+        ],
+        "status": "complete"
+      },
+      "passed": true,
+      "validation_errors": []
+    },
+    {
+      "analysis_sha256": "9f7b49f6a1cc94fa8c0980ffbc41dc043c8279a8587cb2cd1f992fd1e0f831dd",
+      "case_id": "threshold_equality_is_near_best",
+      "checks": {
+        "analysis_validator_passed": true,
+        "comparator_is_inclusive": true,
+        "equality_classified_fn": true
+      },
+      "evidence": {
+        "classification": "FN",
+        "discard_id": "cell-01:lifecycle-01:terminal-step-035",
+        "score": 0.11222628191853344,
+        "threshold": 0.11222628191853344
+      },
+      "passed": true,
+      "validation_errors": []
+    },
+    {
+      "analysis_sha256": "d9e5a4362b35bea401bc32f51ad7bb90295626e3ccef740e5ce52bc0960ca3e0",
+      "case_id": "missing_receipt_retains_fixed_denominator",
+      "checks": {
+        "analysis_validator_passed": true,
+        "fixed_denominator_is_36": true,
+        "latent_point_withheld": true,
+        "one_unresolved": true,
+        "primary_selection_point_withheld": true,
+        "status_is_incomplete": true
+      },
+      "evidence": {
+        "bound_denominator": 36,
+        "unresolved_fraction": {
+          "denominator": 36,
+          "numerator": 1,
+          "value": 0.027777777777777776
+        }
+      },
+      "passed": true,
+      "validation_errors": []
+    },
+    {
+      "analysis_sha256": "048923ada6bf3dc195edbe690755d0259fcdf37a3edd6976e1064dd1340d73f3",
+      "case_id": "nonfinite_score_fails_closed",
+      "checks": {
+        "analysis_validator_passed": true,
+        "point_withheld": true,
+        "registered_reason": true,
+        "score_not_emitted": true
+      },
+      "evidence": {
+        "discard_id": "cell-01:lifecycle-01:terminal-step-035",
+        "outcome_status": "unresolved",
+        "reason": "score_is_missing_nonfinite_or_out_of_range"
+      },
+      "passed": true,
+      "validation_errors": []
+    },
+    {
+      "analysis_sha256": "f6f5ed297882f5937650bf8e1dc8cdc3cda77bcb648465322f53b87210ab0fa3",
+      "case_id": "zero_denominator_and_decision_null",
+      "checks": {
+        "analysis_validator_passed": true,
+        "decision_time_has_null_units": true,
+        "future_assay_not_imputed": true,
+        "recall_zero_denominator_is_null": true
+      },
+      "evidence": {
+        "absolute_recall": {
+          "denominator": 0,
+          "numerator": 0,
+          "value": null
+        },
+        "decision_time_null_ids": [
+          "cell-07:lifecycle-00:terminal-step-021",
+          "cell-08:lifecycle-00:terminal-step-013"
+        ]
+      },
+      "passed": true,
+      "validation_errors": []
+    },
+    {
+      "analysis_sha256": "8970fcf43728de6cb29fbfcf5d69190ac9732d6922bdb38b9fd893d7c06967e2",
+      "case_id": "tampered_binding_fails_closed",
+      "checks": {
+        "analysis_validator_passed": true,
+        "binding_error_retained": true,
+        "identity_reason": true,
+        "score_ignored": true,
+        "tampered_unit_unresolved": true
+      },
+      "evidence": {
+        "binding_errors": [
+          "public_prefix_sha256_mismatch"
+        ],
+        "discard_id": "cell-01:lifecycle-01:terminal-step-035"
+      },
+      "passed": true,
+      "validation_errors": []
+    },
+    {
+      "analysis_sha256": "dee13378b22fe76e43d90cc34193c4608306b6e3297797a3bc60c845c9f1d516",
+      "case_id": "forbidden_imputation_is_ignored",
+      "checks": {
+        "analysis_validator_passed": true,
+        "complete_case_not_used": true,
+        "unresolved_score_erased": true,
+        "violation_recorded": true
+      },
+      "evidence": {
+        "binding_errors": [
+          "forbidden_unresolved_score"
+        ],
+        "discard_id": "cell-01:lifecycle-01:terminal-step-035",
+        "reason": "forbidden_score_on_unresolved_receipt"
+      },
+      "passed": true,
+      "validation_errors": []
+    }
+  ],
+  "report_id": "work-i-latent-terminal-analysis-synthetic-qualification-v0.1",
+  "report_sha256": "f2113e77d8b3bca66f80ddd1e88d48c87bc25443ab52c29129f4aca4271747be",
+  "schema_id": "chemworld.latent_terminal_analysis_qualification",
+  "schema_version": "0.1.0",
+  "scientific_boundary": {
+    "counts_as_original_agent_experiment": false,
+    "formal_analysis_authorized": false,
+    "shadow_branch_is_agent_choice": false,
+    "synthetic_qualification_only": true
+  },
+  "status": "qualified",
+  "synthetic_fixture": {
+    "agent_provider_calls": 0,
+    "formal_shadow_evaluations_executed": 0,
+    "formal_shadow_outcomes_accessed": false,
+    "receipt_count": 36,
+    "score_rule": "((cell_number*17 + lifecycle_index*23 + 11) mod 101)/100"
+  }
+}
