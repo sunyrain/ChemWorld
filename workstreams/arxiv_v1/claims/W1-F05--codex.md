@@ -61,5 +61,5 @@ handoff_eta: 2026-08-03T05:15:00Z
 final_commit: "e8413e39649ea4009f6816a44ade7769fd367013"
 reviewer: coordinator
 review_result: "accepted after cross-worktree and cross-runtime deterministic reconstruction"
-notes: "F05 preflight covers one seed for each frozen intervention class (8 traces including exact replays). The full 24-trace evidence matrix remains W1-F06."
+notes: "F05 preflight covers one seed for each frozen intervention class (8 traces including exact replays). The full 24-trace evidence matrix remains W1-F06. W1-F10 corrected the reconstructed public failure vocabulary to the four executable runtime outcomes (committed, validation_failed, rolled_back, campaign_resource_rejected) and reissued this preflight without changing its protocol or invariance conclusion; corrected report SHA-256: 56fa7cb0670f92e35be2e3fc0f16fb8a0bd1a41b1b02cb07643dea23277d7965."
 ```

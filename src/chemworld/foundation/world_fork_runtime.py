@@ -40,6 +40,33 @@ from chemworld.world.world_law import constitution_rules
 WORLD_FORK_TRACE_SCHEMA_VERSION = "chemworld-world-fork-runtime-trace-0.1"
 WORLD_FORK_RUNTIME_SCHEMA_VERSION = "chemworld-world-fork-runtime-result-0.1"
 
+PUBLIC_TRANSACTION_STATUS_SEMANTICS = (
+    {
+        "status": "committed",
+        "stage": "runtime_transaction",
+        "physical_candidate_committed": True,
+        "attempt_may_be_charged": True,
+    },
+    {
+        "status": "validation_failed",
+        "stage": "action_or_domain_validation",
+        "physical_candidate_committed": False,
+        "attempt_may_be_charged": True,
+    },
+    {
+        "status": "rolled_back",
+        "stage": "precondition_or_constitution",
+        "physical_candidate_committed": False,
+        "attempt_may_be_charged": True,
+    },
+    {
+        "status": "campaign_resource_rejected",
+        "stage": "campaign_resource_preflight",
+        "physical_candidate_committed": False,
+        "attempt_may_be_charged": True,
+    },
+)
+
 _INTERVENTION_METADATA_TOKENS = (
     "intervention",
     "counterfactual",
@@ -240,7 +267,10 @@ def _component_payloads(env: Any) -> dict[str, dict[str, Any]]:
             "safety_limit": float(env.safety_limit),
         },
         "public_contract.failures": {
-            "transaction_status_values": ["committed", "rejected"],
+            "transaction_status_semantics": list(PUBLIC_TRANSACTION_STATUS_SEMANTICS),
+            "transaction_status_values": [
+                item["status"] for item in PUBLIC_TRANSACTION_STATUS_SEMANTICS
+            ],
             "rollback_on_failed_precondition": True,
             "action_preconditions": {
                 operation: action_schemas[operation].get("preconditions", [])
@@ -648,6 +678,7 @@ def load_world_fork_qualification_config(path: str | Path) -> dict[str, Any]:
 
 
 __all__ = [
+    "PUBLIC_TRANSACTION_STATUS_SEMANTICS",
     "WORLD_FORK_RUNTIME_SCHEMA_VERSION",
     "WORLD_FORK_TRACE_SCHEMA_VERSION",
     "BuiltWorldFork",

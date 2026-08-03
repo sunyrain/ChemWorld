@@ -1,0 +1,1670 @@
+{
+  "claim_boundary": {
+    "campaign_resource_accounting_semantics": true,
+    "failure_and_rollback_semantics": true,
+    "physical_laboratory_safety_claim": false,
+    "real_instrument_calibration_claim": false,
+    "synthetic_instrument_cost_semantics": true,
+    "typed_operation_transaction_semantics": true
+  },
+  "failure_semantics": {
+    "constitution_rollback_probe": {
+      "candidate_volume_L": -1.0,
+      "event_types": [
+        "candidate",
+        "transaction_rollback"
+      ],
+      "original_volume_L": 0.0,
+      "passed": true,
+      "penalty_cost_delta": 0.03,
+      "penalty_risk_delta": 0.08,
+      "result_volume_L": 0.0,
+      "rollback_reason": "constitution_failed",
+      "transaction_status": "rolled_back"
+    },
+    "declared_transaction_statuses": [
+      {
+        "attempt_may_be_charged": true,
+        "physical_candidate_committed": true,
+        "stage": "runtime_transaction",
+        "status": "committed"
+      },
+      {
+        "attempt_may_be_charged": true,
+        "physical_candidate_committed": false,
+        "stage": "action_or_domain_validation",
+        "status": "validation_failed"
+      },
+      {
+        "attempt_may_be_charged": true,
+        "physical_candidate_committed": false,
+        "stage": "precondition_or_constitution",
+        "status": "rolled_back"
+      },
+      {
+        "attempt_may_be_charged": true,
+        "physical_candidate_committed": false,
+        "stage": "campaign_resource_preflight",
+        "status": "campaign_resource_rejected"
+      }
+    ],
+    "invalid_probe_status_counts": {
+      "rolled_back": 4,
+      "validation_failed": 24
+    },
+    "observed_statuses": [
+      "campaign_resource_rejected",
+      "committed",
+      "rolled_back",
+      "validation_failed"
+    ],
+    "physical_mutation_policy": "candidate physical state commits only on committed; failures preserve the pre-action physical state and may apply a declared process penalty"
+  },
+  "gates": {
+    "all_28_invalid_probes_preserve_physical_state": true,
+    "all_28_operation_contracts_routed": true,
+    "all_28_operations_commit_in_valid_context": true,
+    "all_5_instruments_charge_declared_cost_and_sample": true,
+    "campaign_hard_limits_and_replay_qualified": true,
+    "constitution_failure_rolls_back_atomically": true,
+    "public_failure_status_vocabulary_matches_runtime": true
+  },
+  "instrument_rows": [
+    {
+      "cost": 0.08,
+      "cost_delta_matches_contract": true,
+      "destructive": true,
+      "instrument_id": "hplc",
+      "latency_s": 600.0,
+      "latency_semantics": "declared_scheduling_latency_not_process_state_time",
+      "passed": true,
+      "probe": {
+        "action": {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        "cost_delta": 0.08000000000000002,
+        "sample_delta": 0.0002,
+        "state_terminated_before_measurement": false,
+        "task_id": "low-budget-characterization",
+        "transaction_status": "committed"
+      },
+      "requires_terminated": false,
+      "sample_consumption_L": 0.0002,
+      "sample_delta_matches_contract": true,
+      "terminal_precondition_matches_contract": true
+    },
+    {
+      "cost": 0.06,
+      "cost_delta_matches_contract": true,
+      "destructive": true,
+      "instrument_id": "gc",
+      "latency_s": 480.0,
+      "latency_semantics": "declared_scheduling_latency_not_process_state_time",
+      "passed": true,
+      "probe": {
+        "action": {
+          "instrument": "gc",
+          "operation": "measure"
+        },
+        "cost_delta": 0.05999999999999994,
+        "sample_delta": 0.00015,
+        "state_terminated_before_measurement": false,
+        "task_id": "reaction-to-distillation",
+        "transaction_status": "committed"
+      },
+      "requires_terminated": false,
+      "sample_consumption_L": 0.00015,
+      "sample_delta_matches_contract": true,
+      "terminal_precondition_matches_contract": true
+    },
+    {
+      "cost": 0.025,
+      "cost_delta_matches_contract": true,
+      "destructive": true,
+      "instrument_id": "uvvis",
+      "latency_s": 90.0,
+      "latency_semantics": "declared_scheduling_latency_not_process_state_time",
+      "passed": true,
+      "probe": {
+        "action": {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        "cost_delta": 0.024999999999999994,
+        "sample_delta": 5.000000000000001e-05,
+        "state_terminated_before_measurement": false,
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "committed"
+      },
+      "requires_terminated": false,
+      "sample_consumption_L": 5e-05,
+      "sample_delta_matches_contract": true,
+      "terminal_precondition_matches_contract": true
+    },
+    {
+      "cost": 0.018,
+      "cost_delta_matches_contract": true,
+      "destructive": true,
+      "instrument_id": "ph_meter",
+      "latency_s": 45.0,
+      "latency_semantics": "declared_scheduling_latency_not_process_state_time",
+      "passed": true,
+      "probe": {
+        "action": {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        "cost_delta": 0.017999999999999988,
+        "sample_delta": 3e-05,
+        "state_terminated_before_measurement": false,
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "committed"
+      },
+      "requires_terminated": false,
+      "sample_consumption_L": 3e-05,
+      "sample_delta_matches_contract": true,
+      "terminal_precondition_matches_contract": true
+    },
+    {
+      "cost": 0.16,
+      "cost_delta_matches_contract": true,
+      "destructive": true,
+      "instrument_id": "final_assay",
+      "latency_s": 1200.0,
+      "latency_semantics": "declared_scheduling_latency_not_process_state_time",
+      "passed": true,
+      "probe": {
+        "action": {
+          "instrument": "final_assay",
+          "operation": "measure"
+        },
+        "cost_delta": 0.16000000000000003,
+        "sample_delta": 0.0003,
+        "state_terminated_before_measurement": true,
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "committed"
+      },
+      "requires_terminated": true,
+      "sample_consumption_L": 0.0003,
+      "sample_delta_matches_contract": true,
+      "terminal_precondition_matches_contract": true
+    }
+  ],
+  "operation_rows": [
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "amount_mol": 0.0165,
+          "operation": "add_reagent"
+        },
+        "kernel_id": "chemworld.operation.add_reagent",
+        "rollback_reason": null,
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "primitive_operations",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "add_reagent"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.add_reagent",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "reaction",
+      "operation_id": "add_reagent",
+      "passed": true,
+      "preconditions": [
+        "not_terminated"
+      ],
+      "required_fields": [
+        "amount_mol"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases",
+        "thermal",
+        "vessels",
+        "equipment"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.025
+        },
+        "kernel_id": "chemworld.operation.add_solvent",
+        "rollback_reason": null,
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "primitive_operations",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "add_solvent"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.add_solvent",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "reaction",
+      "operation_id": "add_solvent",
+      "passed": true,
+      "preconditions": [
+        "not_terminated"
+      ],
+      "required_fields": [
+        "volume_L",
+        "solvent"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases",
+        "equipment"
+      ],
+      "committed_probe": {
+        "action": {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.000315,
+          "operation": "add_catalyst"
+        },
+        "kernel_id": "chemworld.operation.add_catalyst",
+        "rollback_reason": null,
+        "task_id": "flow-reaction-optimization",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "primitive_operations",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "add_catalyst"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "equilibrium-characterization",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.add_catalyst",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "reaction",
+      "operation_id": "add_catalyst",
+      "passed": true,
+      "preconditions": [
+        "not_terminated"
+      ],
+      "required_fields": [
+        "catalyst_amount_mol",
+        "catalyst"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases",
+        "thermal",
+        "vessels",
+        "equipment"
+      ],
+      "committed_probe": {
+        "action": {
+          "duration_s": 4050.0,
+          "operation": "heat",
+          "stirring_speed_rpm": 675.0,
+          "target_temperature_K": 378.15
+        },
+        "kernel_id": "chemworld.operation.heat",
+        "rollback_reason": null,
+        "task_id": "low-budget-characterization",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "reaction_thermal",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "heat"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "equilibrium-characterization",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.heat",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "reaction",
+      "operation_id": "heat",
+      "passed": true,
+      "preconditions": [
+        "has_volume",
+        "has_material"
+      ],
+      "required_fields": [
+        "target_temperature_K",
+        "duration_s",
+        "stirring_speed_rpm"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases",
+        "thermal",
+        "vessels",
+        "equipment"
+      ],
+      "committed_probe": {
+        "action": {
+          "duration_s": 60.0,
+          "operation": "wait",
+          "stirring_speed_rpm": 300.0
+        },
+        "kernel_id": "chemworld.operation.wait",
+        "rollback_reason": null,
+        "task_id": "reaction-to-assay",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "reaction_thermal",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "wait"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "equilibrium-characterization",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.wait",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "reaction",
+      "operation_id": "wait",
+      "passed": true,
+      "preconditions": [
+        "has_volume",
+        "has_material"
+      ],
+      "required_fields": [
+        "duration_s",
+        "stirring_speed_rpm"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "sample",
+          "sample_volume_L": 0.0001
+        },
+        "kernel_id": "chemworld.operation.sample",
+        "rollback_reason": null,
+        "task_id": "reaction-to-assay",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "primitive_operations",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "sample"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "equilibrium-characterization",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.sample",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "reaction",
+      "operation_id": "sample",
+      "passed": true,
+      "preconditions": [
+        "has_volume"
+      ],
+      "required_fields": [
+        "sample_volume_L"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "thermal",
+        "vessels"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "quench"
+        },
+        "kernel_id": "chemworld.operation.quench",
+        "rollback_reason": null,
+        "task_id": "low-budget-characterization",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "primitive_operations",
+      "failure_probe": {
+        "event_types": [
+          "operation_rejected",
+          "transaction_rollback"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.03,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "quench"
+        },
+        "rollback_reason": "precondition_failed",
+        "task_id": "equilibrium-characterization",
+        "transaction_status": "rolled_back"
+      },
+      "kernel_id": "chemworld.operation.quench",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "reaction",
+      "operation_id": "quench",
+      "passed": true,
+      "preconditions": [
+        "has_volume"
+      ],
+      "required_fields": []
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.015000000000000001
+        },
+        "kernel_id": "chemworld.operation.add_phase",
+        "rollback_reason": null,
+        "task_id": "partition-discovery",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "phase_separation",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "add_phase"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "partition-discovery",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.add_phase",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "separation",
+      "operation_id": "add_phase",
+      "passed": true,
+      "preconditions": [
+        "not_terminated"
+      ],
+      "required_fields": [
+        "phase",
+        "volume_L"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "extractant": 2,
+          "operation": "add_extractant",
+          "volume_L": 0.019
+        },
+        "kernel_id": "chemworld.operation.add_extractant",
+        "rollback_reason": null,
+        "task_id": "partition-discovery",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "phase_separation",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "add_extractant"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "partition-discovery",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.add_extractant",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "separation",
+      "operation_id": "add_extractant",
+      "passed": true,
+      "preconditions": [
+        "has_volume",
+        "has_material",
+        "not_terminated"
+      ],
+      "required_fields": [
+        "extractant",
+        "volume_L"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases",
+        "equipment"
+      ],
+      "committed_probe": {
+        "action": {
+          "duration_s": 330.0,
+          "operation": "mix",
+          "stirring_speed_rpm": 700.0
+        },
+        "kernel_id": "chemworld.operation.mix",
+        "rollback_reason": null,
+        "task_id": "partition-discovery",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "phase_separation",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "mix"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "partition-discovery",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.mix",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "separation",
+      "operation_id": "mix",
+      "passed": true,
+      "preconditions": [
+        "has_phase_system"
+      ],
+      "required_fields": [
+        "duration_s",
+        "stirring_speed_rpm"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "duration_s": 660.0,
+          "operation": "settle"
+        },
+        "kernel_id": "chemworld.operation.settle",
+        "rollback_reason": null,
+        "task_id": "partition-discovery",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "phase_separation",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "settle"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "partition-discovery",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.settle",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "separation",
+      "operation_id": "settle",
+      "passed": true,
+      "preconditions": [
+        "has_phase_system"
+      ],
+      "required_fields": [
+        "duration_s"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "separate_phase",
+          "target_phase": "organic"
+        },
+        "kernel_id": "chemworld.operation.separate_phase",
+        "rollback_reason": null,
+        "task_id": "partition-discovery",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "phase_separation",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "separate_phase"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "partition-discovery",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.separate_phase",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "separation",
+      "operation_id": "separate_phase",
+      "passed": true,
+      "preconditions": [
+        "has_phase_system",
+        "phase_settled"
+      ],
+      "required_fields": [
+        "target_phase"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "wash",
+          "wash_volume_L": 0.009000000000000001
+        },
+        "kernel_id": "chemworld.operation.wash",
+        "rollback_reason": null,
+        "task_id": "purity-yield-tradeoff",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "phase_separation",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "wash"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "purity-yield-tradeoff",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.wash",
+      "kernel_version": "runtime-v2.0",
+      "kind": "macro",
+      "module": "separation",
+      "operation_id": "wash",
+      "passed": true,
+      "preconditions": [
+        "has_phase_system"
+      ],
+      "required_fields": [
+        "wash_volume_L"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "dry"
+        },
+        "kernel_id": "chemworld.operation.dry",
+        "rollback_reason": null,
+        "task_id": "purity-yield-tradeoff",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "phase_separation",
+      "failure_probe": {
+        "event_types": [
+          "operation_rejected",
+          "transaction_rollback"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.03,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "dry"
+        },
+        "rollback_reason": "precondition_failed",
+        "task_id": "purity-yield-tradeoff",
+        "transaction_status": "rolled_back"
+      },
+      "kernel_id": "chemworld.operation.dry",
+      "kernel_version": "runtime-v2.0",
+      "kind": "macro",
+      "module": "separation",
+      "operation_id": "dry",
+      "passed": true,
+      "preconditions": [
+        "has_phase_system"
+      ],
+      "required_fields": []
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "duration_s": 900.0,
+          "operation": "concentrate"
+        },
+        "kernel_id": "chemworld.operation.concentrate",
+        "rollback_reason": null,
+        "task_id": "purity-yield-tradeoff",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "phase_separation",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "concentrate"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "purity-yield-tradeoff",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.concentrate",
+      "kernel_version": "runtime-v2.0",
+      "kind": "macro",
+      "module": "separation",
+      "operation_id": "concentrate",
+      "passed": true,
+      "preconditions": [
+        "has_phase_system"
+      ],
+      "required_fields": [
+        "duration_s"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "transfer",
+          "transfer_fraction": 0.77
+        },
+        "kernel_id": "chemworld.operation.transfer",
+        "rollback_reason": null,
+        "task_id": "purity-yield-tradeoff",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "phase_separation",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "transfer"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "purity-yield-tradeoff",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.transfer",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "separation",
+      "operation_id": "transfer",
+      "passed": true,
+      "preconditions": [
+        "has_phase_system"
+      ],
+      "required_fields": [
+        "transfer_fraction"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases",
+        "equipment"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.008
+        },
+        "kernel_id": "chemworld.operation.seed_crystals",
+        "rollback_reason": null,
+        "task_id": "reaction-to-crystallization",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "crystallization",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "seed_crystals"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "reaction-to-crystallization",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.seed_crystals",
+      "kernel_version": "runtime-v2.0",
+      "kind": "domain",
+      "module": "crystallization",
+      "operation_id": "seed_crystals",
+      "passed": true,
+      "preconditions": [
+        "has_volume"
+      ],
+      "required_fields": [
+        "seed_mass_g"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "duration_s": 7500.0,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 292.5
+        },
+        "kernel_id": "chemworld.operation.cool_crystallize",
+        "rollback_reason": null,
+        "task_id": "reaction-to-crystallization",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "crystallization",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "cool_crystallize"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "reaction-to-crystallization",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.cool_crystallize",
+      "kernel_version": "runtime-v2.0",
+      "kind": "domain",
+      "module": "crystallization",
+      "operation_id": "cool_crystallize",
+      "passed": true,
+      "preconditions": [
+        "has_volume",
+        "has_material"
+      ],
+      "required_fields": [
+        "target_temperature_K",
+        "duration_s"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "filter_crystals"
+        },
+        "kernel_id": "chemworld.operation.filter_crystals",
+        "rollback_reason": null,
+        "task_id": "reaction-to-crystallization",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "crystallization",
+      "failure_probe": {
+        "event_types": [
+          "operation_rejected",
+          "transaction_rollback"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.03,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "filter_crystals"
+        },
+        "rollback_reason": "precondition_failed",
+        "task_id": "reaction-to-crystallization",
+        "transaction_status": "rolled_back"
+      },
+      "kernel_id": "chemworld.operation.filter_crystals",
+      "kernel_version": "runtime-v2.0",
+      "kind": "domain",
+      "module": "crystallization",
+      "operation_id": "filter_crystals",
+      "passed": true,
+      "preconditions": [
+        "has_material",
+        "filter_requires_crystallization"
+      ],
+      "required_fields": []
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases",
+        "thermal",
+        "vessels"
+      ],
+      "committed_probe": {
+        "action": {
+          "duration_s": 900.0,
+          "operation": "evaporate",
+          "target_temperature_K": 332.5
+        },
+        "kernel_id": "chemworld.operation.evaporate",
+        "rollback_reason": null,
+        "task_id": "reaction-to-distillation",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "primitive_operations",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "evaporate"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "reaction-to-distillation",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.evaporate",
+      "kernel_version": "runtime-v2.0",
+      "kind": "domain",
+      "module": "distillation",
+      "operation_id": "evaporate",
+      "passed": true,
+      "preconditions": [
+        "has_volume"
+      ],
+      "required_fields": [
+        "target_temperature_K",
+        "duration_s"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases",
+        "thermal",
+        "vessels",
+        "equipment"
+      ],
+      "committed_probe": {
+        "action": {
+          "duration_s": 2250.0,
+          "operation": "distill",
+          "reflux_ratio": 2.75,
+          "target_temperature_K": 370.0
+        },
+        "kernel_id": "chemworld.operation.distill",
+        "rollback_reason": null,
+        "task_id": "reaction-to-distillation",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "distillation",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "distill"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "reaction-to-distillation",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.distill",
+      "kernel_version": "runtime-v2.0",
+      "kind": "domain",
+      "module": "distillation",
+      "operation_id": "distill",
+      "passed": true,
+      "preconditions": [
+        "has_volume",
+        "has_material"
+      ],
+      "required_fields": [
+        "target_temperature_K",
+        "duration_s",
+        "reflux_ratio"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "collect_fraction",
+          "transfer_fraction": 0.77
+        },
+        "kernel_id": "chemworld.operation.collect_fraction",
+        "rollback_reason": null,
+        "task_id": "reaction-to-distillation",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "distillation",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "collect_fraction"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "reaction-to-distillation",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.collect_fraction",
+      "kernel_version": "runtime-v2.0",
+      "kind": "domain",
+      "module": "distillation",
+      "operation_id": "collect_fraction",
+      "passed": true,
+      "preconditions": [
+        "collect_fraction_requires_distillation"
+      ],
+      "required_fields": [
+        "transfer_fraction"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "equipment"
+      ],
+      "committed_probe": {
+        "action": {
+          "flow_rate_mL_min": 2.1,
+          "operation": "set_flow_rate",
+          "residence_time_s": 1290.0
+        },
+        "kernel_id": "chemworld.operation.set_flow_rate",
+        "rollback_reason": null,
+        "task_id": "flow-reaction-optimization",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "continuous_flow",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "set_flow_rate"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "flow-reaction-optimization",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.set_flow_rate",
+      "kernel_version": "runtime-v2.0",
+      "kind": "domain",
+      "module": "continuous_flow",
+      "operation_id": "set_flow_rate",
+      "passed": true,
+      "preconditions": [
+        "not_terminated"
+      ],
+      "required_fields": [
+        "flow_rate_mL_min",
+        "residence_time_s"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases",
+        "thermal",
+        "vessels"
+      ],
+      "committed_probe": {
+        "action": {
+          "duration_s": 2257.5,
+          "operation": "run_flow",
+          "target_temperature_K": 380.0
+        },
+        "kernel_id": "chemworld.operation.run_flow",
+        "rollback_reason": null,
+        "task_id": "flow-reaction-optimization",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "continuous_flow",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "run_flow"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "flow-reaction-optimization",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.run_flow",
+      "kernel_version": "runtime-v2.0",
+      "kind": "domain",
+      "module": "continuous_flow",
+      "operation_id": "run_flow",
+      "passed": true,
+      "preconditions": [
+        "has_volume",
+        "has_material",
+        "run_flow_requires_flow_setup"
+      ],
+      "required_fields": [
+        "target_temperature_K",
+        "duration_s"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "equipment"
+      ],
+      "committed_probe": {
+        "action": {
+          "current_mA": 52.5,
+          "electrolyte_profile": 2,
+          "operation": "set_potential",
+          "potential_V": 0.95
+        },
+        "kernel_id": "chemworld.operation.set_potential",
+        "rollback_reason": null,
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "electrochemistry",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "set_potential"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.set_potential",
+      "kernel_version": "runtime-v2.0",
+      "kind": "domain",
+      "module": "electrochemistry",
+      "operation_id": "set_potential",
+      "passed": true,
+      "preconditions": [
+        "has_volume",
+        "has_material"
+      ],
+      "required_fields": [
+        "potential_V",
+        "current_mA",
+        "electrolyte_profile"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "species",
+        "phases",
+        "equipment"
+      ],
+      "committed_probe": {
+        "action": {
+          "duration_s": 540.0,
+          "operation": "electrolyze"
+        },
+        "kernel_id": "chemworld.operation.electrolyze",
+        "rollback_reason": null,
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "electrochemistry",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "electrolyze"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.electrolyze",
+      "kernel_version": "runtime-v2.0",
+      "kind": "domain",
+      "module": "electrochemistry",
+      "operation_id": "electrolyze",
+      "passed": true,
+      "preconditions": [
+        "has_volume",
+        "has_material",
+        "electrolyze_requires_potential"
+      ],
+      "required_fields": [
+        "duration_s"
+      ]
+    },
+    {
+      "affected_ledgers": [
+        "process"
+      ],
+      "committed_probe": {
+        "action": {
+          "operation": "terminate"
+        },
+        "kernel_id": "chemworld.operation.terminate",
+        "rollback_reason": null,
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "primitive_operations",
+      "failure_probe": {
+        "event_types": [
+          "operation_rejected",
+          "transaction_rollback"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.03,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "terminate"
+        },
+        "rollback_reason": "precondition_failed",
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "rolled_back"
+      },
+      "kernel_id": "chemworld.operation.terminate",
+      "kernel_version": "runtime-v2.0",
+      "kind": "terminal",
+      "module": "reaction",
+      "operation_id": "terminate",
+      "passed": true,
+      "preconditions": [
+        "has_material",
+        "not_terminated"
+      ],
+      "required_fields": []
+    },
+    {
+      "affected_ledgers": [
+        "process",
+        "equipment",
+        "observation"
+      ],
+      "committed_probe": {
+        "action": {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        "kernel_id": "chemworld.operation.measure",
+        "rollback_reason": null,
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "committed"
+      },
+      "domain_service_id": "instrument_cost",
+      "failure_probe": {
+        "event_types": [
+          "validation_failed"
+        ],
+        "passed": true,
+        "penalty_cost_delta": 0.01,
+        "penalty_risk_delta": 0.08,
+        "physical_state_unchanged": true,
+        "probe_action": {
+          "operation": "measure"
+        },
+        "rollback_reason": "validation_failed",
+        "task_id": "electrochemical-conversion",
+        "transaction_status": "validation_failed"
+      },
+      "kernel_id": "chemworld.operation.measure",
+      "kernel_version": "runtime-v2.0",
+      "kind": "primitive",
+      "module": "observation",
+      "operation_id": "measure",
+      "passed": true,
+      "preconditions": [
+        "has_volume",
+        "instrument_specific"
+      ],
+      "required_fields": [
+        "instrument"
+      ]
+    }
+  ],
+  "passed": true,
+  "qualification_id": "chemworld-work-i-experiment-semantics-91f7d5d5c49b9860",
+  "qualification_sha256": "91f7d5d5c49b98606825eee05832de60057a3e09677f1839443a33f0885013b3",
+  "resource_semantics": {
+    "environment_card": {
+      "card_id": "work-i-semantics-environment-probe",
+      "card_sha256": "e2cf37d8ba5c9615eb475cf26f86196c5be665b3100f94bb1034708d0e2b2fdb",
+      "hard_limits": {
+        "final_assays": 1,
+        "nonfinal_instrument_uses": 1,
+        "operation_attempts": 2,
+        "per_instrument": {
+          "final_assay": 1,
+          "gc": 1,
+          "hplc": 1,
+          "ph_meter": 1,
+          "uvvis": 1
+        },
+        "stocks": {
+          "reagent_mol": 0.05,
+          "solvent_L": 0.025
+        },
+        "vessel_starts": 1
+      },
+      "metadata": {
+        "purpose": "work-i-semantic-environment-integration"
+      },
+      "schema_version": "chemworld-campaign-resource-card-0.1"
+    },
+    "environment_rejection_reason": "campaign_resource_rejected",
+    "environment_statuses": [
+      "committed",
+      "campaign_resource_rejected"
+    ],
+    "first_preflight": {
+      "allowed": true,
+      "attempt_charged": true,
+      "event_id": "campaign-resource-000001-c913ef83d57c02b7",
+      "proposed_delta": {
+        "discarded_batches": 0,
+        "final_assays": 0,
+        "instrument_uses": {},
+        "nonfinal_instrument_uses": 0,
+        "operation_attempts": 1,
+        "report_only": {
+          "accumulated_risk": 0.0,
+          "observed_risk": 0.0,
+          "physical_cost": 0.0,
+          "process_time_s": 0.0,
+          "sample_consumed_L": 0.0
+        },
+        "schema_version": "chemworld-campaign-resource-delta-0.1",
+        "stocks": {
+          "solvent_L": 0.025
+        },
+        "vessel_starts": 1
+      },
+      "rejection_reasons": []
+    },
+    "ledger_card": {
+      "card_id": "work-i-semantics-ledger-probe",
+      "card_sha256": "72f068d68e94f6e10a800e06cbeee5cc6ac140fce424a9fdd185c42433404711",
+      "hard_limits": {
+        "final_assays": 1,
+        "nonfinal_instrument_uses": 1,
+        "operation_attempts": 1,
+        "per_instrument": {
+          "final_assay": 1,
+          "gc": 1,
+          "hplc": 1,
+          "ph_meter": 1,
+          "uvvis": 1
+        },
+        "stocks": {
+          "reagent_mol": 0.05,
+          "solvent_L": 0.05
+        },
+        "vessel_starts": 1
+      },
+      "metadata": {
+        "purpose": "work-i-semantic-qualification"
+      },
+      "schema_version": "chemworld-campaign-resource-card-0.1"
+    },
+    "ledger_state": {
+      "closed_batches": 0,
+      "discarded_batches": 0,
+      "final_assays": 0,
+      "instrument_uses": {},
+      "nonfinal_instrument_uses": 0,
+      "operation_attempts": 1,
+      "remaining": {
+        "final_assays": 1,
+        "nonfinal_instrument_uses": 1,
+        "operation_attempts": 0,
+        "per_instrument": {
+          "final_assay": 1,
+          "gc": 1,
+          "hplc": 1,
+          "ph_meter": 1,
+          "uvvis": 1
+        },
+        "stocks": {
+          "reagent_mol": 0.05,
+          "solvent_L": 0.025
+        },
+        "vessel_starts": 0
+      },
+      "report_only": {
+        "accumulated_risk": 0.0,
+        "peak_risk": 0.0,
+        "physical_cost": 0.0,
+        "process_time_s": 0.0,
+        "sample_consumed_L": 0.0
+      },
+      "stocks_used": {
+        "solvent_L": 0.025
+      },
+      "vessel_starts": 1
+    },
+    "passed": true,
+    "second_preflight": {
+      "allowed": false,
+      "attempt_charged": false,
+      "event_id": "campaign-resource-000002-1a07fb3d11ebe036",
+      "proposed_delta": {
+        "discarded_batches": 0,
+        "final_assays": 0,
+        "instrument_uses": {},
+        "nonfinal_instrument_uses": 0,
+        "operation_attempts": 1,
+        "report_only": {
+          "accumulated_risk": 0.0,
+          "observed_risk": 0.0,
+          "physical_cost": 0.0,
+          "process_time_s": 0.0,
+          "sample_consumed_L": 0.0
+        },
+        "schema_version": "chemworld-campaign-resource-delta-0.1",
+        "stocks": {
+          "reagent_mol": 0.01
+        },
+        "vessel_starts": 0
+      },
+      "rejection_reasons": [
+        "operation_attempt_limit"
+      ]
+    },
+    "snapshot_roundtrip_exact": true
+  },
+  "schema_version": "chemworld-work-i-experiment-semantics-qualification-0.1",
+  "summary_counts": {
+    "instrument_contract_count": 5,
+    "instrument_probe_pass_count": 5,
+    "operation_contract_count": 28,
+    "operation_invalid_state_preservation_pass_count": 28,
+    "operation_valid_commit_pass_count": 28,
+    "transaction_status_count": 4
+  }
+}

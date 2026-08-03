@@ -11,6 +11,7 @@ from chemworld.eval.world_fork_audit import audit_runtime_world_fork
 from chemworld.foundation.world_fork_divergence import DivergenceOracleSpec
 from chemworld.foundation.world_fork_manifest import load_world_component_inventory
 from chemworld.foundation.world_fork_runtime import (
+    PUBLIC_TRANSACTION_STATUS_SEMANTICS,
     load_world_fork_qualification_config,
     run_runtime_world_fork,
 )
@@ -81,6 +82,19 @@ def test_runtime_audit_detects_trace_tampering() -> None:
     assert audit["passed"] is False
     assert audit["gates"]["exact_replay"] is False
     assert audit["exact_replay_audit"]["replay_hash_bound"]["child"] is False
+
+
+def test_reconstructed_failure_contract_uses_live_runtime_status_vocabulary() -> None:
+    assert [item["status"] for item in PUBLIC_TRANSACTION_STATUS_SEMANTICS] == [
+        "committed",
+        "validation_failed",
+        "rolled_back",
+        "campaign_resource_rejected",
+    ]
+    assert all(
+        item["physical_candidate_committed"] == (item["status"] == "committed")
+        for item in PUBLIC_TRANSACTION_STATUS_SEMANTICS
+    )
 
 
 def test_committed_preflight_is_deterministically_rebuilt() -> None:

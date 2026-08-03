@@ -1,8 +1,10 @@
 # Work I World-Fork Programmability Certificate
 
-Certificate: `chemworld-work-i-world-fork-c4c3bce535ce5eb5`  
-Machine certificate SHA-256: `c4c3bce535ce5eb5b8f189c57786f1551a54829261fe68833474cf81b4beb554`  
-Frozen qualification report: `97867c1c1bbadc2b00832c9609e920ed71656d04ed8ba3c193bd353ae1336bba`
+Certificate: `chemworld-work-i-world-fork-5b09842469956d74`
+
+Machine certificate SHA-256: `5b09842469956d749370ace16d2b0698ec55eb69f46a13044810f6b2ca63ef78`
+
+Frozen qualification report: `62684d414e9f9037b70d170abc6b29b442a928cf76df900a6bb53a3d60f2ee02`
 
 ## Certified claim
 

@@ -55,5 +55,5 @@ handoff_eta: 2026-08-03T05:30:00Z
 final_commit: "b43a77197197696a14c99e328316cd55b66c734e"
 reviewer: coordinator
 review_result: "accepted after independent machine/human certificate reconstruction"
-notes: "Certificate SHA-256: c4c3bce535ce5eb5b8f189c57786f1551a54829261fe68833474cf81b4beb554. The reports summarize frozen evidence without changing any qualification input."
+notes: "Certificate SHA-256: 5b09842469956d749370ace16d2b0698ec55eb69f46a13044810f6b2ca63ef78. W1-F10 deterministically reissued the certificate after the public failure-status correction and removed renderer-generated trailing whitespace; qualification inputs and conclusions are unchanged."
 ```

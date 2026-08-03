@@ -172,8 +172,10 @@ def build_human_certificate(certificate: dict[str, Any]) -> str:
     lines = [
         "# Work I World-Fork Programmability Certificate",
         "",
-        f"Certificate: `{certificate['certificate_id']}`  ",
-        f"Machine certificate SHA-256: `{certificate['certificate_sha256']}`  ",
+        f"Certificate: `{certificate['certificate_id']}`",
+        "",
+        f"Machine certificate SHA-256: `{certificate['certificate_sha256']}`",
+        "",
         (
             "Frozen qualification report: "
             f"`{certificate['source']['formal_report_content_sha256']}`"
