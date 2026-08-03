@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-F05
 title: "Implement the world-fork builder, deterministic runner, and integrated audit"
-status: REVIEW
+status: DONE
 
 owner: codex
 collaborators: []
@@ -60,6 +60,6 @@ handoff_eta: 2026-08-03T05:15:00Z
 
 final_commit: "e8413e39649ea4009f6816a44ade7769fd367013"
 reviewer: coordinator
-review_result: "pending"
+review_result: "accepted after cross-worktree and cross-runtime deterministic reconstruction"
 notes: "F05 preflight covers one seed for each frozen intervention class (8 traces including exact replays). The full 24-trace evidence matrix remains W1-F06."
 ```
