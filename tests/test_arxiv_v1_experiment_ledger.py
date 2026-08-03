@@ -202,7 +202,10 @@ def test_terminal_g2_narrative_is_bound_to_the_frozen_derived_data() -> None:
     assert branch["world_by_core_metric_count"] == 8
     assert "six of eight selected world-by-lifecycle cells as mixed" in compact_section
     assert "That categorical count is supporting rather than the main result" in compact_section
-    assert "best-of-campaign and raw terminal contrasts were sign-discordant in two pairs" in compact_section
+    assert (
+        "best-of-campaign and raw terminal contrasts were sign-discordant in two pairs"
+        in compact_section
+    )
     assert "Pearson correlation was $+0.826$" in compact_section
 
 

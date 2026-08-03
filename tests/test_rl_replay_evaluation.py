@@ -23,13 +23,26 @@ from chemworld.rl.environment import (
     load_rl_protocol,
 )
 from chemworld.rl.evaluation import evaluate_replay_verified_sb3_checkpoint
-from chemworld.rl.hybrid_actions import conditional_hybrid_action_contract
-from chemworld.rl.hybrid_policy import policy_distribution_contract
+from chemworld.rl.hybrid_actions import (
+    conditional_hybrid_action_contract,
+    policy_distribution_contract,
+)
 from chemworld.rl.observation_contract import rl_observation_contract
 from chemworld.rl.rewards import reward_contract
 from chemworld.tasks import get_task
 from chemworld.world.operations import OPERATION_TYPES
 from chemworld.wrappers import ContinuousEventActionWrapper, decode_continuous_event_action
+
+
+def _require_sb3_backend() -> Any:
+    pytest.importorskip(
+        "torch",
+        reason="this replay-evaluation test requires the optional torch backend",
+    )
+    return pytest.importorskip(
+        "stable_baselines3",
+        reason="this replay-evaluation test requires the optional stable-baselines3 backend",
+    )
 
 
 def _allocation(task_id: str) -> RLWorldAllocation:
@@ -211,7 +224,7 @@ def test_checkpoint_digest_mismatch_fails_before_policy_load(tmp_path: Path) -> 
 def test_checkpoint_contract_mismatch_fails_before_policy_load(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    sb3 = pytest.importorskip("stable_baselines3")
+    sb3 = _require_sb3_backend()
     checkpoint = tmp_path / "policy.zip"
     checkpoint.write_bytes(b"not-loaded")
     digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
@@ -243,7 +256,7 @@ def test_checkpoint_contract_mismatch_fails_before_policy_load(
 def test_observation_contract_mismatch_fails_before_policy_load(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    sb3 = pytest.importorskip("stable_baselines3")
+    sb3 = _require_sb3_backend()
     checkpoint = tmp_path / "policy.zip"
     checkpoint.write_bytes(b"not-loaded")
     digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
@@ -272,7 +285,7 @@ def test_frozen_policy_produces_official_replay_verified_trajectory(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    sb3 = pytest.importorskip("stable_baselines3")
+    sb3 = _require_sb3_backend()
     task_id = "flow-reaction-optimization"
     shape_env = build_rl_environment(
         task_id=task_id,

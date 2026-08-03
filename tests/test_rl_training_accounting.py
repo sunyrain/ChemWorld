@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from importlib import import_module
 from pathlib import Path
 
 import pytest
@@ -11,7 +12,16 @@ from chemworld.rl.checkpoint_contract import (
 )
 from chemworld.rl.environment import RLWorldAllocation, load_rl_protocol
 from chemworld.rl.observation_contract import rl_observation_contract
-from chemworld.rl.training import train_sb3_baseline
+
+pytest.importorskip(
+    "torch",
+    reason="RL training-accounting tests require the optional torch backend",
+)
+pytest.importorskip(
+    "stable_baselines3",
+    reason="RL training-accounting tests require the optional stable-baselines3 backend",
+)
+train_sb3_baseline = import_module("chemworld.rl.training").train_sb3_baseline
 
 
 def _allocation() -> RLWorldAllocation:
