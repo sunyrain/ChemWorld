@@ -464,12 +464,37 @@ policies then show that the multidimensional profile recovers behaviors fixed in
 advance. Only after those checks do the complete-system, compiled-control and fresh-
 trajectory studies interpret differences in terminal and process profiles.
 
+## 9.1 What the process record establishes
+
 The complete-system result illustrates why this ordering matters. Two distinct complete
 systems closed every assigned lifecycle but expressed different terminal commitments.
 The failed discarded-state gate prevents a directional claim about latent quality, yet
 it does not erase the observed closure/commitment distinction. Retaining 30 unresolved
 receipts, withholding point estimates and displaying sharp bounds makes execution
 failure part of the evidence rather than a reason to select six convenient cases.
+
+Compiled controls and fresh sessions expose complementary omissions in endpoint-only
+evaluation. Outcome, prediction, calibration and claim support remain distinct even
+through a bounded complete-experiment interface. Under primitive control, best and raw
+terminal contrasts can disagree within a matched fresh pair, while discovery, retention,
+drawdown and recovery describe additional process coordinates. These observations do
+not imply that every coordinate is independent; they require that none be silently
+collapsed into the best score.
+
+## 9.2 Limitations and scope
+
+The registered platform is broader than the formal evidence. Fifteen task contracts,
+28 operation kinds, five instruments, evaluator bindings and boundary recipes establish
+the qualified executable surface, not an equal number of formal agent experiments. The
+fork certificate covers two named single-private-component interventions under a fixed
+policy. It does not validate arbitrary multi-component recombination, third-party world
+authorship or an agent's ability to infer a changed law.
+
+Known deterministic policies are a bounded construct/discriminant-validity positive
+control. Exact signature recovery and same-identity retests show that this apparatus can
+distinguish behavior fixed by construction; they do not validate chemical competence, a
+scalar intelligence score or reliability of stochastic complete systems. Retests remain
+outside the 30 primary campaign profiles.
 
 The quantitative results remain finite-world descriptions. Complete systems differ in
 model, scaffold, transport, evidence interface, retry behavior and configuration, so
@@ -479,12 +504,20 @@ deliberately selected. Primitive operations, instrument events, replay traces,
 deterministic retests and evaluator-only shadow assays are accounting or reliability
 events, not independent agent experiments.
 
+The latent-terminal audit remains unresolved by design rather than by omission. Its six
+resolved receipts cannot estimate the frozen 36-discard population, and the sharp bounds
+represent execution uncertainty rather than evidence for either latent-quality
+direction. Evaluator-only shadow assays were neither selected nor observed by an agent
+and cannot show that discard saved real resources.
+
 The apparatus itself is virtual. Its instruments produce bounded state-coupled
 synthetic or reference-tested signals; resource receipts are simulator records, not
 custody, hazard, waste or monetary accounts. Exact replay reconstructs executable state
 and observations, not a physical batch, laboratory device or stochastic provider
 decision. Physical and high-fidelity laboratories remain necessary to establish
 chemical executability, safety and deployment validity.
+
+## 9.3 Complementarity and next steps
 
 Within those boundaries, programmable worlds enable controlled studies that are costly
 or impossible to clone physically. The present certificate covers only preregistered,
@@ -575,7 +608,7 @@ preregistered interface-invariance check.
 All policies received the same six probe cards. `assay_all` used add-solvent,
 add-reagent, set-potential, electrolysis, termination and assay. `start_then_discard`
 used add-solvent and discard. `measure_then_threshold` executed the shared four-action
-physical prefix, measured public UV--visible conversion and compared the finite signal
+process prefix, measured public UV--visible conversion and compared the finite signal
 with the frozen threshold 0.007984561379998922 using `>=`. Below-threshold vessels were
 discarded after six operations; eligible vessels received another electrolysis,
 termination and assay for eight operations. The threshold was selected before formal

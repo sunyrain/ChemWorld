@@ -269,6 +269,9 @@ def test_manuscript_results_follow_the_frozen_six_figure_contract() -> None:
     assert figure_positions == sorted(figure_positions)
     assert len(set(figure_positions)) == 6
     assert method_positions == sorted(method_positions)
+    assert "## 9.1 What the process record establishes" in manuscript
+    assert "## 9.2 Limitations and scope" in manuscript
+    assert "## 9.3 Complementarity and next steps" in manuscript
     assert "six parent--child pairs" in compact
     assert "=24$ traces" in compact
     assert "30 primary campaigns contained 180/180 closed lifecycles" in compact

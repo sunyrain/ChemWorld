@@ -20,8 +20,11 @@ The manuscript Results now follow the frozen evidence escalation and Figure 1--6
 Methods now mirror the dependency order: apparatus and transactions, world forks,
 known-policy validation, compiled controls, primitive-control systems, latent-terminal
 censoring, trajectory readouts, fresh sessions, sensitivities/incidents and provenance.
-The Discussion and Conclusion synthesize F/V/G0/G2/L without pooling their analysis
-units or enlarging the claim ceiling. The active W1-S03 Title/Abstract/Introduction and
+The Discussion now separates interpretation, limitations and next steps, including the
+platform-versus-formal-scope, deterministic-validity, complete-system-confounding,
+latent-censoring, finite-world and virtual-to-physical boundaries. The Conclusion
+synthesizes F/V/G0/G2/L without pooling their analysis units or enlarging the claim
+ceiling. The active W1-S03 Title/Abstract/Introduction and
 W1-S08 Related Work regions have not been edited by this integration. Their remote
 branches still contain activation commits only at this checkpoint, so the legacy
 frontmatter, Introduction and Related Work remain migration input rather than final
