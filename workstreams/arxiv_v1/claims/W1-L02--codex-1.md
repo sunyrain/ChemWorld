@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-L02
 title: "Audit reconstructability of all 36 pre-discard states"
-status: CLAIMED
+status: ACTIVE
 
 owner: "codex-1"
 collaborators: []
@@ -38,7 +38,7 @@ validation:
   - "git diff --check"
 
 completed_since_last_heartbeat: []
-current_validation: "Claim registered on main before implementation"
+current_validation: "Single-agent implementation started after corrected L01 contract integration"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-L02--codex-1.md
 blockers: []
