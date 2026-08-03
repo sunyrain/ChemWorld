@@ -3,14 +3,14 @@
 ```yaml
 task_id: W1-V05
 title: "Implement the 5x2x3 known-policy matrix runner, immutable manifest, and resume policy"
-status: CLAIMED
+status: ACTIVE
 
 owner: codex
 collaborators:
   - "agent:/root/w1_v05"
 claimed_at_utc: 2026-08-03T06:54:12Z
 lease_expires_at_utc: 2026-08-05T06:54:12Z
-heartbeat_at_utc: 2026-08-03T06:54:12Z
+heartbeat_at_utc: 2026-08-03T06:56:12Z
 
 base_commit: "1831d56f1f1ecfb83abab944f8548cd62b0dfcc6"
 branch: work1/w1-v05-policy-control-matrix
