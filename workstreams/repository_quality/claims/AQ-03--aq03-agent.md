@@ -3,7 +3,7 @@
 ```yaml
 task_id: AQ-03
 title: "Type world-understanding, single-stage, predictive, and electrochemical service paths"
-status: CHANGES_REQUESTED
+status: REVIEW
 owner: aq03-agent
 claimed_at_utc: 2026-08-03T14:14:34Z
 base_commit: "05e6324352eedea0dcf291ef0410c86cd3da983e"
@@ -25,12 +25,25 @@ validation:
   - "Ruff on all declared source files"
   - "Focused tests covering the touched paths"
   - "git diff --check"
-completed: []
-files_touched: []
-final_commit: null
+completed:
+  - "Typed mutable diagnostic payload values, NumPy arrays, predictive mappings and tuple collections"
+  - "Generalized counterfactual prediction parsing over the exact read-only query fields shared by electrochemical and crystallization queries"
+  - "Made the electrochemical compiled-mechanism Protocol read-only and collection-covariant so frozen runtime dataclasses validate directly"
+  - "Passed Mypy and Ruff on all seven declared source files"
+  - "Passed 58 focused task-contract, runtime-service, predictive, and world-understanding tests"
+  - "Passed git diff --check"
+files_touched:
+  - src/chemworld/eval/world_understanding.py
+  - src/chemworld/agents/electrochemical_single_stage.py
+  - src/chemworld/agents/crystallization_single_stage.py
+  - src/chemworld/eval/electrochemical_predictive.py
+  - src/chemworld/eval/crystallization_predictive.py
+  - src/chemworld/runtime/electrochemical_services.py
+  - src/chemworld/physchem/electrochemical_task_contract.py
+final_commit: "a026f9bc20059f54d5a48910d83eb526bbf6da02"
 reviewer: coordinator
-review_result: changes_requested
-notes: "Write set expanded to fix the source Protocol as read-only and collection-covariant; remove the service-layer validation adapter so compiled mechanisms are validated directly without runtime conversion."
+review_result: pending
+notes: "Ready for coordinator review at 2026-08-03T14:29:24Z. The requested service-layer adapter removal is complete; validation now receives the original compiled mechanism directly. AQ-04 should remove its crystallization-to-electrochemical query copying helper and pass the native query sequence to parse_counterfactual_predictions."
 ```
 
 The worker commits this claim before implementation, edits only its own claim, and changes the status
