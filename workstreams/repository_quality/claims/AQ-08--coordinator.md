@@ -38,7 +38,7 @@ validation:
   - "git diff --check"
 completed:
   - "Integrated all worker claim, implementation, review-correction, and handoff commits"
-  - "Mypy passes on 324 source files"
+  - "Mypy passes on 326 source files after rebasing onto the latest main"
   - "Ruff, public-doc audit, and diff check pass before evidence refresh"
   - "Fast/current excluding the evidence test reached 652 passed and 13 skipped before the frozen V03 manifest stopped it"
   - "Locked RL-present replay and accounting coverage passes: 13 tests"

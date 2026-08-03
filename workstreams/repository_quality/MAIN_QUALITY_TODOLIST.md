@@ -54,7 +54,7 @@ frozen evidence, or benchmark semantics.
 ## Integration outcome
 
 All implementation tasks were claimed before work, reviewed after handoff, and marked `DONE` only
-after integration. Mypy passes across 324 source files; Ruff, the 64-file public-doc audit, diff
+after integration. Mypy passes across 326 source files; Ruff, the 64-file public-doc audit, diff
 checking, focused default-dev tests, and the locked RL-present tests pass.
 
 AQ-08 remains `BLOCKED`, not `DONE`: the official current-evidence refresh reaches the
