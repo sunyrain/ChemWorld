@@ -18,6 +18,8 @@ The current checkout nevertheless fails three development gates promised by `DEV
 
 - `pytest -m "fast and current"` stops during collection because two RL test modules import optional
   `torch`/`stable_baselines3` dependencies in the default `dev` environment;
+- the complete default-dev suite also assumes the optional `paper` Markdown backend is installed in
+  one release-finalizer preflight assertion;
 - Ruff reports one overlong assertion;
 - Mypy reports 45 errors across 20 source files, including platform guards, mutable value schemas,
   NumPy shapes, mapping variance, optional values, and narrowed collection types.
@@ -46,6 +48,7 @@ frozen evidence, or benchmark semantics.
 | AQ-06 | OPEN | Type replication audit, arXiv derived data, and participant qualification | focused tests; Ruff; Mypy on touched files |
 | AQ-07 | OPEN | Type mechanism-adaptation execution | focused tests; Ruff; Mypy on touched files |
 | AQ-08 | OPEN | Coordinator integration and full quality-gate verification | default-dev tests; Ruff; Mypy; docs audit; diff check |
+| AQ-09 | OPEN | Make the release-finalizer test honor the optional `paper` dependency contract | focused/default-dev pytest; Ruff on touched tests |
 
 ## Completion criteria
 
