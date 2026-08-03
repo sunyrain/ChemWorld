@@ -124,6 +124,21 @@ def _checkout_independent_sources(value: Any) -> Any:
     return value
 
 
+def _stable_numeric_projection(value: Any) -> Any:
+    """Remove platform-level roundoff below the trace's measurement precision."""
+
+    if isinstance(value, Mapping):
+        return {
+            str(key): _stable_numeric_projection(item)
+            for key, item in sorted(value.items())
+        }
+    if isinstance(value, list):
+        return [_stable_numeric_projection(item) for item in value]
+    if isinstance(value, float):
+        return round(value, 14)
+    return value
+
+
 def _initial_condition_payload(env: Any) -> dict[str, Any]:
     state = _json_value(env.scenario_instance.initial_state.to_dict(include_hidden=True))
     state["metadata"] = _without_intervention_metadata(state.get("metadata", {}))
@@ -406,20 +421,22 @@ def build_runtime_world_fork(
 
 def _physical_projection(env: Any) -> dict[str, Any]:
     state = env._state.to_dict(include_hidden=True)
-    return _json_value(
-        {
-            "volume_L": state["volume_L"],
-            "temperature_K": state["temperature_K"],
-            "pressure_Pa": state["pressure_Pa"],
-            "phase": state["phase"],
-            "terminated": state["terminated"],
-            "quenched": state["quenched"],
-            "species_amounts": state["species_amounts"],
-            "ledger": state["ledger"],
-            "phases": state["phases"],
-            "equipment": state["equipment"],
-            "thermal": state["thermal"],
-        }
+    return _stable_numeric_projection(
+        _json_value(
+            {
+                "volume_L": state["volume_L"],
+                "temperature_K": state["temperature_K"],
+                "pressure_Pa": state["pressure_Pa"],
+                "phase": state["phase"],
+                "terminated": state["terminated"],
+                "quenched": state["quenched"],
+                "species_amounts": state["species_amounts"],
+                "ledger": state["ledger"],
+                "phases": state["phases"],
+                "equipment": state["equipment"],
+                "thermal": state["thermal"],
+            }
+        )
     )
 
 
