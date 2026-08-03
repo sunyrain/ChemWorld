@@ -9,7 +9,7 @@ owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-03T16:01:14Z
 lease_expires_at_utc: 2026-08-05T16:01:14Z
-heartbeat_at_utc: 2026-08-03T16:12:55Z
+heartbeat_at_utc: 2026-08-03T17:00:46Z
 
 base_commit: "b871c34221d5d96e77ba95fcecff662bcee6663d"
 branch: work1/w1-p04-figure-3
@@ -43,7 +43,8 @@ completed_since_last_heartbeat:
   - "Rendered all ten matched world-by-arm cells from the outcome-blind L01 population contract"
   - "Preserved all 36 registered discard identities, nine campaign-oracle opportunity cells, and the cell-02 structural null in fixed pending panels C--D"
   - "Published deterministic editable SVG, embedded-font PDF, 300 dpi PNG, and a self-hashed task manifest"
-current_validation: "PASS: Ruff, formatting, mypy, 4 focused tests, deterministic byte rebuild, one visual inspection, and git diff --check"
+  - "Refreshed only the PDF font-object serialization and manifest after P08 detected an environment-order byte mismatch; SVG and PNG remained byte-identical."
+current_validation: "PASS: refreshed manifest f8d18aaa6233fc934f0ca363b0efe10658255f11468be8ed4d4c883a00947178; cross-process deterministic rebuild; 4 focused tests; git diff --check. Original Ruff, formatting, mypy, and visual inspection remain valid because code, SVG, and PNG did not change."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-P04--codex-1.md
   - scripts/render_work_i_figure_3.py
@@ -59,8 +60,8 @@ next_check_at_utc: 2026-08-04T16:12:55Z
 next_24h: "Await independent review; panels C--D remain fixed for qualified W1-L05/L06 result insertion."
 handoff_eta: 2026-08-03T16:12:55Z
 
-final_commit: "0b04ed255fd64844eff905eacfc4cc50da5854fb"
+final_commit: "967514ac28f81a3905686f1280b4218cd202cc9d"
 reviewer: null
 review_result: null
-notes: "Panels C and D are frozen structural slots. Until W1-L05/L06 publish qualified results, they remain visibly pending and cannot imply discard quality."
+notes: "Panels C and D are frozen structural slots. Until W1-L05/L06 publish qualified results, they remain visibly pending and cannot imply discard quality. The P08-triggered PDF refresh changed serialization order only, not figure content."
 ```
