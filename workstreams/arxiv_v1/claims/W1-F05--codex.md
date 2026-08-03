@@ -41,7 +41,8 @@ completed_since_last_heartbeat:
   - "Implemented identical typed-action execution on parent and child worlds with aligned terminal checkpoints."
   - "Integrated lineage, nine-component public invariance, divergence, execution, replay, and zero-provider-call gates."
   - "Generated a passing two-case seed-0 deterministic preflight report."
-current_validation: "40 focused F01-F05 tests passed; ruff, mypy, deterministic report rebuild, and git diff --check passed."
+  - "Normalized mechanism provenance to repository-relative paths after cross-worktree validation exposed checkout-dependent world hashes."
+current_validation: "40 focused F01-F05 tests passed; ruff, mypy, deterministic report rebuild, git diff --check, and cross-worktree hash comparison passed."
 files_touched:
   - src/chemworld/foundation/world_fork_runtime.py
   - src/chemworld/eval/world_fork_audit.py
@@ -56,7 +57,7 @@ next_check_at_utc: 2026-08-03T16:50:02Z
 next_24h: "Coordinator review and merge; then execute the frozen 24-trace F06 matrix without protocol changes."
 handoff_eta: 2026-08-03T05:15:00Z
 
-final_commit: "37a3ffa0db05dcee4504f998e2a727d9862a4362"
+final_commit: "a2a81e29c0e96ce4fb767f830e8e1ffdc6cfaa4e"
 reviewer: coordinator
 review_result: "pending"
 notes: "F05 preflight covers one seed for each frozen intervention class (8 traces including exact replays). The full 24-trace evidence matrix remains W1-F06."
