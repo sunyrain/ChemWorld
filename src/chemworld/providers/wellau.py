@@ -8,7 +8,7 @@ import os
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from chemworld.providers.deepseek import DeepSeekAPIError, DeepSeekClient
 
@@ -68,7 +68,10 @@ class WellAUClient(DeepSeekClient):
         if sleep is not None:
             kwargs["sleep"] = sleep
         super().__init__(**kwargs)
-        self.reasoning_effort = reasoning_effort
+        # The inherited client stores a provider-specific Literal["high", "max"].
+        # WellAU deliberately exposes its own medium/high wire contract on the same
+        # public attribute, so keep the dynamic provider boundary local to this write.
+        self.reasoning_effort = cast(Any, reasoning_effort)
 
     def pricing_snapshot(self) -> dict[str, Any]:
         payload: dict[str, Any] = {

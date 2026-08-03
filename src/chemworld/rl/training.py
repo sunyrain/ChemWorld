@@ -54,7 +54,10 @@ def _windows_process_cpu_time_s(process: Any) -> float:
     exit_time = wintypes.FILETIME()
     kernel = wintypes.FILETIME()
     user = wintypes.FILETIME()
-    get_process_times = ctypes.windll.kernel32.GetProcessTimes
+    windll = getattr(ctypes, "windll", None)
+    if windll is None:
+        raise RuntimeError("Windows ctypes loader is unavailable")
+    get_process_times = windll.kernel32.GetProcessTimes
     get_process_times.argtypes = [
         wintypes.HANDLE,
         ctypes.POINTER(wintypes.FILETIME),
