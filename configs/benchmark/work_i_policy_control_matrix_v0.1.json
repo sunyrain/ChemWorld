@@ -1,0 +1,132 @@
+{
+  "schema_id": "chemworld.policy_control_matrix_protocol",
+  "schema_version": "0.1.0",
+  "protocol_id": "work-i-policy-control-matrix-v0.1",
+  "task": {
+    "task_id": "electrochemical-conversion",
+    "env_id": "ChemWorld",
+    "world_split": "public-test",
+    "objective": "balanced",
+    "episode_mode": "campaign",
+    "workflow_mode": "autonomous_open_v1",
+    "material_family_id": "nominal-prior-latent-v2",
+    "budget_override": 48,
+    "observation_seed_offset": 300000,
+    "observation_noise_mode": "keyed",
+    "observation_noise_namespace_template": "work-i-known-policy-formal-v0.1-world-{world_seed:04d}",
+    "agent_seed": 0
+  },
+  "matrix": {
+    "world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "information_arms": [
+      "opaque_codes",
+      "anonymous_nominal_properties"
+    ],
+    "policy_ids": [
+      "assay_all",
+      "start_then_discard",
+      "measure_then_threshold"
+    ],
+    "lifecycles_per_campaign": 6,
+    "primary_campaign_count": 30,
+    "primary_closed_lifecycle_count": 180,
+    "provider_call_count": 0,
+    "schedule_order": "world_then_arm_then_policy"
+  },
+  "material_information_by_arm": {
+    "opaque_codes": {
+      "mode": "opaque_codes"
+    },
+    "anonymous_nominal_properties": {
+      "mode": "anonymous_nominal_properties"
+    }
+  },
+  "campaign_resource_card": {
+    "schema_version": "chemworld-campaign-resource-card-0.1",
+    "card_id": "work-i-known-policy-formal-k6-v1",
+    "hard_limits": {
+      "operation_attempts": 48,
+      "vessel_starts": 6,
+      "final_assays": 6,
+      "nonfinal_instrument_uses": 6,
+      "stocks": {
+        "reagent_mol": 0.09,
+        "solvent_L": 0.15
+      },
+      "per_instrument": {
+        "uvvis": 6
+      }
+    },
+    "metadata": {
+      "task_id": "electrochemical-conversion",
+      "role": "known_policy_construct_validity_formal_matrix",
+      "planned_lifecycles": 6,
+      "provider_calls": 0,
+      "shared_across_world_arm_policy_cells": true
+    }
+  },
+  "dependency_bindings": {
+    "profile_contract_path": "configs/benchmark/work_i_policy_profile_contract_v0.1.json",
+    "profile_contract_sha256": "01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262",
+    "known_policy_contract_path": "configs/benchmark/work_i_known_policy_contract_v0.1.json",
+    "known_policy_contract_sha256": "79681abfa92af758af8326db1727b865376ad0da192ea13552b68fd94a66dd45",
+    "threshold_binding_path": "configs/benchmark/work_i_known_policy_threshold_v0.1.json",
+    "threshold_binding_sha256": "8a55b713ca900a644a301ecd8e83a0a686f9a28b3f60a18a85a4e57b66288c6a",
+    "qualification_report_path": "workstreams/arxiv_v1/reports/work-i-known-policy-threshold-qualification-v0.1.json",
+    "qualification_report_sha256": "9a928c28862099049c560b7135067ea86dc6535a7077926b66f39221abbe924e"
+  },
+  "controller_dependency": {
+    "task_id": "W1-V04",
+    "path": "src/chemworld/agents/known_policy.py",
+    "implementation_version": "chemworld-known-policy-agent-0.1"
+  },
+  "counting_rules": {
+    "primary_campaign_unit": "one scheduled cell",
+    "primary_lifecycle_unit": "one started vessel closed by exactly one committed final_assay or discard_batch action",
+    "primary_execution_role": "original",
+    "retest_in_primary_estimand": false,
+    "retest_role": "same-identity deterministic reliability execution",
+    "failed_or_incomplete_cells": "retained outside the primary count and never silently coerced to complete",
+    "provider_calls": "must remain zero in original and retest executions"
+  },
+  "resume_policy": {
+    "canonical_prefix_only": true,
+    "accepted_bundles_are_immutable": true,
+    "identity_drift_fails_closed": true,
+    "corruption_fails_closed": true,
+    "unexpected_files_fail_closed": true,
+    "atomic_bundle_publication": true,
+    "atomic_progress_publication": true,
+    "completed_manifest_is_terminal": true,
+    "single_unbound_next_bundle": "validate and adopt only the exact next scheduled cell after a crash between bundle and progress publication",
+    "resume_reexecution": "begin at the first absent scheduled cell; never execute or overwrite an accepted cell"
+  },
+  "source_paths": [
+    "configs/benchmark/work_i_policy_profile_contract_v0.1.json",
+    "configs/benchmark/work_i_known_policy_contract_v0.1.json",
+    "configs/benchmark/work_i_known_policy_threshold_v0.1.json",
+    "configs/benchmark/work_i_policy_control_matrix_v0.1.json",
+    "workstreams/arxiv_v1/reports/work-i-known-policy-threshold-qualification-v0.1.json",
+    "src/chemworld/agents/known_policy.py",
+    "src/chemworld/campaign_resources.py",
+    "src/chemworld/envs/chemworld_env.py",
+    "src/chemworld/envs/observation_noise.py",
+    "src/chemworld/eval/known_policy_contract.py",
+    "src/chemworld/eval/known_policy_threshold.py",
+    "src/chemworld/eval/policy_validity_contract.py",
+    "src/chemworld/eval/policy_validity_matrix.py",
+    "src/chemworld/eval/runner.py",
+    "src/chemworld/operation_validator.py",
+    "src/chemworld/runtime/electrochemical_services.py",
+    "src/chemworld/world/electrochemical_material_family.py",
+    "src/chemworld/world/observation_kernel.py",
+    "src/chemworld/world/scoring.py",
+    "scripts/run_work_i_policy_controls.py"
+  ]
+}
