@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-S05
 title: "Draft the isolated known-policy measurement-validity Results/Methods sections"
-status: CLAIMED
+status: ACTIVE
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T15:57:03Z
-lease_expires_at_utc: 2026-08-05T15:57:03Z
-heartbeat_at_utc: 2026-08-03T15:57:03Z
+lease_expires_at_utc: 2026-08-05T16:02:26Z
+heartbeat_at_utc: 2026-08-03T16:02:26Z
 
 base_commit: "09e6c67d6ebfc8bb2a03e568dc16a349bd9959af"
 branch: work1/w1-s05-measurement-validity-yijun
@@ -32,14 +32,15 @@ validation:
   - "Confirm only the declared claim and isolated story file are modified"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared for main registration before substantive drafting"
+completed_since_last_heartbeat:
+  - "Verified the claim is effective on origin/main, synchronized the task branch with origin/main, and pushed the synchronized branch before substantive drafting."
+current_validation: "Reading the frozen W1-V evidence stack and independent chemistry-semantics review; no substantive story file has been written yet."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-S05--Yijun.md
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-04T03:57:03Z
+next_check_at_utc: 2026-08-04T04:02:26Z
 next_24h: "Draft and validate bounded known-policy measurement-validity prose, then hand off the isolated section for independent review and manuscript integration."
 handoff_eta: 2026-08-03T23:57:03Z
 
