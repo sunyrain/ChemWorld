@@ -56,7 +56,7 @@ next_check_at_utc: 2026-08-03T18:25:00Z
 next_24h: "Coordinator review, independent deterministic rebuild on main, and merge; V02 can then bind preregistered policy orderings to this contract hash."
 handoff_eta: 2026-08-03T07:00:00Z
 
-final_commit: null
+final_commit: "523f08fd3e67dc7d9cd0c94ca32027f7371e1811"
 reviewer: null
 review_result: null
 notes: "Frozen contract SHA-256: 01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262. The contract is intentionally multidimensional and outcome-independent: it does not introduce a composite intelligence score or encode endpoint quality as experimental agency."
