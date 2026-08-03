@@ -311,7 +311,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | ID | P | 状态 | 任务 | 硬依赖 | 可并行 |
 | --- | --- | --- | --- | --- | --- |
 | W1-P01 | P0 | REVIEW | 冻结六图信息架构、字体、配色、线宽和 panel grid | S02 | 是 |
-| W1-P02 | P0 | OPEN | Fig. 1 apparatus + programmable world fork | F protocol | 是 |
+| W1-P02 | P0 | CLAIMED | Fig. 1 apparatus + programmable world fork | F protocol | 是 |
 | W1-P03 | P0 | OPEN | Fig. 2 known-policy measurement validity | V protocol | 是 |
 | W1-P04 | P0 | OPEN | Fig. 3 same completion, different terminal policy | 现有数据；L 可后补 | 是 |
 | W1-P05 | P0 | OPEN | Fig. 4 compiled information controls | 现有数据 | 是 |
@@ -339,7 +339,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | ID | P | 状态 | 任务 | 硬依赖 | 可并行 |
 | --- | --- | --- | --- | --- | --- |
 | W1-Q01 | P0 | CLAIMED | protocol reviewer：world fork、policy control、latent audit | draft protocols | 是 |
-| W1-Q02 | P0 | OPEN | systems reviewer：security、identity、ledger、replay | implementations | 是 |
+| W1-Q02 | P0 | CLAIMED | systems reviewer：security、identity、ledger、replay | implementations | 是 |
 | W1-Q03 | P0 | OPEN | methods reviewer：construct validity、estimands、censoring | analysis drafts | 是 |
 | W1-Q04 | P0 | OPEN | chemistry/chemical-engineering reviewer：世界与实验语义 | F/V reports | 是 |
 | W1-Q05 | P0 | OPEN | editorial reviewer：故事、主图、scope、期刊适配 | paper draft | 是 |
