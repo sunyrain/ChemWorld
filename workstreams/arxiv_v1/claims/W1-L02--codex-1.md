@@ -6,8 +6,7 @@ title: "Audit reconstructability of all 36 pre-discard states"
 status: CLAIMED
 
 owner: "codex-1"
-collaborators:
-  - "Harvey"
+collaborators: []
 claimed_at_utc: 2026-08-03T14:06:52Z
 lease_expires_at_utc: 2026-08-05T14:06:52Z
 heartbeat_at_utc: 2026-08-03T14:06:52Z
@@ -52,5 +51,5 @@ handoff_eta: 2026-08-04T02:06:52Z
 final_commit: null
 reviewer: null
 review_result: null
-notes: "No provider calls, shadow terminal evaluations, latent scores, manuscript edits, or global evidence regeneration are authorized."
+notes: "No provider calls, shadow terminal evaluations, latent scores, manuscript edits, or global evidence regeneration are authorized. Harvey was stopped before handoff when the coordinator switched the project to single-agent execution; codex-1 will continue sequentially."
 ```
