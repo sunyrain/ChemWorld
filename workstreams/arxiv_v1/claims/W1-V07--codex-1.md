@@ -61,7 +61,7 @@ completed_since_last_heartbeat:
   - "Complete injected synthetic V05 matrix passed every V06 gate: 30 campaigns, 180 closed lifecycles, 30 threshold assays, 30 threshold discards, and zero provider calls."
   - "Fixed seed-20000 nonformal smoke passed all gates: 6 original plus 6 exact retest campaigns, 36 plus 36 closed lifecycles, matched-arm invariance, and zero provider calls."
   - "Exact preflight and qualification byte rebuilds passed; full V01-V07 task-local suite passed 79 tests in 134.51s; ruff, mypy, both diff checks, and clean/upstream parity passed."
-  - "Independent reviewer /root/w1_v07_review returned APPROVE and independently confirmed the frozen report, receipt, and delivery bindings."
+  - "Independent reviewer /root/w1_v07_review returned APPROVE: qualification --check passed in 27.4s; seven tamper negatives, ruff, mypy, preflight check, and diff checks passed; source/auditor/controller/preflight bindings agreed; formal environment/outcome counts were 0/0."
 current_validation: "REVIEW: all declared validations pass; qualification report c3f3985784187dbd77c9ef5f08744646bf79c052be5f1112e8daea016ec69b51, receipt 7cde7677d28943d50c6ddf12540513b91f3e88ec55b39d69a3caf50d646ad305, delivery manifest 7e97061bcbcc7708618153014b08c5218ea2fd544213c9498bf8494ca6f41661; formal environment executions/outcome reads remain 0/0."
 files_touched:
   - src/chemworld/eval/policy_validity_qualification.py
