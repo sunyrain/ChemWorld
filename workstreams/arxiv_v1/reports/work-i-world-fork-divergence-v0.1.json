@@ -1,0 +1,124 @@
+{
+  "report_version": "chemworld-work-i-divergence-suite-report-0.1",
+  "evidence_status": "definition_fixture_not_execution_evidence",
+  "case_count": 2,
+  "physical_expectation_count": 2,
+  "physical_expectation_pass_count": 2,
+  "observation_expectation_count": 2,
+  "observation_expectation_pass_count": 2,
+  "cases": [
+    {
+      "report_version": "chemworld-world-fork-divergence-evaluation-0.1",
+      "oracle_id": "chemworld-divergence-2cc9cba31d465cbd",
+      "oracle_sha256": "2cc9cba31d465cbd447f4d4dd1a67c129a6683e76b316977294d5bf4e4a86e15",
+      "fork_id": "chemworld-work-i-fork-6511b58a724c47d1",
+      "fork_spec_sha256": "8db6bb7cdebf3a0be6ccd3df8bd6c958702fde850b604ccff430823b9c30f2ac",
+      "intervention_class": "mechanism_or_constitutive_law",
+      "target_component_id": "private_physics.constitutive_laws",
+      "expectation_results": [
+        {
+          "expectation_id": "physical_reaction_extent",
+          "channel": "physical_state",
+          "checkpoint_id": "post_probe",
+          "field_path": [
+            "reaction_extent"
+          ],
+          "parent_value": 0.62,
+          "child_value": 0.48,
+          "signed_delta": -0.14,
+          "absolute_delta": 0.14,
+          "relative_delta": 0.22580645161290325,
+          "magnitude_passed": true,
+          "direction_passed": true,
+          "passed": true,
+          "failure_code": null
+        },
+        {
+          "expectation_id": "observed_yield_response",
+          "channel": "public_observation",
+          "checkpoint_id": "post_probe",
+          "field_path": [
+            "yield"
+          ],
+          "parent_value": 0.6,
+          "child_value": 0.46,
+          "signed_delta": -0.13999999999999996,
+          "absolute_delta": 0.13999999999999996,
+          "relative_delta": 0.23333333333333328,
+          "magnitude_passed": true,
+          "direction_passed": true,
+          "passed": true,
+          "failure_code": null
+        }
+      ],
+      "physical_expectation_count": 1,
+      "physical_expectation_pass_count": 1,
+      "observation_expectation_count": 1,
+      "observation_expectation_pass_count": 1,
+      "passed": true,
+      "claim_boundary": {
+        "expected_response_divergence": true,
+        "runtime_execution_claim": false,
+        "exact_replay_claim": false,
+        "agent_performance_claim": false
+      }
+    },
+    {
+      "report_version": "chemworld-world-fork-divergence-evaluation-0.1",
+      "oracle_id": "chemworld-divergence-b4eb13fe66906b3c",
+      "oracle_sha256": "b4eb13fe66906b3c88ccb2b39bee6915ae436cbea666a3f519702ae17428950a",
+      "fork_id": "chemworld-work-i-fork-c84b6887af082dca",
+      "fork_spec_sha256": "966469c5265e754ec2d0779ad90bb1e55aa84ebf81bb568af6a498f84daa8678",
+      "intervention_class": "material_law_counterfactual",
+      "target_component_id": "private_physics.material_laws",
+      "expectation_results": [
+        {
+          "expectation_id": "physical_material_response",
+          "channel": "physical_state",
+          "checkpoint_id": "post_probe",
+          "field_path": [
+            "selected_material_response"
+          ],
+          "parent_value": 1.0,
+          "child_value": 0.72,
+          "signed_delta": -0.28,
+          "absolute_delta": 0.28,
+          "relative_delta": 0.28,
+          "magnitude_passed": true,
+          "direction_passed": true,
+          "passed": true,
+          "failure_code": null
+        },
+        {
+          "expectation_id": "observed_conversion_response",
+          "channel": "public_observation",
+          "checkpoint_id": "post_probe",
+          "field_path": [
+            "conversion"
+          ],
+          "parent_value": 0.68,
+          "child_value": 0.51,
+          "signed_delta": -0.17000000000000004,
+          "absolute_delta": 0.17000000000000004,
+          "relative_delta": 0.25000000000000006,
+          "magnitude_passed": true,
+          "direction_passed": true,
+          "passed": true,
+          "failure_code": null
+        }
+      ],
+      "physical_expectation_count": 1,
+      "physical_expectation_pass_count": 1,
+      "observation_expectation_count": 1,
+      "observation_expectation_pass_count": 1,
+      "passed": true,
+      "claim_boundary": {
+        "expected_response_divergence": true,
+        "runtime_execution_claim": false,
+        "exact_replay_claim": false,
+        "agent_performance_claim": false
+      }
+    }
+  ],
+  "passed": true
+}
