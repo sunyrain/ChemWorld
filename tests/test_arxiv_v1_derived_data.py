@@ -115,6 +115,65 @@ def test_csv_views_are_generated_from_the_same_derived_rows() -> None:
             assert len(list(csv.DictReader(handle))) == expected
 
 
+def test_fvl_incremental_layer_has_exact_registered_counts_and_roles() -> None:
+    incremental = _load_derived()["work_i_incremental"]
+    assert incremental["status"] == "frozen_with_explicit_latent_missingness"
+    assert incremental["record_counts"] == {
+        "F": {
+            "world_fork_pairs": 6,
+            "world_fork_expectations": 12,
+            "world_fork_traces": 24,
+        },
+        "V": {
+            "policy_campaign_profiles": 30,
+            "policy_lifecycles": 180,
+            "policy_retest_campaigns": 30,
+        },
+        "L": {
+            "terminal_lifecycles": 60,
+            "latent_discard_units": 36,
+            "campaign_cells": 10,
+        },
+    }
+    gates = incremental["validation_gates"]
+    assert gates and all(gates.values())
+    discard_rows = incremental["records"]["L"]["latent_discard_units"]
+    assert sum(row["quality_status"] == "valid" for row in discard_rows) == 6
+    assert sum(row["quality_status"] == "unresolved" for row in discard_rows) == 30
+    assert all(row["provider_call_count"] == 0 for row in discard_rows)
+    assert incremental["scientific_boundaries"]["latent_complete_case_substitution_used"] is False
+
+
+def test_fvl_csv_and_immutable_manifest_bind_the_same_rows() -> None:
+    data = _load_derived()
+    table_dir = RELEASE / "tables"
+    expectations = {
+        "work-i-f-world-fork-pairs.csv": 6,
+        "work-i-f-world-fork-expectations.csv": 12,
+        "work-i-f-world-fork-traces.csv": 24,
+        "work-i-v-policy-campaign-profiles.csv": 30,
+        "work-i-v-policy-lifecycles.csv": 180,
+        "work-i-v-policy-retests.csv": 30,
+        "work-i-l-terminal-lifecycles.csv": 60,
+        "work-i-l-latent-discard-units.csv": 36,
+        "work-i-l-campaign-cells.csv": 10,
+    }
+    for name, expected in expectations.items():
+        with (table_dir / name).open(encoding="utf-8", newline="") as handle:
+            assert len(list(csv.DictReader(handle))) == expected
+    manifest = json.loads(
+        (RELEASE / "arxiv-v1-derived-data.manifest.json").read_text(encoding="utf-8")
+    )
+    declared = manifest.pop("manifest_sha256")
+    assert declared == canonical_sha256(manifest)
+    assert manifest["derived_data_sha256"] == data["derived_data_sha256"]
+    assert manifest["file_count"] == 16
+    for row in manifest["files"]:
+        path = ROOT / row["path"]
+        assert path.stat().st_size == row["bytes"]
+        assert file_sha256(path) == row["sha256"]
+
+
 def test_figure_manifest_is_bound_to_derived_data_and_never_fakes_figure_5() -> None:
     data = _load_derived()
     manifest = json.loads((RELEASE / "figure-manifest.json").read_text(encoding="utf-8"))
