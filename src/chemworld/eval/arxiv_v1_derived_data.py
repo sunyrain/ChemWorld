@@ -342,10 +342,10 @@ def _g2_v05_rows(audit: Mapping[str, Any]) -> dict[str, Any]:
         if contrast is not None:
             contrast = dict(contrast)
             score_sequence = contrast.get("final_score_sequence")
-            _require(
-                isinstance(score_sequence, list) and bool(score_sequence),
-                "a complete G2 v0.5 pair is missing final-score contrasts",
-            )
+            if not isinstance(score_sequence, list) or not score_sequence:
+                raise ArxivV1DerivedDataError(
+                    "a complete G2 v0.5 pair is missing final-score contrasts"
+                )
             # The last element is the nominal-minus-opaque raw terminal score.
             # Keep it explicit so downstream analyses do not confuse it with the
             # algebraically coupled terminal-to-best retention ratio.
