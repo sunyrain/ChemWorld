@@ -394,8 +394,8 @@ def build_policy_validity_report(
             "status": "valid",
             "v06_reconstruction_exactly_matches_receipt": True,
             "all_bundle_hashes_and_byte_counts_verified": True,
-            "all_profiles_rebuilt": gates["all_profiles_rebuilt"],
-            "all_resource_ledgers_replayed": gates["all_resource_ledgers_replayed"],
+            "all_profiles_rebuilt": bool(gates["all_profiles_rebuilt"]),
+            "all_resource_ledgers_replayed": bool(gates["all_resource_ledgers_replayed"]),
             "formal_execution_performed_by_reporter": False,
         },
         "scientific_status": {
@@ -419,8 +419,8 @@ def build_policy_validity_report(
         },
         "test_retest_reliability": {
             "pair_count": 30,
-            "same_identity_deterministic_pairs": True,
-            "all_component_hashes_match": gates["all_exact_replays_and_retests_match"],
+            "same_identity_deterministic_pairs": bool(gates["all_exact_replays_and_retests_match"]),
+            "all_component_hashes_match": bool(gates["all_exact_replays_and_retests_match"]),
             "excluded_from_primary_estimand": True,
         },
         "campaign_profiles": campaign_profiles,
@@ -481,6 +481,24 @@ def render_policy_validity_markdown(report: Mapping[str, Any]) -> str:
     """Render the bounded human report from the self-hashed machine report."""
 
     science = _mapping(report["scientific_status"], "scientific_status")
+    evidence = _mapping(report["evidence_validity"], "evidence_validity")
+    reliability = _mapping(report["test_retest_reliability"], "test_retest_reliability")
+    retest_statement = (
+        "All 30 original/retest pairs matched in controller, trajectory identity, profile, "
+        "and component hashes."
+        if reliability["same_identity_deterministic_pairs"] is True
+        else "The frozen same-identity deterministic retest gate did not pass for all 30 pairs."
+    )
+    profile_statement = (
+        "V06 independently rebuilt all campaign profiles."
+        if evidence["all_profiles_rebuilt"] is True
+        else "V06 did not establish complete reconstruction of all campaign profiles."
+    )
+    resource_statement = (
+        "V06 independently replayed all campaign resource ledgers."
+        if evidence["all_resource_ledgers_replayed"] is True
+        else "V06 did not establish complete replay of all campaign resource ledgers."
+    )
     lines = [
         "# Work I known-policy measurement-validity report",
         "",
@@ -530,9 +548,8 @@ def render_policy_validity_markdown(report: Mapping[str, Any]) -> str:
             "",
             "## Reliability and evidence",
             "",
-            "All 30 original/retest pairs matched in controller, trajectory identity, profile, "
-            "and component hashes. V06 independently rebuilt all profiles and resource ledgers, "
-            "and its reconstruction exactly matched the immutable formal audit receipt.",
+            f"{retest_statement} {profile_statement} {resource_statement} The V06 "
+            "reconstruction exactly matched the immutable formal audit receipt.",
             "",
             "## Interpretation boundary",
             "",

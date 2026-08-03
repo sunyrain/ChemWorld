@@ -152,6 +152,38 @@ def test_explicit_non_orderings_remain_non_gating(
     assert not set(non_orderings).intersection(FROZEN_GATES)
 
 
+def test_gate_failures_remove_retest_profile_and_resource_success_claims(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    formal_audit: dict[str, Any],
+) -> None:
+    failed = deepcopy(formal_audit)
+    for gate in (
+        "all_exact_replays_and_retests_match",
+        "all_profiles_rebuilt",
+        "all_resource_ledgers_replayed",
+    ):
+        failed["gates"][gate] = False
+    failed["passed"] = False
+    failed["status"] = "positive_control_unestablished"
+    _rehash_audit(failed)
+    audit_path = tmp_path / "self-consistent-failed-audit.json"
+    write_json_atomic(audit_path, failed)
+
+    report = _build(monkeypatch, failed, audit_path=audit_path)
+    markdown = render_policy_validity_markdown(report)
+    assert report["status"] == "positive_control_unestablished"
+    assert report["test_retest_reliability"]["same_identity_deterministic_pairs"] is False
+    assert report["evidence_validity"]["all_profiles_rebuilt"] is False
+    assert report["evidence_validity"]["all_resource_ledgers_replayed"] is False
+    assert "All 30 original/retest pairs matched" not in markdown
+    assert "V06 independently rebuilt all campaign profiles" not in markdown
+    assert "V06 independently replayed all campaign resource ledgers" not in markdown
+    assert "retest gate did not pass" in markdown
+    assert "did not establish complete reconstruction" in markdown
+    assert "did not establish complete replay" in markdown
+
+
 def test_rejects_stale_formal_audit_self_hash(
     tmp_path: Path,
     formal_audit: dict[str, Any],
