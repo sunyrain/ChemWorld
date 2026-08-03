@@ -32,6 +32,21 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert "static_s0_five_task_postqualification_summary" in node_ids
     assert "pre_arxiv_claim_evidence_ledger" in node_ids
     assert "task_design_matrix" in node_ids
+    assert {
+        "work_i_world_fork_qualification",
+        "work_i_world_fork_certificate",
+        "work_i_known_policy_formal_audit",
+        "work_i_known_policy_validity_report",
+        "work_i_known_policy_delivery_manifest",
+        "work_i_latent_terminal_estimand_contract",
+        "work_i_latent_terminal_reconstructability",
+        "work_i_latent_terminal_replay_qualification",
+        "work_i_latent_terminal_formal_shadow",
+        "work_i_latent_terminal_analysis",
+        "work_i_incremental_data_contract",
+        "work_i_fvl_derived_data",
+        "work_i_fvl_derived_manifest",
+    } <= node_ids
     assert not any(node_id.startswith("ncs_") for node_id in node_ids)
     assert {node.role for node in nodes} <= pipeline["CURRENT_ARTIFACT_ROLES"]
     assert all(pipeline["_node_producer"](node) for node in nodes)
@@ -43,6 +58,50 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
         == (pipeline["_node_lifecycle"](node) == "generated")
         for node in nodes
     )
+
+
+def test_work_i_fvl_nodes_have_current_fail_closed_source_bindings() -> None:
+    pipeline = _pipeline()
+    nodes = {
+        node.node_id: node
+        for node in pipeline["NODES"]
+        if node.node_id.startswith("work_i_")
+    }
+    assert len(nodes) == 13
+    assert nodes["work_i_world_fork_certificate"].dependencies == (
+        "work_i_world_fork_qualification",
+    )
+    assert nodes["work_i_fvl_derived_manifest"].dependencies == (
+        "work_i_fvl_derived_data",
+    )
+    for node in nodes.values():
+        payload = json.loads((Path(node.path)).read_text(encoding="utf-8"))
+        assert pipeline["_work_i_source_binding_current"](node, payload) is True
+
+    derived = json.loads(Path(nodes["work_i_fvl_derived_data"].path).read_text(encoding="utf-8"))
+    derived["work_i_incremental"]["record_counts"]["L"]["latent_discard_units"] = 35
+    assert (
+        pipeline["_work_i_source_binding_current"](
+            nodes["work_i_fvl_derived_data"], derived
+        )
+        is False
+    )
+
+
+def test_current_registry_exposes_work_i_fvl_boundary_without_hiding_failure() -> None:
+    pipeline = _pipeline()
+    current = json.loads(pipeline["CURRENT_REGISTRY"].read_text(encoding="utf-8"))
+    work_i = current["work_i_fvl"]
+    assert work_i["registered_node_count"] == 13
+    assert work_i["all_source_bindings_current"] is True
+    assert work_i["latent_resolved_shadow_receipts"] == 6
+    assert work_i["latent_unresolved_shadow_receipts"] == 30
+    assert work_i["latent_complete_case_substitution_used"] is False
+    assert work_i["scientific_gate_status"] == "blocked_on_30_unresolved_latent_receipts"
+    nodes = current["evidence_dag"]["nodes"]
+    assert nodes["work_i_latent_terminal_formal_shadow"]["artifact_state"] == "current"
+    assert nodes["work_i_latent_terminal_formal_shadow"]["gate_state"] == "blocked"
+    assert nodes["work_i_latent_terminal_analysis"]["gate_state"] == "blocked"
 
 
 def test_frozen_rc28_evidence_is_not_regenerated_after_task_contract_drift() -> None:

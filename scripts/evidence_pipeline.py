@@ -8,6 +8,7 @@ protocols and reports.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -431,6 +432,116 @@ NODES = (
         ),
     ),
     EvidenceNode(
+        "work_i_world_fork_qualification",
+        "workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json",
+        "formal_result",
+    ),
+    EvidenceNode(
+        "work_i_world_fork_certificate",
+        "workstreams/arxiv_v1/reports/work-i-world-fork-certificate-v0.1.json",
+        "release_attestation",
+        ("work_i_world_fork_qualification",),
+    ),
+    EvidenceNode(
+        "work_i_known_policy_formal_audit",
+        "workstreams/arxiv_v1/reports/work-i-policy-control-formal-audit-v0.1.json",
+        "formal_result",
+    ),
+    EvidenceNode(
+        "work_i_known_policy_validity_report",
+        "workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.json",
+        "formal_result",
+        ("work_i_known_policy_formal_audit",),
+    ),
+    EvidenceNode(
+        "work_i_known_policy_delivery_manifest",
+        "workstreams/arxiv_v1/reports/"
+        "work-i-known-policy-validity-report-v0.1.manifest.json",
+        "release_attestation",
+        (
+            "work_i_known_policy_formal_audit",
+            "work_i_known_policy_validity_report",
+        ),
+    ),
+    EvidenceNode(
+        "work_i_latent_terminal_estimand_contract",
+        "configs/benchmark/work_i_latent_terminal_contract_v0.1.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
+        "work_i_latent_terminal_reconstructability",
+        "workstreams/arxiv_v1/reports/"
+        "work-i-latent-terminal-reconstructability-v0.1.json",
+        "development_diagnostic",
+        ("work_i_latent_terminal_estimand_contract",),
+    ),
+    EvidenceNode(
+        "work_i_latent_terminal_replay_qualification",
+        "workstreams/arxiv_v1/reports/"
+        "work-i-latent-terminal-replay-qualification-v0.1.json",
+        "development_diagnostic",
+        (
+            "work_i_latent_terminal_estimand_contract",
+            "work_i_latent_terminal_reconstructability",
+        ),
+    ),
+    EvidenceNode(
+        "work_i_latent_terminal_formal_shadow",
+        "workstreams/arxiv_v1/reports/work-i-latent-terminal-shadow-assays-v0.1.json",
+        "formal_result",
+        (
+            "work_i_latent_terminal_estimand_contract",
+            "work_i_latent_terminal_reconstructability",
+            "work_i_latent_terminal_replay_qualification",
+        ),
+    ),
+    EvidenceNode(
+        "work_i_latent_terminal_analysis",
+        "workstreams/arxiv_v1/reports/work-i-latent-terminal-analysis-v0.1.json",
+        "formal_result",
+        (
+            "work_i_latent_terminal_estimand_contract",
+            "work_i_latent_terminal_formal_shadow",
+        ),
+    ),
+    EvidenceNode(
+        "work_i_incremental_data_contract",
+        "configs/benchmark/work_i_incremental_data_contract_v0.1.json",
+        "protocol_input",
+        (
+            "work_i_world_fork_qualification",
+            "work_i_world_fork_certificate",
+            "work_i_known_policy_validity_report",
+            "work_i_known_policy_delivery_manifest",
+            "work_i_latent_terminal_estimand_contract",
+            "work_i_latent_terminal_reconstructability",
+            "work_i_latent_terminal_replay_qualification",
+        ),
+    ),
+    EvidenceNode(
+        "work_i_fvl_derived_data",
+        "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json",
+        "frozen_derived_data",
+        (
+            "work_i_incremental_data_contract",
+            "work_i_world_fork_qualification",
+            "work_i_world_fork_certificate",
+            "work_i_known_policy_formal_audit",
+            "work_i_known_policy_validity_report",
+            "work_i_known_policy_delivery_manifest",
+            "work_i_latent_terminal_estimand_contract",
+            "work_i_latent_terminal_reconstructability",
+            "work_i_latent_terminal_formal_shadow",
+            "work_i_latent_terminal_analysis",
+        ),
+    ),
+    EvidenceNode(
+        "work_i_fvl_derived_manifest",
+        "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.manifest.json",
+        "release_attestation",
+        ("work_i_fvl_derived_data",),
+    ),
+    EvidenceNode(
         "pre_arxiv_claim_evidence_ledger",
         "workstreams/flagship_tasks/reports/"
         "pre-arxiv-claim-evidence-ledger-v1.json",
@@ -527,6 +638,7 @@ ARTIFACT_ROLES = frozenset(
         "fixture",
         "superseded",
         "archive",
+        "frozen_derived_data",
     }
 )
 CURRENT_ARTIFACT_ROLES = ARTIFACT_ROLES - {"superseded", "archive"}
@@ -559,6 +671,7 @@ def _node_producer(node: EvidenceNode) -> str:
         "release_attestation": "frozen_release_qualification",
         "development_diagnostic": "versioned_development_execution",
         "fixture": "maintainer_versioned_fixture",
+        "frozen_derived_data": "frozen_d03_source_bound_assembly",
     }[node.role]
 
 
@@ -572,6 +685,7 @@ def _node_source_binding(node: EvidenceNode) -> str:
         ),
         "development_diagnostic": "content_and_versioned_source_sha256",
         "fixture": "content_sha256",
+        "frozen_derived_data": "immutable_source_manifest_sha256",
     }[node.role]
 
 
@@ -620,6 +734,17 @@ CURRENT_PATH_RULES = (
         ("publication", "claim_evidence_ledger"),
         "development_diagnostic",
     ),
+    CurrentPathRule(("work_i_fvl", "data_contract"), "protocol_input"),
+    CurrentPathRule(("work_i_fvl", "world_fork_report"), "formal_result"),
+    CurrentPathRule(("work_i_fvl", "world_fork_certificate"), "release_attestation"),
+    CurrentPathRule(("work_i_fvl", "policy_audit"), "formal_result"),
+    CurrentPathRule(("work_i_fvl", "policy_report"), "formal_result"),
+    CurrentPathRule(("work_i_fvl", "policy_manifest"), "release_attestation"),
+    CurrentPathRule(("work_i_fvl", "latent_contract"), "protocol_input"),
+    CurrentPathRule(("work_i_fvl", "latent_formal_report"), "formal_result"),
+    CurrentPathRule(("work_i_fvl", "latent_analysis"), "formal_result"),
+    CurrentPathRule(("work_i_fvl", "derived_data"), "frozen_derived_data"),
+    CurrentPathRule(("work_i_fvl", "derived_manifest"), "release_attestation"),
     CurrentPathRule(("publication", "manuscript"), "development_diagnostic"),
     CurrentPathRule(("mechanism_adaptation", "protocol"), "protocol_input"),
     CurrentPathRule(("mechanism_adaptation", "preflight_report"), "generated_current"),
@@ -980,12 +1105,245 @@ def _mechanism_public_decision_binding_current(
     )
 
 
+def _embedded_json_hash_matches(
+    payload: Mapping[str, Any],
+    field: str,
+    *,
+    ensure_ascii: bool = False,
+    additionally_excluded: tuple[str, ...] = (),
+) -> bool:
+    supplied = payload.get(field)
+    if not isinstance(supplied, str) or len(supplied) != 64:
+        return False
+    candidate = dict(payload)
+    candidate.pop(field, None)
+    for excluded in additionally_excluded:
+        candidate.pop(excluded, None)
+    encoded = json.dumps(
+        candidate,
+        allow_nan=False,
+        ensure_ascii=ensure_ascii,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest() == supplied
+
+
+def _manifest_files_match(payload: Mapping[str, Any]) -> bool:
+    files = payload.get("files")
+    if not isinstance(files, list) or payload.get("file_count") != len(files):
+        return False
+    for row in files:
+        if not isinstance(row, Mapping):
+            return False
+        relative = row.get("path")
+        if not isinstance(relative, str):
+            return False
+        path = ROOT / relative
+        if not path.is_file():
+            return False
+        if row.get("bytes") != path.stat().st_size or row.get("sha256") != file_sha256(path):
+            return False
+    return True
+
+
+def _work_i_source_binding_current(
+    node: EvidenceNode,
+    payload: Mapping[str, Any],
+) -> bool | None:
+    """Validate frozen Work I identities without promoting scientific gate state."""
+
+    if not node.node_id.startswith("work_i_"):
+        return None
+    if node.node_id == "work_i_incremental_data_contract":
+        from chemworld.eval.work_i_data_contract import validate_work_i_data_contract
+
+        return not validate_work_i_data_contract(payload, root=ROOT)
+    if node.node_id == "work_i_world_fork_qualification":
+        return bool(
+            _embedded_json_hash_matches(payload, "report_sha256", ensure_ascii=True)
+            and payload.get("passed") is True
+            and payload.get("pair_count") == 6
+            and payload.get("trace_count") == 24
+            and payload.get("provider_call_count") == 0
+        )
+    if node.node_id == "work_i_world_fork_certificate":
+        qualification_path = ROOT / node_map()["work_i_world_fork_qualification"].path
+        qualification = load_json_object(qualification_path)
+        source = payload.get("source", {})
+        return bool(
+            _embedded_json_hash_matches(
+                payload,
+                "certificate_sha256",
+                ensure_ascii=True,
+                additionally_excluded=("certificate_id",),
+            )
+            and isinstance(source, Mapping)
+            and source.get("formal_report_content_sha256")
+            == qualification.get("report_sha256")
+            and source.get("formal_report_file_sha256") == file_sha256(qualification_path)
+            and payload.get("result", {}).get("passed") is True
+        )
+    if node.node_id == "work_i_known_policy_formal_audit":
+        counts = payload.get("counts", {})
+        return bool(
+            _embedded_json_hash_matches(payload, "audit_sha256")
+            and payload.get("status") == "passed"
+            and payload.get("passed") is True
+            and isinstance(counts, Mapping)
+            and counts.get("campaigns") == 30
+            and counts.get("closed_lifecycles") == 180
+            and counts.get("provider_calls") == 0
+        )
+    if node.node_id == "work_i_known_policy_validity_report":
+        audit_path = ROOT / node_map()["work_i_known_policy_formal_audit"].path
+        audit = load_json_object(audit_path)
+        formal_binding = payload.get("input_bindings", {}).get("formal_audit", {})
+        estimand = payload.get("estimand", {})
+        return bool(
+            _embedded_json_hash_matches(payload, "report_sha256")
+            and payload.get("status") == "positive_control_established"
+            and isinstance(formal_binding, Mapping)
+            and formal_binding.get("audit_sha256") == audit.get("audit_sha256")
+            and formal_binding.get("file_sha256") == file_sha256(audit_path)
+            and isinstance(estimand, Mapping)
+            and estimand.get("primary_campaigns") == 30
+            and estimand.get("primary_closed_lifecycles") == 180
+            and estimand.get("provider_calls") == 0
+            and estimand.get("retest_in_primary_estimand") is False
+        )
+    if node.node_id == "work_i_known_policy_delivery_manifest":
+        report = load_json_object(
+            ROOT / node_map()["work_i_known_policy_validity_report"].path
+        )
+        audit = load_json_object(ROOT / node_map()["work_i_known_policy_formal_audit"].path)
+        bindings = payload.get("bindings", {})
+        entries = payload.get("entries", [])
+        entries_current = isinstance(entries, list) and all(
+            isinstance(row, Mapping)
+            and isinstance(row.get("path"), str)
+            and (ROOT / str(row["path"])).is_file()
+            and row.get("byte_count") == (ROOT / str(row["path"])).stat().st_size
+            and row.get("file_sha256") == file_sha256(ROOT / str(row["path"]))
+            for row in entries
+        )
+        return bool(
+            _embedded_json_hash_matches(payload, "delivery_manifest_sha256")
+            and payload.get("status") == "complete"
+            and payload.get("immutable") is True
+            and payload.get("entry_count") == len(entries)
+            and entries_current
+            and isinstance(bindings, Mapping)
+            and bindings.get("report_sha256") == report.get("report_sha256")
+            and bindings.get("formal_audit_sha256") == audit.get("audit_sha256")
+        )
+    if node.node_id == "work_i_latent_terminal_estimand_contract":
+        from chemworld.eval.latent_terminal_contract import validate_latent_terminal_contract
+
+        return not validate_latent_terminal_contract(payload, root=ROOT)
+    if node.node_id == "work_i_latent_terminal_reconstructability":
+        from chemworld.eval.latent_terminal_reconstructability import (
+            validate_reconstructability_report,
+        )
+
+        return not validate_reconstructability_report(payload, root=ROOT)
+    if node.node_id == "work_i_latent_terminal_replay_qualification":
+        census = payload.get("census", {})
+        return bool(
+            _embedded_json_hash_matches(payload, "report_sha256")
+            and payload.get("status") == "PASS"
+            and isinstance(census, Mapping)
+            and census.get("agent_provider_calls") == 0
+            and census.get("formal_checkpoint_payloads_loaded") == 0
+            and census.get("formal_shadow_terminal_evaluations_executed") == 0
+            and census.get("formal_latent_discard_scores_accessed") == 0
+        )
+    if node.node_id == "work_i_latent_terminal_formal_shadow":
+        receipts = payload.get("receipts", [])
+        return bool(
+            _embedded_json_hash_matches(payload, "report_sha256")
+            and payload.get("status") == "FAIL"
+            and isinstance(receipts, list)
+            and len(receipts) == 36
+            and sum(row.get("outcome_status") == "resolved" for row in receipts) == 6
+            and sum(row.get("outcome_status") == "unresolved" for row in receipts) == 30
+            and payload.get("contract_sha256")
+            == load_json_object(
+                ROOT / node_map()["work_i_latent_terminal_estimand_contract"].path
+            ).get("contract_sha256")
+        )
+    if node.node_id == "work_i_latent_terminal_analysis":
+        from chemworld.eval.latent_terminal_analysis import validate_latent_terminal_analysis
+
+        census = payload.get("census", {})
+        missingness = payload.get("missingness_and_censoring", {})
+        return bool(
+            not validate_latent_terminal_analysis(payload)
+            and payload.get("status") == "incomplete_full_report_required"
+            and isinstance(census, Mapping)
+            and census.get("resolved_shadow_receipts") == 6
+            and census.get("unresolved_shadow_receipts") == 30
+            and isinstance(missingness, Mapping)
+            and missingness.get("complete_case_primary_used") is False
+        )
+    if node.node_id == "work_i_fvl_derived_data":
+        incremental = payload.get("work_i_incremental", {})
+        counts = incremental.get("record_counts", {}) if isinstance(incremental, Mapping) else {}
+        contract = load_json_object(ROOT / node_map()["work_i_incremental_data_contract"].path)
+        return bool(
+            _embedded_json_hash_matches(payload, "derived_data_sha256")
+            and payload.get("status") == "frozen_complete"
+            and isinstance(incremental, Mapping)
+            and incremental.get("data_contract_sha256") == contract.get("contract_sha256")
+            and counts
+            == {
+                "F": {
+                    "world_fork_expectations": 12,
+                    "world_fork_pairs": 6,
+                    "world_fork_traces": 24,
+                },
+                "L": {
+                    "campaign_cells": 10,
+                    "latent_discard_units": 36,
+                    "terminal_lifecycles": 60,
+                },
+                "V": {
+                    "policy_campaign_profiles": 30,
+                    "policy_lifecycles": 180,
+                    "policy_retest_campaigns": 30,
+                },
+            }
+            and incremental.get("scientific_boundaries", {}).get(
+                "latent_complete_case_substitution_used"
+            )
+            is False
+            and incremental.get("scientific_boundaries", {}).get(
+                "raw_hidden_state_or_provider_payloads_included"
+            )
+            is False
+        )
+    if node.node_id == "work_i_fvl_derived_manifest":
+        derived_path = ROOT / node_map()["work_i_fvl_derived_data"].path
+        derived = load_json_object(derived_path)
+        return bool(
+            _embedded_json_hash_matches(payload, "manifest_sha256")
+            and payload.get("status") == "frozen"
+            and payload.get("immutable") is True
+            and payload.get("derived_data_sha256") == derived.get("derived_data_sha256")
+            and _manifest_files_match(payload)
+        )
+    return False
+
+
 def _artifact_source_binding_current(
     node: EvidenceNode,
     payload: Mapping[str, Any],
 ) -> bool:
     """Verify declared report provenance against current executable source."""
 
+    work_i_binding = _work_i_source_binding_current(node, payload)
+    if work_i_binding is not None:
+        return work_i_binding
     if node.role in {"protocol_input", "fixture"}:
         return True
     if node.node_id == "runtime_affordance":
@@ -1310,6 +1668,14 @@ def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
         return "passed" if payload.get("pass") else "blocked"
     if node.node_id == "mechanism_release_qualification":
         return "passed" if payload.get("qualified") else "blocked"
+    if node.node_id == "work_i_latent_terminal_formal_shadow":
+        return "blocked" if payload.get("status") == "FAIL" else "passed"
+    if node.node_id == "work_i_latent_terminal_analysis":
+        return (
+            "blocked"
+            if payload.get("status") == "incomplete_full_report_required"
+            else "passed"
+        )
     if payload.get("passed") is False or payload.get("controls_ready") is False:
         return "blocked"
     return "passed"
@@ -1417,6 +1783,10 @@ def _write_current_registry() -> None:
         ROOT / node_map()["static_s0_five_task_postqualification_summary"].path
     )
     task_design_matrix = load_json_object(ROOT / node_map()["task_design_matrix"].path)
+    work_i_derived = load_json_object(ROOT / node_map()["work_i_fvl_derived_data"].path)
+    work_i_derived_manifest = load_json_object(
+        ROOT / node_map()["work_i_fvl_derived_manifest"].path
+    )
     mechanism_evidence_current = _mechanism_public_decision_binding_current(
         mechanism_decision,
         mechanism_a2_receipt,
@@ -1995,6 +2365,8 @@ def _write_current_registry() -> None:
         "claim_evidence_ledger": node_map()[
             "pre_arxiv_claim_evidence_ledger"
         ].path,
+        "derived_data": node_map()["work_i_fvl_derived_data"].path,
+        "derived_data_manifest": node_map()["work_i_fvl_derived_manifest"].path,
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
         "remaining_experiment_audit": (
             "workstreams/arxiv_v1/reports/"
@@ -2016,6 +2388,37 @@ def _write_current_registry() -> None:
         },
         "stronger_claim_experiments_pending": False,
         "publication_ready": False,
+    }
+    work_i_node_ids = sorted(
+        node_id for node_id in nodes if node_id.startswith("work_i_")
+    )
+    work_i_incremental = work_i_derived["work_i_incremental"]
+    current["work_i_fvl"] = {
+        "status": "frozen_derived_layer_with_explicit_latent_incompleteness",
+        "all_source_bindings_current": all(
+            nodes[node_id]["artifact_state"] == "current" for node_id in work_i_node_ids
+        ),
+        "registered_node_count": len(work_i_node_ids),
+        "registered_node_ids": work_i_node_ids,
+        "data_contract": node_map()["work_i_incremental_data_contract"].path,
+        "world_fork_report": node_map()["work_i_world_fork_qualification"].path,
+        "world_fork_certificate": node_map()["work_i_world_fork_certificate"].path,
+        "policy_audit": node_map()["work_i_known_policy_formal_audit"].path,
+        "policy_report": node_map()["work_i_known_policy_validity_report"].path,
+        "policy_manifest": node_map()["work_i_known_policy_delivery_manifest"].path,
+        "latent_contract": node_map()["work_i_latent_terminal_estimand_contract"].path,
+        "latent_formal_report": node_map()["work_i_latent_terminal_formal_shadow"].path,
+        "latent_analysis": node_map()["work_i_latent_terminal_analysis"].path,
+        "derived_data": node_map()["work_i_fvl_derived_data"].path,
+        "derived_manifest": node_map()["work_i_fvl_derived_manifest"].path,
+        "data_contract_sha256": work_i_incremental["data_contract_sha256"],
+        "derived_data_sha256": work_i_derived["derived_data_sha256"],
+        "derived_manifest_sha256": work_i_derived_manifest["manifest_sha256"],
+        "record_counts": work_i_incremental["record_counts"],
+        "latent_resolved_shadow_receipts": 6,
+        "latent_unresolved_shadow_receipts": 30,
+        "latent_complete_case_substitution_used": False,
+        "scientific_gate_status": "blocked_on_30_unresolved_latent_receipts",
     }
     blockers: list[dict[str, Any]] = []
     if backend["clean_release_attestation"] != "passed":
