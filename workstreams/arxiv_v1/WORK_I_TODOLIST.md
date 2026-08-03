@@ -278,7 +278,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-V06 | P0 | DONE | 实现 construct-validity、resource 与 exact-replay audit | V01 draft | 是 |
 | W1-V07 | P0 | DONE | runner qualification 与 protocol freeze | V03–V06 | 否 |
 | W1-V08 | P0 | DONE | 执行 30 campaigns / 180 lifecycles | V07 | 否 |
-| W1-V09 | P0 | CHANGES_REQUESTED | 输出 profile recovery、discriminant validity 与 test–retest report | V08 | 是 |
+| W1-V09 | P0 | DONE | 输出 profile recovery、discriminant validity 与 test–retest report | V08 | 是 |
 
 ### 5.4 Latent terminal policy audit
 
