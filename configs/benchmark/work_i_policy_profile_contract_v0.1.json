@@ -1,0 +1,526 @@
+{
+  "aggregation": {
+    "comparison_unit": "paired world x information arm",
+    "formal_cell": "world_id x information_arm x policy_id",
+    "information_contrast": "Nominal-minus-opaque contrasts are paired within physical world and policy.",
+    "lifecycle_count_per_formal_cell": 6,
+    "pooling_rule": "Compute each campaign profile first. Report policy summaries across the ten matched world-arm cells; do not pool lifecycle rows before profile creation.",
+    "primary_unit": "campaign",
+    "undefined_rule": "Return null when a declared denominator is zero; never coerce undefined conditional metrics to zero."
+  },
+  "axes": [
+    {
+      "axis_id": "terminal_commitment",
+      "construct_role": "How often a started experimental lifecycle is closed, and whether the agent commits it to final assay or discards it.",
+      "label": "Lifecycle closure and terminal commitment"
+    },
+    {
+      "axis_id": "evidence_acquisition",
+      "construct_role": "Whether, how often, and how early the agent requests non-final instrument evidence before a terminal decision.",
+      "label": "Active evidence acquisition"
+    },
+    {
+      "axis_id": "evidence_conditioned_action",
+      "construct_role": "Whether observed evidence is followed by further physical investment and whether a preregistered evidence rule predicts the terminal choice.",
+      "label": "Action after evidence"
+    },
+    {
+      "axis_id": "resource_deployment",
+      "construct_role": "How operation attempts, committed physical operations, monetary cost, and risk budget are deployed across closed lifecycles.",
+      "label": "Experimental resource deployment"
+    },
+    {
+      "axis_id": "outcome_trajectory",
+      "construct_role": "When high-scoring assayed conditions are found and whether later assayed conditions retain, lose, or recover the running incumbent.",
+      "label": "Outcome-trajectory organization"
+    }
+  ],
+  "compatibility_bindings": {
+    "global_best_discovery_fraction": "trajectory_learning.discovery_retention_recovery.global_best_discovery_fraction",
+    "loss_episode_recovery_rate": "trajectory_learning.discovery_retention_recovery.recovery_rate",
+    "maximum_absolute_incumbent_drawdown": "trajectory_learning.discovery_retention_recovery.maximum_absolute_drawdown_from_prior_incumbent",
+    "online_incumbent_retention_rate": "trajectory_learning.discovery_retention_recovery.online_retention_rate",
+    "terminal_to_global_best_ratio": "trajectory_learning.discovery_retention_recovery.terminal_to_global_best_ratio"
+  },
+  "construct": {
+    "explicit_non_claims": [
+      "a unitary intelligence, reasoning, or chemical-knowledge score",
+      "equivalence with endpoint optimization performance",
+      "real-laboratory executability or safety",
+      "direct measurement of private beliefs or internal cognition",
+      "comparability across resource cards without an explicit contrast"
+    ],
+    "name": "experimental agency",
+    "operational_definition": "The observable organization of resource-constrained experimental choices over typed operations, active evidence acquisition, post-evidence action, and lifecycle termination in a hidden stateful chemical world.",
+    "representation": "multidimensional profile; no composite score",
+    "unit_of_measurement": "one campaign in one fixed world and information arm"
+  },
+  "contract_sha256": "01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262",
+  "counting_rules": {
+    "closed_lifecycle": "Exactly one committed terminal action, final_assay or discard, closes a started vessel lifecycle.",
+    "committed_operation": "An attempt with transaction_status=committed.",
+    "cost_and_risk": "Use campaign ledger deltas; penalties from charged failed attempts remain included, while rejected candidate-state physical changes remain excluded.",
+    "measurement": "A committed measure operation whose instrument is not final_assay; cached observations and failed measurements do not count.",
+    "operation_attempt": "Every environment step admitted to campaign resource preflight, including validation failures and transactional rollbacks, is an attempted operation.",
+    "post_measure_process_operation": "A committed non-measure, non-terminal physical operation strictly after the first committed non-final measurement in the same lifecycle."
+  },
+  "endpoint_context": [
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "endpoint_context",
+      "denominator": "final_assay_count",
+      "interpretation": "reported beside, never combined into, the experimental-agency profile",
+      "known_policy_role": "context only",
+      "label": "Mean assayed score",
+      "lower_bound": null,
+      "metric_id": "mean_assayed_score",
+      "null_when": "no committed final assay exists",
+      "nullable": true,
+      "operational_definition": "Arithmetic mean of committed final-assay scores.",
+      "source_events": [
+        "final_assay:score"
+      ],
+      "unit": "score units",
+      "upper_bound": null,
+      "value_kind": "score"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "endpoint_context",
+      "denominator": "final_assay_count",
+      "interpretation": "reported beside, never combined into, the experimental-agency profile",
+      "known_policy_role": "context only",
+      "label": "Best assayed score",
+      "lower_bound": null,
+      "metric_id": "best_assayed_score",
+      "null_when": "no committed final assay exists",
+      "nullable": true,
+      "operational_definition": "Maximum committed final-assay score in the campaign.",
+      "source_events": [
+        "final_assay:score"
+      ],
+      "unit": "score units",
+      "upper_bound": null,
+      "value_kind": "score"
+    }
+  ],
+  "freeze_boundary": {
+    "frozen_before_formal_policy_execution": true,
+    "outcome_independent": true,
+    "retention_fraction": 0.9,
+    "retention_fraction_provenance": "pre-existing frozen G2 process-profile definition; not tuned on known-policy outcomes",
+    "threshold_values_defined_elsewhere": "W1-V03 qualification worlds only"
+  },
+  "invariants": [
+    "closed_lifecycle_count = final_assay_count + discard_count",
+    "closed_lifecycle_count <= planned_lifecycle_count",
+    "measured_lifecycle_count <= closed_lifecycle_count",
+    "threshold_eligible_lifecycle_count <= measured_lifecycle_count",
+    "assay_fraction + discard_fraction = 1 when closed_lifecycle_count > 0",
+    "endpoint_context is null when final_assay_count = 0",
+    "profile values are reconstructed from immutable events and resource ledgers"
+  ],
+  "metrics": [
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "terminal_commitment",
+      "denominator": "planned_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "completion gate",
+      "label": "Closed lifecycle fraction",
+      "lower_bound": 0.0,
+      "metric_id": "closed_lifecycle_fraction",
+      "null_when": null,
+      "nullable": false,
+      "operational_definition": "Committed final assays plus committed discards divided by planned lifecycles.",
+      "source_events": [
+        "final_assay",
+        "discard"
+      ],
+      "unit": "fraction",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "terminal_commitment",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "primary",
+      "label": "Assay commitment fraction",
+      "lower_bound": 0.0,
+      "metric_id": "assay_fraction",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "Committed final assays divided by closed lifecycles.",
+      "source_events": [
+        "final_assay"
+      ],
+      "unit": "fraction",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "terminal_commitment",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "primary",
+      "label": "Discard fraction",
+      "lower_bound": 0.0,
+      "metric_id": "discard_fraction",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "Committed discards divided by closed lifecycles.",
+      "source_events": [
+        "discard"
+      ],
+      "unit": "fraction",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "evidence_acquisition",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "primary",
+      "label": "Measured lifecycle fraction",
+      "lower_bound": 0.0,
+      "metric_id": "measured_lifecycle_fraction",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "Closed lifecycles containing at least one committed non-final instrument measurement divided by closed lifecycles.",
+      "source_events": [
+        "measure:nonfinal"
+      ],
+      "unit": "fraction",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "evidence_acquisition",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "primary",
+      "label": "Instrument uses per closed lifecycle",
+      "lower_bound": 0.0,
+      "metric_id": "nonfinal_instrument_uses_per_closed_lifecycle",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "Committed non-final measurements divided by closed lifecycles.",
+      "source_events": [
+        "measure:nonfinal"
+      ],
+      "unit": "uses/lifecycle",
+      "upper_bound": null,
+      "value_kind": "nonnegative_rate"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "evidence_acquisition",
+      "denominator": "measured_lifecycle_count",
+      "interpretation": "lower values indicate earlier evidence acquisition; not a quality ranking",
+      "known_policy_role": "secondary",
+      "label": "First-measurement timing",
+      "lower_bound": 0.0,
+      "metric_id": "mean_first_measurement_operation_fraction",
+      "null_when": "no closed lifecycle contains a committed non-final measurement",
+      "nullable": true,
+      "operational_definition": "For measured lifecycles, the zero-based number of preceding attempted operations divided by the number of attempted operations before and including the terminal action, averaged across measured lifecycles.",
+      "source_events": [
+        "operation_attempt",
+        "measure:nonfinal",
+        "final_assay",
+        "discard"
+      ],
+      "unit": "fraction of lifecycle operations",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "evidence_conditioned_action",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "primary",
+      "label": "Continued investment after evidence",
+      "lower_bound": 0.0,
+      "metric_id": "continued_after_measurement_fraction",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "Closed lifecycles with at least one committed physical process operation after their first committed non-final measurement and before termination, divided by all closed lifecycles.",
+      "source_events": [
+        "measure:nonfinal",
+        "committed_process_operation"
+      ],
+      "unit": "fraction",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "evidence_conditioned_action",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "secondary",
+      "label": "Post-measure process operations",
+      "lower_bound": 0.0,
+      "metric_id": "post_measure_process_operations_per_closed_lifecycle",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "Committed physical process operations after the first non-final measurement and before termination, divided by closed lifecycles.",
+      "source_events": [
+        "measure:nonfinal",
+        "committed_process_operation"
+      ],
+      "unit": "operations/lifecycle",
+      "upper_bound": null,
+      "value_kind": "nonnegative_rate"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "evidence_conditioned_action",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "eligibility gate",
+      "label": "Threshold-eligible lifecycle fraction",
+      "lower_bound": 0.0,
+      "metric_id": "threshold_eligible_fraction",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "Closed lifecycles with the preregistered diagnostic instrument and a finite decision signal divided by closed lifecycles.",
+      "source_events": [
+        "measure:preregistered_diagnostic"
+      ],
+      "unit": "fraction",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "evidence_conditioned_action",
+      "denominator": "threshold_eligible_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "primary",
+      "label": "Evidence-to-terminal concordance",
+      "lower_bound": 0.0,
+      "metric_id": "threshold_decision_concordance",
+      "null_when": "no closed lifecycle has a finite preregistered diagnostic signal",
+      "nullable": true,
+      "operational_definition": "Threshold-eligible lifecycles whose committed terminal action equals the preregistered mapping from diagnostic signal to assay or discard, divided by threshold-eligible lifecycles.",
+      "source_events": [
+        "measure:preregistered_diagnostic",
+        "final_assay",
+        "discard"
+      ],
+      "unit": "fraction",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "resource_deployment",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "primary",
+      "label": "Attempted operations per closed lifecycle",
+      "lower_bound": 0.0,
+      "metric_id": "attempted_operations_per_closed_lifecycle",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "All charged operation attempts divided by closed lifecycles.",
+      "source_events": [
+        "operation_attempt"
+      ],
+      "unit": "attempts/lifecycle",
+      "upper_bound": null,
+      "value_kind": "nonnegative_rate"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "resource_deployment",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "secondary",
+      "label": "Committed operations per closed lifecycle",
+      "lower_bound": 0.0,
+      "metric_id": "committed_operations_per_closed_lifecycle",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "Committed typed operations divided by closed lifecycles.",
+      "source_events": [
+        "operation_committed"
+      ],
+      "unit": "operations/lifecycle",
+      "upper_bound": null,
+      "value_kind": "nonnegative_rate"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "resource_deployment",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "primary",
+      "label": "Cost per closed lifecycle",
+      "lower_bound": 0.0,
+      "metric_id": "total_cost_per_closed_lifecycle",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "Campaign cost-ledger debit divided by closed lifecycles.",
+      "source_events": [
+        "cost_ledger_delta"
+      ],
+      "unit": "cost units/lifecycle",
+      "upper_bound": null,
+      "value_kind": "nonnegative_rate"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "resource_deployment",
+      "denominator": "closed_lifecycle_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "secondary",
+      "label": "Risk debit per closed lifecycle",
+      "lower_bound": 0.0,
+      "metric_id": "total_risk_per_closed_lifecycle",
+      "null_when": "no lifecycle is closed",
+      "nullable": true,
+      "operational_definition": "Campaign risk-ledger debit divided by closed lifecycles.",
+      "source_events": [
+        "risk_ledger_delta"
+      ],
+      "unit": "risk units/lifecycle",
+      "upper_bound": null,
+      "value_kind": "nonnegative_rate"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "outcome_trajectory",
+      "denominator": "final_assay_count",
+      "interpretation": "lower values mean earlier discovery of the observed campaign best",
+      "known_policy_role": "descriptive extension",
+      "label": "Global-best discovery fraction",
+      "lower_bound": 0.0,
+      "metric_id": "global_best_discovery_fraction",
+      "null_when": "no committed final assay exists",
+      "nullable": true,
+      "operational_definition": "Zero-based ordinal of the first observed campaign-best final assay divided by one fewer than the number of final assays; defined as zero for one assay.",
+      "source_events": [
+        "final_assay:score"
+      ],
+      "unit": "fraction of assayed sequence",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "outcome_trajectory",
+      "denominator": "final_assay_count_minus_one",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "descriptive extension",
+      "label": "Online incumbent retention",
+      "lower_bound": 0.0,
+      "metric_id": "online_incumbent_retention_rate",
+      "null_when": "fewer than two committed final assays exist",
+      "nullable": true,
+      "operational_definition": "Final assays after the first scoring at least the frozen retention fraction of their pre-assay incumbent, divided by retention opportunities.",
+      "source_events": [
+        "final_assay:score"
+      ],
+      "unit": "fraction",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "outcome_trajectory",
+      "denominator": "final_assay_count_minus_one",
+      "interpretation": "lower values indicate smaller observed loss from the incumbent",
+      "known_policy_role": "descriptive extension",
+      "label": "Maximum incumbent drawdown",
+      "lower_bound": 0.0,
+      "metric_id": "maximum_absolute_incumbent_drawdown",
+      "null_when": "fewer than two committed final assays exist",
+      "nullable": true,
+      "operational_definition": "Largest positive difference between a pre-assay running-best score and the next assayed score.",
+      "source_events": [
+        "final_assay:score"
+      ],
+      "unit": "score units",
+      "upper_bound": null,
+      "value_kind": "nonnegative_rate"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "outcome_trajectory",
+      "denominator": "loss_episode_count",
+      "interpretation": "descriptive; no globally better direction",
+      "known_policy_role": "descriptive extension",
+      "label": "Loss-episode recovery rate",
+      "lower_bound": 0.0,
+      "metric_id": "loss_episode_recovery_rate",
+      "null_when": "no loss episode is observed",
+      "nullable": true,
+      "operational_definition": "Loss episodes recovered before campaign termination divided by all observed loss episodes; unresolved terminal episodes remain right-censored failures.",
+      "source_events": [
+        "final_assay:score"
+      ],
+      "unit": "fraction",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    },
+    {
+      "aggregation_unit": "campaign",
+      "axis_id": "outcome_trajectory",
+      "denominator": "final_assay_count",
+      "interpretation": "higher values indicate closer terminal retention of the observed best",
+      "known_policy_role": "descriptive extension",
+      "label": "Terminal-to-best retention",
+      "lower_bound": 0.0,
+      "metric_id": "terminal_to_global_best_ratio",
+      "null_when": "no positive committed final-assay score exists",
+      "nullable": true,
+      "operational_definition": "Terminal assayed score divided by the observed campaign-best assayed score.",
+      "source_events": [
+        "final_assay:score"
+      ],
+      "unit": "ratio",
+      "upper_bound": 1.0,
+      "value_kind": "proportion"
+    }
+  ],
+  "profile_record": {
+    "construct_axis_container": "construct_axes",
+    "endpoint_container": "endpoint_context",
+    "reliability_fields": [
+      "trajectory_exact_replay_match",
+      "profile_exact_rebuild_match",
+      "provider_call_count"
+    ],
+    "required_count_fields": [
+      "planned_lifecycle_count",
+      "closed_lifecycle_count",
+      "final_assay_count",
+      "discard_count",
+      "measured_lifecycle_count",
+      "threshold_eligible_lifecycle_count"
+    ],
+    "required_identity_fields": [
+      "campaign_id",
+      "world_id",
+      "information_arm",
+      "policy_id",
+      "resource_card_sha256",
+      "trajectory_manifest_sha256"
+    ]
+  },
+  "reliability": {
+    "exact_replay": "Original and replayed trajectories must match event, state, resource, and profile hashes exactly.",
+    "provider_calls_for_known_policy_controls": 0,
+    "test_retest": "Deterministic known policies must yield identical profiles when rerun from the same world identity, seed, arm, and resource card."
+  },
+  "schema_id": "chemworld.experimental_agency_profile",
+  "schema_version": "0.1.0"
+}
