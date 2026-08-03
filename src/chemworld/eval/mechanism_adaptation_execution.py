@@ -1279,8 +1279,8 @@ def _reference_predictive_adequacy(
         calibrated_mean = mean + nuisance_offset * np.sqrt(variance)
         calibrated_variance = variance * nuisance_scale**2
         residual_squared = ((selected - calibrated_mean) ** 2) / calibrated_variance
-        action_msse = float(np.mean(residual_squared))
-        by_action.setdefault(action_id, []).append(action_msse)
+        held_out_action_msse = float(np.mean(residual_squared))
+        by_action.setdefault(action_id, []).append(held_out_action_msse)
         squared_standardized_error += float(np.sum(residual_squared))
         covered_95 += int(np.sum(np.sqrt(residual_squared) <= 1.959963984540054))
         log_score += float(
@@ -1298,18 +1298,18 @@ def _reference_predictive_adequacy(
                 "nuisance_scale": nuisance_scale,
             }
         )
-    action_msse = {
+    action_msse_by_action: dict[str, float] = {
         action_id: float(np.mean(values))
         for action_id, values in sorted(by_action.items())
         if values
     }
-    all_actions_checked = set(action_msse) == required
+    all_actions_checked = set(action_msse_by_action) == required
     mean_msse = (
         squared_standardized_error / dimension_count
         if dimension_count
         else math.inf
     )
-    max_action_msse = max(action_msse.values(), default=math.inf)
+    max_action_msse = max(action_msse_by_action.values(), default=math.inf)
     checks = {
         "cross_fitting_has_at_least_two_pre_change_observations": (
             len(prepared) >= 2
@@ -1355,7 +1355,7 @@ def _reference_predictive_adequacy(
         "mean_predictive_log_score_per_dimension": (
             log_score / dimension_count if dimension_count else None
         ),
-        "action_mean_standardized_squared_error": action_msse,
+        "action_mean_standardized_squared_error": action_msse_by_action,
         "cross_fit_parameters": cross_fit_parameters,
         "thresholds": {
             "maximum_mean_standardized_squared_error": (
@@ -3327,7 +3327,9 @@ def run_online_attainability_certificate(
                     "relational_stable_contrast",
                 )
             )
-        evidence_samples = {
+        evidence_samples: dict[
+            tuple[str, str], Sequence[Sequence[float]]
+        ] = {
             (
                 candidate_id,
                 _online_evidence_channel(encoding, action_id),
@@ -3929,9 +3931,14 @@ def run_online_attainability_certificate(
     def family_macro(
         values: Sequence[float | None],
     ) -> float | None:
+        numeric_values = [
+            float(value)
+            for value in values
+            if isinstance(value, int | float)
+        ]
         return (
-            float(np.mean(values))
-            if values and all(isinstance(value, int | float) for value in values)
+            float(np.mean(numeric_values))
+            if numeric_values and len(numeric_values) == len(values)
             else None
         )
 
