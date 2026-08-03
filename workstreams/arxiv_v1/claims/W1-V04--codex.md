@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-V04
 title: "Implement deterministic known-policy controllers"
-status: CLAIMED
+status: ACTIVE
 
 owner: codex
 collaborators: []
 claimed_at_utc: 2026-08-03T06:45:52Z
 lease_expires_at_utc: 2026-08-05T06:45:52Z
-heartbeat_at_utc: 2026-08-03T06:45:52Z
+heartbeat_at_utc: 2026-08-03T06:52:02Z
 
 base_commit: "e0ad2cbceef68e7eb764c7d0b88894d4bb09f63b"
 branch: work1/w1-v04-known-policy-controllers
