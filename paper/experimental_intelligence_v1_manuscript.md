@@ -133,356 +133,366 @@ within-world fresh-session replication. It does not replace a robotic
 laboratory; it provides the controlled measurement apparatus that a real
 laboratory cannot economically instantiate at scale.
 
-# 3. ChemWorld makes experimental agency measurable
+# 3. ChemWorld is a programmable measurement apparatus
 
-## 3.1 Executable worlds rather than value-returning oracles
+## 3.1 Experiments are stateful processes rather than value queries
 
-A ChemWorld task defines a hidden physical state, public observation contract,
-typed operations, instrument responses, resource endowment, failure semantics
-and one or more evaluator-bound endpoints. Operations change state. Measurements
-are actions with costs and timing consequences. Termination closes a vessel, and
-a final assay is explicitly requested rather than automatically revealed.
+ChemWorld represents an experiment as a stateful sequence of typed operations and
+measurements. A task binds hidden simulator state, a public observation contract,
+instruments, resources, failures and evaluator endpoints. Operations can change state;
+measurements consume resources and expose bounded synthetic signals; termination closes
+a lifecycle only through an explicit final assay or discard. The apparatus records
+transaction outcomes, resource events and evaluator inputs while keeping audit-only
+world identity and hidden state outside the agent view (Fig. 1A--B).
 
-The qualified environment surface contains 15 registered tasks, 28 operation
-types, five instrument classes, 415 deterministic complete-experiment boundary
-cases and 62 evaluator-bound endpoints (Fig. 1). Qualification establishes
-runtime reachability and evaluator binding. The empirical paper uses two tasks
-for compiled controls and one for autonomous primitive control, keeping platform
-scope and evidence scope explicit.
+The registered surface contains 15 live task contracts, 28 typed operation kinds and
+five public instrument contracts. Qualification executed 415 complete-experiment
+boundary recipes and resolved 62 ordered task-by-metric bindings, containing 43 unique
+metric identifiers, to executable evaluators. These are distinct counting units: the
+415 executions are qualification recipes, not tasks, agent trials, independent samples
+or physical experiments. The campaign-only terminal decision `discard_batch` is also
+outside the 28-member operation registry.
+
+All 28 registered operations committed in at least one valid context. In paired invalid
+probes, the pre-action simulator-state projection was preserved. Only a `committed`
+transaction installs a candidate state transition; `validation_failed`, `rolled_back`
+and `campaign_resource_rejected` outcomes preserve the pre-action simulator state while
+retaining the appropriate attempted-action or process accounting. The five instrument
+contracts likewise matched their declared cost, sample consumption and terminal
+preconditions. These checks qualify executable semantics, not laboratory instruments,
+real material custody or physical safety.
+
+## 3.2 Single-component forks test controlled programmability
+
+The frozen programmability qualification changed one named private component at a time:
+either `private_physics.constitutive_laws` or `private_physics.material_laws`. Each of six
+parent--child pairs---two intervention classes across three seeds---preserved all nine
+declared public-contract components while executing the same fixed midpoint action
+sequence (Fig. 1C--D). Repeating both variants produced
+$6\ \text{pairs}\times2\ \text{variants}\times2\ \text{executions}=24$ traces with
+zero model-provider calls. All pairs passed lineage, single-target, public-invariance,
+same-sequence executability, preregistered state and observation divergence, exact
+replay and zero-provider gates.
 
 ```{=latex}
 \begin{figure*}[!tbp]
 \centering
-\includegraphics[width=\textwidth]{figures/figure-1-controlled-apparatus.pdf}
-\caption{\textbf{ChemWorld is a controlled apparatus for measuring experimental agency.}
-\textbf{A,} The agent selects a typed action, the executable world changes state, and only the public observation returns to the agent; the transition also writes a resource ledger and immutable trace.
-\textbf{B,} Physical identity and material information can be matched or intervened on while authority, evidence and resources remain explicit parts of the protocol.
-\textbf{C,} Typed state, transactions, receipts, traces and physical replay form an auditable spine; invalid actions and failures remain evidence.
-\textbf{D,} Qualified platform surface and the narrower evidence scope used in this paper.}
+\includegraphics[width=\textwidth]{figures/experimental-intelligence-v1/publication/figure-1-apparatus-world-forks.pdf}
+\caption{\textbf{ChemWorld apparatus and controlled world forks.}
+\textbf{A,} An agent selects a typed action; the executable world returns only the public observation while recording the identity-bound transition.
+\textbf{B,} Hidden simulator-world and material identity, action authority, evidence access, resource accounting and replay are separate protocol controls.
+\textbf{C,} The frozen qualification changes one named private component while preserving nine public-contract components.
+\textbf{D,} Six parent--child pairs and 24 provider-free traces passed the registered programmability gates. These probes establish the tested executable-world interventions, not agent performance, arbitrary world recombination, rule adaptation or physical transfer.}
 \label{fig:apparatus}
 \end{figure*}
 ```
 
-## 3.2 Controlled identity, resources and replay
-
-Every run binds source, configuration, task, physical world, material instance,
-observation namespace and trajectory identity. The public agent view excludes
-hidden evaluator state. Accepted operations are transactional: a successful
-transition updates state and consumes the corresponding resources; a rejected
-operation records its failure without silently repairing the action.
-
-The campaign ledger spans raw materials, solvent, vessels, non-final instrument
-uses, operation attempts and provider sessions. This design makes opportunity
-cost part of the experimental record while keeping the ledger external to the
-prompt. Agents access compact status and history artifacts on demand rather than
-receiving a continually expanding transcript.
-
-Exact replay means exact reconstruction of environment transitions, public
-observations and resource changes from the stored trajectory. It does not mean
-regeneration of the language model's token sequence. Fresh-session replication
-therefore deliberately samples a new agent trajectory while holding the
-physical world fixed.
-
-## 3.3 Evidence layers and analysis units
-
-The number of executed world transitions measures use of the apparatus, not the
-number of statistically independent samples. Table 1 separates those quantities
-throughout the paper.
+Exact replay reconstructs environment transitions, public observations and resource
+changes from an immutable trajectory. It does not reproduce a physical batch or a
+language model's token sequence. The evidence layers below therefore retain their own
+analysis units rather than counting operations, replays or figure marks as independent
+samples (Table 1).
 
 ```{=latex}
 \begin{table*}[t]
 \centering
-\caption{\textbf{Evidence layers and effective analysis units.} Execution counts describe the scale at which the apparatus was exercised; inference is organized around worlds and fresh session-level pairs.}
+\caption{\textbf{Evidence layers and analysis units.} Execution counts describe use of the apparatus; each layer retains its frozen denominator and claim ceiling.}
 \label{tab:evidence}
 \small
-\begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}p{0.25\textwidth}p{0.20\textwidth}X@{}}
+\begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}p{0.26\textwidth}p{0.22\textwidth}X@{}}
 \toprule
-Evidence layer & Purpose & Executions & Primary analysis unit \\
+Evidence layer & Purpose & Execution census & Primary analysis unit \\
 \midrule
-Platform qualification & Reachability and evaluator binding & 415 boundary cases & declared task/endpoint \\
-Compiled control & Task, information and diagnostic calibration & 29,580 simulator executions & paired physical world; 10 per task and arm \\
-Primitive-control systems & Lifecycle autonomy, interface portability and trajectory policy & 120 closed vessels; 1,704 operations & complete agent system by world and arm; 2 systems, 5 worlds \\
-Fresh-session replication & Within-world directional repeatability & 114 started vessels; 112 final assays & world by session-level arm pair; 4 complete pairs per world \\
+Platform and forks & Executable semantics and controlled programmability & 415 boundary recipes; 6 fork pairs/24 traces & registered contract or parent--child pair \\
+Known policies & Positive-control measurement validity & 30 primary campaigns/180 closed lifecycles & campaign profile; retests excluded \\
+Compiled controls & Outcome and epistemic decomposition & 29,580 simulator executions & paired simulator world; 10 per task and arm \\
+Complete systems & Lifecycle and terminal-policy profiles & 120 closed lifecycles; 1,704 attempted operations & complete system by world and arm \\
+Latent terminal & Preregistered discarded-state audit & 36 registered receipts; 6 resolved/30 unresolved & fixed 36-discard population with censoring \\
+Fresh trajectories & Within-world process variation & 8 complete pairs plus 2 right-censored pairs & simulator world by fresh trajectory replicate \\
 \bottomrule
 \end{tabularx}
 \end{table*}
 ```
 
-# 4. Compiled controls separate outcome from evidence use
+The certificate is deliberately narrow. It does not establish untested multi-component
+recombination, a general world-authoring language, agent adaptation or law learning,
+model ranking, or transfer to a physical laboratory.
 
-Compiled control gives the agent a bounded complete-experiment interface. It is
-not the target autonomy setting; it is a controlled calibration that can be run
-across tasks, information conditions and classical optimization policies.
+# 4. Known policies validate the experimental-agency profile
 
-Across ten sequentially collected matched worlds, the nominal-information arm produced a mean
-nominal-minus-opaque score difference of 0.072 in electrochemical conversion
-(8/10 positive worlds; 97.5% per-task world-bootstrap interval 0.007 to
-0.155) and 0.026 in reaction-to-crystallization (7/10 positive; interval -0.013
-to 0.063). The two 97.5% intervals are multiplicity-adjusted descriptive
-stability intervals for the pre-specified two-task analysis. Thus the matched
-information conditions were associated with distinct outcome profiles in the two
-executable task families
-(Fig. 2A).
+Before interpreting complete agent systems, we asked whether the apparatus could recover
+behavior fixed in advance. The frozen profile keeps terminal commitment, evidence
+acquisition, evidence-conditioned action, resource deployment and outcome-trajectory
+organization separate, with endpoint context reported beside rather than inside those
+axes. The campaign profile is the primary unit; no composite intelligence score is
+formed.
 
-The deliberately misindexed arm provides a manipulation check. It redirected
-the first material-sensitive action in 70% of electrochemical worlds and 100% of
-crystallization worlds. Misleading-action share subsequently fell from 0.54 to
-0.24 in electrochemistry and from 0.86 to 0.50 in crystallization (Fig. 2B).
-The distinction among action manipulation, later correction and performance
-restoration is important: both tasks passed the behavior-change check, while
-their correction and score-restoration checks differed, and neither passed the
-joint rule (Fig. 2C).
+We crossed five simulated electrochemical worlds, two information arms and three
+deterministic known policies. The 30 primary campaigns contained 180/180 closed
+lifecycles and made zero provider calls (Fig. 2). `assay_all` assayed every vessel;
+`start_then_discard` discarded immediately after starting; and
+`measure_then_threshold` acquired one UV--visible conversion signal, discarded values
+below an independently qualified threshold, and otherwise performed one additional
+electrolysis before termination and assay. The threshold policy produced 28 assays and
+32 discards among its 60 primary lifecycles, so both branches were exercised.
 
-Outcome and epistemic diagnostics also gave different profiles. In the opaque
-arm, electrochemical conversion combined a 0.715 endpoint score with 0.744
-held-out directional accuracy, a 0.186 Brier score and a 0.611 unsupported-claim
-rate. Reaction-to-crystallization yielded 0.535, 0.478, 0.298 and 0.714,
-respectively. These measurements are reported separately because none is a
-substitute for another (Fig. 2D).
+The campaign-equal summaries recovered all six preregistered orderings. Mean assay
+fractions were 1.000, 0.467 and 0.000 for `assay_all`, `measure_then_threshold` and
+`start_then_discard`, with the reverse ordering for discard. Only the threshold policy
+measured, used a non-final instrument and performed a further committed process action
+after measurement. Attempted operations per closed lifecycle ordered as threshold
+(6.933) $>$ assay-all (6.000) $>$ immediate-discard (2.000). Conditional quantities
+remained null when their denominators did not exist rather than being coerced to zero,
+and all campaign ledgers reconciled to their committed paths.
+
+All 12 frozen gates passed, including profile reconstruction, resource-ledger replay,
+conditional nulls, signatures, orderings, matched-arm invariance, exact replay and the
+zero-provider gate. A same-identity deterministic retest reproduced the controller,
+trajectory identity, profile and component hashes for all 30 campaign pairs. Those
+additional 30 campaigns and 180 lifecycles are reliability evidence only; they do not
+double the primary sample. Because the policies never read the material dossier,
+matched-arm equality is an interface and identity check, not a causal information null.
 
 ```{=latex}
 \begin{figure*}[!tbp]
 \centering
-\includegraphics[width=\textwidth]{figures/figure-2-compiled-controls.pdf}
-\caption{\textbf{Compiled controls distinguish task outcome, information response and epistemic readouts.}
-\textbf{A,} Paired nominal-minus-opaque score differences across ten worlds per task; squares show means and multiplicity-adjusted 97.5\% per-task world-bootstrap stability intervals.
-\textbf{B,} World-level early-to-late misleading-action shares under a deliberately misindexed material prior.
-\textbf{C,} Commit-frozen manipulation, correction, performance-restoration and joint criteria.
-\textbf{D,} Raw task-level endpoint, held-out prediction, calibration and unsupported-claim readouts. Circle area follows the favourable direction within each metric column; the printed number is the raw value.}
+\includegraphics[width=\textwidth]{figures/experimental-intelligence-v1/publication/figure-2-known-policy-validity.pdf}
+\caption{\textbf{Known policies validate the experimental-agency profile.}
+\textbf{A,} Three frozen policies specify distinct evidence and terminal-decision structures.
+\textbf{B,} Campaign-equal terminal profiles recover assay-all, threshold-gated and immediate-discard signatures.
+\textbf{C,} Evidence acquisition, continued investment and resource use remain separate readouts; registered undefined quantities remain null.
+\textbf{D,} All 30 same-identity deterministic retests match their primary campaigns. The primary evidence comprises 30 campaigns and 180 closed lifecycles; the additional 30 campaigns and 180 lifecycles are excluded reliability retests. This is a bounded positive control in the simulated apparatus, not an endpoint, agent or model ranking.}
+\label{fig:validity}
+\end{figure*}
+```
+
+The positive control establishes bounded construct and discriminant validity for this
+simulated measurement apparatus. It does not establish chemical intelligence,
+stochastic-system reliability, endpoint superiority or transfer to a real laboratory.
+
+# 5. Lifecycle completion does not specify terminal policy
+
+We next placed two **distinct complete agent systems** in the same ten matched
+simulator-world-by-information cells. Model, scaffold, decision transport, evidence
+interface, retry behavior and source identity are all part of each system; the matching
+holds world, material, observation, scoring, workflow and campaign-resource contracts
+fixed. This is a complete-system portability and behavior-profile comparison, not an
+isolated model-backend intervention.
+
+Both systems closed all 60 assigned batch lifecycles. The observed census was **120 closed lifecycles: 84 final assays and 36 explicit discards** (Fig. 3A--B). The
+Codex-based system committed all 60 batches to final assay. The DeepSeek-based system
+committed 24 to assay and 36 to discard. Similar non-final instrument use---164 versus
+163 events---coexisted with 815 versus 889 attempted primitive operations. These are
+repeated-event accounting totals within ten system cells, not independent observations.
+Equal closure therefore did not imply equal terminal commitment, evidence use or
+experimental policy.
+
+Within the DeepSeek-based system, the five nominal-information cells contained 16
+assays and 14 discards, whereas the five opaque-code cells contained 8 assays and 22
+discards. The nominal arm also contained 67 more attempted operations and 17 more
+non-final instrument uses. These five-world paired descriptions do not identify a
+population information effect or explain the cross-system difference causally.
+
+The 36 discards motivated a preregistered evaluator-only counterfactual question: what
+score would the exact pre-discard state receive if the original discard were replaced by
+the evaluator's final assay? The contract froze all identities, thresholds, estimands,
+denominators and missingness rules before formal execution. Reconstructability and
+outcome-blind preflight covered 36/36 checkpoints, but the formal run failed its entry
+gate (Fig. 3C--D). All 36 receipts were retained: 6 resolved and 30 remained unresolved,
+including 11 prefix-identity mismatches, 18 resource-state mismatches and one final-assay
+precondition failure. Original trajectories and ledgers were unchanged, provider calls
+remained zero, and no result was repaired, rerun or replaced.
+
+Terminal quality is consequently unresolved. All latent-dependent point estimates,
+the 60-lifecycle point-classification table and arm point contrasts are withheld. The
+six resolved receipts appear only in registered observed-only diagnostics and sharp
+finite-population bounds, never as a complete-case result. The mean latent-score bound
+was $[0.0000859,0.833419]$ and the mean discard-minus-observed-best bound was
+$[-0.276951,0.556382]$. At the primary threshold, the false-discard fraction remained
+bounded by $[0/36,30/36]$. These support bounds are not confidence intervals and do not
+show whether discard was good, poor, efficient or resource-saving.
+
+```{=latex}
+\begin{figure*}[!tbp]
+\centering
+\includegraphics[width=\textwidth]{figures/experimental-intelligence-v1/publication/figure-3-terminal-policy.pdf}
+\caption{\textbf{Lifecycle completion does not specify terminal policy.}
+\textbf{A,} The 120 closed lifecycles partition into 84 final assays and 36 explicit discards: 60 assays for the Codex-based complete system and 24 assays plus 36 discards for the DeepSeek-based complete system.
+\textbf{B,} Terminal commitments by matched simulator world and information arm; system identities include model, scaffold, transport and run configuration.
+\textbf{C,} All 36 registered discard identities remain in the latent-terminal audit, with 6 resolved and 30 unresolved after the frozen entry gate failed.
+\textbf{D,} Registered censoring and finite-population bounds replace latent-dependent point estimates; the no-discard-opportunity cell remains structurally null. Shadow assays were evaluator-only counterfactual evaluations, were not agent choices or observations, and did not add original agent experiments.}
+\label{fig:terminal-policy}
+\end{figure*}
+```
+
+The observed terminal census remains valid despite the failed counterfactual gate:
+lifecycle closure and terminal commitment are distinct measured coordinates. What
+cannot be inferred is the unobserved quality of the discarded states or the rationality
+of either complete system.
+
+# 6. Compiled controls separate outcome, prediction, calibration and claims
+
+Compiled control supplies a bounded complete-experiment interface. It is not the target
+autonomy setting; it calibrates whether task outcome and epistemic diagnostics can be
+resolved separately across matched tasks, information conditions and classical search
+policies.
+
+Across ten sequentially collected matched worlds, the nominal-information arm produced
+a mean nominal-minus-opaque score difference of 0.072 in electrochemical conversion
+(8/10 positive worlds; multiplicity-adjusted 97.5% per-task world-bootstrap stability
+interval 0.007 to 0.155) and 0.026 in reaction-to-crystallization (7/10 positive;
+interval $-0.013$ to 0.063; Fig. 4A). The deliberately misindexed arm redirected the
+first material-sensitive action in 70% and 100% of the respective worlds. Misleading-
+action share subsequently fell from 0.54 to 0.24 in electrochemistry and from 0.86 to
+0.50 in crystallization. Both tasks passed the behavior-change check, while correction
+and score restoration differed and neither passed the joint rule (Fig. 4B--D).
+
+Outcome and epistemic diagnostics also produced different profiles. In the opaque arm,
+electrochemical conversion combined a 0.715 endpoint score with 0.744 held-out
+directional accuracy, a 0.186 Brier score and a 0.611 unsupported-claim rate.
+Reaction-to-crystallization yielded 0.535, 0.478, 0.298 and 0.714, respectively. None
+substitutes for another, and no unregistered composite is formed.
+
+```{=latex}
+\begin{figure*}[!tbp]
+\centering
+\includegraphics[width=\textwidth]{figures/experimental-intelligence-v1/publication/figure-4-compiled-controls.pdf}
+\caption{\textbf{Compiled controls separate outcome, prediction, calibration and claims.}
+\textbf{A,} Paired nominal-minus-opaque endpoint differences across ten worlds per task, with multiplicity-adjusted 97.5\% per-task world-bootstrap stability intervals.
+\textbf{B,} Held-out prediction and calibration are displayed as separate raw metrics.
+\textbf{C,} Opaque-arm epistemic readouts retain registered missingness without imputation.
+\textbf{D,} Commit-frozen manipulation, correction, performance-restoration and joint gates remain separate. Classical optimizers are calibration controls, not the target competition; the figure supports no scalar ranking or general population information effect.}
 \label{fig:compiled}
 \end{figure*}
 ```
 
-Classical optimizers are retained as calibration controls rather than the
-paper's target competition. Complete world-level contrasts for every baseline,
-including exact sign summaries and leave-one-world-out ranges, are provided in
-the sensitivity artifact. This keeps the empirical question aligned with the
-paper's contribution: what aspects of experimental behavior become measurable
-once the world is a controlled apparatus?
+Complete world-level contrasts, exact sign summaries and leave-one-world-out ranges are
+retained in the sensitivity artifact. The result is capability decomposition inside the
+apparatus, not a language-model-versus-optimizer horse race.
 
-# 5. One apparatus resolves distinct autonomous experimental policies
+# 7. Primitive control exposes complete experimental lifecycles
 
-We exercised the primitive-control protocol with two complete agent systems on
-the same five physical worlds and two material-information arms. Both received
-the same typed action space, instrument access, campaign resource card, hidden
-world and material identities, observation noise and scoring contract. Native
-Codex (`gpt-5.6-sol`, medium reasoning) acted through a fresh MCP session for
-each vessel. DeepSeek V4 Flash made one schema-validated JSON decision per
-primitive operation through a direct provider loop. Because model and scaffold
-change together, this is not an isolated backend comparison. It asks a more
-basic apparatus question: can distinct autonomous systems inhabit the same
-experimental world and leave comparable, auditable behavioral traces?
+The terminal census is interpretable because the primitive-control interface records the
+full path to closure. Each vessel has a public workspace and typed tools, while its
+identity-bound trajectory and complete resource ledger remain external to the prompt.
+One descriptive seven-operation lifecycle places a UV--visible observation in public
+state before the system chooses termination and final assay (Fig. 5A). The observation
+can therefore condition the next action rather than appearing only after the campaign.
 
-Both systems passed that test. Each closed all six batch opportunities in all
-ten cells, yielding 120 closed lifecycles under matched physical identity
-(Fig. 6). Their closure policies were sharply different. Codex requested a
-final assay for all 60 batches and discarded none. DeepSeek requested 24 final
-assays and explicitly discarded 36 batches. Yet their use of non-final
-instruments was nearly identical (164 versus 163), while their operation totals
-were 815 and 889. Thus a scalar completion flag would call both systems
-identical, and a score-only view would omit 36 deliberate abandonment decisions.
-The executable apparatus instead separates evidence acquisition, continued
-investment, terminal assay commitment and discard.
-
-Material information also altered these policies within the DeepSeek system.
-Across the five nominal-information cells it committed 16 batches to final
-assay and discarded 14; under opaque codes it committed eight and discarded 22.
-The nominal arm additionally used 67 more primitive operations. Codex committed
-all 30 batches in each arm to final assay. With five paired worlds these are
-descriptive system-specific profiles, not a population estimate, but they show
-that a material-information contrast can be expressed through resource and
-lifecycle decisions rather than endpoint score alone.
-
-Figure 3 reconstructs the Codex implementation, for which each vessel received
-a public workspace and typed tools while the complete ledger remained external
-to the prompt. Figure 3A shows one vessel. The important feature is not the
-particular seven-operation sequence; it is the placement of observation before
-the next agent decision. A UV--visible measurement entered public state before
-the agent chose to terminate and request the final assay. Figure 3B shows this
-lifecycle across every Codex vessel and information arm, while Fig. 3C
-reconstructs its campaign-level resource receipt.
+The immutable record distinguishes attempted actions, committed state changes, public
+evidence, resource events and explicit terminal commitment (Fig. 5B--D). A committed
+assay or discard closes a started vessel; a validation failure, rejected action or
+rollback can remain in the attempted-operation record without installing its candidate
+state transition. Evidence acquisition, continued investment, resource use,
+termination, assay and discard are consequently separate process coordinates.
 
 ```{=latex}
 \begin{figure*}[!tbp]
 \centering
-\includegraphics[width=\textwidth]{figures/figure-3-autonomous-lifecycle.pdf}
-\caption{\textbf{A primitive-control agent closes complete experimental lifecycles.}
-\textbf{A,} One seven-operation vessel in which a UV--visible observation is available before agent-selected termination and explicit final assay.
-\textbf{B,} All six Codex vessels reached final assay in each of ten world-by-information campaigns; navy denotes opaque codes and coral denotes nominal properties.
-\textbf{C,} The immutable trajectory reconstructs the campaign resource receipt. The example is descriptive and is not part of the fresh-session replication estimand.}
-\label{fig:autonomy}
+\includegraphics[width=\textwidth]{figures/experimental-intelligence-v1/publication/figure-5-complete-lifecycles.pdf}
+\caption{\textbf{Primitive-control agents expose complete experimental lifecycles.}
+\textbf{A,} One descriptive seven-operation lifecycle makes a UV--visible observation available before the next system decision and explicit final assay.
+\textbf{B,} The campaign resource receipt reports units and denominators outside the prompt.
+\textbf{C,} Identity, resource events and exact executable replay align the public process record with audit state.
+\textbf{D,} Failed, rejected and terminal actions retain their distinct transaction and closure semantics. Operations are repeated events within campaigns, not independent samples; replay concerns simulator state and records, not a physical batch or stochastic provider decision.}
+\label{fig:lifecycle}
 \end{figure*}
 ```
 
-# 6. Endpoint scores conceal experimental trajectories
+The example is descriptive and is not part of the fresh-session estimand. Its role is to
+show how process evidence is recorded directly rather than inferred retrospectively
+from an endpoint.
 
-The six-assay Codex campaigns expose structure that a final recommendation
-cannot contain.
-Figure 4 follows six final assays in three development worlds. In world 0, the
-opaque trajectory lost its initial score, recovered by the fourth assay and
-finished near the nominal trajectory. In world 2, the opaque arm discovered its
-campaign best immediately and then lost it, whereas the nominal arm improved
-and retained a higher terminal value. In world 4, both arms began similarly but
-their terminal behavior diverged sharply.
+# 8. Fresh trajectories reveal process structure omitted by endpoints
 
-We operationalize these patterns with four lifecycle readouts. Within-campaign
-best-discovery position records when the observed campaign maximum first
-appears. Online retention asks whether a new assay remains within a pre-specified
-fraction of the pre-assay incumbent. Maximum absolute drawdown records the
-largest departure from that incumbent. Terminal-to-best ratio records how much
-of the observed campaign best remains at the final assay. Loss episodes and
-recovery delays provide additional summaries when a trajectory falls below its
-retention boundary.
+We deliberately selected simulator worlds 1 and 3 before replication because their
+development contrasts pointed in different directions. The commit-frozen design crossed
+two worlds, five fresh trajectory replicates and two information arms, with six vessel
+opportunities per cell. Within each pair, hidden simulator-world, observation and
+resource identities matched; the provider exposed no controllable sampling seed.
+
+Eighteen of 20 cells completed. Two were right-censored after 50 and 56 accepted
+operations by provider-infrastructure failures, leaving four complete matched pairs in
+each selected world while retaining all ten planned pairs in the record (Fig. 6A). The
+authoritative matrix followed a launcher-level restart after a first-launch
+infrastructure incident; the restart rule was recorded before outcome inspection.
+
+The primary endpoint diagnostic uses continuous pairwise contrasts. Across the eight
+complete pairs, nominal-minus-opaque best-of-campaign and raw terminal contrasts were
+sign-discordant in 2/8 pairs, despite a descriptive Pearson correlation of $+0.826$
+(Fig. 6B). In world 3/r01, for example, the best-score contrast was $-0.167$ while the
+raw terminal contrast was $+0.240$. Even correlated endpoint summaries are therefore
+not interchangeable for an individual trajectory.
+
+The process profile additionally separates discovery timing, online retention,
+drawdown, recovery and relative terminal retention (Fig. 6C--D). Under the frozen 75%
+classification, 6/8 selected world-by-lifecycle cells were mixed. This is
+threshold-sensitive supporting evidence, not the primary diagnostic: the mixed count
+ranges from two to eight across the complete threshold-by-zero-handling grid, whereas
+the continuous contrasts and both right-censored pairs remain visible without
+thresholding. Terminal-to-best ratio is a relative-retention readout and is not treated
+as algebraically independent of best score.
 
 ```{=latex}
 \begin{figure*}[!tbp]
 \centering
-\includegraphics[width=\textwidth]{figures/figure-4-trajectory-dynamics.pdf}
-\caption{\textbf{Similar endpoints can arise from different experimental trajectories.}
-Selected development worlds illustrate early discovery followed by loss, gradual improvement, retention and terminal divergence. Open circles mark the first observed campaign best; squares mark terminal assays. Navy denotes opaque material codes and coral denotes nominal material properties. These examples motivate the lifecycle readouts but are not the replication estimand.}
-\label{fig:trajectories}
+\includegraphics[width=\textwidth]{figures/experimental-intelligence-v1/publication/figure-6-fresh-trajectories.pdf}
+\caption{\textbf{Fresh trajectories reveal process structure omitted by endpoints.}
+\textbf{A,} The frozen selected-world design contains eight complete matched pairs and two explicitly right-censored pairs.
+\textbf{B,} Best-of-campaign and raw terminal contrasts disagree in sign for 2/8 complete pairs; this is the primary endpoint diagnostic.
+\textbf{C,} Continuous contrasts separately display discovery, retention, drawdown, recovery and relative terminal retention.
+\textbf{D,} The 6/8 mixed classification is supporting and threshold-sensitive, ranging from two to eight across the frozen sensitivity grid. These deliberately selected worlds describe within-world process variation and are not pooled into a population-level model or information-effect claim.}
+\label{fig:fresh-trajectories}
 \end{figure*}
 ```
 
-Across the five development worlds, nominal information was associated with
-later within-campaign best discovery on average (0.80 versus 0.32 of the
-six-assay horizon), together with higher retention (0.72 versus 0.52), smaller
-mean maximum drawdown (0.092 versus 0.333), greater pooled recovery (0.80 versus
-0.50) and higher terminal-to-best ratio (0.941 versus 0.671). Because each arm
-contains one session per development world, these values describe the five
-matched demonstration worlds. Their role is to show what the apparatus resolves:
-best discovery, retention, drawdown, recovery and relative terminal retention are
-simultaneously observable coordinates of a trajectory, none of which is recorded
-by the best score alone.
-
-# 7. Fresh sessions test within-world repeatability
-
-We selected physical worlds 1 and 3 before the replication launch because their
-development contrasts pointed in different directions. The commit-frozen design
-crossed two worlds, five fresh trajectory replicates and two information arms.
-Each cell received six vessel opportunities and the same physical, observation
-and resource identities as its within-replicate counterpart; the provider did
-not expose a controllable sampling seed.
-
-Eighteen of 20 cells completed. Two cells were right-censored after 50 and 56
-accepted operations by provider-infrastructure failures, leaving four complete
-pairs in each world. All ten planned pairs remain visible in Fig. 5. The 75%
-classification rule was frozen after launch while endpoint and lifecycle
-outcomes remained uninspected; it classified a world-by-metric result as directional when at
-least three of four available differences shared a sign and the median shared
-that direction.
-
-The authoritative matrix followed a launcher-level restart after an
-infrastructure incident in the first launch; the restart decision was recorded
-before outcome inspection. The protocol deviation, excluded trajectories and
-separate sensitivity check are reported in Methods 10.7.
-
-The continuous pairwise data provide an algebraically independent endpoint
-check. Across the eight complete pairs, nominal-minus-opaque best-of-campaign and
-raw terminal contrasts were sign-discordant in two pairs; their descriptive
-Pearson correlation was $+0.826$. The clearest instance was world 3/r01: the
-best-score contrast was $-0.167$, whereas the raw terminal contrast was $+0.240$.
-Thus even strongly co-varying endpoint summaries are not interchangeable for an
-individual experimental trajectory.
-
-Full process profiles expose substantially more structure (Fig. 5B). Each
-complete pair has separate signed contrasts for best score, raw terminal score,
-discovery timing, online retention, drawdown and relative terminal retention.
-The frozen 75% classification summarized six of eight selected
-world-by-lifecycle cells as mixed. That categorical count is supporting rather
-than the main result: across the complete threshold-by-zero-handling grid it
-ranges from two to eight, whereas the continuous contrasts and both
-right-censored pairs remain visible without thresholding. The terminal-to-best
-ratio is retained as a relative-retention readout; because it reuses the best
-score in its denominator, it is not treated as algebraically independent of the
-best-score contrast.
-
-```{=latex}
-\begin{figure*}[!tbp]
-\centering
-\includegraphics[width=\textwidth]{figures/figure-5-within-world-replication.pdf}
-\caption{\textbf{Fresh trajectories expose information that endpoint summaries omit.}
-\textbf{A,} Each point is one complete fresh-session pair in a fixed physical world. Shaded quadrants mark opposite signs for best-of-campaign and raw terminal score; two of eight pairs occupy them. Labels identify trajectory replicates, not shared model randomness.
-\textbf{B,} Continuous nominal-minus-opaque contrasts for all ten planned pairs. Positive values favour nominal information after orienting discovery and drawdown to their favourable directions; grey rows are right-censored. Relative retention is shown as a supporting process readout, not an endpoint-independent contrast.}
-\label{fig:replication}
-\end{figure*}
-```
-
-The fresh sessions therefore expose two forms of information that a best score
-cannot contain: raw terminal disagreement within a matched pair and
-trajectory-to-trajectory variation across the complete process profile. Both
-become directly observable because world identity, observation stream, resource
-card and action authority remain controlled.
-
-# 8. Experimental agency is a profile, not a scalar
-
-The compiled and primitive-control studies measure complementary parts of
-experimental agency. Compiled control separates task outcome from prediction,
-calibration and claim diagnostics. Primitive control additionally reveals what a
-system does with its experimental opportunities. Figure 6 makes that distinction
-concrete for two complete agent systems under the same matched apparatus.
-
-```{=latex}
-\begin{figure*}[!tbp]
-\centering
-\includegraphics[width=\textwidth]{figures/figure-6-experimental-agency-profile.pdf}
-\caption{\textbf{Lifecycle completion does not specify experimental policy.}
-\textbf{A,} Both complete agent systems closed all 60 matched batch lifecycles, but Codex committed every batch to final assay whereas DeepSeek V4 Flash explicitly discarded 36.
-\textbf{B,} Their non-final instrument use was nearly identical, while their primitive-operation use and terminal policies differed. Fractions use the common ten-campaign allowances. These are complete-system behavioral profiles, not an isolated model-backend comparison.}
-\label{fig:profile}
-\end{figure*}
-```
-
-The profile view supports a stronger evaluation standard for scientific agents.
-Lifecycle closure, evidence acquisition, continued investment, assay commitment,
-discard, retention and recovery are distinct observables. ChemWorld provides a
-common apparatus that measures them separately and preserves the decisions from
-which each readout is computed.
+Fresh sessions thus expose both endpoint disagreement within matched pairs and variation
+across full process profiles. They do not estimate population variability or isolate a
+provider sampling effect.
 
 # 9. Discussion
 
-ChemWorld contributes a new experimental object: the process by which an agent
-experiments. Its value does not depend on replacing a self-driving laboratory or
-winning a universal optimization leaderboard. It occupies a different and
-useful role. A real laboratory establishes physical executability; an
-optimization suite calibrates search; an executable chemical world can clone
-physical identity, intervene on information and authority, preserve failures,
-and sample fresh decision trajectories at low marginal cost.
+ChemWorld turns experimental agency from an endpoint impression into an auditable
+profile. Programmable, replayable chemical worlds keep evidence acquisition, lifecycle
+closure, terminal policy, resource use and trajectory dynamics as separate observables.
+The result is a measurement apparatus for the process by which a system experiments,
+not another scalar leaderboard.
 
-The present experiments demonstrate four consequences. First, matched
-information conditions are associated with different actions, endpoint outcome,
-prediction and claim reliability profiles. Second, two complete agent systems can close the same matched
-batch lifecycles while allocating terminal assays and discards very differently;
-the apparatus therefore measures experimental policy rather than merely
-interface compliance. Third, autonomous lifecycle completion does not specify
-how a high-performing condition was discovered, retained or recovered. Fourth,
-best-score and raw terminal contrasts can reverse sign within matched fresh
-sessions, while the full process profiles separate additional dimensions that
-neither endpoint records. The resulting conclusion is operational and direct:
-best-of-campaign performance underdetermines the experimental process that
-produced it.
+The evidence forms a staged validation rather than one pooled benchmark. Platform and
+fork qualification establish executable semantics and bounded programmability. Known
+policies then show that the multidimensional profile recovers behaviors fixed in
+advance. Only after those checks do the complete-system, compiled-control and fresh-
+trajectory studies interpret differences in terminal and process profiles.
 
-The same apparatus makes a broader class of controlled studies possible. World
-mechanisms, observation channels, material semantics, instruments, resource
-endowments and failure laws are executable components rather than constraints
-imposed by one physical laboratory. They can therefore be recombined while agent
-authority and audit semantics remain fixed. This programmability is what turns
-experimental agency from an anecdotal trace into a scalable object of study.
+The complete-system result illustrates why this ordering matters. Two distinct complete
+systems closed every assigned lifecycle but expressed different terminal commitments.
+The failed discarded-state gate prevents a directional claim about latent quality, yet
+it does not erase the observed closure/commitment distinction. Retaining 30 unresolved
+receipts, withholding point estimates and displaying sharp bounds makes execution
+failure part of the evidence rather than a reason to select six convenient cases.
 
-The second agent system supplies an initial interface-portability demonstration,
-not a general agent ranking. The next scientific use of this apparatus is a
-factorial measurement program: randomly sampled worlds, multiple mechanism
-families, multiple complete agent systems, controlled evidence access and
-matched resource endowments. Such experiments can estimate world heterogeneity,
-trajectory variability and intervention response hierarchically, and can test
-whether lifecycle reliability predicts transfer, recovery from misinformation
-or behavior under scarcity.
+The quantitative results remain finite-world descriptions. Complete systems differ in
+model, scaffold, transport, evidence interface, retry behavior and configuration, so
+their contrast cannot be assigned to a model backend. The information-arm comparisons
+do not identify a general population effect, and the two fresh-session worlds were
+deliberately selected. Primitive operations, instrument events, replay traces,
+deterministic retests and evaluator-only shadow assays are accounting or reliability
+events, not independent agent experiments.
 
-Synthetic instruments and scoring laws make those interventions inexpensive and
-repeatable. A calibrated physical or high-fidelity bridge can then test which
-trajectory phenomena transfer to a particular laboratory system. The two forms
-of evidence are complementary: executable worlds identify controlled behavioral
-structure; physical laboratories establish deployment validity.
+The apparatus itself is virtual. Its instruments produce bounded state-coupled
+synthetic or reference-tested signals; resource receipts are simulator records, not
+custody, hazard, waste or monetary accounts. Exact replay reconstructs executable state
+and observations, not a physical batch, laboratory device or stochastic provider
+decision. Physical and high-fidelity laboratories remain necessary to establish
+chemical executability, safety and deployment validity.
+
+Within those boundaries, programmable worlds enable controlled studies that are costly
+or impossible to clone physically. The present certificate covers only preregistered,
+qualified interventions on two named private components. Arbitrary recombination,
+third-party world authoring and adaptation under changed laws are not established here;
+rule learning belongs to a separate Work II protocol. Future factorial studies can
+sample more worlds and complete systems while keeping authority, evidence and resources
+explicit, then test selected process phenomena against calibrated physical systems.
 
 ```{=latex}
 \FloatBarrier
@@ -764,16 +774,16 @@ to regenerate the paper's reported analyses.
 
 # 12. Conclusion
 
-ChemWorld turns the act of experimentation into a controlled scientific object.
-Its executable worlds allow an agent to choose operations, seek evidence, spend
-resources, experience failure and close experimental lifecycles while physical
-identity remains matched and every consequence remains replayable. The resulting
-evidence separates an endpoint from the process that produced it: distinct
-complete agent systems express different assay and discard policies, while task
-outcome, prediction, retention, recovery and fresh-session repeatability remain
-separate readouts. The central message is therefore simple and actionable: **an endpoint
-is a result, not an explanation of experimental agency; the process itself can
-now be measured.**
+ChemWorld makes the act of experimentation a controlled scientific object. Its
+executable worlds let complete systems choose operations, acquire evidence, spend
+resources, encounter failure and close lifecycles while simulator identity and public
+contracts remain bound to replayable records. Known policies validate the profile before
+complete systems are interpreted; compiled controls separate outcome from epistemic
+readouts; and fresh trajectories resolve discovery, retention, drawdown, recovery and
+terminal quality. The unresolved discarded-state audit also shows the cost of this
+standard: missing counterfactual evidence must remain visible rather than being repaired
+into a favorable point result. **An endpoint is a result, not an explanation of
+experimental agency; the process itself can now be measured as an auditable profile.**
 
 # Appendix A. P0 robustness summary
 
