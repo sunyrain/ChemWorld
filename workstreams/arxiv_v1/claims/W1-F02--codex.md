@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-F02
 title: "Define WorldForkSpec, parent-child lineage, and component diffs"
-status: CLAIMED
+status: REVIEW
 
 owner: codex
 collaborators: []
 claimed_at_utc: 2026-08-03T04:12:02Z
 lease_expires_at_utc: 2026-08-05T04:12:02Z
-heartbeat_at_utc: 2026-08-03T04:12:02Z
+heartbeat_at_utc: 2026-08-03T04:20:37Z
 
 base_commit: "765afacbff1b77450db6daf51d766a89054e53b3"
 branch: work1/w1-f02-world-fork-spec
@@ -34,18 +34,26 @@ validation:
   - uv run mypy src/chemworld/foundation/world_fork_spec.py
   - git diff --check
 
-completed_since_last_heartbeat: []
-current_validation: "Claim registration only; implementation has not started."
-files_touched: []
+completed_since_last_heartbeat:
+  - Defined content-addressed root and child lineage identities.
+  - Bound parent and child world hashes to all 15 non-identity components in the F01 inventory.
+  - Enforced exactly one compatible private-physics difference and 14 invariants per fork edge.
+  - Added a frozen example spec, deterministic audit report, and adversarial tamper tests.
+current_validation: "10/10 focused tests passed; 78/78 combined inventory, fork, world-family, and mechanism-family tests passed; ruff, mypy, format check, and git diff check passed."
+files_touched:
+  - src/chemworld/foundation/world_fork_spec.py
+  - configs/benchmark/work_i_world_fork_spec_v0.1.json
+  - tests/test_world_fork_spec.py
+  - workstreams/arxiv_v1/reports/work-i-world-fork-spec-v0.1.json
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-03T16:12:02Z
-next_24h: "Freeze lineage identities, component-digest maps, and single-target diff semantics against the F01 inventory."
-handoff_eta: 2026-08-04T04:12:02Z
+next_check_at_utc: 2026-08-03T16:20:37Z
+next_24h: "Coordinator review and merge; F03-F05 may then consume the fork edge and component digest contract."
+handoff_eta: 2026-08-03T05:20:37Z
 
-final_commit: null
-reviewer: null
-review_result: null
+final_commit: "04ae93b8e0b4344b92ca0174d81aa81b9341ff52"
+reviewer: coordinator
+review_result: pending
 notes: "F02 defines fork identity and admissible diffs only; F03 certifies public-contract invariance, F04 defines divergence, and F05 implements execution."
 ```
