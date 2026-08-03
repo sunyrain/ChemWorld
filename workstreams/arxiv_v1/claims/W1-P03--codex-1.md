@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-P03
 title: "Render Figure 2: known policies validate the experimental-agency profile"
-status: CLAIMED
+status: REVIEW
 
 owner: "codex-1"
 collaborators: []
 claimed_at_utc: 2026-08-03T15:46:20Z
 lease_expires_at_utc: 2026-08-05T15:46:20Z
-heartbeat_at_utc: 2026-08-03T15:46:20Z
+heartbeat_at_utc: 2026-08-03T15:57:28Z
 
 base_commit: "d259a0dd511acad46975d46730a8e3caa42af2a9"
 branch: work1/w1-p03-figure-2
@@ -39,18 +39,28 @@ validation:
   - "Visual inspection of the final-size PNG"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared for main registration before substantive writes"
+completed_since_last_heartbeat:
+  - "Rendered all four frozen P01 panels for policy definitions, terminal signatures, separate profile axes, and retest reliability"
+  - "Bound V02 policy definitions and V09 formal evidence through the self-hashed D01 contract and report dependency hash"
+  - "Kept 30 retest campaigns separate from the 30 primary campaigns and 180 primary lifecycles"
+  - "Produced deterministic editable SVG, embedded-font PDF, 300 dpi PNG, and a self-hashed seven-source manifest"
+current_validation: "PASS: 4 focused tests, deterministic byte rebuild, Ruff, mypy, SVG editability, PDF font embedding, 2124x1560 PNG, visual inspection, and git diff --check"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-P03--codex-1.md
+  - scripts/render_work_i_figure_2.py
+  - tests/test_work_i_figure_2.py
+  - paper/figures/experimental-intelligence-v1/publication/figure-2-known-policy-validity.svg
+  - paper/figures/experimental-intelligence-v1/publication/figure-2-known-policy-validity.pdf
+  - paper/figures/experimental-intelligence-v1/publication/figure-2-known-policy-validity.png
+  - paper/figures/experimental-intelligence-v1/publication/figure-2-known-policy-validity.manifest.json
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-03T17:46:20Z
-next_24h: "Render and validate Figure 2 without editing the manuscript, global figure manifest, or release outputs"
-handoff_eta: 2026-08-03T21:00:00Z
+next_check_at_utc: 2026-08-04T15:57:28Z
+next_24h: "Await independent review and later P08/P09 manifest/caption integration"
+handoff_eta: 2026-08-03T16:01:00Z
 
-final_commit: null
+final_commit: "4ad107456b5b8b4d4785a55b3572a9687d3932b5"
 reviewer: null
 review_result: null
 notes: "Retest campaigns are deterministic reliability evidence only and remain excluded from the 30-campaign primary estimand. The figure makes no model/provider capability, endpoint ranking, causal information-effect, scalar-intelligence, or real-laboratory claim."
