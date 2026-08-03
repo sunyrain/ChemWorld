@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-Q01
 title: "Independently review the Work I world-fork, policy-control, and latent-terminal protocols"
-status: CLAIMED
+status: ACTIVE
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T14:53:36Z
 lease_expires_at_utc: 2026-08-05T14:53:36Z
-heartbeat_at_utc: 2026-08-03T14:53:36Z
+heartbeat_at_utc: 2026-08-03T15:01:40Z
 
 base_commit: "b4c643dbd65af934b40678e5c82f63fdcdefeef8"
 branch: work1/w1-q01-protocol-review-yijun
@@ -31,15 +31,17 @@ validation:
   - "Confirm the review is read-only and touches only the declared claim and review report"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared on the current origin/main baseline; no review verdict issued yet."
+completed_since_last_heartbeat:
+  - "Read the Work I collaboration contract, development guide, master TODO, claim rules/template, authoritative master plan, current registry, and the complete F/V/L claim history."
+  - "Established the frozen protocol, human/machine report, source-binding, and claim-boundary inventory for independent review without executing formal shadow outcomes."
+current_validation: "Read-only evidence review active on b4c643db baseline; no verdict issued and no reviewed artifact modified."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-Q01--Yijun.md
 blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: 2026-08-04T02:53:36Z
-next_24h: "Complete independent protocol review and hand off evidence-backed verdicts."
+next_24h: "Complete requirement-by-requirement F/V/L protocol review, verify cited bindings and hashes, and hand off bounded verdicts."
 handoff_eta: 2026-08-04T08:53:36Z
 
 final_commit: null
