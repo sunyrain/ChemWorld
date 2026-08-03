@@ -25,9 +25,11 @@ from chemworld.eval.policy_validity_matrix import (
     campaign_resource_card,
     canonical_schedule,
     execute_known_policy_campaign,
+    finalize_execution_record,
     load_matrix_protocol,
     run_matrix,
     semantic_sha256,
+    validate_execution_record,
     validate_preflight,
 )
 
@@ -213,6 +215,31 @@ def test_schedule_is_the_frozen_world_major_factorial() -> None:
         (0, "anonymous_nominal_properties", "start_then_discard"),
         (0, "anonymous_nominal_properties", "measure_then_threshold"),
     ]
+
+
+@pytest.mark.parametrize("drift", ["null", "stale", "cross_arm"])
+def test_execution_rejects_material_information_identity_drift(drift: str) -> None:
+    protocol = load_matrix_protocol(PROTOCOL_PATH)
+    cell = canonical_schedule(protocol)[0]
+    execution = _fake_execution(cell, protocol, execution_role="original")
+    if drift == "null":
+        execution["identity"]["material_information_sha256"] = None
+    elif drift == "stale":
+        execution["identity"]["material_information_sha256"] = "0" * 64
+    else:
+        execution["identity"]["material_information_sha256"] = semantic_sha256(
+            protocol["material_information_by_arm"][
+                "anonymous_nominal_properties"
+            ]
+        )
+    finalized = finalize_execution_record(execution)
+    errors = validate_execution_record(
+        finalized,
+        cell=cell,
+        execution_role="original",
+        card_sha256=campaign_resource_card(protocol).card_sha256,
+    )
+    assert "execution identity mismatch: material_information_sha256" in errors
 
 
 def test_injected_matrix_writes_content_addressed_complete_manifest(
@@ -515,6 +542,9 @@ def test_live_nonformal_retest_excludes_random_runtime_identity() -> None:
     )
     retest = execute_known_policy_campaign(cell, protocol, execution_role="retest")
     assert original["identity"] == retest["identity"]
+    assert original["identity"]["material_information_sha256"] == semantic_sha256(
+        cell.material_information
+    )
     for field in (
         "trajectory_records",
         "campaign_resource_ledger",
