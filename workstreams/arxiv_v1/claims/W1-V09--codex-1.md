@@ -3,16 +3,16 @@
 ```yaml
 task_id: W1-V09
 title: "Report known-policy profile recovery, discriminant validity, and test-retest reliability"
-status: CLAIMED
+status: ACTIVE
 
 owner: codex-1
 collaborators:
   - "agent:/root/w1_v09"
 claimed_at_utc: 2026-08-03T08:32:31Z
 lease_expires_at_utc: 2026-08-05T08:32:31Z
-heartbeat_at_utc: 2026-08-03T08:32:31Z
+heartbeat_at_utc: 2026-08-03T10:16:25Z
 
-base_commit: "751f7526799e2920437ba3fbfb6802070c0484d0"
+base_commit: "4fb789ba76550bd0b30510123181bb5394a14d0b"
 branch: work1/w1-v09-policy-validity-report
 worktree: ../ChemWorld-W1-V09
 supersedes: null
@@ -20,10 +20,11 @@ supersedes: null
 declared_write_set:
   - workstreams/arxiv_v1/claims/W1-V09--codex-1.md
   - src/chemworld/eval/policy_validity_report.py
-  - scripts/report_work_i_policy_validity.py
+  - scripts/report_work_i_policy_control_validity.py
   - tests/test_policy_validity_report.py
   - workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.json
   - workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.md
+  - workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.manifest.json
 shared_hot_file_requests: []
 
 deliverables:
@@ -32,29 +33,31 @@ deliverables:
   - Campaign-level equal-weight policy summaries across ten world-arm cells per policy; lifecycle rows are never pooled before profile construction, and retest campaigns/lifecycles are excluded from the primary estimand.
   - Separate evidence-validity and scientific-status fields publishing every frozen gate and failure, including explicit threshold assay/discard counts and the frozen non-degeneracy state.
   - Exact bindings to the V08 DONE claim/final commit and immutable manifest, the V07 receipt, protocol/source/schedule/resource/dependency identities, every bundle hash/byte count, V01-V03 contracts, the V06 audit receipt, analyzer source identity, and counting rules.
+  - Independent self-hashed delivery manifest binding the machine report, Markdown report, both immutable V08 inputs, and analyzer source hashes without creating a self-reference cycle.
   - A bounded known-policy construct/discriminant-validity and deterministic reliability conclusion, with no endpoint ranking, causal-null, model/provider-capability, scalar-intelligence, or real-laboratory claim.
 validation:
-  - uv run pytest -q tests/test_policy_validity_report.py tests/test_policy_validity_audit.py
-  - uv run ruff check src/chemworld/eval/policy_validity_report.py scripts/report_work_i_policy_validity.py tests/test_policy_validity_report.py
-  - uv run mypy src/chemworld/eval/policy_validity_report.py scripts/report_work_i_policy_validity.py
-  - Generate and byte-exact --check the reports against the immutable V08 formal matrix manifest recorded at unblock.
+  - uv run --isolated --frozen --python 3.11.15 pytest -q tests/test_policy_validity_report.py tests/test_policy_validity_audit.py
+  - uv run --isolated --frozen --python 3.11.15 ruff check src/chemworld/eval/policy_validity_report.py scripts/report_work_i_policy_control_validity.py tests/test_policy_validity_report.py
+  - uv run --isolated --frozen --python 3.11.15 mypy src/chemworld/eval/policy_validity_report.py scripts/report_work_i_policy_control_validity.py
+  - Generate and byte-exact --check the reports and independent delivery manifest against both immutable V08 formal matrix manifest and V06 audit receipt recorded at unblock.
   - Negative tests cover non-degeneracy, ordering, signature, null, stale receipt/manifest/bundle hash, retest mismatch, and explicit non-orderings that must not become gates.
   - git diff --check
-  - git diff --check 751f7526799e2920437ba3fbfb6802070c0484d0...HEAD
+  - git diff --check 4fb789ba76550bd0b30510123181bb5394a14d0b...HEAD
 
-completed_since_last_heartbeat: []
-current_validation: "Read-only planning only; formal outcomes must not be read before W1-V08 is DONE and its immutable handoff is accepted."
+completed_since_last_heartbeat:
+  - "W1-V08 is DONE on pushed main 4fb789ba after independent acceptance; its immutable manifest, progress chain, audit, and execution handoff are available."
+  - "The formal manifest self-hash is d15c7af5d96fd0d99006a3da8b2f1c18b3c357cb1ee4bd81cb1c75675ae1cdcc and the V06 audit self-hash is 661d42eced2097e159b9d36059715ae8a354167c48353d1c37b0f8a9678abe95."
+current_validation: "ACTIVE: read the two immutable V08 inputs once, implement the bounded deterministic reporter, publish machine/Markdown reports plus an independent self-hashed delivery manifest, and make no formal execution or evidence mutation."
 files_touched: []
-blockers:
-  - "W1-V08 formal execution, immutable manifest/audit handoff, and independent acceptance are not complete."
-blocked_by: W1-V08
-unblock_condition: "W1-V08 is DONE on main with its final commit, immutable manifest path plus file/self hashes, audit path plus file/self hashes, V07 receipt hash, and counting rules recorded and independently accepted."
-next_check_at_utc: 2026-08-03T12:32:31Z
-next_24h: "Remain read-only until V08 acceptance; then create the dedicated branch/worktree from updated main and implement the reporter without changing any frozen rule."
-handoff_eta: 2026-08-04T16:32:31Z
+blockers: []
+blocked_by: null
+unblock_condition: null
+next_check_at_utc: 2026-08-03T11:00:00Z
+next_24h: "Implement, generate, byte-check, independently review, and integrate the bounded report; then stop all V implementation and run the requested V-series audit."
+handoff_eta: 2026-08-03T12:00:00Z
 
 final_commit: null
 reviewer: null
 review_result: null
-notes: "This advance claim reserves V09 without authorizing early access to formal outcomes. A scientific gate failure still yields the complete frozen report with status positive_control_unestablished; invalid evidence bindings yield invalid_evidence and no unsupported summary. Global ledger, evidence DAG, manuscript, figure/release manifests, configs/current.json, and every V08 artifact are excluded from the write set."
+notes: "Formal outcome access is authorized only for deterministic read-only reporting from the pushed V08 DONE baseline. The reporter consumes both work-i-policy-control-formal-v0.1/matrix_manifest.json and work-i-policy-control-formal-audit-v0.1.json and executes no world, controller, provider, or formal cell. A scientific gate failure still yields the complete frozen report with status positive_control_unestablished; invalid evidence bindings yield invalid_evidence and no unsupported summary. Global ledger, evidence DAG, manuscript, figure/release manifests, configs/current.json, and every V08 artifact are excluded from the write set."
 ```
