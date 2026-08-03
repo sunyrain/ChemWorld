@@ -44,6 +44,7 @@ completed_since_last_heartbeat:
   - "Selected conversion threshold 0.007984561379998922 by the frozen midpoint-nearest-median rule, yielding 15/15 qualification branches per arm."
   - "Passed nine provenance, exclusion, finite-signal, closure, action, replay, matched-arm, routing, and zero-provider gates."
   - "Materialized an immutable source-bound machine binding and human-readable qualification report."
+  - "Canonicalized report-only state/resource float tails to 15 significant digits while preserving raw diagnostic values for threshold selection."
 current_validation: "Byte-exact execution rebuild, five focused tests, ruff, mypy, source-manifest validation, and git diff check passed."
 files_touched:
   - src/chemworld/eval/known_policy_threshold.py
@@ -59,7 +60,7 @@ next_check_at_utc: 2026-08-03T18:17:59Z
 next_24h: "Coordinator review and independent Python 3.12 rebuild on main; then release the frozen binding to V04."
 handoff_eta: 2026-08-03T09:30:00Z
 
-final_commit: "ce12a0692432ac2654245f40932d0f5f742bee2f"
+final_commit: "8a9f5a40524ccad7ae5d415cd366ab414d4a2d8a"
 reviewer: null
 review_result: null
 notes: "Qualification uses no provider calls and cannot inspect or retune against formal world seeds 0-4."
