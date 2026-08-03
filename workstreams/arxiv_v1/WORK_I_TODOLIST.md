@@ -245,7 +245,7 @@ Track 默认写集：
 | W1-M01 | P0 | DONE | 建立 claims 目录、模板和 coordinator 规则 | 无 | 是 |
 | W1-M02 | P0 | DONE | 冻结 Work I scope、claim hierarchy 与非目标 | 无 | 是 |
 | W1-M03 | P0 | OPEN | 对齐两份历史生成报告与当前 evidence binding | 无 | 是 |
-| W1-M04 | P0 | OPEN | 封存 v0.6 scope-stopped extension | 无 | 是 |
+| W1-M04 | P0 | CLAIMED | 封存 v0.6 scope-stopped extension | 无 | 是 |
 | W1-M05 | P0 | CLAIMED | 建立 integration staging 与 hot-file queue | M01 | 是 |
 | W1-M06 | P0 | OPEN | 最终跨 track 集成与 release freeze | F/V/L/S/P/D 完成 | 否 |
 
