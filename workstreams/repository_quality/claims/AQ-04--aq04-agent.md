@@ -23,15 +23,15 @@ validation:
 completed:
   - "Mypy passed on both touched source files"
   - "Ruff passed on both touched source files"
-  - "Relevant existing test selection passed (173 tests collected)"
+  - "Relevant existing test selection passed (173 AQ-04 tests; 81 focused static/predictive tests after shared query Protocol integration)"
   - "git diff --check passed"
 files_touched:
   - src/chemworld/agents/live_llm.py
   - src/chemworld/agents/static_optimization.py
-final_commit: "27b9da7828674abfc079cce7d0502dcc29823057"
+final_commit: "a187c99002d1ecbafdd3bedb7f8dac8157323a86"
 reviewer: null
 review_result: null
-notes: "Implementation preserves provider-cost accounting and predictive parsing behavior while expressing callable and query/container invariants through control flow and concrete types. Review correction 27b9da7828674abfc079cce7d0502dcc29823057 also restores the original prompt mapping field order, including recommendation and optional forbidden fields."
+notes: "Implementation preserves provider-cost accounting and prompt mapping field order while expressing callable and container invariants through control flow and concrete types. Cleanup a187c99002d1ecbafdd3bedb7f8dac8157323a86 uses the native read-only predictive query Protocol from AQ-03 integration basis 69141912, removing the temporary runtime query copies."
 ```
 
 The worker commits this claim before implementation, edits only its own claim, and changes the status
