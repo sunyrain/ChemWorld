@@ -246,7 +246,7 @@ Track 默认写集：
 | W1-M02 | P0 | DONE | 冻结 Work I scope、claim hierarchy 与非目标 | 无 | 是 |
 | W1-M03 | P0 | OPEN | 对齐两份历史生成报告与当前 evidence binding | 无 | 是 |
 | W1-M04 | P0 | OPEN | 封存 v0.6 scope-stopped extension | 无 | 是 |
-| W1-M05 | P0 | OPEN | 建立 integration staging 与 hot-file queue | M01 | 是 |
+| W1-M05 | P0 | CLAIMED | 建立 integration staging 与 hot-file queue | M01 | 是 |
 | W1-M06 | P0 | OPEN | 最终跨 track 集成与 release freeze | F/V/L/S/P/D 完成 | 否 |
 
 M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通过可审计的 scope-change 记录才能重新打开。
@@ -297,12 +297,12 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | --- | --- | --- | --- | --- | --- |
 | W1-S01 | P0 | CLAIMED | 建立逐主张 claim–evidence–figure map | M02 | 是 |
 | W1-S02 | P0 | REVIEW | 冻结发布会式故事结构与章节职责 | M02 | 是 |
-| W1-S03 | P0 | OPEN | 重写 title/abstract/introduction 的占位版本 | S01 draft | 是 |
+| W1-S03 | P0 | CLAIMED | 重写 title/abstract/introduction 的占位版本 | S01 draft | 是 |
 | W1-S04 | P0 | CLAIMED | 重写 platform/world programmability Results 与 Methods | F protocol | 是 |
 | W1-S05 | P0 | CLAIMED | 重写 measurement-validity Results 与 Methods | V protocol | 是 |
 | W1-S06 | P0 | OPEN | 重写 complete-system policy 与 latent audit 结果结构 | L protocol | 是 |
 | W1-S07 | P0 | OPEN | 修正 figure first-reference、120 closure、6/8 和术语残留 | 无 | 是 |
-| W1-S08 | P0 | OPEN | 重构 related work：SDL 互补、agent evaluation、virtual worlds | M02 | 是 |
+| W1-S08 | P0 | CLAIMED | 重构 related work：SDL 互补、agent evaluation、virtual worlds | M02 | 是 |
 | W1-S09 | P0 | OPEN | 完成 limitations/boundaries，不扩大第一篇责任 | S01 | 是 |
 | W1-S10 | P0 | OPEN | 读取冻结结果后完成最终 title/abstract/results/conclusion | F/V/L reports | 否 |
 
@@ -315,7 +315,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-P03 | P0 | REVIEW | Fig. 2 known-policy measurement validity | V protocol | 是 |
 | W1-P04 | P0 | REVIEW | Fig. 3 same completion, different terminal policy | 现有数据；L 可后补 | 是 |
 | W1-P05 | P0 | REVIEW | Fig. 4 compiled information controls | 现有数据 | 是 |
-| W1-P06 | P0 | CLAIMED | Fig. 5 autonomous lifecycle/process profile | 现有数据 | 是 |
+| W1-P06 | P0 | REVIEW | Fig. 5 autonomous lifecycle/process profile | 现有数据 | 是 |
 | W1-P07 | P0 | OPEN | Fig. 6 fresh-session trajectory variation | 现有数据 | 是 |
 | W1-P08 | P0 | OPEN | SVG editability、高清素材、PDF 字体与双栏尺寸审计 | P02–P07 | 否 |
 | W1-P09 | P0 | OPEN | caption、正文引用、display items 与 manifest 一致性 | P08、S10 | 否 |
