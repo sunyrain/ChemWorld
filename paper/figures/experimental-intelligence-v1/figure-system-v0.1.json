@@ -1,0 +1,395 @@
+{
+  "schema_id": "chemworld.work_i_figure_system",
+  "schema_version": "0.1.0",
+  "system_id": "work-i-six-figure-system-v0.1",
+  "status": "frozen",
+  "source_bindings": [
+    {
+      "path": "workstreams/arxiv_v1/story/work-i-story-architecture-v0.1.md",
+      "role": "narrative_authority",
+      "sha256": "de686d923df53c3754694eb2dca9550b1fc9fb6877848654760b73507dda4f9b"
+    },
+    {
+      "path": "scripts/render_arxiv_v1_figures.py",
+      "role": "migration_input_only",
+      "sha256": "7bb3a365ee8ae3c7234b75c14a3882f5603bc1b44fc268e6f464a0decad02a7d"
+    },
+    {
+      "path": "paper/arxiv/figure-manifest.json",
+      "role": "superseded_output_inventory_only",
+      "sha256": "8dcda922d62567f2c23bba12fd499b8e5a6ea4c00d38dc6b167aa921be45f25f"
+    }
+  ],
+  "canvas": {
+    "unit": "inch",
+    "two_column_width": 7.08,
+    "single_column_width": 3.39,
+    "maximum_height": 8.6,
+    "default_two_by_two_height": 5.2,
+    "default_two_by_one_height": 3.35,
+    "outer_margin": 0.15,
+    "horizontal_gutter": 0.18,
+    "vertical_gutter": 0.22,
+    "background": "white"
+  },
+  "typography": {
+    "font_family_fallback_order": [
+      "Arial",
+      "Liberation Sans",
+      "DejaVu Sans",
+      "sans-serif"
+    ],
+    "sizes_at_final_width_pt": {
+      "panel_label": 10.0,
+      "panel_heading": 8.5,
+      "axis_label": 7.5,
+      "tick_label": 7.0,
+      "legend": 7.0,
+      "annotation": 7.0,
+      "minimum": 6.5
+    },
+    "weights": {
+      "panel_label": 700,
+      "panel_heading": 600,
+      "body": 400
+    },
+    "rules": {
+      "figure_title_inside_canvas": false,
+      "sentence_case": true,
+      "panel_labels": "uppercase_A_to_D_in_reading_order",
+      "mathematical_symbols_may_not_be_rasterized": true,
+      "minimum_size_applies_after_final_scaling": true
+    }
+  },
+  "palette": {
+    "tokens": {
+      "ink": "#18212B",
+      "navy": "#355C7D",
+      "coral": "#D95F59",
+      "teal": "#4D9B8C",
+      "amber": "#E2A447",
+      "purple": "#8A6BBE",
+      "mid_gray": "#6F7782",
+      "grid_gray": "#D9DEE5",
+      "pale_navy": "#EEF3F7",
+      "pale_coral": "#FFF2EF",
+      "white": "#FFFFFF"
+    },
+    "semantic_assignments": {
+      "information_arm": {
+        "opaque": "navy",
+        "anonymous_nominal": "coral",
+        "misindexed": "purple"
+      },
+      "apparatus": {
+        "state_or_world": "navy",
+        "operation": "teal",
+        "measurement": "amber",
+        "failure_or_warning": "coral",
+        "identity_or_provenance": "purple"
+      },
+      "neutral_or_censored": "mid_gray",
+      "grid_or_reference": "grid_gray"
+    },
+    "rules": {
+      "red_green_opposition_for_primary_encoding": false,
+      "color_as_only_carrier_of_meaning": false,
+      "information_arm_color_is_global_across_all_figures": true,
+      "policy_identity_uses_symbol_and_line_style_not_new_colors": true,
+      "backgrounds_may_not_encode_quantitative_values": true
+    }
+  },
+  "strokes_at_final_width_pt": {
+    "grid": 0.35,
+    "axis": 0.5,
+    "data": 0.75,
+    "emphasis": 1.1,
+    "focus": 1.4,
+    "minimum": 0.35
+  },
+  "symbols": {
+    "known_policy": {
+      "assay_all": {
+        "marker": "circle",
+        "line_style": "solid"
+      },
+      "measure_then_threshold": {
+        "marker": "triangle_up",
+        "line_style": "dashed"
+      },
+      "start_then_discard": {
+        "marker": "square",
+        "line_style": "dotted"
+      }
+    },
+    "terminal_action": {
+      "final_assay": "filled_circle",
+      "explicit_discard": "x",
+      "evaluator_shadow": "open_diamond"
+    },
+    "completion_status": {
+      "complete": "filled",
+      "right_censored": "open_with_dagger",
+      "unresolved": "open_with_question_mark"
+    },
+    "rules": {
+      "same_entity_same_symbol_across_figures": true,
+      "shadow_never_uses_agent_action_symbol": true,
+      "censoring_never_encoded_by_missing_row": true
+    }
+  },
+  "panel_grid": {
+    "maximum_main_panels_per_figure": 4,
+    "reading_order": "left_to_right_then_top_to_bottom",
+    "allowed_templates": {
+      "two_by_two": {
+        "rows": 2,
+        "columns": 2,
+        "panel_width_ratio": [
+          1,
+          1
+        ],
+        "panel_height_ratio": [
+          1,
+          1
+        ]
+      },
+      "wide_top_two_bottom": {
+        "rows": 2,
+        "columns": 2,
+        "top_spans_two_columns": true,
+        "panel_height_ratio": [
+          1.1,
+          1
+        ]
+      },
+      "two_by_one": {
+        "rows": 1,
+        "columns": 2,
+        "panel_width_ratio": [
+          1,
+          1
+        ]
+      }
+    },
+    "rules": {
+      "shared_axes_preferred_for_comparable_panels": true,
+      "legends_may_not_cover_data": true,
+      "direct_labels_preferred_when_series_count_lte": 4,
+      "panel_area_tracks_information_density_not_visual_decoration": true
+    }
+  },
+  "figures": [
+    {
+      "figure_id": "F1",
+      "order": 1,
+      "owner_task": "W1-P02",
+      "title": "ChemWorld apparatus and controlled world forks",
+      "output_stem": "figure-1-apparatus-world-forks",
+      "grid_template": "two_by_two",
+      "narrative_job": "establish the measurement apparatus and controlled programmability",
+      "panels": [
+        {
+          "panel": "A",
+          "job": "agent-as-subject and world-as-apparatus loop"
+        },
+        {
+          "panel": "B",
+          "job": "identity, authority, evidence, resources, and replay controls"
+        },
+        {
+          "panel": "C",
+          "job": "single-component parent-child fork and public-contract invariance"
+        },
+        {
+          "panel": "D",
+          "job": "six-pair and 24-trace qualification without agent-performance claims"
+        }
+      ],
+      "pending_result_panels": []
+    },
+    {
+      "figure_id": "F2",
+      "order": 2,
+      "owner_task": "W1-P03",
+      "title": "Known policies validate the experimental-agency profile",
+      "output_stem": "figure-2-known-policy-validity",
+      "grid_template": "two_by_two",
+      "narrative_job": "demonstrate discriminant and test-retest validity with frozen controls",
+      "panels": [
+        {
+          "panel": "A",
+          "job": "three policy definitions and predeclared behavioral ordering"
+        },
+        {
+          "panel": "B",
+          "job": "recovered primary profiles across 30 campaigns"
+        },
+        {
+          "panel": "C",
+          "job": "profile separation across decision, evidence, and resource readouts"
+        },
+        {
+          "panel": "D",
+          "job": "same-identity deterministic retest reliability outside primary denominators"
+        }
+      ],
+      "pending_result_panels": []
+    },
+    {
+      "figure_id": "F3",
+      "order": 3,
+      "owner_task": "W1-P04",
+      "title": "Lifecycle completion does not specify terminal policy",
+      "output_stem": "figure-3-terminal-policy",
+      "grid_template": "two_by_two",
+      "narrative_job": "carry the 120-lifecycle terminal-policy headline and preregistered latent slots",
+      "panels": [
+        {
+          "panel": "A",
+          "job": "120 closed lifecycles partitioned into 84 assays and 36 discards"
+        },
+        {
+          "panel": "B",
+          "job": "terminal action profiles by distinct complete system, world, and information arm"
+        },
+        {
+          "panel": "C",
+          "job": "continuous latent terminal score and regret distributions for all 36 discards"
+        },
+        {
+          "panel": "D",
+          "job": "threshold sensitivity, censoring, and nine-cell campaign-oracle results"
+        }
+      ],
+      "pending_result_panels": [
+        "C",
+        "D"
+      ]
+    },
+    {
+      "figure_id": "F4",
+      "order": 4,
+      "owner_task": "W1-P05",
+      "title": "Compiled controls separate outcome, prediction, calibration and claims",
+      "output_stem": "figure-4-compiled-controls",
+      "grid_template": "two_by_two",
+      "narrative_job": "show why neither an endpoint nor an unregistered composite is a capability profile",
+      "panels": [
+        {
+          "panel": "A",
+          "job": "paired task outcome contrasts"
+        },
+        {
+          "panel": "B",
+          "job": "held-out prediction and calibration"
+        },
+        {
+          "panel": "C",
+          "job": "structure, mechanism, and unsupported-claim readouts"
+        },
+        {
+          "panel": "D",
+          "job": "raw capability profile with no composite-score ranking"
+        }
+      ],
+      "pending_result_panels": []
+    },
+    {
+      "figure_id": "F5",
+      "order": 5,
+      "owner_task": "W1-P06",
+      "title": "Primitive-control agents expose complete experimental lifecycles",
+      "output_stem": "figure-5-complete-lifecycles",
+      "grid_template": "two_by_two",
+      "narrative_job": "show the action, observation, resource, failure, and closure anatomy of complete-system runs",
+      "panels": [
+        {
+          "panel": "A",
+          "job": "one typed primitive-control lifecycle"
+        },
+        {
+          "panel": "B",
+          "job": "campaign resource receipt and opportunity cost"
+        },
+        {
+          "panel": "C",
+          "job": "identity-bound immutable trace and exact replay"
+        },
+        {
+          "panel": "D",
+          "job": "failure, termination, assay, and discard closure states"
+        }
+      ],
+      "pending_result_panels": []
+    },
+    {
+      "figure_id": "F6",
+      "order": 6,
+      "owner_task": "W1-P07",
+      "title": "Fresh trajectories reveal process structure omitted by endpoints",
+      "output_stem": "figure-6-fresh-trajectories",
+      "grid_template": "two_by_two",
+      "narrative_job": "show continuous matched process contrasts and explicit censoring within fixed worlds",
+      "panels": [
+        {
+          "panel": "A",
+          "job": "fresh-session matched design and coverage"
+        },
+        {
+          "panel": "B",
+          "job": "best-versus-raw-terminal contrasts and the 2-of-8 endpoint diagnostic"
+        },
+        {
+          "panel": "C",
+          "job": "discovery, retention, drawdown, recovery, and terminal-to-best contrasts"
+        },
+        {
+          "panel": "D",
+          "job": "right-censoring and threshold-sensitive 6-of-8 supporting classification"
+        }
+      ],
+      "pending_result_panels": []
+    }
+  ],
+  "export_contract": {
+    "required_formats": [
+      "svg",
+      "pdf",
+      "png"
+    ],
+    "primary_editable_format": "svg",
+    "primary_typesetting_format": "pdf",
+    "png_role": "review_and_fallback_only",
+    "png_minimum_dpi_at_final_size": 300,
+    "svg_text_remains_editable": true,
+    "pdf_fonts_embedded_or_subset": true,
+    "transparent_background_allowed": false,
+    "tight_bounding_box_required": true,
+    "deterministic_metadata_required": true,
+    "manifest_requires": [
+      "relative_path",
+      "byte_count",
+      "sha256",
+      "figure_id",
+      "format",
+      "source_data_sha256",
+      "figure_system_sha256"
+    ]
+  },
+  "acceptance_rules": {
+    "figure_ids_are_unique_and_ordered_1_through_6": true,
+    "owner_tasks_are_unique_W1_P02_through_W1_P07": true,
+    "all_panels_have_one_narrative_job": true,
+    "first_references_follow_numeric_order": true,
+    "figure_3_pending_panels_remain_result_independent": true,
+    "figure_5_does_not_repeat_figure_3_terminal_policy_comparison": true,
+    "no_figure_pools_distinct_primary_analysis_units": true,
+    "no_figure_uses_color_as_the_only_semantic_channel": true,
+    "all_quantitative_panels_show_units_and_denominators": true,
+    "all_censored_or_unresolved_units_remain_visible": true,
+    "caption_claims_must_bind_to_frozen_evidence": true
+  },
+  "self_hash_rule": "remove system_sha256, serialize as UTF-8 JSON with sorted keys and separators (comma, colon), ensure_ascii=false, then SHA-256",
+  "system_sha256": "c7abb490d247121e47fe20efca909df28527de64e7d1110699ccd104f6873643"
+}
