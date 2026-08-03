@@ -49,6 +49,7 @@ frozen evidence, or benchmark semantics.
 | AQ-07 | REVIEW | Type mechanism-adaptation execution | focused tests; Ruff; Mypy on touched files |
 | AQ-08 | ACTIVE | Coordinator integration and full quality-gate verification | default-dev tests; Ruff; Mypy; docs audit; diff check |
 | AQ-09 | REVIEW | Make the release-finalizer test honor the optional `paper` dependency contract | focused/default-dev pytest; Ruff on touched tests |
+| AQ-10 | OPEN | Make trajectory-launcher path assertions platform-neutral | focused pytest; Ruff on touched files |
 
 ## Completion criteria
 
