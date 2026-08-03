@@ -9,7 +9,7 @@ owner: codex
 collaborators: []
 claimed_at_utc: 2026-08-03T06:45:52Z
 lease_expires_at_utc: 2026-08-05T06:45:52Z
-heartbeat_at_utc: 2026-08-03T07:02:06Z
+heartbeat_at_utc: 2026-08-03T07:10:59Z
 
 base_commit: "e0ad2cbceef68e7eb764c7d0b88894d4bb09f63b"
 branch: work1/w1-v04-known-policy-controllers
@@ -39,7 +39,8 @@ completed_since_last_heartbeat:
   - "Made material information structurally unreadable by retaining only a narrow task-interface view; only measure_then_threshold reads public conversion after UV-vis."
   - "Added fail-closed transaction handling, structured per-decision audits, and threshold branch traces."
   - "Closed 6/6 lifecycles for every policy on nonformal smoke world 20000 with all operations committed and zero provider calls."
-current_validation: "Python 3.12: 9/9 focused and environment-integration tests pass. Python 3.11: 6/6 non-environment focused tests pass. Ruff, mypy, and git diff check pass."
+  - "Corrected the frozen diagnostic signal name and added source/controller identity plus canonical per-action decision evidence required for downstream offline audit."
+current_validation: "Coordinator rerun on Python 3.12: 10/10 focused and environment-integration tests pass; ruff, mypy, and git diff check pass. The worker also retained the prior Python 3.11 6/6 non-environment validation."
 files_touched:
   - src/chemworld/agents/known_policy.py
   - tests/test_known_policy_agents.py
@@ -50,8 +51,8 @@ next_check_at_utc: 2026-08-03T08:45:52Z
 next_24h: "Coordinator integration review, then release the controllers to V05/V06."
 handoff_eta: 2026-08-03T07:00:19Z
 
-final_commit: "fcdd07057752f1354884d7a4cf44b3466a1b45b1"
+final_commit: "4de92ebe817a39824b55403be5a7d38e26fdd91d"
 reviewer: "coordinator"
-review_result: "APPROVED: exact action paths, terminal branches, artifact roots, no-information-access boundary, fail-closed behavior, and nonformal environment integration all satisfy the V02/V03 contracts."
+review_result: "APPROVED after supplementary audit patch: exact action paths, terminal branches, source/controller identities, per-action evidence, no-information-access boundary, fail-closed behavior, and nonformal environment integration satisfy the V02/V03 contracts."
 notes: "V04 implements frozen contracts only; formal execution belongs to V08. No formal world seed was executed or inspected."
 ```
