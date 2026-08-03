@@ -45,7 +45,8 @@ SOURCE_PATHS = (
     "src/chemworld/world/scoring.py",
     "scripts/qualify_work_i_known_policy_threshold.py",
 )
-ARTIFACT_FLOAT_SIGNIFICANT_DIGITS = 15
+ARTIFACT_FLOAT_SIGNIFICANT_DIGITS = 12
+ARTIFACT_FLOAT_ABSOLUTE_ZERO_TOLERANCE = 1e-15
 
 
 def qualification_resource_card() -> CampaignResourceCard:
@@ -82,8 +83,8 @@ def stable_numeric_payload(value: Any) -> Any:
 
     Qualification decisions retain their raw public diagnostic values.  This
     normalization is used only for state/resource evidence hashes and report-
-    only ledger values so Python runtimes that differ below 1e-15 rebuild the
-    same audit artifact.
+    only ledger values so Python runtimes with immaterial libm/root-solver
+    differences rebuild the same audit artifact.
     """
 
     if isinstance(value, Mapping):
@@ -93,6 +94,8 @@ def stable_numeric_payload(value: Any) -> Any:
     if isinstance(value, float):
         if not math.isfinite(value):
             raise ValueError("qualification artifacts cannot contain non-finite floats")
+        if abs(value) < ARTIFACT_FLOAT_ABSOLUTE_ZERO_TOLERANCE:
+            return 0.0
         normalized = float(format(value, f".{ARTIFACT_FLOAT_SIGNIFICANT_DIGITS}g"))
         return 0.0 if normalized == 0.0 else normalized
     return value
@@ -445,6 +448,7 @@ def build_qualification_report(root: Path) -> dict[str, Any]:
         "artifact_float_canonicalization": {
             "scope": "state/resource evidence hashes and report-only ledger values",
             "significant_digits": ARTIFACT_FLOAT_SIGNIFICANT_DIGITS,
+            "absolute_zero_tolerance": ARTIFACT_FLOAT_ABSOLUTE_ZERO_TOLERANCE,
             "threshold_selection_uses_raw_diagnostic_values": True,
         },
         "resource_card": qualification_resource_card().to_dict(),
@@ -559,6 +563,7 @@ def validate_threshold_binding(
 
 
 __all__ = [
+    "ARTIFACT_FLOAT_ABSOLUTE_ZERO_TOLERANCE",
     "ARTIFACT_FLOAT_SIGNIFICANT_DIGITS",
     "INFORMATION_ARMS",
     "NOISE_NAMESPACE_PREFIX",

@@ -53,8 +53,11 @@ def test_report_only_numeric_canonicalization_removes_runtime_float_tails() -> N
     assert stable_numeric_payload(0.1729546623067752) == (
         stable_numeric_payload(0.17295466230677525)
     )
+    assert stable_numeric_payload(0.0756997692454747) == (
+        stable_numeric_payload(0.0756997692454748)
+    )
     assert stable_numeric_payload({"x": [1.0e-18, -0.0]}) == {
-        "x": [1.0e-18, 0.0]
+        "x": [0.0, 0.0]
     }
 
 

@@ -135,8 +135,10 @@ def build_markdown(report: dict[str, Any], binding: dict[str, Any]) -> str:
             "",
             "State/resource evidence is canonically serialized to "
             f"{report['artifact_float_canonicalization']['significant_digits']} "
-            "significant digits to remove sub-1e-15 runtime-library tails; raw public "
-            "diagnostic values remain the input to threshold selection.",
+            "significant digits with absolute residuals below "
+            f"{report['artifact_float_canonicalization']['absolute_zero_tolerance']:.0e} "
+            "mapped to zero; raw public diagnostic values remain the input to "
+            "threshold selection.",
             "",
             "## Claim boundary",
             "",
