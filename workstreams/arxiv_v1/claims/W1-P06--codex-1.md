@@ -20,10 +20,10 @@ declared_write_set:
   - workstreams/arxiv_v1/claims/W1-P06--codex-1.md
   - scripts/render_work_i_figure_5.py
   - tests/test_work_i_figure_5.py
-  - paper/figures/experimental-intelligence-v1/publication/figure-5-autonomous-lifecycle.svg
-  - paper/figures/experimental-intelligence-v1/publication/figure-5-autonomous-lifecycle.pdf
-  - paper/figures/experimental-intelligence-v1/publication/figure-5-autonomous-lifecycle.png
-  - paper/figures/experimental-intelligence-v1/publication/figure-5-autonomous-lifecycle.manifest.json
+  - paper/figures/experimental-intelligence-v1/publication/figure-5-complete-lifecycles.svg
+  - paper/figures/experimental-intelligence-v1/publication/figure-5-complete-lifecycles.pdf
+  - paper/figures/experimental-intelligence-v1/publication/figure-5-complete-lifecycles.png
+  - paper/figures/experimental-intelligence-v1/publication/figure-5-complete-lifecycles.manifest.json
 shared_hot_file_requests: []
 
 deliverables:
