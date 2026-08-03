@@ -10,11 +10,16 @@ from __future__ import annotations
 
 import json
 import math
+import sys
+import sysconfig
+import tomllib
 from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
 from dataclasses import asdict, dataclass
+from importlib import metadata
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from chemworld.campaign_resources import (
     CampaignResourceCard,
@@ -62,6 +67,23 @@ PROGRESS_SCHEMA_VERSION = "0.1.0"
 MANIFEST_SCHEMA_ID = "chemworld.policy_control_matrix_manifest"
 MANIFEST_SCHEMA_VERSION = "0.1.0"
 RUNNER_VERSION = "chemworld-policy-control-matrix-runner-0.1"
+EXECUTION_APPARATUS_FIELDS = (
+    "python_version",
+    "python_implementation",
+    "python_cache_tag",
+    "python_abi",
+    "numpy_version",
+    "numpy_wheel_filename",
+    "numpy_wheel_tag",
+    "numpy_wheel_sha256",
+    "scipy_version",
+    "scipy_wheel_filename",
+    "scipy_wheel_tag",
+    "scipy_wheel_sha256",
+    "sysconfig_platform",
+    "uv_lock_path",
+    "uv_lock_sha256",
+)
 
 PRIMARY_CAMPAIGN_COUNT = 30
 PRIMARY_LIFECYCLE_COUNT = 180
@@ -123,6 +145,160 @@ def _read_json_object(path: Path, *, label: str) -> dict[str, Any]:
     return payload
 
 
+def _locked_wheel_identity(
+    lock_payload: Mapping[str, Any],
+    *,
+    package_name: str,
+    package_version: str,
+    python_abi: str,
+    platform: str,
+) -> dict[str, str]:
+    """Resolve one exact runtime wheel from the committed uv lock."""
+
+    wheel_tag = f"{python_abi}-{python_abi}-{platform.replace('-', '_')}"
+    matches: list[dict[str, str]] = []
+    packages = lock_payload.get("package")
+    if isinstance(packages, list):
+        for package in packages:
+            if not isinstance(package, Mapping):
+                continue
+            if (
+                package.get("name") != package_name
+                or package.get("version") != package_version
+            ):
+                continue
+            wheels = package.get("wheels")
+            if not isinstance(wheels, list):
+                continue
+            for wheel in wheels:
+                if not isinstance(wheel, Mapping):
+                    continue
+                url = wheel.get("url")
+                digest = wheel.get("hash")
+                if not isinstance(url, str) or not isinstance(digest, str):
+                    continue
+                filename = Path(urlsplit(url).path).name
+                if filename.endswith(f"-{wheel_tag}.whl"):
+                    matches.append(
+                        {
+                            "filename": filename,
+                            "tag": wheel_tag,
+                            "sha256": digest.removeprefix("sha256:"),
+                        }
+                    )
+    if len(matches) != 1:
+        raise PolicyMatrixError(
+            f"uv.lock must select exactly one {package_name} {wheel_tag} wheel"
+        )
+    return matches[0]
+
+
+def observed_execution_apparatus(root: Path) -> dict[str, Any]:
+    """Return the path-independent runtime identity that controls exact bytes."""
+
+    lock_path = root.resolve() / "uv.lock"
+    try:
+        numpy_version = metadata.version("numpy")
+        scipy_version = metadata.version("scipy")
+    except metadata.PackageNotFoundError as exc:
+        raise PolicyMatrixError(
+            f"required execution package is not installed: {exc.name}"
+        ) from exc
+    try:
+        with lock_path.open("rb") as stream:
+            lock_payload = tomllib.load(stream)
+    except (OSError, tomllib.TOMLDecodeError) as exc:
+        raise PolicyMatrixError("uv.lock is missing or invalid") from exc
+    python_abi = f"cp{sys.version_info.major}{sys.version_info.minor}"
+    platform = sysconfig.get_platform()
+    numpy_wheel = _locked_wheel_identity(
+        lock_payload,
+        package_name="numpy",
+        package_version=numpy_version,
+        python_abi=python_abi,
+        platform=platform,
+    )
+    scipy_wheel = _locked_wheel_identity(
+        lock_payload,
+        package_name="scipy",
+        package_version=scipy_version,
+        python_abi=python_abi,
+        platform=platform,
+    )
+    return {
+        "python_version": (
+            f"{sys.version_info.major}.{sys.version_info.minor}."
+            f"{sys.version_info.micro}"
+        ),
+        "python_implementation": sys.implementation.name,
+        "python_cache_tag": sys.implementation.cache_tag,
+        "python_abi": python_abi,
+        "numpy_version": numpy_version,
+        "numpy_wheel_filename": numpy_wheel["filename"],
+        "numpy_wheel_tag": numpy_wheel["tag"],
+        "numpy_wheel_sha256": numpy_wheel["sha256"],
+        "scipy_version": scipy_version,
+        "scipy_wheel_filename": scipy_wheel["filename"],
+        "scipy_wheel_tag": scipy_wheel["tag"],
+        "scipy_wheel_sha256": scipy_wheel["sha256"],
+        "sysconfig_platform": platform,
+        "uv_lock_path": "uv.lock",
+        "uv_lock_sha256": file_sha256(lock_path),
+    }
+
+
+def execution_apparatus_sha256(apparatus: Mapping[str, Any]) -> str:
+    """Hash the exact frozen execution apparatus identity."""
+
+    return semantic_sha256(dict(apparatus))
+
+
+def validate_execution_apparatus(
+    expected: Any, observed: Any | None = None
+) -> list[str]:
+    """Return one error for every frozen runtime field that differs."""
+
+    if not isinstance(expected, Mapping):
+        return ["frozen execution apparatus must be an object"]
+    if set(expected) != set(EXECUTION_APPARATUS_FIELDS):
+        return ["frozen execution apparatus fields are incomplete"]
+    errors: list[str] = []
+    for field in EXECUTION_APPARATUS_FIELDS:
+        value = expected.get(field)
+        if not isinstance(value, str) or not value:
+            errors.append(f"frozen execution apparatus field is invalid: {field}")
+        elif field.endswith("sha256") and (
+            len(value) != 64 or any(character not in "0123456789abcdef" for character in value)
+        ):
+            errors.append(f"frozen execution apparatus hash is invalid: {field}")
+    if expected.get("uv_lock_path") != "uv.lock":
+        errors.append("frozen execution apparatus uv_lock_path must be uv.lock")
+    if observed is None:
+        return errors
+    if not isinstance(observed, Mapping):
+        errors.append("observed execution apparatus must be an object")
+        return errors
+    for field in EXECUTION_APPARATUS_FIELDS:
+        value = expected.get(field)
+        if isinstance(value, str) and observed.get(field) != value:
+            errors.append(f"execution apparatus mismatch: {field}")
+    return errors
+
+
+def assert_execution_apparatus(
+    root: Path, protocol: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Fail before output/world construction unless the exact apparatus matches."""
+
+    observed = observed_execution_apparatus(root)
+    errors = validate_execution_apparatus(
+        protocol.get("execution_apparatus"), observed
+    )
+    if errors:
+        raise PolicyMatrixError("; ".join(errors))
+    return observed
+
+
 def load_matrix_protocol(path: Path) -> dict[str, Any]:
     """Load and semantically validate the V05 matrix protocol."""
 
@@ -155,6 +331,7 @@ def validate_matrix_protocol(protocol: Mapping[str, Any]) -> list[str]:
         errors.append("protocol schema_id mismatch")
     if protocol.get("schema_version") != PROTOCOL_SCHEMA_VERSION:
         errors.append("protocol schema_version mismatch")
+    errors.extend(validate_execution_apparatus(protocol.get("execution_apparatus")))
 
     matrix = protocol.get("matrix")
     if not isinstance(matrix, Mapping):
@@ -295,10 +472,20 @@ def source_manifest(root: Path, protocol: Mapping[str, Any]) -> dict[str, str]:
     return result
 
 
-def dependency_bindings(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
+def dependency_bindings(
+    root: Path,
+    protocol: Mapping[str, Any],
+    *,
+    execution_apparatus: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     """Validate V01-V03 and disclose the separately owned V04 availability."""
 
     expected = protocol["dependency_bindings"]
+    apparatus = (
+        dict(execution_apparatus)
+        if execution_apparatus is not None
+        else assert_execution_apparatus(root, protocol)
+    )
     profile_path = root / str(expected["profile_contract_path"])
     policy_path = root / str(expected["known_policy_contract_path"])
     threshold_path = root / str(expected["threshold_binding_path"])
@@ -337,6 +524,8 @@ def dependency_bindings(root: Path, protocol: Mapping[str, Any]) -> dict[str, An
     controller_available = controller_path.is_file()
     return {
         **observed,
+        "execution_apparatus": apparatus,
+        "execution_apparatus_sha256": execution_apparatus_sha256(apparatus),
         "threshold": threshold.get("threshold"),
         "threshold_comparator": threshold.get("comparator"),
         "formal_retuning_forbidden": threshold.get("formal_retuning_forbidden"),
@@ -353,9 +542,12 @@ def build_preflight(root: Path, protocol_path: Path) -> dict[str, Any]:
     """Build an outcome-blind schedule and source qualification artifact."""
 
     protocol = load_matrix_protocol(protocol_path)
+    apparatus = assert_execution_apparatus(root, protocol)
     schedule = canonical_schedule(protocol)
     sources = source_manifest(root, protocol)
-    dependencies = dependency_bindings(root, protocol)
+    dependencies = dependency_bindings(
+        root, protocol, execution_apparatus=apparatus
+    )
     card = campaign_resource_card(protocol)
     checks = {
         "protocol_valid": not validate_matrix_protocol(protocol),
@@ -377,6 +569,11 @@ def build_preflight(root: Path, protocol_path: Path) -> dict[str, Any]:
                 "qualification_report_sha256",
             )
         ),
+        "execution_apparatus_matches": (
+            dependencies["execution_apparatus"] == protocol["execution_apparatus"]
+            and dependencies["execution_apparatus_sha256"]
+            == execution_apparatus_sha256(protocol["execution_apparatus"])
+        ),
         "formal_outcomes_not_read": True,
     }
     report: dict[str, Any] = {
@@ -388,6 +585,8 @@ def build_preflight(root: Path, protocol_path: Path) -> dict[str, Any]:
         "formal_execution_authorized": False,
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": matrix_protocol_sha256(protocol),
+        "execution_apparatus": apparatus,
+        "execution_apparatus_sha256": execution_apparatus_sha256(apparatus),
         "source_manifest": sources,
         "source_manifest_sha256": semantic_sha256(sources),
         "dependency_bindings": dependencies,
@@ -448,6 +647,22 @@ def validate_preflight(report: Mapping[str, Any]) -> list[str]:
         report.get("source_manifest")
     ):
         errors.append("preflight source-manifest hash mismatch")
+    apparatus = report.get("execution_apparatus")
+    if validate_execution_apparatus(apparatus):
+        errors.append("preflight execution apparatus is invalid")
+    if report.get("execution_apparatus_sha256") != (
+        execution_apparatus_sha256(apparatus)
+        if isinstance(apparatus, Mapping)
+        else None
+    ):
+        errors.append("preflight execution-apparatus hash mismatch")
+    dependencies = report.get("dependency_bindings")
+    if not isinstance(dependencies, Mapping) or (
+        dependencies.get("execution_apparatus") != apparatus
+        or dependencies.get("execution_apparatus_sha256")
+        != report.get("execution_apparatus_sha256")
+    ):
+        errors.append("preflight execution-apparatus dependency binding mismatch")
     return errors
 
 
@@ -510,6 +725,9 @@ def validate_formal_qualification_receipt(
         "source_manifest_sha256": preflight.get("source_manifest_sha256"),
         "preflight_sha256": preflight.get("preflight_sha256"),
         "controller_sha256": controller_sha256,
+        "execution_apparatus_sha256": preflight.get(
+            "execution_apparatus_sha256"
+        ),
     }
     bindings = receipt.get("bindings")
     if not isinstance(bindings, Mapping):
@@ -1361,8 +1579,11 @@ def run_matrix(
     if execution_mode not in {"injected_test", "formal"}:
         raise PolicyMatrixError("execution_mode must be injected_test or formal")
     protocol = load_matrix_protocol(protocol_path)
+    apparatus = assert_execution_apparatus(root, protocol)
     sources = source_manifest(root, protocol)
-    dependencies = dependency_bindings(root, protocol)
+    dependencies = dependency_bindings(
+        root, protocol, execution_apparatus=apparatus
+    )
     formal_receipt_sha256: str | None = None
     if execution_mode == "formal":
         if not allow_formal_execution:
@@ -2077,6 +2298,7 @@ __all__ = [
     "RUNNER_VERSION",
     "MatrixCell",
     "PolicyMatrixError",
+    "assert_execution_apparatus",
     "build_cell_bundle",
     "build_preflight",
     "build_profile_record_from_execution",
@@ -2085,6 +2307,7 @@ __all__ = [
     "dependency_bindings",
     "empty_profile_axes",
     "execute_known_policy_campaign",
+    "execution_apparatus_sha256",
     "execution_component_hashes",
     "finalize_execution_record",
     "formal_qualification_receipt_sha256",
@@ -2092,11 +2315,13 @@ __all__ = [
     "load_formal_qualification_receipt",
     "load_matrix_protocol",
     "matrix_protocol_sha256",
+    "observed_execution_apparatus",
     "profile_record_identity",
     "run_matrix",
     "semantic_sha256",
     "source_manifest",
     "validate_cell_bundle",
+    "validate_execution_apparatus",
     "validate_execution_record",
     "validate_formal_qualification_receipt",
     "validate_matrix_protocol",

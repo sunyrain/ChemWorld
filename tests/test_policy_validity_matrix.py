@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
@@ -8,6 +11,7 @@ from typing import Any
 
 import pytest
 
+import chemworld.eval.policy_validity_matrix as matrix_module
 from chemworld.campaign_resources import (
     CampaignResourceLedger,
     campaign_resource_event_id,
@@ -20,6 +24,7 @@ from chemworld.eval.policy_validity_matrix import (
     PROGRESS_FILENAME,
     MatrixCell,
     PolicyMatrixError,
+    assert_execution_apparatus,
     build_preflight,
     build_profile_record_from_execution,
     campaign_resource_card,
@@ -27,6 +32,7 @@ from chemworld.eval.policy_validity_matrix import (
     execute_known_policy_campaign,
     finalize_execution_record,
     load_matrix_protocol,
+    observed_execution_apparatus,
     run_matrix,
     semantic_sha256,
     validate_execution_record,
@@ -176,6 +182,9 @@ def _synthetic_formal_qualification_receipt() -> dict[str, Any]:
             "controller_sha256": preflight["dependency_bindings"]["controller"][
                 "sha256"
             ],
+            "execution_apparatus_sha256": preflight[
+                "execution_apparatus_sha256"
+            ],
         },
     }
     receipt["receipt_sha256"] = semantic_sha256(receipt)
@@ -197,6 +206,142 @@ def test_preflight_is_outcome_blind_and_deterministic() -> None:
         "provider_calls": 0,
     }
     assert first["checks"]["formal_outcomes_not_read"] is True
+    assert first["checks"]["execution_apparatus_matches"] is True
+    assert first["execution_apparatus"] == first["dependency_bindings"][
+        "execution_apparatus"
+    ]
+    assert first["execution_apparatus_sha256"] == first["dependency_bindings"][
+        "execution_apparatus_sha256"
+    ]
+
+
+def test_execution_apparatus_resolves_runtime_wheels_from_uv_lock() -> None:
+    protocol = load_matrix_protocol(PROTOCOL_PATH)
+    observed = observed_execution_apparatus(ROOT)
+    assert observed == protocol["execution_apparatus"]
+    assert observed["python_abi"] == "cp311"
+    assert observed["numpy_wheel_filename"].endswith(
+        "-cp311-cp311-win_amd64.whl"
+    )
+    assert observed["scipy_wheel_filename"].endswith(
+        "-cp311-cp311-win_amd64.whl"
+    )
+    assert assert_execution_apparatus(ROOT, protocol) == observed
+
+
+def test_execution_apparatus_mismatch_fails_before_output_or_executor(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    observed = observed_execution_apparatus(ROOT)
+    observed["python_version"] = "3.12.10"
+    monkeypatch.setattr(
+        matrix_module, "observed_execution_apparatus", lambda _root: observed
+    )
+    output_root = tmp_path / "apparatus-mismatch"
+    with pytest.raises(PolicyMatrixError, match="python_version"):
+        run_matrix(
+            root=ROOT,
+            protocol_path=PROTOCOL_PATH,
+            output_root=output_root,
+            executor=lambda *_: pytest.fail("apparatus gate must precede execution"),
+            resume=False,
+        )
+    assert not output_root.exists()
+
+
+def test_missing_runtime_package_fails_closed_before_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def missing_version(name: str) -> str:
+        raise matrix_module.metadata.PackageNotFoundError(name)
+
+    monkeypatch.setattr(matrix_module.metadata, "version", missing_version)
+    output_root = tmp_path / "missing-package"
+    with pytest.raises(PolicyMatrixError, match="required execution package"):
+        run_matrix(
+            root=ROOT,
+            protocol_path=PROTOCOL_PATH,
+            output_root=output_root,
+            executor=lambda *_: pytest.fail("apparatus gate must precede execution"),
+            resume=False,
+        )
+    assert not output_root.exists()
+
+
+def test_live_bundle_bytes_are_invariant_across_fresh_hash_seeds(
+    tmp_path: Path,
+) -> None:
+    script = r'''
+import json
+import sys
+from copy import deepcopy
+from pathlib import Path
+
+from chemworld.eval.policy_validity_matrix import (
+    MatrixCell,
+    build_cell_bundle,
+    campaign_resource_card,
+    dependency_bindings,
+    execute_known_policy_campaign,
+    load_matrix_protocol,
+    semantic_sha256,
+)
+from chemworld.eval.policy_validity_qualification import (
+    derive_live_smoke_protocol,
+    load_qualification_protocol,
+)
+from chemworld.eval.provenance import write_json_atomic
+
+root = Path(sys.argv[1])
+output = Path(sys.argv[2])
+matrix_path = root / "configs/benchmark/work_i_policy_control_matrix_v0.1.json"
+qualification_path = root / "configs/benchmark/work_i_policy_control_qualification_v0.1.json"
+matrix_protocol = load_matrix_protocol(matrix_path)
+qualification_protocol = load_qualification_protocol(qualification_path)
+live_protocol = derive_live_smoke_protocol(matrix_protocol, qualification_protocol)
+cell = MatrixCell(
+    ordinal=1,
+    cell_id="qualification-hash-seed-live-cell",
+    world_seed=20000,
+    information_arm="opaque_codes",
+    policy_id="measure_then_threshold",
+    material_information=deepcopy(matrix_protocol["material_information_by_arm"]["opaque_codes"]),
+)
+original = execute_known_policy_campaign(cell, live_protocol, execution_role="original")
+retest = execute_known_policy_campaign(cell, live_protocol, execution_role="retest")
+dependencies = dependency_bindings(root, matrix_protocol)
+bundle = build_cell_bundle(
+    cell=cell,
+    protocol_sha256=semantic_sha256(live_protocol),
+    source_manifest_sha256="1" * 64,
+    dependency_identity=dependencies,
+    card_sha256=campaign_resource_card(live_protocol).card_sha256,
+    original=original,
+    retest=retest,
+)
+manifest = {
+    "schema_id": "chemworld.policy_control_hash_seed_invariance",
+    "bundle_sha256": bundle["bundle_sha256"],
+    "execution_apparatus_sha256": dependencies["execution_apparatus_sha256"],
+}
+manifest["manifest_sha256"] = semantic_sha256(manifest)
+write_json_atomic(output, {"bundle": bundle, "manifest": manifest})
+'''
+    outputs: list[bytes] = []
+    for seed in ("0", "1", "8675309", "314159"):
+        output = tmp_path / f"hash-seed-{seed}.json"
+        environment = os.environ.copy()
+        environment["PYTHONHASHSEED"] = seed
+        subprocess.run(
+            [sys.executable, "-c", script, str(ROOT), str(output)],
+            cwd=ROOT,
+            env=environment,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        outputs.append(output.read_bytes())
+    assert all(payload == outputs[0] for payload in outputs[1:])
 
 
 def test_schedule_is_the_frozen_world_major_factorial() -> None:

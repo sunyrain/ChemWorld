@@ -37,6 +37,8 @@ from chemworld.eval.policy_validity_matrix import (
     FORMAL_QUALIFICATION_RECEIPT_SCHEMA_VERSION,
     MANIFEST_FILENAME,
     MatrixCell,
+    PolicyMatrixError,
+    assert_execution_apparatus,
     build_cell_bundle,
     build_preflight,
     build_profile_record_from_execution,
@@ -908,6 +910,12 @@ def build_qualification(
     matrix_protocol = _read_json_object(
         matrix_protocol_path, label="formal matrix protocol"
     )
+    try:
+        apparatus = assert_execution_apparatus(resolved_root, matrix_protocol)
+    except PolicyMatrixError as exc:
+        raise PolicyQualificationError(
+            f"execution apparatus qualification failed: {exc}"
+        ) from exc
     preflight = build_preflight(resolved_root, matrix_protocol_path)
     preflight_errors = validate_preflight(preflight)
     if preflight_errors:
@@ -1082,6 +1090,10 @@ def build_qualification(
             "controller_sha256": preflight["dependency_bindings"]["controller"][
                 "sha256"
             ],
+            "execution_apparatus": apparatus,
+            "execution_apparatus_sha256": preflight[
+                "execution_apparatus_sha256"
+            ],
             "auditor_sha256": sources["src/chemworld/eval/policy_validity_audit.py"],
         },
         "synthetic_matrix": {
@@ -1135,6 +1147,9 @@ def build_qualification(
             "preflight_sha256": preflight["preflight_sha256"],
             "controller_sha256": preflight["dependency_bindings"]["controller"][
                 "sha256"
+            ],
+            "execution_apparatus_sha256": preflight[
+                "execution_apparatus_sha256"
             ],
             "auditor_sha256": sources["src/chemworld/eval/policy_validity_audit.py"],
             "qualification_protocol_sha256": report[

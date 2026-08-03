@@ -6,9 +6,11 @@ from typing import Any
 
 import pytest
 
+import chemworld.eval.policy_validity_qualification as qualification_module
 from chemworld.campaign_resources import campaign_resource_event_id
 from chemworld.eval.policy_validity_matrix import (
     MatrixCell,
+    PolicyMatrixError,
     build_preflight,
     load_matrix_protocol,
     semantic_sha256,
@@ -185,6 +187,9 @@ def test_complete_dual_path_qualification_passes_and_is_nonformal(
     assert report["formal_environment_execution_count"] == 0
     assert report["formal_outcome_read_count"] == 0
     assert all(report["qualification_gates"].values())
+    assert report["formal_bindings"]["execution_apparatus"] == (
+        build_preflight(ROOT, MATRIX_PROTOCOL_PATH)["execution_apparatus"]
+    )
     assert report["synthetic_matrix"]["counts"] == {
         "campaigns": 30,
         "closed_lifecycles": 180,
@@ -217,6 +222,41 @@ def test_receipt_passes_v05_validator_and_tampering_fails(
     assert "formal qualification receipt self-hash mismatch" in (
         validate_formal_qualification_receipt(tampered, preflight=preflight)
     )
+
+    stale_apparatus = deepcopy(receipt)
+    stale_apparatus["bindings"]["execution_apparatus_sha256"] = "0" * 64
+    stale_apparatus["receipt_sha256"] = semantic_sha256(
+        {
+            key: value
+            for key, value in stale_apparatus.items()
+            if key != "receipt_sha256"
+        }
+    )
+    assert (
+        "formal qualification receipt binding is stale: "
+        "execution_apparatus_sha256"
+    ) in validate_formal_qualification_receipt(
+        stale_apparatus, preflight=preflight
+    )
+
+
+def test_qualification_apparatus_mismatch_fails_before_artifact_creation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def reject_apparatus(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        raise PolicyMatrixError("execution apparatus mismatch: scipy_version")
+
+    monkeypatch.setattr(
+        qualification_module, "assert_execution_apparatus", reject_apparatus
+    )
+    artifact_root = tmp_path / "apparatus-mismatch"
+    with pytest.raises(PolicyQualificationError, match="scipy_version"):
+        build_qualification(
+            root=ROOT,
+            protocol_path=QUALIFICATION_PROTOCOL_PATH,
+            artifact_root=artifact_root,
+        )
+    assert not artifact_root.exists()
 
 
 def test_artifact_manifest_binds_every_generated_file(
