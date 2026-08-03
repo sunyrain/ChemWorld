@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-Q02
 title: "Independently review security, identity, ledger, and replay implementations"
-status: CLAIMED
+status: ACTIVE
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T15:31:09Z
 lease_expires_at_utc: 2026-08-05T15:31:09Z
-heartbeat_at_utc: 2026-08-03T15:31:09Z
+heartbeat_at_utc: 2026-08-03T15:34:39Z
 
 base_commit: "cc5140e071bd766836c0305ed4f11cfa4d6860ea"
 branch: work1/w1-q02-systems-review-yijun
@@ -32,8 +32,9 @@ validation:
   - "Confirm only the declared claim and review report are modified"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared for main registration before read-only systems review"
+completed_since_last_heartbeat:
+  - "Verified the registered claim, branch, worktree, and write set after synchronizing the latest merged L03 and D01 surfaces."
+current_validation: "Reading the complete Work I authority and frozen contracts before the implementation audit; no formal latent or provider-backed execution is authorized."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-Q02--Yijun.md
 blockers: []
