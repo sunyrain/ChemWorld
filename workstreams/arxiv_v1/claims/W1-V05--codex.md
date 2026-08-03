@@ -3,14 +3,14 @@
 ```yaml
 task_id: W1-V05
 title: "Implement the 5x2x3 known-policy matrix runner, immutable manifest, and resume policy"
-status: REVIEW
+status: CHANGES_REQUESTED
 
 owner: codex
 collaborators:
   - "agent:/root/w1_v05"
 claimed_at_utc: 2026-08-03T06:54:12Z
 lease_expires_at_utc: 2026-08-05T06:54:12Z
-heartbeat_at_utc: 2026-08-03T07:22:25Z
+heartbeat_at_utc: 2026-08-03T07:26:14Z
 
 base_commit: "1831d56f1f1ecfb83abab944f8548cd62b0dfcc6"
 branch: work1/w1-v05-policy-control-matrix
@@ -61,7 +61,7 @@ next_24h: "Coordinator review and integration; formal qualification/execution re
 handoff_eta: 2026-08-03T07:22:25Z
 
 final_commit: "84b2b4de0e4ccea8997ee48c886e278728ef704e"
-reviewer: null
-review_result: null
+reviewer: "codex-1"
+review_result: "CHANGES_REQUESTED: remove the historical test-file EOF whitespace defect and record a base-to-HEAD whitespace check; require a self-hashed W1-V07 qualification receipt with qualified/frozen and current protocol/source/preflight/controller bindings before any formal executor call."
 notes: "Merged W1-V04 controller surface is bound in the preflight. Formal execution remains double-gated and was not invoked. Retest and replay evidence never count toward the frozen 30-campaign/180-lifecycle primary estimand."
 ```
