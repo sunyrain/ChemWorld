@@ -3,7 +3,7 @@
 ```yaml
 task_id: AQ-09
 title: "Honor the optional paper dependency contract in the release-finalizer test"
-status: CLAIMED
+status: REVIEW
 owner: aq09-agent
 claimed_at_utc: 2026-08-03T14:19:09Z
 base_commit: d07da8553a08220911bb3da4c98ed849bc12e948
@@ -19,10 +19,15 @@ validation:
   - Focused Markdown-present branch validation when feasible
   - Ruff on the touched test
   - git diff --check
-completed: []
-files_touched: []
-final_commit: null
+completed:
+  - Default-dev focused test passed with the expected missing-Markdown blocker
+  - Paper-extra focused test passed with no preflight blockers
+  - Ruff passed on tests/test_arxiv_release_artifacts.py
+  - git diff --check passed
+files_touched:
+  - tests/test_arxiv_release_artifacts.py
+final_commit: 94bab88d32f07a449ea83108efd5521fb40c3e2d
 reviewer: null
 review_result: null
-notes: "Do not modify pyproject.toml or production finalizer behavior; do not mask unrelated blockers."
+notes: "Implementation uses exact-list equality so any unrelated preflight blocker still fails the test. Ready for coordinator review at 2026-08-03T14:21:08Z."
 ```
