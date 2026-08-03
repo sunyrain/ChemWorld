@@ -7,7 +7,7 @@ import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from math import isclose, isfinite
-from typing import Any
+from typing import Any, Protocol
 
 import numpy as np
 
@@ -46,7 +46,7 @@ PREDICTIVE_MEASUREMENT_SLOTS = (
     "diagnostic-02-uvvis",
     "diagnostic-03-uvvis",
 )
-PREDICTIVE_QUERY_METRICS = {
+PREDICTIVE_QUERY_METRICS: dict[str, tuple[str, ...]] = {
     "controlled_potential_V": (
         "selective_product_yield",
         "energy_efficiency",
@@ -62,7 +62,7 @@ PREDICTIVE_QUERY_METRICS = {
 SINGLE_STAGE_PREDICTIVE_MEASUREMENT_SLOTS = tuple(
     str(item["slot_id"]) for item in ELECTROCHEMICAL_SINGLE_STAGE_MEASUREMENT_SLOTS
 )
-SINGLE_STAGE_PREDICTIVE_QUERY_METRICS = {
+SINGLE_STAGE_PREDICTIVE_QUERY_METRICS: dict[str, tuple[str, ...]] = {
     "potential_V": (
         "selective_product_yield",
         "energy_efficiency",
@@ -203,6 +203,14 @@ class CounterfactualQueryPrediction:
             "query_id": self.query_id,
             "metric_predictions": [item.to_dict() for item in self.metric_predictions],
         }
+
+
+class _CounterfactualPredictionQuery(Protocol):
+    @property
+    def query_id(self) -> str: ...
+
+    @property
+    def metric_ids(self) -> tuple[str, ...]: ...
 
 
 def build_electrochemical_prediction_queries(
@@ -507,7 +515,7 @@ def validate_prediction_queries(
 def parse_counterfactual_predictions(
     payload: object,
     *,
-    queries: Sequence[ElectrochemicalPredictionQuery],
+    queries: Sequence[_CounterfactualPredictionQuery],
 ) -> tuple[CounterfactualQueryPrediction, ...]:
     if not isinstance(payload, list):
         raise ValueError("counterfactual_predictions must be a list")
@@ -770,6 +778,7 @@ def _select_reference_and_interventions(
     workflow_mode = normalize_electrochemical_workflow_mode(
         electrochemical_workflow_mode
     )
+    candidates: tuple[Mapping[str, Any], ...]
     if workflow_mode != ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE:
         candidates = (_select_reference(history),)
     else:

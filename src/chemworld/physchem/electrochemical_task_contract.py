@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Protocol
 
 ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE = "adaptive_two_stage"
 ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1 = "autonomous_open_v1"
@@ -27,22 +28,70 @@ def normalize_electrochemical_workflow_mode(value: object) -> str:
     return mode
 
 
+class _RateLawLike(Protocol):
+    @property
+    def equation_id(self) -> str: ...
+
+    @property
+    def parameters(self) -> Mapping[str, object]: ...
+
+
+class _ReactionLike(Protocol):
+    @property
+    def reaction_id(self) -> str: ...
+
+    @property
+    def stoichiometry(self) -> Mapping[str, float]: ...
+
+    @property
+    def reversible(self) -> bool: ...
+
+    @property
+    def rate_law(self) -> _RateLawLike: ...
+
+
+class _SpeciesLike(Protocol):
+    @property
+    def species_id(self) -> str: ...
+
+    @property
+    def formula(self) -> str: ...
+
+    @property
+    def metadata(self) -> Mapping[str, object]: ...
+
+
 class _NetworkLike(Protocol):
-    reactions: list[Any]
-    species: list[Any]
+    @property
+    def reactions(self) -> Sequence[_ReactionLike]: ...
+
+    @property
+    def species(self) -> Sequence[_SpeciesLike]: ...
 
 
 class _ScoreSpecLike(Protocol):
-    reactant_species: str
-    target_species: tuple[str, ...] | list[str]
-    impurity_species: tuple[str, ...] | list[str]
+    @property
+    def reactant_species(self) -> str | None: ...
+
+    @property
+    def target_species(self) -> Sequence[str]: ...
+
+    @property
+    def impurity_species(self) -> Sequence[str]: ...
 
 
 class _CompiledMechanismLike(Protocol):
-    mechanism_id: str
-    species_index: dict[str, int]
-    network: _NetworkLike
-    score_spec: _ScoreSpecLike
+    @property
+    def mechanism_id(self) -> str: ...
+
+    @property
+    def species_index(self) -> Mapping[str, int]: ...
+
+    @property
+    def network(self) -> _NetworkLike: ...
+
+    @property
+    def score_spec(self) -> _ScoreSpecLike: ...
 
 
 @dataclass(frozen=True)

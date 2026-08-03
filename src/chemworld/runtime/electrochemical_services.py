@@ -6,6 +6,7 @@ from dataclasses import replace
 from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
 
 from chemworld.foundation import (
     WorldState,
@@ -23,6 +24,7 @@ from chemworld.physchem.electrochem_transport import (
 )
 from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_TASK_CONTRACT,
+    ElectrochemicalTaskContract,
 )
 from chemworld.physchem.electrochemistry import (
     FARADAY_C_PER_MOL,
@@ -98,7 +100,7 @@ class ChemWorldElectrochemicalServices:
         if self.task_contract is not None:
             self.task_contract.validate_compiled_mechanism(species_view.mechanism)
 
-    def _require_task_contract(self):
+    def _require_task_contract(self) -> ElectrochemicalTaskContract:
         if self.task_contract is None:
             raise ValueError(
                 "electrochemical operations require the electrochemical-conversion mechanism"
@@ -134,6 +136,8 @@ class ChemWorldElectrochemicalServices:
             catalog_size=len(SOLVENTS),
         )
         solvent_profile = material_family.solvent_profiles[hidden_solvent]
+        electrolyte_effects: NDArray[np.float64]
+        solvent_effects: NDArray[np.float64]
         if material_family_id == HISTORICAL_ELECTROCHEMICAL_MATERIAL_FAMILY:
             electrolyte_effects = np.ones(7, dtype=float)
             solvent_effects = np.concatenate(
