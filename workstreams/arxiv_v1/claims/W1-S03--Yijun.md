@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-S03
 title: "Draft isolated title, abstract, and introduction placeholders"
-status: CLAIMED
+status: ACTIVE
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T16:32:50Z
-lease_expires_at_utc: 2026-08-05T16:32:50Z
-heartbeat_at_utc: 2026-08-03T16:32:50Z
+lease_expires_at_utc: 2026-08-05T16:39:10Z
+heartbeat_at_utc: 2026-08-03T16:39:10Z
 
 base_commit: "628478aa3f01023c249f08fddb8a35ecd6429803"
 branch: work1/w1-s03-title-abstract-intro-yijun
@@ -32,16 +32,19 @@ validation:
   - "Confirm only the declared claim and isolated story file are modified"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared for main registration before bounded placeholder drafting"
+completed_since_last_heartbeat:
+  - "Fetched origin, fast-forwarded the isolated branch to origin/main 905d57c76dbf5b9ad24bb6f8e784df70afa07496, and pushed the synchronized branch."
+  - "Verified the exact W1-S03 claim and declared write set are registered on origin/main before substantive drafting."
+  - "Read the repository/workstream protocols, master plan, frozen S02 story architecture, latest TODO state, and configs/current.json claim boundaries."
+current_validation: "ACTIVE claim registered after clean synchronization to origin/main; authoritative evidence pins and narrative drafting remain in progress."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-S03--Yijun.md
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-04T04:32:50Z
-next_24h: "Draft evidence-bounded title, abstract, introduction, and replacement ledger for independent review and later manuscript integration."
-handoff_eta: 2026-08-04T00:32:50Z
+next_check_at_utc: 2026-08-04T04:39:10Z
+next_24h: "Verify frozen S01/S04/S05/Q04 inputs, then draft and validate the bounded title, abstract, introduction, evidence table, and replacement ledger."
+handoff_eta: 2026-08-04T01:39:10Z
 
 final_commit: null
 reviewer: null
