@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-L01
 title: "Correct and re-freeze latent-terminal estimands and entry rules"
-status: CLAIMED
+status: ACTIVE
 
 owner: "codex-1"
 collaborators: []
@@ -39,9 +39,12 @@ validation:
   - "git diff --check"
 
 completed_since_last_heartbeat: []
-current_validation: "Independent review findings recorded; correction claim registered before writes"
+current_validation: "Three outcome-blind contract corrections implemented; deterministic regeneration and focused validation pending"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-L01--codex-1.md
+  - src/chemworld/eval/latent_terminal_contract.py
+  - scripts/freeze_work_i_latent_terminal_contract.py
+  - tests/test_latent_terminal_contract.py
 blockers: []
 blocked_by: null
 unblock_condition: null

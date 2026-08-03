@@ -9,6 +9,7 @@ from chemworld.eval.latent_terminal_contract import (
     EXPECTED_ASSAY_COUNT,
     EXPECTED_CELL_COUNT,
     EXPECTED_DISCARD_COUNT,
+    EXPECTED_DISCARD_OPPORTUNITY_CELL_COUNT,
     EXPECTED_LIFECYCLE_COUNT,
     FROZEN_CAMPAIGN_AUDIT_SHA256,
     FROZEN_COMPARISON_SHA256,
@@ -101,6 +102,24 @@ def test_thresholds_estimands_and_entry_rules_are_outcome_independent() -> None:
         "assay_commitment_recall",
         "decision_time_discard_regret",
     ]
+    oracle = next(
+        item
+        for item in contract["estimands"]
+        if item["estimand_id"] == "campaign_oracle_regret"
+    )
+    assert oracle["denominator"] == (
+        "the 9 frozen campaign cells with at least one committed discard"
+    )
+    assert "null campaign_oracle_regret" in oracle["null_rule"]
+    opportunity = contract["aggregation"]["campaign_oracle_opportunity_rule"]
+    assert opportunity == {
+        "defined_when": "observed_discard_count >= 1",
+        "defined_cell_count": EXPECTED_DISCARD_OPPORTUNITY_CELL_COUNT,
+        "no_opportunity_cell_ids": ["cell-02"],
+        "no_opportunity_value": None,
+        "exclude_no_opportunity_from_denominator": True,
+        "freeze_timing": "before latent outcomes",
+    }
     entry = contract["entry_rules"]
     assert entry["result_direction_gate"] is False
     assert entry["significance_gate"] is False
@@ -110,6 +129,13 @@ def test_thresholds_estimands_and_entry_rules_are_outcome_independent() -> None:
         "all_36_required_for_primary_point_estimates"
     ] is True
     assert contract["missingness_and_failure"]["complete_case_primary_allowed"] is False
+    assert set(
+        contract["missingness_and_failure"]["unresolved_bounds"]
+    ) == set(estimand_ids)
+    assert contract["sensitivity_analysis"][
+        "observed_only_rows_are_diagnostic_not_primary"
+    ] is True
+    assert len(contract["sensitivity_analysis"]["mandatory_censoring_rows"]) == 5
 
 
 def test_counterfactual_is_read_only_evaluator_work_not_an_agent_action() -> None:
@@ -150,6 +176,50 @@ def test_validator_rejects_population_threshold_and_freeze_tampering() -> None:
     leaked["freeze"]["latent_outcomes_read"] = True
     leaked["contract_sha256"] = latent_terminal_contract_sha256(leaked)
     assert "L01 freeze boundary was crossed" in validate_latent_terminal_contract(leaked)
+
+
+def test_validator_exact_binds_scientific_and_censoring_rules() -> None:
+    original = build_latent_terminal_contract(ROOT)
+
+    changed_denominator = deepcopy(original)
+    changed_denominator["estimands"][3]["denominator"] = (
+        "campaigns selected after seeing latent outcomes"
+    )
+    changed_denominator["contract_sha256"] = latent_terminal_contract_sha256(
+        changed_denominator
+    )
+    assert "estimand definitions or denominators changed" in (
+        validate_latent_terminal_contract(changed_denominator)
+    )
+
+    changed_missingness = deepcopy(original)
+    changed_missingness["missingness_and_failure"][
+        "all_36_required_for_primary_point_estimates"
+    ] = False
+    changed_missingness["contract_sha256"] = latent_terminal_contract_sha256(
+        changed_missingness
+    )
+    assert "missingness or estimand-bound rules changed" in (
+        validate_latent_terminal_contract(changed_missingness)
+    )
+
+    changed_censoring = deepcopy(original)
+    changed_censoring["sensitivity_analysis"]["mandatory_censoring_rows"] = []
+    changed_censoring["contract_sha256"] = latent_terminal_contract_sha256(
+        changed_censoring
+    )
+    assert "threshold or censoring sensitivity rules changed" in (
+        validate_latent_terminal_contract(changed_censoring)
+    )
+
+    changed_entry = deepcopy(original)
+    changed_entry["entry_rules"]["main_text_requires"] = []
+    changed_entry["contract_sha256"] = latent_terminal_contract_sha256(
+        changed_entry
+    )
+    assert "evidence-entry rules changed" in validate_latent_terminal_contract(
+        changed_entry
+    )
 
 
 def test_committed_machine_contract_matches_deterministic_rebuild() -> None:

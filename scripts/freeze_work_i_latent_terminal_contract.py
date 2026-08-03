@@ -116,8 +116,15 @@ def build_markdown(contract: dict[str, Any]) -> str:
             f"{estimand['unit']} | `{estimand['formula']}` | "
             f"{estimand['denominator']} |"
         )
+    opportunity = contract["aggregation"]["campaign_oracle_opportunity_rule"]
     lines.extend(
         [
+            "",
+            "`campaign_oracle_regret` is defined over the "
+            f"**{opportunity['defined_cell_count']} frozen cells with at least one "
+            "discard opportunity**. `cell-02` remains in the 10-cell census but has a "
+            "pre-outcome null oracle-regret value because it contains zero discards; "
+            "it is not assigned zero regret.",
             "",
             "The 60-lifecycle selection table is defined as: TP = assayed and "
             "near-best; FP = assayed and below threshold; FN = discarded with a "
@@ -139,6 +146,10 @@ def build_markdown(contract: dict[str, Any]) -> str:
             "decision-time incumbent analysis are all mandatory.",
             "- A discard before any assay has null decision-time regret; a future assay "
             "is never imputed as a past incumbent.",
+            "- Censoring means only an unresolved shadow evaluation; the 60 original "
+            "lifecycles are all closed. Mandatory rows report unresolved counts/reasons, "
+            "all-zero and all-one assignments, and estimand-specific sharp bounds at "
+            "every registered threshold.",
             "",
             "## Missingness and fail-closed behavior",
             "",
@@ -146,7 +157,8 @@ def build_markdown(contract: dict[str, Any]) -> str:
             "non-finite score, prefix mismatch, or evaluator failure is retained as an "
             "unresolved receipt: no complete-case substitution, clamping, semantic "
             "repair, or favorable rerun is allowed. The full report must then provide "
-            "sharp missing-outcome bounds and remain incomplete.",
+            "the pre-registered bounds for all eight estimands and remain incomplete. "
+            "Observed-only rows are diagnostic, never replacement primary estimates.",
             "",
             "## Evidence-entry rule",
             "",

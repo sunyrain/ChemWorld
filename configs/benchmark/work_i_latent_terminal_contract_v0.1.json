@@ -1,5 +1,15 @@
 {
   "aggregation": {
+    "campaign_oracle_opportunity_rule": {
+      "defined_cell_count": 9,
+      "defined_when": "observed_discard_count >= 1",
+      "exclude_no_opportunity_from_denominator": true,
+      "freeze_timing": "before latent outcomes",
+      "no_opportunity_cell_ids": [
+        "cell-02"
+      ],
+      "no_opportunity_value": null
+    },
     "cell_macro_average": "Report separately across cells with defined denominators; do not replace the finite-population micro estimate.",
     "continuous_summary": [
       "count",
@@ -18,6 +28,7 @@
     "primary_overall_units": {
       "all_lifecycles_for_classification": 60,
       "campaign_cells": 10,
+      "campaign_cells_with_discard_opportunity": 9,
       "discarded_lifecycles": 36
     },
     "required_strata": [
@@ -54,7 +65,7 @@
     "population": "all 60 original lifecycles"
   },
   "contract_id": "work-i-deepseek-discarded-state-latent-terminal-v0.1",
-  "contract_sha256": "2059f0b97952296fc57e5121ac0868ecd2a01a3b7afc026a0ee7b7ddce4a4737",
+  "contract_sha256": "55a0d6a7cb983ce4099dbea24586ea63ccc9433e106d36011d349472809efe30",
   "counterfactual_terminal_rule": {
     "additional_process_operations_allowed": [],
     "branch_accounting": {
@@ -95,10 +106,11 @@
     "arm_difference_gate": false,
     "complete_report": "Always publish all 36 unit rows, execution gates, continuous summaries, classification tables, sensitivity rows, and unresolved receipts.",
     "failure_handling": "If the gate fails, publish the complete bounded audit and mark the terminal-quality result unresolved; do not substitute a favorable subset.",
+    "main_text_if_gate_fails": "State that terminal quality remains unresolved and report only the frozen failure status and pre-registered bounds; do not publish a complete-case latent-dependent point estimate or a favorable censoring assignment.",
     "main_text_items_if_gate_passes": [
       "latent-terminal score distribution",
       "false-discard fraction at q_c = 0.90 B_c",
-      "campaign oracle-regret distribution",
+      "campaign oracle-regret distribution over 9 discard-opportunity cells",
       "60-lifecycle assay/discard selection table",
       "assay commitment precision and recall"
     ],
@@ -151,10 +163,11 @@
       "unit": "discarded lifecycle"
     },
     {
-      "definition": "Improvement available from the best discarded state over the campaign's best actually assayed state.",
-      "denominator": "all 10 campaign cells",
+      "definition": "Improvement available from the best discarded state over the campaign's best actually assayed state, among cells where the agent made at least one discard decision.",
+      "denominator": "the 9 frozen campaign cells with at least one committed discard",
       "estimand_id": "campaign_oracle_regret",
       "formula": "R_c = max(0, max_{i in discarded(c)} S_i - B_c)",
+      "null_rule": "A campaign with zero committed discards is retained in the 10-cell census with null campaign_oracle_regret and is excluded from this estimand denominator by the pre-outcome opportunity rule. It is never assigned zero regret.",
       "range": [
         0.0,
         1.0
@@ -220,14 +233,14 @@
     "source_manifest": {
       "benchmark/releases/chemworld-serious-v1/g2-deepseek-v0.6-public-trajectory-archive/manifest.json": "5e448437e2919e3da53c065a50210f0675d10c9ccbb84736ae7e9c83f2629813",
       "benchmark/releases/chemworld-serious-v1/g2-deepseek-v0.6-terminal-file-index.json": "ab139d00641805835fb4a73a19212c958d11213e0d0dfcddaeb96a8d50d48798",
-      "scripts/freeze_work_i_latent_terminal_contract.py": "be2267ad9280541683afda7da315e9872d4c019b57d6b8328c576c73ccdf325c",
-      "src/chemworld/eval/latent_terminal_contract.py": "00f5dd25d5dde12d988ea4dd59268c66976ca1aead0f239d61ae133614492a46",
+      "scripts/freeze_work_i_latent_terminal_contract.py": "52a7a4d5a54a0c0ec65111ee43fcf409c1601f827e5710643f637d29ca015968",
+      "src/chemworld/eval/latent_terminal_contract.py": "f1646d5e82ac48dd3777277f67e1849de404f4680e59d6761b4d78cf7b651d47",
       "src/chemworld/tasks.py": "6de5df77c30ad7ef850051b10fae5de4d48ce98e1e2ba81de95ac36582e815f8",
       "src/chemworld/world/scoring.py": "8ef1328dd891c153186140123cb3c99f417e3873d41511dcf1a6a54476219885",
       "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json": "8312b32329b06745d89004aafbe4e2268ad92a8321045cee6d13b542fa7e719e",
       "workstreams/arxiv_v1/reports/g2-agent-system-comparison-v0.1.json": "a200ba914a3d6324daa6a8c359b771aaf11346382ca3bbebb317c1913a2d67a6"
     },
-    "source_manifest_sha256": "6975e7b53969274fc3319c631ab0190cfae34a4b4edf1baedbca69733fdff324",
+    "source_manifest_sha256": "213baef2d70cce8f94d7ba318d88b9818e7a180efd3d84360676ea4ae66e3bfd",
     "terminal_file_index_sha256": "6c4c9a933e1a3cc0c6ead749892bf90b0abf2e3fc33fb796497d7bd3a99f82b3"
   },
   "freeze": {
@@ -257,13 +270,30 @@
     "complete_case_primary_allowed": false,
     "formal_status_if_any_unresolved": "incomplete_full_report_required",
     "nonfinite_score_policy": "invalid shadow evaluation; never clamp or impute",
+    "point_estimate_policy_by_estimand": {
+      "assay_commitment_precision": "compute exactly from the 24 observed assays, but do not promote the terminal-selection result to main text while the 36-score gate fails",
+      "assay_commitment_recall": "withhold if any of 36 shadow classifications is unresolved",
+      "campaign_oracle_regret": "withhold if any discard in any of the 9 opportunity cells is unresolved",
+      "decision_time_discard_regret": "withhold if any eligible shadow score is unresolved",
+      "discard_to_observed_best_delta": "withhold if any of 36 shadow scores is unresolved",
+      "false_discard_fraction": "withhold if any of 36 shadow classifications is unresolved",
+      "latent_terminal_score": "withhold if any of 36 shadow scores is unresolved",
+      "positive_discard_regret": "withhold if any of 36 shadow scores is unresolved"
+    },
     "prefix_mismatch_policy": "fail closed and retain the mismatch receipt",
     "resource_or_precondition_failure_policy": "retain as an unresolved shadow evaluation; do not change the state or counterfactual semantics to obtain a score",
     "retry_policy": "Only an exact replay under the same source, identity, and noise bindings is allowed; retries never replace a valid first result.",
     "unresolved_bounds": {
-      "false_discard_fraction": "report sharp lower/upper bounds by assigning all unresolved discards below/above the frozen threshold",
-      "latent_score_mean": "report [sum(observed)/36, (sum(observed)+unresolved)/36] using [0,1]"
+      "assay_commitment_precision": "exact from the frozen 24 observed assays; unresolved shadows do not change TP/(TP+FP)",
+      "assay_commitment_recall": "hold observed-assay TP fixed and assign every unresolved discard to TN/FN extremes before evaluating TP/(TP+FN)",
+      "campaign_oracle_regret": "for each of the 9 opportunity cells, the lower endpoint is the best resolved positive regret or 0 and the upper endpoint additionally lets each unresolved discard attain 1-B_c; aggregate over the same 9 cells",
+      "decision_time_discard_regret": "for each unresolved eligible unit with prior incumbent I_i^- use [0, 1-I_i^-]; units without a prior assay remain null in both bounds",
+      "discard_to_observed_best_delta": "for unresolved unit i in cell c use [-B_c, 1-B_c], then report sharp fixed-denominator aggregate bounds",
+      "false_discard_fraction": "lower/upper bounds assign every unresolved discard below/at-or-above the frozen threshold on the fixed 36-decision denominator",
+      "latent_terminal_score": "assign each unresolved S_i its sharp support [0,1]; report mean and order-statistic bounds on the fixed 36-unit denominator",
+      "positive_discard_regret": "for unresolved unit i in cell c use [0, 1-B_c], then report sharp fixed-denominator aggregate bounds"
     },
+    "unresolved_unit_policy": "Retain every unresolved unit in its frozen denominator and publish its failure reason; observed-only estimates are descriptive diagnostics and never substitute for the registered finite-population point estimate.",
     "zero_denominator_policy": "return null with the exact denominator disclosed"
   },
   "population": {
@@ -988,8 +1018,23 @@
   "schema_version": "0.1.0",
   "sensitivity_analysis": {
     "all_sensitivity_rows_mandatory": true,
+    "censoring_definition": "Censoring in this audit means an unresolved shadow evaluation; the frozen 60 original lifecycles are all closed and are not right-censored.",
+    "censoring_rows_apply_to": [
+      "primary threshold",
+      "relative threshold sensitivities 0.80, 0.90, and 1.00",
+      "registered absolute threshold 0.58",
+      "decision-time incumbent analysis"
+    ],
     "decision_time_incumbent_analysis": true,
-    "first-discard_without_prior_assay": "retain as null, never use a future assay",
+    "first_discard_without_prior_assay": "retain as null, never use a future assay",
+    "mandatory_censoring_rows": [
+      "unresolved count and fraction overall, by information arm, and by campaign cell",
+      "unresolved reasons by prefix, identity, evaluator, resource, and nonfinite-score gate",
+      "worst-case assignment S_i=0 for every unresolved shadow evaluation",
+      "best-case assignment S_i=1 for every unresolved shadow evaluation",
+      "sharp estimand-specific bounds from missingness_and_failure.unresolved_bounds"
+    ],
+    "observed_only_rows_are_diagnostic_not_primary": true,
     "primary_threshold_may_not_change": true,
     "registered_absolute_score_threshold": 0.58,
     "relative_near_best_fractions": [
