@@ -1,0 +1,817 @@
+{
+  "census": {
+    "agent_provider_calls": 0,
+    "formal_checkpoint_payloads_loaded": 0,
+    "formal_latent_discard_scores_accessed": 0,
+    "formal_shadow_terminal_evaluations_executed": 0,
+    "negative_fail_closed_probes": 6,
+    "synthetic_prefix_replays": 2,
+    "synthetic_terminal_evaluations": 2
+  },
+  "dependency_bindings": {
+    "formal_resource_card_sha256": "43eebc9c84399655d979c7524f9dbeda5b963b5c5f495ed7287a5aca1cb6f37a",
+    "l01_contract_id": "work-i-deepseek-discarded-state-latent-terminal-v0.1",
+    "l01_contract_sha256": "55a0d6a7cb983ce4099dbea24586ea63ccc9433e106d36011d349472809efe30",
+    "l02_report_id": "work-i-deepseek-discarded-state-reconstructability-v0.1",
+    "l02_report_sha256": "995f16032de09044ecf11a54b7d6fef9f0b3463eab2dad331adc52f7c4533857",
+    "scoring_contract_hash": "b5603757998437e3537a07c1916c36dbff3266b48bb5bf46dad8a952d1f9842b"
+  },
+  "formal_execution_owner": "W1-L05",
+  "gates": {
+    "agent_provider_calls_zero": true,
+    "all_negative_probes_fail_closed": true,
+    "exact_same_identity_terminal_replay": true,
+    "formal_outcome_boundary_not_crossed": true,
+    "independent_public_prefix_replay_exact": true,
+    "l01_contract_identity_frozen": true,
+    "l02_all_36_reconstructable_without_outcome_access": true,
+    "no_chemistry_or_env_step_in_replacement": true,
+    "only_workflow_readiness_bypassed": true,
+    "original_environment_unmodified": true,
+    "original_resource_ledger_unmodified": true,
+    "synthetic_world_disjoint_from_formal_worlds": true,
+    "terminal_noise_key_reused_exactly": true
+  },
+  "implementation_id": "work-i-latent-terminal-replay-v0.1",
+  "negative_probes": {
+    "campaign_resource_snapshot_sha256": true,
+    "hidden_state_sha256": true,
+    "public_prefix_sha256": true,
+    "scoring_contract_hash": true,
+    "terminal_action_sha256": true,
+    "unexpected_physical_precondition": true
+  },
+  "qualification_design": {
+    "formal_world_seeds_excluded": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "independent_prefix_replays": 2,
+    "observation_seed": 320003,
+    "original_noise_namespace": "g2-autonomous-material-information-v1",
+    "prefix_operation_count": 5,
+    "role": "synthetic_nonformal_qualification_only",
+    "world_seed": 20003
+  },
+  "report_id": "work-i-latent-terminal-replay-qualification-v0.1",
+  "report_sha256": "14d0e3358fe4ae00b13e2705519e64f3b8a8644f987dd878b6814fc61247b10f",
+  "schema_id": "chemworld.latent_terminal_replay_qualification",
+  "schema_version": "0.1.0",
+  "source_manifest": {
+    "configs/benchmark/g2_autonomous_electrochemical_material_5x2_deepseek_v0.6_dev.json": "bbf05d09c493619de7513ee9c4bed8dd0ec7f64d3c71a02621815db846251ba1",
+    "configs/benchmark/work_i_latent_terminal_contract_v0.1.json": "e69db432f7018a3cc41287fa02335337c624caf5ba7f0b487a0695809e052ce5",
+    "scripts/qualify_work_i_latent_terminal_replay.py": "2d14ff5b65e04bcf904858f69961d6a0426bf4896377a62dec69edf4e292f267",
+    "src/chemworld/eval/latent_terminal_replay.py": "cfb5e0fee22d021e8c503f570af7252de9c7ccee02cb87b4f30a428b0d8e0927",
+    "workstreams/arxiv_v1/reports/work-i-latent-terminal-reconstructability-v0.1.json": "ec18b041543f44b9c2d2f16ee56a08da727efbe0128622778a8ae6d688afcba3"
+  },
+  "status": "PASS",
+  "synthetic_receipts": [
+    {
+      "agent_provider_calls": 0,
+      "count_as_agent_assay_decision": false,
+      "count_as_original_agent_experiment": false,
+      "discard_id": "synthetic-cell-01:lifecycle-00:terminal-step-006",
+      "hidden_state_payload_emitted": false,
+      "implementation_id": "work-i-latent-terminal-replay-v0.1",
+      "leaderboard_score": 0.0,
+      "local_instrument_runtime_evaluations": 1,
+      "noise_key_sha256": "3e84cfb06e5402c19edfc3e044d3f054d43ec1177aecb23a7b893578a5f895af",
+      "noise_provenance": {
+        "coordinate": {
+          "base_observation_seed_sha256": "58686c3085931a5d7fb2772b78cd54e7300f1042e31db4ae38180bea29c17c72",
+          "experiment_index": 0,
+          "instrument": "final_assay",
+          "namespace": "g2-autonomous-material-information-v1::latent-terminal-final-assay-v0.1::synthetic-cell-01::lifecycle-00",
+          "operation_type": "measure",
+          "replicate_index": 0
+        },
+        "mode": "keyed",
+        "noise_key_sha256": "3e84cfb06e5402c19edfc3e044d3f054d43ec1177aecb23a7b893578a5f895af",
+        "schema_version": "chemworld-keyed-observation-noise-0.1",
+        "sequential_rng_position_used": false
+      },
+      "observation_constitution_checks": [
+        {
+          "message": "",
+          "name": "observation_non_omniscient",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Public scalar observations must be missing or finite values in [0, 1].",
+          "name": "observation_values_finite_and_bounded",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Observed mask entries must be boolean and observed values cannot be missing.",
+          "name": "observation_mask_consistent",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Processed estimates must be missing or finite values in [0, 1].",
+          "name": "observation_processed_estimate_finite_and_bounded",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Observation uncertainties must be finite and nonnegative.",
+          "name": "observation_uncertainty_finite_nonnegative",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Raw public signal payloads must be JSON-like and numerically finite.",
+          "name": "observation_raw_signal_finite",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Observation cost and sample accounting must be finite and nonnegative.",
+          "name": "observation_accounting_finite_nonnegative",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Instrument observations must consume cost or sample.",
+          "name": "measurement_has_cost",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:yield",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:selectivity",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:conversion",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:byproduct_signal",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:degradation_warning",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:virtual_spectrum_summary",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:purity",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:recovery",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:phase_ratio",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:product_in_organic",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:product_in_aqueous",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:impurity_signal",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:solvent_loss",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:process_mass_balance_error",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:crystal_yield",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:crystal_purity",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:crystal_size",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:distillate_purity",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:distillate_recovery",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:flow_conversion",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:electrochemical_selectivity",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:selective_product_yield",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:electrochemical_conversion",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:energy_efficiency",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:crystal_csd_quality",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:crystal_fines_fraction",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:faradaic_efficiency",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:transport_efficiency",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:ohmic_efficiency",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:pH_normalized",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:acid_dissociation_fraction",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:precipitation_signal",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:equilibrium_residual",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:equilibrium_confidence",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "currency",
+          "name": "observation_unit:cost",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "risk",
+          "name": "observation_unit:safety_risk",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:score",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        }
+      ],
+      "observation_contract_hash": "ae2bd704eef7c7a8198d33575d9769de3851fa2de837ac52469a2a6e2fa88678",
+      "original_environment_mutated": false,
+      "original_prefix_mutated": false,
+      "original_resource_ledger_mutated": false,
+      "prefix_identity_sha256": "b9cfefba39dd34ff04c0ca5b0908321351ffea89ca33928ba227c96a28eb0d4c",
+      "replacement_action_sha256": "3a13ef358134d2cf5d28aeede7759f3e16fbd043e425db407bae5599c0d58983",
+      "resource_preflight": {
+        "allowed": true,
+        "charged_to_original_ledger": false,
+        "proposed_delta_sha256": "0358f7d6d904f132bf6150670eb5ec700408b1a0cb903b9402f62c8b7cf9b130",
+        "rejection_reasons": []
+      },
+      "schema_id": "chemworld.latent_terminal_replay_receipt",
+      "schema_version": "0.1.0",
+      "scoring_contract_hash": "b5603757998437e3537a07c1916c36dbff3266b48bb5bf46dad8a952d1f9842b",
+      "shadow_observation_sha256": "1d94b2b639bc466d603bcf6c14fe0270f0c65a63546bcd84305032c9d098e66f",
+      "terminal_action_replacement": {
+        "additional_process_operations": 0,
+        "all_other_preconditions_passed": true,
+        "env_step_calls": 0,
+        "replacement_action": {
+          "instrument": "final_assay",
+          "operation": "measure"
+        },
+        "suppressed_original_action_sha256": "14d25fb17486d4c90fc3fde5578145ee006b10d471fc3cc290ec4aea25bb6e28",
+        "workflow_readiness_bypassed": [
+          "measure_final_requires_terminated"
+        ]
+      },
+      "terminal_evaluation_identity_sha256": "7f5d63fcfb6df79af65c141183be453e642ed7ce6efc799b5e547a7890be226d"
+    },
+    {
+      "agent_provider_calls": 0,
+      "count_as_agent_assay_decision": false,
+      "count_as_original_agent_experiment": false,
+      "discard_id": "synthetic-cell-01:lifecycle-00:terminal-step-006",
+      "hidden_state_payload_emitted": false,
+      "implementation_id": "work-i-latent-terminal-replay-v0.1",
+      "leaderboard_score": 0.0,
+      "local_instrument_runtime_evaluations": 1,
+      "noise_key_sha256": "3e84cfb06e5402c19edfc3e044d3f054d43ec1177aecb23a7b893578a5f895af",
+      "noise_provenance": {
+        "coordinate": {
+          "base_observation_seed_sha256": "58686c3085931a5d7fb2772b78cd54e7300f1042e31db4ae38180bea29c17c72",
+          "experiment_index": 0,
+          "instrument": "final_assay",
+          "namespace": "g2-autonomous-material-information-v1::latent-terminal-final-assay-v0.1::synthetic-cell-01::lifecycle-00",
+          "operation_type": "measure",
+          "replicate_index": 0
+        },
+        "mode": "keyed",
+        "noise_key_sha256": "3e84cfb06e5402c19edfc3e044d3f054d43ec1177aecb23a7b893578a5f895af",
+        "schema_version": "chemworld-keyed-observation-noise-0.1",
+        "sequential_rng_position_used": false
+      },
+      "observation_constitution_checks": [
+        {
+          "message": "",
+          "name": "observation_non_omniscient",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Public scalar observations must be missing or finite values in [0, 1].",
+          "name": "observation_values_finite_and_bounded",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Observed mask entries must be boolean and observed values cannot be missing.",
+          "name": "observation_mask_consistent",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Processed estimates must be missing or finite values in [0, 1].",
+          "name": "observation_processed_estimate_finite_and_bounded",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Observation uncertainties must be finite and nonnegative.",
+          "name": "observation_uncertainty_finite_nonnegative",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Raw public signal payloads must be JSON-like and numerically finite.",
+          "name": "observation_raw_signal_finite",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Observation cost and sample accounting must be finite and nonnegative.",
+          "name": "observation_accounting_finite_nonnegative",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "Instrument observations must consume cost or sample.",
+          "name": "measurement_has_cost",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:yield",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:selectivity",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:conversion",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:byproduct_signal",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:degradation_warning",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:virtual_spectrum_summary",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:purity",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:recovery",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:phase_ratio",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:product_in_organic",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:product_in_aqueous",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:impurity_signal",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:solvent_loss",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:process_mass_balance_error",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:crystal_yield",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:crystal_purity",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:crystal_size",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:distillate_purity",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:distillate_recovery",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:flow_conversion",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:electrochemical_selectivity",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:selective_product_yield",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:electrochemical_conversion",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:energy_efficiency",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:crystal_csd_quality",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:crystal_fines_fraction",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:faradaic_efficiency",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:transport_efficiency",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:ohmic_efficiency",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:pH_normalized",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:acid_dissociation_fraction",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:precipitation_signal",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:equilibrium_residual",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:equilibrium_confidence",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "currency",
+          "name": "observation_unit:cost",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "risk",
+          "name": "observation_unit:safety_risk",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        },
+        {
+          "message": "dimensionless",
+          "name": "observation_unit:score",
+          "passed": true,
+          "tolerance": null,
+          "value": null
+        }
+      ],
+      "observation_contract_hash": "ae2bd704eef7c7a8198d33575d9769de3851fa2de837ac52469a2a6e2fa88678",
+      "original_environment_mutated": false,
+      "original_prefix_mutated": false,
+      "original_resource_ledger_mutated": false,
+      "prefix_identity_sha256": "b9cfefba39dd34ff04c0ca5b0908321351ffea89ca33928ba227c96a28eb0d4c",
+      "replacement_action_sha256": "3a13ef358134d2cf5d28aeede7759f3e16fbd043e425db407bae5599c0d58983",
+      "resource_preflight": {
+        "allowed": true,
+        "charged_to_original_ledger": false,
+        "proposed_delta_sha256": "0358f7d6d904f132bf6150670eb5ec700408b1a0cb903b9402f62c8b7cf9b130",
+        "rejection_reasons": []
+      },
+      "schema_id": "chemworld.latent_terminal_replay_receipt",
+      "schema_version": "0.1.0",
+      "scoring_contract_hash": "b5603757998437e3537a07c1916c36dbff3266b48bb5bf46dad8a952d1f9842b",
+      "shadow_observation_sha256": "1d94b2b639bc466d603bcf6c14fe0270f0c65a63546bcd84305032c9d098e66f",
+      "terminal_action_replacement": {
+        "additional_process_operations": 0,
+        "all_other_preconditions_passed": true,
+        "env_step_calls": 0,
+        "replacement_action": {
+          "instrument": "final_assay",
+          "operation": "measure"
+        },
+        "suppressed_original_action_sha256": "14d25fb17486d4c90fc3fde5578145ee006b10d471fc3cc290ec4aea25bb6e28",
+        "workflow_readiness_bypassed": [
+          "measure_final_requires_terminated"
+        ]
+      },
+      "terminal_evaluation_identity_sha256": "7f5d63fcfb6df79af65c141183be453e642ed7ce6efc799b5e547a7890be226d"
+    }
+  ]
+}
