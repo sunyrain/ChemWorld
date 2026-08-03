@@ -47,7 +47,7 @@ completed_since_last_heartbeat:
   - "Generated and byte-checked the V06 audit; all 12 gates passed, including the non-degenerate 28-assay/32-discard threshold branches."
   - "Validated completed --resume as a no-op: 32 files and all per-file SHA-256/byte counts were unchanged."
   - "Pushed raw evidence 55b7b3c1908a6bec8ee3dbc4b5e3efcbd3599ab6, audit 7e3337b7cbcb83248a88dceef31bcb635468d680, and execution handoff 75c9fcd831b7a3af4cdb24e551a8f3b367cbc251."
-current_validation: "DONE: all claim-listed formal execution, immutable evidence, progress, size, provider-zero, retest-exclusion, V06 audit/check, completed-resume no-op, diff, and independent-review gates passed. Manifest SHA256 d15c7af5d96fd0d99006a3da8b2f1c18b3c357cb1ee4bd81cb1c75675ae1cdcc; progress SHA256 b3c4f143b437ca524d3426890ebfd85b73ad0bf2cd8a71ac941bc8c58c3db906; audit SHA256 661d42eced2097e159b9d36059715ae8a354167c48353d1c37b0f8a9678abe95."
+current_validation: "DONE: all claim-listed formal execution, immutable evidence, progress, size, provider-zero, retest-exclusion, V06 audit/check, completed-resume no-op, diff, and independent-review gates passed. Manifest SHA256 d15c7af5084a96d579fa87de55e0177d3eb2026dc5cb651042c516251751cdcc; progress SHA256 b3c4f143139041dd5c70e7d24441f46712caa7b136da9084178beb6ee93db906; audit SHA256 661d42ec74993200750f040bb4d12f4403fbc9c2c4b78aed5a9e6cc2b0c6be95."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-V08--codex-1.md
   - workstreams/arxiv_v1/reports/work-i-policy-control-formal-v0.1/matrix_manifest.json

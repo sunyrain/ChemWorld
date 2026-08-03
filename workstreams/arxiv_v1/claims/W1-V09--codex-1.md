@@ -46,7 +46,7 @@ validation:
 
 completed_since_last_heartbeat:
   - "W1-V08 is DONE on pushed main 4fb789ba after independent acceptance; its immutable manifest, progress chain, audit, and execution handoff are available."
-  - "The formal manifest self-hash is d15c7af5d96fd0d99006a3da8b2f1c18b3c357cb1ee4bd81cb1c75675ae1cdcc and the V06 audit self-hash is 661d42eced2097e159b9d36059715ae8a354167c48353d1c37b0f8a9678abe95."
+  - "The formal manifest self-hash is d15c7af5084a96d579fa87de55e0177d3eb2026dc5cb651042c516251751cdcc and the V06 audit self-hash is 661d42ec74993200750f040bb4d12f4403fbc9c2c4b78aed5a9e6cc2b0c6be95."
 current_validation: "ACTIVE: read the two immutable V08 inputs once, implement the bounded deterministic reporter, publish machine/Markdown reports plus an independent self-hashed delivery manifest, and make no formal execution or evidence mutation."
 files_touched: []
 blockers: []
