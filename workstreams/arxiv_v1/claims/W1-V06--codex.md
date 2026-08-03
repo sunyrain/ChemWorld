@@ -3,14 +3,14 @@
 ```yaml
 task_id: W1-V06
 title: "Implement construct-validity, resource, and exact-replay audit"
-status: ACTIVE
+status: REVIEW
 
 owner: codex
 collaborators:
   - "agent:/root/w1_v06"
 claimed_at_utc: 2026-08-03T06:54:12Z
 lease_expires_at_utc: 2026-08-05T06:54:12Z
-heartbeat_at_utc: 2026-08-03T06:56:22Z
+heartbeat_at_utc: 2026-08-03T07:26:43Z
 
 base_commit: "1831d56f1f1ecfb83abab944f8548cd62b0dfcc6"
 branch: work1/w1-v06-policy-validity-audit
@@ -39,17 +39,24 @@ validation:
 
 completed_since_last_heartbeat:
   - "Completed read-only contract, dependency, repository, and write-set reconnaissance."
-current_validation: "Claim activated; implementation has not started."
-files_touched: []
+  - "Implemented a fail-closed, source-bound audit over the exact 30-cell factorial matrix and all 180 closed lifecycles."
+  - "Added independent V01 profile reconstruction, V02 contract checks, full resource-ledger prefix reconciliation, replay/retest component verification, matched-arm invariance checks, and a read-only CLI."
+  - "Added 13 synthetic immutable-record tests covering the valid matrix, tampering, conditional nulls, threshold degeneracy, replay/retest mismatches, arm drift, endpoint non-ordering, manifest bindings, and CLI behavior."
+current_validation: "PASS: 13 audit tests; PASS: 42-test policy/resource regression; PASS: ruff, mypy, and git diff --check."
+files_touched:
+  - src/chemworld/eval/policy_validity_audit.py
+  - scripts/audit_work_i_policy_validity.py
+  - tests/test_policy_validity_audit.py
+  - workstreams/arxiv_v1/claims/W1-V06--codex.md
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-03T08:54:12Z
-next_24h: "Implement and validate audit gates against synthetic immutable records without reading formal outcomes."
-handoff_eta: 2026-08-03T12:54:12Z
+next_check_at_utc: null
+next_24h: "Coordinator review and integration with the W1-V04/W1-V05 evidence producers; no formal matrix execution is authorized by this claim."
+handoff_eta: 2026-08-03T07:26:43Z
 
-final_commit: null
+final_commit: "ddfea6ea3eb559cd7db313c98f879cdd4f7d7de6"
 reviewer: null
 review_result: null
-notes: "W1-V06 owns audit mechanics only. W1-V07 owns runner qualification and protocol freeze; W1-V09 owns the formal profile-recovery report."
+notes: "W1-V06 owns audit mechanics only. W1-V07 owns runner qualification and protocol freeze; W1-V09 owns the formal profile-recovery report. Integration must preserve the normalized W1-V04 controller/action evidence and the full W1-V05 original-plus-retest immutable bundle schema; no formal outcomes were read or produced."
 ```
