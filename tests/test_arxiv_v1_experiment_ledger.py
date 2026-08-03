@@ -111,6 +111,33 @@ def test_planned_arxiv_denominator_and_final_counts_are_separated() -> None:
     assert all(not item["required_for_v1"] for item in optional.values())
 
 
+def test_fvl_ledger_binding_preserves_distinct_units_and_latent_missingness() -> None:
+    ledger = _load(LEDGER_PATH)
+    fvl = ledger["work_i_fvl_incremental_evidence"]
+    derived = _load(ROOT / fvl["derived_data"]["path"])
+    derived_manifest = _load(ROOT / fvl["derived_data"]["manifest_path"])
+    current = _load(ROOT / fvl["evidence_graph"]["path"])
+
+    assert fvl["data_contract"]["contract_sha256"] == (
+        derived["work_i_incremental"]["data_contract_sha256"]
+    )
+    assert fvl["derived_data"]["derived_data_sha256"] == derived["derived_data_sha256"]
+    assert fvl["derived_data"]["manifest_sha256"] == derived_manifest["manifest_sha256"]
+    assert fvl["evidence_graph"]["graph_sha256"] == current["evidence_dag"]["graph_sha256"]
+    assert fvl["evidence_graph"]["work_i_fvl_nodes_current"] == 13
+    assert fvl["F_world_fork"]["pair_count"] == 6
+    assert fvl["F_world_fork"]["original_and_exact_replay_trace_count"] == 24
+    assert fvl["V_known_policy_validity"]["primary_campaign_count"] == 30
+    assert fvl["V_known_policy_validity"]["primary_closed_lifecycle_count"] == 180
+    assert fvl["L_latent_terminal"]["discarded_lifecycle_count"] == 36
+    assert fvl["L_latent_terminal"]["resolved_shadow_receipt_count"] == 6
+    assert fvl["L_latent_terminal"]["unresolved_shadow_receipt_count"] == 30
+    assert fvl["L_latent_terminal"]["complete_case_primary_used"] is False
+    assert fvl["L_latent_terminal"]["main_text_eligible"] is False
+    assert fvl["counting_boundary"]["adds_to_historical_physical_experiment_total"] is False
+    assert fvl["counting_boundary"]["cross_track_primary_units_pooled"] is False
+
+
 def test_tracked_g0_evidence_hashes_match_the_ledger() -> None:
     ledger = _load(LEDGER_PATH)
     g0 = ledger["experiment_layers"]["g0_compiled_recipe"]
@@ -202,7 +229,10 @@ def test_terminal_g2_narrative_is_bound_to_the_frozen_derived_data() -> None:
     assert branch["world_by_core_metric_count"] == 8
     assert "six of eight selected world-by-lifecycle cells as mixed" in compact_section
     assert "That categorical count is supporting rather than the main result" in compact_section
-    assert "best-of-campaign and raw terminal contrasts were sign-discordant in two pairs" in compact_section
+    assert (
+        "best-of-campaign and raw terminal contrasts were sign-discordant in two pairs"
+        in compact_section
+    )
     assert "Pearson correlation was $+0.826$" in compact_section
 
 

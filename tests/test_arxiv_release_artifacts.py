@@ -215,6 +215,27 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     assert manifest["gates"]["frozen_derived_table_and_figures"] == (
         f"passed_derived_{derived_hash}"
     )
+    fvl = manifest["evidence"]["work_i_fvl_incremental_evidence"]
+    derived_manifest = json.loads(
+        (RELEASE / "arxiv-v1-derived-data.manifest.json").read_text(encoding="utf-8")
+    )
+    current = json.loads((ROOT / fvl["evidence_registry_path"]).read_text(encoding="utf-8"))
+    assert fvl["data_contract_sha256"] == (
+        derived["work_i_incremental"]["data_contract_sha256"]
+    )
+    assert fvl["evidence_graph_sha256"] == current["evidence_dag"]["graph_sha256"]
+    assert fvl["work_i_fvl_nodes_current"] == fvl["work_i_fvl_node_count"] == 13
+    assert fvl["latent_resolved_shadow_receipts"] == 6
+    assert fvl["latent_unresolved_shadow_receipts"] == 30
+    assert fvl["latent_complete_case_substitution_used"] is False
+    assert manifest["evidence"]["frozen_derived_data"]["manifest_sha256"] == (
+        derived_manifest["manifest_sha256"]
+    )
+    assert manifest["gates"]["work_i_fvl_release_binding"].startswith("passed_13_of_13")
+    assert manifest["gates"]["latent_terminal_primary_analysis"].startswith("blocked_")
+    data_card = (RELEASE / manifest["data_card"]).read_text(encoding="utf-8")
+    assert "6; 30 remain unresolved" in data_card
+    assert "Complete-case substitution is forbidden" in data_card
     assert manifest["gates"]["final_claim_audit"].startswith("passed_")
     assert manifest["gates"]["standard_arxiv_render"].startswith("passed_")
 
