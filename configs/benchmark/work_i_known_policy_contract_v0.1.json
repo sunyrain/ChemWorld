@@ -1,0 +1,349 @@
+{
+  "arm_invariance": {
+    "expected": "Matched information arms yield identical known-policy actions, threshold signals, branch choices, profile metrics, and assayed endpoints.",
+    "interpretation": "This is an interface and pairing check because the deterministic controls do not consume material information; it is not a material-information null result."
+  },
+  "contract_sha256": "79681abfa92af758af8326db1727b865376ad0da192ea13552b68fd94a66dd45",
+  "depends_on": {
+    "profile_contract_schema": "chemworld.experimental_agency_profile@0.1.0",
+    "profile_contract_sha256": "01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262"
+  },
+  "expected_profile_signatures": {
+    "conditional_null_expectations": [
+      "mean_first_measurement_operation_fraction is null for both unmeasured policies and finite for measure_then_threshold",
+      "all outcome-trajectory and endpoint-context metrics are null for start_then_discard because it performs no final assay",
+      "assay_all endpoint-context metrics are finite; its recovery rate is null exactly when no loss episode exists",
+      "measure_then_threshold trajectory nullness follows the frozen V01 denominator rules using its observed assay count"
+    ],
+    "exact_by_policy": {
+      "assay_all": {
+        "assay_fraction": 1.0,
+        "attempted_operations_per_closed_lifecycle": 6.0,
+        "closed_lifecycle_fraction": 1.0,
+        "committed_operations_per_closed_lifecycle": 6.0,
+        "continued_after_measurement_fraction": 0.0,
+        "discard_fraction": 0.0,
+        "mean_first_measurement_operation_fraction": null,
+        "measured_lifecycle_fraction": 0.0,
+        "nonfinal_instrument_uses_per_closed_lifecycle": 0.0,
+        "post_measure_process_operations_per_closed_lifecycle": 0.0,
+        "threshold_decision_concordance": null,
+        "threshold_eligible_fraction": 0.0
+      },
+      "measure_then_threshold": {
+        "closed_lifecycle_fraction": 1.0,
+        "measured_lifecycle_fraction": 1.0,
+        "nonfinal_instrument_uses_per_closed_lifecycle": 1.0,
+        "threshold_decision_concordance": 1.0,
+        "threshold_eligible_fraction": 1.0
+      },
+      "start_then_discard": {
+        "assay_fraction": 0.0,
+        "attempted_operations_per_closed_lifecycle": 2.0,
+        "closed_lifecycle_fraction": 1.0,
+        "committed_operations_per_closed_lifecycle": 2.0,
+        "continued_after_measurement_fraction": 0.0,
+        "discard_fraction": 1.0,
+        "mean_first_measurement_operation_fraction": null,
+        "measured_lifecycle_fraction": 0.0,
+        "nonfinal_instrument_uses_per_closed_lifecycle": 0.0,
+        "post_measure_process_operations_per_closed_lifecycle": 0.0,
+        "threshold_decision_concordance": null,
+        "threshold_eligible_fraction": 0.0
+      }
+    },
+    "execution_validity_gate": "All planned lifecycles close, every submitted action commits, no action is validation-failed or resource-rejected, and event/state/resource replay is exact. Signature recovery is assessed only after this gate.",
+    "explicit_non_orderings": [
+      "mean_assayed_score",
+      "best_assayed_score",
+      "all outcome_trajectory metrics",
+      "cost or risk between assay_all and measure_then_threshold"
+    ],
+    "formal_non_degeneracy_gate": {
+      "failure_handling": "Report the full frozen result and mark the threshold positive control unestablished; never retune on formal worlds.",
+      "pass": "at least one finite-signal assay branch and at least one finite-signal discard branch",
+      "unit": "all 60 threshold-policy lifecycles pooled across formal worlds and arms"
+    },
+    "resource_expectations": [
+      "start_then_discard uses strictly fewer committed operations and no reagent relative to both other policies",
+      "assay_all and measure_then_threshold use identical solvent and reagent schedules before terminal routing",
+      "observed cost and risk must exactly reconcile to committed action paths; no strict cost or risk ordering is asserted between assay_all and measure_then_threshold"
+    ],
+    "scope": "Campaign profiles are evaluated per world x information arm x policy; ordering statements involving threshold routing are evaluated over the pooled formal matrix after the preregistered non-degeneracy gate.",
+    "strict_partial_orderings_after_gate": [
+      "assay_all.assay_fraction > measure_then_threshold.assay_fraction > start_then_discard.assay_fraction",
+      "start_then_discard.discard_fraction > measure_then_threshold.discard_fraction > assay_all.discard_fraction",
+      "measure_then_threshold.measured_lifecycle_fraction > assay_all.measured_lifecycle_fraction = start_then_discard.measured_lifecycle_fraction",
+      "measure_then_threshold.nonfinal_instrument_uses_per_closed_lifecycle > assay_all.nonfinal_instrument_uses_per_closed_lifecycle = start_then_discard.nonfinal_instrument_uses_per_closed_lifecycle",
+      "measure_then_threshold.continued_after_measurement_fraction > assay_all.continued_after_measurement_fraction = start_then_discard.continued_after_measurement_fraction",
+      "measure_then_threshold.attempted_operations_per_closed_lifecycle > assay_all.attempted_operations_per_closed_lifecycle > start_then_discard.attempted_operations_per_closed_lifecycle"
+    ],
+    "threshold_policy_algebra": {
+      "assay_fraction": "p",
+      "attempted_operations_per_closed_lifecycle": "6 + 2p",
+      "committed_operations_per_closed_lifecycle": "6 + 2p",
+      "continued_after_measurement_fraction": "p",
+      "discard_fraction": "1 - p",
+      "domain_after_formal_non_degeneracy_gate": "0 < p < 1",
+      "mean_first_measurement_operation_fraction": "2/3 - p/6",
+      "post_measure_process_operations_per_closed_lifecycle": "p",
+      "symbol": "p = assayed threshold-policy lifecycles / closed threshold-policy lifecycles"
+    }
+  },
+  "formal_matrix": {
+    "campaign_count": 30,
+    "closed_lifecycle_count": 180,
+    "episode_mode": "campaign",
+    "information_arms": [
+      "opaque_codes",
+      "anonymous_nominal_properties"
+    ],
+    "lifecycles_per_cell": 6,
+    "matched_arm_rule": "Within a world-policy pair, physics, probe schedule, observation-noise namespace, and policy code are identical; only the supplied material information changes. Known policies never read that dossier.",
+    "material_family_id": "nominal-prior-latent-v2",
+    "observation_noise_mode": "keyed",
+    "policy_ids": [
+      "assay_all",
+      "start_then_discard",
+      "measure_then_threshold"
+    ],
+    "provider_call_count": 0,
+    "task_id": "electrochemical-conversion",
+    "workflow_mode": "autonomous_open_v1",
+    "world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "policies": [
+    {
+      "operation_count_per_lifecycle": 6,
+      "per_lifecycle_plan": [
+        {
+          "operation": "add_solvent",
+          "solvent": "$probe.solvent",
+          "volume_L": 0.025
+        },
+        {
+          "amount_mol": "$probe.reagent_amount_mol",
+          "operation": "add_reagent"
+        },
+        {
+          "current_mA": "$probe.current_mA",
+          "electrolyte_profile": "$probe.electrolyte_profile",
+          "operation": "set_potential",
+          "potential_V": "$probe.potential_V"
+        },
+        {
+          "duration_s": "$probe.probe_duration_s",
+          "operation": "electrolyze"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "policy_id": "assay_all",
+      "policy_role": "terminal-commitment control",
+      "reads_material_information": false,
+      "reads_observations_for_decisions": false
+    },
+    {
+      "operation_count_per_lifecycle": 2,
+      "per_lifecycle_plan": [
+        {
+          "operation": "add_solvent",
+          "solvent": "$probe.solvent",
+          "volume_L": 0.025
+        },
+        {
+          "operation": "discard_batch",
+          "reason": "known_policy_immediate_discard"
+        }
+      ],
+      "policy_id": "start_then_discard",
+      "policy_role": "explicit-discard control",
+      "reads_material_information": false,
+      "reads_observations_for_decisions": false
+    },
+    {
+      "operation_count_per_lifecycle": {
+        "assay_branch": 8,
+        "discard_branch": 6
+      },
+      "per_lifecycle_plan": [
+        {
+          "operation": "add_solvent",
+          "solvent": "$probe.solvent",
+          "volume_L": 0.025
+        },
+        {
+          "amount_mol": "$probe.reagent_amount_mol",
+          "operation": "add_reagent"
+        },
+        {
+          "current_mA": "$probe.current_mA",
+          "electrolyte_profile": "$probe.electrolyte_profile",
+          "operation": "set_potential",
+          "potential_V": "$probe.potential_V"
+        },
+        {
+          "duration_s": "$probe.probe_duration_s",
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "branch": "finite observation.conversion >= $qualified_threshold",
+          "else": [
+            {
+              "operation": "discard_batch",
+              "reason": "known_policy_below_threshold"
+            }
+          ],
+          "missing_or_nonfinite_signal": [
+            {
+              "operation": "discard_batch",
+              "reason": "known_policy_diagnostic_unavailable"
+            }
+          ],
+          "then": [
+            {
+              "duration_s": "$probe.post_measure_duration_s",
+              "operation": "electrolyze"
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "instrument": "final_assay",
+              "operation": "measure"
+            }
+          ]
+        }
+      ],
+      "policy_id": "measure_then_threshold",
+      "policy_role": "evidence-conditioned-action control",
+      "reads_material_information": false,
+      "reads_observations_for_decisions": true
+    }
+  ],
+  "probe_schedule": {
+    "campaign_stock_envelope": {
+      "reagent_mol_for_full_prefix": 0.09,
+      "solvent_L": 0.15
+    },
+    "cards": [
+      {
+        "current_mA": 25.0,
+        "electrolyte_profile": 0,
+        "post_measure_duration_s": 300.0,
+        "potential_V": 0.72,
+        "probe_duration_s": 300.0,
+        "probe_id": "probe-01",
+        "reagent_amount_mol": 0.01,
+        "solvent": 0
+      },
+      {
+        "current_mA": 40.0,
+        "electrolyte_profile": 1,
+        "post_measure_duration_s": 420.0,
+        "potential_V": 0.84,
+        "probe_duration_s": 420.0,
+        "probe_id": "probe-02",
+        "reagent_amount_mol": 0.012,
+        "solvent": 1
+      },
+      {
+        "current_mA": 55.0,
+        "electrolyte_profile": 2,
+        "post_measure_duration_s": 540.0,
+        "potential_V": 0.96,
+        "probe_duration_s": 540.0,
+        "probe_id": "probe-03",
+        "reagent_amount_mol": 0.014,
+        "solvent": 2
+      },
+      {
+        "current_mA": 70.0,
+        "electrolyte_profile": 3,
+        "post_measure_duration_s": 660.0,
+        "potential_V": 1.08,
+        "probe_duration_s": 660.0,
+        "probe_id": "probe-04",
+        "reagent_amount_mol": 0.016,
+        "solvent": 3
+      },
+      {
+        "current_mA": 85.0,
+        "electrolyte_profile": 2,
+        "post_measure_duration_s": 780.0,
+        "potential_V": 1.2,
+        "probe_duration_s": 780.0,
+        "probe_id": "probe-05",
+        "reagent_amount_mol": 0.018,
+        "solvent": 0
+      },
+      {
+        "current_mA": 90.0,
+        "electrolyte_profile": 0,
+        "post_measure_duration_s": 900.0,
+        "potential_V": 1.24,
+        "probe_duration_s": 900.0,
+        "probe_id": "probe-06",
+        "reagent_amount_mol": 0.02,
+        "solvent": 2
+      }
+    ],
+    "construction_rule": "Six deterministic cards chosen from public task-interface bounds before known-policy outcomes; all policies receive the cards in the same order.",
+    "solvent_volume_L_per_started_lifecycle": 0.025
+  },
+  "purpose": {
+    "not_a_claim_about": [
+      "endpoint-performance superiority",
+      "chemical intelligence ranking",
+      "provider or language-model capability",
+      "real-laboratory safety or executability"
+    ],
+    "primary_question": "Does the frozen multidimensional profile recover experimental policies whose evidence and terminal-decision structures are known by construction?",
+    "role": "construct-validity positive controls"
+  },
+  "reliability": {
+    "matched_arm_action_match": true,
+    "profile_exact_rebuild_match": true,
+    "provider_call_count": 0,
+    "test_retest_rule": "A second execution from the same world identity, keyed-noise namespace, policy, and threshold must reproduce event, state, resource, terminal, profile, and endpoint hashes exactly.",
+    "trajectory_exact_replay_match": true
+  },
+  "schema_id": "chemworld.known_policy_controls",
+  "schema_version": "0.1.0",
+  "threshold_qualification": {
+    "candidate_rule": "midpoints between sorted unique finite qualification signals",
+    "comparator": ">=",
+    "continue_branch": "one additional electrolysis, terminate, final_assay",
+    "diagnostic_operation": {
+      "instrument": "uvvis",
+      "operation": "measure"
+    },
+    "diagnostic_signal": "observation.conversion",
+    "discard_branch": "discard_batch",
+    "forbidden_data": "formal world seeds 0, 1, 2, 3, 4",
+    "freeze_rule": "W1-V03 must record the selected value, source-manifest hash, and formal-world exclusion audit before W1-V04 implementation is released.",
+    "qualification_data": "independent qualification worlds only",
+    "selection_rule": "Among candidates producing both branches in every qualification arm, choose the candidate closest to the pooled qualification median; break equal-distance ties toward the lower numeric threshold.",
+    "signal_requirements": [
+      "public",
+      "finite",
+      "scalar"
+    ],
+    "status_after_v02": "unbound_until_W1-V03"
+  }
+}

@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-V02
 title: "Freeze three known policies and their expected agency-profile signatures"
-status: CLAIMED
+status: ACTIVE
 
 owner: codex
 collaborators: []
@@ -39,7 +39,7 @@ validation:
   - git diff --check
 
 completed_since_last_heartbeat: []
-current_validation: "Claim scope checked against the frozen V01 profile contract and Work I matrix."
+current_validation: "Policy grammar, shared six-probe schedule, and outcome-independent expected signatures are being encoded."
 files_touched: []
 blockers: []
 blocked_by: null
