@@ -78,7 +78,7 @@ next_check_at_utc: null
 next_24h: "Coordinator integration and downstream W1-D04 evidence-DAG binding."
 handoff_eta: 2026-08-03T18:40:00Z
 
-final_commit: null
+final_commit: fdd28c1c
 reviewer: null
 review_result: null
 notes: "D03 does not update the evidence DAG, experiment ledger, release manifest, data card, manuscript, paper figure manifest, or rendered figure files; D04/D05/P09 own those downstream surfaces."
