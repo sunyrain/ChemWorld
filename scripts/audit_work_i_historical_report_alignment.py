@@ -347,7 +347,7 @@ def build_markdown_report(receipt: Mapping[str, Any]) -> str:
         [
             "# Work I historical report alignment",
             "",
-            f"Status: **{receipt['status']}**  ",
+            f"Status: **{receipt['status']}**",
             f"Receipt SHA-256: `{receipt['receipt_sha256']}`",
             "",
             "Both historical generated reports are tracked, byte-identical to their Git index",
