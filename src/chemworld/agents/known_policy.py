@@ -37,7 +37,10 @@ from chemworld.eval.known_policy_threshold import (
 from chemworld.eval.known_policy_threshold import (
     source_manifest as qualification_source_manifest,
 )
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 
+KNOWN_POLICY_AGENT_SCHEMA_ID = "chemworld.known_policy_agent"
+KNOWN_POLICY_AGENT_SCHEMA_VERSION = "0.1.0"
 KNOWN_POLICY_IMPLEMENTATION_VERSION = "chemworld-known-policy-agent-0.1"
 FROZEN_KNOWN_POLICY_CONTRACT_SHA256 = (
     "79681abfa92af758af8326db1727b865376ad0da192ea13552b68fd94a66dd45"
@@ -220,6 +223,17 @@ class KnownPolicyAgent(BaseAgent):
             )
         self.policy_id = policy_id
         self.artifacts = load_known_policy_artifacts(artifact_root)
+        self._source_sha256 = file_sha256(Path(__file__))
+        self._controller_identity_sha256 = canonical_json_sha256(
+            {
+                "schema_id": KNOWN_POLICY_AGENT_SCHEMA_ID,
+                "schema_version": KNOWN_POLICY_AGENT_SCHEMA_VERSION,
+                "implementation_version": KNOWN_POLICY_IMPLEMENTATION_VERSION,
+                "policy_id": self.policy_id,
+                "controller_source_sha256": self._source_sha256,
+                "artifact_bindings": self.artifacts.to_dict(),
+            }
+        )
 
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
         """Reset from a deliberately narrow task-contract view.
@@ -277,7 +291,11 @@ class KnownPolicyAgent(BaseAgent):
         self._action_queue: list[dict[str, Any]] = []
         self._last_decision_audit: dict[str, Any] | None = None
         self._active_branch: str | None = None
-        self._threshold_trace: list[dict[str, Any]] = []
+        self._active_branch_signal: float | None = None
+        self._active_branch_signal_status: str | None = None
+        self._decision_ordinal = 0
+        self._lifecycle_action_ordinal = 0
+        self._controller_trace: list[dict[str, Any]] = []
         self._failed = False
         self._prepare_lifecycle()
 
@@ -287,6 +305,9 @@ class KnownPolicyAgent(BaseAgent):
             return
         probe = PROBE_SCHEDULE[self._lifecycle_index]
         self._active_branch = None
+        self._active_branch_signal = None
+        self._active_branch_signal_status = None
+        self._lifecycle_action_ordinal = 0
         if self.policy_id == "assay_all":
             self._action_queue = [
                 *_probe_prefix(probe),
@@ -328,6 +349,7 @@ class KnownPolicyAgent(BaseAgent):
         action = deepcopy(self._action_queue.pop(0))
         self._pending_action = deepcopy(action)
         self._last_decision_audit = self._build_decision_audit(action)
+        self._record_action_decision(action)
         return action
 
     def update(
@@ -418,19 +440,97 @@ class KnownPolicyAgent(BaseAgent):
                 }
             ]
         self._active_branch = branch
-        self._threshold_trace.append(
+        self._active_branch_signal = signal
+        self._active_branch_signal_status = (
+            "finite" if signal is not None else "missing_or_nonfinite"
+        )
+        self._append_trace_event(
             {
+                **self._trace_identity(),
                 "event_type": "known_policy_threshold_decision",
+                "decision_ordinal": self._decision_ordinal,
                 "lifecycle_index": self._lifecycle_index,
                 "probe_id": probe.probe_id,
                 "diagnostic_signal": self.artifacts.diagnostic_signal,
                 "diagnostic_value": signal,
-                "signal_status": "finite" if signal is not None else "missing_or_nonfinite",
+                "signal_status": self._active_branch_signal_status,
                 "comparator": self.artifacts.comparator,
                 "threshold": self.artifacts.threshold,
                 "branch": branch,
+                "selected_action_plan": deepcopy(self._action_queue),
+                "selected_action_plan_sha256": canonical_json_sha256(
+                    self._action_queue
+                ),
                 "observation_fields_read": ["conversion"],
                 "material_information_read": False,
+                "provider_call_count": 0,
+            }
+        )
+
+    def _trace_identity(self) -> dict[str, Any]:
+        return {
+            "schema_id": "chemworld.known_policy_controller_trace",
+            "schema_version": "0.1.0",
+            "controller_schema_id": KNOWN_POLICY_AGENT_SCHEMA_ID,
+            "controller_schema_version": KNOWN_POLICY_AGENT_SCHEMA_VERSION,
+            "controller_identity_sha256": self._controller_identity_sha256,
+            "controller_source_sha256": self._source_sha256,
+            "policy_id": self.policy_id,
+            "known_policy_contract_sha256": self.artifacts.contract_sha256,
+            "threshold_binding_sha256": self.artifacts.threshold_binding_sha256,
+        }
+
+    def _append_trace_event(self, event: dict[str, Any]) -> None:
+        payload = deepcopy(event)
+        payload["trace_event_sha256"] = canonical_json_sha256(payload)
+        self._controller_trace.append(payload)
+
+    def _record_action_decision(self, action: dict[str, Any]) -> None:
+        probe = PROBE_SCHEDULE[self._lifecycle_index]
+        self._decision_ordinal += 1
+        self._lifecycle_action_ordinal += 1
+        expected_action = deepcopy(action)
+        issued_action = deepcopy(action)
+        reads_threshold_signal = (
+            self.policy_id == "measure_then_threshold"
+            and self._active_branch is not None
+        )
+        self._append_trace_event(
+            {
+                **self._trace_identity(),
+                "event_type": "known_policy_action_decision",
+                "decision_ordinal": self._decision_ordinal,
+                "lifecycle_index": self._lifecycle_index,
+                "lifecycle_action_ordinal": self._lifecycle_action_ordinal,
+                "probe_id": probe.probe_id,
+                "branch": self._active_branch,
+                "expected_action": expected_action,
+                "expected_action_sha256": canonical_json_sha256(expected_action),
+                "issued_action": issued_action,
+                "issued_action_sha256": canonical_json_sha256(issued_action),
+                "action_sha256": canonical_json_sha256(issued_action),
+                "actions_match": expected_action == issued_action,
+                "adaptation_source": (
+                    "measurement" if reads_threshold_signal else "none"
+                ),
+                "observation_fields_read": (
+                    ["conversion"] if reads_threshold_signal else []
+                ),
+                "observed_signal_access": reads_threshold_signal,
+                "diagnostic_value": (
+                    self._active_branch_signal if reads_threshold_signal else None
+                ),
+                "diagnostic_signal": (
+                    self._active_branch_signal if reads_threshold_signal else None
+                ),
+                "signal_status": (
+                    self._active_branch_signal_status
+                    if reads_threshold_signal
+                    else "not_read"
+                ),
+                "material_information_read": False,
+                "material_information_accessed": False,
+                "provider_call_count": 0,
             }
         )
 
@@ -487,7 +587,7 @@ class KnownPolicyAgent(BaseAgent):
         return deepcopy(self._last_decision_audit)
 
     def agent_trace(self) -> list[dict[str, Any]]:
-        return deepcopy(self._threshold_trace)
+        return deepcopy(self._controller_trace)
 
     def interaction_capabilities(self) -> InteractionCapabilities:
         conditional = self.policy_id == "measure_then_threshold"
@@ -504,11 +604,16 @@ class KnownPolicyAgent(BaseAgent):
         payload = super().manifest()
         payload.update(
             {
+                "schema_id": KNOWN_POLICY_AGENT_SCHEMA_ID,
+                "schema_version": KNOWN_POLICY_AGENT_SCHEMA_VERSION,
                 "implementation_version": KNOWN_POLICY_IMPLEMENTATION_VERSION,
+                "controller_sha256": self._controller_identity_sha256,
+                "controller_source_sha256": self._source_sha256,
                 "role_id": "experimental_agency_construct_validity_control",
                 "policy_id": self.policy_id,
                 "deterministic": True,
                 "provider_call_count": 0,
+                "reads_material_information": False,
                 "planned_lifecycle_count": LIFECYCLES_PER_CELL,
                 "probe_ids": [probe.probe_id for probe in PROBE_SCHEDULE],
                 "artifact_bindings": self.artifacts.to_dict(),
@@ -516,7 +621,7 @@ class KnownPolicyAgent(BaseAgent):
                     "reads_material_information": False,
                     "reads_history_in_act": False,
                     "observation_fields_read": (
-                        ["conversion_after_uvvis"]
+                        ["conversion"]
                         if self.policy_id == "measure_then_threshold"
                         else []
                     ),
@@ -546,6 +651,8 @@ __all__ = [
     "FROZEN_KNOWN_POLICY_CONTRACT_SHA256",
     "FROZEN_QUALIFICATION_REPORT_SHA256",
     "FROZEN_THRESHOLD_BINDING_SHA256",
+    "KNOWN_POLICY_AGENT_SCHEMA_ID",
+    "KNOWN_POLICY_AGENT_SCHEMA_VERSION",
     "KNOWN_POLICY_IMPLEMENTATION_VERSION",
     "KnownPolicyAgent",
     "KnownPolicyArtifacts",
