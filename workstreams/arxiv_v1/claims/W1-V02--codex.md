@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-V02
 title: "Freeze three known policies and their expected agency-profile signatures"
-status: ACTIVE
+status: REVIEW
 
 owner: codex
 collaborators: []
 claimed_at_utc: 2026-08-03T06:04:22Z
 lease_expires_at_utc: 2026-08-05T06:04:22Z
-heartbeat_at_utc: 2026-08-03T06:04:22Z
+heartbeat_at_utc: 2026-08-03T06:14:48Z
 
 base_commit: "7d41964cd1025c2831b35c172164a0156d3c51fe"
 branch: work1/w1-v02-known-policy-contract
@@ -38,17 +38,26 @@ validation:
   - uv run mypy src/chemworld/eval/known_policy_contract.py
   - git diff --check
 
-completed_since_last_heartbeat: []
-current_validation: "Policy grammar, shared six-probe schedule, and outcome-independent expected signatures are being encoded."
-files_touched: []
+completed_since_last_heartbeat:
+  - "Frozen three deterministic policies around a shared six-probe schedule and zero provider calls."
+  - "Preregistered exact identities, six partial orderings, conditional null semantics, formal non-degeneracy, and explicit non-orderings."
+  - "Firewalled threshold qualification from formal seeds and froze a deterministic candidate/selection rule for W1-V03."
+  - "Confirmed all assay, discard, and post-measure continuation paths commit and close under the live campaign runtime."
+current_validation: "Deterministic rebuild, six focused tests, ruff, mypy, git diff check, and a 90-action runtime path smoke passed."
+files_touched:
+  - src/chemworld/eval/known_policy_contract.py
+  - scripts/freeze_work_i_known_policies.py
+  - configs/benchmark/work_i_known_policy_contract_v0.1.json
+  - tests/test_known_policy_contract.py
+  - workstreams/arxiv_v1/reports/work-i-known-policy-contract-v0.1.md
 blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: 2026-08-03T18:04:22Z
-next_24h: "Freeze the policy action grammar and expected measurement signatures, then hand off V02 for independent rebuild and review."
+next_24h: "Coordinator review and independent deterministic rebuild on main; then begin W1-V03 threshold qualification."
 handoff_eta: 2026-08-03T08:30:00Z
 
-final_commit: null
+final_commit: "345f1d13dc2338680228a5f3f5058962eaacabf6"
 reviewer: null
 review_result: null
 notes: "These policies are construct-validity positive controls, not endpoint-performance baselines. The threshold value itself is intentionally absent from V02 and must be frozen from disjoint qualification worlds in W1-V03."
