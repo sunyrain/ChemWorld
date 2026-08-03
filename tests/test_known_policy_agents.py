@@ -20,6 +20,7 @@ from chemworld.campaign_resources import CampaignResourceCard
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.known_policy_contract import PROBE_SCHEDULE
 from chemworld.eval.known_policy_threshold import SOURCE_PATHS
+from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.runner import run_agent
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -148,7 +149,12 @@ def test_assay_all_and_start_then_discard_match_frozen_plans() -> None:
             "reason": "known_policy_immediate_discard",
         },
     ]
-    assert discard_agent.agent_trace() == []
+    discard_trace = discard_agent.agent_trace()
+    assert [item["event_type"] for item in discard_trace] == [
+        "known_policy_action_decision",
+        "known_policy_action_decision",
+    ]
+    assert all(item["observed_signal_access"] is False for item in discard_trace)
 
 
 @pytest.mark.parametrize(
@@ -156,6 +162,18 @@ def test_assay_all_and_start_then_discard_match_frozen_plans() -> None:
     [
         (
             1.0,
+            [
+                {
+                    "operation": "electrolyze",
+                    "duration_s": PROBE_SCHEDULE[0].post_measure_duration_s,
+                },
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ],
+            "continue_and_assay",
+        ),
+        (
+            0.007984561379998922,
             [
                 {
                     "operation": "electrolyze",
@@ -200,11 +218,31 @@ def test_threshold_policy_implements_all_frozen_terminal_branches(
         *expected_tail,
     ]
     trace = agent.agent_trace()
-    assert len(trace) == 1
-    assert trace[0]["diagnostic_value"] == diagnostic
-    assert trace[0]["branch"] == expected_branch
-    assert trace[0]["observation_fields_read"] == ["conversion"]
-    assert trace[0]["material_information_read"] is False
+    threshold_trace = [
+        item
+        for item in trace
+        if item["event_type"] == "known_policy_threshold_decision"
+    ]
+    assert len(threshold_trace) == 1
+    assert threshold_trace[0]["diagnostic_value"] == diagnostic
+    assert threshold_trace[0]["branch"] == expected_branch
+    assert threshold_trace[0]["observation_fields_read"] == ["conversion"]
+    assert threshold_trace[0]["material_information_read"] is False
+
+    action_trace = [
+        item for item in trace if item["event_type"] == "known_policy_action_decision"
+    ]
+    assert len(action_trace) == len(actions)
+    assert [item["decision_ordinal"] for item in action_trace] == list(
+        range(1, len(actions) + 1)
+    )
+    assert all(item["actions_match"] is True for item in action_trace)
+    assert all(item["material_information_accessed"] is False for item in action_trace)
+    for item in trace:
+        trace_hash = item["trace_event_sha256"]
+        assert trace_hash == canonical_json_sha256(
+            {key: value for key, value in item.items() if key != "trace_event_sha256"}
+        )
 
 
 def test_policy_ignores_material_dossier_and_fails_closed() -> None:
@@ -269,10 +307,35 @@ def test_nonformal_environment_smoke_closes_six_lifecycles_with_audits(
 
     rows = load_jsonl(output)
     manifest = rows[0]["agent_metadata"]
+    assert manifest["schema_id"] == "chemworld.known_policy_agent"
+    assert manifest["schema_version"] == "0.1.0"
+    assert len(manifest["controller_sha256"]) == 64
+    assert len(manifest["controller_source_sha256"]) == 64
     assert manifest["provider_call_count"] == 0
+    assert manifest["reads_material_information"] is False
     assert manifest["input_access_contract"]["reads_material_information"] is False
     assert manifest["artifact_bindings"]["threshold_binding_sha256"] == (
         "8a55b713ca900a644a301ecd8e83a0a686f9a28b3f60a18a85a4e57b66288c6a"
     )
+    action_trace = [
+        item
+        for item in rows[-1]["agent_trace"]
+        if item["event_type"] == "known_policy_action_decision"
+    ]
+    assert len(action_trace) == len(records)
+    assert [item["decision_ordinal"] for item in action_trace] == list(
+        range(1, len(records) + 1)
+    )
+    for item, record in zip(action_trace, records, strict=True):
+        assert item["issued_action"] == record.action
+        assert item["action_sha256"] == canonical_json_sha256(record.action)
+        assert item["policy_id"] == policy_id
+        assert item["material_information_accessed"] is False
+        assert item["provider_call_count"] == 0
     if policy_id == "measure_then_threshold":
-        assert len(rows[-1]["agent_trace"]) == 6
+        threshold_trace = [
+            item
+            for item in rows[-1]["agent_trace"]
+            if item["event_type"] == "known_policy_threshold_decision"
+        ]
+        assert len(threshold_trace) == 6
