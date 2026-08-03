@@ -207,8 +207,13 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
         assert manifest["status"] == "building_not_publication_ready"
         assert manifest["gates"]["raw_data_archive"] == "open"
         assert manifest["gates"]["author_metadata"] == "open"
+    derived = json.loads(
+        (RELEASE / "arxiv-v1-derived-data.json").read_text(encoding="utf-8")
+    )
+    derived_hash = derived["derived_data_sha256"]
+    assert manifest["evidence"]["frozen_derived_data"]["derived_data_sha256"] == derived_hash
     assert manifest["gates"]["frozen_derived_table_and_figures"] == (
-        "passed_derived_d163fe1fcbd1bf66671a4c1734ff535eca71a38f2e331c7010772cc60c9c9c36"
+        f"passed_derived_{derived_hash}"
     )
     assert manifest["gates"]["final_claim_audit"].startswith("passed_")
     assert manifest["gates"]["standard_arxiv_render"].startswith("passed_")
