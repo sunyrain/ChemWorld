@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-M05
 title: "Establish the Work I integration staging and hot-file queue"
-status: CLAIMED
+status: ACTIVE
 
 owner: Yijun
 collaborators: []
 claimed_at_utc: 2026-08-03T16:32:50Z
-lease_expires_at_utc: 2026-08-05T16:32:50Z
-heartbeat_at_utc: 2026-08-03T16:32:50Z
+lease_expires_at_utc: 2026-08-05T16:37:50Z
+heartbeat_at_utc: 2026-08-03T16:37:50Z
 
 base_commit: "628478aa3f01023c249f08fddb8a35ecd6429803"
 branch: work1/w1-m05-integration-queue-yijun
@@ -35,14 +35,16 @@ validation:
   - "Confirm no shared hot file, TODO, manuscript, global evidence, ledger, figure, release, or existing claim is modified"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim prepared for main registration before integration-queue implementation"
+completed_since_last_heartbeat:
+  - "Verified that the W1-M05 claim is present on origin/main at b9755201cb860aca4718b8887ee25d567c71f5d0"
+  - "Fast-forwarded the isolated branch to current origin/main and pushed it before implementation"
+current_validation: "Enumerating source-commit claims, fetched work1 heads, review gates, dependencies, and coordinator-only hot-file constraints for a fail-closed snapshot"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-M05--Yijun.md
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-04T04:32:50Z
+next_check_at_utc: 2026-08-04T04:37:50Z
 next_24h: "Build and validate the isolated staging/hot-file queue, then hand it to the coordinator without changing coordinator-owned state."
 handoff_eta: 2026-08-04T00:32:50Z
 
