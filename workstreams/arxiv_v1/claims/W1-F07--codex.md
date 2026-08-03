@@ -52,7 +52,7 @@ next_check_at_utc: 2026-08-03T17:15:58Z
 next_24h: "Coordinator independently rebuilds both report formats and merges the certificate."
 handoff_eta: 2026-08-03T05:30:00Z
 
-final_commit: null
+final_commit: "b43a77197197696a14c99e328316cd55b66c734e"
 reviewer: coordinator
 review_result: "pending"
 notes: "Certificate SHA-256: c4c3bce535ce5eb5b8f189c57786f1551a54829261fe68833474cf81b4beb554. The reports summarize frozen evidence without changing any qualification input."
