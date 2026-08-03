@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-V02
 title: "Freeze three known policies and their expected agency-profile signatures"
-status: REVIEW
+status: DONE
 
 owner: codex
 collaborators: []
 claimed_at_utc: 2026-08-03T06:04:22Z
 lease_expires_at_utc: 2026-08-05T06:04:22Z
-heartbeat_at_utc: 2026-08-03T06:14:48Z
+heartbeat_at_utc: 2026-08-03T06:15:50Z
 
 base_commit: "7d41964cd1025c2831b35c172164a0156d3c51fe"
 branch: work1/w1-v02-known-policy-contract
@@ -58,7 +58,7 @@ next_24h: "Coordinator review and independent deterministic rebuild on main; the
 handoff_eta: 2026-08-03T08:30:00Z
 
 final_commit: "345f1d13dc2338680228a5f3f5058962eaacabf6"
-reviewer: null
-review_result: null
-notes: "These policies are construct-validity positive controls, not endpoint-performance baselines. The threshold value itself is intentionally absent from V02 and must be frozen from disjoint qualification worlds in W1-V03."
+reviewer: coordinator
+review_result: "accepted after an independent Python 3.12 deterministic rebuild on main, six focused tests, ruff, mypy, runtime-path evidence review, and git diff validation"
+notes: "Frozen contract SHA-256: 79681abfa92af758af8326db1727b865376ad0da192ea13552b68fd94a66dd45. These policies are construct-validity positive controls, not endpoint-performance baselines. The threshold value itself is intentionally absent from V02 and must be frozen from disjoint qualification worlds in W1-V03."
 ```
