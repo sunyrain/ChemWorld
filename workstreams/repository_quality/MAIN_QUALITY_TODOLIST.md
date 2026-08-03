@@ -40,15 +40,15 @@ frozen evidence, or benchmark semantics.
 
 | ID | Status | Scope | Validation |
 | --- | --- | --- | --- |
-| AQ-01 | OPEN | Make optional RL tests collect safely in default `dev`; fix the Ruff failure | focused pytest; Ruff on touched tests |
-| AQ-02 | OPEN | Type-safe provider and cross-platform process guards | focused tests; Ruff; Mypy on touched files |
-| AQ-03 | OPEN | Type world-understanding, single-stage, predictive, and electrochemical service paths | focused tests; Ruff; Mypy on touched files |
-| AQ-04 | OPEN | Type live-LLM and static-optimization agent paths | focused tests; Ruff; Mypy on touched files |
-| AQ-05 | OPEN | Type static campaign, baseline, and material-information evaluators | focused tests; Ruff; Mypy on touched files |
-| AQ-06 | OPEN | Type replication audit, arXiv derived data, and participant qualification | focused tests; Ruff; Mypy on touched files |
-| AQ-07 | OPEN | Type mechanism-adaptation execution | focused tests; Ruff; Mypy on touched files |
-| AQ-08 | OPEN | Coordinator integration and full quality-gate verification | default-dev tests; Ruff; Mypy; docs audit; diff check |
-| AQ-09 | OPEN | Make the release-finalizer test honor the optional `paper` dependency contract | focused/default-dev pytest; Ruff on touched tests |
+| AQ-01 | REVIEW | Make optional RL tests collect safely in default `dev`; fix the Ruff failure | focused pytest; Ruff on touched tests |
+| AQ-02 | REVIEW | Type-safe provider and cross-platform process guards | focused tests; Ruff; Mypy on touched files |
+| AQ-03 | REVIEW | Type world-understanding, single-stage, predictive, and electrochemical service paths | focused tests; Ruff; Mypy on touched files |
+| AQ-04 | REVIEW | Type live-LLM and static-optimization agent paths | focused tests; Ruff; Mypy on touched files |
+| AQ-05 | REVIEW | Type static campaign, baseline, and material-information evaluators | focused tests; Ruff; Mypy on touched files |
+| AQ-06 | REVIEW | Type replication audit, arXiv derived data, and participant qualification | focused tests; Ruff; Mypy on touched files |
+| AQ-07 | REVIEW | Type mechanism-adaptation execution | focused tests; Ruff; Mypy on touched files |
+| AQ-08 | ACTIVE | Coordinator integration and full quality-gate verification | default-dev tests; Ruff; Mypy; docs audit; diff check |
+| AQ-09 | REVIEW | Make the release-finalizer test honor the optional `paper` dependency contract | focused/default-dev pytest; Ruff on touched tests |
 
 ## Completion criteria
 
