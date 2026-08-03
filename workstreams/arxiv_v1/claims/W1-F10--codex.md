@@ -74,7 +74,7 @@ next_check_at_utc: 2026-08-03T17:26:00Z
 next_24h: "Coordinator review, independent rebuild on main, and merge."
 handoff_eta: 2026-08-03T06:30:00Z
 
-final_commit: null
+final_commit: "af6a21651ed7808ffce96c302ce93852d564eb42"
 reviewer: null
 review_result: null
 notes: "Qualification SHA-256: 91f7d5d5c49b98606825eee05832de60057a3e09677f1839443a33f0885013b3. Corrected F06 report SHA-256: 62684d414e9f9037b70d170abc6b29b442a928cf76df900a6bb53a3d60f2ee02. Corrected F07 certificate SHA-256: 5b09842469956d749370ace16d2b0698ec55eb69f46a13044810f6b2ca63ef78. Instrument latency is reported as declared scheduling semantics; the executable probe separately verifies immediate state effects, cost, sample debit, destructiveness, and terminal preconditions."
