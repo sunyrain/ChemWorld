@@ -56,7 +56,7 @@ next_check_at_utc: 2026-08-03T16:50:02Z
 next_24h: "Coordinator review and merge; then execute the frozen 24-trace F06 matrix without protocol changes."
 handoff_eta: 2026-08-03T05:15:00Z
 
-final_commit: null
+final_commit: "37a3ffa0db05dcee4504f998e2a727d9862a4362"
 reviewer: coordinator
 review_result: "pending"
 notes: "F05 preflight covers one seed for each frozen intervention class (8 traces including exact replays). The full 24-trace evidence matrix remains W1-F06."
