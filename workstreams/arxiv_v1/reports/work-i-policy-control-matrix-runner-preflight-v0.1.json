@@ -1,0 +1,421 @@
+{
+  "artifact_schemas": {
+    "cell_bundle": "chemworld.policy_control_cell_bundle@0.1.0",
+    "execution": "chemworld.policy_control_campaign_execution@0.1.0",
+    "manifest": "chemworld.policy_control_matrix_manifest@0.1.0",
+    "progress": "chemworld.policy_control_matrix_progress@0.1.0"
+  },
+  "campaign_resource_card": {
+    "card_id": "work-i-known-policy-formal-k6-v1",
+    "card_sha256": "c7f7575b07380e084b33e0397d004b5d505f5c9f372bf5f991df3ffa8dfb80aa",
+    "hard_limits": {
+      "final_assays": 6,
+      "nonfinal_instrument_uses": 6,
+      "operation_attempts": 48,
+      "per_instrument": {
+        "uvvis": 6
+      },
+      "stocks": {
+        "reagent_mol": 0.09,
+        "solvent_L": 0.15
+      },
+      "vessel_starts": 6
+    },
+    "metadata": {
+      "planned_lifecycles": 6,
+      "provider_calls": 0,
+      "role": "known_policy_construct_validity_formal_matrix",
+      "shared_across_world_arm_policy_cells": true,
+      "task_id": "electrochemical-conversion"
+    },
+    "schema_version": "chemworld-campaign-resource-card-0.1"
+  },
+  "checks": {
+    "formal_outcomes_not_read": true,
+    "frozen_contract_chain_matches": true,
+    "protocol_valid": true,
+    "provider_calls_are_zero": true,
+    "schedule_has_180_primary_lifecycles": true,
+    "schedule_has_30_unique_cells": true,
+    "source_manifest_complete": true
+  },
+  "claim_boundary": "This artifact validates only the frozen schedule, dependency identities, artifact schemas, and resume contract. It reads no formal-world outcome and does not qualify or execute the formal matrix.",
+  "counting_rules": {
+    "failed_or_incomplete_cells": "retained outside the primary count and never silently coerced to complete",
+    "primary_campaign_unit": "one scheduled cell",
+    "primary_execution_role": "original",
+    "primary_lifecycle_unit": "one started vessel closed by exactly one committed final_assay or discard_batch action",
+    "provider_calls": "must remain zero in original and retest executions",
+    "retest_in_primary_estimand": false,
+    "retest_role": "same-identity deterministic reliability execution"
+  },
+  "dependency_bindings": {
+    "controller": {
+      "path": "src/chemworld/agents/known_policy.py",
+      "required_task": "W1-V04",
+      "sha256": "b6c3b1c2c42c415c5317c10f2ef03c3d623639532a065fa88dda7e838ce5ef84",
+      "status": "available"
+    },
+    "formal_retuning_forbidden": true,
+    "known_policy_contract_sha256": "79681abfa92af758af8326db1727b865376ad0da192ea13552b68fd94a66dd45",
+    "profile_contract_sha256": "01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262",
+    "qualification_report_sha256": "9a928c28862099049c560b7135067ea86dc6535a7077926b66f39221abbe924e",
+    "threshold": 0.007984561379998922,
+    "threshold_binding_sha256": "8a55b713ca900a644a301ecd8e83a0a686f9a28b3f60a18a85a4e57b66288c6a",
+    "threshold_comparator": ">="
+  },
+  "expected_counts": {
+    "primary_campaigns": 30,
+    "primary_closed_lifecycles": 180,
+    "provider_calls": 0,
+    "retest_campaigns": 30,
+    "retest_closed_lifecycles": 180
+  },
+  "formal_execution_authorized": false,
+  "formal_result": false,
+  "preflight_sha256": "295fb534563f925138c39646bce5466a9bda440c900693391da69ae50aa30c59",
+  "protocol_id": "work-i-policy-control-matrix-v0.1",
+  "protocol_sha256": "8c81c72f4ea1ffb254e0a741ae524efaf5c4af4bc204d74bbcb6ec55729c8c06",
+  "resume_policy": {
+    "accepted_bundles_are_immutable": true,
+    "atomic_bundle_publication": true,
+    "atomic_progress_publication": true,
+    "canonical_prefix_only": true,
+    "completed_manifest_is_terminal": true,
+    "corruption_fails_closed": true,
+    "identity_drift_fails_closed": true,
+    "resume_reexecution": "begin at the first absent scheduled cell; never execute or overwrite an accepted cell",
+    "single_unbound_next_bundle": "validate and adopt only the exact next scheduled cell after a crash between bundle and progress publication",
+    "unexpected_files_fail_closed": true
+  },
+  "runner_version": "chemworld-policy-control-matrix-runner-0.1",
+  "schedule": [
+    {
+      "cell_id": "cell-01-world-0000-opaque-assay-all",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 1,
+      "policy_id": "assay_all",
+      "world_seed": 0
+    },
+    {
+      "cell_id": "cell-02-world-0000-opaque-start-then-discard",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 2,
+      "policy_id": "start_then_discard",
+      "world_seed": 0
+    },
+    {
+      "cell_id": "cell-03-world-0000-opaque-measure-then-threshold",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 3,
+      "policy_id": "measure_then_threshold",
+      "world_seed": 0
+    },
+    {
+      "cell_id": "cell-04-world-0000-anonymous-nominal-assay-all",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 4,
+      "policy_id": "assay_all",
+      "world_seed": 0
+    },
+    {
+      "cell_id": "cell-05-world-0000-anonymous-nominal-start-then-discard",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 5,
+      "policy_id": "start_then_discard",
+      "world_seed": 0
+    },
+    {
+      "cell_id": "cell-06-world-0000-anonymous-nominal-measure-then-threshold",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 6,
+      "policy_id": "measure_then_threshold",
+      "world_seed": 0
+    },
+    {
+      "cell_id": "cell-07-world-0001-opaque-assay-all",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 7,
+      "policy_id": "assay_all",
+      "world_seed": 1
+    },
+    {
+      "cell_id": "cell-08-world-0001-opaque-start-then-discard",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 8,
+      "policy_id": "start_then_discard",
+      "world_seed": 1
+    },
+    {
+      "cell_id": "cell-09-world-0001-opaque-measure-then-threshold",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 9,
+      "policy_id": "measure_then_threshold",
+      "world_seed": 1
+    },
+    {
+      "cell_id": "cell-10-world-0001-anonymous-nominal-assay-all",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 10,
+      "policy_id": "assay_all",
+      "world_seed": 1
+    },
+    {
+      "cell_id": "cell-11-world-0001-anonymous-nominal-start-then-discard",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 11,
+      "policy_id": "start_then_discard",
+      "world_seed": 1
+    },
+    {
+      "cell_id": "cell-12-world-0001-anonymous-nominal-measure-then-threshold",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 12,
+      "policy_id": "measure_then_threshold",
+      "world_seed": 1
+    },
+    {
+      "cell_id": "cell-13-world-0002-opaque-assay-all",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 13,
+      "policy_id": "assay_all",
+      "world_seed": 2
+    },
+    {
+      "cell_id": "cell-14-world-0002-opaque-start-then-discard",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 14,
+      "policy_id": "start_then_discard",
+      "world_seed": 2
+    },
+    {
+      "cell_id": "cell-15-world-0002-opaque-measure-then-threshold",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 15,
+      "policy_id": "measure_then_threshold",
+      "world_seed": 2
+    },
+    {
+      "cell_id": "cell-16-world-0002-anonymous-nominal-assay-all",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 16,
+      "policy_id": "assay_all",
+      "world_seed": 2
+    },
+    {
+      "cell_id": "cell-17-world-0002-anonymous-nominal-start-then-discard",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 17,
+      "policy_id": "start_then_discard",
+      "world_seed": 2
+    },
+    {
+      "cell_id": "cell-18-world-0002-anonymous-nominal-measure-then-threshold",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 18,
+      "policy_id": "measure_then_threshold",
+      "world_seed": 2
+    },
+    {
+      "cell_id": "cell-19-world-0003-opaque-assay-all",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 19,
+      "policy_id": "assay_all",
+      "world_seed": 3
+    },
+    {
+      "cell_id": "cell-20-world-0003-opaque-start-then-discard",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 20,
+      "policy_id": "start_then_discard",
+      "world_seed": 3
+    },
+    {
+      "cell_id": "cell-21-world-0003-opaque-measure-then-threshold",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 21,
+      "policy_id": "measure_then_threshold",
+      "world_seed": 3
+    },
+    {
+      "cell_id": "cell-22-world-0003-anonymous-nominal-assay-all",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 22,
+      "policy_id": "assay_all",
+      "world_seed": 3
+    },
+    {
+      "cell_id": "cell-23-world-0003-anonymous-nominal-start-then-discard",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 23,
+      "policy_id": "start_then_discard",
+      "world_seed": 3
+    },
+    {
+      "cell_id": "cell-24-world-0003-anonymous-nominal-measure-then-threshold",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 24,
+      "policy_id": "measure_then_threshold",
+      "world_seed": 3
+    },
+    {
+      "cell_id": "cell-25-world-0004-opaque-assay-all",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 25,
+      "policy_id": "assay_all",
+      "world_seed": 4
+    },
+    {
+      "cell_id": "cell-26-world-0004-opaque-start-then-discard",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 26,
+      "policy_id": "start_then_discard",
+      "world_seed": 4
+    },
+    {
+      "cell_id": "cell-27-world-0004-opaque-measure-then-threshold",
+      "information_arm": "opaque_codes",
+      "material_information": {
+        "mode": "opaque_codes"
+      },
+      "ordinal": 27,
+      "policy_id": "measure_then_threshold",
+      "world_seed": 4
+    },
+    {
+      "cell_id": "cell-28-world-0004-anonymous-nominal-assay-all",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 28,
+      "policy_id": "assay_all",
+      "world_seed": 4
+    },
+    {
+      "cell_id": "cell-29-world-0004-anonymous-nominal-start-then-discard",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 29,
+      "policy_id": "start_then_discard",
+      "world_seed": 4
+    },
+    {
+      "cell_id": "cell-30-world-0004-anonymous-nominal-measure-then-threshold",
+      "information_arm": "anonymous_nominal_properties",
+      "material_information": {
+        "mode": "anonymous_nominal_properties"
+      },
+      "ordinal": 30,
+      "policy_id": "measure_then_threshold",
+      "world_seed": 4
+    }
+  ],
+  "schedule_sha256": "a4f5d79c0646aee6c32371fac6d36c95b0505a81f8c2a0f27366b59d79c2ae35",
+  "schema_id": "chemworld.policy_control_matrix_preflight",
+  "schema_version": "0.1.0",
+  "source_manifest": {
+    "configs/benchmark/work_i_known_policy_contract_v0.1.json": "a3ec08634309e947bb0491a4b406585e8ae0a46894368f2c6dcdf516aae379d2",
+    "configs/benchmark/work_i_known_policy_threshold_v0.1.json": "97665fc6fb5bbc613fb20be270a77f562849257a8ceb89dcc5d2677523c03be5",
+    "configs/benchmark/work_i_policy_control_matrix_v0.1.json": "983e3a336336be407d7f843e6e508718b763a7861f133f5e7a3b874ef16818fa",
+    "configs/benchmark/work_i_policy_profile_contract_v0.1.json": "f9d71ba31e8885b2150ef8457dfed6e91d33f986de924ba314ae46d33af8eab6",
+    "scripts/run_work_i_policy_controls.py": "1af75d2b0f137d2a6e82a76d3f9b3c675da393a312cb68d63667c83fd8d6bfa4",
+    "src/chemworld/agents/known_policy.py": "b6c3b1c2c42c415c5317c10f2ef03c3d623639532a065fa88dda7e838ce5ef84",
+    "src/chemworld/campaign_resources.py": "bbf1a2def3f58053d32c4815182943ccba66fa72f4c1747053f2ab3790173d7b",
+    "src/chemworld/envs/chemworld_env.py": "fa94a5e4bcbb4e070addfcbefa9f60ebca555e05f042795d4fc7e131fa828aea",
+    "src/chemworld/envs/observation_noise.py": "009ae86890d4810cb856ec6df453afb9d80ea4049ae58b7b1d12e89bcd64343f",
+    "src/chemworld/eval/known_policy_contract.py": "33be9e58a87b1aaf6258d02cd78810ab0dc3a243897ed36395a05a82beb97015",
+    "src/chemworld/eval/known_policy_threshold.py": "31655a7c8230d4eccb9c8ca9e96df9e7ef167d9059b899c7f44ba9117523b43c",
+    "src/chemworld/eval/policy_validity_contract.py": "bcdcf32fa886c0ba3bd9e82becc202b638c0a206f15945b9fa407114a2fd1c23",
+    "src/chemworld/eval/policy_validity_matrix.py": "e23c818bf9772c43cf3c03b1fd343fc5beb4fb0e59e8a3d989fbac1878b44210",
+    "src/chemworld/eval/runner.py": "a1455aa6f731d54b8f89975d127fccc80d1f256e7c6d37d0eda0675b90dd4268",
+    "src/chemworld/operation_validator.py": "2962614c92c83d38c631e8101775a604968ba468ec1f23490c8398c78712f223",
+    "src/chemworld/runtime/electrochemical_services.py": "13678d264f443065a799ec5f9a808fa776fbe3d0dcffba2abe4a9a4c90921f79",
+    "src/chemworld/world/electrochemical_material_family.py": "ff549d7f356a684eab406436d1b36f730633ffe90059021f80eaf986fcfe9ca3",
+    "src/chemworld/world/observation_kernel.py": "046109adfc4a2aa30e95aa082204936612df0cc70a95a6395b707a16d49a4163",
+    "src/chemworld/world/scoring.py": "8ef1328dd891c153186140123cb3c99f417e3873d41511dcf1a6a54476219885",
+    "workstreams/arxiv_v1/reports/work-i-known-policy-threshold-qualification-v0.1.json": "4ab26d299c4cf75f4ca589ab3614592c63a4d7dbff8d11757caa31f82300c929"
+  },
+  "source_manifest_sha256": "e4c6268e33550267813406c81c607cd34d83413c1ca28c5541a56a55238f90ae",
+  "status": "outcome_blind_preflight_passed"
+}
