@@ -3,14 +3,14 @@
 ```yaml
 task_id: W1-V05
 title: "Implement the 5x2x3 known-policy matrix runner, immutable manifest, and resume policy"
-status: CHANGES_REQUESTED
+status: REVIEW
 
 owner: codex
 collaborators:
   - "agent:/root/w1_v05"
 claimed_at_utc: 2026-08-03T06:54:12Z
 lease_expires_at_utc: 2026-08-05T06:54:12Z
-heartbeat_at_utc: 2026-08-03T07:26:14Z
+heartbeat_at_utc: 2026-08-03T07:39:53Z
 
 base_commit: "1831d56f1f1ecfb83abab944f8548cd62b0dfcc6"
 branch: work1/w1-v05-policy-control-matrix
@@ -39,13 +39,16 @@ validation:
   - uv run ruff check src/chemworld/eval/policy_validity_matrix.py scripts/run_work_i_policy_controls.py tests/test_policy_validity_matrix.py
   - uv run mypy src/chemworld/eval/policy_validity_matrix.py
   - git diff --check
+  - git diff --check 1831d56f1f1ecfb83abab944f8548cd62b0dfcc6...HEAD
 
 completed_since_last_heartbeat:
   - "Implemented the canonical world-major 5 x 2 x 3 schedule with exactly 30 primary campaigns and 180 primary closed lifecycles."
   - "Integrated the frozen V04 controllers for primary and same-identity deterministic retest execution with complete event, state, resource, terminal, profile, endpoint, and decision-audit evidence."
   - "Added content-addressed immutable cell bundles, a self-hashed terminal manifest, and fail-closed canonical-prefix resume with atomic publication and exact-next orphan adoption."
   - "Recorded an outcome-blind preflight bound to the merged V01-V04 contracts and source identities; no formal outcome was read and no provider call or formal execution occurred."
-current_validation: "Preflight generation and exact --check pass (30 campaigns, 180 lifecycles, controller available, formal_result=false, preflight SHA-256 295fb534563f925138c39646bce5466a9bda440c900693391da69ae50aa30c59); 37/37 related tests pass; ruff, mypy, and git diff --check pass."
+  - "Addressed review by requiring an explicit self-hashed W1-V07 receipt with true runner-qualified/protocol-frozen gates and current matrix-protocol, source-manifest, preflight, and controller bindings before any formal executor call."
+  - "Removed the test-file EOF blank line and added an explicit base-commit-to-HEAD whitespace validation command."
+current_validation: "Preflight generation and exact --check pass (30 campaigns, 180 lifecycles, controller available, formal_result=false, preflight SHA-256 58dc11556051faf44e495b6709dc91f5d04e47ca96399ccf7f65bed6660afdb0); CLI allow flag alone is rejected before output creation; 46/46 related tests pass with coverage; ruff, mypy, git diff --check, and git diff --check 1831d56f1f1ecfb83abab944f8548cd62b0dfcc6...HEAD pass."
 files_touched:
   - src/chemworld/eval/policy_validity_matrix.py
   - scripts/run_work_i_policy_controls.py
@@ -58,10 +61,10 @@ blocked_by: null
 unblock_condition: null
 next_check_at_utc: 2026-08-03T08:54:12Z
 next_24h: "Coordinator review and integration; formal qualification/execution remain with W1-V07/W1-V08."
-handoff_eta: 2026-08-03T07:22:25Z
+handoff_eta: 2026-08-03T07:39:53Z
 
-final_commit: "84b2b4de0e4ccea8997ee48c886e278728ef704e"
+final_commit: "2886d6165a61c8930e585affad5acc7ef73e8445"
 reviewer: "codex-1"
-review_result: "CHANGES_REQUESTED: remove the historical test-file EOF whitespace defect and record a base-to-HEAD whitespace check; require a self-hashed W1-V07 qualification receipt with qualified/frozen and current protocol/source/preflight/controller bindings before any formal executor call."
-notes: "Merged W1-V04 controller surface is bound in the preflight. Formal execution remains double-gated and was not invoked. Retest and replay evidence never count toward the frozen 30-campaign/180-lifecycle primary estimand."
+review_result: "CHANGES_ADDRESSED: EOF whitespace corrected and base-to-HEAD validation recorded; W1-V07 receipt validation now fails closed on missing, false, tampered, or stale qualification before executor invocation. Awaiting coordinator re-review."
+notes: "Merged W1-V04 controller surface is bound in the preflight. Formal execution requires explicit opt-in plus a valid W1-V07 qualification receipt and was not invoked. Retest and replay evidence never count toward the frozen 30-campaign/180-lifecycle primary estimand."
 ```
