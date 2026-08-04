@@ -251,7 +251,7 @@ Track 默认写集：
 | W1-M02 | P0 | DONE | 冻结 Work I scope、claim hierarchy 与非目标 | 无 | 是 |
 | W1-M03 | P0 | DONE | 对齐两份历史生成报告与当前 evidence binding | 无 | 是 |
 | W1-M04 | P0 | DONE | 封存 v0.6 scope-stopped extension | 无 | 是 |
-| W1-M05 | P0 | CLAIMED | 建立 integration staging 与 hot-file queue | M01 | 是 |
+| W1-M05 | P0 | DONE | 建立 integration staging 与 hot-file queue | M01 | 是 |
 | W1-M06 | P0 | OPEN | 最终跨 track 集成与 release freeze | F/V/L/S/P/D 完成 | 否 |
 
 M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通过可审计的 scope-change 记录才能重新打开。
