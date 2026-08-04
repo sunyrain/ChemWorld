@@ -28,6 +28,26 @@ The corresponding public files are:
 The phrase “single process module” excludes the mandatory observation component. Every executable
 v1 composition must still expose public measurement and a reachable terminal evaluation.
 
+## Frozen pre-launch reference paths
+
+Compilation alone does not establish that an authoring example can complete a lifecycle. The
+first-paper use-case amendment therefore freezes two deterministic paths in
+`examples/world-authoring/use-case-reference-paths-v0.1.json` and executes them in the example
+tests.
+
+- U02 uses the `phase + observation` example with the supported `balanced` objective and a
+  five-action budget. It adds solvent and reagent to create a measurable sample, performs one pH
+  measurement, terminates and commits one final assay. UV--Vis remains an available but unselected
+  instrument.
+- U03 uses the multi-stage reaction--phase--separation example with the supported `balanced`
+  objective. Its first submitted action deliberately attempts phase separation before phase
+  preparation and must roll back with `precondition_failed` while preserving physical state. The
+  following 18 actions execute the legal reaction, measurement, extraction, purification,
+  termination and final-assay recovery path.
+
+These paths are public construction and lifecycle checks, not agent-performance measurements or
+physical-laboratory validation.
+
 ## Compile an example
 
 ```python

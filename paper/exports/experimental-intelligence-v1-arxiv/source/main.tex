@@ -403,6 +403,21 @@ are not the size of the composition space, and the existing
 reference-task qualification cannot replace coverage-guided generated
 combinations or frozen unseen combinations.
 
+Before launching the instrument-use cases, we amended two public
+authoring examples so that their task contracts and deterministic
+reference paths are executable rather than merely compilable. The
+resource-limited \texttt{phase\ +\ observation} example uses the
+supported \texttt{balanced} objective and a five-action path that
+prepares a measurable sample, performs pH measurement, terminates and
+commits a final assay. The multi-stage
+\texttt{reaction\ +\ thermal\ +\ phase\ +\ separation\ +\ observation}
+example also uses \texttt{balanced}; its frozen 19-action path first
+submits an intentionally premature phase-separation action, which must
+roll back without changing physical state, and then follows an 18-action
+legal reaction--measurement--purification--termination recovery path.
+These are construction and lifecycle specifications, not
+agent-performance or physical-laboratory results.
+
 All 28 registered operations committed in at least one valid context. In
 paired invalid probes, the pre-action simulator-state projection was
 preserved. Only a committed transaction installs a candidate state

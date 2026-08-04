@@ -88,7 +88,7 @@ components:
       instruments: [hplc, final_assay]
 
 task:
-  objective: maximize_declared_endpoint
+  objective: balanced
   budget: 10
   operations: [add_solvent, add_reagent, heat, add_phase, mix, settle,
                separate_phase, terminate, measure]

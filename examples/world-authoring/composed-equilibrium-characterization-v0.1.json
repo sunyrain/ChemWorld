@@ -26,11 +26,13 @@
     }
   ],
   "task": {
-    "objective": "characterize_declared_equilibrium",
-    "budget": 3,
+    "objective": "balanced",
+    "budget": 5,
     "operations": [
-      "terminate",
-      "measure"
+      "add_solvent",
+      "add_reagent",
+      "measure",
+      "terminate"
     ],
     "instruments": [
       "ph_meter",
@@ -39,7 +41,7 @@
     ],
     "observations": "partial-instrument-observation",
     "resources": {
-      "operation_budget": 3,
+      "operation_budget": 5,
       "sample_volume_L": 0.001,
       "instrument_uses": 3,
       "final_assays": 1
@@ -63,7 +65,7 @@
     "episode_mode": "campaign",
     "safety_limit": 0.65,
     "difficulty": "intro",
-    "description": "One process component plus the mandatory public observation component.",
+    "description": "A resource-limited phase-characterization world that prepares a measurable sample before public observation and lifecycle closure.",
     "tags": [
       "authoring-example",
       "single-process-module"

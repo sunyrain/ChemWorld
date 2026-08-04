@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+import gymnasium as gym
 import pytest
 
 import chemworld
@@ -11,6 +12,7 @@ from chemworld.tasks import get_task, list_tasks
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE_ROOT = ROOT / "examples" / "world-authoring"
+REFERENCE_PATHS = EXAMPLE_ROOT / "use-case-reference-paths-v0.1.json"
 COMPOSITION_EXAMPLES = (
     (
         "composed-equilibrium-characterization-v0.1.json",
@@ -58,8 +60,74 @@ def test_public_composition_examples_compile(
     assert "measure" in compiled.task_spec.allowed_operations
     assert "final_assay" in compiled.task_spec.allowed_instruments
     if expected_pattern == "phase-observation":
-        assert set(compiled.task_spec.allowed_operations) == {"terminate", "measure"}
+        assert set(compiled.task_spec.allowed_operations) == {
+            "add_solvent",
+            "add_reagent",
+            "measure",
+            "terminate",
+        }
     json.dumps(compiled.to_public_dict(), allow_nan=False)
+
+
+def _physical_state(env: gym.Env[Any, Any]) -> dict[str, Any]:
+    state = env.unwrapped._state.to_dict(include_hidden=True)
+    state.pop("ledger", None)
+    state.pop("process", None)
+    return state
+
+
+def test_prelaunch_reference_paths_execute_and_fail_closed() -> None:
+    specification = _read_json(REFERENCE_PATHS)
+
+    assert specification["status"] == "frozen_prelaunch_specification"
+    assert [case["use_case_id"] for case in specification["cases"]] == ["U02", "U03"]
+
+    for case in specification["cases"]:
+        request = _read_json(ROOT / case["composition_request"])
+        compatibility = chemworld.check_world_composition_compatibility(request)
+        compiled = chemworld.compile_world_composition(request)
+
+        assert compatibility.compatible
+        assert compatibility.pattern == case["expected_pattern"]
+        assert request["composition_id"] == case["composition_id"]
+        assert compiled.task_spec.objective == case["objective"]
+        assert len(case["actions"]) == case["submitted_action_count"]
+        assert len(case["actions"]) <= compiled.task_spec.budget
+
+        env = gym.make("ChemWorld", composition=request, seed=case["seed"])
+        env.reset(seed=case["seed"])
+        try:
+            observed_validation: list[bool] = []
+            observed_transactions: list[str] = []
+            final_terminated = False
+            final_truncated = False
+            first_physical_state = _physical_state(env)
+
+            for step, action in enumerate(case["actions"], start=1):
+                validation = env.unwrapped.validate_action(action)
+                _, _, terminated, truncated, info = env.step(action)
+                observed_validation.append(bool(validation["valid"]))
+                observed_transactions.append(str(info["transaction_status"]))
+                final_terminated = bool(terminated)
+                final_truncated = bool(truncated)
+
+                expected_failure = case["expected_failure"]
+                if expected_failure is not None and step == expected_failure["step"]:
+                    assert info["transaction_status"] == expected_failure[
+                        "transaction_status"
+                    ]
+                    assert info["rollback_reason"] == expected_failure["rollback_reason"]
+                    assert _physical_state(env) == first_physical_state
+
+            assert observed_validation == case["expected_validation"]
+            assert observed_transactions == case["expected_transactions"]
+            assert observed_transactions[-1] == case["expected_final"][
+                "transaction_status"
+            ]
+            assert final_terminated is case["expected_final"]["terminated"]
+            assert final_truncated is case["expected_final"]["truncated"]
+        finally:
+            env.close()
 
 
 def test_reference_task_map_covers_registry_once_and_uses_registered_patterns() -> None:
