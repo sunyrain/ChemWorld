@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-P09
 title: "Refine and synchronize the six canonical publication figures"
-status: ACTIVE
+status: REVIEW
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T02:22:11Z
 lease_expires_at_utc: 2026-08-06T05:34:47Z
-heartbeat_at_utc: 2026-08-04T05:34:47Z
+heartbeat_at_utc: 2026-08-04T05:35:59Z
 
 base_commit: "e82b60df744493c2f31f848328ad42c26b08344d"
 branch: work1/w1-p09-nature-figure-refinement-codex-1
@@ -66,7 +66,8 @@ completed_since_last_heartbeat:
   - "Rebuilt six SVG/PDF/PNG sets, six per-figure manifests, the publication audit, and the canonical 18-asset inventory."
   - "Repaired the reported final-size defects: completed Figure 1 bottom boxes; separated Figure 4 labels and added the missing pass/fail key; routed Figure 5 arrows around nodes and cleared the observation/receipt text; separated Figure 6 legend, rows, boundary statement, and extreme recovery points."
   - "Re-rendered Figures 1, 4, 5, and 6; refreshed only the source bindings for Figures 2 and 3 because their rendered assets remained byte-identical."
-current_validation: "REOPENED during the single D07 page-level proof: Figure 6C retained one clipped y-axis title at the whole-figure left boundary; all originally reported overlaps are resolved."
+  - "Increased only the Figure 6 canvas left margin so the Figure 6C y-axis title is complete in both the canonical image and the arXiv page proof."
+current_validation: "PASS: corrected Figure 6 inspected once at original size; its y-axis title is complete and all other panels remain clear. Publication audit 6/6 figures and 18/18 assets (85a19484373544734f1f563aecb0f2587fb25c5b9ade43118feda637926f5412); integration manifest 6/6 and 18/18 (e58688e9316c1a36aca440a03c6fdbe4bd4625eb7f1eff4e07fa071d54ea0fae)."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-P09--codex-1.md
   - scripts/render_work_i_figure_1.py
@@ -90,11 +91,11 @@ blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Increase only the Figure 6 left canvas margin, regenerate F6 and its two audits, then resume the already-active D07 package refresh."
-handoff_eta: 2026-08-04T05:42:00Z
+next_24h: "Commit and centrally accept this one-margin repair, then resume the already-active D07 package refresh."
+handoff_eta: 2026-08-04T05:38:00Z
 
 final_commit: null
 reviewer: null
 review_result: null
-notes: "The original P09 delivery was accepted on main at 410a4aab after final commit e940c765. The first refinement used nature-figure 2.1.1 without importing third-party visual assets or changing the frozen figure-system artifact. The project owner reopened P09 on 2026-08-04 after identifying final-size clipping and overlap in Figures 1, 4, 5 and 6. Commit 4262c18d fixed the reported issues; the arXiv proof then exposed one remaining F6C canvas-edge clip, so P09 is reopened only for that margin repair."
+notes: "The original P09 delivery was accepted on main at 410a4aab after final commit e940c765. The first refinement used nature-figure 2.1.1 without importing third-party visual assets or changing the frozen figure-system artifact. The project owner reopened P09 on 2026-08-04 after identifying final-size clipping and overlap in Figures 1, 4, 5 and 6. Commit 4262c18d fixed the reported issues; the arXiv proof then exposed and this patch fixes the one remaining F6C canvas-edge clip."
 ```

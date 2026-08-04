@@ -589,7 +589,7 @@ def build_figure(inputs: Mapping[str, Any]) -> Any:
     grid = figure.add_gridspec(
         2,
         2,
-        left=0.065,
+        left=0.085,
         right=0.985,
         bottom=0.09,
         top=0.965,
