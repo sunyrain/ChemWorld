@@ -22,50 +22,21 @@ DEFAULT_DISPLAY = Path("paper/experimental_intelligence_v1_display_items.md")
 DEFAULT_BIBLIOGRAPHY = Path("paper/experimental_intelligence_v1_references.bib")
 DEFAULT_DATA = Path("benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json")
 DEFAULT_RELEASE_MANIFEST = Path("benchmark/releases/chemworld-serious-v1/manifest.json")
-DEFAULT_FIGURES = Path("paper/arxiv/figures")
+DEFAULT_FIGURES = Path("paper/figures/experimental-intelligence-v1/publication")
+DEFAULT_FIGURE_MANIFEST = Path(
+    "paper/figures/experimental-intelligence-v1/"
+    "work-i-publication-figure-manifest-v0.1.json"
+)
 DEFAULT_CONCEPTS = Path("paper/figures/experimental-intelligence-v1/concept-placeholders")
 DEFAULT_OUTPUT = Path("paper/exports/experimental-intelligence-v1")
 
 FIGURE_STEMS = {
-    1: "figure-1-controlled-apparatus.svg",
-    2: "figure-2-compiled-controls.svg",
-    3: "figure-3-autonomous-lifecycle.svg",
-    4: "figure-4-trajectory-dynamics.svg",
-    5: "figure-5-within-world-replication.svg",
-    6: "figure-6-experimental-agency-profile.svg",
-}
-
-FIGURE_COPY = {
-    1: (
-        "ChemWorld is a controlled apparatus for measuring experimental agency",
-        "Typed state transitions couple public observations to resource receipts, "
-        "immutable traces and exact physical replay while experimental contrasts remain explicit.",
-    ),
-    2: (
-        "Compiled controls distinguish task outcome, information response and epistemic readouts",
-        "Paired worlds, a misindexed-prior manipulation and separate outcome and "
-        "epistemic measures establish the low-authority calibration layer.",
-    ),
-    3: (
-        "Primitive-control agents close complete experimental lifecycles",
-        "The agent selects operations, observes intermediate evidence, decides when to stop and "
-        "requests final assay under a reconstructable campaign ledger.",
-    ),
-    4: (
-        "Similar endpoints can arise from different experimental trajectories",
-        "Development worlds expose early discovery, loss, gradual improvement, retention and "
-        "terminal divergence that an endpoint alone cannot resolve.",
-    ),
-    5: (
-        "Fresh trajectories separate endpoint direction from lifecycle repeatability",
-        "Matched-world session pairs keep right-censored cells visible and show mixed lifecycle "
-        "directions under every possible sign of the missing differences.",
-    ),
-    6: (
-        "Experimental agency is resolved as a profile of separate readouts",
-        "Outcome, prediction, calibration, claim reliability, completion, retention, recovery and "
-        "terminal behavior remain separate rather than being collapsed into a composite score.",
-    ),
+    1: "figure-1-apparatus-world-forks.svg",
+    2: "figure-2-known-policy-validity.svg",
+    3: "figure-3-terminal-policy.svg",
+    4: "figure-4-compiled-controls.svg",
+    5: "figure-5-complete-lifecycles.svg",
+    6: "figure-6-fresh-trajectories.svg",
 }
 
 CONCEPT_STEMS = {
@@ -301,8 +272,7 @@ def _relative_path(target: Path, base: Path) -> str:
 
 
 def _figure_html(number: int, display: str, figures: Path, html_path: Path) -> str:
-    del display
-    title, legend = FIGURE_COPY[number]
+    title, legend = _extract_legend(display, number)
     image = figures / FIGURE_STEMS[number]
     if not image.is_file():
         raise FileNotFoundError(image)
@@ -590,13 +560,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         outputs.extend([publication_pdf, concept_pdf])
     source_paths = [
         Path(__file__).resolve(),
-        ROOT / "paper/tools/render_arxiv_release_figures.py",
         manuscript,
         display,
         bibliography,
         data,
         release_manifest,
-        figures.parent / "figure-manifest.json",
+        _resolve(DEFAULT_FIGURE_MANIFEST),
         concepts / "README.md",
         *[concepts / CONCEPT_STEMS[number] for number in range(1, 7)],
     ]

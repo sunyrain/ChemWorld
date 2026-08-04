@@ -31,15 +31,16 @@ def _canonical_sha(value: dict[str, Any]) -> str:
 
 
 def test_publication_figure_manifest_is_self_hashed_and_complete() -> None:
-    path = FIGURE_ROOT / "publication-figure-manifest.json"
+    path = FIGURE_ROOT / "work-i-publication-figure-manifest-v0.1.json"
     manifest = json.loads(path.read_text(encoding="utf-8"))
     declared = manifest.pop("manifest_sha256")
     assert declared == _canonical_sha(manifest)
-    assert manifest["status"] == "frozen_complete"
-    assert manifest["style_version"] == "nature-editorial-v1"
-    assert len(manifest["files"]) == 12
-    assert manifest["figure_5_rendered"] is True
-    for row in manifest["files"]:
+    assert manifest["status"] == "PASS"
+    assert manifest["canonical_figure_count"] == 6
+    assert manifest["canonical_asset_count"] == 18
+    files = [output for figure in manifest["figures"] for output in figure["outputs"]]
+    assert len(files) == 18
+    for row in files:
         artifact = ROOT / row["path"]
         assert artifact.stat().st_size == row["bytes"]
         assert _sha(artifact) == row["sha256"]
@@ -47,8 +48,10 @@ def test_publication_figure_manifest_is_self_hashed_and_complete() -> None:
             source = artifact.read_text(encoding="utf-8")
             assert "<text" in source
             assert "\r\n" not in source
-        else:
+        elif artifact.suffix == ".png":
             assert artifact.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+        else:
+            assert artifact.read_bytes().startswith(b"%PDF")
 
 
 def test_image_generated_concepts_are_separate_from_result_figures() -> None:
@@ -97,12 +100,12 @@ def test_display_legend_order_and_data_card_match_the_arxiv_release() -> None:
         encoding="utf-8"
     )
     expected_titles = [
-        "ChemWorld is a controlled apparatus for experimental intelligence.",
-        "Compiled controls distinguish task outcome, information response and epistemic readouts.",
-        "Primitive-control agents close complete experimental lifecycles.",
-        "Similar endpoints can arise from different experimental trajectories.",
-        "Fresh trajectories expose information that endpoint summaries omit.",
-        "Lifecycle completion does not specify experimental policy.",
+        "ChemWorld apparatus and controlled world forks.",
+        "Known policies validate the experimental-agency profile.",
+        "Lifecycle completion does not specify terminal policy.",
+        "Compiled controls separate outcome, prediction, calibration and claims.",
+        "Primitive-control agents expose complete experimental lifecycles.",
+        "Fresh trajectories reveal process structure omitted by endpoints.",
     ]
     positions = [
         display.index(f"**Figure {number} | {title}**")
