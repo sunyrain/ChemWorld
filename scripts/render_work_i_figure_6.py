@@ -447,16 +447,12 @@ def _draw_panel_c(ax: Any, complete_pairs: list[dict[str, Any]], colors: Mapping
     ax.set_xticks(range(len(PROCESS_LABELS)), PROCESS_LABELS, rotation=18, ha="right")
     ax.set_ylabel("nominal - opaque contrast")
     ax.grid(axis="y", color=colors["grid_gray"], linewidth=0.45)
-    ax.legend(loc="upper right", ncol=2, handletextpad=0.3, columnspacing=0.8)
-    ax.text(
-        0.02,
-        0.03,
-        "points are fresh trajectory replicates; not independent worlds",
-        transform=ax.transAxes,
-        ha="left",
-        va="bottom",
-        fontsize=6.5,
-        color=colors["mid_gray"],
+    ax.legend(
+        loc="upper left",
+        ncol=2,
+        handletextpad=0.3,
+        columnspacing=0.8,
+        borderaxespad=0.25,
     )
 
 
@@ -468,13 +464,13 @@ def _draw_panel_d(
 ) -> None:
     _panel(ax, "D", "Censoring is explicit; classes stay supporting", colors)
     ax.set_axis_off()
-    ax.text(0.04, 0.83, "pair disposition", transform=ax.transAxes, fontsize=6.5, fontweight=600)
+    ax.text(0.04, 0.86, "pair disposition", transform=ax.transAxes, fontsize=6.5, fontweight=600)
     for index, row in enumerate(pairs):
         x = 0.05 + index * 0.089
         complete = row["pair_complete"] is True
         ax.add_patch(
             Rectangle(
-                (x, 0.68),
+                (x, 0.72),
                 0.065,
                 0.085,
                 transform=ax.transAxes,
@@ -484,10 +480,10 @@ def _draw_panel_d(
                 hatch=None if complete else "///",
             )
         )
-        ax.text(x + 0.0325, 0.65, str(index + 1), transform=ax.transAxes, ha="center", fontsize=6.5)
+        ax.text(x + 0.0325, 0.685, str(index + 1), transform=ax.transAxes, ha="center", fontsize=6.2)
     ax.text(
         0.50,
-        0.60,
+        0.63,
         "8 complete  |  2 right-censored",
         transform=ax.transAxes,
         ha="center",
@@ -499,7 +495,7 @@ def _draw_panel_d(
     classifications = _mapping(selected, "world_metric_classifications")
     ax.text(
         0.04,
-        0.54,
+        0.53,
         "world x core-metric direction class at the frozen 0.75 threshold",
         transform=ax.transAxes,
         fontsize=6.5,
@@ -509,7 +505,7 @@ def _draw_panel_d(
     labels = ("disc.", "retain", "draw", "term/best")
     for row_index, world in enumerate(WORLD_ORDER):
         world_classes = _mapping(classifications, str(world))
-        y = 0.39 - row_index * 0.17
+        y = 0.35 - row_index * 0.17
         ax.text(
             0.04, y + 0.045, f"world {world}", transform=ax.transAxes, fontsize=6.5, va="center"
         )
@@ -541,7 +537,7 @@ def _draw_panel_d(
                 label,
                 transform=ax.transAxes,
                 ha="center",
-                fontsize=6.5,
+                fontsize=6.0,
                 fontweight=600,
             )
             ax.text(
@@ -550,16 +546,16 @@ def _draw_panel_d(
                 symbol,
                 transform=ax.transAxes,
                 ha="center",
-                fontsize=6.5,
+                fontsize=6.0,
                 color=edge,
             )
             cell_index += 1
     if cell_index != 8:
         raise FigureSixError("expected eight world-by-core-metric classification cells")
     boundary = FancyBboxPatch(
-        (0.05, 0.025),
+        (0.05, 0.020),
         0.88,
-        0.09,
+        0.115,
         boxstyle="round,pad=0.008,rounding_size=0.012",
         transform=ax.transAxes,
         facecolor=colors["pale_coral"],
@@ -569,12 +565,12 @@ def _draw_panel_d(
     ax.add_patch(boundary)
     ax.text(
         0.49,
-        0.07,
-        "6 / 8 mixed — supporting & threshold-sensitive; not primary",
+        0.078,
+        "6 / 8 mixed — supporting & threshold-sensitive\nnot a primary endpoint",
         transform=ax.transAxes,
         ha="center",
         va="center",
-        fontsize=6.5,
+        fontsize=5.9,
         fontweight=600,
         color=colors["ink"],
     )

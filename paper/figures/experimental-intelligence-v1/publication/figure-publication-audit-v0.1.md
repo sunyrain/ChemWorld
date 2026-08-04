@@ -1,7 +1,7 @@
 # Work I publication figure audit
 
 Status: **PASS**  
-Audit SHA-256: `6146773abc8cbd30775130e1f7aca88109d26c2efc587b6a27ad1ef514617fec`
+Audit SHA-256: `f00d11484f78ca18b860800301a0f28e8d021df3b82f99d23d5d1335609d639e`
 
 The canonical inventory is resolved from the frozen P01 figure system. No figure was rewritten.
 
@@ -10,8 +10,8 @@ The canonical inventory is resolved from the frozen P01 figure system. No figure
 | F1 | W1-P02 | none | 70 | 0 | 2124x1560 @ 299.9994 dpi | 2 embedded | 7.08x5.2 in |
 | F2 | W1-P03 | none | 60 | 0 | 2124x1560 @ 299.9994 dpi | 2 embedded | 7.08x5.2 in |
 | F3 | W1-P09 | none | 67 | 0 | 2124x1560 @ 299.9994 dpi | 2 embedded | 7.08x5.2 in |
-| F4 | W1-P05 | none | 62 | 0 | 2124x1560 @ 299.9994 dpi | 2 embedded | 7.08x5.2 in |
-| F5 | W1-P06 | none | 63 | 0 | 2124x1560 @ 299.9994 dpi | 2 embedded | 7.08x5.2 in |
+| F4 | W1-P05 | none | 64 | 0 | 2124x1560 @ 299.9994 dpi | 2 embedded | 7.08x5.2 in |
+| F5 | W1-P06 | none | 62 | 0 | 2124x1560 @ 299.9994 dpi | 2 embedded | 7.08x5.2 in |
 | F6 | W1-P07 | none | 94 | 0 | 2124x1560 @ 299.9994 dpi | 2 embedded | 7.08x5.2 in |
 
 ## Gate summary

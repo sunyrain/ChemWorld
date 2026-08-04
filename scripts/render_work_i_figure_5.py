@@ -310,6 +310,17 @@ def _arrow(
     end: tuple[float, float],
     color: str,
 ) -> None:
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    half_extent = 0.085
+    if abs(dx) >= abs(dy):
+        direction = 1.0 if dx > 0 else -1.0
+        start = (start[0] + direction * half_extent, start[1])
+        end = (end[0] - direction * half_extent, end[1])
+    else:
+        direction = 1.0 if dy > 0 else -1.0
+        start = (start[0], start[1] + direction * half_extent)
+        end = (end[0], end[1] - direction * half_extent)
     arrow = FancyArrowPatch(
         start,
         end,
@@ -318,8 +329,8 @@ def _arrow(
         mutation_scale=7,
         linewidth=0.75,
         color=color,
-        shrinkA=4,
-        shrinkB=4,
+        shrinkA=0,
+        shrinkB=0,
     )
     ax.add_patch(arrow)
 
@@ -345,6 +356,8 @@ def _draw_panel_a(ax: Any, colors: Mapping[str, str]) -> None:
         "terminal",
         "measurement",
     )
+    for index, (start, end) in enumerate(pairwise(centers)):
+        _arrow(ax, start, end, colors["amber"] if index == 4 else colors["grid_gray"])
     for index, (center, label, role) in enumerate(
         zip(centers, OPERATION_LABELS, roles, strict=True), start=1
     ):
@@ -360,28 +373,20 @@ def _draw_panel_a(ax: Any, colors: Mapping[str, str]) -> None:
             fontweight=600,
             color=colors["mid_gray"],
         )
-    for start, end in pairwise(centers):
-        _arrow(ax, start, end, colors["grid_gray"])
-    feedback = FancyArrowPatch(
-        (0.77, 0.29),
-        (0.61, 0.57),
-        transform=ax.transAxes,
-        arrowstyle="-|>",
-        connectionstyle="arc3,rad=-0.2",
-        mutation_scale=7,
-        linewidth=0.9,
-        color=colors["amber"],
-    )
-    ax.add_patch(feedback)
     ax.text(
-        0.73,
-        0.49,
-        "observation enters\npublic state before\nnext decision",
+        0.69,
+        0.48,
+        "observation becomes public\nbefore the next decision",
         transform=ax.transAxes,
         ha="center",
         va="center",
-        fontsize=6.5,
+        fontsize=6.1,
         color=colors["amber"],
+        bbox={
+            "boxstyle": "round,pad=0.12",
+            "facecolor": colors["white"],
+            "edgecolor": "none",
+        },
     )
     ax.text(
         0.03,
@@ -420,10 +425,10 @@ def _draw_panel_b(
         ),
     )
     for index, (label, value) in enumerate(rows):
-        y = 0.72 - index * 0.18
+        y = 0.74 - index * 0.18
         patch = FancyBboxPatch(
-            (0.07, y - 0.065),
-            0.86,
+            (0.04, y - 0.065),
+            0.92,
             0.13,
             boxstyle="round,pad=0.008,rounding_size=0.014",
             transform=ax.transAxes,
@@ -433,7 +438,7 @@ def _draw_panel_b(
         )
         ax.add_patch(patch)
         ax.text(
-            0.09,
+            0.065,
             y,
             label,
             transform=ax.transAxes,
@@ -444,18 +449,18 @@ def _draw_panel_b(
             color=colors["ink"],
         )
         ax.text(
-            0.27,
+            0.24,
             y,
             value,
             transform=ax.transAxes,
             ha="left",
             va="center",
-            fontsize=6.5,
+            fontsize=6.0,
             color=colors["ink"],
         )
     ax.text(
         0.50,
-        0.085,
+        0.065,
         "trajectory-event alignment verified · immutable receipt hashes bound",
         transform=ax.transAxes,
         ha="center",

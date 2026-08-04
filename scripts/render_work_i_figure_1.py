@@ -437,7 +437,7 @@ def _draw_panel_a(ax: Any, colors: Mapping[str, str]) -> None:
     )
     _box(
         ax,
-        (0.02, 0.01),
+        (0.02, 0.04),
         0.27,
         0.10,
         "resource receipt",
@@ -449,7 +449,7 @@ def _draw_panel_a(ax: Any, colors: Mapping[str, str]) -> None:
     )
     _box(
         ax,
-        (0.36, 0.01),
+        (0.36, 0.04),
         0.27,
         0.10,
         "immutable trace",
@@ -461,7 +461,7 @@ def _draw_panel_a(ax: Any, colors: Mapping[str, str]) -> None:
     )
     _box(
         ax,
-        (0.70, 0.01),
+        (0.70, 0.04),
         0.27,
         0.10,
         "evaluator boundary",

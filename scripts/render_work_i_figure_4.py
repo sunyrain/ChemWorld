@@ -454,7 +454,7 @@ def _draw_panel_c(
             fontsize=6.5,
             color=task_colors[task_id],
         )
-    ax.set_xlim(-0.18, 3.52)
+    ax.set_xlim(-0.18, 3.72)
     ax.set_ylim(0.0, 0.92)
     ax.set_xticks(x, labels)
     ax.set_ylabel("raw metric (opaque arm)")
@@ -470,6 +470,47 @@ def _draw_panel_d(
 ) -> None:
     _panel(ax, "D", "Component gates do not collapse to a scalar score", colors)
     ax.set_axis_off()
+    ax.scatter(
+        [0.73],
+        [0.91],
+        transform=ax.transAxes,
+        marker="o",
+        s=24,
+        facecolor=colors["teal"],
+        edgecolor=colors["teal"],
+        linewidth=0.8,
+        clip_on=False,
+    )
+    ax.text(
+        0.755,
+        0.91,
+        "pass",
+        transform=ax.transAxes,
+        ha="left",
+        va="center",
+        fontsize=6.0,
+        color=colors["mid_gray"],
+    )
+    ax.scatter(
+        [0.86],
+        [0.91],
+        transform=ax.transAxes,
+        marker="x",
+        s=22,
+        color=colors["mid_gray"],
+        linewidth=1.0,
+        clip_on=False,
+    )
+    ax.text(
+        0.885,
+        0.91,
+        "fail",
+        transform=ax.transAxes,
+        ha="left",
+        va="center",
+        fontsize=6.0,
+        color=colors["mid_gray"],
+    )
     gate_labels = (
         "manipulation",
         "action\ncorrection",
