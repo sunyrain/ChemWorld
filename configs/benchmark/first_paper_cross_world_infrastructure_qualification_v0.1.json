@@ -1,0 +1,235 @@
+{
+  "schema_version": "chemworld-first-paper-infrastructure-qualification-protocol-0.1",
+  "protocol_id": "first-paper-cross-world-infrastructure-qualification-v0.1",
+  "status": "frozen_before_formal_execution",
+  "frozen_at": "2026-08-04",
+  "owner": "Yijun",
+  "evidence_plan_need": "cross-world infrastructure qualification",
+  "research_question": "Does the programmable virtual instrument preserve its declared semantics across every registered task/world configuration at midpoint and boundary controls and under invalid, precondition-failing, and resource-exhausted probes?",
+  "claim_boundary": [
+    "This is deterministic virtual-instrument qualification, not an agent comparison.",
+    "A pass supports only the registered software and virtual-world contract bound below.",
+    "It does not establish physical-laboratory validity, model intelligence, or causal explanations of agent behavior."
+  ],
+  "coordination": {
+    "owner": "Yijun",
+    "reservation_kind": "protocol_and_write_set",
+    "reservation_effective_when": "this frozen protocol commit is present on origin/main",
+    "shared_integration_surfaces_reserved": false,
+    "write_set": [
+      "configs/benchmark/first_paper_cross_world_infrastructure_qualification_v0.1.json",
+      "src/chemworld/eval/cross_world_infrastructure_qualification.py",
+      "scripts/run_first_paper_cross_world_infrastructure_qualification.py",
+      "tests/test_cross_world_infrastructure_qualification.py",
+      "workstreams/arxiv_v1/reports/first-paper-cross-world-infrastructure-qualification-v0.1.json",
+      "workstreams/arxiv_v1/reports/first-paper-cross-world-infrastructure-qualification-v0.1.md",
+      "workstreams/arxiv_v1/reports/first-paper-cross-world-infrastructure-qualification-v0.1.manifest.json"
+    ],
+    "excluded_shared_surfaces": [
+      "configs/current.json",
+      "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json",
+      "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json",
+      "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.manifest.json",
+      "paper/",
+      "workstreams/arxiv_v1/story/"
+    ]
+  },
+  "source_binding": {
+    "source_commit": "1e963766884e1f675488f668c4ed031e38dbf9ce",
+    "task_contract_version": "chemworld-task-contract-1.1",
+    "task_recipe_space_version": "chemworld-task-recipe-space-1.2",
+    "registered_task_count": 15,
+    "registered_task_world_unit_count": 64,
+    "tasks": [
+      {
+        "task_id": "electrochemical-conversion",
+        "contract_sha256": "c93f5daf6e0c8643f7e8899e0d71086fd912853be17e39bb1879f7b880d9f43b",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "equilibrium-characterization",
+        "contract_sha256": "77e1c30cd83e1a09363cef3ea58b1ddefb415bb1d790d6d63a3c519f45325917",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "flow-reaction-optimization",
+        "contract_sha256": "bc14f63f753c830e34b50487b1c44bcc8a20e11e07d5ee8fe557d001a85ee0a8",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "low-budget-characterization",
+        "contract_sha256": "2cd44cd76937b9e95a9ae4282994a540f4d390b3f9a59c963ca60ff2db72706b",
+        "world_seeds": [0, 1, 2]
+      },
+      {
+        "task_id": "partition-discovery",
+        "contract_sha256": "ade27680a38ff18e4c47e63116aaf75c9482543795b15bb62dee2e7525a5bff9",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "public-private-generalization",
+        "contract_sha256": "bf092340dfcbb59fe261a7e73b3042449d57858a60f73d3b19336f15b627e8b8",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "purity-yield-tradeoff",
+        "contract_sha256": "2d2ab14c61e90b87c1c530f74b9e6fbf0c82966199d78e99ec755ba5ba208e76",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "reaction-mechanism-explanation",
+        "contract_sha256": "097bd39293eae4063dc84ed0af299935aefce5c391183944302431d5d6c93f6e",
+        "world_seeds": [0, 1, 2]
+      },
+      {
+        "task_id": "reaction-optimization-standard",
+        "contract_sha256": "c7a5bee5dffa318f30097f745a043ca1c6521f4b5770e48023c067206bd6c902",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "reaction-safety-constrained",
+        "contract_sha256": "a7a705dc87bce6684aa8022439c4cb256486df875bbce9a624111e51047bd102",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "reaction-to-assay",
+        "contract_sha256": "afb93071e7571ec58206a4eb62170e39c7982bd15f0dd12db97ceb08f42df49b",
+        "world_seeds": [0]
+      },
+      {
+        "task_id": "reaction-to-crystallization",
+        "contract_sha256": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "reaction-to-distillation",
+        "contract_sha256": "49e465bce0c5d2fd4a8f73d298cf9d4d2d37c2ca0605aaf6caaab8a9358bff74",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "reaction-to-purification",
+        "contract_sha256": "17dd0ecbb478790013f511f373cbc3ca9c9489240b1dce0e35c84bfcd3a661e0",
+        "world_seeds": [0, 1, 2, 3, 4]
+      },
+      {
+        "task_id": "tool-agent-planning",
+        "contract_sha256": "2d0309f3ad1bef65d2f1cf65d8ef778d980143305bfb201df26a713f944b5aba",
+        "world_seeds": [0, 1]
+      }
+    ]
+  },
+  "intervention": {
+    "independent_unit": "registered task/world-seed configuration",
+    "repeated_observations": "recipe cases, operations, property checks, and replay events within a task/world unit",
+    "execution_order": "tasks sorted by task_id, then world seeds ascending, then case_id lexicographically",
+    "valid_recipe_cases": {
+      "adapter": "chemworld.agents.task_recipes.task_recipe_from_unit_vector",
+      "compiler": "chemworld.world.recipes.compile_recipe",
+      "midpoint": "one vector with every coordinate equal to 0.5",
+      "continuous_boundaries": "for each coordinate, two vectors with that coordinate set to 0.0 and 1.0 while every other coordinate remains 0.5",
+      "categorical_coverage": "for every categorical coordinate with K categories, K vectors with that coordinate equal to (category_index + 0.5) / K while every other coordinate remains 0.5",
+      "case_identity": "task_id, world_seed, vector_kind, coordinate, boundary_or_category",
+      "deduplication": "do not deduplicate case identities even when compiled actions coincide; report compiled-action hashes to expose coincidences",
+      "required_terminal_event": "a committed final_assay measurement within the official task operation budget"
+    },
+    "negative_probes_per_unit": {
+      "invalid_operation": {
+        "action": {"operation": "not-a-real-operation"},
+        "expected_status": "validation_failed"
+      },
+      "precondition_failure": {
+        "state": "fresh reset before any material or volume is added",
+        "action_rule": "measure with the lexicographically first allowed non-final instrument, or final_assay only if no non-final instrument is allowed",
+        "expected_failed_precondition": "has_volume"
+      },
+      "resource_exhaustion": {
+        "resource_card": {
+          "operation_attempt_limit": 8,
+          "vessel_start_limit": 2,
+          "final_assay_limit": 2,
+          "nonfinal_instrument_use_limit": 2,
+          "stock_limits": {"reagent_mol": 0.08, "solvent_L": 0.026},
+          "per_instrument_limits": {}
+        },
+        "first_action": {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+        "exhausted_action": {"operation": "add_solvent", "volume_L": 0.001, "solvent": 1},
+        "expected_status": "campaign_resource_rejected",
+        "expected_reason": "stock_limit:solvent_L"
+      }
+    },
+    "property_checks": [
+      "declared action fields expose units and enforce operation-specific numeric and categorical bounds",
+      "all applicable constitution material, charge, and energy checks pass on committed valid transitions",
+      "invalid, precondition-failing, and resource-exhausted transactions preserve physical state and observation RNG while applying only declared attempt or penalty accounting",
+      "resource preflight and outcome deltas reconcile exactly to the full private campaign-resource ledger",
+      "every valid recipe closes through exactly one committed final assay without an uncensored open lifecycle",
+      "public reset, affordance, observation, info, and replay records contain no private identity, hidden-law, mechanism, or debug-truth fields",
+      "every valid recipe reconstructs exactly from its recorded actions, task contract, world seed, and keyed observation-noise coordinates"
+    ]
+  },
+  "inclusion_and_censoring": {
+    "include": "all 15 bound registered tasks, every listed registered world seed, and every prespecified valid and negative probe",
+    "exclude": "nothing after launch",
+    "censoring": "none; timeout, exception, missing receipt, missing applicability decision, or incomplete replay is a counted failure",
+    "applicability": {
+      "units_transaction_resources_lifecycle_public_private_replay": "all 64 independent units",
+      "material_conservation": "every unit containing a committed material-changing operation",
+      "charge_conservation": "units whose compiled operation path reaches the electrochemistry module",
+      "energy_conservation": "units whose compiled operation path reaches a thermal, flow, crystallization, distillation, or electrochemistry energy ledger"
+    },
+    "private_split_policy": "the registered private-eval task is executed only with its bound maintainer-visible test seeds; reports expose task/seed case identity and public observations but never private law parameters"
+  },
+  "estimands": {
+    "primary": [
+      "task/world units passing every applicable property divided by 64",
+      "valid recipe cases with all operations committed, lifecycle closed, and exact replay verified divided by all prespecified valid recipe cases",
+      "negative probes rejected with the prespecified class and atomic state preservation divided by 192"
+    ],
+    "secondary": [
+      "task-by-property pass-count matrix with exact denominators",
+      "failure counts by task, world seed, recipe kind, operation, property, and failure class",
+      "compiled-action collision counts across distinct registered boundary or categorical case identities"
+    ],
+    "statistics": "descriptive deterministic counts only; no null-hypothesis test, bootstrap, or pseudo-replication over operations"
+  },
+  "thresholds": {
+    "overall_pass": "all 64 independent units pass every applicable required property",
+    "valid_recipe_pass_rate": 1.0,
+    "negative_probe_pass_rate": 1.0,
+    "exact_replay_pass_rate": 1.0,
+    "public_private_leakage_count": 0,
+    "unclassified_failure_count": 0,
+    "missing_receipt_count": 0,
+    "allowed_post_launch_threshold_changes": 0
+  },
+  "seeds": {
+    "world_seeds": "the explicit per-task lists under source_binding.tasks",
+    "policy_randomness": "none",
+    "observation_randomness": "the environment's keyed observation-noise contract bound to the registered world seed and replay coordinate",
+    "retry_seeds": "none"
+  },
+  "expected_outputs": [
+    "one immutable JSON report containing the full task-by-property matrix, exact denominators, all case receipts, and every failure",
+    "one concise Markdown rendering of the deterministic counts and failure classes",
+    "one immutable manifest binding the frozen protocol, source tree, task contracts, implementation files, report, and exact execution command"
+  ],
+  "failure_policy": {
+    "qualification_mode": "fail_closed",
+    "on_any_case_failure": "finish all safely executable prespecified cases, preserve the full failure report, set overall status to failed, and exit nonzero",
+    "on_exception_or_timeout": "record the case as failed with the exception class or timeout; never drop the unit",
+    "on_source_or_contract_drift": "refuse formal execution before the first case and require a separately reviewed protocol version",
+    "on_implementation_repair": "qualify implementation on synthetic tests first; a formal failed report is immutable and may only be followed by a newly versioned protocol and fresh report",
+    "favorable_result_replacement_forbidden": true,
+    "partial_report_is_not_a_pass": true
+  },
+  "formal_execution": {
+    "command": "PYTHONPATH=src .venv/bin/python scripts/run_first_paper_cross_world_infrastructure_qualification.py --protocol configs/benchmark/first_paper_cross_world_infrastructure_qualification_v0.1.json --output workstreams/arxiv_v1/reports/first-paper-cross-world-infrastructure-qualification-v0.1.json",
+    "preconditions": [
+      "clean tracked worktree",
+      "HEAD descends from the frozen source commit",
+      "all task IDs, task contract hashes, and world seeds match the frozen bindings",
+      "synthetic task-local qualification tests pass"
+    ],
+    "outcome_access_before_freeze": false
+  }
+}
