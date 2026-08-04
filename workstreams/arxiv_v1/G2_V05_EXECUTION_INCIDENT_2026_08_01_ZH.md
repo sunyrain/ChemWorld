@@ -1,5 +1,8 @@
 # G2 v0.5 第一次正式启动：基础设施中断记录
 
+> **LEGACY INCIDENT — 非当前任务。** 仅为历史运行事件记录，不得据此重启旧矩阵或创建新的
+> G2 工作。当前入口为 [`FIRST_PAPER_TODOLIST.md`](FIRST_PAPER_TODOLIST.md)。
+
 状态：`excluded infrastructure incident; retained immutably`
 
 ## 结论

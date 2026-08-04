@@ -1,5 +1,9 @@
 # ChemWorld 第一版 arXiv 完成度与剩余实验终态审计
 
+> **LEGACY EVIDENCE — 非当前完成度。** 这是旧叙事下的终态审计；“无需新增实验”等结论不适用于
+> 当前可组合世界/虚拟仪器计划。当前状态只看
+> [`FIRST_PAPER_TODOLIST.md`](FIRST_PAPER_TODOLIST.md)。
+
 审计日期：2026-08-02（Asia/Shanghai）
 
 机器权威：`reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json`

@@ -1,6 +1,9 @@
 # Work I manuscript language-lock audit
 
-Status: **integration_changes_required**
+> **SUPERSEDED 2026-08-04.** Historical audit only; its requested changes do not define current work.
+> Use [`../FIRST_PAPER_TODOLIST.md`](../FIRST_PAPER_TODOLIST.md).
+
+Historical status: **integration changes were required for the retired Work I draft**
 Receipt SHA-256: `26ff46b73c8e584b65e18eff06f0440539f77a8e62a8a0e601c6aa41204e8969`
 
 | Lock | Current result | Required result |

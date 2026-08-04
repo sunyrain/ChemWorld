@@ -1,6 +1,9 @@
 # Work I final manuscript integration v0.1
 
-Status: **REVIEW READY — MANUSCRIPT INTEGRATED; P09 FIGURE HANDOFF PENDING**
+> **SUPERSEDED 2026-08-04.** Historical integration handoff only. The current manuscript story and
+> release status are governed by [`../FIRST_PAPER_TODOLIST.md`](../FIRST_PAPER_TODOLIST.md).
+
+Historical status: **REVIEW READY FOR THE RETIRED WORK I DRAFT**
 Owner: `codex-1`  
 Task: `W1-S10`  
 Manuscript branch: `work1/w1-s10-final-manuscript`  

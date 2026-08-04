@@ -1,9 +1,12 @@
 # Work I Claim–Evidence–Figure Map
 
-Status: **story input complete; manuscript/figure/data integration pending**
+> **SUPERSEDED 2026-08-04.** Historical handoff only. It is not the current claim map or figure plan;
+> use [`../FIRST_PAPER_TODOLIST.md`](../FIRST_PAPER_TODOLIST.md).
+
+Historical status: **story input complete for the retired Work I draft**
 Task: `W1-S01`
 Owner: `Yijun`
-Authority: `workstreams/arxiv_v1/WORK_I_TODOLIST.md` (`b0d881b2bb3f4922ec021433290ed01e5fd51c97aa9e37120a5e72b02023bb29`)
+Historical authority: retired Work I task matrix
 
 This map fixes the bounded wording, evidence identity, analysis unit, manuscript responsibility, and planned figure location for 37 Work I claims. It is an isolated story input: it does not replace the manuscript, derived-data layer, figure manifest, evidence DAG, experiment ledger, or release manifest.
 

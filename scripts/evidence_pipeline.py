@@ -2354,10 +2354,7 @@ def _write_current_registry() -> None:
         "manuscript": "paper/experimental_intelligence_v1_manuscript.md",
         "display_items": "paper/experimental_intelligence_v1_display_items.md",
         "bibliography": "paper/experimental_intelligence_v1_references.bib",
-        "master_plan": (
-            "workstreams/arxiv_v1/"
-            "EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md"
-        ),
+        "master_plan": "workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md",
         "experiment_ledger": (
             "workstreams/arxiv_v1/reports/"
             "experimental-intelligence-experiment-ledger-v0.1.json"
@@ -2881,10 +2878,7 @@ def check_current_evidence() -> list[str]:
         "manuscript": "paper/experimental_intelligence_v1_manuscript.md",
         "display_items": "paper/experimental_intelligence_v1_display_items.md",
         "bibliography": "paper/experimental_intelligence_v1_references.bib",
-        "master_plan": (
-            "workstreams/arxiv_v1/"
-            "EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md"
-        ),
+        "master_plan": "workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md",
         "experiment_ledger": (
             "workstreams/arxiv_v1/reports/"
             "experimental-intelligence-experiment-ledger-v0.1.json"

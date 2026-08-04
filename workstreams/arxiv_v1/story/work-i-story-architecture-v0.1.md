@@ -1,6 +1,10 @@
 # Work I story architecture v0.1
 
-Status: **FROZEN FOR DOWNSTREAM DRAFTING**  
+> **SUPERSEDED 2026-08-04.** This file is a historical drafting handoff. It does not define
+> the current first-paper story, figure order, task status or evidence priority. Use
+> [`../FIRST_PAPER_TODOLIST.md`](../FIRST_PAPER_TODOLIST.md).
+
+Historical status: **FROZEN FOR THE RETIRED WORK I DRAFT**
 Owner: `codex-1`  
 Task: `W1-S02`
 
@@ -46,9 +50,9 @@ the paper.
 
 ## 2. Authority and evidence ladder
 
-Narrative decisions must follow this authority order:
+The retired draft used this authority order:
 
-1. `WORK_I_TODOLIST.md` and the Work I master plan define scope and non-goals.
+1. The retired Work I TODO and master plan defined its scope and non-goals.
 2. Frozen protocol, qualification, and formal reports define permissible evidence.
 3. The W1-S01 claim--evidence--figure map supplies claim-level source bindings when it
    is handed off.
@@ -72,7 +76,7 @@ events, not independent samples.
 
 ## 3. Main-text order and section responsibilities
 
-Section responsibilities in `WORK_I_TODOLIST.md` remain binding, while the six-figure
+For the retired draft, section responsibilities in the old TODO were binding, while the six-figure
 order and first-reference rule determine the final Results sequence. The downstream
 draft may renumber headings, but it must preserve the following responsibility map.
 

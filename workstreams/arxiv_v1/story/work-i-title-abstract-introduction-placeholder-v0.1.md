@@ -1,6 +1,9 @@
 # Work I title, abstract, and introduction handoff v0.1
 
-Status: **INTEGRATION READY**  
+> **SUPERSEDED 2026-08-04.** Historical drafting handoff; use
+> [`../FIRST_PAPER_TODOLIST.md`](../FIRST_PAPER_TODOLIST.md) for current work.
+
+Historical status: **INTEGRATION READY FOR THE RETIRED WORK I DRAFT**
 Task: `W1-S03`  
 Owner: `codex-1`  
 Target integrator: `W1-S10`

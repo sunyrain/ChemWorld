@@ -1,4 +1,8 @@
-# Work I 声明认领登记册
+# Work I 声明认领登记册（历史归档）
+
+> **RETIRED 2026-08-04.** 本目录仅保留旧 Work I 的认领与验收记录。禁止创建新 claim、续租、
+> 接管或根据这里的 owner 分配当前工作。当前入口为
+> [`../FIRST_PAPER_TODOLIST.md`](../FIRST_PAPER_TODOLIST.md)，当前负责人为 `codex-1`。
 
 本目录记录 `WORK_I_TODOLIST.md` 中任务的认领、心跳、阻塞、交接和验收状态。任务执行者只修改自己的 claim 文件；主 TODO 的汇总状态由 coordinator 更新。
 
@@ -27,4 +31,5 @@
 - raw runs、derived data、报告和代码分别提交，避免将大规模产物混入实现 commit。
 - 完成后的 claim 文件构成审计记录，不删除、不重写历史时间线。
 
-状态枚举、分支命名、完成定义和全部任务矩阵以 [`../WORK_I_TODOLIST.md`](../WORK_I_TODOLIST.md) 为准。
+以下流程和状态只用于解释历史记录；旧任务矩阵归档于
+[`../archive/coordination/WORK_I_TODOLIST_RETIRED_2026-08-04.md`](../archive/coordination/WORK_I_TODOLIST_RETIRED_2026-08-04.md)。

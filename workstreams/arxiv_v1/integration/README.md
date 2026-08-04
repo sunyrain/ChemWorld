@@ -1,10 +1,12 @@
-# Work I integration staging
+# Work I integration staging（历史归档）
 
-`work-i-integration-queue-v0.1.json` is the coordinator-owned staging authority for
-unfinished Work I tasks. It is a frozen queue snapshot, not a replacement for
-`WORK_I_TODOLIST.md` or the claim contract.
+> **RETIRED 2026-08-04.** 此队列是旧 Work I 的冻结快照，不再接收条目、不再分配 owner，
+> 也不再约束当前 `main`。当前入口为
+> [`../FIRST_PAPER_TODOLIST.md`](../FIRST_PAPER_TODOLIST.md)。
 
-## Rules
+`work-i-integration-queue-v0.1.json` is retained only so historical audits remain interpretable.
+
+## Historical rules
 
 1. `codex-1` is the sole coordinator and planned owner for the remaining first-paper
    work. A task still needs its own committed claim before substantive writes.

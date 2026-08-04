@@ -8,9 +8,9 @@ Before changing the first paper or its evidence programme, read:
 2. The relevant experiment note, when the task produces new data
 3. Current artifact bindings under `configs/current.json` only when existing generated evidence is used
 
-`WORK_I_TODOLIST.md` and its claim directory are retained as historical coordination records;
-they are no longer the execution authority and must not receive new task rows after W1-R01.
-`FIRST_PAPER_EVIDENCE_PLAN.md` is also superseded by the current TODO.
+The retired task matrix and superseded evidence plan are stored under
+`workstreams/arxiv_v1/archive/coordination/`. The old claim, integration, story and review directories
+are historical or machine-bound records; they do not authorize new work or define the current story.
 Work II remains separate and is governed by `workstreams/flagship_tasks/WORK_II_TODOLIST.md`.
 
 ## Lightweight execution

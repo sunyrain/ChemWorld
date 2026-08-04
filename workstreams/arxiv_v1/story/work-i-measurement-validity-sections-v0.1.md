@@ -1,6 +1,9 @@
 # Work I known-policy measurement-validity sections v0.1
 
-Status: **integration-ready isolated Results/Methods handoff**
+> **SUPERSEDED 2026-08-04.** Historical drafting handoff; use
+> [`../FIRST_PAPER_TODOLIST.md`](../FIRST_PAPER_TODOLIST.md) for current work.
+
+Historical status: **integration-ready for the retired Work I draft**
 
 Task: `W1-S05`
 

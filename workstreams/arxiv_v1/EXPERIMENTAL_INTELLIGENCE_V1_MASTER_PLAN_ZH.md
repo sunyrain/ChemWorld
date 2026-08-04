@@ -1,6 +1,10 @@
 # ChemWorld 第一版 arXiv 总规格：可执行化学世界中的实验智能
 
-状态：`authoritative working plan; terminal scientific matrix incorporated`
+> **LEGACY EVIDENCE — 非当前计划。** 本文档保留旧稿的科学规格和计数口径，不再定义第一篇
+> 的主张、实验优先级或任务状态。当前入口为
+> [`FIRST_PAPER_TODOLIST.md`](FIRST_PAPER_TODOLIST.md)。
+
+历史状态：`superseded Work I scientific plan; retained as legacy evidence`
 
 工作标题：*Executable Chemical Worlds Make Experimental Agency Measurable*
 

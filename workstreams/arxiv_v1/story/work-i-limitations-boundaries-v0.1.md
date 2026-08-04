@@ -1,6 +1,9 @@
 # Work I limitations and claim boundaries v0.1
 
-Status: **integration-ready isolated handoff; manuscript integration pending**
+> **SUPERSEDED 2026-08-04.** Historical drafting handoff; use
+> [`../FIRST_PAPER_TODOLIST.md`](../FIRST_PAPER_TODOLIST.md) for current work.
+
+Historical status: **integration-ready for the retired Work I draft**
 
 Task: `W1-S09`
 
@@ -169,7 +172,7 @@ conclusion text:
 
 | Authority | Path | Role in this handoff |
 | --- | --- | --- |
-| Work I execution authority | `workstreams/arxiv_v1/WORK_I_TODOLIST.md` | Scope, tasks, non-goals, counting and claim locks |
+| Historical Work I authority | archived task matrix | Scope, tasks, non-goals, counting and claim locks for the retired draft |
 | Claim map | `workstreams/arxiv_v1/story/work-i-claim-evidence-figure-map-v0.1.md` | Claim-level allowed/forbidden language and evidence roles |
 | Story architecture | `workstreams/arxiv_v1/story/work-i-story-architecture-v0.1.md` | Six-beat argument, figure responsibilities, result-independent order |
 | Apparatus/programming sections | `workstreams/arxiv_v1/story/work-i-platform-programmability-sections-v0.1.md` | Virtual-apparatus, transaction, instrument and world-fork ceilings |

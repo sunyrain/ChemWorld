@@ -1,6 +1,10 @@
 # ChemWorld 第一版 arXiv：相关工作公允审计与生态位边界
 
-状态：working evidence audit，2026-08-02
+> **LEGACY EVIDENCE — 待新故事按需复用。** 本文档是旧稿的相关工作证据池，不是当前执行计划；
+> 其中定位只有在与新的世界底座/虚拟仪器主张一致时才可复用。当前入口为
+> [`FIRST_PAPER_TODOLIST.md`](FIRST_PAPER_TODOLIST.md)。
+
+历史状态：legacy evidence audit，2026-08-02
 
 主文稿：`paper/experimental_intelligence_v1_manuscript.md`
 

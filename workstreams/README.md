@@ -7,16 +7,15 @@ The evidence DAG in `scripts/evidence_pipeline.py` is the only supported generat
 Superseded reports and raw campaign outputs are retained in Git history or external run storage, not copied into this
 tree. Reports bound by a protocol, trajectory digest, or source hash remain immutable until explicitly recertified.
 
-The active Work I execution surface is `workstreams/arxiv_v1/WORK_I_TODOLIST.md`, with task claims in
-`workstreams/arxiv_v1/claims/`. The scientific specification is
-`workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md`, and the machine-readable experiment accounting is
-`workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json`.
-The current primary-source related-work audit and its machine-readable evidence are
-`workstreams/arxiv_v1/RELATED_WORK_AUDIT_2026_08_ZH.md` and
-`workstreams/arxiv_v1/reports/related-work-evidence-v0.1.json`.
-The G0 historical-source and local-data inventory is recorded in
-`workstreams/arxiv_v1/G0_SOURCE_DATA_PROVENANCE_AUDIT_ZH.md` and
-`workstreams/arxiv_v1/reports/g0-source-and-data-provenance-v0.1.json`.
+The active first-paper entry point is `workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md`; the short
+orientation page is `workstreams/arxiv_v1/README.md`. The retired Work I task matrix, claims,
+integration queue, story handoffs and review files are historical records and must not be used to
+claim new work or restore old ownership. Some remain at their original paths because frozen reports
+or legacy tools refer to them.
+
+The former master plan, readiness/provenance/incident audits and related-work audit are legacy
+evidence inputs, not current execution plans. The machine-readable historical experiment accounting
+remains at `workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json`.
 The active Work II execution surface is `workstreams/flagship_tasks/WORK_II_TODOLIST.md`. Superseded
 plans, smoke notes, stopped extensions, and editorial snapshots are available from Git history rather
 than kept as competing entry points in the working tree.

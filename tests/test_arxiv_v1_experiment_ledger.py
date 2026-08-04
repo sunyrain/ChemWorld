@@ -181,11 +181,11 @@ def test_paper_scope_keeps_g2_primary_and_claims_bounded() -> None:
     assert ledger["launch_decision"]["formal_run_started"] is True
 
 
-def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
+def test_existing_manuscript_and_legacy_master_plan_use_the_frozen_scope() -> None:
     manuscript = (ROOT / "paper/experimental_intelligence_v1_manuscript.md").read_text(
         encoding="utf-8"
     )
-    master_plan = (
+    legacy_master_plan = (
         ROOT / "workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md"
     ).read_text(encoding="utf-8")
     compact_manuscript = " ".join(manuscript.split())
@@ -203,10 +203,10 @@ def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
     assert "Eighteen of 20 cells completed" in compact_manuscript
     assert "29,754" in data_card
     assert "29,752" in data_card
-    assert "29,640 existing + 120 pre-specified opportunities = 29,760" in master_plan
-    assert "29,760 不是最终执行数" in master_plan
+    assert "29,640 existing + 120 pre-specified opportunities = 29,760" in legacy_master_plan
+    assert "29,760 不是最终执行数" in legacy_master_plan
     assert "From Recipe Optimization" not in manuscript
-    assert "From Recipe Optimization" not in master_plan
+    assert "From Recipe Optimization" not in legacy_master_plan
 
 
 def test_terminal_g2_narrative_is_bound_to_the_frozen_derived_data() -> None:
