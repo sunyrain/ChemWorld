@@ -10,7 +10,7 @@
 - Revised surface: `paper/experimental_intelligence_v1_manuscript.md`
 - Paper I posture: programmable-world scientific-instrument release
 - Paper II posture: causal, mechanistic and adaptation study of agent behavior
-- Package readiness: **first-paper text ready after one package rebuild; the broader Major-Revision evidence programme remains incomplete**
+- Package readiness: **revised first-paper package built and accepted; the broader Major-Revision evidence programme remains incomplete**
 
 ## Adjudication principle
 
@@ -88,7 +88,8 @@ as completed in this revision.
 - Keep the complete-system runs as capability demonstrations only.
 - Keep the 6/36 counterfactual result as a failed qualification with no latent point claim.
 - Keep Appendix C, Appendix D, the timeline and the three reproducibility levels.
-- Rebuild the arXiv package once and inspect only pages affected by the new tables.
+- Use the accepted 19-page arXiv package bound to commit `012de711`; its title page and
+  affected Appendix C/D pages passed centralized visual acceptance.
 
 ### Move to Paper II
 
@@ -105,6 +106,19 @@ as completed in this revision.
 - Add calibrated high-fidelity or physical bridges for claims about real chemistry.
 - Deposit raw roots under a durable identifier if full raw-byte external audit becomes a
   publication requirement.
+
+## Package acceptance
+
+- Manuscript/package commit: `012de711`
+- arXiv PDF: 19 pages; SHA-256
+  `b9899284da98c9f16aed33a4dc374c41ce6dc8c8aed7a2067a4f7676954ff974`
+- Build-manifest file SHA-256:
+  `6c7d3525d79deb1f116be332c36e1cb4c1cf07071b1d12ab340992b55c4a31cb`
+- Focused validation: 22/25 passed on the first executed suite; all three stale
+  terminology/injection contracts then passed their targeted rerun. Ruff and
+  `git diff --check` passed.
+- Gate boundary: this supplied review is closed, but `W1-Q06` remains `OPEN`; therefore
+  the master `W1-Q07` gate remains `ACTIVE` pending the registered three-review input.
 
 ## Chinese author check
 

@@ -335,7 +335,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-D04 | P0 | DONE | 为 F/V/L 新增 evidence DAG nodes 与 source binding | reports ready | 是 |
 | W1-D05 | P0 | DONE | 更新 experiment ledger、release manifest 和 data card | D03–D04 | 否 |
 | W1-D06 | P0 | BLOCKED | 作者、单位、corresponding author 与 ORCID metadata | 项目负责人 | 是 |
-| W1-D07 | P0 | ACTIVE | codex-1 正在按 Q07 审稿清理重建 arXiv PDF、ZIP、TAR.GZ 与 proof | S/P/D 完成 | 否 |
+| W1-D07 | P0 | DONE | codex-1 已重建并集中验收 19 页 arXiv PDF、ZIP、TAR.GZ 与 proof | S/P/D 完成 | 否 |
 | W1-D08 | P0 | DONE | full tests、clean wheel、independent checkout、claim audit | D07 | 否 |
 | W1-D09 | P0 | OPEN | publication-ready finalizer、tag 与 upload verification | D02、D06、D08 | 否 |
 
@@ -349,7 +349,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-Q04 | P0 | DONE | chemistry/chemical-engineering reviewer：世界与实验语义 | F/V reports | 是 |
 | W1-Q05 | P0 | DONE | editorial reviewer：故事、主图、scope、期刊适配 | paper draft | 是 |
 | W1-Q06 | P0 | OPEN | 三位全新独立审稿人 blind review | integrated PDF | 否 |
-| W1-Q07 | P0 | ACTIVE | review adjudication 与逐条 closure matrix；codex-1 正在裁决用户提供的单份外审，不代替 Q06 | Q06 | 否 |
+| W1-Q07 | P0 | ACTIVE | codex-1 已完成用户提供单份外审的逐条裁决与文档清理；最终三审合并仍等待 Q06 | Q06 | 否 |
 
 ## 6. 三个新增实验包的冻结规格
 
