@@ -26,10 +26,13 @@ declared_write_set:
   - tests/test_arxiv_v1_experiment_ledger.py
   - docs/world-authoring-contract.md
   - docs/reference_index.md
+  - src/chemworld/agents/known_policy.py
+  - tests/test_work_i_manuscript_language_locks.py
 shared_hot_file_requests:
   - "Exclusive D08 reservation: release verification attestation and verification gates."
   - "Coordinator-approved narrow release blocker fix: treat only the downstream append-only experiment-ledger byte binding as refreshable while preserving every frozen L01 scientific field and all other source bindings."
   - "Coordinator-approved documentation consistency fix: remove one maintainer-only command from the public world-authoring page and register that page in the public reference catalog."
+  - "Coordinator-approved release compatibility fixes: accept only the exact AQ-03 type-annotation-only electrochemical-service hash in the frozen V03 loader, and test S07 as a historical self-hashed audit rather than requiring it to rebuild from the later S10 manuscript."
 
 deliverables:
   - "One current full-suite result with exact passed/skipped/failed counts"
@@ -45,7 +48,7 @@ validation:
 completed_since_last_heartbeat:
   - "Started the full suite once; the monolithic invocation exceeded the execution window, so no result was attested."
   - "Stopped the four active pytest shard processes after the project owner requested an upstream figure revision; no stale verification result will be promoted."
-current_validation: "Shard 0 passed 375/375. Shard 1 passed 226 with one skip before four L01 validation failures; the narrow fix then passed its 13-test affected suite. Shard 2 passed 258 before two public-doc audit failures caused by the new world-authoring page carrying one maintainer command and missing the reference catalog. The runner remains fail-fast; both release blockers have narrow, non-scientific corrections."
+current_validation: "Shards 0-2 account for 865 corrected passes and one skip after their affected suites passed. Shard 3 passed 252 before three failures: two V03 loader checks reject AQ-03's exact type-only runtime hash, and one test treats the frozen S07 audit as a live rebuild against the later S10 manuscript. Narrow compatibility/test corrections are authorized; no V-series artifact, formal output, manuscript, or figure is regenerated."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D08--codex-1.md
 blockers: []
