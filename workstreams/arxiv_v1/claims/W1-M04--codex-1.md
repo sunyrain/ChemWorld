@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-M04
 title: "Archive the scope-stopped G2 v0.6 multiworld extension"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

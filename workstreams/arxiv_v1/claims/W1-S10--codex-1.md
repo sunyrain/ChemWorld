@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-S10
 title: "Finalize title, abstract, Results, and Conclusion from frozen F/V/L evidence"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

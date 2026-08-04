@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-D04
 title: "Register frozen F/V/L evidence DAG nodes and source bindings"
-status: READY_FOR_REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

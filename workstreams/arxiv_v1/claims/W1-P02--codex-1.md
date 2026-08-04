@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-P02
 title: "Render Figure 1: ChemWorld apparatus and controlled world forks"
-status: REVIEW
+status: DONE
 
 owner: "codex-1"
 collaborators: []

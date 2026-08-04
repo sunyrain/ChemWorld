@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-S03
 title: "Draft isolated title, abstract, and introduction placeholders"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

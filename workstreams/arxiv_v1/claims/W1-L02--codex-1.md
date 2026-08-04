@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-L02
 title: "Audit reconstructability of all 36 pre-discard states"
-status: REVIEW
+status: DONE
 
 owner: "codex-1"
 collaborators: []

@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-L05
 title: "Qualify, freeze, and execute the 36 evaluator-only latent-terminal shadow assays"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

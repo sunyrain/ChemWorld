@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-F08
 title: "Complete the world-authoring contract, examples, and validator documentation"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

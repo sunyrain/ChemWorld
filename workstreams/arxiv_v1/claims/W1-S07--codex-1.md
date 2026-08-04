@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-S07
 title: "Enforce figure first-reference, closure-count, sensitivity, and terminology locks"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

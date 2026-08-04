@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-S08
 title: "Draft the isolated related-work reconstruction"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

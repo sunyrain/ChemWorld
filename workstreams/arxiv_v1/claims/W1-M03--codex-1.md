@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-M03
 title: "Align historical generated reports with the current evidence binding"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

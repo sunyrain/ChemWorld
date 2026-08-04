@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-P06
 title: "Render Figure 5: autonomous lifecycle and process profile"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

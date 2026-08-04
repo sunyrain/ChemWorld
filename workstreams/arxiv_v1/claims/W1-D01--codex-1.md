@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-D01
 title: "Freeze schemas, units, and counting rules for new Work I experiments"
-status: REVIEW
+status: DONE
 
 owner: "codex-1"
 collaborators: []

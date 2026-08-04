@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-L03
 title: "Implement prefix-identity replay and terminal branch replacement"
-status: REVIEW
+status: DONE
 
 owner: "codex-1"
 collaborators: []

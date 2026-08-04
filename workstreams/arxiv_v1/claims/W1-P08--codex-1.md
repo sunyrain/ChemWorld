@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-P08
 title: "Audit publication figure editability, resolution, fonts, and final dimensions"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

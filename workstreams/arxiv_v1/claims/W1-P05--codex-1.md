@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-P05
 title: "Render Figure 4: compiled information controls"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

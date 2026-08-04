@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-L06
 title: "Publish the frozen latent-terminal primary and threshold/censoring analysis"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

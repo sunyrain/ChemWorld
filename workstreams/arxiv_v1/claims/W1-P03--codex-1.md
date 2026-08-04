@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-P03
 title: "Render Figure 2: known policies validate the experimental-agency profile"
-status: REVIEW
+status: DONE
 
 owner: "codex-1"
 collaborators: []

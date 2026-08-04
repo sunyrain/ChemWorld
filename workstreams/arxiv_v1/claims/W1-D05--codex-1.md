@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-D05
 title: "Update the Work I experiment ledger, release manifest, and data card"
-status: READY_FOR_REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

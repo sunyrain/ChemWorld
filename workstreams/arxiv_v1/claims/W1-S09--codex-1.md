@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-S09
 title: "Draft the isolated Work I limitations and claim-boundary sections"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

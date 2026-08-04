@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-L01
 title: "Correct and re-freeze latent-terminal estimands and entry rules"
-status: REVIEW
+status: DONE
 
 owner: "codex-1"
 collaborators: []

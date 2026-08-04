@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-S02
 title: "Freeze the press-conference story architecture and section responsibilities"
-status: REVIEW
+status: DONE
 
 owner: "codex-1"
 collaborators: []

@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-P07
 title: "Render Figure 6: fresh-session trajectory variation"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-S06
 title: "Draft the isolated complete-system policy and latent-audit Results/Methods sections"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

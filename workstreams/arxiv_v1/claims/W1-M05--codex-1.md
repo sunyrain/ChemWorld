@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-M05
 title: "Establish the Work I integration staging and hot-file queue"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

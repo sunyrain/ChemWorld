@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-D03
 title: "Build the single frozen F/V/L-derived data layer"
-status: READY_FOR_REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []

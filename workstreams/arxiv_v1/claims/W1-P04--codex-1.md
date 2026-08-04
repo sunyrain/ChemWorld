@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-P04
 title: "Render Figure 3: same completion, different terminal policy"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []
