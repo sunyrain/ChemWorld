@@ -9,7 +9,7 @@ owner: "codex-1"
 collaborators: []
 claimed_at_utc: 2026-08-03T14:02:52Z
 lease_expires_at_utc: 2026-08-05T14:02:52Z
-heartbeat_at_utc: 2026-08-03T14:04:32Z
+heartbeat_at_utc: 2026-08-04T04:59:38Z
 
 base_commit: "969f4cd66b79857dbcd82c66cba2574cad1eef45"
 branch: main
@@ -19,10 +19,12 @@ supersedes: null
 declared_write_set:
   - workstreams/arxiv_v1/claims/W1-D06--codex-1.md
   - paper/experimental_intelligence_v1_manuscript.md
+  - paper/arxiv/template.tex
   - paper/arxiv/main.tex
   - paper/exports/experimental-intelligence-v1-arxiv/**
 shared_hot_file_requests:
   - "paper/arxiv/main.tex: coordinator reservation granted by the user's 2026-08-03 author-metadata instruction"
+  - "paper/arxiv/template.tex: coordinator reservation granted by the user's 2026-08-04 author-layout correction instruction"
   - "paper/exports/experimental-intelligence-v1-arxiv/**: coordinator reservation granted for synchronized manuscript artifacts"
 
 deliverables:
@@ -49,11 +51,11 @@ blockers:
 blocked_by: "project owner metadata input for the remaining W1-D06 fields"
 unblock_condition: "Receive corresponding-author designation/email and any ORCID values"
 next_check_at_utc: 2026-08-04T14:04:32Z
-next_24h: "Await the remaining corresponding-author metadata; do not repeat the build until new metadata arrives"
+next_24h: "Apply the requested author/affiliation overflow correction and rebuild the arXiv package once; then return to metadata-blocked state"
 handoff_eta: 2026-08-03T14:04:32Z
 
 final_commit: "eec0b2bbd42c7eb4b68b27236557ea3e3fa03693"
 reviewer: null
 review_result: null
-notes: "The external 17.7 GB archive is explicitly out of scope for this claim. Main is used because the coordinator requested a visible main-branch claim and directly assigned this shared manuscript metadata update."
+notes: "The external 17.7 GB archive is explicitly out of scope for this claim. Main is used because the coordinator requested a visible main-branch claim and directly assigned this shared manuscript metadata update. The 2026-08-04 write-set expansion covers only the user-requested title-page author/affiliation overflow repair."
 ```

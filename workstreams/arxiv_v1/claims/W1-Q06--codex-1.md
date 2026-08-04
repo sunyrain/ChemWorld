@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-Q06
 title: "Three separated blind-review passes on the integrated PDF"
-status: CLAIMED
+status: BLOCKED
 
 owner: "codex-1"
 collaborators: []
@@ -36,11 +36,12 @@ completed_since_last_heartbeat: []
 current_validation: "Claim committed before review writes"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-Q06--codex-1.md
-blockers: []
-blocked_by: null
-unblock_condition: null
+blockers:
+  - "Project owner instructed the current workstream to stop after the author-layout correction; no Q06 review report was written"
+blocked_by: "project owner scope stop"
+unblock_condition: "Explicitly resume Q06 and supply/authorize an independent-review arrangement"
 next_check_at_utc: null
-next_24h: "Complete three focused passes without rerunning experiments, figures, builds, or the full test suite"
+next_24h: "No further Q06 work under the current stop instruction"
 handoff_eta: 2026-08-04T06:30:00Z
 
 final_commit: null
