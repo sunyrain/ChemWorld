@@ -150,7 +150,7 @@
     "status": "stale_evidence_bindings",
     "current_evidence_coherent": false,
     "tracked_source_tree_dirty": false,
-    "stale_binding_count": 11,
+    "stale_binding_count": 10,
     "stale_binding_ids": [
       "mechanism_a2_structural_receipt",
       "mechanism_a3_structural_receipt",
@@ -161,8 +161,7 @@
       "mechanism_preregistration",
       "mechanism_public_gate_a_decision",
       "mechanism_release_qualification",
-      "pre_arxiv_claim_evidence_ledger",
-      "runtime_affordance"
+      "pre_arxiv_claim_evidence_ledger"
     ],
     "blockers": [
       {
@@ -189,8 +188,7 @@
           "mechanism_preregistration",
           "mechanism_public_gate_a_decision",
           "mechanism_release_qualification",
-          "pre_arxiv_claim_evidence_ledger",
-          "runtime_affordance"
+          "pre_arxiv_claim_evidence_ledger"
         ]
       }
     ]
@@ -247,8 +245,8 @@
     "schema_version": "chemworld-current-evidence-dag-0.3",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "a7f7ef76e69fb9532197f8b7352da24ecd6103cdc1ced11f68f86bde5577a2af",
-    "repository_source_sha256": "9f408abe3e459cd0246d5bfdc1c6c5c795bee4532663cb5ba9abe93442ae6c51",
+    "graph_sha256": "0c77e116abee43a3c23d8138a12dd80f1d370f929056daab54552fb01b4e928d",
+    "repository_source_sha256": "944e7a1afa1c405cff98e6a7c2a991c45f6c8208f983ab13c7c9d7ce1109769a",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -304,6 +302,7 @@
       "task_design_matrix",
       "work_i_incremental_data_contract",
       "work_i_latent_terminal_formal_shadow",
+      "first_paper_composition_qualification",
       "mechanism_confirmatory_task_semantics_audit",
       "static_s0_five_task_postqualification_summary",
       "static_s0_misindexed_information_freeze_manifest",
@@ -435,10 +434,10 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "87fd852ce0469084facee70a1457ecbb9dd7d01b22c488da6656e84bebc9e277",
-        "artifact_state": "stale",
-        "freshness": "stale_dependency_binding",
-        "gate_state": "invalidated"
+        "sha256": "7fae112886357331464f02b388f199c342e226d4bb60cf408ae2a0a3d7b5dde5",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
       },
       "runtime_integration": {
         "path": "workstreams/world_foundation/reports/wf-110-runtime-integration.json",
@@ -727,7 +726,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "f03281a159818215ea43d7317171fde5fc68baaf4475f8d1bc6f8edcc308dfe5",
+        "sha256": "848a3aaae19c2e79a9b9f1a4923849e1c3ab619a88d875e0c5f5a0cc32022302",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -742,7 +741,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "9203228aafc34181ad4c7a2f8462db730f3ac646d8b0673fea25c6f24d4714d5",
+        "sha256": "c39fce4712cb56cd4721855815b7de3c685400893a0252f3977ccc86814c5ec3",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -849,7 +848,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "829a9570999fbc03822ad87e1a0c4d74f9bbab4a6506c5c53640e5e4219412e2",
+        "sha256": "1b6783de4b95a700320f9dcdd4283e784378af2d02b5199e2bd04478c7f0a5fa",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -982,7 +981,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "6439e243f1fb548b3033b7d74edb896984fafdbace861d2c9b47c1555d5857db",
+        "sha256": "d3933086d8f7cd9b5c79702feb9fd3550a426558135fa5831b107ef208324e7c",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -1027,7 +1026,7 @@
         "dependencies": [
           "static_s0_formal_campaign_summary"
         ],
-        "sha256": "e40dd70709f6775f63d2ca533db71134b5648c71313102638bfccfa7937c695b",
+        "sha256": "d4c09e8276b64858be2fd27046f9b3187515a2a0610062e364d366626b99e84c",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -1067,6 +1066,20 @@
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "blocked"
+      },
+      "first_paper_composition_qualification": {
+        "path": "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "execution_commit_and_source_blob_sha256",
+        "dependencies": [
+          "task_design_matrix"
+        ],
+        "sha256": "4f8d2abf848e44d390db315212334cb482c57d97770dcd281882618a9df17372",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
       },
       "mechanism_confirmatory_task_semantics_audit": {
         "path": "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc28.json",
@@ -1159,7 +1172,7 @@
           "static_s0_nominal_information_freeze_manifest",
           "static_s0_misindexed_information_freeze_manifest"
         ],
-        "sha256": "af8e56c1bd42d02efde7680dab3fa9453f7bd69d450a450a71aade1afb15d8fb",
+        "sha256": "6a05f6cca2a3a60cbbd0e4b07b5b5fe9c813977bf5a85a4ab45a84482c3e7b3a",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -1327,6 +1340,7 @@
     "master_plan": "workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md",
     "experiment_ledger": "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json",
     "claim_evidence_ledger": "workstreams/flagship_tasks/reports/pre-arxiv-claim-evidence-ledger-v1.json",
+    "composition_qualification_report": "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json",
     "derived_data": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json",
     "derived_data_manifest": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.manifest.json",
     "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
