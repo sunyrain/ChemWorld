@@ -3,15 +3,15 @@
 ```yaml
 task_id: W1-D07
 title: "Build the standard arXiv PDF, source bundles, and publication proof"
-status: DONE
+status: ACTIVE
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T02:42:21Z
-lease_expires_at_utc: 2026-08-06T06:51:18Z
-heartbeat_at_utc: 2026-08-04T06:54:13Z
+lease_expires_at_utc: 2026-08-06T07:39:42Z
+heartbeat_at_utc: 2026-08-04T07:39:42Z
 
-base_commit: "2171372dbcd03e2aebf169ca26dfcb181301c580"
+base_commit: "54bdea84857a53e8d05a5da5660a24e9f4b7c5cd"
 branch: main
 worktree: D:/Projects/ChemWorld
 supersedes: null
@@ -48,7 +48,7 @@ completed_since_last_heartbeat:
   - "Inspected the rebuilt Figure 6 page once at 150 dpi; the Figure 6C y-axis title and every panel boundary are complete."
   - "Rebuilt the 17-page arXiv PDF and deterministic source archives against accepted S10 instrument-release / Work II explanatory-boundary prose."
   - "Inspected the rebuilt abstract, Discussion and complete two-page Conclusion continuation at 150 dpi; no overflow, clipping or incomplete text was introduced."
-current_validation: "PASS: arXiv builder completed once; 17 pages; build manifest b185f84bca33e8e60cf21c19f6cffa973cdecef1eb51543975078c5791daec11; PDF 406d9a26eb89668b5833c66d0a1fa7f11a9edfbddae0db69c1ea63c9ebaa705a; ZIP 92b105b4fa9752b7afbe70d367852ad344a18eab38b21f814bdd983fec2b8996; TAR.GZ c2f88616513010ad1f7501c23f8917207a82f3ded32550458236e2c489ac1877; targeted visual inspection and git diff --check passed."
+current_validation: "Pending one package rebuild against accepted Q07 review cleanup commit 54bdea84."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D07--codex-1.md
   - paper/exports/experimental-intelligence-v1-arxiv/
@@ -58,11 +58,11 @@ blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Accepted on main; no further manuscript package rebuild is planned."
-handoff_eta: 2026-08-04T06:56:00Z
+next_24h: "Rebuild the arXiv package once, run focused tests once, and inspect only pages affected by the new title, tables and appendices."
+handoff_eta: 2026-08-04T08:30:00Z
 
-final_commit: 73ad0bb1f7613de87fedec5d3eb591b77523e7c4
-reviewer: codex-1
-review_result: PASS
-notes: "The original D07 package was accepted after final commit ea05a307 and subsequent figure-synchronized rebuilds. This reopening changes only manuscript/package bytes for accepted S10 commit 2171372d; it does not mark publication_ready and does not require the deferred 17.7 GB archive or unresolved corresponding-author metadata."
+final_commit: null
+reviewer: null
+review_result: null
+notes: "The original D07 package was accepted after final commit ea05a307 and subsequent figure and S10 synchronized rebuilds. This reopening changes package bytes only for accepted Q07 manuscript cleanup commit 54bdea84. It does not mark publication_ready and does not require the deferred 17.7 GB archive or unresolved corresponding-author metadata."
 ```
