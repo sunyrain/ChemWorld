@@ -1,9 +1,9 @@
 ---
-title: "ChemWorld: A Programmable Virtual Instrument for Measuring Experimental Process Profiles"
-title_line_one: "ChemWorld: A Programmable Virtual Instrument"
-title_line_two: "for Measuring Experimental Process Profiles"
-subject: "A programmable virtual instrument for observing scientific-agent experimental processes"
-keywords: "programmable chemical worlds; virtual scientific instrument; experimental process profiles; autonomous experimentation; AI agents; reproducibility"
+title: "ChemWorld: A Composable Executable Chemical-World Substrate and Programmable Virtual Instrument"
+title_line_one: "ChemWorld: A Composable Executable"
+title_line_two: "Chemical-World Substrate and Programmable Virtual Instrument"
+subject: "A composable executable chemical-world substrate and programmable virtual instrument"
+keywords: "composable chemical worlds; executable chemistry; virtual scientific instrument; transactional semantics; exact replay; autonomous experimentation"
 pdf_author: "Jiangjie Qiu; Yijun Li"
 author:
   - name: "Jiangjie Qiu"
@@ -17,134 +17,106 @@ correspondence: ""
 date: ""
 bibliography: experimental_intelligence_v1_references.bib
 abstract: |
-  Scientific agents are commonly judged by the best condition they report, but an
-  endpoint does not identify the experimental policy or trajectory that produced it. We
-  present ChemWorld, a programmable and replayable virtual instrument that records a
-  complete scientific-agent system's evidence acquisition, state-changing actions,
-  lifecycle closure, terminal choice, resources and trajectory dynamics. Its qualified
-  surface spans 15 task contracts, 28 typed operation kinds and five synthetic instrument
-  contracts. Controlled single-component forks preserved the public contract and replayed
-  exactly, while three deterministic known policies recovered their prespecified signatures
-  in a 19-metric experimental-process profile and matched under same-identity retest. In a
-  capability demonstration, two complete systems closed 120 lifecycles but produced 84
-  final assays and 36 explicit discards. Because model, scaffold, prompt and decision
-  transport differed, these counts demonstrate observable system-level variation rather
-  than a causal model comparison. An evaluator-only discarded-state audit resolved only 6
-  of 36 registered units; the other 30 remain unresolved, so the counterfactual module is
-  not qualified and latent-dependent point estimates are withheld. Compiled controls and
-  fresh sessions further show that outcome, prediction, calibration, terminal value and
-  trajectory readouts need not coincide. These examples qualify and illustrate the virtual
-  instrument. They do not establish a universal construct of agency, survey agent behavior
-  across chemistry, or explain why a system produced a trajectory. ChemWorld therefore
-  provides an auditable substrate for autonomous experimentation in executable worlds,
-  leaving causal and mechanistic explanation to a separate study.
+  Executable chemistry environments are often exposed as fixed task suites, while an
+  instrument-like claim requires an explicit account of how worlds are constructed and
+  how their interfaces behave under composition. We present ChemWorld as a composable
+  executable chemical-world substrate and programmable virtual instrument. A v1 world is
+  declared from a finite vocabulary of reusable physical and transactional components,
+  their interfaces, parameters, resources, termination rules and evaluation surface. A
+  task contract combines one such world with an initial state, operations, instruments,
+  observations and a replayable trajectory. The 15 registered tasks are reference
+  examples chosen to span this surface, not an exhaustive benchmark or a bound on the
+  world space. Existing qualification provides typed operations and instruments,
+  transactional failure handling, resource ledgers, exact environment replay and
+  single-private-component forks with invariant public contracts. The central qualification
+  programme tests coverage-guided compositions and frozen unseen compositions for compile-
+  time compatibility, interface closure, physical and resource invariants, observation
+  boundaries and replay. Complete agents are then used as instrument demonstrations: their
+  records show what the apparatus can expose, not why an agent acted, how models rank, or
+  whether a virtual world transfers to a laboratory. The resulting claim is deliberately
+  bounded to the declared v1 component and compatibility domain: we validate reusable
+  components and coverage-guided compositions, not every possible task.
 ---
 
 # 1. Introduction
 
-When a scientific agent reports a high-performing condition, the consequential
-question is not only *what endpoint did it reach?* but also *what experimental process
-produced that endpoint?* A condition may be found early and retained, abandoned after
-discovery, recovered after a drawdown, or reached only at termination. Likewise, two
-closed lifecycles can differ in whether the agent acquired evidence, continued to
-invest resources, requested a final assay, or explicitly discarded the material. These
-differences are experimentally meaningful even when terminal values appear similar.
+Executable chemistry environments are frequently described through a catalogue of tasks,
+but a catalogue alone does not specify what can be composed, which combinations are legal,
+or whether a new combination preserves the semantics of the underlying apparatus. The
+central problem for a reusable scientific environment is therefore architectural as well
+as evaluative: physical modules, operations, instruments, resources and termination must
+compose without silently changing units, state identity, failure behaviour or replay.
+
+ChemWorld addresses this problem by treating a chemical world as an explicit, executable
+object rather than as an opaque task label. Its v1 vocabulary contains reusable reaction,
+thermal, phase, separation, crystallization, distillation, continuous-flow,
+electrochemical and observation components. A world is a compatible selection of these
+components, parameters and private laws. A task contract is then
+`T = (W, S0, A, I, O, R, τ, E)`: the world, initial state, operations, instruments,
+observations, resources, termination rule and evaluation surface. A concrete scenario
+instantiates that contract; a trajectory is the operation--observation sequence produced
+by an agent; and a world fork is a separate controlled intervention that changes one
+private component for attribution. Keeping these levels distinct prevents a fixed task
+list from being mistaken for the space of worlds or trajectories.
 
 Existing evaluation regimes expose different parts of this problem. Prediction and
 digital optimization benchmarks enable controlled comparison but often represent an
 experiment as a value-returning query [@felton2021summit; @hase2021olympus].
 Self-driving laboratories and instrument-operating agents establish whether workflows
 can be executed in physical systems and automated reliably [@szymanski2023alab;
-@dai2024mobile; @darvish2025organa; @vriza2026instruments]. That physical validity is
-indispensable, yet physical apparatuses are costly to replicate under matched identity,
-and endpoint-centered benchmarks do not by themselves isolate the agent's evidence,
-resource, and termination policies. A complementary measurement apparatus is needed in
-which experimental state, information, authority, resources, and replay identity are
-explicit controls.
+@dai2024mobile; @darvish2025organa; @vriza2026instruments]. Those systems provide
+indispensable physical validity, but physical apparatuses are costly to replicate under
+matched identity. A complementary virtual instrument can make world construction,
+authority, resources, failure semantics, observations and replay explicit while retaining
+a clear boundary against laboratory transfer.
 
-ChemWorld provides that apparatus through executable chemical and chemical-engineering
-worlds. Its organizing choice is that **the complete agent system is the experimental
-subject and the chemical world is the measurement apparatus**. Within a stateful,
-partially observable simulator world, an agent chooses typed state-changing operations,
-measurements, resource expenditure, termination, final assay, and discard. Accepted
-transitions, failures, instrument responses, and ledger events are content-bound, so an
-environment trajectory and its resource history can be replayed exactly without
-claiming reproduction of model tokens or of a physical material batch.
+ChemWorld provides that substrate and apparatus through executable chemical and
+chemical-engineering worlds. Its organizing choice is that **the world is the reusable
+instrument substrate and the complete agent system is one possible instrument user**.
+Within a stateful, partially observable world, an agent chooses typed state-changing
+operations and measurements under explicit resource and termination rules. Accepted
+transitions, failures, instrument responses and ledger events are content-bound, so a
+trajectory and its resource history can be replayed exactly without claiming reproduction
+of model tokens or of a physical material batch.
 
-This first paper reports the instrument itself. It asks whether complete agent systems
-can operate autonomously inside these worlds and whether their actions can be observed,
-perturbed, accounted and replayed under a stable contract. The reported systems and
-worlds are qualification and capability demonstrations rather than a representative
-sample of agent behavior. Explaining why a system produced a trajectory, attributing
-behavior to an internal model or scaffold mechanism, and measuring adaptation under
-changed laws require a separate explanatory study.
+This first paper reports the world substrate and its instrument contract. It asks whether
+declared components can be assembled through a public compatibility domain, whether
+coverage-guided and frozen unseen compositions preserve the declared runtime semantics,
+and whether a complete agent can use a newly generated world without changing the core
+runtime. Agent runs are capability demonstrations rather than a representative sample of
+agent behaviour. Explaining why a system produced a trajectory, attributing behaviour to
+an internal model or scaffold mechanism, and measuring adaptation under changed laws
+require a separate explanatory study.
 
-Programmability turns this environment from a fixed benchmark into a controlled
-instrument. ChemWorld can fork one registered private component while holding nine
-public-contract components fixed and recording parent--child lineage. The present paper
-qualifies two named intervention classes rather than arbitrary recombination: six
-parent--child pairs across three seeds produced the registered divergence under the
-same fixed-policy action sequence, with exact original/replay agreement and no provider
-calls. This certificate establishes controlled programmability of the virtual apparatus,
-not agent adaptation to changed laws.
+Programmability turns this environment from a fixed task suite into a controlled
+instrument. Existing world-fork evidence shows that one registered private component can
+be changed while the public action, observation, instrument, resource, failure and scoring
+contracts remain invariant, with exact replay of both sides. A fork is an attribution
+control, not a substitute for general multi-component composition. The new qualification
+programme therefore separates (i) the construction and compatibility surface, (ii)
+coverage-guided combinations, (iii) frozen combinations not present in the reference
+tasks, and (iv) single-component forks used for controlled causal contrast.
 
-A measurement apparatus must also recover behavior that is known before observation.
-We therefore froze three deterministic policies with distinct evidence-acquisition,
-resource, and terminal-decision signatures, then evaluated a 5 × 2 × 3 matrix. The
-30 primary campaigns and 180 primary closed lifecycles passed all 12 registered
-profile-reconstruction, resource, invariance, and non-degeneracy gates. A separate
-30-campaign deterministic retest reproduced every registered campaign identity and
-profile; those retests assess reliability and do not double the primary estimand. This
-positive control qualifies the logging and metric pipeline against policies constructed
-to exercise it. It does not by itself establish that the profile is a complete or
-externally valid construct of experimental agency.
+The paper is consequently organized around five contributions:
 
-We next use the apparatus as a descriptive lens on complete experimental systems and
-on previously frozen controls. Two distinct complete agent systems each closed 60
-lifecycles in the same five worlds and two information arms, yielding 120 closed
-lifecycles: 84 final assays and 36 explicit discards. Their terminal-policy census,
-instrument use, operations, and resource histories remain separate readouts rather than
-a model-only ranking. Because discard quality is not observed at decision time, a
-preregistered evaluator-only counterfactual audit attempted to score all 36 discard
-states. Only 6 passed the formal resolution gate and 30 remained unresolved. We retain
-the complete registered census, report censoring and sharp support bounds, and withhold
-latent-dependent point estimates and arm contrasts.
+1. a public v1 vocabulary and task-contract model for composing executable chemical
+   worlds from reusable physical and transactional components;
+2. a unified compatibility and construction surface that exposes operations, instruments,
+   resources, termination and evaluation without exposing private world state;
+3. coverage-guided qualification of reference and unseen compositions, including
+   interface, transaction, resource, observation-boundary and exact-replay checks;
+4. controlled single-private-component forks that preserve the public contract and supply
+   a bounded programmability control; and
+5. agent demonstrations showing how a complete system can use the same instrument contract
+   in a newly generated world, without turning those demonstrations into a model ranking.
 
-Two further evidence layers show why this separation matters. Compiled controls across
-two task families keep endpoint outcome, held-out prediction, calibration, and claim
-diagnostics distinct rather than collapsing them into a composite score. Fresh sessions
-in two deliberately selected worlds expose within-world process variation: best-of-
-campaign and raw-terminal contrasts have discordant signs in 2/8 complete matched pairs,
-whereas a thresholded trajectory classification is mixed in 6/8 and is treated only as
-supporting sensitivity evidence. These selected worlds provide a process diagnostic,
-not a population-level comparison between systems.
-
-Together, the evidence follows a staged argument: executable contracts define what can
-be controlled and observed; controlled forks qualify programmability; known policies
-qualify the experimental-process readouts; complete systems demonstrate that lifecycle closure
-does not specify terminal policy; and compiled and fresh-session analyses separate
-additional outcome and process coordinates. We make four contributions:
-
-1. a qualified virtual chemical-world apparatus with typed experimental operations,
-   explicit instruments, failures, resources, terminal decisions, content-bound
-   identity, and exact environment replay;
-2. controlled, single-private-component world forks with fixed public contracts and an
-   independently auditable lineage and replay certificate;
-3. a 19-metric experimental-process profile that recovers prespecified signatures from
-   deterministic known policies before complete-system records are interpreted; and
-4. failure-preserving empirical demonstrations in which endpoint, terminal policy,
-   evidence use, resources, and trajectory dynamics remain distinct, including an
-   unresolved latent audit whose point estimates are intentionally withheld.
-
-The scope is deliberately bounded. ChemWorld does not replace a self-driving
-laboratory, validate transfer to physical chemistry, identify a causal model-only
-effect, rank agent systems on a universal scale, or demonstrate learning under changed
-world laws. Those questions require physical-bridge and rule-adaptation studies beyond
-this first paper. Here the result is methodological: programmable virtual chemical
-worlds make experimental processes observable as auditable profiles. The backend supports
-a broader registered family of selected physical-chemistry worlds than the subset
-formally exercised here; the reported cases qualify the instrument and demonstrate its
-readouts rather than estimate behavioral prevalence across that family.
+The scope is deliberately bounded. ChemWorld does not replace a self-driving laboratory,
+validate transfer to physical chemistry, establish arbitrary multi-component authoring,
+rank agent systems on a universal scale, or demonstrate learning under changed world laws.
+The qualification target is the declared v1 component vocabulary and compatibility domain;
+coverage-guided evidence is not an exhaustive proof over all possible tasks. The 15
+reference tasks demonstrate structural breadth and usage patterns, not a benchmark
+cardinality claim. Physical-bridge and explanatory studies remain separate work.
 
 # 2. Relation to existing systems
 
@@ -597,111 +569,72 @@ provider sampling effect.
 
 # 9. Discussion
 
-ChemWorld turns an experimental process from an endpoint impression into an auditable
-profile. Programmable, replayable chemical worlds keep evidence acquisition, lifecycle
-closure, terminal policy, resource use and trajectory dynamics as separate observables.
-The result is a measurement apparatus for the process by which a system experiments,
-not another scalar leaderboard.
+ChemWorld is best understood as a composable world substrate with an instrument contract,
+not as a leaderboard of fixed tasks. The substrate makes reusable physical and
+transactional components executable; the contract makes their operations, instruments,
+resources, failures, observations, termination and replay explicit. An agent can then
+operate inside a world and leave an auditable process record, but the existence of that
+record is not a claim about why the agent acted or how it compares with another model.
 
-The evidence forms a staged validation rather than one pooled benchmark. Platform and
-fork qualification establish executable semantics and bounded programmability. Known
-policies then show that the multidimensional profile implementation recovers behaviors
-fixed in advance. Only after those checks do the complete-system, compiled-control and fresh-
-trajectory studies interpret differences in terminal and process profiles.
+The evidence should therefore be read as a staged qualification. First, the public object
+layers and construction rules define what a world, task, scenario, trajectory and fork
+mean. Second, coverage-guided combinations and frozen unseen combinations test whether
+the declared interfaces remain closed under composition. Third, module-level and
+cross-module checks test bounded physical and transactional invariants. Existing
+single-component forks provide a separate attribution control by changing one private law
+while preserving the public contract. Agent runs come last as usage demonstrations of the
+same instrument surface.
 
-This evidence is interpreted at instrument level. The agent studies demonstrate that
-autonomous systems can run and become observable under the contract; they are not a
-population sample and do not explain the mechanisms that produced the observed decisions.
+## 9.1 What the world-and-instrument record establishes
 
-## 9.1 What the process record establishes
+The central record is not a single endpoint. It binds a declared world to an initial state,
+typed operations, instruments, observations, resources, termination and evaluation, then
+retains the committed trajectory and replay identity. This separation makes it possible to
+inspect evidence acquisition, failure and rollback, resource expenditure, lifecycle closure
+and terminal choice without silently collapsing them into a score. Existing process-profile
+and known-policy results remain useful positive controls for this logging surface, but they
+are instrument demonstrations rather than a universal construct of agency.
 
-The complete-system result illustrates why this ordering matters. Two distinct complete
-systems closed every assigned lifecycle but expressed different terminal commitments.
-The failed discarded-state gate prevents a directional claim about latent quality, yet
-it does not erase the observed closure/commitment distinction. Retaining 30 unresolved
-receipts, withholding point estimates and displaying sharp bounds makes execution
-failure part of the evidence rather than a reason to select six convenient cases.
-
-Compiled controls and fresh sessions expose complementary omissions in endpoint-only
-evaluation. Outcome, prediction, calibration and claim support remain distinct even
-through a bounded complete-experiment interface. Under primitive control, best and raw
-terminal contrasts can disagree within a matched fresh pair, while discovery, retention,
-drawdown and recovery describe additional process coordinates. These observations do
-not imply that every coordinate is independent; they require that none be silently
-collapsed into the best score.
+The 15 registered tasks have a deliberately narrower role in this story. They are reference
+examples selected to cover structural axes and usage patterns. They do not define the size
+of the world space, and their existing cross-world qualification cannot substitute for
+generated compositions or unseen-composition tests. A successful qualification therefore
+supports the declared v1 composition domain and its coverage targets, not every possible
+task or an unbounded authoring claim.
 
 ## 9.2 Limitations and scope
 
-This study qualifies a scientific measurement instrument. The registered
-platform is broader than the formal evidence. Fifteen task contracts,
-28 operation kinds, five instruments, evaluator bindings and boundary recipes establish
-the qualified executable surface, not an equal number of formal agent experiments. The
-fork certificate covers two named single-private-component interventions under a fixed
-policy. It does not validate arbitrary multi-component recombination, third-party world
-authorship or an agent's ability to infer a changed law.
+The world is virtual and intentionally bounded. Physical signals are state-coupled
+synthetic or reference-tested outputs within their module domains; resource receipts are
+simulator ledgers rather than laboratory custody, hazard, waste or monetary accounts.
+Exact replay reconstructs executable state transitions and public observations, not a
+physical batch, device or stochastic provider decision.
 
-Known deterministic policies are a bounded implementation and positive-control check.
-Exact signature recovery and same-identity retests show that this apparatus can
-distinguish behavior fixed by construction; they do not independently validate a general
-construct of agency, chemical competence, a scalar intelligence score or reliability of
-stochastic complete systems. Independent policy authors, blind expert trajectory ratings,
-adversarially matched endpoints and stochastic test--retest studies are future validity
-tests, not evidence claimed here. Retests remain outside the 30 primary
-campaign profiles.
+The qualification domain is the declared v1 component vocabulary and compatibility rules.
+Coverage-guided sampling is a principled way to test axes and interactions, but it is not
+an exhaustive proof over all combinations. The reference-task set is not a benchmark
+cardinality claim. A single-component fork is not evidence for arbitrary multi-component
+recombination, third-party authoring or agent adaptation to changed laws. The agent cases
+are capability demonstrations and cannot support a model ranking, causal provider claim or
+mechanistic explanation.
 
-The quantitative results remain finite-world descriptions. Complete systems differ in
-model, scaffold, transport, evidence interface, retry behavior and configuration, so
-their contrast cannot be assigned to a model backend. The information-arm comparisons
-do not identify a general population effect, and the two fresh-session worlds were
-deliberately selected. Primitive operations, instrument events, replay traces,
-deterministic retests and evaluator-only shadow assays are accounting or reliability
-events, not independent agent experiments.
-
-The latent-terminal module failed qualification in formal integration. The narrower
-checkpoint audit reconstructed 36/36 pre-discard states but did not execute a replacement
-assay; the formal entry gate subsequently exposed prefix, resource-state and assay-
-precondition failures. Its six resolved receipts cannot estimate the frozen 36-discard
-population, and the sharp bounds represent execution uncertainty rather than evidence for
-either latent-quality direction. Evaluator-only shadow assays were neither selected nor
-observed by an agent and cannot show that discard saved real resources.
-
-The apparatus itself is virtual. It is more than a chemistry-labelled action interface:
-the registered runtime combines scoped equation-based and reference-checked modules for
-reaction kinetics, batch energy, electrochemistry, phase equilibrium, crystallization,
-distillation and synthetic instruments, together with mass, charge, energy and process
-diagnostics. Every registered task's required path has a declared maturity floor, and
-some separation modules carry a higher candidate label. These labels mean only that a
-module passed its stated analytical, reference or invariant checks within a model-card
-domain. They do not imply empirical calibration against arbitrary materials or industrial
-equipment.
-
-Accordingly, instrument signals remain bounded state-coupled synthetic or reference-
-tested outputs; resource receipts are simulator records, not custody, hazard, waste or
-monetary accounts. Exact replay reconstructs executable state and observations, not a
-physical batch, laboratory device or stochastic provider decision. The worlds are
-controlled and intentionally idealized within their model-card boundaries because the
-present claim concerns instrument control, observation and replay, not the physical truth
-of an agent-generated explanation. Physical and high-fidelity laboratories remain
-necessary to establish chemical executability, safety and deployment validity, and later
-explanatory studies must show that their interpretations survive the world fidelity
-required by their scientific estimands.
+These boundaries also separate the first paper from later studies. Physical calibration,
+broader world families, explanatory interventions, adaptation under changed private laws,
+and systematic comparisons across complete agent systems require their own protocols and
+evidence. They should not be inferred from the instrument qualification surface.
 
 ## 9.3 Complementarity and next steps
 
-Separating instrument qualification from explanatory science is deliberate. This paper
-establishes the value of the world and instrument: autonomous systems can run, encounter
-controlled conditions, and leave observable, replayable process records. It does not
-infer why a system adopted a policy, attribute behavior to an internal model or scaffold
-mechanism, or test adaptation under changed laws. Those questions require separately
-powered interventions across more worlds and systems and form a separate explanatory study.
+Once the v1 construction and qualification gates are closed, ChemWorld can support focused
+use cases such as multi-stage reaction-to-separation workflows, resource-limited
+characterization, failure and recovery, controlled world forks and agent use in generated
+unseen worlds. These cases test what the instrument exposes while keeping the scientific
+question, public contract, resource limits and process record explicit.
 
-Within those boundaries, programmable worlds enable controlled studies that are costly
-or impossible to clone physically. The present certificate covers only preregistered,
-qualified interventions on two named private components, while the backend can support a
-broader registered physical-chemistry surface. Arbitrary recombination and third-party
-world authoring are not established here. Future explanatory studies can sample more
-worlds and complete systems while keeping authority, evidence and resources explicit,
-then test selected process phenomena against calibrated physical systems.
+The next explanatory study can then use the same substrate to ask why a system chose a
+trajectory, how selected policies adapt to changed private laws, or which process
+coordinates survive calibration against physical systems. Those questions are deliberately
+outside the first paper's claim.
 
 ```{=latex}
 \FloatBarrier
