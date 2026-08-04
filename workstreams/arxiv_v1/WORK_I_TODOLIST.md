@@ -323,7 +323,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-P06 | P0 | DONE | Fig. 5 autonomous lifecycle/process profile | 现有数据 | 是 |
 | W1-P07 | P0 | DONE | Fig. 6 fresh-session trajectory variation | 现有数据 | 是 |
 | W1-P08 | P0 | DONE | SVG editability、高清素材、PDF 字体与双栏尺寸审计 | P02–P07 | 否 |
-| W1-P09 | P0 | DONE | caption、正文引用、display items 与 manifest 一致性 | P08、S10 | 否 |
+| W1-P09 | P0 | ACTIVE | caption、正文引用、display items 与 manifest 一致性；按项目负责人要求补充六图投稿级视觉精修 | P08、S10 | 否 |
 
 ### 5.7 Data, evidence & release
 
@@ -336,7 +336,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-D05 | P0 | DONE | 更新 experiment ledger、release manifest 和 data card | D03–D04 | 否 |
 | W1-D06 | P0 | BLOCKED | 作者、单位、corresponding author 与 ORCID metadata | 项目负责人 | 是 |
 | W1-D07 | P0 | DONE | 标准 arXiv PDF、ZIP、TAR.GZ 与 proof rebuild | S/P/D 完成 | 否 |
-| W1-D08 | P0 | OPEN | full tests、clean wheel、independent checkout、claim audit | D07 | 否 |
+| W1-D08 | P0 | BLOCKED | full tests、clean wheel、independent checkout、claim audit | P09 视觉精修及其 D07 重建 | 否 |
 | W1-D09 | P0 | OPEN | publication-ready finalizer、tag 与 upload verification | D02、D06、D08 | 否 |
 
 ### 5.8 Independent review & QA

@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-D08
 title: "Verify full tests, clean wheel, independent checkout, and final claims"
-status: CLAIMED
+status: BLOCKED
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T02:48:49Z
 lease_expires_at_utc: 2026-08-06T02:48:49Z
-heartbeat_at_utc: 2026-08-04T02:48:49Z
+heartbeat_at_utc: 2026-08-04T03:16:09Z
 
 base_commit: "69061d60"
 branch: work1/w1-d08-release-verification-codex-1
@@ -35,19 +35,23 @@ validation:
   - "Run the release-focused suite once in a detached independent worktree"
   - "Run deterministic manuscript citation/scope scans and git diff --check once"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim registered on main after W1-D07 acceptance; validation commands have not started."
+completed_since_last_heartbeat:
+  - "Started the full suite once; the monolithic invocation exceeded the execution window, so no result was attested."
+  - "Stopped the four active pytest shard processes after the project owner requested an upstream figure revision; no stale verification result will be promoted."
+current_validation: "BLOCKED before attestation: the accepted publication figures and D07 arXiv package are being revised, so D08 must verify the rebuilt candidate rather than the superseded package."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D08--codex-1.md
-blockers: []
-blocked_by: null
-unblock_condition: null
-next_check_at_utc: 2026-08-04T03:48:49Z
-next_24h: "Run the four verification gates once, bind the exact results, merge, and push."
-handoff_eta: 2026-08-04T05:00:00Z
+blockers:
+  - "W1-P09 has been reopened for project-owner-requested Nature-style refinement of all six canonical figures."
+  - "W1-D07 must rebuild the arXiv/proof package after the refined figure assets are accepted."
+blocked_by: "W1-P09 visual refinement and downstream W1-D07 package rebuild"
+unblock_condition: "Refined P09 assets are accepted on main and D07 rebuilds the publication package against their new hashes."
+next_check_at_utc: 2026-08-04T06:00:00Z
+next_24h: "Resume the four verification gates once against the rebuilt release candidate."
+handoff_eta: null
 
 final_commit: null
 reviewer: null
 review_result: null
-notes: "Verification is scoped to the current internally complete candidate. External archive publication and corresponding-author metadata remain separate D02/D06 gates."
+notes: "Claim remains reserved by codex-1 while blocked, preventing duplicate ownership. External archive publication and corresponding-author metadata remain separate D02/D06 gates."
 ```
