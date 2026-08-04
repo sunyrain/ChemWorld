@@ -27,7 +27,7 @@ def test_display_items_are_regenerated_from_the_bound_data(tmp_path: Path) -> No
     assert "### Table 4" in rendered
     titles = [
         "Figure 1 | ChemWorld apparatus and controlled world forks.",
-        "Figure 2 | Known policies validate the experimental-agency profile.",
+        "Figure 2 | Known policies qualify the experimental-process profile.",
         "Figure 3 | Lifecycle completion does not specify terminal policy.",
         "Figure 4 | Compiled controls separate outcome, prediction, calibration and claims.",
         "Figure 5 | Primitive-control agents expose complete experimental lifecycles.",

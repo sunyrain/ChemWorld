@@ -1,4 +1,4 @@
-# Programmable Chemical Worlds Make Experimental Agency Measurable: numeric display items
+# ChemWorld: A Programmable Virtual Instrument for Measuring Experimental Process Profiles: numeric display items
 
 Status: `frozen_complete`.
 Derived-data SHA-256: `1d639b09215ade3b84e9c2e5a9e30479fed1387890ab272d29b0996e7a06a2c4`.
@@ -23,7 +23,7 @@ object. This file is intended for direct inclusion during manuscript typesetting
 Counts for the environment surface are design qualifications, not claims of agent
 competence. Formal paper evidence covers fewer tasks than the registered surface.
 
-### Table 2 | Compiled-experiment capability profiles
+### Table 2 | Compiled-control capability profiles (release label G0)
 
 | Task | Information arm | Worlds | Final score | Held-out accuracy | Brier | Structure F1 | Mechanism F1 | Unsupported claims |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -34,21 +34,21 @@ competence. Formal paper evidence covers fewer tasks than the registered surface
 | reaction-to-crystallization | nominal | 10 | 0.562 | 0.433 | 0.316 | not measured | not measured | not measured |
 | reaction-to-crystallization | misindexed | 10 | 0.584 | 0.433 | 0.316 | not measured | not measured | not measured |
 
-Scores are means across ten physical worlds. Dashes indicate endpoints that were not
+Scores are means across ten simulator worlds. Dashes indicate endpoints that were not
 defined for that information arm; they are not zeroes. No composite score is formed.
 
-### Table 3 | Autonomous development trajectories (G2 v0.4)
+### Table 3 | Primitive-control development trajectories (release label G2 v0.4)
 
 | Arm | Cells | Completion | Operations | Best score | Batch AUC | Realized-op AUC | Fixed-budget AUC | Discovery fraction | Retention | Max drawdown | Terminal / best | Recovery |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | opaque | 5 | 1.000 | 82.600 | 0.631 | 0.617 | 0.520 | 0.563 | 0.320 | 0.520 | 0.333 | 0.671 | 0.500 |
 | nominal | 5 | 1.000 | 80.400 | 0.709 | 0.589 | 0.501 | 0.591 | 0.800 | 0.720 | 0.092 | 0.941 | 0.800 |
 
-Each arm contains five physical-world cells and six completed vessels per cell.
+Each arm contains five simulator-world cells and six completed vessels per cell.
 Operations are mean submitted primitive attempts per cell. These development data select
 the worlds and endpoints for G2 v0.5 and are excluded from its replication estimand.
 
-### Table 4 | Fresh-trajectory replication (G2 v0.5)
+### Table 4 | Fresh primitive-control trajectories (release label G2 v0.5)
 
 | World | Replicate | Opaque state | Nominal state | Δ best score | Δ raw terminal | Δ mean score | Δ discovery | Δ retention | Δ drawdown | Δ terminal / best |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -82,7 +82,7 @@ and 24 provider-free traces passed the registered programmability gates. These p
 establish the tested executable-world interventions, not agent performance, arbitrary
 world recombination, rule adaptation or physical transfer.
 
-**Figure 2 | Known policies validate the experimental-agency profile.**
+**Figure 2 | Known policies qualify the experimental-process profile.**
 **A,** Three frozen policies specify distinct evidence and terminal-decision structures.
 **B,** Campaign-equal terminal profiles recover assay-all, threshold-gated and
 immediate-discard signatures. **C,** Evidence acquisition, continued investment and
@@ -105,8 +105,9 @@ evaluator-only counterfactual evaluations, were not agent choices or observation
 did not add original agent experiments.
 
 **Figure 4 | Compiled controls separate outcome, prediction, calibration and claims.**
-**A,** Paired nominal-minus-opaque endpoint differences across ten worlds per task, with
-multiplicity-adjusted 97.5% per-task world-bootstrap stability intervals. **B,** Held-out
+**A,** All paired nominal-minus-opaque endpoint differences across ten designed worlds
+per task; the ranges summarize finite-set resampling sensitivity rather than population
+confidence intervals. **B,** Held-out
 prediction and calibration are displayed as separate raw metrics. **C,** Opaque-arm
 epistemic readouts retain registered missingness without imputation. **D,** Commit-frozen
 manipulation, correction, performance-restoration and joint gates remain separate.

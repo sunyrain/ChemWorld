@@ -204,7 +204,7 @@ def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
 def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     manifest = json.loads((RELEASE / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["paper"]["working_title"] == (
-        "Programmable Chemical Worlds Make Experimental Agency Measurable"
+        "ChemWorld: A Programmable Virtual Instrument for Measuring Experimental Process Profiles"
     )
     if manifest["publication_ready"]:
         assert manifest["status"] == "publication_ready"

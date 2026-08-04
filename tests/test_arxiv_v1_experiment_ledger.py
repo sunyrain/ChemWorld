@@ -194,7 +194,7 @@ def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
     )
 
     assert manuscript.startswith(
-        '---\ntitle: "Programmable Chemical Worlds Make Experimental Agency Measurable"'
+        '---\ntitle: "ChemWorld: A Programmable Virtual Instrument for Measuring Experimental Process Profiles"'
     )
     assert "[PENDING G2 v0.5" not in manuscript
     assert "29,580 simulator executions" in compact_manuscript

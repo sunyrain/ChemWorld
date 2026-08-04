@@ -80,20 +80,20 @@ time. Embedded report identities remain separate from these file hashes.
 | --- | --- | --- |
 | Figure 1 | `paper/figures/experimental-intelligence-v1/publication/figure-1-apparatus-world-forks.pdf` | Caption and prose integrated. |
 | Figure 2 | `paper/figures/experimental-intelligence-v1/publication/figure-2-known-policy-validity.pdf` | Caption and primary/retest separation integrated. |
-| Figure 3 | `paper/figures/experimental-intelligence-v1/publication/figure-3-terminal-policy.pdf` | W1-P09 must replace the pre-L pending panels/manifest with the frozen 6/30 gate-failure and bounds display; no complete-case panel. |
+| Figure 3 | `paper/figures/experimental-intelligence-v1/publication/figure-3-terminal-policy.pdf` | Accepted 6/30 gate-failure and bounds display; no complete-case panel. |
 | Figure 4 | `paper/figures/experimental-intelligence-v1/publication/figure-4-compiled-controls.pdf` | Caption and prose integrated. |
 | Figure 5 | `paper/figures/experimental-intelligence-v1/publication/figure-5-complete-lifecycles.pdf` | Caption and prose integrated. |
 | Figure 6 | `paper/figures/experimental-intelligence-v1/publication/figure-6-fresh-trajectories.pdf` | Caption and diagnostic/supporting hierarchy integrated. |
 
-W1-P09 owns final caption/display/manifest consistency and must preserve each figure's
-sole narrative job. In particular, the current Figure 3 render still shows pre-result
-pending slots even though the manuscript now contains the frozen L disposition.
+The accepted P09 figures and captions preserve each figure's sole narrative job. The
+Figure 3 render and caption show the frozen 6/30 gate failure and bounds without a
+complete-case panel.
 
 ## Integrated S03/S08 replacement ledger
 
 | Region | Integrated disposition | Source handoff |
 | --- | --- | --- |
-| YAML title and title lines | Selected **Programmable Chemical Worlds Make Experimental Agency Measurable** and synchronized the two-line rendering. | S03 |
+| YAML title and title lines | Q07 narrowed the title to **ChemWorld: A Programmable Virtual Instrument for Measuring Experimental Process Profiles** and synchronized the two-line rendering. | S03/Q07 |
 | Abstract | Replaced in full with apparatus/fork, known-policy, terminal/L, compiled-control and fresh-session escalation. | S03 |
 | First 120 mention | Uses **distinct complete agent systems** and **120 closed lifecycles: 84 final assays and 36 explicit discards**. | S03/S07 |
 | Introduction replay wording | Uses exact environment and resource-history replay while excluding model-token and physical-batch reproduction. | S03 |
@@ -108,10 +108,10 @@ explicit exclusions.
 
 ## W1-S10 handoff
 
-The manuscript, focused ledger tests, and this integration record are ready for one
-coordinator acceptance and W1-P09. W1-P09 owns the remaining Figure 3 6/30 display,
-caption, display-item and manifest synchronization. It must not change the manuscript's
-six-figure order, analysis units, result direction, or censoring boundary.
+The original S10 manuscript integration and P09 figure synchronization were accepted on
+main. Subsequent review adjudication may change framing, definitions and disclosure, but
+must not change the six-figure order, analysis units, result direction or censoring
+boundary without a new evidence task.
 
 Focused manuscript/ledger validation passed `13/13`. The current publication-proof
 manifest is intentionally not refreshed here: its manuscript byte binding becomes
@@ -119,8 +119,8 @@ current only after P09 and the D07 proof rebuild.
 
 ## 2026-08-04 instrument-paper and explanatory-study firewall
 
-The project owner clarified the publication split without changing any result, figure,
-analysis unit or title. Work I is the release and qualification of a programmable
+The project owner clarified the publication split without changing any result, figure or
+analysis unit. Work I is the release and qualification of a programmable
 scientific measurement instrument. The complete agent system is the experimental
 subject; executable physical-chemistry worlds, instruments, transaction semantics,
 resource ledgers, failures, identities and replay form the apparatus. The agent examples
@@ -139,3 +139,27 @@ scaffold mechanisms, study adaptation under changed laws, and test whether an
 interpretation survives the world fidelity required by its scientific estimand. Work I
 must not pre-consume those conclusions merely to enlarge its example count or explain a
 trajectory retrospectively.
+
+## 2026-08-04 supplied-review adjudication
+
+Q07 accepted the reviewer's central positioning criticism and narrowed the title and
+measured object from a broad claim about experimental agency to an operational
+experimental-process profile. The deterministic known policies now qualify event logging,
+metric computation, aggregation and same-identity retest. Independent construct validity
+is not claimed.
+
+The complete-system demonstration now discloses the terminal-action and prompt asymmetry.
+Matched simulator identities and resource cards do not make the system comparison causal;
+the all-assay pattern cannot be separated from scaffold or prompt effects. Crossed model,
+scaffold, prompt and interface experiments remain Work II.
+
+The 6/36 discarded-state result is now called a formal integration failure and an
+unqualified module. The 36/36 checkpoint preflight executed no replacement assay, so its
+success does not contradict the later prefix, resource and precondition failures. No
+latent-quality point claim is retained.
+
+Methods and appendices now add the complete 19-metric dictionary, the 15-task validation
+coverage matrix, finite-set bootstrap interpretation, censoring dependence risk, protocol
+timeline, scoped chemistry-model maturity and three reproducibility levels. These changes
+clean the evidence boundary without adding experiments or moving explanatory claims from
+Work II into Paper I.

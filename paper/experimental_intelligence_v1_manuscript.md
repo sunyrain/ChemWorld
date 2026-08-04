@@ -1,9 +1,9 @@
 ---
-title: "Programmable Chemical Worlds Make Experimental Agency Measurable"
-title_line_one: "Programmable Chemical Worlds Make"
-title_line_two: "Experimental Agency Measurable"
-subject: "Programmable environments for controlled measurement of AI experimental behavior"
-keywords: "programmable chemical worlds; scientific measurement instrument; experimental agency; autonomous experimentation; AI agents; reproducibility"
+title: "ChemWorld: A Programmable Virtual Instrument for Measuring Experimental Process Profiles"
+title_line_one: "ChemWorld: A Programmable Virtual Instrument"
+title_line_two: "for Measuring Experimental Process Profiles"
+subject: "A programmable virtual instrument for observing scientific-agent experimental processes"
+keywords: "programmable chemical worlds; virtual scientific instrument; experimental process profiles; autonomous experimentation; AI agents; reproducibility"
 pdf_author: "Jiangjie Qiu; Yijun Li"
 author:
   - name: "Jiangjie Qiu"
@@ -19,31 +19,25 @@ bibliography: experimental_intelligence_v1_references.bib
 abstract: |
   Scientific agents are commonly judged by the best condition they report, but an
   endpoint does not identify the experimental policy or trajectory that produced it. We
-  release ChemWorld as a programmable, replayable scientific measurement instrument built
-  from virtual chemical worlds. It makes experimental agency observable as a profile of
-  evidence acquisition, lifecycle closure, terminal policy, resource use, and trajectory
-  dynamics. The qualified surface
-  contains 15 registered task contracts, 28 typed operation kinds, five instruments, 415
-  executed boundary recipes, and 62 task-by-metric bindings. Controlled forks spanning
-  two preregistered private-component interventions and three seeds produced six passing
-  parent--child pairs and 24 deterministic, provider-free original/replay traces while
-  preserving the public contract. A positive control then recovered three known policy
-  profiles across 30 primary campaigns and 180 primary closed lifecycles, passed all
-  12 registered gates, and reproduced all 30 campaign profiles under deterministic
-  retest. Applied to complete systems, the apparatus distinguished terminal decisions
-  that endpoint-only evaluation would merge: two distinct complete agent systems produced
-  120 closed lifecycles: 84 final assays and 36 explicit discards across five matched
-  worlds. A preregistered evaluator-only audit resolved 6 of the 36 discard identities;
-  the remaining 30 were retained as unresolved, so latent-dependent point estimates and
-  arm contrasts were withheld rather than replaced by a complete-case result. Compiled
-  controls separately exposed outcome, held-out prediction, calibration, and claim
-  readouts, while fresh sessions in two deliberately selected worlds showed endpoint-sign
-  discordance in 2/8 complete matched pairs and threshold-sensitive mixed trajectory
-  classification in 6/8. These studies qualify the instrument and illustrate its readouts;
-  they are neither a representative survey of agent behavior nor an explanation of why a
-  system produced a trajectory. This first release therefore establishes ChemWorld as an
-  auditable instrument for autonomous experimentation within executable rather than physical
-  laboratory worlds, while explanatory studies of agent behavior and adaptation remain separate.
+  present ChemWorld, a programmable and replayable virtual instrument that records a
+  complete scientific-agent system's evidence acquisition, state-changing actions,
+  lifecycle closure, terminal choice, resources and trajectory dynamics. Its qualified
+  surface spans 15 task contracts, 28 typed operation kinds and five synthetic instrument
+  contracts. Controlled single-component forks preserved the public contract and replayed
+  exactly, while three deterministic known policies recovered their prespecified signatures
+  in a 19-metric experimental-process profile and matched under same-identity retest. In a
+  capability demonstration, two complete systems closed 120 lifecycles but produced 84
+  final assays and 36 explicit discards. Because model, scaffold, prompt and decision
+  transport differed, these counts demonstrate observable system-level variation rather
+  than a causal model comparison. An evaluator-only discarded-state audit resolved only 6
+  of 36 registered units; the other 30 remain unresolved, so the counterfactual module is
+  not qualified and latent-dependent point estimates are withheld. Compiled controls and
+  fresh sessions further show that outcome, prediction, calibration, terminal value and
+  trajectory readouts need not coincide. These examples qualify and illustrate the virtual
+  instrument. They do not establish a universal construct of agency, survey agent behavior
+  across chemistry, or explain why a system produced a trajectory. ChemWorld therefore
+  provides an auditable substrate for autonomous experimentation in executable worlds,
+  leaving causal and mechanistic explanation to a separate study.
 ---
 
 # 1. Introduction
@@ -98,11 +92,12 @@ A measurement apparatus must also recover behavior that is known before observat
 We therefore froze three deterministic policies with distinct evidence-acquisition,
 resource, and terminal-decision signatures, then evaluated a 5 × 2 × 3 matrix. The
 30 primary campaigns and 180 primary closed lifecycles passed all 12 registered
-construct, discriminant, resource, invariance, and non-degeneracy gates. A separate
+profile-reconstruction, resource, invariance, and non-degeneracy gates. A separate
 30-campaign deterministic retest reproduced every registered campaign identity and
 profile; those retests assess reliability and do not double the primary estimand. This
-positive control licenses interpretation of ChemWorld's profile axes while remaining
-silent about stochastic-agent reliability or laboratory generalization.
+positive control qualifies the logging and metric pipeline against policies constructed
+to exercise it. It does not by itself establish that the profile is a complete or
+externally valid construct of experimental agency.
 
 We next use the apparatus as a descriptive lens on complete experimental systems and
 on previously frozen controls. Two distinct complete agent systems each closed 60
@@ -126,7 +121,7 @@ not a population-level comparison between systems.
 
 Together, the evidence follows a staged argument: executable contracts define what can
 be controlled and observed; controlled forks qualify programmability; known policies
-establish measurement validity; complete systems demonstrate that lifecycle closure
+qualify the experimental-process readouts; complete systems demonstrate that lifecycle closure
 does not specify terminal policy; and compiled and fresh-session analyses separate
 additional outcome and process coordinates. We make four contributions:
 
@@ -135,8 +130,8 @@ additional outcome and process coordinates. We make four contributions:
    identity, and exact environment replay;
 2. controlled, single-private-component world forks with fixed public contracts and an
    independently auditable lineage and replay certificate;
-3. a multidimensional experimental-agency profile validated against preregistered known
-   policies before interpretation of complete-system behavior; and
+3. a 19-metric experimental-process profile that recovers prespecified signatures from
+   deterministic known policies before complete-system records are interpreted; and
 4. failure-preserving empirical demonstrations in which endpoint, terminal policy,
    evidence use, resources, and trajectory dynamics remain distinct, including an
    unresolved latent audit whose point estimates are intentionally withheld.
@@ -146,7 +141,7 @@ laboratory, validate transfer to physical chemistry, identify a causal model-onl
 effect, rank agent systems on a universal scale, or demonstrate learning under changed
 world laws. Those questions require physical-bridge and rule-adaptation studies beyond
 this first paper. Here the result is methodological: programmable virtual chemical
-worlds make experimental agency measurable as an auditable profile. The backend supports
+worlds make experimental processes observable as auditable profiles. The backend supports
 a broader registered family of selected physical-chemistry worlds than the subset
 formally exercised here; the reported cases qualify the instrument and demonstrate its
 readouts rather than estimate behavioral prevalence across that family.
@@ -320,7 +315,7 @@ samples (Table 1).
 ```{=latex}
 \begin{table*}[t]
 \centering
-\caption{\textbf{Evidence layers and analysis units.} Execution counts describe use of the apparatus; each layer retains its frozen denominator and claim ceiling.}
+\caption{\textbf{Evidence layers and analysis units.} Execution counts describe use of the apparatus; each layer retains its registered denominator and explicit inference boundary.}
 \label{tab:evidence}
 \small
 \begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}p{0.26\textwidth}p{0.22\textwidth}X@{}}
@@ -328,10 +323,10 @@ samples (Table 1).
 Evidence layer & Purpose & Execution census & Primary analysis unit \\
 \midrule
 Platform and forks & Executable semantics and controlled programmability & 415 boundary recipes; 6 fork pairs/24 traces & registered contract or parent--child pair \\
-Known policies & Positive-control measurement validity & 30 primary campaigns/180 closed lifecycles & campaign profile; retests excluded \\
+Known policies & Positive-control profile qualification & 30 primary campaigns/180 closed lifecycles & campaign profile; retests excluded \\
 Compiled controls & Outcome and epistemic decomposition & 29,580 simulator executions & paired simulator world; 10 per task and arm \\
 Complete systems & Lifecycle and terminal-policy profiles & 120 closed lifecycles; 1,704 attempted operations & complete system by world and arm \\
-Latent terminal & Preregistered discarded-state audit & 36 registered receipts; 6 resolved/30 unresolved & fixed 36-discard population with censoring \\
+Latent terminal & Failed discarded-state module audit & 36 registered receipts; 6 resolved/30 unresolved & fixed 36-discard population with censoring \\
 Fresh trajectories & Within-world process variation & 8 complete pairs plus 2 right-censored pairs & simulator world by fresh trajectory replicate \\
 \bottomrule
 \end{tabularx}
@@ -342,10 +337,10 @@ The certificate is deliberately narrow. It does not establish untested multi-com
 recombination, a general world-authoring language, agent adaptation or law learning,
 model ranking, or transfer to a physical laboratory.
 
-# 4. Known policies validate the experimental-agency profile
+# 4. Known policies qualify the experimental-process profile
 
 Before interpreting complete agent systems, we asked whether the apparatus could recover
-behavior fixed in advance. The frozen profile keeps terminal commitment, evidence
+behavior fixed in advance. The frozen 19-metric experimental-process profile keeps terminal commitment, evidence
 acquisition, evidence-conditioned action, resource deployment and outcome-trajectory
 organization separate, with endpoint context reported beside rather than inside those
 axes. The campaign profile is the primary unit; no composite intelligence score is
@@ -381,7 +376,7 @@ matched-arm equality is an interface and identity check, not a causal informatio
 \begin{figure*}[!tbp]
 \centering
 \includegraphics[width=\textwidth]{figures/experimental-intelligence-v1/publication/figure-2-known-policy-validity.pdf}
-\caption{\textbf{Known policies validate the experimental-agency profile.}
+\caption{\textbf{Known policies qualify the experimental-process profile.}
 \textbf{A,} Three frozen policies specify distinct evidence and terminal-decision structures.
 \textbf{B,} Campaign-equal terminal profiles recover assay-all, threshold-gated and immediate-discard signatures.
 \textbf{C,} Evidence acquisition, continued investment and resource use remain separate readouts; registered undefined quantities remain null.
@@ -390,9 +385,13 @@ matched-arm equality is an interface and identity check, not a causal informatio
 \end{figure*}
 ```
 
-The positive control establishes bounded construct and discriminant validity for this
-simulated measurement apparatus. It does not establish chemical intelligence,
-stochastic-system reliability, endpoint superiority or transfer to a real laboratory.
+The positive control establishes that the event ledger, metric definitions and
+aggregation pipeline recover prespecified differences among these constructed policies.
+Because the policies were designed around the measured signatures, this is not independent
+evidence that the 19 metrics exhaust or externally validate a broader construct of agency.
+It does not establish chemical intelligence, stochastic-system reliability, endpoint
+superiority or transfer to a real laboratory. Appendix C provides the complete metric
+dictionary and registered null rules.
 
 # 5. Lifecycle completion does not specify terminal policy
 
@@ -402,6 +401,17 @@ interface, retry behavior and source identity are all part of each system; the m
 holds world, material, observation, scoring, workflow and campaign-resource contracts
 fixed. This is a complete-system portability and behavior-profile comparison, not an
 isolated model-backend intervention.
+
+The environment contract was matched, but the two decision surfaces were not interface-
+symmetric. A final assay required prior termination, sample and instrument cost, whereas
+`discard_batch` was a direct campaign-closing action that returned no endpoint score and
+no consumed resources. The Codex-facing task profile explicitly recommended completing a
+chosen experiment through termination and final assay; the compact direct-LLM prompt
+omitted that recommended-strategy block. Both systems exposed current valid actions and
+disabled automatic action repair and closeout. The terminal counts below therefore show
+what the instrument records for the two deployed systems. They do not estimate an
+unprompted model preference for assay or discard, and they cannot establish that the
+all-assay pattern would persist under a different scaffold.
 
 Both systems closed all 60 assigned batch lifecycles. The observed census was **120 closed lifecycles: 84 final assays and 36 explicit discards** (Fig. 3A--B). The
 Codex-based system committed all 60 batches to final assay. The DeepSeek-based system
@@ -420,8 +430,9 @@ population information effect or explain the cross-system difference causally.
 The 36 discards motivated a preregistered evaluator-only counterfactual question: what
 score would the exact pre-discard state receive if the original discard were replaced by
 the evaluator's final assay? The contract froze all identities, thresholds, estimands,
-denominators and missingness rules before formal execution. Reconstructability and
-outcome-blind preflight covered 36/36 checkpoints, but the formal run failed its entry
+denominators and missingness rules before formal execution. Reconstructability preflight
+covered 36/36 checkpoints, but it executed no shadow assay and therefore did not exercise
+the terminal-replacement integration. The formal run failed its entry
 gate (Fig. 3C--D). All 36 receipts were retained: 6 resolved and 30 remained unresolved,
 including 11 prefix-identity mismatches, 18 resource-state mismatches and one final-assay
 precondition failure. Original trajectories and ledgers were unchanged, provider calls
@@ -435,6 +446,11 @@ was $[0.0000859,0.833419]$ and the mean discard-minus-observed-best bound was
 $[-0.276951,0.556382]$. At the primary threshold, the false-discard fraction remained
 bounded by $[0/36,30/36]$. These support bounds are not confidence intervals and do not
 show whether discard was good, poor, efficient or resource-saving.
+
+This failure qualifies the fail-closed reporting path but not the counterfactual terminal-
+evaluation module. That module remains unqualified in this release. Any future latent-
+quality claim requires a repaired implementation and a new independently registered
+discard cohort; the frozen 6/36 result will remain as the historical execution record.
 
 ```{=latex}
 \begin{figure*}[!tbp]
@@ -461,11 +477,12 @@ autonomy setting; it calibrates whether task outcome and epistemic diagnostics c
 resolved separately across matched tasks, information conditions and classical search
 policies.
 
-Across ten sequentially collected matched worlds, the nominal-information arm produced
-a mean nominal-minus-opaque score difference of 0.072 in electrochemical conversion
-(8/10 positive worlds; multiplicity-adjusted 97.5% per-task world-bootstrap stability
-interval 0.007 to 0.155) and 0.026 in reaction-to-crystallization (7/10 positive;
-interval $-0.013$ to 0.063; Fig. 4A). The deliberately misindexed arm redirected the
+The complete vectors of ten paired-world differences are the primary results. Their mean
+nominal-minus-opaque score difference was 0.072 in electrochemical conversion (8/10
+positive worlds) and 0.026 in reaction-to-crystallization (7/10 positive; Fig. 4A).
+The corresponding 97.5% world-bootstrap ranges, 0.007 to 0.155 and $-0.013$ to 0.063,
+are descriptive resampling-sensitivity summaries rather than confidence intervals or
+world-population coverage statements. The deliberately misindexed arm redirected the
 first material-sensitive action in 70% and 100% of the respective worlds. Misleading-
 action share subsequently fell from 0.54 to 0.24 in electrochemistry and from 0.86 to
 0.50 in crystallization. Both tasks passed the behavior-change check, while correction
@@ -482,7 +499,7 @@ substitutes for another, and no unregistered composite is formed.
 \centering
 \includegraphics[width=\textwidth]{figures/experimental-intelligence-v1/publication/figure-4-compiled-controls.pdf}
 \caption{\textbf{Compiled controls separate outcome, prediction, calibration and claims.}
-\textbf{A,} Paired nominal-minus-opaque endpoint differences across ten worlds per task, with multiplicity-adjusted 97.5\% per-task world-bootstrap stability intervals.
+\textbf{A,} All paired nominal-minus-opaque endpoint differences across ten designed worlds per task; the intervals summarize resampling sensitivity of the finite set and are not population confidence intervals.
 \textbf{B,} Held-out prediction and calibration are displayed as separate raw metrics.
 \textbf{C,} Opaque-arm epistemic readouts retain registered missingness without imputation.
 \textbf{D,} Commit-frozen manipulation, correction, performance-restoration and joint gates remain separate. Classical optimizers are calibration controls, not the target competition; the figure supports no scalar ranking or general population information effect.}
@@ -540,6 +557,10 @@ operations by provider-infrastructure failures, leaving four complete matched pa
 each selected world while retaining all ten planned pairs in the record (Fig. 6A). The
 authoritative matrix followed a launcher-level restart after a first-launch
 infrastructure incident; the restart rule was recorded before outcome inspection.
+Longer or more interaction-intensive trajectories may be more exposed to provider
+failure, so censoring cannot be assumed independent of process complexity. We therefore
+make no missing-at-random assumption, perform no imputation and keep the two incomplete
+pairs visible beside the complete-pair descriptions.
 
 The primary endpoint diagnostic uses continuous pairwise contrasts. Across the eight
 complete pairs, nominal-minus-opaque best-of-campaign and raw terminal contrasts were
@@ -576,7 +597,7 @@ provider sampling effect.
 
 # 9. Discussion
 
-ChemWorld turns experimental agency from an endpoint impression into an auditable
+ChemWorld turns an experimental process from an endpoint impression into an auditable
 profile. Programmable, replayable chemical worlds keep evidence acquisition, lifecycle
 closure, terminal policy, resource use and trajectory dynamics as separate observables.
 The result is a measurement apparatus for the process by which a system experiments,
@@ -584,8 +605,8 @@ not another scalar leaderboard.
 
 The evidence forms a staged validation rather than one pooled benchmark. Platform and
 fork qualification establish executable semantics and bounded programmability. Known
-policies then show that the multidimensional profile recovers behaviors fixed in
-advance. Only after those checks do the complete-system, compiled-control and fresh-
+policies then show that the multidimensional profile implementation recovers behaviors
+fixed in advance. Only after those checks do the complete-system, compiled-control and fresh-
 trajectory studies interpret differences in terminal and process profiles.
 
 This evidence is interpreted at instrument level. The agent studies demonstrate that
@@ -619,11 +640,14 @@ fork certificate covers two named single-private-component interventions under a
 policy. It does not validate arbitrary multi-component recombination, third-party world
 authorship or an agent's ability to infer a changed law.
 
-Known deterministic policies are a bounded construct/discriminant-validity positive
-control. Exact signature recovery and same-identity retests show that this apparatus can
-distinguish behavior fixed by construction; they do not validate chemical competence, a
-scalar intelligence score or reliability of stochastic complete systems. Retests remain
-outside the 30 primary campaign profiles.
+Known deterministic policies are a bounded implementation and positive-control check.
+Exact signature recovery and same-identity retests show that this apparatus can
+distinguish behavior fixed by construction; they do not independently validate a general
+construct of agency, chemical competence, a scalar intelligence score or reliability of
+stochastic complete systems. Independent policy authors, blind expert trajectory ratings,
+adversarially matched endpoints and stochastic test--retest studies are future validity
+tests, not evidence claimed by this release. Retests remain outside the 30 primary
+campaign profiles.
 
 The quantitative results remain finite-world descriptions. Complete systems differ in
 model, scaffold, transport, evidence interface, retry behavior and configuration, so
@@ -633,22 +657,34 @@ deliberately selected. Primitive operations, instrument events, replay traces,
 deterministic retests and evaluator-only shadow assays are accounting or reliability
 events, not independent agent experiments.
 
-The latent-terminal audit remains unresolved by design rather than by omission. Its six
-resolved receipts cannot estimate the frozen 36-discard population, and the sharp bounds
-represent execution uncertainty rather than evidence for either latent-quality
-direction. Evaluator-only shadow assays were neither selected nor observed by an agent
-and cannot show that discard saved real resources.
+The latent-terminal module failed qualification in formal integration. The narrower
+checkpoint audit reconstructed 36/36 pre-discard states but did not execute a replacement
+assay; the formal entry gate subsequently exposed prefix, resource-state and assay-
+precondition failures. Its six resolved receipts cannot estimate the frozen 36-discard
+population, and the sharp bounds represent execution uncertainty rather than evidence for
+either latent-quality direction. Evaluator-only shadow assays were neither selected nor
+observed by an agent and cannot show that discard saved real resources.
 
-The apparatus itself is virtual. Its instruments produce bounded state-coupled
-synthetic or reference-tested signals; resource receipts are simulator records, not
-custody, hazard, waste or monetary accounts. Exact replay reconstructs executable state
-and observations, not a physical batch, laboratory device or stochastic provider
-decision. The worlds are controlled and intentionally idealized within their model-card
-boundaries because the present claim concerns instrument control, observation and replay,
-not the physical truth of an agent-generated explanation. Physical and high-fidelity
-laboratories remain necessary to establish chemical executability, safety and deployment
-validity, and later explanatory studies must show that their interpretations survive the
-world fidelity required by their scientific estimands.
+The apparatus itself is virtual. It is more than a chemistry-labelled action interface:
+the registered runtime combines scoped equation-based and reference-checked modules for
+reaction kinetics, batch energy, electrochemistry, phase equilibrium, crystallization,
+distillation and synthetic instruments, together with mass, charge, energy and process
+diagnostics. Every registered task's required path has a declared maturity floor, and
+some separation modules carry a higher candidate label. These labels mean only that a
+module passed its stated analytical, reference or invariant checks within a model-card
+domain. They do not imply empirical calibration against arbitrary materials or industrial
+equipment.
+
+Accordingly, instrument signals remain bounded state-coupled synthetic or reference-
+tested outputs; resource receipts are simulator records, not custody, hazard, waste or
+monetary accounts. Exact replay reconstructs executable state and observations, not a
+physical batch, laboratory device or stochastic provider decision. The worlds are
+controlled and intentionally idealized within their model-card boundaries because the
+present claim concerns instrument control, observation and replay, not the physical truth
+of an agent-generated explanation. Physical and high-fidelity laboratories remain
+necessary to establish chemical executability, safety and deployment validity, and later
+explanatory studies must show that their interpretations survive the world fidelity
+required by their scientific estimands.
 
 ## 9.3 Complementarity and next steps
 
@@ -725,16 +761,19 @@ the six parent--child pairs. The 24 traces are execution and replay accounting, 
 independent experiments or agent trials. No target, seed, threshold, oracle, gate or
 display rule changed after formal outcomes.
 
-## 10.3 Frozen known-policy validation
+## 10.3 Frozen known-policy profile qualification
 
-Experimental agency was operationalized as the observable organization of resource-
-constrained typed actions, active evidence acquisition, post-evidence action and
-lifecycle termination. The frozen profile contains 19 metrics across five construct
-axes. Mean and best assayed scores are separate endpoint-context fields and do not enter
+For this release, an experimental-process profile is the observable organization of
+resource-constrained typed actions, active evidence acquisition, post-evidence action and
+lifecycle termination. The frozen profile contains 19 metrics across five operational
+axes. The historical schema identifier contains `experimental_agency_profile`, but the
+identifier is not evidence that the profile measures a universal latent construct of
+agency. Mean and best assayed scores are separate endpoint-context fields and do not enter
 a composite. One primary observation is the campaign profile for a fixed world, arm and
-policy cell. Profiles were constructed within campaigns before ten equal-weight
-world-arm campaigns were aggregated for each policy; lifecycle rows and primitive
-operations were not pooled as independent samples.
+policy cell. Profiles were constructed within campaigns before ten equal-weight world-
+arm campaigns were aggregated for each policy; lifecycle rows and primitive operations
+were not pooled as independent samples. Appendix C lists all 19 definitions, denominators,
+ranges and null rules.
 
 The schedule crossed five formal world seeds (0--4), two information arms and three
 policies, with six lifecycles per campaign. A primary lifecycle was a started vessel
@@ -804,7 +843,8 @@ contract was identical across information arms within a task.
 
 Compiled participants used the Codex subscription transport with model alias
 `gpt-5.6-sol` at medium reasoning effort, structured response output, Codex tools
-disabled and no session persistence. G0 and G2 therefore share a model alias and
+disabled and no session persistence. The compiled-control layer (release label `G0`)
+and primitive-control layer (release label `G2`) therefore share a model alias and
 reasoning setting but use different scaffolds and action interfaces; they are
 complementary evidence layers, not a matched causal comparison of authority.
 
@@ -815,10 +855,11 @@ complete designed set for the matched-condition analysis. Information contrasts
 report mean and median world differences, positive/negative counts, exact sign
 summaries,
 leave-one-world-out mean ranges and 100,000-draw, commit-frozen percentile
-world-bootstrap intervals as finite-world stability summaries. A 97.5% interval
-is reported for each task as a multiplicity-adjusted descriptive stability
-interval across the two pre-specified tasks; no world-superpopulation coverage
-claim is made.
+world-bootstrap ranges as finite-set sensitivity summaries. The complete ten paired
+differences are primary. The resampling distribution asks how their mean changes when
+the ten designed worlds are sampled with replacement; it is not used as a confidence
+interval for a world superpopulation. A 97.5% range is displayed for each task as a
+multiplicity-adjusted descriptive summary across the two prespecified tasks.
 
 The information-matched classical suite comprised uniform random search, Latin
 hypercube sampling, local greedy perturbation, Gaussian-process expected
@@ -894,6 +935,16 @@ in each of the ten cells. Their model and decision transports intentionally
 differed, so cross-system results were interpreted as complete-system behavioral
 profiles and not as a causal model-backend contrast.
 
+Terminal action semantics were common at the environment kernel but not symmetric in
+meaning or presentation. `final_assay` was a costly measurement available only after
+termination and sufficient sample; `discard_batch` directly closed an open campaign
+batch, returned no final score and refunded nothing. The Codex task profile contained an
+explicit final-assay completion recommendation, whereas the compact direct-LLM task
+prompt omitted the recommended-strategy block. Both configurations exposed dynamically
+valid actions and set automatic repair and automatic closeout to false. Prompt and menu
+differences are therefore components of the complete-system comparison, not controlled
+nuisance variables. A same-model crossed-scaffold or prompt ablation was not performed.
+
 ## 10.6 Latent-terminal counterfactual and censoring
 
 The latent-audit population was the DeepSeek-based system's frozen set of 60 original
@@ -912,9 +963,10 @@ to-best delta, positive discard regret, false-discard fraction, assay precision/
 campaign-oracle regret and decision-time regret retained their frozen lifecycle or cell
 denominators.
 
-An outcome-blind audit reproduced all 36 pre-discard identities, and synthetic
-qualification exercised terminal replacement, same-identity replay and fail-closed
-probes on disjoint worlds. Formal eligibility required 36 valid scores, 36 passing
+An outcome-blind audit reproduced all 36 pre-discard identities but executed zero
+replacement assays. It therefore qualified deterministic checkpoint reconstruction,
+not the integrated counterfactual evaluator. Synthetic qualification exercised terminal
+replacement, same-identity replay and fail-closed probes on disjoint worlds. Formal eligibility required 36 valid scores, 36 passing
 same-identity receipts, zero provider calls and no mutation of original trajectories or
 ledgers. Although 36/36 checkpoints passed preflight, formal execution yielded a
 complete receipt report with only 6 valid scores and 30 unresolved receipts. The
@@ -930,6 +982,13 @@ remained diagnostic and could not replace the finite-population estimand. Classi
 bounds assigned unresolved scores to registered all-zero and all-one endpoints while
 preserving the 60-lifecycle and 36-discard denominators. No super-population p-value or
 confidence interval was primary.
+
+The formal 6/36 result is therefore an integration failure, not a successful
+counterfactual measurement with high missingness. The failure classes were 11 captured-
+prefix identity mismatches, 18 runtime-resource versus authoritative-prefix mismatches,
+and one replacement-precondition violation. This frozen run will not be repaired in
+place. Qualification of the module requires corrected binding logic followed by a new
+registered execution on independent discard data.
 
 ## 10.7 Operational trajectory readouts
 
@@ -976,7 +1035,10 @@ A provider failure before any accepted operation could be retried up to the
 frozen limit. A provider or method-resource failure after an accepted operation
 made the cell terminal and right-censored. Completed and right-censored cells in
 the authoritative launch were not replaced. Pair differences were computed only
-when both arms completed; no missing outcome was imputed.
+when both arms completed; no missing outcome was imputed. Because exposure to provider
+failure can increase with trajectory length or interaction complexity, censoring was not
+assumed independent or missing at random. Complete-pair summaries are descriptive and
+the two censored pairs remain part of the displayed design denominator.
 
 For each world and metric, the primary descriptive rule---frozen after launch
 while endpoint and lifecycle outcomes remained uninspected---classified a direction
@@ -1044,6 +1106,38 @@ verification attestation. Compact trajectories omit provider response content
 and hidden evaluator identity while retaining the fields required for exact
 simulator-transition and resource replay.
 
+## 10.13 Freeze terminology and protocol timeline
+
+We reserve *repository preregistered* for a protocol or estimand committed and pushed
+before its corresponding formal outcomes were generated. This is a public version-
+control record, not a registered report or third-party trusted timestamp. *Commit-frozen*
+also covers sequential extensions fixed before their own execution but not necessarily
+before earlier related results. A rule fixed after launch while the relevant endpoint and
+lifecycle fields remained uninspected is labelled an *outcome-blind analysis freeze*, not
+preregistration. Table 2 records the consequential timing and deviations; artifact-level
+SHA-256 identities remain in the release manifest and experiment ledger.
+
+```{=latex}
+\begin{table*}[t]
+\centering
+\caption{\textbf{Protocol and analysis timeline.} Visibility records what was available when each decision was made.}
+\label{tab:timeline}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}p{0.20\textwidth}p{0.19\textwidth}p{0.25\textwidth}X@{}}
+\toprule
+Stage & Freeze or decision point & Data visible at that point & Classification and audit record \\
+\midrule
+Fork and known-policy protocols & Before their formal executions & Qualification data only; no formal pair or campaign outcomes & Repository-preregistered protocols with content hashes \\
+Complete-system demonstration & Configuration frozen before each system run & Earlier development evidence was available & Commit-frozen descriptive demonstration; no causal model or scaffold estimand \\
+Discarded-state audit & Commit \code{ddc55253} pushed before the first shadow score & All 36 checkpoint identities and reconstructability result; zero latent scores & Repository-preregistered evaluator audit; formal 6/36 gate failure retained \\
+Fresh-session launch restart & 1 August 2026, after launch \code{f539bfa7} had one completed cell and four accepted operations in another & Lifecycle state was visible; endpoint outcomes were not inspected for the restart decision & Protocol deviation. Entire first launch excluded; supervised launch \code{aae0edac} became authoritative \\
+Trajectory direction rule & After launch, before endpoint and lifecycle outcomes were inspected & Schedule and run existence, but not the classified outcomes & Outcome-blind analysis freeze; never described as preregistration \\
+Sixteen-world extension stop & After three complete pairs and one right-censored cell & Administrative completion state; no pair scores or arm contrasts inspected & Owner scope stop; all extension outcomes excluded from this paper \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+```
+
 # 11. Data and code availability
 
 Code, configuration, derived data, figure generators, the arXiv source package
@@ -1052,23 +1146,32 @@ ChemWorld repository at
 [github.com/sunyrain/ChemWorld](https://github.com/sunyrain/ChemWorld).
 The versioned paper release is rooted at
 [`benchmark/releases/chemworld-serious-v1`](https://github.com/sunyrain/ChemWorld/tree/main/benchmark/releases/chemworld-serious-v1),
-and its manifest binds every paper artifact to its SHA-256 identity. The G0
-raw-file index covers 1,441 files across four immutable source roots; the tracked
-world-level summaries and public derived-data object reproduce every main-text
-number, table and figure. The G2 public archive contains compact replayable
-Codex trajectories for all formal replication cells and for the first-launch
+and its manifest binds every paper artifact to its SHA-256 identity. The compiled-
+control raw-file index (release label `G0`) covers 1,441 files across four immutable
+source roots; the tracked world-level summaries and public derived-data object reproduce
+every main-text number, table and figure. The primitive-control public archive (release
+label `G2`) contains compact replayable Codex trajectories for all formal replication cells and for the first-launch
 infrastructure incident. A separate self-hashed artifact binds the matched
 Codex/DeepSeek complete-system comparison to both source audit identities and
 reports all ten simulator-identity checks. The release additionally contains all
 ten compact DeepSeek trajectories (889 replay-verified primitive operations)
-and a terminal file-level hash index. Provider authentication, unrestricted
-provider responses and hidden evaluator identities are excluded from the public
-package.
-The 17.7-GB G0 raw roots are bound by the public file-level hash index but are not
+and a terminal file-level hash index. Provider authentication, unrestricted provider
+responses and hidden evaluator identities are excluded from the public package.
+
+The release supports three distinct reproducibility levels. First, figures, tables and
+reported numbers can be regenerated from tracked derived data and generators. Second,
+the compact trajectories reproduce environment transitions, public observations and
+resource ledgers. Third, the stochastic provider decisions themselves are not exactly
+reproducible: full response bodies are excluded, provider sampling is not seed-controlled,
+and a mutable model alias may drift even when the recorded configuration is reused.
+
+The 17.7-GB compiled-control raw roots are bound by the public file-level hash index but are not
 included in the repository and have not yet received a durable external archive
 identifier; raw-byte access is therefore not presently available from a permanent
-archive. The tracked world-level summaries and derived-data object are sufficient
-to regenerate the paper's reported analyses.
+archive. A third party without those bytes or unrestricted provider responses can verify
+the reported arithmetic and figures, inspect the published evidence boundaries, and
+replay the released simulator trajectories, but cannot independently audit every raw
+provider decision or recompute the four raw-root hashes from source bytes.
 
 # 12. Conclusion
 
@@ -1077,16 +1180,16 @@ instrument for autonomous experimentation in executable physical-chemistry world
 backend lets complete systems choose operations, acquire evidence, spend resources,
 encounter failure and close lifecycles while the world keeps simulator identity, public
 contracts and replayable records under experimental control. Controlled forks and known
-policies qualify the instrument; the complete-system, compiled-control and fresh-
+policies qualify its executable and profile-computation paths; the complete-system, compiled-control and fresh-
 trajectory studies illustrate how its readouts separate terminal and process behavior
-without treating those cases as a representative survey. The unresolved discarded-state
-audit shows the same measurement discipline: missing counterfactual evidence remains
-visible rather than being repaired into a favorable point result. ChemWorld therefore
+without treating those cases as a representative survey. The failed discarded-state
+module remains explicitly unqualified: missing counterfactual evidence remains visible
+rather than being repaired into a favorable point result. ChemWorld therefore
 establishes how agents can run autonomously and be observed, not why a particular agent
 produced a trajectory. Causal attribution, mechanistic explanation and adaptation under
 changed world laws are reserved for a separate explanatory study. **An endpoint is a
-result, not an explanation of experimental agency; the process itself can now be
-measured as an auditable profile.**
+result, not an account of the experimental process; that process can now be recorded as
+an auditable profile.**
 
 # Appendix A. P0 robustness summary
 
@@ -1131,3 +1234,88 @@ simulator-transition replay verifier. The arXiv bundle includes the exact figure
 BibTeX database, generated `main.tex` and source Markdown used to produce the
 submitted PDF. A self-hashed build manifest accompanies the bundle and records
 the identities of the PDF, source archives and included source files.
+
+# Appendix C. Complete experimental-process metric dictionary
+
+The authoritative profile contract is
+`chemworld.experimental_agency_profile@0.1.0` with SHA-256
+`01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262`.
+The schema name is retained for artifact identity; the measured object in this paper is
+the operational experimental-process profile. Let $P$ be planned lifecycles, $C$ closed
+lifecycles, $A$ final assays, $D$ discards and $M$ closed lifecycles containing a committed
+non-final measurement. A missing denominator produces `null`, never zero.
+
+**Terminal commitment.** `closed_lifecycle_fraction` is $C/P$;
+`assay_fraction` is $A/C$; and `discard_fraction` is $D/C$. Each is in $[0,1]$.
+The latter two are null when $C=0$ and sum to one otherwise.
+
+**Evidence acquisition.** `measured_lifecycle_fraction` is $M/C$ in $[0,1]$.
+`nonfinal_instrument_uses_per_closed_lifecycle` is the number of committed non-final
+instrument uses divided by $C$ and is nonnegative. `mean_first_measurement_operation_fraction`
+is the mean registered within-lifecycle position of the first committed non-final
+measurement, normalized to $[0,1]$ across measured lifecycles; it is null when $M=0$.
+
+**Evidence-conditioned action.** `continued_after_measurement_fraction` is the number of
+closed lifecycles with a committed physical process operation after their first committed
+non-final measurement, divided by $C$. `post_measure_process_operations_per_closed_lifecycle`
+is the corresponding operation count divided by $C$. `threshold_eligible_fraction` is
+the number of closed lifecycles with a finite preregistered diagnostic signal divided by
+$C$. `threshold_decision_concordance` is the fraction of eligible lifecycles whose assay
+or discard agrees with that signal rule. Fractions are in $[0,1]$; counts per lifecycle
+are nonnegative; concordance is null with no eligible lifecycle.
+
+**Resource deployment.** `attempted_operations_per_closed_lifecycle` and
+`committed_operations_per_closed_lifecycle` divide their respective event counts by $C$.
+`total_cost_per_closed_lifecycle` and `total_risk_per_closed_lifecycle` divide campaign-
+ledger deltas by $C$. All four are nonnegative and null when $C=0$. Charged failed-attempt
+penalties remain included; rejected candidate-state changes do not create committed
+material debits.
+
+**Outcome trajectory.** For the ordered committed final-assay scores $s_1,\ldots,s_K$,
+`global_best_discovery_fraction` is the normalized first position of the best score
+observed in that campaign; `online_incumbent_retention_rate` is the fraction of later
+assays retaining the registered fraction of the prior incumbent;
+`maximum_absolute_incumbent_drawdown` is the largest incumbent-minus-current score loss;
+`loss_episode_recovery_rate` is the recovered-loss-episode fraction; and
+`terminal_to_global_best_ratio` is $s_K/\max_t s_t$. Fraction and ratio metrics lie in
+$[0,1]$ and drawdown is in score units. The first and last are null without a positive
+assay sequence, retention and drawdown are null with fewer than two assays, and recovery
+is null without a loss episode. `mean_assayed_score` and `best_assayed_score` are endpoint
+context outside the 19-metric profile and never enter a composite score.
+
+# Appendix D. Validation coverage across the 15 registered tasks
+
+```{=latex}
+\begin{table*}[t]
+\centering
+\caption{\textbf{Task-level validation coverage.} E denotes executable midpoint and boundary-recipe qualification; F, a registered world fork; K, known-policy profiling; C, compiled complete-experiment participant campaigns (F = formal in this paper, D = development only); P, primitive-control complete-system execution; R, task-specific exact trajectory replay; and S, a Work I statistical result. A dash means that the evidence layer was not run for that task.}
+\label{tab:task-coverage}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}Xccccccc@{}}
+\toprule
+Registered task & E & F & K & C & P & R & S \\
+\midrule
+electrochemical-conversion & Y & Y & Y & F & Y & Y & Y \\
+equilibrium-characterization & Y & -- & -- & -- & -- & -- & -- \\
+flow-reaction-optimization & Y & -- & -- & D & -- & Y & -- \\
+low-budget-characterization & Y & -- & -- & -- & -- & -- & -- \\
+partition-discovery & Y & Y & -- & D & -- & Y & -- \\
+public-private-generalization & Y & -- & -- & -- & -- & -- & -- \\
+purity-yield-tradeoff & Y & -- & -- & -- & -- & -- & -- \\
+reaction-mechanism-explanation & Y & -- & -- & -- & -- & -- & -- \\
+reaction-optimization-standard & Y & -- & -- & -- & -- & -- & -- \\
+reaction-safety-constrained & Y & -- & -- & -- & -- & -- & -- \\
+reaction-to-assay & Y & -- & -- & -- & -- & -- & -- \\
+reaction-to-crystallization & Y & -- & -- & F & -- & Y & Y \\
+reaction-to-distillation & Y & -- & -- & D & -- & Y & -- \\
+reaction-to-purification & Y & -- & -- & -- & -- & -- & -- \\
+tool-agent-planning & Y & -- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+```
+
+Thus all 15 contracts have executable design qualification, five have audited compiled-
+participant campaigns, two enter the paper's formal compiled-control statistics, and only
+electrochemical conversion has primitive-control complete-system evidence. The matrix is
+a coverage disclosure, not evidence that an unmarked cell would fail.

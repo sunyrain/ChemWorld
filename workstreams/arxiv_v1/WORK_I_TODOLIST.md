@@ -25,7 +25,7 @@
 
 标题只有在 world-fork certificate 与 known-policy controls 均通过后才升级为：
 
-> **Programmable Chemical Worlds Make Experimental Agency Measurable**
+> **ChemWorld: A Programmable Virtual Instrument for Measuring Experimental Process Profiles**
 
 在此之前保留：
 
@@ -460,7 +460,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 ### 7.2 六幅主图
 
 1. **ChemWorld apparatus and controlled world forks**
-2. **Known policies validate the experimental-agency profile**
+2. **Known policies qualify the experimental-process profile**
 3. **Lifecycle completion does not specify terminal policy**
 4. **Compiled controls separate outcome, prediction, calibration and claims**
 5. **Primitive-control agents expose complete experimental lifecycles**

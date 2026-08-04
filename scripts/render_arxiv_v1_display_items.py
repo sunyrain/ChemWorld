@@ -233,7 +233,8 @@ def _g2_v05_terminal_note(data: Mapping[str, Any]) -> list[str]:
 def render(data: Mapping[str, Any]) -> str:
     sections: list[str] = [
         (
-            "# Programmable Chemical Worlds Make Experimental Agency Measurable: "
+            "# ChemWorld: A Programmable Virtual Instrument for Measuring Experimental "
+            "Process Profiles: "
             "numeric display items"
         ),
         "",
@@ -252,22 +253,22 @@ def render(data: Mapping[str, Any]) -> str:
         "Counts for the environment surface are design qualifications, not claims of agent",
         "competence. Formal paper evidence covers fewer tasks than the registered surface.",
         "",
-        "### Table 2 | Compiled-experiment capability profiles",
+        "### Table 2 | Compiled-control capability profiles (release label G0)",
         "",
         *_g0_table(data),
         "",
-        "Scores are means across ten physical worlds. Dashes indicate endpoints that were not",
+        "Scores are means across ten simulator worlds. Dashes indicate endpoints that were not",
         "defined for that information arm; they are not zeroes. No composite score is formed.",
         "",
-        "### Table 3 | Autonomous development trajectories (G2 v0.4)",
+        "### Table 3 | Primitive-control development trajectories (release label G2 v0.4)",
         "",
         *_g2_v04_table(data),
         "",
-        "Each arm contains five physical-world cells and six completed vessels per cell.",
+        "Each arm contains five simulator-world cells and six completed vessels per cell.",
         "Operations are mean submitted primitive attempts per cell. These development data select",
         "the worlds and endpoints for G2 v0.5 and are excluded from its replication estimand.",
         "",
-        "### Table 4 | Fresh-trajectory replication (G2 v0.5)",
+        "### Table 4 | Fresh primitive-control trajectories (release label G2 v0.5)",
         "",
         *_g2_v05_table(data),
         "",
@@ -287,7 +288,7 @@ def render(data: Mapping[str, Any]) -> str:
         "establish the tested executable-world interventions, not agent performance, arbitrary",
         "world recombination, rule adaptation or physical transfer.",
         "",
-        "**Figure 2 | Known policies validate the experimental-agency profile.**",
+        "**Figure 2 | Known policies qualify the experimental-process profile.**",
         "**A,** Three frozen policies specify distinct evidence and terminal-decision structures.",
         "**B,** Campaign-equal terminal profiles recover assay-all, threshold-gated and",
         "immediate-discard signatures. **C,** Evidence acquisition, continued investment and",
@@ -310,8 +311,9 @@ def render(data: Mapping[str, Any]) -> str:
         "did not add original agent experiments.",
         "",
         "**Figure 4 | Compiled controls separate outcome, prediction, calibration and claims.**",
-        "**A,** Paired nominal-minus-opaque endpoint differences across ten worlds per task, with",
-        "multiplicity-adjusted 97.5% per-task world-bootstrap stability intervals. **B,** Held-out",
+        "**A,** All paired nominal-minus-opaque endpoint differences across ten designed worlds",
+        "per task; the ranges summarize finite-set resampling sensitivity rather than population",
+        "confidence intervals. **B,** Held-out",
         "prediction and calibration are displayed as separate raw metrics. **C,** Opaque-arm",
         "epistemic readouts retain registered missingness without imputation. **D,** Commit-frozen",
         "manipulation, correction, performance-restoration and joint gates remain separate.",
