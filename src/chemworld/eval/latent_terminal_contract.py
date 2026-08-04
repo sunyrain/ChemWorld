@@ -74,6 +74,7 @@ EXPERIMENT_LEDGER_PATH = Path(
     "workstreams/arxiv_v1/reports/"
     "experimental-intelligence-experiment-ledger-v0.1.json"
 )
+CONTRACT_IMPLEMENTATION_PATH = Path("src/chemworld/eval/latent_terminal_contract.py")
 
 SOURCE_PATHS = (
     TERMINAL_INDEX_PATH,
@@ -82,7 +83,7 @@ SOURCE_PATHS = (
     EXPERIMENT_LEDGER_PATH,
     Path("src/chemworld/tasks.py"),
     Path("src/chemworld/world/scoring.py"),
-    Path("src/chemworld/eval/latent_terminal_contract.py"),
+    CONTRACT_IMPLEMENTATION_PATH,
     Path("scripts/freeze_work_i_latent_terminal_contract.py"),
 )
 
@@ -884,6 +885,28 @@ def latent_terminal_contract_sha256(payload: Mapping[str, Any]) -> str:
     return canonical_json_sha256(_without(payload, "contract_sha256"))
 
 
+def _deterministic_rebuild_view(payload: Mapping[str, Any]) -> dict[str, Any]:
+    """Remove non-scientific hashes that may advance after the L01 freeze.
+
+    L01 froze before the integration ledger was complete.  The ledger is useful
+    provenance, but it is not an input to the population, thresholds, estimands,
+    or censoring rules.  This validator's own file hash must also be excluded to
+    avoid a self-referential maintenance lock.  Comparing the remaining payload
+    still keeps all scientific fields and every independent source binding exact.
+    """
+
+    view = deepcopy(dict(payload))
+    view.pop("contract_sha256", None)
+    bindings = view.get("evidence_bindings")
+    if isinstance(bindings, dict):
+        sources = bindings.get("source_manifest")
+        if isinstance(sources, dict):
+            for relative in (EXPERIMENT_LEDGER_PATH, CONTRACT_IMPLEMENTATION_PATH):
+                sources.pop(relative.as_posix(), None)
+        bindings.pop("source_manifest_sha256", None)
+    return view
+
+
 def validate_latent_terminal_contract(
     payload: Mapping[str, Any], *, root: Path | None = None
 ) -> list[str]:
@@ -898,6 +921,15 @@ def validate_latent_terminal_contract(
         errors.append("contract_id mismatch")
     if payload.get("contract_sha256") != latent_terminal_contract_sha256(payload):
         errors.append("contract self-hash mismatch")
+    bindings = payload.get("evidence_bindings")
+    if not isinstance(bindings, Mapping):
+        errors.append("evidence_bindings must be an object")
+    else:
+        sources = bindings.get("source_manifest")
+        if not isinstance(sources, Mapping):
+            errors.append("source_manifest must be an object")
+        elif bindings.get("source_manifest_sha256") != canonical_json_sha256(sources):
+            errors.append("source manifest hash mismatch")
     population = payload.get("population")
     if not isinstance(population, Mapping):
         errors.append("population must be an object")
@@ -956,7 +988,9 @@ def validate_latent_terminal_contract(
         except LatentTerminalContractError as exc:
             errors.append(f"source evidence invalid: {exc}")
         else:
-            if dict(payload) != expected:
+            if _deterministic_rebuild_view(payload) != _deterministic_rebuild_view(
+                expected
+            ):
                 errors.append("contract differs from deterministic outcome-blind rebuild")
     return errors
 
@@ -964,6 +998,7 @@ def validate_latent_terminal_contract(
 __all__ = [
     "COMPARISON_PATH",
     "CONTRACT_ID",
+    "CONTRACT_IMPLEMENTATION_PATH",
     "CONTRACT_SCHEMA_ID",
     "CONTRACT_SCHEMA_VERSION",
     "EXPECTED_ASSAY_COUNT",

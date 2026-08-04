@@ -5,12 +5,14 @@ from copy import deepcopy
 from pathlib import Path
 
 from chemworld.eval.latent_terminal_contract import (
+    CONTRACT_IMPLEMENTATION_PATH,
     EXPECTED_ARM_COUNTS,
     EXPECTED_ASSAY_COUNT,
     EXPECTED_CELL_COUNT,
     EXPECTED_DISCARD_COUNT,
     EXPECTED_DISCARD_OPPORTUNITY_CELL_COUNT,
     EXPECTED_LIFECYCLE_COUNT,
+    EXPERIMENT_LEDGER_PATH,
     FROZEN_CAMPAIGN_AUDIT_SHA256,
     FROZEN_COMPARISON_SHA256,
     FROZEN_MATRIX_MANIFEST_SHA256,
@@ -23,6 +25,7 @@ from chemworld.eval.latent_terminal_contract import (
     latent_terminal_contract_sha256,
     validate_latent_terminal_contract,
 )
+from chemworld.eval.provenance import canonical_json_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "configs/benchmark/work_i_latent_terminal_contract_v0.1.json"
@@ -225,5 +228,34 @@ def test_validator_exact_binds_scientific_and_censoring_rules() -> None:
 def test_committed_machine_contract_matches_deterministic_rebuild() -> None:
     committed = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
     rebuilt = build_latent_terminal_contract(ROOT)
-    assert committed == rebuilt
+    committed_sources = dict(committed["evidence_bindings"]["source_manifest"])
+    rebuilt_sources = dict(rebuilt["evidence_bindings"]["source_manifest"])
+    for relative in (EXPERIMENT_LEDGER_PATH, CONTRACT_IMPLEMENTATION_PATH):
+        committed_sources.pop(relative.as_posix())
+        rebuilt_sources.pop(relative.as_posix())
+    assert committed_sources == rebuilt_sources
+    for key in committed:
+        if key not in {"contract_sha256", "evidence_bindings"}:
+            assert committed[key] == rebuilt[key]
     assert validate_latent_terminal_contract(committed, root=ROOT) == []
+
+
+def test_validator_allows_only_the_downstream_ledger_binding_to_advance() -> None:
+    committed = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
+    changed = deepcopy(committed)
+    sources = changed["evidence_bindings"]["source_manifest"]
+    sources[EXPERIMENT_LEDGER_PATH.as_posix()] = "0" * 64
+    changed["evidence_bindings"]["source_manifest_sha256"] = canonical_json_sha256(
+        sources
+    )
+    changed["contract_sha256"] = latent_terminal_contract_sha256(changed)
+    assert validate_latent_terminal_contract(changed, root=ROOT) == []
+
+    sources["src/chemworld/tasks.py"] = "0" * 64
+    changed["evidence_bindings"]["source_manifest_sha256"] = canonical_json_sha256(
+        sources
+    )
+    changed["contract_sha256"] = latent_terminal_contract_sha256(changed)
+    assert "contract differs from deterministic outcome-blind rebuild" in (
+        validate_latent_terminal_contract(changed, root=ROOT)
+    )
