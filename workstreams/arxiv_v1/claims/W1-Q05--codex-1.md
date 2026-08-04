@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-Q05
 title: "Editorial review of story, main figures, scope, and journal fit"
-status: CLAIMED
+status: REVIEW
 
 owner: "codex-1"
 collaborators: []
@@ -29,19 +29,23 @@ validation:
   - "Check title/abstract/conclusion scope against the frozen Work I claim ceiling"
   - "git diff --check"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim committed before review writes"
+completed_since_last_heartbeat:
+  - "Reviewed the integrated story, title, abstract, Discussion and Conclusion against the frozen Work I claim ceiling"
+  - "Verified the canonical six-figure narrative order and caption boundary through the current Work I figure manifest"
+  - "Recorded the disposition and separated arXiv blockers from non-blocking journal-specific notes"
+current_validation: "PASS: focused editorial review completed; no scientific rerun or package rebuild performed; git diff --check required before handoff"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-Q05--codex-1.md
+  - workstreams/arxiv_v1/reviews/W1-Q05-editorial-review--codex-1.md
 blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Complete the focused editorial review without rerunning scientific experiments or the full test suite"
-handoff_eta: 2026-08-04T06:30:00Z
+next_24h: "Coordinator acceptance and master-status update"
+handoff_eta: 2026-08-04T05:30:00Z
 
 final_commit: null
 reviewer: null
-review_result: null
+review_result: "APPROVE"
 notes: "Main is used because the coordinator is completing the remaining first-paper work and the user requires claims to be immediately visible on main. This task is editorial review, not the three-person independent blind review required by W1-Q06."
 ```
