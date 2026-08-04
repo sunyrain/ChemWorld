@@ -1,7 +1,7 @@
 # 第一篇组合资格实验说明
 
-状态：**FROZEN BEFORE DATA GENERATION**  
-冻结日期：**2026-08-04**  
+状态：**FROZEN BEFORE DATA GENERATION**
+冻结日期：**2026-08-04**
 执行者：**Codex `/root`**
 
 本说明覆盖 C01--C08 与 D01--D04 的一次正式资格批次。它只限定虚拟仪器、声明组件及其接口；不做
