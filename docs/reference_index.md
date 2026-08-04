@@ -28,6 +28,7 @@
 - [Agent API](agent_interface.md)
 - [World authoring contract](world-authoring-contract.md)
 - [World composition contract](world-composition-contract.md)
+- [Public world-authoring examples](world-composition-examples.md)
 - [Coverage-guided composition generation](world-composition-coverage.md)
 - [World capability map](world-capability-map.md)
 - [认识操作语言](operations.md)

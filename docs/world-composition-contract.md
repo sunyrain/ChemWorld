@@ -141,6 +141,11 @@ compatibility surface. `chemworld.check_world_composition_compatibility(request)
 same pre-execution decision without constructing an environment. Rejected compilation raises
 `WorldCompositionError`; its diagnostics identify a stable rejection class and request path.
 
+Complete public requests for a single process module, a cross-module world and a multi-stage
+world are collected in [Public world-authoring examples](world-composition-examples.md). The same
+page maps all 15 registered reference tasks onto the component and task-contract hierarchy and
+keeps controlled world forks separate from general composition.
+
 ## 4. Interface and parameter rules
 
 Every component declares the inputs it consumes, the outputs it produces, the units of
