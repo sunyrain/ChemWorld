@@ -4,6 +4,9 @@ import gymnasium as gym
 import pytest
 
 import chemworld
+from chemworld.agent_interface import agent_view_bundle
+from chemworld.data.logging import TrajectoryLogger, load_jsonl, observation_to_json
+from chemworld.eval.verify import verify_records
 from chemworld.world.composition import WorldCompositionError
 
 
@@ -133,6 +136,52 @@ def test_composed_world_runs_complete_lifecycle() -> None:
         assert step_info["leaderboard_score"] is not None
     finally:
         env.close()
+
+
+def test_composed_world_trajectory_replays_from_logged_request(tmp_path) -> None:
+    env = gym.make("ChemWorld", composition=_request(), seed=4)
+    trajectory_path = tmp_path / "composed-world.jsonl"
+    actions = (
+        {"operation": "add_solvent", "volume_L": 0.03, "solvent": 2},
+        {"operation": "add_reagent", "amount_mol": 0.01},
+        {
+            "operation": "heat",
+            "target_temperature_K": 385.0,
+            "duration_s": 1200.0,
+            "stirring_speed_rpm": 700.0,
+        },
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"},
+    )
+    try:
+        observation, _ = env.reset(seed=4)
+        task_info = {
+            **env.unwrapped.task_info(),
+            **env.unwrapped.evaluator_provenance(),
+        }
+        assert task_info["composition_request"] == env.unwrapped.compiled_composition.spec.to_dict()
+        with TrajectoryLogger(trajectory_path) as logger:
+            for step, action in enumerate(actions, start=1):
+                observation, reward, terminated, truncated, info = env.step(action)
+                logger.log(
+                    task_info=task_info,
+                    step=step,
+                    action=action,
+                    observation=observation_to_json(observation),
+                    reward=float(reward),
+                    terminated=terminated,
+                    truncated=truncated,
+                    info=info,
+                    agent_metadata={"agent_id": "composition-replay-test"},
+                    agent_view=agent_view_bundle(env, observation, info),
+                )
+    finally:
+        env.close()
+
+    records = load_jsonl(trajectory_path)
+    expected_request = chemworld.compile_world_composition(_request()).spec.to_dict()
+    assert records[0]["composition_request"] == expected_request
+    assert verify_records(records, tolerance=0.0).verified
 
 
 def test_unregistered_component_combination_fails_before_execution() -> None:

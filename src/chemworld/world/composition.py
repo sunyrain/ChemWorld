@@ -401,6 +401,31 @@ class CompositionTaskRequest:
             tags=tags,
         )
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "objective": self.objective,
+            "budget": self.budget,
+            "operations": None if self.operations is None else list(self.operations),
+            "instruments": None if self.instruments is None else list(self.instruments),
+            "observations": self.observations,
+            "resources": deepcopy(self.resources),
+            "termination": self.termination,
+            "evaluation": {
+                "metrics": (
+                    None
+                    if self.evaluation_metrics is None
+                    else list(self.evaluation_metrics)
+                ),
+                "threshold": self.evaluation_threshold,
+            },
+            "seeds": None if self.seeds is None else list(self.seeds),
+            "episode_mode": self.episode_mode,
+            "safety_limit": self.safety_limit,
+            "difficulty": self.difficulty,
+            "description": self.description,
+            "tags": list(self.tags),
+        }
+
 
 @dataclass(frozen=True)
 class WorldCompositionSpec:
@@ -465,6 +490,15 @@ class WorldCompositionSpec:
     @property
     def component_kinds(self) -> tuple[str, ...]:
         return tuple(component.kind for component in self.components)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": self.schema_version,
+            "composition_id": self.composition_id,
+            "world_split": self.world_split,
+            "components": [component.to_dict() for component in self.components],
+            "task": self.task.to_dict(),
+        }
 
 
 @dataclass(frozen=True)

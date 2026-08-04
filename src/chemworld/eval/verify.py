@@ -154,9 +154,16 @@ def verify_records(
 
     validate_records(records)
     first = records[0]
+    composition_request = first.get("composition_request")
     benchmark_task_id = first.get("benchmark_task_id")
-    if benchmark_task_id:
-        env_kwargs: dict[str, Any] = {
+    env_kwargs: dict[str, Any]
+    if isinstance(composition_request, dict):
+        env_kwargs = {
+            "composition": dict(composition_request),
+            "seed": int(first["seed"]),
+        }
+    elif benchmark_task_id:
+        env_kwargs = {
             "task_id": str(benchmark_task_id),
             "seed": int(first["seed"]),
         }

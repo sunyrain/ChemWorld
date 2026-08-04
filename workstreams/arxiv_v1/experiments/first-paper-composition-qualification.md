@@ -4,6 +4,13 @@
 冻结日期：**2026-08-04**
 执行者：**Codex `/root`**
 
+预启动修订（2026-08-04，尚未生成正式数据）：原表按轴数粗估了部分 pairwise covering rows；将冻结设计
+用既定生成算法物化后，实际行数要求组合总分母为 52，而非 42。下表和通过规则据此修正；pattern、seed、
+连续 bounds、workflow 数和通过/失败规则均未改变。预执行还发现三个 authoring level 使用了评分器不接受
+的 objective 标签、纯 phase 流程未先建立材料、电化学两阶段流程缺少既有 pH gate 且未改变第二 setpoint；
+在正式数据生成前将 objective levels 收敛为公开支持的 `balanced` / `yield`，并仅修正上述 workflow 动作使其
+满足现有运行时合同。资格数据仍未启动，所有 52 个 case 将从第一项开始执行。
+
 本说明覆盖 C01--C08 与 D01--D04 的一次正式资格批次。它只限定虚拟仪器、声明组件及其接口；不做
 agent 排名、机理解释、任意任务穷举或真实实验室外推。旧 cross-world 协议的 owner、租约、源提交和
 手工 manifest 不沿用；可复用的 runner 代码必须重新绑定本说明和当前 `main`。
@@ -17,7 +24,7 @@ agent 排名、机理解释、任意任务穷举或真实实验室外推。旧 c
 独立计数单位分开报告：
 
 - 参考资格：64 个注册 `task_id × world_seed` 单元；
-- 组合资格：42 个生成 composition case；
+- 组合资格：52 个生成 composition case；
 - 冻结未见资格：其中 8 个反应--蒸馏 case，亦为 U05 的共同批次；
 - 模块资格：8 个物理组件，每个 4 个预设探针，共 32 个模块探针；
 - 接口资格：7 条注册跨组件路径。
@@ -45,14 +52,14 @@ templates 的最大值，不做笛卡尔积，也不声称穷举。
 
 | Pattern | Seed | 二值离散轴 | 连续轴与 bounds | Workflows | Cases |
 | --- | ---: | --- | --- | ---: | ---: |
-| phase-observation | 101 | phase profile；instrument profile；objective | 无 | 1 | 4 |
-| reaction-thermal-observation | 102 | reaction family；thermal range；instrument profile | heat temperature 350--390 K；duration 600--1800 s | 2 | 4 |
-| phase-separation-observation | 103 | phase profile；instrument profile；objective | phase volume 0.010--0.020 L；extractant volume 0.010--0.025 L；mix 60--300 s；settle 120--600 s；wash 0.003--0.010 L | 2 | 4 |
-| reaction-crystallization-observation | 104 | reaction family；thermal range；seed-mass range | reaction temperature 350--390 K；reaction time 600--1800 s；seed 0.002--0.010 g；cooling temperature 275--305 K；cooling time 900--3600 s | 2 | 4 |
+| phase-observation | 101 | phase profile；instrument profile；objective | 无 | 1 | 6 |
+| reaction-thermal-observation | 102 | reaction family；thermal range；instrument profile | heat temperature 350--390 K；duration 600--1800 s | 2 | 6 |
+| phase-separation-observation | 103 | phase profile；instrument profile；objective | phase volume 0.010--0.020 L；extractant volume 0.010--0.025 L；mix 60--300 s；settle 120--600 s | 2 | 6 |
+| reaction-crystallization-observation | 104 | reaction family；thermal range；seed-mass range | reaction temperature 350--390 K；reaction time 600--1800 s；seed 0.002--0.010 g；cooling temperature 275--305 K；cooling time 900--3600 s | 2 | 6 |
 | reaction-distillation-observation | 105 | 见下方冻结未见批次 | 见下方冻结未见批次 | 2 | 8 |
-| reaction-continuous-flow-observation | 106 | reaction family；flow-rate range；residence-time range；instrument profile | flow 0.5--5.0 mL/min；residence 30--600 s；temperature 330--390 K | 2 | 6 |
-| reaction-electrochemistry-observation | 107 | reaction family；potential range；current range；instrument profile | potential 0.5--1.8 V；current 25--150 mA；electrolysis 300--1800 s | 2 | 6 |
-| reaction-phase-separation-observation | 108 | reaction family；phase profile；instrument profile；objective | reaction temperature 350--390 K；reaction time 600--1800 s；phase volume 0.010--0.020 L；extractant volume 0.010--0.025 L；mix 60--300 s；settle 120--600 s；wash 0.003--0.010 L；concentrate 300--900 s；transfer 0.65--0.95 | 2 | 6 |
+| reaction-continuous-flow-observation | 106 | reaction family；flow-rate range；residence-time range；instrument profile | flow 0.5--5.0 mL/min；residence 60--600 s；temperature 330--390 K | 2 | 6 |
+| reaction-electrochemistry-observation | 107 | reaction family；potential range；current range；instrument profile | potential 0.5--1.8 V；current 25--150 mA；electrolysis 300--1800 s | 2 | 7 |
+| reaction-phase-separation-observation | 108 | reaction family；phase profile；instrument profile；objective | reaction temperature 350--390 K；reaction time 600--1800 s；phase volume 0.010--0.020 L；extractant volume 0.010--0.025 L；mix 60--300 s；settle 120--600 s；wash 0.003--0.010 L；concentrate 300--900 s；transfer 0.65--0.95 | 2 | 7 |
 
 每个二值 level 必须落在组件已声明域内；两个 instrument profile 都必须包含该 suite 两条 workflow 实际
 使用的仪器和 final assay。实现阶段只可把本表展开为机器配置，不得改变 pattern、seed、轴数、bounds、
@@ -112,7 +119,7 @@ outcome delta、适用守恒、终止/评价、replay verdict、耗时、轨迹�
 
 - 64/64 参考单元通过，1786/1786 有效配方闭合并精确 replay；
 - 192/192 负向探针以预设类别拒绝并保持声明的原子/资源语义；
-- 42/42 生成 composition 编译、执行、闭合、资源对账并精确 replay；
+- 52/52 生成 composition 编译、执行、闭合、资源对账并精确 replay；
 - C03 的 8/8 case 无核心运行时补丁，且 composition ID 不属于 15 个参考 task ID；
 - 7/7 compile-time mutants 按预设诊断 fail closed；
 - 32/32 模块探针和 7/7 接口路径通过各自适用规则；
