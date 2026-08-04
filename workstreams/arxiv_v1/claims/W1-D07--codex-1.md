@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-D07
 title: "Build the standard arXiv PDF, source bundles, and publication proof"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T02:42:21Z
 lease_expires_at_utc: 2026-08-06T05:32:16Z
-heartbeat_at_utc: 2026-08-04T05:37:49Z
+heartbeat_at_utc: 2026-08-04T05:38:46Z
 
 base_commit: "ffd11ee7"
 branch: work1/w1-d07-refined-figure-package-rebuild-codex-1
@@ -56,11 +56,11 @@ blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Commit and accept the final package centrally; no further build or review pass planned."
+next_24h: "Accepted on main; no further build or review pass planned."
 handoff_eta: 2026-08-04T05:39:00Z
 
-final_commit: null
-reviewer: null
-review_result: null
+final_commit: 40f9fe5b3664fcf5f28e0c2f15e7ce6ebe9a2867
+reviewer: codex-1
+review_result: PASS
 notes: "The original D07 package was accepted after final commit ea05a307 and the first refined-figure rebuild after 4ea352cf. This second reopening was limited to refreshing the arXiv package against accepted P09 repairs 4262c18d and 5c3595b9; it does not mark publication_ready and does not require the deferred 17.7 GB archive or unresolved corresponding-author metadata."
 ```
