@@ -75,6 +75,15 @@ FIRST_PAPER_COMPOSITION_QUALIFICATION_GUARDED_PATHS = (
     "src/chemworld/world",
     "src/chemworld/wrappers.py",
 )
+FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID = "first_paper_deterministic_use_case_qualification"
+FIRST_PAPER_DETERMINISTIC_USE_CASES_PATH = (
+    "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1.json"
+)
+FIRST_PAPER_DETERMINISTIC_USE_CASES_GUARDED_PATHS = (
+    "scripts/run_first_paper_deterministic_use_cases.py",
+    "src/chemworld/eval/deterministic_use_cases.py",
+    *FIRST_PAPER_COMPOSITION_QUALIFICATION_GUARDED_PATHS,
+)
 
 
 @dataclass(frozen=True)
@@ -467,6 +476,16 @@ NODES = (
         ("task_design_matrix",),
     ),
     EvidenceNode(
+        FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID,
+        FIRST_PAPER_DETERMINISTIC_USE_CASES_PATH,
+        "formal_result",
+        (
+            "task_design_matrix",
+            FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID,
+            "work_i_world_fork_qualification",
+        ),
+    ),
+    EvidenceNode(
         "work_i_world_fork_qualification",
         "workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json",
         "formal_result",
@@ -709,6 +728,8 @@ def _node_producer(node: EvidenceNode) -> str:
 def _node_source_binding(node: EvidenceNode) -> str:
     if node.node_id == FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID:
         return "execution_commit_and_source_blob_sha256"
+    if node.node_id == FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID:
+        return "execution_commit_source_blobs_and_current_evidence_sha256"
     return {
         "protocol_input": "content_sha256",
         "generated_current": "dependencies_and_source_commit",
@@ -767,6 +788,10 @@ CURRENT_PATH_RULES = (
     ),
     CurrentPathRule(
         ("publication", "composition_qualification_report"),
+        "formal_result",
+    ),
+    CurrentPathRule(
+        ("publication", "deterministic_use_case_qualification_report"),
         "formal_result",
     ),
     CurrentPathRule(("work_i_fvl", "data_contract"), "protocol_input"),
@@ -1703,6 +1728,552 @@ def _first_paper_composition_qualification_binding_current(
     return not _first_paper_composition_qualification_binding_errors(payload)
 
 
+def _first_paper_deterministic_use_case_binding_errors(
+    payload: Mapping[str, Any],
+) -> list[str]:
+    """Validate the immutable deterministic use-case census and source bindings."""
+
+    errors: list[str] = []
+
+    def require(condition: bool, message: str) -> None:
+        if not condition:
+            errors.append(message)
+
+    try:
+        from chemworld.eval.deterministic_use_cases import (
+            EXPECTED_ACTION_SHA256,
+            EXPECTED_CASE_COUNT,
+            EXPECTED_COMMITTED_ACTION_COUNT,
+            EXPECTED_FINAL_ASSAY_COUNT,
+            EXPECTED_ROLLBACK_COUNT,
+            EXPECTED_SUBMITTED_ACTION_COUNT,
+            QUALIFICATION_ID,
+            REPORT_SCHEMA_VERSION,
+            _failure_class_counts,
+            _receipt_completeness_errors,
+        )
+        from chemworld.tasks import TASK_CONTRACT_VERSION
+
+        expected_cases = {
+            "U01": ("reaction-to-crystallization", 0, 12, 12, 0),
+            "U02": ("composed-equilibrium-characterization-demo", 0, 5, 5, 0),
+            "U03/E01": ("composed-reaction-purification-demo", 0, 19, 18, 1),
+            "U06-flow": ("flow-reaction-optimization", 0, 8, 8, 0),
+            "U06-electro": ("electrochemical-conversion", 0, 11, 11, 0),
+            "U06-distillation": ("reaction-to-distillation", 0, 12, 12, 0),
+            "U06-partition": ("partition-discovery", 0, 10, 10, 0),
+            "U06-crystallization": ("reaction-to-crystallization", 1, 12, 12, 0),
+        }
+        expected_case_sources = {
+            "U01": {
+                "src/chemworld/tasks.py",
+                "src/chemworld/agents/task_recipes.py",
+            },
+            "U02": {
+                "examples/world-authoring/use-case-reference-paths-v0.1.json",
+                "examples/world-authoring/composed-equilibrium-characterization-v0.1.json",
+            },
+            "U03/E01": {
+                "examples/world-authoring/use-case-reference-paths-v0.1.json",
+                "examples/world-authoring/composed-reaction-purification-v0.1.json",
+            },
+            "U06-flow": {
+                "src/chemworld/tasks.py",
+                "src/chemworld/agents/task_recipes.py",
+            },
+            "U06-electro": {
+                "src/chemworld/tasks.py",
+                "src/chemworld/agents/task_recipes.py",
+            },
+            "U06-distillation": {
+                "src/chemworld/tasks.py",
+                "src/chemworld/agents/task_recipes.py",
+            },
+            "U06-partition": {
+                "src/chemworld/tasks.py",
+                "src/chemworld/agents/task_recipes.py",
+            },
+            "U06-crystallization": {
+                "src/chemworld/tasks.py",
+                "src/chemworld/agents/task_recipes.py",
+            },
+        }
+
+        require(
+            payload.get("schema_version") == REPORT_SCHEMA_VERSION,
+            "deterministic use-case qualification schema is stale",
+        )
+        require(
+            payload.get("qualification_id") == QUALIFICATION_ID,
+            "deterministic use-case qualification identity is stale",
+        )
+        require(
+            payload.get("status") == "passed",
+            "deterministic use-case qualification did not pass",
+        )
+        require(
+            payload.get("provider_call_count") == 0,
+            "deterministic use-case qualification reports provider calls",
+        )
+        require(
+            payload.get("denominators")
+            == {
+                "case_count": EXPECTED_CASE_COUNT,
+                "submitted_action_count": EXPECTED_SUBMITTED_ACTION_COUNT,
+                "committed_action_count": EXPECTED_COMMITTED_ACTION_COUNT,
+                "rolled_back_action_count": EXPECTED_ROLLBACK_COUNT,
+                "final_assay_count": EXPECTED_FINAL_ASSAY_COUNT,
+            },
+            "deterministic use-case qualification denominators are stale",
+        )
+
+        cases = payload.get("cases")
+        if not isinstance(cases, list):
+            return ["deterministic use-case case list is malformed"]
+        cases_by_id = {case.get("case_id"): case for case in cases if isinstance(case, Mapping)}
+        require(
+            len(cases) == len(cases_by_id) == EXPECTED_CASE_COUNT
+            and set(cases_by_id) == set(expected_cases),
+            "deterministic use-case identities or case denominator are stale",
+        )
+
+        submitted = checked = committed = rollbacks = final_assays = passed_cases = 0
+        leakage_count = 0
+        for case_id, expected in expected_cases.items():
+            case = cases_by_id.get(case_id)
+            if not isinstance(case, Mapping):
+                continue
+            identity, seed, expected_submitted, expected_committed, expected_rollbacks = expected
+            actions = case.get("actions")
+            receipts = case.get("step_receipts")
+            expected_validation = case.get("expected_validation")
+            expected_transactions = case.get("expected_transactions")
+            if not all(
+                isinstance(rows, list)
+                for rows in (actions, receipts, expected_validation, expected_transactions)
+            ):
+                errors.append(f"deterministic use-case action receipts are malformed: {case_id}")
+                continue
+
+            require(
+                case.get("public_identity") == identity
+                and case.get("identity") == identity
+                and case.get("seed") == seed,
+                f"deterministic use-case identity binding is stale: {case_id}",
+            )
+            require(
+                len(actions)
+                == len(receipts)
+                == len(expected_validation)
+                == len(expected_transactions)
+                == expected_submitted,
+                f"deterministic use-case action denominator is stale: {case_id}",
+            )
+            expected_action_sha = EXPECTED_ACTION_SHA256[case_id]
+            require(
+                case.get("actions_sha256")
+                == case.get("action_list_sha256")
+                == expected_action_sha
+                == _canonical_sha256(actions),
+                f"deterministic use-case frozen action path is stale: {case_id}",
+            )
+
+            observed_commits = observed_rollbacks = observed_final_assays = 0
+            for step_number, (action, receipt) in enumerate(
+                zip(actions, receipts, strict=True), start=1
+            ):
+                if not isinstance(action, Mapping) or not isinstance(receipt, Mapping):
+                    errors.append(
+                        f"deterministic use-case step receipt is malformed: {case_id}.{step_number}"
+                    )
+                    continue
+                expected_valid = expected_validation[step_number - 1]
+                expected_status = expected_transactions[step_number - 1]
+                validation = receipt.get("schema_validation")
+                transaction = receipt.get("transaction")
+                resource = receipt.get("resource_reconciliation")
+                constitution = receipt.get("constitution_checks")
+                require(
+                    receipt.get("step") == step_number
+                    and receipt.get("action") == action
+                    and receipt.get("action_sha256") == _canonical_sha256(action)
+                    and receipt.get("expected_validation") is expected_valid
+                    and receipt.get("expected_transaction_status") == expected_status,
+                    f"deterministic use-case step binding is stale: {case_id}.{step_number}",
+                )
+                require(
+                    isinstance(validation, Mapping) and validation.get("valid") is expected_valid,
+                    f"deterministic use-case validation receipt failed: {case_id}.{step_number}",
+                )
+                require(
+                    isinstance(transaction, Mapping)
+                    and transaction.get("status") == expected_status
+                    and transaction.get("operation_committed") is (expected_status == "committed"),
+                    f"deterministic use-case transaction receipt failed: {case_id}.{step_number}",
+                )
+                require(
+                    isinstance(constitution, list)
+                    and all(
+                        isinstance(check, Mapping) and check.get("passed") is True
+                        for check in constitution
+                    ),
+                    f"deterministic use-case constitution receipt failed: {case_id}.{step_number}",
+                )
+                require(
+                    isinstance(receipt.get("world_events"), list)
+                    and bool(receipt.get("world_events"))
+                    and receipt.get("event_propagation_matches_operation") is True,
+                    f"deterministic use-case event receipt failed: {case_id}.{step_number}",
+                )
+                require(
+                    isinstance(receipt.get("resource_preflight"), Mapping)
+                    and isinstance(receipt.get("resource_outcome_delta"), Mapping)
+                    and isinstance(resource, Mapping)
+                    and resource.get("resource_reconciled") is True
+                    and resource.get("reconciliation_mismatches") == [],
+                    f"deterministic use-case resource receipt failed: {case_id}.{step_number}",
+                )
+                require(
+                    isinstance(receipt.get("public_observation"), Mapping)
+                    and receipt.get("leakage_findings") == []
+                    and receipt.get("failures") == []
+                    and receipt.get("passed") is True,
+                    f"deterministic use-case public step receipt failed: {case_id}.{step_number}",
+                )
+                if isinstance(transaction, Mapping):
+                    observed_commits += transaction.get("status") == "committed"
+                    observed_rollbacks += transaction.get("status") == "rolled_back"
+                    observed_final_assays += bool(
+                        action.get("operation") == "measure"
+                        and action.get("instrument") == "final_assay"
+                        and transaction.get("status") == "committed"
+                    )
+
+            require(
+                case.get("submitted_action_count")
+                == case.get("checked_action_count")
+                == expected_submitted,
+                f"deterministic use-case checked count is stale: {case_id}",
+            )
+            require(
+                case.get("committed_action_count") == observed_commits == expected_committed,
+                f"deterministic use-case commit count is stale: {case_id}",
+            )
+            require(
+                case.get("rollback_count")
+                == case.get("rolled_back_action_count")
+                == observed_rollbacks
+                == expected_rollbacks,
+                f"deterministic use-case rollback count is stale: {case_id}",
+            )
+            require(
+                case.get("committed_final_assay_count")
+                == case.get("final_assay_count")
+                == observed_final_assays
+                == 1,
+                f"deterministic use-case final-assay count is stale: {case_id}",
+            )
+
+            termination = case.get("termination_receipt")
+            post_termination = (
+                termination.get("post_termination_validation")
+                if isinstance(termination, Mapping)
+                else None
+            )
+            require(
+                isinstance(termination, Mapping)
+                and termination.get("closed") is True
+                and termination.get("committed_terminate_count") == 1
+                and termination.get("committed_final_assay_count") == 1
+                and termination.get("final_terminated") is True
+                and termination.get("final_truncated") is False
+                and termination.get("right_censored_open_batch") is False
+                and isinstance(post_termination, Mapping)
+                and post_termination.get("passed") is True,
+                f"deterministic use-case lifecycle receipt failed: {case_id}",
+            )
+            case_resource = case.get("resource_receipt")
+            require(
+                isinstance(case_resource, Mapping)
+                and case_resource.get("resource_reconciled") is True
+                and case_resource.get("reconciliation_mismatches") == []
+                and case_resource.get("preflight", {}).get("receipt_count") == expected_submitted
+                and case_resource.get("outcome_delta", {}).get("operations_committed")
+                == expected_committed,
+                f"deterministic use-case aggregate resource receipt failed: {case_id}",
+            )
+            replay = case.get("exact_replay")
+            require(
+                isinstance(replay, Mapping)
+                and replay.get("verified") is True
+                and replay.get("checked_steps") == expected_submitted
+                and replay.get("max_abs_error") == 0.0
+                and replay.get("mismatches") == [],
+                f"deterministic use-case exact replay failed: {case_id}",
+            )
+            require(
+                case.get("provider_call_count") == 0
+                and case.get("public_private_leakage_count") == 0
+                and case.get("leakage_findings") == []
+                and int(case.get("trajectory_bytes", 0)) > 0
+                and case.get("passed") is True
+                and case.get("failures") == [],
+                f"deterministic use-case completion receipt failed: {case_id}",
+            )
+            contract = case.get("contract_binding")
+            require(
+                isinstance(contract, Mapping)
+                and contract.get("task_contract_hash_matches") is True
+                and contract.get("task_contract_hash")
+                == contract.get("expected_task_contract_hash")
+                and all(
+                    isinstance(contract.get(field), str) and len(contract[field]) == 64
+                    for field in (
+                        "task_contract_hash",
+                        "runtime_profile_hash",
+                        "scoring_contract_hash",
+                        "observation_contract_hash",
+                    )
+                ),
+                f"deterministic use-case contract binding failed: {case_id}",
+            )
+
+            case_sources = case.get("source_bindings")
+            if not isinstance(case_sources, list):
+                errors.append(f"deterministic use-case source bindings are malformed: {case_id}")
+            else:
+                source_paths = {
+                    source.get("path") for source in case_sources if isinstance(source, Mapping)
+                }
+                require(
+                    len(case_sources) == len(source_paths)
+                    and source_paths == expected_case_sources[case_id],
+                    f"deterministic use-case source paths are stale: {case_id}",
+                )
+
+            if case_id == "U03/E01":
+                first = receipts[0] if receipts else None
+                recovery = case.get("recovery_receipt")
+                ghost = (
+                    first.get("rollback_recovery_receipt") if isinstance(first, Mapping) else None
+                )
+                require(
+                    isinstance(first, Mapping)
+                    and first.get("action", {}).get("operation") == "separate_phase"
+                    and first.get("schema_validation", {}).get("valid") is False
+                    and first.get("transaction", {}).get("status") == "rolled_back"
+                    and first.get("transaction", {}).get("rollback_reason") == "precondition_failed"
+                    and isinstance(ghost, Mapping)
+                    and ghost.get("ghost_state_preserved") is True
+                    and ghost.get("physical", {}).get("preserved") is True
+                    and ghost.get("observation_rng", {}).get("preserved") is True
+                    and ghost.get("ledger", {}).get("ghost_state_preserved") is True
+                    and ghost.get("process", {}).get("ghost_state_preserved") is True
+                    and ghost.get("events", {}).get("reconciled") is True
+                    and ghost.get("resource", {}).get("resource_reconciled") is True
+                    and isinstance(recovery, Mapping)
+                    and recovery.get("passed") is True
+                    and recovery.get("observed_rollback_count") == 1
+                    and recovery.get("subsequent_expected_commit_count") == 18
+                    and recovery.get("subsequent_observed_commit_count") == 18,
+                    "deterministic U03 rollback-recovery receipt failed",
+                )
+
+            submitted += expected_submitted
+            checked += int(case.get("checked_action_count", 0))
+            committed += observed_commits
+            rollbacks += observed_rollbacks
+            final_assays += observed_final_assays
+            leakage_count += int(case.get("public_private_leakage_count", 0))
+            passed_cases += case.get("passed") is True
+
+        completeness_errors = _receipt_completeness_errors(cases)
+        failure_counts = _failure_class_counts(cases, completeness_errors)
+        require(
+            not completeness_errors
+            and payload.get("receipt_completeness")
+            == {"passed": True, "error_count": 0, "errors": []},
+            "deterministic use-case receipt completeness recomputation failed",
+        )
+        require(
+            not failure_counts and payload.get("failures") == [],
+            "deterministic use-case failure census is not empty",
+        )
+        require(
+            payload.get("summary")
+            == {
+                "cases": {"passed": passed_cases, "denominator": len(cases)},
+                "submitted_actions": {
+                    "checked": checked,
+                    "denominator": submitted,
+                    "expected": EXPECTED_SUBMITTED_ACTION_COUNT,
+                },
+                "committed_actions": {
+                    "observed": committed,
+                    "expected": EXPECTED_COMMITTED_ACTION_COUNT,
+                },
+                "rolled_back_actions": {
+                    "observed": rollbacks,
+                    "expected": EXPECTED_ROLLBACK_COUNT,
+                },
+                "committed_final_assays": {
+                    "observed": final_assays,
+                    "expected": EXPECTED_FINAL_ASSAY_COUNT,
+                },
+                "public_private_leakage_count": leakage_count,
+                "missing_receipt_count": len(completeness_errors),
+                "failure_class_counts": failure_counts,
+                "exact_denominators_passed": True,
+            }
+            and submitted == checked == EXPECTED_SUBMITTED_ACTION_COUNT
+            and committed == EXPECTED_COMMITTED_ACTION_COUNT
+            and rollbacks == EXPECTED_ROLLBACK_COUNT
+            and final_assays == EXPECTED_FINAL_ASSAY_COUNT
+            and passed_cases == EXPECTED_CASE_COUNT
+            and leakage_count == 0,
+            "deterministic use-case summary census is stale",
+        )
+
+        source = payload.get("source_binding")
+        if not isinstance(source, Mapping):
+            return ["deterministic use-case source binding is malformed"]
+        commit = source.get("execution_commit")
+        require(
+            isinstance(commit, str)
+            and len(commit) == 40
+            and all(character in "0123456789abcdef" for character in commit)
+            and _git_commit_is_ancestor(commit)
+            and source.get("branch") == "main"
+            and source.get("worktree_clean") is True
+            and source.get("task_contract_version") == TASK_CONTRACT_VERSION,
+            "deterministic use-case execution commit is invalid",
+        )
+        expected_launch_sources = {
+            "experiment_note": (
+                "workstreams/arxiv_v1/experiments/first-paper-deterministic-use-cases.md"
+            ),
+            "todo": "workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md",
+        }
+        if isinstance(commit, str):
+            for field, expected_path in expected_launch_sources.items():
+                binding = source.get(field)
+                require(
+                    isinstance(binding, Mapping)
+                    and binding.get("path") == expected_path
+                    and binding.get("sha256") == _git_blob_sha256(commit, expected_path)
+                    and isinstance(binding.get("bytes"), int)
+                    and binding.get("bytes") > 0,
+                    f"deterministic use-case launch source is stale: {field}",
+                )
+            note_binding = source.get("experiment_note")
+            require(
+                isinstance(note_binding, Mapping)
+                and file_sha256(ROOT / expected_launch_sources["experiment_note"])
+                == note_binding.get("sha256"),
+                "deterministic use-case experiment note changed after execution",
+            )
+            for case_id, case in cases_by_id.items():
+                if not isinstance(case, Mapping):
+                    continue
+                for binding in case.get("source_bindings", []):
+                    if not isinstance(binding, Mapping):
+                        continue
+                    relative_path = binding.get("path")
+                    if not isinstance(relative_path, str):
+                        errors.append(f"deterministic use-case source path is malformed: {case_id}")
+                        continue
+                    source_path = (ROOT / relative_path).resolve()
+                    require(
+                        source_path.is_relative_to(ROOT.resolve())
+                        and source_path.is_file()
+                        and file_sha256(source_path) == binding.get("sha256")
+                        and source_path.stat().st_size == binding.get("bytes")
+                        and _git_blob_sha256(commit, relative_path) == binding.get("sha256"),
+                        f"deterministic use-case source blob is stale: {case_id}:{relative_path}",
+                    )
+            require(
+                _git_paths_unchanged_since(
+                    commit,
+                    FIRST_PAPER_DETERMINISTIC_USE_CASES_GUARDED_PATHS,
+                ),
+                "deterministic use-case runtime changed after execution",
+            )
+
+        existing = payload.get("existing_evidence")
+        if not isinstance(existing, Mapping):
+            return ["deterministic use-case existing evidence binding is malformed"]
+        require(
+            existing.get("current_registry", {}).get("path") == "configs/current.json"
+            and isinstance(existing.get("current_registry", {}).get("sha256"), str)
+            and len(existing["current_registry"]["sha256"]) == 64,
+            "deterministic use-case launch registry binding is malformed",
+        )
+        expected_existing_nodes = {
+            "U04": (
+                "work_i_world_fork_qualification",
+                "workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json",
+            ),
+            "U05": (
+                FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID,
+                FIRST_PAPER_COMPOSITION_QUALIFICATION_PATH,
+            ),
+        }
+        for use_case_id, (node_id, expected_path) in expected_existing_nodes.items():
+            evidence = existing.get(use_case_id)
+            binding = evidence.get("binding") if isinstance(evidence, Mapping) else None
+            expected_sha = file_sha256(ROOT / expected_path)
+            require(
+                isinstance(evidence, Mapping)
+                and evidence.get("passed") is True
+                and isinstance(binding, Mapping)
+                and binding.get("node_id") == node_id
+                and binding.get("path") == expected_path
+                and binding.get("expected_sha256") == binding.get("actual_sha256") == expected_sha
+                and binding.get("artifact_state") == "current"
+                and binding.get("freshness") == "fresh"
+                and binding.get("gate_state") == "passed"
+                and binding.get("binding_verified") is True,
+                f"deterministic use-case existing evidence binding is stale: {use_case_id}",
+            )
+        require(
+            isinstance(existing.get("U04"), Mapping)
+            and existing["U04"].get("pair_count") == 6
+            and existing["U04"].get("trace_count") == 24
+            and existing["U04"].get("provider_call_count") == 0
+            and existing["U04"].get("protocol_id")
+            == "chemworld-work-i-world-fork-qualification-v0.1",
+            "deterministic use-case U04 evidence summary is stale",
+        )
+        require(
+            isinstance(existing.get("U05"), Mapping)
+            and existing["U05"].get("composition_id")
+            == "qualification-reaction-distillation-observation-coverage-0001"
+            and existing["U05"].get("composition_request_sha256")
+            == "2c5ac886b1ed95eb2868aae285e8183510a34da1bd317b42ab6be131fb0d152e"
+            and existing["U05"].get("generation_seed") == 105
+            and existing["U05"].get("generation_index") == 0
+            and existing["U05"].get("action_count") == 12
+            and existing["U05"].get("exact_replay_verified") is True,
+            "deterministic use-case U05 evidence summary is stale",
+        )
+    except (
+        AttributeError,
+        KeyError,
+        OSError,
+        subprocess.SubprocessError,
+        TypeError,
+        ValueError,
+    ) as error:
+        errors.append(f"deterministic use-case validator error: {error}")
+    return errors
+
+
+def _first_paper_deterministic_use_case_binding_current(
+    payload: Mapping[str, Any],
+) -> bool:
+    return not _first_paper_deterministic_use_case_binding_errors(payload)
+
+
 def _artifact_source_binding_current(
     node: EvidenceNode,
     payload: Mapping[str, Any],
@@ -1714,6 +2285,8 @@ def _artifact_source_binding_current(
         return work_i_binding
     if node.node_id == FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID:
         return _first_paper_composition_qualification_binding_current(payload)
+    if node.node_id == FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID:
+        return _first_paper_deterministic_use_case_binding_current(payload)
     if node.role in {"protocol_input", "fixture"}:
         return True
     if node.node_id == "runtime_affordance":
@@ -1949,7 +2522,10 @@ def _artifact_source_binding_current(
 def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
     if node.role in {"protocol_input", "development_diagnostic", "fixture"}:
         return "not_applicable"
-    if node.node_id == FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID:
+    if node.node_id in {
+        FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID,
+        FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID,
+    }:
         return "passed" if payload.get("status") == "passed" else "blocked"
     if node.node_id == "backend_candidate":
         return "passed" if payload.get("backend_contract_validated") else "blocked"
@@ -2067,6 +2643,17 @@ def _write_current_registry() -> None:
         raise RuntimeError(
             "refusing to bind first-paper composition qualification: "
             + "; ".join(composition_qualification_errors)
+        )
+    deterministic_use_cases = load_json_object(
+        ROOT / node_map()[FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID].path
+    )
+    deterministic_use_case_errors = _first_paper_deterministic_use_case_binding_errors(
+        deterministic_use_cases
+    )
+    if deterministic_use_case_errors:
+        raise RuntimeError(
+            "refusing to bind first-paper deterministic use-case qualification: "
+            + "; ".join(deterministic_use_case_errors)
         )
     work_i_derived = load_json_object(ROOT / node_map()["work_i_fvl_derived_data"].path)
     work_i_derived_manifest = load_json_object(
@@ -2566,6 +3153,9 @@ def _write_current_registry() -> None:
         "composition_qualification_report": node_map()[
             FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID
         ].path,
+        "deterministic_use_case_qualification_report": node_map()[
+            FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID
+        ].path,
         "derived_data": node_map()["work_i_fvl_derived_data"].path,
         "derived_data_manifest": node_map()["work_i_fvl_derived_manifest"].path,
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
@@ -2926,6 +3516,18 @@ def check_current_evidence() -> list[str]:
         errors.append("composition qualification evidence node is not current")
     if composition_node.get("gate_state") != "passed":
         errors.append("composition qualification evidence gate did not pass")
+    deterministic_use_case_path = (
+        ROOT / node_map()[FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID].path
+    )
+    deterministic_use_cases = load_json_object(deterministic_use_case_path)
+    errors.extend(_first_paper_deterministic_use_case_binding_errors(deterministic_use_cases))
+    deterministic_node = recorded_nodes.get(FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID, {})
+    if deterministic_node.get("artifact_state") != "current":
+        errors.append("deterministic use-case evidence node is not current")
+    if deterministic_node.get("freshness") != "fresh":
+        errors.append("deterministic use-case evidence node is not fresh")
+    if deterministic_node.get("gate_state") != "passed":
+        errors.append("deterministic use-case evidence gate did not pass")
     expected_backend_validation = (
         "passed" if backend.get("backend_contract_validated") else "blocked"
     )
@@ -3038,6 +3640,9 @@ def check_current_evidence() -> list[str]:
         ),
         "composition_qualification_report": (
             "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
+        ),
+        "deterministic_use_case_qualification_report": (
+            "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1.json"
         ),
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
         "remaining_experiment_audit": (

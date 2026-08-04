@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import runpy
 from pathlib import Path
@@ -33,17 +34,28 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert "pre_arxiv_claim_evidence_ledger" in node_ids
     assert "task_design_matrix" in node_ids
     assert "first_paper_composition_qualification" in node_ids
-    qualification = {
-        node.node_id: node for node in nodes
-    }["first_paper_composition_qualification"]
+    qualification = {node.node_id: node for node in nodes}["first_paper_composition_qualification"]
     assert qualification.path == (
-        "workstreams/arxiv_v1/reports/"
-        "first-paper-composition-qualification-v1.json"
+        "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
     )
     assert qualification.role == "formal_result"
     assert qualification.dependencies == ("task_design_matrix",)
     assert qualification.command is None
     assert pipeline["_node_lifecycle"](qualification) == "immutable"
+    deterministic = {node.node_id: node for node in nodes}[
+        "first_paper_deterministic_use_case_qualification"
+    ]
+    assert deterministic.path == (
+        "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1.json"
+    )
+    assert deterministic.role == "formal_result"
+    assert deterministic.dependencies == (
+        "task_design_matrix",
+        "first_paper_composition_qualification",
+        "work_i_world_fork_qualification",
+    )
+    assert deterministic.command is None
+    assert pipeline["_node_lifecycle"](deterministic) == "immutable"
     assert {
         "work_i_world_fork_qualification",
         "work_i_world_fork_certificate",
@@ -147,6 +159,59 @@ def test_first_paper_composition_qualification_binding_fails_closed() -> None:
             },
         },
     ]
+
+    assert all(validate(mutated) is False for mutated in mutations)
+
+
+def test_first_paper_deterministic_use_case_binding_fails_closed() -> None:
+    pipeline = _pipeline()
+    node = {item.node_id: item for item in pipeline["NODES"]}[
+        "first_paper_deterministic_use_case_qualification"
+    ]
+    payload = json.loads(Path(node.path).read_text(encoding="utf-8"))
+    validate = pipeline["_first_paper_deterministic_use_case_binding_current"]
+
+    assert validate(payload) is True
+
+    mutations = []
+    stale_status = copy.deepcopy(payload)
+    stale_status["status"] = "failed"
+    mutations.append(stale_status)
+
+    stale_denominator = copy.deepcopy(payload)
+    stale_denominator["denominators"]["submitted_action_count"] = 88
+    mutations.append(stale_denominator)
+
+    missing_receipt = copy.deepcopy(payload)
+    missing_receipt["cases"][0]["step_receipts"].pop()
+    mutations.append(missing_receipt)
+
+    stale_transaction = copy.deepcopy(payload)
+    stale_transaction["cases"][0]["step_receipts"][0]["transaction"]["status"] = "rolled_back"
+    mutations.append(stale_transaction)
+
+    stale_resource = copy.deepcopy(payload)
+    stale_resource["cases"][0]["step_receipts"][0]["resource_reconciliation"][
+        "resource_reconciled"
+    ] = False
+    mutations.append(stale_resource)
+
+    stale_rollback = copy.deepcopy(payload)
+    u03 = next(case for case in stale_rollback["cases"] if case["case_id"] == "U03/E01")
+    u03["step_receipts"][0]["rollback_recovery_receipt"]["ghost_state_preserved"] = False
+    mutations.append(stale_rollback)
+
+    stale_existing = copy.deepcopy(payload)
+    stale_existing["existing_evidence"]["U04"]["binding"]["expected_sha256"] = "0" * 64
+    mutations.append(stale_existing)
+
+    stale_source = copy.deepcopy(payload)
+    stale_source["source_binding"]["experiment_note"]["sha256"] = "0" * 64
+    mutations.append(stale_source)
+
+    stale_action = copy.deepcopy(payload)
+    stale_action["cases"][0]["actions"][0]["volume_L"] = 0.03
+    mutations.append(stale_action)
 
     assert all(validate(mutated) is False for mutated in mutations)
 
@@ -287,6 +352,17 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert publication["composition_qualification_report"] == (
         "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
     )
+    assert publication["deterministic_use_case_qualification_report"] == (
+        "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1.json"
+    )
+    deterministic_report = Path(publication["deterministic_use_case_qualification_report"])
+    deterministic_node = current["evidence_dag"]["nodes"][
+        "first_paper_deterministic_use_case_qualification"
+    ]
+    assert deterministic_node["sha256"] == pipeline["file_sha256"](deterministic_report)
+    assert deterministic_node["artifact_state"] == "current"
+    assert deterministic_node["freshness"] == "fresh"
+    assert deterministic_node["gate_state"] == "passed"
     assert not any(
         "composition_qualification" in key and key != "composition_qualification_report"
         for key in publication
