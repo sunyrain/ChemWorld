@@ -253,7 +253,7 @@ def test_manuscript_results_follow_the_frozen_six_figure_contract() -> None:
     method_headings = [
         "## 10.1 Registered apparatus and transaction qualification",
         "## 10.2 Frozen world-fork protocol",
-        "## 10.3 Frozen known-policy validation",
+        "## 10.3 Frozen known-policy profile qualification",
         "## 10.4 Compiled-control protocol",
         "## 10.5 Primitive-control protocol and resource ledger",
         "## 10.6 Latent-terminal counterfactual and censoring",

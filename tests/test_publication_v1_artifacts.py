@@ -101,7 +101,7 @@ def test_display_legend_order_and_data_card_match_the_arxiv_release() -> None:
     )
     expected_titles = [
         "ChemWorld apparatus and controlled world forks.",
-        "Known policies validate the experimental-agency profile.",
+        "Known policies qualify the experimental-process profile.",
         "Lifecycle completion does not specify terminal policy.",
         "Compiled controls separate outcome, prediction, calibration and claims.",
         "Primitive-control agents expose complete experimental lifecycles.",

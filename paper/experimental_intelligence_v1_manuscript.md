@@ -1238,57 +1238,70 @@ the identities of the PDF, source archives and included source files.
 # Appendix C. Complete experimental-process metric dictionary
 
 The authoritative profile contract is
-`chemworld.experimental_agency_profile@0.1.0` with SHA-256
-`01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262`.
+\breakcode{chemworld.experimental_agency_profile@0.1.0} with SHA-256
+\breakcode{01e3cb3ff5c7b2455fd998fb5eebdd1932931c6fef2d5125632b103d79a34262}.
 The schema name is retained for artifact identity; the measured object in this paper is
 the operational experimental-process profile. Let $P$ be planned lifecycles, $C$ closed
 lifecycles, $A$ final assays, $D$ discards and $M$ closed lifecycles containing a committed
 non-final measurement. A missing denominator produces `null`, never zero.
 
-**Terminal commitment.** `closed_lifecycle_fraction` is $C/P$;
-`assay_fraction` is $A/C$; and `discard_fraction` is $D/C$. Each is in $[0,1]$.
+**Terminal commitment.** \breakcode{closed_lifecycle_fraction} is $C/P$;
+\breakcode{assay_fraction} is $A/C$; and \breakcode{discard_fraction} is $D/C$. Each is in $[0,1]$.
 The latter two are null when $C=0$ and sum to one otherwise.
 
-**Evidence acquisition.** `measured_lifecycle_fraction` is $M/C$ in $[0,1]$.
-`nonfinal_instrument_uses_per_closed_lifecycle` is the number of committed non-final
-instrument uses divided by $C$ and is nonnegative. `mean_first_measurement_operation_fraction`
+**Evidence acquisition.** \breakcode{measured_lifecycle_fraction} is $M/C$ in $[0,1]$.
+\breakcode{nonfinal_instrument_uses_per_closed_lifecycle} is the number of committed non-final
+instrument uses divided by $C$ and is nonnegative. \breakcode{mean_first_measurement_operation_fraction}
 is the mean registered within-lifecycle position of the first committed non-final
 measurement, normalized to $[0,1]$ across measured lifecycles; it is null when $M=0$.
 
-**Evidence-conditioned action.** `continued_after_measurement_fraction` is the number of
+**Evidence-conditioned action.** \breakcode{continued_after_measurement_fraction} is the number of
 closed lifecycles with a committed physical process operation after their first committed
-non-final measurement, divided by $C$. `post_measure_process_operations_per_closed_lifecycle`
-is the corresponding operation count divided by $C$. `threshold_eligible_fraction` is
+non-final measurement, divided by $C$. \breakcode{post_measure_process_operations_per_closed_lifecycle}
+is the corresponding operation count divided by $C$. \breakcode{threshold_eligible_fraction} is
 the number of closed lifecycles with a finite preregistered diagnostic signal divided by
-$C$. `threshold_decision_concordance` is the fraction of eligible lifecycles whose assay
+$C$. \breakcode{threshold_decision_concordance} is the fraction of eligible lifecycles whose assay
 or discard agrees with that signal rule. Fractions are in $[0,1]$; counts per lifecycle
 are nonnegative; concordance is null with no eligible lifecycle.
 
-**Resource deployment.** `attempted_operations_per_closed_lifecycle` and
-`committed_operations_per_closed_lifecycle` divide their respective event counts by $C$.
-`total_cost_per_closed_lifecycle` and `total_risk_per_closed_lifecycle` divide campaign-
+**Resource deployment.** \breakcode{attempted_operations_per_closed_lifecycle} and
+\breakcode{committed_operations_per_closed_lifecycle} divide their respective event counts by $C$.
+\breakcode{total_cost_per_closed_lifecycle} and \breakcode{total_risk_per_closed_lifecycle} divide campaign-
 ledger deltas by $C$. All four are nonnegative and null when $C=0$. Charged failed-attempt
 penalties remain included; rejected candidate-state changes do not create committed
 material debits.
 
 **Outcome trajectory.** For the ordered committed final-assay scores $s_1,\ldots,s_K$,
-`global_best_discovery_fraction` is the normalized first position of the best score
-observed in that campaign; `online_incumbent_retention_rate` is the fraction of later
+\breakcode{global_best_discovery_fraction} is the normalized first position of the best score
+observed in that campaign; \breakcode{online_incumbent_retention_rate} is the fraction of later
 assays retaining the registered fraction of the prior incumbent;
-`maximum_absolute_incumbent_drawdown` is the largest incumbent-minus-current score loss;
-`loss_episode_recovery_rate` is the recovered-loss-episode fraction; and
-`terminal_to_global_best_ratio` is $s_K/\max_t s_t$. Fraction and ratio metrics lie in
+\breakcode{maximum_absolute_incumbent_drawdown} is the largest incumbent-minus-current score loss;
+\breakcode{loss_episode_recovery_rate} is the recovered-loss-episode fraction; and
+\breakcode{terminal_to_global_best_ratio} is $s_K/\max_t s_t$. Fraction and ratio metrics lie in
 $[0,1]$ and drawdown is in score units. The first and last are null without a positive
 assay sequence, retention and drawdown are null with fewer than two assays, and recovery
-is null without a loss episode. `mean_assayed_score` and `best_assayed_score` are endpoint
+is null without a loss episode. \breakcode{mean_assayed_score} and \breakcode{best_assayed_score} are endpoint
 context outside the 19-metric profile and never enter a composite score.
 
+```{=latex}
+\iffalse
+```
+
 # Appendix D. Validation coverage across the 15 registered tasks
+
+All 15 contracts have executable design qualification, five have audited compiled-
+participant campaigns, two enter the paper's formal compiled-control statistics, and only
+electrochemical conversion has primitive-control complete-system evidence. The matrix is
+a coverage disclosure, not evidence that an unmarked cell would fail.
+
+```{=latex}
+\fi
+```
 
 ```{=latex}
 \begin{table*}[t]
 \centering
-\caption{\textbf{Task-level validation coverage.} E denotes executable midpoint and boundary-recipe qualification; F, a registered world fork; K, known-policy profiling; C, compiled complete-experiment participant campaigns (F = formal in this paper, D = development only); P, primitive-control complete-system execution; R, task-specific exact trajectory replay; and S, a Work I statistical result. A dash means that the evidence layer was not run for that task.}
+\caption{\textbf{Appendix D. Validation coverage across the 15 registered tasks.} E denotes executable midpoint and boundary-recipe qualification; F, a registered world fork; K, known-policy profiling; C, compiled complete-experiment participant campaigns (F = formal in this paper, D = development only); P, primitive-control complete-system execution; R, task-specific exact trajectory replay; and S, a Work I statistical result. A dash means that the evidence layer was not run for that task. All 15 contracts have executable design qualification, five have audited compiled-participant campaigns, two enter the paper's formal compiled-control statistics, and only electrochemical conversion has primitive-control complete-system evidence. The matrix is a coverage disclosure, not evidence that an unmarked cell would fail.}
 \label{tab:task-coverage}
 \scriptsize
 \begin{tabularx}{\textwidth}{@{}Xccccccc@{}}
@@ -1314,8 +1327,3 @@ tool-agent-planning & Y & -- & -- & -- & -- & -- & -- \\
 \end{tabularx}
 \end{table*}
 ```
-
-Thus all 15 contracts have executable design qualification, five have audited compiled-
-participant campaigns, two enter the paper's formal compiled-control statistics, and only
-electrochemical conversion has primitive-control complete-system evidence. The matrix is
-a coverage disclosure, not evidence that an unmarked cell would fail.
