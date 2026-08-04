@@ -295,7 +295,9 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     assert "correspondence: 'jane.scientist@university.edu'" in injected
     assert "author_block:" not in injected
     assert "publicly archived by Zenodo" in injected
-    assert "1,441-file index recorded in the versioned release manifest" in injected
+    assert "permits inspection of the raw execution records" in injected
+    assert "SHA-256" not in injected
+    assert "versioned release manifest" not in injected
     assert finalizer.inject_manuscript_metadata(injected, ready) == injected
     rendered_readme = finalizer.render_release_readme(
         (RELEASE / "README.md").read_text(encoding="utf-8"), ready

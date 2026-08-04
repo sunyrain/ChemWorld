@@ -114,6 +114,11 @@ def test_manifest_binds_sources_outputs_and_counting_boundary() -> None:
     png = (output_dir / f"{OUTPUT_STEM}.png").read_bytes()
     assert "<text" in svg
     assert "Primitive-control agents expose" not in svg
+    assert "SHA-256" not in svg
+    assert "cell-01" not in svg
+    assert "receipt hashes" not in svg
+    assert "budget contract" in svg
+    assert "reconciled receipt" in svg
     assert pdf.startswith(b"%PDF") and b"/FontFile2" in pdf
     assert int.from_bytes(png[16:20], "big") == 2124
     assert int.from_bytes(png[20:24], "big") == 1560

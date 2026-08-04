@@ -62,9 +62,9 @@ def _environment_table(data: Mapping[str, Any]) -> list[str]:
     q = data["environment_qualification"]
     scope = data["paper_scope"]
     rows = [
-        ("registered task designs", q["registered_tasks"], "release surface"),
-        ("typed operation types", q["registered_operations"], "release surface"),
-        ("instrument types", q["registered_instruments"], "release surface"),
+        ("registered task designs", q["registered_tasks"], "instrument surface"),
+        ("typed operation types", q["registered_operations"], "instrument surface"),
+        ("instrument types", q["registered_instruments"], "instrument surface"),
         (
             "deterministic complete-experiment cases",
             q["deterministic_complete_experiment_cases"],
@@ -92,7 +92,7 @@ def _g0_table(data: Mapping[str, Any]) -> list[str]:
             continue
         rows.append(
             (
-                row["task_id"],
+                row["task_id"].replace("-", " ").capitalize(),
                 row["arm"],
                 row["world_count"],
                 row["primary_score_mean"],
@@ -166,7 +166,8 @@ def _g2_v05_table(data: Mapping[str, Any]) -> list[str]:
     replication = data["g2_v0_5"]
     if replication is None:
         return [
-            "G2 v0.5 is not terminal. The preregistered 20-cell matrix remains absent from the",
+            "The fresh-session study is not complete. Its prespecified 20-cell matrix "
+            "remains absent from the",
             "paper data object, so no interim replication values are rendered here.",
         ]
     rows = []
@@ -175,9 +176,9 @@ def _g2_v05_table(data: Mapping[str, Any]) -> list[str]:
         rows.append(
             (
                 row["world_seed"],
-                row["trajectory_replicate_id"],
-                row["opaque_state"],
-                row["nominal_state"],
+                int(str(row["trajectory_replicate_id"]).removeprefix("r")),
+                row["opaque_state"].replace("_", "-"),
+                row["nominal_state"].replace("_", "-"),
                 None if delta is None else delta["best_final_score"],
                 None if delta is None else delta["terminal_final_score"],
                 None if delta is None else delta["final_score_mean"],
@@ -212,17 +213,15 @@ def _g2_v05_terminal_note(data: Mapping[str, Any]) -> list[str]:
     matrix = replication["matrix"]
     interpretation = replication["interpretation"]
     branch = interpretation["selected_branch"]
-    policy = interpretation["mapping_policy"]
     return [
         f"Terminal coverage: {matrix['completed_cell_count']} completed cells, "
         f"{matrix['right_censored_cell_count']} right-censored cells, and "
         f"{matrix['completed_pair_count']} complete pairs "
         f"({branch['completed_pairs_by_world']['1']} in world 1; "
         f"{branch['completed_pairs_by_world']['3']} in world 3).",
-        f"The frozen interpretation mapping selected `{branch['branch_id']}`: "
+        "The prespecified interpretation classified "
         f"{branch['mixed_world_by_core_metric_count']} of "
-        f"{branch['world_by_core_metric_count']} world-by-core-lifecycle classifications were "
-        f"mixed. Policy SHA-256: `{policy['sha256']}`.",
+        f"{branch['world_by_core_metric_count']} world-by-core-lifecycle classifications as mixed.",
         "The frozen categorical lifecycle summary is supporting; the main continuous endpoint "
         "diagnostic compares best score with algebraically independent raw terminal score.",
         "Provider sampling was not seed-controlled; the summary does not identify a causal "
@@ -238,11 +237,10 @@ def render(data: Mapping[str, Any]) -> str:
             "numeric display items"
         ),
         "",
-        f"Status: `{data['status']}`.",
-        f"Derived-data SHA-256: `{data['derived_data_sha256']}`.",
+        "Status: complete for the evidence reported below.",
         "",
-        "Every number in the tables below is rendered from the self-hashed arXiv derived-data",
-        "object. This file is intended for direct inclusion during manuscript typesetting.",
+        "Every number in the tables below is rendered from the frozen analysis data.",
+        "The tables and legends are formatted for direct manuscript typesetting.",
         "",
         "## Main tables",
         "",
@@ -253,22 +251,23 @@ def render(data: Mapping[str, Any]) -> str:
         "Counts for the environment surface are design qualifications, not claims of agent",
         "competence. Formal paper evidence covers fewer tasks than the registered surface.",
         "",
-        "### Table 2 | Compiled-control capability profiles (release label G0)",
+        "### Table 2 | Compiled-control capability profiles",
         "",
         *_g0_table(data),
         "",
         "Scores are means across ten simulator worlds. Dashes indicate endpoints that were not",
         "defined for that information arm; they are not zeroes. No composite score is formed.",
         "",
-        "### Table 3 | Primitive-control development trajectories (release label G2 v0.4)",
+        "### Table 3 | Primitive-control development trajectories",
         "",
         *_g2_v04_table(data),
         "",
         "Each arm contains five simulator-world cells and six completed vessels per cell.",
         "Operations are mean submitted primitive attempts per cell. These development data select",
-        "the worlds and endpoints for G2 v0.5 and are excluded from its replication estimand.",
+        "the worlds and endpoints for the fresh-session study and are excluded from its "
+        "replication estimand.",
         "",
-        "### Table 4 | Fresh primitive-control trajectories (release label G2 v0.5)",
+        "### Table 4 | Fresh primitive-control trajectories",
         "",
         *_g2_v05_table(data),
         "",
@@ -315,7 +314,8 @@ def render(data: Mapping[str, Any]) -> str:
         "per task; the ranges summarize finite-set resampling sensitivity rather than population",
         "confidence intervals. **B,** Held-out",
         "prediction and calibration are displayed as separate raw metrics. **C,** Opaque-arm",
-        "epistemic readouts retain registered missingness without imputation. **D,** Commit-frozen",
+        "epistemic readouts retain registered missingness without imputation. "
+        "**D,** Protocol-frozen",
         "manipulation, correction, performance-restoration and joint gates remain separate.",
         "Classical optimizers are calibration controls, not the target competition; the figure",
         "supports no scalar ranking or general population information effect.",
@@ -324,7 +324,7 @@ def render(data: Mapping[str, Any]) -> str:
         "**A,** One descriptive seven-operation lifecycle makes a UV-visible observation available",
         "before the next system decision and explicit final assay. **B,** The campaign resource",
         "receipt reports units and denominators outside the prompt. **C,** Identity, resource",
-        "events and exact executable replay align the public process record with audit state.",
+        "events and exact executable replay align the public process record with evaluator state.",
         "**D,** Failed, rejected and terminal actions retain their distinct transaction and",
         "closure",
         "semantics. Operations are repeated events within campaigns, not independent samples;",

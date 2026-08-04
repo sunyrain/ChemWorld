@@ -194,7 +194,8 @@ def test_active_manuscript_and_master_plan_use_the_frozen_scope() -> None:
     )
 
     assert manuscript.startswith(
-        '---\ntitle: "ChemWorld: A Programmable Virtual Instrument for Measuring Experimental Process Profiles"'
+        '---\ntitle: "ChemWorld: A Programmable Virtual Instrument for Measuring '
+        'Experimental Process Profiles"'
     )
     assert "[PENDING G2 v0.5" not in manuscript
     assert "29,580 simulator executions" in compact_manuscript
@@ -262,7 +263,7 @@ def test_manuscript_results_follow_the_frozen_six_figure_contract() -> None:
         "## 10.9 Sensitivity analyses",
         "## 10.10 First-launch infrastructure incident",
         "## 10.11 Scope-stopped multiworld extension",
-        "## 10.12 Provenance, public boundary and replay",
+        "## 10.12 Public boundary and replay",
     ]
     method_positions = [manuscript.index(heading) for heading in method_headings]
 
@@ -283,7 +284,20 @@ def test_manuscript_results_follow_the_frozen_six_figure_contract() -> None:
     assert "6/8 selected world-by-lifecycle cells were mixed" in compact
     assert "population-level model or information-effect claim" in compact
     assert "0.007984561379998922" in compact
-    assert "incomplete_full_report_required" in compact
+    assert "resource-ledger gate therefore retained the run as incomplete" in compact
+    for internal_term in (
+        "SHA-256",
+        "TASK_REGISTRY",
+        "OPERATION_TYPES",
+        "release label",
+        "work-i-known-policy-formal-k6-v1",
+        "current.json",
+        "history.jsonl",
+        "ddc55253",
+        "f539bfa7",
+        "aae0edac",
+    ):
+        assert internal_term not in manuscript
 
 
 def test_all_tracked_evidence_and_execution_entrypoints_exist() -> None:

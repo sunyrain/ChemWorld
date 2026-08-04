@@ -1,12 +1,17 @@
 # Work I Master TODO — Programmable Chemical Worlds
 
-版本：1.1
+> **RETIRED 2026-08-04.** This file is a historical coordination record and is no
+> longer an execution authority. Do not add claims or task rows after `W1-R01`.
+> Current first-paper work is organized by scientific claim and evidence in
+> `FIRST_PAPER_EVIDENCE_PLAN.md`.
 
-最后更新：2026-08-03
+版本：1.1（历史快照）
 
-状态：`ACTIVE / CLAIM-DRIVEN / PARALLEL-READY`
+退役日期：2026-08-04
 
-本文件是第一篇论文的唯一主控 TODO。它负责协调代码、实验、论文、图表、证据和发布；历史计划只作为背景，不覆盖本文件的任务边界、认领状态和完成定义。
+状态：`RETIRED`
+
+下文保留退役时的任务、认领和完成记录，仅用于追溯，不再规定当前工作。
 
 ## 0. 第一篇的最终目标
 

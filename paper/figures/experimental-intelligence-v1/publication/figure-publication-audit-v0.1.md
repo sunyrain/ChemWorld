@@ -1,7 +1,7 @@
 # Work I publication figure audit
 
 Status: **PASS**  
-Audit SHA-256: `85a19484373544734f1f563aecb0f2587fb25c5b9ade43118feda637926f5412`
+Audit SHA-256: `b520ec0bcdd09819b76959f2e67ee95f3df403f77a038bc9a4dad1b929312cc0`
 
 The canonical inventory is resolved from the frozen P01 figure system. No figure was rewritten.
 

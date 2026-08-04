@@ -107,6 +107,10 @@ def test_manifest_binds_sources_outputs_and_claim_boundary() -> None:
     png = (output_dir / f"{OUTPUT_STEM}.png").read_bytes()
     assert "<text" in svg
     assert "Fresh trajectories reveal process structure" not in svg
+    assert "r01" not in svg
+    assert "r05" not in svg
+    assert "rep. 1" in svg
+    assert "rep. 5" in svg
     assert pdf.startswith(b"%PDF") and b"/FontFile2" in pdf
     assert int.from_bytes(png[16:20], "big") == 2124
     assert int.from_bytes(png[20:24], "big") == 1560

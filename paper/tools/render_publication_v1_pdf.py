@@ -74,8 +74,6 @@ def _canonical_sha(value: dict[str, Any]) -> str:
 
 
 def _md(value: str) -> str:
-    # Keep LaTeX-only breakable identifiers readable in the HTML/PDF proof.
-    value = re.sub(r"\\breakcode\{([^{}]+)\}", lambda match: f"`{match.group(1)}`", value)
     return markdown.markdown(
         value,
         extensions=["tables", "fenced_code", "sane_lists"],

@@ -34,7 +34,7 @@ FIGURES = (
     (
         "F2",
         "figure-2-known-policy-validity",
-        "Known policies validate the experimental-agency profile.",
+        "Known policies qualify the experimental-process profile.",
     ),
     (
         "F3",
@@ -57,6 +57,10 @@ FIGURES = (
         "Fresh trajectories reveal process structure omitted by endpoints.",
     ),
 )
+
+EVIDENCE_TITLES = {
+    "F2": "Known policies validate the experimental-agency profile",
+}
 
 
 class FigureIntegrationError(RuntimeError):
@@ -155,7 +159,8 @@ def build_integration_manifest(root: Path = ROOT) -> dict[str, Any]:
         per_figure = _read_json(resolved / manifest_path)
         if (
             per_figure.get("manifest_sha256") != audit_row.get("manifest_sha256")
-            or per_figure.get("title") != title.removesuffix(".")
+            or per_figure.get("title")
+            != EVIDENCE_TITLES.get(figure_id, title.removesuffix("."))
             or audit_row.get("status") != "PASS"
         ):
             raise FigureIntegrationError(f"per-figure identity or audit changed: {figure_id}")

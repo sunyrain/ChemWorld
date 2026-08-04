@@ -143,6 +143,8 @@ def test_manifest_binds_sources_and_publication_outputs() -> None:
     png = (output_dir / f"{OUTPUT_STEM}.png").read_bytes()
     assert "<text" in svg
     assert "Lifecycle completion does not specify terminal policy" not in svg
+    assert "cell-02" not in svg
+    assert "one cell is structurally undefined" in svg
     assert pdf.startswith(b"%PDF") and b"/FontFile2" in pdf
     assert int.from_bytes(png[16:20], "big") == 2124
     assert int.from_bytes(png[20:24], "big") == 1560

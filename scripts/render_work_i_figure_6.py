@@ -296,9 +296,17 @@ def _draw_panel_a(ax: Any, pairs: list[dict[str, Any]], colors: Mapping[str, str
     _panel(ax, "A", "Fresh matched sessions retain planned coverage", colors)
     ax.set_axis_off()
     lookup = {(int(row["world_seed"]), str(row["trajectory_replicate_id"])): row for row in pairs}
-    for column, replicate in enumerate(REPLICATE_ORDER):
+    for column, _replicate in enumerate(REPLICATE_ORDER):
         x = 0.22 + column * 0.15
-        ax.text(x, 0.84, replicate, transform=ax.transAxes, ha="center", va="center", fontsize=6.5)
+        ax.text(
+            x,
+            0.84,
+            f"rep. {column + 1}",
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=6.5,
+        )
     for row_index, world in enumerate(WORLD_ORDER):
         y = 0.64 - row_index * 0.31
         ax.text(
@@ -386,8 +394,14 @@ def _draw_panel_b(ax: Any, complete_pairs: list[dict[str, Any]], colors: Mapping
     ax.axvline(0, color=colors["mid_gray"], linewidth=0.7, linestyle="--")
     ax.set_xlim(-0.45, 0.55)
     ax.set_ylim(-1.5, 7.7)
+    replicate_labels = {replicate: index + 1 for index, replicate in enumerate(REPLICATE_ORDER)}
     ax.set_yticks(
-        y_positions, [f"w{row['world_seed']} / {row['trajectory_replicate_id']}" for row in ordered]
+        y_positions,
+        [
+            f"world {row['world_seed']} / rep. "
+            f"{replicate_labels[row['trajectory_replicate_id']]}"
+            for row in ordered
+        ],
     )
     ax.set_xlabel("nominal - opaque score contrast")
     ax.grid(axis="x", color=colors["grid_gray"], linewidth=0.45)
@@ -480,7 +494,14 @@ def _draw_panel_d(
                 hatch=None if complete else "///",
             )
         )
-        ax.text(x + 0.0325, 0.685, str(index + 1), transform=ax.transAxes, ha="center", fontsize=6.2)
+        ax.text(
+            x + 0.0325,
+            0.685,
+            str(index + 1),
+            transform=ax.transAxes,
+            ha="center",
+            fontsize=6.2,
+        )
     ax.text(
         0.50,
         0.63,

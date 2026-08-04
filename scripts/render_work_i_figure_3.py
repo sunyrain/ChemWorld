@@ -693,7 +693,7 @@ def _draw_panel_d(
     ax.text(
         0.02,
         0.02,
-        "support bounds, not confidence intervals; cell-02 is a structural null",
+        "support bounds, not confidence intervals; one cell is structurally undefined",
         transform=ax.transAxes,
         ha="left",
         va="bottom",

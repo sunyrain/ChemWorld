@@ -22,7 +22,9 @@ def test_display_items_are_regenerated_from_the_bound_data(tmp_path: Path) -> No
     data = json.loads(DERIVED.read_text(encoding="utf-8"))
     assert result.returncode == (0 if data["g2_v0_5"] is not None else 2)
     rendered = output.read_text(encoding="utf-8")
-    assert data["derived_data_sha256"] in rendered
+    assert data["derived_data_sha256"] not in rendered
+    assert "SHA-256" not in rendered
+    assert "release label" not in rendered
     assert "### Table 1" in rendered
     assert "### Table 4" in rendered
     titles = [
@@ -41,15 +43,12 @@ def test_display_items_are_regenerated_from_the_bound_data(tmp_path: Path) -> No
         assert "no interim replication values are rendered" in rendered
     else:
         replication = data["g2_v0_5"]
-        branch = replication["interpretation"]["selected_branch"]
-        policy = replication["interpretation"]["mapping_policy"]
         matrix = replication["matrix"]
-        assert branch["branch_id"] in rendered
+        assert "prespecified interpretation classified 6 of 8" in rendered
         assert "main continuous endpoint diagnostic" in rendered
         assert "does not identify a causal provider effect" in rendered
         assert "variance-dominance relation" in rendered
         assert "provider-trajectory variability dominated" not in rendered
-        assert policy["sha256"] in rendered
         assert f"{matrix['completed_cell_count']} completed cells" in rendered
         assert f"{matrix['right_censored_cell_count']} right-censored cells" in rendered
         assert f"{matrix['completed_pair_count']} complete pairs" in rendered

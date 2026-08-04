@@ -1,10 +1,9 @@
 # ChemWorld: A Programmable Virtual Instrument for Measuring Experimental Process Profiles: numeric display items
 
-Status: `frozen_complete`.
-Derived-data SHA-256: `1d639b09215ade3b84e9c2e5a9e30479fed1387890ab272d29b0996e7a06a2c4`.
+Status: complete for the evidence reported below.
 
-Every number in the tables below is rendered from the self-hashed arXiv derived-data
-object. This file is intended for direct inclusion during manuscript typesetting.
+Every number in the tables below is rendered from the frozen analysis data.
+The tables and legends are formatted for direct manuscript typesetting.
 
 ## Main tables
 
@@ -12,9 +11,9 @@ object. This file is intended for direct inclusion during manuscript typesetting
 
 | Quantity | Count | Evidence level |
 | --- | --- | --- |
-| registered task designs | 15 | release surface |
-| typed operation types | 28 | release surface |
-| instrument types | 5 | release surface |
+| registered task designs | 15 | instrument surface |
+| typed operation types | 28 | instrument surface |
+| instrument types | 5 | instrument surface |
 | deterministic complete-experiment cases | 415 | design qualification |
 | declared endpoints bound to evaluators | 62 | design qualification |
 | tasks with formal compiled-agent results | 2 | paper evidence |
@@ -23,21 +22,21 @@ object. This file is intended for direct inclusion during manuscript typesetting
 Counts for the environment surface are design qualifications, not claims of agent
 competence. Formal paper evidence covers fewer tasks than the registered surface.
 
-### Table 2 | Compiled-control capability profiles (release label G0)
+### Table 2 | Compiled-control capability profiles
 
 | Task | Information arm | Worlds | Final score | Held-out accuracy | Brier | Structure F1 | Mechanism F1 | Unsupported claims |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| electrochemical-conversion | opaque | 10 | 0.715 | 0.744 | 0.186 | 0.389 | 0.190 | 0.611 |
-| electrochemical-conversion | nominal | 10 | 0.787 | 0.778 | 0.149 | not measured | not measured | not measured |
-| electrochemical-conversion | misindexed | 10 | 0.685 | 0.711 | 0.209 | not measured | not measured | not measured |
-| reaction-to-crystallization | opaque | 10 | 0.535 | 0.478 | 0.298 | 0.275 | 0.144 | 0.714 |
-| reaction-to-crystallization | nominal | 10 | 0.562 | 0.433 | 0.316 | not measured | not measured | not measured |
-| reaction-to-crystallization | misindexed | 10 | 0.584 | 0.433 | 0.316 | not measured | not measured | not measured |
+| Electrochemical conversion | opaque | 10 | 0.715 | 0.744 | 0.186 | 0.389 | 0.190 | 0.611 |
+| Electrochemical conversion | nominal | 10 | 0.787 | 0.778 | 0.149 | not measured | not measured | not measured |
+| Electrochemical conversion | misindexed | 10 | 0.685 | 0.711 | 0.209 | not measured | not measured | not measured |
+| Reaction to crystallization | opaque | 10 | 0.535 | 0.478 | 0.298 | 0.275 | 0.144 | 0.714 |
+| Reaction to crystallization | nominal | 10 | 0.562 | 0.433 | 0.316 | not measured | not measured | not measured |
+| Reaction to crystallization | misindexed | 10 | 0.584 | 0.433 | 0.316 | not measured | not measured | not measured |
 
 Scores are means across ten simulator worlds. Dashes indicate endpoints that were not
 defined for that information arm; they are not zeroes. No composite score is formed.
 
-### Table 3 | Primitive-control development trajectories (release label G2 v0.4)
+### Table 3 | Primitive-control development trajectories
 
 | Arm | Cells | Completion | Operations | Best score | Batch AUC | Realized-op AUC | Fixed-budget AUC | Discovery fraction | Retention | Max drawdown | Terminal / best | Recovery |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -46,27 +45,27 @@ defined for that information arm; they are not zeroes. No composite score is for
 
 Each arm contains five simulator-world cells and six completed vessels per cell.
 Operations are mean submitted primitive attempts per cell. These development data select
-the worlds and endpoints for G2 v0.5 and are excluded from its replication estimand.
+the worlds and endpoints for the fresh-session study and are excluded from its replication estimand.
 
-### Table 4 | Fresh primitive-control trajectories (release label G2 v0.5)
+### Table 4 | Fresh primitive-control trajectories
 
 | World | Replicate | Opaque state | Nominal state | Δ best score | Δ raw terminal | Δ mean score | Δ discovery | Δ retention | Δ drawdown | Δ terminal / best |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | r01 | completed | right_censored | not measured | not measured | not measured | not measured | not measured | not measured | not measured |
-| 1 | r02 | completed | completed | 0.285 | 0.301 | 0.304 | 0.000 | 0.200 | -0.273 | 0.035 |
-| 1 | r03 | completed | completed | -0.143 | 0.003 | -0.074 | 0.400 | 0.400 | -0.306 | 0.173 |
-| 1 | r04 | completed | completed | 0.170 | 0.114 | 0.144 | -0.400 | 0.000 | 0.045 | -0.073 |
-| 1 | r05 | completed | completed | 0.381 | 0.473 | 0.429 | -0.400 | 0.000 | -0.040 | 0.319 |
-| 3 | r01 | completed | completed | -0.167 | 0.240 | -0.121 | 0.600 | 0.400 | -0.463 | 0.486 |
-| 3 | r02 | completed | completed | -0.368 | -0.372 | -0.236 | -0.800 | -0.200 | 0.057 | -0.007 |
-| 3 | r03 | completed | completed | 0.001 | 0.001 | -0.009 | 0.000 | 0.000 | -0.028 | 0.000 |
-| 3 | r04 | completed | completed | 0.253 | 0.204 | 0.291 | -0.200 | 0.000 | 0.030 | -0.060 |
-| 3 | r05 | right_censored | completed | not measured | not measured | not measured | not measured | not measured | not measured | not measured |
+| 1 | 1 | completed | right-censored | not measured | not measured | not measured | not measured | not measured | not measured | not measured |
+| 1 | 2 | completed | completed | 0.285 | 0.301 | 0.304 | 0.000 | 0.200 | -0.273 | 0.035 |
+| 1 | 3 | completed | completed | -0.143 | 0.003 | -0.074 | 0.400 | 0.400 | -0.306 | 0.173 |
+| 1 | 4 | completed | completed | 0.170 | 0.114 | 0.144 | -0.400 | 0.000 | 0.045 | -0.073 |
+| 1 | 5 | completed | completed | 0.381 | 0.473 | 0.429 | -0.400 | 0.000 | -0.040 | 0.319 |
+| 3 | 1 | completed | completed | -0.167 | 0.240 | -0.121 | 0.600 | 0.400 | -0.463 | 0.486 |
+| 3 | 2 | completed | completed | -0.368 | -0.372 | -0.236 | -0.800 | -0.200 | 0.057 | -0.007 |
+| 3 | 3 | completed | completed | 0.001 | 0.001 | -0.009 | 0.000 | 0.000 | -0.028 | 0.000 |
+| 3 | 4 | completed | completed | 0.253 | 0.204 | 0.291 | -0.200 | 0.000 | 0.030 | -0.060 |
+| 3 | 5 | right-censored | completed | not measured | not measured | not measured | not measured | not measured | not measured | not measured |
 
 Deltas are nominal minus opaque within the same physical world and replicate block.
 The two deliberately selected worlds are not pooled into a population-level estimate.
 Terminal coverage: 18 completed cells, 2 right-censored cells, and 8 complete pairs (4 in world 1; 4 in world 3).
-The frozen interpretation mapping selected `frequent_within_world_reversal`: 6 of 8 world-by-core-lifecycle classifications were mixed. Policy SHA-256: `93604ce8af7211f35c5d3b896609addef6d436f3248f45aba3cc04a11da9d67e`.
+The prespecified interpretation classified 6 of 8 world-by-core-lifecycle classifications as mixed.
 The frozen categorical lifecycle summary is supporting; the main continuous endpoint diagnostic compares best score with algebraically independent raw terminal score.
 Provider sampling was not seed-controlled; the summary does not identify a causal provider effect or a variance-dominance relation.
 
@@ -109,7 +108,7 @@ did not add original agent experiments.
 per task; the ranges summarize finite-set resampling sensitivity rather than population
 confidence intervals. **B,** Held-out
 prediction and calibration are displayed as separate raw metrics. **C,** Opaque-arm
-epistemic readouts retain registered missingness without imputation. **D,** Commit-frozen
+epistemic readouts retain registered missingness without imputation. **D,** Protocol-frozen
 manipulation, correction, performance-restoration and joint gates remain separate.
 Classical optimizers are calibration controls, not the target competition; the figure
 supports no scalar ranking or general population information effect.
@@ -118,7 +117,7 @@ supports no scalar ranking or general population information effect.
 **A,** One descriptive seven-operation lifecycle makes a UV-visible observation available
 before the next system decision and explicit final assay. **B,** The campaign resource
 receipt reports units and denominators outside the prompt. **C,** Identity, resource
-events and exact executable replay align the public process record with audit state.
+events and exact executable replay align the public process record with evaluator state.
 **D,** Failed, rejected and terminal actions retain their distinct transaction and
 closure
 semantics. Operations are repeated events within campaigns, not independent samples;

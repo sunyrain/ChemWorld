@@ -391,7 +391,7 @@ def _draw_panel_a(ax: Any, colors: Mapping[str, str]) -> None:
     ax.text(
         0.03,
         0.08,
-        "cell-01 · opaque · world seed 0 · descriptive example only",
+        "opaque condition · one simulated world · descriptive example",
         transform=ax.transAxes,
         ha="left",
         va="center",
@@ -461,7 +461,7 @@ def _draw_panel_b(
     ax.text(
         0.50,
         0.065,
-        "trajectory-event alignment verified · immutable receipt hashes bound",
+        "trajectory-event alignment verified · resource receipt reconciled",
         transform=ax.transAxes,
         ha="center",
         va="center",
@@ -474,8 +474,8 @@ def _draw_panel_c(ax: Any, colors: Mapping[str, str]) -> None:
     _panel(ax, "C", "Identity, resources and replay stay external", colors)
     ax.set_axis_off()
     controls = (
-        ("campaign identity", "cell · arm\nworld · vessel"),
-        ("resource authority", "card SHA-256\nledger SHA-256"),
+        ("campaign identity", "world · condition\nvessel · lifecycle"),
+        ("resource authority", "budget contract\nreconciled receipt"),
         ("event alignment", "trajectory ↔ receipt\nverified"),
         ("exact replay", "60/60 lifecycles\n10/10 paired cells"),
     )

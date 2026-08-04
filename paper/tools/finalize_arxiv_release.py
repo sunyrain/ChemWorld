@@ -301,17 +301,25 @@ def inject_manuscript_metadata(text: str, metadata: Mapping[str, Any]) -> str:
     provider = _markdown_escape(str(archive["provider"]))
     identifier = _markdown_escape(str(archive["identifier"]))
     new_paragraph = (
-        f"The indexed 17.7-GB compiled-control raw roots are publicly archived by "
-        f"{provider} under [{identifier}]({archive['url']}). "
-        f"The deposit is bound to the tracked {EXPECTED_RAW_FILE_COUNT:,}-file index recorded "
-        "in the versioned release manifest and contains "
-        f"{EXPECTED_RAW_BYTE_COUNT:,} bytes. A third party can therefore audit the raw-root "
-        "hashes in addition to regenerating the reported arithmetic and figures from tracked "
-        "summaries; unrestricted provider responses remain excluded and stochastic provider "
-        "decisions are not exactly reproducible."
+        f"The 17.7-GB compiled-control execution logs are publicly archived by "
+        f"{provider} under [{identifier}]({archive['url']}). The deposit permits inspection "
+        "of the raw execution records in addition to regeneration of the reported analyses "
+        "from processed data. Unrestricted provider responses remain excluded, and stochastic "
+        "provider decisions are not exactly reproducible."
     )
     availability_pattern = re.compile(
         r"(?:"
+        r"The larger compiled-control execution logs total 17\.7 GB and are not required to\n"
+        r"regenerate the reported analyses from the processed data\. "
+        r"They have not yet been placed\n"
+        r"in a durable public archive\. Without those logs or unrestricted provider responses, a\n"
+        r"third party can verify the reported arithmetic and figures, inspect the published\n"
+        r"evidence boundaries, and replay the released simulator trajectories, but cannot inspect\n"
+        r"every raw provider response\."
+        r"|"
+        r"The 17\.7-GB compiled-control execution logs are publicly archived by .*?"
+        r"provider decisions are not exactly reproducible\."
+        r"|"
         r"The 17\.7-GB compiled-control raw roots are bound by the public file-level hash "
         r"index but are not\n"
         r"included in the repository and have not yet received a durable external archive\n"
