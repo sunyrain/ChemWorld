@@ -231,18 +231,9 @@ def _g2_v05_terminal_note(data: Mapping[str, Any]) -> list[str]:
 
 
 def render(data: Mapping[str, Any]) -> str:
-    figure_5_state = (
-        "This legend becomes active only after the terminal G2 v0.5 audit is incorporated."
-        if data["g2_v0_5"] is None
-        else (
-            "All ten pre-specified trajectory pairs are shown; a dagger marks a right-censored "
-            "pair. Continuous signed contrasts are displayed without thresholding; the frozen "
-            "six-of-eight mixed classification remains a supporting sensitivity summary."
-        )
-    )
     sections: list[str] = [
         (
-            "# Executable Chemical Worlds Make Experimental Agency Measurable: "
+            "# Programmable Chemical Worlds Make Experimental Agency Measurable: "
             "numeric display items"
         ),
         "",
@@ -286,58 +277,68 @@ def render(data: Mapping[str, Any]) -> str:
         "",
         "## Figure legends",
         "",
-        "**Figure 1 | ChemWorld is a controlled apparatus for experimental intelligence.**",
-        "**A,** Closed-loop interaction between a hidden chemical world, one typed agent action,",
-        "the resulting state transition and a public measurement. **B,** Physical world, prior",
-        "information, agent authority, evidence access and resources are independently controlled",
-        "experimental axes. **C,** The auditable transition spine binds typed state, atomic",
-        "transaction, resource receipt, immutable trace and exact replay; invalid actions and",
-        "failures remain evidence. **D,** Qualified release surface. Counts establish declared",
-        "reachability and evaluator binding, not agent performance across all registered tasks.",
+        "**Figure 1 | ChemWorld apparatus and controlled world forks.**",
+        "**A,** An agent selects a typed action; the executable world returns only the public",
+        "observation while recording the identity-bound transition. **B,** Hidden simulator-world",
+        "and material identity, action authority, evidence access, resource accounting and replay",
+        "are separate protocol controls. **C,** The frozen qualification changes one named private",
+        "component while preserving nine public-contract components. **D,** Six parent-child pairs",
+        "and 24 provider-free traces passed the registered programmability gates. These probes",
+        "establish the tested executable-world interventions, not agent performance, arbitrary",
+        "world recombination, rule adaptation or physical transfer.",
         "",
-        (
-            "**Figure 2 | Compiled controls distinguish task outcome, information response "
-            "and epistemic readouts.**"
-        ),
-        "**A,** Paired nominal-minus-opaque score differences across ten worlds per task; squares",
-        "show means and multiplicity-adjusted 97.5% per-task world-bootstrap stability intervals.",
-        "**B,** World-level early-to-late misleading-action shares under a deliberately misindexed",
-        (
-            "material prior. **C,** Commit-frozen manipulation, correction, "
-            "performance-restoration and"
-        ),
-        "joint criteria. **D,** Raw task-level endpoint, held-out prediction, calibration and",
-        "unsupported-claim readouts. Circle area follows the favourable direction within each",
-        "metric column; printed labels retain the raw values.",
+        "**Figure 2 | Known policies validate the experimental-agency profile.**",
+        "**A,** Three frozen policies specify distinct evidence and terminal-decision structures.",
+        "**B,** Campaign-equal terminal profiles recover assay-all, threshold-gated and",
+        "immediate-discard signatures. **C,** Evidence acquisition, continued investment and",
+        "resource use remain separate readouts; registered undefined quantities remain null.",
+        "**D,** All 30 same-identity deterministic retests match their primary campaigns. The",
+        "primary evidence comprises 30 campaigns and 180 closed lifecycles; the additional 30",
+        "campaigns and 180 lifecycles are excluded reliability retests. This is a bounded positive",
+        "control in the simulated apparatus, not an endpoint, agent or model ranking.",
         "",
-        "**Figure 3 | Primitive-control agents close complete experimental lifecycles.**",
-        "**A,** One seven-operation vessel in which a UV-visible observation is available before",
-        "agent-selected termination and explicit final assay. **B,** All six vessels completed in",
-        "each of ten world-by-information development campaigns; navy denotes opaque codes and",
-        "coral denotes nominal properties. **C,** The immutable trajectory reconstructs the",
-        "campaign resource receipt. The example is descriptive and is not part of the",
-        "fresh-session replication estimand.",
+        "**Figure 3 | Lifecycle completion does not specify terminal policy.**",
+        "**A,** The 120 closed lifecycles partition into 84 final assays and 36 explicit discards:",
+        "60 assays for the Codex-based complete system and 24 assays plus 36 discards for the",
+        "DeepSeek-based complete system. **B,** Terminal commitments by matched simulator world",
+        "and information arm; system identities include model, scaffold, transport and run",
+        "configuration. **C,** All 36 registered discard identities remain in the latent-terminal",
+        "audit, with 6 resolved and 30 unresolved after the frozen entry gate failed.",
+        "**D,** Registered censoring and finite-population bounds replace latent-dependent point",
+        "estimates; the no-discard-opportunity cell remains structurally null. Shadow assays were",
+        "evaluator-only counterfactual evaluations, were not agent choices or observations, and",
+        "did not add original agent experiments.",
         "",
-        "**Figure 4 | Similar endpoints can arise from different experimental trajectories.**",
-        "Selected development worlds illustrate early discovery followed by loss, gradual",
-        "improvement, retention and terminal divergence. Open circles mark the first observed",
-        "campaign best; squares mark terminal assays. Navy denotes opaque material codes and coral",
-        "denotes nominal material properties. These examples motivate the lifecycle readouts but",
-        "are not the replication estimand.",
+        "**Figure 4 | Compiled controls separate outcome, prediction, calibration and claims.**",
+        "**A,** Paired nominal-minus-opaque endpoint differences across ten worlds per task, with",
+        "multiplicity-adjusted 97.5% per-task world-bootstrap stability intervals. **B,** Held-out",
+        "prediction and calibration are displayed as separate raw metrics. **C,** Opaque-arm",
+        "epistemic readouts retain registered missingness without imputation. **D,** Commit-frozen",
+        "manipulation, correction, performance-restoration and joint gates remain separate.",
+        "Classical optimizers are calibration controls, not the target competition; the figure",
+        "supports no scalar ranking or general population information effect.",
         "",
-        "**Figure 5 | Fresh trajectories expose information that endpoint summaries omit.**",
-        "**A,** Best-of-campaign and raw terminal contrasts for eight complete matched pairs;",
-        "shaded quadrants mark the two sign-discordant pairs. **B,** Continuous signed contrasts",
-        "for best score, raw terminal, discovery, retention, drawdown and relative retention.",
-        f"{figure_5_state}",
-        "Selection used the prior development matrix; those trajectories are excluded. Effects",
-        "are reported within world, with no pooled population-level test.",
+        "**Figure 5 | Primitive-control agents expose complete experimental lifecycles.**",
+        "**A,** One descriptive seven-operation lifecycle makes a UV-visible observation available",
+        "before the next system decision and explicit final assay. **B,** The campaign resource",
+        "receipt reports units and denominators outside the prompt. **C,** Identity, resource",
+        "events and exact executable replay align the public process record with audit state.",
+        "**D,** Failed, rejected and terminal actions retain their distinct transaction and",
+        "closure",
+        "semantics. Operations are repeated events within campaigns, not independent samples;",
+        "replay concerns simulator state and records, not a physical batch or stochastic provider",
+        "decision.",
         "",
-        "**Figure 6 | Lifecycle completion does not specify experimental policy.**",
-        "**A,** Both complete agent systems closed all 60 matched batch lifecycles, but their",
-        "final-assay and explicit-discard policies differed. **B,** Non-final instrument and",
-        "primitive-operation use as shares of common campaign allowances. Counts are",
-        "complete-system profiles, not an isolated model-backend comparison.",
+        "**Figure 6 | Fresh trajectories reveal process structure omitted by endpoints.**",
+        "All ten pre-specified trajectory pairs are shown. **A,** The frozen selected-world design",
+        "contains eight complete matched pairs and two explicitly right-censored pairs. **B,**",
+        "Best-of-campaign and raw terminal contrasts",
+        "disagree in sign for 2/8 complete pairs; this is the primary endpoint diagnostic.",
+        "**C,** Continuous contrasts separately display discovery, retention, drawdown, recovery",
+        "and relative terminal retention. **D,** The 6/8 mixed classification is supporting and",
+        "threshold-sensitive, ranging from two to eight across the frozen sensitivity grid. These",
+        "deliberately selected worlds describe within-world process variation and are not pooled",
+        "into a population-level model or information-effect claim.",
         "",
     ]
     return "\n".join(sections)

@@ -32,14 +32,16 @@ def test_p01_resolves_exactly_six_canonical_publication_figures() -> None:
     assert [(row["figure_id"], row["owner_task"]) for row in audit["figures"]] == [
         ("F1", "W1-P02"),
         ("F2", "W1-P03"),
-        ("F3", "W1-P04"),
+        ("F3", "W1-P09"),
         ("F4", "W1-P05"),
         ("F5", "W1-P06"),
         ("F6", "W1-P07"),
     ]
     assert audit["aggregate"]["canonical_assets_passed"] == 18
-    assert audit["aggregate"]["figures_with_pending_result_panels"] == 1
-    assert audit["figures"][2]["pending_result_panels"] == ["C", "D"]
+    assert audit["aggregate"]["figures_with_pending_result_panels"] == 0
+    assert audit["figures"][2]["pending_result_panels"] == []
+    assert audit["figures"][2]["original_owner_task"] == "W1-P04"
+    assert audit["figures"][2]["manifest_status"] == "frozen_latent_gate_failure_display"
     assert audit["aggregate"]["legacy_unmanifested_assets_excluded"] == 12
     assert all(
         path.startswith(PUBLICATION_DIR.as_posix()) for path in audit["legacy_unmanifested_assets"]

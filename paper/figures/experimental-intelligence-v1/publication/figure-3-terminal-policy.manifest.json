@@ -1,7 +1,8 @@
 {
   "claim_boundary": {
     "descriptive_complete_system_profiles": true,
-    "discard_quality_inferred_before_L05_L06": false,
+    "discard_quality_point_estimate_reported": false,
+    "failed_latent_gate_reported": true,
     "isolated_model_backend_effect": false,
     "latent_result_direction_selected_after_outcomes": false,
     "leaderboard_comparison": false,
@@ -29,50 +30,84 @@
     "matched_world_by_arm_cells": 10,
     "matched_worlds": 5,
     "registered_latent_discard_units": 36,
+    "resolved_shadow_receipts": 6,
     "structural_null_cells": [
       "cell-02"
-    ]
+    ],
+    "unresolved_shadow_receipts": 30
   },
   "figure_id": "F3",
   "figure_system_sha256": "c7abb490d247121e47fe20efca909df28527de64e7d1110699ccd104f6873643",
   "latent_contract_sha256": "55a0d6a7cb983ce4099dbea24586ea63ccc9433e106d36011d349472809efe30",
+  "latent_result_summary": {
+    "analysis_sha256": "548f8cd8d7d108773f19f6f0eb44c4b1eacd690eaa141ace4d5b62b94ff63934",
+    "analysis_status": "incomplete_full_report_required",
+    "complete_case_primary_used": false,
+    "finite_population_bounds": [
+      {
+        "denominator": 36,
+        "estimand": "latent score mean",
+        "lower": 8.586298305923063e-05,
+        "upper": 0.8334191963163926
+      },
+      {
+        "denominator": 36,
+        "estimand": "discard - observed best",
+        "lower": -0.27695140852579264,
+        "upper": 0.5563819248075407
+      },
+      {
+        "denominator": 36,
+        "estimand": "false-discard fraction",
+        "lower": 0.0,
+        "upper": 0.8333333333333334
+      },
+      {
+        "denominator": 9,
+        "estimand": "campaign-oracle regret",
+        "lower": 0.0,
+        "upper": 0.7076727326908907
+      }
+    ],
+    "main_text_eligible": false,
+    "point_estimates_withheld": true,
+    "resolved_shadow_receipts": 6,
+    "unresolved_shadow_receipts": 30
+  },
   "manifest_id": "work-i-figure-3-terminal-policy-v0.1",
-  "manifest_sha256": "f8d18aaa6233fc934f0ca363b0efe10658255f11468be8ed4d4c883a00947178",
+  "manifest_sha256": "2883e25be3ceb18c3ba048fecbab91ec147ce1d840ac2dfa1c89a1e3ec95fcb8",
+  "original_owner_task": "W1-P04",
   "outputs": [
     {
-      "bytes": 53473,
+      "bytes": 47969,
       "format": "svg",
       "path": "paper/figures/experimental-intelligence-v1/publication/figure-3-terminal-policy.svg",
-      "sha256": "350597240690df1539667bae44561e4e7e72bc7d4bf5a9bc3afb5e48fdef0cff"
+      "sha256": "f7332316ab441b89b98c9e51ee9fe3211e39f575eef8b099f767b059bb16675f"
     },
     {
-      "bytes": 69026,
+      "bytes": 61140,
       "format": "pdf",
       "path": "paper/figures/experimental-intelligence-v1/publication/figure-3-terminal-policy.pdf",
-      "sha256": "822ff9937c1986f315df85264e0f087ef83f37d86a349725e614d76780522a97"
+      "sha256": "48399c29ee3d82e73cb054f694eaf3fa1f6bc5f920663ec1106b6290eb8750a2"
     },
     {
-      "bytes": 287799,
+      "bytes": 287839,
       "dpi": 300,
       "format": "png",
       "path": "paper/figures/experimental-intelligence-v1/publication/figure-3-terminal-policy.png",
       "pixel_height": 1560,
       "pixel_width": 2124,
-      "sha256": "83532c356a2f6c1ba50d42b41d5f3ca753eeba1d037c170be1e8a7041e3e4b1c"
+      "sha256": "306ee9508dbdd4df8478b6a165b5e56b2f32fed2995a7cffa41bd6bae3a9d928"
     }
   ],
-  "owner_task": "W1-P04",
+  "owner_task": "W1-P09",
   "panel_roles": {
     "A": "120_closed_lifecycles_partitioned_into_84_assays_and_36_discards",
     "B": "terminal_action_profiles_by_complete_system_world_and_information_arm",
-    "C": "preregistered_36_discard_continuous_latent_score_and_regret_slot",
-    "D": "preregistered_threshold_censoring_and_nine_cell_campaign_oracle_slot"
+    "C": "all_36_registered_discards_with_6_resolved_and_30_unresolved_receipts",
+    "D": "finite_population_bounds_after_the_formal_latent_result_gate_failed"
   },
-  "pending_reason": "W1-L05/L06 qualified latent outcomes are not present on the claimed base",
-  "pending_result_panels": [
-    "C",
-    "D"
-  ],
+  "pending_result_panels": [],
   "rendering": {
     "background": "opaque_white",
     "deterministic_metadata": true,
@@ -101,14 +136,19 @@
       "sha256": "e69db432f7018a3cc41287fa02335337c624caf5ba7f0b487a0695809e052ce5"
     },
     {
+      "path": "workstreams/arxiv_v1/reports/work-i-latent-terminal-analysis-v0.1.json",
+      "role": "formal_latent_terminal_gate_and_bounds",
+      "sha256": "27f95a28f2eefd9c4a0e9838a4c7f570fc890f26d3085e994e4185742ece0d62"
+    },
+    {
       "path": "workstreams/arxiv_v1/reports/g2-agent-system-comparison-v0.1.json",
       "role": "immutable_complete_system_comparison",
       "sha256": "a200ba914a3d6324daa6a8c359b771aaf11346382ca3bbebb317c1913a2d67a6"
     },
     {
       "path": "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json",
-      "role": "immutable_experiment_accounting",
-      "sha256": "8312b32329b06745d89004aafbe4e2268ad92a8321045cee6d13b542fa7e719e"
+      "role": "current_coordinator_experiment_accounting",
+      "sha256": "9745b513bf0256aa4bd12dddf42424d60d07d64e6ddb6015488bdd6224e765db"
     },
     {
       "path": "benchmark/releases/chemworld-serious-v1/g2-deepseek-v0.6-public-trajectory-archive/manifest.json",
@@ -123,9 +163,9 @@
     {
       "path": "scripts/render_work_i_figure_3.py",
       "role": "deterministic_renderer",
-      "sha256": "d5c49e507ff955af853cf0eafed8fdd3d67d4019cda64f865763a320b8f10cd8"
+      "sha256": "1d15a731fa53bd4016df746ae00e76066e2e6e71b85e924ae104fc686c5b9c57"
     }
   ],
-  "status": "frozen_structure_pending_latent_results",
+  "status": "frozen_latent_gate_failure_display",
   "title": "Lifecycle completion does not specify terminal policy"
 }

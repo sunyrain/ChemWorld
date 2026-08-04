@@ -25,8 +25,18 @@ def test_display_items_are_regenerated_from_the_bound_data(tmp_path: Path) -> No
     assert data["derived_data_sha256"] in rendered
     assert "### Table 1" in rendered
     assert "### Table 4" in rendered
-    assert "**Figure 1" in rendered
-    assert "**Figure 6" in rendered
+    titles = [
+        "Figure 1 | ChemWorld apparatus and controlled world forks.",
+        "Figure 2 | Known policies validate the experimental-agency profile.",
+        "Figure 3 | Lifecycle completion does not specify terminal policy.",
+        "Figure 4 | Compiled controls separate outcome, prediction, calibration and claims.",
+        "Figure 5 | Primitive-control agents expose complete experimental lifecycles.",
+        "Figure 6 | Fresh trajectories reveal process structure omitted by endpoints.",
+    ]
+    positions = [rendered.index(title) for title in titles]
+    assert positions == sorted(positions)
+    assert "pending" not in rendered.lower()
+    assert "Similar endpoints can arise" not in rendered
     if data["g2_v0_5"] is None:
         assert "no interim replication values are rendered" in rendered
     else:
