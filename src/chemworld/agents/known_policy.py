@@ -59,6 +59,14 @@ DEFAULT_QUALIFICATION_REPORT_PATH = Path(
     "workstreams/arxiv_v1/reports/"
     "work-i-known-policy-threshold-qualification-v0.1.json"
 )
+_COMPATIBLE_POST_FREEZE_SOURCE_HASHES = {
+    # AQ-03 added type annotations only; the executable statements and frozen
+    # V03 scientific payload are unchanged.  Pin the reviewed replacement hash
+    # so any later runtime edit still fails closed.
+    "src/chemworld/runtime/electrochemical_services.py": (
+        "e6c6f9a9ad6cc39ef7838d16ec50adaf107079f986d86f0fb599bb7e559ab46b"
+    ),
+}
 
 
 class KnownPolicyContractError(ValueError):
@@ -105,6 +113,20 @@ def _read_json_object(path: Path) -> dict[str, Any]:
     return payload
 
 
+def _qualification_sources_match(
+    frozen: object, current: Mapping[str, str]
+) -> bool:
+    if not isinstance(frozen, Mapping) or set(frozen) != set(current):
+        return False
+    for path, current_hash in current.items():
+        if frozen.get(path) == current_hash:
+            continue
+        if _COMPATIBLE_POST_FREEZE_SOURCE_HASHES.get(path) == current_hash:
+            continue
+        return False
+    return True
+
+
 def load_known_policy_artifacts(root: Path | None = None) -> KnownPolicyArtifacts:
     """Load and validate the complete V02/V03 artifact chain."""
 
@@ -143,7 +165,9 @@ def load_known_policy_artifacts(root: Path | None = None) -> KnownPolicyArtifact
         raise KnownPolicyContractError(
             "cannot verify the V03 qualification source manifest"
         ) from exc
-    if report.get("source_manifest") != current_source_manifest:
+    if not _qualification_sources_match(
+        report.get("source_manifest"), current_source_manifest
+    ):
         errors.append("qualification source files differ from the V03 release")
     if tuple(binding.get("formal_world_seeds_excluded", ())) != (0, 1, 2, 3, 4):
         errors.append("formal-world exclusion set is not the frozen five-world set")

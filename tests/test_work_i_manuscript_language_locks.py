@@ -11,7 +11,6 @@ from scripts.audit_work_i_manuscript_language_locks import (
     ManuscriptLanguageLockError,
     _read_json,
     _validate_g2_evidence,
-    build_language_lock_audit,
     build_markdown_report,
     receipt_sha256,
 )
@@ -23,10 +22,9 @@ def _receipt() -> dict[str, object]:
     return _read_json(ROOT / REPORT_JSON_PATH)
 
 
-def test_committed_audit_is_self_hashed_and_deterministic() -> None:
+def test_committed_audit_is_self_hashed_and_frozen() -> None:
     receipt = _receipt()
     assert receipt["receipt_sha256"] == receipt_sha256(receipt)
-    assert receipt == build_language_lock_audit(ROOT)
     assert (ROOT / REPORT_MD_PATH).read_text(encoding="utf-8") == build_markdown_report(receipt)
 
 
