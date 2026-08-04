@@ -350,6 +350,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-Q05 | P0 | DONE | editorial reviewer：故事、主图、scope、期刊适配 | paper draft | 是 |
 | W1-Q06 | P0 | OPEN | 三位全新独立审稿人 blind review | integrated PDF | 否 |
 | W1-Q07 | P0 | ACTIVE | codex-1 已完成用户提供单份外审的逐条裁决与文档清理；最终三审合并仍等待 Q06 | Q06 | 否 |
+| W1-R01 | P0 | ACTIVE | codex-1 正在退役任务驱动计划、清理论文内部标识并建立新增证据计划 | 项目负责人重定向 | 否 |
 
 ## 6. 三个新增实验包的冻结规格
 
