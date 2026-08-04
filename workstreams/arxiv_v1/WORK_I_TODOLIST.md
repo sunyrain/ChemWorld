@@ -302,7 +302,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | --- | --- | --- | --- | --- | --- |
 | W1-S01 | P0 | DONE | 建立逐主张 claim–evidence–figure map | M02 | 是 |
 | W1-S02 | P0 | DONE | 冻结发布会式故事结构与章节职责 | M02 | 是 |
-| W1-S03 | P0 | CLAIMED | 重写 title/abstract/introduction 的占位版本 | S01 draft | 是 |
+| W1-S03 | P0 | DONE | 重写 title/abstract/introduction 的占位版本 | S01 draft | 是 |
 | W1-S04 | P0 | DONE | 重写 platform/world programmability Results 与 Methods | F protocol | 是 |
 | W1-S05 | P0 | DONE | 重写 measurement-validity Results 与 Methods | V protocol | 是 |
 | W1-S06 | P0 | DONE | 重写 complete-system policy 与 latent audit 结果结构 | L protocol | 是 |
