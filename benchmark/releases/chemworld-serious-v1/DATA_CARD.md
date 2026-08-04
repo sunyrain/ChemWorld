@@ -99,6 +99,23 @@ publication figures. The upload bundle includes generated `main.tex`, the
 BibTeX database, `main.bbl`, source Markdown and exact figure PDFs. Its build
 manifest records byte counts and SHA-256 hashes for every submitted artifact.
 
+## Release verification
+
+Repository commit `03d1ec69b112b699c512e2d52d417207d90f9c3c` passed 2,106 tests
+with three declared skips and no unresolved failures across eight deterministic filename
+shards. A non-editable isolated installation of
+`chemworld_bench-0.2.0-py3-none-any.whl` passed the serious-suite smoke contract; the
+1,728,195-byte wheel has SHA-256
+`e5447b6469433df520bd3e73fc9592c0ac765bd3e72dc2068267b540a281a72c`.
+
+A detached checkout of the same commit passed the 50-test release suite with zero
+differences in regenerated derived data, sensitivity data, display items, or figure
+manifests. The 68-node evidence graph passes structural validation: 57 nodes are current,
+11 historical bindings remain explicitly stale, and all 13 Work I F/V/L nodes are current.
+Those historical bindings are not silently promoted. Publication readiness remains false
+while the separately deferred raw archive and corresponding-author metadata gates remain
+open.
+
 ## Sensitive and excluded content
 
 Provider authentication, private evaluation seeds, hidden physical identities, unrestricted provider response bodies, and any secrets are excluded from the public package. Necessary provider accounting is published through redacted receipts and aggregate token/session fields.

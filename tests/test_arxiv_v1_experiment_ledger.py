@@ -410,13 +410,24 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
     verification = _load(ROOT / manifest["evidence"]["verification_attestation"])
     assert verification["status"] == "passed"
     assert verification["full_test_suite"] == {
-        "collected": 1857,
-        "passed": 1854,
+        "collected": 2109,
+        "passed": 2106,
         "skipped": 3,
         "failed": 0,
         "note": (
             "The suite was run in 8 deterministic filename shards with all declared "
-            "optional dependencies; no unresolved failures remain."
+            "optional dependencies. Release-blocking integration defects were corrected "
+            "and only their affected tests were rerun; no unresolved failures remain."
+        ),
+    }
+    assert verification["evidence_graph"] == {
+        "node_count": 68,
+        "passed_nodes": 68,
+        "current_nodes": 57,
+        "explicit_stale_bindings": 11,
+        "work_i_fvl_current_nodes": 13,
+        "graph_sha256": (
+            "a7f7ef76e69fb9532197f8b7352da24ecd6103cdc1ced11f68f86bde5577a2af"
         ),
     }
     assert verification["clean_wheel"]["status"] == "passed"
@@ -424,3 +435,9 @@ def test_release_candidate_is_populated_but_fails_closed() -> None:
     assert verification["clean_wheel"]["serious_suite_status"] == "candidate"
     assert verification["independent_checkout"]["status"] == "passed_zero_diff"
     assert verification["independent_checkout"]["regenerated_outputs_differed"] == 0
+    assert verification["independent_checkout"][
+        "canonical_publication_figure_manifest_sha256"
+    ] == ("9c8650ef2b09be7f968a1d65026bf7ca2b665515c2deb8dc18de40ccb2b476f5")
+    assert verification["independent_checkout"][
+        "arxiv_release_build_manifest_sha256"
+    ] == ("d75635ad75318ec6efb189f0e515755a438647719dfe0006e41cde5f732d2298")
