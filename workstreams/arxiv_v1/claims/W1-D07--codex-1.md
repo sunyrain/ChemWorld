@@ -20,6 +20,7 @@ declared_write_set:
   - workstreams/arxiv_v1/claims/W1-D07--codex-1.md
   - paper/tools/build_arxiv_release.py
   - paper/tools/render_publication_v1_pdf.py
+  - paper/arxiv/template.tex
   - tests/test_arxiv_release_artifacts.py
   - tests/test_publication_v1_artifacts.py
   - paper/arxiv/main.tex
@@ -48,7 +49,7 @@ completed_since_last_heartbeat:
   - "Inspected the rebuilt Figure 6 page once at 150 dpi; the Figure 6C y-axis title and every panel boundary are complete."
   - "Rebuilt the 17-page arXiv PDF and deterministic source archives against accepted S10 instrument-release / Work II explanatory-boundary prose."
   - "Inspected the rebuilt abstract, Discussion and complete two-page Conclusion continuation at 150 dpi; no overflow, clipping or incomplete text was introduced."
-current_validation: "Pending one package rebuild against accepted Q07 review cleanup commit 54bdea84."
+current_validation: "The first Q07 rebuild exposed column overflow in Appendix C and a detached Appendix D heading during visual inspection; one targeted corrective rebuild is pending."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D07--codex-1.md
   - paper/exports/experimental-intelligence-v1-arxiv/
@@ -58,11 +59,11 @@ blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Rebuild the arXiv package once, run focused tests once, and inspect only pages affected by the new title, tables and appendices."
+next_24h: "Add breakable machine identifiers, bind the Appendix D label to its table, run one corrective rebuild, then execute the focused tests once."
 handoff_eta: 2026-08-04T08:30:00Z
 
 final_commit: null
 reviewer: null
 review_result: null
-notes: "The original D07 package was accepted after final commit ea05a307 and subsequent figure and S10 synchronized rebuilds. This reopening changes package bytes only for accepted Q07 manuscript cleanup commit 54bdea84. It does not mark publication_ready and does not require the deferred 17.7 GB archive or unresolved corresponding-author metadata."
+notes: "The original D07 package was accepted after final commit ea05a307 and subsequent figure and S10 synchronized rebuilds. This reopening changes package bytes only for accepted Q07 manuscript cleanup commit 54bdea84. It does not mark publication_ready and does not require the deferred 17.7 GB archive or unresolved corresponding-author metadata. The corrective rebuild is justified by directly observed overflow, not a new review cycle."
 ```
