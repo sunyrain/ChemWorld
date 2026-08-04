@@ -47,7 +47,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE**：`Claim: Codex /root — U00/B04-AMEND — DONE`；U02/U03 authoring example 已改用 runtime
   支持的 `balanced` objective，冻结并执行验证 5-step 表征路径和 19-step 失败--恢复路径；规范源、arXiv
   TeX、19 页 PDF、source bundle 和 build manifest 已由同一次确定性构建同步，PDF 第 3--4 页视觉检查通过。
-- **DOING / Claim**：`Claim: Codex /root — U01-U03/U06-DET — DOING`；按
+- **DOING / Claim**：`Claim: Codex /root — U01-U03/U06/E01-DET — DOING`；按
   `experiments/first-paper-deterministic-use-cases.md` 冻结并运行 8 个确定性案例，输出逐步事务、资源、
   失败恢复、终止、公开边界和精确 replay 回执；不调用 provider，不替换 U04/U05 的既有正式证据。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
