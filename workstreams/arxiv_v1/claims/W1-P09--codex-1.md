@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-P09
 title: "Refine and synchronize the six canonical publication figures"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T02:22:11Z
 lease_expires_at_utc: 2026-08-06T05:34:47Z
-heartbeat_at_utc: 2026-08-04T05:35:59Z
+heartbeat_at_utc: 2026-08-04T05:36:43Z
 
 base_commit: "e82b60df744493c2f31f848328ad42c26b08344d"
 branch: work1/w1-p09-nature-figure-refinement-codex-1
@@ -91,11 +91,11 @@ blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Commit and centrally accept this one-margin repair, then resume the already-active D07 package refresh."
+next_24h: "Accepted on main; resume the already-active D07 package refresh."
 handoff_eta: 2026-08-04T05:38:00Z
 
-final_commit: null
-reviewer: null
-review_result: null
+final_commit: 5c3595b9fafc418a6eccace2e75bd4d42d943489
+reviewer: codex-1
+review_result: PASS
 notes: "The original P09 delivery was accepted on main at 410a4aab after final commit e940c765. The first refinement used nature-figure 2.1.1 without importing third-party visual assets or changing the frozen figure-system artifact. The project owner reopened P09 on 2026-08-04 after identifying final-size clipping and overlap in Figures 1, 4, 5 and 6. Commit 4262c18d fixed the reported issues; the arXiv proof then exposed and this patch fixes the one remaining F6C canvas-edge clip."
 ```

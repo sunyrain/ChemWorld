@@ -9,7 +9,7 @@ owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T02:42:21Z
 lease_expires_at_utc: 2026-08-06T05:32:16Z
-heartbeat_at_utc: 2026-08-04T05:32:16Z
+heartbeat_at_utc: 2026-08-04T05:36:43Z
 
 base_commit: "ffd11ee7"
 branch: work1/w1-d07-refined-figure-package-rebuild-codex-1
@@ -44,7 +44,7 @@ completed_since_last_heartbeat:
   - "Rebuilt the 17-page two-column arXiv PDF with the six accepted P09 refined PDFs."
   - "Rebuilt deterministic ZIP and TAR.GZ source bundles and synchronized all six bundled figure hashes."
   - "Rebuilt the publication proof PDF and its self-hashed manifest against the accepted refined SVGs."
-current_validation: "REOPENED for one packaging pass after accepted P09 layout repair 4262c18d64551380ea902753d861bdd7a1212d98; no manuscript, data, or claim change."
+current_validation: "ACTIVE after accepted final P09 repair 5c3595b9fafc418a6eccace2e75bd4d42d943489; package will be regenerated once against the complete Figure 6C margin."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D07--codex-1.md
   - paper/exports/experimental-intelligence-v1-arxiv/
