@@ -26,6 +26,7 @@
 ## Agent 与操作
 
 - [Agent API](agent_interface.md)
+- [World authoring contract](world-authoring-contract.md)
 - [认识操作语言](operations.md)
 - [编写 Action 与 Recipe](action_schema.md)
 - [使用 Wrapper](wrappers.md)

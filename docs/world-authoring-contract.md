@@ -67,15 +67,9 @@ synthetic content-addressed parent and child snapshots, passes them through the 
 invariant. Synthetic digests demonstrate schema and lineage behavior only; they are not
 qualification traces.
 
-Run:
-
-```powershell
-$env:PYTHONPATH = ".;src"
-python scripts/validate_work_i_world_authoring_examples.py --check
-```
-
-Without `--check`, the command regenerates only the self-hashed validation receipt at
-`workstreams/arxiv_v1/reports/work-i-world-authoring-examples-v0.1.json`.
+The release pipeline validates both examples against the frozen contract and records a
+self-hashed receipt. Public users do not need repository-maintainer commands to inspect or
+reuse the example specifications.
 
 ## Validator stages
 
