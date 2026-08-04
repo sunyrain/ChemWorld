@@ -129,6 +129,17 @@ outcome delta、适用守恒、终止/评价、replay verdict、耗时、轨迹�
 不得删除失败、替换结果或改覆盖设计。若发现并修复平台缺陷，受影响的正式批次从第一个 case 重新运行，
 旧失败报告保留为历史结果。
 
+## 第一次正式尝试后的 receipt 缺陷处理
+
+2026-08-04 的第一次正式执行完成了全部冻结分母，运行时数值门均通过；随后按冻结说明逐字段抽查时发现，
+正式 JSON 只保留了若干聚合布尔值，未完整保存每个 case 的 composition request、资源
+preflight/outcome、终止后拒绝、模块误差/容差和分项接口 receipts。该结果因此不进入 current binding，
+也不用于将 C01--C08 或 D01--D04 标为完成。旧输出由 Git 历史保留为 receipt-contract 缺陷尝试。
+
+修复只补全已经冻结的测量与 fail-closed 完整性 gate，不改变 64、1786、192、52、8、7、32、7
+的分母，不改变 pattern、seed、bounds、workflow 或通过/失败规则。修复提交后，整个联合资格批次从第一个
+reference case 开始重新执行；不得复用第一次尝试中的成功子项替代重跑结果。
+
 ## 预期输出
 
 - `workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json`：完整机器报告、精确分母、
