@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-D08
 title: "Verify full tests, clean wheel, independent checkout, and final claims"
-status: ACTIVE
+status: READY_FOR_REVIEW
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T02:48:49Z
 lease_expires_at_utc: 2026-08-06T02:48:49Z
-heartbeat_at_utc: 2026-08-04T03:41:09Z
+heartbeat_at_utc: 2026-08-04T04:43:30Z
 
 base_commit: "edf21af6"
 branch: work1/w1-d08-release-verification-codex-1
@@ -55,17 +55,36 @@ validation:
 completed_since_last_heartbeat:
   - "Started the full suite once; the monolithic invocation exceeded the execution window, so no result was attested."
   - "Stopped the four active pytest shard processes after the project owner requested an upstream figure revision; no stale verification result will be promoted."
-current_validation: "All eight shards executed. Corrected accounting before the last four affected reruns is 2,102 passes and three skips, including the added L01 compatibility guard. The remaining failures are one exact AQ-03 threshold-source assertion, two historical-receipt/current-rebuild assertions, and a stale configs/current.json registry fingerprint/state. Narrow test-boundary updates plus registry-only reconciliation are authorized; evidence generators and frozen artifacts remain untouched."
+  - "Completed all eight deterministic filename shards: 2,106 passed, 3 skipped, 0 unresolved failures after narrow release-blocker corrections and affected-test reruns."
+  - "Passed the non-editable isolated wheel smoke: 1,728,195 bytes, SHA-256 e5447b6469433df520bd3e73fc9592c0ac765bd3e72dc2068267b540a281a72c, 6/6 contracts ready."
+  - "Passed the 50-test release suite in detached checkout 03d1ec69 with zero regenerated-output differences."
+  - "Bound the 68-node graph (57 current, 11 explicit historical stale bindings, 13/13 Work I F/V/L current), 27/27 manuscript citations, 48 bibliography entries, current figure/package manifests, release gates, and data-card verification statement."
+current_validation: "PASS: full suite 2106 passed/3 skipped; clean wheel passed; detached release suite 50/50; evidence registry check passed; three release-metadata tests passed; Ruff, mypy, JSON parse, citation scan, and git diff --check passed. Verification attestation file SHA-256 c0d45993d2dbdac1c02ae022b1ce18e05666a92b9b7b0992d23a8302c7a3e95d."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D08--codex-1.md
+  - benchmark/releases/chemworld-serious-v1/verification-attestation.json
+  - benchmark/releases/chemworld-serious-v1/manifest.json
+  - benchmark/releases/chemworld-serious-v1/DATA_CARD.md
+  - configs/current.json
+  - docs/reference_index.md
+  - docs/world-authoring-contract.md
+  - src/chemworld/agents/known_policy.py
+  - src/chemworld/eval/latent_terminal_contract.py
+  - src/chemworld/eval/policy_validity_qualification.py
+  - tests/test_arxiv_v1_experiment_ledger.py
+  - tests/test_known_policy_threshold.py
+  - tests/test_latent_terminal_contract.py
+  - tests/test_work_i_historical_report_alignment.py
+  - tests/test_work_i_manuscript_language_locks.py
+  - tests/test_work_i_world_authoring_examples.py
 blockers: []
 blocked_by: null
 unblock_condition: null
-next_check_at_utc: 2026-08-04T04:30:00Z
-next_24h: "Run the release verification gates once against the rebuilt candidate, bind the exact results, and hand off."
-handoff_eta: 2026-08-04T05:00:00Z
+next_check_at_utc: null
+next_24h: "Coordinator concentrated acceptance and main integration."
+handoff_eta: 2026-08-04T04:45:00Z
 
-final_commit: null
+final_commit: "1a1f1e8e"
 reviewer: null
 review_result: null
 notes: "Claim remains reserved by codex-1 while blocked, preventing duplicate ownership. External archive publication and corresponding-author metadata remain separate D02/D06 gates."
