@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-D07
 title: "Build the standard arXiv PDF, source bundles, and publication proof"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T02:42:21Z
 lease_expires_at_utc: 2026-08-06T06:51:18Z
-heartbeat_at_utc: 2026-08-04T06:53:30Z
+heartbeat_at_utc: 2026-08-04T06:54:13Z
 
 base_commit: "2171372dbcd03e2aebf169ca26dfcb181301c580"
 branch: main
@@ -58,11 +58,11 @@ blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Commit and accept the final manuscript package centrally."
+next_24h: "Accepted on main; no further manuscript package rebuild is planned."
 handoff_eta: 2026-08-04T06:56:00Z
 
-final_commit: null
-reviewer: null
-review_result: null
+final_commit: 73ad0bb1f7613de87fedec5d3eb591b77523e7c4
+reviewer: codex-1
+review_result: PASS
 notes: "The original D07 package was accepted after final commit ea05a307 and subsequent figure-synchronized rebuilds. This reopening changes only manuscript/package bytes for accepted S10 commit 2171372d; it does not mark publication_ready and does not require the deferred 17.7 GB archive or unresolved corresponding-author metadata."
 ```
