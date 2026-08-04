@@ -11,7 +11,7 @@ claimed_at_utc: 2026-08-04T02:48:49Z
 lease_expires_at_utc: 2026-08-06T02:48:49Z
 heartbeat_at_utc: 2026-08-04T03:41:09Z
 
-base_commit: "5b397a64"
+base_commit: "edf21af6"
 branch: work1/w1-d08-release-verification-codex-1
 worktree: ../ChemWorld-W1-D08-C1
 supersedes: null
@@ -21,8 +21,12 @@ declared_write_set:
   - benchmark/releases/chemworld-serious-v1/verification-attestation.json
   - benchmark/releases/chemworld-serious-v1/manifest.json
   - benchmark/releases/chemworld-serious-v1/DATA_CARD.md
+  - src/chemworld/eval/latent_terminal_contract.py
+  - tests/test_latent_terminal_contract.py
+  - tests/test_arxiv_v1_experiment_ledger.py
 shared_hot_file_requests:
   - "Exclusive D08 reservation: release verification attestation and verification gates."
+  - "Coordinator-approved narrow release blocker fix: treat only the downstream append-only experiment-ledger byte binding as refreshable while preserving every frozen L01 scientific field and all other source bindings."
 
 deliverables:
   - "One current full-suite result with exact passed/skipped/failed counts"
@@ -38,7 +42,7 @@ validation:
 completed_since_last_heartbeat:
   - "Started the full suite once; the monolithic invocation exceeded the execution window, so no result was attested."
   - "Stopped the four active pytest shard processes after the project owner requested an upstream figure revision; no stale verification result will be promoted."
-current_validation: "P09 refined figures and the corresponding D07 package rebuild are accepted on main; D08 verification is unblocked and will resume against merge 5b397a64."
+current_validation: "The first deterministic shard passed 375/375. The second passed 226 with one skip and exposed four failures sharing one cause: L01 exact-rebuild validation incorrectly treats the downstream append-only experiment ledger as an immutable protocol input after D05 integration. The runner stopped before later shards; a narrow validator correction is authorized without rebuilding the frozen contract or downstream figures."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D08--codex-1.md
 blockers: []
