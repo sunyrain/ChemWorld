@@ -22,12 +22,19 @@ declared_write_set:
   - workstreams/arxiv_v1/reviews/W1-Q07-supplied-review-adjudication--codex-1.md
   - workstreams/arxiv_v1/story/work-i-final-manuscript-integration-v0.1.md
   - paper/experimental_intelligence_v1_manuscript.md
+  - paper/experimental_intelligence_v1_display_items.md
+  - scripts/render_arxiv_v1_display_items.py
+  - tests/test_arxiv_v1_experiment_ledger.py
+  - tests/test_arxiv_v1_display_items.py
+  - tests/test_arxiv_release_artifacts.py
+  - tests/test_publication_v1_artifacts.py
 shared_hot_file_requests:
   - "Coordinator reservation on main for the integrated Work I manuscript during supplied-review adjudication."
 
 deliverables:
   - "Internal closure matrix for every major comment, minor comment, and reviewer question in the supplied report"
   - "Evidence-bounded manuscript cleanup that preserves Paper I as a programmable-world scientific-instrument release"
+  - "Narrow title and experimental-process terminology synchronized across current manuscript-facing documents and focused tests"
   - "Explicit routing of agent-behavior explanation and new comparative experiments to Work II or future validation"
   - "Honest residual-risk assessment without representing the supplied single report as the three-reviewer W1-Q06 gate"
 validation:
