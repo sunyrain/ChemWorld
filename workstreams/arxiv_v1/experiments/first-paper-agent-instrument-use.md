@@ -20,16 +20,19 @@ composition request SHA-256 为
 
 ## 冻结 agent、权限与预算
 
-- 系统：`LiveLLMAgent` + WellAU JSON client；model `gpt-5.6-sol`，reasoning effort `high`，agent seed 0，
-  assigned spectrum disclosure。
-- 每次操作恰有一个逻辑 provider decision；每个 decision 最多 2 次传输尝试、180 s timeout、最多 4000
-  输出 tokens。运行级不允许换模型、换 seed、换世界或重启后择优。
-- 环境操作上限 16；完整生命周期上限 1；wall time 上限 3600 s；provider model-call 上限 32；输入 token
-  上限 192000；输出 token 上限 64000。
-- agent 只见公开 decision state、合法 action signatures、资源和生命周期合同。host 不修复 action，不自动
-  terminate，不自动 final assay，也不把确定性参考轨迹放入 prompt。
-- 原始 provider response、私有 reasoning、密钥和本地 payload 不进入 Git；只保留去敏 provider/session
-  receipt、usage、公开 decision audit 和环境回执。WellAU 没有可核验的冻结价格表，因此不报告美元成本为零。
+- 系统：`InteractiveCodexExperimentAgent`；method ID
+  `first_paper_u05_interactive_codex_sol_medium_v1`；一个 `codex exec --ephemeral` 持久会话通过 host-owned
+  `chemworld_lab` MCP 控制完整 experiment。model `gpt-5.6-sol`，reasoning effort `medium`，agent seed 0。
+- provider/auth 使用 Codex CLI 的 cached ChatGPT subscription login；冻结 preflight 为 `codex-cli 0.145.0` 且
+  login status 通过。pre-action restart limit 为 0；运行级不允许换模型、换 seed、换世界、resume 或重启后择优。
+- 环境操作上限 16；完整生命周期上限 1；wall time 上限 3600 s；provider session/model-call 上限 1；输入
+  token 上限 192000；输出 token 上限 64000；单次下一动作等待上限 600 s，session finalization 上限 300 s。
+- agent 只见公开 composition/task contract、decision state、合法 action signatures、资源和明确的
+  `terminate -> final_assay` 生命周期。host 不修复 action，不自动 terminate，不自动 final assay，也不把
+  确定性参考轨迹放入 prompt；apps、subagents、web 和非 `chemworld_lab` 工具不参与实验决策。
+- 原始 provider response、私有 reasoning、认证材料、临时 workspace 和模型笔记不进入 Git；只保留去敏
+  session/tool receipt、usage、公开 action audit 和环境回执。ChatGPT subscription 没有可归因到单次运行的
+  美元价格，因此只报告 token/session accounting，不把美元成本写成测得的零。
 
 ## 测量与通过规则
 
@@ -41,12 +44,16 @@ composition request SHA-256 为
 
 - current registry 对 composition qualification、U04 world-fork evidence 和冻结 U05 case 的路径与 SHA 绑定通过；
 - 恰好一个生命周期闭合，至少一个 committed `terminate`，且恰好一个 committed `final_assay`；无右删失；
-- 所有 agent 决定来自 provider；无 host fallback、自动 action repair、自动 terminate 或自动 final assay；
-- provider/session 和 token accounting 完整且在冻结上限内；不可恢复的 provider 或结构化决策错误使结果失败；
+- 恰好一个完整 Codex session；所有 action 均由该 session 经 MCP 提交；无 restart、host fallback、自动
+  action repair、自动 terminate 或自动 final assay；
+- session、MCP tool-call 和 token accounting 完整且在冻结上限内；不可恢复的 provider、IPC、工具完整性
+  或结构化决策错误使结果失败；
 - 环境资源与 method-resource 对账通过，公开输出无私有状态泄漏，exact replay verified 且
   `max_abs_error == 0`；
-- agent 自选的无效或 rolled-back action 必须原样保留并计入分母，但只要生命周期最终闭合，不单独把行为失误
-  改写成平台失败；任何缺失回执、未闭合生命周期、资源不一致、泄漏或 replay 失败使整体状态为 `FAILED`。
+- 1--16 个 actions 全部 schema-valid 且 transaction `committed`；零 rollback、零 resource rejection；MCP
+  `step` 数、accepted action 数和 trajectory record 数完全一致；
+- 任何缺失回执、无效 action、rollback、未闭合生命周期、资源不一致、泄漏或 replay 失败使整体状态为
+  `FAILED`。终端分数只作描述，不设性能阈值，也不形成模型排名。
 
 正式运行没有运行级重试。若实现阶段发现平台缺陷，可以修复后从唯一实验单位的第一个 decision 重新开始；
 一旦正式 provider call 开始，失败结果必须保留，不得用后续更有利的运行替换。
