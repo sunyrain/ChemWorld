@@ -4,43 +4,48 @@
 
 Before changing the first paper or its evidence programme, read:
 
-1. `workstreams/arxiv_v1/FIRST_PAPER_EVIDENCE_PLAN.md`
-2. The relevant frozen protocol and current artifact bindings under `configs/current.json`
+1. `workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md`
+2. The relevant experiment note, when the task produces new data
+3. Current artifact bindings under `configs/current.json` only when existing generated evidence is used
 
 `WORK_I_TODOLIST.md` and its claim directory are retained as historical coordination records;
 they are no longer the execution authority and must not receive new task rows after W1-R01.
+`FIRST_PAPER_EVIDENCE_PLAN.md` is also superseded by the current TODO.
 Work II remains separate and is governed by `workstreams/flagship_tasks/WORK_II_TODOLIST.md`.
 
-## Evidence before expansion
+## Lightweight execution
 
-- Before a new data-producing experiment, commit a standalone protocol that states the research
-  question, intervention, independent unit, inclusion and censoring rules, estimand, thresholds,
-  seeds, expected outputs, failure policy, owner, and write set.
-- Organize new work by claim-to-evidence need in `FIRST_PAPER_EVIDENCE_PLAN.md`, not by reviving the
-  retired task matrix.
-- Manuscript integration on `main` is coordinator-owned. Parallel workers, when explicitly used,
-  must use isolated branches or worktrees and stay within their protocol write sets.
+- New work is tracked directly in `FIRST_PAPER_TODOLIST.md`; do not create new claim files, leases,
+  review queues or per-task worktrees for the first paper.
+- Before a new data-producing experiment, write one concise experiment note for the whole experiment
+  block. It must state the question, tested units or coverage design, measurements, pass/failure rules
+  and expected outputs. Keep it short and do not create a separate audit package.
+- The first paper is venue-neutral. Do not invoke Nature-specific skills or impose Nature-specific
+  style unless the user explicitly re-enables them.
+- The coordinator works on `main`. Use a single executor unless the user explicitly requests parallel
+  work.
 - Internal hashes, manifests, run identifiers, and repository filenames belong in evidence records
   and release metadata, not in reader-facing manuscript prose or figures.
 
 ## Isolation and integration
 
-- Stay inside the protocol or coordinator-declared write set. Request a reservation before editing a
-  shared manuscript, figure, derived-data, or release surface.
-- Do not regenerate the global evidence DAG, experiment ledger, manuscript, figure manifest, or release
-  manifest from a task branch unless the task owns that integration surface.
-- Keep code, raw runs, derived data, and reports in separate commits. Raw provider responses and local
-  credentials never enter Git.
-- Formal protocols, inclusion rules, seeds, thresholds, and estimands are immutable after freeze.
-- Preserve evidence identity, source hashes, resource ledgers, and exact replay. Never replace a frozen
-  result merely because a later run is more favorable.
+- Keep implementation, generated results and manuscript integration distinguishable in commits when
+  practical. Raw provider responses and local credentials never enter Git.
+- Once a qualification experiment starts, do not change its coverage selection or pass/failure rules
+  in response to the result. Fixing a platform defect is allowed, but the affected qualification block
+  must then be rerun from the start.
+- Preserve exact replay and resource-ledger semantics. Do not replace a completed result merely because
+  a later run is more favorable.
 
 ## Repository hygiene
 
 - Resolve current artifacts through `configs/current.json`; do not select files by version-looking names.
 - Git history is the archive for superseded plans and smoke notes. Do not restore historical documents
   as competing current entry points.
-- Run task-local validation and `git diff --check` before handoff. Data-producing tasks also require an
-  immutable manifest, hashes, and explicit counting rules.
+- Run focused task-local validation while implementing, then one integrated acceptance pass before the
+  paper is exported. Do not repeat broad audits after every small edit.
+- Data-producing tasks require a readable machine-generated summary with exact denominators and all
+  failures. Manual hash inventories and duplicate manifests are not required unless release tooling
+  already generates them automatically.
 - Do not add `api.md`, `key2.md`, `.env`, private seeds, `runs/`, caches, generated site output, or raw
   provider payloads.

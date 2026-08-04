@@ -2,8 +2,7 @@
 
 > **RETIRED 2026-08-04.** This file is a historical coordination record and is no
 > longer an execution authority. Do not add claims or task rows after `W1-R01`.
-> Current first-paper work is organized by scientific claim and evidence in
-> `FIRST_PAPER_EVIDENCE_PLAN.md`.
+> Current first-paper work is organized in `FIRST_PAPER_TODOLIST.md`.
 
 版本：1.1（历史快照）
 
