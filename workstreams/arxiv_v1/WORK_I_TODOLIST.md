@@ -336,7 +336,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-D05 | P0 | DONE | 更新 experiment ledger、release manifest 和 data card | D03–D04 | 否 |
 | W1-D06 | P0 | BLOCKED | 作者、单位、corresponding author 与 ORCID metadata | 项目负责人 | 是 |
 | W1-D07 | P0 | DONE | 标准 arXiv PDF、ZIP、TAR.GZ 与 proof rebuild；已同步 P09 精修图件哈希 | S/P/D 完成 | 否 |
-| W1-D08 | P0 | ACTIVE | full tests、clean wheel、independent checkout、claim audit | D07 | 否 |
+| W1-D08 | P0 | DONE | full tests、clean wheel、independent checkout、claim audit | D07 | 否 |
 | W1-D09 | P0 | OPEN | publication-ready finalizer、tag 与 upload verification | D02、D06、D08 | 否 |
 
 ### 5.8 Independent review & QA
@@ -571,9 +571,9 @@ Work I 只有在下列条件全部满足后才能标记 `RELEASED`：
 - [ ] Work II 的规律学习结论没有被提前消费；
 - [ ] 六幅主图、caption、正文和 derived data 完全一致；
 - [ ] evidence DAG 无 stale binding；
-- [ ] full tests 0 failures；
-- [ ] clean wheel 与 independent checkout 通过；
-- [ ] final numeric/citation/statistical-language/claim audit 通过；
+- [x] full tests 0 failures；
+- [x] clean wheel 与 independent checkout 通过；
+- [x] final numeric/citation/statistical-language/claim audit 通过；
 - [ ] 17.7 GB G0 archive 公开可访问且 hash/byte count 匹配；
 - [ ] 作者、单位和 corresponding metadata 完整；
 - [ ] PDF、ZIP、TAR.GZ 可独立编译和逐成员验证；

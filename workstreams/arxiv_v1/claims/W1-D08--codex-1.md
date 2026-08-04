@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-D08
 title: "Verify full tests, clean wheel, independent checkout, and final claims"
-status: READY_FOR_REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []
@@ -81,11 +81,11 @@ blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Coordinator concentrated acceptance and main integration."
-handoff_eta: 2026-08-04T04:45:00Z
+next_24h: "Accepted on main; no further D08 work is pending."
+handoff_eta: null
 
 final_commit: "1a1f1e8e"
-reviewer: null
-review_result: null
-notes: "Claim remains reserved by codex-1 while blocked, preventing duplicate ownership. External archive publication and corresponding-author metadata remain separate D02/D06 gates."
+reviewer: "codex-1 centralized coordinator acceptance"
+review_result: "APPROVE: main contains the validated source fixes, registry reconciliation, 2,106/3/0 full-suite attestation, clean-wheel hash, detached 50-test zero-difference release verification, and bound release/data-card metadata."
+notes: "Accepted on main at 4cd49041. External archive publication and corresponding-author metadata remain separate D02/D06 gates; D08 does not promote the 11 explicit historical stale bindings or publication_ready=false."
 ```
