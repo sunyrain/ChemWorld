@@ -218,17 +218,27 @@ profiles in one primitive-control task, and two deliberately selected fresh-sess
 worlds. It includes no visual manipulation, real instrument, wet-laboratory, or
 sim-to-real validation.
 
-# 3. ChemWorld is a programmable measurement apparatus
+# 3. Constructing executable worlds
 
-## 3.1 Experiments are stateful processes rather than value queries
+## 3.1 Object layers and public instrument contract
 
 ChemWorld represents an experiment as a stateful sequence of typed operations and
-measurements. A task binds hidden simulator state, a public observation contract,
-instruments, resources, failures and evaluator endpoints. Operations can change state;
-measurements consume resources and expose bounded synthetic signals; termination closes
-a lifecycle only through an explicit final assay or discard. The apparatus records
+measurements inside a declared world. The world substrate owns physical state, transitions,
+constitutive laws and observation generation; the task contract owns the public goal,
+operation and instrument permissions, resources, termination and evaluation. Operations can
+change state; measurements consume resources and expose bounded synthetic signals; termination
+closes a lifecycle only through an explicit final assay or discard. The apparatus records
 transaction outcomes, resource events and evaluator inputs while keeping evaluator-only
 world identity and hidden state outside the agent view (Fig. 1A--B).
+
+The public object layers are therefore distinct: a component is reusable physical or
+transactional functionality; a world is a compatible component selection with parameters and
+private laws; a task contract attaches the public operating surface; a scenario instantiates
+that contract; a trajectory records committed operation--observation events; and a world fork
+is a controlled single-component intervention. This separation makes a task list a reference
+map rather than a definition of the world space.
+
+## 3.2 Public construction surface
 
 The registered surface contains 15 live task contracts, 28 typed operation kinds and
 five public instrument contracts. Qualification executed 415 complete-experiment
@@ -244,26 +254,69 @@ set is intentional: it qualifies and illustrates the instrument's controls and r
 rather than sampling the full backend or estimating how frequently an agent behavior
 occurs across supported worlds.
 
+The public construction surface is summarized in the capability map. It exposes a finite
+v1 vocabulary, typed operations, five measurement contracts, continuous and categorical
+parameter axes, resource and lifecycle rules, and explicit compatibility dependencies.
+The 15 registered tasks are reference points selected to span these axes. They are not the
+size of the composition space, and the existing reference-task qualification cannot replace
+coverage-guided generated combinations or frozen unseen combinations.
+
 All 28 registered operations committed in at least one valid context. In paired invalid
 probes, the pre-action simulator-state projection was preserved. Only a committed
 transaction installs a candidate state transition; validation failures, rollbacks and
-resource rejections preserve the pre-action simulator state while
-retaining the appropriate attempted-action or process accounting. The five instrument
-contracts likewise matched their declared cost, sample consumption and terminal
-preconditions. These checks qualify executable semantics, not laboratory instruments,
-real material custody or physical safety.
+resource rejections preserve the pre-action simulator state while retaining the appropriate
+attempted-action or process accounting. The five instrument contracts likewise matched their
+declared cost, sample consumption and terminal preconditions. These checks qualify executable
+semantics, not laboratory instruments, real material custody or physical safety.
 
-## 3.2 Single-component forks test controlled programmability
+Exact replay reconstructs environment transitions, public observations and resource
+changes from an immutable trajectory. It does not reproduce a physical batch or a
+language model's token sequence. The evidence layers below therefore retain their own
+analysis units rather than counting operations, replays or figure marks as independent
+samples. Composition results are counted by world/combination; fork results by parent--child
+pair; agent demonstrations by complete lifecycle; and process diagnostics by their declared
+world or trajectory replicate. These denominators remain separate throughout the paper.
 
-The frozen programmability qualification changed one named private component at a time:
-either the private constitutive laws or private material laws. Each of six
-parent--child pairs---two intervention classes across three seeds---preserved all nine
-declared public-contract components while executing the same fixed midpoint action
-sequence (Fig. 1C--D). Repeating both variants produced
-$6\ \text{pairs}\times2\ \text{variants}\times2\ \text{executions}=24$ traces with
-zero model-provider calls. All pairs passed lineage, single-target, public-invariance,
-same-sequence executability, preregistered state and observation divergence, exact
-replay and zero-provider gates.
+The certificate is deliberately narrow. It does not establish untested multi-component
+recombination, a general world-authoring language, agent adaptation or law learning,
+model ranking, or transfer to a physical laboratory.
+
+# 4. Coverage-guided composition and reference coverage
+
+The 15 registered tasks are used as a reference basis rather than as a benchmark
+cardinality. Their contracts span reaction, phase, separation, crystallization, distillation,
+continuous-flow, electrochemical and equilibrium-characterization paths, with different
+operation, instrument, resource, termination and evaluation surfaces. This reference basis
+is the comparison frame for the composition qualification: it identifies which component
+and interface axes are already represented and which interactions must be generated outside
+the reference set.
+
+The composition qualification is reported at the world/combination level. Discrete axes are
+covered with covering-array logic, continuous axes with space-filling samples, and ordered
+operation paths with explicit interaction targets. The resulting report must separate valid
+compilations, valid executions, replay closure and every rejection class. A frozen unseen
+composition is one generated after the constructor and compatibility rules are frozen and
+not present in the 15 reference tasks; it follows the same construction and runtime path,
+without a core-runtime patch. These boundaries prevent a generated sample from being
+misread as an exhaustive task enumeration.
+
+# 5. Interface, physical and transactional qualification
+
+The qualification surface checks more than whether an action name is reachable. Every
+composition must close material identity, units, non-negativity, applicable charge and
+energy ledgers, phase/state transitions, event propagation and public observation rules.
+Module checks cover zero and boundary inputs, known directional behaviour, conservation and
+declared invariants. Cross-module checks verify that an upstream output retains its quantity,
+unit, identity and state meaning when consumed downstream.
+
+Transactional checks require atomic commit, rollback without ghost state, exact material/time/
+sample accounting, and rejection of post-terminal actions. Observation checks require that
+public packets contain only task-declared fields and that an already committed trajectory
+reconstructs the same world transition, public record and resource consequence. These checks
+qualify a virtual instrument within its declared model-card domain; they do not establish
+physical-laboratory accuracy.
+
+# 6. Controlled single-component forks
 
 ```{=latex}
 \begin{figure*}[!tbp]
@@ -278,38 +331,20 @@ replay and zero-provider gates.
 \end{figure*}
 ```
 
-Exact replay reconstructs environment transitions, public observations and resource
-changes from an immutable trajectory. It does not reproduce a physical batch or a
-language model's token sequence. The evidence layers below therefore retain their own
-analysis units rather than counting operations, replays or figure marks as independent
-samples (Table 1).
+The frozen programmability qualification changed one named private component at a time:
+either the private constitutive laws or private material laws. Each of six parent--child
+pairs---two intervention classes across three seeds---preserved all nine declared
+public-contract components while executing the same fixed midpoint action sequence
+(Fig. 1C--D). Repeating both variants produced
+$6\ \text{pairs}\times2\ \text{variants}\times2\ \text{executions}=24$ traces with
+zero model-provider calls. All pairs passed lineage, single-target, public-invariance,
+same-sequence executability, preregistered state and observation divergence, exact replay
+and zero-provider gates. A fork is an attribution control, not evidence for arbitrary
+multi-component recombination.
 
-```{=latex}
-\begin{table*}[t]
-\centering
-\caption{\textbf{Evidence layers and analysis units.} Execution counts describe use of the apparatus; each layer retains its registered denominator and explicit inference boundary.}
-\label{tab:evidence}
-\small
-\begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}p{0.26\textwidth}p{0.22\textwidth}X@{}}
-\toprule
-Evidence layer & Purpose & Execution census & Primary analysis unit \\
-\midrule
-Platform and forks & Executable semantics and controlled programmability & 415 boundary recipes; 6 fork pairs/24 traces & registered contract or parent--child pair \\
-Known policies & Positive-control profile qualification & 30 primary campaigns/180 closed lifecycles & campaign profile; retests excluded \\
-Compiled controls & Outcome and epistemic decomposition & 29,580 simulator executions & paired simulator world; 10 per task and arm \\
-Complete systems & Lifecycle and terminal-policy profiles & 120 closed lifecycles; 1,704 attempted operations & complete system by world and arm \\
-Latent terminal & Failed discarded-state module audit & 36 registered receipts; 6 resolved/30 unresolved & fixed 36-discard population with censoring \\
-Fresh trajectories & Within-world process variation & 8 complete pairs plus 2 right-censored pairs & simulator world by fresh trajectory replicate \\
-\bottomrule
-\end{tabularx}
-\end{table*}
-```
+# 7. Agent use of the instrument
 
-The certificate is deliberately narrow. It does not establish untested multi-component
-recombination, a general world-authoring language, agent adaptation or law learning,
-model ranking, or transfer to a physical laboratory.
-
-# 4. Known policies qualify the experimental-process profile
+## 7.1 Deterministic controls qualify the recording surface
 
 Before interpreting complete agent systems, we asked whether the apparatus could recover
 behavior fixed in advance. The frozen 19-metric experimental-process profile keeps terminal commitment, evidence
@@ -365,7 +400,7 @@ It does not establish chemical intelligence, stochastic-system reliability, endp
 superiority or transfer to a real laboratory. Appendix C provides the complete metric
 dictionary and registered null rules.
 
-# 5. Lifecycle completion does not specify terminal policy
+## 7.2 Complete agents demonstrate lifecycle use
 
 We next placed two **distinct complete agent systems** in the same ten matched
 simulator-world-by-information cells. Model, scaffold, decision transport, evidence
@@ -442,7 +477,9 @@ lifecycle closure and terminal commitment are distinct measured coordinates. Wha
 cannot be inferred is the unobserved quality of the discarded states or the rationality
 of either complete system.
 
-# 6. Compiled controls separate outcome, prediction, calibration and claims
+## 8. Process records beyond endpoints
+
+### 8.1 Compiled controls separate outcome, prediction, calibration and claims
 
 Compiled control supplies a bounded complete-experiment interface. It is not the target
 autonomy setting; it calibrates whether task outcome and epistemic diagnostics can be
@@ -483,7 +520,7 @@ Complete world-level contrasts, exact sign summaries and leave-one-world-out ran
 retained in the sensitivity analysis. The result is capability decomposition inside the
 apparatus, not a language-model-versus-optimizer horse race.
 
-# 7. Primitive control exposes complete experimental lifecycles
+### 8.2 Primitive control exposes complete experimental lifecycles
 
 The terminal census is interpretable because the primitive-control interface records the
 full path to closure. Each vessel has a public workspace and typed tools, while its
@@ -516,7 +553,7 @@ The example is descriptive and is not part of the fresh-session estimand. Its ro
 show how process evidence is recorded directly rather than inferred retrospectively
 from an endpoint.
 
-# 8. Fresh trajectories reveal process structure omitted by endpoints
+### 8.3 Fresh trajectories reveal process structure omitted by endpoints
 
 We deliberately selected simulator worlds 1 and 3 before replication because their
 development contrasts pointed in different directions. The protocol-frozen design crossed
