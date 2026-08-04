@@ -52,7 +52,7 @@ object rather than as an opaque task label. Its v1 vocabulary contains reusable 
 thermal, phase, separation, crystallization, distillation, continuous-flow,
 electrochemical and observation components. A world is a compatible selection of these
 components, parameters and private laws. A task contract is then
-`T = (W, S0, A, I, O, R, τ, E)`: the world, initial state, operations, instruments,
+$T = (W, S_0, A, I, O, R, \tau, E)$: the world, initial state, operations, instruments,
 observations, resources, termination rule and evaluation surface. A concrete scenario
 instantiates that contract; a trajectory is the operation--observation sequence produced
 by an agent; and a world fork is a separate controlled intervention that changes one

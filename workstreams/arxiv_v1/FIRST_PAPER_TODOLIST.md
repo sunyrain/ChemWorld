@@ -8,14 +8,31 @@
 本文件是第一篇当前唯一执行清单。新协作者先读本文件和同目录 `README.md`；`archive/`、
 claims、integration、story、reviews 以及旧审计材料均为历史记录，不得据此恢复任务或 owner。
 
+## 0A. 协作认领与稿件源规则
+
+- **Claim 规则**：认领时在当前 TODO 的进度快照或对应任务行写明执行者身份、任务 ID 和状态，格式为
+  `Claim: Codex /root — A02 — DOING`；不新建 claim 文件、租约、review queue 或 per-task worktree。
+- **完成规则**：完成标准和定向验证通过后，将任务标记为 `DONE`，在同一段提交中说明实际改动，随后推送到
+  `main`；若未完成，不得提前标记 `DONE`。
+- **规范稿件源**：`paper/experimental_intelligence_v1_manuscript.md` 是论文 Markdown 规范源，正文和
+  frontmatter 只在这里修改。
+- **生成链**：运行 `paper/tools/build_arxiv_release.py`，由规范源生成 `paper/arxiv/main.tex`，再编译
+  `paper/exports/experimental-intelligence-v1-arxiv/` 下的 PDF、source bundle 和 build manifest；不得手改
+  `paper/arxiv/main.tex` 或生成的 PDF 来绕过源稿。
+- **同步要求**：论文正文改动完成后，若影响标题、摘要、正文或图表，必须在同一发布段重建并检查 arXiv
+  TeX/PDF；生成物未同步时，该稿件段不算完成。
+
 ## 0. 当前进度快照
 
 - **DONE**：15 个参考任务、既有边界用例、typed operations/instruments、资源账本、精确重放、
   单组件 world forks、known-policy controls 和已有完整 agent 生命周期均可复用。
 - **DONE（实现）/ 未执行（新故事）**：已有一个面向 15 个参考任务的跨世界资格 runner；它可作为
   C01、C04--C06 的参考集基线，但不能替代生成组合 C02 或未见组合 C03，也不证明世界空间只有 15 项。
-- **DONE**：A01，统一世界底座/仪器主张和边界；源稿的标题、摘要、引言和讨论已切换到新故事。
-- **TODO**：A02--A04，以及组合构造入口、兼容语法、覆盖生成、未见组合、模块参考验证和新增使用案例。
+- **DONE**：A01，统一世界底座/仪器主张和边界；源稿的标题、摘要、引言和讨论已切换到新故事，且
+  arXiv TeX/PDF 已由规范源重建同步。
+- **DONE**：A02，Codex `/root` 完成 v1 世界组合语法与公开构造契约；规范见
+  `docs/world-composition-contract.md`。
+- **TODO**：A03--A04，以及组合构造入口、兼容语法、覆盖生成、未见组合、模块参考验证和新增使用案例。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 
 ## 1. 论文只讲什么
@@ -63,7 +80,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 | ID | 状态 | 工作 | 完成标准 |
 | --- | --- | --- | --- |
 | A01 | DONE | 重写论文主张、术语和边界 | 摘要、引言、讨论使用同一套“世界底座 + 仪器”表述；15 个任务不再作为规模边界 |
-| A02 | TODO | 写出 v1 世界组合语法 | 明确组件、参数、接口、兼容/排斥规则及任务契约；读者能区分世界、任务、场景、轨迹和分叉 |
+| A02 | DONE | 写出 v1 世界组合语法 | 明确组件、参数、接口、兼容/排斥规则及任务契约；读者能区分世界、任务、场景、轨迹和分叉 |
 | A03 | TODO | 建立当前能力表 | 一张读者可读表列出组件、可组合接口、连续参数、操作和仪器；不出现仓库文件名、SHA 或内部 ID |
 | A04 | TODO | 重排论文结果结构 | 主结果按“构造—组合覆盖—接口/物理资格—受控分叉—agent 使用”组织，不按内部 Work I 流程组织 |
 
