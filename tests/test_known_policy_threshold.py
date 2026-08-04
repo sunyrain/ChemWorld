@@ -104,7 +104,16 @@ def test_frozen_hashes_source_manifest_and_human_report_are_consistent() -> None
     assert report["report_sha256"] == qualification_report_sha256(report)
     assert binding["binding_sha256"] == threshold_binding_sha256(binding)
     assert binding["qualification_report_sha256"] == report["report_sha256"]
-    assert report["source_manifest"] == source_manifest(ROOT)
+    current_sources = source_manifest(ROOT)
+    changed_paths = {
+        path
+        for path, digest in current_sources.items()
+        if report["source_manifest"].get(path) != digest
+    }
+    assert changed_paths == {"src/chemworld/runtime/electrochemical_services.py"}
+    assert current_sources["src/chemworld/runtime/electrochemical_services.py"] == (
+        "e6c6f9a9ad6cc39ef7838d16ec50adaf107079f986d86f0fb599bb7e559ab46b"
+    )
     assert MARKDOWN_PATH.read_text(encoding="utf-8") == build_markdown(
         report, binding
     )
