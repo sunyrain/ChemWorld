@@ -23,6 +23,13 @@ BIBLIOGRAPHY = ROOT / "paper" / "experimental_intelligence_v1_references.bib"
 TEMPLATE = ARXIV / "template.tex"
 BUILD = ARXIV / "build"
 EXPORT = ROOT / "paper" / "exports" / "experimental-intelligence-v1-arxiv"
+FIGURE_MANIFEST = (
+    ROOT
+    / "paper"
+    / "figures"
+    / "experimental-intelligence-v1"
+    / "work-i-publication-figure-manifest-v0.1.json"
+)
 SCHEMA = "chemworld-arxiv-release-build-manifest-0.1"
 SOURCE_DATE_EPOCH = 1_785_628_800  # 2026-08-02 00:00:00 UTC
 ZIP_TIMESTAMP = (2026, 8, 2, 0, 0, 0)
@@ -90,7 +97,42 @@ def _normalize_text(path: Path) -> None:
     path.write_text(path.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
 
 
-def _copy_sources(bundle: Path) -> list[Path]:
+def _canonical_figure_pdfs() -> list[Path]:
+    payload = json.loads(FIGURE_MANIFEST.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError("Work I publication figure manifest must be an object")
+    declared = payload.pop("manifest_sha256", None)
+    if declared != _canonical_sha(payload) or payload.get("status") != "PASS":
+        raise RuntimeError("Work I publication figure manifest is stale or failed")
+    figures = payload.get("figures")
+    if not isinstance(figures, list) or len(figures) != 6:
+        raise RuntimeError("Work I publication figure manifest must contain six figures")
+    pdfs: list[Path] = []
+    for order, figure in enumerate(figures, 1):
+        if not isinstance(figure, dict) or figure.get("order") != order:
+            raise RuntimeError("Work I publication figure order changed")
+        outputs = figure.get("outputs")
+        if not isinstance(outputs, list):
+            raise RuntimeError("Work I publication figure outputs are missing")
+        matches = [row for row in outputs if isinstance(row, dict) and row.get("format") == "pdf"]
+        if len(matches) != 1:
+            raise RuntimeError(f"figure {order} must bind exactly one PDF")
+        row = matches[0]
+        path_value = row.get("path")
+        if not isinstance(path_value, str):
+            raise RuntimeError(f"figure {order} PDF path is invalid")
+        path = ROOT / path_value
+        if (
+            not path.is_file()
+            or path.stat().st_size != row.get("bytes")
+            or _sha(path) != row.get("sha256")
+        ):
+            raise RuntimeError(f"figure {order} PDF binding is stale")
+        pdfs.append(path)
+    return pdfs
+
+
+def _copy_sources(bundle: Path, figure_pdfs: list[Path]) -> list[Path]:
     _reset_directory(bundle, allowed_root=EXPORT)
     (bundle / "figures").mkdir()
     copied = []
@@ -102,7 +144,7 @@ def _copy_sources(bundle: Path) -> list[Path]:
     ):
         target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
         copied.append(target)
-    for source in sorted((ARXIV / "figures").glob("*.pdf")):
+    for source in figure_pdfs:
         target = bundle / "figures" / source.name
         shutil.copy2(source, target)
         copied.append(target)
@@ -151,6 +193,7 @@ def _write_archives(bundle: Path, archive_base: Path) -> tuple[Path, Path]:
 
 
 def build() -> dict[str, Any]:
+    figure_pdfs = _canonical_figure_pdfs()
     pandoc = _tool(
         "pandoc",
         Path.home() / "AppData/Local/Pandoc/pandoc.exe",
@@ -177,6 +220,14 @@ def build() -> dict[str, Any]:
         cwd=ROOT,
     )
     _normalize_text(ARXIV / "main.tex")
+    main_tex = (ARXIV / "main.tex").read_text(encoding="utf-8")
+    for source in figure_pdfs:
+        canonical_reference = source.relative_to(ROOT / "paper").as_posix()
+        bundled_reference = f"figures/{source.name}"
+        if main_tex.count(canonical_reference) != 1:
+            raise RuntimeError(f"manuscript must reference {canonical_reference} exactly once")
+        main_tex = main_tex.replace(canonical_reference, bundled_reference)
+    (ARXIV / "main.tex").write_text(main_tex, encoding="utf-8", newline="\n")
     for name in ("main.aux", "main.bbl", "main.blg", "main.log", "main.out", "main.pdf"):
         path = BUILD / name
         if path.exists():
@@ -185,9 +236,8 @@ def build() -> dict[str, Any]:
     shutil.copy2(ARXIV / "references.bib", BUILD / "references.bib")
     build_figures = BUILD / "figures"
     _reset_directory(build_figures, allowed_root=BUILD)
-    for source in sorted((ARXIV / "figures").iterdir()):
-        if source.is_file():
-            shutil.copy2(source, build_figures / source.name)
+    for source in figure_pdfs:
+        shutil.copy2(source, build_figures / source.name)
     latex_args = [pdflatex, "-interaction=nonstopmode", "-halt-on-error", "main.tex"]
     _run(latex_args, cwd=BUILD)
     _run([bibtex, "main"], cwd=BUILD)
@@ -202,7 +252,7 @@ def build() -> dict[str, Any]:
     pdf = EXPORT / "chemworld-experimental-agency-arxiv.pdf"
     shutil.copy2(BUILD / "main.pdf", pdf)
     bundle = EXPORT / "source"
-    copied = _copy_sources(bundle)
+    copied = _copy_sources(bundle, figure_pdfs)
     archive_base = EXPORT / "chemworld-experimental-agency-arxiv-source"
     zip_path, tar_path = _write_archives(bundle, archive_base)
     files = [pdf, zip_path, tar_path, ARXIV / "main.tex", *copied]
@@ -211,6 +261,9 @@ def build() -> dict[str, Any]:
         "status": "compiled_arxiv_release",
         "pdf_page_count": pdf_page_count,
         "paper_source": MANUSCRIPT.relative_to(ROOT).as_posix(),
+        "figure_manifest": FIGURE_MANIFEST.relative_to(ROOT).as_posix(),
+        "figure_manifest_sha256": _sha(FIGURE_MANIFEST),
+        "canonical_figure_count": len(figure_pdfs),
         "pdf": pdf.relative_to(ROOT).as_posix(),
         "source_zip": zip_path.relative_to(ROOT).as_posix(),
         "source_tar_gz": tar_path.relative_to(ROOT).as_posix(),

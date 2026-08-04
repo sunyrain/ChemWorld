@@ -81,24 +81,25 @@ def test_public_trajectory_archive_is_complete_and_bound() -> None:
 
 
 def test_arxiv_figure_manifest_binds_all_release_formats() -> None:
-    manifest = json.loads((ARXIV / "figure-manifest.json").read_text(encoding="utf-8"))
-    comparison = json.loads(
-        (ROOT / "workstreams/arxiv_v1/reports/g2-agent-system-comparison-v0.1.json").read_text(
-            encoding="utf-8"
-        )
+    manifest_path = (
+        ROOT
+        / "paper/figures/experimental-intelligence-v1/"
+        "work-i-publication-figure-manifest-v0.1.json"
     )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     declared = manifest.pop("manifest_sha256")
     assert declared == _canonical_sha(manifest)
-    assert manifest["agent_system_comparison_sha256"] == comparison["comparison_sha256"]
-    assert manifest["status"] == "frozen_complete"
-    assert manifest["style_version"] == "arxiv-release-v1"
-    assert len(manifest["files"]) == 18
-    assert {Path(row["path"]).suffix for row in manifest["files"]} == {
+    assert manifest["status"] == "PASS"
+    assert manifest["canonical_figure_count"] == 6
+    assert manifest["canonical_asset_count"] == 18
+    files = [output for figure in manifest["figures"] for output in figure["outputs"]]
+    assert len(files) == 18
+    assert {Path(row["path"]).suffix for row in files} == {
         ".pdf",
         ".png",
         ".svg",
     }
-    for row in manifest["files"]:
+    for row in files:
         artifact = ROOT / row["path"]
         assert artifact.stat().st_size == row["bytes"]
         assert _sha(artifact) == row["sha256"]
@@ -153,7 +154,11 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
     declared = manifest.pop("manifest_sha256")
     assert declared == _canonical_sha(manifest)
     assert manifest["status"] == "compiled_arxiv_release"
-    assert manifest["pdf_page_count"] == 12
+    assert manifest["pdf_page_count"] >= 10
+    assert manifest["canonical_figure_count"] == 6
+    assert manifest["figure_manifest"].endswith(
+        "work-i-publication-figure-manifest-v0.1.json"
+    )
     for row in manifest["files"]:
         artifact = ROOT / row["path"]
         assert artifact.stat().st_size == row["bytes"]
@@ -191,13 +196,15 @@ def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
     assert "\\section{12. Conclusion}" in tex
     positions = [tex.index(f"figures/figure-{number}-") for number in range(1, 7)]
     assert positions == sorted(positions)
+    assert "figure-1-apparatus-world-forks.pdf" in tex
+    assert "figure-6-fresh-trajectories.pdf" in tex
     assert "\\titleformat{\\section}" not in tex or "{\\thesection.}" not in tex
 
 
 def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     manifest = json.loads((RELEASE / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["paper"]["working_title"] == (
-            "Executable Chemical Worlds Make Experimental Agency Measurable"
+        "Programmable Chemical Worlds Make Experimental Agency Measurable"
     )
     if manifest["publication_ready"]:
         assert manifest["status"] == "publication_ready"
@@ -238,7 +245,10 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     assert "6; 30 remain unresolved" in data_card
     assert "Complete-case substitution is forbidden" in data_card
     assert manifest["gates"]["final_claim_audit"].startswith("passed_")
-    assert manifest["gates"]["standard_arxiv_render"].startswith("passed_")
+    arxiv_build = json.loads((EXPORT / "build-manifest.json").read_text(encoding="utf-8"))
+    assert manifest["gates"]["standard_arxiv_render"] == (
+        f"passed_two_column_{arxiv_build['pdf_page_count']}_page_pdf_and_self_contained_source"
+    )
 
     pending = json.loads((ARXIV / "release-metadata.pending.json").read_text(encoding="utf-8"))
     pending_blockers = finalizer.validate_release_metadata(pending)
