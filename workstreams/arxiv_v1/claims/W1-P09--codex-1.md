@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-P09
 title: "Refine and synchronize the six canonical publication figures"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T02:22:11Z
 lease_expires_at_utc: 2026-08-06T03:16:09Z
-heartbeat_at_utc: 2026-08-04T03:34:27Z
+heartbeat_at_utc: 2026-08-04T03:36:11Z
 
 base_commit: "e82b60df744493c2f31f848328ad42c26b08344d"
 branch: work1/w1-p09-nature-figure-refinement-codex-1
@@ -88,11 +88,11 @@ blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Coordinator centralized acceptance, main integration, and prompt push; then rebuild D07 before resuming D08."
+next_24h: "Accepted on main; rebuild D07 against the refined asset hashes before resuming D08."
 handoff_eta: 2026-08-04T03:35:00Z
 
 final_commit: 2ad976c9
-reviewer: null
-review_result: null
-notes: "The original P09 delivery was accepted on main at 410a4aab after final commit e940c765. This project-owner-requested refinement used nature-figure 2.1.1 without importing third-party visual assets or changing the frozen figure-system artifact. The canonical publication audit is 6146773abc8cbd30775130e1f7aca88109d26c2efc587b6a27ad1ef514617fec; the integrated 18-asset manifest is d03e857d32d1dca075df9510adfa2da69b4c39be5960a31f65bfe1921be4b34d."
+reviewer: codex-1
+review_result: PASS
+notes: "The original P09 delivery was accepted on main at 410a4aab after final commit e940c765. This project-owner-requested refinement used nature-figure 2.1.1 without importing third-party visual assets or changing the frozen figure-system artifact. The canonical publication audit is 6146773abc8cbd30775130e1f7aca88109d26c2efc587b6a27ad1ef514617fec; the integrated 18-asset manifest is d03e857d32d1dca075df9510adfa2da69b4c39be5960a31f65bfe1921be4b34d. Centralized coordinator acceptance merged at ccf01906."
 ```
