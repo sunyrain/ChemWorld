@@ -1,5 +1,9 @@
 """Render Work I Figure 4 from the current frozen G0 compiled-control data."""
 
+# Static publication contract inherited from the shared Python helper:
+# width_mm=179.832, Arial/sans-serif, svg.fonttype='none', pdf.fonttype=42;
+# exports .svg, .pdf and .png at dpi=300.
+
 # ruff: noqa: E402
 
 from __future__ import annotations
@@ -274,7 +278,7 @@ def _draw_panel_a(
     profiles: Mapping[tuple[str, str], Mapping[str, Any]],
     colors: Mapping[str, str],
 ) -> None:
-    _panel(ax, "A", "Outcome changes are task- and information-specific", colors)
+    _panel(ax, "A", "Outcomes change by task and information", colors)
     arm_colors = _arm_colors(colors)
     x = np.arange(len(ARM_ORDER), dtype=float)
     offsets = {
@@ -343,7 +347,7 @@ def _draw_panel_b(
     profiles: Mapping[tuple[str, str], Mapping[str, Any]],
     colors: Mapping[str, str],
 ) -> None:
-    _panel(ax, "B", "Prediction and calibration remain separate readouts", colors)
+    _panel(ax, "B", "Prediction and calibration stay separate", colors)
     arm_colors = _arm_colors(colors)
     metric_x = np.array([0.0, 1.0])
     arm_offsets = {"opaque": -0.13, "nominal": 0.0, "misindexed": 0.13}
@@ -413,7 +417,7 @@ def _draw_panel_c(
     profiles: Mapping[tuple[str, str], Mapping[str, Any]],
     colors: Mapping[str, str],
 ) -> None:
-    _panel(ax, "C", "Opaque controls expose distinct epistemic readouts", colors)
+    _panel(ax, "C", "Opaque controls separate epistemic readouts", colors)
     x = np.arange(len(EPISTEMIC_METRICS), dtype=float)
     labels = (
         "declared\ndirection ↑",

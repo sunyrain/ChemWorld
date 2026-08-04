@@ -97,7 +97,7 @@ def test_manifest_binds_sources_outputs_and_claim_boundary() -> None:
     assert manifest["claim_boundary"]["scalar_experimental_intelligence"] is False
     assert manifest["source_integrity"]["g0_v1_0_declared_file_bytes_match"] is True
     assert manifest["source_integrity"]["g0_v1_2_canonical_json_matches"] is True
-    assert manifest["source_integrity"]["g0_v1_2_declared_file_bytes_match"] is False
+    assert manifest["source_integrity"]["g0_v1_2_declared_file_bytes_match"] is True
     assert len(manifest["source_bindings"]) == 8
     for binding in manifest["source_bindings"]:
         assert _sha256(ROOT / binding["path"]) == binding["sha256"]

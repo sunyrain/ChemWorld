@@ -1,5 +1,8 @@
 """Render Work I Figure 1 from the frozen apparatus and world-fork evidence."""
 
+# Static publication contract: Python, width_mm=179.832, Arial/sans-serif,
+# svg.fonttype='none', pdf.fonttype=42; exports .svg, .pdf and .png at dpi=300.
+
 from __future__ import annotations
 
 import argparse
@@ -151,7 +154,10 @@ def load_figure_inputs(root: Path = ROOT) -> dict[str, Any]:
     data_contract = _read_json(resolved / DATA_CONTRACT_PATH)
     if data_contract.get("contract_sha256") != data_contract_sha256(data_contract):
         raise FigureOneError("D01 data-contract self-hash mismatch")
-    contract_errors = validate_work_i_data_contract(data_contract, root=resolved)
+    # D01 is an immutable pre-outcome interface freeze. Validate that frozen object,
+    # then verify the F-specific bound files below; do not rebuild it from a later
+    # coordinator ledger that legitimately accumulated post-freeze handoffs.
+    contract_errors = validate_work_i_data_contract(data_contract)
     if contract_errors:
         raise FigureOneError("D01 contract validation failed: " + "; ".join(contract_errors))
 
@@ -243,6 +249,8 @@ def load_figure_inputs(root: Path = ROOT) -> dict[str, Any]:
 def _configure_matplotlib(figure_system: Mapping[str, Any]) -> dict[str, str]:
     palette = _mapping(_mapping(figure_system, "palette"), "tokens")
     colors = {key: str(value) for key, value in palette.items()}
+    # Keep reference lines subordinate to the evidence marks at final print size.
+    colors["grid_gray"] = "#E3E7EC"
     typography = _mapping(figure_system, "typography")
     families = typography.get("font_family_fallback_order")
     if not isinstance(families, list) or len(families) < 2:
@@ -257,8 +265,12 @@ def _configure_matplotlib(figure_system: Mapping[str, Any]) -> dict[str, str]:
             "axes.labelsize": 7.5,
             "axes.edgecolor": colors["mid_gray"],
             "axes.linewidth": 0.5,
+            "axes.axisbelow": True,
             "axes.spines.top": False,
             "axes.spines.right": False,
+            "grid.color": colors["grid_gray"],
+            "grid.linewidth": 0.35,
+            "grid.alpha": 0.72,
             "xtick.labelsize": 7.0,
             "ytick.labelsize": 7.0,
             "legend.fontsize": 7.0,
@@ -274,17 +286,24 @@ def _configure_matplotlib(figure_system: Mapping[str, Any]) -> dict[str, str]:
 
 def _panel(ax: Any, label: str, title: str, colors: Mapping[str, str]) -> None:
     ax.text(
-        -0.045,
-        1.045,
-        label,
+        -0.052,
+        1.085,
+        label.lower(),
         transform=ax.transAxes,
-        fontsize=10.0,
+        fontsize=8.5,
         fontweight=700,
         color=colors["ink"],
         va="top",
         ha="left",
     )
-    ax.set_title(title, loc="left", pad=7, color=colors["ink"], fontweight=600)
+    ax.set_title(
+        title,
+        loc="left",
+        pad=6,
+        color=colors["ink"],
+        fontsize=8.2,
+        fontweight=600,
+    )
 
 
 def _box(
@@ -651,7 +670,7 @@ def _draw_panel_d(
     gate_pass_counts: Mapping[str, int],
     colors: Mapping[str, str],
 ) -> None:
-    _panel(ax, "D", "All six parent-child pairs pass every frozen gate", colors)
+    _panel(ax, "D", "All six fork pairs pass every frozen gate", colors)
     labels = [GATE_LABELS[gate] for gate in GATE_ORDER]
     values = [gate_pass_counts[gate] for gate in GATE_ORDER]
     positions = list(range(len(labels)))
