@@ -47,9 +47,12 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE**：`Claim: Codex /root — U00/B04-AMEND — DONE`；U02/U03 authoring example 已改用 runtime
   支持的 `balanced` objective，冻结并执行验证 5-step 表征路径和 19-step 失败--恢复路径；规范源、arXiv
   TeX、19 页 PDF、source bundle 和 build manifest 已由同一次确定性构建同步，PDF 第 3--4 页视觉检查通过。
-- **DOING / Claim**：`Claim: Codex /root — U01-U03/U06/E01-DET — DOING`；按
-  `experiments/first-paper-deterministic-use-cases.md` 冻结并运行 8 个确定性案例，输出逐步事务、资源、
-  失败恢复、终止、公开边界和精确 replay 回执；不调用 provider，不替换 U04/U05 的既有正式证据。
+- **DONE / Claim**：`Claim: Codex /root — U01-U03/U06/E01-DET — DONE`；按
+  `experiments/first-paper-deterministic-use-cases.md` 完成 8 个冻结确定性案例。正式结果为 89/89 submitted
+  actions 均有完整回执、88 commits、1 个预注册 rollback、8 个 final assays；89/89 逐步资源对账、8/8
+  exact replay、U03 ghost-state 对账和 U04/U05 current evidence binding 全部通过，provider、leakage、
+  missing receipts 和 failure classes 均为零。规范论文源、arXiv TeX、19 页 PDF、source bundle 与 build
+  manifest 已同步；PDF 第 1、4、11 页视觉检查及重复构建零 diff 通过。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 
 ## 1. 论文只讲什么
@@ -144,7 +147,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 
 | ID | 状态 | 工作 | 完成标准 |
 | --- | --- | --- | --- |
-| E01 | DOING | 保留一个确定性控制 | 展示世界、资源、失败、观测和终止如何被仪器记录 |
+| E01 | DONE | 保留一个确定性控制 | 展示世界、资源、失败、观测和终止如何被仪器记录 |
 | E02 | TODO | 在未见生成世界上运行完整 agent | 证明 agent 可使用同一公开契约进入新组合世界并闭合生命周期；只作可用性展示 |
 | E03 | TODO | 保留 endpoint 相近但过程不同的示例 | 说明过程记录提供 endpoint 之外的信息；19 个维度保持分立，不合成“智能分数” |
 | E04 | TODO | 压缩旧 agent 结果 | 多模型排名、行为机制、规则学习、跨模型归因和大规模 agent 统计全部移到第二篇 |
@@ -159,12 +162,12 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 | ID | 状态 | 使用案例 | 论文价值与放置 |
 | --- | --- | --- | --- |
 | U00 | DONE | 锁定并修订 U01--U06 案例矩阵 | 六个案例的契约、证据角色和共用关系无歧义；U02/U03 路径已完成 pre-launch amendment，U05 与 C03 绑定同一冻结未见组合批次 |
-| U01 | DOING | 多阶段反应到分离/结晶 | 展示反应、相态和下游纯化组成一个连续世界；主文候选 |
-| U02 | DOING | 资源受限的结构/平衡表征 | 展示仪器选择、信息获取、样品消耗和停止决定；主文候选 |
-| U03 | DOING | 失败、约束与恢复 | 展示前置条件、安全边界、失败回执、资源后果和后续恢复；主文或扩展图 |
+| U01 | DONE | 多阶段反应到分离/结晶 | 展示反应、相态和下游纯化组成一个连续世界；主文候选 |
+| U02 | DONE | 资源受限的结构/平衡表征 | 展示仪器选择、信息获取、样品消耗和停止决定；主文候选 |
+| U03 | DONE | 失败、约束与恢复 | 展示前置条件、安全边界、失败回执、资源后果和后续恢复；主文或扩展图 |
 | U04 | TODO | 同一公开仪器下的受控世界分叉 | 展示只改变私有定律而保持操作与观测合同；复用既有 fork 证据 |
 | U05 | TODO | 覆盖生成的未见组合世界 | 展示不改核心运行时即可构造、执行、重放，并由完整 agent 闭合生命周期；主文必选 |
-| U06 | DOING | 参考案例库 | 连续流、电化学、蒸馏、分配、结晶等更多样例放附录/公开文档，不逐个写成性能实验 |
+| U06 | DONE | 参考案例库 | 连续流、电化学、蒸馏、分配、结晶等更多样例放附录/公开文档，不逐个写成性能实验 |
 
 #### U00 冻结案例矩阵
 

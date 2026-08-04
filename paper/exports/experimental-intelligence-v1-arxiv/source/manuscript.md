@@ -31,7 +31,11 @@ abstract: |
   single-private-component forks with invariant public contracts. The central qualification
   programme tests coverage-guided compositions and frozen unseen compositions for compile-
   time compatibility, interface closure, physical and resource invariants, observation
-  boundaries and replay. Complete agents are then used as instrument demonstrations: their
+  boundaries and replay. Across eight frozen deterministic use cases, all 89 submitted
+  actions produced complete receipts: 88 committed, the single preregistered failure rolled
+  back without ghost state, all eight lifecycles closed, all resource ledgers reconciled,
+  public leakage findings were zero and every trajectory replayed exactly. Complete agents
+  are then used as instrument demonstrations: their
   records show what the apparatus can expose, not why an agent acted, how models rank, or
   whether a virtual world transfers to a laboratory. The resulting claim is deliberately
   bounded to the declared v1 component and compatibility domain: we validate reusable
@@ -271,6 +275,19 @@ frozen 19-action path first submits an intentionally premature phase-separation 
 must roll back without changing physical state, and then follows an 18-action legal
 reaction--measurement--purification--termination recovery path. These are construction and
 lifecycle specifications, not agent-performance or physical-laboratory results.
+
+The frozen use-case block executed eight deterministic trajectories spanning multistage
+reaction-to-crystallization, resource-limited equilibrium characterization, explicit
+failure and recovery, continuous flow, electrochemical conversion, distillation and
+partition. All 89 submitted actions returned complete transaction, constitution, event,
+resource and public-observation receipts. Eighty-eight actions committed; the sole planned
+rollback was the first action of the failure--recovery case and preserved physical state and
+observation RNG while reconciling its declared process, ledger, event and resource
+consequences. Each trajectory committed one final assay and closed its lifecycle; all eight
+resource ledgers reconciled, no public/private leakage finding was recorded and all eight
+trajectories passed exact replay with zero numerical error. The independent unit remains the
+frozen use case, not its actions or replay checks, and these counts are deterministic
+qualification denominators rather than performance statistics.
 
 All 28 registered operations committed in at least one valid context. In paired invalid
 probes, the pre-action simulator-state projection was preserved. Only a committed
@@ -642,6 +659,13 @@ inspect evidence acquisition, failure and rollback, resource expenditure, lifecy
 and terminal choice without silently collapsing them into a score. Existing process-profile
 and known-policy results remain useful positive controls for this logging surface, but they
 are instrument demonstrations rather than a universal construct of agency.
+
+The deterministic use-case block makes this record concrete across eight frozen public
+workflow cases. Its 89/89 complete action receipts, single planned rollback with reconciled
+failure consequences, eight closed lifecycles and eight exact replays show that the same
+instrument contract can retain success, failure and recovery without changing the counting
+unit or hiding missing evidence. This is an executable-interface result, not a comparison of
+agents or an estimate of real-chemistry reliability.
 
 The 15 registered tasks have a deliberately narrower role in this story. They are reference
 examples selected to cover structural axes and usage patterns. They do not define the size
