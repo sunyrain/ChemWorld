@@ -3,7 +3,7 @@
 ```yaml
 task_id: W1-Q05
 title: "Editorial review of story, main figures, scope, and journal fit"
-status: REVIEW
+status: DONE
 
 owner: "codex-1"
 collaborators: []
@@ -44,8 +44,8 @@ next_check_at_utc: null
 next_24h: "Coordinator acceptance and master-status update"
 handoff_eta: 2026-08-04T05:30:00Z
 
-final_commit: null
-reviewer: null
-review_result: "APPROVE"
+final_commit: "1902f6d9b3d7e74524c3261f70d1b1d6d1e04be6"
+reviewer: "codex-1 (coordinator centralized acceptance)"
+review_result: "APPROVE; accepted on main without repeat validation"
 notes: "Main is used because the coordinator is completing the remaining first-paper work and the user requires claims to be immediately visible on main. This task is editorial review, not the three-person independent blind review required by W1-Q06."
 ```

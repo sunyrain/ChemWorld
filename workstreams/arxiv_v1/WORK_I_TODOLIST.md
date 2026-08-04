@@ -347,7 +347,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-Q02 | P0 | DONE | systems reviewer：security、identity、ledger、replay | implementations | 是 |
 | W1-Q03 | P0 | DONE | methods reviewer：construct validity、estimands、censoring | analysis drafts | 是 |
 | W1-Q04 | P0 | DONE | chemistry/chemical-engineering reviewer：世界与实验语义 | F/V reports | 是 |
-| W1-Q05 | P0 | OPEN | editorial reviewer：故事、主图、scope、期刊适配 | paper draft | 是 |
+| W1-Q05 | P0 | DONE | editorial reviewer：故事、主图、scope、期刊适配 | paper draft | 是 |
 | W1-Q06 | P0 | OPEN | 三位全新独立审稿人 blind review | integrated PDF | 否 |
 | W1-Q07 | P0 | OPEN | review adjudication 与逐条 closure matrix | Q06 | 否 |
 
