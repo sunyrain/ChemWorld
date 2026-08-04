@@ -161,6 +161,11 @@
 - claim 文件记录最终 commit、测试和 handoff；
 - 如产生数据，已生成 immutable manifest、hash 和 counting rule。
 
+2026-08-04 的一次性 coordinator 集中验收记录见
+`reports/work-i-concentrated-coordinator-acceptance-2026-08-04.md`。该验收复用各 claim
+已记录的任务级验证，并统一核对提交已进入 `main`、交付路径存在及当前树
+`git diff --check`；不重复执行实验或逐任务测试。
+
 ## 3. 并行工作拓扑
 
 ### 3.1 Track 划分
@@ -244,8 +249,8 @@ Track 默认写集：
 | --- | --- | --- | --- | --- | --- |
 | W1-M01 | P0 | DONE | 建立 claims 目录、模板和 coordinator 规则 | 无 | 是 |
 | W1-M02 | P0 | DONE | 冻结 Work I scope、claim hierarchy 与非目标 | 无 | 是 |
-| W1-M03 | P0 | REVIEW | 对齐两份历史生成报告与当前 evidence binding | 无 | 是 |
-| W1-M04 | P0 | REVIEW | 封存 v0.6 scope-stopped extension | 无 | 是 |
+| W1-M03 | P0 | DONE | 对齐两份历史生成报告与当前 evidence binding | 无 | 是 |
+| W1-M04 | P0 | DONE | 封存 v0.6 scope-stopped extension | 无 | 是 |
 | W1-M05 | P0 | CLAIMED | 建立 integration staging 与 hot-file queue | M01 | 是 |
 | W1-M06 | P0 | OPEN | 最终跨 track 集成与 release freeze | F/V/L/S/P/D 完成 | 否 |
 
@@ -262,7 +267,7 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-F05 | P0 | DONE | 实现 world-fork builder、runner 与 audit | F01–F04 freeze | 是 |
 | W1-F06 | P0 | DONE | 执行并冻结 24 条 world-fork qualification traces | F05 | 否 |
 | W1-F07 | P0 | DONE | 将 fork certificate 写入 machine/human reports | F06 | 是 |
-| W1-F08 | P1 | REVIEW | 完善 world-authoring contract、示例和 validator 文档 | F01 | 是 |
+| W1-F08 | P1 | DONE | 完善 world-authoring contract、示例和 validator 文档 | F01 | 是 |
 | W1-F09 | P0 | DONE | 审计 15 tasks/28 operations/5 instruments/62 endpoints 的展示口径 | M02 | 是 |
 | W1-F10 | P0 | DONE | 完成 transaction、resource、failure、instrument semantics 总资格表 | F01 | 是 |
 
@@ -284,51 +289,51 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 
 | ID | P | 状态 | 任务 | 硬依赖 | 可并行 |
 | --- | --- | --- | --- | --- | --- |
-| W1-L01 | P0 | REVIEW | 冻结 shadow-state estimands 与主文进入规则 | M02 | 是 |
-| W1-L02 | P0 | REVIEW | 审计 36 个 discard 的 pre-discard state 可重建性 | 无 | 是 |
-| W1-L03 | P0 | REVIEW | 实现 prefix-identity replay 与 terminal branch replacement | L01 draft | 是 |
-| W1-L04 | P0 | REVIEW | 实现 latent-score、regret、false-discard 与 commitment audit | L01 draft | 是 |
-| W1-L05 | P0 | REVIEW | qualification、protocol freeze 与 36 shadow assays | L02–L04 | 否 |
-| W1-L06 | P0 | REVIEW | 输出连续主分析和阈值敏感性报告 | L05 | 是 |
+| W1-L01 | P0 | DONE | 冻结 shadow-state estimands 与主文进入规则 | M02 | 是 |
+| W1-L02 | P0 | DONE | 审计 36 个 discard 的 pre-discard state 可重建性 | 无 | 是 |
+| W1-L03 | P0 | DONE | 实现 prefix-identity replay 与 terminal branch replacement | L01 draft | 是 |
+| W1-L04 | P0 | DONE | 实现 latent-score、regret、false-discard 与 commitment audit | L01 draft | 是 |
+| W1-L05 | P0 | DONE | qualification、protocol freeze 与 36 shadow assays | L02–L04 | 否 |
+| W1-L06 | P0 | DONE | 输出连续主分析和阈值敏感性报告 | L05 | 是 |
 
 ### 5.5 Story & manuscript
 
 | ID | P | 状态 | 任务 | 硬依赖 | 可并行 |
 | --- | --- | --- | --- | --- | --- |
-| W1-S01 | P0 | REVIEW | 建立逐主张 claim–evidence–figure map | M02 | 是 |
-| W1-S02 | P0 | REVIEW | 冻结发布会式故事结构与章节职责 | M02 | 是 |
+| W1-S01 | P0 | DONE | 建立逐主张 claim–evidence–figure map | M02 | 是 |
+| W1-S02 | P0 | DONE | 冻结发布会式故事结构与章节职责 | M02 | 是 |
 | W1-S03 | P0 | CLAIMED | 重写 title/abstract/introduction 的占位版本 | S01 draft | 是 |
-| W1-S04 | P0 | REVIEW | 重写 platform/world programmability Results 与 Methods | F protocol | 是 |
-| W1-S05 | P0 | REVIEW | 重写 measurement-validity Results 与 Methods | V protocol | 是 |
-| W1-S06 | P0 | REVIEW | 重写 complete-system policy 与 latent audit 结果结构 | L protocol | 是 |
-| W1-S07 | P0 | REVIEW | 修正 figure first-reference、120 closure、6/8 和术语残留 | 无 | 是 |
+| W1-S04 | P0 | DONE | 重写 platform/world programmability Results 与 Methods | F protocol | 是 |
+| W1-S05 | P0 | DONE | 重写 measurement-validity Results 与 Methods | V protocol | 是 |
+| W1-S06 | P0 | DONE | 重写 complete-system policy 与 latent audit 结果结构 | L protocol | 是 |
+| W1-S07 | P0 | DONE | 修正 figure first-reference、120 closure、6/8 和术语残留 | 无 | 是 |
 | W1-S08 | P0 | CLAIMED | 重构 related work：SDL 互补、agent evaluation、virtual worlds | M02 | 是 |
-| W1-S09 | P0 | REVIEW | 完成 limitations/boundaries，不扩大第一篇责任 | S01 | 是 |
+| W1-S09 | P0 | DONE | 完成 limitations/boundaries，不扩大第一篇责任 | S01 | 是 |
 | W1-S10 | P0 | CLAIMED | 读取冻结结果后完成最终 title/abstract/results/conclusion | F/V/L reports | 否 |
 
 ### 5.6 Figures & visual system
 
 | ID | P | 状态 | 任务 | 硬依赖 | 可并行 |
 | --- | --- | --- | --- | --- | --- |
-| W1-P01 | P0 | REVIEW | 冻结六图信息架构、字体、配色、线宽和 panel grid | S02 | 是 |
-| W1-P02 | P0 | REVIEW | Fig. 1 apparatus + programmable world fork | F protocol | 是 |
-| W1-P03 | P0 | REVIEW | Fig. 2 known-policy measurement validity | V protocol | 是 |
-| W1-P04 | P0 | REVIEW | Fig. 3 same completion, different terminal policy | 现有数据；L 可后补 | 是 |
-| W1-P05 | P0 | REVIEW | Fig. 4 compiled information controls | 现有数据 | 是 |
-| W1-P06 | P0 | REVIEW | Fig. 5 autonomous lifecycle/process profile | 现有数据 | 是 |
-| W1-P07 | P0 | REVIEW | Fig. 6 fresh-session trajectory variation | 现有数据 | 是 |
-| W1-P08 | P0 | REVIEW | SVG editability、高清素材、PDF 字体与双栏尺寸审计 | P02–P07 | 否 |
+| W1-P01 | P0 | DONE | 冻结六图信息架构、字体、配色、线宽和 panel grid | S02 | 是 |
+| W1-P02 | P0 | DONE | Fig. 1 apparatus + programmable world fork | F protocol | 是 |
+| W1-P03 | P0 | DONE | Fig. 2 known-policy measurement validity | V protocol | 是 |
+| W1-P04 | P0 | DONE | Fig. 3 same completion, different terminal policy | 现有数据；L 可后补 | 是 |
+| W1-P05 | P0 | DONE | Fig. 4 compiled information controls | 现有数据 | 是 |
+| W1-P06 | P0 | DONE | Fig. 5 autonomous lifecycle/process profile | 现有数据 | 是 |
+| W1-P07 | P0 | DONE | Fig. 6 fresh-session trajectory variation | 现有数据 | 是 |
+| W1-P08 | P0 | DONE | SVG editability、高清素材、PDF 字体与双栏尺寸审计 | P02–P07 | 否 |
 | W1-P09 | P0 | OPEN | caption、正文引用、display items 与 manifest 一致性 | P08、S10 | 否 |
 
 ### 5.7 Data, evidence & release
 
 | ID | P | 状态 | 任务 | 硬依赖 | 可并行 |
 | --- | --- | --- | --- | --- | --- |
-| W1-D01 | P0 | REVIEW | 冻结新增实验的数据 schema、单位和 counting rules | M02 | 是 |
+| W1-D01 | P0 | DONE | 冻结新增实验的数据 schema、单位和 counting rules | M02 | 是 |
 | W1-D02 | P0 | BLOCKED | 17.7 GB G0 raw roots 持久归档与公开 identifier | 外部服务 | 是 |
-| W1-D03 | P0 | REVIEW | 构建单一 frozen derived-data layer | F/V/L reports | 否 |
-| W1-D04 | P0 | REVIEW | 为 F/V/L 新增 evidence DAG nodes 与 source binding | reports ready | 是 |
-| W1-D05 | P0 | REVIEW | 更新 experiment ledger、release manifest 和 data card | D03–D04 | 否 |
+| W1-D03 | P0 | DONE | 构建单一 frozen derived-data layer | F/V/L reports | 否 |
+| W1-D04 | P0 | DONE | 为 F/V/L 新增 evidence DAG nodes 与 source binding | reports ready | 是 |
+| W1-D05 | P0 | DONE | 更新 experiment ledger、release manifest 和 data card | D03–D04 | 否 |
 | W1-D06 | P0 | BLOCKED | 作者、单位、corresponding author 与 ORCID metadata | 项目负责人 | 是 |
 | W1-D07 | P0 | OPEN | 标准 arXiv PDF、ZIP、TAR.GZ 与 proof rebuild | S/P/D 完成 | 否 |
 | W1-D08 | P0 | OPEN | full tests、clean wheel、independent checkout、claim audit | D07 | 否 |
