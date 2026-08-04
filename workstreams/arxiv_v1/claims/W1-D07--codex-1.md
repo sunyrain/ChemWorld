@@ -19,6 +19,7 @@ supersedes: null
 declared_write_set:
   - workstreams/arxiv_v1/claims/W1-D07--codex-1.md
   - paper/tools/build_arxiv_release.py
+  - paper/tools/finalize_arxiv_release.py
   - paper/tools/render_publication_v1_pdf.py
   - paper/arxiv/template.tex
   - tests/test_arxiv_release_artifacts.py
