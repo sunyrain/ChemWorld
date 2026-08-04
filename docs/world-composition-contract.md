@@ -126,6 +126,35 @@ The request is a construction description, not a trajectory. A scenario supplies
 parameter values, initial-state values and a seed after the world and task contract have
 been compiled.
 
+### Runtime entry point
+
+The same request is accepted by the public compiler and environment constructor:
+
+```python
+import gymnasium as gym
+import chemworld
+
+request = {
+    "schema_version": "chemworld-world-composition-0.1",
+    "composition_id": "composed-reaction-assay-demo",
+    "world_split": "public-dev",
+    "components": [
+        {"kind": "reaction", "role": "transformation", "parameters": {}},
+        {"kind": "thermal", "role": "temperature-and-energy", "parameters": {}},
+        {"kind": "observation", "role": "public-measurement", "parameters": {}},
+    ],
+    "task": {"budget": 8, "resources": {"operation_budget": 8}},
+}
+
+compiled = chemworld.compile_world_composition(request)
+env = gym.make("ChemWorld", composition=compiled, seed=0)
+observation, info = env.reset(seed=0)
+```
+
+`compiled.to_public_dict()` and `info["composition"]` expose the same component,
+interface, operation, instrument, resource, termination and evaluation surface. Unsupported
+component sets fail before environment execution.
+
 ## 4. Interface and parameter rules
 
 Every component declares the inputs it consumes, the outputs it produces, the units of

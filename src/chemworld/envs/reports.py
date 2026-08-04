@@ -80,6 +80,8 @@ def build_task_info(env: Any) -> dict[str, Any]:
         payload["electrochemical_workflow_mode"] = (
             env.electrochemical_workflow_mode
         )
+    if env.compiled_composition is not None:
+        payload["composition"] = env.compiled_composition.to_public_dict()
     if env.task_id in {
         "electrochemical-conversion",
         "reaction-to-crystallization",

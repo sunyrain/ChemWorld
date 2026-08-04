@@ -66,6 +66,10 @@ from chemworld.runtime import (
     make_chemworld_constitution,
 )
 from chemworld.tasks import default_kernel_maturity, get_task
+from chemworld.world.composition import (
+    CompiledWorldComposition,
+    compile_world_composition,
+)
 from chemworld.world.crystallization_material_family import (
     apply_crystallization_material_family,
     normalize_crystallization_material_family,
@@ -108,6 +112,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         objective: str = "balanced",
         seed: int = 0,
         task_id: str | None = None,
+        composition: Mapping[str, Any] | CompiledWorldComposition | None = None,
         budget_override: int | None = None,
         episode_mode_override: str | None = None,
         safety_limit_override: float | None = None,
@@ -131,8 +136,19 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         super().__init__()
         if render_mode is not None and render_mode not in self.metadata["render_modes"]:
             raise ValueError(f"Unsupported render_mode={render_mode!r}")
-        self.task_id = task_id
-        self.task_spec = get_task(task_id) if task_id else None
+        if task_id is not None and composition is not None:
+            raise ValueError("task_id and composition are mutually exclusive")
+        self.compiled_composition = (
+            None if composition is None else compile_world_composition(composition)
+        )
+        self.task_spec = (
+            self.compiled_composition.task_spec
+            if self.compiled_composition is not None
+            else get_task(task_id)
+            if task_id
+            else None
+        )
+        self.task_id = None if self.task_spec is None else self.task_spec.task_id
         if self.task_spec is not None:
             world_split = self.task_spec.world_split
             budget = self.task_spec.budget
@@ -271,7 +287,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         self.scenario_generator = DefaultScenarioGenerator()
         self.scenario_spec = (
-            get_scenario(self.task_spec.scenario_id, split=world_split)
+            self.compiled_composition.scenario_spec
+            if self.compiled_composition is not None
+            else get_scenario(self.task_spec.scenario_id, split=world_split)
             if self.task_spec is not None
             else get_scenario(DEFAULT_SCENARIO_ID, split=world_split)
         )
@@ -347,6 +365,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "status": "not_observed",
         }
         if options and options.get("scenario_id"):
+            if self.compiled_composition is not None:
+                raise ValueError(
+                    "scenario_id reset overrides are unavailable for composed worlds"
+                )
             self.scenario_spec = get_scenario(str(options["scenario_id"]), split=self.world_split)
         self.scenario_instance = self.scenario_generator.generate(
             self.scenario_spec,

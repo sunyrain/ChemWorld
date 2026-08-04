@@ -1,5 +1,15 @@
 """Professional world-law layer for the unified ChemWorld environment."""
 
+from chemworld.world.composition import (
+    SUPPORTED_COMPONENT_KINDS,
+    WORLD_COMPOSITION_SCHEMA_VERSION,
+    CompiledWorldComposition,
+    CompositionTaskRequest,
+    WorldComponentRequest,
+    WorldCompositionError,
+    WorldCompositionSpec,
+    compile_world_composition,
+)
 from chemworld.world.continuous_flow import ContinuousFlowModuleSpec
 from chemworld.world.crystallization import CrystallizationModuleSpec
 from chemworld.world.distillation import DistillationModuleSpec
@@ -58,11 +68,15 @@ __all__ = [
     "MECHANISM_FAMILY_INTERVENTION_VERSION",
     "MECHANISM_REACHABLE_TASKS",
     "MODULE_VERSIONS",
+    "SUPPORTED_COMPONENT_KINDS",
     "SUPPORTED_SPLITS",
     "WORLD_AXIS_REGISTRY",
+    "WORLD_COMPOSITION_SCHEMA_VERSION",
     "WORLD_FAMILY_VERSION",
     "AxisIntervention",
     "ChemWorldParameters",
+    "CompiledWorldComposition",
+    "CompositionTaskRequest",
     "ContinuousFlowModuleSpec",
     "CrystallizationModuleSpec",
     "DistillationModuleSpec",
@@ -75,9 +89,13 @@ __all__ = [
     "ScenarioInstance",
     "ScenarioSpec",
     "WorldAxisSpec",
+    "WorldComponentRequest",
+    "WorldCompositionError",
+    "WorldCompositionSpec",
     "apply_material_law_counterfactual",
     "axes_for_task",
     "compile_recipe",
+    "compile_world_composition",
     "constitution_rules",
     "expand_macro_action",
     "final_assay_spectra",
