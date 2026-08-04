@@ -1,5 +1,9 @@
 """Render Work I Figure 3 from frozen complete-system terminal evidence."""
 
+# Static publication contract inherited from the shared Python helper:
+# width_mm=179.832, Arial/sans-serif, svg.fonttype='none', pdf.fonttype=42;
+# exports .svg, .pdf and .png at dpi=300.
+
 # ruff: noqa: E402
 
 from __future__ import annotations

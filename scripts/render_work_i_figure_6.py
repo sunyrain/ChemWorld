@@ -1,5 +1,9 @@
 """Render Work I Figure 6 from the frozen G2 v0.5 fresh trajectories."""
 
+# Static publication contract inherited from the shared Python helper:
+# width_mm=179.832, Arial/sans-serif, svg.fonttype='none', pdf.fonttype=42;
+# exports .svg, .pdf and .png at dpi=300.
+
 # ruff: noqa: E402
 
 from __future__ import annotations
@@ -361,7 +365,7 @@ def _draw_panel_a(ax: Any, pairs: list[dict[str, Any]], colors: Mapping[str, str
 
 
 def _draw_panel_b(ax: Any, complete_pairs: list[dict[str, Any]], colors: Mapping[str, str]) -> None:
-    _panel(ax, "B", "Historical best and raw terminal can reverse sign", colors)
+    _panel(ax, "B", "Best and terminal contrasts can reverse sign", colors)
     ordered = sorted(
         complete_pairs,
         key=lambda row: (
@@ -415,7 +419,7 @@ def _draw_panel_b(ax: Any, complete_pairs: list[dict[str, Any]], colors: Mapping
 
 
 def _draw_panel_c(ax: Any, complete_pairs: list[dict[str, Any]], colors: Mapping[str, str]) -> None:
-    _panel(ax, "C", "Matched process contrasts vary within each fixed world", colors)
+    _panel(ax, "C", "Process contrasts vary within fixed worlds", colors)
     offsets = {1: -0.11, 3: 0.11}
     markers = {1: "o", 3: "s"}
     world_colors = {1: colors["ink"], 3: colors["mid_gray"]}
@@ -462,7 +466,7 @@ def _draw_panel_d(
     selected: Mapping[str, Any],
     colors: Mapping[str, str],
 ) -> None:
-    _panel(ax, "D", "Censoring retained; classifications remain supporting", colors)
+    _panel(ax, "D", "Censoring is explicit; classes stay supporting", colors)
     ax.set_axis_off()
     ax.text(0.04, 0.83, "pair disposition", transform=ax.transAxes, fontsize=6.5, fontweight=600)
     for index, row in enumerate(pairs):

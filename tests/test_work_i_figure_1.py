@@ -77,6 +77,8 @@ def test_outputs_meet_editability_embedding_and_final_size_rules() -> None:
     png = (output_dir / f"{OUTPUT_STEM}.png").read_bytes()
     assert "<text" in svg
     assert "ChemWorld apparatus and controlled world forks" not in svg
+    assert all(f">{label}</text>" in svg for label in "abcd")
+    assert all(f">{label}</text>" not in svg for label in "ABCD")
     assert pdf.startswith(b"%PDF")
     assert b"/FontFile2" in pdf
     assert png[:8] == b"\x89PNG\r\n\x1a\n"

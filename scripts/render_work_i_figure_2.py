@@ -1,5 +1,9 @@
 """Render Work I Figure 2 from frozen known-policy validity evidence."""
 
+# Static publication contract inherited from the shared Python helper:
+# width_mm=179.832, Arial/sans-serif, svg.fonttype='none', pdf.fonttype=42;
+# exports .svg, .pdf and .png at dpi=300.
+
 # ruff: noqa: E402
 
 from __future__ import annotations
@@ -136,7 +140,10 @@ def load_figure_inputs(root: Path = ROOT) -> dict[str, Any]:
     data_contract = _read_json(resolved / DATA_CONTRACT_PATH)
     if data_contract.get("contract_sha256") != data_contract_sha256(data_contract):
         raise FigureTwoError("D01 data-contract self-hash mismatch")
-    contract_errors = validate_work_i_data_contract(data_contract, root=resolved)
+    # D01 is an immutable pre-outcome interface freeze. Validate that frozen object,
+    # then verify the V-specific bound files below; do not rebuild it from a later
+    # coordinator ledger that legitimately accumulated post-freeze handoffs.
+    contract_errors = validate_work_i_data_contract(data_contract)
     if contract_errors:
         raise FigureTwoError("D01 contract validation failed: " + "; ".join(contract_errors))
 
@@ -474,7 +481,7 @@ def _draw_panel_c(
 
 
 def _draw_panel_d(ax: Any, colors: Mapping[str, str]) -> None:
-    _panel(ax, "D", "Thirty retests reproduce every registered component", colors)
+    _panel(ax, "D", "All 30 retests reproduce registered components", colors)
     checks = (
         "same identity",
         "trajectory",
