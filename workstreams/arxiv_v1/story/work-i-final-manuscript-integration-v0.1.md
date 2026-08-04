@@ -116,3 +116,26 @@ six-figure order, analysis units, result direction, or censoring boundary.
 Focused manuscript/ledger validation passed `13/13`. The current publication-proof
 manifest is intentionally not refreshed here: its manuscript byte binding becomes
 current only after P09 and the D07 proof rebuild.
+
+## 2026-08-04 instrument-paper and explanatory-study firewall
+
+The project owner clarified the publication split without changing any result, figure,
+analysis unit or title. Work I is the release and qualification of a programmable
+scientific measurement instrument. The complete agent system is the experimental
+subject; executable physical-chemistry worlds, instruments, transaction semantics,
+resource ledgers, failures, identities and replay form the apparatus. The agent examples
+show that autonomous systems can run and become observable under that contract.
+
+The registered backend supports a broader family of selected physical-chemistry worlds
+than the subset formally exercised in Work I. Those formal cases are qualification and
+capability demonstrations, not a statistical sample of backend coverage or agent
+behavior. Controlled and partly idealized world models are appropriate to the Work I
+claim because the estimand is instrument control, observability and auditability rather
+than the physical truth of an agent-generated explanation.
+
+Work II owns explanatory claims. It must use separately defined interventions and
+analysis units to ask why an agent adopted a policy, attribute behavior to model or
+scaffold mechanisms, study adaptation under changed laws, and test whether an
+interpretation survives the world fidelity required by its scientific estimand. Work I
+must not pre-consume those conclusions merely to enlarge its example count or explain a
+trajectory retrospectively.
