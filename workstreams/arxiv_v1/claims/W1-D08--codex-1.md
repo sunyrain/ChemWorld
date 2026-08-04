@@ -29,12 +29,17 @@ declared_write_set:
   - src/chemworld/agents/known_policy.py
   - src/chemworld/eval/policy_validity_qualification.py
   - tests/test_work_i_manuscript_language_locks.py
+  - tests/test_known_policy_threshold.py
+  - tests/test_work_i_historical_report_alignment.py
+  - tests/test_work_i_world_authoring_examples.py
+  - configs/current.json
 shared_hot_file_requests:
   - "Exclusive D08 reservation: release verification attestation and verification gates."
   - "Coordinator-approved narrow release blocker fix: treat only the downstream append-only experiment-ledger byte binding as refreshable while preserving every frozen L01 scientific field and all other source bindings."
   - "Coordinator-approved documentation consistency fix: remove one maintainer-only command from the public world-authoring page and register that page in the public reference catalog."
   - "Coordinator-approved release compatibility fixes: accept only the exact AQ-03 type-annotation-only electrochemical-service hash in the frozen V03 loader, and test S07 as a historical self-hashed audit rather than requiring it to rebuild from the later S10 manuscript."
   - "Coordinator-approved V07 compatibility bridge: accept the exact reviewed post-freeze hashes for the V03 loader and AQ-03 type-only runtime file while retaining the committed preflight as an independently self-hashed historical baseline."
+  - "Coordinator-assigned D08 registry reconciliation: recompute only configs/current.json state/fingerprint from existing artifacts so post-Work-I/AQ source drift is explicit; do not execute evidence generators or overwrite evidence artifacts."
 
 deliverables:
   - "One current full-suite result with exact passed/skipped/failed counts"
@@ -50,7 +55,7 @@ validation:
 completed_since_last_heartbeat:
   - "Started the full suite once; the monolithic invocation exceeded the execution window, so no result was attested."
   - "Stopped the four active pytest shard processes after the project owner requested an upstream figure revision; no stale verification result will be promoted."
-current_validation: "Shards 0-3 account for 1,120 corrected passes and one skip after affected tests passed. Shard 4 passed 210 before one failure and four fixture errors because the V07 qualification compares the current compatible preflight byte-for-byte with its historical pre-AQ-03 copy. A two-hash compatibility view is authorized; no V-series artifact or formal output is regenerated."
+current_validation: "All eight shards executed. Corrected accounting before the last four affected reruns is 2,102 passes and three skips, including the added L01 compatibility guard. The remaining failures are one exact AQ-03 threshold-source assertion, two historical-receipt/current-rebuild assertions, and a stale configs/current.json registry fingerprint/state. Narrow test-boundary updates plus registry-only reconciliation are authorized; evidence generators and frozen artifacts remain untouched."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D08--codex-1.md
 blockers: []
