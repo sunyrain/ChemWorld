@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -101,6 +102,9 @@ class OperationValidator:
         ),
         operation_types: tuple[str, ...] = OPERATION_TYPES,
         action_codec: ActionCodec | None = None,
+        authored_field_bounds: Mapping[
+            tuple[str, str], tuple[float, float]
+        ] | None = None,
     ) -> None:
         self.constitution = constitution
         self.allowed_operations = allowed_operations
@@ -115,6 +119,14 @@ class OperationValidator:
         )
         self.operation_types = operation_types
         self.action_codec = action_codec or ActionCodec()
+        self.authored_field_bounds: dict[tuple[str, str], tuple[float, float]] = {}
+        for key, bounds in (authored_field_bounds or {}).items():
+            if len(key) != 2 or len(bounds) != 2:
+                raise ValueError("authored field bounds require operation/field and low/high")
+            low, high = (float(bounds[0]), float(bounds[1]))
+            if not math.isfinite(low) or not math.isfinite(high) or low >= high:
+                raise ValueError("authored field bounds must be finite increasing intervals")
+            self.authored_field_bounds[(str(key[0]), str(key[1]))] = (low, high)
 
     def validate(self, action: dict[str, Any], state: WorldState) -> OperationValidation:
         schema_result = validate_action_schema(
@@ -219,6 +231,10 @@ class OperationValidator:
 
         dynamic_low = low
         dynamic_high = high
+        authored = self.authored_field_bounds.get((operation_type, field))
+        if authored is not None:
+            dynamic_low = max(dynamic_low, authored[0])
+            dynamic_high = min(dynamic_high, authored[1])
         if operation_type == "add_reagent" and field == "amount_mol":
             dynamic_high = min(
                 dynamic_high,
@@ -862,28 +878,49 @@ class OperationValidator:
                 inclusive_low=True,
             )
         if operation_type == "distill" and "reflux_ratio" in payload:
+            low, high = self.public_field_bounds(
+                operation_type,
+                "reflux_ratio",
+                state,
+                low=0.0,
+                high=10.0,
+            )
             checks["payload_bounds:reflux_ratio"] = self._in_range(
                 payload,
                 "reflux_ratio",
-                0.0,
-                10.0,
+                low,
+                high,
                 inclusive_low=True,
             )
         if operation_type == "set_flow_rate":
             if "flow_rate_mL_min" in payload:
+                low, high = self.public_field_bounds(
+                    operation_type,
+                    "flow_rate_mL_min",
+                    state,
+                    low=0.01,
+                    high=20.0,
+                )
                 checks["payload_bounds:flow_rate_mL_min"] = self._in_range(
                     payload,
                     "flow_rate_mL_min",
-                    0.01,
-                    20.0,
+                    low,
+                    high,
                     inclusive_low=True,
                 )
             if "residence_time_s" in payload:
+                low, high = self.public_field_bounds(
+                    operation_type,
+                    "residence_time_s",
+                    state,
+                    low=1.0,
+                    high=7200.0,
+                )
                 checks["payload_bounds:residence_time_s"] = self._in_range(
                     payload,
                     "residence_time_s",
-                    1.0,
-                    7200.0,
+                    low,
+                    high,
                     inclusive_low=True,
                 )
         if operation_type == "set_potential":
@@ -900,15 +937,29 @@ class OperationValidator:
                     locked_profile is None or profile == locked_profile
                 )
             if "potential_V" in payload:
+                low, high = self.public_field_bounds(
+                    operation_type,
+                    "potential_V",
+                    state,
+                    low=-3.0,
+                    high=3.0,
+                )
                 checks["payload_bounds:potential_V"] = self._in_range(
                     payload,
                     "potential_V",
-                    -3.0,
-                    3.0,
+                    low,
+                    high,
                     inclusive_low=True,
                 )
             if "current_mA" in payload:
                 low, high = OPERATION_FIELD_BOUNDS[("set_potential", "current_mA")]
+                low, high = self.public_field_bounds(
+                    operation_type,
+                    "current_mA",
+                    state,
+                    low=low,
+                    high=high,
+                )
                 checks["payload_bounds:current_mA"] = self._in_range(
                     payload,
                     "current_mA",

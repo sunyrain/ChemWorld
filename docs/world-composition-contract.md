@@ -62,64 +62,48 @@ agent-facing contract.
 
 ```yaml
 schema_version: chemworld-world-composition-0.1
-
-world:
-  components:
-    - kind: reaction
-      role: transformation
-      parameters:
-        family: declared-reaction-family
-        controls: [reagent, catalyst, solvent, temperature, time]
-    - kind: thermal
-      role: temperature-and-energy
-      parameters:
-        temperature_range_K: [280.0, 420.0]
-    - kind: phase
-      role: phase-state
-      parameters:
-        phases: [aqueous, organic]
-    - kind: separation
-      role: downstream-processing
-      parameters:
-        operations: [mix, settle, separate_phase, wash, dry]
-    - kind: observation
-      role: public-measurement
-      parameters:
-        instruments: [hplc, final_assay]
-
-  interfaces:
-    - material
-    - thermal
-    - phase
-    - observation
-    - resource
-    - lifecycle
-
-  compatibility:
-    require:
-      - reaction -> material
-      - thermal -> energy
-      - separation -> phase
-      - observation -> public-measurement
-    reject:
-      - missing_dependency
-      - duplicate_state_owner
-      - unit_mismatch
-      - unsupported_parameter
+composition_id: authored-reaction-purification
+world_split: public-test
+components:
+  - kind: reaction
+    role: transformation
+    parameters:
+      family: declared-reaction-family
+      controls: [reagent, catalyst, solvent, temperature, time]
+  - kind: thermal
+    role: temperature-and-energy
+    parameters:
+      temperature_range_K: [280.0, 420.0]
+  - kind: phase
+    role: phase-state
+    parameters:
+      phases: [aqueous, organic]
+  - kind: separation
+    role: downstream-processing
+    parameters:
+      operations: [add_phase, mix, settle, separate_phase, wash, dry]
+  - kind: observation
+    role: public-measurement
+    parameters:
+      instruments: [hplc, final_assay]
 
 task:
   objective: maximize_declared_endpoint
-  initial_state: declared_initial_state
-  operations: [add_reagent, heat, wait, add_phase, mix, settle,
-               separate_phase, measure, terminate]
+  budget: 10
+  operations: [add_solvent, add_reagent, heat, add_phase, mix, settle,
+               separate_phase, terminate, measure]
   instruments: [hplc, final_assay]
-  observations: public_observations_only
+  observations: partial-instrument-observation
   resources:
-    operation_attempts: 32
-    sample_volume_L: 0.04
+    operation_budget: 10
+    sample_volume_L: 0.001
     time_s: 3600
-  termination: explicit_terminate_before_final_assay
-  evaluation: declared_success_metrics
+    instrument_uses: 2
+    final_assays: 1
+  termination: final-assay-or-budget
+  evaluation:
+    metrics: [score, purity, recovery, process_mass_balance_error]
+    threshold: 0.55
 ```
 
 The request is a construction description, not a trajectory. A scenario supplies concrete
@@ -152,8 +136,10 @@ observation, info = env.reset(seed=0)
 ```
 
 `compiled.to_public_dict()` and `info["composition"]` expose the same component,
-interface, operation, instrument, resource, termination and evaluation surface. Unsupported
-component sets fail before environment execution.
+interface, operation, instrument, resource, termination, evaluation and accepted
+compatibility surface. `chemworld.check_world_composition_compatibility(request)` returns the
+same pre-execution decision without constructing an environment. Rejected compilation raises
+`WorldCompositionError`; its diagnostics identify a stable rejection class and request path.
 
 ## 4. Interface and parameter rules
 
@@ -174,6 +160,26 @@ The compiler must reject a request before execution when a parameter is missing,
 declared domain, expressed in an incompatible unit, or attached to a component that does not
 own that field. A valid composition must expose a complete public surface for operations,
 instruments, observations, resources, termination and evaluation.
+
+The v1 authoring parameters are deliberately finite:
+
+| Component | Accepted parameter fields |
+| --- | --- |
+| Reaction | `family`, `controls` |
+| Thermal | `temperature_range_K`, `duration_range_s` |
+| Phase | `phases` |
+| Separation | `operations` |
+| Crystallization | `temperature_range_K`, `seed_mass_range_g` |
+| Distillation | `temperature_range_K`, `reflux_ratio_range`, `fraction_count` |
+| Continuous flow | `flow_rate_range_mL_min`, `residence_time_range_s`, `temperature_range_K` |
+| Electrochemistry | `potential_range_V`, `current_range_mA`, `duration_range_s` |
+| Observation | `instruments` |
+
+Plain numeric values use the unit named by the field. A unit-bearing value uses
+`{value: [...], unit: degC}` or the corresponding scalar form; compatible units are converted
+before bounds are checked. Accepted authored ranges narrow the runtime operation validator,
+so a value outside the declared range is not merely documented—it is rejected before state
+mutation.
 
 ## 5. Compatibility and exclusion rules
 

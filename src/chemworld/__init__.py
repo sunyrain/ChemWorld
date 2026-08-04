@@ -5,8 +5,11 @@ from chemworld.validation import validate_action, validate_recipe
 from chemworld.world.composition import (
     WORLD_COMPOSITION_SCHEMA_VERSION,
     CompiledWorldComposition,
+    WorldCompatibilityReport,
+    WorldCompositionDiagnostic,
     WorldCompositionError,
     WorldCompositionSpec,
+    check_world_composition_compatibility,
     compile_world_composition,
 )
 
@@ -16,9 +19,12 @@ __all__ = [
     "ENV_IDS",
     "WORLD_COMPOSITION_SCHEMA_VERSION",
     "CompiledWorldComposition",
+    "WorldCompatibilityReport",
+    "WorldCompositionDiagnostic",
     "WorldCompositionError",
     "WorldCompositionSpec",
     "__version__",
+    "check_world_composition_compatibility",
     "compile_world_composition",
     "register_envs",
     "validate_action",

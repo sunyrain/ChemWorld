@@ -149,6 +149,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             else None
         )
         self.task_id = None if self.task_spec is None else self.task_spec.task_id
+        self.runtime_task_profile_id = (
+            self.compiled_composition.runtime_task_profile_id
+            if self.compiled_composition is not None
+            else self.task_id
+        )
         if self.task_spec is not None:
             world_split = self.task_spec.world_split
             budget = self.task_spec.budget
@@ -194,14 +199,18 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         material_family_id = (
             self.electrochemical_material_family_id
-            if self.task_id == "electrochemical-conversion"
+            if self.runtime_task_profile_id == "electrochemical-conversion"
             else self.crystallization_material_family_id
-            if self.task_id == "reaction-to-crystallization"
+            if self.runtime_task_profile_id == "reaction-to-crystallization"
             else None
         )
         self.material_information_config = normalize_static_material_information_config(
             material_information,
-            task_ids=(() if self.task_id is None else (self.task_id,)),
+            task_ids=(
+                ()
+                if self.runtime_task_profile_id is None
+                else (self.runtime_task_profile_id,)
+            ),
             material_family_id=material_family_id,
         )
         self.material_information_condition = str(
@@ -209,7 +218,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         self._material_information_dossier = static_material_information_dossier(
             self.material_information_config,
-            task_id=str(self.task_id or ""),
+            task_id=str(self.runtime_task_profile_id or ""),
             material_family_id=material_family_id,
         )
         self.material_information_sha256 = (
@@ -255,7 +264,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         if episode_mode_override is not None:
             self.episode_mode = episode_mode_override
         self.autonomous_campaign_controls_enabled = bool(
-            self.task_id == "electrochemical-conversion"
+            self.runtime_task_profile_id == "electrochemical-conversion"
             and self.electrochemical_workflow_mode
             == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
             and self.episode_mode == "campaign"
@@ -1111,7 +1120,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         if int(remaining.get("final_assays", 0)) < 1:
             blockers.append("final_assay_limit")
         stocks = remaining.get("stocks", {})
-        if self.task_id == "electrochemical-conversion":
+        if self.runtime_task_profile_id == "electrochemical-conversion":
             for stock_id in ("solvent_L", "reagent_mol"):
                 if float(stocks.get(stock_id, 0.0)) <= self.constitution.tolerance:
                     blockers.append(f"stock_limit:{stock_id}")
@@ -1240,12 +1249,17 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             constitution=self.constitution,
             allowed_operations=self.allowed_operations,
             allowed_instruments=self.allowed_instruments,
-            task_id=None if self.task_spec is None else self.task_spec.task_id,
+            task_id=self.runtime_task_profile_id,
             electrochemical_workflow_mode=self.electrochemical_workflow_mode,
             target_species=species_view.target_species,
             reagent_charge_molar_multiplier=reagent_charge_molar_multiplier,
             operation_types=self.action_codec.operation_types,
             action_codec=self.action_codec,
+            authored_field_bounds=(
+                {}
+                if self.compiled_composition is None
+                else self.compiled_composition.compatibility.operation_field_bounds
+            ),
         )
 
     @staticmethod
