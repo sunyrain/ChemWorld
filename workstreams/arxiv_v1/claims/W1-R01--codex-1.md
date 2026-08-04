@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-R01
 title: "Retire the task-led Work I plan, remove internal implementation identifiers from the paper, and define evidence expansion"
-status: ACTIVE
+status: DONE
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T08:00:03Z
 lease_expires_at_utc: 2026-08-06T08:00:03Z
-heartbeat_at_utc: 2026-08-04T08:00:03Z
+heartbeat_at_utc: 2026-08-04T08:36:08Z
 
 base_commit: "b3da3061"
 branch: main
@@ -65,20 +65,24 @@ validation:
   - "Run focused manuscript, figure, and package tests once after the complete edit"
   - "Inspect only regenerated Figure 5 and manuscript pages affected by cleanup"
 
-completed_since_last_heartbeat: []
-current_validation: "Claim published before substantive writes."
+completed_since_last_heartbeat:
+  - "Retired the task-led TODO as execution authority and established a claim-to-evidence plan."
+  - "Reframed the manuscript around a programmable virtual instrument and separated explanatory science into a later study."
+  - "Removed reader-visible filenames, hashes, commit IDs, run IDs, internal task IDs, release labels and manifest vocabulary."
+  - "Rebuilt Figures 3, 5 and 6 plus the arXiv and publication-proof packages."
+  - "Visually accepted the title page, affected figure pages and appendices after checking for overflow, overlap and clipping."
+current_validation: "41 focused tests passed; Ruff and git diff checks passed; six-figure audit passed 18/18 assets; Figure 5 and Figure 6 source preflight each returned 12 PASS, 2 non-blocking raster-export warnings and 0 FAIL; rendered-PDF identifier scan returned no hits."
 files_touched:
-  - workstreams/arxiv_v1/claims/W1-R01--codex-1.md
-  - workstreams/arxiv_v1/WORK_I_TODOLIST.md
+  - "See the declared write set; all substantive changes are in commit 2374d909."
 blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Retire the old task authority, clean paper-facing internals, define the evidence expansion programme, rebuild once, and centrally accept."
-handoff_eta: 2026-08-04T10:00:03Z
+next_24h: "None. Future data-producing work begins from an independently frozen protocol under FIRST_PAPER_EVIDENCE_PLAN.md."
+handoff_eta: null
 
-final_commit: null
-reviewer: null
-review_result: null
-notes: "The project owner explicitly authorized retiring WORK_I_TODOLIST as the active plan and adding experiments or comprehensive infrastructure testing. Historical claims and frozen evidence remain preserved; the paper will no longer expose repository audit plumbing as scientific content."
+final_commit: "2374d909"
+reviewer: "codex-1 centralized coordinator acceptance"
+review_result: "PASS"
+notes: "The project owner explicitly authorized retiring WORK_I_TODOLIST as the active plan and adding experiments or comprehensive infrastructure testing. Historical claims and frozen evidence remain preserved; the paper no longer exposes repository audit plumbing as scientific content. The current arXiv PDF contains 19 pages and has SHA-256 63aff3e93f2533a18dfcfa699a9e83b1f2bdf32e42731c7fc70736b5bfc2c253 in release metadata, not in the manuscript."
 ```
