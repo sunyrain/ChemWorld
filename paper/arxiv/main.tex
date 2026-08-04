@@ -36,8 +36,9 @@ Measurable},
   pdfauthor={Jiangjie Qiu; Yijun Li},
   pdfsubject={Programmable environments for controlled measurement of AI
 experimental behavior},
-  pdfkeywords={programmable chemical worlds; experimental agency;
-autonomous experimentation; AI agents; reproducibility}
+  pdfkeywords={programmable chemical worlds; scientific measurement
+instrument; experimental agency; autonomous experimentation; AI agents;
+reproducibility}
 }
 
 \setlength{\parindent}{1em}
@@ -89,33 +90,38 @@ Engineering, Tsinghua University, Beijing 100084, China}%
 \begin{abstract}
 Scientific agents are commonly judged by the best condition they report,
 but an endpoint does not identify the experimental policy or trajectory
-that produced it. We present ChemWorld, a programmable, replayable
-virtual chemical-world apparatus that makes experimental agency
-observable as a profile of evidence acquisition, lifecycle closure,
-terminal policy, resource use, and trajectory dynamics. The qualified
-surface contains 15 registered task contracts, 28 typed operation kinds,
-five instruments, 415 executed boundary recipes, and 62 task-by-metric
-bindings. Controlled forks spanning two preregistered private-component
-interventions and three seeds produced six passing parent--child pairs
-and 24 deterministic, provider-free original/replay traces while
-preserving the public contract. A positive control then recovered three
-known policy profiles across 30 primary campaigns and 180 primary closed
-lifecycles, passed all 12 registered gates, and reproduced all 30
-campaign profiles under deterministic retest. Applied to complete
-systems, the apparatus distinguished terminal decisions that
-endpoint-only evaluation would merge: two distinct complete agent
-systems produced 120 closed lifecycles: 84 final assays and 36 explicit
-discards across five matched worlds. A preregistered evaluator-only
-audit resolved 6 of the 36 discard identities; the remaining 30 were
-retained as unresolved, so latent-dependent point estimates and arm
-contrasts were withheld rather than replaced by a complete-case result.
-Compiled controls separately exposed outcome, held-out prediction,
-calibration, and claim readouts, while fresh sessions in two
-deliberately selected worlds showed endpoint-sign discordance in 2/8
-complete matched pairs and threshold-sensitive mixed trajectory
-classification in 6/8. ChemWorld therefore supports experimental agency
-as an auditable multidimensional profile, not a scalar inferred from an
-endpoint, within executable rather than physical laboratory worlds.
+that produced it. We release ChemWorld as a programmable, replayable
+scientific measurement instrument built from virtual chemical worlds. It
+makes experimental agency observable as a profile of evidence
+acquisition, lifecycle closure, terminal policy, resource use, and
+trajectory dynamics. The qualified surface contains 15 registered task
+contracts, 28 typed operation kinds, five instruments, 415 executed
+boundary recipes, and 62 task-by-metric bindings. Controlled forks
+spanning two preregistered private-component interventions and three
+seeds produced six passing parent--child pairs and 24 deterministic,
+provider-free original/replay traces while preserving the public
+contract. A positive control then recovered three known policy profiles
+across 30 primary campaigns and 180 primary closed lifecycles, passed
+all 12 registered gates, and reproduced all 30 campaign profiles under
+deterministic retest. Applied to complete systems, the apparatus
+distinguished terminal decisions that endpoint-only evaluation would
+merge: two distinct complete agent systems produced 120 closed
+lifecycles: 84 final assays and 36 explicit discards across five matched
+worlds. A preregistered evaluator-only audit resolved 6 of the 36
+discard identities; the remaining 30 were retained as unresolved, so
+latent-dependent point estimates and arm contrasts were withheld rather
+than replaced by a complete-case result. Compiled controls separately
+exposed outcome, held-out prediction, calibration, and claim readouts,
+while fresh sessions in two deliberately selected worlds showed
+endpoint-sign discordance in 2/8 complete matched pairs and
+threshold-sensitive mixed trajectory classification in 6/8. These
+studies qualify the instrument and illustrate its readouts; they are
+neither a representative survey of agent behavior nor an explanation of
+why a system produced a trajectory. This first release therefore
+establishes ChemWorld as an auditable instrument for autonomous
+experimentation within executable rather than physical laboratory
+worlds, while explanatory studies of agent behavior and adaptation
+remain separate.
 \end{abstract}
 \vspace{0.6em}
 \end{@twocolumnfalse}
@@ -157,6 +163,15 @@ discard. Accepted transitions, failures, instrument responses, and
 ledger events are content-bound, so an environment trajectory and its
 resource history can be replayed exactly without claiming reproduction
 of model tokens or of a physical material batch.
+
+This first paper reports the instrument itself. It asks whether complete
+agent systems can operate autonomously inside these worlds and whether
+their actions can be observed, perturbed, accounted and replayed under a
+stable contract. The reported systems and worlds are qualification and
+capability demonstrations rather than a representative sample of agent
+behavior. Explaining why a system produced a trajectory, attributing
+behavior to an internal model or scaffold mechanism, and measuring
+adaptation under changed laws require a separate explanatory study.
 
 Programmability turns this environment from a fixed benchmark into a
 controlled instrument. ChemWorld can fork one registered private
@@ -240,7 +255,11 @@ identify a causal model-only effect, rank agent systems on a universal
 scale, or demonstrate learning under changed world laws. Those questions
 require physical-bridge and rule-adaptation studies beyond this first
 paper. Here the result is methodological: programmable virtual chemical
-worlds make experimental agency measurable as an auditable profile.
+worlds make experimental agency measurable as an auditable profile. The
+backend supports a broader registered family of selected
+physical-chemistry worlds than the subset formally exercised here; the
+reported cases qualify the instrument and demonstrate its readouts
+rather than estimate behavioral prevalence across that family.
 
 \section{2. Relation to existing
 systems}\label{relation-to-existing-systems}
@@ -387,6 +406,13 @@ units: the 415 executions are qualification recipes, not tasks, agent
 trials, independent samples or physical experiments. The campaign-only
 terminal decision \texttt{discard\_batch} is also outside the 28-member
 operation registry.
+
+Together, these contracts allow the backend to instantiate a broader
+family of selected physical-chemistry worlds than the formal studies
+below exercise. The smaller formal set is intentional: it qualifies and
+illustrates the instrument's controls and readouts, rather than sampling
+the full backend or estimating how frequently an agent behavior occurs
+across supported worlds.
 
 All 28 registered operations committed in at least one valid context. In
 paired invalid probes, the pre-action simulator-state projection was
@@ -733,6 +759,11 @@ those checks do the complete-system, compiled-control and fresh-
 trajectory studies interpret differences in terminal and process
 profiles.
 
+This evidence is interpreted at instrument level. The agent studies
+demonstrate that autonomous systems can run and become observable under
+the contract; they are not a population sample and do not explain the
+mechanisms that produced the observed decisions.
+
 \subsection{9.1 What the process record
 establishes}\label{what-the-process-record-establishes}
 
@@ -756,9 +787,10 @@ require that none be silently collapsed into the best score.
 
 \subsection{9.2 Limitations and scope}\label{limitations-and-scope}
 
-The registered platform is broader than the formal evidence. Fifteen
-task contracts, 28 operation kinds, five instruments, evaluator bindings
-and boundary recipes establish the qualified executable surface, not an
+This first release qualifies a scientific measurement instrument. The
+registered platform is broader than the formal evidence. Fifteen task
+contracts, 28 operation kinds, five instruments, evaluator bindings and
+boundary recipes establish the qualified executable surface, not an
 equal number of formal agent experiments. The fork certificate covers
 two named single-private-component interventions under a fixed policy.
 It does not validate arbitrary multi-component recombination,
@@ -793,19 +825,34 @@ The apparatus itself is virtual. Its instruments produce bounded
 state-coupled synthetic or reference-tested signals; resource receipts
 are simulator records, not custody, hazard, waste or monetary accounts.
 Exact replay reconstructs executable state and observations, not a
-physical batch, laboratory device or stochastic provider decision.
-Physical and high-fidelity laboratories remain necessary to establish
-chemical executability, safety and deployment validity.
+physical batch, laboratory device or stochastic provider decision. The
+worlds are controlled and intentionally idealized within their
+model-card boundaries because the present claim concerns instrument
+control, observation and replay, not the physical truth of an
+agent-generated explanation. Physical and high-fidelity laboratories
+remain necessary to establish chemical executability, safety and
+deployment validity, and later explanatory studies must show that their
+interpretations survive the world fidelity required by their scientific
+estimands.
 
 \subsection{9.3 Complementarity and next
 steps}\label{complementarity-and-next-steps}
 
+Separating instrument qualification from explanatory science is
+deliberate. Work I establishes the value of the world and instrument:
+autonomous systems can run, encounter controlled conditions, and leave
+observable, replayable process records. It does not infer why a system
+adopted a policy, attribute behavior to an internal model or scaffold
+mechanism, or test adaptation under changed laws. Those questions
+require separately powered interventions across more worlds and systems
+and form Work II.
+
 Within those boundaries, programmable worlds enable controlled studies
 that are costly or impossible to clone physically. The present
 certificate covers only preregistered, qualified interventions on two
-named private components. Arbitrary recombination, third-party world
-authoring and adaptation under changed laws are not established here;
-rule learning belongs to a separate Work II protocol. Future factorial
+named private components, while the backend can support a broader
+registered physical-chemistry surface. Arbitrary recombination and
+third-party world authoring are not established here. Future explanatory
 studies can sample more worlds and complete systems while keeping
 authority, evidence and resources explicit, then test selected process
 phenomena against calibrated physical systems.
@@ -1275,19 +1322,24 @@ object are sufficient to regenerate the paper's reported analyses.
 
 \section{12. Conclusion}\label{conclusion}
 
-ChemWorld makes the act of experimentation a controlled scientific
-object. Its executable worlds let complete systems choose operations,
-acquire evidence, spend resources, encounter failure and close
-lifecycles while simulator identity and public contracts remain bound to
-replayable records. Known policies validate the profile before complete
-systems are interpreted; compiled controls separate outcome from
-epistemic readouts; and fresh trajectories resolve discovery, retention,
-drawdown, recovery and terminal quality. The unresolved discarded-state
-audit also shows the cost of this standard: missing counterfactual
-evidence must remain visible rather than being repaired into a favorable
-point result. \textbf{An endpoint is a result, not an explanation of
-experimental agency; the process itself can now be measured as an
-auditable profile.}
+This first release establishes ChemWorld as a programmable scientific
+measurement instrument for autonomous experimentation in executable
+physical-chemistry worlds. Its backend lets complete systems choose
+operations, acquire evidence, spend resources, encounter failure and
+close lifecycles while the world keeps simulator identity, public
+contracts and replayable records under experimental control. Controlled
+forks and known policies qualify the instrument; the complete-system,
+compiled-control and fresh- trajectory studies illustrate how its
+readouts separate terminal and process behavior without treating those
+cases as a representative survey. The unresolved discarded-state audit
+shows the same measurement discipline: missing counterfactual evidence
+remains visible rather than being repaired into a favorable point
+result. ChemWorld therefore establishes how agents can run autonomously
+and be observed, not why a particular agent produced a trajectory.
+Causal attribution, mechanistic explanation and adaptation under changed
+world laws are reserved for a separate explanatory study. \textbf{An
+endpoint is a result, not an explanation of experimental agency; the
+process itself can now be measured as an auditable profile.}
 
 \section{Appendix A. P0 robustness
 summary}\label{appendix-a.-p0-robustness-summary}
