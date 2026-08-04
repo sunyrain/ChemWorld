@@ -24,9 +24,12 @@ declared_write_set:
   - src/chemworld/eval/latent_terminal_contract.py
   - tests/test_latent_terminal_contract.py
   - tests/test_arxiv_v1_experiment_ledger.py
+  - docs/world-authoring-contract.md
+  - docs/reference_index.md
 shared_hot_file_requests:
   - "Exclusive D08 reservation: release verification attestation and verification gates."
   - "Coordinator-approved narrow release blocker fix: treat only the downstream append-only experiment-ledger byte binding as refreshable while preserving every frozen L01 scientific field and all other source bindings."
+  - "Coordinator-approved documentation consistency fix: remove one maintainer-only command from the public world-authoring page and register that page in the public reference catalog."
 
 deliverables:
   - "One current full-suite result with exact passed/skipped/failed counts"
@@ -42,7 +45,7 @@ validation:
 completed_since_last_heartbeat:
   - "Started the full suite once; the monolithic invocation exceeded the execution window, so no result was attested."
   - "Stopped the four active pytest shard processes after the project owner requested an upstream figure revision; no stale verification result will be promoted."
-current_validation: "The first deterministic shard passed 375/375. The second passed 226 with one skip and exposed four failures sharing one cause: L01 exact-rebuild validation incorrectly treats the downstream append-only experiment ledger as an immutable protocol input after D05 integration. The runner stopped before later shards; a narrow validator correction is authorized without rebuilding the frozen contract or downstream figures."
+current_validation: "Shard 0 passed 375/375. Shard 1 passed 226 with one skip before four L01 validation failures; the narrow fix then passed its 13-test affected suite. Shard 2 passed 258 before two public-doc audit failures caused by the new world-authoring page carrying one maintainer command and missing the reference catalog. The runner remains fail-fast; both release blockers have narrow, non-scientific corrections."
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D08--codex-1.md
 blockers: []
