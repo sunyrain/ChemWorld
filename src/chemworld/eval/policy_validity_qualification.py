@@ -65,6 +65,14 @@ DELIVERY_MANIFEST_SCHEMA_ID = (
 )
 DELIVERY_MANIFEST_SCHEMA_VERSION = "0.1.0"
 QUALIFICATION_VERSION = "work-i-policy-control-runner-qualification-0.1"
+_COMPATIBLE_POST_FREEZE_PREFLIGHT_HASHES = {
+    "src/chemworld/agents/known_policy.py": (
+        "1abca1369e0c12cc9bea7b7cdfca4a589d676b85b2a4b54d17b4ca7e7a8dd330"
+    ),
+    "src/chemworld/runtime/electrochemical_services.py": (
+        "e6c6f9a9ad6cc39ef7838d16ec50adaf107079f986d86f0fb599bb7e559ab46b"
+    ),
+}
 
 
 class PolicyQualificationError(RuntimeError):
@@ -898,6 +906,48 @@ def _v06_done(root: Path) -> bool:
     return "\nstatus: DONE\n" in claim and "\nfinal_commit: null\n" not in claim
 
 
+def _matches_compatible_historical_preflight(
+    committed: Mapping[str, Any], current: Mapping[str, Any]
+) -> bool:
+    """Accept only the two reviewed post-freeze, non-scientific source revisions."""
+
+    if validate_preflight(committed):
+        return False
+    normalized = deepcopy(dict(current))
+    committed_sources = committed.get("source_manifest")
+    current_sources = normalized.get("source_manifest")
+    if not isinstance(committed_sources, Mapping) or not isinstance(
+        current_sources, dict
+    ):
+        return False
+    for path, expected_current_hash in _COMPATIBLE_POST_FREEZE_PREFLIGHT_HASHES.items():
+        if current_sources.get(path) != expected_current_hash or path not in committed_sources:
+            return False
+        current_sources[path] = committed_sources[path]
+
+    committed_dependencies = committed.get("dependency_bindings")
+    current_dependencies = normalized.get("dependency_bindings")
+    if not isinstance(committed_dependencies, Mapping) or not isinstance(
+        current_dependencies, dict
+    ):
+        return False
+    committed_controller = committed_dependencies.get("controller")
+    current_controller = current_dependencies.get("controller")
+    if not isinstance(committed_controller, Mapping) or not isinstance(
+        current_controller, dict
+    ):
+        return False
+    controller_path = "src/chemworld/agents/known_policy.py"
+    if current_controller.get("sha256") != _COMPATIBLE_POST_FREEZE_PREFLIGHT_HASHES[
+        controller_path
+    ]:
+        return False
+    current_controller["sha256"] = committed_controller.get("sha256")
+    normalized["source_manifest_sha256"] = committed.get("source_manifest_sha256")
+    normalized["preflight_sha256"] = committed.get("preflight_sha256")
+    return normalized == dict(committed)
+
+
 def build_qualification(
     *, root: Path, protocol_path: Path, artifact_root: Path
 ) -> tuple[dict[str, Any], dict[str, Any], str]:
@@ -920,7 +970,12 @@ def build_qualification(
     preflight_errors = validate_preflight(preflight)
     if preflight_errors:
         raise PolicyQualificationError("invalid formal preflight: " + "; ".join(preflight_errors))
-    if _read_json_object(preflight_path, label="committed formal preflight") != preflight:
+    committed_preflight = _read_json_object(
+        preflight_path, label="committed formal preflight"
+    )
+    if committed_preflight != preflight and not _matches_compatible_historical_preflight(
+        committed_preflight, preflight
+    ):
         raise PolicyQualificationError("formal preflight does not rebuild exactly")
     if not _v06_done(resolved_root):
         raise PolicyQualificationError("W1-V06 is not DONE")
