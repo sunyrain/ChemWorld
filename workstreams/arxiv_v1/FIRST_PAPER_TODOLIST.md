@@ -53,6 +53,11 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
   exact replay、U03 ghost-state 对账和 U04/U05 current evidence binding 全部通过，provider、leakage、
   missing receipts 和 failure classes 均为零。规范论文源、arXiv TeX、19 页 PDF、source bundle 与 build
   manifest 已同步；PDF 第 1、4、11 页视觉检查及重复构建零 diff 通过。
+- **DOING / Claim**：`Claim: Codex /root — U04/U05/E02-INSTRUMENT-USE — DOING`；U04 只通过
+  `configs/current.json` 复用并集成既有 single-private-component fork 正式证据，不重跑；U05/E02 在冻结的
+  C03 首个未见反应--蒸馏组合上运行一个完整 agent 生命周期，保存公开契约、逐步事务/资源/观测、终止、
+  provider/session 边界和 exact replay 回执。数据生成前必须先写一份短实验说明并冻结 agent、预算、动作权限、
+  pass/failure 规则和输出；论文仍只修改规范 Markdown，并在同一发布段重建 TeX/PDF/source bundle。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 
 ## 1. 论文只讲什么
@@ -148,7 +153,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 | ID | 状态 | 工作 | 完成标准 |
 | --- | --- | --- | --- |
 | E01 | DONE | 保留一个确定性控制 | 展示世界、资源、失败、观测和终止如何被仪器记录 |
-| E02 | TODO | 在未见生成世界上运行完整 agent | 证明 agent 可使用同一公开契约进入新组合世界并闭合生命周期；只作可用性展示 |
+| E02 | DOING | 在未见生成世界上运行完整 agent | 证明 agent 可使用同一公开契约进入新组合世界并闭合生命周期；只作可用性展示 |
 | E03 | TODO | 保留 endpoint 相近但过程不同的示例 | 说明过程记录提供 endpoint 之外的信息；19 个维度保持分立，不合成“智能分数” |
 | E04 | TODO | 压缩旧 agent 结果 | 多模型排名、行为机制、规则学习、跨模型归因和大规模 agent 统计全部移到第二篇 |
 
@@ -165,8 +170,8 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 | U01 | DONE | 多阶段反应到分离/结晶 | 展示反应、相态和下游纯化组成一个连续世界；主文候选 |
 | U02 | DONE | 资源受限的结构/平衡表征 | 展示仪器选择、信息获取、样品消耗和停止决定；主文候选 |
 | U03 | DONE | 失败、约束与恢复 | 展示前置条件、安全边界、失败回执、资源后果和后续恢复；主文或扩展图 |
-| U04 | TODO | 同一公开仪器下的受控世界分叉 | 展示只改变私有定律而保持操作与观测合同；复用既有 fork 证据 |
-| U05 | TODO | 覆盖生成的未见组合世界 | 展示不改核心运行时即可构造、执行、重放，并由完整 agent 闭合生命周期；主文必选 |
+| U04 | DOING | 同一公开仪器下的受控世界分叉 | 展示只改变私有定律而保持操作与观测合同；复用既有 fork 证据 |
+| U05 | DOING | 覆盖生成的未见组合世界 | 展示不改核心运行时即可构造、执行、重放，并由完整 agent 闭合生命周期；主文必选 |
 | U06 | DONE | 参考案例库 | 连续流、电化学、蒸馏、分配、结晶等更多样例放附录/公开文档，不逐个写成性能实验 |
 
 #### U00 冻结案例矩阵
