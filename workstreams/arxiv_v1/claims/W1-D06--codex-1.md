@@ -40,10 +40,13 @@ completed_since_last_heartbeat:
   - "Recorded Jiangjie Qiu and Yijun Li in the supplied order"
   - "Assigned both authors to the supplied Tsinghua University affiliation"
   - "Rebuilt the PDF and ZIP/TAR arXiv artifacts once"
-current_validation: "ArXiv build passed; placeholder-author scan passed; git diff --check passed"
+  - "Constrained the long affiliation to a centered 0.92-textwidth paragraph box so the author block no longer overflows"
+  - "Rebuilt the arXiv PDF/source archives once and visually confirmed the corrected first page"
+current_validation: "PASS: one standard arXiv build; 17-page PDF; first-page visual inspection shows both author names and the three-line affiliation fully inside the page; git diff --check"
 files_touched:
   - workstreams/arxiv_v1/claims/W1-D06--codex-1.md
   - paper/experimental_intelligence_v1_manuscript.md
+  - paper/arxiv/template.tex
   - paper/arxiv/main.tex
   - paper/exports/experimental-intelligence-v1-arxiv/**
 blockers:
@@ -51,10 +54,10 @@ blockers:
 blocked_by: "project owner metadata input for the remaining W1-D06 fields"
 unblock_condition: "Receive corresponding-author designation/email and any ORCID values"
 next_check_at_utc: 2026-08-04T14:04:32Z
-next_24h: "Apply the requested author/affiliation overflow correction and rebuild the arXiv package once; then return to metadata-blocked state"
+next_24h: "Stop under the project owner's instruction; await corresponding-author metadata only if the release is resumed"
 handoff_eta: 2026-08-03T14:04:32Z
 
-final_commit: "eec0b2bbd42c7eb4b68b27236557ea3e3fa03693"
+final_commit: "e04c58dff741b4d22543eb583d6e2c0dab5f213e"
 reviewer: null
 review_result: null
 notes: "The external 17.7 GB archive is explicitly out of scope for this claim. Main is used because the coordinator requested a visible main-branch claim and directly assigned this shared manuscript metadata update. The 2026-08-04 write-set expansion covers only the user-requested title-page author/affiliation overflow repair."
