@@ -13,6 +13,13 @@ LEDGER_PATH = (
 )
 RELATED_WORK_EVIDENCE_PATH = ROOT / "workstreams/arxiv_v1/reports/related-work-evidence-v0.1.json"
 RELATED_WORK_AUDIT_PATH = ROOT / "workstreams/arxiv_v1/RELATED_WORK_AUDIT_2026_08_ZH.md"
+RELEASE_ATTESTATION_PATH = (
+    ROOT / "benchmark/releases/chemworld-serious-v1/verification-attestation.json"
+)
+COMPOSITION_QUALIFICATION_PATH = (
+    ROOT
+    / "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
+)
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -117,6 +124,7 @@ def test_fvl_ledger_binding_preserves_distinct_units_and_latent_missingness() ->
     derived = _load(ROOT / fvl["derived_data"]["path"])
     derived_manifest = _load(ROOT / fvl["derived_data"]["manifest_path"])
     current = _load(ROOT / fvl["evidence_graph"]["path"])
+    release_attestation = _load(RELEASE_ATTESTATION_PATH)
 
     assert (
         fvl["data_contract"]["contract_sha256"]
@@ -124,7 +132,15 @@ def test_fvl_ledger_binding_preserves_distinct_units_and_latent_missingness() ->
     )
     assert fvl["derived_data"]["derived_data_sha256"] == derived["derived_data_sha256"]
     assert fvl["derived_data"]["manifest_sha256"] == derived_manifest["manifest_sha256"]
-    assert fvl["evidence_graph"]["graph_sha256"] == current["evidence_dag"]["graph_sha256"]
+    assert fvl["evidence_graph"]["graph_sha256"] == (
+        release_attestation["evidence_graph"]["graph_sha256"]
+    )
+    assert fvl["evidence_graph"]["node_count"] == (
+        release_attestation["evidence_graph"]["node_count"]
+    )
+    assert current["evidence_dag"]["nodes"][
+        "first_paper_composition_qualification"
+    ]["artifact_state"] == "current"
     assert fvl["evidence_graph"]["work_i_fvl_nodes_current"] == 13
     assert fvl["F_world_fork"]["pair_count"] == 6
     assert fvl["F_world_fork"]["original_and_exact_replay_trace_count"] == 24
@@ -143,6 +159,7 @@ def test_tracked_g0_evidence_hashes_match_the_ledger() -> None:
     ledger = _load(LEDGER_PATH)
     g0 = ledger["experiment_layers"]["g0_compiled_recipe"]
     foundation = ledger["foundation_qualification"]
+    composition_qualification = _load(COMPOSITION_QUALIFICATION_PATH)
 
     assert g0["formal_summary_canonical_json_sha256"]["v1_0"] == (
         canonical_json_sha256(_load(ROOT / g0["formal_summary_paths"][0]))
@@ -150,7 +167,12 @@ def test_tracked_g0_evidence_hashes_match_the_ledger() -> None:
     assert g0["formal_summary_canonical_json_sha256"]["v1_2"] == (
         canonical_json_sha256(_load(ROOT / g0["formal_summary_paths"][1]))
     )
-    assert foundation["evidence_file_sha256"] == _sha256(ROOT / foundation["evidence_path"])
+    assert foundation["evidence_path"] == (
+        composition_qualification["source_binding"]["task_design_matrix"]
+    )
+    assert foundation["evidence_file_sha256"] == (
+        composition_qualification["source_binding"]["task_design_matrix_sha256"]
+    )
 
 
 def test_paper_scope_keeps_g2_primary_and_claims_bounded() -> None:

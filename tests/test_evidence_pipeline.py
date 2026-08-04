@@ -32,6 +32,18 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert "static_s0_five_task_postqualification_summary" in node_ids
     assert "pre_arxiv_claim_evidence_ledger" in node_ids
     assert "task_design_matrix" in node_ids
+    assert "first_paper_composition_qualification" in node_ids
+    qualification = {
+        node.node_id: node for node in nodes
+    }["first_paper_composition_qualification"]
+    assert qualification.path == (
+        "workstreams/arxiv_v1/reports/"
+        "first-paper-composition-qualification-v1.json"
+    )
+    assert qualification.role == "formal_result"
+    assert qualification.dependencies == ("task_design_matrix",)
+    assert qualification.command is None
+    assert pipeline["_node_lifecycle"](qualification) == "immutable"
     assert {
         "work_i_world_fork_qualification",
         "work_i_world_fork_certificate",
@@ -54,26 +66,19 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert all(
         pipeline["_node_lifecycle"](node) == "immutable"
         if node.node_id in pipeline["FROZEN_MECHANISM_NODE_IDS"]
-        else (node.command is not None)
-        == (pipeline["_node_lifecycle"](node) == "generated")
+        else (node.command is not None) == (pipeline["_node_lifecycle"](node) == "generated")
         for node in nodes
     )
 
 
 def test_work_i_fvl_nodes_have_current_fail_closed_source_bindings() -> None:
     pipeline = _pipeline()
-    nodes = {
-        node.node_id: node
-        for node in pipeline["NODES"]
-        if node.node_id.startswith("work_i_")
-    }
+    nodes = {node.node_id: node for node in pipeline["NODES"] if node.node_id.startswith("work_i_")}
     assert len(nodes) == 13
     assert nodes["work_i_world_fork_certificate"].dependencies == (
         "work_i_world_fork_qualification",
     )
-    assert nodes["work_i_fvl_derived_manifest"].dependencies == (
-        "work_i_fvl_derived_data",
-    )
+    assert nodes["work_i_fvl_derived_manifest"].dependencies == ("work_i_fvl_derived_data",)
     for node in nodes.values():
         payload = json.loads((Path(node.path)).read_text(encoding="utf-8"))
         assert pipeline["_work_i_source_binding_current"](node, payload) is True
@@ -81,11 +86,69 @@ def test_work_i_fvl_nodes_have_current_fail_closed_source_bindings() -> None:
     derived = json.loads(Path(nodes["work_i_fvl_derived_data"].path).read_text(encoding="utf-8"))
     derived["work_i_incremental"]["record_counts"]["L"]["latent_discard_units"] = 35
     assert (
-        pipeline["_work_i_source_binding_current"](
-            nodes["work_i_fvl_derived_data"], derived
-        )
+        pipeline["_work_i_source_binding_current"](nodes["work_i_fvl_derived_data"], derived)
         is False
     )
+
+
+def test_first_paper_composition_qualification_binding_fails_closed() -> None:
+    pipeline = _pipeline()
+    node = {item.node_id: item for item in pipeline["NODES"]}[
+        "first_paper_composition_qualification"
+    ]
+    payload = json.loads(Path(node.path).read_text(encoding="utf-8"))
+    validate = pipeline["_first_paper_composition_qualification_binding_current"]
+
+    assert validate(payload) is True
+
+    mutations = [
+        {**payload, "schema_version": "stale"},
+        {**payload, "status": "failed"},
+        {
+            **payload,
+            "receipt_completeness": {
+                **payload["receipt_completeness"],
+                "passed": False,
+            },
+        },
+        {
+            **payload,
+            "reference_qualification": {
+                **payload["reference_qualification"],
+                "recipe_denominator": 1785,
+            },
+        },
+        {
+            **payload,
+            "summary": {
+                **payload["summary"],
+                "public_private_leakage_count": 1,
+            },
+        },
+        {
+            **payload,
+            "source_binding": {
+                **payload["source_binding"],
+                "experiment_note_sha256": "0" * 64,
+            },
+        },
+        {
+            **payload,
+            "source_binding": {
+                **payload["source_binding"],
+                "execution_commit": "0" * 40,
+            },
+        },
+        {
+            **payload,
+            "generated_qualification": {
+                **payload["generated_qualification"],
+                "cases": payload["generated_qualification"]["cases"][:-1],
+            },
+        },
+    ]
+
+    assert all(validate(mutated) is False for mutated in mutations)
 
 
 def test_current_registry_exposes_work_i_fvl_boundary_without_hiding_failure() -> None:
@@ -127,14 +190,9 @@ def test_current_evidence_pipeline_records_formal_gate_a_pass() -> None:
         "a2_controlled_matched_identifiability": "historical_pass_current_binding_stale",
         "a3_online_attainability": "historical_pass_current_binding_stale",
     }
-    assert (
-        mechanism["gate_a_evidence_current"]
-        is (
-            current["evidence_dag"]["nodes"]["mechanism_public_gate_a_decision"][
-                "artifact_state"
-            ]
-            == "current"
-        )
+    assert mechanism["gate_a_evidence_current"] is (
+        current["evidence_dag"]["nodes"]["mechanism_public_gate_a_decision"]["artifact_state"]
+        == "current"
     )
     assert pipeline["check_current_evidence"]() == []
 
@@ -157,15 +215,16 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert five_task["all_replay_verified"] is True
     assert five_task["result_count"] == 150
     assert five_task["threshold_failure_task"] == "partition-discovery"
-    assert triarm["task_results"]["electrochemical"]["nominal_minus_opaque"][
-        "familywise_result"
-    ] == "positive_information_value"
-    assert triarm["task_results"]["crystallization"]["nominal_minus_opaque"][
-        "familywise_result"
-    ] == "inconclusive"
+    assert (
+        triarm["task_results"]["electrochemical"]["nominal_minus_opaque"]["familywise_result"]
+        == "positive_information_value"
+    )
+    assert (
+        triarm["task_results"]["crystallization"]["nominal_minus_opaque"]["familywise_result"]
+        == "inconclusive"
+    )
     assert all(
-        triarm["task_results"][task_key]["overall_recovery_claim"]["passed"]
-        is False
+        triarm["task_results"][task_key]["overall_recovery_claim"]["passed"] is False
         for task_key in ("electrochemical", "crystallization")
     )
     assert current["publication"]["status"] == "working_manuscript_not_submission_ready"
@@ -206,10 +265,7 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     summary = pipeline["current_status_summary"](current)
     assert summary["backend_candidate"]["contract_validation"] == "passed"
     assert summary["release_attestation"]["status"] == "passed"
-    assert (
-        summary["mechanism_gate_a"]["status"]
-        == current["mechanism_adaptation"]["status"]
-    )
+    assert summary["mechanism_gate_a"]["status"] == current["mechanism_adaptation"]["status"]
     assert (
         summary["mechanism_gate_a"]["evidence_current"]
         is current["mechanism_adaptation"]["gate_a_evidence_current"]
@@ -222,33 +278,33 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False
     publication = current["publication"]
-    assert publication["manuscript"] == (
-        "paper/experimental_intelligence_v1_manuscript.md"
-    )
-    assert publication["display_items"] == (
-        "paper/experimental_intelligence_v1_display_items.md"
-    )
-    assert publication["bibliography"] == (
-        "paper/experimental_intelligence_v1_references.bib"
-    )
+    assert publication["manuscript"] == ("paper/experimental_intelligence_v1_manuscript.md")
+    assert publication["display_items"] == ("paper/experimental_intelligence_v1_display_items.md")
+    assert publication["bibliography"] == ("paper/experimental_intelligence_v1_references.bib")
     assert publication["claim_evidence_ledger"] == (
         "workstreams/flagship_tasks/reports/pre-arxiv-claim-evidence-ledger-v1.json"
     )
+    assert publication["composition_qualification_report"] == (
+        "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
+    )
+    assert not any(
+        "composition_qualification" in key and key != "composition_qualification_report"
+        for key in publication
+    )
+    report = json.loads(
+        Path(publication["composition_qualification_report"]).read_text(encoding="utf-8")
+    )
+    assert (
+        pipeline["file_sha256"](pipeline["CURRENT_REGISTRY"])
+        != report["source_binding"]["current_registry_sha256"]
+    )
     assert publication["remaining_experiment_audit"] == (
-        "workstreams/arxiv_v1/reports/"
-        "g2-v0.5-remaining-experiment-audit-live-v0.1.json"
+        "workstreams/arxiv_v1/reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json"
     )
-    assert publication["scope"] == (
-        "experimental_intelligence_in_executable_chemical_worlds"
-    )
+    assert publication["scope"] == ("experimental_intelligence_in_executable_chemical_worlds")
     assert publication["new_scientific_experiments_required_for_first_arxiv"] is False
     assert publication["required_new_scientific_matrix"]["planned_cells"] == 20
-    assert (
-        publication["required_new_scientific_matrix"][
-            "planned_vessel_opportunities"
-        ]
-        == 120
-    )
+    assert publication["required_new_scientific_matrix"]["planned_vessel_opportunities"] == 120
     matrix = publication["required_new_scientific_matrix"]
     assert matrix["completed_cells"] == 18
     assert matrix["right_censored_cells"] == 2
@@ -280,9 +336,7 @@ def test_generated_json_line_endings_are_normalized_before_hashing(
     original_root = pipeline["ROOT"]
     original_nodes = pipeline["NODES"]
     try:
-        pipeline["_normalize_materialized_json_line_endings"].__globals__["ROOT"] = (
-            tmp_path
-        )
+        pipeline["_normalize_materialized_json_line_endings"].__globals__["ROOT"] = tmp_path
         pipeline["_normalize_materialized_json_line_endings"].__globals__["NODES"] = (
             node_type(
                 "report",
@@ -293,12 +347,8 @@ def test_generated_json_line_endings_are_normalized_before_hashing(
         )
         pipeline["_normalize_materialized_json_line_endings"]()
     finally:
-        pipeline["_normalize_materialized_json_line_endings"].__globals__["ROOT"] = (
-            original_root
-        )
-        pipeline["_normalize_materialized_json_line_endings"].__globals__["NODES"] = (
-            original_nodes
-        )
+        pipeline["_normalize_materialized_json_line_endings"].__globals__["ROOT"] = original_root
+        pipeline["_normalize_materialized_json_line_endings"].__globals__["NODES"] = original_nodes
     assert output.read_bytes() == b'{\n  "status": "passed"\n}\n'
 
 
@@ -330,9 +380,7 @@ def test_gate_state_is_not_conflated_with_artifact_validity() -> None:
             assert pipeline["_node_gate_state"](node, {}) == "not_applicable"
     formal_nodes = {node.node_id: node for node in pipeline["NODES"]}
     assert (
-        pipeline["_node_gate_state"](
-            formal_nodes["mechanism_design_audit"], {"pass": True}
-        )
+        pipeline["_node_gate_state"](formal_nodes["mechanism_design_audit"], {"pass": True})
         == "passed"
     )
     assert (

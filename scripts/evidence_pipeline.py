@@ -16,7 +16,7 @@ import sys
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import date
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +41,40 @@ from chemworld.eval.provenance import (  # noqa: E402
 )
 
 CURRENT_REGISTRY = ROOT / "configs/current.json"
+
+FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID = "first_paper_composition_qualification"
+FIRST_PAPER_COMPOSITION_QUALIFICATION_PATH = (
+    "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
+)
+FIRST_PAPER_COMPOSITION_QUALIFICATION_GUARDED_PATHS = (
+    "scripts/run_first_paper_composition_qualification.py",
+    "src/chemworld/__init__.py",
+    "src/chemworld/action_codec.py",
+    "src/chemworld/agent_interface.py",
+    "src/chemworld/agents/task_recipes.py",
+    "src/chemworld/backends",
+    "src/chemworld/campaign_resources.py",
+    "src/chemworld/data",
+    "src/chemworld/envs",
+    "src/chemworld/eval/composition_qualification.py",
+    "src/chemworld/eval/composition_qualification_design.py",
+    "src/chemworld/eval/cross_world_infrastructure_qualification.py",
+    "src/chemworld/eval/verify.py",
+    "src/chemworld/foundation",
+    "src/chemworld/materials.py",
+    "src/chemworld/models",
+    "src/chemworld/operation_validator.py",
+    "src/chemworld/physchem",
+    "src/chemworld/reference",
+    "src/chemworld/registration.py",
+    "src/chemworld/runtime",
+    "src/chemworld/schemas",
+    "src/chemworld/task_design.py",
+    "src/chemworld/tasks.py",
+    "src/chemworld/validation.py",
+    "src/chemworld/world",
+    "src/chemworld/wrappers.py",
+)
 
 
 @dataclass(frozen=True)
@@ -132,8 +166,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_participant_preregistration_candidate",
-        "configs/benchmark/"
-        "mechanism_adaptation_participant_preregistration_rc28.json",
+        "configs/benchmark/mechanism_adaptation_participant_preregistration_rc28.json",
         "protocol_input",
         ("live_llm_methods", "mechanism_gate_a_plan", "mechanism_protocol"),
     ),
@@ -153,8 +186,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_preregistration",
-        "configs/benchmark/"
-        "mechanism-adaptation-preregistration-v0.3.0-rc28.json",
+        "configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc28.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -165,8 +197,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_confirmatory_task_semantics_audit",
-        "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc28.json",
+        "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc28.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -251,8 +282,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_public_gate_a_decision",
-        "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-public-decision-v0.1-rc28.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-public-decision-v0.1-rc28.json",
         "formal_result",
         (
             "mechanism_a2_structural_receipt",
@@ -365,8 +395,7 @@ NODES = (
     ),
     EvidenceNode(
         "static_s0_formal_campaign_summary",
-        "workstreams/flagship_tasks/reports/"
-        "static-s0-v1.0-formal-campaign-summary.json",
+        "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json",
         "formal_result",
         ("static_s0_freeze_manifest",),
     ),
@@ -432,6 +461,12 @@ NODES = (
         ),
     ),
     EvidenceNode(
+        FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID,
+        FIRST_PAPER_COMPOSITION_QUALIFICATION_PATH,
+        "formal_result",
+        ("task_design_matrix",),
+    ),
+    EvidenceNode(
         "work_i_world_fork_qualification",
         "workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json",
         "formal_result",
@@ -455,8 +490,7 @@ NODES = (
     ),
     EvidenceNode(
         "work_i_known_policy_delivery_manifest",
-        "workstreams/arxiv_v1/reports/"
-        "work-i-known-policy-validity-report-v0.1.manifest.json",
+        "workstreams/arxiv_v1/reports/work-i-known-policy-validity-report-v0.1.manifest.json",
         "release_attestation",
         (
             "work_i_known_policy_formal_audit",
@@ -470,15 +504,13 @@ NODES = (
     ),
     EvidenceNode(
         "work_i_latent_terminal_reconstructability",
-        "workstreams/arxiv_v1/reports/"
-        "work-i-latent-terminal-reconstructability-v0.1.json",
+        "workstreams/arxiv_v1/reports/work-i-latent-terminal-reconstructability-v0.1.json",
         "development_diagnostic",
         ("work_i_latent_terminal_estimand_contract",),
     ),
     EvidenceNode(
         "work_i_latent_terminal_replay_qualification",
-        "workstreams/arxiv_v1/reports/"
-        "work-i-latent-terminal-replay-qualification-v0.1.json",
+        "workstreams/arxiv_v1/reports/work-i-latent-terminal-replay-qualification-v0.1.json",
         "development_diagnostic",
         (
             "work_i_latent_terminal_estimand_contract",
@@ -543,8 +575,7 @@ NODES = (
     ),
     EvidenceNode(
         "pre_arxiv_claim_evidence_ledger",
-        "workstreams/flagship_tasks/reports/"
-        "pre-arxiv-claim-evidence-ledger-v1.json",
+        "workstreams/flagship_tasks/reports/pre-arxiv-claim-evidence-ledger-v1.json",
         "development_diagnostic",
         (
             "mechanism_public_gate_a_decision",
@@ -676,13 +707,13 @@ def _node_producer(node: EvidenceNode) -> str:
 
 
 def _node_source_binding(node: EvidenceNode) -> str:
+    if node.node_id == FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID:
+        return "execution_commit_and_source_blob_sha256"
     return {
         "protocol_input": "content_sha256",
         "generated_current": "dependencies_and_source_commit",
         "formal_result": "protocol_plan_and_result_sha256",
-        "release_attestation": (
-            "preregistered_source_commit_and_protocol_plan_sha256"
-        ),
+        "release_attestation": ("preregistered_source_commit_and_protocol_plan_sha256"),
         "development_diagnostic": "content_and_versioned_source_sha256",
         "fixture": "content_sha256",
         "frozen_derived_data": "immutable_source_manifest_sha256",
@@ -733,6 +764,10 @@ CURRENT_PATH_RULES = (
     CurrentPathRule(
         ("publication", "claim_evidence_ledger"),
         "development_diagnostic",
+    ),
+    CurrentPathRule(
+        ("publication", "composition_qualification_report"),
+        "formal_result",
     ),
     CurrentPathRule(("work_i_fvl", "data_contract"), "protocol_input"),
     CurrentPathRule(("work_i_fvl", "world_fork_report"), "formal_result"),
@@ -1033,14 +1068,12 @@ def _mechanism_structural_receipt_binding_current(
     plan: Mapping[str, Any],
 ) -> bool:
     return bool(
-        receipt.get("schema_version")
-        == "chemworld-mechanism-metric-embargo-receipt-0.1"
+        receipt.get("schema_version") == "chemworld-mechanism-metric-embargo-receipt-0.1"
         and receipt.get("stage") == stage
         and receipt.get("protocol_sha256") == _canonical_sha256(protocol)
         and receipt.get("gate_a_plan_sha256") == _canonical_sha256(plan)
         and receipt.get("structurally_complete") is True
-        and receipt.get("observed_completed_trial_count")
-        == receipt.get("expected_trial_count")
+        and receipt.get("observed_completed_trial_count") == receipt.get("expected_trial_count")
         and isinstance(receipt.get("expected_trial_count"), int)
         and receipt.get("expected_trial_count", 0) > 0
         and isinstance(receipt.get("trial_manifest_count"), int)
@@ -1075,20 +1108,13 @@ def _mechanism_public_decision_binding_current(
             protocol=protocol,
             plan=plan,
         )
-        and decision.get("schema_version")
-        == "chemworld-mechanism-public-decision-0.1"
-        and decision.get("a2_structural_receipt_sha256")
-        == _canonical_sha256(a2_receipt)
-        and decision.get("a3_structural_receipt_sha256")
-        == _canonical_sha256(a3_receipt)
-        and decision.get("gate_a_report_sha256")
-        == a2_receipt.get("source_report_sha256")
-        and decision.get("a3_report_sha256")
-        == a3_receipt.get("source_report_sha256")
-        and decision.get("release_qualification_sha256")
-        == _canonical_sha256(release_qualification)
-        and decision.get("metric_embargo")
-        == "released_for_joint_a2_a3_decision"
+        and decision.get("schema_version") == "chemworld-mechanism-public-decision-0.1"
+        and decision.get("a2_structural_receipt_sha256") == _canonical_sha256(a2_receipt)
+        and decision.get("a3_structural_receipt_sha256") == _canonical_sha256(a3_receipt)
+        and decision.get("gate_a_report_sha256") == a2_receipt.get("source_report_sha256")
+        and decision.get("a3_report_sha256") == a3_receipt.get("source_report_sha256")
+        and decision.get("release_qualification_sha256") == _canonical_sha256(release_qualification)
+        and decision.get("metric_embargo") == "released_for_joint_a2_a3_decision"
         and decision.get("a1_pass") is True
         and decision.get("a2_pass") is True
         and decision.get("a3_pass") is True
@@ -1179,8 +1205,7 @@ def _work_i_source_binding_current(
                 additionally_excluded=("certificate_id",),
             )
             and isinstance(source, Mapping)
-            and source.get("formal_report_content_sha256")
-            == qualification.get("report_sha256")
+            and source.get("formal_report_content_sha256") == qualification.get("report_sha256")
             and source.get("formal_report_file_sha256") == file_sha256(qualification_path)
             and payload.get("result", {}).get("passed") is True
         )
@@ -1213,9 +1238,7 @@ def _work_i_source_binding_current(
             and estimand.get("retest_in_primary_estimand") is False
         )
     if node.node_id == "work_i_known_policy_delivery_manifest":
-        report = load_json_object(
-            ROOT / node_map()["work_i_known_policy_validity_report"].path
-        )
+        report = load_json_object(ROOT / node_map()["work_i_known_policy_validity_report"].path)
         audit = load_json_object(ROOT / node_map()["work_i_known_policy_formal_audit"].path)
         bindings = payload.get("bindings", {})
         entries = payload.get("entries", [])
@@ -1335,6 +1358,351 @@ def _work_i_source_binding_current(
     return False
 
 
+def _git_blob(commit: str, path: str) -> bytes | None:
+    completed = subprocess.run(
+        ["git", "show", f"{commit}:{path}"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if completed.returncode != 0:
+        return None
+    return completed.stdout
+
+
+def _git_blob_sha256(commit: str, path: str) -> str | None:
+    blob = _git_blob(commit, path)
+    return hashlib.sha256(blob).hexdigest() if blob is not None else None
+
+
+def _task_design_matrix_semantics_match_execution(
+    commit: str,
+    path: str,
+) -> bool:
+    blob = _git_blob(commit, path)
+    if blob is None:
+        return False
+    executed = json.loads(blob)
+    current = load_json_object(ROOT / path)
+    for payload in (executed, current):
+        payload.pop("source_commit", None)
+        payload.pop("source_tree_dirty", None)
+    return _canonical_sha256(executed) == _canonical_sha256(current)
+
+
+def _git_commit_is_ancestor(commit: str) -> bool:
+    return (
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", commit, "HEAD"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+        ).returncode
+        == 0
+    )
+
+
+def _git_paths_unchanged_since(commit: str, paths: tuple[str, ...]) -> bool:
+    committed = subprocess.run(
+        ["git", "diff", "--quiet", commit, "HEAD", "--", *paths],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    worktree = subprocess.run(
+        ["git", "diff", "--quiet", "HEAD", "--", *paths],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    staged = subprocess.run(
+        ["git", "diff", "--cached", "--quiet", "HEAD", "--", *paths],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    status = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=all", "--", *paths],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    return bool(
+        committed.returncode == worktree.returncode == staged.returncode == 0
+        and status.returncode == 0
+        and not status.stdout
+    )
+
+
+def _first_paper_composition_qualification_binding_errors(
+    payload: Mapping[str, Any],
+) -> list[str]:
+    """Validate the immutable C/D qualification against its execution sources."""
+
+    errors: list[str] = []
+
+    def require(condition: bool, message: str) -> None:
+        if not condition:
+            errors.append(message)
+
+    try:
+        from chemworld.eval.composition_qualification import (
+            _failure_counts,
+            _receipt_completeness_errors,
+        )
+
+        require(
+            payload.get("schema_version")
+            == "chemworld-first-paper-composition-qualification-report-0.2",
+            "composition qualification schema is stale",
+        )
+        require(
+            payload.get("qualification_id") == "first-paper-composition-qualification-v1",
+            "composition qualification identity is stale",
+        )
+        require(
+            payload.get("status") == "passed",
+            "composition qualification did not pass",
+        )
+
+        task_structure = payload.get("task_structure")
+        reference = payload.get("reference_qualification")
+        generated = payload.get("generated_qualification")
+        mutants = payload.get("compile_mutants")
+        modules = payload.get("module_qualification")
+        interfaces = payload.get("interface_qualification")
+        completeness = payload.get("receipt_completeness")
+        summary = payload.get("summary")
+        if not all(
+            isinstance(part, dict)
+            for part in (
+                task_structure,
+                reference,
+                generated,
+                mutants,
+                modules,
+                interfaces,
+                completeness,
+                summary,
+            )
+        ):
+            return ["composition qualification sections are malformed"]
+
+        units = reference.get("units")
+        generated_cases = generated.get("cases")
+        compile_mutants = mutants.get("mutants")
+        module_probes = modules.get("probes")
+        interface_paths = interfaces.get("paths")
+        if not all(
+            isinstance(rows, list)
+            for rows in (
+                units,
+                generated_cases,
+                compile_mutants,
+                module_probes,
+                interface_paths,
+            )
+        ):
+            return ["composition qualification case lists are malformed"]
+        reference_recipes = [case for unit in units for case in unit.get("valid_recipe_cases", [])]
+        negative_probes = [probe for unit in units for probe in unit.get("negative_probes", [])]
+        unseen = [
+            case
+            for case in generated_cases
+            if case.get("pattern") == generated.get("unseen_pattern")
+        ]
+
+        detailed_counts = {
+            "reference_units": len(units),
+            "reference_recipes": len(reference_recipes),
+            "negative_probes": len(negative_probes),
+            "generated_compositions": len(generated_cases),
+            "unseen_distillation_compositions": len(unseen),
+            "compile_mutants": len(compile_mutants),
+            "module_probes": len(module_probes),
+            "interface_paths": len(interface_paths),
+        }
+        expected_counts = {
+            "reference_units": 64,
+            "reference_recipes": 1786,
+            "negative_probes": 192,
+            "generated_compositions": 52,
+            "unseen_distillation_compositions": 8,
+            "compile_mutants": 7,
+            "module_probes": 32,
+            "interface_paths": 7,
+        }
+        for key, expected in expected_counts.items():
+            row = summary.get(key)
+            require(
+                isinstance(row, Mapping)
+                and row.get("passed") == row.get("denominator") == expected,
+                f"composition qualification summary count is stale: {key}",
+            )
+            require(
+                detailed_counts[key] == expected,
+                f"composition qualification detailed count is stale: {key}",
+            )
+
+        require(
+            task_structure.get("registered_task_count") == 15
+            and len(task_structure.get("tasks", [])) == 15
+            and task_structure.get("world_unit_count") == 64,
+            "composition qualification task-structure count is stale",
+        )
+        require(
+            reference.get("unit_passed") == reference.get("unit_denominator") == 64
+            and reference.get("recipe_passed") == reference.get("recipe_denominator") == 1786
+            and reference.get("negative_probe_passed")
+            == reference.get("negative_probe_denominator")
+            == 192,
+            "composition qualification reference counts are stale",
+        )
+        require(
+            generated.get("passed") == generated.get("denominator") == 52
+            and generated.get("unseen_passed") == generated.get("unseen_denominator") == 8,
+            "composition qualification generated counts are stale",
+        )
+        require(
+            mutants.get("passed") == mutants.get("denominator") == 7,
+            "composition qualification mutant counts are stale",
+        )
+        require(
+            modules.get("passed") == modules.get("denominator") == 32,
+            "composition qualification module counts are stale",
+        )
+        require(
+            interfaces.get("passed") == interfaces.get("denominator") == 7,
+            "composition qualification interface counts are stale",
+        )
+        require(
+            all(unit.get("passed") is True for unit in units)
+            and all(case.get("passed") is True for case in reference_recipes)
+            and all(probe.get("passed") is True for probe in negative_probes)
+            and all(case.get("passed") is True for case in generated_cases)
+            and all(mutant.get("passed") is True for mutant in compile_mutants)
+            and all(probe.get("passed") is True for probe in module_probes)
+            and all(path.get("passed") is True for path in interface_paths),
+            "composition qualification contains a failed independent receipt",
+        )
+
+        require(
+            completeness
+            == {
+                "passed": True,
+                "error_count": 0,
+                "errors": [],
+                "failures": [],
+            },
+            "composition qualification receipt completeness failed",
+        )
+        require(
+            isinstance(summary.get("failure_class_counts"), Mapping)
+            and not summary.get("failure_class_counts"),
+            "composition qualification reports failure classes",
+        )
+        require(
+            summary.get("missing_receipt_count") == 0,
+            "composition qualification reports missing receipts",
+        )
+        require(
+            summary.get("public_private_leakage_count") == 0,
+            "composition qualification reports public/private leakage",
+        )
+        require(
+            generated.get("unseen_pattern") == "reaction-distillation-observation"
+            and generated.get("unseen_reference_task_id_overlap") == [],
+            "composition qualification unseen-world identity is stale",
+        )
+
+        completeness_errors = _receipt_completeness_errors(
+            task_structure=task_structure,
+            reference=reference,
+            generated=generated,
+            modules=modules,
+            interfaces=interfaces,
+        )
+        require(
+            not completeness_errors,
+            "composition qualification completeness recomputation failed",
+        )
+        require(
+            not _failure_counts([reference, generated, mutants, modules, interfaces, completeness]),
+            "composition qualification failure recomputation failed",
+        )
+
+        require(
+            len(unseen) == 8
+            and [case.get("generation_index") for case in unseen] == list(range(8))
+            and {case.get("generation_seed") for case in unseen} == {105}
+            and unseen[0].get("composition_id")
+            == "qualification-reaction-distillation-observation-coverage-0001"
+            and unseen[0].get("composition_request_sha256")
+            == "2c5ac886b1ed95eb2868aae285e8183510a34da1bd317b42ab6be131fb0d152e",
+            "composition qualification frozen unseen sequence is stale",
+        )
+
+        source = payload.get("source_binding")
+        if not isinstance(source, Mapping):
+            return ["composition qualification source binding is malformed"]
+        expected_sources = {
+            "experiment_note": (
+                "workstreams/arxiv_v1/experiments/first-paper-composition-qualification.md"
+            ),
+            "current_registry": "configs/current.json",
+            "task_design_matrix": ("workstreams/flagship_tasks/reports/task-design-matrix-v1.json"),
+        }
+        commit = source.get("execution_commit")
+        require(
+            isinstance(commit, str)
+            and len(commit) == 40
+            and all(character in "0123456789abcdef" for character in commit)
+            and source.get("status") == "passed"
+            and source.get("qualification_design_version")
+            == "first-paper-composition-qualification-design-v1"
+            and _git_commit_is_ancestor(commit),
+            "composition qualification execution commit is invalid",
+        )
+        if isinstance(commit, str):
+            for field, expected_path in expected_sources.items():
+                require(
+                    source.get(field) == expected_path,
+                    f"composition qualification source path is stale: {field}",
+                )
+                require(
+                    _git_blob_sha256(commit, expected_path) == source.get(f"{field}_sha256"),
+                    f"composition qualification source blob is stale: {field}",
+                )
+            require(
+                file_sha256(ROOT / expected_sources["experiment_note"])
+                == source.get("experiment_note_sha256"),
+                "composition qualification experiment note changed after execution",
+            )
+            require(
+                _task_design_matrix_semantics_match_execution(
+                    commit,
+                    expected_sources["task_design_matrix"],
+                ),
+                "composition qualification task-design semantics changed after execution",
+            )
+            require(
+                _git_paths_unchanged_since(
+                    commit,
+                    FIRST_PAPER_COMPOSITION_QUALIFICATION_GUARDED_PATHS,
+                ),
+                "composition qualification runtime changed after execution",
+            )
+    except (KeyError, OSError, subprocess.SubprocessError, TypeError, ValueError) as error:
+        errors.append(f"composition qualification validator error: {error}")
+    return errors
+
+
+def _first_paper_composition_qualification_binding_current(
+    payload: Mapping[str, Any],
+) -> bool:
+    return not _first_paper_composition_qualification_binding_errors(payload)
+
+
 def _artifact_source_binding_current(
     node: EvidenceNode,
     payload: Mapping[str, Any],
@@ -1344,6 +1712,8 @@ def _artifact_source_binding_current(
     work_i_binding = _work_i_source_binding_current(node, payload)
     if work_i_binding is not None:
         return work_i_binding
+    if node.node_id == FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID:
+        return _first_paper_composition_qualification_binding_current(payload)
     if node.role in {"protocol_input", "fixture"}:
         return True
     if node.node_id == "runtime_affordance":
@@ -1361,12 +1731,8 @@ def _artifact_source_binding_current(
             validate_diagnostic_relation_graph,
         )
 
-        protocol = load_mechanism_adaptation_protocol(
-            ROOT / node_map()["mechanism_protocol"].path
-        )
-        plan = load_json_object(
-            ROOT / node_map()["mechanism_gate_a_plan"].path
-        )
+        protocol = load_mechanism_adaptation_protocol(ROOT / node_map()["mechanism_protocol"].path)
+        plan = load_json_object(ROOT / node_map()["mechanism_gate_a_plan"].path)
         if validate_diagnostic_relation_graph(protocol, plan, payload):
             return False
     if node.node_id == "mechanism_sample_size_audit":
@@ -1374,18 +1740,12 @@ def _artifact_source_binding_current(
             load_mechanism_adaptation_protocol,
         )
 
-        protocol = load_mechanism_adaptation_protocol(
-            ROOT / node_map()["mechanism_protocol"].path
-        )
-        plan = load_json_object(
-            ROOT / node_map()["mechanism_gate_a_plan"].path
-        )
+        protocol = load_mechanism_adaptation_protocol(ROOT / node_map()["mechanism_protocol"].path)
+        plan = load_json_object(ROOT / node_map()["mechanism_gate_a_plan"].path)
         if (
             payload.get("pass") is not True
-            or payload.get("protocol_sha256")
-            != _canonical_sha256(protocol)
-            or payload.get("gate_a_plan_sha256")
-            != _canonical_sha256(plan)
+            or payload.get("protocol_sha256") != _canonical_sha256(protocol)
+            or payload.get("gate_a_plan_sha256") != _canonical_sha256(plan)
         ):
             return False
     if node.node_id == "mechanism_preregistration":
@@ -1396,22 +1756,15 @@ def _artifact_source_binding_current(
             validate_mechanism_preregistration,
         )
 
-        protocol = load_mechanism_adaptation_protocol(
-            ROOT / node_map()["mechanism_protocol"].path
-        )
-        plan = load_json_object(
-            ROOT / node_map()["mechanism_gate_a_plan"].path
-        )
+        protocol = load_mechanism_adaptation_protocol(ROOT / node_map()["mechanism_protocol"].path)
+        plan = load_json_object(ROOT / node_map()["mechanism_gate_a_plan"].path)
         relation_graph = json.loads(
-            (
-                ROOT
-                / node_map()["mechanism_diagnostic_relation_graph"].path
-            ).read_text(encoding="utf-8")
+            (ROOT / node_map()["mechanism_diagnostic_relation_graph"].path).read_text(
+                encoding="utf-8"
+            )
         )
         sample_size = json.loads(
-            (
-                ROOT / node_map()["mechanism_sample_size_audit"].path
-            ).read_text(encoding="utf-8")
+            (ROOT / node_map()["mechanism_sample_size_audit"].path).read_text(encoding="utf-8")
         )
         if validate_mechanism_preregistration(
             payload,
@@ -1427,12 +1780,8 @@ def _artifact_source_binding_current(
             load_mechanism_adaptation_protocol,
         )
 
-        protocol = load_mechanism_adaptation_protocol(
-            ROOT / node_map()["mechanism_protocol"].path
-        )
-        plan = load_json_object(
-            ROOT / node_map()["mechanism_gate_a_plan"].path
-        )
+        protocol = load_mechanism_adaptation_protocol(ROOT / node_map()["mechanism_protocol"].path)
+        plan = load_json_object(ROOT / node_map()["mechanism_gate_a_plan"].path)
         if (
             payload.get("pass") is not True
             or payload.get("protocol_sha256") != _canonical_sha256(protocol)
@@ -1444,12 +1793,8 @@ def _artifact_source_binding_current(
             load_mechanism_adaptation_protocol,
         )
 
-        protocol = load_mechanism_adaptation_protocol(
-            ROOT / node_map()["mechanism_protocol"].path
-        )
-        plan = load_json_object(
-            ROOT / node_map()["mechanism_gate_a_plan"].path
-        )
+        protocol = load_mechanism_adaptation_protocol(ROOT / node_map()["mechanism_protocol"].path)
+        plan = load_json_object(ROOT / node_map()["mechanism_gate_a_plan"].path)
         if (
             payload.get("qualified") is not True
             or payload.get("formal_result") is not False
@@ -1466,17 +1811,9 @@ def _artifact_source_binding_current(
             load_mechanism_adaptation_protocol,
         )
 
-        protocol = load_mechanism_adaptation_protocol(
-            ROOT / node_map()["mechanism_protocol"].path
-        )
-        plan = load_json_object(
-            ROOT / node_map()["mechanism_gate_a_plan"].path
-        )
-        stage = (
-            "a2"
-            if node.node_id == "mechanism_a2_structural_receipt"
-            else "a3"
-        )
+        protocol = load_mechanism_adaptation_protocol(ROOT / node_map()["mechanism_protocol"].path)
+        plan = load_json_object(ROOT / node_map()["mechanism_gate_a_plan"].path)
+        stage = "a2" if node.node_id == "mechanism_a2_structural_receipt" else "a3"
         if not _mechanism_structural_receipt_binding_current(
             payload,
             stage=stage,
@@ -1489,18 +1826,10 @@ def _artifact_source_binding_current(
             load_mechanism_adaptation_protocol,
         )
 
-        protocol = load_mechanism_adaptation_protocol(
-            ROOT / node_map()["mechanism_protocol"].path
-        )
-        plan = load_json_object(
-            ROOT / node_map()["mechanism_gate_a_plan"].path
-        )
-        a2_receipt = load_json_object(
-            ROOT / node_map()["mechanism_a2_structural_receipt"].path
-        )
-        a3_receipt = load_json_object(
-            ROOT / node_map()["mechanism_a3_structural_receipt"].path
-        )
+        protocol = load_mechanism_adaptation_protocol(ROOT / node_map()["mechanism_protocol"].path)
+        plan = load_json_object(ROOT / node_map()["mechanism_gate_a_plan"].path)
+        a2_receipt = load_json_object(ROOT / node_map()["mechanism_a2_structural_receipt"].path)
+        a3_receipt = load_json_object(ROOT / node_map()["mechanism_a3_structural_receipt"].path)
         release_qualification = load_json_object(
             ROOT / node_map()["mechanism_release_qualification"].path
         )
@@ -1514,31 +1843,20 @@ def _artifact_source_binding_current(
         ):
             return False
     if node.node_id == "static_s0_formal_campaign_summary":
-        freeze_manifest = load_json_object(
-            ROOT / node_map()["static_s0_freeze_manifest"].path
-        )
+        freeze_manifest = load_json_object(ROOT / node_map()["static_s0_freeze_manifest"].path)
         execution = payload.get("execution", {})
         accounting = payload.get("accounting", {})
         if not (
-            payload.get("schema_version")
-            == "chemworld-static-s0-campaign-summary-1.0"
-            and payload.get("status")
-            == "completed_audited_formal_descriptive_result"
+            payload.get("schema_version") == "chemworld-static-s0-campaign-summary-1.0"
+            and payload.get("status") == "completed_audited_formal_descriptive_result"
             and payload.get("formal_result") is True
             and payload.get("benchmark_claim_allowed") is False
             and payload.get("freeze", {}).get("manifest_sha256")
             == _canonical_sha256(freeze_manifest)
-            and execution.get("participant", {}).get(
-                "all_exact_replay_verified"
-            )
-            is True
-            and execution.get("baselines", {}).get(
-                "all_exact_replay_verified"
-            )
-            is True
+            and execution.get("participant", {}).get("all_exact_replay_verified") is True
+            and execution.get("baselines", {}).get("all_exact_replay_verified") is True
             and accounting.get("campaign_total_physical_experiments") == 28060
-            and set(payload.get("tasks", {}))
-            == {"electrochemical", "crystallization"}
+            and set(payload.get("tasks", {})) == {"electrochemical", "crystallization"}
         ):
             return False
     if node.node_id == "static_s0_material_information_triarm_summary":
@@ -1546,8 +1864,7 @@ def _artifact_source_binding_current(
             ROOT / node_map()["static_s0_nominal_information_freeze_manifest"].path
         )
         misindexed_manifest = load_json_object(
-            ROOT
-            / node_map()["static_s0_misindexed_information_freeze_manifest"].path
+            ROOT / node_map()["static_s0_misindexed_information_freeze_manifest"].path
         )
         execution = payload.get("execution", {})
         accounting = payload.get("accounting", {})
@@ -1555,8 +1872,7 @@ def _artifact_source_binding_current(
         if not (
             payload.get("schema_version")
             == "chemworld-static-s0-material-information-triarm-result-1.0"
-            and payload.get("status")
-            == "completed_audited_formal_three_arm_result"
+            and payload.get("status") == "completed_audited_formal_three_arm_result"
             and payload.get("formal_result") is True
             and payload.get("confirmatory_analysis_complete") is True
             and payload.get("benchmark_claim_allowed") is False
@@ -1564,22 +1880,13 @@ def _artifact_source_binding_current(
             == _canonical_sha256(nominal_manifest)
             and payload.get("freeze", {}).get("misindexed_manifest_sha256")
             == _canonical_sha256(misindexed_manifest)
-            and execution.get("world_seeds")
-            == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            and execution.get("world_seeds") == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             and execution.get("all_three_arms_completed") is True
             and execution.get("all_sixty_cells_exact_replay_verified") is True
-            and accounting.get("three_arm_total", {}).get(
-                "participant_world_cells"
-            )
-            == 60
-            and accounting.get("three_arm_total", {}).get(
-                "total_physical_experiments"
-            )
-            == 2280
-            and accounting.get("three_arm_total", {}).get("provider_calls")
-            == 1260
-            and accounting.get("three_arm_total", {}).get("method_failures")
-            == 0
+            and accounting.get("three_arm_total", {}).get("participant_world_cells") == 60
+            and accounting.get("three_arm_total", {}).get("total_physical_experiments") == 2280
+            and accounting.get("three_arm_total", {}).get("provider_calls") == 1260
+            and accounting.get("three_arm_total", {}).get("method_failures") == 0
             and set(tasks) == {"electrochemical", "crystallization"}
             and tasks.get("electrochemical", {})
             .get("paired_contrasts", {})
@@ -1592,10 +1899,7 @@ def _artifact_source_binding_current(
             .get("familywise_result")
             == "inconclusive"
             and all(
-                task.get("recovery", {})
-                .get("overall_recovery_claim", {})
-                .get("passed")
-                is False
+                task.get("recovery", {}).get("overall_recovery_claim", {}).get("passed") is False
                 for task in tasks.values()
             )
         ):
@@ -1616,8 +1920,7 @@ def _artifact_source_binding_current(
             and payload.get("status") == "completed_audited_development_only"
             and payload.get("formal_result") is False
             and payload.get("benchmark_claim_allowed") is False
-            and execution.get("campaign_plan_sha256")
-            == _canonical_sha256(campaign_plan)
+            and execution.get("campaign_plan_sha256") == _canonical_sha256(campaign_plan)
             and execution.get("all_cells_completed") is True
             and execution.get("all_exact_replay_verified") is True
             and execution.get("result_count") == 150
@@ -1633,10 +1936,7 @@ def _artifact_source_binding_current(
                 "partition-discovery",
                 "flow-reaction-optimization",
             }
-            and threshold_summary.get(
-                "all_tasks_reached_threshold_by_any_method_mean"
-            )
-            is False
+            and threshold_summary.get("all_tasks_reached_threshold_by_any_method_mean") is False
             and threshold_summary.get("failure_task") == "partition-discovery"
         ):
             return False
@@ -1649,6 +1949,8 @@ def _artifact_source_binding_current(
 def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
     if node.role in {"protocol_input", "development_diagnostic", "fixture"}:
         return "not_applicable"
+    if node.node_id == FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID:
+        return "passed" if payload.get("status") == "passed" else "blocked"
     if node.node_id == "backend_candidate":
         return "passed" if payload.get("backend_contract_validated") else "blocked"
     if "gate_pass" in payload:
@@ -1659,11 +1961,7 @@ def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
         "mechanism_a2_structural_receipt",
         "mechanism_a3_structural_receipt",
     }:
-        return (
-            "passed"
-            if payload.get("structurally_complete") is True
-            else "blocked"
-        )
+        return "passed" if payload.get("structurally_complete") is True else "blocked"
     if node.node_id == "mechanism_design_audit":
         return "passed" if payload.get("pass") else "blocked"
     if node.node_id == "mechanism_release_qualification":
@@ -1671,11 +1969,7 @@ def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
     if node.node_id == "work_i_latent_terminal_formal_shadow":
         return "blocked" if payload.get("status") == "FAIL" else "passed"
     if node.node_id == "work_i_latent_terminal_analysis":
-        return (
-            "blocked"
-            if payload.get("status") == "incomplete_full_report_required"
-            else "passed"
-        )
+        return "blocked" if payload.get("status") == "incomplete_full_report_required" else "passed"
     if payload.get("passed") is False or payload.get("controls_ready") is False:
         return "blocked"
     return "passed"
@@ -1728,52 +2022,32 @@ def _write_current_registry() -> None:
     )
 
     current = json.loads(CURRENT_REGISTRY.read_text(encoding="utf-8"))
-    backend = json.loads(
-        (ROOT / node_map()["backend_candidate"].path).read_text(
-            encoding="utf-8"
-        )
-    )
+    backend = json.loads((ROOT / node_map()["backend_candidate"].path).read_text(encoding="utf-8"))
     backend_protocol = json.loads(
-        (ROOT / node_map()["backend_protocol"].path).read_text(
-            encoding="utf-8"
-        )
+        (ROOT / node_map()["backend_protocol"].path).read_text(encoding="utf-8")
     )
     mechanism_decision = json.loads(
-        (ROOT / node_map()["mechanism_public_gate_a_decision"].path).read_text(
-            encoding="utf-8"
-        )
+        (ROOT / node_map()["mechanism_public_gate_a_decision"].path).read_text(encoding="utf-8")
     )
     mechanism_a2_receipt = json.loads(
-        (
-            ROOT / node_map()["mechanism_a2_structural_receipt"].path
-        ).read_text(encoding="utf-8")
+        (ROOT / node_map()["mechanism_a2_structural_receipt"].path).read_text(encoding="utf-8")
     )
     mechanism_a3_receipt = json.loads(
-        (
-            ROOT / node_map()["mechanism_a3_structural_receipt"].path
-        ).read_text(encoding="utf-8")
+        (ROOT / node_map()["mechanism_a3_structural_receipt"].path).read_text(encoding="utf-8")
     )
     mechanism_design = json.loads(
-        (ROOT / node_map()["mechanism_design_audit"].path).read_text(
-            encoding="utf-8"
-        )
+        (ROOT / node_map()["mechanism_design_audit"].path).read_text(encoding="utf-8")
     )
     mechanism_pilot = json.loads(
-        (ROOT / node_map()["mechanism_agent_pilot"].path).read_text(
-            encoding="utf-8"
-        )
+        (ROOT / node_map()["mechanism_agent_pilot"].path).read_text(encoding="utf-8")
     )
     mechanism_release_qualification = json.loads(
-        (
-            ROOT / node_map()["mechanism_release_qualification"].path
-        ).read_text(encoding="utf-8")
+        (ROOT / node_map()["mechanism_release_qualification"].path).read_text(encoding="utf-8")
     )
     mechanism_protocol = load_mechanism_adaptation_protocol(
         ROOT / node_map()["mechanism_protocol"].path
     )
-    mechanism_plan = load_json_object(
-        ROOT / node_map()["mechanism_gate_a_plan"].path
-    )
+    mechanism_plan = load_json_object(ROOT / node_map()["mechanism_gate_a_plan"].path)
     static_s0_summary_path = ROOT / node_map()["static_s0_formal_campaign_summary"].path
     static_s0_summary = load_json_object(static_s0_summary_path)
     static_s0_information_triarm = load_json_object(
@@ -1783,6 +2057,17 @@ def _write_current_registry() -> None:
         ROOT / node_map()["static_s0_five_task_postqualification_summary"].path
     )
     task_design_matrix = load_json_object(ROOT / node_map()["task_design_matrix"].path)
+    composition_qualification = load_json_object(
+        ROOT / node_map()[FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID].path
+    )
+    composition_qualification_errors = _first_paper_composition_qualification_binding_errors(
+        composition_qualification
+    )
+    if composition_qualification_errors:
+        raise RuntimeError(
+            "refusing to bind first-paper composition qualification: "
+            + "; ".join(composition_qualification_errors)
+        )
     work_i_derived = load_json_object(ROOT / node_map()["work_i_fvl_derived_data"].path)
     work_i_derived_manifest = load_json_object(
         ROOT / node_map()["work_i_fvl_derived_manifest"].path
@@ -1796,16 +2081,13 @@ def _write_current_registry() -> None:
         mechanism_plan,
     )
     mechanism_gate_a_pass = bool(
-        mechanism_evidence_current
-        and mechanism_decision.get("gate_a_pass") is True
+        mechanism_evidence_current and mechanism_decision.get("gate_a_pass") is True
     )
     controlled_gate_a_pass = bool(
-        mechanism_evidence_current
-        and mechanism_decision.get("a2_pass") is True
+        mechanism_evidence_current and mechanism_decision.get("a2_pass") is True
     )
     online_gate_a_pass = bool(
-        mechanism_evidence_current
-        and mechanism_decision.get("a3_pass") is True
+        mechanism_evidence_current and mechanism_decision.get("a3_pass") is True
     )
     mechanism_gate_a_status = (
         "gate_a_passed_remaining_gates_pending"
@@ -1824,8 +2106,7 @@ def _write_current_registry() -> None:
         )
         source_fresh = _artifact_source_binding_current(node, payload)
         binding_fresh = source_fresh and not (
-            node.node_id == "mechanism_public_gate_a_decision"
-            and not mechanism_evidence_current
+            node.node_id == "mechanism_public_gate_a_decision" and not mechanism_evidence_current
         )
         fresh = dependency_fresh and binding_fresh
         gate_state = _node_gate_state(node, payload) if fresh else "invalidated"
@@ -1847,7 +2128,7 @@ def _write_current_registry() -> None:
     )
 
     current["schema_version"] = "chemworld-current-surface-registry-0.4"
-    current["updated_at"] = date.today().isoformat()
+    current["updated_at"] = datetime.now(UTC).date().isoformat()
     current["project"].update(
         {
             "role": "agent_capability_evaluation_and_training_environment",
@@ -1875,9 +2156,7 @@ def _write_current_registry() -> None:
         "trajectory_schema_version": TRAJECTORY_SCHEMA_VERSION,
         "outcome_layers": list(OUTCOME_LAYER_FIELDS),
         "trajectory_compatibility_aliases": list(TRAJECTORY_COMPATIBILITY_ALIASES),
-        "trajectory_alias_write_removal_version": (
-            TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION
-        ),
+        "trajectory_alias_write_removal_version": (TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION),
     }
     current["completeness_model"] = {
         "structural": "implemented_by_design_and_subject_to_runtime_controls",
@@ -1901,9 +2180,7 @@ def _write_current_registry() -> None:
             "protocol": node_map()["mechanism_protocol"].path,
             "task_ids": list(mechanism_protocol["design"]["tasks"]),
             "status": (
-                "gate_a_passed"
-                if mechanism_gate_a_current
-                else "gate_a_recertification_required"
+                "gate_a_passed" if mechanism_gate_a_current else "gate_a_recertification_required"
             ),
         },
         "extended": {
@@ -1997,9 +2274,7 @@ def _write_current_registry() -> None:
     ]
     static_world_seeds = [
         int(row["world_seed"])
-        for row in static_s0_summary["tasks"]["electrochemical"]["participant"][
-            "worlds"
-        ]
+        for row in static_s0_summary["tasks"]["electrochemical"]["participant"]["worlds"]
     ]
     current["static_scientific_optimization"] = {
         "summary": node_map()["static_s0_formal_campaign_summary"].path,
@@ -2010,31 +2285,23 @@ def _write_current_registry() -> None:
         "world_seeds": static_world_seeds,
         "exploration_experiments_per_seed": 20,
         "all_replay_verified": bool(
-            static_s0_summary["execution"]["participant"][
-                "all_exact_replay_verified"
-            ]
-            and static_s0_summary["execution"]["baselines"][
-                "all_exact_replay_verified"
-            ]
+            static_s0_summary["execution"]["participant"]["all_exact_replay_verified"]
+            and static_s0_summary["execution"]["baselines"]["all_exact_replay_verified"]
         ),
         "freeze_manifest": node_map()["static_s0_freeze_manifest"].path,
         "campaign_total_physical_experiments": int(
-            static_s0_summary["accounting"][
-                "campaign_total_physical_experiments"
-            ]
+            static_s0_summary["accounting"]["campaign_total_physical_experiments"]
         ),
-        "comparison_scope": static_s0_summary["reporting_boundaries"][
-            "all_algorithm_comparisons"
-        ],
+        "comparison_scope": static_s0_summary["reporting_boundaries"]["all_algorithm_comparisons"],
         "task_results": {
             task_key: {
-                "participant_mean": static_s0_summary["tasks"][task_key][
-                    "participant"
-                ]["primary_score"]["mean"],
+                "participant_mean": static_s0_summary["tasks"][task_key]["participant"][
+                    "primary_score"
+                ]["mean"],
                 "participant_world_bootstrap_95_interval": (
-                    static_s0_summary["tasks"][task_key]["participant"][
-                        "primary_score"
-                    ]["world_bootstrap_95_interval"]
+                    static_s0_summary["tasks"][task_key]["participant"]["primary_score"][
+                        "world_bootstrap_95_interval"
+                    ]
                 ),
             }
             for task_key in ("electrochemical", "crystallization")
@@ -2055,17 +2322,13 @@ def _write_current_registry() -> None:
         "participant_provider_calls": static_s0_five_task["accounting"][
             "participant_provider_calls"
         ],
-        "all_replay_verified": static_s0_five_task["execution"][
-            "all_exact_replay_verified"
-        ],
+        "all_replay_verified": static_s0_five_task["execution"]["all_exact_replay_verified"],
         "all_tasks_reached_threshold_by_any_method_mean": (
             static_s0_five_task["threshold_summary"][
                 "all_tasks_reached_threshold_by_any_method_mean"
             ]
         ),
-        "threshold_failure_task": static_s0_five_task["threshold_summary"][
-            "failure_task"
-        ],
+        "threshold_failure_task": static_s0_five_task["threshold_summary"]["failure_task"],
         "participant_mean_by_task": {
             task_id: task["participant_mean"]
             for task_id, task in static_s0_five_task["tasks"].items()
@@ -2078,12 +2341,8 @@ def _write_current_registry() -> None:
     }
     current.pop("static_material_information_interim", None)
     current["static_material_information_three_arm"] = {
-        "summary": node_map()[
-            "static_s0_material_information_triarm_summary"
-        ].path,
-        "nominal_freeze_manifest": node_map()[
-            "static_s0_nominal_information_freeze_manifest"
-        ].path,
+        "summary": node_map()["static_s0_material_information_triarm_summary"].path,
+        "nominal_freeze_manifest": node_map()["static_s0_nominal_information_freeze_manifest"].path,
         "misindexed_freeze_manifest": node_map()[
             "static_s0_misindexed_information_freeze_manifest"
         ].path,
@@ -2093,40 +2352,38 @@ def _write_current_registry() -> None:
         "benchmark_claim_allowed": False,
         "world_seeds": static_s0_information_triarm["execution"]["world_seeds"],
         "all_sixty_cells_exact_replay_verified": (
-            static_s0_information_triarm["execution"][
-                "all_sixty_cells_exact_replay_verified"
-            ]
+            static_s0_information_triarm["execution"]["all_sixty_cells_exact_replay_verified"]
         ),
-        "total_physical_experiments": static_s0_information_triarm["accounting"][
-            "three_arm_total"
-        ]["total_physical_experiments"],
-        "provider_calls": static_s0_information_triarm["accounting"][
-            "three_arm_total"
-        ]["provider_calls"],
-        "provider_retry_attempts": static_s0_information_triarm["accounting"][
-            "three_arm_total"
-        ]["provider_retry_attempts"],
+        "total_physical_experiments": static_s0_information_triarm["accounting"]["three_arm_total"][
+            "total_physical_experiments"
+        ],
+        "provider_calls": static_s0_information_triarm["accounting"]["three_arm_total"][
+            "provider_calls"
+        ],
+        "provider_retry_attempts": static_s0_information_triarm["accounting"]["three_arm_total"][
+            "provider_retry_attempts"
+        ],
         "task_results": {
             task_key: {
                 "score_mean_by_arm": {
-                    arm: static_s0_information_triarm["tasks"][task_key][
-                        "primary_score_by_arm"
-                    ][arm]["mean"]
+                    arm: static_s0_information_triarm["tasks"][task_key]["primary_score_by_arm"][
+                        arm
+                    ]["mean"]
                     for arm in ("opaque", "nominal", "misindexed")
                 },
                 "nominal_minus_opaque": (
-                    static_s0_information_triarm["tasks"][task_key][
-                        "paired_contrasts"
-                    ]["nominal_minus_opaque"]
+                    static_s0_information_triarm["tasks"][task_key]["paired_contrasts"][
+                        "nominal_minus_opaque"
+                    ]
                 ),
                 "misindexed_minus_nominal": (
-                    static_s0_information_triarm["tasks"][task_key][
-                        "paired_contrasts"
-                    ]["misindexed_minus_nominal"]
+                    static_s0_information_triarm["tasks"][task_key]["paired_contrasts"][
+                        "misindexed_minus_nominal"
+                    ]
                 ),
-                "overall_recovery_claim": static_s0_information_triarm["tasks"][
-                    task_key
-                ]["recovery"]["overall_recovery_claim"],
+                "overall_recovery_claim": static_s0_information_triarm["tasks"][task_key][
+                    "recovery"
+                ]["overall_recovery_claim"],
             }
             for task_key in ("electrochemical", "crystallization")
         },
@@ -2149,33 +2406,19 @@ def _write_current_registry() -> None:
         "executable_boundary_task_count": int(
             task_design_validation["executable_boundary_task_count"]
         ),
-        "boundary_recipe_case_count": int(
-            task_design_validation["boundary_recipe_case_count"]
-        ),
+        "boundary_recipe_case_count": int(task_design_validation["boundary_recipe_case_count"]),
         "declared_success_metric_count": int(
             task_design_validation["declared_success_metric_count"]
         ),
-        "bound_success_metric_count": int(
-            task_design_validation["bound_success_metric_count"]
-        ),
-        "dead_recipe_coordinate_count": int(
-            task_design_validation["dead_recipe_coordinate_count"]
-        ),
-        "formalization_blocker_count": int(
-            task_design_validation["formalization_blocker_count"]
-        ),
-        "formal_experiment_task_ids": list(
-            task_design_validation["formal_experiment_task_ids"]
-        ),
+        "bound_success_metric_count": int(task_design_validation["bound_success_metric_count"]),
+        "dead_recipe_coordinate_count": int(task_design_validation["dead_recipe_coordinate_count"]),
+        "formalization_blocker_count": int(task_design_validation["formalization_blocker_count"]),
+        "formal_experiment_task_ids": list(task_design_validation["formal_experiment_task_ids"]),
         "formal_empirical_comparison_pending_task_ids": list(
-            task_design_validation[
-                "formal_empirical_comparison_pending_task_ids"
-            ]
+            task_design_validation["formal_empirical_comparison_pending_task_ids"]
         ),
         "nonconfirmatory_formal_experiments_required_for_future_claims": bool(
-            task_design_validation[
-                "nonconfirmatory_formal_experiments_required_for_future_claims"
-            ]
+            task_design_validation["nonconfirmatory_formal_experiments_required_for_future_claims"]
         ),
     }
     mechanism_state_machine = dict(mechanism_protocol["protocol_state_machine"])
@@ -2207,12 +2450,8 @@ def _write_current_registry() -> None:
     a2_public = public_tables["a2_controlled_identifiability"]
     a3_public = public_tables["a3_online_attainability"]
     primary_budget = str(a2_public["primary_gate_budget"])
-    a2_active_primary = a2_public["active_oracle"]["by_budget"][
-        primary_budget
-    ]
-    a2_decoder_primary = a2_public["fixed_trajectory_decoder"][
-        "by_budget"
-    ][primary_budget]
+    a2_active_primary = a2_public["active_oracle"]["by_budget"][primary_budget]
+    a2_decoder_primary = a2_public["fixed_trajectory_decoder"]["by_budget"][primary_budget]
     a3_primary = a3_public["online_capability_chain_certificate"]
     a3_detection = a3_primary["change_detection_conditional_on_reference"]
 
@@ -2224,43 +2463,25 @@ def _write_current_registry() -> None:
             mechanism_design.get("pass")
             and nodes["mechanism_design_audit"]["artifact_state"] == "current"
         ),
-        "semantics_audit_report": node_map()[
-            "mechanism_confirmatory_task_semantics_audit"
-        ].path,
+        "semantics_audit_report": node_map()["mechanism_confirmatory_task_semantics_audit"].path,
         "semantics_audit_pass": bool(
-            nodes["mechanism_confirmatory_task_semantics_audit"]["gate_state"]
-            == "passed"
+            nodes["mechanism_confirmatory_task_semantics_audit"]["gate_state"] == "passed"
         ),
-        "diagnostic_relation_graph_report": node_map()[
-            "mechanism_diagnostic_relation_graph"
-        ].path,
-        "sample_size_audit_report": node_map()[
-            "mechanism_sample_size_audit"
-        ].path,
-        "preregistration_manifest": node_map()[
-            "mechanism_preregistration"
-        ].path,
-        "release_qualification_report": node_map()[
-            "mechanism_release_qualification"
-        ].path,
+        "diagnostic_relation_graph_report": node_map()["mechanism_diagnostic_relation_graph"].path,
+        "sample_size_audit_report": node_map()["mechanism_sample_size_audit"].path,
+        "preregistration_manifest": node_map()["mechanism_preregistration"].path,
+        "release_qualification_report": node_map()["mechanism_release_qualification"].path,
         "release_qualification_pass": bool(
             mechanism_release_qualification.get("qualified") is True
-            and nodes["mechanism_release_qualification"]["artifact_state"]
-            == "current"
+            and nodes["mechanism_release_qualification"]["artifact_state"] == "current"
         ),
         "participant_preregistration_candidate": node_map()[
             "mechanism_participant_preregistration_candidate"
         ].path,
         "gate_a_plan": node_map()["mechanism_gate_a_plan"].path,
-        "a2_structural_receipt": node_map()[
-            "mechanism_a2_structural_receipt"
-        ].path,
-        "a3_structural_receipt": node_map()[
-            "mechanism_a3_structural_receipt"
-        ].path,
-        "public_decision_report": node_map()[
-            "mechanism_public_gate_a_decision"
-        ].path,
+        "a2_structural_receipt": node_map()["mechanism_a2_structural_receipt"].path,
+        "a3_structural_receipt": node_map()["mechanism_a3_structural_receipt"].path,
+        "public_decision_report": node_map()["mechanism_public_gate_a_decision"].path,
         "agent_pilot_report": node_map()["mechanism_agent_pilot"].path,
         "protocol_state_machine": mechanism_state_machine,
         "status": (
@@ -2271,14 +2492,11 @@ def _write_current_registry() -> None:
         "gate_a_pass": mechanism_gate_a_pass,
         "gate_a_evidence_current": bool(
             mechanism_evidence_current
-            and nodes["mechanism_public_gate_a_decision"]["artifact_state"]
-            == "current"
+            and nodes["mechanism_public_gate_a_decision"]["artifact_state"] == "current"
         ),
         "gate_a_certificate_status": {
             "a1_physical_intervention_validity": (
-                "passed"
-                if mechanism_design.get("pass") is True
-                else "failed"
+                "passed" if mechanism_design.get("pass") is True else "failed"
             ),
             "a2_controlled_matched_identifiability": (
                 "passed"
@@ -2299,31 +2517,17 @@ def _write_current_registry() -> None:
             "decision_sha256": mechanism_decision["decision_sha256"],
             "go_no_go_branch": mechanism_decision["go_no_go"]["branch"],
             "a2": {
-                "completed_trials": mechanism_a2_receipt[
-                    "observed_completed_trial_count"
-                ],
+                "completed_trials": mechanism_a2_receipt["observed_completed_trial_count"],
                 "primary_budget": int(primary_budget),
-                "active_oracle_top1_accuracy": a2_active_primary[
-                    "top1_accuracy"
-                ],
-                "fixed_decoder_top1_accuracy": a2_decoder_primary[
-                    "top1_accuracy"
-                ],
+                "active_oracle_top1_accuracy": a2_active_primary["top1_accuracy"],
+                "fixed_decoder_top1_accuracy": a2_decoder_primary["top1_accuracy"],
             },
             "a3": {
-                "completed_trials": mechanism_a3_receipt[
-                    "observed_completed_trial_count"
-                ],
-                "reference_sufficient_rate": a3_primary[
-                    "p_reference_sufficient"
-                ],
-                "change_detection_sensitivity": a3_detection[
-                    "sensitivity"
-                ],
+                "completed_trials": mechanism_a3_receipt["observed_completed_trial_count"],
+                "reference_sufficient_rate": a3_primary["p_reference_sufficient"],
+                "change_detection_sensitivity": a3_detection["sensitivity"],
                 "change_detection_auroc": a3_detection["auroc"],
-                "no_change_false_positive_rate": a3_detection[
-                    "false_positive_rate"
-                ],
+                "no_change_false_positive_rate": a3_detection["false_positive_rate"],
                 "integrated_mean_brier": a3_primary[
                     "integrated_mean_change_probability_brier_score"
                 ],
@@ -2356,25 +2560,23 @@ def _write_current_registry() -> None:
         "bibliography": "paper/experimental_intelligence_v1_references.bib",
         "master_plan": "workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md",
         "experiment_ledger": (
-            "workstreams/arxiv_v1/reports/"
-            "experimental-intelligence-experiment-ledger-v0.1.json"
+            "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json"
         ),
-        "claim_evidence_ledger": node_map()[
-            "pre_arxiv_claim_evidence_ledger"
+        "claim_evidence_ledger": node_map()["pre_arxiv_claim_evidence_ledger"].path,
+        "composition_qualification_report": node_map()[
+            FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID
         ].path,
         "derived_data": node_map()["work_i_fvl_derived_data"].path,
         "derived_data_manifest": node_map()["work_i_fvl_derived_manifest"].path,
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
         "remaining_experiment_audit": (
-            "workstreams/arxiv_v1/reports/"
-            "g2-v0.5-remaining-experiment-audit-live-v0.1.json"
+            "workstreams/arxiv_v1/reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json"
         ),
         "scope": "experimental_intelligence_in_executable_chemical_worlds",
         "new_scientific_experiments_required_for_first_arxiv": False,
         "required_new_scientific_matrix": {
             "protocol_id": (
-                "g2-electrochemical-autonomous-material-information-"
-                "seed1-seed3-r5-v0.5"
+                "g2-electrochemical-autonomous-material-information-seed1-seed3-r5-v0.5"
             ),
             "planned_cells": 20,
             "planned_vessel_opportunities": 120,
@@ -2386,9 +2588,7 @@ def _write_current_registry() -> None:
         "stronger_claim_experiments_pending": False,
         "publication_ready": False,
     }
-    work_i_node_ids = sorted(
-        node_id for node_id in nodes if node_id.startswith("work_i_")
-    )
+    work_i_node_ids = sorted(node_id for node_id in nodes if node_id.startswith("work_i_"))
     work_i_incremental = work_i_derived["work_i_incremental"]
     current["work_i_fvl"] = {
         "status": "frozen_derived_layer_with_explicit_latent_incompleteness",
@@ -2465,9 +2665,7 @@ def refresh() -> None:
     source_tree_dirty = _git_tree_dirty()
     fresh_nodes: dict[str, bool] = {}
     for node in generation_order():
-        dependency_fresh = all(
-            fresh_nodes[dependency] for dependency in node.dependencies
-        )
+        dependency_fresh = all(fresh_nodes[dependency] for dependency in node.dependencies)
         if dependency_fresh:
             _run(
                 node,
@@ -2481,9 +2679,7 @@ def refresh() -> None:
             else {}
         )
         fresh_nodes[node.node_id] = bool(
-            dependency_fresh
-            and path.is_file()
-            and _artifact_source_binding_current(node, payload)
+            dependency_fresh and path.is_file() and _artifact_source_binding_current(node, payload)
         )
     _normalize_materialized_json_line_endings()
     if _git_head() != source_commit or _git_tree_dirty() != source_tree_dirty:
@@ -2578,28 +2774,18 @@ def check_current_evidence() -> list[str]:
     binding_protocol = load_mechanism_adaptation_protocol(
         ROOT / node_map()["mechanism_protocol"].path
     )
-    binding_plan = load_json_object(
-        ROOT / node_map()["mechanism_gate_a_plan"].path
-    )
+    binding_plan = load_json_object(ROOT / node_map()["mechanism_gate_a_plan"].path)
     binding_decision = json.loads(
-        (ROOT / node_map()["mechanism_public_gate_a_decision"].path).read_text(
-            encoding="utf-8"
-        )
+        (ROOT / node_map()["mechanism_public_gate_a_decision"].path).read_text(encoding="utf-8")
     )
     binding_a2_receipt = json.loads(
-        (
-            ROOT / node_map()["mechanism_a2_structural_receipt"].path
-        ).read_text(encoding="utf-8")
+        (ROOT / node_map()["mechanism_a2_structural_receipt"].path).read_text(encoding="utf-8")
     )
     binding_a3_receipt = json.loads(
-        (
-            ROOT / node_map()["mechanism_a3_structural_receipt"].path
-        ).read_text(encoding="utf-8")
+        (ROOT / node_map()["mechanism_a3_structural_receipt"].path).read_text(encoding="utf-8")
     )
     binding_release_qualification = json.loads(
-        (
-            ROOT / node_map()["mechanism_release_qualification"].path
-        ).read_text(encoding="utf-8")
+        (ROOT / node_map()["mechanism_release_qualification"].path).read_text(encoding="utf-8")
     )
     gate_a_binding_current = _mechanism_public_decision_binding_current(
         binding_decision,
@@ -2627,8 +2813,7 @@ def check_current_evidence() -> list[str]:
         payload = json.loads(path.read_text(encoding="utf-8")) if path.suffix == ".json" else {}
         source_fresh = _artifact_source_binding_current(node, payload)
         binding_fresh = source_fresh and not (
-            node.node_id == "mechanism_public_gate_a_decision"
-            and not gate_a_binding_current
+            node.node_id == "mechanism_public_gate_a_decision" and not gate_a_binding_current
         )
         expected_freshness[node.node_id] = dependencies_fresh and binding_fresh
         expected_label = "fresh" if expected_freshness[node.node_id] else "stale_dependency_binding"
@@ -2656,11 +2841,7 @@ def check_current_evidence() -> list[str]:
 
     from scripts.audit_backend_v05 import validate_report as validate_backend
 
-    backend = json.loads(
-        (ROOT / node_map()["backend_candidate"].path).read_text(
-            encoding="utf-8"
-        )
-    )
+    backend = json.loads((ROOT / node_map()["backend_candidate"].path).read_text(encoding="utf-8"))
     errors.extend(f"backend report invalid: {item}" for item in validate_backend(backend))
     if backend.get("backend_contract_validated") is not True and (
         backend.get("status") != "blocked" or backend.get("backend_freeze_allowed")
@@ -2672,38 +2853,24 @@ def check_current_evidence() -> list[str]:
     mechanism_protocol = load_mechanism_adaptation_protocol(
         ROOT / node_map()["mechanism_protocol"].path
     )
-    mechanism_plan = load_json_object(
-        ROOT / node_map()["mechanism_gate_a_plan"].path
-    )
+    mechanism_plan = load_json_object(ROOT / node_map()["mechanism_gate_a_plan"].path)
     mechanism_design = json.loads(
-        (ROOT / node_map()["mechanism_design_audit"].path).read_text(
-            encoding="utf-8"
-        )
+        (ROOT / node_map()["mechanism_design_audit"].path).read_text(encoding="utf-8")
     )
     mechanism_a2_receipt = json.loads(
-        (
-            ROOT / node_map()["mechanism_a2_structural_receipt"].path
-        ).read_text(encoding="utf-8")
+        (ROOT / node_map()["mechanism_a2_structural_receipt"].path).read_text(encoding="utf-8")
     )
     mechanism_a3_receipt = json.loads(
-        (
-            ROOT / node_map()["mechanism_a3_structural_receipt"].path
-        ).read_text(encoding="utf-8")
+        (ROOT / node_map()["mechanism_a3_structural_receipt"].path).read_text(encoding="utf-8")
     )
     mechanism_decision = json.loads(
-        (ROOT / node_map()["mechanism_public_gate_a_decision"].path).read_text(
-            encoding="utf-8"
-        )
+        (ROOT / node_map()["mechanism_public_gate_a_decision"].path).read_text(encoding="utf-8")
     )
     mechanism_release_qualification = json.loads(
-        (
-            ROOT / node_map()["mechanism_release_qualification"].path
-        ).read_text(encoding="utf-8")
+        (ROOT / node_map()["mechanism_release_qualification"].path).read_text(encoding="utf-8")
     )
     mechanism_pilot = json.loads(
-        (ROOT / node_map()["mechanism_agent_pilot"].path).read_text(
-            encoding="utf-8"
-        )
+        (ROOT / node_map()["mechanism_agent_pilot"].path).read_text(encoding="utf-8")
     )
     if mechanism_design.get("protocol_sha256") != _canonical_sha256(mechanism_protocol):
         errors.append("mechanism design-audit protocol binding is stale")
@@ -2749,26 +2916,30 @@ def check_current_evidence() -> list[str]:
     runtime = current.get("runtime", {})
     formal = current.get("formal_evaluation", {})
     publication = current.get("publication", {})
+    composition_qualification_path = (
+        ROOT / node_map()[FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID].path
+    )
+    composition_qualification = load_json_object(composition_qualification_path)
+    errors.extend(_first_paper_composition_qualification_binding_errors(composition_qualification))
+    composition_node = recorded_nodes.get(FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID, {})
+    if composition_node.get("artifact_state") != "current":
+        errors.append("composition qualification evidence node is not current")
+    if composition_node.get("gate_state") != "passed":
+        errors.append("composition qualification evidence gate did not pass")
     expected_backend_validation = (
         "passed" if backend.get("backend_contract_validated") else "blocked"
     )
     expected_gate_a_pass = bool(
-        gate_a_binding_current
-        and mechanism_decision.get("gate_a_pass") is True
+        gate_a_binding_current and mechanism_decision.get("gate_a_pass") is True
     )
     expected_gate_a_current = bool(
         expected_gate_a_pass
-        and recorded_nodes.get("mechanism_public_gate_a_decision", {}).get(
-            "artifact_state"
-        )
+        and recorded_nodes.get("mechanism_public_gate_a_decision", {}).get("artifact_state")
         == "current"
     )
     if runtime.get("contract_validation") != expected_backend_validation:
         errors.append("current registry backend validation state is inconsistent")
-    if (
-        formal.get("status")
-        != "static_s0_v1_formal_descriptive_results_complete_claim_bounded"
-    ):
+    if formal.get("status") != "static_s0_v1_formal_descriptive_results_complete_claim_bounded":
         errors.append("current registry formal evaluation boundary is inconsistent")
     if formal.get("formal_results_present") is not True:
         errors.append("current registry omits completed static-S0 formal results")
@@ -2776,10 +2947,7 @@ def check_current_evidence() -> list[str]:
         errors.append("current registry improperly enables participant benchmark claims")
     if formal.get("environment_certificate_results_present") is not True:
         errors.append("current registry omits formal environment certificate results")
-    if (
-        formal.get("environment_benchmark_readiness_claim_allowed")
-        is not expected_gate_a_current
-    ):
+    if formal.get("environment_benchmark_readiness_claim_allowed") is not expected_gate_a_current:
         errors.append("current registry environment readiness state is inconsistent")
     static_s0 = current.get("static_scientific_optimization", {})
     if static_s0.get("formal_result") is not True:
@@ -2806,10 +2974,7 @@ def check_current_evidence() -> list[str]:
         errors.append("current registry omits the formal three-arm information study")
     if information_triarm.get("confirmatory_analysis_complete") is not True:
         errors.append("current registry marks the three-arm information study incomplete")
-    if (
-        information_triarm.get("all_sixty_cells_exact_replay_verified")
-        is not True
-    ):
+    if information_triarm.get("all_sixty_cells_exact_replay_verified") is not True:
         errors.append("current registry omits three-arm information replay")
     if information_triarm.get("world_seeds") != list(range(10)):
         errors.append("current registry has inconsistent three-arm world seeds")
@@ -2822,18 +2987,12 @@ def check_current_evidence() -> list[str]:
     ):
         errors.append("current registry hides electrochemical information value")
     if any(
-        task_results.get(task_key, {})
-        .get("overall_recovery_claim", {})
-        .get("passed")
-        is not False
+        task_results.get(task_key, {}).get("overall_recovery_claim", {}).get("passed") is not False
         for task_key in ("electrochemical", "crystallization")
     ):
         errors.append("current registry overclaims wrong-prior recovery")
     task_design = current.get("task_design", {})
-    if (
-        task_design.get("status")
-        != "all_registered_task_designs_executable_and_metric_bound"
-    ):
+    if task_design.get("status") != "all_registered_task_designs_executable_and_metric_bound":
         errors.append("current registry task-design status is inconsistent")
     if task_design.get("registered_task_count") != 15:
         errors.append("current registry task-design count is inconsistent")
@@ -2856,12 +3015,7 @@ def check_current_evidence() -> list[str]:
         "reaction-to-crystallization",
     ]:
         errors.append("current registry task-design empirical scope is inconsistent")
-    if (
-        task_design.get(
-            "nonconfirmatory_formal_experiments_required_for_future_claims"
-        )
-        is not True
-    ):
+    if task_design.get("nonconfirmatory_formal_experiments_required_for_future_claims") is not True:
         errors.append("current registry hides pending nonconfirmatory experiments")
     if len(task_design.get("formal_empirical_comparison_pending_task_ids", [])) != 13:
         errors.append("current registry task-design empirical backlog is inconsistent")
@@ -2880,13 +3034,14 @@ def check_current_evidence() -> list[str]:
         "bibliography": "paper/experimental_intelligence_v1_references.bib",
         "master_plan": "workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md",
         "experiment_ledger": (
-            "workstreams/arxiv_v1/reports/"
-            "experimental-intelligence-experiment-ledger-v0.1.json"
+            "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json"
+        ),
+        "composition_qualification_report": (
+            "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
         ),
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
         "remaining_experiment_audit": (
-            "workstreams/arxiv_v1/reports/"
-            "g2-v0.5-remaining-experiment-audit-live-v0.1.json"
+            "workstreams/arxiv_v1/reports/g2-v0.5-remaining-experiment-audit-live-v0.1.json"
         ),
     }
     for field, expected_path in expected_publication_paths.items():
@@ -2894,9 +3049,7 @@ def check_current_evidence() -> list[str]:
             errors.append(f"current registry publication {field} is inconsistent")
         elif not (ROOT / expected_path).is_file():
             errors.append(f"current registry publication {field} is missing")
-    if publication.get("scope") != (
-        "experimental_intelligence_in_executable_chemical_worlds"
-    ):
+    if publication.get("scope") != ("experimental_intelligence_in_executable_chemical_worlds"):
         errors.append("current registry first-arXiv scope is inconsistent")
     if publication.get("new_scientific_experiments_required_for_first_arxiv") is not False:
         errors.append("current registry incorrectly marks first-arXiv experiments as pending")

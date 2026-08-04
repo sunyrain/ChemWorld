@@ -228,10 +228,21 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
         (RELEASE / "arxiv-v1-derived-data.manifest.json").read_text(encoding="utf-8")
     )
     current = json.loads((ROOT / fvl["evidence_registry_path"]).read_text(encoding="utf-8"))
+    verification_attestation = json.loads(
+        (RELEASE / "verification-attestation.json").read_text(encoding="utf-8")
+    )
     assert fvl["data_contract_sha256"] == (
         derived["work_i_incremental"]["data_contract_sha256"]
     )
-    assert fvl["evidence_graph_sha256"] == current["evidence_dag"]["graph_sha256"]
+    assert fvl["evidence_graph_sha256"] == (
+        verification_attestation["evidence_graph"]["graph_sha256"]
+    )
+    assert fvl["evidence_graph_node_count"] == (
+        verification_attestation["evidence_graph"]["node_count"]
+    )
+    assert current["evidence_dag"]["nodes"][
+        "first_paper_composition_qualification"
+    ]["artifact_state"] == "current"
     assert fvl["work_i_fvl_nodes_current"] == fvl["work_i_fvl_node_count"] == 13
     assert fvl["latent_resolved_shadow_receipts"] == 6
     assert fvl["latent_unresolved_shadow_receipts"] == 30
