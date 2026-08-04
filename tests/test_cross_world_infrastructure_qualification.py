@@ -83,6 +83,10 @@ def test_all_three_negative_probe_classes_are_atomic_and_reconciled() -> None:
     assert all(probe["passed"] for probe in probes), probes
     assert all(probe["physical_state_preserved"] for probe in probes)
     assert all(probe["observation_rng_preserved"] for probe in probes)
+    assert all(probe["expected_rejection"] for probe in probes)
+    assert all(probe["observed_rejection"] for probe in probes)
+    assert all(probe["ghost_state"]["ghost_state_preserved"] for probe in probes)
+    assert all(probe["resource_outcome_delta"] for probe in probes)
 
 
 def test_midpoint_and_boundaries_execute_with_exact_replay(tmp_path: Path) -> None:
@@ -95,5 +99,27 @@ def test_midpoint_and_boundaries_execute_with_exact_replay(tmp_path: Path) -> No
     assert all(unit["properties"].values())
     assert all(
         case["exact_replay"]["verified"] and case["exact_replay"]["max_abs_error"] == 0.0
+        for case in unit["valid_recipe_cases"]
+    )
+    assert all(
+        case["execution_receipt"]
+        == {
+            "compiled": True,
+            "executed": True,
+            "closed": True,
+            "resource_reconciled": True,
+        }
+        for case in unit["valid_recipe_cases"]
+    )
+    assert all(
+        len(case["step_receipts"]) == case["compiled_operation_count"]
+        and case["resource_reconciled"]
+        and case["lifecycle_receipt"]["post_termination_nonfinal_validation"]["passed"]
+        and case["constitution_receipt"]["passed"]
+        and case["public_observation_receipt"]["step_surface_count"]
+        == case["compiled_operation_count"]
+        and case["evaluation_receipt"]
+        and case["elapsed_s"] >= 0.0
+        and case["trajectory_bytes"] > 0
         for case in unit["valid_recipe_cases"]
     )

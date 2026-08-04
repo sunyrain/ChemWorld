@@ -12,7 +12,9 @@ import hashlib
 import json
 import subprocess
 import tempfile
+import time
 from collections import Counter
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +29,7 @@ from chemworld.agents.task_recipes import (
     task_recipe_dimension,
     task_recipe_from_unit_vector,
 )
+from chemworld.campaign_resources import derive_campaign_resource_delta
 from chemworld.data.logging import TrajectoryLogger, load_jsonl, observation_to_json
 from chemworld.eval.verify import verify_records
 from chemworld.foundation.public_leakage import audit_public_payload
@@ -276,6 +279,277 @@ def _rng_snapshot(env: Any) -> dict[str, Any]:
     }
 
 
+_RESOURCE_COUNT_FIELDS = (
+    "operation_attempts",
+    "vessel_starts",
+    "final_assays",
+    "discarded_batches",
+    "nonfinal_instrument_uses",
+)
+_RESOURCE_REPORT_FIELDS = (
+    "process_time_s",
+    "sample_consumed_L",
+    "physical_cost",
+    "accumulated_risk",
+)
+
+
+def _world_state_sections(env: Any) -> dict[str, dict[str, Any]]:
+    state = env.unwrapped._state.to_dict(include_hidden=True)
+    ledger = copy.deepcopy(state.pop("ledger", {}))
+    process = copy.deepcopy(state.pop("process", {}))
+    return {
+        "physical": state,
+        "ledger": ledger if isinstance(ledger, dict) else {},
+        "process": process if isinstance(process, dict) else {},
+    }
+
+
+def _empty_resource_delta() -> dict[str, Any]:
+    return {
+        **dict.fromkeys(_RESOURCE_COUNT_FIELDS, 0),
+        "instrument_uses": {},
+        "stocks": {},
+        "report_only": {
+            **dict.fromkeys(_RESOURCE_REPORT_FIELDS, 0.0),
+            "observed_risk": 0.0,
+        },
+    }
+
+
+def _add_resource_delta(total: dict[str, Any], raw_delta: Any) -> None:
+    if not isinstance(raw_delta, Mapping):
+        return
+    for key in _RESOURCE_COUNT_FIELDS:
+        total[key] = int(total[key]) + int(raw_delta.get(key, 0))
+    for key in ("instrument_uses", "stocks"):
+        raw_values = raw_delta.get(key, {})
+        if not isinstance(raw_values, Mapping):
+            continue
+        values = total[key]
+        for item, value in raw_values.items():
+            item_id = str(item)
+            if key == "instrument_uses":
+                values[item_id] = int(values.get(item_id, 0)) + int(value)
+            else:
+                values[item_id] = float(values.get(item_id, 0.0)) + float(value)
+    raw_report = raw_delta.get("report_only", {})
+    if not isinstance(raw_report, Mapping):
+        return
+    report = total["report_only"]
+    for key in _RESOURCE_REPORT_FIELDS:
+        report[key] = float(report[key]) + float(raw_report.get(key, 0.0))
+    report["observed_risk"] = max(
+        float(report["observed_risk"]),
+        float(raw_report.get("observed_risk", 0.0)),
+    )
+
+
+def _resource_state_view(snapshot: Any) -> dict[str, Any]:
+    if not isinstance(snapshot, Mapping):
+        return {}
+    state = snapshot.get("state", {})
+    return copy.deepcopy(dict(state)) if isinstance(state, Mapping) else {}
+
+
+def _resource_state_delta(before: Any, after: Any) -> dict[str, Any]:
+    before_state = _resource_state_view(before)
+    after_state = _resource_state_view(after)
+    delta = _empty_resource_delta()
+    for key in _RESOURCE_COUNT_FIELDS:
+        delta[key] = int(after_state.get(key, 0)) - int(before_state.get(key, 0))
+    for source_key, target_key in (
+        ("instrument_uses", "instrument_uses"),
+        ("stocks_used", "stocks"),
+    ):
+        before_values = before_state.get(source_key, {})
+        after_values = after_state.get(source_key, {})
+        if not isinstance(before_values, Mapping) or not isinstance(after_values, Mapping):
+            continue
+        delta[target_key] = {
+            str(item): (
+                int(after_values.get(item, 0)) - int(before_values.get(item, 0))
+                if target_key == "instrument_uses"
+                else float(after_values.get(item, 0.0)) - float(before_values.get(item, 0.0))
+            )
+            for item in sorted(set(before_values) | set(after_values))
+            if (
+                int(after_values.get(item, 0)) - int(before_values.get(item, 0))
+                if target_key == "instrument_uses"
+                else abs(float(after_values.get(item, 0.0)) - float(before_values.get(item, 0.0)))
+                > 1.0e-12
+            )
+        }
+    before_report = before_state.get("report_only", {})
+    after_report = after_state.get("report_only", {})
+    if isinstance(before_report, Mapping) and isinstance(after_report, Mapping):
+        delta["report_only"] = {
+            key: float(after_report.get(key, 0.0)) - float(before_report.get(key, 0.0))
+            for key in _RESOURCE_REPORT_FIELDS
+        }
+        delta["report_only"]["observed_risk"] = float(after_report.get("peak_risk", 0.0))
+    return delta
+
+
+def _resource_delta_mismatches(
+    expected: Mapping[str, Any],
+    observed: Mapping[str, Any],
+) -> list[str]:
+    mismatches: list[str] = []
+    for key in _RESOURCE_COUNT_FIELDS:
+        if int(expected.get(key, 0)) != int(observed.get(key, 0)):
+            mismatches.append(key)
+    for key in ("instrument_uses", "stocks"):
+        expected_values = expected.get(key, {})
+        observed_values = observed.get(key, {})
+        if not isinstance(expected_values, Mapping) or not isinstance(observed_values, Mapping):
+            mismatches.append(key)
+            continue
+        all_items = set(expected_values) | set(observed_values)
+        for item in sorted(all_items):
+            expected_value = float(expected_values.get(item, 0.0))
+            observed_value = float(observed_values.get(item, 0.0))
+            if abs(expected_value - observed_value) > 1.0e-12:
+                mismatches.append(f"{key}.{item}")
+    expected_report = expected.get("report_only", {})
+    observed_report = observed.get("report_only", {})
+    if not isinstance(expected_report, Mapping) or not isinstance(observed_report, Mapping):
+        return [*mismatches, "report_only"]
+    for key in _RESOURCE_REPORT_FIELDS:
+        if (
+            abs(float(expected_report.get(key, 0.0)) - float(observed_report.get(key, 0.0)))
+            > 1.0e-12
+        ):
+            mismatches.append(f"report_only.{key}")
+    return mismatches
+
+
+def _recipe_resource_card(
+    task: TaskSpec,
+    world_seed: int,
+    case: Mapping[str, Any],
+) -> dict[str, Any]:
+    proposed = _empty_resource_delta()
+    actions = list(case.get("compiled_actions", []))
+    for action in actions:
+        _add_resource_delta(
+            proposed,
+            derive_campaign_resource_delta(action).to_dict(),
+        )
+    stock_limits = {
+        stock_id: float(amount) + 1.0e-12 for stock_id, amount in proposed["stocks"].items()
+    }
+    return {
+        "card_id": (f"first-paper-reference-{task.task_id}-seed-{world_seed}-{case['case_id']}"),
+        "operation_attempt_limit": max(int(task.budget), len(actions)),
+        "vessel_start_limit": 1,
+        "final_assay_limit": max(int(proposed["final_assays"]), 1),
+        "nonfinal_instrument_use_limit": int(proposed["nonfinal_instrument_uses"]),
+        "stock_limits": stock_limits,
+        "per_instrument_limits": copy.deepcopy(proposed["instrument_uses"]),
+        "metadata": {
+            "task_id": task.task_id,
+            "world_seed": world_seed,
+            "case_id": str(case["case_id"]),
+            "scope": "reference_valid_recipe_receipt",
+        },
+    }
+
+
+def _resource_receipt_summary(
+    step_receipts: list[dict[str, Any]],
+    *,
+    before_snapshot: Any,
+    after_snapshot: Any,
+    public_state: Any,
+) -> dict[str, Any]:
+    proposed = _empty_resource_delta()
+    outcome = _empty_resource_delta()
+    allowed_count = 0
+    attempt_charged_count = 0
+    operations_committed = 0
+    rejection_reasons: Counter[str] = Counter()
+    for receipt in step_receipts:
+        preflight = receipt.get("preflight", {})
+        if isinstance(preflight, Mapping):
+            allowed_count += int(preflight.get("allowed") is True)
+            attempt_charged_count += int(preflight.get("attempt_charged") is True)
+            rejection_reasons.update(
+                str(reason) for reason in preflight.get("rejection_reasons", [])
+            )
+            _add_resource_delta(proposed, preflight.get("proposed_delta", {}))
+        operations_committed += int(receipt.get("operation_committed") is True)
+        _add_resource_delta(outcome, receipt.get("outcome_delta", {}))
+    observed_delta = _resource_state_delta(before_snapshot, after_snapshot)
+    expected_delta = copy.deepcopy(outcome)
+    expected_delta["operation_attempts"] = attempt_charged_count
+    mismatches = _resource_delta_mismatches(expected_delta, observed_delta)
+    private_hash = (
+        after_snapshot.get("ledger_sha256") if isinstance(after_snapshot, Mapping) else None
+    )
+    public_hash = public_state.get("ledger_sha256") if isinstance(public_state, Mapping) else None
+    if not isinstance(private_hash, str) or public_hash != private_hash:
+        mismatches.append("public_private_ledger_sha256")
+    return {
+        "preflight": {
+            "receipt_count": len(step_receipts),
+            "allowed_count": allowed_count,
+            "attempt_charged_count": attempt_charged_count,
+            "rejection_reason_counts": dict(sorted(rejection_reasons.items())),
+            "proposed_delta": proposed,
+        },
+        "outcome_delta": {
+            **outcome,
+            "operations_committed": operations_committed,
+        },
+        "observed_ledger_delta": observed_delta,
+        "initial_ledger_state": _resource_state_view(before_snapshot),
+        "final_ledger_state": _resource_state_view(after_snapshot),
+        "private_ledger_sha256": private_hash,
+        "public_ledger_sha256": public_hash,
+        "ledger_hash_reconciled": bool(private_hash) and public_hash == private_hash,
+        "resource_reconciled": not mismatches,
+        "reconciliation_mismatches": mismatches,
+        "step_receipts": step_receipts,
+    }
+
+
+def _post_termination_validation_receipt(
+    base: Any,
+    actions: list[dict[str, Any]],
+) -> dict[str, Any]:
+    candidate = next(
+        (
+            copy.deepcopy(action)
+            for action in actions
+            if action.get("operation") != "terminate"
+            and not (
+                action.get("operation") == "measure" and action.get("instrument") == "final_assay"
+            )
+        ),
+        {"operation": "add_solvent", "volume_L": 0.001, "solvent": 0},
+    )
+    state_before = _world_state_sections(base)
+    resource_before = base.campaign_resource_snapshot()
+    validation = base.validate_action(candidate)
+    state_after = _world_state_sections(base)
+    resource_after = base.campaign_resource_snapshot()
+    observed_valid = bool(validation.get("valid"))
+    return {
+        "validate_only": True,
+        "candidate_action": candidate,
+        "expected_valid": False,
+        "observed_valid": observed_valid,
+        "invalid_reasons": copy.deepcopy(validation.get("invalid_reasons", [])),
+        "preconditions": copy.deepcopy(validation.get("preconditions", {})),
+        "world_state_preserved": state_after == state_before,
+        "resource_state_preserved": resource_after == resource_before,
+        "passed": (
+            not observed_valid and state_after == state_before and resource_after == resource_before
+        ),
+    }
+
+
 def _leakage_findings(env: Any, payload: Any, surface: str) -> list[dict[str, Any]]:
     base = env.unwrapped
     hidden_species = set(base._state.species_amounts)
@@ -357,29 +631,51 @@ def _run_recipe_case(
     *,
     scratch_dir: Path,
 ) -> dict[str, Any]:
-    env = gym.make(task.env_id, **task.env_kwargs(seed=world_seed))
+    started = time.perf_counter()
+    resource_card = _recipe_resource_card(task, world_seed, case)
+    env = gym.make(
+        task.env_id,
+        **task.env_kwargs(seed=world_seed),
+        campaign_resource_card=resource_card,
+    )
     trajectory_path = scratch_dir / f"{task.task_id}-{world_seed}-{case['case_id']}.jsonl"
     failures: list[dict[str, Any]] = []
     leakage: list[dict[str, Any]] = []
+    resource_step_receipts: list[dict[str, Any]] = []
+    constitution_check_names: set[str] = set()
+    initial_public_view_sha256 = ""
+    evaluation_receipt: dict[str, Any] = {}
+    resource_summary: dict[str, Any] = {
+        "preflight": {},
+        "outcome_delta": {},
+        "resource_reconciled": False,
+        "reconciliation_mismatches": ["execution_did_not_complete"],
+    }
+    post_termination_receipt: dict[str, Any] = {
+        "validate_only": True,
+        "passed": False,
+        "failure": "terminate action was not reached",
+    }
     all_transactions_committed = True
     all_actions_prevalidated = True
     constitution_failure_count = 0
+    terminate_count = 0
+    terminate_committed_count = 0
     final_assay_count = 0
     final_assay_committed_count = 0
+    final_terminated = False
+    final_truncated = False
     right_censored = False
     try:
         observation, reset_info = env.reset(seed=world_seed)
-        base = env.unwrapped
+        base: Any = env.unwrapped
+        resource_before = base.campaign_resource_snapshot()
         task_info = base.task_info()
         logging_task_info = {**task_info, **base.evaluator_provenance()}
         leakage.extend(_leakage_findings(env, reset_info, "reset_info"))
-        leakage.extend(
-            _leakage_findings(
-                env,
-                agent_view_bundle(env, observation, {}),
-                "initial_agent_view",
-            )
-        )
+        initial_public_view = agent_view_bundle(env, observation, {})
+        initial_public_view_sha256 = _sha256_value(initial_public_view)
+        leakage.extend(_leakage_findings(env, initial_public_view, "initial_agent_view"))
         with TrajectoryLogger(trajectory_path) as logger:
             for step, action in enumerate(case["compiled_actions"], start=1):
                 validation = base.validate_action(action)
@@ -395,6 +691,34 @@ def _run_recipe_case(
                     )
                 observation, reward, terminated, truncated, info = env.step(action)
                 committed = info.get("transaction_status") == "committed"
+                preflight = info.get("campaign_resource_preflight")
+                outcome_delta = info.get("campaign_resource_outcome_delta")
+                step_receipt = {
+                    "step": step,
+                    "action": copy.deepcopy(action),
+                    "action_sha256": _sha256_value(action),
+                    "operation": action.get("operation"),
+                    "instrument": action.get("instrument"),
+                    "schema_validation": {
+                        "valid": bool(validation.get("valid")),
+                        "invalid_reasons": copy.deepcopy(validation.get("invalid_reasons", [])),
+                        "canonical_action_sha256": _sha256_value(
+                            validation.get("canonical_action")
+                        ),
+                    },
+                    "transaction_status": info.get("transaction_status"),
+                    "operation_committed": committed,
+                    "preflight": copy.deepcopy(preflight),
+                    "outcome_delta": copy.deepcopy(outcome_delta),
+                }
+                resource_step_receipts.append(step_receipt)
+                if not isinstance(preflight, Mapping) or not isinstance(outcome_delta, Mapping):
+                    failures.append(
+                        {
+                            "step": step,
+                            "class": "campaign_resource_receipt_missing",
+                        }
+                    )
                 if not committed:
                     all_transactions_committed = False
                     failures.append(
@@ -411,6 +735,12 @@ def _run_recipe_case(
                     for check in info.get("constitution_checks", [])
                     if isinstance(check, dict) and check.get("passed") is False
                 ]
+                named_checks = sorted(
+                    str(check.get("name"))
+                    for check in info.get("constitution_checks", [])
+                    if isinstance(check, dict) and isinstance(check.get("name"), str)
+                )
+                constitution_check_names.update(named_checks)
                 constitution_failure_count += len(failed_checks)
                 if failed_checks:
                     failures.append(
@@ -426,11 +756,74 @@ def _run_recipe_case(
                 ):
                     final_assay_count += 1
                     final_assay_committed_count += int(committed)
+                    final_terminated = bool(terminated)
+                    final_truncated = bool(truncated)
+                    evaluation_receipt = {
+                        "reward": float(reward),
+                        "environment_reward": info.get("environment_reward"),
+                        "observed_reward": info.get("observed_reward"),
+                        "leaderboard_score": info.get("leaderboard_score"),
+                        "experiment_completed": info.get("experiment_completed"),
+                        "experiment_ended": info.get("experiment_ended"),
+                        "transaction_status": info.get("transaction_status"),
+                        "terminated": bool(terminated),
+                        "truncated": bool(truncated),
+                    }
+                if action.get("operation") == "terminate":
+                    terminate_count += 1
+                    terminate_committed_count += int(committed)
+                    if committed:
+                        post_termination_receipt = _post_termination_validation_receipt(
+                            base,
+                            case["compiled_actions"],
+                        )
                 right_censored = right_censored or bool(
                     info.get("right_censored_open_batch", False)
                 )
                 public_view = agent_view_bundle(env, observation, info)
-                leakage.extend(_leakage_findings(env, public_view, f"agent_view.step-{step}"))
+                step_leakage = _leakage_findings(
+                    env,
+                    public_view,
+                    f"agent_view.step-{step}",
+                )
+                leakage.extend(step_leakage)
+                world_events = [
+                    event for event in info.get("world_events", []) if isinstance(event, dict)
+                ]
+                step_receipt.update(
+                    {
+                        "state_transition_sha256": _sha256_value(
+                            {
+                                "delta": info.get("state_delta_summary"),
+                                "patches": info.get("state_patches_summary"),
+                            }
+                        ),
+                        "failed_preconditions": sorted(
+                            str(name)
+                            for name, passed in info.get("preconditions", {}).items()
+                            if passed is False
+                        ),
+                        "constitution_check_count": len(named_checks),
+                        "constitution_failed_check_names": sorted(
+                            str(check.get("name")) for check in failed_checks
+                        ),
+                        "world_event_count": len(world_events),
+                        "world_event_types": sorted(
+                            str(event.get("event_type")) for event in world_events
+                        ),
+                        "event_propagation_matches_operation": any(
+                            event.get("event_type") == "operation_applied"
+                            and event.get("operation_type") == action.get("operation")
+                            for event in world_events
+                        ),
+                        "public_observation_sha256": _sha256_value(
+                            observation_to_json(observation)
+                        ),
+                        "public_private_leakage_count": len(step_leakage),
+                        "terminated": bool(terminated),
+                        "truncated": bool(truncated),
+                    }
+                )
                 logger.log(
                     task_info=logging_task_info,
                     step=step,
@@ -456,6 +849,28 @@ def _run_recipe_case(
                         }
                     )
                     break
+        resource_after = base.campaign_resource_snapshot()
+        public_resource_state = base.public_campaign_resource_state()
+        resource_summary = _resource_receipt_summary(
+            resource_step_receipts,
+            before_snapshot=resource_before,
+            after_snapshot=resource_after,
+            public_state=public_resource_state,
+        )
+        if not bool(resource_summary["resource_reconciled"]):
+            failures.append(
+                {
+                    "class": "campaign_resource_reconciliation_failed",
+                    "mismatches": resource_summary["reconciliation_mismatches"],
+                }
+            )
+        if not bool(post_termination_receipt.get("passed")):
+            failures.append(
+                {
+                    "class": "post_termination_validate_only_rejection_failed",
+                    "receipt": post_termination_receipt,
+                }
+            )
         records = load_jsonl(trajectory_path)
         replay = verify_records(records, tolerance=0.0).to_dict()
         if not replay["verified"]:
@@ -499,6 +914,19 @@ def _run_recipe_case(
                 "right_censored": right_censored,
             }
         )
+    compact_step_receipts = [
+        {
+            **{
+                key: value
+                for key, value in receipt.items()
+                if key not in {"preflight", "outcome_delta"}
+            },
+            "preflight_sha256": _sha256_value(receipt.get("preflight")),
+            "outcome_delta_sha256": _sha256_value(receipt.get("outcome_delta")),
+        }
+        for receipt in resource_step_receipts
+    ]
+    elapsed = time.perf_counter() - started
     return {
         "case_id": case["case_id"],
         "kind": case["kind"],
@@ -514,11 +942,237 @@ def _run_recipe_case(
         "final_assay_committed_count": final_assay_committed_count,
         "right_censored_open_batch": right_censored,
         "lifecycle_closed": lifecycle_closed,
+        "execution_receipt": {
+            "compiled": bool(case["compiled_actions"]),
+            "executed": len(resource_step_receipts) == len(case["compiled_actions"]),
+            "closed": lifecycle_closed,
+            "resource_reconciled": bool(resource_summary["resource_reconciled"]),
+        },
+        "lifecycle_receipt": {
+            "terminate_count": terminate_count,
+            "terminate_committed_count": terminate_committed_count,
+            "final_assay_count": final_assay_count,
+            "final_assay_committed_count": final_assay_committed_count,
+            "final_step_terminated": final_terminated,
+            "final_step_truncated": final_truncated,
+            "right_censored_open_batch": right_censored,
+            "post_termination_nonfinal_validation": post_termination_receipt,
+        },
+        "resource_card": resource_card,
+        "resource_preflight": resource_summary["preflight"],
+        "resource_outcome_delta": resource_summary["outcome_delta"],
+        "resource_reconciled": resource_summary["resource_reconciled"],
+        "resource_reconciliation": {
+            key: value
+            for key, value in resource_summary.items()
+            if key not in {"preflight", "outcome_delta", "step_receipts"}
+        },
+        "step_receipts": compact_step_receipts,
+        "constitution_receipt": {
+            "named_check_count": len(constitution_check_names),
+            "check_names": sorted(constitution_check_names),
+            "failure_count": constitution_failure_count,
+            "passed": constitution_failure_count == 0,
+        },
+        "public_observation_receipt": {
+            "initial_public_view_sha256": initial_public_view_sha256,
+            "step_surface_count": len(compact_step_receipts),
+            "leakage_findings": leakage,
+        },
+        "evaluation_receipt": evaluation_receipt,
         "public_private_leakage_count": len(leakage),
         "public_private_leakage_findings": leakage,
         "exact_replay": replay,
+        "elapsed_s": elapsed,
+        "trajectory_bytes": trajectory_path.stat().st_size if trajectory_path.exists() else 0,
         "passed": not failures,
         "failures": failures,
+    }
+
+
+def _observed_rejection_reasons(info: Mapping[str, Any]) -> list[str]:
+    reasons: set[str] = {
+        str(reason) for reason in info.get("campaign_resource_rejection_reasons", [])
+    }
+    preconditions = info.get("preconditions", {})
+    if isinstance(preconditions, Mapping):
+        reasons.update(str(name) for name, passed in preconditions.items() if passed is False)
+    world_events = info.get("world_events", [])
+    if isinstance(world_events, list):
+        for event in world_events:
+            if not isinstance(event, Mapping):
+                continue
+            payload = event.get("payload", {})
+            if not isinstance(payload, Mapping):
+                continue
+            for key in (
+                "invalid_reasons",
+                "failed_preconditions",
+                "rejection_reasons",
+            ):
+                values = payload.get(key, [])
+                if isinstance(values, list):
+                    reasons.update(str(value) for value in values)
+    return sorted(reasons)
+
+
+def _accounting_delta(
+    before: Mapping[str, Any],
+    after: Mapping[str, Any],
+) -> dict[str, float]:
+    return {
+        key: float(after.get(key, 0.0)) - float(before.get(key, 0.0))
+        for key in ("time_s", "cost", "risk", "sample_consumed_L")
+    }
+
+
+def _declared_failure_penalty(info: Mapping[str, Any]) -> dict[str, float]:
+    declared = {
+        "time_s": 0.0,
+        "cost": 0.0,
+        "risk": 0.0,
+        "sample_consumed_L": 0.0,
+    }
+    raw_patches = info.get("state_patches_summary", [])
+    if not isinstance(raw_patches, list):
+        return declared
+    for patch in raw_patches:
+        if not isinstance(patch, Mapping):
+            continue
+        summary = patch.get("summary", {})
+        if not isinstance(summary, Mapping):
+            continue
+        declared["cost"] += float(summary.get("delta_cost", 0.0))
+        declared["risk"] += float(summary.get("delta_risk", 0.0))
+        declared["sample_consumed_L"] += float(summary.get("delta_sample_consumed_L", 0.0))
+    return declared
+
+
+def _accounting_delta_matches(
+    expected: Mapping[str, Any],
+    observed: Mapping[str, Any],
+) -> bool:
+    return all(
+        abs(float(expected.get(key, 0.0)) - float(observed.get(key, 0.0))) <= 1.0e-12
+        for key in ("time_s", "cost", "risk", "sample_consumed_L")
+    )
+
+
+def _negative_ghost_state_receipt(
+    *,
+    action: Mapping[str, Any],
+    info: Mapping[str, Any],
+    state_before: Mapping[str, Mapping[str, Any]],
+    state_after: Mapping[str, Mapping[str, Any]],
+    rng_preserved: bool,
+    resource_before: Any,
+    resource_after: Any,
+    public_resource_state: Any,
+) -> dict[str, Any]:
+    ledger_before = state_before["ledger"]
+    ledger_after = state_after["ledger"]
+    process_before = state_before["process"]
+    process_after = state_after["process"]
+    ledger_delta = _accounting_delta(ledger_before, ledger_after)
+    process_delta = _accounting_delta(process_before, process_after)
+    declared_penalty = _declared_failure_penalty(info)
+    ledger_nonaccounting_before = {
+        key: value
+        for key, value in ledger_before.items()
+        if key not in {"time_s", "cost", "risk", "sample_consumed_L"}
+    }
+    ledger_nonaccounting_after = {
+        key: value
+        for key, value in ledger_after.items()
+        if key not in {"time_s", "cost", "risk", "sample_consumed_L"}
+    }
+    process_nonaccounting_before = {
+        key: value
+        for key, value in process_before.items()
+        if key not in {"time_s", "cost", "risk", "sample_consumed_L"}
+    }
+    process_nonaccounting_after = {
+        key: value
+        for key, value in process_after.items()
+        if key not in {"time_s", "cost", "risk", "sample_consumed_L"}
+    }
+    resource_step = {
+        "step": 1,
+        "operation": action.get("operation"),
+        "instrument": action.get("instrument"),
+        "transaction_status": info.get("transaction_status"),
+        "operation_committed": info.get("transaction_status") == "committed",
+        "preflight": copy.deepcopy(info.get("campaign_resource_preflight")),
+        "outcome_delta": copy.deepcopy(info.get("campaign_resource_outcome_delta")),
+    }
+    resource = _resource_receipt_summary(
+        [resource_step],
+        before_snapshot=resource_before,
+        after_snapshot=resource_after,
+        public_state=public_resource_state,
+    )
+    physical_preserved = state_after["physical"] == state_before["physical"]
+    ledger_reconciled = (
+        ledger_nonaccounting_after == ledger_nonaccounting_before
+        and _accounting_delta_matches(declared_penalty, ledger_delta)
+    )
+    process_reconciled = (
+        process_nonaccounting_after == process_nonaccounting_before
+        and _accounting_delta_matches(declared_penalty, process_delta)
+    )
+    raw_events = info.get("world_events", [])
+    world_events = copy.deepcopy(raw_events) if isinstance(raw_events, list) else []
+    event_reconciled = bool(world_events) and all(
+        isinstance(event, Mapping) and event.get("operation_type") == action.get("operation")
+        for event in world_events
+    )
+    ghost_state_preserved = bool(
+        physical_preserved
+        and rng_preserved
+        and ledger_reconciled
+        and process_reconciled
+        and resource["resource_reconciled"]
+        and event_reconciled
+    )
+    return {
+        "ghost_state_preserved": ghost_state_preserved,
+        "physical": {
+            "before_sha256": _sha256_value(state_before["physical"]),
+            "after_sha256": _sha256_value(state_after["physical"]),
+            "preserved": physical_preserved,
+        },
+        "observation_rng": {"preserved": rng_preserved},
+        "ledger": {
+            "before": copy.deepcopy(ledger_before),
+            "after": copy.deepcopy(ledger_after),
+            "actual_delta": ledger_delta,
+            "declared_failure_penalty": declared_penalty,
+            "nonaccounting_state_preserved": (
+                ledger_nonaccounting_after == ledger_nonaccounting_before
+            ),
+            "declared_penalty_reconciled": _accounting_delta_matches(
+                declared_penalty, ledger_delta
+            ),
+            "ghost_state_preserved": ledger_reconciled,
+        },
+        "process": {
+            "before": copy.deepcopy(process_before),
+            "after": copy.deepcopy(process_after),
+            "actual_delta": process_delta,
+            "nonaccounting_state_preserved": (
+                process_nonaccounting_after == process_nonaccounting_before
+            ),
+            "declared_penalty_reconciled": _accounting_delta_matches(
+                declared_penalty, process_delta
+            ),
+            "ghost_state_preserved": process_reconciled,
+        },
+        "events": {
+            "world_events": world_events,
+            "state_patches_summary": copy.deepcopy(info.get("state_patches_summary", [])),
+            "reconciled": event_reconciled,
+        },
+        "resource": resource,
     }
 
 
@@ -535,23 +1189,30 @@ def _negative_probe(
         **(env_kwargs or {}),
     )
     failures: list[str] = []
+    info: dict[str, Any] = {}
+    leakage: list[dict[str, Any]] = []
+    expected_status = "unknown"
+    expected_reason = "unknown"
+    observed_reasons: list[str] = []
+    setup_receipt: dict[str, Any] | None = None
+    ghost_state: dict[str, Any] = {
+        "ghost_state_preserved": False,
+        "failure": "probe did not complete",
+    }
     try:
         env.reset(seed=world_seed)
-        base = env.unwrapped
-        physical_before = _physical_snapshot(env)
-        rng_before = _rng_snapshot(env)
+        base: Any = env.unwrapped
+        action: dict[str, Any]
         if probe_id == "invalid_operation":
             action = {"operation": "not-a-real-operation"}
-            _observation, _reward, _terminated, _truncated, info = env.step(action)
             expected_status = "validation_failed"
-            expected_reason = None
+            expected_reason = "unknown operation: not-a-real-operation"
         elif probe_id == "precondition_failure":
             instruments = sorted(
                 instrument for instrument in task.allowed_instruments if instrument != "final_assay"
             )
             instrument = instruments[0] if instruments else "final_assay"
             action = {"operation": "measure", "instrument": instrument}
-            _observation, _reward, _terminated, _truncated, info = env.step(action)
             # The payload is structurally valid.  The runtime therefore emits
             # a replayable rolled-back transaction for the failed has_volume
             # precondition instead of classifying it as a schema failure.
@@ -562,25 +1223,35 @@ def _negative_probe(
             _observation, _reward, _terminated, _truncated, first_info = env.step(first_action)
             if first_info.get("transaction_status") != "committed":
                 failures.append("resource setup action did not commit")
-            physical_before = _physical_snapshot(env)
-            rng_before = _rng_snapshot(env)
+            setup_receipt = {
+                "action": first_action,
+                "transaction_status": first_info.get("transaction_status"),
+                "operation_committed": (first_info.get("transaction_status") == "committed"),
+                "preflight": copy.deepcopy(first_info.get("campaign_resource_preflight")),
+                "outcome_delta": copy.deepcopy(first_info.get("campaign_resource_outcome_delta")),
+            }
             action = {"operation": "add_solvent", "volume_L": 0.001, "solvent": 1}
-            _observation, _reward, _terminated, _truncated, info = env.step(action)
             expected_status = "campaign_resource_rejected"
             expected_reason = "stock_limit:solvent_L"
         else:
             raise ValueError(f"unknown negative probe: {probe_id}")
 
+        state_before = _world_state_sections(env)
+        rng_before = _rng_snapshot(env)
+        resource_before = base.campaign_resource_snapshot()
+        _observation, _reward, _terminated, _truncated, info = env.step(action)
+        state_after = _world_state_sections(env)
+        rng_preserved = _rng_snapshot(env) == rng_before
+        resource_after = base.campaign_resource_snapshot()
+        public_resource_state = base.public_campaign_resource_state()
+        observed_reasons = _observed_rejection_reasons(info)
         if info.get("transaction_status") != expected_status:
             failures.append(
                 "expected transaction_status="
                 f"{expected_status}, got {info.get('transaction_status')}"
             )
-        if (
-            expected_reason == "has_volume"
-            and info.get("preconditions", {}).get("has_volume") is not False
-        ):
-            failures.append("has_volume precondition did not fail")
+        if expected_reason not in observed_reasons:
+            failures.append(f"expected rejection reason={expected_reason}, got {observed_reasons}")
         if expected_reason == "stock_limit:solvent_L":
             if info.get("campaign_resource_rejection_reasons") != [expected_reason]:
                 failures.append("resource rejection reason drifted")
@@ -598,10 +1269,28 @@ def _negative_probe(
                     failures.append("resource solvent stock does not reconcile")
                 if public.get("ledger_sha256") != snapshot.get("ledger_sha256"):
                     failures.append("public/private resource ledger hashes do not reconcile")
-        if _physical_snapshot(env) != physical_before:
+        ghost_state = _negative_ghost_state_receipt(
+            action=action,
+            info=info,
+            state_before=state_before,
+            state_after=state_after,
+            rng_preserved=rng_preserved,
+            resource_before=resource_before,
+            resource_after=resource_after,
+            public_resource_state=public_resource_state,
+        )
+        if not bool(ghost_state["physical"]["preserved"]):
             failures.append("negative probe mutated physical state")
-        if _rng_snapshot(env) != rng_before:
+        if not rng_preserved:
             failures.append("negative probe mutated observation RNG state")
+        if not bool(ghost_state["ledger"]["ghost_state_preserved"]):
+            failures.append("negative probe ledger penalty did not reconcile")
+        if not bool(ghost_state["process"]["ghost_state_preserved"]):
+            failures.append("negative probe process penalty did not reconcile")
+        if not bool(ghost_state["events"]["reconciled"]):
+            failures.append("negative probe failure events did not reconcile")
+        if not bool(ghost_state["resource"]["resource_reconciled"]):
+            failures.append("negative probe resource ledger did not reconcile")
         leakage = _leakage_findings(
             env,
             agent_view_bundle(env, base._last_observation, info),
@@ -618,10 +1307,32 @@ def _negative_probe(
     return {
         "probe_id": probe_id,
         "passed": not failures,
+        "action": action if "action" in locals() else None,
+        "expected_rejection": {
+            "transaction_status": expected_status,
+            "reason": expected_reason,
+        },
+        "observed_rejection": {
+            "transaction_status": info.get("transaction_status"),
+            "rollback_reason": info.get("rollback_reason"),
+            "reasons": observed_reasons,
+            "preconditions": copy.deepcopy(info.get("preconditions", {})),
+            "campaign_resource_rejection_reasons": copy.deepcopy(
+                info.get("campaign_resource_rejection_reasons", [])
+            ),
+        },
         "transaction_status": info.get("transaction_status"),
-        "physical_state_preserved": "negative probe mutated physical state" not in failures,
-        "observation_rng_preserved": "negative probe mutated observation RNG state" not in failures,
+        "physical_state_preserved": bool(ghost_state.get("physical", {}).get("preserved", False)),
+        "observation_rng_preserved": bool(
+            ghost_state.get("observation_rng", {}).get("preserved", False)
+        ),
+        "ghost_state": ghost_state,
+        "resource_preflight": copy.deepcopy(info.get("campaign_resource_preflight")),
+        "resource_outcome_delta": copy.deepcopy(info.get("campaign_resource_outcome_delta")),
+        "resource_reconciliation": copy.deepcopy(ghost_state.get("resource", {})),
+        "setup_receipt": setup_receipt,
         "public_private_leakage_count": len(leakage),
+        "public_private_leakage_findings": leakage,
         "failures": failures,
     }
 
@@ -645,13 +1356,23 @@ def run_negative_probes(
         }
     )
     return [
-        _negative_probe(task, world_seed, probe_id="invalid_operation"),
-        _negative_probe(task, world_seed, probe_id="precondition_failure"),
+        _negative_probe(
+            task,
+            world_seed,
+            probe_id="invalid_operation",
+            env_kwargs={"campaign_resource_card": copy.deepcopy(resource_spec)},
+        ),
+        _negative_probe(
+            task,
+            world_seed,
+            probe_id="precondition_failure",
+            env_kwargs={"campaign_resource_card": copy.deepcopy(resource_spec)},
+        ),
         _negative_probe(
             task,
             world_seed,
             probe_id="resource_exhaustion",
-            env_kwargs={"campaign_resource_card": resource_spec},
+            env_kwargs={"campaign_resource_card": copy.deepcopy(resource_spec)},
         ),
     ]
 
@@ -777,7 +1498,7 @@ def build_report(
 
     valid_cases = [case for unit in units for case in unit["valid_recipe_cases"]]
     probes = [probe for unit in units for probe in unit["negative_probes"]]
-    failure_classes = Counter()
+    failure_classes: Counter[str] = Counter()
     for unit in units:
         for failure in unit["failures"]:
             nested = failure.get("failures")
