@@ -3,13 +3,13 @@
 ```yaml
 task_id: W1-D07
 title: "Build the standard arXiv PDF, source bundles, and publication proof"
-status: REVIEW
+status: DONE
 
 owner: codex-1
 collaborators: []
 claimed_at_utc: 2026-08-04T02:42:21Z
 lease_expires_at_utc: 2026-08-06T02:42:21Z
-heartbeat_at_utc: 2026-08-04T03:40:07Z
+heartbeat_at_utc: 2026-08-04T03:41:09Z
 
 base_commit: "ffd11ee7"
 branch: work1/w1-d07-refined-figure-package-rebuild-codex-1
@@ -54,11 +54,11 @@ blockers: []
 blocked_by: null
 unblock_condition: null
 next_check_at_utc: null
-next_24h: "Coordinator centralized acceptance and main integration; then unblock D08."
+next_24h: "Accepted on main; D08 may verify this rebuilt release candidate."
 handoff_eta: 2026-08-04T03:41:00Z
 
 final_commit: 4ea352cf
-reviewer: null
-review_result: null
-notes: "The original D07 package was accepted after final commit ea05a307. This rebuild changes only package/proof artifacts required by the accepted P09 hashes. D07 still does not mark publication_ready and does not require the deferred 17.7 GB archive or unresolved corresponding-author metadata."
+reviewer: codex-1
+review_result: PASS
+notes: "The original D07 package was accepted after final commit ea05a307. This rebuild changes only package/proof artifacts required by the accepted P09 hashes. D07 still does not mark publication_ready and does not require the deferred 17.7 GB archive or unresolved corresponding-author metadata. Centralized coordinator acceptance merged at 5b397a64."
 ```

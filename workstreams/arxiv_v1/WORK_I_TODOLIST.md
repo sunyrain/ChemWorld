@@ -335,8 +335,8 @@ M01 与 M02 由本主计划及 `claims/` 的初次发布完成；后续只有通
 | W1-D04 | P0 | DONE | 为 F/V/L 新增 evidence DAG nodes 与 source binding | reports ready | 是 |
 | W1-D05 | P0 | DONE | 更新 experiment ledger、release manifest 和 data card | D03–D04 | 否 |
 | W1-D06 | P0 | BLOCKED | 作者、单位、corresponding author 与 ORCID metadata | 项目负责人 | 是 |
-| W1-D07 | P0 | ACTIVE | 标准 arXiv PDF、ZIP、TAR.GZ 与 proof rebuild；同步 P09 精修图件哈希 | S/P/D 完成 | 否 |
-| W1-D08 | P0 | BLOCKED | full tests、clean wheel、independent checkout、claim audit | P09 视觉精修及其 D07 重建 | 否 |
+| W1-D07 | P0 | DONE | 标准 arXiv PDF、ZIP、TAR.GZ 与 proof rebuild；已同步 P09 精修图件哈希 | S/P/D 完成 | 否 |
+| W1-D08 | P0 | ACTIVE | full tests、clean wheel、independent checkout、claim audit | D07 | 否 |
 | W1-D09 | P0 | OPEN | publication-ready finalizer、tag 与 upload verification | D02、D06、D08 | 否 |
 
 ### 5.8 Independent review & QA
