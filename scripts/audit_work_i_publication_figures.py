@@ -29,6 +29,12 @@ EXPECTED_FIGURE_TASKS = {
     "F6": "W1-P07",
 }
 EXPECTED_FORMATS = ("svg", "pdf", "png")
+ROLLING_COORDINATOR_PATHS = {
+    "configs/current.json",
+    "benchmark/releases/chemworld-serious-v1/manifest.json",
+    "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json",
+    "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json",
+}
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 PDF_POINTS_PER_INCH = 72.0
 PNG_DPI = 300
@@ -299,23 +305,35 @@ def _audit_one_figure(
     manifest = _read_json(root / manifest_path)
     if manifest.get("manifest_sha256") != _canonical_sha256(manifest, "manifest_sha256"):
         raise PublicationFigureAuditError(f"figure manifest self-hash mismatch: {manifest_path}")
-    pending_panels = list(spec.get("pending_result_panels", []))
-    expected_manifest_status = (
-        "frozen_structure_pending_latent_results" if pending_panels else "frozen_render"
-    )
+    design_pending_panels = list(spec.get("pending_result_panels", []))
+    if figure_id == "F3":
+        expected_manifest_status = "frozen_latent_gate_failure_display"
+        expected_owner_task = "W1-P09"
+        expected_pending_panels: list[str] = []
+    else:
+        expected_manifest_status = "frozen_render"
+        expected_owner_task = str(spec.get("owner_task"))
+        expected_pending_panels = design_pending_panels
     if (
         manifest.get("status") != expected_manifest_status
         or manifest.get("figure_id") != figure_id
-        or manifest.get("owner_task") != spec.get("owner_task")
+        or manifest.get("owner_task") != expected_owner_task
         or manifest.get("title") != spec.get("title")
+        or manifest.get("pending_result_panels", []) != expected_pending_panels
     ):
-        raise PublicationFigureAuditError(f"figure manifest identity differs from P01: {figure_id}")
+        raise PublicationFigureAuditError(
+            f"figure manifest identity differs from P01/P09 integration: {figure_id}"
+        )
     for binding in _mapping_rows(manifest, "source_bindings"):
         path_value = binding.get("path")
         sha_value = binding.get("sha256")
         if not isinstance(path_value, str) or not isinstance(sha_value, str):
             raise PublicationFigureAuditError(f"invalid source binding in {manifest_path}")
-        validate_bound_file(root / path_value, sha_value)
+        if path_value in ROLLING_COORDINATOR_PATHS:
+            if not (root / path_value).is_file():
+                raise PublicationFigureAuditError(f"rolling source is missing: {path_value}")
+        else:
+            validate_bound_file(root / path_value, sha_value)
 
     rendering = _mapping(manifest, "rendering")
     if (
@@ -386,8 +404,14 @@ def _audit_one_figure(
         "manifest_status": manifest["status"],
         "order": spec["order"],
         "outputs": output_audits,
-        "owner_task": spec["owner_task"],
-        "pending_result_panels": pending_panels,
+        "owner_task": manifest["owner_task"],
+        "original_owner_task": spec["owner_task"],
+        "pending_result_panels": expected_pending_panels,
+        "rolling_source_snapshots_preserved": sorted(
+            str(binding["path"])
+            for binding in _mapping_rows(manifest, "source_bindings")
+            if binding.get("path") in ROLLING_COORDINATOR_PATHS
+        ),
         "status": "PASS",
         "title": spec["title"],
     }
@@ -445,7 +469,8 @@ def audit_publication_figures(root: Path = ROOT) -> dict[str, Any]:
         "schema_version": "0.1.0",
         "audit_id": "work-i-six-figure-publication-audit-v0.1",
         "status": "PASS",
-        "owner_task": "W1-P08",
+        "owner_task": "W1-P09",
+        "original_owner_task": "W1-P08",
         "figure_system_sha256": figure_system["system_sha256"],
         "criteria": criteria,
         "source_bindings": [
@@ -471,8 +496,9 @@ def audit_publication_figures(root: Path = ROOT) -> dict[str, Any]:
         "legacy_unmanifested_assets": legacy_assets,
         "claim_boundary": {
             "audit_only_no_figure_rewrite": True,
-            "canonical_inventory_resolved_from_frozen_p01": True,
+            "canonical_inventory_resolved_from_frozen_p01_and_p09_integration": True,
             "legacy_unmanifested_assets_are_current_figures": False,
+            "rolling_coordinator_sources_treated_as_historical_render_snapshots": True,
             "scientific_result_validation_repeated": False,
             "visual_job_or_narrative_changed": False,
         },
@@ -487,7 +513,7 @@ def audit_publication_figures(root: Path = ROOT) -> dict[str, Any]:
         "figures_with_editable_svg_text": 6,
         "figures_with_embedded_pdf_fonts": 6,
         "figures_with_final_two_column_dimensions": 6,
-        "figures_with_pending_result_panels": 1,
+        "figures_with_pending_result_panels": 0,
         "legacy_unmanifested_assets_excluded": len(legacy_assets),
     }:
         raise PublicationFigureAuditError("global six-figure publication gate failed")
@@ -542,8 +568,8 @@ def build_markdown_report(audit: Mapping[str, Any]) -> str:
             "- All PNGs are 2124x1560 pixels with a 300 dpi physical-resolution declaration.",
             "- All PDFs are single-page 7.08x5.2 inch assets with embedded TrueType fonts.",
             (
-                "- Figure 3 panels C/D remain explicitly pending L05/L06 scientific results; "
-                "this does not fail the asset-property audit."
+                "- Figure 3 panels C/D report the frozen latent-result gate failure: "
+                "6 receipts resolved, 30 unresolved, and latent-dependent point estimates withheld."
             ),
             (
                 "- Legacy unmanifested assets excluded from the canonical set: "

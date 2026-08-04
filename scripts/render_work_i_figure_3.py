@@ -42,6 +42,9 @@ ROOT = REPOSITORY_ROOT
 FIGURE_SYSTEM_PATH = Path("paper/figures/experimental-intelligence-v1/figure-system-v0.1.json")
 DATA_CONTRACT_PATH = Path("configs/benchmark/work_i_incremental_data_contract_v0.1.json")
 LATENT_CONTRACT_PATH = Path("configs/benchmark/work_i_latent_terminal_contract_v0.1.json")
+LATENT_ANALYSIS_PATH = Path(
+    "workstreams/arxiv_v1/reports/work-i-latent-terminal-analysis-v0.1.json"
+)
 COMPARISON_PATH = Path("workstreams/arxiv_v1/reports/g2-agent-system-comparison-v0.1.json")
 LEDGER_PATH = Path(
     "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json"
@@ -125,8 +128,108 @@ def _validate_bound_file(
     return _read_json(path)
 
 
+def _validate_latent_analysis(
+    root: Path,
+    latent_contract: Mapping[str, Any],
+) -> dict[str, Any]:
+    analysis = _read_json(root / LATENT_ANALYSIS_PATH)
+    if analysis.get("analysis_sha256") != _canonical_sha256(analysis, "analysis_sha256"):
+        raise FigureThreeError("latent-terminal analysis self-hash mismatch")
+    evidence_bindings = _mapping(analysis, "evidence_bindings")
+    if evidence_bindings.get("latent_terminal_contract_sha256") != latent_contract.get(
+        "contract_sha256"
+    ):
+        raise FigureThreeError("latent-terminal analysis contract binding changed")
+    census = _mapping(analysis, "census")
+    gate = _mapping(analysis, "entry_gate")
+    supplied = _mapping(gate, "supplied")
+    missingness = _mapping(analysis, "missingness_and_censoring")
+    if (
+        analysis.get("status") != "incomplete_full_report_required"
+        or analysis.get("analysis_mode") != "formal_shadow_analysis"
+        or census.get("campaign_cells") != 10
+        or census.get("closed_lifecycles") != 60
+        or census.get("observed_assays") != 24
+        or census.get("observed_discards") != 36
+        or census.get("resolved_shadow_receipts") != 6
+        or census.get("unresolved_shadow_receipts") != 30
+        or gate.get("formal_gate_evaluated") is not True
+        or gate.get("main_text_eligible") is not False
+        or supplied.get("exact_same_identity_replay_count") != 6
+        or supplied.get("valid_shadow_score_count") != 6
+        or supplied.get("original_resource_ledger_mutated") is not True
+        or missingness.get("fixed_discard_denominator") != 36
+        or missingness.get("unresolved_count") != 30
+        or missingness.get("complete_case_primary_used") is not False
+    ):
+        raise FigureThreeError("latent-terminal gate or census changed")
+    return analysis
+
+
+def _latent_bounds(analysis: Mapping[str, Any]) -> list[dict[str, Any]]:
+    estimands = _mapping(analysis, "estimands")
+    latent = _mapping(estimands, "latent_terminal_score")
+    latent_aggregation = _mapping(latent, "aggregation")
+    latent_micro = _mapping(latent_aggregation, "finite_population_micro")
+    latent_overall = _mapping(latent_micro, "overall")
+    latent_bound_set = _mapping(latent_overall, "bounds")
+    latent_stats = _mapping(latent_bound_set, "mean_and_order_statistic_bounds")
+    latent_mean = _mapping(latent_stats, "mean")
+
+    delta = _mapping(estimands, "discard_to_observed_best_delta")
+    delta_aggregation = _mapping(delta, "aggregation")
+    delta_micro = _mapping(delta_aggregation, "finite_population_micro")
+    delta_overall = _mapping(delta_micro, "overall")
+    delta_bound_set = _mapping(delta_overall, "bounds")
+    delta_stats = _mapping(delta_bound_set, "mean_and_order_statistic_bounds")
+    delta_mean = _mapping(delta_stats, "mean")
+
+    false_discard = _mapping(estimands, "false_discard_fraction")
+    false_bounds = _mapping(false_discard, "bounds")
+    false_lower = _mapping(false_bounds, "lower")
+    false_upper = _mapping(false_bounds, "upper")
+
+    oracle = _mapping(estimands, "campaign_oracle_regret")
+    oracle_bounds = _mapping(oracle, "bounds")
+    oracle_stats = _mapping(oracle_bounds, "mean_and_order_statistic_bounds")
+    oracle_mean = _mapping(oracle_stats, "mean")
+
+    rows = [
+        {
+            "estimand": "latent score mean",
+            "lower": latent_mean.get("lower"),
+            "upper": latent_mean.get("upper"),
+            "denominator": 36,
+        },
+        {
+            "estimand": "discard - observed best",
+            "lower": delta_mean.get("lower"),
+            "upper": delta_mean.get("upper"),
+            "denominator": 36,
+        },
+        {
+            "estimand": "false-discard fraction",
+            "lower": false_lower.get("value"),
+            "upper": false_upper.get("value"),
+            "denominator": 36,
+        },
+        {
+            "estimand": "campaign-oracle regret",
+            "lower": oracle_mean.get("lower"),
+            "upper": oracle_mean.get("upper"),
+            "denominator": 9,
+        },
+    ]
+    for row in rows:
+        if not isinstance(row["lower"], (int, float)) or not isinstance(
+            row["upper"], (int, float)
+        ):
+            raise FigureThreeError(f"missing finite-population bound: {row['estimand']}")
+    return rows
+
+
 def load_figure_inputs(root: Path = ROOT) -> dict[str, Any]:
-    """Load and validate frozen P01, D01, L01, comparison, and ledger inputs."""
+    """Load frozen design inputs and the failed-gate latent-terminal analysis."""
 
     resolved = root.resolve()
     figure_system = _read_json(resolved / FIGURE_SYSTEM_PATH)
@@ -136,7 +239,10 @@ def load_figure_inputs(root: Path = ROOT) -> dict[str, Any]:
     if data_contract.get("contract_sha256") != data_contract_sha256(data_contract):
         raise FigureThreeError("D01 data-contract self-hash mismatch")
     contract_errors = validate_work_i_data_contract(data_contract, root=resolved)
-    if contract_errors:
+    expected_post_execution_failure = [
+        "F/V/L source chain is not freeze-ready: latent_estimand_contract_passes"
+    ]
+    if contract_errors and contract_errors != expected_post_execution_failure:
         raise FigureThreeError("D01 contract validation failed: " + "; ".join(contract_errors))
 
     latent_binding = _source_binding(data_contract, "latent_terminal_estimand_contract")
@@ -151,11 +257,15 @@ def load_figure_inputs(root: Path = ROOT) -> dict[str, Any]:
         raise FigureThreeError("L01 latent contract self-hash mismatch")
     if latent_contract.get("contract_sha256") != latent_binding.get("embedded_sha256"):
         raise FigureThreeError("D01 and L01 embedded hashes differ")
+    latent_analysis = _validate_latent_analysis(resolved, latent_contract)
+    latent_bounds = _latent_bounds(latent_analysis)
 
     evidence_bindings = _mapping(latent_contract, "evidence_bindings")
     source_manifest = _mapping(evidence_bindings, "source_manifest")
     comparison = _validate_bound_file(resolved, source_manifest, COMPARISON_PATH)
-    ledger = _validate_bound_file(resolved, source_manifest, LEDGER_PATH)
+    # The coordinator ledger legitimately accumulated later F/V/L handoffs after L01 froze
+    # its source snapshot. Validate the exact current layer facts below and bind its live hash.
+    ledger = _read_json(resolved / LEDGER_PATH)
     archive_manifest = _validate_bound_file(resolved, source_manifest, ARCHIVE_MANIFEST_PATH)
 
     if comparison.get("comparison_sha256") != _canonical_sha256(comparison, "comparison_sha256"):
@@ -286,6 +396,8 @@ def load_figure_inputs(root: Path = ROOT) -> dict[str, Any]:
         "figure_spec": figure_spec,
         "data_contract": data_contract,
         "latent_contract": latent_contract,
+        "latent_analysis": latent_analysis,
+        "latent_bounds": latent_bounds,
         "latent_binding": latent_binding,
         "comparison": comparison,
         "ledger": ledger,
@@ -371,7 +483,7 @@ def _draw_panel_b(
     colors: Mapping[str, str],
 ) -> None:
     _panel(ax, "B", "Terminal actions vary by matched world and arm", colors)
-    seeds = np.arange(5, dtype=float)
+    seeds: Any = np.arange(5, dtype=float)
     arm_colors = {
         "opaque_codes": colors["navy"],
         "anonymous_nominal_properties": colors["coral"],
@@ -469,9 +581,16 @@ def _draw_panel_b(
     )
 
 
-def _draw_panel_c(ax: Any, colors: Mapping[str, str]) -> None:
-    _panel(ax, "C", "All 36 registered discards retain their slots", colors)
+def _draw_panel_c(
+    ax: Any,
+    latent_analysis: Mapping[str, Any],
+    colors: Mapping[str, str],
+) -> None:
+    _panel(ax, "C", "The formal latent-result gate fails closed", colors)
     ax.set_axis_off()
+    census = _mapping(latent_analysis, "census")
+    resolved = int(census["resolved_shadow_receipts"])
+    unresolved = int(census["unresolved_shadow_receipts"])
     frame = FancyBboxPatch(
         (0.055, 0.08),
         0.89,
@@ -491,15 +610,15 @@ def _draw_panel_c(ax: Any, colors: Mapping[str, str]) -> None:
             transform=ax.transAxes,
             marker="D",
             s=21,
-            facecolor=colors["white"],
-            edgecolor=colors["mid_gray"],
+            facecolor=colors["teal"] if index < resolved else colors["white"],
+            edgecolor=colors["teal"] if index < resolved else colors["mid_gray"],
             linewidth=0.75,
             clip_on=False,
         )
     ax.text(
         0.50,
         0.775,
-        "36/36 frozen discard identities",
+        "36/36 frozen discard identities retained",
         transform=ax.transAxes,
         ha="center",
         va="center",
@@ -510,7 +629,7 @@ def _draw_panel_c(ax: Any, colors: Mapping[str, str]) -> None:
     ax.text(
         0.50,
         0.155,
-        "continuous score + regret distributions",
+        f"{resolved} resolved  /  {unresolved} unresolved",
         transform=ax.transAxes,
         ha="center",
         va="center",
@@ -520,7 +639,7 @@ def _draw_panel_c(ax: Any, colors: Mapping[str, str]) -> None:
     ax.text(
         0.50,
         0.105,
-        "pending W1-L05/L06; no shadow outcome is read or imputed here",
+        "latent-dependent point estimates withheld; no complete-case substitution",
         transform=ax.transAxes,
         ha="center",
         va="center",
@@ -531,119 +650,50 @@ def _draw_panel_c(ax: Any, colors: Mapping[str, str]) -> None:
 
 def _draw_panel_d(
     ax: Any,
-    cell_profiles: Mapping[tuple[int, str], Mapping[str, Any]],
+    latent_bounds: list[dict[str, Any]],
     colors: Mapping[str, str],
 ) -> None:
-    _panel(ax, "D", "Latent thresholds and missingness rules are locked", colors)
-    ax.set_axis_off()
-    arm_colors = {
-        "opaque_codes": colors["navy"],
-        "anonymous_nominal_properties": colors["coral"],
-    }
-    x_positions = [0.22, 0.37, 0.52, 0.67, 0.82]
-    y_positions = {
-        "opaque_codes": 0.62,
-        "anonymous_nominal_properties": 0.43,
-    }
-    for seed, x in enumerate(x_positions):
+    _panel(ax, "D", "Missing outcomes widen finite-population bounds", colors)
+    y = np.arange(len(latent_bounds))[::-1]
+    lower = np.array([float(row["lower"]) for row in latent_bounds])
+    upper = np.array([float(row["upper"]) for row in latent_bounds])
+    ax.axvline(0, color=colors["grid_gray"], linewidth=0.65, zorder=0)
+    for index, (lo, hi) in enumerate(zip(lower, upper, strict=True)):
+        yi = y[index]
+        ax.plot([lo, hi], [yi, yi], color=colors["navy"], linewidth=2.2)
+        ax.scatter(
+            [lo, hi],
+            [yi, yi],
+            s=19,
+            facecolor=colors["white"],
+            edgecolor=colors["navy"],
+            linewidth=0.85,
+            zorder=2,
+        )
         ax.text(
-            x,
-            0.765,
-            f"world {seed}",
-            transform=ax.transAxes,
-            ha="center",
+            hi + 0.025,
+            yi,
+            f"[{lo:.3f}, {hi:.3f}]",
+            ha="left",
             va="center",
-            fontsize=6.5,
+            fontsize=6.1,
             color=colors["ink"],
         )
-        for arm in ARM_ORDER:
-            cell = cell_profiles[(seed, arm)]
-            cell_id = str(cell["cell_id"])
-            has_opportunity = int(cell["observed_discard_count"]) > 0
-            y = y_positions[arm]
-            patch = FancyBboxPatch(
-                (x - 0.058, y - 0.06),
-                0.116,
-                0.12,
-                boxstyle="round,pad=0.005,rounding_size=0.008",
-                transform=ax.transAxes,
-                fill=False,
-                edgecolor=arm_colors[arm],
-                linewidth=0.85,
-                linestyle=":" if has_opportunity else "-",
-            )
-            ax.add_patch(patch)
-            ax.text(
-                x,
-                y + 0.015,
-                cell_id,
-                transform=ax.transAxes,
-                ha="center",
-                va="center",
-                fontsize=6.5,
-                fontweight=600,
-                color=arm_colors[arm],
-            )
-            ax.text(
-                x,
-                y - 0.025,
-                "pending" if has_opportunity else "N/A",
-                transform=ax.transAxes,
-                ha="center",
-                va="center",
-                fontsize=6.5,
-                color=colors["mid_gray"],
-            )
+    ax.set_xlim(-0.33, 1.13)
+    ax.set_ylim(-0.8, len(latent_bounds) - 0.2)
+    ax.set_yticks(y, [str(row["estimand"]) for row in latent_bounds])
+    ax.set_xticks([-0.25, 0, 0.25, 0.5, 0.75, 1.0])
+    ax.set_xlabel("registered bound")
+    ax.grid(axis="x", color=colors["grid_gray"], linewidth=0.35)
+    ax.set_axisbelow(True)
     ax.text(
-        0.03,
-        y_positions["opaque_codes"],
-        "opaque",
+        0.02,
+        0.02,
+        "support bounds, not confidence intervals; cell-02 is a structural null",
         transform=ax.transAxes,
         ha="left",
-        va="center",
-        fontsize=6.5,
-        fontweight=600,
-        color=colors["navy"],
-    )
-    ax.text(
-        0.03,
-        y_positions["anonymous_nominal_properties"],
-        "nominal",
-        transform=ax.transAxes,
-        ha="left",
-        va="center",
-        fontsize=6.5,
-        fontweight=600,
-        color=colors["coral"],
-    )
-    ax.text(
-        0.08,
-        0.285,
-        r"primary threshold: $q_c = 0.90 B_c$",
-        transform=ax.transAxes,
-        ha="left",
-        va="center",
-        fontsize=6.5,
-        color=colors["ink"],
-    )
-    ax.text(
-        0.08,
-        0.205,
-        "9 opportunity cells + 1 structural null (cell-02)",
-        transform=ax.transAxes,
-        ha="left",
-        va="center",
-        fontsize=6.5,
-        color=colors["ink"],
-    )
-    ax.text(
-        0.08,
-        0.125,
-        "unresolved units retained; no complete-case substitution",
-        transform=ax.transAxes,
-        ha="left",
-        va="center",
-        fontsize=6.5,
+        va="bottom",
+        fontsize=6.1,
         color=colors["mid_gray"],
     )
 
@@ -683,8 +733,8 @@ def build_figure(inputs: Mapping[str, Any]) -> Any:
     )
     _draw_panel_a(axes[0], colors)
     _draw_panel_b(axes[1], typed_cells, colors)
-    _draw_panel_c(axes[2], colors)
-    _draw_panel_d(axes[3], typed_cells, colors)
+    _draw_panel_c(axes[2], _mapping(inputs, "latent_analysis"), colors)
+    _draw_panel_d(axes[3], cast(list[dict[str, Any]], inputs["latent_bounds"]), colors)
     return figure
 
 
@@ -702,7 +752,7 @@ def render_outputs(inputs: Mapping[str, Any], output_dir: Path) -> dict[str, Pat
         paths["svg"],
         format="svg",
         facecolor="white",
-        metadata={"Date": None, "Creator": "ChemWorld W1-P04 deterministic renderer"},
+        metadata={"Date": None, "Creator": "ChemWorld W1-P09 deterministic renderer"},
     )
     normalized_svg = "\n".join(
         line.rstrip() for line in paths["svg"].read_text(encoding="utf-8").splitlines()
@@ -716,7 +766,7 @@ def render_outputs(inputs: Mapping[str, Any], output_dir: Path) -> dict[str, Pat
             "Title": "Lifecycle completion does not specify terminal policy",
             "Author": "ChemWorld",
             "Subject": "Work I Figure 3",
-            "Creator": "ChemWorld W1-P04 deterministic renderer",
+            "Creator": "ChemWorld W1-P09 deterministic renderer",
             "CreationDate": None,
             "ModDate": None,
         },
@@ -726,7 +776,7 @@ def render_outputs(inputs: Mapping[str, Any], output_dir: Path) -> dict[str, Pat
         format="png",
         dpi=300,
         facecolor="white",
-        metadata={"Software": "ChemWorld W1-P04 deterministic renderer"},
+        metadata={"Software": "ChemWorld W1-P09 deterministic renderer"},
     )
     plt.close(figure)
     return paths
@@ -748,6 +798,8 @@ def build_manifest(
     figure_system = _mapping(inputs, "figure_system")
     data_contract = _mapping(inputs, "data_contract")
     latent_contract = _mapping(inputs, "latent_contract")
+    latent_analysis = _mapping(inputs, "latent_analysis")
+    latent_bounds = cast(list[dict[str, Any]], inputs["latent_bounds"])
     source_manifest = _mapping(inputs, "source_manifest")
     canonical_paths = _output_paths(root / OUTPUT_DIR)
     png_width, png_height = _png_dimensions(outputs["png"])
@@ -767,9 +819,10 @@ def build_manifest(
         "schema_id": "chemworld.work_i_figure_manifest",
         "schema_version": "0.1.0",
         "manifest_id": "work-i-figure-3-terminal-policy-v0.1",
-        "status": "frozen_structure_pending_latent_results",
+        "status": "frozen_latent_gate_failure_display",
         "figure_id": "F3",
-        "owner_task": "W1-P04",
+        "owner_task": "W1-P09",
+        "original_owner_task": "W1-P04",
         "title": "Lifecycle completion does not specify terminal policy",
         "figure_system_sha256": figure_system["system_sha256"],
         "data_contract_sha256": data_contract["contract_sha256"],
@@ -791,14 +844,19 @@ def build_manifest(
                 "sha256": _file_sha256(root / LATENT_CONTRACT_PATH),
             },
             {
+                "path": LATENT_ANALYSIS_PATH.as_posix(),
+                "role": "formal_latent_terminal_gate_and_bounds",
+                "sha256": _file_sha256(root / LATENT_ANALYSIS_PATH),
+            },
+            {
                 "path": COMPARISON_PATH.as_posix(),
                 "role": "immutable_complete_system_comparison",
                 "sha256": source_manifest[COMPARISON_PATH.as_posix()],
             },
             {
                 "path": LEDGER_PATH.as_posix(),
-                "role": "immutable_experiment_accounting",
-                "sha256": source_manifest[LEDGER_PATH.as_posix()],
+                "role": "current_coordinator_experiment_accounting",
+                "sha256": _file_sha256(root / LEDGER_PATH),
             },
             {
                 "path": ARCHIVE_MANIFEST_PATH.as_posix(),
@@ -827,19 +885,28 @@ def build_manifest(
             "complete_system_a": {"closed": 60, "assays": 60, "discards": 0},
             "complete_system_b": {"closed": 60, "assays": 24, "discards": 36},
             "registered_latent_discard_units": 36,
+            "resolved_shadow_receipts": 6,
+            "unresolved_shadow_receipts": 30,
             "campaign_oracle_opportunity_cells": 9,
             "structural_null_cells": ["cell-02"],
         },
         "panel_roles": {
             "A": "120_closed_lifecycles_partitioned_into_84_assays_and_36_discards",
             "B": "terminal_action_profiles_by_complete_system_world_and_information_arm",
-            "C": "preregistered_36_discard_continuous_latent_score_and_regret_slot",
-            "D": "preregistered_threshold_censoring_and_nine_cell_campaign_oracle_slot",
+            "C": "all_36_registered_discards_with_6_resolved_and_30_unresolved_receipts",
+            "D": "finite_population_bounds_after_the_formal_latent_result_gate_failed",
         },
-        "pending_result_panels": ["C", "D"],
-        "pending_reason": (
-            "W1-L05/L06 qualified latent outcomes are not present on the claimed base"
-        ),
+        "pending_result_panels": [],
+        "latent_result_summary": {
+            "analysis_sha256": latent_analysis["analysis_sha256"],
+            "analysis_status": latent_analysis["status"],
+            "main_text_eligible": False,
+            "point_estimates_withheld": True,
+            "resolved_shadow_receipts": 6,
+            "unresolved_shadow_receipts": 30,
+            "complete_case_primary_used": False,
+            "finite_population_bounds": latent_bounds,
+        },
         "rendering": {
             "width_inches": 7.08,
             "height_inches": 5.2,
@@ -855,7 +922,8 @@ def build_manifest(
             "lifecycle_completion_distinct_from_terminal_action": True,
             "isolated_model_backend_effect": False,
             "leaderboard_comparison": False,
-            "discard_quality_inferred_before_L05_L06": False,
+            "discard_quality_point_estimate_reported": False,
+            "failed_latent_gate_reported": True,
             "latent_result_direction_selected_after_outcomes": False,
             "real_laboratory_generalization": False,
         },
@@ -886,7 +954,7 @@ def main() -> int:
     args = parse_args()
     inputs = load_figure_inputs(ROOT)
     if args.check:
-        with tempfile.TemporaryDirectory(prefix="chemworld-w1-p04-") as temporary:
+        with tempfile.TemporaryDirectory(prefix="chemworld-w1-p09-") as temporary:
             temporary_dir = Path(temporary)
             outputs = render_outputs(inputs, temporary_dir)
             _validate_rendered_outputs(outputs)

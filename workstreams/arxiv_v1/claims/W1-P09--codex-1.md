@@ -22,6 +22,8 @@ declared_write_set:
   - tests/test_work_i_figure_3.py
   - scripts/render_arxiv_v1_display_items.py
   - tests/test_arxiv_v1_display_items.py
+  - scripts/audit_work_i_publication_figures.py
+  - tests/test_work_i_publication_figure_audit.py
   - scripts/audit_work_i_figure_integration.py
   - tests/test_work_i_figure_integration.py
   - paper/experimental_intelligence_v1_display_items.md
@@ -29,6 +31,8 @@ declared_write_set:
   - paper/figures/experimental-intelligence-v1/publication/figure-3-terminal-policy.pdf
   - paper/figures/experimental-intelligence-v1/publication/figure-3-terminal-policy.png
   - paper/figures/experimental-intelligence-v1/publication/figure-3-terminal-policy.manifest.json
+  - paper/figures/experimental-intelligence-v1/publication/figure-publication-audit-v0.1.json
+  - paper/figures/experimental-intelligence-v1/publication/figure-publication-audit-v0.1.md
   - paper/figures/experimental-intelligence-v1/work-i-publication-figure-manifest-v0.1.json
 shared_hot_file_requests:
   - "Exclusive P09 reservation: paper/experimental_intelligence_v1_display_items.md"
