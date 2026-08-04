@@ -19,8 +19,11 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **生成链**：运行 `paper/tools/build_arxiv_release.py`，由规范源生成 `paper/arxiv/main.tex`，再编译
   `paper/exports/experimental-intelligence-v1-arxiv/` 下的 PDF、source bundle 和 build manifest；不得手改
   `paper/arxiv/main.tex` 或生成的 PDF 来绕过源稿。
+- **文件位置**：`paper/arxiv/` 保存生成后的投稿 TeX、参考文献和临时编译目录，不是正文编辑入口；可交付
+  PDF 的固定路径是 `paper/exports/experimental-intelligence-v1-arxiv/chemworld-experimental-agency-arxiv.pdf`，
+  同目录的 `build-manifest.json`、source ZIP/TAR 和 `source/` 必须来自同一次构建。
 - **同步要求**：论文正文改动完成后，若影响标题、摘要、正文或图表，必须在同一发布段重建并检查 arXiv
-  TeX/PDF；生成物未同步时，该稿件段不算完成。
+  TeX/PDF、source bundle 和 build manifest；生成物未同步或 PDF 未做视觉检查时，该稿件段不算完成。
 
 ## 0. 当前进度快照
 
@@ -41,7 +44,8 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE**：U00，Codex `/root` 已锁定 U01--U06 案例矩阵；六项分别承担多阶段传播、资源受限测量、失败恢复、受控分叉、未见组合/完整 agent 和案例广度证据，U05 与 C03 共用预先冻结的反应--蒸馏覆盖批次。
 - **DONE**：C00，Codex `/root` 已冻结 C01--C08 与 D01--D04 的单份组合资格实验说明；正式分母、覆盖 seeds、U05/C03 共同未见批次、测量、pass/failure 规则和输出均在数据生成前锁定。
 - **DONE**：C01--C08 / D01--D04，Codex `/root` 完成冻结组合资格批次、receipt-contract 修复后的整批正式重跑和 fail-closed current binding。正式结果为 64/64 参考单元、1786/1786 配方、192/192 负向探针、52/52 生成组合、8/8 冻结未见组合、7/7 compile mutants、32/32 模块探针和 7/7 接口路径通过；leakage、missing receipts 和 failure classes 均为零。
-- **TODO**：先做 U00/B04 pre-launch amendment，修正 U02/U03 authoring example 的 objective 与可执行参考路径，再启动新增使用案例。
+- **DOING / Claim**：`Claim: Codex /root — U00/B04-AMEND — DOING`；修正 U02/U03 authoring example 的
+  objective、预算与可执行确定性参考路径，并同步规范源、arXiv TeX/PDF、source bundle 和 build manifest。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 
 ## 1. 论文只讲什么
