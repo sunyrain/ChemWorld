@@ -245,8 +245,8 @@
     "schema_version": "chemworld-current-evidence-dag-0.3",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "0c77e116abee43a3c23d8138a12dd80f1d370f929056daab54552fb01b4e928d",
-    "repository_source_sha256": "944e7a1afa1c405cff98e6a7c2a991c45f6c8208f983ab13c7c9d7ce1109769a",
+    "graph_sha256": "12b80d65cd8683a392f6f7f33afa0c312b11d235fa4200590372e8fbf8e9b00a",
+    "repository_source_sha256": "ed9f555a22c363a9b61933f7370931cc6ab672e04b148684053babb43bbecb53",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -307,6 +307,7 @@
       "static_s0_five_task_postqualification_summary",
       "static_s0_misindexed_information_freeze_manifest",
       "work_i_latent_terminal_analysis",
+      "first_paper_deterministic_use_case_qualification",
       "mechanism_design_audit",
       "static_s0_material_information_triarm_summary",
       "work_i_fvl_derived_data",
@@ -434,7 +435,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "7fae112886357331464f02b388f199c342e226d4bb60cf408ae2a0a3d7b5dde5",
+        "sha256": "b448a1b6a586666f1d7d045cb6fb6104525287381b779d59621aa02c6c3b435a",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -726,7 +727,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "848a3aaae19c2e79a9b9f1a4923849e1c3ab619a88d875e0c5f5a0cc32022302",
+        "sha256": "1bd2632ae29da7d6c6da96f84b2362ffcffbbabe7897ef2c6deab899b664be1a",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -741,7 +742,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "c39fce4712cb56cd4721855815b7de3c685400893a0252f3977ccc86814c5ec3",
+        "sha256": "980eb3c5e251e2bea191d7cd5f87f48706391f86d8518eb68a7c20d9b2097af8",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -848,7 +849,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "1b6783de4b95a700320f9dcdd4283e784378af2d02b5199e2bd04478c7f0a5fa",
+        "sha256": "741553b3b7ad432cefbc50be8cbab7ec0f9049244957dc81b61354e5b469e710",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -981,7 +982,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "d3933086d8f7cd9b5c79702feb9fd3550a426558135fa5831b107ef208324e7c",
+        "sha256": "e77941fb34922e3cd537d663120a3ad06741e22278585e16a6f7a6987de0b8ed",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -1026,7 +1027,7 @@
         "dependencies": [
           "static_s0_formal_campaign_summary"
         ],
-        "sha256": "d4c09e8276b64858be2fd27046f9b3187515a2a0610062e364d366626b99e84c",
+        "sha256": "ecccc3fbc85450156e35d5614eb831eb564f075dbcce9f332a88fa316240f258",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -1143,6 +1144,22 @@
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "blocked"
+      },
+      "first_paper_deterministic_use_case_qualification": {
+        "path": "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1.json",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "execution_commit_source_blobs_and_current_evidence_sha256",
+        "dependencies": [
+          "task_design_matrix",
+          "first_paper_composition_qualification",
+          "work_i_world_fork_qualification"
+        ],
+        "sha256": "bd81a9afde066ede58fe733450384f9e5fd6681965553b15b1d070adddc83a55",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
       },
       "mechanism_design_audit": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc28.json",
@@ -1341,6 +1358,7 @@
     "experiment_ledger": "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json",
     "claim_evidence_ledger": "workstreams/flagship_tasks/reports/pre-arxiv-claim-evidence-ledger-v1.json",
     "composition_qualification_report": "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json",
+    "deterministic_use_case_qualification_report": "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1.json",
     "derived_data": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json",
     "derived_data_manifest": "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.manifest.json",
     "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
