@@ -98,6 +98,8 @@ STATIC_FINAL_SYNTHESIS_VERSION = "chemworld-static-final-synthesis-0.3-s0-dev"
 STATIC_FINAL_SYNTHESIS_SEPARATE_VERSION = "chemworld-static-final-synthesis-0.4-s0-dev"
 STATIC_FINAL_SYNTHESIS_TOLERANT_DECLARED_VERSION = "chemworld-static-final-synthesis-0.5-s0-dev"
 STATIC_PREDICTIVE_SYNTHESIS_VERSION = "chemworld-static-predictive-synthesis-0.1-s0-dev"
+
+
 DECLARED_CLAIM_VALIDATION_STRICT = "strict"
 DECLARED_CLAIM_VALIDATION_UNSCORED_UNKNOWN = "unscored_unknown_terms"
 DECLARED_CLAIM_VALIDATION_POLICIES = frozenset(
@@ -2264,13 +2266,14 @@ class StaticOptimizationAgent:
             },
         }
         if executor_recipe_enforced:
-            prompt_payload["forbidden_json_fields"] = [
+            forbidden_json_fields = [
                 "candidate_id",
                 "recipe_parameters",
                 "search_vector",
             ]
             if coverage_design_enforced:
-                prompt_payload["forbidden_json_fields"].remove("candidate_id")
+                forbidden_json_fields.remove("candidate_id")
+            prompt_payload["forbidden_json_fields"] = forbidden_json_fields
         prompt = json.dumps(
             prompt_payload,
             ensure_ascii=False,
@@ -2476,7 +2479,7 @@ class StaticOptimizationAgent:
             public_queries = [query.to_public_dict() for query in prediction_queries]
             if context.get("held_out_prediction_queries") != public_queries:
                 raise RuntimeError("predictive query regeneration does not match final context")
-        recommendation_field = (
+        recommendation_field: dict[str, object] = (
             {
                 "recommended_recipe_parameters": {
                     key: copy.deepcopy(value)
@@ -2488,7 +2491,7 @@ class StaticOptimizationAgent:
             if named_controls
             else {"recommended_search_vector": ["number in [0,1]" for _ in range(dimension)]}
         )
-        structured_claim_shape = {
+        structured_claim_shape: dict[str, object] = {
             "structured_claims": [
                 {
                     "claim_id": "string",
@@ -2502,7 +2505,7 @@ class StaticOptimizationAgent:
                 }
             ]
         }
-        counterfactual_prediction_shape = (
+        counterfactual_prediction_shape: dict[str, object] = (
             {
                 "counterfactual_predictions": [
                     {
@@ -2522,18 +2525,21 @@ class StaticOptimizationAgent:
             if prediction_queries
             else {}
         )
-        prompt_payload = {
+        working_explanation_shape: dict[str, object] = {
+            "empirical_relationships": ["at most 16 strings"],
+            "mechanistic_hypothesis": "string",
+            "supporting_evidence_ids": ["at most 16 public evidence IDs"],
+            "contradicting_evidence_ids": ["at most 16 public evidence IDs"],
+            "uncertainty": "number in [0,1]",
+        }
+        if named_controls:
+            working_explanation_shape.update(structured_claim_shape)
+        required_json_shape: dict[str, object] = {
             "schema_version": self.final_synthesis_version,
-            "public_final_synthesis_context": context,
-            "public_context_sha256": context_sha256,
-            **(
-                {"forbidden_json_fields": ["counterfactual_predictions"]}
-                if self.predictive_world_understanding_enabled and not include_prediction_queries
-                else {}
-            ),
-            "required_json_shape": {
-                "schema_version": self.final_synthesis_version,
-                **recommendation_field,
+        }
+        required_json_shape.update(recommendation_field)
+        required_json_shape.update(
+            {
                 "recommended_measurement_slots": ["public diagnostic slot ID"],
                 "recommendation_type": "tested|interpolated|extrapolated",
                 "source_experiment_indices": ["integer experiment index"],
@@ -2541,19 +2547,20 @@ class StaticOptimizationAgent:
                 "confidence": "number in [0,1]",
                 "method_summary": "string",
                 "evidence_refs": ["at most 16 public evidence IDs"],
-                "working_explanation": {
-                    "empirical_relationships": ["at most 16 strings"],
-                    "mechanistic_hypothesis": "string",
-                    "supporting_evidence_ids": ["at most 16 public evidence IDs"],
-                    "contradicting_evidence_ids": ["at most 16 public evidence IDs"],
-                    "uncertainty": "number in [0,1]",
-                    **(structured_claim_shape if named_controls else {}),
-                },
+                "working_explanation": working_explanation_shape,
                 "remaining_risks": ["at most 16 strings"],
                 "recommended_followup": "string",
-                **counterfactual_prediction_shape,
-            },
+            }
+        )
+        required_json_shape.update(counterfactual_prediction_shape)
+        prompt_payload: dict[str, object] = {
+            "schema_version": self.final_synthesis_version,
+            "public_final_synthesis_context": context,
+            "public_context_sha256": context_sha256,
         }
+        if self.predictive_world_understanding_enabled and not include_prediction_queries:
+            prompt_payload["forbidden_json_fields"] = ["counterfactual_predictions"]
+        prompt_payload["required_json_shape"] = required_json_shape
         prompt = json.dumps(
             prompt_payload,
             ensure_ascii=False,

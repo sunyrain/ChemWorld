@@ -109,7 +109,7 @@ def _default_process_factory(
 ) -> ProcessLike:
     kwargs: dict[str, Any] = {}
     if os.name == "nt":
-        kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+        kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     process = subprocess.Popen(
         list(command),
         cwd=cwd,

@@ -197,7 +197,7 @@ def parse_world_understanding_claims_tolerant(
 
     submitted = payload if isinstance(payload, list) else []
     accepted: list[WorldUnderstandingClaim] = []
-    rejected: list[dict[str, Any]] = []
+    rejected: list[dict[str, int | str | list[str] | None]] = []
     seen_ids: set[str] = set()
     if not isinstance(payload, list):
         rejected.append(
@@ -229,7 +229,7 @@ def parse_world_understanding_claims_tolerant(
         except ValueError as error:
             message = str(error)
             reason_code = _claim_rejection_reason(message)
-            rejection = {
+            rejection: dict[str, int | str | list[str] | None] = {
                 "claim_index": index,
                 "claim_id": claim_id,
                 "reason_code": reason_code,

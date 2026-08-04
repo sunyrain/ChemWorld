@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
 
 CRYSTALLIZATION_SINGLE_STAGE_RECIPE_VERSION = (
     "chemworld-reaction-crystallization-static-single-stage-recipe-0.2-s0-dev"
@@ -108,7 +109,7 @@ def crystallization_single_stage_parameter_schema() -> dict[str, dict[str, Any]]
 def crystallization_single_stage_parameters_from_unit_vector(
     vector: np.ndarray,
 ) -> dict[str, int | float]:
-    values = np.asarray(vector, dtype=float).reshape(-1)
+    values: NDArray[np.float64] = np.asarray(vector, dtype=float).reshape(-1)
     if values.size != CRYSTALLIZATION_SINGLE_STAGE_DIMENSION:
         raise ValueError("reaction-crystallization recipe requires ten coordinates")
     if not np.all(np.isfinite(values)):

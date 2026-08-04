@@ -278,6 +278,7 @@ class CompleteExperimentOptimizer:
             electrochemical_workflow_mode
         )
         self.rng = np.random.default_rng(self.seed)
+        self.categorical: tuple[tuple[int, int], ...]
         if (
             str(self.task_info.get("task_id", "")) == "electrochemical-conversion"
             and self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
@@ -896,6 +897,7 @@ def plan_from_baseline_decision(
 ) -> StaticOptimizationPlan:
     vector = np.asarray(decision.vector, dtype=float)
     recipe_kind = task_recipe_kind(dict(task_info))
+    measurement_slots: tuple[str, ...]
     if recipe_kind == "reaction_crystallization":
         parameters = crystallization_single_stage_parameters_from_unit_vector(vector)
         measurement_slots = ("diagnostic-01-hplc", "diagnostic-02-hplc")

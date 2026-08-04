@@ -18,6 +18,7 @@ from chemworld.eval.static_material_information_campaign import (
     _bootstrap_interval,
     _mean_mapping,
     _read_world,
+    _ScoreSummary,
     _summary,
 )
 from chemworld.materials import (
@@ -88,7 +89,7 @@ def _two_sided_contrast(
     contrast_id: str,
     seed: int,
     draws: int,
-) -> dict[str, Any]:
+) -> _ScoreSummary:
     result = _summary(values)
     result["world_bootstrap_95_interval"] = _bootstrap_interval(
         values,

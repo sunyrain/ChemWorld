@@ -8,6 +8,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+import numpy as np
+
 from chemworld.agents.crystallization_single_stage import (
     CRYSTALLIZATION_SINGLE_STAGE_MEASUREMENT_SLOTS,
     crystallization_single_stage_parameters_from_unit_vector,
@@ -88,6 +90,13 @@ def build_crystallization_prediction_queries(
     queries: list[CrystallizationPredictionQuery] = []
     for query_id, variable, intervention in prepared:
         metric_ids = tuple(PREDICTIVE_QUERY_METRICS[variable])
+        metric_sources = {
+            metric_id: PREDICTIVE_METRIC_SOURCES[metric_id]
+            for metric_id in metric_ids
+        }
+        direction_thresholds = dict.fromkeys(
+            metric_ids, PREDICTIVE_DIRECTION_THRESHOLD
+        )
         core = {
             "schema_version": CRYSTALLIZATION_PREDICTIVE_VERSION,
             "query_id": query_id,
@@ -96,13 +105,8 @@ def build_crystallization_prediction_queries(
             "reference_recipe_parameters": dict(reference_parameters),
             "intervention_recipe_parameters": dict(intervention),
             "metric_ids": list(metric_ids),
-            "metric_sources": {
-                metric_id: PREDICTIVE_METRIC_SOURCES[metric_id]
-                for metric_id in metric_ids
-            },
-            "direction_thresholds": dict.fromkeys(
-                metric_ids, PREDICTIVE_DIRECTION_THRESHOLD
-            ),
+            "metric_sources": metric_sources,
+            "direction_thresholds": direction_thresholds,
             "standardized_measurement_slots": list(PREDICTIVE_MEASUREMENT_SLOTS),
         }
         queries.append(
@@ -114,8 +118,8 @@ def build_crystallization_prediction_queries(
                 reference_recipe_parameters=dict(reference_parameters),
                 intervention_recipe_parameters=dict(intervention),
                 metric_ids=metric_ids,
-                metric_sources=dict(core["metric_sources"]),
-                direction_thresholds=dict(core["direction_thresholds"]),
+                metric_sources=dict(metric_sources),
+                direction_thresholds=dict(direction_thresholds),
                 standardized_measurement_slots=PREDICTIVE_MEASUREMENT_SLOTS,
                 query_sha256=_canonical_sha256(core),
             )
@@ -236,9 +240,10 @@ def _parameters_from_history(item: Mapping[str, Any]) -> dict[str, int | float]:
     parameters = plan.get("recipe_parameters")
     if isinstance(parameters, Mapping):
         vector = crystallization_single_stage_unit_vector_from_parameters(parameters)
-    else:
-        vector = plan.get("search_vector")
-    return crystallization_single_stage_parameters_from_unit_vector(vector)
+        return crystallization_single_stage_parameters_from_unit_vector(vector)
+    return crystallization_single_stage_parameters_from_unit_vector(
+        np.asarray(plan.get("search_vector"), dtype=float)
+    )
 
 
 def _vector_hash(parameters: Mapping[str, int | float]) -> str:

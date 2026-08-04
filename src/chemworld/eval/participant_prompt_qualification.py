@@ -13,7 +13,7 @@ from typing import Any, Literal
 import gymnasium as gym
 import numpy as np
 
-from chemworld.agent_interface import agent_view_bundle
+from chemworld.agent_interface import agent_view_bundle, campaign_state
 from chemworld.agents.interaction import AgentDecisionContext, build_decision_context
 from chemworld.agents.mechanism_adaptation_live_llm import (
     MechanismAdaptationLiveLLMAgent,
@@ -152,9 +152,9 @@ def _legal_lifecycle_contexts(
         previous_event_type: str | None = None
         for index in range(len(actions) + 1):
             public_view = agent_view_bundle(env, observation, current_info)
-            campaign_state = dict(env.unwrapped.campaign_state())
+            current_campaign_state = campaign_state(env)
             action_count = 0 if previous_event_type == "experiment_end" else index
-            campaign_state.update(
+            current_campaign_state.update(
                 {
                     "diagnostic_actions_used_current_experiment": action_count,
                     "diagnostic_per_experiment_action_limit": per_experiment_limit,
@@ -163,7 +163,7 @@ def _legal_lifecycle_contexts(
             context = build_decision_context(
                 step=index + 1,
                 task_info=task_info,
-                campaign_state=campaign_state,
+                campaign_state=current_campaign_state,
                 public_view=public_view,
                 previous_event_type=previous_event_type,
             )

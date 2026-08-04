@@ -35,7 +35,7 @@ def _default_command_runner(
 ) -> subprocess.CompletedProcess[str]:
     kwargs: dict[str, Any] = {}
     if os.name == "nt":
-        kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+        kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     return subprocess.run(
         list(command),
         input=stdin,

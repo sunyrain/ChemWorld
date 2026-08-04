@@ -20,16 +20,18 @@ def _source(*, dirty: bool = False) -> dict[str, Any]:
 
 
 def test_runner_command_binds_config_output_and_resume() -> None:
+    config_path = Path("C:/repo/protocol.json")
+    output_root = Path("C:/repo/formal-run")
     command = launcher._runner_command(
-        config_path=Path("C:/repo/protocol.json"),
-        output_root=Path("C:/repo/formal-run"),
+        config_path=config_path,
+        output_root=output_root,
         resume=True,
     )
 
     assert command[1:3] == ["-m", "scripts.run_g2_trajectory_replication"]
     assert command[-2:] == ["--allow-external-provider", "--resume"]
-    assert command[command.index("--config") + 1] == "C:\\repo\\protocol.json"
-    assert command[command.index("--output-root") + 1] == "C:\\repo\\formal-run"
+    assert command[command.index("--config") + 1] == str(config_path)
+    assert command[command.index("--output-root") + 1] == str(output_root)
 
 
 def test_launch_receipt_is_content_hashed(tmp_path: Path) -> None:

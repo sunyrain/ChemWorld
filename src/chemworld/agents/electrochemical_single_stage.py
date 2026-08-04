@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
 
 from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_TASK_CONTRACT,
@@ -89,7 +90,7 @@ def electrochemical_single_stage_parameter_schema() -> dict[str, dict[str, Any]]
 def electrochemical_single_stage_parameters_from_unit_vector(
     vector: np.ndarray,
 ) -> dict[str, int | float]:
-    values = np.asarray(vector, dtype=float).reshape(-1)
+    values: NDArray[np.float64] = np.asarray(vector, dtype=float).reshape(-1)
     if values.size != ELECTROCHEMICAL_SINGLE_STAGE_DIMENSION:
         raise ValueError("single-stage electrochemical recipe requires six coordinates")
     if not np.all(np.isfinite(values)):

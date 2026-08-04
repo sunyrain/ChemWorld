@@ -609,9 +609,10 @@ def _reconstruct_right_censored_resource_and_replay(
             preflight = receipt.get("preflight")
             outcome_delta = receipt.get("outcome_delta")
             action = record.get("action")
-            if not all(
-                isinstance(value, Mapping)
-                for value in (preflight, outcome_delta, action)
+            if (
+                not isinstance(preflight, Mapping)
+                or not isinstance(outcome_delta, Mapping)
+                or not isinstance(action, Mapping)
             ):
                 raise CampaignResourceIntegrityError(
                     f"step {index} has malformed action/resource receipt"
