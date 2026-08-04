@@ -26,10 +26,12 @@ declared_write_set:
   - scripts/render_arxiv_v1_display_items.py
   - scripts/render_work_i_figure_5.py
   - scripts/render_work_i_figure_6.py
+  - scripts/render_work_i_figure_3.py
   - scripts/audit_work_i_publication_figures.py
   - scripts/audit_work_i_figure_integration.py
   - paper/figures/experimental-intelligence-v1/publication/figure-5-complete-lifecycles.*
   - paper/figures/experimental-intelligence-v1/publication/figure-6-fresh-trajectories.*
+  - paper/figures/experimental-intelligence-v1/publication/figure-3-terminal-policy.*
   - paper/figures/experimental-intelligence-v1/publication/figure-publication-audit-v0.1.*
   - paper/figures/experimental-intelligence-v1/work-i-publication-figure-manifest-v0.1.json
   - paper/arxiv/template.tex
@@ -47,6 +49,7 @@ declared_write_set:
   - tests/test_publication_v1_artifacts.py
   - tests/test_work_i_figure_5.py
   - tests/test_work_i_figure_6.py
+  - tests/test_work_i_figure_3.py
   - tests/test_work_i_figure_integration.py
 shared_hot_file_requests:
   - "Coordinator reservation on main for the reader-facing manuscript, current Figure 5, and first-paper planning authority."
