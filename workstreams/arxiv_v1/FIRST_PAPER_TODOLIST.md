@@ -44,8 +44,11 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE**：U00，Codex `/root` 已锁定 U01--U06 案例矩阵；六项分别承担多阶段传播、资源受限测量、失败恢复、受控分叉、未见组合/完整 agent 和案例广度证据，U05 与 C03 共用预先冻结的反应--蒸馏覆盖批次。
 - **DONE**：C00，Codex `/root` 已冻结 C01--C08 与 D01--D04 的单份组合资格实验说明；正式分母、覆盖 seeds、U05/C03 共同未见批次、测量、pass/failure 规则和输出均在数据生成前锁定。
 - **DONE**：C01--C08 / D01--D04，Codex `/root` 完成冻结组合资格批次、receipt-contract 修复后的整批正式重跑和 fail-closed current binding。正式结果为 64/64 参考单元、1786/1786 配方、192/192 负向探针、52/52 生成组合、8/8 冻结未见组合、7/7 compile mutants、32/32 模块探针和 7/7 接口路径通过；leakage、missing receipts 和 failure classes 均为零。
-- **DOING / Claim**：`Claim: Codex /root — U00/B04-AMEND — DOING`；修正 U02/U03 authoring example 的
-  objective、预算与可执行确定性参考路径，并同步规范源、arXiv TeX/PDF、source bundle 和 build manifest。
+- **DONE**：`Claim: Codex /root — U00/B04-AMEND — DONE`；U02/U03 authoring example 已改用 runtime
+  支持的 `balanced` objective，冻结并执行验证 5-step 表征路径和 19-step 失败--恢复路径；规范源、arXiv
+  TeX、19 页 PDF、source bundle 和 build manifest 已由同一次确定性构建同步，PDF 第 3--4 页视觉检查通过。
+- **TODO**：下一块先写并 claim 一份使用案例实验说明，再生成 U01、U02、U03/E01 和 U06 的确定性轨迹；
+  U05/E02 的完整 agent 运行单独保持冻结第一项和公共契约边界。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 
 ## 1. 论文只讲什么
@@ -104,7 +107,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 | B01 | DONE | 统一世界构造入口 | 可从声明式契约构造合法世界并得到明确的公开操作、仪器、资源、终止和评价表面 |
 | B02 | DONE | 实现兼容性检查 | 合法组合可编译；缺失依赖、冲突模块、单位不匹配和无效参数在执行前被清楚拒绝 |
 | B03 | DONE | 实现覆盖引导的组合生成 | 离散轴采用 covering array，连续轴采用空间填充采样，操作流程覆盖关键有序交互；生成规模由覆盖目标决定而非声称穷举 |
-| B04 | DONE | 补充公开 authoring 示例 | 至少给出单模块、跨模块、多阶段和受控分叉示例；15 个参考任务可由同一契约体系解释 |
+| B04 | DONE | 补充公开 authoring 示例 | 单模块、跨模块、多阶段和受控分叉示例均由同一契约体系解释；U02/U03 的公开请求与冻结确定性路径均可执行闭环 |
 
 ### C. 世界与仪器资格实验（第一篇新增证据的核心）
 
@@ -154,7 +157,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 
 | ID | 状态 | 使用案例 | 论文价值与放置 |
 | --- | --- | --- | --- |
-| U00 | DONE | 锁定 U01--U06 案例矩阵 | 六个案例的契约、证据角色和共用关系无歧义；U05 与 C03 绑定同一冻结未见组合批次 |
+| U00 | DONE | 锁定并修订 U01--U06 案例矩阵 | 六个案例的契约、证据角色和共用关系无歧义；U02/U03 路径已完成 pre-launch amendment，U05 与 C03 绑定同一冻结未见组合批次 |
 | U01 | TODO | 多阶段反应到分离/结晶 | 展示反应、相态和下游纯化组成一个连续世界；主文候选 |
 | U02 | TODO | 资源受限的结构/平衡表征 | 展示仪器选择、信息获取、样品消耗和停止决定；主文候选 |
 | U03 | TODO | 失败、约束与恢复 | 展示前置条件、安全边界、失败回执、资源后果和后续恢复；主文或扩展图 |
