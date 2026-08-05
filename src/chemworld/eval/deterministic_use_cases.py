@@ -89,6 +89,7 @@ _U05_COMPOSITION_ID = "qualification-reaction-distillation-observation-coverage-
 _U05_REQUEST_SHA256 = "71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5"
 _U05_GENERATION_SEED = 105
 _U05_GENERATION_INDEX = 0
+_COMPLETED_CLAIM = "Claim: Codex /root — U01-U03/U06/E01-DET — DONE"
 
 
 class DeterministicUseCaseProtocolError(ValueError):
@@ -203,9 +204,8 @@ def validate_launch_preconditions(
         errors.append("first-paper TODO is missing")
     else:
         todo_text = todo_path.read_text(encoding="utf-8")
-        claim = "Claim: Codex /root — U01-U03/U06/E01-DET — DOING"
-        if claim not in todo_text:
-            errors.append("active deterministic use-case claim is missing or not DOING")
+        if _COMPLETED_CLAIM not in todo_text:
+            errors.append("completed deterministic use-case claim is missing or not DONE")
 
     branch = _git(root, "branch", "--show-current")
     dirty = _git(root, "status", "--porcelain", "--untracked-files=all")

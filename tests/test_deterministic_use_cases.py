@@ -5,7 +5,11 @@ from typing import Any
 
 import pytest
 
-from chemworld.eval.deterministic_use_cases import build_report, write_outputs
+from chemworld.eval.deterministic_use_cases import (
+    build_report,
+    validate_launch_preconditions,
+    write_outputs,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -59,6 +63,12 @@ EXPECTED_CASES = {
         "action_list_sha256": "928e98b92859afb6968aa07e1021c222403f699baafb10bdd29b3ce9e7b81e95",
     },
 }
+
+
+def test_launch_accepts_completed_claim_for_dependency_rebuild() -> None:
+    receipt = validate_launch_preconditions(ROOT, require_clean=False)
+    assert receipt["branch"] == "main"
+    assert receipt["task_contract_version"]
 
 
 @pytest.fixture(scope="module")
