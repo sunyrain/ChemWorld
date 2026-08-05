@@ -60,13 +60,13 @@ FROZEN_COMPOSITION_ID = "qualification-reaction-distillation-observation-coverag
 FROZEN_CASE_ID = "qualification-reaction-distillation-observation-case-0001"
 FROZEN_PATTERN = "reaction-distillation-observation"
 FROZEN_REQUEST_SHA256 = (
-    "2c5ac886b1ed95eb2868aae285e8183510a34da1bd317b42ab6be131fb0d152e"
+    "71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5"
 )
 FROZEN_RUNTIME_TASK_CONTRACT_HASH = (
     "9b775c56b1cfe07dc75afc355d4815077913b27cbeedf20d32fb21d9dadf9f14"
 )
 FROZEN_PUBLIC_TASK_SUBOBJECT_HASH = (
-    "0ada08676d4b4afd20383619b4a1392639b4641ad26a15fb3b3e0f38c0b2de1e"
+    "a2bd2dfc7d98057f5edc72b182f8da37dfe4257bb4c01d3cea3620c251c22844"
 )
 FROZEN_GENERATION_SEED = 105
 FROZEN_GENERATION_INDEX = 0
@@ -78,14 +78,27 @@ FROZEN_REASONING_EFFORT = "medium"
 FROZEN_CODEX_CLI_VERSION = "codex-cli 0.145.0"
 FROZEN_OPERATION_LIMIT = 16
 FROZEN_COMPLETE_EXPERIMENT_LIMIT = 1
-FROZEN_WALL_TIME_LIMIT_S = 3600.0
 FROZEN_MODEL_CALL_LIMIT = 1
-FROZEN_INPUT_TOKEN_LIMIT = 192_000
+FROZEN_AUDITED_CUMULATIVE_INPUT_BASELINE = 517_000
+FROZEN_CUMULATIVE_INPUT_HEADROOM = 123_000
+FROZEN_INPUT_TOKEN_LIMIT = (
+    FROZEN_AUDITED_CUMULATIVE_INPUT_BASELINE
+    + FROZEN_CUMULATIVE_INPUT_HEADROOM
+)
 FROZEN_UNCACHED_INPUT_TOKEN_LIMIT = 192_000
 FROZEN_OUTPUT_TOKEN_LIMIT = 64_000
 FROZEN_REQUEST_TIMEOUT_S = 600.0
 FROZEN_FINALIZATION_TIMEOUT_S = 300.0
+FROZEN_WALL_TIME_RESERVE_S = 600.0
+FROZEN_WALL_TIME_LIMIT_S = (
+    FROZEN_OPERATION_LIMIT * FROZEN_REQUEST_TIMEOUT_S
+    + FROZEN_FINALIZATION_TIMEOUT_S
+    + FROZEN_WALL_TIME_RESERVE_S
+)
 FROZEN_PRE_ACTION_RESTART_LIMIT = 0
+FROZEN_MAX_TOOL_OUTPUT_BYTES = 16_384
+FROZEN_HISTORY_EVENT_LIMIT = 16
+FROZEN_HISTORY_BYTE_LIMIT = 65_536
 
 _EXPECTED_CLAIM = "Claim: Codex /root — U04/U05/E02-INSTRUMENT-USE — DOING"
 _WINDOWS_ABSOLUTE_PATH = re.compile(r"^[A-Za-z]:[\\/]")
@@ -197,7 +210,7 @@ def validate_launch_preconditions(
             "world seed 0",
             "pre-action restart limit 为 0",
             "环境操作上限 16",
-            "provider session/model-call 上限 1",
+                "provider session 与 logical Codex turn 上限各 1",
         )
         missing = [item for item in required_note_fragments if item not in note]
         if missing:
@@ -541,6 +554,40 @@ def _method_resource_limits() -> dict[str, Any]:
         "cpu_time_limit_s": None,
         "gpu_time_limit_s": None,
         "checkpoint_complete_experiments": [1],
+    }
+
+
+def _method_resource_policy() -> dict[str, Any]:
+    return {
+        "wall_time": {
+            "formula": (
+                "operation_limit * request_timeout_s + "
+                "finalization_timeout_s + reserve_s"
+            ),
+            "operation_limit": FROZEN_OPERATION_LIMIT,
+            "request_timeout_s": FROZEN_REQUEST_TIMEOUT_S,
+            "finalization_timeout_s": FROZEN_FINALIZATION_TIMEOUT_S,
+            "reserve_s": FROZEN_WALL_TIME_RESERVE_S,
+            "limit_s": FROZEN_WALL_TIME_LIMIT_S,
+        },
+        "input_tokens": {
+            "cumulative_input_semantics": (
+                "complete persistent Codex turn, including cache-hit context "
+                "recounted across backend responses"
+            ),
+            "audited_cumulative_input_baseline": (
+                FROZEN_AUDITED_CUMULATIVE_INPUT_BASELINE
+            ),
+            "cumulative_input_headroom": FROZEN_CUMULATIVE_INPUT_HEADROOM,
+            "cumulative_input_limit": FROZEN_INPUT_TOKEN_LIMIT,
+            "uncached_input_limit": FROZEN_UNCACHED_INPUT_TOKEN_LIMIT,
+            "cache_hit_is_reused_input_not_repeated_output": True,
+        },
+        "mcp_context": {
+            "max_tool_output_bytes": FROZEN_MAX_TOOL_OUTPUT_BYTES,
+            "history_event_limit": FROZEN_HISTORY_EVENT_LIMIT,
+            "history_byte_limit": FROZEN_HISTORY_BYTE_LIMIT,
+        },
     }
 
 
@@ -1813,6 +1860,9 @@ def _build_execution_report(
         request_timeout_s=FROZEN_REQUEST_TIMEOUT_S,
         finalization_timeout_s=FROZEN_FINALIZATION_TIMEOUT_S,
         pre_action_restart_limit=FROZEN_PRE_ACTION_RESTART_LIMIT,
+        max_tool_output_bytes=FROZEN_MAX_TOOL_OUTPUT_BYTES,
+        history_event_limit=FROZEN_HISTORY_EVENT_LIMIT,
+        history_byte_limit=FROZEN_HISTORY_BYTE_LIMIT,
     )
     step_monitor = _StepFailFastMonitor(
         composition_request=composition_request,
@@ -1953,6 +2003,7 @@ def _build_execution_report(
             "public_compiled_task_subobject_hash": FROZEN_PUBLIC_TASK_SUBOBJECT_HASH,
             "campaign_resource_card": campaign_card,
             "method_resource_limits": method_limits,
+            "method_resource_policy": _method_resource_policy(),
             "pre_action_restart_limit": FROZEN_PRE_ACTION_RESTART_LIMIT,
             "request_timeout_s": FROZEN_REQUEST_TIMEOUT_S,
             "finalization_timeout_s": FROZEN_FINALIZATION_TIMEOUT_S,
@@ -2323,11 +2374,21 @@ __all__ = [
     "FROZEN_COMPOSITION_ID",
     "FROZEN_GENERATION_INDEX",
     "FROZEN_GENERATION_SEED",
+    "FROZEN_AUDITED_CUMULATIVE_INPUT_BASELINE",
+    "FROZEN_CUMULATIVE_INPUT_HEADROOM",
+    "FROZEN_FINALIZATION_TIMEOUT_S",
+    "FROZEN_HISTORY_BYTE_LIMIT",
+    "FROZEN_HISTORY_EVENT_LIMIT",
+    "FROZEN_INPUT_TOKEN_LIMIT",
+    "FROZEN_MAX_TOOL_OUTPUT_BYTES",
     "FROZEN_OPERATION_LIMIT",
     "FROZEN_PUBLIC_TASK_SUBOBJECT_HASH",
     "FROZEN_REQUEST_SHA256",
     "FROZEN_RUNTIME_TASK_CONTRACT_HASH",
+    "FROZEN_UNCACHED_INPUT_TOKEN_LIMIT",
     "FROZEN_WORLD_SEED",
+    "FROZEN_WALL_TIME_LIMIT_S",
+    "FROZEN_WALL_TIME_RESERVE_S",
     "METHOD_ID",
     "QUALIFICATION_ID",
     "REPORT_SCHEMA_VERSION",

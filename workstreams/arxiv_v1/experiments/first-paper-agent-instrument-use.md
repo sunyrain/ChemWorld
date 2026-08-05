@@ -16,11 +16,11 @@ qualification 中生成顺序第一项：composition
 `qualification-reaction-distillation-observation-coverage-0001`、case
 `qualification-reaction-distillation-observation-case-0001`、generation seed 105、generation index 0、world seed 0，
 composition request SHA-256 为
-`2c5ac886b1ed95eb2868aae285e8183510a34da1bd317b42ab6be131fb0d152e`；该请求在当前 runtime
+`71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5`；该请求在当前 runtime
 编译得到的 task contract hash 固定为
 `9b775c56b1cfe07dc75afc355d4815077913b27cbeedf20d32fb21d9dadf9f14`，composition qualification
 保存的公开 compiled task subobject hash 固定为
-`0ada08676d4b4afd20383619b4a1392639b4641ad26a15fb3b3e0f38c0b2de1e`。不得按结果改选其余七项。
+`a2bd2dfc7d98057f5edc72b182f8da37dfe4257bb4c01d3cea3620c251c22844`。不得按结果改选其余七项。
 
 ## 冻结 agent、权限与预算
 
@@ -29,9 +29,16 @@ composition request SHA-256 为
   `chemworld_lab` MCP 控制完整 experiment。model `gpt-5.6-sol`，reasoning effort `medium`，agent seed 0。
 - provider/auth 使用 Codex CLI 的 cached ChatGPT subscription login；冻结 preflight 为 `codex-cli 0.145.0` 且
   login status 通过。pre-action restart limit 为 0；运行级不允许换模型、换 seed、换世界、resume 或重启后择优。
-- 环境操作上限 16；完整生命周期上限 1；wall time 上限 3600 s；provider session/model-call 上限 1；
-  cumulative input token 上限 192000，uncached input token 上限 192000；输出 token 上限 64000；单次下一
-  动作等待上限 600 s，session finalization 上限 300 s。
+- 环境操作上限 16；完整生命周期上限 1；provider session 与 logical Codex turn 上限各 1；MCP `step`
+  上限与已提交环境操作数一致。单次下一动作等待上限 600 s，session finalization 上限 300 s，另加
+  600 s runner/IPC 余量，因此 method wall time 上限按 `16 × 600 + 300 + 600 = 10500 s` 冻结，而非
+  与分项 timeout 矛盾的统一 3600 s。
+- cumulative input token 上限 640000，其中 517000 是旧正式 session 的已审计累计 input 基线，另留
+  123000 headroom；uncached input token 仍独立硬限制为 192000，输出 token 上限 64000。cache hit 只
+  表示被后续 backend response 再次使用的历史 input context，不是重复 output，也不能用来绕过
+  cumulative input 上限。
+- U05 专用 MCP 单次返回上限 16384 bytes，history 最多 16 条且总计 65536 bytes。新冻结 12-step
+  unseen 路径的实测最大 step response 约 6.2 kB，故该 cap 保留超过 2 倍余量，同时限制意外上下文膨胀。
 - agent 只见公开 composition/task contract、decision state、合法 action signatures、资源和明确的
   `terminate -> final_assay` 生命周期。host 不修复 action，不自动 terminate，不自动 final assay，也不把
   确定性参考轨迹放入 prompt；apps、subagents、web 和非 `chemworld_lab` 工具不参与实验决策。
@@ -90,3 +97,10 @@ agent 连续提交了 3 次 heat（3,600/7,200/3,600 s）和 2 次 distill（各
 fraction collection 的隐含耗时，超过原手工 `time_s=14,400`。修复后的 pattern envelope 会在提交前
 同时拒绝超出累计时间或 operation repeat 上限的动作；method wall time（agent 运行耗时）仍与世界
 process time（物理账本秒数）分开记录，不能互相替代。
+
+修复后未见 composition 的 request SHA-256 为
+`71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5`，公开 compiled task subobject
+SHA-256 为 `a2bd2dfc7d98057f5edc72b182f8da37dfe4257bb4c01d3cea3620c251c22844`；runtime task contract
+hash 保持 `9b775c56b1cfe07dc75afc355d4815077913b27cbeedf20d32fb21d9dadf9f14`。变化来自新增公开
+`process_time_policy`，不是世界、seed 或生成顺序改选。新 provider run 开始前必须重新冻结并核对这三个
+binding；旧 design-v1 请求和旧失败结果继续保留为历史，不得覆盖。

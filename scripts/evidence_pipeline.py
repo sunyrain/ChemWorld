@@ -1666,7 +1666,7 @@ def _first_paper_composition_qualification_binding_errors(
             and unseen[0].get("composition_id")
             == "qualification-reaction-distillation-observation-coverage-0001"
             and unseen[0].get("composition_request_sha256")
-            == "2c5ac886b1ed95eb2868aae285e8183510a34da1bd317b42ab6be131fb0d152e",
+            == "71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5",
             "composition qualification frozen unseen sequence is stale",
         )
 
@@ -2252,7 +2252,7 @@ def _first_paper_deterministic_use_case_binding_errors(
             and existing["U05"].get("composition_id")
             == "qualification-reaction-distillation-observation-coverage-0001"
             and existing["U05"].get("composition_request_sha256")
-            == "2c5ac886b1ed95eb2868aae285e8183510a34da1bd317b42ab6be131fb0d152e"
+            == "71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5"
             and existing["U05"].get("generation_seed") == 105
             and existing["U05"].get("generation_index") == 0
             and existing["U05"].get("action_count") == 12

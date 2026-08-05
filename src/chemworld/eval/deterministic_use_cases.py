@@ -86,7 +86,7 @@ EXPECTED_ACTION_SHA256 = {
 _U04_NODE_ID = "work_i_world_fork_qualification"
 _U05_NODE_ID = "first_paper_composition_qualification"
 _U05_COMPOSITION_ID = "qualification-reaction-distillation-observation-coverage-0001"
-_U05_REQUEST_SHA256 = "2c5ac886b1ed95eb2868aae285e8183510a34da1bd317b42ab6be131fb0d152e"
+_U05_REQUEST_SHA256 = "71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5"
 _U05_GENERATION_SEED = 105
 _U05_GENERATION_INDEX = 0
 
