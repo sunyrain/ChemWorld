@@ -80,7 +80,7 @@ FIRST_PAPER_COMPOSITION_QUALIFICATION_GUARDED_PATHS = (
 )
 FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID = "first_paper_deterministic_use_case_qualification"
 FIRST_PAPER_DETERMINISTIC_USE_CASES_PATH = (
-    "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1-design-v2.json"
+    "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1-design-v3.json"
 )
 FIRST_PAPER_DETERMINISTIC_USE_CASES_GUARDED_PATHS = (
     "scripts/run_first_paper_deterministic_use_cases.py",
@@ -3645,7 +3645,7 @@ def check_current_evidence() -> list[str]:
             "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1-design-v3.json"
         ),
         "deterministic_use_case_qualification_report": (
-            "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1-design-v2.json"
+            "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1-design-v3.json"
         ),
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
         "remaining_experiment_audit": (
