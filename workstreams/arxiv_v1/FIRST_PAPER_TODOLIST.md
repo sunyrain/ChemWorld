@@ -60,6 +60,12 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
   8,158.454/10,440 s。Provider accounting 为 1 session、1 logical Codex turn、17 MCP calls；累计 input
   493,092（cache hit 440,832、uncached 52,260），output 2,973，均在冻结上限内。v1/v2 失败继续保留，
   成功结果见 `reports/first-paper-agent-instrument-use-v3.{json,md}`。
+- **DONE**：E03/E04 与 F01、F02、F04--F06 已收束。正文保留 endpoint 与 19 维过程记录的区别，删除偏离主线的
+  archived pair；Related Work、能力边界、reference registry、coverage 映射、逐组件 model card、exact replay
+  定义和 agent provenance 已补齐。六图压缩为四图，13 页 arXiv PDF、source bundle 与 manifest 已集中验收。
+- **DOING / 外部工具阻塞**：F03 的四张可编辑 SVG、完整流程图及论文插入均已完成；当前运行时没有原生
+  GPT Image 2 工具，CLI 也没有 `OPENAI_API_KEY`，因此尚未执行“先由 Image 2 生成参考图、再按原布局转写 SVG”
+  的最后一轮视觉参考替换。现有发布版不依赖位图嵌入，所有文字、框、线、箭头和图表均为独立矢量元素。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 
 ## 1. 论文只讲什么
@@ -156,8 +162,8 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 | --- | --- | --- | --- |
 | E01 | DONE | 保留一个确定性控制 | 展示世界、资源、失败、观测和终止如何被仪器记录 |
 | E02 | DONE | 在未见生成世界上运行完整 agent | 证明 agent 可使用同一公开契约进入新组合世界并闭合生命周期；只作可用性展示 |
-| E03 | TODO | 保留 endpoint 相近但过程不同的示例 | 说明过程记录提供 endpoint 之外的信息；19 个维度保持分立，不合成“智能分数” |
-| E04 | TODO | 压缩旧 agent 结果 | 多模型排名、行为机制、规则学习、跨模型归因和大规模 agent 统计全部移到第二篇 |
+| E03 | DONE | 保留 endpoint 与过程可分辨性的论证 | 说明过程记录提供 endpoint 之外的信息；19 个维度保持分立，不合成“智能分数”；删除偏离主线的 archived pair |
+| E04 | DONE | 压缩旧 agent 结果 | 多模型排名、行为机制、规则学习、跨模型归因和大规模 agent 统计全部移到第二篇 |
 
 除非 C/E 暴露真实缺口，不再扩张广泛模型对比、16-world 行为研究或交互界面因果研究。
 
@@ -205,12 +211,12 @@ U05/C03 批次从头重跑并保留全部失败。
 
 | ID | 状态 | 工作 | 完成标准 |
 | --- | --- | --- | --- |
-| F01 | TODO | 重写标题、摘要、引言和贡献 | 开头直接说明“开放组合但有限资格”的逻辑，避免读者追问为何只有 15 个任务 |
-| F02 | TODO | 重写 Results/Methods/Discussion | 新资格实验成为主证据；agent profile 降为仪器应用案例；第二篇边界明确 |
-| F03 | TODO | 重做主图 | 依次展示对象层级、构造空间、生成覆盖、接口/物理资格、受控分叉、agent 使用；消除重叠和截断 |
-| F04 | TODO | 整理附录 | 放完整组件表、兼容规则、覆盖矩阵、模块参考验证、失败类别和更多参考任务样例 |
-| F05 | TODO | 清理读者无关内容 | 正文和图中不出现文件名、路径、SHA、commit、run ID、manifest、内部 task/release 名称 |
-| F06 | TODO | 一次集中验收并导出 | 只做一次完整测试、一次图/PDF 视觉检查和一次内容边界检查，然后生成第一版发布包 |
+| F01 | DONE | 重写标题、摘要、引言和贡献 | 开头直接说明“开放组合但有限资格”的逻辑，避免读者追问为何只有 15 个任务 |
+| F02 | DONE | 重写 Results/Methods/Discussion | 新资格实验成为主证据；agent profile 降为仪器应用案例；第二篇边界明确 |
+| F03 | DOING | 重做主图 | 四张可编辑 SVG 与完整流程图已插入并通过视觉检查；待可用 GPT Image 2 入口完成参考图生成与最后一轮原布局 SVG 转写 |
+| F04 | DONE | 整理附录 | 放完整组件表、兼容规则、覆盖矩阵、模块参考验证、失败类别和更多参考任务样例 |
+| F05 | DONE | 清理读者无关内容 | 正文和图中不出现文件名、路径、SHA、commit、run ID、manifest、内部 task/release 名称 |
+| F06 | DONE | 一次集中验收并导出 | 只做一次完整测试、一次图/PDF 视觉检查和一次内容边界检查，然后生成第一版发布包 |
 
 ## 4. 已有证据如何处理
 
