@@ -24,6 +24,11 @@ Work II remains separate and is governed by `workstreams/flagship_tasks/WORK_II_
   style unless the user explicitly re-enables them.
 - The coordinator works on `main`. Use a single executor unless the user explicitly requests parallel
   work.
+- Any command expected to run longer than 60 seconds must expose progress at least once per minute.
+  Report the current stage, completed/total units, throughput, and ETA when the denominator is known;
+  otherwise report a concrete liveness counter. Prefer native progress output, or use
+  `scripts/run_with_progress.py`. Keep wrapper logs and probes outside the repository so clean-worktree
+  preflights are not invalidated.
 - Internal hashes, manifests, run identifiers, and repository filenames belong in evidence records
   and release metadata, not in reader-facing manuscript prose or figures.
 
