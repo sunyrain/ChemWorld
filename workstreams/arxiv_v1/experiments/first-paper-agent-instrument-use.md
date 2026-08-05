@@ -16,11 +16,11 @@ qualification 中生成顺序第一项：composition
 `qualification-reaction-distillation-observation-coverage-0001`、case
 `qualification-reaction-distillation-observation-case-0001`、generation seed 105、generation index 0、world seed 0，
 composition request SHA-256 为
-`71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5`；该请求在当前 runtime
+`687007fb2fe9e7cb7bde1eff10219469fecc73903648d2fa34fec17c10694b4f`；该请求在当前 runtime
 编译得到的 task contract hash 固定为
 `9b775c56b1cfe07dc75afc355d4815077913b27cbeedf20d32fb21d9dadf9f14`，composition qualification
 保存的公开 compiled task subobject hash 固定为
-`a2bd2dfc7d98057f5edc72b182f8da37dfe4257bb4c01d3cea3620c251c22844`。不得按结果改选其余七项。
+`2d89a69f68d910dc8593a6ccfad698b108114a5295d18a4c362aad59155c497d`。不得按结果改选其余七项。
 
 ## 冻结 agent、权限与预算
 
@@ -99,8 +99,8 @@ fraction collection 的隐含耗时，超过原手工 `time_s=14,400`。修复�
 process time（物理账本秒数）分开记录，不能互相替代。
 
 修复后未见 composition 的 request SHA-256 为
-`71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5`，公开 compiled task subobject
-SHA-256 为 `a2bd2dfc7d98057f5edc72b182f8da37dfe4257bb4c01d3cea3620c251c22844`；runtime task contract
+`687007fb2fe9e7cb7bde1eff10219469fecc73903648d2fa34fec17c10694b4f`，公开 compiled task subobject
+SHA-256 为 `2d89a69f68d910dc8593a6ccfad698b108114a5295d18a4c362aad59155c497d`；runtime task contract
 hash 保持 `9b775c56b1cfe07dc75afc355d4815077913b27cbeedf20d32fb21d9dadf9f14`。变化来自新增公开
 `process_time_policy`，不是世界、seed 或生成顺序改选。新 provider run 开始前必须重新冻结并核对这三个
 binding；旧 design-v1 请求和旧失败结果继续保留为历史，不得覆盖。

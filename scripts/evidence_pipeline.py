@@ -47,7 +47,7 @@ CURRENT_REGISTRY = ROOT / "configs/current.json"
 
 FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID = "first_paper_composition_qualification"
 FIRST_PAPER_COMPOSITION_QUALIFICATION_PATH = (
-    "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
+    "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1-design-v3.json"
 )
 FIRST_PAPER_COMPOSITION_QUALIFICATION_GUARDED_PATHS = (
     "scripts/run_first_paper_composition_qualification.py",
@@ -1666,7 +1666,7 @@ def _first_paper_composition_qualification_binding_errors(
             and unseen[0].get("composition_id")
             == "qualification-reaction-distillation-observation-coverage-0001"
             and unseen[0].get("composition_request_sha256")
-            == "71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5",
+            == "687007fb2fe9e7cb7bde1eff10219469fecc73903648d2fa34fec17c10694b4f",
             "composition qualification frozen unseen sequence is stale",
         )
 
@@ -2252,7 +2252,7 @@ def _first_paper_deterministic_use_case_binding_errors(
             and existing["U05"].get("composition_id")
             == "qualification-reaction-distillation-observation-coverage-0001"
             and existing["U05"].get("composition_request_sha256")
-            == "71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5"
+            == "687007fb2fe9e7cb7bde1eff10219469fecc73903648d2fa34fec17c10694b4f"
             and existing["U05"].get("generation_seed") == 105
             and existing["U05"].get("generation_index") == 0
             and existing["U05"].get("action_count") == 12
@@ -3642,7 +3642,7 @@ def check_current_evidence() -> list[str]:
             "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json"
         ),
         "composition_qualification_report": (
-            "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
+            "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1-design-v3.json"
         ),
         "deterministic_use_case_qualification_report": (
             "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1-design-v2.json"

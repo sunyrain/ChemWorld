@@ -36,7 +36,7 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert "first_paper_composition_qualification" in node_ids
     qualification = {node.node_id: node for node in nodes}["first_paper_composition_qualification"]
     assert qualification.path == (
-        "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
+        "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1-design-v3.json"
     )
     assert qualification.role == "formal_result"
     assert qualification.dependencies == ("task_design_matrix",)
@@ -350,7 +350,7 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
         "workstreams/flagship_tasks/reports/pre-arxiv-claim-evidence-ledger-v1.json"
     )
     assert publication["composition_qualification_report"] == (
-        "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
+        "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1-design-v3.json"
     )
     assert publication["deterministic_use_case_qualification_report"] == (
         "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1-design-v2.json"

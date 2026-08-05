@@ -60,13 +60,13 @@ FROZEN_COMPOSITION_ID = "qualification-reaction-distillation-observation-coverag
 FROZEN_CASE_ID = "qualification-reaction-distillation-observation-case-0001"
 FROZEN_PATTERN = "reaction-distillation-observation"
 FROZEN_REQUEST_SHA256 = (
-    "71e898c8cac1825450f0ce364a9af87114ac9d6a8019d6781aa544f13b722ff5"
+    "687007fb2fe9e7cb7bde1eff10219469fecc73903648d2fa34fec17c10694b4f"
 )
 FROZEN_RUNTIME_TASK_CONTRACT_HASH = (
     "9b775c56b1cfe07dc75afc355d4815077913b27cbeedf20d32fb21d9dadf9f14"
 )
 FROZEN_PUBLIC_TASK_SUBOBJECT_HASH = (
-    "a2bd2dfc7d98057f5edc72b182f8da37dfe4257bb4c01d3cea3620c251c22844"
+    "2d89a69f68d910dc8593a6ccfad698b108114a5295d18a4c362aad59155c497d"
 )
 FROZEN_GENERATION_SEED = 105
 FROZEN_GENERATION_INDEX = 0

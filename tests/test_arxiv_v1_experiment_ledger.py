@@ -18,7 +18,7 @@ RELEASE_ATTESTATION_PATH = (
 )
 COMPOSITION_QUALIFICATION_PATH = (
     ROOT
-    / "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
+    / "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1-design-v3.json"
 )
 
 

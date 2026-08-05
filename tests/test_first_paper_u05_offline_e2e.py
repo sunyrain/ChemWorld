@@ -266,7 +266,7 @@ def test_u05_fake_codex_full_lifecycle_is_a_complete_census_and_immutable(
         "9b775c56b1cfe07dc75afc355d4815077913b27cbeedf20d32fb21d9dadf9f14"
     )
     assert report["frozen_experiment"]["public_compiled_task_subobject_hash"] == (
-        "a2bd2dfc7d98057f5edc72b182f8da37dfe4257bb4c01d3cea3620c251c22844"
+        "2d89a69f68d910dc8593a6ccfad698b108114a5295d18a4c362aad59155c497d"
     )
 
     actions = report["actions"]
