@@ -12,7 +12,35 @@ from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.interactive_codex_experiment import (
     InteractiveCodexExperimentAgent,
     InteractiveCodexExperimentError,
+    _public_task_contract,
 )
+
+
+def test_public_task_contract_exposes_composition_and_explicit_closeout() -> None:
+    composition = {
+        "composition_id": "generated-world",
+        "world": {"components": [{"kind": "reaction"}]},
+        "task": {"resources": {"operation_budget": 16, "final_assays": 1}},
+    }
+    contract = _public_task_contract(
+        {
+            "task_id": "generated-world",
+            "task_contract_hash": "a" * 64,
+            "composition": composition,
+            "allowed_operations": ["terminate", "measure"],
+            "allowed_instruments": ["final_assay"],
+            "method_budget_contract": {"complete_experiment_limit": 1},
+        }
+    )
+    assert contract["composition"] == composition
+    assert contract["experiment_lifecycle"] == {
+        "schema_version": "chemworld-public-experiment-lifecycle-0.1",
+        "planned_complete_experiments": 1,
+        "explicit_terminate_required": True,
+        "final_assay_required": True,
+        "final_assay_after_terminate": True,
+        "automatic_closeout": False,
+    }
 
 
 def _context(step: int, remaining: int) -> AgentDecisionContext:

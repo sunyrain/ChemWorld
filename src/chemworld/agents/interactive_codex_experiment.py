@@ -1272,6 +1272,7 @@ def _public_task_contract(task_info: Mapping[str, Any]) -> dict[str, Any]:
         "env_id",
         "task_id",
         "task_contract_hash",
+        "composition",
         "task_goal",
         "objective",
         "description",
@@ -1302,10 +1303,33 @@ def _public_task_contract(task_info: Mapping[str, Any]) -> dict[str, Any]:
         "objective_weights",
         "submission_requirements",
     )
-    return {
+    contract = {
         "schema_version": "chemworld-public-interactive-task-contract-0.1",
         **{key: to_builtin(task_info[key]) for key in keys if key in task_info},
     }
+    if not isinstance(contract.get("experiment_lifecycle"), Mapping):
+        allowed_operations = {
+            str(value) for value in task_info.get("allowed_operations", [])
+        }
+        allowed_instruments = {
+            str(value) for value in task_info.get("allowed_instruments", [])
+        }
+        if "terminate" in allowed_operations and "final_assay" in allowed_instruments:
+            method_budget = task_info.get("method_budget_contract")
+            planned_experiments = (
+                method_budget.get("complete_experiment_limit", 1)
+                if isinstance(method_budget, Mapping)
+                else 1
+            )
+            contract["experiment_lifecycle"] = {
+                "schema_version": "chemworld-public-experiment-lifecycle-0.1",
+                "planned_complete_experiments": int(planned_experiments),
+                "explicit_terminate_required": True,
+                "final_assay_required": True,
+                "final_assay_after_terminate": True,
+                "automatic_closeout": False,
+            }
+    return contract
 
 
 def _compact_legal_action(item: Mapping[str, Any]) -> dict[str, Any]:

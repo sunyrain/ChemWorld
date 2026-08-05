@@ -1,10 +1,27 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
+from chemworld.agents.base import BaseAgent
+from chemworld.campaign_resources import CampaignResourceCard
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.verify import verify_records
+
+
+class _CompositionCloseoutAgent(BaseAgent):
+    def act(self, history):  # type: ignore[no-untyped-def]
+        actions = (
+            {"operation": "add_solvent", "solvent": 0, "volume_L": 0.025},
+            {"operation": "add_reagent", "amount_mol": 0.01},
+            {"operation": "measure", "instrument": "ph_meter"},
+            {"operation": "terminate"},
+            {"operation": "measure", "instrument": "final_assay"},
+        )
+        return actions[len(history)]
 
 
 def test_verify_records_accepts_valid_trajectory(tmp_path) -> None:
@@ -21,6 +38,44 @@ def test_verify_records_accepts_valid_trajectory(tmp_path) -> None:
     result = verify_records(load_jsonl(path))
     assert result.verified
     assert result.checked_steps == 3
+
+
+def test_verify_records_restores_composition_campaign_resource_card(tmp_path) -> None:
+    composition_path = (
+        Path(__file__).resolve().parents[1]
+        / "examples"
+        / "world-authoring"
+        / "composed-equilibrium-characterization-v0.1.json"
+    )
+    composition = json.loads(composition_path.read_text(encoding="utf-8"))
+    card = CampaignResourceCard(
+        card_id="verify-composition-closeout",
+        operation_attempt_limit=5,
+        vessel_start_limit=1,
+        final_assay_limit=1,
+        nonfinal_instrument_use_limit=1,
+        stock_limits={"reagent_mol": 0.01, "solvent_L": 0.025},
+        per_instrument_limits={"ph_meter": 1},
+    )
+    path = tmp_path / "composition-closeout.jsonl"
+    run_agent(
+        env_id="ChemWorld",
+        agent=_CompositionCloseoutAgent(),
+        world_split="public-test",
+        budget=5,
+        objective="balanced",
+        seed=0,
+        composition=composition,
+        output_path=path,
+        campaign_resource_card=card,
+        budget_override=5,
+        episode_mode_override="campaign",
+    )
+    records = load_jsonl(path)
+
+    assert records[-1]["terminated"] is True
+    result = verify_records(records, tolerance=0.0)
+    assert result.verified, result.mismatches
 
 
 def test_verify_records_rejects_tampered_trajectory(tmp_path) -> None:

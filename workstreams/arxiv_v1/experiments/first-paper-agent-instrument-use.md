@@ -16,7 +16,11 @@ qualification 中生成顺序第一项：composition
 `qualification-reaction-distillation-observation-coverage-0001`、case
 `qualification-reaction-distillation-observation-case-0001`、generation seed 105、generation index 0、world seed 0，
 composition request SHA-256 为
-`2c5ac886b1ed95eb2868aae285e8183510a34da1bd317b42ab6be131fb0d152e`。不得按结果改选其余七项。
+`2c5ac886b1ed95eb2868aae285e8183510a34da1bd317b42ab6be131fb0d152e`；该请求在当前 runtime
+编译得到的 task contract hash 固定为
+`9b775c56b1cfe07dc75afc355d4815077913b27cbeedf20d32fb21d9dadf9f14`，composition qualification
+保存的公开 compiled task subobject hash 固定为
+`0ada08676d4b4afd20383619b4a1392639b4641ad26a15fb3b3e0f38c0b2de1e`。不得按结果改选其余七项。
 
 ## 冻结 agent、权限与预算
 

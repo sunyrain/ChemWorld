@@ -206,11 +206,6 @@ def verify_records(
             )
         if isinstance(material_information, dict):
             env_kwargs["material_information"] = dict(material_information)
-        campaign_resource_card = first.get("campaign_resource_card")
-        if isinstance(campaign_resource_card, dict):
-            env_kwargs["campaign_resource_card"] = dict(
-                campaign_resource_card
-            )
     else:
         env_kwargs = {
             "world_split": first["world_split"],
@@ -218,6 +213,9 @@ def verify_records(
             "objective": _objective_from_record(first),
             "seed": int(first["seed"]),
         }
+    campaign_resource_card = first.get("campaign_resource_card")
+    if isinstance(campaign_resource_card, dict):
+        env_kwargs["campaign_resource_card"] = dict(campaign_resource_card)
     if world_interventions:
         env_kwargs["world_interventions"] = list(world_interventions)
     env = gym.make(

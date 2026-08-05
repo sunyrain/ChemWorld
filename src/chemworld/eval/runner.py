@@ -105,6 +105,7 @@ def run_agent(
     agent_seed: int | None = None,
     observation_seed: int | None = None,
     task_id: str | None = None,
+    composition: Mapping[str, Any] | None = None,
     output_path: str | Path | None = None,
     budget_override: int | None = None,
     episode_mode_override: str | None = None,
@@ -126,6 +127,8 @@ def run_agent(
 ) -> list[HistoryRecord]:
     """Run one benchmark episode and optionally write a JSONL trajectory."""
 
+    if task_id is not None and composition is not None:
+        raise ValueError("task_id and composition are mutually exclusive")
     if evaluation_policy not in {"task_contract", "vnext_risk_cost"}:
         raise ValueError("evaluation_policy must be task_contract or vnext_risk_cost")
     if safety_limit_override is not None:
@@ -160,6 +163,8 @@ def run_agent(
         )
     if task_id is not None:
         env_kwargs["task_id"] = task_id
+    if composition is not None:
+        env_kwargs["composition"] = copy.deepcopy(dict(composition))
     if material_information is not None:
         env_kwargs["material_information"] = dict(material_information)
     if campaign_resource_card is not None:

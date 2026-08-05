@@ -1,12 +1,71 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
+from chemworld.agents.base import BaseAgent
 from chemworld.agents.random import RandomAgent
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.resource_accounting import MethodResourceLimitError
 from chemworld.eval.runner import run_agent
 from chemworld.tasks import get_task
+
+
+class _PrepareMeasureTerminateAndAssayAgent(BaseAgent):
+    def act(self, history):  # type: ignore[no-untyped-def]
+        actions = (
+            {"operation": "add_solvent", "solvent": 0, "volume_L": 0.025},
+            {"operation": "add_reagent", "amount_mol": 0.01},
+            {"operation": "measure", "instrument": "ph_meter"},
+            {"operation": "terminate"},
+            {"operation": "measure", "instrument": "final_assay"},
+        )
+        return actions[len(history)]
+
+
+def test_runner_accepts_composition_and_rejects_task_id_combination(tmp_path) -> None:
+    composition_path = (
+        Path(__file__).resolve().parents[1]
+        / "examples"
+        / "world-authoring"
+        / "composed-equilibrium-characterization-v0.1.json"
+    )
+    composition = json.loads(composition_path.read_text(encoding="utf-8"))
+    records = run_agent(
+        env_id="ChemWorld",
+        agent=_PrepareMeasureTerminateAndAssayAgent(),
+        world_split="public-test",
+        budget=5,
+        objective="balanced",
+        seed=0,
+        composition=composition,
+        output_path=tmp_path / "composition.jsonl",
+        budget_override=5,
+        episode_mode_override="campaign",
+    )
+    assert [record.action for record in records] == [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.025},
+        {"operation": "add_reagent", "amount_mol": 0.01},
+        {"operation": "measure", "instrument": "ph_meter"},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"},
+    ]
+    assert all(record.info["transaction_status"] == "committed" for record in records)
+    assert records[-1].event_type == "experiment_end"
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        run_agent(
+            env_id="ChemWorld",
+            agent=_PrepareMeasureTerminateAndAssayAgent(),
+            world_split="public-test",
+            budget=5,
+            objective="balanced",
+            seed=0,
+            task_id="reaction-to-assay",
+            composition=composition,
+        )
 
 
 def test_runner_separates_private_agent_rng_from_world_seed(tmp_path) -> None:
