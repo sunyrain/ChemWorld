@@ -65,9 +65,16 @@ class OperationValidation:
             "action_schema_valid",
             "operation_allowed_by_task",
             "instrument_allowed_by_task",
+            # Campaign-resource preflight is an authoritative admission gate.
+            # A rejected action must be recorded as a charged attempt without
+            # entering a physical operation kernel; otherwise the kernel can
+            # commit an action that the resource ledger has already rejected.
+            "campaign_resources_available",
         }
         return self.preconditions.get("action_schema_valid", True) and not any(
-            reason in blocking_reasons or reason.startswith("payload_")
+            reason in blocking_reasons
+            or reason.startswith("payload_")
+            or reason.startswith("campaign_resource:")
             for reason in self.invalid_reasons
         )
 
