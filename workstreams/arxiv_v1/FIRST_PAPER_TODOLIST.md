@@ -43,7 +43,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE**：B04，Codex `/root` 已补齐并统一说明单一过程模块、跨模块、多阶段和受控分叉 authoring 示例；三份组合请求通过统一编译器验证，15 个参考任务已按八个组件模式及同一 TaskSpec 覆盖层映射。
 - **DONE**：U00，Codex `/root` 已锁定 U01--U06 案例矩阵；六项分别承担多阶段传播、资源受限测量、失败恢复、受控分叉、未见组合/完整 agent 和案例广度证据，U05 与 C03 共用预先冻结的反应--蒸馏覆盖批次。
 - **DONE**：C00，Codex `/root` 已冻结 C01--C08 与 D01--D04 的单份组合资格实验说明；正式分母、覆盖 seeds、U05/C03 共同未见批次、测量、pass/failure 规则和输出均在数据生成前锁定。
-- **DOING / 平台预算修复**：正式 U05 审计确认旧组合资格说明中的 `time_s` 是手工 pattern cap，未从必要阶段、明确重复次数和 quench/transfer 余量推导；新增 `process_time_policy` 与提交前硬预检后，C01--C08 / D01--D04 受影响批次必须从第一个 case 重新执行。旧 52/52 结果仍保留为修复前历史，不能继续作为修复后 current binding。
+- **DOING / 平台预算修复**：正式 U05 审计确认旧组合资格说明中的 `time_s` 是手工 pattern cap，未从必要阶段、明确重复次数和 quench/transfer 余量推导；新增 `process_time_policy` 与提交前硬预检后，C01--C08 / D01--D04 受影响批次必须从第一个 case 重新执行。资源拒绝动作现已在进入物理 runtime 前 fail closed，仍计 attempt 但不提交物理状态。旧 52/52 结果仍保留为修复前历史，不能继续作为修复后 current binding。
 - **DONE**：`Claim: Codex /root — U00/B04-AMEND — DONE`；U02/U03 authoring example 已改用 runtime
   支持的 `balanced` objective，冻结并执行验证 5-step 表征路径和 19-step 失败--恢复路径；规范源、arXiv
   TeX、19 页 PDF、source bundle 和 build manifest 已由同一次确定性构建同步，PDF 第 3--4 页视觉检查通过。
