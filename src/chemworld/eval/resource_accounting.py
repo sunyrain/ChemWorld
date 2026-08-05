@@ -20,6 +20,8 @@ DEFAULT_RESOURCE_PROTOCOL_PATH = configuration_root() / "benchmark" / "resource_
 _AGENT_COUNTER_FIELDS = (
     "model_call_count",
     "input_token_count",
+    "cached_input_token_count",
+    "uncached_input_token_count",
     "output_token_count",
     "training_environment_step_count",
 )
@@ -39,6 +41,7 @@ class MethodResourceLimits:
     wall_time_limit_s: float | None = None
     model_call_limit: int | None = None
     input_token_limit: int | None = None
+    uncached_input_token_limit: int | None = None
     output_token_limit: int | None = None
     monetary_cost_limit_usd: float | None = None
     training_environment_step_limit: int | None = None
@@ -53,6 +56,7 @@ class MethodResourceLimits:
             "complete_experiment_limit",
             "model_call_limit",
             "input_token_limit",
+            "uncached_input_token_limit",
             "output_token_limit",
             "training_environment_step_limit",
         ):
@@ -288,7 +292,12 @@ class MethodResourceLedger:
             )
         normalized["in_flight_model_call_count"] = in_flight
         for name in _AGENT_COUNTER_FIELDS:
-            counter_value = int(payload.get(name, 0))
+            raw_value = payload.get(name)
+            if raw_value is None and name == "cached_input_token_count":
+                raw_value = payload.get("prompt_cache_hit_tokens", 0)
+            elif raw_value is None and name == "uncached_input_token_count":
+                raw_value = payload.get("prompt_cache_miss_tokens", 0)
+            counter_value = int(raw_value or 0)
             if counter_value < 0:
                 raise ValueError(f"resource field must be non-negative: {name}")
             normalized[name] = counter_value
@@ -316,6 +325,11 @@ class MethodResourceLedger:
             ("run_wall_time_s", snapshot["run_wall_time_s"], self.limits.wall_time_limit_s),
             ("model_call_count", usage["model_call_count"], self.limits.model_call_limit),
             ("input_token_count", usage["input_token_count"], self.limits.input_token_limit),
+            (
+                "uncached_input_token_count",
+                usage["uncached_input_token_count"],
+                self.limits.uncached_input_token_limit,
+            ),
             ("output_token_count", usage["output_token_count"], self.limits.output_token_limit),
             (
                 "monetary_cost_usd",

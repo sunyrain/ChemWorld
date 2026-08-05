@@ -18,6 +18,7 @@ from chemworld.eval.composition_qualification import (
     run_module_probes,
     validate_launch_preconditions,
 )
+from chemworld.eval.composition_qualification_design import QUALIFICATION_DESIGN_VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -25,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_launch_denominators_bind_current_registry_without_old_protocol() -> None:
     receipt = validate_launch_preconditions(ROOT, require_clean=False)
     assert receipt["status"] == "passed"
-    assert receipt["qualification_design_version"].endswith("-v1")
+    assert receipt["qualification_design_version"] == QUALIFICATION_DESIGN_VERSION
     baseline = build_task_structure_baseline(ROOT)
     assert baseline["registered_task_count"] == 15
     assert baseline["world_unit_count"] == EXPECTED_REFERENCE_UNIT_COUNT

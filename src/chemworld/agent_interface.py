@@ -1183,6 +1183,15 @@ def campaign_state(env: Any) -> dict[str, Any]:
         resources = resource_state_factory()
         if resources is not None:
             payload["campaign_resources"] = resources
+    declared_process_factory = getattr(
+        base,
+        "public_declared_process_resource_state",
+        None,
+    )
+    if callable(declared_process_factory):
+        declared_process = declared_process_factory()
+        if declared_process is not None:
+            payload["declared_process_resources"] = declared_process
     return payload
 
 

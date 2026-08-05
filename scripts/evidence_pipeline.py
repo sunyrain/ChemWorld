@@ -28,6 +28,9 @@ from chemworld.data.schema import (  # noqa: E402
     TRAJECTORY_ALIAS_WRITE_REMOVAL_VERSION,
     TRAJECTORY_COMPATIBILITY_ALIASES,
 )
+from chemworld.eval.composition_qualification_design import (  # noqa: E402
+    QUALIFICATION_DESIGN_VERSION,
+)
 from chemworld.eval.mechanism_adaptation_execution import load_json_object  # noqa: E402
 from chemworld.eval.provenance import (  # noqa: E402
     canonical_json_sha256 as _canonical_sha256,
@@ -1684,7 +1687,7 @@ def _first_paper_composition_qualification_binding_errors(
             and all(character in "0123456789abcdef" for character in commit)
             and source.get("status") == "passed"
             and source.get("qualification_design_version")
-            == "first-paper-composition-qualification-design-v1"
+            == QUALIFICATION_DESIGN_VERSION
             and _git_commit_is_ancestor(commit),
             "composition qualification execution commit is invalid",
         )

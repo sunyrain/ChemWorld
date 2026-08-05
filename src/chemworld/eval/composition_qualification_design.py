@@ -13,8 +13,9 @@ from chemworld.world.composition_coverage import (
     OrderedWorkflowTemplate,
     generate_world_composition_coverage,
 )
+from chemworld.world.process_time_budget import derive_process_time_budget_policy
 
-QUALIFICATION_DESIGN_VERSION = "first-paper-composition-qualification-design-v1"
+QUALIFICATION_DESIGN_VERSION = "first-paper-composition-qualification-design-v2"
 EXPECTED_PATTERN_CASE_COUNTS = {
     "phase-observation": 6,
     "reaction-thermal-observation": 6,
@@ -27,6 +28,39 @@ EXPECTED_PATTERN_CASE_COUNTS = {
 }
 EXPECTED_GENERATED_CASE_COUNT = sum(EXPECTED_PATTERN_CASE_COUNTS.values())
 UNSEEN_PATTERN_ID = "reaction-distillation-observation"
+
+_IMPLICIT_PROCESS_TIME_ALLOWANCE_S = {
+    "quench": 120.0,
+    "collect_fraction": 60.0,
+    "filter_crystals": 60.0,
+    "separate_phase": 60.0,
+    "transfer": 60.0,
+}
+
+_ADDITIONAL_PROCESS_REPEATS = {
+    "phase-observation": {},
+    "reaction-thermal-observation": {"heat": 1},
+    "phase-separation-observation": {"mix": 1, "settle": 1},
+    "reaction-crystallization-observation": {
+        "heat": 1,
+        "cool_crystallize": 1,
+    },
+    "reaction-distillation-observation": {
+        "heat": 1,
+        "evaporate": 1,
+        "distill": 1,
+        "collect_fraction": 1,
+    },
+    "reaction-continuous-flow-observation": {"run_flow": 1},
+    "reaction-electrochemistry-observation": {"electrolyze": 1},
+    "reaction-phase-separation-observation": {
+        "heat": 1,
+        "mix": 1,
+        "settle": 1,
+        "concentrate": 1,
+        "transfer": 1,
+    },
+}
 
 
 def _component(kind: str, *, role: str | None = None) -> dict[str, Any]:
@@ -91,6 +125,25 @@ def _continuous(
 
 def _placeholder(axis_id: str) -> dict[str, str]:
     return {"coverage_axis": axis_id}
+
+
+def _attach_process_time_policy(
+    request: dict[str, Any],
+    *,
+    pattern_id: str,
+    workflows: Sequence[OrderedWorkflowTemplate],
+    continuous_axes: Sequence[ContinuousCoverageAxis] = (),
+) -> None:
+    policy = derive_process_time_budget_policy(
+        pattern_id=pattern_id,
+        workflows=workflows,
+        continuous_axes=continuous_axes,
+        additional_repeat_limits=_ADDITIONAL_PROCESS_REPEATS[pattern_id],
+        implicit_operation_allowance_s=_IMPLICIT_PROCESS_TIME_ALLOWANCE_S,
+    )
+    resources = request["task"]["resources"]
+    resources["time_s"] = policy.process_time_limit_s
+    resources["process_time_policy"] = policy.to_dict()
 
 
 def _reaction_charge(*, include_catalyst: bool = False) -> list[dict[str, Any]]:
@@ -172,6 +225,11 @@ def _phase_observation_suite() -> CompositionCoverageSuite:
             ),
         ),
     )
+    _attach_process_time_policy(
+        request,
+        pattern_id=pattern_id,
+        workflows=workflows,
+    )
     return generate_world_composition_coverage(
         request,
         suite_id="qualification-phase-observation",
@@ -231,6 +289,12 @@ def _reaction_thermal_suite() -> CompositionCoverageSuite:
     workflows = (
         OrderedWorkflowTemplate("direct-final-assay", tuple(direct)),
         OrderedWorkflowTemplate("process-measurement", tuple(measured)),
+    )
+    _attach_process_time_policy(
+        request,
+        pattern_id=pattern_id,
+        workflows=workflows,
+        continuous_axes=continuous,
     )
     return generate_world_composition_coverage(
         request,
@@ -314,6 +378,12 @@ def _phase_separation_suite() -> CompositionCoverageSuite:
         OrderedWorkflowTemplate("measure-before-separation", tuple(before)),
         OrderedWorkflowTemplate("measure-after-separation", tuple(after)),
     )
+    _attach_process_time_policy(
+        request,
+        pattern_id=pattern_id,
+        workflows=workflows,
+        continuous_axes=continuous,
+    )
     return generate_world_composition_coverage(
         request,
         suite_id="qualification-phase-separation-observation",
@@ -394,6 +464,12 @@ def _crystallization_suite() -> CompositionCoverageSuite:
     workflows = (
         OrderedWorkflowTemplate("direct-crystallization", tuple(direct)),
         OrderedWorkflowTemplate("wait-before-heat", tuple(delayed)),
+    )
+    _attach_process_time_policy(
+        request,
+        pattern_id=pattern_id,
+        workflows=workflows,
+        continuous_axes=continuous,
     )
     return generate_world_composition_coverage(
         request,
@@ -507,6 +583,12 @@ def _distillation_suite() -> CompositionCoverageSuite:
         OrderedWorkflowTemplate("hplc-before-gc-after", tuple(workflow_a)),
         OrderedWorkflowTemplate("hplc-after-fraction", tuple(workflow_b)),
     )
+    _attach_process_time_policy(
+        request,
+        pattern_id=pattern_id,
+        workflows=workflows,
+        continuous_axes=continuous,
+    )
     return generate_world_composition_coverage(
         request,
         suite_id="qualification-reaction-distillation-observation",
@@ -592,6 +674,12 @@ def _flow_suite() -> CompositionCoverageSuite:
     workflows = (
         OrderedWorkflowTemplate("measure-after-flow", tuple(workflow_a)),
         OrderedWorkflowTemplate("measure-before-flow", tuple(workflow_b)),
+    )
+    _attach_process_time_policy(
+        request,
+        pattern_id=pattern_id,
+        workflows=workflows,
+        continuous_axes=continuous,
     )
     return generate_world_composition_coverage(
         request,
@@ -700,6 +788,12 @@ def _electrochemistry_suite() -> CompositionCoverageSuite:
         OrderedWorkflowTemplate("ph-then-uvvis", tuple(workflow_a)),
         OrderedWorkflowTemplate("uvvis-then-ph", tuple(workflow_b)),
     )
+    _attach_process_time_policy(
+        request,
+        pattern_id=pattern_id,
+        workflows=workflows,
+        continuous_axes=continuous,
+    )
     return generate_world_composition_coverage(
         request,
         suite_id="qualification-reaction-electrochemistry-observation",
@@ -807,6 +901,12 @@ def _purification_suite() -> CompositionCoverageSuite:
     workflows = (
         OrderedWorkflowTemplate("measure-before-and-after", tuple(workflow_a)),
         OrderedWorkflowTemplate("measure-after-purification", tuple(workflow_b)),
+    )
+    _attach_process_time_policy(
+        request,
+        pattern_id=pattern_id,
+        workflows=workflows,
+        continuous_axes=continuous,
     )
     return generate_world_composition_coverage(
         request,

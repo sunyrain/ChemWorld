@@ -138,6 +138,20 @@ provider 超时、空响应、JSON 修复和重试都是真实消耗。正式运
 一个 environment operation 最终只能对应一个逻辑决策，但为了得到这个决策产生的所有 provider
 请求都应进入资源账本。
 
+这一区分对当前 Codex 路径尤其重要：DeepSeek 的 `StructuredG2Agent` 是每个 primitive
+operation 一次直接 JSON completion；原生 Codex 路径则是一个持久 `codex exec` experiment turn，
+通过 host-owned STDIO MCP 连续调用 `material_information` 和 `step`。因此“一个 Codex session”
+不是“一个底层模型 response”。若 CLI 没有逐 response usage 事件，报告必须把
+`backend_model_response_count` 标为未知，同时分别报告 provider session、logical turn、MCP tool
+calls、累计 input、cache hit/miss 和 output。
+
+U05 的口径固定为：1 个 provider session、1 个 logical Codex turn、17 个 MCP tool calls（1 次
+`material_information` 加 16 次 `step`），而不是 17 个底层模型响应。DeepSeek 对照臂则是每个
+primitive operation 一个 provider completion；两者 transport/scaffold 不同，不能把 session 数
+直接当作模型调用数。`cache_hit_tokens` 是被复用的历史输入上下文，`cache_miss_tokens` 是本次
+新计入的输入；两者都属于 input，不是重复生成的 output。必须同时报告 cumulative input、cache
+hit/miss 和 output，不能用 cache hit 数量推断“重复输出”。
+
 ## 不联网也能测试 Harness
 
 `ToolUsingLLMStubAgent` 用确定性规则检查 tool use、validator、memory 与 replay 管线；

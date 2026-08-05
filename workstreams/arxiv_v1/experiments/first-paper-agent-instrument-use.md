@@ -29,8 +29,9 @@ composition request SHA-256 为
   `chemworld_lab` MCP 控制完整 experiment。model `gpt-5.6-sol`，reasoning effort `medium`，agent seed 0。
 - provider/auth 使用 Codex CLI 的 cached ChatGPT subscription login；冻结 preflight 为 `codex-cli 0.145.0` 且
   login status 通过。pre-action restart limit 为 0；运行级不允许换模型、换 seed、换世界、resume 或重启后择优。
-- 环境操作上限 16；完整生命周期上限 1；wall time 上限 3600 s；provider session/model-call 上限 1；输入
-  token 上限 192000；输出 token 上限 64000；单次下一动作等待上限 600 s，session finalization 上限 300 s。
+- 环境操作上限 16；完整生命周期上限 1；wall time 上限 3600 s；provider session/model-call 上限 1；
+  cumulative input token 上限 192000，uncached input token 上限 192000；输出 token 上限 64000；单次下一
+  动作等待上限 600 s，session finalization 上限 300 s。
 - agent 只见公开 composition/task contract、decision state、合法 action signatures、资源和明确的
   `terminate -> final_assay` 生命周期。host 不修复 action，不自动 terminate，不自动 final assay，也不把
   确定性参考轨迹放入 prompt；apps、subagents、web 和非 `chemworld_lab` 工具不参与实验决策。
@@ -68,3 +69,24 @@ composition request SHA-256 为
 - 同路径 Markdown 摘要，列出唯一生命周期的完整分母、所有失败、provider accounting、资源、终止和 replay，
   并列出 U04 既有 fork evidence 的 current binding 摘要。
 - 不新增 manifest，不保存 raw provider payload，不写入 `runs/`。
+
+## 2026-08-05 调用路径与 provider accounting amendment
+
+U05 在 2026-08-05 正式 provider 调用前，从原计划的 `LiveLLMAgent`/WellAU 逐操作 JSON decision
+改为已经在 G2 v0.4 资格化的原生 Codex CLI 路径：一个 `codex exec --ephemeral` 完整实验 session，
+通过 host-owned `chemworld_lab` STDIO MCP 逐步提交动作。该变更的目标是验证完整 agent 生命周期，不是
+把 MCP session 误当作一次底层模型请求；DeepSeek 对比臂仍是每个 primitive operation 一次直接 JSON
+decision，两个系统的 transport/scaffold 不同，不能当作同构单次调用比较。
+
+原 amendment 没有同步重估累计 token 和流程时间预算。后续版本必须同时报告
+`provider_session_count`、`logical_codex_turn_count`、`mcp_tool_call_count` 和（只有 provider 暴露时）
+`backend_model_response_count`。`input_token_count` 是完整 Codex turn 的累计 input；其中 cache hit 是
+复用的历史 input context，不是重复生成的 output，必须与 cache miss 分栏报告。当前 v1 的 517,000 input
+tokens、439,040 cache-hit 和 77,960 cache-miss 失败结果不可覆盖；修复后须以新版本预算从唯一 decision
+重新运行，并保留该失败。
+
+旧 U05 回执中的 21,658.454 s 也不是“重复 output”造成的，而是开放动作没有 process-time preflight：
+agent 连续提交了 3 次 heat（3,600/7,200/3,600 s）和 2 次 distill（各 3,600 s），另有 quench 与
+fraction collection 的隐含耗时，超过原手工 `time_s=14,400`。修复后的 pattern envelope 会在提交前
+同时拒绝超出累计时间或 operation repeat 上限的动作；method wall time（agent 运行耗时）仍与世界
+process time（物理账本秒数）分开记录，不能互相替代。

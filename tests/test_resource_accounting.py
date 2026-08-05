@@ -282,6 +282,48 @@ def test_reconcile_agent_usage_enforces_session_level_token_limit() -> None:
         )
 
 
+def test_uncached_input_tokens_have_an_independent_hard_limit() -> None:
+    ledger = MethodResourceLedger(
+        MethodResourceLimits(
+            operation_limit=2,
+            model_call_limit=2,
+            input_token_limit=1_000,
+            uncached_input_token_limit=100,
+            output_token_limit=200,
+        ),
+        requires_online_model=True,
+    )
+    provenance = {
+        "provider": "test-provider",
+        "model_id": "test-model",
+        "model_snapshot_or_access_date": "2026-08-05",
+        "prompt_hash": "abc123",
+        "request_parameters": {"session_scope": "complete_experiment"},
+        "tokenizer_or_provider_usage_source": "provider",
+    }
+    with pytest.raises(MethodResourceLimitError, match="uncached_input_token_count"):
+        ledger.reconcile_agent_usage(
+            _usage(
+                model_call_count=1,
+                input_token_count=900,
+                cached_input_token_count=850,
+                uncached_input_token_count=50,
+                output_token_count=80,
+                model_provenance=provenance,
+            )
+        )
+        ledger.reconcile_agent_usage(
+            _usage(
+                model_call_count=1,
+                input_token_count=1_000,
+                cached_input_token_count=850,
+                uncached_input_token_count=150,
+                output_token_count=80,
+                model_provenance=provenance,
+            )
+        )
+
+
 def test_online_ledger_allows_one_explicit_in_flight_experiment_session() -> None:
     provenance = {
         "provider": "test-provider",

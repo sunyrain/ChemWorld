@@ -100,6 +100,8 @@ task:
     time_s: 3600
     instrument_uses: 2
     final_assays: 1
+    # Optional for generated/open-agent tasks:
+    # process_time_policy: required workflow envelope plus explicit repeat/implicit-time allowances
   termination: final-assay-or-budget
   evaluation:
     metrics: [score, purity, recovery, process_mass_balance_error]
@@ -109,6 +111,14 @@ task:
 The request is a construction description, not a trajectory. A scenario supplies concrete
 parameter values, initial-state values and a seed after the world and task contract have
 been compiled.
+
+For coverage-generated tasks, `resources.process_time_policy` is the executable explanation of
+`resources.time_s`. It decomposes the envelope into `timed_stage_max_s`, an explicit
+`implicit_stage_reserve_s` for quench/transfer/filter/separation operations, and
+`repeat_allowance_s`; it also records required and additional repeat counts for every operation.
+The runtime checks this policy before committing an action and exposes `used_s`, `limit_s`, and
+`remaining_s` on the public campaign state. A hand-set single cap without this derivation is not
+sufficient for an open agent action space.
 
 ### Runtime entry point
 

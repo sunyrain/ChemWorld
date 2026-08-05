@@ -43,7 +43,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE**：B04，Codex `/root` 已补齐并统一说明单一过程模块、跨模块、多阶段和受控分叉 authoring 示例；三份组合请求通过统一编译器验证，15 个参考任务已按八个组件模式及同一 TaskSpec 覆盖层映射。
 - **DONE**：U00，Codex `/root` 已锁定 U01--U06 案例矩阵；六项分别承担多阶段传播、资源受限测量、失败恢复、受控分叉、未见组合/完整 agent 和案例广度证据，U05 与 C03 共用预先冻结的反应--蒸馏覆盖批次。
 - **DONE**：C00，Codex `/root` 已冻结 C01--C08 与 D01--D04 的单份组合资格实验说明；正式分母、覆盖 seeds、U05/C03 共同未见批次、测量、pass/failure 规则和输出均在数据生成前锁定。
-- **DONE**：C01--C08 / D01--D04，Codex `/root` 完成冻结组合资格批次、receipt-contract 修复后的整批正式重跑和 fail-closed current binding。正式结果为 64/64 参考单元、1786/1786 配方、192/192 负向探针、52/52 生成组合、8/8 冻结未见组合、7/7 compile mutants、32/32 模块探针和 7/7 接口路径通过；leakage、missing receipts 和 failure classes 均为零。
+- **DOING / 平台预算修复**：正式 U05 审计确认旧组合资格说明中的 `time_s` 是手工 pattern cap，未从必要阶段、明确重复次数和 quench/transfer 余量推导；新增 `process_time_policy` 与提交前硬预检后，C01--C08 / D01--D04 受影响批次必须从第一个 case 重新执行。旧 52/52 结果仍保留为修复前历史，不能继续作为修复后 current binding。
 - **DONE**：`Claim: Codex /root — U00/B04-AMEND — DONE`；U02/U03 authoring example 已改用 runtime
   支持的 `balanced` objective，冻结并执行验证 5-step 表征路径和 19-step 失败--恢复路径；规范源、arXiv
   TeX、19 页 PDF、source bundle 和 build manifest 已由同一次确定性构建同步，PDF 第 3--4 页视觉检查通过。
@@ -57,7 +57,8 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
   `configs/current.json` 复用并集成既有 single-private-component fork 正式证据，不重跑；U05/E02 在冻结的
   C03 首个未见反应--蒸馏组合上运行一个完整 agent 生命周期，保存公开契约、逐步事务/资源/观测、终止、
   provider/session 边界和 exact replay 回执。数据生成前必须先写一份短实验说明并冻结 agent、预算、动作权限、
-  pass/failure 规则和输出；论文仍只修改规范 Markdown，并在同一发布段重建 TeX/PDF/source bundle。
+  pass/failure 规则和输出；当前 v1 provider 失败已保留。重新运行前需采用修复后的 session/token/cache
+  accounting 和新组合时间预算，论文仍只修改规范 Markdown，并在同一发布段重建 TeX/PDF/source bundle。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 
 ## 1. 论文只讲什么

@@ -148,3 +148,25 @@ reference case 开始重新执行；不得复用第一次尝试中的成功子�
 - 成功生成后在 `configs/current.json` 增加唯一 current binding。
 
 Raw provider responses、临时 trajectory 文件、缓存、重复 manifest 和手工 hash inventory 不进入 Git。
+
+## 2026-08-05 平台预算语义修订（重新生成前 amendment）
+
+正式 U05 运行后的审计发现，`time_s` 原先按 pattern 手工分配，未从冻结 workflow 的必要阶段上界、
+允许的额外重复次数以及 quench/物料转移的隐含耗时推导；因此它不能作为开放 agent 的提交前硬预算。
+本次平台修复新增公开的 `process_time_policy`，并将每个生成 composition 的 `task.resources.time_s`
+绑定为：
+
+`timed_stage_max_s + implicit_stage_reserve_s + repeat_allowance_s`
+
+其中 `timed_stage_max_s` 从 workflow 与连续轴 upper bound 计算，`implicit_stage_reserve_s` 明确记录
+必要 workflow 中的隐含 quench/transfer/filter/分相耗时（quench 预留 120 s，
+`collect_fraction`、`filter_crystals`、`separate_phase` 和 `transfer` 各预留 60 s），
+重复次数按 pattern 预先列明，并为每个 operation 输出 required count、additional repeat 和总上限。
+runtime 在动作提交前检查累计时间和 operation repeat limit，并公开 `used_s / limit_s / remaining_s`；
+越界动作保持原子失败，不先改变物理状态。该修复不覆盖已完成的 v1 结果；C01--C08/D01--D04 受影响
+批次必须从第一个 case 重新执行，旧结果和 U05 provider 失败均保留。
+
+当前实现生成的 pattern envelope（秒）为：phase-observation 0；reaction-thermal-observation 3,600；
+phase-separation-observation 1,860；reaction-crystallization-observation 11,100；
+reaction-distillation-observation 10,440；reaction-continuous-flow-observation 7,200；
+reaction-electrochemistry-observation 5,400；reaction-phase-separation-observation 7,500。

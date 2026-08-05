@@ -550,6 +550,12 @@ class LiveLLMAgent(BaseAgent):
             ),
             "model_call_count": self._model_call_count,
             "input_token_count": int(self._usage["prompt_tokens"]),
+            "cached_input_token_count": int(
+                self._usage["prompt_cache_hit_tokens"]
+            ),
+            "uncached_input_token_count": int(
+                self._usage["prompt_cache_miss_tokens"]
+            ),
             "output_token_count": int(self._usage["completion_tokens"]),
             "monetary_cost_usd": cost,
             "training_environment_step_count": 0,

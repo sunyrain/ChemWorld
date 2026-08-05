@@ -633,7 +633,14 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 "task_contract_reference": deepcopy(self._task_contract_manifest),
                 "workspace": self.workspace.manifest(),
                 "usage_accounting_granularity": "complete_codex_experiment_turn",
-            }
+                "provider_session_count": self._sessions_started,
+                "logical_codex_turn_count": self._sessions_started,
+                "backend_model_response_count": None,
+                "backend_model_response_accounting_complete": False,
+                "input_token_accounting_semantics": (
+                    "cumulative_input_across_the_complete_codex_turn"
+                ),
+        }
         )
         return payload
 
@@ -661,7 +668,18 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 )
             ),
             "model_call_count": self._sessions_started,
+            "provider_session_count": self._sessions_started,
+            "logical_codex_turn_count": self._sessions_started,
+            "backend_model_response_count": None,
+            "backend_model_response_accounting_complete": False,
             "input_token_count": usage["prompt_tokens"],
+            "cached_input_token_count": usage["prompt_cache_hit_tokens"],
+            "uncached_input_token_count": usage["prompt_cache_miss_tokens"],
+            "input_cache_hit_ratio": (
+                usage["prompt_cache_hit_tokens"] / usage["prompt_tokens"]
+                if usage["prompt_tokens"]
+                else 0.0
+            ),
             "output_token_count": usage["completion_tokens"],
             "monetary_cost_usd": 0.0,
             "training_environment_step_count": 0,
@@ -682,6 +700,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                     "forced_notebook": False,
                 },
                 "tokenizer_or_provider_usage_source": "codex exec turn.completed",
+                "input_token_accounting_semantics": (
+                    "cumulative_input_across_the_complete_codex_turn; cache hits are "
+                    "reused input tokens, not generated output"
+                ),
                 "pricing": {
                     "accounting_complete": False,
                     "model_source": MODEL_SOURCE,

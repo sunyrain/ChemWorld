@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import dataclass
-from math import isfinite
+from math import isclose, isfinite
 from typing import Any
 
 from chemworld.foundation.units import convert_value, unit_spec
@@ -19,6 +19,7 @@ from chemworld.world.operations import (
     SEPARATION_OPERATIONS,
 )
 from chemworld.world.parameters import SUPPORTED_SPLITS
+from chemworld.world.process_time_budget import ProcessTimeBudgetPolicy
 from chemworld.world.scenario import ScenarioSpec, get_scenario
 
 WORLD_COMPOSITION_SCHEMA_VERSION = "chemworld-world-composition-0.1"
@@ -65,6 +66,7 @@ _RESOURCE_KEYS = frozenset(
         "time_s",
         "instrument_uses",
         "final_assays",
+        "process_time_policy",
     }
 )
 
@@ -327,6 +329,30 @@ class CompositionTaskRequest:
         if not isinstance(resources_value, Mapping):
             raise WorldCompositionError("task resources must be an object")
         _require_exact_keys(resources_value, _RESOURCE_KEYS, "task resources")
+        process_time_policy = resources_value.get("process_time_policy")
+        if process_time_policy is not None:
+            if not isinstance(process_time_policy, Mapping):
+                raise WorldCompositionError(
+                    "task resources.process_time_policy must be an object"
+                )
+            try:
+                normalized_policy = ProcessTimeBudgetPolicy.from_dict(
+                    process_time_policy
+                )
+            except (TypeError, ValueError) as exc:
+                raise WorldCompositionError(
+                    f"invalid task resources.process_time_policy: {exc}"
+                ) from exc
+            declared_time = resources_value.get("time_s")
+            if declared_time is None or not isclose(
+                float(declared_time),
+                normalized_policy.process_time_limit_s,
+                rel_tol=0.0,
+                abs_tol=1.0e-9,
+            ):
+                raise WorldCompositionError(
+                    "task resources.time_s must match process_time_policy.process_time_limit_s"
+                )
         evaluation_value = payload.get("evaluation", {})
         if not isinstance(evaluation_value, Mapping):
             raise WorldCompositionError("task evaluation must be an object")

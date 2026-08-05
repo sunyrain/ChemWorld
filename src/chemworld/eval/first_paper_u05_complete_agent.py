@@ -81,6 +81,7 @@ FROZEN_COMPLETE_EXPERIMENT_LIMIT = 1
 FROZEN_WALL_TIME_LIMIT_S = 3600.0
 FROZEN_MODEL_CALL_LIMIT = 1
 FROZEN_INPUT_TOKEN_LIMIT = 192_000
+FROZEN_UNCACHED_INPUT_TOKEN_LIMIT = 192_000
 FROZEN_OUTPUT_TOKEN_LIMIT = 64_000
 FROZEN_REQUEST_TIMEOUT_S = 600.0
 FROZEN_FINALIZATION_TIMEOUT_S = 300.0
@@ -533,6 +534,7 @@ def _method_resource_limits() -> dict[str, Any]:
         "wall_time_limit_s": FROZEN_WALL_TIME_LIMIT_S,
         "model_call_limit": FROZEN_MODEL_CALL_LIMIT,
         "input_token_limit": FROZEN_INPUT_TOKEN_LIMIT,
+        "uncached_input_token_limit": FROZEN_UNCACHED_INPUT_TOKEN_LIMIT,
         "output_token_limit": FROZEN_OUTPUT_TOKEN_LIMIT,
         "monetary_cost_limit_usd": None,
         "training_environment_step_limit": 0,
@@ -1500,17 +1502,24 @@ def _provider_accounting(
         )
 
     input_tokens = int(usage.get("prompt_tokens", -1))
+    uncached_input_tokens = int(usage.get("prompt_cache_miss_tokens", -1))
     output_tokens = int(usage.get("completion_tokens", -1))
     token_checks = {
         "input_nonnegative": input_tokens >= 0,
+        "uncached_input_nonnegative": uncached_input_tokens >= 0,
         "output_nonnegative": output_tokens >= 0,
         "input_within_limit": 0 <= input_tokens <= FROZEN_INPUT_TOKEN_LIMIT,
+        "uncached_input_within_limit": (
+            0 <= uncached_input_tokens <= FROZEN_UNCACHED_INPUT_TOKEN_LIMIT
+        ),
         "output_within_limit": 0 <= output_tokens <= FROZEN_OUTPUT_TOKEN_LIMIT,
         "total_reconciled": int(usage.get("total_tokens", -1))
         == input_tokens + output_tokens,
         "cache_reconciled": int(usage.get("prompt_cache_hit_tokens", -1))
-        + int(usage.get("prompt_cache_miss_tokens", -1))
-        == input_tokens,
+            + int(usage.get("prompt_cache_miss_tokens", -1))
+            == input_tokens,
+        "cache_hit_nonnegative": int(usage.get("prompt_cache_hit_tokens", -1)) >= 0,
+        "cache_miss_nonnegative": int(usage.get("prompt_cache_miss_tokens", -1)) >= 0,
     }
     failed_token_checks = [name for name, passed in token_checks.items() if not passed]
     if failed_token_checks:
@@ -1523,8 +1532,30 @@ def _provider_accounting(
         "provider_calls_complete": method_usage.get("provider_call_accounting_complete") is True,
         "provider_tokens_complete": method_usage.get("provider_token_accounting_complete") is True,
         "provider_cache_complete": method_usage.get("provider_cache_accounting_complete") is True,
-        "model_call_count_exact": int(method_usage.get("model_call_count", -1)) == 1,
+        "provider_session_count_exact": int(
+            method_usage.get(
+                "provider_session_count",
+                method_usage.get("model_call_count", -1),
+            )
+        )
+        == 1,
+        "logical_codex_turn_count_exact": int(
+            method_usage.get(
+                "logical_codex_turn_count",
+                method_usage.get("model_call_count", -1),
+            )
+        )
+        == 1,
+        "legacy_model_call_count_alias_exact": int(
+            method_usage.get("model_call_count", -1)
+        )
+        == 1,
         "input_tokens_match": int(method_usage.get("input_token_count", -1)) == input_tokens,
+        "uncached_input_tokens_match": (
+            method_usage.get("uncached_input_token_count") is None
+            or int(method_usage.get("uncached_input_token_count", -1))
+            == uncached_input_tokens
+        ),
         "output_tokens_match": int(method_usage.get("output_token_count", -1))
         == output_tokens,
     }
@@ -1543,14 +1574,34 @@ def _provider_accounting(
     return (
         {
             "session_count": len(receipts),
+            "provider_session_count": len(receipts),
+            "logical_codex_turn_count": method_usage.get(
+                "logical_codex_turn_count",
+                method_usage.get("model_call_count"),
+            ),
             "model_call_count": method_usage.get("model_call_count"),
+            "backend_model_response_count": method_usage.get(
+                "backend_model_response_count"
+            ),
             "accepted_action_count": accepted,
             "mcp_tool_call_count": len(mcp_calls),
             "mcp_step_count": len(mcp_steps),
             "usage": usage,
             "token_limits": {
                 "input": FROZEN_INPUT_TOKEN_LIMIT,
+                "uncached_input": FROZEN_UNCACHED_INPUT_TOKEN_LIMIT,
                 "output": FROZEN_OUTPUT_TOKEN_LIMIT,
+            },
+            "input_token_breakdown": {
+                "cumulative_input_tokens": input_tokens,
+                "cache_hit_tokens": int(usage.get("prompt_cache_hit_tokens", 0)),
+                "cache_miss_tokens": uncached_input_tokens,
+                "cache_hit_ratio": (
+                    int(usage.get("prompt_cache_hit_tokens", 0)) / input_tokens
+                    if input_tokens > 0
+                    else 0.0
+                ),
+                "cache_means_reused_input_context_not_repeated_output": True,
             },
             "session_checks": required_session_checks,
             "token_checks": token_checks,

@@ -88,6 +88,7 @@ from chemworld.world.operations import (
 from chemworld.world.phase_kernel import (
     INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1,
 )
+from chemworld.world.process_time_budget import ProcessTimeBudgetPolicy
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 from chemworld.world.scoring import (
     PARTITION_S0_EXTRACTION_EFFICIENCY_V3,
@@ -141,6 +142,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.compiled_composition = (
             None if composition is None else compile_world_composition(composition)
         )
+        self._declared_process_time_policy = self._load_process_time_policy()
         self.task_spec = (
             self.compiled_composition.task_spec
             if self.compiled_composition is not None
@@ -353,6 +355,14 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._campaign_terminal = False
         self._campaign_terminal_reason: str | None = None
         self._right_censored_open_batch = False
+        self._declared_operation_counts: dict[str, int] = dict.fromkeys(
+            (
+                self._declared_process_time_policy.operation_repeat_limits
+                if self._declared_process_time_policy is not None
+                else {}
+            ),
+            0,
+        )
         self._reset_campaign_resource_ledger()
 
         self.action_space = make_action_space()
@@ -420,6 +430,14 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._campaign_terminal = False
         self._campaign_terminal_reason = None
         self._right_censored_open_batch = False
+        self._declared_operation_counts = dict.fromkeys(
+            (
+                self._declared_process_time_policy.operation_repeat_limits
+                if self._declared_process_time_policy is not None
+                else {}
+            ),
+            0,
+        )
         self._reset_campaign_resource_ledger()
         return deepcopy(self._last_observation), self.task_info()
 
@@ -462,6 +480,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 starts_vessel=resource_starts_vessel,
             )
         validation = self.operation_validator.validate(action, self._state)
+        declared_process_preflight = self._declared_process_time_preflight(action)
         if is_campaign_discard and not self._campaign_batch_discard_available():
             validation = self._domain_failure_validation(
                 validation,
@@ -479,6 +498,19 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             validation = self._campaign_resource_failure_validation(
                 validation,
                 resource_rejection_reasons,
+            )
+        if (
+            declared_process_preflight is not None
+            and declared_process_preflight.get("allowed") is not True
+        ):
+            validation = self._declared_process_failure_validation(
+                validation,
+                tuple(
+                    str(reason)
+                    for reason in declared_process_preflight.get(
+                        "rejection_reasons", ()
+                    )
+                ),
             )
             runtime_result = self.runtime.apply_invalid_transaction(
                 self._state,
@@ -518,6 +550,13 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._state = runtime_result.state
         operation_record = runtime_result.operation_record
         runtime_info = runtime_result.info_payload()
+        if declared_process_preflight is not None:
+            runtime_info["declared_process_time_preflight"] = deepcopy(
+                declared_process_preflight
+            )
+            runtime_info["declared_process_resources"] = (
+                self.public_declared_process_resource_state()
+            )
         if campaign_resource_rejected:
             runtime_info.update(
                 {
@@ -586,7 +625,6 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 )
                 self._state = runtime_result.state
                 operation_record = runtime_result.operation_record
-                runtime_info = runtime_result.info_payload()
                 preconditions_passed = False
                 operation_committed = False
                 observation = self.observation_kernel.failed_observation()
@@ -630,6 +668,29 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     noise_provenance["status"] = "rolled_back"
         else:
             observation = self.observation_kernel.failed_observation()
+        if operation_committed:
+            operation = str(action.get("operation", ""))
+            if operation in self._declared_operation_counts:
+                self._declared_operation_counts[operation] += 1
+        runtime_info = runtime_result.info_payload()
+        if declared_process_preflight is not None:
+            runtime_info["declared_process_time_preflight"] = deepcopy(
+                declared_process_preflight
+            )
+            runtime_info["declared_process_resources"] = (
+                self.public_declared_process_resource_state()
+            )
+        if campaign_resource_rejected:
+            runtime_info.update(
+                {
+                    "transaction_status": "campaign_resource_rejected",
+                    "rollback_reason": "campaign_resource_rejected",
+                    "campaign_resource_rejected": True,
+                    "campaign_resource_rejection_reasons": list(
+                        resource_rejection_reasons
+                    ),
+                }
+            )
         self._last_observation_noise_provenance = deepcopy(noise_provenance)
         if not observation_checks:
             observation_checks = self.constitution.check_observation(
@@ -1221,6 +1282,111 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         # hidden-world seed. Replay identity is carried separately in private
         # evaluator provenance.
         return f"episode-{uuid4().hex}"
+
+    def _load_process_time_policy(self) -> ProcessTimeBudgetPolicy | None:
+        if self.compiled_composition is None:
+            return None
+        raw = self.compiled_composition.spec.task.resources.get(
+            "process_time_policy"
+        )
+        if raw is None:
+            return None
+        if not isinstance(raw, Mapping):
+            raise ValueError("composed task process_time_policy must be an object")
+        return ProcessTimeBudgetPolicy.from_dict(raw)
+
+    def _declared_process_time_preflight(
+        self,
+        action: Mapping[str, Any],
+    ) -> dict[str, Any] | None:
+        policy = self._declared_process_time_policy
+        if policy is None:
+            return None
+        operation = str(action.get("operation", ""))
+        used_before = float(self._state.ledger.time_s)
+        proposed = policy.proposed_time_s(action)
+        repeat_limit = policy.operation_repeat_limits.get(operation)
+        operation_count_before = int(self._declared_operation_counts.get(operation, 0))
+        reasons: list[str] = []
+        if repeat_limit is not None and operation_count_before + 1 > repeat_limit:
+            reasons.append("operation_repeat_limit")
+        if used_before + proposed > policy.process_time_limit_s + 1.0e-9:
+            reasons.append("process_time_limit")
+        return {
+            "schema_version": "chemworld-declared-process-time-preflight-0.1",
+            "allowed": not reasons,
+            "rejection_reasons": sorted(set(reasons)),
+            "operation": operation,
+            "operation_count_before": operation_count_before,
+            "operation_repeat_limit": repeat_limit,
+            "used_before_s": used_before,
+            "proposed_delta_s": proposed,
+            "limit_s": policy.process_time_limit_s,
+            "remaining_before_s": max(
+                policy.process_time_limit_s - used_before,
+                0.0,
+            ),
+        }
+
+    @staticmethod
+    def _declared_process_failure_validation(
+        validation: OperationValidation,
+        rejection_reasons: tuple[str, ...],
+    ) -> OperationValidation:
+        resource_reasons = tuple(
+            f"declared_process_resource:{reason}" for reason in rejection_reasons
+        )
+        return replace(
+            validation,
+            is_valid=False,
+            preconditions={
+                **validation.preconditions,
+                "declared_process_resources_available": False,
+            },
+            invalid_reasons=tuple(
+                dict.fromkeys(
+                    (
+                        *validation.invalid_reasons,
+                        "declared_process_resources_available",
+                        *resource_reasons,
+                    )
+                )
+            ),
+            cost_penalty=max(validation.cost_penalty, 0.10),
+            safety_flags={
+                **validation.safety_flags,
+                "precondition_failed": True,
+                "declared_process_resource_rejected": True,
+            },
+        )
+
+    def public_declared_process_resource_state(self) -> dict[str, Any] | None:
+        """Return bounded public process-time usage and repeat headroom."""
+
+        policy = self._declared_process_time_policy
+        if policy is None:
+            return None
+        used = float(self._state.ledger.time_s)
+        return {
+            "schema_version": "chemworld-public-declared-process-resources-0.1",
+            "policy_id": policy.policy_id,
+            "pattern_id": policy.pattern_id,
+            "used_s": used,
+            "limit_s": policy.process_time_limit_s,
+            "remaining_s": max(policy.process_time_limit_s - used, 0.0),
+            "operation_counts": dict(self._declared_operation_counts),
+            "operation_remaining": {
+                operation: max(
+                    limit - self._declared_operation_counts.get(operation, 0),
+                    0,
+                )
+                for operation, limit in policy.operation_repeat_limits.items()
+            },
+            "formula": (
+                "timed_stage_max_s + implicit_stage_reserve_s + repeat_allowance_s; "
+                "quench/transfer allowances are reserved prospectively"
+            ),
+        }
 
     def _make_runtime(self) -> ChemWorldRuntime:
         partition_nominal_pair_contract = (
