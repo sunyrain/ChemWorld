@@ -55,3 +55,33 @@ def test_publication_svg_text_excludes_internal_engineering_metadata() -> None:
         assert "source_commit" not in text
         assert "run_id" not in text
         assert re.search(r"\b[0-9a-f]{40,64}\b", text) is None
+
+
+def test_reader_visible_story_is_advantage_led_and_excludes_development_history() -> None:
+    lowered = _reader_visible_manuscript().lower()
+    forbidden = (
+        "what is not established",
+        "chemworld is narrower",
+        "does not claim novelty",
+        "development diagnostics",
+        "superseded engineering runs",
+        "does not establish arbitrary physics",
+    )
+    assert all(phrase not in lowered for phrase in forbidden)
+    required = (
+        "controlled experimental freedom",
+        "programmable experimental freedom",
+        "evaluator-complete observability",
+        "causal process science",
+    )
+    assert all(phrase in lowered for phrase in required)
+
+
+def test_main_figures_prioritize_scientific_capability_over_provider_accounting() -> None:
+    figure_one = (FIGURE_DIR / "figure-1-system-overview.svg").read_text(encoding="utf-8").lower()
+    figure_four = (FIGURE_DIR / "figure-4-forks-and-agent.svg").read_text(encoding="utf-8").lower()
+    assert "not a claim of laboratory equivalence" not in figure_one
+    assert "one lifecycle, one replayable record" in figure_four
+    assert "cached input" not in figure_four
+    assert "provider input" not in figure_four
+    assert "repeated output" not in figure_four

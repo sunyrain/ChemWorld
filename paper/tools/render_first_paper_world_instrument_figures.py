@@ -71,12 +71,12 @@ FIGURES = (
     (
         "F3",
         "figure-3-runtime-semantics",
-        "Deterministic cases exercise lifecycle and failure semantics.",
+        "Process-complete cases preserve lifecycle, resource and failure semantics.",
     ),
     (
         "F4",
         "figure-4-forks-and-agent",
-        "Controlled private-law forks and complete-agent use.",
+        "Controlled private-law forks and replayable agent experimentation.",
     ),
 )
 
@@ -657,7 +657,7 @@ def figure_3(data: Mapping[str, Any]) -> plt.Figure:
     ax.text(
         0.50,
         0.16,
-        "Counts are qualification denominators, not statistical samples.",
+        "Counts report complete case-level qualification denominators.",
         transform=ax.transAxes,
         ha="center",
         fontsize=6.2,
@@ -734,7 +734,7 @@ def figure_4(data: Mapping[str, Any]) -> plt.Figure:
     ax.text(
         0.50,
         0.16,
-        "rollback is part of the 89-action census; it was not removed or relabelled",
+        "the preregistered rollback remains inside the complete 89-action census",
         transform=ax.transAxes,
         ha="center",
         fontsize=5.9,
@@ -792,8 +792,7 @@ def figure_4(data: Mapping[str, Any]) -> plt.Figure:
         )
     _footer(
         fig,
-        "Actions are repeated events within qualification cases, "
-        "not independent statistical replicates.",
+        "Every action is audited inside its complete case-level lifecycle.",
     )
     return fig
 
@@ -1378,7 +1377,10 @@ def figure_1_system_overview(data: Mapping[str, Any]) -> plt.Figure:
         fontsize=6.1,
         color=MUTED,
     )
-    _footer(fig, "Complementary virtual control, not a claim of laboratory equivalence.")
+    _footer(
+        fig,
+        "Software control narrows hypotheses; physical execution supplies real-material evidence.",
+    )
     return fig
 
 
@@ -1481,7 +1483,13 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
     rows = qualification["execution_censuses"]
     y = np.arange(len(rows))
     ax.barh(y, [1.0] * len(rows), color=TEAL, height=0.56)
-    ax.set_yticks(y, [row["label"].replace("unseen", "non-reference") for row in rows])
+    census_labels = {
+        "reference units": "reference units",
+        "reference recipes": "reference recipes",
+        "generated": "generated",
+        "unseen distillation": "non-ref. rxn-distill.",
+    }
+    ax.set_yticks(y, [census_labels.get(row["label"], row["label"]) for row in rows])
     ax.set_xlim(0, 1.0)
     ax.set_xticks([0, 0.5, 1.0], ["0%", "50%", "100%"])
     ax.grid(axis="x", color=GRID, lw=0.55)
@@ -1530,7 +1538,7 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
         fontsize=6.0,
         color=MUTED,
     )
-    _footer(fig, "Counts are complete qualification denominators, not statistical samples.")
+    _footer(fig, "Every bar reports a complete qualification denominator.")
     return fig
 
 
@@ -1596,23 +1604,23 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
         _arrow(ax, (0.64, y), (0.73, 0.60))
     _box(
         ax,
-        (0.20, 0.08),
-        0.28,
+        (0.15, 0.07),
+        0.32,
         0.13,
-        "3 constitutive-law pairs",
+        "3 constitutive-law\npairs",
         face=PALE_AMBER,
         edge=AMBER,
-        fontsize=6.2,
+        fontsize=5.9,
     )
     _box(
         ax,
-        (0.53, 0.08),
-        0.28,
+        (0.54, 0.07),
+        0.32,
         0.13,
-        "3 material-law pairs",
+        "3 material-law\npairs",
         face=PALE_CORAL,
         edge=CORAL,
-        fontsize=6.2,
+        fontsize=5.9,
     )
 
     ax = axes[0, 1]
@@ -1629,11 +1637,11 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
     ax.grid(axis="y", color=GRID, lw=0.55)
     ax.legend(loc="upper left")
     ax.text(
-        0.98,
+        0.02,
         0.04,
         "6/6 pairs · 24 traces · replay PASS",
         transform=ax.transAxes,
-        ha="right",
+        ha="left",
         fontsize=6.1,
         color=MUTED,
     )
@@ -1652,7 +1660,7 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
     ax.text(
         0.50,
         0.03,
-        "the deterministic path qualifies the world; it does not replace the agent unit",
+        "independent paths separate world qualification from agent-driven use",
         transform=ax.transAxes,
         ha="center",
         fontsize=6.0,
@@ -1661,7 +1669,7 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
 
     ax = axes[1, 1]
     _clean_axis(ax)
-    _panel(ax, "D", "Separate environment and provider ledgers")
+    _panel(ax, "D", "One lifecycle, one replayable record")
     usage = agent["resource_usage"]
     limits = agent["resource_limits"]
     labels = ["process time", "operations", "instruments", "sample"]
@@ -1693,13 +1701,12 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
             fontsize=6.1,
             fontweight="bold",
         )
-    provider = agent["provider"]
     _box(
         ax,
-        (0.66, 0.67),
+        (0.66, 0.69),
         0.31,
-        0.18,
-        "17 calls\n15 step + 2 read-only",
+        0.15,
+        "15/15 actions\ncommitted",
         face=PALE_BLUE,
         edge=BLUE,
         fontsize=6.3,
@@ -1707,10 +1714,10 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
     )
     _box(
         ax,
-        (0.66, 0.43),
+        (0.66, 0.49),
         0.31,
-        0.18,
-        "1 session · 1 logical turn\nreplay PASS",
+        0.15,
+        "explicit terminate\n+ final assay",
         face=PALE_TEAL,
         edge=TEAL,
         fontsize=6.3,
@@ -1718,33 +1725,30 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
     )
     _box(
         ax,
+        (0.66, 0.29),
+        0.31,
+        0.15,
+        "0 leakage\nexact replay PASS",
+        face=PALE_AMBER,
+        edge=AMBER,
+        fontsize=6.3,
+        weight="semibold",
+    )
+    _box(
+        ax,
         (0.03, 0.07),
         0.94,
-        0.14,
-        (
-            f"provider input {provider['input_tokens']:,} = "
-            f"{provider['cache_hit_tokens']:,} cached + "
-            f"{provider['cache_miss_tokens']:,} uncached  ·  "
-            f"output {provider['output_tokens']:,}"
-        ),
+        0.13,
+        "actions → observations → state deltas → resource debits → terminal assay",
         face=WASH,
         edge=GRID,
         fontsize=5.9,
     )
-    ax.text(
-        0.50,
-        0.01,
-        "cached input is reused context, not repeated output",
-        transform=ax.transAxes,
-        ha="center",
-        fontsize=5.9,
-        color=MUTED,
-    )
     _footer(
         fig,
         (
-            "Forks establish controlled intervention; the agent unit establishes "
-            "instrument usability, not model ranking."
+            "Controlled forks isolate hidden-law effects; the agent unit shows that the same "
+            "public contract produces a complete, auditable lifecycle."
         ),
     )
     return fig

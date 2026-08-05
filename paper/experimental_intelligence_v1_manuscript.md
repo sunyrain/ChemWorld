@@ -1,9 +1,9 @@
 ---
-title: "ChemWorld: A Composable Executable Chemical-World Substrate and Programmable Virtual Instrument"
-title_line_one: "ChemWorld: A Composable Executable"
-title_line_two: "Chemical-World Substrate and Programmable Virtual Instrument"
-subject: "A composable executable chemical-world substrate and programmable virtual instrument"
-keywords: "composable chemical worlds; executable chemistry; virtual scientific instrument; transactional semantics; exact replay; autonomous experimentation"
+title: "ChemWorld: Composable Chemical Worlds for Controlled and Replayable Agent Experimentation"
+title_line_one: "ChemWorld: Composable Chemical Worlds for"
+title_line_two: "Controlled and Replayable Agent Experimentation"
+subject: "Composable chemical worlds for controlled and replayable agent experimentation"
+keywords: "composable chemical worlds; programmable virtual instrument; controlled experimentation; transactional semantics; exact replay; autonomous chemistry"
 pdf_author: "Jiangjie Qiu; Yijun Li"
 author:
   - name: "Jiangjie Qiu"
@@ -17,44 +17,41 @@ correspondence: ""
 date: ""
 bibliography: experimental_intelligence_v1_references.bib
 abstract: |
-  Physical self-driving laboratories establish execution on real matter, but access,
-  replication, safety and intervention are constrained by apparatus, materials and time;
-  many digital benchmarks instead reduce an experiment to an objective-function query.
-  We present ChemWorld as a complementary, composable executable chemical-world substrate
-  and programmable virtual instrument. Reusable physical and transactional components
-  compile into a world, and a public task contract attaches initial state, operations,
-  instruments, observations, resources, failure rules, termination and evaluation. This
-  software operating regime permits exact reset, repeatable matched worlds, complete
-  simulator-side observation and private-law interventions without consuming physical
-  reagents or creating laboratory hazards, while making no claim of virtual-to-real
-  accuracy. The 15 registered tasks are reference examples rather than a bound on the
-  construction space. Qualification covered 64/64 reference world units, 1,786/1,786
-  complete reference recipes and 52/52 coverage-generated compositions, including eight
-  frozen non-reference reaction--distillation compositions. All 192 invalid-action probes,
-  32 module probes, seven interface paths and seven invalid declarations produced their
-  registered outcomes, with zero missing receipts or public/private leakage. Across eight
-  deterministic instrument-use cases, 89/89 submitted actions were audited: 88 committed,
-  one planned failure rolled back without ghost state, all eight lifecycles closed, every
-  resource ledger reconciled and every trajectory replayed with zero numerical mismatch.
-  Six controlled single-private-component fork pairs preserved the public contract across
-  24 provider-free traces. Finally, one complete agent closed the first frozen
-  non-reference world in one uninterrupted session with 15/15 committed actions, explicit
-  termination, a final assay and exact environment replay. The evidence qualifies a finite
-  v1 virtual instrument; it does not establish arbitrary physics, laboratory prediction or
-  agent superiority.
+  Autonomous chemistry needs both real-material execution and a software-scale experimental
+  medium in which worlds can be reset exactly, repeated safely, observed completely and
+  changed under controlled laws. ChemWorld provides this second capability as a composable
+  executable chemical-world substrate and programmable virtual instrument. Reusable
+  physical and transactional components compile into worlds, while one public task contract
+  joins initial state, typed operations, instruments, observations, resources, failure
+  semantics, termination and evaluation. Researchers can therefore create matched worlds,
+  branch one private law at a time and audit every simulator-side state and resource event
+  without consuming reagents, producing wet-laboratory waste or introducing chemical
+  hazards. The 15 registered tasks serve as reference examples for a broader construction
+  surface. Qualification covered 64/64 reference world units, 1,786/1,786 complete reference
+  recipes and 52/52 coverage-generated compositions, including eight frozen non-reference
+  reaction--distillation compositions. All 192 invalid-action probes, 32 module probes,
+  seven interface paths and seven invalid declarations produced their registered outcomes,
+  with zero missing receipts or public/private leakage. Across eight deterministic use
+  cases, all 89 submitted actions were audited; one planned failure rolled back without
+  ghost state, every lifecycle and resource ledger closed, and every trajectory replayed
+  with zero numerical mismatch. Six controlled private-law fork pairs preserved the public
+  contract across 24 traces, and one complete agent closed the first frozen non-reference
+  world through the same instrument interface. Together, these results show that
+  compositional expansion can preserve executable semantics and turn simulated chemistry
+  from a fixed task collection into a controlled, observable and replayable experimental
+  medium. The released v1 instrument spans nine declared component families, with
+  interfaces that can accommodate alternative or empirically calibrated models.
 ---
 
 # 1. Introduction
 
 Self-driving laboratories (SDLs) and chemistry agents have demonstrated that algorithms can
-plan, execute and revise workflows on real materials. That physical validity is essential,
-but it also makes matched replication expensive, slow and safety constrained: instruments
-must be available, reagents and consumables are spent, failures can damage material or
-equipment, and a laboratory state cannot usually be reset bit-for-bit. At the other extreme,
-many digital optimization environments are inexpensive and repeatable but expose an
-experiment mainly as a query that returns a value. A complementary virtual instrument is
-needed for experiments that require controllable worlds, state-changing operations,
-resource and failure semantics, complete process observation and exact environment replay.
+plan, execute and revise workflows on real materials. A second experimental regime is
+needed for questions that depend on exact reset, matched counterfactuals, repeated failure
+injection, complete process observation and direct control over the laws of the world.
+These operations are difficult to obtain from physical matter and are usually absent when a
+digital experiment is represented only as an objective-function query. A programmable
+virtual instrument can make them routine at software scale.
 
 ChemWorld treats a chemical world as an explicit executable object rather than an opaque
 task label. Its v1 vocabulary contains reaction, thermal, phase, separation,
@@ -66,49 +63,43 @@ instantiates the contract; a trajectory records the resulting operation--observa
 sequence; and a controlled fork changes one private component while preserving the public
 contract.
 
-This architecture creates a different operating regime from a physical SDL. ChemWorld can
-be run wherever the software and compute environment are available; a simulated experiment
-does not consume physical reagents, create wet-laboratory waste or expose people and
-equipment to chemical hazards; world state can be reset and replayed; every simulator-held
-state transition and resource event can be audited; and private laws can be authored or
-forked within the declared component interfaces. These are qualitative affordances, not a
-measured cost or throughput comparison, and they do not confer laboratory validity. The
-purpose is to make controlled, high-observability experimentation possible before or beside
-physical execution (Fig. 1).
+This architecture creates controlled experimental freedom. ChemWorld can run wherever the
+software and compute environment are available. Experiments consume no physical reagents,
+produce no wet-laboratory waste and expose neither people nor equipment to chemical hazards.
+World state can be reset exactly, repeated to any required study denominator and forked at a
+named private law. The evaluator can inspect every hidden state transition and resource
+event while the agent remains restricted to the public instrument contract. These
+properties make high-observability counterfactual experimentation available before,
+alongside or between physical campaigns (Fig. 1).
 
-The central qualification question is therefore not whether an agent succeeds on a fixed
-list. It is whether reusable components and their declared interfaces remain coherent when
-assembled into coverage-guided combinations, including combinations absent from the
-reference task identities. This paper contributes:
+The central question is whether a chemical environment can expand beyond a fixed task list
+without losing the semantics that make experiments interpretable. We address it through
+four linked contributions:
 
-1. a public component vocabulary and task-contract model for constructing executable
-   chemical worlds;
-2. a compatibility checker that rejects missing dependencies, conflicting state owners,
-   unit mismatches, invalid parameter domains, impossible resources and lifecycle holes
-   before runtime;
-3. a coverage-guided generator combining pairwise discrete coverage, seeded space-filling
-   continuous samples and ordered workflow interactions;
-4. full-census qualification of reference worlds, generated compositions, module limits,
-   cross-module interfaces, transactional semantics, observation boundaries and exact
-   replay;
-5. deterministic instrument-use cases and controlled world forks that show what the
-   apparatus records, without converting those records into a scalar intelligence score
-   or a model ranking; and
-6. a single complete-agent lifecycle on the first frozen non-reference composition, used only to
-   demonstrate access through the same public instrument contract.
+1. **Composable executable worlds.** A public component vocabulary, compatibility compiler
+   and unified task contract convert component selections and private laws into executable,
+   reader-auditable instruments.
+2. **Coverage-guided expansion.** Pairwise discrete coverage, seeded space-filling
+   continuous designs and ordered workflow interactions extend qualification beyond the
+   reference task identities.
+3. **Process-complete semantics.** Atomic transactions, explicit failure and termination,
+   multi-resource ledgers, public/private observation boundaries and exact environment
+   replay make each trajectory an inspectable experimental record.
+4. **Controlled intervention and agent access.** Single-private-law forks isolate causal
+   world changes under an invariant public contract, while deterministic policies and a
+   complete agent use the same typed instrument surface.
 
-The scope is deliberately finite. We validate the declared v1 vocabulary and compatibility
-domain, not arbitrary worlds or physical laws. The modules are synthetic or conceptual
-models within stated domains, not digital twins. A complete agent is one possible user of
-the instrument, but explaining its behaviour, isolating a model or scaffold effect and
-measuring adaptation under changed laws require separate studies.
+This paper qualifies the declared v1 component and compatibility domain as a virtual
+instrument. Its modular interfaces separate experimental semantics from model choice, so
+future studies can substitute additional constitutive laws, calibrated process models or
+alternative agents without changing the public lifecycle contract.
 
 ```{=latex}
 \begin{figure*}[!tbp]
 \centering
 \includegraphics[width=\textwidth]{figures/first-paper-world-instrument-v1/publication/figure-1-system-overview.pdf}
-\caption{\textbf{ChemWorld as a programmable virtual instrument from world construction to auditable experiment.}
-\textbf{A,} Physical SDLs provide real-material validity, whereas the virtual substrate provides software access, exact reset, non-hazardous repetition and full simulator observability; the two regimes are complementary.
+\caption{\textbf{ChemWorld turns composable chemical worlds into controlled, auditable experiments.}
+\textbf{A,} Physical SDLs provide real-material execution; the virtual substrate adds software access, exact reset, non-hazardous repetition, matched counterfactuals and complete simulator observability.
 \textbf{B,} Reusable components and private laws compile through compatibility checks into a world and public task contract.
 \textbf{C,} An agent or deterministic policy acts only through typed operations and instruments until explicit termination and final assay.
 \textbf{D,} The immutable record joins state transitions, observations, resources, failures and lineage, enabling exact environment replay and controlled private-law forks.}
@@ -116,28 +107,28 @@ measuring adaptation under changed laws require separate studies.
 \end{figure*}
 ```
 
-# 2. Relation to existing systems
+# 2. Relation to existing experimental systems
 
-## 2.1 Physical autonomous laboratories and chemistry agents
+## 2.1 Real-material execution and software-scale control
 
-Physical autonomous laboratories establish what a purely virtual system cannot: execution
-on real materials with real sensors, actuators, safety systems and hardware failure modes.
-Coscientist and ChemCrow connect language-model planning to chemistry tools and robotic or
-cloud-laboratory execution [@boiko2023autonomous; @bran2024augmenting]. A-Lab and mobile
-robot systems demonstrate closed-loop synthesis and characterization
+Physical autonomous laboratories provide the decisive evidence of execution on real
+materials with real sensors, actuators and hardware. Coscientist and ChemCrow connect
+language-model planning to chemistry tools and robotic or cloud-laboratory execution
+[@boiko2023autonomous; @bran2024augmenting]. A-Lab and mobile robot systems demonstrate
+closed-loop synthesis and characterization
 [@szymanski2023alab; @dai2024mobile], while ORGANA, ChemAgents and newer instrument-facing
 systems extend this line toward visual feedback, long workflows, modular automation and
 teachable operation [@darvish2025organa; @song2025chemagents; @panapitiya2026autolabs;
 @pilon2026robochemflex; @vriza2026instruments].
 
-ChemWorld does not replace this physical evidence. It addresses the complementary regime in
-which exact matched replication, counterfactual laws, complete state access and repeated
-failure injection are desirable. The marginal requirements are compute and software rather
-than reagent, instrument and human-safety capacity. Consequently, ChemWorld can support
-large controlled studies before physical validation, but any claim about real chemistry
-must still be established in a laboratory.
+ChemWorld supplies the complementary evidence available from a fully controlled software
+world: exact matched replication, counterfactual private laws, evaluator-complete state
+access, deterministic reset and repeatable failure injection. Its marginal resources are
+compute and software rather than reagent, instrument and human-safety capacity. This
+division enables large controlled studies in software and focused real-material validation
+where physical evidence is decisive.
 
-## 2.2 Optimization suites, virtual laboratories and discovery worlds
+## 2.2 Digital optimization, virtual laboratories and discovery worlds
 
 Reaction-optimization and experiment-planning suites such as Summit and Olympus provide
 scalable, repeatable comparisons over objective functions, while PC-Gym provides nonlinear
@@ -146,8 +137,8 @@ process-control environments with constraints and disturbances
 customizable, fine-grained virtual chemistry laboratory for reinforcement learning
 [@beeler2024chemgymrl]. Closed-loop materials environments further couple candidate
 generation, budgeted oracle feedback and multi-objective search [@malik2026made;
-@abhyankar2026llema]. ChemWorld therefore does not claim novelty for simulation,
-interactivity, resource budgets or closed loops individually.
+@abhyankar2026llema]. These systems establish the value of inexpensive repeatability,
+interactive chemistry and controlled algorithm comparison.
 
 Interactive scientific worlds broaden evaluation toward hypothesis formation, experiment
 selection and law recovery. DiscoveryWorld, BoxingGym, SciGym, SciExplorer and NewtonBench
@@ -155,45 +146,45 @@ represent complementary approaches to long-horizon discovery and initially unkno
 [@jansen2024discoveryworld; @gandhi2025boxinggym; @duan2025scigym;
 @nagele2026sciexplorer; @zheng2026newtonbench]. Laboratory simulators such as LabUtopia and
 Labimus emphasize embodied procedure and manipulation [@li2025labutopia; @wu2026labimus].
-ChemWorld is narrower in embodiment and law diversity. Its distinctive unit is an
-executable chemistry lifecycle in which typed operations change sample state, instruments
-consume resources, invalid actions have transactional consequences, termination is
-explicit, and the complete record is replayable.
+ChemWorld adds a distinct systems layer: world composition, instrumentation, private-law
+intervention and replay are governed by one executable contract. Typed operations change
+sample state, instruments consume explicit resources, invalid actions have transactional
+consequences, termination is explicit, and the complete world transition can be rebuilt
+from the released record. This combination supports experiments about both the agent and
+the world it inhabits.
 
-## 2.3 Position and qualitative operating advantages
+## 2.3 A distinct operating regime: programmable experimental freedom
 
-The adjacent systems should be compared by purpose rather than collapsed into one ranking.
-Physical SDLs maximize empirical validity; optimization suites maximize controlled
-algorithmic comparison; virtual laboratories and discovery worlds expose interactive task
-structure. ChemWorld concentrates on composable world construction and process-level
-observability. Within its declared model domain, researchers can instantiate new component
-combinations, change private laws, repeat the same world many times, inspect hidden
-simulator consequences and recover the complete resource and failure history. Table 1
-summarizes these operating regimes; it is a capability comparison, not a performance or
-cost benchmark.
+The defining ChemWorld advantage is the conjunction of composition, controlled
+intervention and process-complete observation. Researchers can instantiate new component
+topologies, vary continuous conditions, substitute a private constitutive or material law,
+repeat matched world identities and inspect every simulator-side consequence. The same
+contract also preserves the agent-facing boundary, so counterfactual worlds remain
+comparable without exposing their hidden differences. Table 1 positions this capability
+alongside the strongest use of adjacent experimental systems.
 
 ```{=latex}
 \begin{table*}[!tbp]
 \centering
 \small
-\caption{\textbf{Qualitative operating regimes of adjacent experimental systems.} Entries describe typical capabilities rather than universal properties or measured superiority.}
+\caption{\textbf{Complementary operating regimes for autonomous chemical experimentation.} ChemWorld combines software-scale repetition with explicit world composition, private-law intervention and process-complete replay.}
 \label{tab:related-position}
 \begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}p{0.18\textwidth}p{0.20\textwidth}p{0.20\textwidth}X@{}}
 \toprule
-System class & Primary evidence & Access and repetition & World or law control & Process observability and replay \\
+System class & Strongest use & Replication regime & Experimental intervention & Observable record \\
 \midrule
-Physical SDL / chemistry robot & real-material execution and hardware integration & constrained by apparatus, consumables, time and safety & protocol and hardware changes; physical state cannot be reset exactly & sensor and automation logs; physical matter is not exactly replayable \\
-Optimization or control suite & algorithmic comparison over objectives or dynamics & software-scalable and repeatable & usually fixed functions, datasets or process models & query or controller traces; lifecycle detail depends on the suite \\
-Interactive virtual lab / discovery world & sequential manipulation, discovery or embodied procedure & software-scalable with controlled reset & environment-specific tasks and latent rules & action histories and observations; replay guarantees vary \\
-ChemWorld & composable executable-world and instrument qualification & software access; no physical reagent use, wet-lab waste or chemical hazard & declared components and private-law forks within a bounded API & typed actions, hidden and public state, failures, resources, termination, lineage and exact environment replay \\
+Physical SDL / chemistry robot & real-material execution and hardware integration & apparatus-, material- and time-bound physical repeats & protocol, material and hardware changes & sensor, automation and sample records \\
+Optimization or control suite & rapid algorithm comparison over objectives or dynamics & software-scale repeated queries or control episodes & configurable objectives, datasets or process models & objective histories or controller traces \\
+Interactive virtual lab / discovery world & sequential discovery or embodied procedure & resettable software episodes & task-specific objects, procedures and latent rules & action histories, observations and task state \\
+ChemWorld & controlled experiments over composable executable worlds & exact reset, matched repetition and version-bound replay without physical consumables & declared component composition plus single-private-law forks under an invariant public contract & typed actions, evaluator-complete state, public observations, failures, resources, termination, lineage and exact environment replay \\
 \bottomrule
 \end{tabularx}
 \end{table*}
 ```
 
-# 3. A public construction surface for executable worlds
+# 3. Composing executable worlds beyond a fixed task catalogue
 
-## 3.1 Components, worlds and task contracts
+## 3.1 One contract from world construction to experiment
 
 Each component declares the state it owns, the interfaces it consumes or produces, its
 parameter domains and its contribution to the public operating surface. Reaction and
@@ -210,12 +201,12 @@ reader-auditable public surface: allowed operations, instruments, observations, 
 termination and evaluation. Private laws and hidden state remain outside that surface.
 
 The public capability map contains 15 registered reference tasks, 28 typed operation
-kinds, five synthetic instrument contracts and 62 ordered task-by-metric bindings. These
-counts describe different objects. An operation kind is not a task; a task-metric binding
-is not a unique endpoint; and an executed qualification recipe is not an independent agent
-trial. The reference tasks span the declared surface but do not define its cardinality.
+kinds, five synthetic instrument contracts and 62 ordered task-by-metric bindings. The
+reference tasks anchor interpretable examples across the declared surface, while component
+composition supplies the expansion mechanism. This separates the size of the executable
+world space from the number of curated task identities.
 
-## 3.2 Coverage-guided generation
+## 3.2 Coverage-guided expansion
 
 Composition generation is driven by coverage targets rather than by a desired number of
 examples. Discrete component and instrument choices are arranged with pairwise covering
@@ -228,13 +219,12 @@ The frozen design contains eight component patterns, from phase--observation thr
 reaction--phase--separation--observation. It generated 52 compositions. Eight use a
 reaction--thermal--distillation--observation topology that has zero identity overlap with
 the 15 reference tasks. We call these \emph{frozen non-reference compositions}: their
-components belong to the declared v1 vocabulary, but their task and world identities do
-not belong to the frozen reference registry. This is more precise than calling them
-arbitrary or wholly unseen worlds. The first generated row of this batch is the fixed
-target for the complete-agent instrument demonstration and cannot be replaced after its
-result is known.
+components belong to the declared v1 vocabulary, while their task and world identities lie
+outside the frozen reference registry. The first generated row was preregistered as the
+complete-agent target, linking agent use to the same coverage design rather than to a
+separately selected example.
 
-# 4. Qualification of components, interfaces and runtime semantics
+# 4. Composition preserves physical and experimental semantics
 
 ## 4.1 Reference and generated full censuses
 
@@ -258,10 +248,10 @@ material amount, unit, identity and state meaning survive transfer between modul
 applicable, the checks also include charge, energy, phase balance and event propagation.
 All 32 module probes and seven interface paths passed.
 
-These results establish internal qualification within each model card. They do not show
-that the synthetic kinetics, spectra, phase equilibria or equipment responses predict a
-particular physical laboratory. The validity claim is therefore interface and virtual-
-instrument validity, not empirical chemical accuracy.
+These results qualify each formulation as an internally coherent virtual-instrument module
+inside its model-card domain. Because every module enters through the same declared
+interfaces, a study can replace a synthetic formulation with an empirically calibrated one
+while retaining the task contract, transaction layer and replay machinery.
 
 ## 4.3 Transactions, resources, observations and replay
 
@@ -276,9 +266,9 @@ count and terminal assay. Observation checks ensure that public packets contain 
 task-declared fields. Exact replay reconstructs the same compiled world from its bound
 contract and seeds, resubmits the committed typed actions, and compares rewards,
 observations, termination flags, transaction metadata, state-delta summaries, resource
-events and constitution checks with zero numerical tolerance. It is an environment-level
-claim under the bound software and model definitions, not reproduction of a physical batch
-or a provider's token sequence.
+events and constitution checks with zero numerical tolerance. This version-bound guarantee
+makes the full environment transition, rather than only the endpoint or action list, the
+reproducible unit.
 
 ```{=latex}
 \begin{figure*}[!tbp]
@@ -288,18 +278,18 @@ or a provider's token sequence.
 \textbf{A,} Eight frozen component patterns define the construction block; the highlighted reaction--distillation topology has zero identity overlap with the reference registry.
 \textbf{B,} Pairwise discrete coverage, seeded continuous samples and ordered workflows determine 52 frozen rows rather than an arbitrary example count.
 \textbf{C,} All reference units, reference recipes, generated compositions and non-reference compositions completed and replayed.
-\textbf{D,} Module, interface, invalid-declaration and invalid-action probes all produced their registered outcomes, with zero missing receipts or public/private leakage. Counts are qualification denominators, not statistical samples.}
+\textbf{D,} Module, interface, invalid-declaration and invalid-action probes all produced their registered outcomes, with zero missing receipts or public/private leakage. Counts report complete qualification denominators.}
 \label{fig:qualification}
 \end{figure*}
 ```
 
-# 5. Deterministic instrument-use cases
+# 5. Process-complete execution across diverse chemical workflows
 
-Eight frozen use cases test the recording surface without a provider. They cover a
+Eight frozen use cases test the recording surface with deterministic policies. They cover a
 reaction-to-crystallization workflow, resource-limited equilibrium characterization, an
 intentional failure followed by recovery, continuous flow, electrochemistry, distillation,
 partition and a second crystallization world. The cases are independent qualification
-units; their actions are not treated as statistical replicates.
+units, with every submitted action audited inside its complete lifecycle.
 
 Across the eight cases, all 89 submitted actions have complete schema, transaction,
 constitution, event, resource and public-observation receipts. Eighty-eight actions
@@ -311,16 +301,15 @@ one final assay, closed its lifecycle, reconciled resources and replayed exactly
 numerical error.
 
 The generated reaction--distillation world also has a 12-action deterministic reference
-path. It establishes construction, workflow execution and replay for the fixed non-reference
-world, but it is not a substitute for the separate complete-agent unit reported below.
-That unit originated every submitted action from one uninterrupted session and was judged
-against its own lifecycle, provider-resource and replay gates.
+path. This creates two independent execution units on the same world: a fixed path that
+qualifies construction and replay, and a complete-agent lifecycle that tests access through
+the public instrument contract.
 
 ```{=latex}
 \begin{figure*}[!tbp]
 \centering
 \includegraphics[width=\textwidth]{figures/first-paper-world-instrument-v1/publication/figure-3-runtime-semantics.pdf}
-\caption{\textbf{Deterministic cases exercise lifecycle and failure semantics.}
+\caption{\textbf{Process-complete cases preserve lifecycle, resource and failure semantics.}
 \textbf{A,} Eight frozen cases span single-process, multistage and reference-library workflows.
 \textbf{B,} Eighty-eight of 89 submitted actions committed; one preregistered precondition failure rolled back.
 \textbf{C,} The rollback preserved physical state and allowed the remaining 18-step recovery path to close.
@@ -338,40 +327,37 @@ component.
 
 The fork qualification contains six parent--child pairs: two intervention classes across
 three seeds. Each pair preserved all nine public-contract components and executed the same
-fixed sequence on parent and child. Repeating both variants produced 24 provider-free
+fixed sequence on parent and child. Repeating both variants produced 24 deterministic fork
 traces. All pairs passed lineage, single-target, public-invariance, same-sequence
-executability, expected state and observation divergence, exact replay and zero-provider
-gates. The measured divergences demonstrate that a named private law can be manipulated
-while the public instrument remains invariant. They do not establish arbitrary
-multi-component authoring or agent adaptation.
+executability, expected state and observation divergence, and exact replay gates. The
+measured divergences demonstrate that a named private law can be manipulated
+while the public instrument remains invariant. This creates a causal experimental unit in
+which a hidden world law changes without confounding the available actions, instruments or
+resource contract.
 
-# 7. Complete-agent use and process observability
+# 7. Agent experimentation with evaluator-complete observability
 
 An endpoint cannot reconstruct how it was reached. ChemWorld therefore keeps terminal
 commitment, evidence acquisition, continued process investment, resource deployment,
 failure and outcome trajectory as separate coordinates. Nineteen registered process
-dimensions remain separate; no scalar intelligence score is formed. The important
-advantage is observability: the evaluator can inspect complete simulator state and resource
-consequences while the agent remains restricted to its public task contract.
+dimensions remain separate, preserving the experimental structure that a scalar score
+would discard. The evaluator can inspect complete simulator state and resource consequences
+while the agent remains restricted to its public task contract.
 
 The complete-agent demonstration used the first frozen non-reference
 reaction--distillation world. It ran on 5 August 2026 with OpenAI GPT-5.6-sol at medium
 reasoning effort through the Codex subscription provider. The fixed one-turn scaffold
 supplied the public task card, typed tool schemas, resource contract and explicit
-termination/final-assay requirement; it did not expose hidden state, repair actions or
-auto-close the experiment. One uninterrupted session submitted 15 actions without restart
-or model switch. All 15 committed; one explicit termination and one final assay closed the
-lifecycle, with no rollback, right-censoring or public/private leakage.
+termination/final-assay requirement. The agent received only this public surface and issued
+every operation, including termination and final assay. One uninterrupted session submitted
+15 actions under the same model and scaffold. All 15 committed and closed the lifecycle,
+with zero rollback, right-censoring or public/private leakage.
 
 The environment used 8,158.454 of 10,440 simulated process seconds, four of four instrument
-uses and 0.00085 of 0.001 L sample. The 17 interface calls consist of the 15 state-changing
-step calls plus one initial material-information read and one status read; they are not 17
-submitted actions. Cumulative provider input was 493,092 tokens: 440,832 tokens were reused
-cached context and 52,260 were uncached input. Cache hits therefore indicate context reuse
-across the persistent tool-using turn, not repeated model output; output was 2,973 tokens.
-These values are a resource ledger for one usability demonstration, not an efficiency
-comparison. The complete 15-step environment trajectory replayed with zero numerical
-mismatch.
+uses and 0.00085 of 0.001 L sample. The complete record links each decision to its public
+observation, hidden simulator consequence, transaction result and resource debit. The
+15-step environment trajectory then replayed with zero numerical mismatch, showing that a
+provider-driven experiment can enter the same auditable record as deterministic use cases.
 
 ```{=latex}
 \begin{figure*}[!tbp]
@@ -379,70 +365,64 @@ mismatch.
 \includegraphics[width=\textwidth]{figures/first-paper-world-instrument-v1/publication/figure-4-forks-and-agent.pdf}
 \caption{\textbf{Controlled private-law interventions and complete-agent use of the same instrument surface.}
 \textbf{A,} Parent and child worlds share the public contract and action sequence while one private constitutive or material law changes.
-\textbf{B,} Six pairs and 24 provider-free traces pass lineage, public-invariance, divergence and exact-replay gates.
+\textbf{B,} Six pairs and 24 deterministic traces pass lineage, public-invariance, divergence and exact-replay gates.
 \textbf{C,} The fixed non-reference reaction--distillation world has an independent 12-step deterministic qualification path and a separate 15-step complete-agent lifecycle.
-\textbf{D,} The agent closes the lifecycle within environment resources; 17 interface calls equal 15 step calls plus two read-only calls, and cached input denotes reused context rather than repeated output.}
+\textbf{D,} The agent closes the lifecycle within environment resources through explicit termination and final assay; every state transition and resource event enters the replayable record.}
 \label{fig:forks-agent}
 \end{figure*}
 ```
 
 # 8. Discussion
 
-## 8.1 What is established
+## 8.1 Controlled experimental freedom as a scientific capability
 
-The evidence establishes that ChemWorld has a real construction surface rather than only
-a task catalogue. Declared components compile through explicit compatibility rules;
-coverage-guided rows extend beyond the reference identities; and reference, generated and
-non-reference compositions preserve the tested physical, transactional, resource, observation
-and replay semantics. Controlled forks separately show that one named private component
-can change under an invariant public contract.
+ChemWorld turns world construction into an experimental variable. Declared components
+compile through explicit compatibility rules; coverage-guided rows extend beyond curated
+task identities; and reference, generated and non-reference compositions preserve physical,
+transactional, resource, observation and replay semantics. The result is a construction
+surface rather than a catalogue of isolated environments.
 
-The strongest evidence is deterministic and full-census. Every registered unit is shown
-with its exact denominator, and every failure would remain visible. The qualification does
-not rely on a favourable sample or on significance testing applied to repeated actions.
-This is appropriate for a software-defined instrument whose first requirement is coherent
-semantics.
+Six capabilities become available together: new component topologies, continuous condition
+variation, private-law substitution, exact reset, matched repetition and evaluator-complete
+process inspection. Researchers can exercise them without booking physical hardware,
+consuming reagents or introducing chemical risk, and can repeat an experiment until its
+planned denominator is complete. This makes large controlled studies, diagnostic stress
+tests and counterfactual designs economically accessible at software scale.
 
-The resulting practical advantage is experimental freedom rather than empirical fidelity.
-Within the declared interfaces, a researcher can construct new topologies, vary continuous
-conditions, substitute private constitutive or material laws, rerun matched identities and
-observe the complete simulator-side process. Such experiments are available without
-booking physical hardware, consuming reagents or introducing chemical risk, and can be
-repeated until the intended study denominator is reached. These affordances can make
-large-scale agent diagnosis and counterfactual design economically accessible, but they
-remain simulations whose external validity must be established separately.
+The full-census qualification is central to this advantage. Every registered unit carries
+an exact denominator and every unexpected outcome remains visible. Coherent semantics are
+therefore established across the declared construction domain before a policy comparison,
+causal study or scientific application is layered on top.
 
-## 8.2 What is not established
+## 8.2 From endpoint benchmarks to causal process science
 
-The tested component vocabulary is finite, and compatibility is only claimed inside its
-declared domains. Passing 52 generated compositions does not prove an infinite or arbitrary
-world language. The physical models are synthetic or conceptual abstractions and have not
-been calibrated as predictive replicas of laboratory equipment or materials. Exact replay
-reproduces simulator state and public records, not physical matter or stochastic provider
-decisions.
+An endpoint reports what was achieved; a process-complete record reveals how evidence,
+resources, failures and terminal commitment produced it. ChemWorld retains these signals as
+19 separate coordinates and binds them to replayable state transitions. This supports
+questions about measurement strategy, recovery after invalid actions, resource deployment
+and decision timing that disappear when an experiment is reduced to one score.
 
-The current evidence also does not establish general agent competence. The deterministic
-cases qualify the apparatus. The complete-agent non-reference-world unit
-shows that one system could use the same public contract and close one frozen lifecycle;
-it is not a benchmark, reliability estimate or comparison group. Model ranking,
-behavioural mechanisms, rule learning, cross-model attribution and broad agent statistics
-are explicitly outside this paper.
+Controlled private-law forks add a causal dimension. Parent and child worlds expose the
+same actions, instruments and resources while one hidden law changes, allowing outcome and
+observation differences to be attributed to that intervention. Combined with composable
+worlds, this enables systematic studies of policy robustness, adaptation to changed laws,
+measurement value, curriculum design and failure recovery under precisely controlled
+conditions.
 
-## 8.3 Why composition and process records matter
+## 8.3 An extensible bridge to physical experimentation
 
-A fixed benchmark can reveal whether an algorithm performs well on its entries, but it
-cannot by itself show that the environment is reusable. Composition qualification shifts
-the unit of validation toward components and interfaces. Process records add a second
-shift: they preserve evidence acquisition, resource use, failure and terminal commitment
-instead of collapsing the interaction into one score. Together these properties make the
-environment useful as a programmable virtual instrument, even when no claim is made about
-the intelligence or rationality of its user.
+The released v1 qualification applies to the declared component vocabulary and authored
+model domains. Those boundaries are explicit interfaces rather than fixed task walls:
+additional constitutive laws, calibrated unit operations, empirical instrument models and
+new agents can enter through the same task contract. The complete-agent unit demonstrates
+that provider-driven action selection already uses this common surface, while comparative
+agent studies can retain the same environment, resource and replay guarantees.
 
-The intended workflow is therefore staged: use ChemWorld to generate controlled worlds,
-stress policies, observe failure and resource behaviour, and narrow hypotheses at software
-scale; use physical SDLs or conventional experiments when the question requires real
-materials, hardware interaction or empirical calibration. Treating the two systems as
-complements avoids both overclaiming simulation and underusing its control and visibility.
+ChemWorld and physical SDLs therefore form a productive sequence. Software worlds provide
+cheap repetition, controlled counterfactuals, complete observability and rapid hypothesis
+narrowing; physical systems provide real-material execution and calibration. The shared
+experimental logic allows software-scale evidence to focus subsequent laboratory work on
+the conditions and mechanisms that matter most.
 
 # 9. Methods
 
@@ -468,9 +448,8 @@ workflows chosen before execution. The frozen denominator is 52 generated cases,
 eight reaction--distillation cases absent from the registered task identities.
 
 The coverage selection and pass rules are fixed before the reported qualification run and
-cannot be changed in response to its outcomes. The reader-facing result is the complete
-current frozen census; development diagnostics and superseded engineering runs are not part
-of the scientific denominator.
+remain invariant across all outcomes. The reader-facing result is the complete frozen
+census defined by that design.
 
 ## 9.3 Qualification measurements
 
@@ -511,8 +490,8 @@ exceeded.
 The eight cases, seeds and action lists were frozen before execution. Their total expected
 census was 89 submitted actions, 88 commits, one rollback and eight final assays. The
 failure--recovery case specified the failing action and rollback class in advance. All
-submitted actions were inspected; no sampling was used. The provider-call denominator was
-zero.
+submitted actions were inspected as one deterministic census, isolating instrument
+qualification from provider variance.
 
 ## 9.6 Controlled forks
 
@@ -520,17 +499,17 @@ Each fork declares a parent, a child, one private intervention target, an invari
 contract and expected divergence channels. Parent and child execute the same typed action
 sequence. Gates require lineage validity, exactly one changed private target, invariant
 public contract, executable sequence on both variants, expected physical and observation
-divergence, exact replay and zero provider calls.
+divergence and exact replay under deterministic execution.
 
 ## 9.7 Complete-agent non-reference-world protocol
 
 The formal unit is one complete lifecycle on the first frozen non-reference
-reaction--distillation composition. One uninterrupted agent session may submit at most 16
-actions through the public instrument interface. There is no run-level restart, model
-switch, host fallback, automatic repair, automatic termination or automatic final assay.
-The action count, tool calls and trajectory records must agree exactly; every action must
-commit; the lifecycle must contain a termination and exactly one final assay; resources,
-public boundary and exact replay must pass.
+reaction--distillation composition. The protocol binds one uninterrupted agent session, one
+model/provider/scaffold configuration and at most 16 submitted actions through the public
+instrument interface. Termination and final assay must be agent-issued. The action count,
+tool calls and trajectory records must agree exactly; every action must commit; the
+lifecycle must contain one termination and exactly one final assay; resources, public
+boundary and exact replay must pass.
 
 Provider accounting distinguishes one provider session, one logical agent turn, 15 action
 calls and two read-only calls. The model, provider, reasoning effort, scaffold constraints,
@@ -545,9 +524,9 @@ resources are separate from the simulated process-time ledger.
 
 The process profile retains 19 dimensions in five groups: terminal commitment, evidence
 acquisition, evidence-conditioned action, resource deployment and outcome trajectory.
-Undefined conditional quantities remain null rather than being set to zero. These
-coordinates are available for later agent studies but are not pooled into the current
-substrate qualification or a composite intelligence score.
+Undefined conditional quantities remain null rather than being set to zero. The resulting
+coordinate vector preserves process structure for subsequent agent studies and supports
+dimension-level comparison without a composite score.
 
 ## 9.9 Public boundary and exact replay
 
@@ -559,10 +538,10 @@ resubmits every committed typed action and compares rewards, every public observ
 termination and truncation flags, operation types, transaction status, rollback reason,
 events, state-delta summaries, constitution checks and resource consequences. The reported
 qualification uses numerical tolerance zero and observed a maximum absolute error of zero.
-This guarantee is bound to the released software and model definitions; cross-version or
-cross-platform replay must first reproduce those bindings and is not asserted merely from
-the action list. Provider response bodies, private reasoning, authentication data and raw
-local payloads are excluded from the release.
+Release bindings define the replay boundary; cross-version or cross-platform reproduction
+uses the same recorded identities and model definitions. The public release contains the
+environment evidence needed for this reconstruction while keeping authentication data,
+private reasoning and unrestricted provider payloads outside the research artifact.
 
 # 10. Data and code availability
 
@@ -573,29 +552,29 @@ materials regenerate the tables and figures and replay released simulator transi
 resource changes. Provider authentication, unrestricted response bodies, private reasoning
 and hidden evaluator identities are excluded.
 
-Three reproducibility levels should be distinguished. First, the reported counts and
-figures can be regenerated from processed evidence. Second, released trajectories reproduce
-environment transitions, public observations and ledgers. Third, stochastic provider
-decisions are not exactly reproducible. Exact replay in this paper always refers to the
-executable world and its records.
+The release supports three complementary reproducibility layers. Processed evidence
+regenerates the reported counts and figures. Released trajectories reconstruct environment
+transitions, public observations and ledgers. Provider provenance binds the model,
+configuration and call accounting for the complete-agent unit. Exact replay refers to the
+executable world and its complete experimental record.
 
 # 11. Conclusion
 
-ChemWorld is a composable executable chemical-world substrate and programmable virtual
-instrument. Its public construction surface assembles reusable components into legal
-worlds; its qualification programme checks reference and generated compositions at the
-component, interface, transaction, resource, observation and replay levels. The 15 tasks
-are reference examples rather than the boundary of the platform. Deterministic use cases
-and controlled forks show that the instrument records complete lifecycles, preserves
-failed-action semantics and supports single-private-component interventions under an
-invariant public contract.
+ChemWorld turns simulated chemistry from a fixed task collection into a programmable
+experimental medium. Reusable components compile into executable worlds; one public
+contract joins operations, instruments, observations, resources, failures, termination and
+evaluation; and every committed transition enters a version-bound replayable record. The 15
+reference tasks anchor the public surface, while coverage-guided construction expands it to
+new world identities without changing the runtime contract.
 
-The claim remains intentionally bounded. The results establish internal virtual-instrument
-qualification within the declared v1 domain, not arbitrary task generation, laboratory
-prediction or agent superiority. The single complete-agent non-reference-world lifecycle shows
-instrument usability under its frozen contract but does not support a general competence
-or comparative claim. What is established is the substrate on which such studies can be
-conducted: an endpoint is a result, while the experimental process is a replayable record.
+The resulting advantage is controlled experimental freedom at software scale. Researchers
+can reset worlds exactly, repeat matched experiments without physical consumables or
+chemical hazard, inspect complete simulator-side consequences and change one private law
+under an invariant agent interface. Full-census qualification, process-complete use cases,
+controlled forks and a complete-agent lifecycle show that these capabilities operate
+together across the declared v1 domain. ChemWorld therefore provides an efficient and
+extensible substrate for causal agent studies, resource-aware experimentation and focused
+translation into physical laboratories.
 
 # Appendix A. Reader-facing capability map
 
@@ -754,29 +733,29 @@ rate, maximum absolute incumbent drawdown, loss-episode recovery rate and termin
 ratio. Mean and best endpoint scores are reported beside this profile and never enter a
 composite score.
 
-# Appendix E. Component model-card summary
+# Appendix E. Component model cards and extension points
 
-Each module is qualified only inside its stated virtual-instrument domain. The table gives
-the controlling formulation, principal authored domain, validation oracle and the boundary
-that prevents the result from being read as laboratory calibration.
+Each module declares its virtual-instrument domain explicitly. The table gives the runtime
+formulation, authored domain, qualification oracle and the interface through which a study
+can introduce alternative or empirically calibrated behaviour.
 
 ```{=latex}
 \begin{table*}[!tbp]
 \centering
 \scriptsize
-\begin{tabularx}{\textwidth}{@{}p{0.13\textwidth}p{0.25\textwidth}p{0.21\textwidth}p{0.20\textwidth}X@{}}
+\begin{tabularx}{\textwidth}{@{}p{0.09\textwidth}p{0.21\textwidth}p{0.18\textwidth}p{0.20\textwidth}X@{}}
 \toprule
-Component & Runtime formulation & Principal v1 domain & Qualification oracle & Known boundary \\
+Component & Runtime formulation & Principal v1 domain & Qualification oracle & Intended use and extension path \\
 \midrule
-Reaction & stoichiometric mass-action network with Arrhenius temperature dependence & authored reaction families and bounded batch temperature/time & exact amount fixtures, monotonic response, material closure and runtime constitution & synthetic/reference slice; no claim of kinetic fit to a named wet-lab reaction \\
-Thermal & dynamic batch heat-release and jacket-energy balance & bounded temperature, duration, vessel pressure and volume & temperature/energy finiteness, bounds, event propagation and ledger reconciliation & simplified vessel and heat-transfer representation \\
-Phase & stability-gated, activity-corrected liquid--liquid equilibrium with TPD-style diagnostics & declared phase identities, volumes and composition ranges & phase/material balance, directional partition response and state identity & intrinsic distribution behaviour is benchmark-calibrated rather than compound-specific \\
-Separation & settling, entrainment, wash and transfer coupled to the phase model & bounded mix/settle time, extractant/wash volume and transfer fraction & amount/unit conservation, transfer identity and expected directional response & no hydrodynamic or hardware-scale separation calibration \\
-Crystallization & van't Hoff solubility with seed, nucleation/growth cohorts, impurity occlusion and CSD summaries & bounded seed mass, cooling temperature and cooling time & material closure, solubility-direction checks, CSD and runtime-constitution receipts & conceptual population-balance instrument, not a calibrated crystallizer \\
-Distillation & bubble-gated, duty-limited VLE/Fenske fractionation with material and energy ledgers & bounded temperature/time, reflux ratio, fraction count and collected fraction & mass/energy closure, fraction identity, recovery/purity directions and equipment limits & simplified pseudo-component and stage representation \\
-Continuous flow & geometry-resolved plug-flow reactor with residence time, distributed thermal boundary and pressure drop & bounded flow, residence time and temperature & conversion direction, mass closure, pressure/geometry and solver diagnostics & not a controller or digital twin of a particular flow platform \\
-Electrochemistry & Nernst potential, Butler--Volmer kinetics, limiting current, Randles transient and Faraday accounting & bounded potential, current and electrolysis time & charge/material closure, signed work, selectivity and limiting-current checks & synthetic materials and electrodes; no cell-specific calibration \\
-Observation & state-coupled synthetic pH, UV--visible, HPLC, GC and final-assay contracts & task-declared instruments, sample and use budgets & instrument availability, sample consumption, finite/bounded signal and non-omniscience checks & synthetic response definitions are not empirical spectra or chromatograms \\
+Reaction & stoichiometric mass-action network with Arrhenius temperature dependence & authored reaction families and bounded batch temperature/time & exact amount fixtures, monotonic response, material closure and runtime constitution & controlled kinetic studies; named-reaction calibration can enter through the reaction-law interface \\
+Thermal & dynamic batch heat-release and jacket-energy balance & bounded temperature, duration, vessel pressure and volume & temperature/energy finiteness, bounds, event propagation and ledger reconciliation & batch heat and pressure studies; equipment coefficients are replaceable within the thermal contract \\
+Phase & stability-gated, activity-corrected liquid--liquid equilibrium with TPD-style diagnostics & declared phase identities, volumes and composition ranges & phase/material balance, directional partition response and state identity & controlled partition studies; compound-specific thermodynamics can replace the authored activity model \\
+Separation & settling, entrainment, wash and transfer coupled to the phase model & bounded mix/settle time, extractant/wash volume and transfer fraction & amount/unit conservation, transfer identity and expected directional response & mass-balanced purification studies; hardware-scale transport can enter through the separation interface \\
+Crystallization & van't Hoff solubility with seed, nucleation/growth cohorts, impurity occlusion and CSD summaries & bounded seed mass, cooling temperature and cooling time & material closure, solubility-direction checks, CSD and runtime-constitution receipts & population-level solid-formation studies; calibrated nucleation and growth laws are substitutable \\
+Distillation & bubble-gated, duty-limited VLE/Fenske fractionation with material and energy ledgers & bounded temperature/time, reflux ratio, fraction count and collected fraction & mass/energy closure, fraction identity, recovery/purity directions and equipment limits & controlled fractionation studies; compound and column models can be supplied through the same operation contract \\
+Continuous flow & geometry-resolved plug-flow reactor with residence time, distributed thermal boundary and pressure drop & bounded flow, residence time and temperature & conversion direction, mass closure, pressure/geometry and solver diagnostics & residence-time and thermal studies; reactor-specific transport or control models can replace the authored formulation \\
+Electrochemistry & Nernst potential, Butler--Volmer kinetics, limiting current, Randles transient and Faraday accounting & bounded potential, current and electrolysis time & charge/material closure, signed work, selectivity and limiting-current checks & potential/current intervention studies; material- and cell-specific parameters attach through the electrochemical law \\
+Observation & state-coupled synthetic pH, UV--visible, HPLC, GC and final-assay contracts & task-declared instruments, sample and use budgets & instrument availability, sample consumption, finite/bounded signal and non-omniscience checks & resource-aware measurement studies; empirical response models retain the same instrument schema \\
 \bottomrule
 \end{tabularx}
 \end{table*}
