@@ -83,8 +83,8 @@ def test_public_trajectory_archive_is_complete_and_bound() -> None:
 def test_arxiv_figure_manifest_binds_all_release_formats() -> None:
     manifest_path = (
         ROOT
-        / "paper/figures/experimental-intelligence-v1/"
-        "work-i-publication-figure-manifest-v0.1.json"
+        / "paper/figures/first-paper-world-instrument-v1/"
+        "first-paper-publication-figure-manifest-v1.json"
     )
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     declared = manifest.pop("manifest_sha256")
@@ -157,7 +157,7 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
     assert manifest["pdf_page_count"] >= 10
     assert manifest["canonical_figure_count"] == 6
     assert manifest["figure_manifest"].endswith(
-        "work-i-publication-figure-manifest-v0.1.json"
+        "first-paper-publication-figure-manifest-v1.json"
     )
     for row in manifest["files"]:
         artifact = ROOT / row["path"]

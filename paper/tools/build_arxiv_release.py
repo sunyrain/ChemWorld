@@ -27,8 +27,8 @@ FIGURE_MANIFEST = (
     ROOT
     / "paper"
     / "figures"
-    / "experimental-intelligence-v1"
-    / "work-i-publication-figure-manifest-v0.1.json"
+    / "first-paper-world-instrument-v1"
+    / "first-paper-publication-figure-manifest-v1.json"
 )
 SCHEMA = "chemworld-arxiv-release-build-manifest-0.1"
 SOURCE_DATE_EPOCH = 1_785_628_800  # 2026-08-02 00:00:00 UTC
@@ -100,20 +100,20 @@ def _normalize_text(path: Path) -> None:
 def _canonical_figure_pdfs() -> list[Path]:
     payload = json.loads(FIGURE_MANIFEST.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
-        raise RuntimeError("Work I publication figure manifest must be an object")
+        raise RuntimeError("first-paper publication figure manifest must be an object")
     declared = payload.pop("manifest_sha256", None)
     if declared != _canonical_sha(payload) or payload.get("status") != "PASS":
-        raise RuntimeError("Work I publication figure manifest is stale or failed")
+        raise RuntimeError("first-paper publication figure manifest is stale or failed")
     figures = payload.get("figures")
     if not isinstance(figures, list) or len(figures) != 6:
-        raise RuntimeError("Work I publication figure manifest must contain six figures")
+        raise RuntimeError("first-paper publication figure manifest must contain six figures")
     pdfs: list[Path] = []
     for order, figure in enumerate(figures, 1):
         if not isinstance(figure, dict) or figure.get("order") != order:
-            raise RuntimeError("Work I publication figure order changed")
+            raise RuntimeError("first-paper publication figure order changed")
         outputs = figure.get("outputs")
         if not isinstance(outputs, list):
-            raise RuntimeError("Work I publication figure outputs are missing")
+            raise RuntimeError("first-paper publication figure outputs are missing")
         matches = [row for row in outputs if isinstance(row, dict) and row.get("format") == "pdf"]
         if len(matches) != 1:
             raise RuntimeError(f"figure {order} must bind exactly one PDF")

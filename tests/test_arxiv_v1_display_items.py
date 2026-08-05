@@ -7,67 +7,69 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DERIVED = ROOT / "benchmark" / "releases" / "chemworld-serious-v1" / "arxiv-v1-derived-data.json"
-SCRIPT = ROOT / "scripts" / "render_arxiv_v1_display_items.py"
+DATA = ROOT / "paper/figures/first-paper-world-instrument-v1" / "first-paper-figure-data-v1.json"
+SCRIPT = ROOT / "scripts/render_arxiv_v1_display_items.py"
 
 
-def test_display_items_are_regenerated_from_the_bound_data(tmp_path: Path) -> None:
+def test_display_items_are_regenerated_from_current_bound_figure_data(tmp_path: Path) -> None:
     output = tmp_path / "display-items.md"
     result = subprocess.run(
-        [sys.executable, str(SCRIPT), str(DERIVED), "--output", str(output)],
+        [sys.executable, str(SCRIPT), str(DATA), "--output", str(output)],
         check=False,
         capture_output=True,
         text=True,
     )
-    data = json.loads(DERIVED.read_text(encoding="utf-8"))
-    assert result.returncode == (0 if data["g2_v0_5"] is not None else 2)
+    assert result.returncode == 0, result.stdout + result.stderr
+    data = json.loads(DATA.read_text(encoding="utf-8"))
     rendered = output.read_text(encoding="utf-8")
-    assert data["derived_data_sha256"] not in rendered
+    assert data["figure_data_sha256"] not in rendered
     assert "SHA-256" not in rendered
     assert "release label" not in rendered
     assert "### Table 1" in rendered
-    assert "### Table 4" in rendered
+    assert "### Table 5" in rendered
     titles = [
-        "Figure 1 | ChemWorld apparatus and controlled world forks.",
-        "Figure 2 | Known policies qualify the experimental-process profile.",
-        "Figure 3 | Lifecycle completion does not specify terminal policy.",
-        "Figure 4 | Compiled controls separate outcome, prediction, calibration and claims.",
-        "Figure 5 | Primitive-control agents expose complete experimental lifecycles.",
-        "Figure 6 | Fresh trajectories reveal process structure omitted by endpoints.",
+        "Figure 1 | Object hierarchy and public instrument contract.",
+        "Figure 2 | Coverage-guided construction beyond the reference task identities.",
+        "Figure 3 | Full-census qualification of the virtual instrument.",
+        "Figure 4 | Deterministic cases exercise lifecycle and failure semantics.",
+        "Figure 5 | Controlled forks change one private component under an invariant "
+        "public contract.",
+        "Figure 6 | Instrument records distinguish endpoint, process and execution status.",
     ]
     positions = [rendered.index(title) for title in titles]
     assert positions == sorted(positions)
-    assert "pending" not in rendered.lower()
-    assert "Similar endpoints can arise" not in rendered
-    if data["g2_v0_5"] is None:
-        assert "no interim replication values are rendered" in rendered
-    else:
-        replication = data["g2_v0_5"]
-        matrix = replication["matrix"]
-        assert "prespecified interpretation classified 6 of 8" in rendered
-        assert "main continuous endpoint diagnostic" in rendered
-        assert "does not identify a causal provider effect" in rendered
-        assert "variance-dominance relation" in rendered
-        assert "provider-trajectory variability dominated" not in rendered
-        assert f"{matrix['completed_cell_count']} completed cells" in rendered
-        assert f"{matrix['right_censored_cell_count']} right-censored cells" in rendered
-        assert f"{matrix['completed_pair_count']} complete pairs" in rendered
-        assert "pre-specified trajectory pairs" in rendered
-        assert "Δ mean score" in rendered
-        assert "Δ raw terminal" in rendered
-        assert "Δ discovery" in rendered
-        assert "does not identify a causal provider effect" in rendered
+    for required in (
+        "1,786",
+        "192",
+        "89-action census",
+        "24 provider-free traces",
+        "493,092",
+        "440,832",
+        "52,260",
+        "2,973",
+        "near-zero raw terminal",
+    ):
+        assert required in rendered
+    for excluded in (
+        "DeepSeek-based",
+        "Codex-based complete system",
+        "120 closed lifecycles",
+        "latent-terminal",
+        "scalar intelligence score",
+    ):
+        assert excluded not in rendered
 
 
 def test_tracked_display_items_match_a_fresh_render(tmp_path: Path) -> None:
     output = tmp_path / "display-items.md"
     subprocess.run(
-        [sys.executable, str(SCRIPT), str(DERIVED), "--output", str(output)],
-        check=False,
+        [sys.executable, str(SCRIPT), str(DATA), "--output", str(output)],
+        check=True,
         capture_output=True,
         text=True,
     )
-    tracked = ROOT / "paper" / "experimental_intelligence_v1_display_items.md"
-    rendered_hash = hashlib.sha256(output.read_bytes()).digest()
-    tracked_hash = hashlib.sha256(tracked.read_bytes()).digest()
-    assert rendered_hash == tracked_hash
+    tracked = ROOT / "paper/experimental_intelligence_v1_display_items.md"
+    assert (
+        hashlib.sha256(output.read_bytes()).digest()
+        == hashlib.sha256(tracked.read_bytes()).digest()
+    )
