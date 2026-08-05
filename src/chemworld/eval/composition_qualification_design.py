@@ -15,7 +15,7 @@ from chemworld.world.composition_coverage import (
 )
 from chemworld.world.process_time_budget import derive_process_time_budget_policy
 
-QUALIFICATION_DESIGN_VERSION = "first-paper-composition-qualification-design-v2"
+QUALIFICATION_DESIGN_VERSION = "first-paper-composition-qualification-design-v3"
 EXPECTED_PATTERN_CASE_COUNTS = {
     "phase-observation": 6,
     "reaction-thermal-observation": 6,
@@ -134,14 +134,39 @@ def _attach_process_time_policy(
     workflows: Sequence[OrderedWorkflowTemplate],
     continuous_axes: Sequence[ContinuousCoverageAxis] = (),
 ) -> None:
+    resources = request["task"]["resources"]
+    additional_repeats = dict(_ADDITIONAL_PROCESS_REPEATS[pattern_id])
+    declared_instrument_uses = resources.get("instrument_uses")
+    required_measure_count = max(
+        (
+            sum(
+                1
+                for action in workflow.actions
+                if action.get("operation") == "measure"
+            )
+            for workflow in workflows
+        ),
+        default=0,
+    )
+    if declared_instrument_uses is not None:
+        if (
+            isinstance(declared_instrument_uses, bool)
+            or not isinstance(declared_instrument_uses, int)
+            or declared_instrument_uses < required_measure_count
+        ):
+            raise ValueError(
+                "task instrument_uses must cover every measurement in the frozen workflow"
+            )
+        additional_repeats["measure"] = (
+            declared_instrument_uses - required_measure_count
+        )
     policy = derive_process_time_budget_policy(
         pattern_id=pattern_id,
         workflows=workflows,
         continuous_axes=continuous_axes,
-        additional_repeat_limits=_ADDITIONAL_PROCESS_REPEATS[pattern_id],
+        additional_repeat_limits=additional_repeats,
         implicit_operation_allowance_s=_IMPLICIT_PROCESS_TIME_ALLOWANCE_S,
     )
-    resources = request["task"]["resources"]
     resources["time_s"] = policy.process_time_limit_s
     resources["process_time_policy"] = policy.to_dict()
 

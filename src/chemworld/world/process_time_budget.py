@@ -280,14 +280,19 @@ def derive_process_time_budget_policy(
             maximum_timed_workflow_time = timed_workflow_time
             maximum_implicit_workflow_time = implicit_workflow_time
 
-    missing_repeat_reference = sorted(set(additional) - set(reference_max))
+    missing_repeat_reference = sorted(
+        operation
+        for operation in additional
+        if operation not in reference_max and operation not in required_counts
+    )
     if missing_repeat_reference:
         raise ValueError(
             "additional repeats require a timed or implicit reference: "
             f"{missing_repeat_reference}"
         )
     repeat_allowance = sum(
-        reference_max[operation] * count for operation, count in additional.items()
+        reference_max.get(operation, 0.0) * count
+        for operation, count in additional.items()
     )
     repeat_limits = {
         operation: required_counts.get(operation, 0) + additional.get(operation, 0)

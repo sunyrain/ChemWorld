@@ -166,6 +166,18 @@ runtime 在动作提交前检查累计时间和 operation repeat limit，并公�
 越界动作保持原子失败，不先改变物理状态。该修复不覆盖已完成的 v1 结果；C01--C08/D01--D04 受影响
 批次必须从第一个 case 重新执行，旧结果和 U05 provider 失败均保留。
 
+## 2026-08-05 instrument-use / measure repeat 修订（design v3）
+
+修复后第一次正式 U05 provider 单元使用了任务允许的 3 次非终检测量（HPLC 两次、GC 一次），随后在
+第 16 步提交预留的 final assay。环境资源卡正确声明 `instrument_uses=4` 和 `final_assays=1`，但 design v2
+的 `process_time_policy.operation_repeat_limits.measure` 仅从两条冻结参考 workflow 的最大测量次数推导为 3，
+把 final assay 错误地当成超额第 4 次 `measure` 并拒绝。该正式失败完整保留，不得覆盖。
+
+Design v3 不改变任何 pattern 的 process-time 秒数、覆盖 rows、连续 bounds、seed、workflow 或 case 分母；
+它只要求零耗时 `measure` 的总 repeat limit 与任务声明的总 `instrument_uses` 一致，其中 final assay 占一次。
+若声明的 instrument budget 小于冻结 workflow 的必要测量数，设计生成直接 fail closed。由于公开请求和运行时
+动作可达性发生变化，C01--C08/D01--D04 与受影响确定性案例须从首个 case 重新执行后才能重新绑定为 current。
+
 当前实现生成的 pattern envelope 与额外重复许可如下；总上限严格等于“必要 timed 阶段 + 必要隐含
 余量 + 额外重复耗时”：
 

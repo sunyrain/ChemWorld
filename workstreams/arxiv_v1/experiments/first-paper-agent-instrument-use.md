@@ -104,3 +104,16 @@ SHA-256 为 `a2bd2dfc7d98057f5edc72b182f8da37dfe4257bb4c01d3cea3620c251c22844`�
 hash 保持 `9b775c56b1cfe07dc75afc355d4815077913b27cbeedf20d32fb21d9dadf9f14`。变化来自新增公开
 `process_time_policy`，不是世界、seed 或生成顺序改选。新 provider run 开始前必须重新冻结并核对这三个
 binding；旧 design-v1 请求和旧失败结果继续保留为历史，不得覆盖。
+
+## 2026-08-05 正式 v2 失败与 design-v3 平台修复
+
+经用户明确授权，正式 v2 provider 单元在一个 session / 一个 logical Codex turn 中提交 16 个动作。前 15 步
+全部 committed，process time 为 8,435.453 s（低于 10,440 s），token、MCP、资源、公开边界和 exact replay
+均对账；第 16 步 final assay 被 `declared_process_resource:operation_repeat_limit` 拒绝，因此生命周期右删失并
+判定 FAILED。该结果固定保存在 v2 报告中，不得覆盖或解释为成功。
+
+根因是 design v2 将 `measure` repeat limit 从冻结参考 workflow 推导为 3，同时任务资源允许 3 次非终检测量
+加 1 次 final assay，总 instrument-use 上限为 4。Design v3 只修复这一平台合同矛盾：所有 composition 的
+`measure` repeat limit 必须等于其声明的总 `instrument_uses`；process-time 上限和其他 operation repeat limit
+不变。修复后先从首个 case 重跑受影响的离线资格并冻结新 request/task bindings，随后才可从第一个 decision
+执行一个新的正式 provider 单元；v2 失败永久保留，且新单元仍不得运行级重试、择优或结果替换。
