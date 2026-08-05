@@ -542,6 +542,97 @@ def _method_resource_limits() -> dict[str, Any]:
     }
 
 
+def _declared_resource_limits(
+    composition_request: Mapping[str, Any],
+) -> dict[str, float | int]:
+    task = composition_request.get("task")
+    resources = task.get("resources") if isinstance(task, Mapping) else None
+    if not isinstance(resources, Mapping):
+        raise CompleteAgentQualificationError(
+            "frozen composition declared resources are missing"
+        )
+    limits: dict[str, float | int] = {
+        "operation_attempts": int(resources.get("operation_budget", -1)),
+        "instrument_uses": int(resources.get("instrument_uses", -1)),
+        "final_assays": int(resources.get("final_assays", -1)),
+        "sample_consumed_L": float(resources.get("sample_volume_L", -1.0)),
+        "process_time_s": float(resources.get("time_s", -1.0)),
+    }
+    if any(float(value) < 0.0 for value in limits.values()):
+        raise CompleteAgentQualificationError(
+            "frozen composition declared resource limits are invalid"
+        )
+    return limits
+
+
+def _declared_resource_budget_receipt(
+    *,
+    composition_request: Mapping[str, Any],
+    environment_resource_receipt: Mapping[str, Any],
+    actions: Sequence[Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
+    limits = _declared_resource_limits(composition_request)
+    outcome = environment_resource_receipt.get("outcome_delta")
+    outcome = outcome if isinstance(outcome, Mapping) else {}
+    report_only = outcome.get("report_only")
+    report_only = report_only if isinstance(report_only, Mapping) else {}
+    observed = {
+        "operation_attempts": int(outcome.get("operation_attempts", -1)),
+        "instrument_uses": int(outcome.get("nonfinal_instrument_uses", -1))
+        + int(outcome.get("final_assays", -1)),
+        "final_assays": int(outcome.get("final_assays", -1)),
+        "sample_consumed_L": float(report_only.get("sample_consumed_L", -1.0)),
+        "process_time_s": float(report_only.get("process_time_s", -1.0)),
+    }
+    tolerance = 1.0e-12
+    checks = {
+        key: observed[key] >= 0.0 and observed[key] <= float(limit) + tolerance
+        for key, limit in limits.items()
+    }
+    exceeded = [key for key, passed in checks.items() if not passed]
+    cumulative: dict[str, float] = {
+        "operation_attempts": 0.0,
+        "instrument_uses": 0.0,
+        "final_assays": 0.0,
+        "sample_consumed_L": 0.0,
+        "process_time_s": 0.0,
+    }
+    first_exceeded_step: dict[str, int] = {}
+    for index, action_receipt in enumerate(actions or (), start=1):
+        delta = action_receipt.get("resource_outcome_delta")
+        delta = delta if isinstance(delta, Mapping) else {}
+        report_delta = delta.get("report_only")
+        report_delta = report_delta if isinstance(report_delta, Mapping) else {}
+        cumulative["operation_attempts"] += float(delta.get("operation_attempts", 0))
+        cumulative["instrument_uses"] += float(
+            int(delta.get("nonfinal_instrument_uses", 0))
+            + int(delta.get("final_assays", 0))
+        )
+        cumulative["final_assays"] += float(delta.get("final_assays", 0))
+        cumulative["sample_consumed_L"] += float(
+            report_delta.get("sample_consumed_L", 0.0)
+        )
+        cumulative["process_time_s"] += float(
+            report_delta.get("process_time_s", 0.0)
+        )
+        for key, limit in limits.items():
+            if (
+                key not in first_exceeded_step
+                and cumulative[key] > float(limit) + tolerance
+            ):
+                first_exceeded_step[key] = index
+    return {
+        "schema_version": "chemworld-first-paper-declared-resource-budget-0.1",
+        "declared_limits": limits,
+        "observed_usage": observed,
+        "checks": checks,
+        "exceeded_resources": exceeded,
+        "checked_action_count": len(actions or ()),
+        "first_exceeded_step": first_exceeded_step,
+        "passed": not exceeded,
+    }
+
+
 def _runtime_contract_binding(
     *,
     composition_request: Mapping[str, Any],
@@ -793,6 +884,14 @@ class _StepFailFastMonitor:
         self._final_assay_count = 0
         self._require_agent_trace = require_agent_trace
         self._session_id: str | None = None
+        self._declared_limits = _declared_resource_limits(composition_request)
+        self._observed_usage = {
+            "operation_attempts": 0,
+            "instrument_uses": 0,
+            "final_assays": 0,
+            "sample_consumed_L": 0.0,
+            "process_time_s": 0.0,
+        }
         self.events: list[dict[str, Any]] = []
 
     def close(self) -> None:
@@ -871,6 +970,27 @@ class _StepFailFastMonitor:
             failures.append("campaign_resource_preflight_shadow_mismatch")
         if outcome != replay_info.get("campaign_resource_outcome_delta"):
             failures.append("campaign_resource_outcome_shadow_mismatch")
+        if isinstance(outcome, Mapping):
+            report_only = outcome.get("report_only")
+            report_only = report_only if isinstance(report_only, Mapping) else {}
+            self._observed_usage["operation_attempts"] += int(
+                outcome.get("operation_attempts", 0)
+            )
+            self._observed_usage["instrument_uses"] += int(
+                outcome.get("nonfinal_instrument_uses", 0)
+            ) + int(outcome.get("final_assays", 0))
+            self._observed_usage["final_assays"] += int(
+                outcome.get("final_assays", 0)
+            )
+            self._observed_usage["sample_consumed_L"] += float(
+                report_only.get("sample_consumed_L", 0.0)
+            )
+            self._observed_usage["process_time_s"] += float(
+                report_only.get("process_time_s", 0.0)
+            )
+        for key, limit in self._declared_limits.items():
+            if float(self._observed_usage[key]) > float(limit) + 1.0e-12:
+                failures.append(f"declared_resource_exceeded:{key}")
         if any(
             not isinstance(check, Mapping) or check.get("passed") is not True
             for check in checks
@@ -976,6 +1096,10 @@ class _StepFailFastMonitor:
                 "nonfinal_instrument_uses": remaining.get(
                     "nonfinal_instrument_uses"
                 ),
+            },
+            "declared_resource_budget": {
+                "limits": copy.deepcopy(self._declared_limits),
+                "observed_usage": copy.deepcopy(self._observed_usage),
             },
             "lifecycle": {
                 "terminate_count": self._terminate_count,
@@ -1561,6 +1685,9 @@ def _receipt_completeness(
         "environment_resources": report.get("environment_resource_receipt", {}).get(
             "resource_reconciled"
         ),
+        "declared_resource_budget": report.get("declared_resource_budget", {}).get(
+            "passed"
+        ),
         "exact_replay": report.get("exact_replay", {}).get("verified"),
         "zero_leakage": report.get("public_boundary", {}).get("finding_count") == 0,
     }
@@ -1716,6 +1843,18 @@ def _build_execution_report(
     failures.extend(lifecycle_failures)
     if audit["environment_resource_receipt"].get("resource_reconciled") is not True:
         failures.append(_failure("environment_resource_reconciliation_failed"))
+    declared_resource_budget = _declared_resource_budget_receipt(
+        composition_request=composition_request,
+        environment_resource_receipt=audit["environment_resource_receipt"],
+        actions=audit["actions"],
+    )
+    if declared_resource_budget["passed"] is not True:
+        failures.append(
+            _failure(
+                "declared_resource_budget_exceeded",
+                resources=declared_resource_budget["exceeded_resources"],
+            )
+        )
     monitor_passed = bool(step_monitor.events) and len(step_monitor.events) == len(
         audit["actions"]
     ) and all(event.get("status") == "passed" for event in step_monitor.events)
@@ -1804,6 +1943,7 @@ def _build_execution_report(
         "provider_session_receipts": audit["provider_receipts"],
         "lifecycle": lifecycle,
         "environment_resource_receipt": audit["environment_resource_receipt"],
+        "declared_resource_budget": declared_resource_budget,
         "public_boundary": {
             "finding_count": len(audit["leakage_findings"]),
             "findings": audit["leakage_findings"],
@@ -1893,6 +2033,99 @@ def build_report(
         )
 
 
+def amend_report_with_declared_resource_audit(
+    report: Mapping[str, Any],
+    *,
+    original_report_sha256: str,
+    original_markdown_sha256: str,
+    original_result_commit: str,
+    amendment_commit: str,
+) -> dict[str, Any]:
+    """Add a fail-closed declared-resource audit without rerunning the provider."""
+
+    amended = copy.deepcopy(dict(report))
+    if amended.get("qualification_id") != QUALIFICATION_ID:
+        raise CompleteAgentQualificationError("cannot amend an unrelated report")
+    if amended.get("postrun_amendment") is not None:
+        raise CompleteAgentQualificationError("postrun amendment already exists")
+    frozen = amended.get("frozen_experiment")
+    composition = frozen.get("composition_request") if isinstance(frozen, Mapping) else None
+    resource_receipt = amended.get("environment_resource_receipt")
+    actions = amended.get("actions")
+    if not isinstance(composition, Mapping) or not isinstance(resource_receipt, Mapping):
+        raise CompleteAgentQualificationError(
+            "formal report lacks composition or environment resource receipts"
+        )
+    action_rows = (
+        [row for row in actions if isinstance(row, Mapping)]
+        if isinstance(actions, list)
+        else []
+    )
+    declared = _declared_resource_budget_receipt(
+        composition_request=composition,
+        environment_resource_receipt=resource_receipt,
+        actions=action_rows,
+    )
+    original_failures = amended.get("failures")
+    retained_failures = [
+        copy.deepcopy(row)
+        for row in original_failures
+        if isinstance(row, Mapping)
+        and row.get("class")
+        not in {
+            "declared_resource_budget_exceeded",
+            "missing_or_failed_receipt",
+            "report_sanitization_failed",
+        }
+    ] if isinstance(original_failures, list) else []
+    if declared["passed"] is not True:
+        retained_failures.append(
+            _failure(
+                "declared_resource_budget_exceeded",
+                resources=declared["exceeded_resources"],
+                first_exceeded_step=declared["first_exceeded_step"],
+            )
+        )
+    amended["declared_resource_budget"] = declared
+    amended["postrun_amendment"] = {
+        "schema_version": "chemworld-first-paper-postrun-amendment-0.1",
+        "amended_on": "2026-08-05",
+        "reason": (
+            "The original evaluator reconciled the resource ledger but did not compare "
+            "observed process time and sample use against the composition-declared caps."
+        ),
+        "original_report_sha256": original_report_sha256,
+        "original_markdown_sha256": original_markdown_sha256,
+        "original_result_commit": original_result_commit,
+        "amendment_commit": amendment_commit,
+        "provider_rerun": False,
+        "action_or_provider_data_changed": False,
+        "original_status": amended.get("status"),
+        "original_failure_class_counts": copy.deepcopy(
+            amended.get("failure_class_counts", {})
+        ),
+    }
+    amended["failures"] = retained_failures
+    completeness, completeness_failures = _receipt_completeness(amended)
+    amended["receipt_completeness"] = completeness
+    amended["failures"].extend(completeness_failures)
+    sanitization_findings = _sanitization_findings(amended)
+    amended["sanitization"] = {
+        "passed": not sanitization_findings,
+        "finding_count": len(sanitization_findings),
+        "findings": sanitization_findings,
+    }
+    if sanitization_findings:
+        amended["failures"].append(
+            _failure("report_sanitization_failed", findings=sanitization_findings)
+        )
+    amended["failure_class_counts"] = dict(
+        sorted(Counter(row["class"] for row in amended["failures"]).items())
+    )
+    amended["status"] = "failed" if amended["failures"] else "passed"
+    return amended
+
+
 def render_markdown(report: Mapping[str, Any]) -> str:
     """Render a compact, denominator-complete human-readable summary."""
 
@@ -1901,6 +2134,9 @@ def render_markdown(report: Mapping[str, Any]) -> str:
     lifecycle = report["lifecycle"]
     replay = report["exact_replay"]
     resource = report["environment_resource_receipt"]
+    declared = report.get("declared_resource_budget", {})
+    declared_limits = declared.get("declared_limits", {})
+    observed_usage = declared.get("observed_usage", {})
     lines = [
         "# First-paper complete-agent instrument use",
         "",
@@ -1932,6 +2168,17 @@ def render_markdown(report: Mapping[str, Any]) -> str:
         (
             "- Environment resources reconciled: "
             f"`{str(resource.get('resource_reconciled')).lower()}`."
+        ),
+        (
+            "- Declared process-time budget: "
+            f"`{observed_usage.get('process_time_s')}` / "
+            f"`{declared_limits.get('process_time_s')}` s; "
+            f"passed `{str(declared.get('passed')).lower()}`."
+        ),
+        (
+            "- Declared sample budget: "
+            f"`{observed_usage.get('sample_consumed_L')}` / "
+            f"`{declared_limits.get('sample_consumed_L')}` L."
         ),
         (
             f"- Exact replay: `{str(replay.get('verified')).lower()}`; "
@@ -2034,6 +2281,7 @@ __all__ = [
     "QUALIFICATION_ID",
     "REPORT_SCHEMA_VERSION",
     "CompleteAgentQualificationError",
+    "amend_report_with_declared_resource_audit",
     "build_report",
     "collect_provider_preflight",
     "render_markdown",

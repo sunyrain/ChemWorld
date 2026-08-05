@@ -352,6 +352,9 @@ def test_u05_fake_codex_full_lifecycle_is_a_complete_census_and_immutable(
     )
 
     assert report["environment_resource_receipt"]["resource_reconciled"] is True
+    assert report["declared_resource_budget"]["passed"] is True
+    assert all(report["declared_resource_budget"]["checks"].values())
+    assert report["declared_resource_budget"]["exceeded_resources"] == []
     assert report["exact_replay"] == {
         "verified": True,
         "checked_steps": expected_count,

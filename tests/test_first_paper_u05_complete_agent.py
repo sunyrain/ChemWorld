@@ -193,6 +193,50 @@ def test_current_resolution_binds_exact_first_unseen_case() -> None:
     )
 
 
+def test_retained_formal_result_detects_declared_process_time_overrun() -> None:
+    report_path = (
+        ROOT
+        / "workstreams/arxiv_v1/reports/first-paper-agent-instrument-use-v1.json"
+    )
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    receipt = evaluator._declared_resource_budget_receipt(
+        composition_request=report["frozen_experiment"]["composition_request"],
+        environment_resource_receipt=report["environment_resource_receipt"],
+        actions=report["actions"],
+    )
+
+    assert receipt["passed"] is False
+    assert receipt["exceeded_resources"] == ["process_time_s"]
+    assert receipt["first_exceeded_step"] == {"process_time_s": 9}
+    assert receipt["observed_usage"]["process_time_s"] == pytest.approx(
+        21658.4542224647
+    )
+    assert receipt["declared_limits"]["process_time_s"] == 14400.0
+    assert receipt["checks"]["sample_consumed_L"] is True
+
+
+def test_postrun_amendment_adds_failure_without_provider_rerun() -> None:
+    report_path = (
+        ROOT
+        / "workstreams/arxiv_v1/reports/first-paper-agent-instrument-use-v1.json"
+    )
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    report.pop("postrun_amendment", None)
+    amended = evaluator.amend_report_with_declared_resource_audit(
+        report,
+        original_report_sha256="a" * 64,
+        original_markdown_sha256="b" * 64,
+        original_result_commit="8d2667a2",
+        amendment_commit="c" * 40,
+    )
+
+    assert amended["status"] == "failed"
+    assert amended["declared_resource_budget"]["passed"] is False
+    assert amended["postrun_amendment"]["provider_rerun"] is False
+    assert amended["postrun_amendment"]["action_or_provider_data_changed"] is False
+    assert "declared_resource_budget_exceeded" in amended["failure_class_counts"]
+
+
 def test_runtime_contract_binding_matches_frozen_hash() -> None:
     request = evaluator.resolve_existing_evidence(ROOT)["U05"]["composition_request"]
     binding = evaluator._runtime_contract_binding(
