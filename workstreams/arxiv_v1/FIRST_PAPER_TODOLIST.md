@@ -43,7 +43,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE**：B04，Codex `/root` 已补齐并统一说明单一过程模块、跨模块、多阶段和受控分叉 authoring 示例；三份组合请求通过统一编译器验证，15 个参考任务已按八个组件模式及同一 TaskSpec 覆盖层映射。
 - **DONE**：U00，Codex `/root` 已锁定 U01--U06 案例矩阵；六项分别承担多阶段传播、资源受限测量、失败恢复、受控分叉、未见组合/完整 agent 和案例广度证据，U05 与 C03 共用预先冻结的反应--蒸馏覆盖批次。
 - **DONE**：C00，Codex `/root` 已冻结 C01--C08 与 D01--D04 的单份组合资格实验说明；正式分母、覆盖 seeds、U05/C03 共同未见批次、测量、pass/failure 规则和输出均在数据生成前锁定。
-- **DOING / 平台预算修复 design v3**：process-time 与资源拒绝修复后的正式 U05 v2 单元在第 16 步 final assay 暴露第二个合同缺陷：任务资源允许 3 次非终检测量加 1 次 final assay，但 `process_time_policy` 将 `measure` 总 repeat limit 冻结为 3。v2 的 15 commits + 1 validation failure、8,435.453 s process time、完整 provider/token/MCP/resource/replay 回执已保留。Design v3 只使 `measure` repeat limit 与总 `instrument_uses` 一致，不改变 coverage、seed、workflow、process-time 秒数或其他重复上限；修复后 C01--C08 / D01--D04 与受影响确定性案例必须从首个 case 再次复跑。
+- **DONE / 平台预算修复 design v3**：v2 在第 16 步 final assay 暴露的 `measure` repeat-limit 合同矛盾已修复；旧失败完整保留。Design v3 未改变 coverage、seed、workflow、process-time 秒数或其他重复上限，全量组合资格从首个 case 重跑并通过 64/64 reference units、1,786/1,786 recipes、192/192 negatives、52/52 generated、8/8 unseen、32/32 modules、7/7 interfaces 和 7/7 mutants；受影响的 8 个确定性案例也从头重跑并通过。
 - **DONE**：`Claim: Codex /root — U00/B04-AMEND — DONE`；U02/U03 authoring example 已改用 runtime
   支持的 `balanced` objective，冻结并执行验证 5-step 表征路径和 19-step 失败--恢复路径；规范源、arXiv
   TeX、19 页 PDF、source bundle 和 build manifest 已由同一次确定性构建同步，PDF 第 3--4 页视觉检查通过。
@@ -53,12 +53,13 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
   exact replay、U03 ghost-state 对账和 U04/U05 current evidence binding 全部通过，provider、leakage、
   missing receipts 和 failure classes 均为零。规范论文源、arXiv TeX、19 页 PDF、source bundle 与 build
   manifest 已同步；PDF 第 1、4、11 页视觉检查及重复构建零 diff 通过。
-- **DOING / Claim**：`Claim: Codex /root — U04/U05/E02-INSTRUMENT-USE — DOING`；U04 只通过
-  `configs/current.json` 复用并集成既有 single-private-component fork 正式证据，不重跑；U05/E02 在冻结的
-  C03 首个未见反应--蒸馏组合上运行一个完整 agent 生命周期，保存公开契约、逐步事务/资源/观测、终止、
-  provider/session 边界和 exact replay 回执。数据生成前必须先写一份短实验说明并冻结 agent、预算、动作权限、
-  pass/failure 规则和输出；当前 v1 provider 失败已保留。重新运行前需采用修复后的 session/token/cache
-  accounting 和新组合时间预算，论文仍只修改规范 Markdown，并在同一发布段重建 TeX/PDF/source bundle。
+- **DONE / Claim**：`Claim: Codex /root — U04/U05/E02-INSTRUMENT-USE — DONE`；U04 通过
+  `configs/current.json` 复用既有 single-private-component fork 正式证据，没有重跑。U05/E02 的 design-v3
+  真实 provider 单元在冻结 C03 首个未见反应--蒸馏组合上闭合一个完整生命周期：15/15 actions committed、
+  1 terminate、1 final assay、0 rollback、0 leakage、exact replay 零误差；process time 为
+  8,158.454/10,440 s。Provider accounting 为 1 session、1 logical Codex turn、17 MCP calls；累计 input
+  493,092（cache hit 440,832、uncached 52,260），output 2,973，均在冻结上限内。v1/v2 失败继续保留，
+  成功结果见 `reports/first-paper-agent-instrument-use-v3.{json,md}`。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 
 ## 1. 论文只讲什么
@@ -154,7 +155,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 | ID | 状态 | 工作 | 完成标准 |
 | --- | --- | --- | --- |
 | E01 | DONE | 保留一个确定性控制 | 展示世界、资源、失败、观测和终止如何被仪器记录 |
-| E02 | DOING | 在未见生成世界上运行完整 agent | 证明 agent 可使用同一公开契约进入新组合世界并闭合生命周期；只作可用性展示 |
+| E02 | DONE | 在未见生成世界上运行完整 agent | 证明 agent 可使用同一公开契约进入新组合世界并闭合生命周期；只作可用性展示 |
 | E03 | TODO | 保留 endpoint 相近但过程不同的示例 | 说明过程记录提供 endpoint 之外的信息；19 个维度保持分立，不合成“智能分数” |
 | E04 | TODO | 压缩旧 agent 结果 | 多模型排名、行为机制、规则学习、跨模型归因和大规模 agent 统计全部移到第二篇 |
 
@@ -171,8 +172,8 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 | U01 | DONE | 多阶段反应到分离/结晶 | 展示反应、相态和下游纯化组成一个连续世界；主文候选 |
 | U02 | DONE | 资源受限的结构/平衡表征 | 展示仪器选择、信息获取、样品消耗和停止决定；主文候选 |
 | U03 | DONE | 失败、约束与恢复 | 展示前置条件、安全边界、失败回执、资源后果和后续恢复；主文或扩展图 |
-| U04 | DOING | 同一公开仪器下的受控世界分叉 | 展示只改变私有定律而保持操作与观测合同；复用既有 fork 证据 |
-| U05 | DOING | 覆盖生成的未见组合世界 | 展示不改核心运行时即可构造、执行、重放，并由完整 agent 闭合生命周期；主文必选 |
+| U04 | DONE | 同一公开仪器下的受控世界分叉 | 展示只改变私有定律而保持操作与观测合同；复用既有 fork 证据 |
+| U05 | DONE | 覆盖生成的未见组合世界 | 展示不改核心运行时即可构造、执行、重放，并由完整 agent 闭合生命周期；主文必选 |
 | U06 | DONE | 参考案例库 | 连续流、电化学、蒸馏、分配、结晶等更多样例放附录/公开文档，不逐个写成性能实验 |
 
 #### U00 冻结案例矩阵
