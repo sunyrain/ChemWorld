@@ -45,7 +45,7 @@ def test_reader_visible_text_excludes_internal_engineering_metadata() -> None:
 
 def test_publication_svg_text_excludes_internal_engineering_metadata() -> None:
     svgs = sorted(FIGURE_DIR.glob("figure-*.svg"))
-    assert len(svgs) == 6
+    assert len(svgs) == 4
     for path in svgs:
         text = path.read_text(encoding="utf-8").lower()
         assert "<text" in text

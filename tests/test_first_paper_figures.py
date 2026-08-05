@@ -28,12 +28,12 @@ def _manifest() -> dict:
     return value
 
 
-def test_manifest_binds_six_figures_and_eighteen_current_assets() -> None:
+def test_manifest_binds_four_figures_and_twelve_current_assets() -> None:
     manifest = _manifest()
     assert manifest["schema_version"] == MANIFEST_SCHEMA
     assert manifest["status"] == "PASS"
-    assert manifest["canonical_figure_count"] == 6
-    assert manifest["canonical_asset_count"] == 18
+    assert manifest["canonical_figure_count"] == 4
+    assert manifest["canonical_asset_count"] == 12
     assert manifest["caption_titles"] == [row[2] for row in FIGURES]
     declared = manifest["manifest_sha256"]
     unhashed = {key: value for key, value in manifest.items() if key != "manifest_sha256"}

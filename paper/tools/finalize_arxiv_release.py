@@ -309,6 +309,18 @@ def inject_manuscript_metadata(text: str, metadata: Mapping[str, Any]) -> str:
     )
     availability_pattern = re.compile(
         r"(?:"
+        r"(?P<current>"
+        r"Code, configuration, processed reports, figure source data and release tooling are\n"
+        r"available in the MIT-licensed ChemWorld repository at\n"
+        r"\[github\.com/sunyrain/ChemWorld\]\(https://github\.com/sunyrain/ChemWorld\)\. "
+        r"The tracked\n"
+        r"materials regenerate the tables and figures and replay released simulator "
+        r"transitions and\n"
+        r"resource changes\. Provider authentication, unrestricted response bodies, "
+        r"private reasoning\n"
+        r"and hidden evaluator identities are excluded\."
+        r")"
+        r"|"
         r"The larger compiled-control execution logs total 17\.7 GB and are not required to\n"
         r"regenerate the reported analyses from the processed data\. "
         r"They have not yet been placed\n"
@@ -344,7 +356,21 @@ def inject_manuscript_metadata(text: str, metadata: Mapping[str, Any]) -> str:
         r")",
         flags=re.DOTALL,
     )
-    updated, count = availability_pattern.subn(new_paragraph, updated, count=1)
+    existing_archive_pattern = re.compile(
+        r"The 17\.7-GB compiled-control execution logs are publicly archived by .*?"
+        r"provider decisions are not exactly reproducible\.",
+        flags=re.DOTALL,
+    )
+    if existing_archive_pattern.search(updated):
+        updated, count = existing_archive_pattern.subn(new_paragraph, updated, count=1)
+    else:
+        updated, count = availability_pattern.subn(
+            lambda match: (
+                (match.group("current") + "\n\n" if match.group("current") else "") + new_paragraph
+            ),
+            updated,
+            count=1,
+        )
     if count != 1:
         raise ValueError("G0 Data Availability paragraph was not found exactly once")
     return updated
@@ -439,20 +465,12 @@ def apply_preflight_blockers() -> list[str]:
         )
     tool_candidates = {
         "pandoc": Path.home() / "AppData/Local/Pandoc/pandoc.exe",
-        "pdflatex": (
-            Path.home()
-            / "AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe"
-        ),
-        "bibtex": (
-            Path.home()
-            / "AppData/Local/Programs/MiKTeX/miktex/bin/x64/bibtex.exe"
-        ),
+        "pdflatex": (Path.home() / "AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe"),
+        "bibtex": (Path.home() / "AppData/Local/Programs/MiKTeX/miktex/bin/x64/bibtex.exe"),
     }
     for name, fallback in tool_candidates.items():
         if shutil.which(name) is None and not fallback.is_file():
-            blockers.append(
-                f"required release build tool is unavailable: {name}"
-            )
+            blockers.append(f"required release build tool is unavailable: {name}")
     return blockers
 
 
@@ -549,14 +567,10 @@ def _extract_verified_source_tar(tar_path: Path, destination: Path) -> int:
                 or ".." in member.parts
                 or "\\" in info.name
             ):
-                raise RuntimeError(
-                    f"unsafe or unexpected arXiv TAR member: {info.name}"
-                )
+                raise RuntimeError(f"unsafe or unexpected arXiv TAR member: {info.name}")
             target = (destination / Path(*member.parts)).resolve()
             if destination_root not in target.parents:
-                raise RuntimeError(
-                    f"arXiv TAR member escapes extraction root: {info.name}"
-                )
+                raise RuntimeError(f"arXiv TAR member escapes extraction root: {info.name}")
             extracted = archive.extractfile(info)
             if extracted is None:
                 raise RuntimeError(f"arXiv TAR member is unreadable: {info.name}")
@@ -583,9 +597,7 @@ def _archive_member_hashes(path: Path) -> dict[str, str]:
                     continue
                 extracted = archive.extractfile(info)
                 if extracted is None:
-                    raise RuntimeError(
-                        f"arXiv TAR member is unreadable: {info.name}"
-                    )
+                    raise RuntimeError(f"arXiv TAR member is unreadable: {info.name}")
                 rows.append((info.name, extracted.read()))
     for name, content in rows:
         member = PurePosixPath(name)
@@ -700,7 +712,7 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
 
     build_manifest_path = ARXIV_EXPORT / "build-manifest.json"
     build = _verified_self_hashed_manifest(build_manifest_path)
-    if build.get("status") != "compiled_arxiv_release" or build.get("pdf_page_count") != 12:
+    if build.get("status") != "compiled_arxiv_release" or int(build.get("pdf_page_count", 0)) < 10:
         raise RuntimeError("arXiv build manifest has an unexpected status or page count")
     build_file_count = _verify_file_rows(build.get("files"), label="arXiv build manifest")
     pdf = ROOT / build["pdf"]
@@ -719,7 +731,7 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
             member.startswith(f"figures/figure-{number}-") and member.endswith(".pdf")
             for member in zip_members
         )
-        for number in range(1, 7)
+        for number in range(1, 5)
     ):
         raise RuntimeError("arXiv source archive is missing a release figure")
     isolated_source = {

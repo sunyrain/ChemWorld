@@ -11,8 +11,11 @@
 \usepackage{float}
 \usepackage{placeins}
 \usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{calc}
 \usepackage{tabularx}
 \usepackage{array}
+\usepackage{etoolbox}
 \usepackage{amsmath,amssymb}
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage[font=small,labelfont=bf,labelsep=period]{caption}
@@ -63,6 +66,7 @@
 \newcommand{\code}[1]{\texttt{#1}}
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\AtBeginEnvironment{thebibliography}{\small}
 
 \title{\vspace{-1.8em}\textbf{$title_line_one$\\$title_line_two$}}
 \author{%
