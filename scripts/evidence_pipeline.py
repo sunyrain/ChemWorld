@@ -87,6 +87,16 @@ FIRST_PAPER_DETERMINISTIC_USE_CASES_GUARDED_PATHS = (
     "src/chemworld/eval/deterministic_use_cases.py",
     *FIRST_PAPER_COMPOSITION_QUALIFICATION_GUARDED_PATHS,
 )
+FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID = "first_paper_agent_instrument_use"
+FIRST_PAPER_AGENT_INSTRUMENT_USE_PATH = (
+    "workstreams/arxiv_v1/reports/first-paper-agent-instrument-use-v3.json"
+)
+FIRST_PAPER_AGENT_INSTRUMENT_USE_GUARDED_PATHS = (
+    "scripts/run_first_paper_u05_complete_agent.py",
+    "src/chemworld/agents/interactive_codex_experiment.py",
+    "src/chemworld/eval/first_paper_u05_complete_agent.py",
+    "src/chemworld/eval/runner.py",
+)
 
 
 @dataclass(frozen=True)
@@ -489,6 +499,16 @@ NODES = (
         ),
     ),
     EvidenceNode(
+        FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID,
+        FIRST_PAPER_AGENT_INSTRUMENT_USE_PATH,
+        "formal_result",
+        (
+            FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID,
+            FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID,
+            "work_i_world_fork_qualification",
+        ),
+    ),
+    EvidenceNode(
         "work_i_world_fork_qualification",
         "workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json",
         "formal_result",
@@ -733,6 +753,8 @@ def _node_source_binding(node: EvidenceNode) -> str:
         return "execution_commit_and_source_blob_sha256"
     if node.node_id == FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID:
         return "execution_commit_source_blobs_and_current_evidence_sha256"
+    if node.node_id == FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID:
+        return "execution_commit_source_blobs_current_evidence_and_provider_receipts"
     return {
         "protocol_input": "content_sha256",
         "generated_current": "dependencies_and_source_commit",
@@ -795,6 +817,10 @@ CURRENT_PATH_RULES = (
     ),
     CurrentPathRule(
         ("publication", "deterministic_use_case_qualification_report"),
+        "formal_result",
+    ),
+    CurrentPathRule(
+        ("publication", "agent_instrument_use_report"),
         "formal_result",
     ),
     CurrentPathRule(("work_i_fvl", "data_contract"), "protocol_input"),
@@ -2277,6 +2303,270 @@ def _first_paper_deterministic_use_case_binding_current(
     return not _first_paper_deterministic_use_case_binding_errors(payload)
 
 
+def _first_paper_agent_instrument_use_binding_errors(
+    payload: Mapping[str, Any],
+) -> list[str]:
+    """Validate the immutable successful U05 complete-agent provider unit."""
+
+    errors: list[str] = []
+
+    def require(condition: bool, message: str) -> None:
+        if not condition:
+            errors.append(message)
+
+    try:
+        require(
+            payload.get("schema_version")
+            == "chemworld-first-paper-agent-instrument-use-report-0.1",
+            "agent instrument-use schema is stale",
+        )
+        require(
+            payload.get("qualification_id") == "first-paper-agent-instrument-use-v1",
+            "agent instrument-use identity is stale",
+        )
+        require(payload.get("status") == "passed", "agent instrument-use did not pass")
+        require(payload.get("failures") == [], "agent instrument-use reports failures")
+        require(
+            payload.get("failure_class_counts") == {},
+            "agent instrument-use reports failure classes",
+        )
+        require(
+            payload.get("denominators")
+            == {
+                "lifecycle_count": 1,
+                "model_call_count": 1,
+                "provider_session_count": 1,
+                "submitted_action_count": 15,
+                "trajectory_record_count": 15,
+            },
+            "agent instrument-use denominators are stale",
+        )
+
+        summary = payload.get("summary")
+        require(
+            isinstance(summary, Mapping)
+            and summary.get("submitted_action_count") == 15
+            and summary.get("committed_action_count") == 15
+            and summary.get("committed_terminate_count") == 1
+            and summary.get("committed_final_assay_count") == 1
+            and summary.get("rollback_count") == 0
+            and summary.get("provider_session_count") == 1
+            and summary.get("mcp_step_count") == 15
+            and summary.get("trajectory_record_count") == 15
+            and summary.get("step_monitor_event_count") == 15
+            and summary.get("public_private_leakage_count") == 0,
+            "agent instrument-use summary is stale",
+        )
+        actions = payload.get("actions")
+        require(
+            isinstance(actions, list)
+            and len(actions) == 15
+            and [row.get("step") for row in actions] == list(range(1, 16))
+            and all(row.get("passed") is True for row in actions)
+            and all(row.get("transaction", {}).get("status") == "committed" for row in actions)
+            and all(not row.get("failures") for row in actions),
+            "agent instrument-use action census is stale",
+        )
+
+        lifecycle = payload.get("lifecycle")
+        require(
+            isinstance(lifecycle, Mapping)
+            and lifecycle.get("passed") is True
+            and lifecycle.get("right_censored") is False
+            and lifecycle.get("submitted_action_count") == 15
+            and lifecycle.get("committed_action_count") == 15
+            and lifecycle.get("committed_terminate_count") == 1
+            and lifecycle.get("committed_final_assay_count") == 1
+            and lifecycle.get("rollback_count") == 0
+            and all(lifecycle.get("checks", {}).values()),
+            "agent instrument-use lifecycle is stale",
+        )
+        declared = payload.get("declared_resource_budget")
+        require(
+            isinstance(declared, Mapping)
+            and declared.get("passed") is True
+            and declared.get("checked_action_count") == 15
+            and declared.get("exceeded_resources") == []
+            and declared.get("first_exceeded_step") == {}
+            and declared.get("declared_limits")
+            == {
+                "final_assays": 1,
+                "instrument_uses": 4,
+                "operation_attempts": 16,
+                "process_time_s": 10440.0,
+                "sample_consumed_L": 0.001,
+            }
+            and declared.get("observed_usage")
+            == {
+                "final_assays": 1,
+                "instrument_uses": 4,
+                "operation_attempts": 15,
+                "process_time_s": 8158.454222464699,
+                "sample_consumed_L": 0.0008500000000000001,
+            }
+            and all(declared.get("checks", {}).values()),
+            "agent instrument-use declared resources are stale",
+        )
+        replay = payload.get("exact_replay")
+        require(
+            replay
+            == {
+                "checked_steps": 15,
+                "max_abs_error": 0.0,
+                "mismatches": [],
+                "verified": True,
+            },
+            "agent instrument-use exact replay failed",
+        )
+        require(
+            payload.get("receipt_completeness")
+            == {"error_count": 0, "errors": [], "passed": True},
+            "agent instrument-use receipts are incomplete",
+        )
+        require(
+            payload.get("public_boundary")
+            == {
+                "final_payload_summary_retained": False,
+                "finding_count": 0,
+                "findings": [],
+                "private_reasoning_retained": False,
+                "raw_provider_payload_retained": False,
+                "temporary_workspace_retained": False,
+            }
+            and payload.get("sanitization")
+            == {"finding_count": 0, "findings": [], "passed": True},
+            "agent instrument-use public boundary failed",
+        )
+
+        preflight = payload.get("provider_preflight")
+        require(
+            isinstance(preflight, Mapping)
+            and preflight.get("verified") is True
+            and preflight.get("cli_version_matches") is True
+            and preflight.get("expected_cli_version") == "codex-cli 0.145.0"
+            and preflight.get("observed_cli_version") == "codex-cli 0.145.0"
+            and preflight.get("cached_chatgpt_login_status") == "passed",
+            "agent instrument-use provider preflight failed",
+        )
+        provider = payload.get("provider_accounting")
+        usage = provider.get("usage", {}) if isinstance(provider, Mapping) else {}
+        breakdown = (
+            provider.get("input_token_breakdown", {})
+            if isinstance(provider, Mapping)
+            else {}
+        )
+        require(
+            isinstance(provider, Mapping)
+            and provider.get("passed") is True
+            and provider.get("provider_session_count") == 1
+            and provider.get("logical_codex_turn_count") == 1
+            and provider.get("model_call_count") == 1
+            and provider.get("mcp_tool_call_count") == 17
+            and provider.get("mcp_step_count") == 15
+            and provider.get("accepted_action_count") == 15
+            and all(provider.get("session_checks", {}).values())
+            and all(provider.get("token_checks", {}).values())
+            and all(provider.get("method_checks", {}).values())
+            and usage.get("prompt_tokens") == 493092
+            and usage.get("prompt_cache_hit_tokens") == 440832
+            and usage.get("prompt_cache_miss_tokens") == 52260
+            and usage.get("completion_tokens") == 2973
+            and breakdown.get("cache_means_reused_input_context_not_repeated_output") is True,
+            "agent instrument-use provider accounting is stale",
+        )
+
+        frozen = payload.get("frozen_experiment")
+        require(
+            isinstance(frozen, Mapping)
+            and frozen.get("composition_request_sha256")
+            == "687007fb2fe9e7cb7bde1eff10219469fecc73903648d2fa34fec17c10694b4f"
+            and frozen.get("public_compiled_task_subobject_hash")
+            == "2d89a69f68d910dc8593a6ccfad698b108114a5295d18a4c362aad59155c497d"
+            and frozen.get("runtime_contract_binding", {}).get("task_contract_hash")
+            == "9b775c56b1cfe07dc75afc355d4815077913b27cbeedf20d32fb21d9dadf9f14",
+            "agent instrument-use frozen task binding is stale",
+        )
+
+        existing = payload.get("existing_evidence")
+        expected_existing = {
+            "U04": (
+                "work_i_world_fork_qualification",
+                "workstreams/arxiv_v1/reports/work-i-world-fork-qualification-v0.1.json",
+            ),
+            "U05": (
+                FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID,
+                FIRST_PAPER_COMPOSITION_QUALIFICATION_PATH,
+            ),
+        }
+        require(isinstance(existing, Mapping), "agent instrument-use evidence is malformed")
+        if isinstance(existing, Mapping):
+            for key, (node_id, expected_path) in expected_existing.items():
+                evidence = existing.get(key)
+                binding = evidence.get("binding") if isinstance(evidence, Mapping) else None
+                expected_sha = file_sha256(ROOT / expected_path)
+                require(
+                    isinstance(binding, Mapping)
+                    and binding.get("node_id") == node_id
+                    and binding.get("path") == expected_path
+                    and binding.get("expected_sha256")
+                    == binding.get("actual_sha256")
+                    == expected_sha
+                    and binding.get("binding_verified") is True,
+                    f"agent instrument-use current evidence is stale: {key}",
+                )
+
+        source = payload.get("source_binding")
+        if not isinstance(source, Mapping):
+            return [*errors, "agent instrument-use source binding is malformed"]
+        commit = source.get("execution_commit")
+        require(
+            isinstance(commit, str)
+            and len(commit) == 40
+            and _git_commit_is_ancestor(commit)
+            and source.get("branch") == "main"
+            and source.get("worktree_clean") is True,
+            "agent instrument-use execution commit is invalid",
+        )
+        if isinstance(commit, str):
+            for field in (
+                "experiment_note",
+                "evaluator",
+                "runner",
+                "interactive_agent",
+                "execution_script",
+            ):
+                binding = source.get(field)
+                relative_path = binding.get("path") if isinstance(binding, Mapping) else None
+                require(
+                    isinstance(relative_path, str)
+                    and _git_blob_sha256(commit, relative_path) == binding.get("sha256"),
+                    f"agent instrument-use source blob is stale: {field}",
+                )
+            require(
+                _git_paths_unchanged_since(
+                    commit,
+                    FIRST_PAPER_AGENT_INSTRUMENT_USE_GUARDED_PATHS,
+                ),
+                "agent instrument-use runtime changed after execution",
+            )
+    except (
+        AttributeError,
+        KeyError,
+        OSError,
+        subprocess.SubprocessError,
+        TypeError,
+        ValueError,
+    ) as error:
+        errors.append(f"agent instrument-use validator error: {error}")
+    return errors
+
+
+def _first_paper_agent_instrument_use_binding_current(
+    payload: Mapping[str, Any],
+) -> bool:
+    return not _first_paper_agent_instrument_use_binding_errors(payload)
+
+
 def _artifact_source_binding_current(
     node: EvidenceNode,
     payload: Mapping[str, Any],
@@ -2290,6 +2580,8 @@ def _artifact_source_binding_current(
         return _first_paper_composition_qualification_binding_current(payload)
     if node.node_id == FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID:
         return _first_paper_deterministic_use_case_binding_current(payload)
+    if node.node_id == FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID:
+        return _first_paper_agent_instrument_use_binding_current(payload)
     if node.role in {"protocol_input", "fixture"}:
         return True
     if node.node_id == "runtime_affordance":
@@ -2528,6 +2820,7 @@ def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
     if node.node_id in {
         FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID,
         FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID,
+        FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID,
     }:
         return "passed" if payload.get("status") == "passed" else "blocked"
     if node.node_id == "backend_candidate":
@@ -2657,6 +2950,17 @@ def _write_current_registry() -> None:
         raise RuntimeError(
             "refusing to bind first-paper deterministic use-case qualification: "
             + "; ".join(deterministic_use_case_errors)
+        )
+    agent_instrument_use = load_json_object(
+        ROOT / node_map()[FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID].path
+    )
+    agent_instrument_use_errors = _first_paper_agent_instrument_use_binding_errors(
+        agent_instrument_use
+    )
+    if agent_instrument_use_errors:
+        raise RuntimeError(
+            "refusing to bind first-paper agent instrument-use qualification: "
+            + "; ".join(agent_instrument_use_errors)
         )
     work_i_derived = load_json_object(ROOT / node_map()["work_i_fvl_derived_data"].path)
     work_i_derived_manifest = load_json_object(
@@ -3159,6 +3463,9 @@ def _write_current_registry() -> None:
         "deterministic_use_case_qualification_report": node_map()[
             FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID
         ].path,
+        "agent_instrument_use_report": node_map()[
+            FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID
+        ].path,
         "derived_data": node_map()["work_i_fvl_derived_data"].path,
         "derived_data_manifest": node_map()["work_i_fvl_derived_manifest"].path,
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
@@ -3646,6 +3953,9 @@ def check_current_evidence() -> list[str]:
         ),
         "deterministic_use_case_qualification_report": (
             "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1-design-v3.json"
+        ),
+        "agent_instrument_use_report": (
+            "workstreams/arxiv_v1/reports/first-paper-agent-instrument-use-v3.json"
         ),
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
         "remaining_experiment_audit": (

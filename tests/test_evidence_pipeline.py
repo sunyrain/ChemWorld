@@ -56,6 +56,18 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     )
     assert deterministic.command is None
     assert pipeline["_node_lifecycle"](deterministic) == "immutable"
+    agent_use = {node.node_id: node for node in nodes}["first_paper_agent_instrument_use"]
+    assert agent_use.path == (
+        "workstreams/arxiv_v1/reports/first-paper-agent-instrument-use-v3.json"
+    )
+    assert agent_use.role == "formal_result"
+    assert agent_use.dependencies == (
+        "first_paper_composition_qualification",
+        "first_paper_deterministic_use_case_qualification",
+        "work_i_world_fork_qualification",
+    )
+    assert agent_use.command is None
+    assert pipeline["_node_lifecycle"](agent_use) == "immutable"
     assert {
         "work_i_world_fork_qualification",
         "work_i_world_fork_certificate",
@@ -216,6 +228,56 @@ def test_first_paper_deterministic_use_case_binding_fails_closed() -> None:
     assert all(validate(mutated) is False for mutated in mutations)
 
 
+def test_first_paper_agent_instrument_use_binding_fails_closed() -> None:
+    pipeline = _pipeline()
+    node = {item.node_id: item for item in pipeline["NODES"]}[
+        "first_paper_agent_instrument_use"
+    ]
+    payload = json.loads(Path(node.path).read_text(encoding="utf-8"))
+    validate = pipeline["_first_paper_agent_instrument_use_binding_current"]
+
+    assert validate(payload) is True
+
+    mutations = []
+    stale_status = copy.deepcopy(payload)
+    stale_status["status"] = "failed"
+    mutations.append(stale_status)
+
+    stale_action = copy.deepcopy(payload)
+    stale_action["actions"][0]["transaction"]["status"] = "rolled_back"
+    mutations.append(stale_action)
+
+    stale_lifecycle = copy.deepcopy(payload)
+    stale_lifecycle["lifecycle"]["committed_final_assay_count"] = 0
+    mutations.append(stale_lifecycle)
+
+    stale_resource = copy.deepcopy(payload)
+    stale_resource["declared_resource_budget"]["observed_usage"]["process_time_s"] = 10441.0
+    mutations.append(stale_resource)
+
+    stale_provider = copy.deepcopy(payload)
+    stale_provider["provider_accounting"]["usage"]["prompt_tokens"] = 493091
+    mutations.append(stale_provider)
+
+    stale_boundary = copy.deepcopy(payload)
+    stale_boundary["public_boundary"]["finding_count"] = 1
+    mutations.append(stale_boundary)
+
+    stale_replay = copy.deepcopy(payload)
+    stale_replay["exact_replay"]["max_abs_error"] = 1.0e-9
+    mutations.append(stale_replay)
+
+    stale_existing = copy.deepcopy(payload)
+    stale_existing["existing_evidence"]["U05"]["binding"]["expected_sha256"] = "0" * 64
+    mutations.append(stale_existing)
+
+    stale_source = copy.deepcopy(payload)
+    stale_source["source_binding"]["evaluator"]["sha256"] = "0" * 64
+    mutations.append(stale_source)
+
+    assert all(validate(mutated) is False for mutated in mutations)
+
+
 def test_current_registry_exposes_work_i_fvl_boundary_without_hiding_failure() -> None:
     pipeline = _pipeline()
     current = json.loads(pipeline["CURRENT_REGISTRY"].read_text(encoding="utf-8"))
@@ -354,6 +416,9 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     )
     assert publication["deterministic_use_case_qualification_report"] == (
         "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1-design-v3.json"
+    )
+    assert publication["agent_instrument_use_report"] == (
+        "workstreams/arxiv_v1/reports/first-paper-agent-instrument-use-v3.json"
     )
     deterministic_report = Path(publication["deterministic_use_case_qualification_report"])
     deterministic_node = current["evidence_dag"]["nodes"][
