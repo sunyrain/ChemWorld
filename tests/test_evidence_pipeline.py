@@ -46,7 +46,7 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
         "first_paper_deterministic_use_case_qualification"
     ]
     assert deterministic.path == (
-        "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1.json"
+        "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1-design-v2.json"
     )
     assert deterministic.role == "formal_result"
     assert deterministic.dependencies == (
@@ -353,7 +353,7 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
         "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1.json"
     )
     assert publication["deterministic_use_case_qualification_report"] == (
-        "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1.json"
+        "workstreams/arxiv_v1/reports/first-paper-deterministic-use-cases-v1-design-v2.json"
     )
     deterministic_report = Path(publication["deterministic_use_case_qualification_report"])
     deterministic_node = current["evidence_dag"]["nodes"][
