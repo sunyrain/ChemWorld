@@ -166,7 +166,19 @@ runtime 在动作提交前检查累计时间和 operation repeat limit，并公�
 越界动作保持原子失败，不先改变物理状态。该修复不覆盖已完成的 v1 结果；C01--C08/D01--D04 受影响
 批次必须从第一个 case 重新执行，旧结果和 U05 provider 失败均保留。
 
-当前实现生成的 pattern envelope（秒）为：phase-observation 0；reaction-thermal-observation 3,600；
-phase-separation-observation 1,860；reaction-crystallization-observation 11,100；
-reaction-distillation-observation 10,440；reaction-continuous-flow-observation 7,200；
-reaction-electrochemistry-observation 5,400；reaction-phase-separation-observation 7,500。
+当前实现生成的 pattern envelope 与额外重复许可如下；总上限严格等于“必要 timed 阶段 + 必要隐含
+余量 + 额外重复耗时”：
+
+| Pattern | Timed 必要阶段 / s | 隐含余量 / s | 必要阶段合计 / s | 额外重复许可 | 重复耗时 / s | 总上限 / s |
+| --- | ---: | ---: | ---: | --- | ---: | ---: |
+| phase-observation | 0 | 0 | 0 | 无 | 0 | 0 |
+| reaction-thermal-observation | 1,800 | 0 | 1,800 | `heat` +1 | 1,800 | 3,600 |
+| phase-separation-observation | 900 | 60 | 960 | `mix` +1；`settle` +1 | 900 | 1,860 |
+| reaction-crystallization-observation | 5,520 | 180 | 5,700 | `heat` +1；`cool_crystallize` +1 | 5,400 | 11,100 |
+| reaction-distillation-observation | 5,100 | 180 | 5,280 | `heat`、`evaporate`、`distill`、`collect_fraction` 各 +1 | 5,160 | 10,440 |
+| reaction-continuous-flow-observation | 3,600 | 0 | 3,600 | `run_flow` +1 | 3,600 | 7,200 |
+| reaction-electrochemistry-observation | 3,600 | 0 | 3,600 | `electrolyze` +1 | 1,800 | 5,400 |
+| reaction-phase-separation-observation | 3,600 | 240 | 3,840 | `heat`、`mix`、`settle`、`concentrate`、`transfer` 各 +1 | 3,660 | 7,500 |
+
+每个 policy 还逐 operation 保存 required count 和 `required + additional` 的总 repeat limit；表中的
+“+1”是必要 workflow 之外允许的附加次数，不是总次数。
