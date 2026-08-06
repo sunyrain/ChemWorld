@@ -121,7 +121,7 @@ rows. **C,** Fifteen reference tasks and 52 generated compositions count differe
 objects. **D,** All eight unseen rows and all 52 generated rows completed; unseen does
 not mean unbounded or arbitrary.
 
-**Figure 3 | Full-census qualification of the virtual instrument.**
+**Figure 3 | Full-census qualification of the software experimental substrate.**
 **A,** All reference and generated execution units passed. **B,** Module, interface,
 compile-mutant and invalid-action censuses retain their exact denominators. **C,** invalid
 declarations fail before construction, while invalid actions preserve physical state.
@@ -129,7 +129,7 @@ declarations fail before construction, while invalid actions preserve physical s
 
 **Figure 4 | Deterministic cases exercise lifecycle and failure semantics.**
 **A,** Eight cases cover multistage, resource-limited and reference-library workflows.
-**B,** The single preregistered precondition failure remains in the 89-action census and
+**B,** The single planned precondition failure remains in the 89-action census and
 is followed by 18 commits. **C,** Rollback preserves non-accounting state while charging
 the declared attempt consequences. **D,** All eight lifecycles, final assays, resource
 ledgers and exact replays passed.
@@ -138,7 +138,7 @@ ledgers and exact replays passed.
 **A,** Parent and child share nine public fields and the same action sequence.
 **B,** Three constitutive-law and three material-law pairs change one private target each.
 **C,** All six pairs pass every registered gate. **D,** Physical-state and public-
-observation divergence occurs in the preregistered channels. The traces contain no
+observation divergence occurs in the protocol-specified channels. The traces contain no
 provider calls and support no agent-adaptation claim.
 
 **Figure 6 | Instrument records distinguish endpoint, process and execution status.**

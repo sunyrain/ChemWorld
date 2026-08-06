@@ -30,12 +30,12 @@ abstract: |
   without directly consuming physical reagents or creating wet-laboratory chemical
   exposure. The 15 registered tasks serve as reference examples for a broader construction
   surface. Full-census qualification covered every registered world unit and complete
-  reference recipe, plus 52 coverage-generated compositions, including eight protocol-defined
+  reference recipe, plus 52 coverage-generated compositions, including eight protocol-frozen
   non-reference reaction--distillation compositions. Invalid-action, module, interface and
   declaration probes produced their registered outcomes, with zero missing receipts or
   public/private leakage. Across eight deterministic use cases and six controlled private-law
   fork pairs, every committed lifecycle and environment-replay gate passed, and one complete
-  agent closed a non-reference world through the same instrument interface. Together, these results show that
+  complete-agent run closed a non-reference world through the same instrument interface. Together, these results show that
   compositional expansion can preserve executable semantics and turn simulated chemistry
   from a fixed task collection into a controlled, observable and replayable experimental
   medium. The released instrument spans nine declared component families and defines
@@ -86,13 +86,13 @@ four linked contributions:
    replay make each trajectory an inspectable experimental record.
 4. **Controlled intervention and agent access.** Single-private-law forks isolate
    trace-level world changes under an invariant public contract, fixed typed actions and
-   bound randomness, while deterministic policies and a complete agent use the same
+   bound randomness, while deterministic policies and a complete-agent run use the same
    instrument surface.
 
-This paper qualifies the declared component and compatibility domain as a virtual
-instrument. Its modular interfaces separate experimental semantics from model choice and
-define extension points through which future implementations may introduce additional
-constitutive laws, calibrated process models or alternative agents.
+This paper qualifies the executable semantics of the declared component and compatibility
+domain as a software experimental substrate. Its modular interfaces separate experimental
+semantics from model choice and define extension points through which future implementations
+may introduce additional constitutive laws, calibrated process models or alternative agents.
 
 ```{=latex}
 \begin{figure*}[!tbp]
@@ -224,6 +224,12 @@ o_{t+1}=\pi_{\mathrm{pub}}(s_{t+1},e_{t+1}),\qquad
 \]
 ```
 
+Here $e_{t+1}$ denotes structured event and transaction metadata rather than the complete
+hidden state. $R_t$ is a separately recorded resource ledger. A rejected action leaves the
+committed physical state unchanged while recording its rejection event and declared ledger
+consequence. The evaluator projection is evaluator-defined and is not equivalent to exposing
+all hidden state to the agent.
+
 Replay equivalence therefore binds the normalized contract, runtime and mechanism identities,
 scoring identity, seeds and intervention record, then compares the committed action trace,
 public observations, transaction outcomes, resource deltas and terminal flags.
@@ -291,8 +297,8 @@ material amount, unit, identity and state meaning survive transfer between modul
 applicable, the checks also include charge, energy, phase balance and event propagation.
 All 32 module probes and seven interface paths passed.
 
-These results qualify each formulation as an internally coherent virtual-instrument module
-inside its model-card domain. Every module enters through declared interfaces that define
+These results establish each formulation as an internally coherent executable module within
+its declared model-card domain. Every module enters through declared interfaces that define
 where future implementations may supply alternative or empirically calibrated formulations
 while retaining the task contract, transaction layer and replay machinery.
 
@@ -354,7 +360,7 @@ the public instrument contract.
 \includegraphics[width=\textwidth]{figures/first-paper-world-instrument-v1/publication/figure-3-runtime-semantics.pdf}
 \caption{\textbf{Process-complete cases preserve lifecycle, resource and failure semantics.}
 \textbf{A,} Eight frozen cases span single-process, multistage and reference-library workflows.
-\textbf{B,} Eighty-eight of 89 submitted actions committed; one protocol-defined precondition failure rolled back.
+\textbf{B,} Eighty-eight of 89 submitted actions committed; one planned precondition failure rolled back.
 \textbf{C,} The rollback preserved physical state and allowed the remaining 18-step recovery path to close.
 \textbf{D,} All eight final assays, resource ledgers and exact replays passed.}
 \label{fig:use-cases}
@@ -398,13 +404,13 @@ experiment. The deterministic reference traces qualify both interaction patterns
 agent behavior remains a separate study.
 
 The complete-agent demonstration used the first protocol-frozen non-reference
-reaction--distillation world. It ran on 5 August 2026 with OpenAI GPT-5.6-sol at medium
-reasoning effort through the Codex subscription provider. The fixed one-turn scaffold
-supplied the public task card, typed tool schemas, resource contract and explicit
-termination/final-assay requirement. The agent received only this public surface and issued
-every operation, including termination and final assay. One uninterrupted session submitted
-15 actions under the same model and scaffold. All 15 committed and closed the lifecycle,
-with zero rollback, right-censoring or public/private leakage.
+reaction--distillation world. A provider-driven language-model agent completed one lifecycle
+through the public instrument contract. The fixed scaffold supplied the public task card,
+typed tool schemas, resource contract and explicit termination/final-assay requirement. The
+agent received only this public surface and issued every operation, including termination and
+final assay. One uninterrupted session submitted 15 actions under one fixed model/provider
+configuration. All 15 committed and closed the lifecycle, with zero rollback, right-censoring
+or public/private leakage.
 
 The environment used 8,158.454 of 10,440 simulated process seconds, four of four instrument
 uses and 0.00085 of 0.001 L sample. The complete record links each decision to its public
@@ -418,7 +424,7 @@ provider-driven experiment can enter the same auditable record as deterministic 
 \includegraphics[width=\textwidth]{figures/first-paper-world-instrument-v1/publication/figure-4-forks-and-agent.pdf}
 \caption{\textbf{Controlled private-law interventions and complete-agent use of the same instrument surface.}
 \textbf{A,} Parent and child worlds share the public contract and action sequence while one private constitutive or material law changes.
-\textbf{B,} Six pairs and 24 deterministic traces pass lineage, public-invariance, divergence and exact-replay gates.
+\textbf{B,} Six pairs and 24 deterministic traces pass lineage, public-invariance, divergence and exact-replay gates; relative-difference magnitude is shown, while direction is checked separately by the frozen divergence oracle.
 \textbf{C,} The fixed non-reference reaction--distillation world has an independent 12-step deterministic qualification path and a separate 15-step complete-agent lifecycle.
 \textbf{D,} The agent closes the lifecycle within environment resources through explicit termination and final assay; every state transition and resource event enters the replayable record.}
 \label{fig:forks-agent}
@@ -478,6 +484,19 @@ cheap repetition, controlled counterfactuals, complete observability and rapid h
 narrowing; physical systems provide real-material execution and calibration. The shared
 experimental logic allows software-scale evidence to focus subsequent laboratory work on
 the conditions and mechanisms that matter most.
+
+## 8.4 Qualification scope
+
+The qualification reported here establishes executable semantics and authored-model coherence
+for the declared component vocabulary and compatibility domain. The synthetic instruments are
+software observation models: they provide a controlled, inspectable interface, not a claim of
+calibration to a particular physical device. Empirical calibration can be added as an extension
+layer without changing the task contract or transaction semantics. Coverage is a frozen
+construction design over authored discrete and continuous axes, not an exhaustive enumeration
+of chemical space. The fork experiments show that a declared single-private-law intervention
+can produce the expected trace-level effect; they do not establish every possible intervention
+type. The complete-agent run demonstrates interface integration, not agent capability; exact
+replay is limited to the bound environment/action trace.
 
 # 9. Methods
 
@@ -571,6 +590,12 @@ sequence. Gates require lineage validity, exactly one changed private target, in
 public contract, executable sequence on both variants, expected physical and observation
 divergence and exact replay under deterministic execution.
 
+For an aligned checkpoint value $p$ in the parent and $c$ in the child, the oracle records the
+signed change $\delta=c-p$, its magnitude $\Delta=|\delta|$, and the relative difference
+${\Delta}/{\max(|p|,|c|,s_0)}$, where $s_0$ is the declared positive scale floor. A magnitude
+passes only when both the absolute and relative thresholds for that expectation are met; the
+direction oracle is checked separately from the magnitude.
+
 ## 9.7 Complete-agent non-reference-world protocol
 
 The formal unit is one complete lifecycle on the first protocol-frozen non-reference
@@ -580,6 +605,10 @@ instrument interface. Termination and final assay must be agent-issued. The acti
 tool calls and trajectory records must agree exactly; every action must commit; the
 lifecycle must contain one termination and exactly one final assay; resources, public
 boundary and exact replay must pass.
+
+The reported unit ran on 5 August 2026 with OpenAI GPT-5.6-sol at medium reasoning effort
+through the Codex subscription provider. This model, provider and scaffold binding applies
+only to the interface-integration demonstration.
 
 Provider accounting distinguishes one provider session, one logical agent turn, 15 action
 calls and two read-only calls. The model, provider, reasoning effort, scaffold constraints,
@@ -623,7 +652,7 @@ Code, configuration, processed reports, figure source data and release tooling a
 available in the MIT-licensed ChemWorld repository at
 [github.com/sunyrain/ChemWorld](https://github.com/sunyrain/ChemWorld). The tracked
 materials regenerate the tables and figures and replay released simulator transitions and
-resource changes. The public submission tag `first-paper-arxiv-2026-08-06` binds the
+resource changes. The public submission tag `first-paper-arxiv-final-2026-08-06` binds the
 manuscript source, dependency lock, processed evidence, figure data, coverage records and
 release metadata used for this version. Provider authentication, unrestricted response
 bodies, private reasoning and hidden evaluator identities are excluded.
@@ -808,7 +837,7 @@ Scientific use & Components & What the record demonstrates \\
 Reaction to crystallization & reaction, thermal, crystallization, observation & propagation from reaction through seeding, cooling, filtration and final assay \\
 Resource-limited characterization & phase, observation & measurement choice, sample consumption and explicit stopping under a small budget \\
 Failure and recovery & reaction, thermal, phase, separation, observation & atomic rollback, attempt consequences and continuation from committed state \\
-Controlled private-law fork & one registered component changed privately & invariant public contract with protocol-defined state/observation divergence \\
+Controlled private-law fork & one registered component changed privately & invariant public contract with protocol-specified state/observation divergence \\
 Generated reaction to distillation & reaction, thermal, distillation, observation & construction and replay outside the reference task identities; one complete-agent lifecycle closed under the same public contract \\
 Reference library & flow, electrochemistry, distillation, partition, crystallization & breadth of reusable task recipes without a cross-task performance score \\
 \bottomrule

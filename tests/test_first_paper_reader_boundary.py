@@ -84,6 +84,9 @@ def test_main_figures_prioritize_scientific_capability_over_provider_accounting(
     figure_two = (
         FIGURE_DIR / "figure-2-composition-and-qualification.svg"
     ).read_text(encoding="utf-8").lower()
+    figure_three = (FIGURE_DIR / "figure-3-runtime-semantics.svg").read_text(
+        encoding="utf-8"
+    ).lower()
     figure_four = (FIGURE_DIR / "figure-4-forks-and-agent.svg").read_text(encoding="utf-8").lower()
     assert "not a claim of laboratory equivalence" not in figure_one
     assert "no physical reagents or wet-lab hazard" not in figure_one
@@ -91,7 +94,10 @@ def test_main_figures_prioritize_scientific_capability_over_provider_accounting(
     assert "180/180 pairs" in figure_two
     assert "3 new topologies" in figure_two
     assert "8 identity-new distillation cases" in figure_two
+    assert "the planned failure is retained" in figure_three
     assert "one lifecycle, one replayable record" in figure_four
+    assert "relative difference magnitude" in figure_four
+    assert "signed relative difference" not in figure_four
     assert "cached input" not in figure_four
     assert "provider input" not in figure_four
     assert "repeated output" not in figure_four
@@ -107,3 +113,17 @@ def test_public_author_and_correspondence_metadata_are_complete() -> None:
     assert 'correspondence: "wangxiaonan@tsinghua.edu.cn"' in manuscript
     assert "Xiaonan Wang" in arxiv_tex
     assert "wangxiaonan@tsinghua.edu.cn" in arxiv_tex
+
+
+def test_qualification_scope_and_provider_details_have_clear_placement() -> None:
+    manuscript = MANUSCRIPT.read_text(encoding="utf-8")
+    main_text, _, methods = manuscript.partition("# 9. Methods")
+
+    assert "## 8.4 Qualification scope" in main_text
+    assert "software experimental substrate" in main_text
+    assert "GPT-5.6-sol" not in main_text
+    assert "Codex subscription provider" not in main_text
+    assert "GPT-5.6-sol" in methods
+    assert "Codex subscription provider" in methods
+    assert "direction is checked separately by the frozen divergence oracle" in main_text
+    assert "protocol-defined" not in _reader_visible_manuscript().lower()

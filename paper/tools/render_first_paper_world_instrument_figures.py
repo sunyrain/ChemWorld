@@ -665,8 +665,7 @@ def figure_3(data: Mapping[str, Any]) -> plt.Figure:
     )
     _footer(
         fig,
-        "The claim is internal virtual-instrument qualification, "
-        "not empirical laboratory prediction.",
+        "The claim is executable-module qualification within declared model-card domains",
     )
     return fig
 
@@ -693,7 +692,7 @@ def figure_4(data: Mapping[str, Any]) -> plt.Figure:
     ax.legend(loc="lower right")
 
     ax = axes[0, 1]
-    _panel(ax, "B", "The protocol-defined failure is retained")
+    _panel(ax, "B", "The planned failure is retained")
     recovery = values["recovery"]
     _clean_axis(ax)
     xs = np.linspace(0.06, 0.94, 19)
@@ -734,7 +733,7 @@ def figure_4(data: Mapping[str, Any]) -> plt.Figure:
     ax.text(
         0.50,
         0.16,
-        "the protocol-defined rollback remains inside the complete 89-action census",
+        "the planned rollback remains inside the complete 89-action census",
         transform=ax.transAxes,
         ha="center",
         fontsize=5.9,
@@ -906,7 +905,7 @@ def figure_5(data: Mapping[str, Any]) -> plt.Figure:
         )
 
     ax = axes[1, 1]
-    _panel(ax, "D", "Divergence appears in protocol-defined channels")
+    _panel(ax, "D", "Divergence appears in protocol-specified channels")
     rows = values["rows"]
     x = np.arange(len(rows))
     physical = [row["physical_relative_delta"] for row in rows]
@@ -918,7 +917,7 @@ def figure_5(data: Mapping[str, Any]) -> plt.Figure:
     )
     ax.set_xticks(x, [f"{row['seed']}" for row in rows])
     ax.set_xlabel("seed: constitutive 0-2; material law 0-2")
-    ax.set_ylabel("signed relative difference")
+    ax.set_ylabel("relative difference magnitude")
     ax.grid(axis="y", color=GRID, lw=0.5, zorder=0)
     ax.legend(loc="best")
     ax.text(
@@ -1661,7 +1660,7 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
     ax.scatter(x, observed, s=30, color=CORAL, marker="s", label="public observation")
     ax.set_xticks(x, [f"{row['seed']}" for row in rows])
     ax.set_xlabel("seed: constitutive 0-2, material law 0-2")
-    ax.set_ylabel("signed relative difference")
+    ax.set_ylabel("relative difference magnitude")
     ax.grid(axis="y", color=GRID, lw=0.55)
     ax.legend(loc="upper left")
     ax.text(
@@ -1673,7 +1672,6 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
         fontsize=6.1,
         color=MUTED,
     )
-
     ax = axes[1, 0]
     _clean_axis(ax)
     _panel(ax, "C", "One world, two independent execution units")
@@ -1684,7 +1682,7 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
         color=BLUE,
         label="12-step deterministic qualification",
     )
-    _timeline(ax, agent["operations"], y=0.31, color=TEAL, label="15-step complete agent")
+    _timeline(ax, agent["operations"], y=0.31, color=TEAL, label="15-step complete-agent")
     ax.text(
         0.50,
         0.03,

@@ -1,6 +1,6 @@
 # ChemWorld 第一篇精简 TODO —— 世界仪器发布
 
-状态：**ACTIVE**  
+状态：**DONE**
 负责人：**codex-1**  
 执行方式：**单 agent、main 分支、完成一段即提交并推送**  
 写作方式：**venue-neutral；Nature 系列 skill 停用，除非用户以后明确重新启用**
@@ -74,9 +74,12 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE / 审稿意见择要采纳**：删除读者可见的 `v1` 表述，压缩摘要数字，补入 executable/qualitative 语义边界、
   coverage 非穷尽说明、状态转移与 public/private projection 形式化、environment/action-trace replay taxonomy，
   并加入两个 agent-facing 交互例子；未新增 agent benchmark、多模型比较或三阶覆盖实验。
-- **DOING / provider 上游阻塞**：F03 的四张可编辑 SVG、完整流程图及论文插入均已完成；WellAU provider 已按
-  `WELLAU_API_KEY` 与 Responses wire 接入，但 bounded 生成探针未获得图像结果。现有发布版不依赖位图嵌入，
-  所有文字、框、线、箭头和图表均为独立矢量元素；不得把未产生的 Image 2 参考图标记为完成。
+- **DONE / 最终清稿**：修正 Figure 4B 相对差异指标与方向判定说明，收紧软件实验底座资格表述，将具体
+  provider/model 信息下沉到 Methods，补齐 runtime 事件/账本对象、Qualification scope 与 protocol 术语；
+  规范源、四张可编辑 SVG、15 页 arXiv PDF、source bundle 和 manifest 已同步，18 项定向测试、Ruff、diff
+  检查和关键页视觉检查通过。
+- **DEFERRED / 可选 Image 2 参考图**：WellAU Responses wire 的 bounded 生成探针未获得图像结果。最终发布版采用
+  已验收的原生可编辑 SVG，不依赖位图嵌入；Image 2 只保留为未来可选的视觉参考，不阻塞本次发布。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 
 ## 1. 论文只讲什么
@@ -224,7 +227,7 @@ U05/C03 批次从头重跑并保留全部失败。
 | --- | --- | --- | --- |
 | F01 | DONE | 重写标题、摘要、引言和贡献 | 开头直接说明“开放组合但有限资格”的逻辑，避免读者追问为何只有 15 个任务 |
 | F02 | DONE | 重写 Results/Methods/Discussion | 新资格实验成为主证据；agent profile 降为仪器应用案例；第二篇边界明确 |
-| F03 | DOING | 重做主图 | 四张可编辑 SVG 与完整流程图已插入并通过视觉检查；待 WellAU 上游可用后完成 GPT Image 2 参考图生成与最后一轮原布局 SVG 转写 |
+| F03 | DONE | 重做主图 | 四张原生可编辑 SVG 与完整流程图已插入并通过视觉检查；Image 2 参考图因 provider 未返回图像而转为非阻塞的可选后续工作 |
 | F04 | DONE | 整理附录 | 放完整组件表、兼容规则、覆盖矩阵、模块参考验证、失败类别和更多参考任务样例 |
 | F05 | DONE | 清理读者无关内容 | 正文和图中不出现文件名、路径、SHA、commit、run ID、manifest、内部 task/release 名称 |
 | F06 | DONE | 一次集中验收并导出 | 只做一次完整测试、一次图/PDF 视觉检查和一次内容边界检查，然后生成第一版发布包 |
