@@ -62,13 +62,15 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
   成功结果见 `reports/first-paper-agent-instrument-use-v3.{json,md}`。
 - **DONE**：E03/E04 与 F01、F02、F04--F06 已收束。正文保留 endpoint 与 19 维过程记录的区别，删除偏离主线的
   archived pair；Related Work、能力边界、reference registry、coverage 映射、逐组件 model card、exact replay
-  定义和 agent provenance 已补齐。六图压缩为四图，13 页 arXiv PDF、source bundle 与 manifest 已集中验收。
+  定义和 agent provenance 已补齐。六图压缩为四图，14 页 arXiv PDF、source bundle 与 manifest 已集中验收。
 - **DONE / 优势导向收束**：标题、摘要、引言、Related Work、Results、Discussion、Conclusion 与 model cards
-  已围绕可组合世界、事务化生命周期、私有定律受控分叉、全面观测和精确重放重写；删除独立的
-  “What is not established”、开发历史句和主图中的 token/cache accounting。Figure 2 标签裁切与 Figure 3/4
-  审计口吻已修复，13 页 PDF 完成逐页视觉检查；发布测试 6 passed，图与读者边界测试 7 passed，Ruff 通过。
+  已围绕可组合世界、事务化生命周期、私有定律受控分叉、全面观测和精确重放重写；ChemGymRL、SDL、优化/
+  控制套件、交互式科学世界、覆盖设计与计算 provenance 的 Related Work 已恢复并定位，补入互补能力比较表。
+  生成块已严格拆分 topology novelty 与 exact task--world identity novelty，覆盖分母统一为 60/60、180/180、
+  212/212 和 84/84；删除开发历史句和主图中的 token/cache accounting。14 页 PDF 完成逐页视觉检查；发布测试
+  6 passed，图与读者边界测试 10 passed，Ruff 与 diff 检查通过。
 - **DOING / 外部工具阻塞**：F03 的四张可编辑 SVG、完整流程图及论文插入均已完成；当前运行时没有原生
-  GPT Image 2 工具，CLI 也没有 `OPENAI_API_KEY`，因此尚未执行“先由 Image 2 生成参考图、再按原布局转写 SVG”
+  GPT Image 2 工具入口，CLI 也没有 `OPENAI_API_KEY`，因此尚未执行“先由 Image 2 生成参考图、再按原布局转写 SVG”
   的最后一轮视觉参考替换。现有发布版不依赖位图嵌入，所有文字、框、线、箭头和图表均为独立矢量元素。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 

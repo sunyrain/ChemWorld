@@ -25,22 +25,22 @@ abstract: |
   joins initial state, typed operations, instruments, observations, resources, failure
   semantics, termination and evaluation. Researchers can therefore create matched worlds,
   branch one private law at a time and audit every simulator-side state and resource event
-  without consuming reagents, producing wet-laboratory waste or introducing chemical
-  hazards. The 15 registered tasks serve as reference examples for a broader construction
+  without directly consuming physical reagents or creating wet-laboratory chemical
+  exposure. The 15 registered tasks serve as reference examples for a broader construction
   surface. Qualification covered 64/64 reference world units, 1,786/1,786 complete reference
-  recipes and 52/52 coverage-generated compositions, including eight frozen non-reference
+  recipes and 52/52 coverage-generated compositions, including eight protocol-frozen non-reference
   reaction--distillation compositions. All 192 invalid-action probes, 32 module probes,
   seven interface paths and seven invalid declarations produced their registered outcomes,
   with zero missing receipts or public/private leakage. Across eight deterministic use
   cases, all 89 submitted actions were audited; one planned failure rolled back without
   ghost state, every lifecycle and resource ledger closed, and every trajectory replayed
   with zero numerical mismatch. Six controlled private-law fork pairs preserved the public
-  contract across 24 traces, and one complete agent closed the first frozen non-reference
+  contract across 24 traces, and one complete agent closed the first protocol-frozen non-reference
   world through the same instrument interface. Together, these results show that
   compositional expansion can preserve executable semantics and turn simulated chemistry
   from a fixed task collection into a controlled, observable and replayable experimental
-  medium. The released v1 instrument spans nine declared component families, with
-  interfaces that can accommodate alternative or empirically calibrated models.
+  medium. The released v1 instrument spans nine declared component families and defines
+  extension points for future alternative or empirically calibrated formulations.
 ---
 
 # 1. Introduction
@@ -64,11 +64,11 @@ sequence; and a controlled fork changes one private component while preserving t
 contract.
 
 This architecture creates controlled experimental freedom. ChemWorld can run wherever the
-software and compute environment are available. Experiments consume no physical reagents,
-produce no wet-laboratory waste and expose neither people nor equipment to chemical hazards.
-World state can be reset exactly, repeated to any required study denominator and forked at a
-named private law. The evaluator can inspect every hidden state transition and resource
-event while the agent remains restricted to the public instrument contract. These
+software and compute environment are available. The software itself consumes no physical
+reagents and creates no direct wet-laboratory chemical exposure. World state can be reset
+exactly, repeated to a planned study denominator under explicit compute and storage budgets,
+and forked at a named private law. The evaluator can inspect every hidden state transition
+and resource event while the agent remains restricted to the public instrument contract. These
 properties make high-observability counterfactual experimentation available before,
 alongside or between physical campaigns (Fig. 1).
 
@@ -85,21 +85,22 @@ four linked contributions:
 3. **Process-complete semantics.** Atomic transactions, explicit failure and termination,
    multi-resource ledgers, public/private observation boundaries and exact environment
    replay make each trajectory an inspectable experimental record.
-4. **Controlled intervention and agent access.** Single-private-law forks isolate causal
-   world changes under an invariant public contract, while deterministic policies and a
-   complete agent use the same typed instrument surface.
+4. **Controlled intervention and agent access.** Single-private-law forks isolate
+   trace-level world changes under an invariant public contract, fixed typed actions and
+   bound randomness, while deterministic policies and a complete agent use the same
+   instrument surface.
 
 This paper qualifies the declared v1 component and compatibility domain as a virtual
-instrument. Its modular interfaces separate experimental semantics from model choice, so
-future studies can substitute additional constitutive laws, calibrated process models or
-alternative agents without changing the public lifecycle contract.
+instrument. Its modular interfaces separate experimental semantics from model choice and
+define extension points through which future implementations may introduce additional
+constitutive laws, calibrated process models or alternative agents.
 
 ```{=latex}
 \begin{figure*}[!tbp]
 \centering
 \includegraphics[width=\textwidth]{figures/first-paper-world-instrument-v1/publication/figure-1-system-overview.pdf}
 \caption{\textbf{ChemWorld turns composable chemical worlds into controlled, auditable experiments.}
-\textbf{A,} Physical SDLs provide real-material execution; the virtual substrate adds software access, exact reset, non-hazardous repetition, matched counterfactuals and complete simulator observability.
+\textbf{A,} Physical SDLs provide real-material execution; the virtual substrate adds software access, exact reset, repetition without direct wet-lab exposure, matched counterfactuals and complete simulator observability.
 \textbf{B,} Reusable components and private laws compile through compatibility checks into a world and public task contract.
 \textbf{C,} An agent or deterministic policy acts only through typed operations and instruments until explicit termination and final assay.
 \textbf{D,} The immutable record joins state transitions, observations, resources, failures and lineage, enabling exact environment replay and controlled private-law forks.}
@@ -153,6 +154,14 @@ consequences, termination is explicit, and the complete world transition can be 
 from the released record. This combination supports experiments about both the agent and
 the world it inhabits.
 
+The construction and record layers also connect to established software-systems ideas.
+Pairwise covering rows follow combinatorial interaction testing, which selects compact test
+suites that cover registered parameter interactions [@cohen1997aetg]. The immutable record
+specializes computational provenance---entities, activities, derivations and responsible
+agents---to executable chemical-world transitions, resources and lineage
+[@moreau2013provdm]. ChemWorld joins these ideas to a stateful scientific instrument rather
+than treating them as release metadata alone.
+
 ## 2.3 A distinct operating regime: programmable experimental freedom
 
 The defining ChemWorld advantage is the conjunction of composition, controlled
@@ -176,7 +185,7 @@ System class & Strongest use & Replication regime & Experimental intervention & 
 Physical SDL / chemistry robot & real-material execution and hardware integration & apparatus-, material- and time-bound physical repeats & protocol, material and hardware changes & sensor, automation and sample records \\
 Optimization or control suite & rapid algorithm comparison over objectives or dynamics & software-scale repeated queries or control episodes & configurable objectives, datasets or process models & objective histories or controller traces \\
 Interactive virtual lab / discovery world & sequential discovery or embodied procedure & resettable software episodes & task-specific objects, procedures and latent rules & action histories, observations and task state \\
-ChemWorld & controlled experiments over composable executable worlds & exact reset, matched repetition and version-bound replay without physical consumables & declared component composition plus single-private-law forks under an invariant public contract & typed actions, evaluator-complete state, public observations, failures, resources, termination, lineage and exact environment replay \\
+ChemWorld & controlled experiments over composable executable worlds & exact reset, matched repetition and version-bound replay without direct wet-laboratory consumable use & declared component composition plus single-private-law forks under an invariant public contract & typed actions, evaluator-complete state, public observations, failures, resources, termination, lineage and exact environment replay \\
 \bottomrule
 \end{tabularx}
 \end{table*}
@@ -215,14 +224,23 @@ axes are sampled with seeded Latin hypercube designs. Ordered workflows separate
 critical interactions such as reaction before separation, quench before downstream
 transfer and fraction collection before final measurement.
 
-The frozen design contains eight component patterns, from phase--observation through
-reaction--phase--separation--observation. It generated 52 compositions. Eight use a
-reaction--thermal--distillation--observation topology that has zero identity overlap with
-the 15 reference tasks. We call these \emph{frozen non-reference compositions}: their
-components belong to the declared v1 vocabulary, while their task and world identities lie
-outside the frozen reference registry. The first generated row was preregistered as the
-complete-agent target, linking agent use to the same coverage design rather than to a
-separately selected example.
+The protocol-frozen design contains eight component patterns and generated 52 compositions.
+Comparison of exact component sets against the reference registry separates two forms of
+expansion. Three patterns---phase--observation, phase--separation--observation and
+reaction--thermal--continuous-flow--observation---are absent from the reference topologies
+and contribute 18/52 generated cases. Five patterns reuse a registered component topology.
+Within the latter group, the eight reaction--thermal--distillation--observation rows have
+zero exact task--world identity overlap with the frozen registry. We call these
+\emph{protocol-frozen non-reference compositions}: their topology is registered, but their
+bound task and world identities are not. The first row of this eight-case block was fixed
+before authoritative execution as the complete-agent target, linking agent use to the same
+coverage design rather than to a separately selected example.
+
+Every registered coverage target was attained. Across the eight patterns, the generated
+suite covered 60/60 discrete levels, 180/180 compatible discrete pairs, 212/212 continuous
+strata and 84/84 ordered workflow interactions. These are finite registered targets within
+the authored v1 domains, and their covered and required counts are retained pattern by
+pattern in the machine-readable coverage record.
 
 # 4. Composition preserves physical and experimental semantics
 
@@ -249,8 +267,8 @@ applicable, the checks also include charge, energy, phase balance and event prop
 All 32 module probes and seven interface paths passed.
 
 These results qualify each formulation as an internally coherent virtual-instrument module
-inside its model-card domain. Because every module enters through the same declared
-interfaces, a study can replace a synthetic formulation with an empirically calibrated one
+inside its model-card domain. Every module enters through declared interfaces that define
+where future implementations may supply alternative or empirically calibrated formulations
 while retaining the task contract, transaction layer and replay machinery.
 
 ## 4.3 Transactions, resources, observations and replay
@@ -275,8 +293,8 @@ reproducible unit.
 \centering
 \includegraphics[width=\textwidth]{figures/first-paper-world-instrument-v1/publication/figure-2-composition-and-qualification.pdf}
 \caption{\textbf{Coverage-guided construction and full-census qualification.}
-\textbf{A,} Eight frozen component patterns define the construction block; the highlighted reaction--distillation topology has zero identity overlap with the reference registry.
-\textbf{B,} Pairwise discrete coverage, seeded continuous samples and ordered workflows determine 52 frozen rows rather than an arbitrary example count.
+\textbf{A,} Three of eight component patterns, representing 18/52 cases, add topologies absent from the reference registry; the eight reaction--distillation rows instead reuse a registered topology while having zero exact task--world identity overlap.
+\textbf{B,} The 52 protocol-frozen rows attain 60/60 registered discrete levels, 180/180 compatible pairs, 212/212 continuous strata and 84/84 ordered workflow interactions.
 \textbf{C,} All reference units, reference recipes, generated compositions and non-reference compositions completed and replayed.
 \textbf{D,} Module, interface, invalid-declaration and invalid-action probes all produced their registered outcomes, with zero missing receipts or public/private leakage. Counts report complete qualification denominators.}
 \label{fig:qualification}
@@ -311,7 +329,7 @@ the public instrument contract.
 \includegraphics[width=\textwidth]{figures/first-paper-world-instrument-v1/publication/figure-3-runtime-semantics.pdf}
 \caption{\textbf{Process-complete cases preserve lifecycle, resource and failure semantics.}
 \textbf{A,} Eight frozen cases span single-process, multistage and reference-library workflows.
-\textbf{B,} Eighty-eight of 89 submitted actions committed; one preregistered precondition failure rolled back.
+\textbf{B,} Eighty-eight of 89 submitted actions committed; one protocol-defined precondition failure rolled back.
 \textbf{C,} The rollback preserved physical state and allowed the remaining 18-step recovery path to close.
 \textbf{D,} All eight final assays, resource ledgers and exact replays passed.}
 \label{fig:use-cases}
@@ -322,18 +340,19 @@ the public instrument contract.
 
 General composition and controlled attribution are different operations. Composition
 assembles multiple declared components subject to compatibility rules. A world fork holds
-the public task contract and action sequence fixed while changing one preregistered private
-component.
+the public task contract and action sequence fixed while changing one protocol-frozen
+private component.
 
 The fork qualification contains six parent--child pairs: two intervention classes across
-three seeds. Each pair preserved all nine public-contract components and executed the same
-fixed sequence on parent and child. Repeating both variants produced 24 deterministic fork
-traces. All pairs passed lineage, single-target, public-invariance, same-sequence
-executability, expected state and observation divergence, and exact replay gates. The
-measured divergences demonstrate that a named private law can be manipulated
-while the public instrument remains invariant. This creates a causal experimental unit in
-which a hidden world law changes without confounding the available actions, instruments or
-resource contract.
+three seeds. Each pair preserved nine versioned public-contract components: task, actions,
+instruments, observations, resources, failures, scoring, material catalogue and
+constitution/safety. These fork-certificate fields refine the public boundary of the task
+contract rather than redefining its mathematical tuple. Parent and child executed the same
+fixed typed sequence with bound randomness. Repeating both variants produced 24
+deterministic fork traces. All pairs passed lineage, single-target, public-invariance,
+same-sequence executability, expected state and observation divergence, and exact replay
+gates. The measured divergence is therefore a trace-level effect of one private-law
+intervention under fixed actions and noise identity.
 
 # 7. Agent experimentation with evaluator-complete observability
 
@@ -344,7 +363,7 @@ dimensions remain separate, preserving the experimental structure that a scalar 
 would discard. The evaluator can inspect complete simulator state and resource consequences
 while the agent remains restricted to its public task contract.
 
-The complete-agent demonstration used the first frozen non-reference
+The complete-agent demonstration used the first protocol-frozen non-reference
 reaction--distillation world. It ran on 5 August 2026 with OpenAI GPT-5.6-sol at medium
 reasoning effort through the Codex subscription provider. The fixed one-turn scaffold
 supplied the public task card, typed tool schemas, resource contract and explicit
@@ -382,19 +401,20 @@ task identities; and reference, generated and non-reference compositions preserv
 transactional, resource, observation and replay semantics. The result is a construction
 surface rather than a catalogue of isolated environments.
 
-Six capabilities become available together: new component topologies, continuous condition
-variation, private-law substitution, exact reset, matched repetition and evaluator-complete
-process inspection. Researchers can exercise them without booking physical hardware,
-consuming reagents or introducing chemical risk, and can repeat an experiment until its
-planned denominator is complete. This makes large controlled studies, diagnostic stress
-tests and counterfactual designs economically accessible at software scale.
+Six capabilities become available together: qualified new component topologies, continuous
+condition variation, private-law intervention, exact reset, matched repetition and
+evaluator-complete process inspection. Researchers can exercise them without booking
+physical hardware or creating direct wet-laboratory chemical exposure, and can repeat an
+experiment to its planned denominator under explicit compute and storage budgets. This
+makes large controlled studies, diagnostic stress tests and counterfactual designs
+economically accessible at software scale.
 
 The full-census qualification is central to this advantage. Every registered unit carries
 an exact denominator and every unexpected outcome remains visible. Coherent semantics are
 therefore established across the declared construction domain before a policy comparison,
-causal study or scientific application is layered on top.
+controlled intervention study or scientific application is layered on top.
 
-## 8.2 From endpoint benchmarks to causal process science
+## 8.2 From endpoint benchmarks to controlled counterfactual process analysis
 
 An endpoint reports what was achieved; a process-complete record reveals how evidence,
 resources, failures and terminal commitment produced it. ChemWorld retains these signals as
@@ -402,21 +422,22 @@ resources, failures and terminal commitment produced it. ChemWorld retains these
 questions about measurement strategy, recovery after invalid actions, resource deployment
 and decision timing that disappear when an experiment is reduced to one score.
 
-Controlled private-law forks add a causal dimension. Parent and child worlds expose the
-same actions, instruments and resources while one hidden law changes, allowing outcome and
-observation differences to be attributed to that intervention. Combined with composable
-worlds, this enables systematic studies of policy robustness, adaptation to changed laws,
-measurement value, curriculum design and failure recovery under precisely controlled
-conditions.
+Controlled private-law forks add a counterfactual dimension. Parent and child worlds expose
+the same actions, instruments and resources while one hidden law changes under the same
+typed sequence and bound randomness. Outcome and observation differences in the reported
+traces can therefore be assigned to that simulator intervention. The same construction
+surface can support future policy-robustness, adaptation, measurement-value, curriculum and
+failure-recovery studies through separately frozen randomized or matched protocols.
 
 ## 8.3 An extensible bridge to physical experimentation
 
 The released v1 qualification applies to the declared component vocabulary and authored
-model domains. Those boundaries are explicit interfaces rather than fixed task walls:
-additional constitutive laws, calibrated unit operations, empirical instrument models and
-new agents can enter through the same task contract. The complete-agent unit demonstrates
-that provider-driven action selection already uses this common surface, while comparative
-agent studies can retain the same environment, resource and replay guarantees.
+model domains. Those boundaries expose explicit extension points rather than fixed task
+walls. Future implementations may introduce additional constitutive laws, calibrated unit
+operations, empirical instrument models and new agents through the same task contract. The
+complete-agent unit demonstrates that provider-driven action selection already uses this
+common surface, while comparative agent studies can retain the same environment, resource
+and replay guarantees.
 
 ChemWorld and physical SDLs therefore form a productive sequence. Software worlds provide
 cheap repetition, controlled counterfactuals, complete observability and rapid hypothesis
@@ -441,11 +462,14 @@ the same component and contract representation used by generated compositions.
 
 ## 9.2 Coverage design
 
-The qualification design was frozen before data generation. Eight patterns were assigned
-fixed seeds. Discrete axes use pairwise covering rows. Continuous axes use seeded Latin
-hypercube samples inside the authored bounds. Each pattern contains one or two ordered
-workflows chosen before execution. The frozen denominator is 52 generated cases, including
-eight reaction--distillation cases absent from the registered task identities.
+The authoritative qualification protocol was frozen before execution. The frozen object
+includes eight component patterns, their discrete axes and compatible pairs, continuous
+bounds, seeds, ordered workflows, pass/failure rules and the first reaction--distillation
+row selected for complete-agent use. Discrete axes use pairwise covering rows. Continuous
+axes use seeded Latin hypercube samples inside the authored bounds. Each pattern contains
+one or two ordered workflows. The denominator is 52 generated cases, including 18 cases
+across three topologies absent from the reference registry and eight registered-topology
+reaction--distillation cases with zero exact task--world identity overlap.
 
 The coverage selection and pass rules are fixed before the reported qualification run and
 remain invariant across all outcomes. The reader-facing result is the complete frozen
@@ -463,6 +487,18 @@ Reference qualification covers 64 task--world units and 1,786 complete recipes. 
 qualification covers 52 compositions. Negative qualification covers 192 invalid probes.
 Module and interface qualification use 32 and seven units, respectively. Compile mutation
 uses seven invalid declarations. Counts are exact qualification denominators.
+
+The 32 physical-module probes form an $8\times4$ design: each of reaction, thermal, phase,
+separation, crystallization, distillation, continuous flow and electrochemistry contributes
+one zero-input bounded-runtime probe, one legal low/high probe, one directionality probe and
+one runtime-constitution probe. Legal low/high checks use numerical reference fixtures for
+seven modules and a declared conceptual/synthetic fixture for crystallization;
+directionality checks are declared conceptual/synthetic oracles. Every numerical fixture
+records its own tolerance. Observation is qualified separately through instrument,
+sample-accounting, bounded-signal and public/private-boundary checks. The seven compile
+mutants comprise two missing-dependency cases and one case each for conflicting state
+ownership, unit mismatch, invalid parameter domain, lifecycle hole and resource
+impossibility.
 
 ## 9.4 Process-time envelopes
 
@@ -487,7 +523,7 @@ exceeded.
 
 ## 9.5 Deterministic use cases
 
-The eight cases, seeds and action lists were frozen before execution. Their total expected
+The eight cases, seeds and action lists were protocol-frozen before execution. Their total expected
 census was 89 submitted actions, 88 commits, one rollback and eight final assays. The
 failure--recovery case specified the failing action and rollback class in advance. All
 submitted actions were inspected as one deterministic census, isolating instrument
@@ -495,15 +531,15 @@ qualification from provider variance.
 
 ## 9.6 Controlled forks
 
-Each fork declares a parent, a child, one private intervention target, an invariant public
-contract and expected divergence channels. Parent and child execute the same typed action
+Each fork declares a parent, a child, one protocol-frozen private intervention target, an
+invariant public contract and expected divergence channels. Parent and child execute the same typed action
 sequence. Gates require lineage validity, exactly one changed private target, invariant
 public contract, executable sequence on both variants, expected physical and observation
 divergence and exact replay under deterministic execution.
 
 ## 9.7 Complete-agent non-reference-world protocol
 
-The formal unit is one complete lifecycle on the first frozen non-reference
+The formal unit is one complete lifecycle on the first protocol-frozen non-reference
 reaction--distillation composition. The protocol binds one uninterrupted agent session, one
 model/provider/scaffold configuration and at most 16 submitted actions through the public
 instrument interface. Termination and final assay must be agent-issued. The action count,
@@ -526,7 +562,9 @@ The process profile retains 19 dimensions in five groups: terminal commitment, e
 acquisition, evidence-conditioned action, resource deployment and outcome trajectory.
 Undefined conditional quantities remain null rather than being set to zero. The resulting
 coordinate vector preserves process structure for subsequent agent studies and supports
-dimension-level comparison without a composite score.
+dimension-level comparison without a composite score. The released process-coordinate
+contract supplies each dimension's numerator, denominator, value range, null condition and
+boundary-case rule together with the computation binding used by the reports.
 
 ## 9.9 Public boundary and exact replay
 
@@ -549,8 +587,10 @@ Code, configuration, processed reports, figure source data and release tooling a
 available in the MIT-licensed ChemWorld repository at
 [github.com/sunyrain/ChemWorld](https://github.com/sunyrain/ChemWorld). The tracked
 materials regenerate the tables and figures and replay released simulator transitions and
-resource changes. Provider authentication, unrestricted response bodies, private reasoning
-and hidden evaluator identities are excluded.
+resource changes. The public submission tag `first-paper-arxiv-v1-2026-08-06` binds the
+manuscript source, dependency lock, processed evidence, figure data, coverage records and
+release metadata used for this version. Provider authentication, unrestricted response
+bodies, private reasoning and hidden evaluator identities are excluded.
 
 The release supports three complementary reproducibility layers. Processed evidence
 regenerates the reported counts and figures. Released trajectories reconstruct environment
@@ -573,18 +613,21 @@ chemical hazard, inspect complete simulator-side consequences and change one pri
 under an invariant agent interface. Full-census qualification, process-complete use cases,
 controlled forks and a complete-agent lifecycle show that these capabilities operate
 together across the declared v1 domain. ChemWorld therefore provides an efficient and
-extensible substrate for causal agent studies, resource-aware experimentation and focused
-translation into physical laboratories.
+extensible substrate for controlled counterfactual agent studies, resource-aware
+experimentation and focused translation into physical laboratories.
 
 # Appendix A. Reader-facing capability map
 
 A reference identity is a registered task identity paired with one of its declared public
 world seeds. The 15 task identities below expand to 64 task--world units. A generated row
 is counted as overlapping the reference set only when both its task identity and compiled
-world identity match a registered unit; the eight frozen non-reference rows have zero such
+world identity match a registered unit; the eight protocol-frozen non-reference rows have zero such
 overlap.
 
 ```{=latex}
+\makeatletter
+\setlength{\@dblfptop}{0pt}
+\makeatother
 \begin{table*}[!tbp]
 \centering
 \scriptsize
@@ -623,13 +666,13 @@ tool-agent-planning & reaction + thermal + phase + separation + observation & 2 
 Component pattern & Principal state or process & Representative public operations & Representative instruments \\
 \midrule
 Phase + observation & bounded phase/equilibrium state & add solvent, add reagent, measure, terminate & pH, UV--visible, final assay \\
-Reaction + thermal & batch reaction and temperature history & add, heat, quench, sample & HPLC, GC, final assay \\
-Phase + separation & phase formation and transfer & mix, settle, separate, wash, transfer & HPLC, final assay \\
-Reaction + crystallization & reaction followed by solid formation & heat, seed, cool, filter & HPLC, particle sizing, final assay \\
-Reaction + distillation & reaction, evaporation and fractionation & heat, quench, evaporate, distil, collect & HPLC, GC, final assay \\
-Reaction + continuous flow & flow, residence time and conversion & set flow, set temperature, run, sample & HPLC, GC, final assay \\
-Reaction + electrochemistry & potential/current-driven conversion & set potential/current, electrolyse, sample & voltammetry, HPLC, final assay \\
-Reaction + phase + separation & multistage reaction and purification & react, quench, separate, wash, concentrate, transfer & HPLC, GC, final assay \\
+Reaction + thermal + observation & batch reaction and temperature history & add, heat, quench, sample & HPLC, GC, final assay \\
+Phase + separation + observation & phase formation and transfer & mix, settle, separate, wash, transfer & HPLC, final assay \\
+Reaction + thermal + crystallization + observation & reaction followed by solid formation & heat, seed, cool, filter & HPLC, particle sizing, final assay \\
+Reaction + thermal + distillation + observation & reaction, evaporation and fractionation & heat, quench, evaporate, distil, collect & HPLC, GC, final assay \\
+Reaction + thermal + continuous flow + observation & flow, residence time and conversion & set flow, set temperature, run, sample & HPLC, GC, final assay \\
+Reaction + electrochemistry + observation & potential/current-driven conversion & set potential/current, electrolyse, sample & voltammetry, HPLC, final assay \\
+Reaction + thermal + phase + separation + observation & multistage reaction and purification & react, quench, separate, wash, concentrate, transfer & HPLC, GC, final assay \\
 \bottomrule
 \end{tabularx}
 \end{table*}
@@ -641,13 +684,35 @@ The coverage design below fixes the pattern, seed, continuous domain, workflow c
 generated denominator. Discrete factors include component-specific family or profile
 choices and instrument profiles; the released machine-readable coverage records map every
 discrete level, compatible pair, continuous stratum and ordered interaction to the rows
-that cover it.
+that cover it. Covered and required counts are identical for all four target classes:
+60/60 levels, 180/180 compatible pairs, 212/212 continuous strata and 84/84 ordered
+interactions.
+
+```{=latex}
+\begin{table*}[!tbp]
+\centering
+\small
+\caption{\textbf{Topology and identity decomposition of the generated block.} Topology novelty compares exact component sets with the 15-task reference registry; task--world novelty uses exact registered identities.}
+\label{tab:novelty-decomposition}
+\begin{tabularx}{\textwidth}{@{}p{0.33\textwidth}r p{0.22\textwidth}X@{}}
+\toprule
+Generated group & Cases & Topology relation & Exact task--world relation \\
+\midrule
+phase--observation & 6 & absent from reference registry & zero overlap implied by component-set difference \\
+phase--separation--observation & 6 & absent from reference registry & zero overlap implied by component-set difference \\
+reaction--thermal--continuous-flow--observation & 6 & absent from reference registry & zero overlap implied by component-set difference \\
+reaction--thermal--distillation--observation & 8 & registered topology & zero exact overlap in the protocol-frozen non-reference block \\
+four remaining generated patterns & 26 & registered topologies & used for reference-topology coverage; no separate non-reference identity claim \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+```
 
 ```{=latex}
 \begin{table*}[!tbp]
 \centering
 \scriptsize
-\caption{\textbf{Frozen coverage design.} Bounds are inclusive authored domains; ``none'' denotes a purely discrete design.}
+\caption{\textbf{Protocol-frozen coverage design.} Bounds are inclusive authored domains; ``none'' denotes a purely discrete design.}
 \label{tab:coverage-design}
 \begin{tabularx}{\textwidth}{@{}p{0.21\textwidth}rXp{0.10\textwidth}r@{}}
 \toprule
@@ -656,11 +721,11 @@ Pattern & Seed & Continuous axes and bounds & Workflows & Cases \\
 phase--observation & 101 & none & 1 & 6 \\
 reaction--thermal--observation & 102 & heat 350--390 K; duration 600--1,800 s & 2 & 6 \\
 phase--separation--observation & 103 & phase 0.010--0.020 L; extractant 0.010--0.025 L; mix 60--300 s; settle 120--600 s & 2 & 6 \\
-reaction--crystallization--observation & 104 & reaction 350--390 K, 600--1,800 s; seed 0.002--0.010 g; cooling 275--305 K, 900--3,600 s & 2 & 6 \\
-reaction--distillation--observation & 105 & reaction 350--390 K, 600--1,800 s; evaporation 325--345 K, 300--900 s; distillation 350--390 K, 900--2,400 s; reflux 1.0--3.0; transfer 0.65--0.95 & 2 & 8 \\
-reaction--continuous-flow--observation & 106 & flow 0.5--5.0 mL min$^{-1}$; residence 60--600 s; temperature 330--390 K & 2 & 6 \\
+reaction--thermal--crystallization--observation & 104 & reaction 350--390 K, 600--1,800 s; seed 0.002--0.010 g; cooling 275--305 K, 900--3,600 s & 2 & 6 \\
+reaction--thermal--distillation--observation & 105 & reaction 350--390 K, 600--1,800 s; evaporation 325--345 K, 300--900 s; distillation 350--390 K, 900--2,400 s; reflux 1.0--3.0; transfer 0.65--0.95 & 2 & 8 \\
+reaction--thermal--continuous-flow--observation & 106 & flow 0.5--5.0 mL min$^{-1}$; residence 60--600 s; temperature 330--390 K & 2 & 6 \\
 reaction--electrochemistry--observation & 107 & potential 0.5--1.8 V; current 25--150 mA; electrolysis 300--1,800 s & 2 & 7 \\
-reaction--phase--separation--observation & 108 & reaction 350--390 K, 600--1,800 s; phase/extractant 0.010--0.020/0.010--0.025 L; mix 60--300 s; settle 120--600 s; wash 0.003--0.010 L; concentrate 300--900 s; transfer 0.65--0.95 & 2 & 7 \\
+reaction--thermal--phase--separation--observation & 108 & reaction 350--390 K, 600--1,800 s; phase/extractant 0.010--0.020/0.010--0.025 L; mix 60--300 s; settle 120--600 s; wash 0.003--0.010 L; concentrate 300--900 s; transfer 0.65--0.95 & 2 & 7 \\
 \bottomrule
 \end{tabularx}
 \end{table*}
@@ -677,7 +742,7 @@ Qualification unit & Passed & Denominator & Failure classes \\
 Reference task--world units & 64 & 64 & 0 \\
 Complete reference recipes & 1,786 & 1,786 & 0 \\
 Coverage-generated compositions & 52 & 52 & 0 \\
-Frozen non-reference reaction--distillation compositions & 8 & 8 & 0 \\
+Protocol-frozen non-reference reaction--distillation compositions & 8 & 8 & 0 \\
 Invalid action probes & 192 & 192 & 0 unexpected outcomes \\
 Module probes & 32 & 32 & 0 \\
 Cross-module interface paths & 7 & 7 & 0 \\
@@ -704,7 +769,7 @@ Scientific use & Components & What the record demonstrates \\
 Reaction to crystallization & reaction, thermal, crystallization, observation & propagation from reaction through seeding, cooling, filtration and final assay \\
 Resource-limited characterization & phase, observation & measurement choice, sample consumption and explicit stopping under a small budget \\
 Failure and recovery & reaction, thermal, phase, separation, observation & atomic rollback, attempt consequences and continuation from committed state \\
-Controlled private-law fork & one registered component changed privately & invariant public contract with preregistered state/observation divergence \\
+Controlled private-law fork & one registered component changed privately & invariant public contract with protocol-defined state/observation divergence \\
 Generated reaction to distillation & reaction, thermal, distillation, observation & construction and replay outside the reference task identities; one complete-agent lifecycle closed under the same public contract \\
 Reference library & flow, electrochemistry, distillation, partition, crystallization & breadth of reusable task recipes without a cross-task performance score \\
 \bottomrule
@@ -736,8 +801,8 @@ composite score.
 # Appendix E. Component model cards and extension points
 
 Each module declares its virtual-instrument domain explicitly. The table gives the runtime
-formulation, authored domain, qualification oracle and the interface through which a study
-can introduce alternative or empirically calibrated behaviour.
+formulation, authored domain, qualification oracle and the interface location intended for
+future alternative or empirically calibrated implementations.
 
 ```{=latex}
 \begin{table*}[!tbp]
@@ -747,15 +812,15 @@ can introduce alternative or empirically calibrated behaviour.
 \toprule
 Component & Runtime formulation & Principal v1 domain & Qualification oracle & Intended use and extension path \\
 \midrule
-Reaction & stoichiometric mass-action network with Arrhenius temperature dependence & authored reaction families and bounded batch temperature/time & exact amount fixtures, monotonic response, material closure and runtime constitution & controlled kinetic studies; named-reaction calibration can enter through the reaction-law interface \\
-Thermal & dynamic batch heat-release and jacket-energy balance & bounded temperature, duration, vessel pressure and volume & temperature/energy finiteness, bounds, event propagation and ledger reconciliation & batch heat and pressure studies; equipment coefficients are replaceable within the thermal contract \\
-Phase & stability-gated, activity-corrected liquid--liquid equilibrium with TPD-style diagnostics & declared phase identities, volumes and composition ranges & phase/material balance, directional partition response and state identity & controlled partition studies; compound-specific thermodynamics can replace the authored activity model \\
-Separation & settling, entrainment, wash and transfer coupled to the phase model & bounded mix/settle time, extractant/wash volume and transfer fraction & amount/unit conservation, transfer identity and expected directional response & mass-balanced purification studies; hardware-scale transport can enter through the separation interface \\
-Crystallization & van't Hoff solubility with seed, nucleation/growth cohorts, impurity occlusion and CSD summaries & bounded seed mass, cooling temperature and cooling time & material closure, solubility-direction checks, CSD and runtime-constitution receipts & population-level solid-formation studies; calibrated nucleation and growth laws are substitutable \\
-Distillation & bubble-gated, duty-limited VLE/Fenske fractionation with material and energy ledgers & bounded temperature/time, reflux ratio, fraction count and collected fraction & mass/energy closure, fraction identity, recovery/purity directions and equipment limits & controlled fractionation studies; compound and column models can be supplied through the same operation contract \\
-Continuous flow & geometry-resolved plug-flow reactor with residence time, distributed thermal boundary and pressure drop & bounded flow, residence time and temperature & conversion direction, mass closure, pressure/geometry and solver diagnostics & residence-time and thermal studies; reactor-specific transport or control models can replace the authored formulation \\
-Electrochemistry & Nernst potential, Butler--Volmer kinetics, limiting current, Randles transient and Faraday accounting & bounded potential, current and electrolysis time & charge/material closure, signed work, selectivity and limiting-current checks & potential/current intervention studies; material- and cell-specific parameters attach through the electrochemical law \\
-Observation & state-coupled synthetic pH, UV--visible, HPLC, GC and final-assay contracts & task-declared instruments, sample and use budgets & instrument availability, sample consumption, finite/bounded signal and non-omniscience checks & resource-aware measurement studies; empirical response models retain the same instrument schema \\
+Reaction & stoichiometric mass-action network with Arrhenius temperature dependence & authored reaction families and bounded batch temperature/time & exact amount fixtures, monotonic response, material closure and runtime constitution & reaction-law extension point for future named-reaction calibration \\
+Thermal & dynamic batch heat-release and jacket-energy balance & bounded temperature, duration, vessel pressure and volume & temperature/energy finiteness, bounds, event propagation and ledger reconciliation & thermal-contract extension point for future equipment-specific coefficients \\
+Phase & stability-gated, activity-corrected liquid--liquid equilibrium with TPD-style diagnostics & declared phase identities, volumes and composition ranges & phase/material balance, directional partition response and state identity & activity-model extension point for future compound-specific thermodynamics \\
+Separation & settling, entrainment, wash and transfer coupled to the phase model & bounded mix/settle time, extractant/wash volume and transfer fraction & amount/unit conservation, transfer identity and expected directional response & separation-interface extension point for future hardware-scale transport \\
+Crystallization & van't Hoff solubility with seed, nucleation/growth cohorts, impurity occlusion and CSD summaries & bounded seed mass, cooling temperature and cooling time & material closure, solubility-direction checks, CSD and runtime-constitution receipts & law extension point for future calibrated nucleation and growth models \\
+Distillation & bubble-gated, duty-limited VLE/Fenske fractionation with material and energy ledgers & bounded temperature/time, reflux ratio, fraction count and collected fraction & mass/energy closure, fraction identity, recovery/purity directions and equipment limits & operation-contract extension point for future compound and column models \\
+Continuous flow & geometry-resolved plug-flow reactor with residence time, distributed thermal boundary and pressure drop & bounded flow, residence time and temperature & conversion direction, mass closure, pressure/geometry and solver diagnostics & runtime extension point for future reactor-specific transport or control models \\
+Electrochemistry & Nernst potential, Butler--Volmer kinetics, limiting current, Randles transient and Faraday accounting & bounded potential, current and electrolysis time & charge/material closure, signed work, selectivity and limiting-current checks & electrochemical-law extension point for future material- and cell-specific parameters \\
+Observation & state-coupled synthetic pH, UV--visible, HPLC, GC and final-assay contracts & task-declared instruments, sample and use budgets & instrument availability, sample consumption, finite/bounded signal and non-omniscience checks & instrument-schema extension point for future empirical response models \\
 \bottomrule
 \end{tabularx}
 \end{table*}
