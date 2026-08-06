@@ -539,7 +539,7 @@ def figure_3(data: Mapping[str, Any]) -> plt.Figure:
         )
 
     ax = axes[0, 1]
-    _panel(ax, "B", "Physical, interface and fail-closed probes")
+    _panel(ax, "B", "Module, interface and fail-closed probes")
     rows = values["qualification_censuses"]
     y = np.arange(len(rows))
     counts = [row["denominator"] for row in rows]
@@ -1371,7 +1371,7 @@ def figure_1_system_overview(data: Mapping[str, Any]) -> plt.Figure:
     ax.text(
         0.50,
         0.06,
-        "worlds and private laws are programmable within the declared v1 interfaces",
+        "worlds and private laws are programmable within the declared interfaces",
         transform=ax.transAxes,
         ha="center",
         fontsize=6.1,
@@ -1535,7 +1535,7 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
         )
 
     ax = axes[1, 1]
-    _panel(ax, "D", "Physical, interface and fail-closed probes")
+    _panel(ax, "D", "Module, interface and fail-closed probes")
     rows = qualification["qualification_censuses"]
     y = np.arange(len(rows))
     values = [row["denominator"] for row in rows]

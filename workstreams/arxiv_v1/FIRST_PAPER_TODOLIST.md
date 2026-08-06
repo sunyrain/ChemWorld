@@ -71,6 +71,9 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
   6 passed，图、作者与读者边界测试 11 passed，Ruff 与 diff 检查通过。
 - **DONE / 作者元数据**：补入 Xiaonan Wang 为第三作者及通讯作者，共用 Tsinghua affiliation 1，公开通讯邮箱为
   `wangxiaonan@tsinghua.edu.cn`；规范源、arXiv TeX、PDF 与 source bundle 同步生成。
+- **DONE / 审稿意见择要采纳**：删除读者可见的 `v1` 表述，压缩摘要数字，补入 executable/qualitative 语义边界、
+  coverage 非穷尽说明、状态转移与 public/private projection 形式化、environment/action-trace replay taxonomy，
+  并加入两个 agent-facing 交互例子；未新增 agent benchmark、多模型比较或三阶覆盖实验。
 - **DOING / provider 上游阻塞**：F03 的四张可编辑 SVG、完整流程图及论文插入均已完成；WellAU provider 已按
   `WELLAU_API_KEY` 与 Responses wire 接入，但 bounded 生成探针未获得图像结果。现有发布版不依赖位图嵌入，
   所有文字、框、线、箭头和图表均为独立矢量元素；不得把未产生的 Image 2 参考图标记为完成。

@@ -29,19 +29,16 @@ abstract: |
   branch one private law at a time and audit every simulator-side state and resource event
   without directly consuming physical reagents or creating wet-laboratory chemical
   exposure. The 15 registered tasks serve as reference examples for a broader construction
-  surface. Qualification covered 64/64 reference world units, 1,786/1,786 complete reference
-  recipes and 52/52 coverage-generated compositions, including eight protocol-frozen non-reference
-  reaction--distillation compositions. All 192 invalid-action probes, 32 module probes,
-  seven interface paths and seven invalid declarations produced their registered outcomes,
-  with zero missing receipts or public/private leakage. Across eight deterministic use
-  cases, all 89 submitted actions were audited; one planned failure rolled back without
-  ghost state, every lifecycle and resource ledger closed, and every trajectory replayed
-  with zero numerical mismatch. Six controlled private-law fork pairs preserved the public
-  contract across 24 traces, and one complete agent closed the first protocol-frozen non-reference
-  world through the same instrument interface. Together, these results show that
+  surface. Full-census qualification covered every registered world unit and complete
+  reference recipe, plus 52 coverage-generated compositions, including eight protocol-defined
+  non-reference reaction--distillation compositions. Invalid-action, module, interface and
+  declaration probes produced their registered outcomes, with zero missing receipts or
+  public/private leakage. Across eight deterministic use cases and six controlled private-law
+  fork pairs, every committed lifecycle and environment-replay gate passed, and one complete
+  agent closed a non-reference world through the same instrument interface. Together, these results show that
   compositional expansion can preserve executable semantics and turn simulated chemistry
   from a fixed task collection into a controlled, observable and replayable experimental
-  medium. The released v1 instrument spans nine declared component families and defines
+  medium. The released instrument spans nine declared component families and defines
   extension points for future alternative or empirically calibrated formulations.
 ---
 
@@ -56,7 +53,7 @@ digital experiment is represented only as an objective-function query. A program
 virtual instrument can make them routine at software scale.
 
 ChemWorld treats a chemical world as an explicit executable object rather than an opaque
-task label. Its v1 vocabulary contains reaction, thermal, phase, separation,
+task label. Its declared vocabulary contains reaction, thermal, phase, separation,
 crystallization, distillation, continuous-flow, electrochemical and observation components.
 A world is a compatible selection of these components, their parameters and private laws.
 A task contract is $T=(W,S_0,A,I,O,R,\tau,E)$: the world, initial state, operations,
@@ -92,7 +89,7 @@ four linked contributions:
    bound randomness, while deterministic policies and a complete agent use the same
    instrument surface.
 
-This paper qualifies the declared v1 component and compatibility domain as a virtual
+This paper qualifies the declared component and compatibility domain as a virtual
 instrument. Its modular interfaces separate experimental semantics from model choice and
 define extension points through which future implementations may introduce additional
 constitutive laws, calibrated process models or alternative agents.
@@ -172,7 +169,9 @@ topologies, vary continuous conditions, substitute a private constitutive or mat
 repeat matched world identities and inspect every simulator-side consequence. The same
 contract also preserves the agent-facing boundary, so counterfactual worlds remain
 comparable without exposing their hidden differences. Table 1 positions this capability
-alongside the strongest use of adjacent experimental systems.
+alongside the strongest use of adjacent experimental systems. The comparison is functional
+rather than performance-based: it focuses on reset and repetition, intervention surface,
+public/private observability and record scope.
 
 ```{=latex}
 \begin{table*}[!tbp]
@@ -211,6 +210,24 @@ that cannot reach termination. A successful compile returns both an executable t
 reader-auditable public surface: allowed operations, instruments, observations, resources,
 termination and evaluation. Private laws and hidden state remain outside that surface.
 
+For a bound mechanism $\theta$, resource ledger $R_t$ and recorded random stream $\xi_t$,
+the runtime applies a preflight predicate $P(s_t,a_t,R_t)$ before installing a candidate
+transition. A passing action produces $(\tilde{s}_{t+1},e_{t+1})=F_\theta(s_t,a_t,\xi_t)$
+and commits $s_{t+1}=\tilde{s}_{t+1}$; a rejected action leaves $s_{t+1}=s_t$ while
+recording a structured rejection event and ledger consequence. Public and evaluator views
+are separate projections,
+
+```{=latex}
+\[
+o_{t+1}=\pi_{\mathrm{pub}}(s_{t+1},e_{t+1}),\qquad
+\hat{o}_{t+1}=\pi_{\mathrm{eval}}(s_{t+1},e_{t+1}).
+\]
+```
+
+Replay equivalence therefore binds the normalized contract, runtime and mechanism identities,
+scoring identity, seeds and intervention record, then compares the committed action trace,
+public observations, transaction outcomes, resource deltas and terminal flags.
+
 The public capability map contains 15 registered reference tasks, 28 typed operation
 kinds, five synthetic instrument contracts and 62 ordered task-by-metric bindings. The
 reference tasks anchor interpretable examples across the declared surface, while component
@@ -241,10 +258,16 @@ coverage design rather than to a separately selected example.
 Every registered coverage target was attained. Across the eight patterns, the generated
 suite covered 60/60 discrete levels, 180/180 compatible discrete pairs, 212/212 continuous
 strata and 84/84 ordered workflow interactions. These are finite registered targets within
-the authored v1 domains, and their covered and required counts are retained pattern by
+the authored domains, and their covered and required counts are retained pattern by
 pattern in the machine-readable coverage record.
 
-# 4. Composition preserves physical and experimental semantics
+Pairwise rows qualify declared component and instrument interfaces, while seeded continuous
+designs and ordered workflows target authored bounds and critical process orderings. They are
+therefore construction-coverage targets, not a claim of semantic completeness over all
+higher-order chemistry. Higher-order behavior is addressed where it is explicitly present in
+a workflow, module probe or interface path.
+
+# 4. Composition preserves executable and declared process semantics
 
 ## 4.1 Reference and generated full censuses
 
@@ -260,7 +283,7 @@ resources and replay exactly. Seven deliberately broken declarations tested miss
 dependencies, conflicting state ownership, unit mismatches, invalid domains, resource
 impossibility and lifecycle gaps; all seven were rejected before environment construction.
 
-## 4.2 Physical and cross-module checks
+## 4.2 Module and cross-module process checks
 
 Thirty-two module probes exercise zero input, declared boundaries, monotonic directions,
 conservation and model-specific invariants. The seven cross-module paths then check that
@@ -365,6 +388,15 @@ dimensions remain separate, preserving the experimental structure that a scalar 
 would discard. The evaluator can inspect complete simulator state and resource consequences
 while the agent remains restricted to its public task contract.
 
+Two agent-facing interaction examples show what this contract exposes without turning the
+paper into an agent benchmark. In a resource-limited phase-observation world, an agent can
+choose whether to spend scarce sample and instrument uses on pH or UV--visible measurements,
+then terminate explicitly when the evidence is sufficient. In a failure-recovery workflow,
+a premature phase-separation request returns a structured rollback while preserving the last
+committed state, allowing the agent to revise its next typed action rather than restart the
+experiment. The deterministic reference traces qualify both interaction patterns; comparative
+agent behavior remains a separate study.
+
 The complete-agent demonstration used the first protocol-frozen non-reference
 reaction--distillation world. It ran on 5 August 2026 with OpenAI GPT-5.6-sol at medium
 reasoning effort through the Codex subscription provider. The fixed one-turn scaffold
@@ -377,7 +409,7 @@ with zero rollback, right-censoring or public/private leakage.
 The environment used 8,158.454 of 10,440 simulated process seconds, four of four instrument
 uses and 0.00085 of 0.001 L sample. The complete record links each decision to its public
 observation, hidden simulator consequence, transaction result and resource debit. The
-15-step environment trajectory then replayed with zero numerical mismatch, showing that a
+The recorded 15-step committed-action trace then replayed with zero numerical mismatch, showing that a
 provider-driven experiment can enter the same auditable record as deterministic use cases.
 
 ```{=latex}
@@ -395,11 +427,11 @@ provider-driven experiment can enter the same auditable record as deterministic 
 
 # 8. Discussion
 
-## 8.1 Controlled experimental freedom as a scientific capability
+## 8.1 Controlled experimental freedom at software scale
 
 ChemWorld turns world construction into an experimental variable. Declared components
 compile through explicit compatibility rules; coverage-guided rows extend beyond curated
-task identities; and reference, generated and non-reference compositions preserve physical,
+task identities; and reference, generated and non-reference compositions preserve executable,
 transactional, resource, observation and replay semantics. The result is a construction
 surface rather than a catalogue of isolated environments.
 
@@ -433,7 +465,7 @@ failure-recovery studies through separately frozen randomized or matched protoco
 
 ## 8.3 An extensible bridge to physical experimentation
 
-The released v1 qualification applies to the declared component vocabulary and authored
+The released qualification applies to the declared component vocabulary and authored
 model domains. Those boundaries expose explicit extension points rather than fixed task
 walls. Future implementations may introduce additional constitutive laws, calibrated unit
 operations, empirical instrument models and new agents through the same task contract. The
@@ -578,10 +610,12 @@ resubmits every committed typed action and compares rewards, every public observ
 termination and truncation flags, operation types, transaction status, rollback reason,
 events, state-delta summaries, constitution checks and resource consequences. The reported
 qualification uses numerical tolerance zero and observed a maximum absolute error of zero.
-Release bindings define the replay boundary; cross-version or cross-platform reproduction
-uses the same recorded identities and model definitions. The public release contains the
-environment evidence needed for this reconstruction while keeping authentication data,
-private reasoning and unrestricted provider payloads outside the research artifact.
+We use exact replay narrowly for environment/action-trace reconstruction under the bound
+software identities. Policy re-execution, cross-platform numerical reproduction and
+cross-version archival replay are separate reproducibility questions and are not inferred
+from a zero-error environment replay. The public release contains the environment evidence
+needed for this reconstruction while keeping authentication data, private reasoning and
+unrestricted provider payloads outside the research artifact.
 
 # 10. Data and code availability
 
@@ -589,7 +623,7 @@ Code, configuration, processed reports, figure source data and release tooling a
 available in the MIT-licensed ChemWorld repository at
 [github.com/sunyrain/ChemWorld](https://github.com/sunyrain/ChemWorld). The tracked
 materials regenerate the tables and figures and replay released simulator transitions and
-resource changes. The public submission tag `first-paper-arxiv-v1-2026-08-06` binds the
+resource changes. The public submission tag `first-paper-arxiv-2026-08-06` binds the
 manuscript source, dependency lock, processed evidence, figure data, coverage records and
 release metadata used for this version. Provider authentication, unrestricted response
 bodies, private reasoning and hidden evaluator identities are excluded.
@@ -598,7 +632,10 @@ The release supports three complementary reproducibility layers. Processed evide
 regenerates the reported counts and figures. Released trajectories reconstruct environment
 transitions, public observations and ledgers. Provider provenance binds the model,
 configuration and call accounting for the complete-agent unit. Exact replay refers to the
-executable world and its complete experimental record.
+executable world and its complete experimental record. In this paper, environment/action-trace
+replay is distinct from policy re-execution, cross-platform numerical reproduction and
+cross-version archival replay. Provider provenance supports audit of the complete-agent unit
+but does not imply that a later model call will regenerate the same actions.
 
 # 11. Conclusion
 
@@ -614,7 +651,7 @@ can reset worlds exactly, repeat matched experiments without physical consumable
 chemical hazard, inspect complete simulator-side consequences and change one private law
 under an invariant agent interface. Full-census qualification, process-complete use cases,
 controlled forks and a complete-agent lifecycle show that these capabilities operate
-together across the declared v1 domain. ChemWorld therefore provides an efficient and
+together across the declared construction domain. ChemWorld therefore provides an efficient and
 extensible substrate for controlled counterfactual agent studies, resource-aware
 experimentation and focused translation into physical laboratories.
 
@@ -781,38 +818,27 @@ Reference library & flow, electrochemistry, distillation, partition, crystalliza
 
 # Appendix D. Process-coordinate dictionary
 
-The 19 process dimensions remain separate and are grouped as follows.
-
 **Terminal commitment:** closed-lifecycle fraction, assay fraction and discard fraction.
 
-**Evidence acquisition:** measured-lifecycle fraction, non-final instrument uses per closed
-lifecycle and normalized first-measurement position.
+**Evidence acquisition:** measured-lifecycle fraction, non-final instrument uses per closed lifecycle
+and normalized first-measurement position.
 
-**Evidence-conditioned action:** continued-after-measurement fraction, post-measure process
-operations per closed lifecycle, threshold-eligible fraction and threshold-decision
-concordance.
+**Evidence-conditioned action:** continued-after-measurement fraction, post-measure operations
+per closed lifecycle, threshold-eligible fraction and threshold-decision concordance.
 
-**Resource deployment:** attempted operations per closed lifecycle, committed operations
-per closed lifecycle, cost per closed lifecycle and risk per closed lifecycle.
+**Resource deployment:** attempted and committed operations per closed lifecycle, cost per closed
+lifecycle and risk per closed lifecycle.
 
-**Outcome trajectory:** normalized best-discovery position, online incumbent-retention
-rate, maximum absolute incumbent drawdown, loss-episode recovery rate and terminal-to-best
-ratio. Mean and best endpoint scores are reported beside this profile and never enter a
-composite score.
-
-# Appendix E. Component model cards and extension points
-
-Each module declares its virtual-instrument domain explicitly. The table gives the runtime
-formulation, authored domain, qualification oracle and the interface location intended for
-future alternative or empirically calibrated implementations.
+**Outcome trajectory:** timing, retention, drawdown/recovery and terminal-to-best ratio.
 
 ```{=latex}
 \begin{table*}[!tbp]
 \centering
 \scriptsize
+\caption{\textbf{Appendix E. Component model cards and extension points.} Each module declares its virtual-instrument domain, runtime formulation, authored domain, qualification oracle and interface location for future alternative or empirically calibrated implementations.}
 \begin{tabularx}{\textwidth}{@{}p{0.09\textwidth}p{0.21\textwidth}p{0.18\textwidth}p{0.20\textwidth}X@{}}
 \toprule
-Component & Runtime formulation & Principal v1 domain & Qualification oracle & Intended use and extension path \\
+Component & Runtime formulation & Principal authored domain & Qualification oracle & Intended use and extension path \\
 \midrule
 Reaction & stoichiometric mass-action network with Arrhenius temperature dependence & authored reaction families and bounded batch temperature/time & exact amount fixtures, monotonic response, material closure and runtime constitution & reaction-law extension point for future named-reaction calibration \\
 Thermal & dynamic batch heat-release and jacket-energy balance & bounded temperature, duration, vessel pressure and volume & temperature/energy finiteness, bounds, event propagation and ledger reconciliation & thermal-contract extension point for future equipment-specific coefficients \\

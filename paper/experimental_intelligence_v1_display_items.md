@@ -11,7 +11,7 @@ Counts retain their exact qualification denominators and are not statistical sam
 
 | Quantity | Count | Interpretation |
 | --- | --- | --- |
-| reusable component types | 9 | declared v1 vocabulary |
+| reusable component types | 9 | declared component vocabulary |
 | frozen component patterns | 8 | coverage design |
 | registered reference tasks | 15 | reference landmarks |
 | typed operation kinds | 28 | public action surface |

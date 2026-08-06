@@ -39,6 +39,7 @@ def test_reader_visible_text_excludes_internal_engineering_metadata() -> None:
         "e02",
     )
     assert all(token not in lowered for token in forbidden_literals)
+    assert re.search(r"\bv1\b", lowered) is None
     assert re.search(r"\b[0-9a-f]{40,64}\b", lowered) is None
     assert re.search(r"\b[^\s`]+\.(?:json|md|py)\b", visible) is None
 
