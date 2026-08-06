@@ -4,16 +4,18 @@ title_line_one: "ChemWorld: Composable Chemical Worlds for"
 title_line_two: "Controlled and Replayable Agent Experimentation"
 subject: "Composable chemical worlds for controlled and replayable agent experimentation"
 keywords: "composable chemical worlds; programmable virtual instrument; controlled experimentation; transactional semantics; exact replay; autonomous chemistry"
-pdf_author: "Jiangjie Qiu; Yijun Li"
+pdf_author: "Jiangjie Qiu; Yijun Li; Xiaonan Wang"
 author:
   - name: "Jiangjie Qiu"
     affiliation_markers: "1"
   - name: "Yijun Li"
     affiliation_markers: "1"
+  - name: "Xiaonan Wang"
+    affiliation_markers: "1,*"
 affiliation:
   - id: "1"
     name: "Beijing Key Laboratory of Artificial Intelligence for Advanced Chemical Engineering Materials, State Key Laboratory of Chemical Engineering and Low-Carbon Technology, Department of Chemical Engineering, Tsinghua University, Beijing 100084, China"
-correspondence: ""
+correspondence: "wangxiaonan@tsinghua.edu.cn"
 date: ""
 bibliography: experimental_intelligence_v1_references.bib
 abstract: |

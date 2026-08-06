@@ -94,3 +94,15 @@ def test_main_figures_prioritize_scientific_capability_over_provider_accounting(
     assert "cached input" not in figure_four
     assert "provider input" not in figure_four
     assert "repeated output" not in figure_four
+
+
+def test_public_author_and_correspondence_metadata_are_complete() -> None:
+    manuscript = MANUSCRIPT.read_text(encoding="utf-8")
+    arxiv_tex = (ROOT / "paper/arxiv/main.tex").read_text(encoding="utf-8")
+
+    assert 'pdf_author: "Jiangjie Qiu; Yijun Li; Xiaonan Wang"' in manuscript
+    assert 'name: "Xiaonan Wang"' in manuscript
+    assert 'affiliation_markers: "1,*"' in manuscript
+    assert 'correspondence: "wangxiaonan@tsinghua.edu.cn"' in manuscript
+    assert "Xiaonan Wang" in arxiv_tex
+    assert "wangxiaonan@tsinghua.edu.cn" in arxiv_tex
