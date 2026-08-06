@@ -88,6 +88,7 @@ def _pattern_components(pattern: str) -> list[str]:
         "phase-separation-observation": ["phase", "separation", "observation"],
         "reaction-crystallization-observation": [
             "reaction",
+            "thermal",
             "crystallization",
             "observation",
         ],
@@ -99,6 +100,7 @@ def _pattern_components(pattern: str) -> list[str]:
         ],
         "reaction-continuous-flow-observation": [
             "reaction",
+            "thermal",
             "continuous flow",
             "observation",
         ],
@@ -109,6 +111,7 @@ def _pattern_components(pattern: str) -> list[str]:
         ],
         "reaction-phase-separation-observation": [
             "reaction",
+            "thermal",
             "phase",
             "separation",
             "observation",
@@ -164,18 +167,25 @@ def build_figure_data(root: Path = ROOT) -> dict[str, Any]:
 
         patterns: list[dict[str, Any]] = []
         aggregate_coverage: Counter[str] = Counter()
+        reference_topologies = {
+            tuple(sorted(str(component).replace("_", " ") for component in task["components"]))
+            for task in task_structure["tasks"]
+        }
         for row in generated["pattern_matrix"]:
             report = row["coverage_report"]
             denominators = report["denominators"]
             covered = report["covered"]
             require(covered == denominators, f"coverage is incomplete: {row['pattern']}")
             aggregate_coverage.update({key: int(value) for key, value in denominators.items()})
+            components = _pattern_components(row["pattern"])
+            reference_topology_overlap = tuple(sorted(components)) in reference_topologies
             patterns.append(
                 {
                     "pattern": row["pattern"],
-                    "components": _pattern_components(row["pattern"]),
+                    "components": components,
                     "generated": row["denominator"],
                     "passed": row["passed"],
+                    "reference_topology_overlap": reference_topology_overlap,
                     "unseen_reference_identity": row["pattern"] == generated["unseen_pattern"],
                     "discrete_rows": report["discrete_row_count"],
                     "continuous_samples": report["continuous_sample_count"],
@@ -184,6 +194,12 @@ def build_figure_data(root: Path = ROOT) -> dict[str, Any]:
                 }
             )
         require(len(patterns) == 8, "composition pattern count changed")
+        new_topology_patterns = [row for row in patterns if not row["reference_topology_overlap"]]
+        require(len(new_topology_patterns) == 3, "new-topology pattern count changed")
+        require(
+            sum(int(row["generated"]) for row in new_topology_patterns) == 18,
+            "new-topology case count changed",
+        )
 
         case_names = {
             "U01": "rxn to crystal",
@@ -309,6 +325,10 @@ def build_figure_data(root: Path = ROOT) -> dict[str, Any]:
             "figure_2": {
                 "patterns": patterns,
                 "aggregate_coverage_denominators": dict(sorted(aggregate_coverage.items())),
+                "new_topology_pattern_count": len(new_topology_patterns),
+                "new_topology_case_count": sum(
+                    int(row["generated"]) for row in new_topology_patterns
+                ),
                 "reference_task_count": task_structure["registered_task_count"],
                 "generated_composition_count": generated["denominator"],
                 "unseen_composition_count": generated["unseen_denominator"],

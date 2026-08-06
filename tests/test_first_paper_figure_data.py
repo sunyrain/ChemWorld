@@ -38,6 +38,24 @@ def test_figure_data_preserves_exact_censuses_and_claim_boundaries() -> None:
     assert len(data["figure_2"]["patterns"]) == 8
     assert data["figure_2"]["generated_composition_count"] == 52
     assert data["figure_2"]["unseen_composition_count"] == 8
+    assert data["figure_2"]["new_topology_pattern_count"] == 3
+    assert data["figure_2"]["new_topology_case_count"] == 18
+    assert data["figure_2"]["aggregate_coverage_denominators"] == {
+        "continuous_strata": 212,
+        "discrete_levels": 60,
+        "discrete_pair_interactions": 180,
+        "ordered_operation_interactions": 84,
+    }
+    pattern_rows = {row["pattern"]: row for row in data["figure_2"]["patterns"]}
+    assert {
+        pattern for pattern, row in pattern_rows.items() if not row["reference_topology_overlap"]
+    } == {
+        "phase-observation",
+        "phase-separation-observation",
+        "reaction-continuous-flow-observation",
+    }
+    assert pattern_rows["reaction-distillation-observation"]["reference_topology_overlap"]
+    assert pattern_rows["reaction-distillation-observation"]["unseen_reference_identity"]
     assert data["figure_3"]["zero_findings"] == {
         "failure_classes": 0,
         "missing_receipts": 0,

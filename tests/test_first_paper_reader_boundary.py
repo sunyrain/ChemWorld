@@ -66,21 +66,30 @@ def test_reader_visible_story_is_advantage_led_and_excludes_development_history(
         "development diagnostics",
         "superseded engineering runs",
         "does not establish arbitrary physics",
+        "preregistered",
     )
     assert all(phrase not in lowered for phrase in forbidden)
     required = (
         "controlled experimental freedom",
         "programmable experimental freedom",
         "evaluator-complete observability",
-        "causal process science",
+        "controlled counterfactual process analysis",
     )
     assert all(phrase in lowered for phrase in required)
 
 
 def test_main_figures_prioritize_scientific_capability_over_provider_accounting() -> None:
     figure_one = (FIGURE_DIR / "figure-1-system-overview.svg").read_text(encoding="utf-8").lower()
+    figure_two = (
+        FIGURE_DIR / "figure-2-composition-and-qualification.svg"
+    ).read_text(encoding="utf-8").lower()
     figure_four = (FIGURE_DIR / "figure-4-forks-and-agent.svg").read_text(encoding="utf-8").lower()
     assert "not a claim of laboratory equivalence" not in figure_one
+    assert "no physical reagents or wet-lab hazard" not in figure_one
+    assert "60/60 levels" in figure_two
+    assert "180/180 pairs" in figure_two
+    assert "3 new topologies" in figure_two
+    assert "8 identity-new distillation cases" in figure_two
     assert "one lifecycle, one replayable record" in figure_four
     assert "cached input" not in figure_four
     assert "provider input" not in figure_four

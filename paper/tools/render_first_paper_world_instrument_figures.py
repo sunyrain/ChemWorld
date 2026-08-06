@@ -693,7 +693,7 @@ def figure_4(data: Mapping[str, Any]) -> plt.Figure:
     ax.legend(loc="lower right")
 
     ax = axes[0, 1]
-    _panel(ax, "B", "The preregistered failure is retained")
+    _panel(ax, "B", "The protocol-defined failure is retained")
     recovery = values["recovery"]
     _clean_axis(ax)
     xs = np.linspace(0.06, 0.94, 19)
@@ -734,7 +734,7 @@ def figure_4(data: Mapping[str, Any]) -> plt.Figure:
     ax.text(
         0.50,
         0.16,
-        "the preregistered rollback remains inside the complete 89-action census",
+        "the protocol-defined rollback remains inside the complete 89-action census",
         transform=ax.transAxes,
         ha="center",
         fontsize=5.9,
@@ -906,7 +906,7 @@ def figure_5(data: Mapping[str, Any]) -> plt.Figure:
         )
 
     ax = axes[1, 1]
-    _panel(ax, "D", "Divergence appears in preregistered channels")
+    _panel(ax, "D", "Divergence appears in protocol-defined channels")
     rows = values["rows"]
     x = np.arange(len(rows))
     physical = [row["physical_relative_delta"] for row in rows]
@@ -1175,7 +1175,7 @@ def figure_1_system_overview(data: Mapping[str, Any]) -> plt.Figure:
         0.38,
         (
             "CHEMWORLD\nsoftware access + exact reset\n"
-            "no physical reagents or wet-lab hazard\ncomplete simulator observability"
+            "no direct wet-lab chemical exposure\ncomplete simulator observability"
         ),
         face=PALE_TEAL,
         edge=TEAL,
@@ -1409,7 +1409,7 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
     )
 
     ax = axes[0, 0]
-    _panel(ax, "A", "Eight frozen component patterns")
+    _panel(ax, "A", "Topology and identity decompose separately")
     ax.imshow(matrix, aspect="auto", cmap=mpl.colors.ListedColormap([PAPER, TEAL]), vmin=0, vmax=1)
     ax.set_xticks(
         range(len(components)),
@@ -1418,15 +1418,39 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
         ha="right",
     )
     ax.set_yticks(range(len(patterns)), [f"P{i}" for i in range(1, len(patterns) + 1)])
-    ax.add_patch(
-        Rectangle((-0.48, 3.52), len(components) - 0.04, 0.96, fill=False, ec=AMBER, lw=1.8)
-    )
+    for index, row in enumerate(patterns):
+        if not row["reference_topology_overlap"]:
+            ax.add_patch(
+                Rectangle(
+                    (-0.48, index - 0.48),
+                    len(components) - 0.04,
+                    0.96,
+                    fill=False,
+                    ec=BLUE,
+                    lw=1.5,
+                )
+            )
+        elif row["unseen_reference_identity"]:
+            ax.add_patch(
+                Rectangle(
+                    (-0.48, index - 0.48),
+                    len(components) - 0.04,
+                    0.96,
+                    fill=False,
+                    ec=AMBER,
+                    lw=1.8,
+                )
+            )
     ax.text(
         0.0,
-        -0.22,
-        "amber: non-reference reaction-distillation topology",
+        -0.25,
+        (
+            f"blue: {coverage['new_topology_pattern_count']} new topologies "
+            f"({coverage['new_topology_case_count']} cases)  ·  "
+            "amber: 8 identity-new distillation cases"
+        ),
         transform=ax.transAxes,
-        fontsize=6.0,
+        fontsize=5.8,
         color=MUTED,
     )
     for spine in ax.spines.values():
@@ -1441,7 +1465,8 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
             (0.01, 0.55),
             "pairwise discrete",
             (
-                f"{aggregate['discrete_levels']} levels\n"
+                f"{aggregate['discrete_levels']}/{aggregate['discrete_levels']} levels\n"
+                f"{aggregate['discrete_pair_interactions']}/"
                 f"{aggregate['discrete_pair_interactions']} pairs"
             ),
             PALE_BLUE,
@@ -1450,14 +1475,17 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
         (
             (0.35, 0.55),
             "seeded continuous",
-            f"{aggregate['continuous_strata']} strata",
+            f"{aggregate['continuous_strata']}/{aggregate['continuous_strata']} strata",
             PALE_TEAL,
             TEAL,
         ),
         (
             (0.69, 0.55),
             "ordered workflows",
-            f"{aggregate['ordered_operation_interactions']} interactions",
+            (
+                f"{aggregate['ordered_operation_interactions']}/"
+                f"{aggregate['ordered_operation_interactions']} interactions"
+            ),
             PALE_AMBER,
             AMBER,
         ),
@@ -1471,7 +1499,7 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
         (0.29, 0.13),
         0.42,
         0.17,
-        "52 frozen generated compositions",
+        "52 protocol-frozen generated compositions",
         face=WASH,
         edge=BLUE,
         fontsize=7.0,
@@ -1747,8 +1775,8 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
     _footer(
         fig,
         (
-            "Controlled forks isolate hidden-law effects; the agent unit shows that the same "
-            "public contract produces a complete, auditable lifecycle."
+            "Under fixed typed actions and bound noise, controlled forks isolate hidden-law "
+            "effects; the agent unit produces a complete, auditable lifecycle."
         ),
     )
     return fig
