@@ -544,17 +544,18 @@ outcome channels remain separate so that the analysis can distinguish:
   共 5 exploration experiments、6 direct provider decisions、最多 12 provider attempts 和 16
   physical experiments per cell。mock discovery preflight 已完成 15/15 cells、0 failures、
   90 calls/attempts、39,000 tokens；每个 trajectory 的四 snapshot、2 autonomous decisions、
-  4 held-out queries 和 3 blind replicates 均通过机器校验。resume/right-censoring、真实
-  WellAU probe 和正式 provider qualification 仍未完成。
+  4 held-out queries 和 3 blind replicates 均通过机器校验。真实 WellAU probe 也已完成
+  3/3 cells、0 failures；resume/right-censoring、formal matrix 前的独立 replay audit 和
+  report generator 仍未完成。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
@@ -566,7 +567,11 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] qualification worlds 不进入正式矩阵；
   - [ ] 失败修复只允许修改实现，不允许修改正式科学 estimands；
   - [ ] 形成方法冻结 hash 和资格验证报告。
-- 备注：`TBD`
+- 备注：当前唯一冻结 participant method（WellAU gpt-5.6-sol medium、direct Responses、
+  no tools/MCP）已通过 electrochemical-conversion 三臂真实 qualification：3/3 cells、
+  18 calls/18 attempts/0 retries；四 snapshot、typed law-summary、prefix/suffix、held-out
+  和 blind validation 全闭环。token/resource accounting 完整，但 WellAU pricing catalog
+  不可验证，货币成本不能记为零；正式 five-task breadth qualification 尚未执行。
 
 ### W2-11 — 冻结 preregistration 与不可变执行包
 
