@@ -7,7 +7,13 @@
 
 - 单 executor：`Codex /root`，在 `main` 工作；不建立 review queue、review status 或额外审核包；
 - task 认领后进入 `DOING`，满足验收标准即直接标记 `DONE`；
-- 当前唯一 participant backend 为 WellAU 提供的 `gpt-5.6-sol`，`reasoning_effort=medium`，Responses wire；
+- 当前唯一 participant backend 为 WellAU 提供的 `gpt-5.6-sol`，`reasoning_effort=medium`；
+- 当前 participant execution unit 冻结为：每个 `task × prior arm × world seed` cell 只允许一个
+  持久 Codex session identity。该 session 内可以有多轮 observation/decision turn，但禁止把各次
+  snapshot 或 autonomous decision 实现为互不关联的 standalone API 问答；
+- 旧的 Direct Responses + 本地 history 重建实现及其报告已归档到
+  `workstreams/flagship_tasks/archive/work-ii/direct_responses_reconstructed_history/`，仅作为历史
+  transport/schema qualification，不再授权当前方法或科学结果；
 - 涉及多 seeds 的实验，默认完成上限为每个适用独立 cell **5 个 world seeds**；未得到用户明确审核扩展前，达到 5 seeds 即视为该实验完成；
 - 任何多 seed/provider 执行前必须先完成 mock/deterministic preflight 和更小的真实 provider pilot；
 - 初始参考任务范围固定为五项：`electrochemical-conversion`、`reaction-to-crystallization`、
@@ -437,7 +443,7 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] 明确“law summary 声明”、反事实预测与后续行为证据的联合成功规则。
 - 备注：`Claim: Codex /root — W2-05 — DOING`
 
-### W2-06 — 冻结 participant backend × scaffold 矩阵
+### W2-06 — 冻结 participant backend × session/scaffold 矩阵
 
 - 认领：
   - [ ] 未认领
@@ -448,17 +454,21 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
-- 目标：至少引入一条可识别的 matched axis，避免再次把 model、scaffold 和 transport 完全捆绑。
-- 推荐最低矩阵：WellAU `gpt-5.6-sol` medium 完成 Direct × compact-Stateful；当前不加入第二 backend。
+- 目标：先冻结一个可审计的持久 session execution unit，再决定是否引入第二 scaffold axis；避免把
+  model、session、scaffold 和 transport 完全捆绑。
+- 当前最低方法：WellAU `gpt-5.6-sol` medium；一个 cell 一个持久 Codex session；同一 session 内
+  维护 typed belief、diagnostic focus、evidence references 和 next intent；当前不加入第二 backend。
 - 验收标准：
-  - [ ] Direct 与 compact-Stateful 使用同一 provider-independent action/result schema；
-  - [ ] direct-reactive 与 stateful-scientific scaffold 的工具权限和资源预算匹配；
+  - [ ] session start/resume/close 使用同一 provider-independent turn/result schema；
+  - [ ] 每个 cell 恰有一个 session identity，所有 experiment decisions 和 belief updates 均绑定该 identity；
+  - [ ] 每次 agent experiment decision 产生一个 complete-experiment plan，由 deterministic executor 执行；
   - [ ] stateful memory 限定为 typed belief、diagnostic focus、evidence references 和 next intent，不使用巨型自由文本状态；
   - [ ] context、memory、retry、temperature/thinking、timeout 和 failure semantics 冻结；
-  - [ ] model effect、scaffold effect、interaction 和 complete-system profile 分开报告；
+  - [ ] session turn、provider attempt、physical experiment 和 blind evaluator 分母分开报告；
   - [ ] classical/reference policies 只承担校准或机制对照角色；若 LLM 获得 property dossier，则至少包含 ID-only 与 property-aware 两类公平对照；
   - [ ] 不根据 pilot 胜负删除正式方法臂。
-- 备注：`Claim: Codex /root — W2-06 — DOING`
+- 备注：`Claim: Codex /root — W2-06 — DOING`。旧 Direct Responses 多调用方法已归档；当前
+  session-based method 尚未完成资格验证。
 
 ### W2-07 — 功效、资源和成本审计
 
@@ -520,14 +530,14 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] 完成
 - 优先级：P0
 - 代码交付物：
-  - [x] experiment-level participant runner；
-  - [x] immutable matrix/schedule manifest（五任务、三臂、四 snapshot、neutral/discriminating/autonomous/blind denominators）；
-  - [x] resume 与 right-censoring state machine；
-  - [x] provider/scaffold receipts；
+  - [ ] persistent-session participant runner；
+  - [ ] immutable matrix/schedule manifest（五任务、三臂、session turns、neutral/discriminating/autonomous/blind denominators）；
+  - [ ] session-aware resume 与 right-censoring state machine；
+  - [ ] provider/session/scaffold receipts；
   - [x] typed prior/evidence/belief/law-summary schema 与可执行 law-summary validator；
-  - [x] pre-evidence、post-neutral、post-discriminating 和 final prediction/confidence snapshot contract；
-  - [x] neutral-prefix、discriminating-prefix、autonomous-suffix 与 blind-validation 状态机；
-  - [x] high-level scientific decision 到 deterministic procedure executor 的统一接口；
+  - [ ] 同一 session 内的 pre-evidence、post-neutral、post-discriminating 和 final snapshot contract；
+  - [ ] 同一 session 内的 neutral-prefix、discriminating-prefix、autonomous-suffix 状态机；
+  - [ ] session turn 到 complete-experiment deterministic procedure executor 的统一接口；
   - [ ] exact replay、resource replay 和 hidden-boundary audits；
   - [ ] public/private split enforcement；
   - [ ] formal report generator。
@@ -537,18 +547,11 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] private identities 不进入 agent prompt；
   - [ ] 每个估计量可追溯到 immutable trajectory records；
   - [ ] fail-closed tests 覆盖 provider failure、partial action 和 ledger mismatch。
-- 备注：已提交 provider-independent typed contract：四次 snapshot、nominal-prior reliability、
-  held-out prediction、executable metric-law summary、query-contract drift guard 和 discovery
-  schedule denominator。五任务小规模 discovery plan 固定为 1 neutral + 2 discriminating +
-  2 autonomous experiments、4 held-out queries × 2 replicates、3 blind recommendation replicates；
-  共 5 exploration experiments、6 direct provider decisions、最多 12 provider attempts 和 16
-  physical experiments per cell。mock discovery preflight 已完成 15/15 cells、0 failures、
-  90 calls/attempts、39,000 tokens；每个 trajectory 的四 snapshot、2 autonomous decisions、
-  4 held-out queries 和 3 blind replicates 均通过机器校验。真实 WellAU probe 也已完成
-  3/3 cells、0 failures；随后 one-seed breadth development qualification 已完成 15/15 cells、
-  0 terminal failures。过程中有 1 次零实验 WellAU timeout，已通过 immutable-prefix
-  missing-only resume 恢复；最终总账为 91 calls/92 attempts/502,405 tokens。独立 exact replay、
-  public/private split 和可复用 formal report generator 仍未完成。
+- 备注：typed prior/evidence/belief/law-summary schema 与 held-out query validator 保留。旧
+  Direct Responses runner、配置、tests 和 mock/real/breadth 报告均已归档；其 15/15 breadth
+  只证明旧架构的 transport/schema/executor/recovery 可运行，不是当前 session method 的资格证据。
+  新 runner 必须先通过 deterministic session preflight，再运行一个任务 × 三臂 × seed 0 的真实
+  session probe；在此之前不得启动五任务 breadth 或多 seed 数据。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 
@@ -563,19 +566,16 @@ outcome channels remain separate so that the analysis can distinguish:
 - 优先级：P0
 - 目标：只排除接口、资源和生命周期失败，不检验或筛选科学结果。
 - 验收标准：
-  - [x] 每个正式方法完成独立 qualification cells；
+  - [ ] 当前 persistent-session 方法完成独立 qualification cells；
   - [ ] schema-valid action rate、completion、receipts、cost accounting 和 replay 达标；
-  - [x] prediction snapshots、typed law summary、prefix/suffix transitions 和 blind validation 全部闭环；
-  - [x] qualification worlds 不进入正式矩阵；
-  - [x] 失败修复只允许修改实现，不允许修改正式科学 estimands；
-  - [x] 形成方法冻结 hash 和资格验证报告。
-- 备注：当前唯一冻结 participant method（WellAU gpt-5.6-sol medium、direct Responses、
-  no tools/MCP）已通过 electrochemical-conversion 三臂真实 qualification：3/3 cells、
-  18 calls/18 attempts/0 retries；四 snapshot、typed law-summary、prefix/suffix、held-out
-  和 blind validation 全闭环。五任务 one-seed breadth development qualification 现已完成
-  15/15 cells、0 terminal failures；其中一次零实验 provider timeout 通过 missing-only resume
-  恢复。token/resource accounting 完整，但 WellAU pricing catalog 不可验证，货币成本不能记为零；
-  independent replay audit 仍待完成。
+  - [ ] 同一 session 内的 prediction snapshots、typed law summary 和 prefix/suffix transitions 全部闭环；
+  - [ ] qualification worlds 不进入正式矩阵；
+  - [ ] 失败修复只允许修改实现，不允许修改正式科学 estimands；
+  - [ ] 形成当前 session method 的冻结 hash 和资格验证报告。
+- 备注：旧 Direct Responses 方法及其 3/3、15/15 development qualification 已归档，不再视为
+  当前方法通过。当前待验证方法为 WellAU `gpt-5.6-sol` medium、one persistent Codex session
+  per cell、complete-experiment executor、sealed held-out/blind evaluator。WellAU pricing catalog
+  仍不可验证，货币成本不得记为零。
 
 ### W2-11 — 冻结 preregistration 与不可变执行包
 
