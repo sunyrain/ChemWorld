@@ -1,0 +1,62 @@
+{
+  "schema_version": "chemworld-work-ii-prior-discovery-summary-0.1",
+  "pilot_id": "chemworld-work-ii-prior-discovery-pilot-2026-08-07",
+  "stage": "mock-discovery-preflight",
+  "status": "passed",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "scientific_result": false,
+  "source_commit": "92fe18f1ef0c15d7920c767f324d69eb500be433",
+  "source_tree_dirty_at_execution": false,
+  "plan_path": "configs/benchmark/work_ii_prior_discovery_pilot.json",
+  "plan_canonical_sha256": "ad7fa986007fe1bebf05e9198d7c2f4c3a96904babde005ef34742c34bec9e95",
+  "method_path": "configs/methods/work_ii/participant_methods_work_ii_wellau_sol_medium_prior_discovery.json",
+  "method_canonical_sha256": "a922364ca3a34b41b11fff32c90b52e21e694acb11837b715260e8d07fad2c90",
+  "local_execution_index_path": "runs/development/work-ii-prior-discovery-mock-preflight-clean-20260807/execution_index.json",
+  "local_execution_index_file_sha256": "c6cf352c4c6a947a1e90c0ac60c5308056164219539b953711fd8c330835b7e7",
+  "coverage": {
+    "tasks": [
+      "electrochemical-conversion",
+      "reaction-to-crystallization",
+      "reaction-to-distillation",
+      "partition-discovery",
+      "reaction-safety-constrained"
+    ],
+    "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+    "world_seeds": [0],
+    "expected_cells": 15,
+    "attempted_cells": 15,
+    "completed_cells": 15,
+    "failed_cells": 0,
+    "exploration_experiments_per_cell": 5,
+    "held_out_queries_per_cell": 4,
+    "held_out_replicates_per_query": 2,
+    "blind_recommendation_replicates_per_cell": 3,
+    "trajectory_snapshot_count_per_cell": 4,
+    "autonomous_decisions_per_cell": 2
+  },
+  "provider": {
+    "name": "mock",
+    "wire_api": "mock",
+    "model_id": "work-ii-discovery-mock",
+    "reasoning_effort": "none",
+    "calls": 90,
+    "attempts": 90,
+    "retries": 0,
+    "input_tokens": 21000,
+    "cache_hit_tokens": 0,
+    "output_tokens": 18000,
+    "total_tokens": 39000,
+    "pricing_accounting_complete": true
+  },
+  "trajectory_validation": {
+    "cells_with_four_ordered_snapshots": 15,
+    "cells_with_two_autonomous_decisions": 15,
+    "cells_with_four_held_out_queries": 15,
+    "cells_with_eight_held_out_replicates": 15,
+    "cells_with_three_blind_replicates": 15,
+    "trajectory_records_are_redacted": true,
+    "raw_provider_payloads_retained": false
+  },
+  "interpretation": "This mock preflight qualifies the Work II discovery trajectory schema, phase state machine, public/private query binding, typed executable law-summary validation, blind-validation bookkeeping and denominator accounting. It is not evidence for prior utility, prior harm, law discovery, wrong-prior rejection, transfer, or model capability."
+}
