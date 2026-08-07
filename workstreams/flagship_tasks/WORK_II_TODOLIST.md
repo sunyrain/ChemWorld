@@ -522,7 +522,7 @@ outcome channels remain separate so that the analysis can distinguish:
 - 代码交付物：
   - [x] experiment-level participant runner；
   - [x] immutable matrix/schedule manifest（五任务、三臂、四 snapshot、neutral/discriminating/autonomous/blind denominators）；
-  - [ ] resume 与 right-censoring state machine；
+  - [x] resume 与 right-censoring state machine；
   - [x] provider/scaffold receipts；
   - [x] typed prior/evidence/belief/law-summary schema 与可执行 law-summary validator；
   - [x] pre-evidence、post-neutral、post-discriminating 和 final prediction/confidence snapshot contract；
@@ -532,8 +532,8 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] public/private split enforcement；
   - [ ] formal report generator。
 - 验收标准：
-  - [ ] 不依赖 notebook 或人工逐单元操作；
-  - [ ] 中断后不覆盖、不替换、不重复计数；
+  - [x] 不依赖 notebook 或人工逐单元操作；
+  - [x] 中断后不覆盖、不替换、不重复计数；
   - [ ] private identities 不进入 agent prompt；
   - [ ] 每个估计量可追溯到 immutable trajectory records；
   - [ ] fail-closed tests 覆盖 provider failure、partial action 和 ledger mismatch。
@@ -545,8 +545,10 @@ outcome channels remain separate so that the analysis can distinguish:
   physical experiments per cell。mock discovery preflight 已完成 15/15 cells、0 failures、
   90 calls/attempts、39,000 tokens；每个 trajectory 的四 snapshot、2 autonomous decisions、
   4 held-out queries 和 3 blind replicates 均通过机器校验。真实 WellAU probe 也已完成
-  3/3 cells、0 failures；resume/right-censoring、formal matrix 前的独立 replay audit 和
-  report generator 仍未完成。
+  3/3 cells、0 failures；随后 one-seed breadth development qualification 已完成 15/15 cells、
+  0 terminal failures。过程中有 1 次零实验 WellAU timeout，已通过 immutable-prefix
+  missing-only resume 恢复；最终总账为 91 calls/92 attempts/502,405 tokens。独立 exact replay、
+  public/private split 和可复用 formal report generator 仍未完成。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 
@@ -561,17 +563,19 @@ outcome channels remain separate so that the analysis can distinguish:
 - 优先级：P0
 - 目标：只排除接口、资源和生命周期失败，不检验或筛选科学结果。
 - 验收标准：
-  - [ ] 每个正式方法完成独立 qualification cells；
+  - [x] 每个正式方法完成独立 qualification cells；
   - [ ] schema-valid action rate、completion、receipts、cost accounting 和 replay 达标；
-  - [ ] prediction snapshots、typed law summary、prefix/suffix transitions 和 blind validation 全部闭环；
-  - [ ] qualification worlds 不进入正式矩阵；
-  - [ ] 失败修复只允许修改实现，不允许修改正式科学 estimands；
-  - [ ] 形成方法冻结 hash 和资格验证报告。
+  - [x] prediction snapshots、typed law summary、prefix/suffix transitions 和 blind validation 全部闭环；
+  - [x] qualification worlds 不进入正式矩阵；
+  - [x] 失败修复只允许修改实现，不允许修改正式科学 estimands；
+  - [x] 形成方法冻结 hash 和资格验证报告。
 - 备注：当前唯一冻结 participant method（WellAU gpt-5.6-sol medium、direct Responses、
   no tools/MCP）已通过 electrochemical-conversion 三臂真实 qualification：3/3 cells、
   18 calls/18 attempts/0 retries；四 snapshot、typed law-summary、prefix/suffix、held-out
-  和 blind validation 全闭环。token/resource accounting 完整，但 WellAU pricing catalog
-  不可验证，货币成本不能记为零；正式 five-task breadth qualification 尚未执行。
+  和 blind validation 全闭环。五任务 one-seed breadth development qualification 现已完成
+  15/15 cells、0 terminal failures；其中一次零实验 provider timeout 通过 missing-only resume
+  恢复。token/resource accounting 完整，但 WellAU pricing catalog 不可验证，货币成本不能记为零；
+  independent replay audit 仍待完成。
 
 ### W2-11 — 冻结 preregistration 与不可变执行包
 
