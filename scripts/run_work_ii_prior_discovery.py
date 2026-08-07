@@ -733,7 +733,12 @@ def _compact_snapshot_output_schema(
                     },
                 },
             },
-            "metric_beliefs": {"type": "array", "items": metric_prediction},
+            "metric_beliefs": {
+                "type": "array",
+                "items": metric_prediction,
+                "minItems": len(metric_ids),
+                "maxItems": len(metric_ids),
+            },
             "query_predictions": {
                 "type": "array",
                 "items": {
@@ -745,9 +750,13 @@ def _compact_snapshot_output_schema(
                         "metric_predictions": {
                             "type": "array",
                             "items": metric_prediction,
+                            "minItems": len(metric_ids),
+                            "maxItems": len(metric_ids),
                         },
                     },
                 },
+                "minItems": len(query_ids),
+                "maxItems": len(query_ids),
             },
             "evidence_ids": {
                 "type": "array",
@@ -1074,15 +1083,20 @@ def _call_snapshot(
             ),
         ),
     )
-    compiled = _compile_snapshot_draft(
-        completion.payload,
-        stage=stage,
-        task_plan=task_plan,
-        queries=queries,
-        nominal_information_available=(
-            protocol["material_information"]["mode"] != "opaque_codes"
-        ),
-    )
+    try:
+        compiled = _compile_snapshot_draft(
+            completion.payload,
+            stage=stage,
+            task_plan=task_plan,
+            queries=queries,
+            nominal_information_available=(
+                protocol["material_information"]["mode"] != "opaque_codes"
+            ),
+        )
+    except Exception as error:
+        error.provider_usage = dict(completion.usage)
+        error.provider_attempts = int(completion.attempts)
+        raise
     return compiled, completion
 
 
@@ -1569,6 +1583,12 @@ def _run_cell(
             "failure": None,
         }
     except Exception as error:
+        provider_usage = getattr(error, "provider_usage", None)
+        provider_attempts = getattr(error, "provider_attempts", None)
+        if isinstance(provider_usage, Mapping):
+            usages.append(dict(provider_usage))
+        if isinstance(provider_attempts, int):
+            attempt_counts.append(provider_attempts)
         if isinstance(error, DeepSeekAPIError):
             attempt_counts.append(int(error.attempts))
             error_usage = dict(error.usage)
