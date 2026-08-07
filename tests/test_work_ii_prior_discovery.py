@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+from scripts.run_work_ii_prior_discovery import _protocol, _public_material_information
 
 from chemworld.eval.work_ii_prior_discovery import (
     WORK_II_HELD_OUT_QUERY_SCHEMA_VERSION,
@@ -307,3 +308,32 @@ def test_repository_discovery_plan_keeps_five_tasks_and_a_bounded_small_pilot() 
         "safety_risk",
         "yield",
     }
+
+
+def test_provider_prompts_receive_anonymous_dossiers_without_arm_identity() -> None:
+    discovery_plan = json.loads(PLAN_PATH.read_text(encoding="utf-8"))
+    source_plan = json.loads(
+        (ROOT / discovery_plan["source_prior_contract_plan"]).read_text(encoding="utf-8")
+    )
+    dossiers = []
+    for arm_id in ("aligned_nominal", "misindexed_nominal"):
+        protocol = _protocol(
+            discovery_plan=discovery_plan,
+            source_plan=source_plan,
+            stage_id="prompt-contract-test",
+            task_id="electrochemical-conversion",
+            arm_id=arm_id,
+            world_seed=0,
+            exploration_experiments=5,
+        )
+        dossier = _public_material_information(
+            protocol, task_id="electrochemical-conversion"
+        )
+        assert dossier is not None
+        serialized = json.dumps(dossier, sort_keys=True).lower()
+        assert "misindexed" not in serialized
+        assert "descriptor_permutation" not in serialized
+        assert '"mode"' not in serialized
+        dossiers.append(dossier)
+
+    assert dossiers[0] != dossiers[1]

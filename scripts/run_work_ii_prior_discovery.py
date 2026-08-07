@@ -44,6 +44,7 @@ from chemworld.eval.work_ii_prior_discovery import (
     score_work_ii_snapshot_predictions,
     validate_work_ii_snapshot_sequence,
 )
+from chemworld.materials import static_material_information_dossier
 from chemworld.providers.deepseek import DeepSeekAPIError, JsonCompletion
 from chemworld.tasks import get_task
 
@@ -125,6 +126,51 @@ def _feature_ids(interface: Mapping[str, Any], task_plan: Mapping[str, Any]) -> 
     if configured != actual:
         raise ValueError(f"task feature contract drift for {task_plan}: {configured} != {actual}")
     return configured
+
+
+def _public_material_information(
+    protocol: Mapping[str, Any], *, task_id: str
+) -> dict[str, Any] | None:
+    material_family_id = (
+        static_optimization_material_family_id(protocol)
+        if task_id == "electrochemical-conversion"
+        else static_optimization_crystallization_material_family_id(protocol)
+        if task_id == "reaction-to-crystallization"
+        else None
+    )
+    dossier = static_material_information_dossier(
+        protocol.get("material_information"),
+        task_id=task_id,
+        material_family_id=material_family_id,
+    )
+    return None if dossier is None else copy.deepcopy(dict(dossier))
+
+
+def _compact_autonomous_interface(interface: Mapping[str, Any]) -> dict[str, Any]:
+    compact = {
+        "decision_scope": interface["decision_scope"],
+        "parameterization": interface["parameterization"],
+        "diagnostic_measurement_slots": [
+            {
+                "slot_id": item["slot_id"],
+                "selection_policy": item.get("selection_policy"),
+                "model_facing_metric_ids": item.get("model_facing_metric_ids", []),
+            }
+            for item in interface["diagnostic_measurement_slots"]
+        ],
+        "required_measurement_slots": list(interface["required_measurement_slots"]),
+    }
+    if interface.get("parameterization") == "named_physical_controls":
+        compact["recipe_parameter_schema"] = copy.deepcopy(
+            interface["recipe_parameter_schema"]
+        )
+    else:
+        compact["search_vector_dimension"] = int(interface["search_vector_dimension"])
+        compact["search_vector_bounds"] = list(interface["search_vector_bounds"])
+        compact["search_vector_coordinate_schema"] = copy.deepcopy(
+            interface["search_vector_coordinate_schema"]
+        )
+    return compact
 
 
 def _midpoint(value: Mapping[str, Any], *, category_level: int = 0) -> int | float:
@@ -923,7 +969,9 @@ def _call_snapshot(
         "schema_version": "chemworld-work-ii-belief-snapshot-0.1",
         "snapshot_stage": stage,
         "nominal_information_available": protocol["material_information"]["mode"] != "opaque_codes",
-        "public_material_information": protocol.get("material_information"),
+        "public_material_information": _public_material_information(
+            protocol, task_id=str(protocol["tasks"][0])
+        ),
         "feature_ids": list(task_plan["feature_ids"]),
         "metric_ids": metric_ids,
         "metric_bounds": task_plan["prediction_metrics"],
@@ -972,8 +1020,10 @@ def _call_autonomous(
         "work_ii_autonomous_request": True,
         "task_id": task_id,
         "feature_ids": list(task_plan["feature_ids"]),
-        "experiment_interface": copy.deepcopy(dict(interface)),
-        "public_material_information": protocol.get("material_information"),
+        "experiment_interface": _compact_autonomous_interface(interface),
+        "public_material_information": _public_material_information(
+            protocol, task_id=task_id
+        ),
         "history": list(history[-8:]),
         "latest_belief_snapshot": snapshot,
         "instructions": (
@@ -1445,7 +1495,9 @@ def _run_cell(
                 usages.append(error_usage)
         failure = {
             "reason_code": (
-                "invalid_model_response"
+                "provider_infrastructure_failure"
+                if isinstance(error, DeepSeekAPIError)
+                else "invalid_model_response"
                 if isinstance(error, ValueError)
                 else "cell_execution_failure"
             ),
