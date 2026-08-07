@@ -5,7 +5,11 @@ import json
 from pathlib import Path
 
 import pytest
-from scripts.run_work_ii_prior_discovery import _protocol, _public_material_information
+from scripts.run_work_ii_prior_discovery import (
+    _compact_history_for_prompt,
+    _protocol,
+    _public_material_information,
+)
 
 from chemworld.eval.work_ii_prior_discovery import (
     WORK_II_HELD_OUT_QUERY_SCHEMA_VERSION,
@@ -337,3 +341,48 @@ def test_provider_prompts_receive_anonymous_dossiers_without_arm_identity() -> N
         dossiers.append(dossier)
 
     assert dossiers[0] != dossiers[1]
+
+
+def test_provider_history_compaction_preserves_evidence_without_repeated_metadata() -> None:
+    compact = _compact_history_for_prompt(
+        [
+            {
+                "schema_version": "large-repeated-schema",
+                "experiment_index": 2,
+                "plan": {
+                    "experiment_intent": "test one controlled contrast",
+                    "recipe_parameters": {"catalyst": 1},
+                    "requested_measurement_slots": ["diagnostic-01"],
+                    "measurement_objective": "measure yield",
+                    "expected_effect": "different response",
+                    "uncertainty": 0.4,
+                },
+                "measurement_evidence": [
+                    {
+                        "evidence_id": "e2",
+                        "measurement_slot_id": "diagnostic-01",
+                        "processed_estimate": {"yield": 0.5},
+                        "uncertainty": {"yield_std": 0.02},
+                        "reward": 0.3,
+                        "raw_signal": [1, 2, 3],
+                    }
+                ],
+                "terminal_summary": {
+                    "leaderboard_score": 0.3,
+                    "cost": 0.2,
+                    "safety_risk": 0.1,
+                    "outcome": "completed",
+                    "resource_delta": {"large": "metadata"},
+                },
+                "executed_steps": [{"large": "payload"}],
+            }
+        ]
+    )
+
+    assert compact[0]["experiment_index"] == 2
+    assert compact[0]["measurement_evidence"][0]["evidence_id"] == "e2"
+    serialized = json.dumps(compact, sort_keys=True)
+    assert "raw_signal" not in serialized
+    assert "executed_steps" not in serialized
+    assert "schema_version" not in serialized
+    assert "resource_delta" not in serialized

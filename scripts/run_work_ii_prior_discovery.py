@@ -173,6 +173,56 @@ def _compact_autonomous_interface(interface: Mapping[str, Any]) -> dict[str, Any
     return compact
 
 
+def _compact_history_for_prompt(
+    history: Sequence[Mapping[str, Any]], *, limit: int = 8
+) -> list[dict[str, Any]]:
+    compact: list[dict[str, Any]] = []
+    for record in history[-limit:]:
+        plan = record.get("plan", {})
+        compact_plan = {
+            key: copy.deepcopy(plan[key])
+            for key in (
+                "experiment_intent",
+                "recipe_parameters",
+                "search_vector",
+                "requested_measurement_slots",
+                "measurement_objective",
+                "expected_effect",
+                "uncertainty",
+            )
+            if key in plan
+        }
+        evidence = []
+        for item in record.get("measurement_evidence", []):
+            evidence.append(
+                {
+                    key: copy.deepcopy(item[key])
+                    for key in (
+                        "evidence_id",
+                        "measurement_slot_id",
+                        "processed_estimate",
+                        "uncertainty",
+                        "reward",
+                    )
+                    if key in item
+                }
+            )
+        terminal = record.get("terminal_summary", {})
+        compact.append(
+            {
+                "experiment_index": int(record["experiment_index"]),
+                "plan": compact_plan,
+                "measurement_evidence": evidence,
+                "terminal_summary": {
+                    key: copy.deepcopy(terminal[key])
+                    for key in ("leaderboard_score", "cost", "safety_risk", "outcome")
+                    if key in terminal
+                },
+            }
+        )
+    return compact
+
+
 def _midpoint(value: Mapping[str, Any], *, category_level: int = 0) -> int | float:
     if value.get("type") == "integer":
         return int(category_level if category_level is not None else value["minimum"])
@@ -996,7 +1046,7 @@ def _call_snapshot(
         "metric_ids": metric_ids,
         "metric_bounds": task_plan["prediction_metrics"],
         "queries": [query.to_dict() for query in queries],
-        "history": list(history[-8:]),
+        "history": _compact_history_for_prompt(history),
         "evidence_ids": list(evidence_ids),
         "instructions": (
             "Return only the compact Work II belief draft. Do not name the prior arm. "
@@ -1055,7 +1105,7 @@ def _call_autonomous(
         "public_material_information": _public_material_information(
             protocol, task_id=task_id
         ),
-        "history": list(history[-8:]),
+        "history": _compact_history_for_prompt(history),
         "latest_belief_snapshot": snapshot,
         "instructions": (
             "Choose exactly one complete experiment using only public history and the latest "
