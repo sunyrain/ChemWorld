@@ -572,6 +572,214 @@ def _snapshot_output_schema() -> dict[str, Any]:
     }
 
 
+def _compact_snapshot_output_schema() -> dict[str, Any]:
+    metric_prediction = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "metric_id",
+            "mean",
+            "interval_lower",
+            "interval_upper",
+            "confidence",
+        ],
+        "properties": {
+            "metric_id": {"type": "string"},
+            "mean": {"type": "number"},
+            "interval_lower": {"type": "number"},
+            "interval_upper": {"type": "number"},
+            "confidence": {"type": "number"},
+        },
+    }
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "snapshot_stage",
+            "belief_status",
+            "prior_reliability",
+            "feature_beliefs",
+            "metric_beliefs",
+            "query_predictions",
+            "evidence_ids",
+            "next_experiment_intent",
+        ],
+        "properties": {
+            "snapshot_stage": {"type": "string"},
+            "belief_status": {"type": "string"},
+            "prior_reliability": {"type": ["number", "null"]},
+            "feature_beliefs": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["feature_id", "role", "confidence"],
+                    "properties": {
+                        "feature_id": {"type": "string"},
+                        "role": {"type": "string"},
+                        "confidence": {"type": "number"},
+                    },
+                },
+            },
+            "metric_beliefs": {"type": "array", "items": metric_prediction},
+            "query_predictions": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["query_id", "metric_predictions"],
+                    "properties": {
+                        "query_id": {"type": "string"},
+                        "metric_predictions": {
+                            "type": "array",
+                            "items": metric_prediction,
+                        },
+                    },
+                },
+            },
+            "evidence_ids": {"type": "array", "items": {"type": "string"}},
+            "next_experiment_intent": {"type": "string"},
+        },
+    }
+
+
+def _compile_snapshot_draft(
+    payload: Mapping[str, Any],
+    *,
+    stage: str,
+    task_plan: Mapping[str, Any],
+    queries: Sequence[Any],
+    nominal_information_available: bool,
+) -> dict[str, Any]:
+    if "schema_version" in payload:
+        return dict(payload)
+    expected = {
+        "snapshot_stage",
+        "belief_status",
+        "prior_reliability",
+        "feature_beliefs",
+        "metric_beliefs",
+        "query_predictions",
+        "evidence_ids",
+        "next_experiment_intent",
+    }
+    if set(payload) != expected:
+        raise ValueError(
+            "compact belief draft fields do not match the contract: "
+            f"missing={sorted(expected - set(payload))}, "
+            f"extra={sorted(set(payload) - expected)}"
+        )
+    if str(payload["snapshot_stage"]) != stage:
+        raise ValueError("compact belief draft stage does not match the requested snapshot")
+    feature_ids = [str(item) for item in task_plan["feature_ids"]]
+    metric_ids = [str(item) for item in task_plan["prediction_metrics"]]
+    raw_features = payload["feature_beliefs"]
+    if not isinstance(raw_features, list):
+        raise ValueError("compact feature_beliefs must be a list")
+    feature_belief_ids = [str(item["feature_id"]) for item in raw_features]
+    if not set(feature_belief_ids).issubset(set(feature_ids)):
+        raise ValueError("compact feature_beliefs contains an unknown feature")
+    raw_metrics = payload["metric_beliefs"]
+    if not isinstance(raw_metrics, list):
+        raise ValueError("compact metric_beliefs must be a list")
+    metric_map = {str(item["metric_id"]): item for item in raw_metrics}
+    if set(metric_map) != set(metric_ids):
+        raise ValueError("compact metric_beliefs do not cover the exact task metrics")
+    bounds = task_plan["prediction_metrics"]
+
+    def normalize_prediction(item: Mapping[str, Any]) -> dict[str, Any]:
+        metric_id = str(item["metric_id"])
+        if metric_id not in metric_ids:
+            raise ValueError("compact query prediction contains an unknown metric")
+        mean = float(item["mean"])
+        lower = float(item["interval_lower"])
+        upper = float(item["interval_upper"])
+        confidence = float(item["confidence"])
+        if not lower <= mean <= upper or not 0.0 <= confidence <= 1.0:
+            raise ValueError("compact query prediction has invalid interval or confidence")
+        return {
+            "metric_id": metric_id,
+            "mean": mean,
+            "interval_lower": lower,
+            "interval_upper": upper,
+            "confidence": confidence,
+        }
+
+    metric_laws = []
+    for metric_id in metric_ids:
+        metric = metric_map[metric_id]
+        lower, upper = bounds[metric_id]
+        metric_laws.append(
+            {
+                "metric_id": metric_id,
+                "intercept": float(metric["mean"]),
+                "link": "identity",
+                "lower_bound": float(lower),
+                "upper_bound": float(upper),
+                "terms": [],
+            }
+        )
+    raw_queries = payload["query_predictions"]
+    if not isinstance(raw_queries, list):
+        raise ValueError("compact query_predictions must be a list")
+    query_map = {str(item["query_id"]): item for item in raw_queries}
+    expected_query_ids = {str(query.query_id) for query in queries}
+    if set(query_map) != expected_query_ids:
+        raise ValueError("compact query_predictions do not cover the exact query set")
+    predictions = []
+    for query in queries:
+        raw_query = query_map[query.query_id]
+        raw_query_metrics = raw_query["metric_predictions"]
+        metric_prediction_map = {
+            str(item["metric_id"]): item for item in raw_query_metrics
+        }
+        if set(metric_prediction_map) != set(query.metric_ids):
+            raise ValueError("compact query prediction metrics drifted from the query contract")
+        predictions.append(
+            {
+                "query_id": query.query_id,
+                "metrics": [
+                    normalize_prediction(metric_prediction_map[metric_id])
+                    for metric_id in query.metric_ids
+                ],
+            }
+        )
+    reliability = None if not nominal_information_available else payload["prior_reliability"]
+    if reliability is not None:
+        reliability = float(reliability)
+        if not 0.0 <= reliability <= 1.0:
+            raise ValueError("compact prior_reliability must be in [0,1]")
+    mean_confidence = sum(float(item["confidence"]) for item in raw_metrics) / len(raw_metrics)
+    return {
+        "schema_version": "chemworld-work-ii-belief-snapshot-0.1",
+        "snapshot_id": f"wellau-{stage}",
+        "stage": stage,
+        "prior_assessment": {
+            "nominal_information_available": nominal_information_available,
+            "reliability_probability": reliability,
+            "suspected_misindexed_fields": [],
+            "rationale": str(payload["belief_status"]),
+        },
+        "predictions": predictions,
+        "law_summary": {
+            "schema_version": "chemworld-work-ii-law-summary-0.1",
+            "summary_id": f"wellau-law-{stage}",
+            "feature_ids": feature_ids,
+            "metric_laws": metric_laws,
+            "evidence_ids": [str(item) for item in payload["evidence_ids"]],
+            "applicability": "the declared public feature domain",
+            "limitations": [
+                "provider-facing compact draft compiled to constant metric laws",
+                "interaction terms require a later formal law-summary scaffold",
+            ],
+            "confidence": mean_confidence,
+        },
+        "evidence_ids": [str(item) for item in payload["evidence_ids"]],
+        "next_experiment_intent": str(payload["next_experiment_intent"]),
+        "overall_confidence": mean_confidence,
+    }
+
+
 class _WorkIIDiscoveryMockClient:
     model = "work-ii-discovery-mock"
     thinking = False
@@ -690,9 +898,18 @@ def _call_snapshot(
         ),
         user_prompt=json.dumps(request, ensure_ascii=False, sort_keys=True),
         max_tokens=max_tokens,
-        output_schema=_snapshot_output_schema(),
+        output_schema=_compact_snapshot_output_schema(),
     )
-    return completion.payload, completion
+    compiled = _compile_snapshot_draft(
+        completion.payload,
+        stage=stage,
+        task_plan=task_plan,
+        queries=queries,
+        nominal_information_available=(
+            protocol["material_information"]["mode"] != "opaque_codes"
+        ),
+    )
+    return compiled, completion
 
 
 def _call_autonomous(
