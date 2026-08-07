@@ -7,10 +7,12 @@ from pathlib import Path
 import pytest
 from scripts.run_work_ii_prior_discovery import (
     _compact_history_for_prompt,
+    _load_resume_state,
     _protocol,
     _public_material_information,
 )
 
+from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.work_ii_prior_discovery import (
     WORK_II_HELD_OUT_QUERY_SCHEMA_VERSION,
     WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
@@ -141,9 +143,7 @@ def _parse_snapshot(payload: dict, *, evidence_catalog: tuple[str, ...] = ()):
         allowed_metric_ids=METRICS,
         allowed_prior_fields=("catalyst",),
         evidence_catalog=evidence_catalog,
-        nominal_information_available=payload["prior_assessment"][
-            "nominal_information_available"
-        ],
+        nominal_information_available=payload["prior_assessment"]["nominal_information_available"],
     )
 
 
@@ -212,9 +212,7 @@ def test_belief_snapshot_separates_prior_reliability_prediction_and_law() -> Non
     assert len(snapshot.predictions) == 2
     assert {law.metric_id for law in snapshot.law_summary.metric_laws} == set(METRICS)
 
-    opaque = _parse_snapshot(
-        _snapshot("pre_evidence", nominal_information_available=False)
-    )
+    opaque = _parse_snapshot(_snapshot("pre_evidence", nominal_information_available=False))
     assert opaque.prior_assessment.reliability_probability is None
 
 
@@ -243,10 +241,7 @@ def test_four_stage_sequence_and_prediction_scoring_are_explicit() -> None:
         )
     validate_work_ii_snapshot_sequence(snapshots)
 
-    observed = {
-        query_id: {"yield": 0.6, "selectivity": 0.4}
-        for query_id in QUERY_CONTRACT
-    }
+    observed = {query_id: {"yield": 0.6, "selectivity": 0.4} for query_id in QUERY_CONTRACT}
     score = score_work_ii_snapshot_predictions(snapshots[-1], observed)
 
     assert score["prediction_count"] == 4
@@ -304,9 +299,10 @@ def test_repository_discovery_plan_keeps_five_tasks_and_a_bounded_small_pilot() 
     assert plan["stages"]["one-seed-breadth"]["expected_cells"] == 15
     assert plan["participant"]["mcp_enabled"] is False
     assert "no universal process-time cap" in plan["execution_bounds"]["repeat_rule"]
-    assert "constraint_violations" not in plan["tasks"]["reaction-safety-constrained"][
-        "prediction_metrics"
-    ]
+    assert (
+        "constraint_violations"
+        not in plan["tasks"]["reaction-safety-constrained"]["prediction_metrics"]
+    )
     assert set(plan["tasks"]["reaction-safety-constrained"]["prediction_metrics"]) == {
         "score",
         "safety_risk",
@@ -330,9 +326,7 @@ def test_provider_prompts_receive_anonymous_dossiers_without_arm_identity() -> N
             world_seed=0,
             exploration_experiments=5,
         )
-        dossier = _public_material_information(
-            protocol, task_id="electrochemical-conversion"
-        )
+        dossier = _public_material_information(protocol, task_id="electrochemical-conversion")
         assert dossier is not None
         serialized = json.dumps(dossier, sort_keys=True).lower()
         assert "misindexed" not in serialized
@@ -386,3 +380,154 @@ def test_provider_history_compaction_preserves_evidence_without_repeated_metadat
     assert "executed_steps" not in serialized
     assert "schema_version" not in serialized
     assert "resource_delta" not in serialized
+
+
+def _write_resume_fixture(
+    root: Path, *, completed_sha256: str, failed_experiments: int = 0
+) -> tuple[list[tuple[str, str, int]], dict[int, str]]:
+    cells = [
+        ("task-a", "opaque", 0),
+        ("task-b", "aligned_nominal", 0),
+    ]
+    trajectory = {
+        "cell": {
+            "cell_id": "method-a:task-a:opaque:seed0",
+            "task_id": "task-a",
+            "prior_arm": "opaque",
+            "world_seed": 0,
+        },
+        "protocol_sha256": "protocol-a",
+        "method_id": "method-a",
+        "provider": "mock",
+        "resource_accounting": {
+            "provider_call_count": 6,
+            "provider_attempt_count": 6,
+            "total_tokens": 120,
+        },
+    }
+    trajectory_path = root / "cells" / "01--task-a--opaque--seed0" / "trajectory.json"
+    trajectory_path.parent.mkdir(parents=True)
+    trajectory_path.write_text(json.dumps(trajectory), encoding="utf-8")
+    result = {
+        "cell_index": 1,
+        "task_id": "task-a",
+        "prior_arm": "opaque",
+        "world_seed": 0,
+        "completed": True,
+        "trajectory_path": str(trajectory_path.relative_to(root)),
+        "trajectory_sha256": completed_sha256 or canonical_json_sha256(trajectory),
+        "provider_call_count": 6,
+        "provider_attempt_count": 6,
+        "provider_reported_total_tokens": 120,
+        "completed_exploration_experiments": 5,
+        "completed_held_out_experiments": 8,
+        "completed_blind_experiments": 3,
+        "failure": None,
+    }
+    failure = {
+        "cell_index": 2,
+        "task_id": "task-b",
+        "prior_arm": "aligned_nominal",
+        "world_seed": 0,
+        "completed": False,
+        "provider_call_count": 1,
+        "provider_attempt_count": 2,
+        "provider_reported_total_tokens": 0,
+        "completed_exploration_experiments": failed_experiments,
+        "completed_held_out_experiments": 0,
+        "completed_blind_experiments": 0,
+        "failure": {
+            "reason_code": "provider_infrastructure_failure",
+            "error_type": "DeepSeekAPIError",
+            "message": "provider timeout",
+            "scientific_retry_allowed": False,
+        },
+    }
+    execution_index = {
+        "schema_version": "chemworld-work-ii-prior-discovery-execution-index-0.1",
+        "pilot_id": "pilot-a",
+        "stage": "one-seed-breadth",
+        "formal_result": False,
+        "benchmark_claim_allowed": False,
+        "scientific_result": False,
+        "source_commit": "source-a",
+        "source_tree_dirty": False,
+        "provider": "mock",
+        "wire_api": "mock",
+        "model_id": "model-a",
+        "reasoning_effort": "medium",
+        "expected_cell_count": 2,
+        "attempted_cell_count": 2,
+        "completed_cell_count": 1,
+        "failed_cell_count": 1,
+        "all_requested_cells_completed": False,
+        "provider_call_count": 7,
+        "provider_attempt_count": 8,
+        "provider_reported_total_tokens": 120,
+        "results": [result, failure],
+        "failures": [failure],
+    }
+    (root / "execution_index.json").write_text(json.dumps(execution_index), encoding="utf-8")
+    return cells, {1: "protocol-a", 2: "protocol-b"}
+
+
+def test_resume_accepts_only_an_immutable_prefix_and_zero_experiment_failure(
+    tmp_path: Path,
+) -> None:
+    cells, protocol_hashes = _write_resume_fixture(tmp_path, completed_sha256="")
+
+    state = _load_resume_state(
+        output=tmp_path,
+        cells=cells,
+        expected_protocol_sha256=protocol_hashes,
+        pilot_id="pilot-a",
+        stage_id="one-seed-breadth",
+        provider="mock",
+        model_id="model-a",
+        reasoning_effort="medium",
+        method_id="method-a",
+    )
+
+    assert [item["cell_index"] for item in state["completed_results"]] == [1]
+    assert [item["cell_index"] for item in state["infrastructure_attempts"]] == [2]
+    assert state["execution_history"][-1]["resumed_from_cell_index"] == 2
+
+
+def test_resume_rejects_tampered_completed_trajectory(tmp_path: Path) -> None:
+    cells, protocol_hashes = _write_resume_fixture(
+        tmp_path, completed_sha256="not-the-trajectory-hash"
+    )
+
+    with pytest.raises(RuntimeError, match="trajectory hash mismatch"):
+        _load_resume_state(
+            output=tmp_path,
+            cells=cells,
+            expected_protocol_sha256=protocol_hashes,
+            pilot_id="pilot-a",
+            stage_id="one-seed-breadth",
+            provider="mock",
+            model_id="model-a",
+            reasoning_effort="medium",
+            method_id="method-a",
+        )
+
+
+def test_resume_rejects_post_experiment_failure_as_right_censored(
+    tmp_path: Path,
+) -> None:
+    cells, protocol_hashes = _write_resume_fixture(
+        tmp_path, completed_sha256="", failed_experiments=1
+    )
+
+    with pytest.raises(RuntimeError, match="right-censored"):
+        _load_resume_state(
+            output=tmp_path,
+            cells=cells,
+            expected_protocol_sha256=protocol_hashes,
+            pilot_id="pilot-a",
+            stage_id="one-seed-breadth",
+            provider="mock",
+            model_id="model-a",
+            reasoning_effort="medium",
+            method_id="method-a",
+        )

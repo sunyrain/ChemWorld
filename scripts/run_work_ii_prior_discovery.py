@@ -63,6 +63,7 @@ DEFAULT_PLAN = ROOT / "configs/benchmark/work_ii_prior_discovery_pilot.json"
 DEFAULT_OUTPUT = ROOT / "runs/development/work-ii-prior-discovery-pilot"
 PROGRESS_SCHEMA_VERSION = "chemworld-work-ii-prior-discovery-progress-0.1"
 TRAJECTORY_SCHEMA_VERSION = "chemworld-work-ii-prior-discovery-trajectory-0.1"
+EXECUTION_INDEX_SCHEMA_VERSION = "chemworld-work-ii-prior-discovery-execution-index-0.1"
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -70,6 +71,206 @@ def _load_object(path: Path) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError(f"expected one JSON object: {path}")
     return payload
+
+
+def _cell_identity(cell_index: int, task_id: str, arm_id: str, world_seed: int) -> dict[str, Any]:
+    return {
+        "cell_index": int(cell_index),
+        "task_id": str(task_id),
+        "prior_arm": str(arm_id),
+        "world_seed": int(world_seed),
+    }
+
+
+def _validate_result_identity(
+    result: Mapping[str, Any],
+    *,
+    cell_index: int,
+    task_id: str,
+    arm_id: str,
+    world_seed: int,
+) -> None:
+    expected = _cell_identity(cell_index, task_id, arm_id, world_seed)
+    actual = {key: result.get(key) for key in expected}
+    if actual != expected:
+        raise RuntimeError(
+            f"resume cell identity mismatch at cell {cell_index}: {actual} != {expected}"
+        )
+
+
+def _validate_completed_resume_result(
+    result: Mapping[str, Any],
+    *,
+    output: Path,
+    method_id: str,
+    provider: str,
+    expected_protocol_sha256: str,
+) -> dict[str, Any]:
+    if result.get("completed") is not True or result.get("failure") is not None:
+        raise RuntimeError("resume prefix contains a non-completed result")
+    trajectory_relative = result.get("trajectory_path")
+    if not isinstance(trajectory_relative, str) or not trajectory_relative:
+        raise RuntimeError("completed resume result lacks trajectory_path")
+    trajectory_path = (output / trajectory_relative).resolve()
+    trajectory_path.relative_to(output)
+    if not trajectory_path.is_file():
+        raise RuntimeError(f"completed resume trajectory is missing: {trajectory_path}")
+    trajectory = _load_object(trajectory_path)
+    recorded_sha256 = str(result.get("trajectory_sha256", ""))
+    actual_sha256 = canonical_json_sha256(trajectory)
+    if actual_sha256 != recorded_sha256:
+        raise RuntimeError(
+            f"completed resume trajectory hash mismatch: {actual_sha256} != {recorded_sha256}"
+        )
+    expected_cell = {
+        "cell_id": (
+            f"{method_id}:{result['task_id']}:{result['prior_arm']}:seed{result['world_seed']}"
+        ),
+        "task_id": result["task_id"],
+        "prior_arm": result["prior_arm"],
+        "world_seed": result["world_seed"],
+    }
+    trajectory_cell = trajectory.get("cell")
+    if not isinstance(trajectory_cell, Mapping) or any(
+        trajectory_cell.get(key) != value for key, value in expected_cell.items()
+    ):
+        raise RuntimeError("completed resume trajectory cell identity mismatch")
+    if trajectory.get("protocol_sha256") != expected_protocol_sha256:
+        raise RuntimeError("completed resume trajectory protocol hash mismatch")
+    if trajectory.get("method_id") != method_id:
+        raise RuntimeError("completed resume trajectory method mismatch")
+    if trajectory.get("provider") != provider:
+        raise RuntimeError("completed resume trajectory provider mismatch")
+    accounting = trajectory.get("resource_accounting", {})
+    for result_key, accounting_key in (
+        ("provider_call_count", "provider_call_count"),
+        ("provider_attempt_count", "provider_attempt_count"),
+        ("provider_reported_total_tokens", "total_tokens"),
+    ):
+        if int(result.get(result_key, -1)) != int(accounting.get(accounting_key, -2)):
+            raise RuntimeError(f"completed resume trajectory accounting mismatch for {result_key}")
+    return copy.deepcopy(dict(result))
+
+
+def _retryable_zero_experiment_failure(result: Mapping[str, Any]) -> bool:
+    failure = result.get("failure")
+    return bool(
+        result.get("completed") is False
+        and isinstance(failure, Mapping)
+        and failure.get("reason_code") == "provider_infrastructure_failure"
+        and int(result.get("completed_exploration_experiments", -1)) == 0
+        and int(result.get("completed_held_out_experiments", -1)) == 0
+        and int(result.get("completed_blind_experiments", -1)) == 0
+    )
+
+
+def _load_resume_state(
+    *,
+    output: Path,
+    cells: Sequence[tuple[str, str, int]],
+    expected_protocol_sha256: Mapping[int, str],
+    pilot_id: str,
+    stage_id: str,
+    provider: str,
+    model_id: str,
+    reasoning_effort: str,
+    method_id: str,
+) -> dict[str, Any]:
+    index_path = output / "execution_index.json"
+    if not index_path.is_file():
+        raise RuntimeError("--resume requires an existing execution_index.json")
+    index = _load_object(index_path)
+    expected_header = {
+        "schema_version": EXECUTION_INDEX_SCHEMA_VERSION,
+        "pilot_id": pilot_id,
+        "stage": stage_id,
+        "provider": provider,
+        "wire_api": "responses" if provider == "wellau" else "mock",
+        "model_id": model_id,
+        "reasoning_effort": reasoning_effort,
+        "expected_cell_count": len(cells),
+        "formal_result": False,
+        "benchmark_claim_allowed": False,
+        "scientific_result": False,
+    }
+    mismatches = [key for key, value in expected_header.items() if index.get(key) != value]
+    if mismatches:
+        raise RuntimeError("resume execution-index identity mismatch: " + ", ".join(mismatches))
+    if index.get("source_tree_dirty") is not False:
+        raise RuntimeError("resume refuses an execution index produced from a dirty tree")
+    recorded_results = index.get("results")
+    if not isinstance(recorded_results, list):
+        raise RuntimeError("resume execution index lacks a results list")
+    if len(recorded_results) > len(cells):
+        raise RuntimeError("resume execution index has more results than scheduled cells")
+
+    completed_results: list[dict[str, Any]] = []
+    current_failure: dict[str, Any] | None = None
+    for offset, raw_result in enumerate(recorded_results):
+        if not isinstance(raw_result, Mapping):
+            raise RuntimeError("resume execution index contains a non-object result")
+        cell_index = offset + 1
+        task_id, arm_id, world_seed = cells[offset]
+        _validate_result_identity(
+            raw_result,
+            cell_index=cell_index,
+            task_id=task_id,
+            arm_id=arm_id,
+            world_seed=world_seed,
+        )
+        if raw_result.get("completed") is True:
+            if current_failure is not None:
+                raise RuntimeError("resume results are not a contiguous terminal prefix")
+            completed_results.append(
+                _validate_completed_resume_result(
+                    raw_result,
+                    output=output,
+                    method_id=method_id,
+                    provider=provider,
+                    expected_protocol_sha256=expected_protocol_sha256[cell_index],
+                )
+            )
+            continue
+        if current_failure is not None or offset != len(recorded_results) - 1:
+            raise RuntimeError("resume permits only one final failed result")
+        current_failure = copy.deepcopy(dict(raw_result))
+
+    prior_infrastructure_attempts = index.get("infrastructure_attempts", [])
+    if not isinstance(prior_infrastructure_attempts, list) or any(
+        not isinstance(item, Mapping) for item in prior_infrastructure_attempts
+    ):
+        raise RuntimeError("resume infrastructure_attempts must be a list of objects")
+    infrastructure_attempts = [copy.deepcopy(dict(item)) for item in prior_infrastructure_attempts]
+    if current_failure is not None:
+        if not _retryable_zero_experiment_failure(current_failure):
+            raise RuntimeError(
+                "resume refuses a non-infrastructure or post-experiment failure; "
+                "the cell is terminal/right-censored"
+            )
+        infrastructure_attempts.append(current_failure)
+    elif len(completed_results) == len(cells):
+        raise RuntimeError("resume execution index is already complete")
+    else:
+        raise RuntimeError("resume requires a recorded zero-experiment infrastructure failure")
+
+    history = index.get("execution_history", [])
+    if not isinstance(history, list) or any(not isinstance(item, Mapping) for item in history):
+        raise RuntimeError("resume execution_history must be a list of objects")
+    execution_history = [copy.deepcopy(dict(item)) for item in history]
+    execution_history.append(
+        {
+            "execution_index_sha256": canonical_json_sha256(index),
+            "source_commit": index.get("source_commit"),
+            "completed_cell_count": int(index.get("completed_cell_count", -1)),
+            "failed_cell_count": int(index.get("failed_cell_count", -1)),
+            "resumed_from_cell_index": len(completed_results) + 1,
+        }
+    )
+    return {
+        "completed_results": completed_results,
+        "infrastructure_attempts": infrastructure_attempts,
+        "execution_history": execution_history,
+    }
 
 
 def _repo_path(value: object) -> Path:
@@ -120,8 +321,7 @@ def _feature_ids(interface: Mapping[str, Any], task_plan: Mapping[str, Any]) -> 
         actual = tuple(str(item) for item in interface["recipe_parameter_schema"])
     else:
         actual = tuple(
-            str(item["control_id"])
-            for item in interface["search_vector_coordinate_schema"]
+            str(item["control_id"]) for item in interface["search_vector_coordinate_schema"]
         )
     if configured != actual:
         raise ValueError(f"task feature contract drift for {task_plan}: {configured} != {actual}")
@@ -161,9 +361,7 @@ def _compact_autonomous_interface(interface: Mapping[str, Any]) -> dict[str, Any
         "required_measurement_slots": list(interface["required_measurement_slots"]),
     }
     if interface.get("parameterization") == "named_physical_controls":
-        compact["recipe_parameter_schema"] = copy.deepcopy(
-            interface["recipe_parameter_schema"]
-        )
+        compact["recipe_parameter_schema"] = copy.deepcopy(interface["recipe_parameter_schema"])
     else:
         compact["search_vector_dimension"] = int(interface["search_vector_dimension"])
         compact["search_vector_bounds"] = list(interface["search_vector_bounds"])
@@ -401,11 +599,10 @@ def _build_queries(
                 level=level,
             )
         else:
-            vector = [0.25 if index % 2 == 0 else 0.75] * int(
-                interface["search_vector_dimension"]
-            )
+            vector = [0.25 if index % 2 == 0 else 0.75] * int(interface["search_vector_dimension"])
             coordinate = next(
-                item for item in interface["search_vector_coordinate_schema"]
+                item
+                for item in interface["search_vector_coordinate_schema"]
                 if item["control_id"] == target_field
             )
             category_count = int(coordinate["category_count"])
@@ -717,9 +914,7 @@ def _compact_snapshot_output_schema(
         "properties": {
             "snapshot_stage": {"type": "string"},
             "belief_status": {"type": "string"},
-            "prior_reliability": {
-                "type": "number" if nominal_information_available else "null"
-            },
+            "prior_reliability": {"type": "number" if nominal_information_available else "null"},
             "feature_beliefs": {
                 "type": "array",
                 "items": {
@@ -900,9 +1095,7 @@ def _compile_snapshot_draft(
     for query in queries:
         raw_query = query_map[query.query_id]
         raw_query_metrics = raw_query["metric_predictions"]
-        metric_prediction_map = {
-            str(item["metric_id"]): item for item in raw_query_metrics
-        }
+        metric_prediction_map = {str(item["metric_id"]): item for item in raw_query_metrics}
         if set(metric_prediction_map) != set(query.metric_ids):
             raise ValueError("compact query prediction metrics drifted from the query contract")
         predictions.append(
@@ -997,8 +1190,7 @@ class _WorkIIDiscoveryMockClient:
                         "use the latest typed evidence to choose a safe autonomous experiment"
                     ),
                     "requested_measurement_slots": [
-                        str(item["slot_id"])
-                        for item in interface["diagnostic_measurement_slots"]
+                        str(item["slot_id"]) for item in interface["diagnostic_measurement_slots"]
                     ],
                     "measurement_objective": "measure the public task metrics",
                     "expected_effect": (
@@ -1116,9 +1308,7 @@ def _call_autonomous(
         "task_id": task_id,
         "feature_ids": list(task_plan["feature_ids"]),
         "experiment_interface": _compact_autonomous_interface(interface),
-        "public_material_information": _public_material_information(
-            protocol, task_id=task_id
-        ),
+        "public_material_information": _public_material_information(protocol, task_id=task_id),
         "history": _compact_history_for_prompt(history),
         "latest_belief_snapshot": snapshot,
         "instructions": (
@@ -1194,9 +1384,7 @@ def _run_cell(
         metric_ids=metric_ids,
     )
     queries = tuple(query for query, _ in query_pairs)
-    query_contract = {
-        query.query_id: tuple(query.metric_ids) for query in queries
-    }
+    query_contract = {query.query_id: tuple(query.metric_ids) for query in queries}
     if provider == "mock":
         client: Any = _WorkIIDiscoveryMockClient()
     else:
@@ -1204,7 +1392,15 @@ def _run_cell(
     cell_id = f"{cell_index:02d}--{task_id}--{arm_id}--seed{world_seed}"
     cell_root = output / "cells" / cell_id
     protocol_path = output / "protocols" / f"{cell_id}.json"
-    write_json_atomic(protocol_path, protocol)
+    if protocol_path.is_file():
+        existing_protocol = _load_object(protocol_path)
+        if canonical_json_sha256(existing_protocol) != canonical_json_sha256(protocol):
+            raise RuntimeError(f"existing protocol drift for {cell_id}")
+    else:
+        write_json_atomic(protocol_path, protocol)
+    trajectory_path = cell_root / "trajectory.json"
+    if trajectory_path.exists():
+        raise RuntimeError(f"refusing to overwrite existing trajectory: {trajectory_path}")
     history: list[dict[str, Any]] = []
     raw_results: list[dict[str, Any]] = []
     decisions: list[dict[str, Any]] = []
@@ -1279,8 +1475,7 @@ def _run_cell(
         history.append(public)
         raw_results.append(raw)
         evidence_ids.extend(
-            str(item["evidence_id"])
-            for item in public.get("measurement_evidence", [])
+            str(item["evidence_id"]) for item in public.get("measurement_evidence", [])
         )
         _progress(
             progress_file,
@@ -1349,8 +1544,7 @@ def _run_cell(
             history.append(public)
             raw_results.append(raw)
             evidence_ids.extend(
-                str(item["evidence_id"])
-                for item in public.get("measurement_evidence", [])
+                str(item["evidence_id"]) for item in public.get("measurement_evidence", [])
             )
         _progress(
             progress_file,
@@ -1508,9 +1702,7 @@ def _run_cell(
         ]
         scores = [float(item["terminal_summary"]["leaderboard_score"]) for item in raw_results]
         incumbent_index = max(range(len(scores)), key=scores.__getitem__)
-        incumbent_plan = StaticOptimizationPlan(
-            **dict(raw_results[incumbent_index]["plan"])
-        )
+        incumbent_plan = StaticOptimizationPlan(**dict(raw_results[incumbent_index]["plan"]))
         blind_values: list[float] = []
         for replicate_index in range(schedule.blind_recommendation_replicates):
             _, raw = _execute(
@@ -1563,22 +1755,20 @@ def _run_cell(
                 ),
             },
         }
-        write_json_atomic(cell_root / "trajectory.json", trajectory)
+        write_json_atomic(trajectory_path, trajectory)
         return {
             "cell_index": cell_index,
             "task_id": task_id,
             "prior_arm": arm_id,
             "world_seed": world_seed,
             "completed": True,
-            "trajectory_path": str((cell_root / "trajectory.json").relative_to(output)),
+            "trajectory_path": str(trajectory_path.relative_to(output)),
             "trajectory_sha256": canonical_json_sha256(trajectory),
             "provider_call_count": provider_call_count,
             "provider_attempt_count": sum(attempt_counts),
             "provider_reported_total_tokens": trajectory["resource_accounting"]["total_tokens"],
             "completed_exploration_experiments": len(raw_results),
-            "completed_held_out_experiments": sum(
-                query.replicate_count for query in queries
-            ),
+            "completed_held_out_experiments": sum(query.replicate_count for query in queries),
             "completed_blind_experiments": len(blind_values),
             "failure": None,
         }
@@ -1594,17 +1784,28 @@ def _run_cell(
             error_usage = dict(error.usage)
             if any(int(value) for value in error_usage.values()):
                 usages.append(error_usage)
+        reason_code = (
+            "provider_infrastructure_failure"
+            if isinstance(error, DeepSeekAPIError)
+            else "invalid_model_response"
+            if isinstance(error, ValueError)
+            else "cell_execution_failure"
+        )
+        retryable_without_scientific_repetition = bool(
+            reason_code == "provider_infrastructure_failure" and not raw_results
+        )
         failure = {
-            "reason_code": (
-                "provider_infrastructure_failure"
-                if isinstance(error, DeepSeekAPIError)
-                else "invalid_model_response"
-                if isinstance(error, ValueError)
-                else "cell_execution_failure"
-            ),
+            "reason_code": reason_code,
             "error_type": type(error).__name__,
             "message": " ".join(str(error).split())[:500],
-            "scientific_retry_allowed": False,
+            "scientific_retry_allowed": retryable_without_scientific_repetition,
+            "terminal_state": (
+                "retryable_zero_experiment_infrastructure_failure"
+                if retryable_without_scientific_repetition
+                else "right_censored"
+                if raw_results
+                else "failed"
+            ),
         }
         diagnostics = getattr(error, "validation_diagnostics", None)
         if isinstance(diagnostics, Mapping):
@@ -1676,9 +1877,55 @@ def run_discovery(args: argparse.Namespace) -> dict[str, Any]:
     method = methods["methods"][method_id]
     output = args.output.resolve()
     progress_file = args.progress_file.resolve() if args.progress_file else None
-    results: list[dict[str, Any]] = []
+    schedule = parse_work_ii_discovery_schedule(discovery_plan["discovery_schedule"])
+    expected_protocol_sha256 = {
+        cell_index: canonical_json_sha256(
+            _protocol(
+                discovery_plan=discovery_plan,
+                source_plan=source_plan,
+                stage_id=args.stage,
+                task_id=task_id,
+                arm_id=arm_id,
+                world_seed=world_seed,
+                exploration_experiments=schedule.exploration_experiments,
+            )
+        )
+        for cell_index, (task_id, arm_id, world_seed) in enumerate(cells, start=1)
+    }
+    if args.resume:
+        resume_state = _load_resume_state(
+            output=output,
+            cells=cells,
+            expected_protocol_sha256=expected_protocol_sha256,
+            pilot_id=str(discovery_plan["pilot_id"]),
+            stage_id=args.stage,
+            provider=provider,
+            model_id=str(discovery_plan["participant"]["model_id"]),
+            reasoning_effort=str(discovery_plan["participant"]["reasoning_effort"]),
+            method_id=method_id,
+        )
+        results = list(resume_state["completed_results"])
+        infrastructure_attempts = list(resume_state["infrastructure_attempts"])
+        execution_history = list(resume_state["execution_history"])
+        _progress(
+            progress_file,
+            event="run_resumed",
+            stage=args.stage,
+            completed_cells=len(results),
+            failed_cells=0,
+            total_cells=len(cells),
+            next_cell_index=len(results) + 1,
+        )
+    else:
+        if output.exists() and any(output.iterdir()):
+            raise RuntimeError("non-resume execution refuses a non-empty output directory")
+        results = []
+        infrastructure_attempts = []
+        execution_history = []
     failures: list[dict[str, Any]] = []
     for cell_index, (task_id, arm_id, world_seed) in enumerate(cells, start=1):
+        if cell_index <= len(results):
+            continue
         result = _run_cell(
             discovery_plan=discovery_plan,
             source_plan=source_plan,
@@ -1713,7 +1960,7 @@ def run_discovery(args: argparse.Namespace) -> dict[str, Any]:
         if failures:
             break
     summary = {
-        "schema_version": "chemworld-work-ii-prior-discovery-execution-index-0.1",
+        "schema_version": EXECUTION_INDEX_SCHEMA_VERSION,
         "pilot_id": discovery_plan["pilot_id"],
         "stage": args.stage,
         "formal_result": False,
@@ -1727,16 +1974,25 @@ def run_discovery(args: argparse.Namespace) -> dict[str, Any]:
         "reasoning_effort": discovery_plan["participant"]["reasoning_effort"],
         "expected_cell_count": len(cells),
         "attempted_cell_count": len(results),
+        "cell_execution_attempt_count": len(results) + len(infrastructure_attempts),
         "completed_cell_count": sum(bool(item["completed"]) for item in results),
         "failed_cell_count": len(failures),
         "all_requested_cells_completed": len(results) == len(cells) and not failures,
-        "provider_call_count": sum(int(item["provider_call_count"]) for item in results),
-        "provider_attempt_count": sum(int(item["provider_attempt_count"]) for item in results),
+        "provider_call_count": sum(
+            int(item["provider_call_count"]) for item in [*results, *infrastructure_attempts]
+        ),
+        "provider_attempt_count": sum(
+            int(item["provider_attempt_count"]) for item in [*results, *infrastructure_attempts]
+        ),
         "provider_reported_total_tokens": sum(
-            int(item["provider_reported_total_tokens"]) for item in results
+            int(item["provider_reported_total_tokens"])
+            for item in [*results, *infrastructure_attempts]
         ),
         "results": results,
         "failures": failures,
+        "infrastructure_attempt_count": len(infrastructure_attempts),
+        "infrastructure_attempts": infrastructure_attempts,
+        "execution_history": execution_history,
     }
     write_json_atomic(output / "execution_index.json", summary)
     _progress(
@@ -1761,6 +2017,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--progress-file", type=Path)
     parser.add_argument("--allow-external-provider", action="store_true")
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "validate and retain the immutable completed prefix, then continue only from a "
+            "recorded zero-experiment provider infrastructure failure"
+        ),
+    )
     return parser.parse_args()
 
 
