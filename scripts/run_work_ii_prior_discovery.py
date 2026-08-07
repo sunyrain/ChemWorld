@@ -44,7 +44,7 @@ from chemworld.eval.work_ii_prior_discovery import (
     score_work_ii_snapshot_predictions,
     validate_work_ii_snapshot_sequence,
 )
-from chemworld.providers.deepseek import JsonCompletion
+from chemworld.providers.deepseek import DeepSeekAPIError, JsonCompletion
 from chemworld.tasks import get_task
 
 try:
@@ -643,6 +643,51 @@ def _compact_snapshot_output_schema() -> dict[str, Any]:
     }
 
 
+def _autonomous_output_schema(interface: Mapping[str, Any]) -> dict[str, Any]:
+    properties: dict[str, Any] = {
+        "experiment_intent": {"type": "string"},
+        "requested_measurement_slots": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "measurement_objective": {"type": "string"},
+        "expected_effect": {"type": "string"},
+        "uncertainty": {"type": "number"},
+    }
+    required = list(properties)
+    if interface.get("parameterization") == "named_physical_controls":
+        recipe_properties: dict[str, Any] = {}
+        for field, specification in interface["recipe_parameter_schema"].items():
+            value_type = "integer" if specification.get("type") == "integer" else "number"
+            recipe_properties[str(field)] = {
+                "type": value_type,
+                "minimum": specification["minimum"],
+                "maximum": specification["maximum"],
+            }
+        properties["recipe_parameters"] = {
+            "type": "object",
+            "additionalProperties": False,
+            "required": list(recipe_properties),
+            "properties": recipe_properties,
+        }
+        required.append("recipe_parameters")
+    else:
+        dimension = int(interface["search_vector_dimension"])
+        properties["search_vector"] = {
+            "type": "array",
+            "minItems": dimension,
+            "maxItems": dimension,
+            "items": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        }
+        required.append("search_vector")
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": required,
+        "properties": properties,
+    }
+
+
 def _compile_snapshot_draft(
     payload: Mapping[str, Any],
     *,
@@ -922,7 +967,7 @@ def _call_autonomous(
     history: Sequence[Mapping[str, Any]],
     snapshot: Mapping[str, Any],
     max_tokens: int,
-) -> tuple[StaticOptimizationPlan, JsonCompletion]:
+) -> tuple[dict[str, Any], JsonCompletion]:
     request = {
         "work_ii_autonomous_request": True,
         "task_id": task_id,
@@ -943,14 +988,22 @@ def _call_autonomous(
         ),
         user_prompt=json.dumps(request, ensure_ascii=False, sort_keys=True),
         max_tokens=max_tokens,
+        output_schema=_autonomous_output_schema(interface),
     )
+    return dict(completion.payload), completion
+
+
+def _validate_autonomous_payload(
+    payload: Mapping[str, Any],
+    *,
+    protocol: Mapping[str, Any],
+    task_id: str,
+) -> StaticOptimizationPlan:
     validator = StaticOptimizationValidator(
         get_task(task_id).to_dict(),
         electrochemical_workflow_mode=static_optimization_workflow_mode(protocol),
     )
-    plan_payload = dict(completion.payload)
-    plan = validator.validate(plan_payload)
-    return plan, completion
+    return validator.validate(dict(payload))
 
 
 def _run_cell(
@@ -1012,6 +1065,8 @@ def _run_cell(
     decisions: list[dict[str, Any]] = []
     snapshots: list[Any] = []
     usages: list[dict[str, int]] = []
+    attempt_counts: list[int] = []
+    provider_call_count = 0
     _progress(
         progress_file,
         event="cell_started",
@@ -1037,6 +1092,7 @@ def _run_cell(
             completed_provider_decisions=0,
             total_provider_decisions=schedule.provider_decisions_per_cell,
         )
+        provider_call_count += 1
         payload, completion = _call_snapshot(
             client=client,
             stage="pre_evidence",
@@ -1049,6 +1105,7 @@ def _run_cell(
             max_tokens=int(method["request_configuration"].get("snapshot_max_tokens", 4500)),
         )
         usages.append(dict(completion.usage))
+        attempt_counts.append(int(completion.attempts))
         snapshot = parse_work_ii_belief_snapshot(
             payload,
             expected_stage="pre_evidence",
@@ -1101,6 +1158,7 @@ def _run_cell(
             completed_provider_decisions=1,
             total_provider_decisions=schedule.provider_decisions_per_cell,
         )
+        provider_call_count += 1
         payload, completion = _call_snapshot(
             client=client,
             stage="post_neutral",
@@ -1113,6 +1171,7 @@ def _run_cell(
             max_tokens=int(method["request_configuration"].get("snapshot_max_tokens", 4500)),
         )
         usages.append(dict(completion.usage))
+        attempt_counts.append(int(completion.attempts))
         snapshots.append(
             parse_work_ii_belief_snapshot(
                 payload,
@@ -1159,6 +1218,7 @@ def _run_cell(
             completed_provider_decisions=2,
             total_provider_decisions=schedule.provider_decisions_per_cell,
         )
+        provider_call_count += 1
         payload, completion = _call_snapshot(
             client=client,
             stage="post_discriminating",
@@ -1171,6 +1231,7 @@ def _run_cell(
             max_tokens=int(method["request_configuration"].get("snapshot_max_tokens", 4500)),
         )
         usages.append(dict(completion.usage))
+        attempt_counts.append(int(completion.attempts))
         snapshots.append(
             parse_work_ii_belief_snapshot(
                 payload,
@@ -1194,7 +1255,8 @@ def _run_cell(
                 completed_physical_experiments=len(raw_results),
                 total_physical_experiments=schedule.physical_experiments_per_cell,
             )
-            plan, completion = _call_autonomous(
+            provider_call_count += 1
+            plan_payload, completion = _call_autonomous(
                 client=client,
                 protocol=protocol,
                 task_id=task_id,
@@ -1205,6 +1267,12 @@ def _run_cell(
                 max_tokens=int(method["request_configuration"]["max_tokens"]),
             )
             usages.append(dict(completion.usage))
+            attempt_counts.append(int(completion.attempts))
+            plan = _validate_autonomous_payload(
+                plan_payload,
+                protocol=protocol,
+                task_id=task_id,
+            )
             public, raw = _execute(
                 protocol=protocol,
                 task_id=task_id,
@@ -1234,6 +1302,7 @@ def _run_cell(
             completed_provider_decisions=5,
             total_provider_decisions=schedule.provider_decisions_per_cell,
         )
+        provider_call_count += 1
         payload, completion = _call_snapshot(
             client=client,
             stage="final",
@@ -1246,6 +1315,7 @@ def _run_cell(
             max_tokens=int(method["request_configuration"].get("snapshot_max_tokens", 4500)),
         )
         usages.append(dict(completion.usage))
+        attempt_counts.append(int(completion.attempts))
         snapshots.append(
             parse_work_ii_belief_snapshot(
                 payload,
@@ -1338,10 +1408,8 @@ def _run_cell(
                 "mean_score": sum(blind_values) / len(blind_values),
             },
             "resource_accounting": {
-                "provider_call_count": len(usages),
-                "provider_attempt_count": sum(
-                    int(completion.get("attempts", 1)) for completion in []
-                ),
+                "provider_call_count": provider_call_count,
+                "provider_attempt_count": sum(attempt_counts),
                 "input_tokens": sum(int(usage.get("prompt_tokens", 0)) for usage in usages),
                 "output_tokens": sum(int(usage.get("completion_tokens", 0)) for usage in usages),
                 "total_tokens": sum(int(usage.get("total_tokens", 0)) for usage in usages),
@@ -1350,7 +1418,6 @@ def _run_cell(
                 ),
             },
         }
-        trajectory["resource_accounting"]["provider_attempt_count"] = len(usages)
         write_json_atomic(cell_root / "trajectory.json", trajectory)
         return {
             "cell_index": cell_index,
@@ -1360,8 +1427,8 @@ def _run_cell(
             "completed": True,
             "trajectory_path": str((cell_root / "trajectory.json").relative_to(output)),
             "trajectory_sha256": canonical_json_sha256(trajectory),
-            "provider_call_count": len(usages),
-            "provider_attempt_count": len(usages),
+            "provider_call_count": provider_call_count,
+            "provider_attempt_count": sum(attempt_counts),
             "provider_reported_total_tokens": trajectory["resource_accounting"]["total_tokens"],
             "completed_exploration_experiments": len(raw_results),
             "completed_held_out_experiments": sum(
@@ -1371,6 +1438,11 @@ def _run_cell(
             "failure": None,
         }
     except Exception as error:
+        if isinstance(error, DeepSeekAPIError):
+            attempt_counts.append(int(error.attempts))
+            error_usage = dict(error.usage)
+            if any(int(value) for value in error_usage.values()):
+                usages.append(error_usage)
         failure = {
             "reason_code": (
                 "invalid_model_response"
@@ -1381,6 +1453,9 @@ def _run_cell(
             "message": " ".join(str(error).split())[:500],
             "scientific_retry_allowed": False,
         }
+        diagnostics = getattr(error, "validation_diagnostics", None)
+        if isinstance(diagnostics, Mapping):
+            failure["validation_diagnostics"] = copy.deepcopy(dict(diagnostics))
         _progress(
             progress_file,
             event="cell_failed",
@@ -1398,8 +1473,8 @@ def _run_cell(
             "prior_arm": arm_id,
             "world_seed": world_seed,
             "completed": False,
-            "provider_call_count": len(usages),
-            "provider_attempt_count": len(usages),
+            "provider_call_count": provider_call_count,
+            "provider_attempt_count": sum(attempt_counts),
             "provider_reported_total_tokens": sum(
                 int(usage.get("total_tokens", 0)) for usage in usages
             ),
