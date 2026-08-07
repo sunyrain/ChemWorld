@@ -618,7 +618,20 @@ def _snapshot_output_schema() -> dict[str, Any]:
     }
 
 
-def _compact_snapshot_output_schema() -> dict[str, Any]:
+def _compact_snapshot_output_schema(
+    *,
+    feature_ids: Sequence[str],
+    metric_ids: Sequence[str],
+    query_ids: Sequence[str],
+    allowed_evidence_ids: Sequence[str],
+) -> dict[str, Any]:
+    feature_enum = {"type": "string", "enum": [str(item) for item in feature_ids]}
+    metric_enum = {"type": "string", "enum": [str(item) for item in metric_ids]}
+    query_enum = {"type": "string", "enum": [str(item) for item in query_ids]}
+    evidence_items = {
+        "type": "string",
+        "enum": [str(item) for item in allowed_evidence_ids],
+    }
     metric_prediction = {
         "type": "object",
         "additionalProperties": False,
@@ -630,7 +643,7 @@ def _compact_snapshot_output_schema() -> dict[str, Any]:
             "confidence",
         ],
         "properties": {
-            "metric_id": {"type": "string"},
+            "metric_id": metric_enum,
             "mean": {"type": "number"},
             "interval_lower": {"type": "number"},
             "interval_upper": {"type": "number"},
@@ -661,7 +674,7 @@ def _compact_snapshot_output_schema() -> dict[str, Any]:
                     "additionalProperties": False,
                     "required": ["feature_id", "role", "confidence"],
                     "properties": {
-                        "feature_id": {"type": "string"},
+                        "feature_id": feature_enum,
                         "role": {"type": "string"},
                         "confidence": {"type": "number"},
                     },
@@ -675,7 +688,7 @@ def _compact_snapshot_output_schema() -> dict[str, Any]:
                     "additionalProperties": False,
                     "required": ["query_id", "metric_predictions"],
                     "properties": {
-                        "query_id": {"type": "string"},
+                        "query_id": query_enum,
                         "metric_predictions": {
                             "type": "array",
                             "items": metric_prediction,
@@ -683,7 +696,11 @@ def _compact_snapshot_output_schema() -> dict[str, Any]:
                     },
                 },
             },
-            "evidence_ids": {"type": "array", "items": {"type": "string"}},
+            "evidence_ids": {
+                "type": "array",
+                "items": evidence_items,
+                "maxItems": len(allowed_evidence_ids),
+            },
             "next_experiment_intent": {"type": "string"},
         },
     }
@@ -979,9 +996,10 @@ def _call_snapshot(
         "history": list(history[-8:]),
         "evidence_ids": list(evidence_ids),
         "instructions": (
-            "Return only the typed Work II belief snapshot. Do not name the prior arm. "
-            "Treat measured evidence as authoritative, expose uncertainty, and provide an "
-            "executable law summary whose metric predictions cover every held-out query."
+            "Return only the compact Work II belief draft. Do not name the prior arm. "
+            "Treat measured evidence as authoritative, expose uncertainty, and provide "
+            "predictions for every held-out query. evidence_ids is a closed-world list: "
+            "copy only IDs from the supplied evidence_ids list; if it is empty, return []."
         ),
     }
     completion = client.complete_json(
@@ -991,7 +1009,12 @@ def _call_snapshot(
         ),
         user_prompt=json.dumps(request, ensure_ascii=False, sort_keys=True),
         max_tokens=max_tokens,
-        output_schema=_compact_snapshot_output_schema(),
+        output_schema=_compact_snapshot_output_schema(
+            feature_ids=tuple(str(item) for item in task_plan["feature_ids"]),
+            metric_ids=tuple(str(item) for item in task_plan["prediction_metrics"]),
+            query_ids=tuple(str(query.query_id) for query in queries),
+            allowed_evidence_ids=tuple(str(item) for item in evidence_ids),
+        ),
     )
     compiled = _compile_snapshot_draft(
         completion.payload,
