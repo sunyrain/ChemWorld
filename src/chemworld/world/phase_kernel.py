@@ -45,6 +45,21 @@ _NOMINAL_IMPURITY_DISTRIBUTION_COEFFICIENTS = np.asarray(
 )
 
 
+def nominal_partition_pair_tables() -> dict[str, tuple[tuple[float, ...], ...]]:
+    """Return the public nominal pair tables without any realized-world state."""
+
+    return {
+        "product_distribution_coefficients": tuple(
+            tuple(float(value) for value in row)
+            for row in _NOMINAL_PRODUCT_DISTRIBUTION_COEFFICIENTS
+        ),
+        "impurity_distribution_coefficients": tuple(
+            tuple(float(value) for value in row)
+            for row in _NOMINAL_IMPURITY_DISTRIBUTION_COEFFICIENTS
+        ),
+    }
+
+
 class PartitionSplitResult(TypedDict):
     partition_coefficient: float
     impurity_partition_coefficient: float
@@ -255,5 +270,6 @@ __all__ = [
     "PARTITION_V3_PRODUCT_DISTRIBUTION_CALIBRATION",
     "PartitionSplitResult",
     "PhaseModuleSpec",
+    "nominal_partition_pair_tables",
     "partition_split",
 ]

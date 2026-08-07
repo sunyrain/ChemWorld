@@ -1347,6 +1347,10 @@ class StaticOptimizationContextBuilder:
                     },
                 }
             )
+            if self.material_information is not None:
+                experiment_interface["material_information"] = copy.deepcopy(
+                    self.material_information
+                )
         payload = {
             "schema_version": STATIC_OPTIMIZATION_INTERFACE_VERSION,
             "optimization_contract": optimization_contract,

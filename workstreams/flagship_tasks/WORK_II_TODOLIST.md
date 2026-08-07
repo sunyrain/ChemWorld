@@ -1,7 +1,21 @@
-# Work II TODO — 规律冲突、证据响应与科学适应
+# Work II TODO — 先验、规律发现、偏差排除与迁移
 
 最后更新：2026-08-07
-工作边界：第二篇研究智能体在世界规律与训练先验冲突时，能否通过实验检测变化、修正信念、恢复控制并迁移到 held-out conditions。它不重复第一篇的装置可观测性主张，也不把单纯 endpoint optimization 当作规律学习。
+工作边界：第二篇研究在固定世界规律下，无先验、正确先验和错误先验如何影响 agent 的实验发现、错误先验排除、规律总结和 held-out 迁移。它不把“运行中规律变化”作为主要情境，也不重复第一篇的装置可观测性主张。
+
+当前执行冻结：
+
+- 单 executor：`Codex /root`，在 `main` 工作；不建立 review queue、review status 或额外审核包；
+- task 认领后进入 `DOING`，满足验收标准即直接标记 `DONE`；
+- 当前唯一 participant backend 为 WellAU 提供的 `gpt-5.6-sol`，`reasoning_effort=medium`，Responses wire；
+- 涉及多 seeds 的实验，默认完成上限为每个适用独立 cell **5 个 world seeds**；未得到用户明确审核扩展前，达到 5 seeds 即视为该实验完成；
+- 任何多 seed/provider 执行前必须先完成 mock/deterministic preflight 和更小的真实 provider pilot；
+- 初始参考任务范围固定为五项：`electrochemical-conversion`、`reaction-to-crystallization`、
+  `reaction-to-distillation`、`partition-discovery` 和 `reaction-safety-constrained`。代码审计确认
+  `flow-reaction-optimization` 当前的 catalyst/solvent 类别不产生可识别的类别特异反应规律，主要只进入
+  成本/稀释或共享催化剂物种，因此不适合本轮 ID↔property-bundle prior manipulation；它保留为后续
+  process-law 扩展候选。五任务是首轮最低广度而非最终上限；pilot 通过后可从 15-task registry 继续加入
+  prior-identifiable 任务，但不能把正式范围缩回两项。
 
 ## 0. Proposed manuscript architecture (planning draft)
 
@@ -11,87 +25,83 @@ question, methods and preregistration are frozen.
 
 ### Working title and one-sentence thesis
 
-Working title: **Optimizing Without Learning the Law: Detecting, Attributing and Adapting to
-Hidden-Law Shifts with AI Agents**.
+Working title: **Controlled Experiments on Scientific Prior Use, Revision and Transfer in AI
+Agents**.
 
-The paper should test one dissociation rather than rank agents:
+The paper should test one scientific dissociation rather than rank agents:
 
-> An agent may optimize an endpoint while failing to detect, attribute or update on a change in
-> the governing law; process-complete experiments can distinguish these cases and quantify the
-> recovery and held-out-transfer consequences.
+> An agent may reach a useful endpoint by following a prior-shaped heuristic without discovering
+> the governing law. Process-complete experiments should distinguish no-prior discovery,
+> correct-prior confirmation and wrong-prior rejection, then test whether the agent can summarize
+> the recovered law and transfer it to held-out conditions.
 
 ### Claim hierarchy
 
-1. **Primary claim — optimization is not law learning.** Endpoint success and governing-law
-   detection/belief update are separate estimands; a high endpoint score alone cannot establish
-   scientific adaptation.
-2. **Secondary claim — evidence-conditioned adaptation.** When a law shift is detectable, the
-   agent should attribute its family, revise its belief/action state and recover control on
-   subsequent experiments. The chain is evaluated as detection → attribution → belief/action
-   change → recovery, not collapsed into one intelligence score.
-3. **Transfer claim — held-out generalization.** Adaptation must survive mechanism-held-out and
-   world-held-out conditions, with a private sealed confirmation after the public matrix.
-4. **Profile claim — method dependence.** Backend, scaffold and their interaction are reported
-   separately through a matched matrix; no complete-system contrast is presented as a pure model
-   effect.
-5. **Exploratory profile — resources and safety.** Calls, tokens, time, measurements, invalid
-   actions and risk debits characterize the cost of adaptation, but do not define the primary
-   scientific result.
+1. **Primary claim — endpoint success is not law discovery.** Under a fixed hidden law, endpoint
+   optimization, predictive law recovery and calibrated uncertainty are separate estimands.
+2. **Prior-condition claim — prior quality changes discovery strategy.** No prior, correct prior
+   and wrong prior should produce distinct evidence acquisition, exploration and calibration
+   profiles under the same public contract.
+3. **Bias-resistance claim — wrong priors can be rejected.** A scientifically adaptive agent must
+   reduce confidence in an incorrect prior when observations contradict it, rather than preserve
+   the prior through selective measurement or post-hoc explanation.
+4. **Summary-and-transfer claim — recovered laws are reusable objects.** A law summary must make
+   counterfactual predictions on held-out conditions and transfer across mechanism-held-out or
+   world-held-out instances; verbal self-report alone is insufficient.
+5. **Profile claim — method and resource dependence.** Backend, scaffold, evidence budget, calls,
+   tokens, time, invalid actions and safety behavior are reported as separate profiles, not as a
+   single intelligence score.
 
 ### Evidence architecture
 
 The manuscript should maintain four visibly separate evidence layers:
 
-- **Environment qualification:** current Gate A proves that the intervention is identifiable,
-  internally coherent and observable under the declared public contract. It is not a participant
-  performance result.
-- **Matched participant outcomes:** the frozen backend × scaffold matrix produces trajectories with
-  identical public contracts, budgets, context and failure semantics.
-- **Process-level adaptation:** each trajectory records change detection, mechanism attribution,
-  belief/calibration movement, evidence-conditioned action change, recovery and endpoint outcome.
-- **Transfer and confirmation:** mechanism-held-out transfer is analyzed after public execution;
-  private sealed worlds are run once with the same preregistered estimands.
+- **Environment qualification:** current Gate A proves that fixed hidden laws, public observations
+  and instrument mappings are internally coherent. It is not evidence that an agent discovered a
+  law.
+- **Matched prior conditions:** the same fixed world cohort is entered with no prior, a correct
+  prior or an intentionally wrong/biased prior; public contract, budget and safety surface stay
+  matched.
+- **Process-level discovery:** each trajectory records experiment selection, evidence acquisition,
+  predictive revision, uncertainty/calibration, prior rejection, law summary and endpoint outcome.
+- **Summary and confirmation:** the law summary is evaluated on held-out conditions after public
+  execution; private sealed worlds test transfer once with the same preregistered estimands.
 
 ### Manuscript chapter skeleton
 
-1. **Introduction — the dissociation problem.** Explain why endpoint optimization, change
-   detection and law learning are often conflated, and state the primary claim and boundaries.
-2. **Conceptual framework.** Define public prior, hidden law, intervention families, observation,
-   belief state, action change, recovery and held-out transfer; give the causal/evidence chain.
-3. **World cohort and controlled interventions.** Describe no-change controls, parameter shifts,
-   relation changes and sign/order reversals across at least two mechanism families, with strict
-   development/formal/private splits.
-4. **Participant methods and estimands.** Freeze backend × scaffold, context/tools, retries,
-   budgets, provider accounting, analysis units and censoring rules; separate primary and
-   exploratory estimands.
-5. **Results I — detection and attribution.** Report whether agents notice a law shift and identify
-   its family before interpreting endpoint changes; include calibration and delay.
-6. **Results II — belief and action revision.** Test identical-prefix responses, belief/action
-   changes after evidence and whether changes are directionally consistent with the hidden law.
-7. **Results III — recovery and held-out transfer.** Quantify post-change regret, recovery time,
-   terminal recovery and mechanism/world-held-out transfer; use the private sealed result as a
-   confirmation layer rather than a second exploratory benchmark.
-8. **Results IV — resource and safety profile.** Report measurements, calls, tokens, wall time,
-   invalid actions, risk debits and completion as bounded operational consequences.
-9. **Discussion.** State exactly what supports law-sensitive adaptation, what remains agent- or
-   world-specific, and why endpoint-only success is insufficient. Keep physical/high-fidelity
-   bridging optional and separate.
-10. **Methods, data and appendix.** Provide the frozen matrix, trajectory schema, statistical
+1. **Introduction — the prior problem.** Explain why a correct endpoint can arise from a wrong
+   scientific model, and state the distinction between discovery, confirmation and bias rejection.
+2. **Conceptual framework.** Define prior quality, fixed hidden law, evidence, belief/calibration,
+   experiment choice, law summary, counterfactual prediction and transfer.
+3. **Fixed-law world cohort.** Describe matched no-prior, correct-prior and wrong-prior conditions
+   across at least two mechanism families, with development/formal/private splits.
+4. **Participant methods and estimands.** Freeze backend × scaffold, context/tools, evidence and
+   resource budgets, provider accounting, analysis units and censoring rules.
+5. **Results I — discovery under prior conditions.** Compare experiment selection, information gain,
+   learning curves and endpoint outcomes for no, correct and wrong priors.
+6. **Results II — rejecting biased priors.** Test contradictory evidence, posterior/calibration
+   movement, counterfactual prediction and whether the agent stops defending the wrong prior.
+7. **Results III — law summaries and transfer.** Evaluate compressed law summaries on held-out
+   conditions and mechanism/world-held-out instances, with private sealed confirmation.
+8. **Results IV — resource and safety profile.** Report measurement cost, calls, tokens, wall time,
+   invalid actions, risk debits and stopping behavior as bounded operational consequences.
+9. **Discussion.** State when evidence supports law discovery, when it only supports local policy
+   repair, and when prior bias remains unresolved.
+10. **Methods, data and appendix.** Provide the frozen prior matrix, trajectory schema, statistical
     models, robustness analyses, failure/censoring audit and reproducibility package.
 
 ### Main display plan
 
-- **Figure 1 — What counts as law learning?** A causal timeline showing intervention, evidence,
-  detection, attribution, belief/action update, recovery and endpoint; explicitly contrast an
-  endpoint-only success path with an evidence-conditioned adaptation path.
-- **Figure 2 — Frozen world cohort.** Intervention taxonomy, matched no-change controls,
-  mechanism families, development/formal/private splits and the backend × scaffold matrix.
-- **Figure 3 — Process readouts.** Detection/calibration, attribution confusion, identical-prefix
-  response and evidence-conditioned action change, with world-cluster uncertainty.
-- **Figure 4 — Adaptation and transfer.** Post-change regret/recovery trajectories and
-  mechanism-held-out/world-held-out transfer, aligned to the same primary estimands.
-- **Figure 5 (optional or supplement) — Operational profile.** Resource and safety consequences;
-  include only if the denominator and interpretation are strong enough to stand independently.
+- **Figure 1 — From prior to law.** A causal diagram contrasting no-prior discovery, correct-prior
+  confirmation and wrong-prior rejection under one fixed public contract and hidden law.
+- **Figure 2 — Fixed-law cohort and prior matrix.** Mechanism families, matched world identities,
+  prior conditions, development/formal/private splits and the backend × scaffold matrix.
+- **Figure 3 — Experimental discovery process.** Chosen measurements, information gain, predictive
+  law recovery and calibration trajectories, with endpoint success shown as a separate channel.
+- **Figure 4 — Bias rejection and law transfer.** Wrong-prior confidence collapse, counterfactual
+  prediction improvement, law-summary quality and mechanism/world-held-out transfer.
+- **Figure 5 (optional or supplement) — Operational profile.** Resource, safety and stopping
+  consequences; include only if the denominator and interpretation are independently strong.
 
 Core tables should map claims to estimands, list the frozen cell matrix and report failure,
 right-censoring and resource denominators. Raw provider payloads and private identities remain
@@ -108,24 +118,128 @@ outside the reader-facing package.
   boundary are answered, even if optional bridging is deferred.
 
 The paper must not begin formal data collection until P0--P2 are complete. Historical Gate A
-numbers remain pilot/environment context until W2-02 rebinds them to the current source.
+numbers remain pilot/environment context until W2-02 rebinds them to the current source. A law
+is fixed within each formal world; prior condition, not mid-run law drift, is the primary causal
+factor.
+
+### Reviewer-driven convergence: candidate confirmatory design
+
+This design is a candidate for preregistration, not yet a frozen matrix.
+
+**Primary causal manipulation.** Hold the executable world, recipe space, public task contract,
+noise identity, evidence schedule, measurement surface and reward fixed. Change only the mapping
+between anonymous material identities and an agent-facing nominal-property dossier:
+
+- `opaque`: anonymous identifiers with no task-specific dossier;
+- `aligned_nominal`: nominal property bundles are assigned to the material identities for which
+  they are directionally useful in the fixed world;
+- `misindexed_nominal`: the exact same property-bundle multiset is permuted across anonymous
+  identities while fields, values, token budget and wording are preserved.
+
+The dossier is explicitly described as incomplete nominal information, not ground truth;
+experimental evidence is authoritative. Prior strength, information volume and confidence wording
+must be matched between aligned and misindexed conditions. Because pretrained agents always have
+implicit priors, `opaque` means no additional task-specific explicit prior, not literally no prior.
+Recovering the anonymous-ID-to-dossier mapping alone is not sufficient for a law-discovery claim:
+formal success additionally requires an executable law summary, held-out predictions across
+unobserved conditions and transfer beyond the exact diagnostic points.
+
+**Candidate trajectory design.** Each formal cell should combine a shared diagnostic prefix with
+an autonomous suffix:
+
+1. a pre-evidence prediction and confidence snapshot;
+2. a short neutral-evidence prefix with low power to distinguish the mappings;
+3. a matched discriminating-evidence prefix that contrasts selected materials across controlled
+   backgrounds;
+4. a post-evidence prediction, confidence and structured law-summary snapshot;
+5. an autonomous experiment suffix under the remaining shared budget;
+6. a final recommendation followed by independent blind validation.
+
+The exact horizon and neutral/discriminating/autonomous allocation remain provisional until power,
+cost and provider qualification are complete. A candidate calibration horizon is 20 scientific
+experiments, but it must not be frozen merely because it appeared in a planning review.
+
+**Scientific-decision interface.** The confirmatory prior experiment should compare high-level
+scientific decisions through one deterministic procedure executor. Operation-level autonomy is an
+external-validity transfer test, not the primary assay, so lifecycle syntax failures cannot obscure
+prior use and revision.
+
+**Candidate chemical scope.** The initial cohort uses five heterogeneous reference tasks:
+electrochemical conversion, reaction-to-crystallization, reaction-to-distillation,
+partition discovery and safety-constrained reaction. Each must expose an identifiable matched
+opaque/aligned/misindexed prior contract. Formal inclusion depends on current Gate A
+requalification and prior-identifiability checks; tasks are not selected by participant
+performance, and any invalid task must be replaced from the remaining reference registry rather
+than shrinking the paper to two tasks. Continuous-flow optimization remains a later process-law
+candidate because its current categorical material IDs do not carry a distinct causal kinetic
+mapping suitable for this prior manipulation.
+
+**Calibration controls, not a leaderboard.** A bounded semantics-free block may include random or
+space-filling search, GP-BO with categorical IDs and GP-BO with the public property vector. The
+property-aware control is required if semantic dossiers are supplied to an LLM. These controls
+calibrate black-box search and informative-feature value; they do not define the paper's main
+competition.
+
+**Participant scope.** The only current participant backend is WellAU `gpt-5.6-sol` at medium
+reasoning. Direct and compact stateful-scientific scaffolds may form a matched secondary axis; the
+stateful memory is a small typed belief/evidence/next-intent object, not unconstrained free text.
+No second model or provider enters the current completion scope.
+
+### Claim ownership map
+
+- **Work I owns:** composable-world construction, task/instrument contract validity, transaction
+  semantics, public/private observation boundaries, resource ledgers, controlled world forks and
+  exact environment/action-trace replay.
+- **Work II owns:** prior manipulation, experiment selection, evidence interpretation, selective
+  rejection of wrong priors, typed law summaries, knowledge-to-action translation and held-out
+  transfer.
+- **Shared boundary:** Work II may reuse only currently bound Work I qualification evidence; agent
+  outcomes never qualify the environment, and Work I fork results never count as participant law
+  discovery.
+
+### Candidate hypothesis hierarchy
+
+- **H1 — Prior utility (secondary):** aligned nominal information improves early predictive
+  accuracy, evidence efficiency or blind-validated outcome relative to opaque identifiers.
+- **H2 — Prior vulnerability (secondary):** misindexed nominal information harms prediction,
+  experiment selection or blind-validated outcome relative to opaque identifiers.
+- **H3 — Selective evidence-driven correction (primary):** discriminating evidence improves the
+  misindexed condition and closes its predictive gap to the aligned condition without producing a
+  comparable loss in the aligned condition.
+- **H4 — Knowledge-to-action translation (key secondary):** epistemic correction predicts the
+  first autonomous action after the diagnostic prefix, subsequent evidence-aligned actions and
+  blind-validated performance.
+
+For a held-out prediction quality `Q_k` measured at snapshot `k`, define the aligned--misindexed
+gap `G_k = Q_aligned,k - Q_misindexed,k`. A candidate primary contrast is
+`C_prior = G_pre - G_post`, with guardrails requiring `Q_misindexed,post > Q_misindexed,pre`
+and no material aligned-condition degradation beyond a preregistered tolerance. Exact scoring,
+snapshot locations and tolerance remain unfrozen.
+
+Prior benefit `B`, prior harm `H` and correction/recovery `R` may be reported as a descriptive
+phenotype vector, but must not be collapsed into one ranking score. Epistemic, behavioral and
+outcome channels remain separate so that the analysis can distinguish:
+
+- understands and acts;
+- understands but cannot translate knowledge into action;
+- acts successfully without an accurate law model;
+- neither understands nor acts effectively.
 
 ## 1. 旗舰科学问题
 
-候选中心结论：
+候选中心问题：
 
-> **AI agents can optimize experiments without learning their governing laws.**
+> **在固定的隐藏规律下，agent 能否从实验中发现规律、摒弃错误先验，并将总结出的规律迁移到未见条件？**
 
 正式研究必须同时测量并区分：
 
-- endpoint optimization；
-- change detection；
-- mechanism/family attribution；
-- belief update and calibration；
-- evidence-conditioned action change；
-- adaptation/recovery；
+- prior condition（无先验、正确先验、错误/带偏差先验）；
+- experiment selection 与 information gain；
+- law discovery 与 predictive calibration；
+- wrong-prior rejection 与 bias resistance；
+- law summary / representation quality；
 - held-out transfer；
-- resource efficiency and safety behavior。
+- endpoint outcome、resource efficiency 和 safety behavior。
 
 当前已有的是历史环境 Gate A 证书和大量执行代码；当前证据绑定为 `historical_gate_a_pass_current_binding_stale`，participant-agent 正式 Gates/Outcomes 尚未执行。不得把历史 Gate A 写成当前 agent 规律学习结果。
 
@@ -134,20 +248,18 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
 ## 2. 认领与状态规则
 
 - 每项任务只能勾选一个认领状态和一个执行状态。
-- 认领后填写负责人；多人协作时指定一名最终负责人。
+- 认领后填写负责人并进入 `DOING`；验收标准满足后直接进入 `DONE`，不设 review 阶段。
 - `阻塞` 必须记录阻塞证据、解除条件和下一次检查日期。
 - 开始正式 primary matrix 前，必须完成 Registered Report/常规投稿路线决策。
 - 正式协议冻结后，不得因模型表现、成本或结果方向更换 world、seed、agent、阈值或主终点。
 - provider repeats 是嵌套技术重复，不得冒充独立 world clusters。
+- 默认 seed completion contract 为每个适用独立 cell 5 个 world seeds；超过 5 必须取得用户明确审核授权。
+- provider/model 冻结为 WellAU `gpt-5.6-sol` medium；其他 backend、reasoning effort 或 provider 不在当前范围。
 
 ### 工作流负责人
 
-- [ ] 总负责人已认领；负责人：`TBD`
-- [ ] 世界与规律设计负责人已认领；负责人：`TBD`
-- [ ] Agent/scaffold 负责人已认领；负责人：`TBD`
-- [ ] 统计与预注册负责人已认领；负责人：`TBD`
-- [ ] 正式执行负责人已认领；负责人：`TBD`
-- [ ] 论文与发布负责人已认领；负责人：`TBD`
+- [x] 当前单一负责人：`Codex /root`
+- [x] 世界/先验设计、Agent/scaffold、统计/预注册、执行与论文发布均由同一负责人协调；无独立 reviewer 角色。
 
 ## 3. 当前基线状态
 
@@ -155,7 +267,8 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
 - [x] 历史 Gate A 环境实验已完成：A2 4,896 trials、A3 2,016 trials；
 - [x] 历史 A2 top-1 accuracy 为 0.9826；
 - [x] 历史 A3 detection sensitivity 为 0.9935、AUROC 为 0.9990、end-to-end success 为 0.9657；
-- [x] experiment-level adaptation、belief metrics、change detection、attribution 和 recovery 的主要代码骨架已存在；
+- [x] 历史 experiment-level adaptation、belief metrics、change detection、attribution 和 recovery 的代码骨架已存在；
+  它们需要重绑定为固定规律下的 prior/discovery/bias-rejection/law-summary protocol，不能直接当作当前结果；
 - [ ] 当前 source/protocol binding 尚未重新资格验证；
 - [ ] participant methods 尚未冻结；
 - [ ] participant formal Outcomes 尚未执行；
@@ -180,12 +293,12 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
 
 | ID | 优先级 | 任务 | 当前状态 | 关键依赖 |
 | --- | --- | --- | --- | --- |
-| W2-01 | P0 | 冻结 Work II 与 Work I 的边界 | 未开始 | Work I scope |
-| W2-02 | P0 | 重新建立当前 Gate A 证据绑定 | 未开始 | 干净提交 |
-| W2-03 | P0 | 冻结中心假设与 claim hierarchy | 未开始 | W2-01、W2-02 |
-| W2-04 | P0 | 冻结规律干预分类与 world cohort | 未开始 | W2-03 |
-| W2-05 | P0 | 冻结 estimands、指标和判定规则 | 未开始 | W2-03、W2-04 |
-| W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | 未开始 | W2-03 |
+| W2-01 | P0 | 冻结 Work II 与 Work I 的边界 | DONE | Work I scope |
+| W2-02 | P0 | 重新建立当前 Gate A 证据绑定 | DOING | 干净提交 |
+| W2-03 | P0 | 冻结中心假设与 claim hierarchy | DOING | W2-01、W2-02 |
+| W2-04 | P0 | 冻结先验条件与固定规律 world cohort | DOING | W2-03 |
+| W2-05 | P0 | 冻结 estimands、指标和判定规则 | DOING | W2-03、W2-04 |
+| W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DOING | W2-03 |
 | W2-07 | P0 | 功效、资源和成本审计 | 未开始 | W2-04、W2-05、W2-06 |
 | W2-08 | P0 | Registered Report/常规投稿路线决策 | 未开始 | W2-03–W2-07 |
 | W2-09 | P0 | 完成 manifest-driven formal runner | 未开始 | W2-04–W2-07 |
@@ -202,30 +315,30 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
 ### W2-01 — 冻结 Work II 与 Work I 的边界
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
+  - [ ] 未开始
   - [ ] 进行中
   - [ ] 阻塞
-  - [ ] 完成
+  - [x] 完成
 - 优先级：P0
 - 验收标准：
-  - [ ] Work I 只负责 apparatus、measurement validity 和 autonomous policy observability；
-  - [ ] Work II 独占 law conflict、belief revision、mechanism attribution、recovery 和 transfer；
-  - [ ] Work I 的 world-fork certificate 不使用 participant adaptation 结果；
-  - [ ] Work II 可以引用 Work I 装置，但不重复 G0/G2 作为中心发现；
-  - [ ] 形成一页 claim ownership map。
-- 备注：`TBD`
+  - [x] Work I 只负责 apparatus、measurement validity 和 autonomous policy observability；
+  - [x] Work II 独占 prior sensitivity、law discovery、wrong-prior rejection、law summary 和 transfer；
+  - [x] Work I 的 world-fork certificate 不使用 participant adaptation 结果；
+  - [x] Work II 可以引用 Work I 装置，但不重复 G0/G2 作为中心发现；
+  - [x] 形成一页 claim ownership map。
+- 备注：`Claim: Codex /root — W2-01 — DONE`；claim ownership map 已写入本文件。
 
 ### W2-02 — 重新建立当前 Gate A 证据绑定
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
@@ -237,104 +350,115 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
   - [ ] `gate_a_evidence_current=true`；
   - [ ] 历史证书仍保留且不会被覆盖；
   - [ ] 环境资格验证与 participant performance 继续严格分离。
-- 备注：`TBD`
+- 备注：`Claim: Codex /root — W2-02 — DOING`
 
 ### W2-03 — 冻结中心假设与 claim hierarchy
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
-- 候选主假设：优化表现与规律识别/适应可以系统解耦。
+- 候选主假设：endpoint optimization、规律发现和错误先验排除可以系统解耦；只有经过证据校准的规律总结才能支持 held-out transfer。
 - 验收标准：
   - [ ] 唯一 primary scientific question 已写成可证伪形式；
   - [ ] 唯一主终点或严格层级化主终点确定；
-  - [ ] detection、attribution、belief update、recovery、transfer 的主次层级冻结；
-  - [ ] 明确何种结果支持“optimize without learning laws”；
+  - [ ] H3 selective evidence-driven correction 作为候选唯一 primary hypothesis 被接受、修订或明确否决；
+  - [ ] H1 prior utility、H2 prior vulnerability 和 H4 knowledge-to-action translation 的 confirmatory/exploratory 层级冻结；
+  - [ ] prior condition、discovery、bias rejection、law summary、transfer 的主次层级冻结；
+  - [ ] 明确何种结果支持“从实验发现并迁移规律”，何种结果只支持 endpoint heuristic；
   - [ ] 明确何种结果只支持 agent-specific 或 world-specific 结论；
   - [ ] 不把 LLM vs BO 排名设为主比赛。
-- 备注：`TBD`
+- 备注：`Claim: Codex /root — W2-03 — DOING`
 
-### W2-04 — 冻结规律干预分类与 world cohort
+### W2-04 — 冻结先验条件与固定规律 world cohort
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
 - 最低设计要求：
-  - no-change / prior-aligned；
-  - parameter-shifted；
-  - relation-changed；
-  - sign/order-reversed；
+  - `opaque`：无额外 task-specific dossier；
+  - `aligned_nominal`：方向上有用但明确不等同于真值的 nominal dossier；
+  - `misindexed_nominal`：同一 property-bundle multiset 在匿名材料 ID 间置换；
+  - 固定世界规律，不在单次 run 中改变 hidden law；
   - 至少两个 mechanism families；
   - 随机选择且与开发 worlds 隔离的 formal world cohort。
 - 验收标准：
-  - [ ] 每类 intervention 具有明确状态转移、可观测后果和自洽性检查；
+  - [ ] 每个固定规律具有明确状态转移、可观测后果和自洽性检查；
   - [ ] public prior、真实 hidden law 和 instrument mapping 分别控制；
-  - [ ] no-change controls 与 changed worlds 匹配；
-  - [ ] world identity、intervention identity 和 split 均有不可变哈希；
+  - [ ] 三种 prior condition 在 world、预算、契约和安全边界上匹配；
+  - [ ] aligned/misindexed 的字段、数值集合、措辞、token 预算和 dossier 置信强度匹配；
+  - [ ] neutral evidence 与 discriminating evidence 的选择规则在 participant outcomes 前冻结；
+  - [ ] electrochemical 与 crystallization 是否作为两类正式机制由 Gate A 和 prior-identifiability 决定，而非按 agent 结果挑选；
+  - [ ] prior identity、world identity 和 split 均有不可变哈希；
   - [ ] qualification worlds、public formal worlds、private worlds 不重叠；
   - [ ] 不以开发结果选择正式 worlds。
-- 备注：`TBD`
+- 备注：`Claim: Codex /root — W2-04 — DOING`
 
 ### W2-05 — 冻结 estimands、指标和判定规则
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
 - 必须分层报告：
-  - O1 detection：AUROC、Brier、sensitivity、FPR、delay；
-  - O2 feedback use：identical-prefix response、belief/action change；
-  - O3 adaptation：post-change regret AUC、recovery time、terminal recovery；
-  - O4 autonomy：protocol completion、invalid actions、assay/discard；
-  - O5 resource efficiency：experiments、measurements、risk、calls、tokens、cost、time；
-  - held-out transfer：机制内/机制外预测与控制。
+  - O1 discovery：learning curve、law-recovery error、information gain、counterfactual prediction；
+  - O2 prior calibration：prior-to-posterior movement、Brier、credible coverage 和 uncertainty；
+  - O3 bias rejection：错误先验置信度下降、选择性测量、错误归因和 prior persistence；
+  - O4 law summary：结构/参数摘要的可执行性、压缩稳定性和反事实预测一致性；
+  - O5 transfer：机制内、机制外和 world-held-out 的预测与控制；
+  - O6 autonomy/resource/safety：completion、invalid actions、measurements、risk、calls、tokens、cost、time。
+  - O7 blind outcome：最终推荐的独立 blind validation、validated learning-curve AUC、incumbent 与 recommendation gap。
 - 验收标准：
-  - [ ] endpoint optimization 与 law-learning 指标代数独立或明确建模依赖；
+  - [ ] endpoint optimization 与 law discovery、prior rejection 和 transfer 指标代数独立或明确建模依赖；
   - [ ] continuous estimands 优先于阈值分类；
-  - [ ] changed 与 never-change 分母分离；
+  - [ ] no-prior、correct-prior 和 wrong-prior 分母分离；
+  - [ ] primary correction contrast 同时要求 misindexed 改善和 aligned 不发生超容差退化，禁止仅凭 gap closure 判定成功；
+  - [ ] 仅恢复材料 ID 与 dossier 的对应关系不得计为规律发现；必须通过连续条件反事实预测、typed law summary 和 transfer 验证；
+  - [ ] prior benefit/harm/recovery 只作为分立 phenotype vector 报告，不合成排行榜分数；
+  - [ ] epistemic、behavioral 和 outcome 三层的联合与解耦规则冻结；
   - [ ] right censoring、missingness、provider failure 和 multiplicity 规则冻结；
   - [ ] analysis unit 为独立 world/cell cluster，provider repeats 嵌套；
-  - [ ] 明确“belief 声明”与“行为证据”的联合成功规则。
-- 备注：`TBD`
+  - [ ] 明确“law summary 声明”、反事实预测与后续行为证据的联合成功规则。
+- 备注：`Claim: Codex /root — W2-05 — DOING`
 
 ### W2-06 — 冻结 participant backend × scaffold 矩阵
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
 - 目标：至少引入一条可识别的 matched axis，避免再次把 model、scaffold 和 transport 完全捆绑。
-- 推荐最低矩阵：2 backends × 2 scaffolds。
+- 推荐最低矩阵：WellAU `gpt-5.6-sol` medium 完成 Direct × compact-Stateful；当前不加入第二 backend。
 - 验收标准：
-  - [ ] 两个 backend 使用同一 provider-independent action/result schema；
+  - [ ] Direct 与 compact-Stateful 使用同一 provider-independent action/result schema；
   - [ ] direct-reactive 与 stateful-scientific scaffold 的工具权限和资源预算匹配；
+  - [ ] stateful memory 限定为 typed belief、diagnostic focus、evidence references 和 next intent，不使用巨型自由文本状态；
   - [ ] context、memory、retry、temperature/thinking、timeout 和 failure semantics 冻结；
   - [ ] model effect、scaffold effect、interaction 和 complete-system profile 分开报告；
-  - [ ] classical/reference policies 只承担校准或机制对照角色；
+  - [ ] classical/reference policies 只承担校准或机制对照角色；若 LLM 获得 property dossier，则至少包含 ID-only 与 property-aware 两类公平对照；
   - [ ] 不根据 pilot 胜负删除正式方法臂。
-- 备注：`TBD`
+- 备注：`Claim: Codex /root — W2-06 — DOING`
 
 ### W2-07 — 功效、资源和成本审计
 
@@ -349,8 +473,10 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
 - 优先级：P0
 - 验收标准：
   - [ ] 以独立 world clusters 进行功效分析；
+  - [ ] formal power 使用 world-level paired contrasts；rounds、prediction snapshots 和多个 endpoints 不作为独立样本；
   - [ ] 对 world、mechanism、agent、session 和交互方差作预期分解；
   - [ ] 冻结 worlds、replicates、provider repeats 和最大 provider calls；
+  - [ ] 总 horizon 与 neutral/discriminating/autonomous 分配在 pilot 后、formal outcomes 前冻结；
   - [ ] 冻结 token、货币、wall time、并发和失败重试预算；
   - [ ] 明确早停仅针对基础设施/安全，不针对结果方向；
   - [ ] 输出完整资源上界和预计运行 ETA。
@@ -392,7 +518,10 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
   - [ ] immutable matrix/schedule manifests；
   - [ ] resume 与 right-censoring state machine；
   - [ ] provider/scaffold receipts；
-  - [ ] belief/action/feedback trajectory schema；
+  - [ ] prior/evidence/belief/action/law-summary trajectory schema；
+  - [ ] pre-evidence、post-neutral、post-discriminating 和 final prediction/confidence snapshots；
+  - [ ] neutral-prefix、discriminating-prefix、autonomous-suffix 与 blind-validation 状态机；
+  - [ ] high-level scientific decision 到 deterministic procedure executor 的统一接口；
   - [ ] exact replay、resource replay 和 hidden-boundary audits；
   - [ ] public/private split enforcement；
   - [ ] formal report generator。
@@ -419,6 +548,7 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
 - 验收标准：
   - [ ] 每个正式方法完成独立 qualification cells；
   - [ ] schema-valid action rate、completion、receipts、cost accounting 和 replay 达标；
+  - [ ] prediction snapshots、typed law summary、prefix/suffix transitions 和 blind validation 全部闭环；
   - [ ] qualification worlds 不进入正式矩阵；
   - [ ] 失败修复只允许修改实现，不允许修改正式科学 estimands；
   - [ ] 形成方法冻结 hash 和资格验证报告。
@@ -499,8 +629,12 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
   - [ ] 主分析严格按 preregistration 执行；
   - [ ] optimization 与 law learning 的解耦由联合结果而非单一分数判断；
   - [ ] 报告 world/mechanism/agent/session 方差与交互；
-  - [ ] 检查先验坚持、证据修正、错误归因和表面恢复等行为类型；
-  - [ ] 检查 process metrics 是否预测 held-out transfer；
+  - [ ] 检查先验坚持、证据修正、错误归因、规律总结和表面 endpoint 恢复等行为类型；
+  - [ ] 检查 process metrics 是否预测 law-summary quality 与 held-out transfer；
+  - [ ] 区分无先验学习、正确先验确认和错误先验排除，禁止把正确先验下的高分解释为发现能力；
+  - [ ] 检查错误先验是否通过选择性测量、解释重写或策略补丁被隐性保留；
+  - [ ] 分析 understands+acts、understands-but-cannot-act、acts-without-understanding 和 neither 四类 phenotype；
+  - [ ] black-box/random/BO 结果只校准 semantics-free search，不得改写成主 leaderboard；
   - [ ] 分析 scaffold/model matched contrasts，避免 complete-system 差异冒充 model effect；
   - [ ] threshold、missingness、censoring 和 multiplicity 敏感性完整；
   - [ ] 所有探索性分析明确标记且不覆盖主结果。
@@ -518,9 +652,9 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
   - [ ] 完成
 - 优先级：P0
 - 验收标准：
-  - [ ] 标题、摘要和第一张图直接呈现规律冲突下的科学适应问题；
+  - [ ] 标题、摘要和第一张图直接呈现先验条件下的规律发现与偏差排除问题；
   - [ ] 环境 Gate A、agent Outcomes 和 private confirmation 严格分层；
-  - [ ] 主图围绕 detection → attribution → adaptation → transfer 的能力链；
+  - [ ] 主图围绕 prior → experiment → evidence → law summary → transfer 的能力链；
   - [ ] 不将负结果改写为平台失败，也不扩大未被证据支持的主张；
   - [ ] 全部代码、协议、轨迹、派生数据、图表和统计表可独立重建；
   - [ ] 证据图、clean wheel、independent checkout 和 final claim audit 通过；
@@ -538,9 +672,11 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P1
-- 目标：检验虚拟世界中的 process/adaptation profile 是否预测受控现实或高保真系统中的行为。
+- 目标：检验虚拟世界中的 process/discovery profile 是否预测受控现实或高保真系统中的行为。
 - 验收标准：
   - [ ] 选择低风险、低成本、可重复的窄域体系；
+  - [ ] 优先评估真实历史实验数据的 sequential oracle，以相同 opaque/aligned/misindexed 条件复现 prior phenotype；
+  - [ ] wet-lab 仅在软件 phenotype、分析代码和安全边界冻结后作为可选窄域确认；
   - [ ] 虚拟与物理接口共享 typed lifecycle semantics；
   - [ ] 先 shadow mode，再进入经批准的有限闭环；
   - [ ] 安全、审批、废物和设备边界明确；
@@ -552,11 +688,11 @@ numbers remain pilot/environment context until W2-02 rebinds them to the current
 Work II 只有在以下条件全部满足时才标记完成：
 
 - [ ] 当前 Gate A 证据绑定有效；
-- [ ] 至少两个机制家族和多类规律冲突进入随机 formal world cohort；
+- [ ] 至少两个机制家族和无/正确/错误先验进入随机 formal world cohort，且每个 formal world 内规律固定；
 - [ ] participant backend × scaffold 至少有一条可识别 matched axis；
-- [ ] optimization、belief、attribution、adaptation 和 transfer 均有预注册指标；
+- [ ] optimization、discovery、prior rejection、law summary 和 transfer 均有预注册指标；
 - [ ] public formal matrix 与 private sealed confirmation 均达到终态；
-- [ ] 能明确判断 agent 是依据证据修正规律模型，还是只取得 endpoint；
+- [ ] 能明确判断 agent 是依据证据发现并总结规律，还是只取得 endpoint 或维持先验偏差；
 - [ ] 所有结论与 world/agent/sample scope 一致；
 - [ ] 第二篇不依赖第一篇的阈值敏感 supporting result；
 - [ ] 论文、代码、轨迹、数据和发布包可公开重建。

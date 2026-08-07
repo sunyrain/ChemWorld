@@ -4,7 +4,7 @@ from chemworld.agents.scientific_adaptation import ResourceLedger
 from chemworld.providers.wellau import WellAUClient
 
 
-def test_wellau_request_is_exact_high_reasoning_json_contract() -> None:
+def test_wellau_request_is_exact_high_reasoning_responses_contract() -> None:
     client = WellAUClient(api_key="test-key", model="gpt-5.6-sol")
 
     body = client._request_body(
@@ -16,16 +16,13 @@ def test_wellau_request_is_exact_high_reasoning_json_contract() -> None:
 
     assert body == {
         "model": "gpt-5.6-sol",
-        "messages": [
-            {"role": "system", "content": "system"},
-            {"role": "user", "content": "user"},
-        ],
-        "response_format": {"type": "json_object"},
-        "reasoning_effort": "high",
-        "stream": False,
-        "max_tokens": 8000,
+        "instructions": "system",
+        "input": "user",
+        "reasoning": {"effort": "high"},
+        "text": {"format": {"type": "json_object"}},
+        "max_output_tokens": 8000,
     }
-    assert "thinking" not in body
+    assert client.wire_api == "responses"
 
 
 def test_wellau_unknown_pricing_is_not_reported_as_zero_cost_accounting() -> None:
@@ -54,7 +51,7 @@ def test_wellau_request_supports_medium_reasoning_without_fallback() -> None:
     )
 
     assert body["model"] == "gpt-5.6-sol"
-    assert body["reasoning_effort"] == "medium"
+    assert body["reasoning"] == {"effort": "medium"}
 
 
 def test_wellau_request_supports_strict_json_schema() -> None:
@@ -83,11 +80,49 @@ def test_wellau_request_supports_strict_json_schema() -> None:
         output_schema=schema,
     )
 
-    assert body["response_format"] == {
+    assert body["text"]["format"] == {
         "type": "json_schema",
-        "json_schema": {
-            "name": "chemworld_decision",
-            "strict": True,
-            "schema": schema,
-        },
+        "name": "chemworld_decision",
+        "strict": True,
+        "schema": schema,
+    }
+
+
+def test_wellau_responses_envelope_is_adapted_with_cache_usage() -> None:
+    from chemworld.providers.wellau import _responses_to_chat_envelope
+
+    raw = """{
+      "id": "resp-test",
+      "model": "gpt-5.6-sol",
+      "status": "completed",
+      "output": [{
+        "type": "message",
+        "content": [{
+          "type": "output_text",
+          "text": "{\\\"action\\\":{\\\"operation\\\":\\\"terminate\\\"}}"
+        }]
+      }],
+      "usage": {
+        "input_tokens": 120,
+        "output_tokens": 20,
+        "total_tokens": 140,
+        "input_tokens_details": {"cached_tokens": 80}
+      }
+    }"""
+
+    import json
+
+    envelope = json.loads(
+        _responses_to_chat_envelope(raw, requested_model="gpt-5.6-sol")
+    )
+
+    assert envelope["choices"][0]["message"]["content"] == (
+        '{"action":{"operation":"terminate"}}'
+    )
+    assert envelope["usage"] == {
+        "prompt_tokens": 120,
+        "completion_tokens": 20,
+        "total_tokens": 140,
+        "prompt_cache_hit_tokens": 80,
+        "prompt_cache_miss_tokens": 40,
     }

@@ -23,6 +23,8 @@ from chemworld.eval.static_optimization_protocol import (
 from chemworld.foundation import equipment_settings
 from chemworld.materials import (
     CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION,
+    PARTITION_STATIC_MATERIAL_INFORMATION_VERSION,
+    REACTION_STATIC_MATERIAL_INFORMATION_VERSION,
     STATIC_MATERIAL_INFORMATION_MISINDEXED,
     STATIC_MATERIAL_INFORMATION_NOMINAL,
     STATIC_MATERIAL_INFORMATION_OPAQUE,
@@ -39,7 +41,10 @@ from chemworld.world.electrochemical_material_family import (
     NOMINAL_PRIOR_MATERIAL_FAMILY,
     electrochemical_material_family,
 )
-from chemworld.world.parameters import load_chemworld_parameters
+from chemworld.world.parameters import (
+    REACTION_NOMINAL_CATALYST_ACTIVITY_PROFILES,
+    load_chemworld_parameters,
+)
 
 
 def _property_rows(dossier: dict[str, object], field: str) -> list[dict[str, float]]:
@@ -187,6 +192,120 @@ def test_crystallization_misindexed_dossier_swaps_only_the_target_rows_blindly()
         nominal,
         "solvent",
     )
+
+
+@pytest.mark.parametrize(
+    "task_id",
+    ["reaction-to-distillation", "reaction-safety-constrained"],
+)
+def test_generic_reaction_prior_is_incomplete_synchronized_and_misindexable(
+    task_id: str,
+) -> None:
+    nominal = static_material_information_dossier(
+        {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL},
+        task_id=task_id,
+    )
+    misindexed = static_material_information_dossier(
+        {
+            "mode": STATIC_MATERIAL_INFORMATION_MISINDEXED,
+            "target_field": "catalyst",
+            "descriptor_permutation": [0, 2, 1, 3],
+        },
+        task_id=task_id,
+    )
+
+    assert nominal is not None and misindexed is not None
+    assert nominal["contract_version"] == REACTION_STATIC_MATERIAL_INFORMATION_VERSION
+    nominal_catalysts = _property_rows(nominal, "catalyst")
+    misindexed_catalysts = _property_rows(misindexed, "catalyst")
+    assert nominal_catalysts[0]["reference_panel_activity_geomean"] == pytest.approx(
+        float(np.prod(REACTION_NOMINAL_CATALYST_ACTIVITY_PROFILES[0]) ** (1.0 / 5.0))
+    )
+    assert misindexed_catalysts == [
+        nominal_catalysts[0],
+        nominal_catalysts[2],
+        nominal_catalysts[1],
+        nominal_catalysts[3],
+    ]
+    assert sorted(map(json.dumps, nominal_catalysts)) == sorted(
+        map(json.dumps, misindexed_catalysts)
+    )
+    assert _property_rows(misindexed, "solvent") == _property_rows(nominal, "solvent")
+    serialized = json.dumps(misindexed, sort_keys=True).lower()
+    for hidden_term in (
+        "misindexed",
+        "permutation",
+        "world_id",
+        "leaderboard_score",
+        "optimal_recipe",
+    ):
+        assert hidden_term not in serialized
+
+
+def test_partition_prior_withholds_pair_table_and_preserves_bundle_multiset() -> None:
+    nominal = static_material_information_dossier(
+        {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL},
+        task_id="partition-discovery",
+    )
+    misindexed = static_material_information_dossier(
+        {
+            "mode": STATIC_MATERIAL_INFORMATION_MISINDEXED,
+            "target_field": "extractant",
+            "descriptor_permutation": [3, 1, 2, 0],
+        },
+        task_id="partition-discovery",
+    )
+
+    assert nominal is not None and misindexed is not None
+    assert nominal["contract_version"] == PARTITION_STATIC_MATERIAL_INFORMATION_VERSION
+    assert set(nominal["choices"]) == {"solvent", "extractant"}
+    assert all(len(nominal["choices"][field]) == 4 for field in nominal["choices"])
+    nominal_extractants = _property_rows(nominal, "extractant")
+    misindexed_extractants = _property_rows(misindexed, "extractant")
+    assert misindexed_extractants == [
+        nominal_extractants[3],
+        nominal_extractants[1],
+        nominal_extractants[2],
+        nominal_extractants[0],
+    ]
+    assert sorted(map(json.dumps, nominal_extractants)) == sorted(
+        map(json.dumps, misindexed_extractants)
+    )
+    serialized = json.dumps(nominal, sort_keys=True).lower()
+    assert "interaction table" in serialized
+    assert "product_distribution_coefficients" not in serialized
+    assert "impurity_distribution_coefficients" not in serialized
+
+
+def test_unit_vector_task_context_exposes_audited_nominal_dossier() -> None:
+    task_info = get_task("reaction-to-distillation").to_dict()
+    agent = StaticOptimizationAgent(
+        _DeterministicStaticMockClient(),
+        role_id="distillation-prior-context-test",
+        response_max_tokens=1000,
+        history_limit=4,
+        prompt_token_estimate_cap=12000,
+        material_information={"mode": STATIC_MATERIAL_INFORMATION_NOMINAL},
+    )
+    agent.reset(task_info, 0)
+
+    interface = agent.public_context([])["experiment_interface"]
+
+    assert interface["parameterization"] == (
+        "unit_vector_with_public_physical_coordinate_schema"
+    )
+    assert interface["material_information"]["contract_version"] == (
+        REACTION_STATIC_MATERIAL_INFORMATION_VERSION
+    )
+    assert agent.manifest()["material_information_sha256"]
+
+
+def test_flow_task_rejects_material_mapping_prior_without_a_causal_id_effect() -> None:
+    with pytest.raises(ValueError, match="audited prior task"):
+        normalize_static_material_information_config(
+            {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL},
+            task_ids=("flow-reaction-optimization",),
+        )
 
 
 @pytest.mark.parametrize(
