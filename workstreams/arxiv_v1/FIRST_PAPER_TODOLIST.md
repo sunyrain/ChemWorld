@@ -128,6 +128,9 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
   lossless PDF 包装，修复手工 page box 引起的偏移、裁切和图注覆盖；17 页 PDF 与 source bundle 同次重建，最终 PDF
   保留两张原始像素图，第 6、8 页高分辨率视觉检查确认边界完整且无文字覆盖；Figure manifest 工具只校验并绑定
   三张直接插入资产，不再运行旧绘图路径覆盖用户给定图件。
+- **DONE / 统一附录结构**：将原 Appendix A--D 合并为一个 `Appendix` 主节，并保留 A--D 四个功能小节；移除
+  表格 caption 中误用的 `Appendix D.` 前缀，使组件 model-card 表显示为正常的 `Table 10.` 标题。规范源、arXiv
+  TeX/PDF、source bundle 与 build manifest 已同次重建并完成附录页视觉检查。
 
 ## 1. 论文只讲什么
 

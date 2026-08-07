@@ -927,7 +927,9 @@ universal chemical fidelity or agent superiority. Rather, it complements physica
 laboratories: software worlds supply exact reset, matched intervention and complete
 simulator-side records, while physical systems supply real-material evidence and calibration.
 
-# Appendix A. Reader-facing capability and use-case map
+# Appendix. Extended capability, qualification and process records
+
+## A. Reader-facing capability and use-case map
 
 A reference task--world unit pairs a registered task identity with a scenario identity as
 defined in Section 3.1. The 15 task identities below expand to 64 such units across their
@@ -1017,7 +1019,7 @@ Reaction + thermal + phase + separation + observation & multistage reaction and 
 \FloatBarrier
 ```
 
-# Appendix B. Coverage reconstruction and qualification census
+## B. Coverage reconstruction and qualification census
 
 The coverage design below fixes the pattern, seed, continuous domain, workflow count and
 generated denominator. Discrete factors include component-specific family or profile
@@ -1105,7 +1107,7 @@ Controlled fork traces & 24 & 24 & 0 \\
 \clearpage
 \twocolumn[
 \begin{@twocolumnfalse}
-\section{Appendix C. Process-coordinate dictionary}\label{appendix-c.-process-coordinate-dictionary}
+\subsection{C. Process-coordinate dictionary}\label{appendix-c.-process-coordinate-dictionary}
 \noindent The 19 coordinates are campaign-level descriptions, not a composite score.
 \(N_p\), \(N_c\), \(N_a\), \(N_d\) and \(N_m\) denote planned, closed, assayed,
 discarded and measured lifecycles, with \(N_c=N_a+N_d\) because the frozen lifecycle
@@ -1164,11 +1166,12 @@ metrics.
 \clearpage
 \twocolumn[
 \begin{@twocolumnfalse}
+\subsection{D. Component model cards and extension points}\label{appendix-d.-component-model-cards}
 \centering
 \footnotesize
 \renewcommand{\arraystretch}{0.90}
 \captionsetup{hypcap=false}
-\captionof{table}{\textbf{Appendix D. Component model cards and extension points.} Each module declares its runtime formulation, authored model domain, qualification oracle and extension interface for future alternative or empirically calibrated implementations.}
+\captionof{table}{\textbf{Component model cards and extension points.} Each module declares its runtime formulation, authored model domain, qualification oracle and extension interface for future alternative or empirically calibrated implementations.}
 \label{tab:component-model-cards}
 \begin{tabularx}{\textwidth}{@{}L{0.12\textwidth}L{0.19\textwidth}L{0.18\textwidth}L{0.20\textwidth}Y@{}}
 \toprule
