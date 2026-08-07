@@ -1,7 +1,114 @@
 # Work II TODO — 规律冲突、证据响应与科学适应
 
-最后更新：2026-08-03
+最后更新：2026-08-07
 工作边界：第二篇研究智能体在世界规律与训练先验冲突时，能否通过实验检测变化、修正信念、恢复控制并迁移到 held-out conditions。它不重复第一篇的装置可观测性主张，也不把单纯 endpoint optimization 当作规律学习。
+
+## 0. Proposed manuscript architecture (planning draft)
+
+This is an architecture proposal, not a protocol freeze and not an authorization to start
+primary data collection. The formal gates below remain the source of truth once the scientific
+question, methods and preregistration are frozen.
+
+### Working title and one-sentence thesis
+
+Working title: **Optimizing Without Learning the Law: Detecting, Attributing and Adapting to
+Hidden-Law Shifts with AI Agents**.
+
+The paper should test one dissociation rather than rank agents:
+
+> An agent may optimize an endpoint while failing to detect, attribute or update on a change in
+> the governing law; process-complete experiments can distinguish these cases and quantify the
+> recovery and held-out-transfer consequences.
+
+### Claim hierarchy
+
+1. **Primary claim — optimization is not law learning.** Endpoint success and governing-law
+   detection/belief update are separate estimands; a high endpoint score alone cannot establish
+   scientific adaptation.
+2. **Secondary claim — evidence-conditioned adaptation.** When a law shift is detectable, the
+   agent should attribute its family, revise its belief/action state and recover control on
+   subsequent experiments. The chain is evaluated as detection → attribution → belief/action
+   change → recovery, not collapsed into one intelligence score.
+3. **Transfer claim — held-out generalization.** Adaptation must survive mechanism-held-out and
+   world-held-out conditions, with a private sealed confirmation after the public matrix.
+4. **Profile claim — method dependence.** Backend, scaffold and their interaction are reported
+   separately through a matched matrix; no complete-system contrast is presented as a pure model
+   effect.
+5. **Exploratory profile — resources and safety.** Calls, tokens, time, measurements, invalid
+   actions and risk debits characterize the cost of adaptation, but do not define the primary
+   scientific result.
+
+### Evidence architecture
+
+The manuscript should maintain four visibly separate evidence layers:
+
+- **Environment qualification:** current Gate A proves that the intervention is identifiable,
+  internally coherent and observable under the declared public contract. It is not a participant
+  performance result.
+- **Matched participant outcomes:** the frozen backend × scaffold matrix produces trajectories with
+  identical public contracts, budgets, context and failure semantics.
+- **Process-level adaptation:** each trajectory records change detection, mechanism attribution,
+  belief/calibration movement, evidence-conditioned action change, recovery and endpoint outcome.
+- **Transfer and confirmation:** mechanism-held-out transfer is analyzed after public execution;
+  private sealed worlds are run once with the same preregistered estimands.
+
+### Manuscript chapter skeleton
+
+1. **Introduction — the dissociation problem.** Explain why endpoint optimization, change
+   detection and law learning are often conflated, and state the primary claim and boundaries.
+2. **Conceptual framework.** Define public prior, hidden law, intervention families, observation,
+   belief state, action change, recovery and held-out transfer; give the causal/evidence chain.
+3. **World cohort and controlled interventions.** Describe no-change controls, parameter shifts,
+   relation changes and sign/order reversals across at least two mechanism families, with strict
+   development/formal/private splits.
+4. **Participant methods and estimands.** Freeze backend × scaffold, context/tools, retries,
+   budgets, provider accounting, analysis units and censoring rules; separate primary and
+   exploratory estimands.
+5. **Results I — detection and attribution.** Report whether agents notice a law shift and identify
+   its family before interpreting endpoint changes; include calibration and delay.
+6. **Results II — belief and action revision.** Test identical-prefix responses, belief/action
+   changes after evidence and whether changes are directionally consistent with the hidden law.
+7. **Results III — recovery and held-out transfer.** Quantify post-change regret, recovery time,
+   terminal recovery and mechanism/world-held-out transfer; use the private sealed result as a
+   confirmation layer rather than a second exploratory benchmark.
+8. **Results IV — resource and safety profile.** Report measurements, calls, tokens, wall time,
+   invalid actions, risk debits and completion as bounded operational consequences.
+9. **Discussion.** State exactly what supports law-sensitive adaptation, what remains agent- or
+   world-specific, and why endpoint-only success is insufficient. Keep physical/high-fidelity
+   bridging optional and separate.
+10. **Methods, data and appendix.** Provide the frozen matrix, trajectory schema, statistical
+    models, robustness analyses, failure/censoring audit and reproducibility package.
+
+### Main display plan
+
+- **Figure 1 — What counts as law learning?** A causal timeline showing intervention, evidence,
+  detection, attribution, belief/action update, recovery and endpoint; explicitly contrast an
+  endpoint-only success path with an evidence-conditioned adaptation path.
+- **Figure 2 — Frozen world cohort.** Intervention taxonomy, matched no-change controls,
+  mechanism families, development/formal/private splits and the backend × scaffold matrix.
+- **Figure 3 — Process readouts.** Detection/calibration, attribution confusion, identical-prefix
+  response and evidence-conditioned action change, with world-cluster uncertainty.
+- **Figure 4 — Adaptation and transfer.** Post-change regret/recovery trajectories and
+  mechanism-held-out/world-held-out transfer, aligned to the same primary estimands.
+- **Figure 5 (optional or supplement) — Operational profile.** Resource and safety consequences;
+  include only if the denominator and interpretation are strong enough to stand independently.
+
+Core tables should map claims to estimands, list the frozen cell matrix and report failure,
+right-censoring and resource denominators. Raw provider payloads and private identities remain
+outside the reader-facing package.
+
+### Execution phases and stop conditions
+
+- **P0 — Architecture and claim freeze:** W2-01 through W2-05.
+- **P1 — Method qualification:** W2-06 through W2-10; no scientific arm selection by outcome.
+- **P2 — Preregistration freeze:** W2-08 and W2-11, including power, budgets and sealed commitment.
+- **P3 — Public formal matrix:** W2-12, with blind progress only and no live arm changes.
+- **P4 — Private sealed confirmation:** W2-13, one execution after public analysis code is frozen.
+- **P5 — Analysis and release:** W2-14 and W2-15; stop if the primary dissociation and transfer
+  boundary are answered, even if optional bridging is deferred.
+
+The paper must not begin formal data collection until P0--P2 are complete. Historical Gate A
+numbers remain pilot/environment context until W2-02 rebinds them to the current source.
 
 ## 1. 旗舰科学问题
 
