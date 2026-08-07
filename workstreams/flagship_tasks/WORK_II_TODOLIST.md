@@ -503,7 +503,10 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] 记录决策日期、负责人和不可逆后果；
   - [ ] 投稿路线不根据 formal outcomes 事后改变主假设。
 - 备注：`Claim: Codex /root — W2-10 — DOING`；Stage A mock contract preflight 已通过
-  15/15 cells、0 failures。Stage B 真实 WellAU 三臂小探针等待干净提交后执行。
+  15/15 cells、0 failures。Stage B 真实 WellAU 三臂小探针已通过 3/3 cells、0 failures、
+  3 calls/3 attempts/0 retries；共 12,630 tokens，cache hit 为 0，progress heartbeat 正常。
+  该结果仅资格验证 direct Responses transport、prior delivery 和完整实验执行，不是 prior
+  效应证据。下一步是冻结 law-summary/prediction snapshots 后进行五任务 one-seed breadth pilot。
 
 ### W2-09 — 完成 manifest-driven formal runner
 
