@@ -443,6 +443,135 @@ def _snapshot_payload_from_mock(request: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _snapshot_output_schema() -> dict[str, Any]:
+    metric_prediction = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "metric_id",
+            "mean",
+            "interval_lower",
+            "interval_upper",
+            "confidence",
+        ],
+        "properties": {
+            "metric_id": {"type": "string"},
+            "mean": {"type": "number"},
+            "interval_lower": {"type": "number"},
+            "interval_upper": {"type": "number"},
+            "confidence": {"type": "number"},
+        },
+    }
+    law_term = {
+        "type": "object",
+        "required": ["term_id", "basis", "input_ids", "coefficient"],
+        "properties": {
+            "term_id": {"type": "string"},
+            "basis": {"type": "string"},
+            "input_ids": {"type": "array", "items": {"type": "string"}},
+            "coefficient": {"type": "number"},
+            "category_value": {},
+        },
+    }
+    metric_law = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "metric_id",
+            "intercept",
+            "link",
+            "lower_bound",
+            "upper_bound",
+            "terms",
+        ],
+        "properties": {
+            "metric_id": {"type": "string"},
+            "intercept": {"type": "number"},
+            "link": {"type": "string"},
+            "lower_bound": {"type": "number"},
+            "upper_bound": {"type": "number"},
+            "terms": {"type": "array", "items": law_term},
+        },
+    }
+    law_summary = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "schema_version",
+            "summary_id",
+            "feature_ids",
+            "metric_laws",
+            "evidence_ids",
+            "applicability",
+            "limitations",
+            "confidence",
+        ],
+        "properties": {
+            "schema_version": {"type": "string"},
+            "summary_id": {"type": "string"},
+            "feature_ids": {"type": "array", "items": {"type": "string"}},
+            "metric_laws": {"type": "array", "items": metric_law},
+            "evidence_ids": {"type": "array", "items": {"type": "string"}},
+            "applicability": {"type": "string"},
+            "limitations": {"type": "array", "items": {"type": "string"}},
+            "confidence": {"type": "number"},
+        },
+    }
+    query_metric = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["query_id", "metrics"],
+        "properties": {
+            "query_id": {"type": "string"},
+            "metrics": {"type": "array", "items": metric_prediction},
+        },
+    }
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "schema_version",
+            "snapshot_id",
+            "stage",
+            "prior_assessment",
+            "predictions",
+            "law_summary",
+            "evidence_ids",
+            "next_experiment_intent",
+            "overall_confidence",
+        ],
+        "properties": {
+            "schema_version": {"type": "string"},
+            "snapshot_id": {"type": "string"},
+            "stage": {"type": "string"},
+            "prior_assessment": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [
+                    "nominal_information_available",
+                    "reliability_probability",
+                    "suspected_misindexed_fields",
+                    "rationale",
+                ],
+                "properties": {
+                    "nominal_information_available": {"type": "boolean"},
+                    "reliability_probability": {"type": ["number", "null"]},
+                    "suspected_misindexed_fields": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                    "rationale": {"type": "string"},
+                },
+            },
+            "predictions": {"type": "array", "items": query_metric},
+            "law_summary": law_summary,
+            "evidence_ids": {"type": "array", "items": {"type": "string"}},
+            "next_experiment_intent": {"type": "string"},
+            "overall_confidence": {"type": "number"},
+        },
+    }
+
+
 class _WorkIIDiscoveryMockClient:
     model = "work-ii-discovery-mock"
     thinking = False
@@ -561,6 +690,7 @@ def _call_snapshot(
         ),
         user_prompt=json.dumps(request, ensure_ascii=False, sort_keys=True),
         max_tokens=max_tokens,
+        output_schema=_snapshot_output_schema(),
     )
     return completion.payload, completion
 
@@ -690,6 +820,7 @@ def _run_cell(
             evidence_ids=evidence_ids,
             max_tokens=int(method["request_configuration"].get("snapshot_max_tokens", 4500)),
         )
+        usages.append(dict(completion.usage))
         snapshot = parse_work_ii_belief_snapshot(
             payload,
             expected_stage="pre_evidence",
@@ -701,7 +832,6 @@ def _run_cell(
             nominal_information_available=arm_id != "opaque",
         )
         snapshots.append(snapshot)
-        usages.append(dict(completion.usage))
         neutral = _plan(
             task_id=task_id,
             protocol=protocol,
@@ -743,6 +873,7 @@ def _run_cell(
             evidence_ids=evidence_ids,
             max_tokens=int(method["request_configuration"].get("snapshot_max_tokens", 4500)),
         )
+        usages.append(dict(completion.usage))
         snapshots.append(
             parse_work_ii_belief_snapshot(
                 payload,
@@ -755,7 +886,6 @@ def _run_cell(
                 nominal_information_available=arm_id != "opaque",
             )
         )
-        usages.append(dict(completion.usage))
         for index, level in enumerate(task_plan["discriminating_levels"]):
             discriminating = _plan(
                 task_id=task_id,
@@ -790,6 +920,7 @@ def _run_cell(
             evidence_ids=evidence_ids,
             max_tokens=int(method["request_configuration"].get("snapshot_max_tokens", 4500)),
         )
+        usages.append(dict(completion.usage))
         snapshots.append(
             parse_work_ii_belief_snapshot(
                 payload,
@@ -802,7 +933,6 @@ def _run_cell(
                 nominal_information_available=arm_id != "opaque",
             )
         )
-        usages.append(dict(completion.usage))
         for autonomous_index in range(schedule.autonomous_suffix_experiments):
             _progress(
                 progress_file,
@@ -824,6 +954,7 @@ def _run_cell(
                 snapshot=snapshots[-1].to_dict(),
                 max_tokens=int(method["request_configuration"]["max_tokens"]),
             )
+            usages.append(dict(completion.usage))
             public, raw = _execute(
                 protocol=protocol,
                 task_id=task_id,
@@ -842,7 +973,6 @@ def _run_cell(
                     "plan_sha256": canonical_json_sha256(plan.to_dict()),
                 }
             )
-            usages.append(dict(completion.usage))
         payload, completion = _call_snapshot(
             client=client,
             stage="final",
@@ -854,6 +984,7 @@ def _run_cell(
             evidence_ids=evidence_ids,
             max_tokens=int(method["request_configuration"].get("snapshot_max_tokens", 4500)),
         )
+        usages.append(dict(completion.usage))
         snapshots.append(
             parse_work_ii_belief_snapshot(
                 payload,
@@ -866,7 +997,6 @@ def _run_cell(
                 nominal_information_available=arm_id != "opaque",
             )
         )
-        usages.append(dict(completion.usage))
         validate_work_ii_snapshot_sequence(snapshots)
         held_out_observed: dict[str, dict[str, float]] = {}
         held_out_records: list[dict[str, Any]] = []
