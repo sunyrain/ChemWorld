@@ -65,7 +65,11 @@ def _surface_table(data: Mapping[str, Any]) -> list[str]:
     reference = figure_1["reference_counts"]
     construction = figure_1["construction_counts"]
     rows = [
-        ("reusable component types", len(figure_1["components"]), "declared v1 vocabulary"),
+        (
+            "reusable component types",
+            len(figure_1["components"]),
+            "declared component vocabulary",
+        ),
         ("frozen component patterns", len(figure_2["patterns"]), "coverage design"),
         ("registered reference tasks", reference["reference_tasks"], "reference landmarks"),
         ("typed operation kinds", reference["typed_operations"], "public action surface"),
@@ -298,7 +302,10 @@ def render(data: Mapping[str, Any]) -> str:
         "",
         "**Figure 4 | Deterministic cases exercise lifecycle and failure semantics.**",
         "**A,** Eight cases cover multistage, resource-limited and reference-library workflows.",
-        "**B,** The single preregistered precondition failure remains in the 89-action census and",
+        (
+            "**B,** The single protocol-frozen precondition failure remains in the "
+            "89-action census and"
+        ),
         "is followed by 18 commits. **C,** Rollback preserves non-accounting state while charging",
         "the declared attempt consequences. **D,** All eight lifecycles, final assays, resource",
         "ledgers and exact replays passed.",
@@ -309,7 +316,7 @@ def render(data: Mapping[str, Any]) -> str:
         "**B,** Three constitutive-law and three material-law pairs change one private "
         "target each.",
         "**C,** All six pairs pass every registered gate. **D,** Physical-state and public-",
-        "observation divergence occurs in the preregistered channels. The traces contain no",
+        "observation divergence occurs in the protocol-frozen channels. The traces contain no",
         "provider calls and support no agent-adaptation claim.",
         "",
         "**Figure 6 | Instrument records distinguish endpoint, process and execution status.**",

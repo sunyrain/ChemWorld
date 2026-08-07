@@ -187,10 +187,14 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
 
 def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
     tex = (ARXIV / "main.tex").read_text(encoding="utf-8")
-    assert "\\begin{abstract}\nAutonomous chemistry needs both real-material execution" in tex
+    assert (
+        "\\begin{abstract}\nAutonomous chemistry needs an experimental regime in which"
+        in tex
+    )
     assert "\\subsection{Abstract}" not in tex
     assert "\\section{1. Introduction}" in tex
-    assert "\\section{11. Conclusion}" in tex
+    assert "\\section{10. Conclusion}" in tex
+    assert "\\fancyhead[L]{\\footnotesize Programmable Chemical Worlds}" in tex
     positions = [tex.index(f"figures/figure-{number}-") for number in range(1, 5)]
     assert positions == sorted(positions)
     assert "figure-1-system-overview.pdf" in tex

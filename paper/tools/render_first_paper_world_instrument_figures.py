@@ -66,17 +66,17 @@ FIGURES = (
     (
         "F2",
         "figure-2-composition-and-qualification",
-        "Coverage-guided construction and full-census qualification.",
+        "Programmable construction and frozen coverage design.",
     ),
     (
         "F3",
         "figure-3-runtime-semantics",
-        "Process-complete cases preserve lifecycle, resource and failure semantics.",
+        "Process-complete use cases and planned failure recovery.",
     ),
     (
         "F4",
         "figure-4-forks-and-agent",
-        "Controlled private-law forks and replayable agent experimentation.",
+        "Controlled private-law interventions under an invariant public contract.",
     ),
 )
 
@@ -211,6 +211,12 @@ def _footer(fig: plt.Figure, text: str) -> None:
 def _new_2x2() -> tuple[plt.Figure, np.ndarray[Any, Any]]:
     fig, axes = plt.subplots(2, 2, figsize=FIGSIZE)
     fig.subplots_adjust(left=0.115, right=0.975, top=0.91, bottom=0.09, wspace=0.40, hspace=0.60)
+    return fig, axes
+
+
+def _new_1x2(*, height: float = 2.70) -> tuple[plt.Figure, np.ndarray[Any, Any]]:
+    fig, axes = plt.subplots(1, 2, figsize=(FIGSIZE[0], height))
+    fig.subplots_adjust(left=0.105, right=0.975, top=0.84, bottom=0.19, wspace=0.38)
     return fig, axes
 
 
@@ -672,10 +678,11 @@ def figure_3(data: Mapping[str, Any]) -> plt.Figure:
 
 def figure_4(data: Mapping[str, Any]) -> plt.Figure:
     values = data["figure_4"]
-    fig, axes = _new_2x2()
+    fig, axes = _new_1x2(height=2.58)
+    fig.subplots_adjust(left=0.135, right=0.975, top=0.84, bottom=0.19, wspace=0.42)
     cases = values["cases"]
 
-    ax = axes[0, 0]
+    ax = axes[0]
     _panel(ax, "A", "Eight frozen use cases")
     y = np.arange(len(cases))
     committed = [row["committed"] for row in cases]
@@ -691,8 +698,8 @@ def figure_4(data: Mapping[str, Any]) -> plt.Figure:
         ax.text(row["submitted"] + 0.25, index, str(row["submitted"]), va="center", fontsize=6.1)
     ax.legend(loc="lower right")
 
-    ax = axes[0, 1]
-    _panel(ax, "B", "The planned failure is retained")
+    ax = axes[1]
+    _panel(ax, "B", "1 rollback → 18 subsequent commits")
     recovery = values["recovery"]
     _clean_axis(ax)
     xs = np.linspace(0.06, 0.94, 19)
@@ -714,7 +721,7 @@ def figure_4(data: Mapping[str, Any]) -> plt.Figure:
     ax.text(
         xs[0],
         0.75,
-        "separate phase\nrolled back",
+        "step 1\nrollback",
         transform=ax.transAxes,
         ha="center",
         color=AMBER,
@@ -724,7 +731,7 @@ def figure_4(data: Mapping[str, Any]) -> plt.Figure:
     ax.text(
         0.62,
         0.75,
-        f"{recovery['subsequent_commits']} subsequent commits",
+        f"steps 2-19\n{recovery['subsequent_commits']} commits",
         transform=ax.transAxes,
         ha="center",
         color=TEAL,
@@ -740,58 +747,9 @@ def figure_4(data: Mapping[str, Any]) -> plt.Figure:
         color=MUTED,
     )
 
-    ax = axes[1, 0]
-    _panel(ax, "C", "Rollback preserves non-accounting state")
-    checks = [
-        ("physical state", recovery["physical_state_preserved"]),
-        ("observation RNG", recovery["observation_rng_preserved"]),
-        ("ghost state", recovery["ghost_state_preserved"]),
-        ("declared penalty", recovery["declared_penalty_reconciled"]),
-    ]
-    _clean_axis(ax)
-    for index, (label, passed) in enumerate(checks):
-        y0 = 0.76 - 0.20 * index
-        _box(ax, (0.05, y0 - 0.07), 0.62, 0.14, label, face=WASH, edge=GRID, fontsize=6.5)
-        _box(
-            ax,
-            (0.72, y0 - 0.07),
-            0.20,
-            0.14,
-            "PASS" if passed else "FAIL",
-            face=PALE_TEAL if passed else PALE_CORAL,
-            edge=TEAL if passed else CORAL,
-            weight="semibold",
-        )
-
-    ax = axes[1, 1]
-    _panel(ax, "D", "All lifecycles close and replay")
-    totals = values["totals"]
-    labels = ["cases", "final assays", "exact replays", "resource ledgers"]
-    replay_count = sum(row["exact_replay"] for row in cases)
-    resource_count = sum(row["resource_reconciled"] for row in cases)
-    counts = [
-        len(cases),
-        totals["committed_final_assays"]["observed"],
-        replay_count,
-        resource_count,
-    ]
-    colors = [BLUE, TEAL, PURPLE, AMBER]
-    bars = ax.bar(range(4), counts, color=colors, width=0.62)
-    ax.set_xticks(range(4), [label.replace(" ", "\n") for label in labels])
-    ax.set_ylim(0, 9.5)
-    ax.set_yticks(range(0, 10, 2))
-    ax.grid(axis="y", color=GRID, lw=0.5, zorder=0)
-    for bar, count in zip(bars, counts, strict=True):
-        ax.text(
-            bar.get_x() + bar.get_width() / 2,
-            count + 0.25,
-            f"{count}/8",
-            ha="center",
-            fontweight="semibold",
-        )
     _footer(
         fig,
-        "Every action is audited inside its complete case-level lifecycle.",
+        "The planned rollback remains recorded before recovery continues from committed state.",
     )
     return fig
 
@@ -1092,7 +1050,7 @@ def figure_6(data: Mapping[str, Any]) -> plt.Figure:
         transform=ax.transAxes,
         ha="left",
         va="top",
-        fontsize=4.8,
+        fontsize=5.0,
         color=MUTED,
     )
 
@@ -1155,188 +1113,263 @@ def figure_1_system_overview(data: Mapping[str, Any]) -> plt.Figure:
     fig, axes = _new_2x2()
     ax = axes[0, 0]
     _clean_axis(ax)
-    _panel(ax, "A", "Complementary experimental regimes")
+    _panel(ax, "A", "Two complementary experimental regimes")
     _box(
         ax,
-        (0.02, 0.43),
-        0.39,
-        0.38,
-        "PHYSICAL SDL\nreal materials\nhardware + sensors\nempirical validity",
+        (0.02, 0.47),
+        0.40,
+        0.34,
+        "REAL-MATERIAL SDL\nphysical samples\nhardware + sensors\nempirical validation",
         face=PALE_CORAL,
         edge=CORAL,
-        fontsize=6.8,
+        fontsize=6.5,
         weight="semibold",
     )
     _box(
         ax,
-        (0.59, 0.43),
-        0.39,
-        0.38,
+        (0.58, 0.47),
+        0.40,
+        0.34,
         (
-            "CHEMWORLD\nsoftware access + exact reset\n"
-            "no direct wet-lab chemical exposure\ncomplete simulator observability"
+            "CHEMWORLD\nexact reset + matched repeats\n"
+            "private-law intervention\ncomplete simulator record"
         ),
         face=PALE_TEAL,
         edge=TEAL,
-        fontsize=6.0,
+        fontsize=6.3,
         weight="semibold",
     )
-    _arrow(ax, (0.43, 0.63), (0.57, 0.63), color=MUTED, style="<|-|>")
-    ax.text(
-        0.50, 0.82, "complementary", transform=ax.transAxes, ha="center", fontsize=6.2, color=MUTED
-    )
+    _arrow(ax, (0.44, 0.64), (0.56, 0.64), color=MUTED, style="<|-|>")
     _box(
         ax,
-        (0.17, 0.12),
-        0.66,
-        0.16,
-        "virtual control and scale  →  physical validation when real matter is required",
+        (0.11, 0.15),
+        0.78,
+        0.15,
+        "software narrows hypotheses  →  physical execution tests real matter",
         face=WASH,
         edge=GRID,
-        fontsize=6.3,
+        fontsize=6.2,
+    )
+    ax.text(
+        0.50,
+        0.88,
+        "shared experimental questions · different evidence regimes",
+        transform=ax.transAxes,
+        ha="center",
+        fontsize=5.9,
+        color=MUTED,
     )
 
     ax = axes[0, 1]
     _clean_axis(ax)
-    _panel(ax, "B", "Components compile into a public contract")
+    _panel(ax, "B", "Public structure + private mechanism")
     component_boxes = (
-        ((0.01, 0.68), "chemistry\nreaction · phase", PALE_BLUE, BLUE),
-        ((0.01, 0.43), "process\nthermal · separation", PALE_TEAL, TEAL),
-        ((0.01, 0.18), "apparatus\nflow · electrochem. · observation", PALE_AMBER, AMBER),
+        ((0.01, 0.68), "components\nchemistry + process", PALE_BLUE, BLUE),
+        ((0.01, 0.43), "interfaces\nactions + instruments", PALE_TEAL, TEAL),
+        ((0.01, 0.18), "constraints\nunits + ownership\nresource budgets", PALE_AMBER, AMBER),
     )
     for xy, label, face, edge in component_boxes:
-        _box(ax, xy, 0.29, 0.16, label, face=face, edge=edge, fontsize=5.8, weight="semibold")
-        _arrow(ax, (0.31, xy[1] + 0.08), (0.40, 0.51), color=MUTED)
+        _box(ax, xy, 0.29, 0.16, label, face=face, edge=edge, fontsize=5.2, weight="semibold")
+        _arrow(ax, (0.31, xy[1] + 0.08), (0.39, 0.51), color=MUTED)
     _box(
         ax,
-        (0.41, 0.38),
-        0.24,
-        0.25,
-        "compatibility\ncompiler\n\ndependencies · units\nownership · budgets",
+        (0.40, 0.39),
+        0.20,
+        0.23,
+        "compatibility\ncompiler",
         face=WASH,
         edge=INK,
-        fontsize=5.5,
+        fontsize=6.2,
         weight="semibold",
     )
-    _arrow(ax, (0.66, 0.51), (0.74, 0.51), color=INK)
+    _arrow(ax, (0.61, 0.54), (0.68, 0.67), color=INK)
     _box(
         ax,
-        (0.75, 0.34),
-        0.23,
-        0.34,
+        (0.69, 0.57),
+        0.29,
+        0.25,
         (
-            "world + task contract\n\nactions · instruments\n"
-            "observations · resources\ntermination · evaluation"
+            "PUBLIC CONTRACT T\nW_pub + S0,pub\noperations + instruments\n"
+            "observations + resources\ntermination + evaluation"
         ),
         face=PALE_BLUE,
         edge=BLUE,
-        fontsize=5.2,
+        fontsize=5.1,
         weight="semibold",
     )
-    ax.text(
-        0.51,
-        0.13,
-        "private state and laws remain evaluator-owned",
-        transform=ax.transAxes,
-        ha="center",
-        fontsize=6.2,
-        color=MUTED,
+    _arrow(ax, (0.61, 0.46), (0.68, 0.34), color=CORAL)
+    _box(
+        ax,
+        (0.69, 0.20),
+        0.29,
+        0.25,
+        (
+            "PRIVATE theta\nconstitutive + material laws\nhidden parameters\nprivate initialization"
+        ),
+        face=PALE_CORAL,
+        edge=CORAL,
+        fontsize=4.8,
+        weight="semibold",
+    )
+    _box(
+        ax,
+        (0.42, 0.08),
+        0.54,
+        0.08,
+        "complete world = (W_pub, theta)",
+        face=WASH,
+        edge=GRID,
+        fontsize=5.7,
     )
 
     ax = axes[1, 0]
     _clean_axis(ax)
-    _panel(ax, "C", "One executable experiment lifecycle")
+    _panel(ax, "C", "Commit is gated at runtime")
     _box(
         ax,
-        (0.02, 0.64),
-        0.20,
-        0.18,
-        "task card\n+ public history",
-        face=PALE_BLUE,
-        edge=BLUE,
-        fontsize=6.4,
+        (0.01, 0.67),
+        0.14,
+        0.15,
+        "typed\naction",
+        face=PALE_AMBER,
+        edge=AMBER,
+        fontsize=6.2,
     )
     _box(
         ax,
-        (0.29, 0.64),
-        0.18,
-        0.18,
-        "agent or\nfrozen policy",
-        face=PALE_TEAL,
-        edge=TEAL,
-        fontsize=6.4,
+        (0.20, 0.67),
+        0.15,
+        0.15,
+        "preflight\nP",
+        face=PALE_BLUE,
+        edge=BLUE,
+        fontsize=5.8,
         weight="semibold",
     )
     _box(
         ax,
-        (0.55, 0.64),
-        0.20,
-        0.18,
-        "typed action\nor instrument",
-        face=PALE_AMBER,
-        edge=AMBER,
-        fontsize=6.4,
-    )
-    _box(
-        ax,
-        (0.78, 0.38),
-        0.20,
-        0.20,
-        "schema + preflight\ntransaction\ncommit / rollback",
-        face=PALE_CORAL,
-        edge=CORAL,
-        fontsize=6.1,
-    )
-    _box(
-        ax,
-        (0.50, 0.13),
-        0.25,
-        0.20,
-        "state transition\npublic observation\nresource delta",
+        (0.40, 0.67),
+        0.17,
+        0.15,
+        "candidate\nF_theta",
         face=PALE_TEAL,
         edge=TEAL,
-        fontsize=6.2,
+        fontsize=5.8,
     )
     _box(
         ax,
-        (0.11, 0.13),
-        0.26,
-        0.20,
-        "explicit terminate\n+ final assay\n+ evaluation",
-        face=PALE_BLUE,
-        edge=BLUE,
-        fontsize=6.2,
+        (0.62, 0.67),
+        0.17,
+        0.15,
+        "commit gate\nC",
+        face=WASH,
+        edge=INK,
+        fontsize=5.8,
+        weight="semibold",
     )
-    _arrow(ax, (0.23, 0.73), (0.28, 0.73))
-    _arrow(ax, (0.48, 0.73), (0.54, 0.73))
-    _arrow(ax, (0.75, 0.68), (0.80, 0.58))
-    _arrow(ax, (0.82, 0.37), (0.72, 0.29))
-    _arrow(ax, (0.49, 0.22), (0.38, 0.22), color=TEAL)
-    _arrow(ax, (0.62, 0.34), (0.39, 0.62), color=TEAL)
+    _box(
+        ax,
+        (0.84, 0.67),
+        0.14,
+        0.15,
+        "COMMIT",
+        face=PALE_TEAL,
+        edge=TEAL,
+        fontsize=6.0,
+        weight="bold",
+    )
+    _box(
+        ax,
+        (0.73, 0.38),
+        0.25,
+        0.16,
+        "committed state\nobservation + ledger",
+        face=PALE_TEAL,
+        edge=TEAL,
+        fontsize=5.2,
+    )
+    for x0, x1 in ((0.16, 0.19), (0.36, 0.39), (0.58, 0.61), (0.80, 0.83)):
+        _arrow(ax, (x0, 0.745), (x1, 0.745))
     ax.text(
-        0.50,
-        0.03,
-        "failure is recorded; rejected candidate state is not installed",
+        0.275,
+        0.62,
+        "schema + resources",
         transform=ax.transAxes,
         ha="center",
-        fontsize=6.1,
+        fontsize=4.7,
+        color=MUTED,
+    )
+    ax.text(
+        0.705,
+        0.62,
+        "state + observation",
+        transform=ax.transAxes,
+        ha="center",
+        fontsize=4.7,
+        color=MUTED,
+    )
+    _arrow(ax, (0.91, 0.66), (0.86, 0.55), color=TEAL)
+    _box(
+        ax,
+        (0.06, 0.27),
+        0.25,
+        0.16,
+        "P = 0\nPREFLIGHT REJECT",
+        face=PALE_CORAL,
+        edge=CORAL,
+        fontsize=5.8,
+        weight="semibold",
+    )
+    _box(
+        ax,
+        (0.39, 0.27),
+        0.27,
+        0.16,
+        "C = 0\nROLLBACK",
+        face=PALE_CORAL,
+        edge=CORAL,
+        fontsize=5.8,
+        weight="semibold",
+    )
+    _arrow(ax, (0.275, 0.66), (0.19, 0.44), color=CORAL)
+    _arrow(ax, (0.705, 0.66), (0.53, 0.44), color=CORAL)
+    _box(
+        ax,
+        (0.08, 0.04),
+        0.56,
+        0.10,
+        "record branch + retain declared attempt cost",
+        face=PALE_AMBER,
+        edge=AMBER,
+        fontsize=5.1,
+    )
+    _arrow(ax, (0.19, 0.26), (0.27, 0.18), color=CORAL)
+    _arrow(ax, (0.53, 0.26), (0.47, 0.18), color=CORAL)
+    ax.text(
+        0.82,
+        0.14,
+        "candidate state\nnot installed",
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        fontsize=5.0,
         color=MUTED,
     )
 
     ax = axes[1, 1]
     _clean_axis(ax)
-    _panel(ax, "D", "A complete record enables new experiments")
+    _panel(ax, "D", "Layered records enable new experiments")
     for y, label, face, edge in (
-        (0.70, "typed actions + transactions", PALE_BLUE, BLUE),
-        (0.51, "hidden/public state + observations", PALE_TEAL, TEAL),
-        (0.32, "resources + failures + lineage", PALE_AMBER, AMBER),
+        (0.66, "PUBLIC RECORD\nactions · observations · terminal flags", PALE_BLUE, BLUE),
+        (0.43, "COMMITTED STATE\nphysical state · observation RNG", PALE_TEAL, TEAL),
+        (0.20, "AUDIT LEDGER\ntransactions · resources · failures · lineage", PALE_AMBER, AMBER),
     ):
-        _box(ax, (0.01, y), 0.44, 0.13, label, face=face, edge=edge, fontsize=5.8)
+        _box(ax, (0.01, y), 0.47, 0.17, label, face=face, edge=edge, fontsize=5.4)
     _box(
         ax,
-        (0.60, 0.68),
-        0.38,
-        0.15,
+        (0.62, 0.68),
+        0.36,
+        0.14,
         "EXACT REPLAY\nreconstruct the environment",
         face=WASH,
         edge=BLUE,
@@ -1345,9 +1378,9 @@ def figure_1_system_overview(data: Mapping[str, Any]) -> plt.Figure:
     )
     _box(
         ax,
-        (0.60, 0.45),
-        0.38,
-        0.15,
+        (0.62, 0.45),
+        0.36,
+        0.14,
         "CONTROLLED FORK\nchange one private law",
         face=WASH,
         edge=CORAL,
@@ -1356,21 +1389,22 @@ def figure_1_system_overview(data: Mapping[str, Any]) -> plt.Figure:
     )
     _box(
         ax,
-        (0.60, 0.22),
-        0.38,
-        0.15,
+        (0.62, 0.22),
+        0.36,
+        0.14,
         "PROCESS READOUTS\nobserve how the result arose",
         face=WASH,
         edge=TEAL,
         fontsize=5.8,
         weight="semibold",
     )
-    for y in (0.765, 0.535, 0.305):
-        _arrow(ax, (0.46, 0.57), (0.59, y), color=MUTED)
+    ax.plot([0.52, 0.52], [0.29, 0.75], transform=ax.transAxes, color=MUTED, lw=0.9)
+    for y in (0.75, 0.52, 0.29):
+        _arrow(ax, (0.49, y), (0.61, y), color=MUTED)
     ax.text(
         0.50,
         0.06,
-        "worlds and private laws are programmable within the declared interfaces",
+        "one record · three reusable experimental operations",
         transform=ax.transAxes,
         ha="center",
         fontsize=6.1,
@@ -1378,15 +1412,17 @@ def figure_1_system_overview(data: Mapping[str, Any]) -> plt.Figure:
     )
     _footer(
         fig,
-        "Software control narrows hypotheses; physical execution supplies real-material evidence.",
+        (
+            "Private mechanisms and evaluator-complete records remain outside the "
+            "agent-facing surface."
+        ),
     )
     return fig
 
 
 def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
-    fig, axes = _new_2x2()
+    fig, axes = _new_1x2(height=2.82)
     coverage = data["figure_2"]
-    qualification = data["figure_3"]
     patterns = coverage["patterns"]
     components = [
         "reaction",
@@ -1407,7 +1443,7 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
         dtype=float,
     )
 
-    ax = axes[0, 0]
+    ax = axes[0]
     _panel(ax, "A", "Topology and identity decompose separately")
     ax.imshow(matrix, aspect="auto", cmap=mpl.colors.ListedColormap([PAPER, TEAL]), vmin=0, vmax=1)
     ax.set_xticks(
@@ -1455,7 +1491,7 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
     for spine in ax.spines.values():
         spine.set_visible(False)
 
-    ax = axes[0, 1]
+    ax = axes[1]
     _clean_axis(ax)
     _panel(ax, "B", "Coverage targets determine 52 rows")
     aggregate = coverage["aggregate_coverage_denominators"]
@@ -1505,67 +1541,13 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
         weight="bold",
     )
 
-    ax = axes[1, 0]
-    _panel(ax, "C", "Every execution census completed")
-    rows = qualification["execution_censuses"]
-    y = np.arange(len(rows))
-    ax.barh(y, [1.0] * len(rows), color=TEAL, height=0.56)
-    census_labels = {
-        "reference units": "reference units",
-        "reference recipes": "reference recipes",
-        "generated": "generated",
-        "unseen distillation": "non-ref. rxn-distill.",
-    }
-    ax.set_yticks(y, [census_labels.get(row["label"], row["label"]) for row in rows])
-    ax.set_xlim(0, 1.0)
-    ax.set_xticks([0, 0.5, 1.0], ["0%", "50%", "100%"])
-    ax.grid(axis="x", color=GRID, lw=0.55)
-    ax.invert_yaxis()
-    for index, row in enumerate(rows):
-        ax.text(
-            0.5,
-            index,
-            f"{row['passed']:,}/{row['denominator']:,}",
-            ha="center",
-            va="center",
-            color=PAPER,
-            fontweight="bold",
-            fontsize=7.0,
-        )
-
-    ax = axes[1, 1]
-    _panel(ax, "D", "Module, interface and fail-closed probes")
-    rows = qualification["qualification_censuses"]
-    y = np.arange(len(rows))
-    values = [row["denominator"] for row in rows]
-    ax.barh(y, values, color=[BLUE, TEAL, AMBER, CORAL], height=0.56)
-    ax.set_yticks(y, [row["label"] for row in rows])
-    ax.set_xscale("log")
-    ax.set_xlim(0.8, 400)
-    ax.grid(axis="x", color=GRID, lw=0.55)
-    ax.invert_yaxis()
-    for index, row in enumerate(rows):
-        ax.text(
-            row["denominator"] * 1.08,
-            index,
-            f"{row['passed']}/{row['denominator']}",
-            va="center",
-            fontsize=6.4,
-        )
-    zero = qualification["zero_findings"]
-    ax.text(
-        0.50,
-        -0.19,
+    _footer(
+        fig,
         (
-            f"0 failure classes · {zero['missing_receipts']} missing receipts · "
-            f"{zero['public_private_leakage']} public/private leakage"
+            "Coverage defines the qualification sample; it does not define the extent "
+            "of the world space."
         ),
-        transform=ax.transAxes,
-        ha="center",
-        fontsize=6.0,
-        color=MUTED,
     )
-    _footer(fig, "Every bar reports a complete qualification denominator.")
     return fig
 
 
@@ -1574,14 +1556,12 @@ def figure_3_runtime_semantics(data: Mapping[str, Any]) -> plt.Figure:
 
 
 def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
-    fig, axes = _new_2x2()
+    fig, axes = _new_1x2(height=2.70)
     forks = data["figure_5"]
-    record = data["figure_6"]
-    agent = record["complete_agent"]
 
-    ax = axes[0, 0]
+    ax = axes[0]
     _clean_axis(ax)
-    _panel(ax, "A", "One private law changes under one public contract")
+    _panel(ax, "A", "One private mechanism changes under one public contract")
     _box(
         ax,
         (0.02, 0.46),
@@ -1598,7 +1578,7 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
         (0.38, 0.58),
         0.25,
         0.20,
-        "same public contract\n9 invariant fields",
+        "same W_pub + contract\n9 invariant fields",
         face=WASH,
         edge=INK,
         fontsize=6.4,
@@ -1650,7 +1630,7 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
         fontsize=5.9,
     )
 
-    ax = axes[0, 1]
+    ax = axes[1]
     _panel(ax, "B", "All forks diverge in registered channels")
     rows = forks["rows"]
     x = np.arange(len(rows))
@@ -1672,109 +1652,11 @@ def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
         fontsize=6.1,
         color=MUTED,
     )
-    ax = axes[1, 0]
-    _clean_axis(ax)
-    _panel(ax, "C", "One world, two independent execution units")
-    _timeline(
-        ax,
-        record["deterministic_reference"]["operations"],
-        y=0.67,
-        color=BLUE,
-        label="12-step deterministic qualification",
-    )
-    _timeline(ax, agent["operations"], y=0.31, color=TEAL, label="15-step complete-agent")
-    ax.text(
-        0.50,
-        0.03,
-        "independent paths separate world qualification from agent-driven use",
-        transform=ax.transAxes,
-        ha="center",
-        fontsize=6.0,
-        color=MUTED,
-    )
-
-    ax = axes[1, 1]
-    _clean_axis(ax)
-    _panel(ax, "D", "One lifecycle, one replayable record")
-    usage = agent["resource_usage"]
-    limits = agent["resource_limits"]
-    labels = ["process time", "operations", "instruments", "sample"]
-    ratios = [
-        usage["process_time_s"] / limits["process_time_s"],
-        usage["operation_attempts"] / limits["operation_attempts"],
-        usage["instrument_uses"] / limits["instrument_uses"],
-        usage["sample_consumed_L"] / limits["sample_consumed_L"],
-    ]
-    y = np.asarray([0.76, 0.61, 0.46, 0.31])
-    for yi, ratio, label, color in zip(y, ratios, labels, [BLUE, TEAL, AMBER, PURPLE], strict=True):
-        ax.add_patch(
-            Rectangle((0.03, yi), 0.54, 0.085, transform=ax.transAxes, fc=WASH, ec=GRID, lw=0.6)
-        )
-        ax.add_patch(
-            Rectangle(
-                (0.03, yi), 0.54 * ratio, 0.085, transform=ax.transAxes, fc=color, ec=color, lw=0.6
-            )
-        )
-        ax.text(
-            0.01, yi + 0.043, label, transform=ax.transAxes, ha="right", va="center", fontsize=6.1
-        )
-        ax.text(
-            0.59,
-            yi + 0.043,
-            f"{ratio:.0%}",
-            transform=ax.transAxes,
-            va="center",
-            fontsize=6.1,
-            fontweight="bold",
-        )
-    _box(
-        ax,
-        (0.66, 0.69),
-        0.31,
-        0.15,
-        "15/15 actions\ncommitted",
-        face=PALE_BLUE,
-        edge=BLUE,
-        fontsize=6.3,
-        weight="semibold",
-    )
-    _box(
-        ax,
-        (0.66, 0.49),
-        0.31,
-        0.15,
-        "explicit terminate\n+ final assay",
-        face=PALE_TEAL,
-        edge=TEAL,
-        fontsize=6.3,
-        weight="semibold",
-    )
-    _box(
-        ax,
-        (0.66, 0.29),
-        0.31,
-        0.15,
-        "0 leakage\nexact replay PASS",
-        face=PALE_AMBER,
-        edge=AMBER,
-        fontsize=6.3,
-        weight="semibold",
-    )
-    _box(
-        ax,
-        (0.03, 0.07),
-        0.94,
-        0.13,
-        "actions → observations → state deltas → resource debits → terminal assay",
-        face=WASH,
-        edge=GRID,
-        fontsize=5.9,
-    )
     _footer(
         fig,
         (
-            "Under fixed typed actions and bound noise, controlled forks isolate hidden-law "
-            "effects; the agent unit produces a complete, auditable lifecycle."
+            "Under fixed typed actions and bound noise, controlled forks isolate "
+            "trace-level effects of one private-law intervention."
         ),
     )
     return fig

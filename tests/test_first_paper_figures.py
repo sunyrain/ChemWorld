@@ -44,6 +44,12 @@ def test_manifest_binds_four_figures_and_twelve_current_assets() -> None:
 
 def test_every_bound_asset_exists_and_has_the_expected_publication_geometry() -> None:
     manifest = _manifest()
+    expected_geometry = {
+        "figure-1-system-overview": (2124, 1195),
+        "figure-2-composition-and-qualification": (2124, 846),
+        "figure-3-runtime-semantics": (2124, 774),
+        "figure-4-forks-and-agent": (2124, 810),
+    }
     for figure in manifest["figures"]:
         assert [row["format"] for row in figure["outputs"]] == ["svg", "pdf", "png"]
         for output in figure["outputs"]:
@@ -53,9 +59,12 @@ def test_every_bound_asset_exists_and_has_the_expected_publication_geometry() ->
             assert file_sha256(path) == output["sha256"]
         png = ROOT / figure["outputs"][2]["path"]
         with Image.open(png) as image:
-            assert image.size == (2124, 1560)
+            assert image.size == expected_geometry[figure["stem"]]
         svg = (ROOT / figure["outputs"][0]["path"]).read_text(encoding="utf-8")
-        assert "<text" in svg
+        if figure["stem"] == "figure-1-system-overview":
+            assert svg.count("<image") == 1
+        else:
+            assert "<text" in svg
         assert "D:\\Projects" not in svg
         assert "sha256" not in svg.lower()
         assert "source_commit" not in svg.lower()

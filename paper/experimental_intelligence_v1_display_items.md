@@ -105,46 +105,29 @@ contrast does not erase its process-coordinate differences and supports no model
 
 ## Figure legends
 
-**Figure 1 | Object hierarchy and public instrument contract.**
-**A,** Reusable physical and transactional components compile into a world.
-**B,** A task contract attaches the initial state, actions, instruments, observations,
-resources, termination and evaluation surface while private laws remain hidden.
-**C,** Scenarios instantiate a task, trajectories record interaction, and a controlled
-fork is a separate single-private-component intervention. **D,** Reference tasks, typed
-operations, instruments and task-metric bindings retain distinct denominators.
+**Figure 1 | ChemWorld from composable components to replayable controlled worlds.**
+**A,** Reusable process and instrument modules expose shared declarations.
+**B,** The compiler either produces a public contract with evaluator-owned private
+mechanisms or returns structured diagnostics before construction. **C,** Typed actions pass
+preflight, runtime-precondition and post-execution gates before commit; failed branches retain
+declared attempt consequences without installing candidate state. **D,** Deterministic replay
+requires exact reconstruction, whereas controlled forks retain the public contract and action
+sequence while changing one private law.
 
-**Figure 2 | Coverage-guided construction beyond the reference task identities.**
-**A,** Eight component patterns define the frozen construction blocks; the highlighted
-reaction-distillation pattern is absent from the reference identities. **B,** Pairwise
-discrete coverage, seeded space filling and ordered workflow interactions determine the
-rows. **C,** Fifteen reference tasks and 52 generated compositions count different
-objects. **D,** All eight unseen rows and all 52 generated rows completed; unseen does
-not mean unbounded or arbitrary.
+**Figure 2 | Programmable construction and frozen coverage design.**
+**A,** Topology novelty and exact task--world identity novelty are represented separately
+across the eight component patterns. **B,** Pairwise discrete coverage, seeded continuous
+strata and ordered workflow interactions determine the 52 generated rows. Qualification
+outcomes remain in the results text and census table rather than being redrawn as pass bars.
 
-**Figure 3 | Full-census qualification of the software experimental substrate.**
-**A,** All reference and generated execution units passed. **B,** Module, interface,
-compile-mutant and invalid-action censuses retain their exact denominators. **C,** invalid
-declarations fail before construction, while invalid actions preserve physical state.
-**D,** Failure classes, missing receipts and public/private leakage findings were zero.
+**Figure 3 | Workflow diversity and planned rollback recovery.**
+**A,** Eight cases span single-process, multistage and reference-library workflows.
+**B,** The protocol-frozen rollback remains in the 89-action census and is followed by 18
+commits from the last committed state. State-restoration and replay outcomes remain in the
+results text rather than being repeated as PASS cards.
 
-**Figure 4 | Deterministic cases exercise lifecycle and failure semantics.**
-**A,** Eight cases cover multistage, resource-limited and reference-library workflows.
-**B,** The single planned precondition failure remains in the 89-action census and
-is followed by 18 commits. **C,** Rollback preserves non-accounting state while charging
-the declared attempt consequences. **D,** All eight lifecycles, final assays, resource
-ledgers and exact replays passed.
-
-**Figure 5 | Controlled forks change one private component under an invariant public contract.**
-**A,** Parent and child share nine public fields and the same action sequence.
-**B,** Three constitutive-law and three material-law pairs change one private target each.
-**C,** All six pairs pass every registered gate. **D,** Physical-state and public-
-observation divergence occurs in the protocol-specified channels. The traces contain no
-provider calls and support no agent-adaptation claim.
-
-**Figure 6 | Instrument records distinguish endpoint, process and execution status.**
-**A,** The 12-action deterministic reference and 15-action complete-agent trajectory are
-independent execution units on the same frozen unseen world. **B,** All 15 agent actions
-committed, with one termination, one final assay and exact replay. **C,** Environment
-resources and provider context use separate ledgers. **D,** An archived matched pair has
-a near-zero terminal contrast but marked discovery, retention, drawdown and terminal-
-retention differences; the example is descriptive and supports no model ranking.
+**Figure 4 | Controlled private-law interventions under an invariant public contract.**
+**A,** Parent and child share the public world structure, contract and fixed action sequence
+while one private mechanism changes. **B,** All six fork pairs diverge in their registered
+physical and public-observation channels under exact replay. The complete-agent integration
+case remains a bounded textual result rather than a separate schematic panel.

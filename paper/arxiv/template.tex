@@ -6,7 +6,6 @@
 \usepackage{lmodern}
 \usepackage{microtype}
 \usepackage{graphicx}
-\usepackage{dblfloatfix}
 \usepackage{balance}
 \usepackage{float}
 \usepackage{placeins}
@@ -15,6 +14,7 @@
 \usepackage{calc}
 \usepackage{tabularx}
 \usepackage{array}
+\usepackage{ragged2e}
 \usepackage{etoolbox}
 \usepackage{amsmath,amssymb}
 \usepackage[numbers,sort&compress]{natbib}
@@ -44,11 +44,26 @@
 \setlength{\parskip}{0pt}
 \setlength{\emergencystretch}{1.5em}
 \setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{8pt plus 2pt minus 2pt}
 \setlength{\floatsep}{7pt plus 2pt minus 2pt}
+\setlength{\dblfloatsep}{7pt plus 2pt minus 2pt}
 \setlength{\intextsep}{7pt plus 2pt minus 2pt}
-\renewcommand{\dbltopfraction}{0.92}
-\renewcommand{\dblfloatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{dbltopnumber}{3}
+\setcounter{totalnumber}{5}
+\renewcommand{\topfraction}{0.94}
+\renewcommand{\dbltopfraction}{0.94}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.82}
+\renewcommand{\dblfloatpagefraction}{0.82}
 \captionsetup{justification=justified,singlelinecheck=false}
+\captionsetup[figure]{skip=5pt}
+\captionsetup[table]{skip=4pt}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\clubpenalty=8000
+\widowpenalty=8000
+\displaywidowpenalty=8000
 % Headings carry their frozen manuscript numbers so the Markdown and TeX
 % sources expose the same navigation without duplicate LaTeX counter labels.
 \titleformat{\section}{\large\bfseries\color{chemblue}\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000}{}{0pt}{}
@@ -58,7 +73,7 @@
 
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\footnotesize Composable Chemical Worlds}
+\fancyhead[L]{\footnotesize Programmable Chemical Worlds}
 \fancyhead[R]{\footnotesize arXiv preprint}
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.25pt}

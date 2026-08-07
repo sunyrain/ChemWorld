@@ -78,9 +78,48 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
   provider/model 信息下沉到 Methods，补齐 runtime 事件/账本对象、Qualification scope 与 protocol 术语；
   规范源、四张可编辑 SVG、15 页 arXiv PDF、source bundle 和 manifest 已同步，18 项定向测试、Ruff、diff
   检查和关键页视觉检查通过。
-- **DEFERRED / 可选 Image 2 参考图**：WellAU Responses wire 的 bounded 生成探针未获得图像结果。最终发布版采用
-  已验收的原生可编辑 SVG，不依赖位图嵌入；Image 2 只保留为未来可选的视觉参考，不阻塞本次发布。
+- **DONE / 结果层次重构与全局清稿**：`Claim: Codex /root — A04-RESULTS-REFRAME — DONE`；将原第 4--7 节按
+  “世界资格验证—过程完整与受控干预—Agent 契约接入”重组，消除 failure、replay 和非参考世界证据的跨节重复，
+  同步统一摘要、贡献列表、Discussion、Methods、Conclusion 与测试断言；三张结果图已固定在对应证据章节，
+  16 页 arXiv PDF、source bundle 和 manifest 已同次重建，12 项定向测试、Ruff、diff 检查及第 5--12 页视觉检查通过。
+- **DONE / 最终 minor revision**：`Claim: Codex /root — FINAL-MINOR-POLISH — DONE`；收紧摘要中的 software-condition
+  与 safety 表述，统一 substrate / executable world / public instrument contract 术语，补齐 Section 3.2 接受/拒绝事件
+  形式化，压缩 ChemGymRL 比较，删除 Section 5.3 重复并将 Figure 4 后置到 Section 6.3；证据、结果结构与实验分母
+  未改变。16 页 arXiv PDF、source bundle 与 manifest 已重建，12 项定向测试、Ruff、diff 检查及关键页视觉检查通过。
+- **DONE / 发布前形式闭合与图件收口**：`Claim: Codex /root — FINAL-FORMAL-CLOSURE — DONE`；闭合
+  public world / private mechanism、preflight rejection / post-execution rollback 和直接私有字段暴露的定义，新增
+  controlled-fork 规格表与 19 个过程坐标表，并重做 Figure 1、修正 Figure 3/4 的原生可编辑矢量表达；未新增实验或改变
+  分母。18 页 arXiv PDF、source bundle 与 manifest 已同次重建，14 项定向测试、Ruff、diff 检查及第 1、3--5、8--10、
+  16 页视觉检查通过。
+- **DONE / 最终 replay 与验证边界闭合**：`Claim: Codex /root — FINAL-REPLAY-BOUNDARY — DONE`；确认 exact replay
+  重放完整 submitted action/transaction trace（失败案例 19/19 steps，含 1 个 rollback），从既有 192-probe 报告真实拆出
+  128 个 `P=0` admission rejects 与 64 个 `P=1,C=0` runtime-precondition rollbacks，并明确 solver/observation fault 未有独立
+  分母；同步统一 world/scenario/task--world identity、observation-RNG、fork 规律、过程坐标、Figure 1/2/4 和术语。19 页 arXiv
+  PDF、source bundle 与 manifest 已同次重建；20 项定向测试、Ruff、diff 检查及关键页视觉检查通过。未新增实验、未改冻结
+  分母、未虚构发布标识。
+- **DONE / 最终 PDF 版面微调**：`Claim: Codex /root — FINAL-PDF-LAYOUT — DONE`；第五页 commit 公式改为双行，
+  第十页 Figure 4 浮动顺序调整后消除空白右栏，Figure 4D 长标签重新断行；19 页规范 PDF、source bundle 与 manifest
+  已同次重建，逐页缩略图及第 5、10、11 页高分辨率检查通过，19 项定向测试、Ruff 与 diff 检查通过。
+- **DONE / 全面排版修复**：`Claim: Codex /root — FINAL-LAYOUT-COMPREHENSIVE — DONE`；统一双栏浮动参数、表格
+  ragged-right 列型、标题间距和附录全宽块，消除 Figure 2/3 浮动页、第 7 页空白右栏、附录孤页/孤行及参考文献前后
+  错序；规范 PDF 压缩为 18 页，且无 overfull 或未解析引用。PDF、source ZIP/TAR 与 manifest 已同次确定性重建，
+  逐页缩略图及第 7、8、15--18 页高分辨率检查、14 项定向测试、diff 检查和重复构建哈希一致性均通过；未新增实验或改动冻结分母。
+- **DEFERRED / 可选 Image 2 参考图**：WellAU Responses wire 的 bounded 生成探针未获得图像结果。Figure 1 现按
+  用户指示直接采用给定的 16:9 PNG；Figure 2--4 保持原生可编辑 SVG。Image 2 生成与 Figure 1 矢量重建不再阻塞发布。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
+- **DONE / Claim**：`Claim: Codex /root — CENTRAL-QUESTION-LAYOUT-REFRAME — DONE`；在不改变冻结证据、
+  实验分母或能力边界的前提下，将论文主轴提升为“世界构造本身成为受控实验变量”，同步重写标题、摘要、
+  引言、贡献、章节标题、Discussion 与 Conclusion；合并读者能力图谱和使用案例以消除附录整栏空白，统一
+  `Programmable Chemical Worlds` 页眉，并重建为 18 页 PDF。17 项论文/图件/发布测试、Ruff、无 overfull/
+  未解析引用检查、关键页高分辨率视觉验收及连续两次构建的 PDF/source bundle/manifest 哈希一致性均通过。
+- **DONE / Claim**：`Claim: Codex /root — FIGURE-INFORMATION-SWEEP — DONE`；按“每个面板必须提供不可由
+  一句话或表格更清楚替代的独立信息”清扫主图，删除 Figure 2C/D、Figure 3C/D 和 Figure 4C/D 的重复通过率、
+  PASS 卡片、资源占比与低信息时间线，将三张结果图收缩为横向双面板，并同步图注、正文、显示项和发布检查。
+  规范 PDF 由 18 页压缩为 17 页，Figure 2/3 在第 7 页形成紧凑证据组，Figure 4 在第 9 页贴近 fork 结果；
+  17 项论文/图件/发布测试、Ruff、diff 检查、无 overfull/未解析引用检查、逐页视觉验收和双构建哈希一致性均通过。
+- **DONE / Figure 1 直接替换**：按用户指定的 `ChemWorld_Figure1_editable_16x9_01.png` 直接替换 Figure 1，
+  不重做渲染器或矢量重建；同步更新图注、显示项、Figure manifest、17 页 PDF 和 source bundle。20 项定向测试、
+  Ruff、diff 检查及第 3 页高分辨率视觉检查通过。
 
 ## 1. 论文只讲什么
 
@@ -101,15 +140,15 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 
 推荐的一句话表述：
 
-> We validate reusable physical and transactional components, their declared interfaces,
+> We validate reusable process-model and transactional components, their declared interfaces,
 > and coverage-guided compositions—not every possible task.
 
 ## 2. 必须统一的对象层级
 
 - **组件**：反应、热、相、分离、结晶、蒸馏、连续流、电化学、观测等可复用模块。
-- **世界**：满足兼容规则的一组组件、参数和私有定律。
-- **任务契约**：`T = (W, S0, A, I, O, R, τ, E)`，即世界、初态、操作、仪器、观测、
-  资源、终止和评价的组合。
+- **完整世界**：`𝒲 = (W_pub, θ)`；`W_pub` 是公开组件拓扑、公开参数域和接口，`θ` 是评价器持有的私有定律、隐藏参数与私有初始化。
+- **任务契约**：`T = (W_pub, S0_pub, A, I, O, R, τ, E)`，即公开世界描述、公开初态投影、操作、仪器、观测、
+  资源、终止和评价的组合；完整私有世界身份不进入 Agent 契约。
 - **场景**：一个任务契约下的具体参数、初态和随机实例。
 - **轨迹**：agent 与该场景交互产生的操作—观测序列。
 - **参考任务集**：15 个经过人工检查的示例，用来展示结构跨度和使用方式，不是 benchmark 全集。
