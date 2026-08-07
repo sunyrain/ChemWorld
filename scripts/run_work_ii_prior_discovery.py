@@ -1026,6 +1026,17 @@ def _run_cell(
     )
     try:
         evidence_ids: list[str] = []
+        _progress(
+            progress_file,
+            event="snapshot_provider_call_inflight",
+            snapshot_stage="pre_evidence",
+            stage=stage_id,
+            cell_index=cell_index,
+            task_id=task_id,
+            prior_arm=arm_id,
+            completed_provider_decisions=0,
+            total_provider_decisions=schedule.provider_decisions_per_cell,
+        )
         payload, completion = _call_snapshot(
             client=client,
             stage="pre_evidence",
@@ -1079,6 +1090,17 @@ def _run_cell(
             completed_physical_experiments=1,
             total_physical_experiments=schedule.physical_experiments_per_cell,
         )
+        _progress(
+            progress_file,
+            event="snapshot_provider_call_inflight",
+            snapshot_stage="post_neutral",
+            stage=stage_id,
+            cell_index=cell_index,
+            task_id=task_id,
+            prior_arm=arm_id,
+            completed_provider_decisions=1,
+            total_provider_decisions=schedule.provider_decisions_per_cell,
+        )
         payload, completion = _call_snapshot(
             client=client,
             stage="post_neutral",
@@ -1126,6 +1148,17 @@ def _run_cell(
                 str(item["evidence_id"])
                 for item in public.get("measurement_evidence", [])
             )
+        _progress(
+            progress_file,
+            event="snapshot_provider_call_inflight",
+            snapshot_stage="post_discriminating",
+            stage=stage_id,
+            cell_index=cell_index,
+            task_id=task_id,
+            prior_arm=arm_id,
+            completed_provider_decisions=2,
+            total_provider_decisions=schedule.provider_decisions_per_cell,
+        )
         payload, completion = _call_snapshot(
             client=client,
             stage="post_discriminating",
@@ -1190,6 +1223,17 @@ def _run_cell(
                     "plan_sha256": canonical_json_sha256(plan.to_dict()),
                 }
             )
+        _progress(
+            progress_file,
+            event="snapshot_provider_call_inflight",
+            snapshot_stage="final",
+            stage=stage_id,
+            cell_index=cell_index,
+            task_id=task_id,
+            prior_arm=arm_id,
+            completed_provider_decisions=5,
+            total_provider_decisions=schedule.provider_decisions_per_cell,
+        )
         payload, completion = _call_snapshot(
             client=client,
             stage="final",
