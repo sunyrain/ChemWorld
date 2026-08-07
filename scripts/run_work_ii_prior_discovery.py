@@ -624,6 +624,7 @@ def _compact_snapshot_output_schema(
     metric_ids: Sequence[str],
     query_ids: Sequence[str],
     allowed_evidence_ids: Sequence[str],
+    nominal_information_available: bool,
 ) -> dict[str, Any]:
     feature_enum = {"type": "string", "enum": [str(item) for item in feature_ids]}
     metric_enum = {"type": "string", "enum": [str(item) for item in metric_ids]}
@@ -666,7 +667,9 @@ def _compact_snapshot_output_schema(
         "properties": {
             "snapshot_stage": {"type": "string"},
             "belief_status": {"type": "string"},
-            "prior_reliability": {"type": ["number", "null"]},
+            "prior_reliability": {
+                "type": "number" if nominal_information_available else "null"
+            },
             "feature_beliefs": {
                 "type": "array",
                 "items": {
@@ -999,7 +1002,9 @@ def _call_snapshot(
             "Return only the compact Work II belief draft. Do not name the prior arm. "
             "Treat measured evidence as authoritative, expose uncertainty, and provide "
             "predictions for every held-out query. evidence_ids is a closed-world list: "
-            "copy only IDs from the supplied evidence_ids list; if it is empty, return []."
+            "copy only IDs from the supplied evidence_ids list; if it is empty, return []. "
+            "For nominal_information_available=true, prior_reliability must be a number; "
+            "for opaque information it must be null."
         ),
     }
     completion = client.complete_json(
@@ -1014,6 +1019,9 @@ def _call_snapshot(
             metric_ids=tuple(str(item) for item in task_plan["prediction_metrics"]),
             query_ids=tuple(str(query.query_id) for query in queries),
             allowed_evidence_ids=tuple(str(item) for item in evidence_ids),
+            nominal_information_available=(
+                protocol["material_information"]["mode"] != "opaque_codes"
+            ),
         ),
     )
     compiled = _compile_snapshot_draft(
