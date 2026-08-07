@@ -104,8 +104,8 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
   ragged-right 列型、标题间距和附录全宽块，消除 Figure 2/3 浮动页、第 7 页空白右栏、附录孤页/孤行及参考文献前后
   错序；规范 PDF 压缩为 18 页，且无 overfull 或未解析引用。PDF、source ZIP/TAR 与 manifest 已同次确定性重建，
   逐页缩略图及第 7、8、15--18 页高分辨率检查、14 项定向测试、diff 检查和重复构建哈希一致性均通过；未新增实验或改动冻结分母。
-- **DEFERRED / 可选 Image 2 参考图**：WellAU Responses wire 的 bounded 生成探针未获得图像结果。Figure 1 现按
-  用户指示直接采用给定的 16:9 PNG；Figure 2--4 保持原生可编辑 SVG。Image 2 生成与 Figure 1 矢量重建不再阻塞发布。
+- **DEFERRED / 可选 Image 2 参考图**：WellAU Responses wire 的 bounded 生成探针未获得图像结果。Figure 1--3 现均按
+  用户指示直接采用给定 PNG；Image 2 生成及三张主图的矢量重建不再阻塞发布。
 - **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
 - **DONE / Claim**：`Claim: Codex /root — CENTRAL-QUESTION-LAYOUT-REFRAME — DONE`；在不改变冻结证据、
   实验分母或能力边界的前提下，将论文主轴提升为“世界构造本身成为受控实验变量”，同步重写标题、摘要、
@@ -120,6 +120,14 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE / Figure 1 直接替换**：按用户指定的 `ChemWorld_Figure1_editable_16x9_01.png` 直接替换 Figure 1，
   不重做渲染器或矢量重建；同步更新图注、显示项、Figure manifest、17 页 PDF 和 source bundle。20 项定向测试、
   Ruff、diff 检查及第 3 页高分辨率视觉检查通过。
+- **DONE / Figure 2 直接替换**：按用户指定的 `ChemWorld_Figure2_editable_16x9_01.png` 直接替换 Figure 2，
+  不重做渲染器或矢量重建；同步更新四面板图注、显示项、Figure manifest、arXiv PDF 和 source bundle，并完成定向测试与视觉检查。
+- **DONE / 主图精简与 Figure 3 直接替换**：删除信息已被正文、资格 census 和 Figure 1 覆盖的旧 Figure 3；
+  新 Figure 3 按用户指定的 4:3 PNG 直接插入，以 A--C 三个面板展示冻结执行案例、失败回滚后的继续提交，以及受控私有定律分叉与独立 agent 生命周期。
+- **DONE / Figure 2--3 原像素版面修复**：Figure 2（9599×5400）和 Figure 3（7200×5400）改用零边框、无插值的
+  lossless PDF 包装，修复手工 page box 引起的偏移、裁切和图注覆盖；17 页 PDF 与 source bundle 同次重建，最终 PDF
+  保留两张原始像素图，第 6、8 页高分辨率视觉检查确认边界完整且无文字覆盖；Figure manifest 工具只校验并绑定
+  三张直接插入资产，不再运行旧绘图路径覆盖用户给定图件。
 
 ## 1. 论文只讲什么
 
@@ -266,7 +274,7 @@ U05/C03 批次从头重跑并保留全部失败。
 | --- | --- | --- | --- |
 | F01 | DONE | 重写标题、摘要、引言和贡献 | 开头直接说明“开放组合但有限资格”的逻辑，避免读者追问为何只有 15 个任务 |
 | F02 | DONE | 重写 Results/Methods/Discussion | 新资格实验成为主证据；agent profile 降为仪器应用案例；第二篇边界明确 |
-| F03 | DONE | 重做主图 | 四张原生可编辑 SVG 与完整流程图已插入并通过视觉检查；Image 2 参考图因 provider 未返回图像而转为非阻塞的可选后续工作 |
+| F03 | DONE | 重做主图 | Figure 1--3 按用户指定 PNG 直接插入；三张主图分别承担系统契约、组合空间，以及执行/干预/agent 接入证据，Image 2 参考图转为非阻塞的可选后续工作 |
 | F04 | DONE | 整理附录 | 放完整组件表、兼容规则、覆盖矩阵、模块参考验证、失败类别和更多参考任务样例 |
 | F05 | DONE | 清理读者无关内容 | 正文和图中不出现文件名、路径、SHA、commit、run ID、manifest、内部 task/release 名称 |
 | F06 | DONE | 一次集中验收并导出 | 只做一次完整测试、一次图/PDF 视觉检查和一次内容边界检查，然后生成第一版发布包 |

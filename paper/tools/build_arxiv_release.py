@@ -105,8 +105,8 @@ def _canonical_figure_pdfs() -> list[Path]:
     if declared != _canonical_sha(payload) or payload.get("status") != "PASS":
         raise RuntimeError("first-paper publication figure manifest is stale or failed")
     figures = payload.get("figures")
-    if not isinstance(figures, list) or len(figures) != 4:
-        raise RuntimeError("first-paper publication figure manifest must contain four figures")
+    if not isinstance(figures, list) or len(figures) != 3:
+        raise RuntimeError("first-paper publication figure manifest must contain three figures")
     pdfs: list[Path] = []
     for order, figure in enumerate(figures, 1):
         if not isinstance(figure, dict) or figure.get("order") != order:

@@ -114,20 +114,21 @@ declared attempt consequences without installing candidate state. **D,** Determi
 requires exact reconstruction, whereas controlled forks retain the public contract and action
 sequence while changing one private law.
 
-**Figure 2 | Programmable construction and frozen coverage design.**
-**A,** Topology novelty and exact task--world identity novelty are represented separately
-across the eight component patterns. **B,** Pairwise discrete coverage, seeded continuous
-strata and ordered workflow interactions determine the 52 generated rows. Qualification
-outcomes remain in the results text and census table rather than being redrawn as pass bars.
+**Figure 2 | Compositional world design space beyond a fixed task catalogue.**
+**A,** The 52 generated compositions comprise 18 topology-new worlds, eight identity-new
+reaction--distillation worlds that reuse a registered topology and 26 additional
+registered-topology coverage rows. **B,** Topology novelty and exact task--world identity
+novelty are independent coordinates relative to the 64 reference units. **C,** Frozen rows
+vary discrete component patterns, authored continuous conditions and ordered workflows.
+**D,** Composition changes topology, operating conditions, workflow order and the public
+instrument surface while preserving one common world contract.
 
-**Figure 3 | Workflow diversity and planned rollback recovery.**
-**A,** Eight cases span single-process, multistage and reference-library workflows.
-**B,** The protocol-frozen rollback remains in the 89-action census and is followed by 18
-commits from the last committed state. State-restoration and replay outcomes remain in the
-results text rather than being repeated as PASS cards.
-
-**Figure 4 | Controlled private-law interventions under an invariant public contract.**
-**A,** Parent and child share the public world structure, contract and fixed action sequence
-while one private mechanism changes. **B,** All six fork pairs diverge in their registered
-physical and public-observation channels under exact replay. The complete-agent integration
-case remains a bounded textual result rather than a separate schematic panel.
+**Figure 3 | Execution, intervention and agent access.**
+**A,** Eight frozen execution cases span crystallization, resource-limited characterization,
+planned failure and recovery, continuous flow, electrochemistry, distillation and partition
+workflows under one shared lifecycle semantics. **B,** A runtime-precondition failure at step
+1 remains inside the same experimental record; recovery continues from committed state through
+18 subsequent commits and final assay. **C,** Controlled private-law forks hold the public
+contract, typed action sequence and bound randomness fixed while changing one private law, and
+a separate non-reference world supports deterministic qualification and a provider-driven agent
+lifecycle through the same public contract.

@@ -46,11 +46,16 @@ def test_reader_visible_text_excludes_internal_engineering_metadata() -> None:
 
 def test_publication_svg_text_excludes_internal_engineering_metadata() -> None:
     svgs = sorted(FIGURE_DIR.glob("figure-*.svg"))
-    assert len(svgs) == 4
+    assert len(svgs) == 3
     for path in svgs:
         text = path.read_text(encoding="utf-8").lower()
-        if path.name == "figure-1-system-overview.svg":
+        if path.name in {
+            "figure-1-system-overview.svg",
+            "figure-2-composition-and-qualification.svg",
+            "figure-3-controlled-forks.svg",
+        }:
             assert text.count("<image") == 1
+            assert "<text" not in text
         else:
             assert "<text" in text
         assert "workstreams/" not in text
@@ -88,33 +93,25 @@ def test_main_figures_prioritize_scientific_capability_over_provider_accounting(
     figure_two = (
         FIGURE_DIR / "figure-2-composition-and-qualification.svg"
     ).read_text(encoding="utf-8").lower()
-    figure_three = (FIGURE_DIR / "figure-3-runtime-semantics.svg").read_text(
+    figure_three = (FIGURE_DIR / "figure-3-controlled-forks.svg").read_text(
         encoding="utf-8"
     ).lower()
-    figure_four = (FIGURE_DIR / "figure-4-forks-and-agent.svg").read_text(encoding="utf-8").lower()
     assert "not a claim of laboratory equivalence" not in figure_one
     assert "no physical reagents or wet-lab hazard" not in figure_one
     assert figure_one.count("<image") == 1
     assert "<text" not in figure_one
-    assert "60/60 levels" in figure_two
-    assert "180/180 pairs" in figure_two
-    assert "3 new topologies" in figure_two
-    assert "8 identity-new distillation cases" in figure_two
+    assert figure_two.count("<image") == 1
+    assert "<text" not in figure_two
     assert "every execution census completed" not in figure_two
     assert "module, interface and fail-closed probes" not in figure_two
-    assert "eight frozen use cases" in figure_three
-    assert "1 rollback" in figure_three
-    assert "18 subsequent commits" in figure_three
-    assert "rollback discards candidate state" not in figure_three
-    assert "all lifecycles close and replay" not in figure_three
-    assert "one private mechanism changes under one public contract" in figure_four
-    assert "relative difference magnitude" in figure_four
-    assert "one world, two independent execution units" not in figure_four
-    assert "one lifecycle, one replayable record" not in figure_four
-    assert "signed relative difference" not in figure_four
-    assert "cached input" not in figure_four
-    assert "provider input" not in figure_four
-    assert "repeated output" not in figure_four
+    assert figure_three.count("<image") == 1
+    assert "<text" not in figure_three
+    assert "one world, two independent execution units" not in figure_three
+    assert "one lifecycle, one replayable record" not in figure_three
+    assert "signed relative difference" not in figure_three
+    assert "cached input" not in figure_three
+    assert "provider input" not in figure_three
+    assert "repeated output" not in figure_three
 
 
 def test_public_author_and_correspondence_metadata_are_complete() -> None:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the four current-bound figures for the first ChemWorld paper."""
+"""Validate and bind the three direct-insert figures for the first ChemWorld paper."""
 
 from __future__ import annotations
 
@@ -66,17 +66,12 @@ FIGURES = (
     (
         "F2",
         "figure-2-composition-and-qualification",
-        "Programmable construction and frozen coverage design.",
+        "Compositional world design space beyond a fixed task catalogue.",
     ),
     (
         "F3",
-        "figure-3-runtime-semantics",
-        "Process-complete use cases and planned failure recovery.",
-    ),
-    (
-        "F4",
-        "figure-4-forks-and-agent",
-        "Controlled private-law interventions under an invariant public contract.",
+        "figure-3-controlled-forks",
+        "Execution, intervention and agent access.",
     ),
 )
 
@@ -345,7 +340,7 @@ def figure_1(data: Mapping[str, Any]) -> plt.Figure:
     construction = values["construction_counts"]
     ax.text(
         0.98,
-        0.92,
+        0.84,
         f"generated compositions  {construction['generated_compositions']}\n"
         f"controlled fork pairs  {construction['controlled_fork_pairs']}\n"
         f"provider-free fork traces  {construction['fork_traces']}",
@@ -1551,112 +1546,186 @@ def figure_2_composition_qualification(data: Mapping[str, Any]) -> plt.Figure:
     return fig
 
 
-def figure_3_runtime_semantics(data: Mapping[str, Any]) -> plt.Figure:
-    return figure_4(data)
+def _fork_effect_panel(
+    ax: plt.Axes,
+    rows: Sequence[Mapping[str, Any]],
+    *,
+    label: str,
+    title: str,
+    physical_label: str,
+    observation_label: str,
+    physical_threshold: float,
+    observation_threshold: float,
+) -> None:
+    _panel(ax, label, title)
+    ordered = sorted(rows, key=lambda row: int(row["seed"]))
+    x = np.arange(len(ordered))
+    physical = [float(row["physical_relative_delta"]) for row in ordered]
+    observed = [float(row["observation_relative_delta"]) for row in ordered]
+    ax.plot(x, physical, color=BLUE, lw=1.0, alpha=0.65)
+    ax.plot(x, observed, color=CORAL, lw=1.0, alpha=0.65)
+    ax.scatter(x, physical, s=30, color=BLUE, label=physical_label, zorder=3)
+    ax.scatter(x, observed, s=28, color=CORAL, marker="s", label=observation_label, zorder=3)
+    ax.axhline(physical_threshold, color=BLUE, lw=0.8, ls=":", alpha=0.9)
+    ax.axhline(observation_threshold, color=CORAL, lw=0.8, ls=":", alpha=0.9)
+    ax.set_xticks(x, [f"seed {row['seed']}" for row in ordered])
+    ax.set_xlim(-0.35, len(ordered) - 0.65)
+    ax.set_ylim(0.0, 0.24)
+    ax.set_ylabel("relative difference magnitude")
+    ax.grid(axis="y", color=GRID, lw=0.5, zorder=0)
+    ax.legend(loc="upper right", fontsize=5.7)
+    ax.text(
+        0.98,
+        physical_threshold + 0.006,
+        f"state min {physical_threshold:.2f}",
+        transform=ax.get_yaxis_transform(),
+        ha="right",
+        va="bottom",
+        fontsize=5.0,
+        color=BLUE,
+    )
+    ax.text(
+        0.98,
+        observation_threshold + 0.006,
+        f"public min {observation_threshold:.2f}",
+        transform=ax.get_yaxis_transform(),
+        ha="right",
+        va="bottom",
+        fontsize=5.0,
+        color=CORAL,
+    )
 
 
-def figure_4_forks_and_agent(data: Mapping[str, Any]) -> plt.Figure:
-    fig, axes = _new_1x2(height=2.70)
+def figure_3_controlled_forks(data: Mapping[str, Any]) -> plt.Figure:
+    fig, axes = _new_2x2()
     forks = data["figure_5"]
 
-    ax = axes[0]
+    ax = axes[0, 0]
     _clean_axis(ax)
-    _panel(ax, "A", "One private mechanism changes under one public contract")
+    _panel(ax, "A", "Matched counterfactual design")
     _box(
         ax,
-        (0.02, 0.46),
+        (0.01, 0.54),
+        0.22,
         0.25,
-        0.28,
         "parent\nworld",
         face=PALE_BLUE,
         edge=BLUE,
-        fontsize=7.0,
+        fontsize=6.8,
         weight="bold",
     )
     _box(
         ax,
-        (0.38, 0.58),
+        (0.31, 0.54),
+        0.38,
         0.25,
-        0.20,
-        "same W_pub + contract\n9 invariant fields",
+        "HELD FIXED\n9 public-contract fields\nsame action sequence\n+ keyed noise",
         face=WASH,
         edge=INK,
-        fontsize=6.4,
+        fontsize=5.3,
         weight="semibold",
     )
     _box(
         ax,
-        (0.38, 0.30),
-        0.25,
+        (0.31, 0.17),
+        0.38,
         0.20,
-        "same fixed\naction sequence",
-        face=WASH,
-        edge=INK,
-        fontsize=6.4,
+        "VARIED\nexactly one evaluator-owned\nprivate-law target",
+        face=PALE_AMBER,
+        edge=AMBER,
+        fontsize=5.7,
         weight="semibold",
     )
     _box(
         ax,
-        (0.74, 0.46),
-        0.24,
-        0.28,
+        (0.77, 0.54),
+        0.22,
+        0.25,
         "child\nworld",
         face=PALE_TEAL,
         edge=TEAL,
-        fontsize=7.0,
+        fontsize=6.8,
         weight="bold",
     )
-    for y in (0.67, 0.39):
-        _arrow(ax, (0.28, 0.60), (0.37, y))
-        _arrow(ax, (0.64, y), (0.73, 0.60))
-    _box(
-        ax,
-        (0.15, 0.07),
-        0.32,
-        0.13,
-        "3 constitutive-law\npairs",
-        face=PALE_AMBER,
-        edge=AMBER,
-        fontsize=5.9,
-    )
-    _box(
-        ax,
-        (0.54, 0.07),
-        0.32,
-        0.13,
-        "3 material-law\npairs",
-        face=PALE_CORAL,
-        edge=CORAL,
-        fontsize=5.9,
+    _arrow(ax, (0.24, 0.67), (0.30, 0.67))
+    _arrow(ax, (0.70, 0.67), (0.76, 0.67))
+    _arrow(ax, (0.50, 0.38), (0.76, 0.57), color=AMBER)
+    ax.text(
+        0.50,
+        0.03,
+        "6 pairs · 2 executions per variant · 24 deterministic traces",
+        transform=ax.transAxes,
+        ha="center",
+        fontsize=5.6,
+        color=MUTED,
     )
 
-    ax = axes[1]
-    _panel(ax, "B", "All forks diverge in registered channels")
+    ax = axes[0, 1]
+    _clean_axis(ax)
+    _panel(ax, "B", "Two protocol-frozen intervention classes")
+    _box(
+        ax,
+        (0.02, 0.53),
+        0.96,
+        0.31,
+        (
+            "PARTITION CONSTITUTIVE LAW · 3 seeds\n"
+            "$K^{1.00}\\rightarrow K^{1.75}$\n"
+            "physical $P_{org}\\uparrow$  ·  public product_in_organic $\\uparrow$"
+        ),
+        face=PALE_AMBER,
+        edge=AMBER,
+        fontsize=5.5,
+        weight="semibold",
+    )
+    _box(
+        ax,
+        (0.02, 0.10),
+        0.96,
+        0.34,
+        (
+            "ELECTROCHEMICAL MATERIAL LAW · 3 seeds\n"
+            "hidden mapping (0,1,2,3)→(2,1,0,3)\n"
+            "physical Red ↓  ·  public ohmic_efficiency ↓"
+        ),
+        face=PALE_CORAL,
+        edge=CORAL,
+        fontsize=5.3,
+        weight="semibold",
+    )
+
     rows = forks["rows"]
-    x = np.arange(len(rows))
-    physical = [float(row["physical_relative_delta"]) for row in rows]
-    observed = [float(row["observation_relative_delta"]) for row in rows]
-    ax.scatter(x, physical, s=32, color=BLUE, label="physical state")
-    ax.scatter(x, observed, s=30, color=CORAL, marker="s", label="public observation")
-    ax.set_xticks(x, [f"{row['seed']}" for row in rows])
-    ax.set_xlabel("seed: constitutive 0-2, material law 0-2")
-    ax.set_ylabel("relative difference magnitude")
-    ax.grid(axis="y", color=GRID, lw=0.55)
-    ax.legend(loc="upper left")
-    ax.text(
-        0.02,
-        0.04,
-        "6/6 pairs · 24 traces · replay PASS",
-        transform=ax.transAxes,
-        ha="left",
-        fontsize=6.1,
-        color=MUTED,
+    constitutive = [
+        row for row in rows if row["intervention_class"] == "mechanism_or_constitutive_law"
+    ]
+    material = [
+        row for row in rows if row["intervention_class"] == "material_law_counterfactual"
+    ]
+    _fork_effect_panel(
+        axes[1, 0],
+        constitutive,
+        label="C",
+        title="Constitutive-law effects (increase)",
+        physical_label=r"physical $P_{org}$",
+        observation_label="public assay",
+        physical_threshold=0.05,
+        observation_threshold=0.02,
+    )
+    _fork_effect_panel(
+        axes[1, 1],
+        material,
+        label="D",
+        title="Material-law effects (decrease)",
+        physical_label="physical Red",
+        observation_label="public efficiency",
+        physical_threshold=0.01,
+        observation_threshold=0.05,
     )
     _footer(
         fig,
         (
-            "Under fixed typed actions and bound noise, controlled forks isolate "
-            "trace-level effects of one private-law intervention."
+            "Relative-difference magnitude is shown; the frozen oracle also requires "
+            "the registered absolute magnitude and direction. All six pairs replay exactly."
         ),
     )
     return fig
@@ -1733,15 +1802,18 @@ def build_manifest(
 
 
 def render(data: Mapping[str, Any], output_dir: Path) -> dict[str, Sequence[Path]]:
-    functions = (
-        figure_1_system_overview,
-        figure_2_composition_qualification,
-        figure_3_runtime_semantics,
-        figure_4_forks_and_agent,
-    )
+    # The current figures are user-supplied raster plates. Their checked-in publication
+    # assets are authoritative; running this manifest tool must never redraw or overwrite
+    # them with the legacy matplotlib layouts retained above for provenance.
+    del data
     outputs: dict[str, Sequence[Path]] = {}
-    for (_, stem, _), function in zip(FIGURES, functions, strict=True):
-        outputs[stem] = _save_figure(function(data), output_dir, stem)
+    for _, stem, _ in FIGURES:
+        paths = [output_dir / f"{stem}.{suffix}" for suffix in ("svg", "pdf", "png")]
+        missing = [path for path in paths if not path.is_file()]
+        if missing:
+            rendered = ", ".join(str(path) for path in missing)
+            raise FileNotFoundError(f"missing direct-insert publication assets: {rendered}")
+        outputs[stem] = paths
     return outputs
 
 

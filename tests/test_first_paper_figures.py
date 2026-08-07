@@ -4,9 +4,11 @@ import json
 from pathlib import Path
 
 from paper.tools.render_first_paper_world_instrument_figures import (
+    DEFAULT_OUTPUT_DIR,
     FIGURES,
     MANIFEST_SCHEMA,
     build_manifest,
+    render,
 )
 from PIL import Image
 from scripts.build_first_paper_figure_data import canonical_sha256, file_sha256
@@ -28,12 +30,12 @@ def _manifest() -> dict:
     return value
 
 
-def test_manifest_binds_four_figures_and_twelve_current_assets() -> None:
+def test_manifest_binds_three_figures_and_nine_current_assets() -> None:
     manifest = _manifest()
     assert manifest["schema_version"] == MANIFEST_SCHEMA
     assert manifest["status"] == "PASS"
-    assert manifest["canonical_figure_count"] == 4
-    assert manifest["canonical_asset_count"] == 12
+    assert manifest["canonical_figure_count"] == 3
+    assert manifest["canonical_asset_count"] == 9
     assert manifest["caption_titles"] == [row[2] for row in FIGURES]
     declared = manifest["manifest_sha256"]
     unhashed = {key: value for key, value in manifest.items() if key != "manifest_sha256"}
@@ -42,13 +44,21 @@ def test_manifest_binds_four_figures_and_twelve_current_assets() -> None:
     assert all(manifest["claim_boundary"].values())
 
 
+def test_manifest_render_binding_does_not_overwrite_direct_plates() -> None:
+    paths = sorted(DEFAULT_OUTPUT_DIR.glob("figure-*.*"))
+    before = {path: file_sha256(path) for path in paths}
+    outputs = render({}, DEFAULT_OUTPUT_DIR)
+    after = {path: file_sha256(path) for path in paths}
+    assert before == after
+    assert set(outputs) == {row[1] for row in FIGURES}
+
+
 def test_every_bound_asset_exists_and_has_the_expected_publication_geometry() -> None:
     manifest = _manifest()
     expected_geometry = {
         "figure-1-system-overview": (2124, 1195),
-        "figure-2-composition-and-qualification": (2124, 846),
-        "figure-3-runtime-semantics": (2124, 774),
-        "figure-4-forks-and-agent": (2124, 810),
+        "figure-2-composition-and-qualification": (9599, 5400),
+        "figure-3-controlled-forks": (7200, 5400),
     }
     for figure in manifest["figures"]:
         assert [row["format"] for row in figure["outputs"]] == ["svg", "pdf", "png"]
@@ -61,8 +71,13 @@ def test_every_bound_asset_exists_and_has_the_expected_publication_geometry() ->
         with Image.open(png) as image:
             assert image.size == expected_geometry[figure["stem"]]
         svg = (ROOT / figure["outputs"][0]["path"]).read_text(encoding="utf-8")
-        if figure["stem"] == "figure-1-system-overview":
+        if figure["stem"] in {
+            "figure-1-system-overview",
+            "figure-2-composition-and-qualification",
+            "figure-3-controlled-forks",
+        }:
             assert svg.count("<image") == 1
+            assert "<text" not in svg
         else:
             assert "<text" in svg
         assert "D:\\Projects" not in svg

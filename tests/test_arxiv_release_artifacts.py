@@ -89,10 +89,10 @@ def test_arxiv_figure_manifest_binds_all_release_formats() -> None:
     declared = manifest.pop("manifest_sha256")
     assert declared == _canonical_sha(manifest)
     assert manifest["status"] == "PASS"
-    assert manifest["canonical_figure_count"] == 4
-    assert manifest["canonical_asset_count"] == 12
+    assert manifest["canonical_figure_count"] == 3
+    assert manifest["canonical_asset_count"] == 9
     files = [output for figure in manifest["figures"] for output in figure["outputs"]]
-    assert len(files) == 12
+    assert len(files) == 9
     assert {Path(row["path"]).suffix for row in files} == {
         ".pdf",
         ".png",
@@ -154,7 +154,7 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
     assert declared == _canonical_sha(manifest)
     assert manifest["status"] == "compiled_arxiv_release"
     assert manifest["pdf_page_count"] >= 10
-    assert manifest["canonical_figure_count"] == 4
+    assert manifest["canonical_figure_count"] == 3
     assert manifest["figure_manifest"].endswith("first-paper-publication-figure-manifest-v1.json")
     for row in manifest["files"]:
         artifact = ROOT / row["path"]
@@ -168,7 +168,7 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
         "main.bbl",
         "manuscript.md",
         "references.bib",
-        *{f"figures/figure-{number}" for number in range(1, 5)},
+        *{f"figures/figure-{number}" for number in range(1, 4)},
     }
     zip_path = ROOT / manifest["source_zip"]
     tar_path = ROOT / manifest["source_tar_gz"]
@@ -177,8 +177,8 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
     with tarfile.open(tar_path, mode="r:gz") as archive:
         tar_members = {member.name for member in archive.getmembers() if member.isfile()}
     assert zip_members == tar_members
-    assert required - {f"figures/figure-{number}" for number in range(1, 5)} <= zip_members
-    for number in range(1, 5):
+    assert required - {f"figures/figure-{number}" for number in range(1, 4)} <= zip_members
+    for number in range(1, 4):
         assert any(
             member.startswith(f"figures/figure-{number}-") and member.endswith(".pdf")
             for member in zip_members
@@ -195,10 +195,10 @@ def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
     assert "\\section{1. Introduction}" in tex
     assert "\\section{10. Conclusion}" in tex
     assert "\\fancyhead[L]{\\footnotesize Programmable Chemical Worlds}" in tex
-    positions = [tex.index(f"figures/figure-{number}-") for number in range(1, 5)]
+    positions = [tex.index(f"figures/figure-{number}-") for number in range(1, 4)]
     assert positions == sorted(positions)
     assert "figure-1-system-overview.pdf" in tex
-    assert "figure-4-forks-and-agent.pdf" in tex
+    assert "figure-3-controlled-forks.pdf" in tex
     assert "\\titleformat{\\section}" not in tex or "{\\thesection.}" not in tex
 
 
