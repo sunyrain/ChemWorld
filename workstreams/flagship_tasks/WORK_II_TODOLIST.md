@@ -520,14 +520,14 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] 完成
 - 优先级：P0
 - 代码交付物：
-  - [ ] experiment-level participant runner；
-  - [ ] immutable matrix/schedule manifests；
+  - [x] experiment-level participant runner；
+  - [x] immutable matrix/schedule manifest（五任务、三臂、四 snapshot、neutral/discriminating/autonomous/blind denominators）；
   - [ ] resume 与 right-censoring state machine；
-  - [ ] provider/scaffold receipts；
+  - [x] provider/scaffold receipts；
   - [x] typed prior/evidence/belief/law-summary schema 与可执行 law-summary validator；
   - [x] pre-evidence、post-neutral、post-discriminating 和 final prediction/confidence snapshot contract；
-  - [ ] neutral-prefix、discriminating-prefix、autonomous-suffix 与 blind-validation 状态机；
-  - [ ] high-level scientific decision 到 deterministic procedure executor 的统一接口；
+  - [x] neutral-prefix、discriminating-prefix、autonomous-suffix 与 blind-validation 状态机；
+  - [x] high-level scientific decision 到 deterministic procedure executor 的统一接口；
   - [ ] exact replay、resource replay 和 hidden-boundary audits；
   - [ ] public/private split enforcement；
   - [ ] formal report generator。
@@ -542,7 +542,10 @@ outcome channels remain separate so that the analysis can distinguish:
   schedule denominator。五任务小规模 discovery plan 固定为 1 neutral + 2 discriminating +
   2 autonomous experiments、4 held-out queries × 2 replicates、3 blind recommendation replicates；
   共 5 exploration experiments、6 direct provider decisions、最多 12 provider attempts 和 16
-  physical experiments per cell。该合同尚未接入正式 runner，也尚未执行新的 provider 调用。
+  physical experiments per cell。mock discovery preflight 已完成 15/15 cells、0 failures、
+  90 calls/attempts、39,000 tokens；每个 trajectory 的四 snapshot、2 autonomous decisions、
+  4 held-out queries 和 3 blind replicates 均通过机器校验。resume/right-censoring、真实
+  WellAU probe 和正式 provider qualification 仍未完成。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 

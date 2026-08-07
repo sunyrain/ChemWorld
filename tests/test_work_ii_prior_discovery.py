@@ -299,3 +299,11 @@ def test_repository_discovery_plan_keeps_five_tasks_and_a_bounded_small_pilot() 
     assert plan["stages"]["one-seed-breadth"]["expected_cells"] == 15
     assert plan["participant"]["mcp_enabled"] is False
     assert "no universal process-time cap" in plan["execution_bounds"]["repeat_rule"]
+    assert "constraint_violations" not in plan["tasks"]["reaction-safety-constrained"][
+        "prediction_metrics"
+    ]
+    assert set(plan["tasks"]["reaction-safety-constrained"]["prediction_metrics"]) == {
+        "score",
+        "safety_risk",
+        "yield",
+    }

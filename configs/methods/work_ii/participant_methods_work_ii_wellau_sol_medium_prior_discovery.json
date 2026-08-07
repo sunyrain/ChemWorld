@@ -1,0 +1,52 @@
+{
+  "schema_version": "chemworld-work-ii-prior-discovery-methods-0.1",
+  "freeze_id": "chemworld-work-ii-wellau-sol-medium-prior-discovery-2026-08-07",
+  "status": "development_contract_pending_mock_preflight",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "architecture": {
+    "agent": "StaticOptimizationAgent_plus_typed_belief_snapshots",
+    "executor": "StaticOptimizationExperimentSession",
+    "provider": "wellau",
+    "wire_api": "responses",
+    "model_id": "gpt-5.6-sol",
+    "reasoning_effort": "medium",
+    "tools_enabled": false,
+    "mcp_enabled": false,
+    "direct_request_per_decision_attempt": true,
+    "law_summary_is_executable": true,
+    "held_out_feedback_returned_to_agent": false
+  },
+  "methods": {
+    "work_ii_wellau_sol_medium_prior_discovery": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "work_ii_direct_fixed_law_prior_discovery",
+      "declared_claim_validation_policy": "unscored_unknown_terms",
+      "request_configuration": {
+        "response_format": "json_schema",
+        "reasoning_effort": "medium",
+        "max_tokens": 3000,
+        "snapshot_max_tokens": 4500,
+        "timeout_s": 180.0,
+        "max_attempts": 2,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 8,
+        "per_decision_max_estimated_tokens": 18000,
+        "snapshot_max_estimated_tokens": 18000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+        "completion_scope": "development_discovery_pilot_pending_mock_and_real_probe"
+      },
+      "snapshot_contract": {
+        "schema_version": "chemworld-work-ii-belief-snapshot-0.1",
+        "law_summary_schema_version": "chemworld-work-ii-law-summary-0.1",
+        "query_schema_version": "chemworld-work-ii-held-out-query-0.1",
+        "four_stages_required": true,
+        "unknown_terms_are_fatal": true
+      }
+    }
+  }
+}
