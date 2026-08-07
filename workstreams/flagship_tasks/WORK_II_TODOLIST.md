@@ -511,11 +511,11 @@ outcome channels remain separate so that the analysis can distinguish:
 ### W2-09 — 完成 manifest-driven formal runner
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
@@ -524,8 +524,8 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] immutable matrix/schedule manifests；
   - [ ] resume 与 right-censoring state machine；
   - [ ] provider/scaffold receipts；
-  - [ ] prior/evidence/belief/action/law-summary trajectory schema；
-  - [ ] pre-evidence、post-neutral、post-discriminating 和 final prediction/confidence snapshots；
+  - [x] typed prior/evidence/belief/law-summary schema 与可执行 law-summary validator；
+  - [x] pre-evidence、post-neutral、post-discriminating 和 final prediction/confidence snapshot contract；
   - [ ] neutral-prefix、discriminating-prefix、autonomous-suffix 与 blind-validation 状态机；
   - [ ] high-level scientific decision 到 deterministic procedure executor 的统一接口；
   - [ ] exact replay、resource replay 和 hidden-boundary audits；
@@ -537,7 +537,12 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] private identities 不进入 agent prompt；
   - [ ] 每个估计量可追溯到 immutable trajectory records；
   - [ ] fail-closed tests 覆盖 provider failure、partial action 和 ledger mismatch。
-- 备注：`TBD`
+- 备注：已提交 provider-independent typed contract：四次 snapshot、nominal-prior reliability、
+  held-out prediction、executable metric-law summary、query-contract drift guard 和 discovery
+  schedule denominator。五任务小规模 discovery plan 固定为 1 neutral + 2 discriminating +
+  2 autonomous experiments、4 held-out queries × 2 replicates、3 blind recommendation replicates；
+  共 5 exploration experiments、6 direct provider decisions、最多 12 provider attempts 和 16
+  physical experiments per cell。该合同尚未接入正式 runner，也尚未执行新的 provider 调用。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 

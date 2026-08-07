@@ -1,0 +1,230 @@
+{
+  "schema_version": "chemworld-work-ii-prior-discovery-pilot-plan-0.1",
+  "pilot_id": "chemworld-work-ii-prior-discovery-pilot-2026-08-07",
+  "status": "development_contract_pending_mock_preflight",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "scientific_result": false,
+  "task_ids": [
+    "electrochemical-conversion",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "partition-discovery",
+    "reaction-safety-constrained"
+  ],
+  "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+  "world_seed_policy": {
+    "one_seed_breadth": [0],
+    "completion_world_seeds": [0, 1, 2, 3, 4],
+    "maximum_without_explicit_user_authorization": 5,
+    "provider_repeats_are_not_world_seeds": true
+  },
+  "participant": {
+    "provider": "wellau",
+    "wire_api": "responses",
+    "model_id": "gpt-5.6-sol",
+    "reasoning_effort": "medium",
+    "tools_enabled": false,
+    "mcp_enabled": false,
+    "decision_transport": "one_direct_responses_request_per_attempt"
+  },
+  "discovery_schedule": {
+    "snapshot_stages": [
+      "pre_evidence",
+      "post_neutral",
+      "post_discriminating",
+      "final"
+    ],
+    "neutral_prefix_experiments": 1,
+    "discriminating_prefix_experiments": 2,
+    "autonomous_suffix_experiments": 2,
+    "held_out_query_count": 4,
+    "held_out_replicates_per_query": 2,
+    "blind_recommendation_replicates": 3,
+    "max_provider_attempts_per_decision": 2,
+    "executor_guard_margin_operations": 1
+  },
+  "phase_contract": {
+    "neutral_prefix": {
+      "selection_authority": "protocol_executor",
+      "selection_policy": "one frozen center-background experiment with one categorical assignment; identical across prior arms",
+      "agent_can_modify_recipe": false,
+      "purpose": "supply evidence with low power to distinguish the dossier mapping"
+    },
+    "discriminating_prefix": {
+      "selection_authority": "protocol_executor",
+      "selection_policy": "two frozen paired recipes that vary only the task target field on one matched continuous background",
+      "agent_can_modify_recipe": false,
+      "purpose": "contrast nominal-property predictions against controlled experimental evidence"
+    },
+    "autonomous_suffix": {
+      "selection_authority": "participant",
+      "selection_policy": "one complete experiment per direct Responses decision",
+      "agent_can_modify_recipe": true,
+      "purpose": "test whether epistemic correction changes subsequent scientific action"
+    },
+    "held_out_prediction": {
+      "query_visibility": "visible at every snapshot but never executed until the final snapshot is committed",
+      "query_identity_fixed_across_snapshots_and_prior_arms": true,
+      "feedback_returned_to_agent": false
+    },
+    "blind_validation": {
+      "recommendation_committed_before_execution": true,
+      "paired_observation_seeds_across_prior_arms": true,
+      "feedback_returned_to_agent": false
+    }
+  },
+  "tasks": {
+    "electrochemical-conversion": {
+      "parameterization": "named_physical_controls",
+      "feature_ids": [
+        "electrolyte_profile",
+        "solvent",
+        "reagent_amount_mol",
+        "potential_V",
+        "current_mA",
+        "duration_s"
+      ],
+      "prior_fields": ["electrolyte_profile", "solvent"],
+      "discriminating_target_field": "electrolyte_profile",
+      "discriminating_levels": [1, 3],
+      "prediction_metrics": {
+        "selective_product_yield": [0.0, 1.0],
+        "energy_efficiency": [0.0, 1.0],
+        "safety_risk": [0.0, 1.0]
+      },
+      "compiled_operation_count": 8
+    },
+    "reaction-to-crystallization": {
+      "parameterization": "named_physical_controls",
+      "feature_ids": [
+        "reaction_temperature_K",
+        "reaction_duration_s",
+        "reagent_amount_mol",
+        "stirring_speed_rpm",
+        "catalyst",
+        "catalyst_amount_mol",
+        "solvent",
+        "seed_mass_g",
+        "crystallization_temperature_K",
+        "crystallization_duration_s"
+      ],
+      "prior_fields": ["catalyst", "solvent"],
+      "discriminating_target_field": "catalyst",
+      "discriminating_levels": [1, 2],
+      "prediction_metrics": {
+        "crystal_yield": [0.0, 1.0],
+        "crystal_purity": [0.0, 1.0],
+        "crystal_csd_quality": [0.0, 1.0]
+      },
+      "compiled_operation_count": 12
+    },
+    "reaction-to-distillation": {
+      "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+      "feature_ids": [
+        "reaction_temperature_K",
+        "reaction_duration_s",
+        "reagent_amount_mol",
+        "stirring_speed_rpm",
+        "catalyst",
+        "catalyst_amount_mol",
+        "solvent",
+        "evaporation_temperature_K",
+        "evaporation_duration_s",
+        "distillation_temperature_K",
+        "distillation_duration_s",
+        "reflux_ratio",
+        "transfer_fraction"
+      ],
+      "prior_fields": ["catalyst", "solvent"],
+      "discriminating_target_field": "catalyst",
+      "discriminating_levels": [0, 1],
+      "prediction_metrics": {
+        "distillate_purity": [0.0, 1.0],
+        "distillate_recovery": [0.0, 1.0],
+        "solvent_loss": [0.0, 1.0]
+      },
+      "compiled_operation_count": 12
+    },
+    "partition-discovery": {
+      "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+      "feature_ids": [
+        "solvent",
+        "solvent_volume_L",
+        "aqueous_volume_L",
+        "extractant",
+        "extractant_volume_L",
+        "mix_duration_s",
+        "settle_duration_s",
+        "stirring_speed_rpm"
+      ],
+      "prior_fields": ["solvent", "extractant"],
+      "discriminating_target_field": "solvent",
+      "discriminating_levels": [0, 2],
+      "prediction_metrics": {
+        "phase_ratio": [0.0, 1.0],
+        "product_in_organic": [0.0, 1.0],
+        "product_in_aqueous": [0.0, 1.0]
+      },
+      "compiled_operation_count": 10
+    },
+    "reaction-safety-constrained": {
+      "parameterization": "unit_vector_with_public_physical_coordinate_schema",
+      "feature_ids": [
+        "reaction_temperature_K",
+        "reaction_duration_s",
+        "reagent_amount_mol",
+        "stirring_speed_rpm",
+        "catalyst",
+        "catalyst_amount_mol",
+        "solvent"
+      ],
+      "prior_fields": ["catalyst", "solvent"],
+      "discriminating_target_field": "solvent",
+      "discriminating_levels": [0, 3],
+      "prediction_metrics": {
+        "score": [0.0, 1.0],
+        "safety_risk": [0.0, 1.0],
+        "constraint_violations": [0.0, 8.0]
+      },
+      "compiled_operation_count": 8
+    }
+  },
+  "execution_bounds": {
+    "process_time_policy": "bind each generated task protocol to its current task-pattern-derived process_time_policy",
+    "required_identity": "process_time_limit_s = required_stage_max_s + repeat_allowance_s",
+    "repeat_rule": "use only the operation repeat counts declared by that task pattern; no universal process-time cap",
+    "quench_transfer_rule": "implicit quench, transfer, or collect-fraction duration must remain inside the task policy implicit_stage_reserve_s",
+    "provider_timeout_s_per_attempt": 180.0,
+    "snapshot_max_output_tokens": 4500,
+    "autonomous_decision_max_output_tokens": 3000,
+    "raw_provider_payloads_retained": false,
+    "progress_heartbeat_interval_s": 30
+  },
+  "stages": {
+    "mock-discovery-preflight": {
+      "provider": "mock",
+      "task_ids": "all",
+      "prior_arms": "all",
+      "world_seeds": [0],
+      "expected_cells": 15,
+      "scientific_result": false
+    },
+    "real-discovery-probe": {
+      "provider": "wellau",
+      "task_ids": ["electrochemical-conversion"],
+      "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+      "world_seeds": [0],
+      "expected_cells": 3,
+      "scientific_result": false
+    },
+    "one-seed-breadth": {
+      "provider": "wellau",
+      "task_ids": "all",
+      "prior_arms": "all",
+      "world_seeds": [0],
+      "expected_cells": 15,
+      "scientific_result": "development_pilot_only"
+    }
+  }
+}
