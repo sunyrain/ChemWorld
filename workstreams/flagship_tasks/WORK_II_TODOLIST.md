@@ -301,8 +301,8 @@ outcome channels remain separate so that the analysis can distinguish:
 | W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DOING | W2-03 |
 | W2-07 | P0 | 功效、资源和成本审计 | 未开始 | W2-04、W2-05、W2-06 |
 | W2-08 | P0 | Registered Report/常规投稿路线决策 | 未开始 | W2-03–W2-07 |
-| W2-09 | P0 | 完成 manifest-driven formal runner | 未开始 | W2-04–W2-07 |
-| W2-10 | P0 | provider/scaffold shakedown 与方法资格验证 | 未开始 | W2-09 |
+| W2-09 | P0 | 完成 manifest-driven formal runner | DOING | W2-04–W2-07 |
+| W2-10 | P0 | provider/scaffold shakedown 与方法资格验证 | DOING | W2-09 |
 | W2-11 | P0 | 冻结 preregistration 与不可变执行包 | 未开始 | W2-08、W2-10 |
 | W2-12 | P0 | 执行 public formal matrix | 未开始 | W2-11 |
 | W2-13 | P0 | 执行 private sealed confirmation | 未开始 | W2-12 |
@@ -463,11 +463,11 @@ outcome channels remain separate so that the analysis can distinguish:
 ### W2-07 — 功效、资源和成本审计
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
@@ -480,16 +480,18 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] 冻结 token、货币、wall time、并发和失败重试预算；
   - [ ] 明确早停仅针对基础设施/安全，不针对结果方向；
   - [ ] 输出完整资源上界和预计运行 ETA。
-- 备注：`TBD`
+- 备注：`Claim: Codex /root — W2-09 — DOING`；已建立 prior-pilot manifest runner、
+  machine-readable execution index 和外置 progress probe；formal trajectory/prefix/law-summary
+  runner 尚未完成。
 
 ### W2-08 — Registered Report/常规投稿路线决策
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
@@ -500,7 +502,8 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] 若不申请，冻结常规投稿目标和对应 evidence threshold；
   - [ ] 记录决策日期、负责人和不可逆后果；
   - [ ] 投稿路线不根据 formal outcomes 事后改变主假设。
-- 备注：`TBD`
+- 备注：`Claim: Codex /root — W2-10 — DOING`；Stage A mock contract preflight 已通过
+  15/15 cells、0 failures。Stage B 真实 WellAU 三臂小探针等待干净提交后执行。
 
 ### W2-09 — 完成 manifest-driven formal runner
 

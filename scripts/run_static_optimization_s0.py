@@ -7,6 +7,7 @@ import copy
 import json
 import statistics
 from collections.abc import Mapping
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
@@ -79,6 +80,25 @@ DEVELOPMENT_TEST_METHODS = (
 )
 REPORT_SCHEMA_VERSION = "chemworld-static-scientific-optimization-report-0.1-s0-dev"
 INTEGRATED_REPORT_SCHEMA_VERSION = "chemworld-static-scientific-optimization-report-0.3-s0-dev"
+PROGRESS_SCHEMA_VERSION = "chemworld-static-scientific-optimization-progress-0.1"
+
+
+def _record_progress(
+    progress_file: Path | None,
+    *,
+    event: str,
+    **payload: Any,
+) -> None:
+    if progress_file is None:
+        return
+    record = {
+        "schema_version": PROGRESS_SCHEMA_VERSION,
+        "updated_at_utc": datetime.now(UTC).isoformat(),
+        "event": event,
+        **payload,
+    }
+    write_json_atomic(progress_file, record)
+    print(json.dumps(record, ensure_ascii=False, sort_keys=True), flush=True)
 
 
 class _DeterministicStaticMockClient:
@@ -808,6 +828,9 @@ def _run_cell(
     task_id: str,
     provider: str,
     allow_external_provider: bool,
+    progress_file: Path | None = None,
+    cell_index: int = 0,
+    cell_count: int = 1,
 ) -> dict[str, Any]:
     method = methods["methods"][method_id]
     predictive_contract = _predictive_contract(protocol)
@@ -833,6 +856,22 @@ def _run_cell(
     final_synthesis: dict[str, Any] | None = None
     validation: dict[str, Any] | None = None
     predictive_validation: dict[str, Any] | None = None
+    progress_base = {
+        "cell_index": int(cell_index),
+        "cell_count": int(cell_count),
+        "task_id": task_id,
+        "method_id": method_id,
+        "world_seed": seed,
+        "provider": provider,
+    }
+    _record_progress(
+        progress_file,
+        event="cell_started",
+        stage="exploration",
+        completed_experiments=0,
+        total_experiments=horizon,
+        **progress_base,
+    )
     try:
         for experiment_index in range(horizon):
             with StaticOptimizationExperimentSession(
@@ -854,6 +893,15 @@ def _run_cell(
                 ),
                 scoring_contract_id=static_optimization_scoring_contract_id(protocol),
             ) as session:
+                _record_progress(
+                    progress_file,
+                    event="provider_call_inflight",
+                    stage="exploration",
+                    completed_experiments=experiment_index,
+                    total_experiments=horizon,
+                    current_experiment_index=experiment_index,
+                    **progress_base,
+                )
                 plan = agent.plan_next(history)
                 decision_audit = agent.decision_audit()
                 result = session.execute(plan)
@@ -865,8 +913,25 @@ def _run_cell(
                         "decision_audit": decision_audit,
                     }
                 )
+                _record_progress(
+                    progress_file,
+                    event="experiment_completed",
+                    stage="exploration",
+                    completed_experiments=experiment_index + 1,
+                    total_experiments=horizon,
+                    current_experiment_index=experiment_index,
+                    **progress_base,
+                )
         final_config = protocol.get("final_synthesis", {})
         if bool(final_config.get("enabled", False)):
+            _record_progress(
+                progress_file,
+                event="provider_call_inflight",
+                stage="final_synthesis",
+                completed_experiments=horizon,
+                total_experiments=horizon,
+                **progress_base,
+            )
             recommendation = agent.synthesize_final(history)
             recommendation_sha256 = canonical_sha256(recommendation.to_dict())
             final_synthesis = {
@@ -891,6 +956,14 @@ def _run_cell(
                         raise RuntimeError(
                             "separate final recommendation contains predictive output"
                         )
+                    _record_progress(
+                        progress_file,
+                        event="provider_call_inflight",
+                        stage="predictive_synthesis",
+                        completed_experiments=horizon,
+                        total_experiments=horizon,
+                        **progress_base,
+                    )
                     predictions_payload: object = list(
                         agent.predict_counterfactuals(
                             history,
@@ -1002,6 +1075,15 @@ def _run_cell(
         diagnostics = getattr(error, "validation_diagnostics", None)
         if isinstance(diagnostics, Mapping):
             failure["validation_diagnostics"] = copy.deepcopy(dict(diagnostics))
+        _record_progress(
+            progress_file,
+            event="cell_failed",
+            stage="failed",
+            completed_experiments=len(history),
+            total_experiments=horizon,
+            failure_reason_code=failure["reason_code"],
+            **progress_base,
+        )
     resources = agent.method_resource_usage()
     integrated = bool(protocol.get("final_synthesis", {}).get("enabled", False))
     planned_incumbent_replicates = int(
@@ -1037,7 +1119,7 @@ def _run_cell(
     benchmark_claim_allowed = bool(protocol.get("benchmark_claim_allowed", False)) and bool(
         methods.get("benchmark_claim_allowed", False)
     )
-    return {
+    cell = {
         "schema_version": (
             INTEGRATED_REPORT_SCHEMA_VERSION if integrated else REPORT_SCHEMA_VERSION
         ),
@@ -1101,6 +1183,17 @@ def _run_cell(
             else None
         ),
     }
+    _record_progress(
+        progress_file,
+        event="cell_completed" if failure is None else "cell_finalized_after_failure",
+        stage="completed" if failure is None else "failed",
+        completed_experiments=len(history),
+        total_experiments=horizon,
+        provider_calls=int(resources["model_call_count"]),
+        provider_attempts=int(resources["provider_attempt_count"]),
+        **progress_base,
+    )
+    return cell
 
 
 def _require_external_execution_confirmation(
@@ -1151,18 +1244,26 @@ def run_s0(args: argparse.Namespace) -> dict[str, Any]:
     ]
     method_ids = list(args.method_id or configured_method_ids or methods["methods"])
     task_ids = list(args.task or protocol["tasks"])
-    cells = [
-        _run_cell(
-            protocol=protocol,
-            methods=methods,
-            method_id=method_id,
-            task_id=task_id,
-            provider=args.provider,
-            allow_external_provider=bool(args.allow_external_provider),
-        )
-        for method_id in method_ids
-        for task_id in task_ids
+    progress_file = getattr(args, "progress_file", None)
+    progress_path = Path(progress_file) if progress_file is not None else None
+    requested_cells = [
+        (method_id, task_id) for method_id in method_ids for task_id in task_ids
     ]
+    cells = []
+    for cell_index, (method_id, task_id) in enumerate(requested_cells, start=1):
+        cells.append(
+            _run_cell(
+                protocol=protocol,
+                methods=methods,
+                method_id=method_id,
+                task_id=task_id,
+                provider=args.provider,
+                allow_external_provider=bool(args.allow_external_provider),
+                progress_file=progress_path,
+                cell_index=cell_index,
+                cell_count=len(requested_cells),
+            )
+        )
     for cell in cells:
         filename = f"{cell['method_id']}--{cell['cell']['task_id']}.json"
         write_json_atomic(args.output / "receipts" / filename, cell)
@@ -1271,6 +1372,17 @@ def run_s0(args: argparse.Namespace) -> dict[str, Any]:
         ),
     }
     write_json_atomic(args.output / "report.json", report)
+    _record_progress(
+        progress_path,
+        event="run_completed",
+        stage="completed",
+        completed_cells=report["completed_cell_count"],
+        failed_cells=report["method_failure_cell_count"],
+        total_cells=report["cell_count"],
+        provider_calls=report["provider_call_count"],
+        provider_attempts=report["provider_attempt_count"],
+        output=str(args.output),
+    )
     return report
 
 
@@ -1301,6 +1413,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--task", action="append")
     parser.add_argument("--method-id", action="append")
+    parser.add_argument(
+        "--progress-file",
+        type=Path,
+        help="Optional machine-readable progress file; keep it outside the repository.",
+    )
     return parser.parse_args()
 
 

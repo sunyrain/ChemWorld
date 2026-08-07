@@ -1,0 +1,47 @@
+{
+  "schema_version": "chemworld-work-ii-prior-pilot-methods-0.1",
+  "freeze_id": "chemworld-work-ii-wellau-sol-medium-direct-prior-pilot-2026-08-07",
+  "status": "development_pilot_only",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "architecture_candidate": {
+    "primary_track": "fixed_law_prior_condition_pilot",
+    "decision_scope": "one_complete_experiment",
+    "agent": "StaticOptimizationAgent",
+    "executor": "StaticOptimizationExperimentSession",
+    "provider": "wellau",
+    "wire_api": "responses",
+    "tools_enabled": false,
+    "single_provider_request_per_decision_attempt": true,
+    "model_facing_parameterization": "task_native_static_s0",
+    "hidden_world_fields_supplied": false,
+    "final_synthesis": false,
+    "predictive_validation": false,
+    "scientific_claim_allowed": false
+  },
+  "methods": {
+    "work_ii_wellau_sol_medium_direct_prior_pilot": {
+      "model_id": "gpt-5.6-sol",
+      "static_optimization_scaffold_id": "work_ii_direct_fixed_law_prior_pilot",
+      "declared_claim_validation_policy": "unscored_unknown_terms",
+      "request_configuration": {
+        "response_format": "json_schema",
+        "reasoning_effort": "medium",
+        "max_tokens": 3000,
+        "timeout_s": 180.0,
+        "max_attempts": 2,
+        "retry_backoff_s": 0.5,
+        "temperature": null
+      },
+      "static_optimization_prompt_budget_contract": {
+        "token_estimator": "ceil(serialized_user_prompt_utf8_bytes/4)",
+        "history_limit": 4,
+        "per_decision_max_estimated_tokens": 18000,
+        "final_synthesis_max_estimated_tokens": 24000,
+        "predictive_synthesis_max_estimated_tokens": 24000,
+        "public_measurement_representation": "processed_estimate_plus_uncertainty_only",
+        "completion_scope": "pilot_only_pending_mock_and_real_probe"
+      }
+    }
+  }
+}

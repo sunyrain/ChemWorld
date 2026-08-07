@@ -1,0 +1,135 @@
+{
+  "schema_version": "chemworld-work-ii-prior-pilot-plan-0.1",
+  "qualification_id": "chemworld-work-ii-prior-pilot-2026-08-07",
+  "pilot_id": "chemworld-work-ii-prior-pilot-2026-08-07",
+  "status": "development_pilot_pending_execution",
+  "formal_result": false,
+  "benchmark_claim_allowed": false,
+  "observation_noise_namespace_base": "chemworld-work-ii-prior-pilot-2026-08-07",
+  "task_ids": [
+    "electrochemical-conversion",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "partition-discovery",
+    "reaction-safety-constrained"
+  ],
+  "seed_policy": {
+    "world_seeds": [0],
+    "algorithm_seeds": [0],
+    "multi_seed_execution_allowed": false,
+    "completion_world_seeds": [0, 1, 2, 3, 4],
+    "release_condition": "mock all-task triarm preflight and the smallest real-provider triarm probe must pass before one-seed breadth or five-seed execution"
+  },
+  "campaign": {
+    "exploration_experiments": 1,
+    "incumbent_validation_replicates": 0,
+    "recommendation_validation_replicates": 0,
+    "horizon_visible": true,
+    "baseline_final_selection": "best_observed_completed_experiment",
+    "participant_final_selection": "best_observed_completed_experiment"
+  },
+  "tasks": {
+    "electrochemical-conversion": {
+      "dimension": 6,
+      "compiled_operation_count": 8,
+      "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+      "material_family_id": "nominal-prior-latent-v2",
+      "workflow_mode": "static_single_stage",
+      "prior_fields": ["electrolyte_profile", "solvent"],
+      "misindexing": {
+        "target_field": "electrolyte_profile",
+        "descriptor_permutation": [0, 3, 2, 1]
+      }
+    },
+    "reaction-to-crystallization": {
+      "dimension": 10,
+      "compiled_operation_count": 12,
+      "scoring_contract_id": "reaction-crystallization-s0-balanced-product-v1",
+      "material_family_id": "reaction-crystallization-latent-materials-v1",
+      "prior_fields": ["catalyst", "solvent"],
+      "misindexing": {
+        "target_field": "catalyst",
+        "descriptor_permutation": [0, 2, 1, 3]
+      }
+    },
+    "reaction-to-distillation": {
+      "dimension": 13,
+      "compiled_operation_count": 12,
+      "scoring_contract_id": "reaction-distillation-s0-balanced-audit-safety-v2",
+      "prior_fields": ["catalyst", "solvent"],
+      "misindexing": {
+        "target_field": "catalyst",
+        "descriptor_permutation": [1, 0, 2, 3]
+      }
+    },
+    "partition-discovery": {
+      "dimension": 8,
+      "compiled_operation_count": 10,
+      "scoring_contract_id": "partition-s0-extraction-efficiency-v3",
+      "prior_fields": ["solvent", "extractant"],
+      "misindexing": {
+        "target_field": "solvent",
+        "descriptor_permutation": [2, 1, 0, 3]
+      }
+    },
+    "reaction-safety-constrained": {
+      "dimension": 7,
+      "compiled_operation_count": 8,
+      "scoring_contract_id": "task-derived-scoring-v1",
+      "prior_fields": ["catalyst", "solvent"],
+      "misindexing": {
+        "target_field": "solvent",
+        "descriptor_permutation": [3, 1, 2, 0]
+      }
+    }
+  },
+  "algorithms": {
+    "mock_contract_probe": {
+      "family": "deterministic_schema_probe",
+      "information_condition": "selected_prior_arm"
+    }
+  },
+  "participant": {
+    "provider": "wellau",
+    "wire_api": "responses",
+    "model_id": "gpt-5.6-sol",
+    "reasoning_effort": "medium",
+    "method_config_path": "configs/methods/work_ii/participant_methods_work_ii_wellau_sol_medium_prior_pilot.json",
+    "method_id": "work_ii_wellau_sol_medium_direct_prior_pilot"
+  },
+  "prior_arms": {
+    "opaque": {"mode": "opaque_codes"},
+    "aligned_nominal": {"mode": "anonymous_nominal_properties"},
+    "misindexed_nominal": {"mode": "anonymous_misindexed_properties"}
+  },
+  "stages": {
+    "contract-preflight": {
+      "provider": "mock",
+      "task_ids": "all",
+      "prior_arms": "all",
+      "world_seeds": [0],
+      "exploration_experiments": 1,
+      "expected_cells": 15,
+      "scientific_result": false
+    },
+    "real-probe": {
+      "provider": "wellau",
+      "task_ids": ["electrochemical-conversion"],
+      "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+      "world_seeds": [0],
+      "exploration_experiments": 1,
+      "expected_cells": 3,
+      "scientific_result": false
+    }
+  },
+  "execution_limits": {
+    "provider_timeout_s_per_attempt": 180.0,
+    "provider_max_attempts_per_decision": 2,
+    "provider_max_output_tokens": 3000,
+    "executor_guard_margin_operations": 1,
+    "guard_margin_visible_to_agent": false,
+    "raw_provider_payloads_retained": false,
+    "progress_required_after_s": 60,
+    "progress_heartbeat_interval_s": 30
+  }
+}

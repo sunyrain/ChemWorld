@@ -7,7 +7,6 @@ import argparse
 import json
 import os
 import subprocess
-import sys
 import tempfile
 import time
 from pathlib import Path
@@ -177,10 +176,36 @@ def u05_progress(
     }
 
 
+def static_s0_progress(
+    *,
+    progress_file: Path,
+    output: Path,
+) -> dict[str, Any]:
+    if not progress_file.is_file():
+        return {
+            "stage": "startup",
+            "progress_file_exists": False,
+            "output_exists": output.is_file(),
+        }
+    value = json.loads(progress_file.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("static S0 progress file must contain one JSON object")
+    return {
+        **value,
+        "progress_file_exists": True,
+        "output_exists": output.is_file(),
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", choices=("composition", "u05"), required=True)
+    parser.add_argument(
+        "--profile",
+        choices=("composition", "u05", "static-s0"),
+        required=True,
+    )
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--progress-file", type=Path)
     parser.add_argument("--interval-s", type=float, default=30.0)
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -190,6 +215,8 @@ def parse_args() -> argparse.Namespace:
         parser.error("a command is required after --")
     if args.interval_s <= 0.0:
         parser.error("--interval-s must be positive")
+    if args.profile == "static-s0" and args.progress_file is None:
+        parser.error("--progress-file is required for the static-s0 profile")
     return args
 
 
@@ -235,10 +262,15 @@ def main() -> int:
                         elapsed_s=elapsed_s,
                         output=output,
                     )
-                else:
+                elif args.profile == "u05":
                     progress = u05_progress(
                         temp_root=temp_root,
                         started_at=started_at,
+                        output=output,
+                    )
+                else:
+                    progress = static_s0_progress(
+                        progress_file=args.progress_file.resolve(),
                         output=output,
                     )
                 _emit(
