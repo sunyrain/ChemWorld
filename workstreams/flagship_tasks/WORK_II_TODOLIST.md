@@ -805,6 +805,8 @@ outcome channels remain separate so that the analysis can distinguish:
   trajectories 完成后独立执行，不要求重跑 participant session。
 - [x] 已冻结 `world_seed=0..4 × 三 prior arms` 共 15 cells；每 cell 一个 session、4 experiments、
   4 checkpoints，状态：`DOING`。
+- [x] 首次启动在第一个 operation 前发现连续 heartbeat 丢失当前 cell 坐标；该未开始区块已停止，
+  heartbeat 状态继承已修复并按协议从 seed 0 / first arm 重新启动。
 - [ ] 15/15 cells 完成并形成五 world paired descriptive report。
 
 ## 7. 完成定义

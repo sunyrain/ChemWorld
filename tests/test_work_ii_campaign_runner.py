@@ -9,6 +9,7 @@ from scripts.run_work_ii_campaign_pilot import (
     _checkpoint_contract,
     _qualification,
 )
+from scripts.run_work_ii_five_seed_campaign import _heartbeat
 
 from chemworld.campaign_resources import CampaignResourceLedger
 
@@ -144,3 +145,31 @@ def test_cell_qualification_is_fail_closed() -> None:
     )
     assert failed_resource["passed"] is False
     assert failed_resource["failed_checks"] == ["no_resource_rejection"]
+
+
+def test_repeated_heartbeats_preserve_current_cell_coordinate() -> None:
+    first = _heartbeat(
+        started=0.0,
+        completed_cells=0,
+        total_cells=15,
+        last_event={
+            "world_seed": 0,
+            "arm": "opaque",
+            "stage": "cell_started",
+            "step": None,
+            "complete_experiments": 0,
+            "liveness_counter": 1,
+        },
+    )
+    second = _heartbeat(
+        started=0.0,
+        completed_cells=0,
+        total_cells=15,
+        last_event=first,
+    )
+    assert second["current_world_seed"] == 0
+    assert second["current_arm"] == "opaque"
+    assert second["current_stage"] == "cell_started"
+    assert second["current_step"] is None
+    assert second["current_complete_experiments"] == 0
+    assert second["liveness_counter"] == first["liveness_counter"] + 1

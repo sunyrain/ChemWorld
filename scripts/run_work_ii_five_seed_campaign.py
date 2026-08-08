@@ -57,11 +57,13 @@ def _heartbeat(
             if completed_cells == total_cells
             else None
         ),
-        "current_world_seed": last_event.get("world_seed"),
-        "current_arm": last_event.get("arm"),
-        "current_stage": last_event.get("stage"),
-        "current_step": last_event.get("step"),
-        "current_complete_experiments": last_event.get("complete_experiments"),
+        "current_world_seed": last_event.get("world_seed", last_event.get("current_world_seed")),
+        "current_arm": last_event.get("arm", last_event.get("current_arm")),
+        "current_stage": last_event.get("stage", last_event.get("current_stage")),
+        "current_step": last_event.get("step", last_event.get("current_step")),
+        "current_complete_experiments": last_event.get(
+            "complete_experiments", last_event.get("current_complete_experiments")
+        ),
         "liveness_counter": int(last_event.get("liveness_counter", 0)) + 1,
     }
 
