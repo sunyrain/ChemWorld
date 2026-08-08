@@ -21,5 +21,13 @@ all four valid checkpoints, preserve one campaign ledger, and replay exactly. Pr
 missing checkpoint, ledger mismatch, unclosed batch or resource-limit termination is retained as a
 pilot failure; no arm is replaced or rerun for a more favorable result.
 
+Resource-accounting amendment before the completed three-arm block: the first opaque attempt
+completed all four physical lifecycles but exposed a cap-definition defect. One persistent MCP
+turn reported 1,608,946 cumulative input tokens, of which 1,469,952 were cache hits and 138,994
+were uncached. The original 480,000 cap incorrectly used short-call semantics. The rerun freezes
+separate limits of 2,400,000 cumulative input tokens and 192,000 uncached input tokens; model-call,
+output-token, operation, experiment and physical-resource limits are unchanged. The affected block
+must restart from the opaque arm.
+
 Expected outputs: one redacted trajectory and machine-readable summary per arm, one combined pilot
 report, and an external progress JSONL. Raw provider payloads and credentials are not retained.

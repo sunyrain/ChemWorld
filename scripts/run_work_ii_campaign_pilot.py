@@ -91,14 +91,18 @@ def _analyze(records: list[dict[str, Any]], receipts: list[dict[str, Any]]) -> d
     actions: list[dict[str, Any]] = []
     for row in records:
         action = dict(row.get("action", {}))
-        info = row.get("info", {}) if isinstance(row.get("info"), dict) else {}
         actions.append(action)
-        if info.get("experiment_ended") is True:
+        is_final_assay = (
+            row.get("transaction_status") == "committed"
+            and row.get("operation_type") == "measure"
+            and row.get("instrument") == "final_assay"
+        )
+        if is_final_assay:
             experiments.append(
                 {
                     "experiment_index": len(experiments) + 1,
                     "operations": actions,
-                    "leaderboard_score": info.get("leaderboard_score"),
+                    "leaderboard_score": row.get("leaderboard_score"),
                     "final_metrics": {
                         key: row.get("observation", {}).get(key)
                         for key in (
