@@ -778,6 +778,25 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] 迁移结果独立报告，不把小规模现实桥接泛化为全面现实有效性。
 - 备注：是否进入 Work II 主文须在 formal results 前冻结：`TBD`
 
+## 2026-08-08 persistent-campaign pilot checkpoint
+
+- [x] `electrochemical-conversion × opaque/aligned_nominal/misindexed_nominal × world_seed=0`
+  使用 WellAU `gpt-5.6-sol` medium 完成真实 operation-level pilot。
+- [x] 每个 cell 恰有一个长驻 Codex process/session；4 个 complete experiments、24 个
+  participant-owned operations 和 4 个 typed belief checkpoints 均在该 session 内完成。
+- [x] 三臂共 12/12 experiments、72/72 committed operations、0 resource rejection、72/72 exact
+  replay；共享 campaign ledger、prior-arm blinding 和 paired keyed-noise namespace 通过。
+- [x] 已将 cumulative input 与 uncached input 分开：总 input 4,457,978，其中 cache hit
+  4,004,864、uncached 453,114、output 23,781；高 cache 不等于重复输出。
+- [x] 单 world 描述性结果：aligned prior reliability `0.70→0.65→0.55→0.80`；blinded
+  misindexed prior `0.50→0.45→0.40→0.45`，在第 2 个 experiment 后怀疑 `solvent`，最终怀疑
+  `solvent + electrolyte_profile`，属于部分证据纠偏而非完全排除错误先验。
+- [ ] 本 pilot 尚未执行 evaluator-owned held-out queries 和 blind recommendation replicates，
+  因此不能把 checkpoint law summary 解释为已验证的 transfer。
+- [ ] 在启动任何多 seed 或五任务 breadth 前，先补齐：sealed evaluator ledger、prediction/law
+  scoring、独立 heartbeat、task-pattern-specific process-time hard cap。
+- 证据摘要：`workstreams/flagship_tasks/reports/work-ii-seed0-persistent-campaign-pilot.{json,md}`。
+
 ## 7. 完成定义
 
 Work II 只有在以下条件全部满足时才标记完成：

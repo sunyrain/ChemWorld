@@ -1,0 +1,113 @@
+{
+  "schema_version": "chemworld-work-ii-campaign-pilot-summary-0.1",
+  "date": "2026-08-08",
+  "status": "passed_development_pilot",
+  "formal_result": false,
+  "scientific_scope": "descriptive single-world pilot",
+  "source_commit": "e011476d",
+  "task_id": "electrochemical-conversion",
+  "world_seed": 0,
+  "provider": "WellAU",
+  "model": "gpt-5.6-sol",
+  "reasoning_effort": "medium",
+  "denominators": {
+    "prior_arms": 3,
+    "provider_sessions": 3,
+    "complete_experiments": 12,
+    "operation_attempts": 72,
+    "committed_operations": 72,
+    "resource_rejections": 0,
+    "final_assays": 12,
+    "belief_snapshots": 12,
+    "world_seeds": 1,
+    "exact_replay_checked_steps": 72,
+    "exact_replay_mismatches": 0
+  },
+  "provider_totals": {
+    "wall_time_s": 3259.9,
+    "input_tokens": 4457978,
+    "cached_input_tokens": 4004864,
+    "uncached_input_tokens": 453114,
+    "output_tokens": 23781,
+    "model_call_count": 3
+  },
+  "arms": {
+    "opaque": {
+      "wall_time_s": 1085.5,
+      "input_tokens": 1469266,
+      "cached_input_tokens": 1349632,
+      "uncached_input_tokens": 119634,
+      "output_tokens": 7595,
+      "cache_hit_ratio": 0.9185756697561912,
+      "scores": [0.3906196513840782, 0.0, 0.3871715929289616, 0.331420884292141],
+      "best_score": 0.3906196513840782,
+      "final_score": 0.331420884292141,
+      "prior_reliability": [null, null, null, null],
+      "suspected_misindexed_fields": [[], [], [], []],
+      "behavior_summary": "Selected a full 2x2 solvent/electrolyte factorial at fixed process controls and inferred a strong interaction.",
+      "trajectory_sha256": "16e4587d2a1279cc794c76a029ae8bdb37f2eacf6f123f4662c9da595e8d4184"
+    },
+    "aligned_nominal": {
+      "wall_time_s": 834.8,
+      "input_tokens": 1479344,
+      "cached_input_tokens": 1358336,
+      "uncached_input_tokens": 121008,
+      "output_tokens": 8337,
+      "cache_hit_ratio": 0.9182015812414152,
+      "scores": [0.5642588831955429, 0.07756206611235838, 0.5253870057994887, 0.572525877008101],
+      "best_score": 0.572525877008101,
+      "final_score": 0.572525877008101,
+      "prior_reliability": [0.7, 0.65, 0.55, 0.8],
+      "suspected_misindexed_fields": [[], [], [], []],
+      "behavior_summary": "Used the nominal dossier to choose E1/S0, challenged it with a high-forcing E3/S3 condition, then returned to and replicated the best observed E1/S0 recipe.",
+      "trajectory_sha256": "34029788e038593adb816ca495fb5daaf0607ad7f76eac0a70936b6e01a299ad"
+    },
+    "misindexed_nominal": {
+      "wall_time_s": 1339.6,
+      "input_tokens": 1509368,
+      "cached_input_tokens": 1296896,
+      "uncached_input_tokens": 212472,
+      "output_tokens": 7849,
+      "cache_hit_ratio": 0.8592311484011851,
+      "scores": [0.3871777685299785, 0.2818354203712893, 0.564252701920115, 0.534830143573401],
+      "best_score": 0.564252701920115,
+      "final_score": 0.534830143573401,
+      "prior_reliability": [0.5, 0.45, 0.4, 0.45],
+      "suspected_misindexed_fields": [[], [], ["solvent"], ["electrolyte_profile", "solvent"]],
+      "behavior_summary": "Began moderately trusting the blinded dossier, reduced trust after contradictory outcomes, isolated E1/S0 as the best observed condition, and ended with explicit suspicion of both prior fields without fully rejecting the dossier.",
+      "trajectory_sha256": "e769afab0309394010169b7286a980a766b98d43881f1c067633205ba760ebc1"
+    }
+  },
+  "qualification": {
+    "single_session_across_four_experiments_per_arm": true,
+    "shared_campaign_ledger": true,
+    "typed_checkpoint_count_per_arm": 4,
+    "all_operations_participant_owned": true,
+    "arm_mode_hidden_from_participant": true,
+    "paired_noise_namespace": true,
+    "within_limits": true,
+    "exact_replay": true
+  },
+  "interpretation": {
+    "supported": [
+      "A persistent Codex MCP session can complete a four-experiment resource-shared campaign.",
+      "The three prior conditions produced visibly different experiment-selection and belief-revision trajectories in this one world.",
+      "The misindexed arm showed partial evidence-driven correction and field-level suspicion, not complete prior rejection.",
+      "High cumulative input is dominated by cache-hit context, not repeated generated output."
+    ],
+    "not_supported": [
+      "Population-level prior effects from one world seed.",
+      "A claim that the agent fully rejected the wrong prior.",
+      "Law-transfer performance before held-out predictions and blind recommendations are independently executed.",
+      "A formal Work II result before the five-task and multi-seed matrix is frozen."
+    ]
+  },
+  "remaining_gaps": [
+    "Execute sealed held-out queries and blind recommendation replicates with an evaluator-owned resource ledger.",
+    "Score snapshot prediction calibration and executable law summaries.",
+    "Add an out-of-band heartbeat that reports checkpoint/session liveness even when no operation completes.",
+    "Freeze task-pattern-specific process-time caps in the campaign resource contract.",
+    "Repeat the pilot on the remaining prior-identifiable tasks before any multi-seed formal run."
+  ],
+  "external_report_sha256": "9574c83d437352bbd30a346b781425140647edc79f185bec6e07dcccc6c2a434"
+}
