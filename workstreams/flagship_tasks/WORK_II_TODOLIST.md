@@ -816,7 +816,13 @@ outcome channels remain separate so that the analysis can distinguish:
 - [x] 当前 MCP checkpoint 工具直接暴露完整 typed schema；每个 campaign `step` 必须提交 bounded public
   decision audit。tool receipt 记录顺序、状态、开始时间、耗时、错误类型和参数/结果哈希，不保留 raw
   chain-of-thought 或 provider payload。
-- [ ] 15/15 cells 完成并形成五 world paired descriptive report。
+- [x] 15/15 cells 完成并形成五 world paired descriptive report：60/60 experiments、367/367
+  structured decision audits、15/15 exact replay、0 resource rejection、0 terminal cell failure；
+  matrix wall time 2,661.4 s。完整报告：
+  `workstreams/flagship_tasks/reports/work-ii-electrochemical-five-seed-campaign.md`。
+- [ ] participant block 内共有 4 次 recovered MCP tool failure（3 checkpoint validation、1 step
+  PermissionError）和 1 次 recovered provider error event。它们未形成科学 operation 且最终 session/
+  checkpoint/replay 均通过；formal 前仍需明确冻结 validator/tool retry cap，不能仅以最终成功隐去尝试分母。
 
 ## 7. 完成定义
 
