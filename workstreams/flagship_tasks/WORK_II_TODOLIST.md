@@ -807,6 +807,15 @@ outcome channels remain separate so that the analysis can distinguish:
   4 checkpoints，状态：`DOING`。
 - [x] 首次启动在第一个 operation 前发现连续 heartbeat 丢失当前 cell 坐标；该未开始区块已停止，
   heartbeat 状态继承已修复并按协议从 seed 0 / first arm 重新启动。
+- [x] 第二次启动完成 `seed0/opaque` 的 24/24 operations、4/4 experiments、4/4 checkpoints 和
+  exact replay，但旧测试数据形状导致 `provider_usage_reconciled` 被误判；该运行不计入结果。资格判定
+  现直接核对真实 `agent.method_resource_usage()` 与冻结 method limits，并有真实形状回归测试。
+- [x] 重跑执行冻结为同一 world seed 的三 prior arms 使用三个 OS-isolated cell 并发；cell 内 operation、
+  experiment、checkpoint 和共享 ledger 仍严格串行。一个 seed triplet 全部到达终态后才进入下一 seed，
+  任一失败将阻止后续 seeds。
+- [x] 当前 MCP checkpoint 工具直接暴露完整 typed schema；每个 campaign `step` 必须提交 bounded public
+  decision audit。tool receipt 记录顺序、状态、开始时间、耗时、错误类型和参数/结果哈希，不保留 raw
+  chain-of-thought 或 provider payload。
 - [ ] 15/15 cells 完成并形成五 world paired descriptive report。
 
 ## 7. 完成定义

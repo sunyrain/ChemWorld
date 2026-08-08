@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import argparse
 import json
 from copy import deepcopy
 from pathlib import Path
 
+import scripts.run_work_ii_five_seed_campaign as five_seed_runner
 from scripts.run_work_ii_campaign_pilot import (
     _campaign_card,
     _checkpoint_contract,
@@ -91,17 +93,16 @@ def test_cell_qualification_is_fail_closed() -> None:
     method_resources = {
         "provider_session_count": 1,
         "provider_usage_pending": False,
-        "limits": {
-            "input_token_limit": 2_400_000,
-            "uncached_input_token_limit": 320_000,
-            "output_token_limit": 24_000,
-        },
-        "agent_usage": {
-            "in_flight_model_call_count": 0,
-            "input_token_count": 1_500_000,
-            "uncached_input_token_count": 150_000,
-            "output_token_count": 8_000,
-        },
+        "provider_usage_accounting_complete": True,
+        "in_flight_model_call_count": 0,
+        "input_token_count": 1_500_000,
+        "uncached_input_token_count": 150_000,
+        "output_token_count": 8_000,
+    }
+    method_resource_limits = {
+        "input_token_limit": 2_400_000,
+        "uncached_input_token_limit": 320_000,
+        "output_token_limit": 24_000,
     }
     receipts = [
         {
@@ -119,6 +120,7 @@ def test_cell_qualification_is_fail_closed() -> None:
         analysis=analysis,
         exact_replay=replay,
         method_resources=method_resources,
+        method_resource_limits=method_resource_limits,
         receipts=receipts,
         process_time_limit_s=72_000.0,
     )
@@ -128,6 +130,7 @@ def test_cell_qualification_is_fail_closed() -> None:
         analysis=analysis,
         exact_replay={"verified": False},
         method_resources=method_resources,
+        method_resource_limits=method_resource_limits,
         receipts=receipts,
         process_time_limit_s=72_000.0,
     )
@@ -140,11 +143,25 @@ def test_cell_qualification_is_fail_closed() -> None:
         analysis=rejected_analysis,
         exact_replay=replay,
         method_resources=method_resources,
+        method_resource_limits=method_resource_limits,
         receipts=receipts,
         process_time_limit_s=72_000.0,
     )
     assert failed_resource["passed"] is False
     assert failed_resource["failed_checks"] == ["no_resource_rejection"]
+
+    over_limit = deepcopy(method_resources)
+    over_limit["uncached_input_token_count"] = 320_001
+    failed_usage = _qualification(
+        analysis=analysis,
+        exact_replay=replay,
+        method_resources=over_limit,
+        method_resource_limits=method_resource_limits,
+        receipts=receipts,
+        process_time_limit_s=72_000.0,
+    )
+    assert failed_usage["passed"] is False
+    assert failed_usage["failed_checks"] == ["provider_usage_reconciled"]
 
 
 def test_repeated_heartbeats_preserve_current_cell_coordinate() -> None:
@@ -173,3 +190,69 @@ def test_repeated_heartbeats_preserve_current_cell_coordinate() -> None:
     assert second["current_step"] is None
     assert second["current_complete_experiments"] == 0
     assert second["liveness_counter"] == first["liveness_counter"] + 1
+
+
+def test_five_seed_runner_uses_os_isolated_three_cell_triplets(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    fake_runner = tmp_path / "fake_cell_runner.py"
+    fake_runner.write_text(
+        """
+import argparse
+import json
+import time
+from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--config")
+parser.add_argument("--output", type=Path, required=True)
+parser.add_argument("--progress-file")
+parser.add_argument("--world-seed", type=int, required=True)
+parser.add_argument("--prior-arm", required=True)
+args = parser.parse_args()
+args.output.mkdir(parents=True)
+started = {"stage": "cell_started", "world_seed": args.world_seed, "arm": args.prior_arm}
+print(json.dumps(started), flush=True)
+time.sleep(0.05)
+row = {
+    "arm": args.prior_arm,
+    "completed": True,
+    "qualification": {"passed": True, "failed_checks": []},
+}
+(args.output / "summary.json").write_text(json.dumps(row), encoding="utf-8")
+completed = {
+    "stage": "cell_completed",
+    "world_seed": args.world_seed,
+    "arm": args.prior_arm,
+    "completed": True,
+}
+print(json.dumps(completed), flush=True)
+""".strip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(five_seed_runner, "RUNNER", fake_runner)
+    monkeypatch.setattr(five_seed_runner, "git_worktree_dirty", lambda _root: False)
+    monkeypatch.setattr(five_seed_runner, "git_source_commit", lambda _root: "test-commit")
+    monkeypatch.setenv("WELLAU_API_KEY", "test-key")
+    output = tmp_path / "output"
+    progress = tmp_path / "progress.jsonl"
+    report = five_seed_runner.run(
+        argparse.Namespace(
+            config=ROOT / "configs/benchmark/work_ii_campaign_pilot.json",
+            output=output,
+            progress_file=progress,
+            world_seed=[0, 1, 2, 3, 4],
+            heartbeat_interval_s=0.05,
+            max_concurrency=3,
+        )
+    )
+    assert report["all_cells_completed"] is True
+    assert report["completed_cell_count"] == 15
+    assert report["max_concurrency"] == 3
+    assert len(report["seed_reports"]) == 5
+    assert all(seed["completed_cell_count"] == 3 for seed in report["seed_reports"])
+    events = [json.loads(line) for line in progress.read_text(encoding="utf-8").splitlines()]
+    triplets = [event for event in events if event.get("event") == "seed_triplet_started"]
+    assert len(triplets) == 5
+    assert all(len(event["active_cells"]) == 3 for event in triplets)

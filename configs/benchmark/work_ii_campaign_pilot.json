@@ -54,6 +54,12 @@
     "input_token_semantics": "cumulative context across one MCP tool loop, including cache hits",
     "uncached_input_semantics": "new provider input after cache reuse; primary prompt-growth guard"
   },
+  "execution": {
+    "max_concurrency": 3,
+    "parallelization_unit": "same_seed_prior_arm_triplet",
+    "within_cell_concurrency": 1,
+    "failure_semantics": "finish the in-flight seed triplet, then stop before the next world seed"
+  },
   "provider": {
     "id": "wellau",
     "name": "WellAU",

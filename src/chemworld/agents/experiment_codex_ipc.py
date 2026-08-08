@@ -42,6 +42,7 @@ class IPCRequest:
     expected_step: int
     action: dict[str, Any]
     payload_sha256: str
+    decision_audit: dict[str, Any] | None = None
 
 
 class ExperimentCodexWorkspace:
@@ -627,6 +628,10 @@ def _normalize_request(raw: Mapping[str, Any], *, session_id: str) -> IPCRequest
     if not isinstance(action, dict) or not isinstance(action.get("operation"), str):
         raise ExperimentCodexIPCError("IPC request requires action.operation")
     normalized_action = to_builtin(action)
+    raw_decision_audit = raw.get("decision_audit")
+    if raw_decision_audit is not None and not isinstance(raw_decision_audit, dict):
+        raise ExperimentCodexIPCError("IPC request decision_audit must be an object or null")
+    decision_audit = to_builtin(raw_decision_audit) if raw_decision_audit is not None else None
     payload_sha256 = hashlib.sha256(_canonical_json(normalized_action).encode("utf-8")).hexdigest()
     return IPCRequest(
         session_id=session_id,
@@ -634,6 +639,7 @@ def _normalize_request(raw: Mapping[str, Any], *, session_id: str) -> IPCRequest
         expected_step=expected_step,
         action=normalized_action,
         payload_sha256=payload_sha256,
+        decision_audit=decision_audit,
     )
 
 

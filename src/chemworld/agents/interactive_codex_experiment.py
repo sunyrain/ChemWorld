@@ -99,7 +99,10 @@ batches that share one fixed hidden world, one public prior condition, and one c
 ledger. Call material_information once. Before the first physical operation and at every required
 checkpoint, call commit_belief_snapshot with the exact typed contract in
 ../reference/belief_checkpoint_contract.json. Submit every physical operation through step and use
-its public outcome before deciding the next operation.
+its public outcome before deciding the next operation. Every step call must include the bounded
+decision_audit requested by the tool schema: expected effect, diagnostic target, expected
+information gain, explicit supported/not-supported belief updates, uncertainty, and the public
+adaptation source. This is a concise scientific rationale, never private chain-of-thought.
 
 An experiment_ended outcome closes only the current batch. When campaign_ended=false, preserve your
 scientific context and continue into the next fresh batch using the returned next_state. When
@@ -530,7 +533,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "action_payload_sha256": request.payload_sha256,
             "current_public_state": current_manifest,
             "authoritative_ledger_in_workspace": False,
-            "decision_audit_status": "not_provided",
+            "decision_audit_status": (
+                "provided" if request.decision_audit is not None else "not_provided"
+            ),
+            "decision_audit": deepcopy(request.decision_audit),
         }
         return dict(request.action)
 
@@ -646,10 +652,13 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             self._pending_request = None
             self._pending_outcome = None
 
-    def decision_audit(self) -> None:
-        """The IPC action is auditable, but no synthetic scientific rationale is added."""
+    def decision_audit(self) -> dict[str, Any] | None:
+        """Return the participant-authored bounded rationale for the accepted operation."""
 
-        return None
+        if self._last_decision is None:
+            return None
+        value = self._last_decision.get("decision_audit")
+        return deepcopy(value) if isinstance(value, dict) else None
 
     def agent_trace(self) -> list[dict[str, Any]]:
         if self._last_decision is None:
@@ -676,7 +685,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             consumes_spectra=True,
             adapts_within_experiment=True,
             adapts_across_experiments=True,
-            emits_structured_decision_audit=False,
+            emits_structured_decision_audit=self.session_scope == "campaign",
         )
 
     def manifest(self) -> dict[str, Any]:
@@ -1619,6 +1628,8 @@ def _sanitize_mcp_tool_event(item: Mapping[str, Any]) -> dict[str, Any]:
         "arguments_sha256": hashlib.sha256(_canonical_json(arguments).encode("utf-8")).hexdigest(),
         "result_sha256": hashlib.sha256(_canonical_json(result).encode("utf-8")).hexdigest(),
         "status": item.get("status"),
+        "started_at": item.get("started_at") or item.get("timestamp"),
+        "duration_ms": item.get("duration_ms"),
         "arguments_body_retained": False,
         "result_body_retained": False,
     }
@@ -1632,8 +1643,12 @@ def _host_mcp_audit_events(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, 
             "server": "chemworld_lab",
             "tool": row.get("tool"),
             "arguments_sha256": row.get("arguments_sha256"),
+            "result_sha256": row.get("result_sha256"),
             "argument_keys": row.get("argument_keys", []),
-            "status": "called",
+            "started_at": row.get("started_at"),
+            "duration_ms": row.get("duration_ms"),
+            "status": row.get("status", "called"),
+            "error_type": row.get("error_type"),
             "arguments_body_retained": False,
             "result_body_retained": False,
         }

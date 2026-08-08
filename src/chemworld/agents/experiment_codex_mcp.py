@@ -14,12 +14,20 @@ import os
 import sys
 import tempfile
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from chemworld.eval.work_ii_prior_discovery import parse_work_ii_belief_snapshot
+from chemworld.agents.interaction import DecisionAuditRecord
+from chemworld.eval.work_ii_prior_discovery import (
+    WORK_II_LAW_BASES,
+    WORK_II_LAW_LINKS,
+    WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
+    WORK_II_SNAPSHOT_SCHEMA_VERSION,
+    parse_work_ii_belief_snapshot,
+)
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.3"
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.4"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
@@ -180,16 +188,31 @@ class ChemWorldMCPServer:
             raise ValueError("unsupported active experiment session")
         return descriptor
 
-    def _audit(self, descriptor: dict[str, Any], tool: str, arguments: Any) -> None:
+    def _audit(
+        self,
+        descriptor: dict[str, Any],
+        tool: str,
+        arguments: Any,
+        *,
+        started_at: str,
+        duration_ms: float,
+        status: str,
+        result: Any,
+        error_type: str | None,
+    ) -> None:
         session_id = self._leaf(str(descriptor["session_id"]), label="session_id")
-        digest = hashlib.sha256(_encode(arguments)).hexdigest()
         _append_jsonl(
             self.ipc / "sessions" / session_id / "mcp_tool_calls.jsonl",
             {
                 "schema_version": MCP_SERVER_VERSION,
                 "tool": tool,
-                "arguments_sha256": digest,
+                "started_at": started_at,
+                "duration_ms": round(duration_ms, 3),
+                "status": status,
+                "error_type": error_type,
+                "arguments_sha256": hashlib.sha256(_encode(arguments)).hexdigest(),
                 "argument_keys": sorted(arguments) if isinstance(arguments, dict) else [],
+                "result_sha256": hashlib.sha256(_encode(result)).hexdigest(),
             },
         )
 
@@ -197,7 +220,10 @@ class ChemWorldMCPServer:
         if name not in SUPPORTED_TOOLS:
             return self._tool_error("unsupported_tool")
         descriptor = self._descriptor()
-        self._audit(descriptor, name, arguments)
+        started_at = datetime.now(UTC).isoformat()
+        started = time.perf_counter()
+        status = "completed"
+        error_type: str | None = None
         try:
             if name == "material_information":
                 payload = _read_object(self.reference / "material_information.json")
@@ -215,17 +241,30 @@ class ChemWorldMCPServer:
             encoded = _encode(payload)
             if len(encoded) > cap:
                 raise ValueError("tool output exceeds configured byte cap")
-            return {
+            result = {
                 "content": [{"type": "text", "text": encoded.decode("utf-8")}],
                 "isError": False,
             }
         except Exception as error:
             detail = str(error).strip()
-            return self._tool_error(
+            status = "failed"
+            error_type = type(error).__name__
+            result = self._tool_error(
                 f"{type(error).__name__}: {detail[:1000]}"
                 if name == "commit_belief_snapshot" and detail
                 else type(error).__name__
             )
+        self._audit(
+            descriptor,
+            name,
+            arguments,
+            started_at=started_at,
+            duration_ms=(time.perf_counter() - started) * 1000.0,
+            status=status,
+            result=result,
+            error_type=error_type,
+        )
+        return result
 
     @staticmethod
     def _tool_error(error_type: str) -> dict[str, Any]:
@@ -400,6 +439,15 @@ class ChemWorldMCPServer:
         action = arguments.get("action")
         if not isinstance(action, dict) or not isinstance(action.get("operation"), str):
             raise ValueError("action.operation is required")
+        decision_audit: dict[str, Any] | None = None
+        if descriptor.get("session_scope") == "campaign":
+            raw_audit = arguments.get("decision_audit")
+            if not isinstance(raw_audit, dict):
+                raise ValueError("campaign step requires decision_audit")
+            decision_audit = DecisionAuditRecord.from_payload(
+                raw_audit,
+                action=action,
+            ).to_dict()
         session_id = self._leaf(str(descriptor["session_id"]), label="session_id")
         request_id_value = arguments.get("request_id")
         if request_id_value is None:
@@ -419,6 +467,8 @@ class ChemWorldMCPServer:
             "expected_step": expected_step,
             "action": action,
         }
+        if decision_audit is not None:
+            envelope["decision_audit"] = decision_audit
         session_root = self.ipc / "sessions" / session_id
         request_path = session_root / "mcp_requests" / f"{request_id}.json"
         response_path = session_root / "responses" / f"{request_id}.json"
@@ -455,8 +505,238 @@ class ChemWorldMCPServer:
             raise ValueError(f"{label} must be an integer")
         return value
 
+    def _belief_snapshot_schema(self) -> dict[str, Any]:
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        stages = [str(item) for item in contract.get("snapshot_stages", [])]
+        query_contract = dict(contract.get("query_metric_contract", {}))
+        query_ids = [str(item) for item in query_contract]
+        metric_ids = [str(item) for item in contract.get("allowed_metric_ids", [])]
+        feature_ids = [str(item) for item in contract.get("allowed_feature_ids", [])]
+        prior_fields = [str(item) for item in contract.get("allowed_prior_fields", [])]
+        evidence_ids = [str(item) for item in contract.get("evidence_catalog", [])]
+        nominal = bool(contract.get("nominal_information_available"))
+        probability = {"type": "number", "minimum": 0.0, "maximum": 1.0}
+        law_term_common = {
+            "type": "object",
+            "properties": {
+                "term_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                "basis": {"enum": sorted(WORK_II_LAW_BASES)},
+                "input_ids": {
+                    "type": "array",
+                    "items": {"enum": feature_ids},
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "uniqueItems": True,
+                },
+                "coefficient": {"type": "number"},
+                "category_value": {"type": ["string", "number"]},
+            },
+            "required": ["term_id", "basis", "input_ids", "coefficient"],
+            "additionalProperties": False,
+        }
+        metric_prediction = {
+            "type": "object",
+            "properties": {
+                "metric_id": {"enum": metric_ids},
+                "mean": {"type": "number"},
+                "interval_lower": {"type": "number"},
+                "interval_upper": {"type": "number"},
+                "confidence": probability,
+            },
+            "required": [
+                "metric_id",
+                "mean",
+                "interval_lower",
+                "interval_upper",
+                "confidence",
+            ],
+            "additionalProperties": False,
+        }
+        return {
+            "type": "object",
+            "properties": {
+                "schema_version": {"const": WORK_II_SNAPSHOT_SCHEMA_VERSION},
+                "snapshot_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                "stage": {"enum": stages},
+                "prior_assessment": {
+                    "type": "object",
+                    "properties": {
+                        "nominal_information_available": {"const": nominal},
+                        "reliability_probability": probability if nominal else {"type": "null"},
+                        "suspected_misindexed_fields": {
+                            "type": "array",
+                            "items": {"enum": prior_fields},
+                            "uniqueItems": True,
+                        },
+                        "rationale": {"type": "string", "minLength": 1, "maxLength": 2000},
+                    },
+                    "required": [
+                        "nominal_information_available",
+                        "reliability_probability",
+                        "suspected_misindexed_fields",
+                        "rationale",
+                    ],
+                    "additionalProperties": False,
+                },
+                "predictions": {
+                    "type": "array",
+                    "minItems": len(query_ids),
+                    "maxItems": len(query_ids),
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "query_id": {"enum": query_ids},
+                            "metrics": {
+                                "type": "array",
+                                "minItems": len(metric_ids),
+                                "maxItems": len(metric_ids),
+                                "items": metric_prediction,
+                            },
+                        },
+                        "required": ["query_id", "metrics"],
+                        "additionalProperties": False,
+                    },
+                },
+                "law_summary": {
+                    "type": "object",
+                    "properties": {
+                        "schema_version": {"const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION},
+                        "summary_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                        "feature_ids": {
+                            "type": "array",
+                            "items": {"enum": feature_ids},
+                            "minItems": 1,
+                            "uniqueItems": True,
+                        },
+                        "metric_laws": {
+                            "type": "array",
+                            "minItems": len(metric_ids),
+                            "maxItems": len(metric_ids),
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "metric_id": {"enum": metric_ids},
+                                    "intercept": {"type": "number"},
+                                    "link": {"enum": sorted(WORK_II_LAW_LINKS)},
+                                    "lower_bound": {"type": "number"},
+                                    "upper_bound": {"type": "number"},
+                                    "terms": {
+                                        "type": "array",
+                                        "maxItems": 64,
+                                        "items": law_term_common,
+                                    },
+                                },
+                                "required": [
+                                    "metric_id",
+                                    "intercept",
+                                    "link",
+                                    "lower_bound",
+                                    "upper_bound",
+                                    "terms",
+                                ],
+                                "additionalProperties": False,
+                            },
+                        },
+                        "evidence_ids": {
+                            "type": "array",
+                            "items": {"enum": evidence_ids},
+                            "uniqueItems": True,
+                        },
+                        "applicability": {"type": "string", "minLength": 1, "maxLength": 2000},
+                        "limitations": {
+                            "type": "array",
+                            "items": {"type": "string", "minLength": 1, "maxLength": 200},
+                            "maxItems": 16,
+                            "uniqueItems": True,
+                        },
+                        "confidence": probability,
+                    },
+                    "required": [
+                        "schema_version",
+                        "summary_id",
+                        "feature_ids",
+                        "metric_laws",
+                        "evidence_ids",
+                        "applicability",
+                        "limitations",
+                        "confidence",
+                    ],
+                    "additionalProperties": False,
+                },
+                "evidence_ids": {
+                    "type": "array",
+                    "items": {"enum": evidence_ids},
+                    "uniqueItems": True,
+                },
+                "next_experiment_intent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                },
+                "overall_confidence": probability,
+            },
+            "required": [
+                "schema_version",
+                "snapshot_id",
+                "stage",
+                "prior_assessment",
+                "predictions",
+                "law_summary",
+                "evidence_ids",
+                "next_experiment_intent",
+                "overall_confidence",
+            ],
+            "additionalProperties": False,
+        }
+
     @staticmethod
-    def _tool_definitions() -> list[dict[str, Any]]:
+    def _decision_audit_schema() -> dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "expected_effect": {"type": "string", "minLength": 1, "maxLength": 1000},
+                "diagnostic_target": {"type": "string", "minLength": 1, "maxLength": 1000},
+                "expected_information_gain": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                },
+                "belief_update_rule": {
+                    "type": "object",
+                    "properties": {
+                        "if_supported": {"type": "string", "minLength": 1, "maxLength": 1000},
+                        "if_not_supported": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1000,
+                        },
+                    },
+                    "required": ["if_supported", "if_not_supported"],
+                    "additionalProperties": False,
+                },
+                "uncertainty": {
+                    "type": ["number", "null"],
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                },
+                "adaptation_source": {
+                    "enum": ["none", "measurement", "spectrum", "experiment_memory", "validator"]
+                },
+            },
+            "required": [
+                "expected_effect",
+                "diagnostic_target",
+                "expected_information_gain",
+                "belief_update_rule",
+                "uncertainty",
+                "adaptation_source",
+            ],
+            "additionalProperties": False,
+        }
+
+    def _tool_definitions(self) -> list[dict[str, Any]]:
+        campaign = self._descriptor().get("session_scope") == "campaign"
+        snapshot_schema = self._belief_snapshot_schema() if campaign else {"type": "object"}
         read_annotations = {
             "readOnlyHint": True,
             "destructiveHint": False,
@@ -513,7 +793,7 @@ class ChemWorldMCPServer:
                 ),
                 "inputSchema": {
                     "type": "object",
-                    "properties": {"snapshot": {"type": "object"}},
+                    "properties": {"snapshot": snapshot_schema},
                     "required": ["snapshot"],
                     "additionalProperties": False,
                 },
@@ -542,8 +822,13 @@ class ChemWorldMCPServer:
                             "additionalProperties": True,
                         },
                         "request_id": {"type": "string", "minLength": 1},
+                        "decision_audit": self._decision_audit_schema(),
                     },
-                    "required": ["expected_step", "action"],
+                    "required": (
+                        ["expected_step", "action", "decision_audit"]
+                        if campaign
+                        else ["expected_step", "action"]
+                    ),
                     "additionalProperties": False,
                 },
                 "annotations": {

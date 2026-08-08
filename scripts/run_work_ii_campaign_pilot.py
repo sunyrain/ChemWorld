@@ -171,16 +171,15 @@ def _qualification(
     analysis: Mapping[str, Any],
     exact_replay: Mapping[str, Any],
     method_resources: Mapping[str, Any],
+    method_resource_limits: Mapping[str, Any],
     receipts: list[dict[str, Any]],
     process_time_limit_s: float,
 ) -> dict[str, Any]:
     """Apply the frozen per-cell qualification contract fail-closed."""
 
     receipt = receipts[0] if len(receipts) == 1 else {}
-    usage = method_resources.get("agent_usage", {})
-    usage = usage if isinstance(usage, Mapping) else {}
-    limits = method_resources.get("limits", {})
-    limits = limits if isinstance(limits, Mapping) else {}
+    usage = method_resources
+    limits = method_resource_limits
     resources = analysis.get("final_campaign_resources", {})
     resources = resources if isinstance(resources, Mapping) else {}
     state = resources.get("state", {})
@@ -216,6 +215,7 @@ def _qualification(
         "electrolyze_repeat_reconciled": 4 <= int(operation_counts.get("electrolyze", -1)) <= 5,
         "exact_replay": exact_replay.get("verified") is True,
         "provider_usage_reconciled": method_resources.get("provider_usage_pending") is False
+        and method_resources.get("provider_usage_accounting_complete") is True
         and usage.get("in_flight_model_call_count") == 0
         and int(usage.get("input_token_count", 0)) <= int(limits.get("input_token_limit", 0))
         and int(usage.get("uncached_input_token_count", 0))
@@ -229,159 +229,180 @@ def _qualification(
     }
 
 
+def _run_cell(
+    *,
+    config: Mapping[str, Any],
+    world_seed: int,
+    arm: str,
+    cell_index: int,
+    total_cells: int,
+    cell_root: Path,
+    progress_path: Path,
+) -> dict[str, Any]:
+    cell_started = perf_counter()
+    _progress(
+        progress_path,
+        {
+            "stage": "cell_started",
+            "world_seed": world_seed,
+            "cell": cell_index,
+            "total_cells": total_cells,
+            "arm": arm,
+        },
+    )
+    cell_root.mkdir(parents=True, exist_ok=False)
+    card = _campaign_card(config)
+    provider = config["provider"]
+    completed = 0
+    failure: dict[str, str] | None = None
+    with tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-") as temporary:
+        agent = InteractiveCodexExperimentAgent(
+            workspace=Path(temporary) / "workspace",
+            role_id="work_ii_wellau_sol_medium_persistent_campaign",
+            model=str(provider["model"]),
+            reasoning_effort=str(provider["reasoning_effort"]),
+            model_provider=str(provider["id"]),
+            model_provider_name=str(provider["name"]),
+            model_provider_base_url=str(provider["base_url"]),
+            model_provider_env_key=str(provider["env_key"]),
+            model_provider_wire_api=str(provider["wire_api"]),
+            request_timeout_s=float(provider["request_timeout_s"]),
+            finalization_timeout_s=float(provider["finalization_timeout_s"]),
+            pre_action_restart_limit=0,
+            session_scope="campaign",
+            belief_checkpoint_contract=_checkpoint_contract(config, arm),
+        )
+
+        def on_step(record: Any, trace: list[dict[str, Any]]) -> None:
+            nonlocal completed
+            del trace
+            if record.event_type in {"experiment_end", "batch_discard"}:
+                completed += 1
+            resources = record.info.get("campaign_resources", {})
+            _progress(
+                progress_path,
+                {
+                    "stage": "operation",
+                    "world_seed": world_seed,
+                    "cell": cell_index,
+                    "total_cells": total_cells,
+                    "arm": arm,
+                    "operation": record.action.get("operation"),
+                    "instrument": record.action.get("instrument"),
+                    "transaction_status": record.info.get("transaction_status"),
+                    "step": record.step,
+                    "complete_experiments": completed,
+                    "target_experiments": 4,
+                    "remaining_resources": resources.get("state", {}).get("remaining"),
+                    "elapsed_s": round(perf_counter() - cell_started, 1),
+                },
+            )
+
+        try:
+            history = run_agent(
+                env_id=get_task(config["task_id"]).env_id,
+                agent=agent,
+                world_split=config["world_split"],
+                budget=int(config["method_resources"]["operation_limit"]),
+                objective=config["objective"],
+                seed=world_seed,
+                agent_seed=0,
+                observation_seed=world_seed,
+                task_id=config["task_id"],
+                output_path=cell_root / "trajectory.jsonl",
+                budget_override=int(config["method_resources"]["operation_limit"]),
+                episode_mode_override=config["episode_mode"],
+                step_callback=on_step,
+                method_resource_limits=dict(config["method_resources"]),
+                material_information=dict(config["prior_arms"][arm]),
+                campaign_resource_card=card,
+                electrochemical_material_family_id=config["electrochemical_material_family_id"],
+                electrochemical_workflow_mode=config["electrochemical_workflow_mode"],
+                scoring_contract_id=config["scoring_contract_id"],
+                observation_noise_mode=config["observation_noise_mode"],
+                observation_noise_namespace=(
+                    f"{config['observation_noise_namespace']}--seed{world_seed}"
+                ),
+            )
+            del history
+        except Exception as error:  # preserve the failed cell and stop the next seed block
+            failure = {"type": type(error).__name__, "message": str(error)[:1000]}
+        receipts = agent.provider_receipts()
+        usage = agent.method_resource_usage()
+    trajectory_path = cell_root / "trajectory.jsonl"
+    records = load_jsonl(trajectory_path) if trajectory_path.exists() else []
+    analysis = _analyze(records, receipts)
+    replay = (
+        verify_records(records, tolerance=0.0).to_dict()
+        if records
+        else {"verified": False, "checked_steps": 0, "max_abs_error": None, "mismatches": []}
+    )
+    qualification = _qualification(
+        analysis=analysis,
+        exact_replay=replay,
+        method_resources=usage,
+        method_resource_limits=config["method_resources"],
+        receipts=receipts,
+        process_time_limit_s=float(config["campaign"]["process_time_limit_s"]),
+    )
+    row = {
+        "arm": arm,
+        "completed": failure is None and qualification["passed"],
+        "failure": failure,
+        "analysis": analysis,
+        "method_resources": usage,
+        "provider_receipts": receipts,
+        "exact_replay": replay,
+        "qualification": qualification,
+        "elapsed_s": round(perf_counter() - cell_started, 1),
+    }
+    write_json_atomic(cell_root / "summary.json", row)
+    _progress(
+        progress_path,
+        {
+            "stage": "cell_completed",
+            "world_seed": world_seed,
+            "cell": cell_index,
+            "total_cells": total_cells,
+            "arm": arm,
+            "completed": row["completed"],
+            "complete_experiments": analysis["complete_experiment_count"],
+            "target_experiments": 4,
+            "qualification_failed_checks": qualification["failed_checks"],
+            "elapsed_s": row["elapsed_s"],
+        },
+    )
+    return row
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
     config = _load(args.config.resolve())
     world_seed = int(args.world_seed if args.world_seed is not None else config["world_seed"])
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     progress_path = args.progress_file.resolve()
+    all_arms = list(config["prior_arms"])
+    if args.prior_arm is not None:
+        if args.prior_arm not in all_arms:
+            raise ValueError(f"unknown prior arm: {args.prior_arm}")
+        arms = [args.prior_arm]
+    else:
+        arms = all_arms
     results: list[dict[str, Any]] = []
-    arms = list(config["prior_arms"])
     started = perf_counter()
-    for cell_index, arm in enumerate(arms, start=1):
-        cell_started = perf_counter()
-        _progress(
-            progress_path,
-            {
-                "stage": "cell_started",
-                "world_seed": world_seed,
-                "cell": cell_index,
-                "total_cells": len(arms),
-                "arm": arm,
-            },
+    for arm in arms:
+        cell_index = all_arms.index(arm) + 1
+        cell_root = output if args.prior_arm is not None else output / arm
+        row = _run_cell(
+            config=config,
+            world_seed=world_seed,
+            arm=arm,
+            cell_index=cell_index,
+            total_cells=len(all_arms),
+            cell_root=cell_root,
+            progress_path=progress_path,
         )
-        cell_root = output / arm
-        cell_root.mkdir()
-        card = _campaign_card(config)
-        provider = config["provider"]
-        completed = 0
-        failure: dict[str, str] | None = None
-        with tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-") as temporary:
-            agent = InteractiveCodexExperimentAgent(
-                workspace=Path(temporary) / "workspace",
-                role_id="work_ii_wellau_sol_medium_persistent_campaign",
-                model=str(provider["model"]),
-                reasoning_effort=str(provider["reasoning_effort"]),
-                model_provider=str(provider["id"]),
-                model_provider_name=str(provider["name"]),
-                model_provider_base_url=str(provider["base_url"]),
-                model_provider_env_key=str(provider["env_key"]),
-                model_provider_wire_api=str(provider["wire_api"]),
-                request_timeout_s=float(provider["request_timeout_s"]),
-                finalization_timeout_s=float(provider["finalization_timeout_s"]),
-                pre_action_restart_limit=0,
-                session_scope="campaign",
-                belief_checkpoint_contract=_checkpoint_contract(config, arm),
-            )
-
-            def on_step(
-                record: Any,
-                trace: list[dict[str, Any]],
-                *,
-                active_cell: int = cell_index,
-                active_arm: str = arm,
-                active_started: float = cell_started,
-            ) -> None:
-                nonlocal completed
-                del trace
-                if record.event_type in {"experiment_end", "batch_discard"}:
-                    completed += 1
-                resources = record.info.get("campaign_resources", {})
-                _progress(
-                    progress_path,
-                    {
-                        "stage": "operation",
-                        "world_seed": world_seed,
-                        "cell": active_cell,
-                        "total_cells": len(arms),
-                        "arm": active_arm,
-                        "operation": record.action.get("operation"),
-                        "instrument": record.action.get("instrument"),
-                        "transaction_status": record.info.get("transaction_status"),
-                        "step": record.step,
-                        "complete_experiments": completed,
-                        "target_experiments": 4,
-                        "remaining_resources": resources.get("state", {}).get("remaining"),
-                        "elapsed_s": round(perf_counter() - active_started, 1),
-                    },
-                )
-
-            try:
-                history = run_agent(
-                    env_id=get_task(config["task_id"]).env_id,
-                    agent=agent,
-                    world_split=config["world_split"],
-                    budget=int(config["method_resources"]["operation_limit"]),
-                    objective=config["objective"],
-                    seed=world_seed,
-                    agent_seed=0,
-                    observation_seed=world_seed,
-                    task_id=config["task_id"],
-                    output_path=cell_root / "trajectory.jsonl",
-                    budget_override=int(config["method_resources"]["operation_limit"]),
-                    episode_mode_override=config["episode_mode"],
-                    step_callback=on_step,
-                    method_resource_limits=dict(config["method_resources"]),
-                    material_information=dict(config["prior_arms"][arm]),
-                    campaign_resource_card=card,
-                    electrochemical_material_family_id=(
-                        config["electrochemical_material_family_id"]
-                    ),
-                    electrochemical_workflow_mode=config["electrochemical_workflow_mode"],
-                    scoring_contract_id=config["scoring_contract_id"],
-                    observation_noise_mode=config["observation_noise_mode"],
-                    observation_noise_namespace=(
-                        f"{config['observation_noise_namespace']}--seed{world_seed}"
-                    ),
-                )
-                del history
-            except Exception as error:  # preserve the failed pilot cell and stop the block
-                failure = {"type": type(error).__name__, "message": str(error)[:1000]}
-            receipts = agent.provider_receipts()
-            usage = agent.method_resource_usage()
-        trajectory_path = cell_root / "trajectory.jsonl"
-        records = load_jsonl(trajectory_path) if trajectory_path.exists() else []
-        analysis = _analyze(records, receipts)
-        replay = (
-            verify_records(records, tolerance=0.0).to_dict()
-            if records
-            else {"verified": False, "checked_steps": 0, "max_abs_error": None, "mismatches": []}
-        )
-        qualification = _qualification(
-            analysis=analysis,
-            exact_replay=replay,
-            method_resources=usage,
-            receipts=receipts,
-            process_time_limit_s=float(config["campaign"]["process_time_limit_s"]),
-        )
-        row = {
-            "arm": arm,
-            "completed": failure is None and qualification["passed"],
-            "failure": failure,
-            "analysis": analysis,
-            "method_resources": usage,
-            "provider_receipts": receipts,
-            "exact_replay": replay,
-            "qualification": qualification,
-            "elapsed_s": round(perf_counter() - cell_started, 1),
-        }
-        write_json_atomic(cell_root / "summary.json", row)
         results.append(row)
-        _progress(
-            progress_path,
-            {
-                "stage": "cell_completed",
-                "world_seed": world_seed,
-                "cell": cell_index,
-                "total_cells": len(arms),
-                "arm": arm,
-                "completed": row["completed"],
-                "complete_experiments": analysis["complete_experiment_count"],
-                "target_experiments": 4,
-                "qualification_failed_checks": qualification["failed_checks"],
-                "elapsed_s": row["elapsed_s"],
-            },
-        )
         if not row["completed"]:
             break
     report = {
@@ -406,6 +427,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--progress-file", type=Path, required=True)
     parser.add_argument("--world-seed", type=int)
+    parser.add_argument("--prior-arm")
     args = parser.parse_args()
     report = run(args)
     print(
