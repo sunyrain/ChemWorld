@@ -5,6 +5,7 @@ import json
 from copy import deepcopy
 from pathlib import Path
 
+import scripts.run_work_ii_campaign_pilot as campaign_runner
 import scripts.run_work_ii_five_seed_campaign as five_seed_runner
 from scripts.run_work_ii_campaign_pilot import (
     _campaign_card,
@@ -190,6 +191,33 @@ def test_repeated_heartbeats_preserve_current_cell_coordinate() -> None:
     assert second["current_step"] is None
     assert second["current_complete_experiments"] == 0
     assert second["liveness_counter"] == first["liveness_counter"] + 1
+
+
+def test_single_arm_mode_leaves_cell_directory_creation_to_cell_runner(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "seed-0" / "opaque"
+
+    def fake_run_cell(**kwargs):
+        cell_root = kwargs["cell_root"]
+        assert cell_root == output.resolve()
+        assert not cell_root.exists()
+        cell_root.mkdir()
+        return {"arm": "opaque", "completed": True}
+
+    monkeypatch.setattr(campaign_runner, "_run_cell", fake_run_cell)
+    report = campaign_runner.run(
+        argparse.Namespace(
+            config=ROOT / "configs/benchmark/work_ii_campaign_pilot.json",
+            output=output,
+            progress_file=tmp_path / "progress.jsonl",
+            world_seed=0,
+            prior_arm="opaque",
+        )
+    )
+    assert report["completed_cell_count"] == 1
+    assert (output / "report.json").exists()
 
 
 def test_five_seed_runner_uses_os_isolated_three_cell_triplets(

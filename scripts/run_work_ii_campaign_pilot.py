@@ -379,14 +379,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     config = _load(args.config.resolve())
     world_seed = int(args.world_seed if args.world_seed is not None else config["world_seed"])
     output = args.output.resolve()
-    output.mkdir(parents=True, exist_ok=False)
     progress_path = args.progress_file.resolve()
     all_arms = list(config["prior_arms"])
     if args.prior_arm is not None:
         if args.prior_arm not in all_arms:
             raise ValueError(f"unknown prior arm: {args.prior_arm}")
+        output.parent.mkdir(parents=True, exist_ok=True)
         arms = [args.prior_arm]
     else:
+        output.mkdir(parents=True, exist_ok=False)
         arms = all_arms
     results: list[dict[str, Any]] = []
     started = perf_counter()

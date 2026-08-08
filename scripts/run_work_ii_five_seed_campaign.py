@@ -26,7 +26,11 @@ def _emit(path: Path, payload: dict[str, Any]) -> None:
     rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True)
     with path.open("a", encoding="utf-8") as handle:
         handle.write(rendered + "\n")
-    print(rendered, flush=True)
+    output_encoding = sys.stdout.encoding or "utf-8"
+    safe_rendered = rendered.encode(output_encoding, errors="backslashreplace").decode(
+        output_encoding
+    )
+    print(safe_rendered, flush=True)
 
 
 def _drain(stream: TextIO, events: queue.Queue[tuple[str, str | None]], arm: str) -> None:
