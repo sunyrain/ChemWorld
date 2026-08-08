@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the Work II electrochemical campaign for five world seeds with heartbeats."""
+"""Run one configured Work II task for five world seeds with heartbeats."""
 
 from __future__ import annotations
 
@@ -77,8 +77,6 @@ def _heartbeat(
 def run(args: argparse.Namespace) -> dict[str, Any]:
     if git_worktree_dirty(ROOT):
         raise RuntimeError("five-seed provider execution requires a clean committed worktree")
-    if not os.environ.get("WELLAU_API_KEY"):
-        raise RuntimeError("WELLAU_API_KEY is not available")
     output = args.output.resolve()
     progress = args.progress_file.resolve()
     if output.exists():
@@ -87,6 +85,19 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     config = json.loads(args.config.resolve().read_text(encoding="utf-8"))
     if not isinstance(config, dict) or not isinstance(config.get("prior_arms"), dict):
         raise ValueError("campaign config must define prior_arms")
+    provider = config.get("provider")
+    if not isinstance(provider, dict):
+        raise ValueError("campaign config must define provider")
+    env_key = provider.get("env_key")
+    if env_key is not None and not os.environ.get(str(env_key)):
+        raise RuntimeError(f"{env_key} is not available")
+    api_key_file = provider.get("api_key_file")
+    if api_key_file is not None:
+        key_path = Path(str(api_key_file))
+        if not key_path.is_absolute():
+            key_path = ROOT / key_path
+        if not key_path.is_file():
+            raise RuntimeError("configured provider API-key file is not available")
     arms = list(config["prior_arms"])
     if len(arms) != 3:
         raise ValueError("five-seed execution requires exactly three prior arms")
@@ -112,6 +123,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "completed_cells": 0,
             "total_cells": total_cells,
             "source_commit": git_source_commit(ROOT),
+            "task_id": config.get("task_id"),
+            "provider_id": provider.get("id"),
+            "model": provider.get("model"),
         },
     )
     for seed in seeds:
@@ -281,6 +295,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     report = {
         "schema_version": "chemworld-work-ii-five-seed-campaign-report-0.1",
         "source_commit": git_source_commit(ROOT),
+        "task_id": config.get("task_id"),
+        "provider_id": provider.get("id"),
+        "model": provider.get("model"),
         "world_seeds": seeds,
         "expected_cell_count": total_cells,
         "completed_cell_count": completed_cells,

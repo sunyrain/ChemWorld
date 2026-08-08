@@ -423,6 +423,41 @@ def test_custom_provider_command_uses_responses_and_no_secret(
     assert "sk-live" not in joined.lower()
 
 
+def test_bearer_provider_uses_isolated_codex_home_and_catalog(tmp_path: Path) -> None:
+    key_path = tmp_path / "provider-key.txt"
+    key_path.write_text("sk-test-provider-key", encoding="utf-8")
+    catalog_path = tmp_path / "models.json"
+    catalog_path.write_text('{"models": [{"slug": "deepseek-v4-flash"}]}', encoding="utf-8")
+    agent = InteractiveCodexExperimentAgent(
+        workspace=tmp_path / "workspace",
+        role_id="test",
+        model="deepseek-v4-flash",
+        reasoning_effort="high",
+        model_provider="deepseek",
+        model_provider_name="DeepSeek",
+        model_provider_base_url="https://api.deepseek.com/",
+        model_provider_wire_api="responses",
+        model_provider_auth_mode="experimental_bearer_token",
+        model_provider_api_key_file=key_path,
+        model_provider_model_catalog_json=catalog_path,
+        process_factory=lambda command, prompt, cwd: None,
+    )
+    temp_root = tmp_path / "launch"
+    temp_root.mkdir()
+    agent._prepare_provider_launch(temp_root=temp_root)
+    assert agent._use_isolated_codex_home is True
+    config_path = temp_root / "codex-home" / "config.toml"
+    config = config_path.read_text(encoding="utf-8")
+    assert 'model = "deepseek-v4-flash"' in config
+    assert 'wire_api = "responses"' in config
+    assert "sk-test-provider-key" in config
+    command = agent._command(
+        instructions_path=tmp_path / "instructions.md",
+        schema_path=tmp_path / "schema.json",
+    )
+    assert "--ignore-user-config" not in command
+
+
 def test_one_codex_process_controls_two_runner_operations(
     tmp_path: Path,
 ) -> None:

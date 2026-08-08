@@ -86,6 +86,7 @@ def build_task_info(env: Any) -> dict[str, Any]:
     if env.task_id in {
         "electrochemical-conversion",
         "reaction-to-crystallization",
+        "reaction-to-distillation",
     }:
         material_information = {
             "mode": env.material_information_condition,

@@ -824,6 +824,22 @@ outcome channels remain separate so that the analysis can distinguish:
   PermissionError）和 1 次 recovered provider error event。它们未形成科学 operation 且最终 session/
   checkpoint/replay 均通过；formal 前仍需明确冻结 validator/tool retry cap，不能仅以最终成功隐去尝试分母。
 
+三任务 provider 扩展（2026-08-08）：
+
+- [x] DeepSeek 官方 Codex Responses 接口、`deepseek-v4-flash` 模型目录和隔离 bearer-token
+  启动边界已接通；独立 Codex turn 通过。
+- [x] 两个完整 campaign-cell 资格尝试均未产生物理 operation：首次偏离到 shell/file 探索，第二次
+  停留在 MCP resource discovery。两次失败及 usage 均保留为 provider qualification failure，不进入
+  科学分母；按预定 fallback 切回已验证 WellAU `gpt-5.6-sol` medium。
+- [x] 当前完成范围收束为三个任务：`electrochemical-conversion`、
+  `reaction-to-crystallization`、`reaction-to-distillation`；每任务三先验臂 × 五 seeds，cell 内四轮
+  complete experiments。electrochemical 已完成 15/15 cells，后两任务待真实 pilot 后扩展。
+- [x] crystallization/distillation 的 task-specific belief contract、material-information public binding、
+  144,000 s process-time card、required-stage/repeat allowance 和三臂并发配置已实现。
+- [ ] crystallization seed-0 三臂真实 provider pilot 达到终态。
+- [ ] distillation seed-0 三臂真实 provider pilot 达到终态。
+- [ ] crystallization 与 distillation 各 15/15 cells 完成，并形成三任务综合报告。
+
 ## 7. 完成定义
 
 Work II 只有在以下条件全部满足时才标记完成：

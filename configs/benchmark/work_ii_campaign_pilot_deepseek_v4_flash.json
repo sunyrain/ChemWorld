@@ -1,0 +1,78 @@
+{
+  "schema_version": "chemworld-work-ii-campaign-pilot-0.1",
+  "pilot_id": "work-ii-electrochemical-deepseek-v4-flash-codex-campaign",
+  "formal_result": false,
+  "task_id": "electrochemical-conversion",
+  "world_split": "public-test",
+  "world_seed": 0,
+  "objective": "balanced",
+  "episode_mode": "campaign",
+  "electrochemical_material_family_id": "nominal-prior-latent-v2",
+  "electrochemical_workflow_mode": "autonomous_open_v1",
+  "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+  "observation_noise_mode": "keyed",
+  "observation_noise_namespace": "work-ii-electrochemical-deepseek-v4-flash-codex-campaign",
+  "prior_arms": {
+    "opaque": {"mode": "opaque_codes"},
+    "aligned_nominal": {"mode": "anonymous_nominal_properties"},
+    "misindexed_nominal": {
+      "mode": "anonymous_misindexed_properties",
+      "target_field": "solvent",
+      "descriptor_permutation": [0, 3, 2, 1]
+    }
+  },
+  "campaign": {
+    "complete_experiments": 4,
+    "operation_attempt_limit": 28,
+    "vessel_start_limit": 4,
+    "final_assay_limit": 4,
+    "nonfinal_instrument_use_limit": 0,
+    "stock_limits": {"reagent_mol": 0.08, "solvent_L": 0.16},
+    "process_time_limit_s": 72000.0,
+    "operation_repeat_limits": {"electrolyze": 5},
+    "process_time_policy": {
+      "pattern_id": "electrochemical-k4-one-repeat",
+      "required_stage_max_s": 57600.0,
+      "repeat_allowance_s": 14400.0,
+      "implicit_stage_reserve_s": 0.0,
+      "formula": "4 required electrolyses x 14400 s + 1 allowed repeat x 14400 s"
+    },
+    "checkpoint_complete_experiments": [0, 1, 2, 4]
+  },
+  "method_resources": {
+    "operation_limit": 28,
+    "complete_experiment_limit": 4,
+    "checkpoint_complete_experiments": [1, 2, 4],
+    "wall_time_limit_s": 5400.0,
+    "model_call_limit": 1,
+    "input_token_limit": 2400000,
+    "uncached_input_token_limit": 320000,
+    "output_token_limit": 24000,
+    "training_environment_step_limit": 0
+  },
+  "method_resource_semantics": {
+    "input_token_semantics": "cumulative context across one MCP tool loop, including cache hits",
+    "uncached_input_semantics": "new provider input after cache reuse; primary prompt-growth guard"
+  },
+  "execution": {
+    "max_concurrency": 1,
+    "parallelization_unit": "single_codex_session_cell",
+    "within_cell_concurrency": 1,
+    "failure_semantics": "retain the failed cell and stop before any replacement seed"
+  },
+  "provider": {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "base_url": "https://api.deepseek.com/",
+    "wire_api": "responses",
+    "auth_mode": "experimental_bearer_token",
+    "api_key_file": "api.md",
+    "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json",
+    "preferred_auth_method": "apikey",
+    "forced_login_method": "api",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "request_timeout_s": 1200.0,
+    "finalization_timeout_s": 600.0
+  }
+}

@@ -9,9 +9,12 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 from time import perf_counter
-from typing import Any
+from typing import Any, cast
 
-from chemworld.agents.interactive_codex_experiment import InteractiveCodexExperimentAgent
+from chemworld.agents.interactive_codex_experiment import (
+    InteractiveCodexExperimentAgent,
+    ProviderAuthMode,
+)
 from chemworld.campaign_resources import CampaignResourceCard
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
@@ -30,36 +33,40 @@ def _load(path: Path) -> dict[str, Any]:
     return value
 
 
+def _resolve_optional_path(value: Any) -> str | None:
+    if value is None:
+        return None
+    path = Path(str(value))
+    if not path.is_absolute():
+        path = ROOT / path
+    return str(path.resolve())
+
+
 def _checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, Any]:
     nominal = arm != "opaque"
-    queries = [
-        {"query_id": "q-low", "electrolyte_profile": 0, "solvent": 0},
-        {"query_id": "q-electrolyte", "electrolyte_profile": 3, "solvent": 0},
-        {"query_id": "q-solvent", "electrolyte_profile": 0, "solvent": 3},
-        {"query_id": "q-high", "electrolyte_profile": 3, "solvent": 3},
-    ]
-    metric_ids = ["selective_product_yield", "energy_efficiency", "safety_risk"]
-    feature_ids = [
-        "electrolyte_profile",
-        "solvent",
-        "reagent_amount_mol",
-        "potential_V",
-        "current_mA",
-        "duration_s",
-    ]
-    return {
-        "schema_version": "chemworld-work-ii-campaign-checkpoint-contract-0.1",
-        "snapshot_stages": ["pre_evidence", "post_neutral", "post_discriminating", "final"],
-        "checkpoint_complete_experiments": list(
-            config["campaign"]["checkpoint_complete_experiments"]
-        ),
-        "query_metric_contract": {row["query_id"]: metric_ids for row in queries},
-        "held_out_queries": [
+    configured = config.get("belief_checkpoint")
+    if isinstance(configured, Mapping):
+        held_out_queries = [dict(item) for item in configured["held_out_queries"]]
+        metric_ids = [str(item) for item in configured["allowed_metric_ids"]]
+        feature_ids = [str(item) for item in configured["allowed_feature_ids"]]
+        prior_fields = [str(item) for item in configured["allowed_prior_fields"]]
+    else:
+        metric_ids = ["selective_product_yield", "energy_efficiency", "safety_risk"]
+        feature_ids = [
+            "electrolyte_profile",
+            "solvent",
+            "reagent_amount_mol",
+            "potential_V",
+            "current_mA",
+            "duration_s",
+        ]
+        prior_fields = ["electrolyte_profile", "solvent"]
+        held_out_queries = [
             {
-                "query_id": row["query_id"],
+                "query_id": query_id,
                 "feature_values": {
-                    "electrolyte_profile": row["electrolyte_profile"],
-                    "solvent": row["solvent"],
+                    "electrolyte_profile": electrolyte_profile,
+                    "solvent": solvent,
                     "reagent_amount_mol": 0.01,
                     "potential_V": 0.8,
                     "current_mA": 100.0,
@@ -67,12 +74,33 @@ def _checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, Any]:
                 },
                 "metric_ids": metric_ids,
             }
-            for row in queries
-        ],
+            for query_id, electrolyte_profile, solvent in (
+                ("q-low", 0, 0),
+                ("q-electrolyte", 3, 0),
+                ("q-solvent", 0, 3),
+                ("q-high", 3, 3),
+            )
+        ]
+    query_metric_contract = {
+        str(item["query_id"]): [str(metric) for metric in item.get("metric_ids", metric_ids)]
+        for item in held_out_queries
+    }
+    complete_experiments = int(config["campaign"]["complete_experiments"])
+    return {
+        "schema_version": "chemworld-work-ii-campaign-checkpoint-contract-0.1",
+        "snapshot_stages": ["pre_evidence", "post_neutral", "post_discriminating", "final"],
+        "checkpoint_complete_experiments": list(
+            config["campaign"]["checkpoint_complete_experiments"]
+        ),
+        "query_metric_contract": query_metric_contract,
+        "held_out_queries": held_out_queries,
         "allowed_feature_ids": feature_ids,
         "allowed_metric_ids": metric_ids,
-        "allowed_prior_fields": ["electrolyte_profile", "solvent"],
-        "evidence_catalog": [f"experiment-{index}-final-assay" for index in range(1, 5)],
+        "allowed_prior_fields": prior_fields,
+        "evidence_catalog": [
+            f"experiment-{index}-final-assay"
+            for index in range(1, complete_experiments + 1)
+        ],
         "nominal_information_available": nominal,
         "stage_labels_are_checkpoint_ids_only": True,
         "physical_experiment_selection_authority": "participant",
@@ -82,7 +110,7 @@ def _checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, Any]:
 def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
     campaign = config["campaign"]
     return CampaignResourceCard(
-        card_id="work-ii-electrochemical-k4",
+        card_id=str(campaign.get("card_id", f"work-ii-{config['task_id']}-k4")),
         operation_attempt_limit=int(campaign["operation_attempt_limit"]),
         vessel_start_limit=int(campaign["vessel_start_limit"]),
         final_assay_limit=int(campaign["final_assay_limit"]),
@@ -92,6 +120,7 @@ def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
         operation_repeat_limits=dict(campaign["operation_repeat_limits"]),
         metadata={
             "pilot_id": config["pilot_id"],
+            "task_id": config["task_id"],
             "process_time_policy": dict(campaign["process_time_policy"]),
             "scope": "one_task_prior_world_cell",
         },
@@ -105,7 +134,12 @@ def _progress(path: Path, payload: Mapping[str, Any]) -> None:
     print(json.dumps(dict(payload), ensure_ascii=False, sort_keys=True), flush=True)
 
 
-def _analyze(records: list[dict[str, Any]], receipts: list[dict[str, Any]]) -> dict[str, Any]:
+def _analyze(
+    records: list[dict[str, Any]],
+    receipts: list[dict[str, Any]],
+    *,
+    final_metric_ids: list[str],
+) -> dict[str, Any]:
     experiments: list[dict[str, Any]] = []
     actions: list[dict[str, Any]] = []
     for row in records:
@@ -124,12 +158,7 @@ def _analyze(records: list[dict[str, Any]], receipts: list[dict[str, Any]]) -> d
                     "leaderboard_score": row.get("leaderboard_score"),
                     "final_metrics": {
                         key: row.get("observation", {}).get(key)
-                        for key in (
-                            "selective_product_yield",
-                            "energy_efficiency",
-                            "safety_risk",
-                            "score",
-                        )
+                        for key in final_metric_ids
                     },
                 }
             )
@@ -174,6 +203,7 @@ def _qualification(
     method_resource_limits: Mapping[str, Any],
     receipts: list[dict[str, Any]],
     process_time_limit_s: float,
+    required_operation_counts: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Apply the frozen per-cell qualification contract fail-closed."""
 
@@ -191,8 +221,17 @@ def _qualification(
     snapshots = analysis.get("belief_snapshots", [])
     snapshots = snapshots if isinstance(snapshots, list) else []
     stages = [item.get("stage") for item in snapshots if isinstance(item, Mapping)]
+    required_operations_reconciled = True
+    for operation, bounds in required_operation_counts.items():
+        low, high = (int(bounds[0]), int(bounds[1]))
+        observed = int(operation_counts.get(operation, -1))
+        required_operations_reconciled = (
+            required_operations_reconciled and low <= observed <= high
+        )
+    target_experiments = int(method_resource_limits["complete_experiment_limit"])
     checks = {
-        "four_complete_experiments": analysis.get("complete_experiment_count") == 4
+        "planned_complete_experiments": analysis.get("complete_experiment_count")
+        == target_experiments
         and analysis.get("right_censored_open_experiment") is False,
         "four_typed_belief_checkpoints": len(snapshots) == 4
         and stages == ["pre_evidence", "post_neutral", "post_discriminating", "final"],
@@ -212,7 +251,7 @@ def _qualification(
         and state.get("final_assays") == 4,
         "process_time_reconciled": "process_time_s" in report_only
         and float(report_only.get("process_time_s", 0.0)) <= process_time_limit_s,
-        "electrolyze_repeat_reconciled": 4 <= int(operation_counts.get("electrolyze", -1)) <= 5,
+        "task_required_operations_reconciled": required_operations_reconciled,
         "exact_replay": exact_replay.get("verified") is True,
         "provider_usage_reconciled": method_resources.get("provider_usage_pending") is False
         and method_resources.get("provider_usage_accounting_complete") is True
@@ -254,6 +293,7 @@ def _run_cell(
     card = _campaign_card(config)
     provider = config["provider"]
     completed = 0
+    target_experiments = int(config["campaign"]["complete_experiments"])
     failure: dict[str, str] | None = None
     with tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-") as temporary:
         agent = InteractiveCodexExperimentAgent(
@@ -264,8 +304,27 @@ def _run_cell(
             model_provider=str(provider["id"]),
             model_provider_name=str(provider["name"]),
             model_provider_base_url=str(provider["base_url"]),
-            model_provider_env_key=str(provider["env_key"]),
+            model_provider_env_key=(
+                str(provider["env_key"]) if provider.get("env_key") is not None else None
+            ),
             model_provider_wire_api=str(provider["wire_api"]),
+            model_provider_auth_mode=cast(
+                ProviderAuthMode, str(provider.get("auth_mode", "env_key"))
+            ),
+            model_provider_api_key_file=_resolve_optional_path(provider.get("api_key_file")),
+            model_provider_model_catalog_json=_resolve_optional_path(
+                provider.get("model_catalog_json")
+            ),
+            model_provider_preferred_auth_method=(
+                str(provider["preferred_auth_method"])
+                if provider.get("preferred_auth_method") is not None
+                else None
+            ),
+            model_provider_forced_login_method=(
+                str(provider["forced_login_method"])
+                if provider.get("forced_login_method") is not None
+                else None
+            ),
             request_timeout_s=float(provider["request_timeout_s"]),
             finalization_timeout_s=float(provider["finalization_timeout_s"]),
             pre_action_restart_limit=0,
@@ -292,7 +351,7 @@ def _run_cell(
                     "transaction_status": record.info.get("transaction_status"),
                     "step": record.step,
                     "complete_experiments": completed,
-                    "target_experiments": 4,
+                    "target_experiments": target_experiments,
                     "remaining_resources": resources.get("state", {}).get("remaining"),
                     "elapsed_s": round(perf_counter() - cell_started, 1),
                 },
@@ -316,9 +375,14 @@ def _run_cell(
                 method_resource_limits=dict(config["method_resources"]),
                 material_information=dict(config["prior_arms"][arm]),
                 campaign_resource_card=card,
-                electrochemical_material_family_id=config["electrochemical_material_family_id"],
-                electrochemical_workflow_mode=config["electrochemical_workflow_mode"],
-                scoring_contract_id=config["scoring_contract_id"],
+                electrochemical_material_family_id=config.get(
+                    "electrochemical_material_family_id"
+                ),
+                crystallization_material_family_id=config.get(
+                    "crystallization_material_family_id"
+                ),
+                electrochemical_workflow_mode=config.get("electrochemical_workflow_mode"),
+                scoring_contract_id=config.get("scoring_contract_id"),
                 observation_noise_mode=config["observation_noise_mode"],
                 observation_noise_namespace=(
                     f"{config['observation_noise_namespace']}--seed{world_seed}"
@@ -331,7 +395,22 @@ def _run_cell(
         usage = agent.method_resource_usage()
     trajectory_path = cell_root / "trajectory.jsonl"
     records = load_jsonl(trajectory_path) if trajectory_path.exists() else []
-    analysis = _analyze(records, receipts)
+    analysis = _analyze(
+        records,
+        receipts,
+        final_metric_ids=[
+            str(item)
+            for item in config.get("analysis", {}).get(
+                "final_metric_ids",
+                [
+                    "selective_product_yield",
+                    "energy_efficiency",
+                    "safety_risk",
+                    "score",
+                ],
+            )
+        ],
+    )
     replay = (
         verify_records(records, tolerance=0.0).to_dict()
         if records
@@ -344,6 +423,11 @@ def _run_cell(
         method_resource_limits=config["method_resources"],
         receipts=receipts,
         process_time_limit_s=float(config["campaign"]["process_time_limit_s"]),
+        required_operation_counts=dict(
+            config.get("qualification", {}).get(
+                "required_operation_counts", {"electrolyze": [4, 5]}
+            )
+        ),
     )
     row = {
         "arm": arm,
@@ -367,7 +451,7 @@ def _run_cell(
             "arm": arm,
             "completed": row["completed"],
             "complete_experiments": analysis["complete_experiment_count"],
-            "target_experiments": 4,
+            "target_experiments": target_experiments,
             "qualification_failed_checks": qualification["failed_checks"],
             "elapsed_s": row["elapsed_s"],
         },

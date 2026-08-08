@@ -14,7 +14,7 @@ import threading
 from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
 from pathlib import Path
-from typing import IO, Any, Protocol
+from typing import IO, Any, Literal, Protocol
 from uuid import uuid4
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
@@ -104,6 +104,13 @@ decision_audit requested by the tool schema: expected effect, diagnostic target,
 information gain, explicit supported/not-supported belief updates, uncertainty, and the public
 adaptation source. This is a concise scientific rationale, never private chain-of-thought.
 
+This is an experiment execution task, not a coding or repository-inspection task. Do not use shell,
+file, status, or resource-listing tools and do not inspect the repository. Your first action must be
+chemworld_lab.material_information; thereafter use only chemworld_lab.commit_belief_snapshot,
+chemworld_lab.step, chemworld_lab.status, chemworld_lab.history, and chemworld_lab.inspect_artifact
+as needed. Do not create notes or run commands. A non-lab tool call is invalid and wastes the cell's
+provider budget.
+
 An experiment_ended outcome closes only the current batch. When campaign_ended=false, preserve your
 scientific context and continue into the next fresh batch using the returned next_state. When
 campaign_ended=true, commit the final checkpoint if it is due, then return the requested final JSON.
@@ -133,12 +140,15 @@ class ProcessLike(Protocol):
 
 
 ProcessFactory = Callable[[Sequence[str], str, Path], ProcessLike]
+ProviderAuthMode = Literal["none", "env_key", "experimental_bearer_token"]
 
 
 def _default_process_factory(
     command: Sequence[str],
     prompt: str,
     cwd: Path,
+    *,
+    environment: Mapping[str, str] | None = None,
 ) -> ProcessLike:
     kwargs: dict[str, Any] = {}
     if os.name == "nt":
@@ -152,6 +162,7 @@ def _default_process_factory(
         encoding="utf-8",
         errors="replace",
         text=True,
+        env=(dict(environment) if environment is not None else None),
         **kwargs,
     )
     if process.stdin is None:
@@ -337,6 +348,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         model_provider_base_url: str | None = None,
         model_provider_env_key: str | None = None,
         model_provider_wire_api: str = "responses",
+        model_provider_auth_mode: ProviderAuthMode = "env_key",
+        model_provider_api_key_file: str | Path | None = None,
+        model_provider_model_catalog_json: str | Path | None = None,
+        model_provider_preferred_auth_method: str | None = None,
+        model_provider_forced_login_method: str | None = None,
         codex_executable: str | None = None,
         process_factory: ProcessFactory | None = None,
         request_timeout_s: float = 600.0,
@@ -349,7 +365,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         session_scope: str = "experiment",
         belief_checkpoint_contract: Mapping[str, Any] | None = None,
     ) -> None:
-        if model not in SUPPORTED_MODELS:
+        if not model:
+            raise ValueError(f"unsupported Codex model: {model}")
+        if model_provider == HTTPS_PROVIDER_ID and model not in SUPPORTED_MODELS:
             raise ValueError(f"unsupported Codex model: {model}")
         if reasoning_effort not in {"low", "medium", "high", "xhigh", "max"}:
             raise ValueError("unsupported Codex reasoning effort")
@@ -357,6 +375,15 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             raise ValueError("model provider id and name must be non-empty")
         if model_provider_wire_api != "responses":
             raise ValueError("interactive Codex runner currently requires wire_api=responses")
+        if model_provider_auth_mode not in {"none", "env_key", "experimental_bearer_token"}:
+            raise ValueError("unsupported model provider auth mode")
+        if (
+            model_provider_auth_mode == "experimental_bearer_token"
+            and not model_provider_api_key_file
+        ):
+            raise ValueError(
+                "experimental_bearer_token auth requires model_provider_api_key_file"
+            )
         if request_timeout_s <= 0 or finalization_timeout_s <= 0:
             raise ValueError("timeouts must be positive")
         if pre_action_restart_limit < 0:
@@ -377,7 +404,12 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                     "Codex CLI is not installed or not available on PATH"
                 )
             self.codex_executable = str(executable)
-            self._process_factory = _default_process_factory
+            self._process_factory = lambda command, prompt, cwd: _default_process_factory(
+                command,
+                prompt,
+                cwd,
+                environment=self._session_process_environment,
+            )
         else:
             self.codex_executable = codex_executable or "codex"
             self._process_factory = process_factory
@@ -393,6 +425,27 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             None if model_provider_env_key is None else str(model_provider_env_key)
         )
         self.model_provider_wire_api = str(model_provider_wire_api)
+        self.model_provider_auth_mode: ProviderAuthMode = model_provider_auth_mode
+        self.model_provider_api_key_file = (
+            None if model_provider_api_key_file is None else Path(model_provider_api_key_file)
+        )
+        self.model_provider_model_catalog_json = (
+            None
+            if model_provider_model_catalog_json is None
+            else Path(model_provider_model_catalog_json)
+        )
+        self.model_provider_preferred_auth_method = (
+            None
+            if model_provider_preferred_auth_method is None
+            else str(model_provider_preferred_auth_method)
+        )
+        self.model_provider_forced_login_method = (
+            None
+            if model_provider_forced_login_method is None
+            else str(model_provider_forced_login_method)
+        )
+        self._session_process_environment: dict[str, str] | None = None
+        self._use_isolated_codex_home = False
         self.request_timeout_s = float(request_timeout_s)
         self.finalization_timeout_s = float(finalization_timeout_s)
         self.pre_action_restart_limit = int(pre_action_restart_limit)
@@ -849,6 +902,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             ),
             encoding="utf-8",
         )
+        self._prepare_provider_launch(temp_root=temp_root)
         prompt = _initial_prompt(
             task_contract=self._task_contract,
             task_contract_manifest=self._task_contract_manifest,
@@ -1088,6 +1142,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             if temporary in self._session_temp_directories:
                 self._session_temp_directories.remove(temporary)
         self.workspace.retire_session(session_id)
+        self._session_process_environment = None
+        self._use_isolated_codex_home = False
 
     def _publish_outcome_artifact(
         self,
@@ -1141,12 +1197,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         )
 
     def _command(self, *, instructions_path: Path, schema_path: Path) -> list[str]:
-        return [
+        command = [
             self.codex_executable,
             "exec",
             "--json",
             "--ephemeral",
-            "--ignore-user-config",
             "--ignore-rules",
             "--skip-git-repo-check",
             "--output-schema",
@@ -1208,6 +1263,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "-C",
             str(self.workspace.agent_directory),
         ]
+        if not self._use_isolated_codex_home:
+            command.insert(5, "--ignore-user-config")
+        return command
 
     def _model_provider_config_overrides(self) -> list[str]:
         """Render bounded Codex CLI provider overrides without exposing secrets."""
@@ -1231,11 +1289,75 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 fields.append(
                     f"model_providers.{self.model_provider}.env_key={json.dumps(self.model_provider_env_key)}"
                 )
+            if self.model_provider_model_catalog_json:
+                fields.append(
+                    "model_catalog_json="
+                    + json.dumps(self.model_provider_model_catalog_json.resolve().as_posix())
+                )
+            if self.model_provider_preferred_auth_method:
+                fields.append(
+                    "preferred_auth_method="
+                    + json.dumps(self.model_provider_preferred_auth_method)
+                )
+            if self.model_provider_forced_login_method:
+                fields.append(
+                    "forced_login_method="
+                    + json.dumps(self.model_provider_forced_login_method)
+                )
             fields.append(f"model_providers.{self.model_provider}.supports_websockets=false")
             rendered: list[str] = []
             for field in fields:
                 rendered.extend(["-c", field])
             return rendered
+
+    def _prepare_provider_launch(self, *, temp_root: Path) -> None:
+        """Prepare an isolated Codex config for providers using bearer-token auth."""
+
+        if self.model_provider_auth_mode != "experimental_bearer_token":
+            self._session_process_environment = None
+            self._use_isolated_codex_home = False
+            return
+        if self.model_provider_api_key_file is None:
+            raise InteractiveCodexExperimentError(
+                "DeepSeek-compatible bearer-token launch requires an API-key file"
+            )
+        try:
+            api_key = self.model_provider_api_key_file.read_text(encoding="utf-8").strip()
+        except OSError as error:
+            raise InteractiveCodexExperimentError(
+                "unable to read the configured provider API-key file"
+            ) from error
+        if not api_key:
+            raise InteractiveCodexExperimentError("configured provider API-key file is empty")
+        if self.model_provider_model_catalog_json is None:
+            raise InteractiveCodexExperimentError(
+                "bearer-token launch requires an explicit model_catalog_json"
+            )
+        if not self.model_provider_model_catalog_json.is_file():
+            raise InteractiveCodexExperimentError("configured model_catalog_json does not exist")
+
+        codex_home = temp_root / "codex-home"
+        codex_home.mkdir(parents=True, exist_ok=True)
+        config_lines = [
+            f"model = {json.dumps(self.model)}",
+            f"model_provider = {json.dumps(self.model_provider)}",
+            f"model_reasoning_effort = {json.dumps(self.reasoning_effort)}",
+            'preferred_auth_method = "apikey"',
+            'forced_login_method = "api"',
+            "model_catalog_json = "
+            + json.dumps(self.model_provider_model_catalog_json.resolve().as_posix()),
+            "",
+            f"[model_providers.{self.model_provider}]",
+            f"name = {json.dumps(self.model_provider_name)}",
+            f"base_url = {json.dumps((self.model_provider_base_url or '').rstrip('/') + '/')}",
+            f"wire_api = {json.dumps(self.model_provider_wire_api)}",
+            f"experimental_bearer_token = {json.dumps(api_key)}",
+        ]
+        (codex_home / "config.toml").write_text("\n".join(config_lines) + "\n", encoding="utf-8")
+        environment = os.environ.copy()
+        environment["CODEX_HOME"] = str(codex_home)
+        self._session_process_environment = environment
+        self._use_isolated_codex_home = True
 
 
 def _initial_prompt(
