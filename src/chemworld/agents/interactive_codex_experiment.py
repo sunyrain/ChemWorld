@@ -53,6 +53,19 @@ _FINAL_OUTPUT_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
 }
 
+_CAMPAIGN_FINAL_OUTPUT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "status": {
+            "type": "string",
+            "enum": ["campaign_complete", "budget_exhausted", "stopped"],
+        },
+        "summary": {"type": "string", "maxLength": 3000},
+    },
+    "required": ["status", "summary"],
+    "additionalProperties": False,
+}
+
 _SYSTEM_PROMPT = """You are the sole operation-level experimental agent in ChemWorld.
 Complete one experiment by interacting with the environment only through the structured tools on
 the required chemworld_lab MCP server. Call material_information once at the start. Submit every
@@ -78,6 +91,23 @@ on the first batch. The public campaign_resources.lifecycle_reserve projection i
 than a hidden reservation, but treat its recommended remaining-attempt floor as a do-not-spend
 floor for discretionary optimization. Stop optional diagnostics or repeated controls early enough
 to preserve the current closeout and the minimum lifecycle of future batches.
+"""
+
+_CAMPAIGN_SYSTEM_PROMPT = """You are the sole operation-level scientific agent in a Work II
+ChemWorld discovery campaign. One Codex process controls the full campaign across multiple fresh
+batches that share one fixed hidden world, one public prior condition, and one campaign resource
+ledger. Call material_information once. Before the first physical operation and at every required
+checkpoint, call commit_belief_snapshot with the exact typed contract in
+../reference/belief_checkpoint_contract.json. Submit every physical operation through step and use
+its public outcome before deciding the next operation.
+
+An experiment_ended outcome closes only the current batch. When campaign_ended=false, preserve your
+scientific context and continue into the next fresh batch using the returned next_state. When
+campaign_ended=true, commit the final checkpoint if it is due, then return the requested final JSON.
+The host never chooses, repairs, terminates, assays, or replaces your operations. Failed and
+resource-rejected attempts remain part of the trajectory. Keep enough operation, stock,
+process-time, and assay capacity to close all planned batches. The 19 process coordinates are
+evaluator-derived; do not report them yourself. Do not provide private chain-of-thought.
 """
 
 
@@ -313,6 +343,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         max_tool_output_bytes: int = 32_768,
         history_event_limit: int = 64,
         history_byte_limit: int = 131_072,
+        session_scope: str = "experiment",
+        belief_checkpoint_contract: Mapping[str, Any] | None = None,
     ) -> None:
         if model not in SUPPORTED_MODELS:
             raise ValueError(f"unsupported Codex model: {model}")
@@ -328,6 +360,12 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             raise ValueError("pre_action_restart_limit must be non-negative")
         if max_initial_prompt_bytes < 4_096:
             raise ValueError("max_initial_prompt_bytes must be at least 4096")
+        if session_scope not in {"experiment", "campaign"}:
+            raise ValueError("session_scope must be experiment or campaign")
+        if session_scope == "campaign" and not isinstance(belief_checkpoint_contract, Mapping):
+            raise ValueError("campaign scope requires a belief checkpoint contract")
+        if session_scope == "experiment" and belief_checkpoint_contract is not None:
+            raise ValueError("belief checkpoint contract requires campaign scope")
         self._process_factory: ProcessFactory
         if process_factory is None:
             executable = codex_executable or shutil.which("codex")
@@ -356,6 +394,12 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self.finalization_timeout_s = float(finalization_timeout_s)
         self.pre_action_restart_limit = int(pre_action_restart_limit)
         self.max_initial_prompt_bytes = int(max_initial_prompt_bytes)
+        self.session_scope = session_scope
+        self.belief_checkpoint_contract = (
+            deepcopy(dict(belief_checkpoint_contract))
+            if belief_checkpoint_contract is not None
+            else None
+        )
         self.workspace = ExperimentCodexWorkspace(
             workspace,
             max_tool_output_bytes=max_tool_output_bytes,
@@ -382,6 +426,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._material_manifest = material_manifest
         self._task_contract = _public_task_contract(task_info)
         self._task_contract_manifest = self.workspace.publish_task_contract(self._task_contract)
+        self._belief_checkpoint_manifest = (
+            self.workspace.publish_belief_checkpoint_contract(self.belief_checkpoint_contract or {})
+            if self.session_scope == "campaign"
+            else None
+        )
         self._session: dict[str, Any] | None = None
         self._sessions_started = 0
         self._sessions_completed = 0
@@ -394,6 +443,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._last_context_remaining = 0
         self._global_runner_action_count = 0
         self._experiment_action_count = 0
+        self._session_action_count = 0
+        self._belief_snapshots: list[dict[str, Any]] = []
         self._cumulative_usage = _empty_usage()
         self._session_receipts: list[dict[str, Any]] = []
         self._completed_tool_events: list[dict[str, Any]] = []
@@ -446,6 +497,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 relative_path=str(self._task_contract_manifest["relative_path"]),
                 expected_sha256=str(self._task_contract_manifest["sha256"]),
             )
+            if self._belief_checkpoint_manifest is not None:
+                self.workspace.verify_file(
+                    relative_path=str(self._belief_checkpoint_manifest["relative_path"]),
+                    expected_sha256=str(self._belief_checkpoint_manifest["sha256"]),
+                )
             self.workspace.verify_file(
                 relative_path="public/current.json",
                 expected_sha256=str(current_manifest["sha256"]),
@@ -462,6 +518,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._session["accepted_action_count"] = int(self._session["accepted_action_count"]) + 1
         self._pending_request = request
         self._experiment_action_count += 1
+        self._session_action_count += 1
         self._global_runner_action_count += 1
         self._last_decision = {
             "schema_version": INTERACTIVE_CODEX_EXPERIMENT_VERSION,
@@ -507,15 +564,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             info=info,
             artifact=artifact,
         )
-        self.workspace.append_public_history(
-            {
-                "schema_version": INTERACTIVE_CODEX_EXPERIMENT_VERSION,
-                **outcome,
-            }
-        )
         self.workspace.update_expected_step(
             session_id=self._pending_request.session_id,
-            expected_step=self._experiment_action_count + 1,
+            expected_step=self._session_action_count + 1,
         )
         successful_final_assay = bool(
             action.get("operation") == "measure"
@@ -525,10 +576,23 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         )
         ended = bool(info.get("experiment_ended", False) or successful_final_assay)
         batch_discarded = bool(info.get("batch_discarded", False))
-        experiment_completed = bool(
-            info.get("experiment_completed", not batch_discarded)
-        )
+        experiment_completed = bool(info.get("experiment_completed", not batch_discarded))
         budget_exhausted = self._last_context_remaining <= 1 and not ended
+        completed_count = (
+            len(info.get("experiment_summaries", []))
+            if isinstance(info.get("experiment_summaries"), list)
+            else 0
+        )
+        evidence_id = (
+            f"experiment-{completed_count}-final-assay"
+            if ended and experiment_completed and completed_count > 0
+            else None
+        )
+        campaign_ended = bool(
+            (ended or budget_exhausted)
+            if self.session_scope == "experiment"
+            else info.get("campaign_terminal", False) or budget_exhausted
+        )
         self._pending_outcome = {
             "ok": True,
             "schema_version": EXPERIMENT_CODEX_IPC_VERSION,
@@ -537,7 +601,18 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "experiment_completed": experiment_completed,
             "batch_discarded": batch_discarded,
             "budget_exhausted": budget_exhausted,
+            "campaign_ended": campaign_ended,
+            "campaign_terminal_reason": info.get("campaign_terminal_reason"),
+            "next_experiment_ready": info.get("next_experiment_ready"),
+            "next_experiment_index": info.get("next_experiment_index"),
+            "evidence_id": evidence_id,
         }
+        self.workspace.append_public_history(
+            {
+                "schema_version": INTERACTIVE_CODEX_EXPERIMENT_VERSION,
+                **self._pending_outcome,
+            }
+        )
         if self._last_decision is not None:
             self._last_decision["outcome"] = deepcopy(self._pending_outcome)
 
@@ -548,7 +623,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         if self._last_decision is not None:
             self._last_decision["agent_workspace_changes"] = memory_diff
 
-        if ended or budget_exhausted:
+        if ended:
+            self._experiment_action_count = 0
+
+        if campaign_ended:
             self.workspace.write_response(
                 session_id=self._pending_request.session_id,
                 request_id=self._pending_request.request_id,
@@ -556,7 +634,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             )
             self._finalize_session(
                 terminal_reason=(
-                    "batch_discarded"
+                    "campaign_complete"
+                    if self.session_scope == "campaign" and ended
+                    else "batch_discarded"
                     if batch_discarded
                     else "experiment_complete"
                     if ended
@@ -565,7 +645,6 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             )
             self._pending_request = None
             self._pending_outcome = None
-            self._experiment_action_count = 0
 
     def decision_audit(self) -> None:
         """The IPC action is auditable, but no synthetic scientific rationale is added."""
@@ -613,7 +692,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 "provider_model": self.model,
                 "reasoning_effort": self.reasoning_effort,
                 "interaction_version": INTERACTIVE_CODEX_EXPERIMENT_VERSION,
-                "one_codex_exec_per_complete_experiment": True,
+                "session_scope": self.session_scope,
+                "one_codex_exec_per_complete_experiment": self.session_scope == "experiment",
+                "one_codex_exec_per_campaign_cell": self.session_scope == "campaign",
                 "codex_exec_ephemeral": True,
                 "experiment_tool_transport": "host_owned_stdio_mcp",
                 "mcp_server": {
@@ -631,8 +712,13 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 "forced_notebook": False,
                 "material_information_reference": deepcopy(self._material_manifest),
                 "task_contract_reference": deepcopy(self._task_contract_manifest),
+                "belief_checkpoint_contract_reference": deepcopy(self._belief_checkpoint_manifest),
                 "workspace": self.workspace.manifest(),
-                "usage_accounting_granularity": "complete_codex_experiment_turn",
+                "usage_accounting_granularity": (
+                    "complete_codex_campaign_turn"
+                    if self.session_scope == "campaign"
+                    else "complete_codex_experiment_turn"
+                ),
                 "provider_session_count": self._sessions_started,
                 "logical_codex_turn_count": self._sessions_started,
                 "backend_model_response_count": None,
@@ -640,7 +726,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 "input_token_accounting_semantics": (
                     "cumulative_input_across_the_complete_codex_turn"
                 ),
-        }
+            }
         )
         return payload
 
@@ -694,7 +780,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 "prompt_hash": _system_prompt_hash(),
                 "request_parameters": {
                     "reasoning_effort": self.reasoning_effort,
-                    "one_turn_per_experiment": True,
+                    "session_scope": self.session_scope,
+                    "one_turn_per_experiment": self.session_scope == "experiment",
+                    "one_turn_per_campaign_cell": self.session_scope == "campaign",
                     "workspace_tools": True,
                     "experiment_tool_transport": "host_owned_stdio_mcp",
                     "forced_notebook": False,
@@ -727,20 +815,29 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             self._record_interrupted_session(reason="agent_closed")
 
     def _start_session(self, current_packet: Mapping[str, Any]) -> None:
-        session_id = f"experiment-{self._sessions_started + 1:04d}-{uuid4().hex[:12]}"
+        session_id = f"{self.session_scope}-{self._sessions_started + 1:04d}-{uuid4().hex[:12]}"
         self.workspace.start_session(
             session_id=session_id,
             expected_step=1,
             response_timeout_s=self.request_timeout_s,
+            session_scope=self.session_scope,
         )
         temporary = tempfile.TemporaryDirectory(prefix="chemworld-interactive-codex-")
         self._session_temp_directories.append(temporary)
         temp_root = Path(temporary.name)
         instructions_path = temp_root / "instructions.md"
         schema_path = temp_root / "final-schema.json"
-        instructions_path.write_text(_SYSTEM_PROMPT, encoding="utf-8")
+        instructions_path.write_text(
+            _CAMPAIGN_SYSTEM_PROMPT if self.session_scope == "campaign" else _SYSTEM_PROMPT,
+            encoding="utf-8",
+        )
         schema_path.write_text(
-            json.dumps(_FINAL_OUTPUT_SCHEMA, sort_keys=True),
+            json.dumps(
+                _CAMPAIGN_FINAL_OUTPUT_SCHEMA
+                if self.session_scope == "campaign"
+                else _FINAL_OUTPUT_SCHEMA,
+                sort_keys=True,
+            ),
             encoding="utf-8",
         )
         prompt = _initial_prompt(
@@ -748,6 +845,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             task_contract_manifest=self._task_contract_manifest,
             current_packet=current_packet,
             material_manifest=self._material_manifest,
+            session_scope=self.session_scope,
+            belief_checkpoint_manifest=self._belief_checkpoint_manifest,
         )
         if len(prompt.encode("utf-8")) > self.max_initial_prompt_bytes:
             raise InteractiveCodexExperimentError(
@@ -772,6 +871,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "prompt_byte_count": len(prompt.encode("utf-8")),
             "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
         }
+        self._session_action_count = 0
 
     def _wait_for_next_request(
         self,
@@ -787,7 +887,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             try:
                 request = self.workspace.wait_for_request(
                     session_id=session_id,
-                    expected_step=self._experiment_action_count + 1,
+                    expected_step=self._session_action_count + 1,
                     timeout_s=self.request_timeout_s,
                     process_alive=monitor.alive,
                     handled_request_ids=self._handled_request_ids,
@@ -832,14 +932,16 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             )
         session_id = str(self._session["session_id"])
         mcp_tool_calls = self.workspace.mcp_tool_call_audit(session_id)
+        belief_snapshots = self.workspace.belief_snapshot_audit(session_id)
+        if belief_snapshots:
+            self._belief_snapshots.extend(deepcopy(belief_snapshots))
         receipt_tool_events = (
             [item for item in tool_events if isinstance(item, dict)]
             if isinstance(tool_events, list)
             else []
         )
         if mcp_tool_calls and not any(
-            event.get("event_type") == "mcp_tool_call"
-            for event in receipt_tool_events
+            event.get("event_type") == "mcp_tool_call" for event in receipt_tool_events
         ):
             receipt_tool_events.extend(_host_mcp_audit_events(mcp_tool_calls))
         final_payload = result.get("final_payload")
@@ -879,6 +981,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 str(self._session["session_id"])
             ),
             "mcp_tool_calls": mcp_tool_calls,
+            "session_scope": self.session_scope,
+            "belief_snapshots": belief_snapshots,
+            "belief_snapshot_count": len(belief_snapshots),
             "experiment_tool_transport": "host_owned_stdio_mcp",
             "mcp_tool_integrity_verified_after_session": integrity_error is None,
             "experiment_tool_integrity_verified_after_session": integrity_error is None,
@@ -928,8 +1033,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             else []
         )
         if mcp_tool_calls and not any(
-            event.get("event_type") == "mcp_tool_call"
-            for event in receipt_tool_events
+            event.get("event_type") == "mcp_tool_call" for event in receipt_tool_events
         ):
             receipt_tool_events.extend(_host_mcp_audit_events(mcp_tool_calls))
         receipt = {
@@ -951,15 +1055,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "stderr_sha256": snapshot.get("stderr_sha256"),
             "mcp_tool_calls": mcp_tool_calls,
             "experiment_tool_transport": "host_owned_stdio_mcp",
-            "mcp_tool_integrity_verified_after_session": (
-                experiment_tool_integrity_verified
-            ),
+            "mcp_tool_integrity_verified_after_session": (experiment_tool_integrity_verified),
             "experiment_tool_integrity_verified_after_session": (
                 experiment_tool_integrity_verified
             ),
-            "lab_tool_integrity_verified_after_session": (
-                experiment_tool_integrity_verified
-            ),
+            "lab_tool_integrity_verified_after_session": (experiment_tool_integrity_verified),
             "private_reasoning_retained": False,
         }
         self._session_receipts.append(to_builtin(receipt))
@@ -1069,19 +1169,13 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 )
             ),
             "-c",
-            (
-                "mcp_servers.chemworld_lab.cwd="
-                + json.dumps(str(self._source_project_root))
-            ),
+            ("mcp_servers.chemworld_lab.cwd=" + json.dumps(str(self._source_project_root))),
             "-c",
             "mcp_servers.chemworld_lab.required=true",
             "-c",
             "mcp_servers.chemworld_lab.enabled=true",
             "-c",
-            (
-                "mcp_servers.chemworld_lab.enabled_tools="
-                + json.dumps(list(SUPPORTED_TOOLS))
-            ),
+            ("mcp_servers.chemworld_lab.enabled_tools=" + json.dumps(list(SUPPORTED_TOOLS))),
             "-c",
             'mcp_servers.chemworld_lab.default_tools_approval_mode="approve"',
             "-c",
@@ -1128,9 +1222,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 fields.append(
                     f"model_providers.{self.model_provider}.env_key={json.dumps(self.model_provider_env_key)}"
                 )
-            fields.append(
-                f"model_providers.{self.model_provider}.supports_websockets=false"
-            )
+            fields.append(f"model_providers.{self.model_provider}.supports_websockets=false")
             rendered: list[str] = []
             for field in fields:
                 rendered.extend(["-c", field])
@@ -1143,15 +1235,23 @@ def _initial_prompt(
     task_contract_manifest: Mapping[str, Any],
     current_packet: Mapping[str, Any],
     material_manifest: Mapping[str, Any],
+    session_scope: str = "experiment",
+    belief_checkpoint_manifest: Mapping[str, Any] | None = None,
 ) -> str:
+    campaign = session_scope == "campaign"
     payload = {
         "schema_version": INTERACTIVE_CODEX_EXPERIMENT_VERSION,
         "instruction": (
-            "Complete one experiment autonomously and optimize the declared leaderboard "
+            "Run the complete multi-experiment discovery campaign autonomously. Commit the "
+            "required typed belief checkpoints, choose every operation after its public "
+            "outcome, preserve the shared resource ledger, and close every planned batch."
+            if campaign
+            else "Complete one experiment autonomously and optimize the declared leaderboard "
             "score under the scoring contract's component weights, gates, safety, and "
             "resource limits. Current state is authoritative; submit every operation "
             "through chemworld_lab.step. No host closeout is available."
         ),
+        "session_scope": session_scope,
         "task": to_builtin(dict(task_contract)),
         "task_contract_reference": {
             "contents_in_prompt": True,
@@ -1163,6 +1263,16 @@ def _initial_prompt(
             **to_builtin(dict(material_manifest)),
             "relative_path": "../reference/material_information.json",
         },
+        "belief_checkpoint_contract": (
+            {
+                "contents_in_prompt": False,
+                **to_builtin(dict(belief_checkpoint_manifest or {})),
+                "relative_path": "../reference/belief_checkpoint_contract.json",
+                "submit_with": "chemworld_lab.commit_belief_snapshot",
+            }
+            if campaign
+            else None
+        ),
         "initial_public_state": to_builtin(dict(current_packet)),
         "workspace": {
             "writable_root": "agent/ (current working directory; optional memory)",
@@ -1330,12 +1440,8 @@ def _public_task_contract(task_info: Mapping[str, Any]) -> dict[str, Any]:
         **{key: to_builtin(task_info[key]) for key in keys if key in task_info},
     }
     if not isinstance(contract.get("experiment_lifecycle"), Mapping):
-        allowed_operations = {
-            str(value) for value in task_info.get("allowed_operations", [])
-        }
-        allowed_instruments = {
-            str(value) for value in task_info.get("allowed_instruments", [])
-        }
+        allowed_operations = {str(value) for value in task_info.get("allowed_operations", [])}
+        allowed_instruments = {str(value) for value in task_info.get("allowed_instruments", [])}
         if "terminate" in allowed_operations and "final_assay" in allowed_instruments:
             method_budget = task_info.get("method_budget_contract")
             planned_experiments = (
@@ -1475,6 +1581,7 @@ def _mcp_tool_classification(tool_name: str) -> str:
         "history": "history_read",
         "inspect_artifact": "artifact_inspect",
         "material_information": "material_information_read",
+        "commit_belief_snapshot": "belief_checkpoint_commit",
     }.get(tool_name, "other")
 
 
@@ -1565,15 +1672,27 @@ def _valid_final_payload(value: Any) -> bool:
     return (
         isinstance(value, dict)
         and value.get("status")
-        in {"experiment_complete", "batch_discarded", "budget_exhausted", "stopped"}
+        in {
+            "experiment_complete",
+            "campaign_complete",
+            "batch_discarded",
+            "budget_exhausted",
+            "stopped",
+        }
         and isinstance(value.get("summary"), str)
-        and len(value["summary"]) <= 2000
+        and len(value["summary"]) <= 3000
     )
 
 
 def _system_prompt_hash() -> str:
     return hashlib.sha256(
-        (_SYSTEM_PROMPT + "|" + INTERACTIVE_CODEX_EXPERIMENT_VERSION).encode("utf-8")
+        (
+            _SYSTEM_PROMPT
+            + "|"
+            + _CAMPAIGN_SYSTEM_PROMPT
+            + "|"
+            + INTERACTIVE_CODEX_EXPERIMENT_VERSION
+        ).encode("utf-8")
     ).hexdigest()
 
 

@@ -17,7 +17,9 @@ import time
 from pathlib import Path
 from typing import Any
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.2"
+from chemworld.eval.work_ii_prior_discovery import parse_work_ii_belief_snapshot
+
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.3"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
@@ -25,6 +27,7 @@ SUPPORTED_TOOLS = (
     "status",
     "history",
     "inspect_artifact",
+    "commit_belief_snapshot",
     "step",
 )
 
@@ -117,6 +120,8 @@ class ChemWorldMCPServer:
                 if isinstance(params, dict)
                 else "2025-06-18"
             )
+            descriptor = self._descriptor()
+            campaign = descriptor.get("session_scope") == "campaign"
             return self._result(
                 request_id,
                 {
@@ -126,9 +131,17 @@ class ChemWorldMCPServer:
                     "instructions": (
                         "Use chemworld_lab.step for every physical operation. First call "
                         "material_information once. Use status, history, and inspect_artifact "
-                        "only for bounded public evidence. Never fabricate an outcome. After "
-                        "a step returns experiment_ended=true, call no more tools and submit "
-                        "the final response for that experiment."
+                        "only for bounded public evidence. Never fabricate an outcome. "
+                        + (
+                            "Commit every required belief checkpoint with "
+                            "commit_belief_snapshot. An experiment_ended outcome closes only "
+                            "the current batch; continue in the same session when "
+                            "campaign_ended=false. After campaign_ended=true, commit the final "
+                            "checkpoint if due and submit the final response."
+                            if campaign
+                            else "After a step returns experiment_ended=true, call no more "
+                            "tools and submit the final response for that experiment."
+                        )
                     ),
                 },
             )
@@ -194,6 +207,8 @@ class ChemWorldMCPServer:
                 payload = self._history(arguments)
             elif name == "inspect_artifact":
                 payload = self._inspect(descriptor, arguments)
+            elif name == "commit_belief_snapshot":
+                payload = self._commit_belief_snapshot(descriptor, arguments)
             else:
                 payload = self._step(descriptor, arguments)
             cap = int(descriptor["max_tool_output_bytes"])
@@ -205,7 +220,12 @@ class ChemWorldMCPServer:
                 "isError": False,
             }
         except Exception as error:
-            return self._tool_error(type(error).__name__)
+            detail = str(error).strip()
+            return self._tool_error(
+                f"{type(error).__name__}: {detail[:1000]}"
+                if name == "commit_belief_snapshot" and detail
+                else type(error).__name__
+            )
 
     @staticmethod
     def _tool_error(error_type: str) -> dict[str, Any]:
@@ -240,6 +260,80 @@ class ChemWorldMCPServer:
             "terminal_outcome": self._terminal_outcome,
             "instruction": "Submit the final response now; do not call step again.",
         }
+
+    def _commit_belief_snapshot(
+        self,
+        descriptor: dict[str, Any],
+        arguments: dict[str, Any],
+    ) -> dict[str, Any]:
+        if descriptor.get("session_scope") != "campaign":
+            raise RuntimeError("belief checkpoints are available only in campaign sessions")
+        snapshot = arguments.get("snapshot")
+        if not isinstance(snapshot, dict):
+            raise ValueError("snapshot must be an object")
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        stages = contract.get("snapshot_stages")
+        if not isinstance(stages, list) or not stages:
+            raise ValueError("checkpoint contract has no snapshot stages")
+        session_id = self._leaf(str(descriptor["session_id"]), label="session_id")
+        root = self.ipc / "sessions" / session_id / "belief_snapshots"
+        existing = sorted(root.glob("*.json")) if root.exists() else []
+        if len(existing) >= len(stages):
+            raise RuntimeError("all required belief checkpoints are already committed")
+        expected_stage = str(stages[len(existing)])
+        required_counts = contract.get("checkpoint_complete_experiments")
+        if not isinstance(required_counts, list) or len(required_counts) != len(stages):
+            raise ValueError("checkpoint experiment-count schedule is invalid")
+        completed_count, observed_evidence = self._completed_experiment_state()
+        if completed_count != int(required_counts[len(existing)]):
+            raise RuntimeError(
+                "checkpoint is not due at the current completed-experiment count: "
+                f"expected {required_counts[len(existing)]}, observed {completed_count}"
+            )
+        parsed = parse_work_ii_belief_snapshot(
+            snapshot,
+            expected_stage=expected_stage,
+            query_metric_contract={
+                str(key): tuple(str(item) for item in value)
+                for key, value in dict(contract["query_metric_contract"]).items()
+            },
+            allowed_feature_ids=tuple(str(item) for item in contract["allowed_feature_ids"]),
+            allowed_metric_ids=tuple(str(item) for item in contract["allowed_metric_ids"]),
+            allowed_prior_fields=tuple(str(item) for item in contract["allowed_prior_fields"]),
+            evidence_catalog=tuple(str(item) for item in contract["evidence_catalog"]),
+            nominal_information_available=bool(contract["nominal_information_available"]),
+        )
+        cited = set(parsed.evidence_ids) | set(parsed.law_summary.evidence_ids)
+        if not cited.issubset(observed_evidence):
+            raise ValueError("belief snapshot cites evidence that has not yet been observed")
+        root.mkdir(parents=True, exist_ok=True)
+        path = root / f"{len(existing) + 1:02d}-{expected_stage}.json"
+        _atomic_json(path, parsed.to_dict())
+        return {
+            "ok": True,
+            "schema_version": MCP_SERVER_VERSION,
+            "stage": expected_stage,
+            "complete_experiment_count": completed_count,
+            "committed_checkpoint_count": len(existing) + 1,
+            "remaining_checkpoint_count": len(stages) - len(existing) - 1,
+        }
+
+    def _completed_experiment_state(self) -> tuple[int, set[str]]:
+        rows: list[dict[str, Any]] = []
+        path = self.public / "history.jsonl"
+        if path.exists():
+            for line in path.read_text(encoding="utf-8").splitlines():
+                if line:
+                    value = json.loads(line)
+                    if isinstance(value, dict):
+                        rows.append(value)
+        ended = [row for row in rows if row.get("experiment_ended") is True]
+        evidence = {
+            str(row["evidence_id"])
+            for row in ended
+            if isinstance(row.get("evidence_id"), str)
+        }
+        return len(ended), evidence
 
     def _inspect(
         self,
@@ -283,8 +377,23 @@ class ChemWorldMCPServer:
     ) -> dict[str, Any]:
         if self._terminal_outcome is not None:
             raise RuntimeError(
-                "experiment_already_ended_submit_final_response"
+                "campaign_already_ended_submit_final_response"
             )
+        if descriptor.get("session_scope") == "campaign":
+            contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+            stages = contract.get("snapshot_stages", [])
+            required_counts = contract.get("checkpoint_complete_experiments", [])
+            root = self.ipc / "sessions" / str(descriptor["session_id"]) / "belief_snapshots"
+            committed = len(list(root.glob("*.json"))) if root.exists() else 0
+            completed_count, _ = self._completed_experiment_state()
+            if (
+                committed < len(stages)
+                and committed < len(required_counts)
+                and completed_count == int(required_counts[committed])
+            ):
+                raise RuntimeError(
+                    f"required belief checkpoint {stages[committed]} must be committed before step"
+                )
         expected_step = self._integer(arguments.get("expected_step"), label="expected_step")
         if expected_step < 1:
             raise ValueError("expected_step must be positive")
@@ -322,7 +431,10 @@ class ChemWorldMCPServer:
         while time.monotonic() < deadline:
             if response_path.exists():
                 outcome = _read_object(response_path)
-                if outcome.get("experiment_ended") is True:
+                if outcome.get("campaign_ended") is True or (
+                    descriptor.get("session_scope") != "campaign"
+                    and outcome.get("experiment_ended") is True
+                ):
                     self._terminal_outcome = outcome
                 return outcome
             current = self._descriptor()
@@ -393,11 +505,31 @@ class ChemWorldMCPServer:
                 "annotations": read_annotations,
             },
             {
+                "name": "commit_belief_snapshot",
+                "description": (
+                    "Commit the next required typed Work II belief snapshot inside the active "
+                    "campaign session. The host validates stage order, experiment-count location, "
+                    "evidence references, held-out predictions, and executable law summary."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {"snapshot": {"type": "object"}},
+                    "required": ["snapshot"],
+                    "additionalProperties": False,
+                },
+                "annotations": {
+                    "readOnlyHint": False,
+                    "destructiveHint": False,
+                    "idempotentHint": False,
+                    "openWorldHint": False,
+                },
+            },
+            {
                 "name": "step",
                 "description": (
                     "Submit exactly one operation to the authoritative ChemWorld "
-                    "runner and wait for its public outcome. This tool is permanently "
-                    "closed after an outcome reports experiment_ended=true."
+                    "runner and wait for its public outcome. In campaign scope, a batch "
+                    "ending does not close this tool; campaign_ended=true closes it."
                 ),
                 "inputSchema": {
                     "type": "object",

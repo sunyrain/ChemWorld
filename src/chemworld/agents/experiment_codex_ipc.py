@@ -158,6 +158,25 @@ class ExperimentCodexWorkspace:
             **_fingerprint(path),
         }
 
+    def publish_belief_checkpoint_contract(
+        self,
+        contract: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """Write the host-owned Work II checkpoint contract for a campaign cell."""
+
+        self._require_initialized()
+        normalized = _bounded_json_object(
+            contract,
+            max_bytes=self.max_artifact_bytes,
+            label="belief checkpoint contract",
+        )
+        path = self.reference_directory / "belief_checkpoint_contract.json"
+        _atomic_write_json(path, normalized)
+        return {
+            "relative_path": "reference/belief_checkpoint_contract.json",
+            **_fingerprint(path),
+        }
+
     def publish_artifact(
         self,
         *,
@@ -219,12 +238,21 @@ class ExperimentCodexWorkspace:
         rows = _read_jsonl(path)
         return rows[-max(self.history_event_limit * 8, 64) :]
 
+    def belief_snapshot_audit(self, session_id: str) -> list[dict[str, Any]]:
+        """Return the structured Work II checkpoints committed in one Codex session."""
+
+        root = self.session_root(session_id) / "belief_snapshots"
+        if not root.exists():
+            return []
+        return [_read_json_object(path) for path in sorted(root.glob("*.json"))]
+
     def start_session(
         self,
         *,
         session_id: str,
         expected_step: int = 1,
         response_timeout_s: float,
+        session_scope: str = "experiment",
     ) -> dict[str, Any]:
         """Create a new session namespace while preserving optional Agent files."""
 
@@ -235,6 +263,8 @@ class ExperimentCodexWorkspace:
             raise ValueError("expected_step must be positive")
         if response_timeout_s <= 0:
             raise ValueError("response_timeout_s must be positive")
+        if session_scope not in {"experiment", "campaign"}:
+            raise ValueError("session_scope must be experiment or campaign")
         session_root = self.session_root(session_id)
         if session_root.exists():
             raise FileExistsError(f"session already exists: {session_id}")
@@ -250,6 +280,7 @@ class ExperimentCodexWorkspace:
             "expected_step": int(expected_step),
             "max_tool_output_bytes": self.max_tool_output_bytes,
             "response_timeout_s": float(response_timeout_s),
+            "session_scope": session_scope,
         }
         _atomic_write_json(session_root / "session.json", descriptor)
         _atomic_write_json(self.active_session_path, descriptor)
