@@ -12,8 +12,45 @@ from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.interactive_codex_experiment import (
     InteractiveCodexExperimentAgent,
     InteractiveCodexExperimentError,
+    _material_information_payload,
     _public_task_contract,
 )
+
+
+def test_material_payload_blinds_aligned_vs_misindexed_mode_labels() -> None:
+    dossier = {"presentation": "anonymous", "choices": {"solvent": []}}
+    aligned = _material_information_payload(
+        {
+            "material_information": {
+                "mode": "anonymous_nominal_properties",
+                "dossier": dossier,
+            },
+            "material_catalog": {},
+        }
+    )
+    misindexed = _material_information_payload(
+        {
+            "material_information": {
+                "mode": "anonymous_misindexed_properties",
+                "dossier": dossier,
+            },
+            "material_catalog": {},
+        }
+    )
+    assert aligned == misindexed
+    assert "anonymous_misindexed_properties" not in json.dumps(misindexed).lower()
+
+
+def test_material_payload_marks_opaque_without_internal_mode_name() -> None:
+    payload = _material_information_payload(
+        {
+            "material_information": {"mode": "opaque_codes"},
+            "material_catalog": {},
+        }
+    )
+    serialized = json.dumps(payload).lower()
+    assert payload["material_information"]["availability"] == "opaque_identifiers_only"
+    assert "opaque_codes" not in serialized
 
 
 def test_public_task_contract_exposes_composition_and_explicit_closeout() -> None:

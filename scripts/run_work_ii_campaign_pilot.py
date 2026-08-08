@@ -158,7 +158,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         )
         provider = config["provider"]
         completed = 0
-        with tempfile.TemporaryDirectory(prefix=f"chemworld-work-ii-{arm}-") as temporary:
+        with tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-") as temporary:
             agent = InteractiveCodexExperimentAgent(
                 workspace=Path(temporary) / "workspace",
                 role_id="work_ii_wellau_sol_medium_persistent_campaign",
@@ -227,7 +227,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 electrochemical_workflow_mode=config["electrochemical_workflow_mode"],
                 scoring_contract_id=config["scoring_contract_id"],
                 observation_noise_mode=config["observation_noise_mode"],
-                observation_noise_namespace=f"{config['observation_noise_namespace']}--{arm}",
+                observation_noise_namespace=config["observation_noise_namespace"],
             )
             del history
             receipts = agent.provider_receipts()

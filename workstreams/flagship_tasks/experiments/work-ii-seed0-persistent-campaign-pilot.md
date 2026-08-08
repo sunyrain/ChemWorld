@@ -29,5 +29,14 @@ separate limits of 2,400,000 cumulative input tokens and 192,000 uncached input 
 output-token, operation, experiment and physical-resource limits are unchanged. The affected block
 must restart from the opaque arm.
 
+Second pre-qualification defect found in that rerun: the public material envelope exposed the
+internal mode name `anonymous_misindexed_properties`, the temporary workspace path included the arm
+name, and observation-noise namespaces differed by arm. Therefore the resulting belief trajectories
+are transport/resource shakedown only and cannot support prior-rejection claims. Before the next
+full-block rerun, aligned and misindexed arms receive identical public envelope topology and wording,
+workspace paths become arm-neutral, and all three arms share the same keyed-noise namespace. The
+misindexed attempt also measured 264,302 uncached input tokens, so the predeclared uncached cap is
+raised to 320,000 while the 2,400,000 cumulative cap and all physical limits remain unchanged.
+
 Expected outputs: one redacted trajectory and machine-readable summary per arm, one combined pilot
 report, and an external progress JSONL. Raw provider payloads and credentials are not retained.

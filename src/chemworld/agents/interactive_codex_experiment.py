@@ -1392,9 +1392,30 @@ def _compact_outcome(
 
 
 def _material_information_payload(task_info: Mapping[str, Any]) -> dict[str, Any]:
+    raw = task_info.get("material_information")
+    material = raw if isinstance(raw, Mapping) else {}
+    dossier = material.get("dossier")
+    if isinstance(dossier, Mapping):
+        public_material_information: dict[str, Any] = {
+            "availability": "nominal_property_dossier",
+            "dossier": to_builtin(dict(dossier)),
+            "interpretation": (
+                "This dossier is incomplete nominal prior information. Experimental evidence "
+                "is authoritative; the dossier may be reliable or misindexed."
+            ),
+        }
+    else:
+        public_material_information = {
+            "availability": "opaque_identifiers_only",
+            "dossier": None,
+            "interpretation": (
+                "No task-specific nominal property dossier is supplied. Experimental evidence "
+                "is authoritative."
+            ),
+        }
     return {
         "schema_version": "chemworld-env-owned-material-information-reference-0.1",
-        "material_information": to_builtin(task_info.get("material_information")),
+        "material_information": public_material_information,
         "material_catalog": to_builtin(task_info.get("material_catalog", {})),
     }
 
