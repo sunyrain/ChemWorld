@@ -1,6 +1,6 @@
 # Work II TODO — 先验、规律发现、偏差排除与迁移
 
-最后更新：2026-08-07
+最后更新：2026-08-08
 工作边界：第二篇研究在固定世界规律下，无先验、正确先验和错误先验如何影响 agent 的实验发现、错误先验排除、规律总结和 held-out 迁移。它不把“运行中规律变化”作为主要情境，也不重复第一篇的装置可观测性主张。
 
 当前执行冻结：
@@ -9,8 +9,25 @@
 - task 认领后进入 `DOING`，满足验收标准即直接标记 `DONE`；
 - 当前唯一 participant backend 为 WellAU 提供的 `gpt-5.6-sol`，`reasoning_effort=medium`；
 - 当前 participant execution unit 冻结为：每个 `task × prior arm × world seed` cell 只允许一个
-  持久 Codex session identity。该 session 内可以有多轮 observation/decision turn，但禁止把各次
-  snapshot 或 autonomous decision 实现为互不关联的 standalone API 问答；
+  长驻 Codex process/session identity。它继承第一篇 complete-agent 的 operation-level 语义：
+  agent 在同一上下文内通过 host-owned `chemworld_lab` MCP 逐次提交 `step(action)`，读取每个公开
+  outcome 后再选择下一 operation；禁止把 experiment、snapshot 或 autonomous decision 拆成互不关联的
+  standalone API 问答或本地 history 重建；
+- 当前 primary participant method 不采用“模型一次生成 complete-experiment plan、deterministic executor
+  一次执行到底”的 Static S0 粒度。Static S0 可保留为 calibration/reference control，但不能替代
+  operation-level discovery、measurement、termination 和 resource-allocation 行为；
+- 每个 Work II cell 同时绑定一个 Codex session 和一个 ChemWorld discovery campaign。campaign 内可包含
+  多个 complete experiments/lifecycles；每个 experiment 从新 vessel/batch 开始，以 committed
+  `final_assay` 或允许的 discard 关闭。不同 experiments 共享同一 hidden law、agent context 和
+  `CampaignResourceLedger`，但 final assay 后下一 batch 的物理状态重新初始化；
+- discovery campaign 内所有 participant experiments 共享一张资源卡；operation attempts、vessel starts、
+  final assays、non-final instrument uses、stocks、process time、sample、cost 和 risk 均跨 experiment
+  累积，不得每个 experiment 重新发放。held-out/blind evaluator 使用独立 sealed campaign 和资源账本，
+  不消耗 participant 资源，也不进入 participant process-profile 分母；
+- 第一篇冻结的 19 个 process coordinates 作为 evaluator-side operation/campaign profile 复用，不是
+  agent belief state，也不要求模型报告。Work II 的 belief snapshot 只记录 prior reliability、预测、
+  uncertainty、evidence references、law summary 和 next intent，并在同一个 Codex process 内通过结构化
+  MCP checkpoint 提交，不启动额外 provider session；
 - 旧的 Direct Responses + 本地 history 重建实现及其报告已归档到
   `workstreams/flagship_tasks/archive/work-ii/direct_responses_reconstructed_history/`，仅作为历史
   transport/schema qualification，不再授权当前方法或科学结果；
@@ -22,6 +39,28 @@
   成本/稀释或共享催化剂物种，因此不适合本轮 ID↔property-bundle prior manipulation；它保留为后续
   process-law 扩展候选。五任务是首轮最低广度而非最终上限；pilot 通过后可从 15-task registry 继续加入
   prior-identifiable 任务，但不能把正式范围缩回两项。
+
+### Work II execution semantics and denominators
+
+- **Provider attempt**：同一 session 内一次 provider 技术尝试；失败重试不产生新的科学样本。
+- **Session turn/tool loop**：同一 Codex process 内的 observation、reasoning 和 MCP tool interaction；
+  session/tool turns 不是独立实验或独立统计样本。
+- **Operation attempt**：一次进入 ChemWorld resource preflight 的 `step(action)`；即使 validation、resource
+  preflight 或 transaction 失败，也按冻结规则记录 attempt 和相应 reporting debit。
+- **Committed operation**：`transaction_status=committed` 的 operation；只有实际 committed outcome 扣除
+  对应物理 stock、sample、process time、cost 和 risk，resource-rejected candidate state 不进入物理状态。
+- **Complete experiment/lifecycle**：一个新 batch 从首个 vessel-starting operation 开始，经任意次
+  process/measurement decisions，到 committed `final_assay` 或允许的 discard 关闭。`terminate` 是 agent
+  可在中途选择的 process operation，通常使 final assay 可达；它本身不等同于 final assay。
+- **Discovery campaign**：同一 cell 内的多个 complete experiments，共享 fixed world、Codex context 和
+  campaign resource ledger。下一 batch 重置物理初态，但保留公开历史、信念、世界规律和剩余资源。
+- **Formal cell**：`task × prior arm × world seed × participant method/session`；每个 cell 产生一条纵向
+  discovery trajectory 和一个 campaign-level process profile。
+- **Independent analysis unit**：独立 world seed/world cluster。operations、experiments、snapshots、held-out
+  queries、blind replicates 和 provider repeats 均为 cell 内嵌套观测，不得冒充独立样本。
+- 第一篇 19-coordinate producer 的固定六-lifecycle aggregation 不能原样套用；Work II 必须用 discovery
+  campaign 实际冻结的 planned experiment count 重建 profile，并将 participant trajectory 与 evaluator
+  held-out/blind trajectory严格分离。
 
 ## 0. Proposed manuscript architecture (planning draft)
 
@@ -150,25 +189,37 @@ Recovering the anonymous-ID-to-dossier mapping alone is not sufficient for a law
 formal success additionally requires an executable law summary, held-out predictions across
 unobserved conditions and transfer beyond the exact diagnostic points.
 
-**Candidate trajectory design.** Each formal cell should combine a shared diagnostic prefix with
-an autonomous suffix:
+**Primary free-discovery trajectory.** The primary experiment must not give the participant a
+protocol-owned discriminating experiment. Mechanism/prior identifiability is qualified before the
+participant run without disclosing the diagnostic condition. Each formal cell should use one
+operation-level Codex session across a resource-shared discovery campaign:
 
-1. a pre-evidence prediction and confidence snapshot;
-2. a short neutral-evidence prefix with low power to distinguish the mappings;
-3. a matched discriminating-evidence prefix that contrasts selected materials across controlled
-   backgrounds;
-4. a post-evidence prediction, confidence and structured law-summary snapshot;
-5. an autonomous experiment suffix under the remaining shared budget;
-6. a final recommendation followed by independent blind validation.
+1. a pre-evidence prediction, confidence and prior-reliability checkpoint committed inside the
+   active session;
+2. participant-owned operation-level exploration from the first physical action, including
+   experiment selection, measurement, continuation, termination and final assay;
+3. fixed checkpoint locations after preregistered complete-experiment counts, with all checkpoints
+   remaining inside the same Codex process rather than separate provider requests;
+4. a final executable law summary, held-out predictions and agent-committed recommendation;
+5. independent sealed held-out/blind execution with no feedback to the participant session.
 
-The exact horizon and neutral/discriminating/autonomous allocation remain provisional until power,
-cost and provider qualification are complete. A candidate calibration horizon is 20 scientific
-experiments, but it must not be frozen merely because it appeared in a planning review.
+The primary estimand is the total effect of prior condition on evidence seeking, experiment choice,
+belief revision, law recovery and action. Failure to seek disconfirming evidence is therefore a
+scientific outcome, not a nuisance to be repaired by injecting the key experiment. The exact number
+of complete experiments and checkpoint positions remain provisional until resource and provider
+qualification; a planning horizon must not be frozen merely because it appeared in a review.
 
-**Scientific-decision interface.** The confirmatory prior experiment should compare high-level
-scientific decisions through one deterministic procedure executor. Operation-level autonomy is an
-external-validity transfer test, not the primary assay, so lifecycle syntax failures cannot obscure
-prior use and revision.
+**Optional matched-evidence mechanism probe.** A separate secondary cloned-world probe may present
+identical contradictory evidence to all three prior arms to distinguish “did not seek the evidence”
+from “saw the evidence but did not update.” It must use its own sessions and resources, remain outside
+the primary free-discovery trajectory, and never enter the participant process-profile or primary
+endpoint denominator. The smallest real provider pilot does not require this optional probe.
+
+**Scientific-decision interface.** The primary participant inherits the first paper's complete-agent
+interface: one long-lived Codex process uses the host-owned ChemWorld MCP to decide each operation
+after observing the previous public outcome. The deterministic host owns validation, transaction,
+resource and hidden-world semantics, but not participant operation selection. High-level
+complete-experiment planners remain calibration controls only.
 
 **Candidate chemical scope.** The initial cohort uses five heterogeneous reference tasks:
 electrochemical conversion, reaction-to-crystallization, reaction-to-distillation,
@@ -209,12 +260,13 @@ No second model or provider enters the current completion scope.
   accuracy, evidence efficiency or blind-validated outcome relative to opaque identifiers.
 - **H2 — Prior vulnerability (secondary):** misindexed nominal information harms prediction,
   experiment selection or blind-validated outcome relative to opaque identifiers.
-- **H3 — Selective evidence-driven correction (primary):** discriminating evidence improves the
-  misindexed condition and closes its predictive gap to the aligned condition without producing a
-  comparable loss in the aligned condition.
-- **H4 — Knowledge-to-action translation (key secondary):** epistemic correction predicts the
-  first autonomous action after the diagnostic prefix, subsequent evidence-aligned actions and
-  blind-validated performance.
+- **H3 — Selective evidence-driven correction (primary):** evidence acquired during free discovery
+  improves the misindexed condition and closes its predictive gap to the aligned condition without
+  producing a comparable loss in the aligned condition; failure to acquire relevant disconfirming
+  evidence remains a distinct observable failure mode.
+- **H4 — Knowledge-to-action translation (key secondary):** epistemic correction predicts the next
+  participant-owned operations, subsequent evidence-aligned experiments and blind-validated
+  performance.
 
 For a held-out prediction quality `Q_k` measured at snapshot `k`, define the aligned--misindexed
 gap `G_k = Q_aligned,k - Q_misindexed,k`. A candidate primary contrast is
@@ -404,7 +456,10 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] public prior、真实 hidden law 和 instrument mapping 分别控制；
   - [ ] 三种 prior condition 在 world、预算、契约和安全边界上匹配；
   - [ ] aligned/misindexed 的字段、数值集合、措辞、token 预算和 dossier 置信强度匹配；
-  - [ ] neutral evidence 与 discriminating evidence 的选择规则在 participant outcomes 前冻结；
+  - [ ] evaluator-side prior-identifiability checks 的证据设计在 participant outcomes 前冻结，但不得把关键
+    discriminating experiment 直接注入 primary free-discovery trajectory；
+  - [ ] 若增加 matched-evidence mechanism probe，其 cloned world、evidence packet、session、resource
+    card 和 secondary estimand 必须独立冻结，不得与 primary campaign 混账；
   - [ ] electrochemical 与 crystallization 是否作为两类正式机制由 Gate A 和 prior-identifiability 决定，而非按 agent 结果挑选；
   - [ ] prior identity、world identity 和 split 均有不可变哈希；
   - [ ] qualification worlds、public formal worlds、private worlds 不重叠；
@@ -434,13 +489,16 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] endpoint optimization 与 law discovery、prior rejection 和 transfer 指标代数独立或明确建模依赖；
   - [ ] continuous estimands 优先于阈值分类；
   - [ ] no-prior、correct-prior 和 wrong-prior 分母分离；
-  - [ ] primary correction contrast 同时要求 misindexed 改善和 aligned 不发生超容差退化，禁止仅凭 gap closure 判定成功；
+  - [ ] primary correction contrast 基于 participant 自主获得的证据和固定 checkpoints，同时要求 misindexed
+    改善和 aligned 不发生超容差退化；不得仅凭 gap closure 或被注入的 diagnostic evidence 判定成功；
   - [ ] 仅恢复材料 ID 与 dossier 的对应关系不得计为规律发现；必须通过连续条件反事实预测、typed law summary 和 transfer 验证；
   - [ ] prior benefit/harm/recovery 只作为分立 phenotype vector 报告，不合成排行榜分数；
   - [ ] epistemic、behavioral 和 outcome 三层的联合与解耦规则冻结；
   - [ ] right censoring、missingness、provider failure 和 multiplicity 规则冻结；
   - [ ] analysis unit 为独立 world/cell cluster，provider repeats 嵌套；
-  - [ ] 明确“law summary 声明”、反事实预测与后续行为证据的联合成功规则。
+  - [ ] 明确“law summary 声明”、反事实预测与后续 operation-level 行为证据的联合成功规则；
+  - [ ] 明确区分“未主动寻找反证”和“看到相同反证后仍不更新”，后者只有在可选 matched-evidence probe
+    中作为 secondary mechanism contrast 报告。
 - 备注：`Claim: Codex /root — W2-05 — DOING`
 
 ### W2-06 — 冻结 participant backend × session/scaffold 矩阵
@@ -456,19 +514,24 @@ outcome channels remain separate so that the analysis can distinguish:
 - 优先级：P0
 - 目标：先冻结一个可审计的持久 session execution unit，再决定是否引入第二 scaffold axis；避免把
   model、session、scaffold 和 transport 完全捆绑。
-- 当前最低方法：WellAU `gpt-5.6-sol` medium；一个 cell 一个持久 Codex session；同一 session 内
-  维护 typed belief、diagnostic focus、evidence references 和 next intent；当前不加入第二 backend。
+- 当前最低方法：WellAU `gpt-5.6-sol` medium；一个 cell 一个长驻 operation-level Codex process，
+  通过 host-owned ChemWorld MCP 控制同一 discovery campaign 的多个 complete experiments；同一 session
+  内维护 typed belief、evidence references、law summary 和 next intent；当前不加入第二 backend。
 - 验收标准：
-  - [ ] session start/resume/close 使用同一 provider-independent turn/result schema；
-  - [ ] 每个 cell 恰有一个 session identity，所有 experiment decisions 和 belief updates 均绑定该 identity；
-  - [ ] 每次 agent experiment decision 产生一个 complete-experiment plan，由 deterministic executor 执行；
+  - [ ] session start、operation tool loop、checkpoint、interrupt/finalize 和 receipt 使用同一可审计 contract；
+  - [ ] 每个 cell 恰有一个 session identity，所有 operations、complete experiments 和 belief checkpoints 均绑定该 identity；
+  - [ ] agent 每次读取前一 public outcome 后选择一个 operation；host 只负责 validation、transaction、resource 和 hidden-world 执行；
+  - [ ] `terminate`、`final_assay`、discard、budget exhaustion 和 right-censoring 的 lifecycle 语义与第一篇 complete-agent 路径一致；
+  - [ ] 一个 cell 内多个 complete experiments 共享同一 campaign resource card/ledger，不允许逐 experiment 重置资源；
+  - [ ] belief snapshot 通过同一 session 内的结构化 MCP checkpoint 提交，不产生额外 standalone provider session；
   - [ ] stateful memory 限定为 typed belief、diagnostic focus、evidence references 和 next intent，不使用巨型自由文本状态；
   - [ ] context、memory、retry、temperature/thinking、timeout 和 failure semantics 冻结；
-  - [ ] session turn、provider attempt、physical experiment 和 blind evaluator 分母分开报告；
+  - [ ] provider attempt、MCP tool call、operation attempt、committed operation、complete experiment、cell 和 blind evaluator 分母分开报告；
   - [ ] classical/reference policies 只承担校准或机制对照角色；若 LLM 获得 property dossier，则至少包含 ID-only 与 property-aware 两类公平对照；
   - [ ] 不根据 pilot 胜负删除正式方法臂。
 - 备注：`Claim: Codex /root — W2-06 — DOING`。旧 Direct Responses 多调用方法已归档；当前
-  session-based method 尚未完成资格验证。
+  session-based method 尚未完成资格验证。未提交的 high-level complete-experiment-plan prototype
+  不代表当前方法，必须替换为 operation-level complete-agent runner 或归档后才能启动真实 pilot。
 
 ### W2-07 — 功效、资源和成本审计
 
@@ -486,7 +549,8 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] formal power 使用 world-level paired contrasts；rounds、prediction snapshots 和多个 endpoints 不作为独立样本；
   - [ ] 对 world、mechanism、agent、session 和交互方差作预期分解；
   - [ ] 冻结 worlds、replicates、provider repeats 和最大 provider calls；
-  - [ ] 总 horizon 与 neutral/discriminating/autonomous 分配在 pilot 后、formal outcomes 前冻结；
+  - [ ] discovery campaign 的 complete-experiment 上限、checkpoint 位置和 optional matched-evidence probe 是否进入 secondary matrix 在 pilot 后、formal outcomes 前冻结；
+  - [ ] 冻结一张跨 discovery experiments 共享的 task-pattern-specific CampaignResourceCard，包括 operation、vessel、assay、instrument、stock、process-time、quench/transfer 和 closeout 余量；
   - [ ] 冻结 token、货币、wall time、并发和失败重试预算；
   - [ ] 明确早停仅针对基础设施/安全，不针对结果方向；
   - [ ] 输出完整资源上界和预计运行 ETA。
@@ -516,7 +580,9 @@ outcome channels remain separate so that the analysis can distinguish:
   15/15 cells、0 failures。Stage B 真实 WellAU 三臂小探针已通过 3/3 cells、0 failures、
   3 calls/3 attempts/0 retries；共 12,630 tokens，cache hit 为 0，progress heartbeat 正常。
   该结果仅资格验证 direct Responses transport、prior delivery 和完整实验执行，不是 prior
-  效应证据。下一步是冻结 law-summary/prediction snapshots 后进行五任务 one-seed breadth pilot。
+  效应证据，且已随 Direct Responses 实现归档，不资格验证当前 operation-level session method。
+  下一步是 operation-level deterministic/mock preflight 和一个任务 × 三臂 × seed 0 的真实 session
+  probe；此前不得启动五任务 breadth。
 
 ### W2-09 — 完成 manifest-driven formal runner
 
@@ -530,14 +596,17 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] 完成
 - 优先级：P0
 - 代码交付物：
-  - [ ] persistent-session participant runner；
-  - [ ] immutable matrix/schedule manifest（五任务、三臂、session turns、neutral/discriminating/autonomous/blind denominators）；
+  - [ ] 基于第一篇 `InteractiveCodexExperimentAgent`/ChemWorld MCP 的 persistent operation-level participant runner；
+  - [ ] immutable matrix/schedule manifest（五任务、三臂、session、operation、experiment、checkpoint、held-out/blind denominators）；
   - [ ] session-aware resume 与 right-censoring state machine；
   - [ ] provider/session/scaffold receipts；
   - [x] typed prior/evidence/belief/law-summary schema 与可执行 law-summary validator；
-  - [ ] 同一 session 内的 pre-evidence、post-neutral、post-discriminating 和 final snapshot contract；
-  - [ ] 同一 session 内的 neutral-prefix、discriminating-prefix、autonomous-suffix 状态机；
-  - [ ] session turn 到 complete-experiment deterministic procedure executor 的统一接口；
+  - [ ] 同一 session 内的 pre-evidence、preregistered experiment checkpoints 和 final snapshot MCP contract；
+  - [ ] 从首个 physical operation 开始的 free-discovery state machine；主实验不注入 protocol-owned discriminating experiment；
+  - [ ] optional matched-evidence mechanism probe 的独立 cloned-world/session/resource contract，默认不进入最小 pilot；
+  - [ ] operation-level `step(action)`、public outcome、termination/final-assay 和 multi-experiment campaign 的统一接口；
+  - [ ] discovery campaign 共享 resource card/ledger、跨 experiment resource snapshot 和 lifecycle reserve；
+  - [ ] 第一篇 19-coordinate contract 的 Work II adapter，排除 evaluator-owned held-out/blind operations；
   - [ ] exact replay、resource replay 和 hidden-boundary audits；
   - [ ] public/private split enforcement；
   - [ ] formal report generator。
@@ -550,8 +619,10 @@ outcome channels remain separate so that the analysis can distinguish:
 - 备注：typed prior/evidence/belief/law-summary schema 与 held-out query validator 保留。旧
   Direct Responses runner、配置、tests 和 mock/real/breadth 报告均已归档；其 15/15 breadth
   只证明旧架构的 transport/schema/executor/recovery 可运行，不是当前 session method 的资格证据。
-  新 runner 必须先通过 deterministic session preflight，再运行一个任务 × 三臂 × seed 0 的真实
-  session probe；在此之前不得启动五任务 breadth 或多 seed 数据。
+  当前未提交的 `CodexSessionClient + complete-experiment plan` prototype 关闭 MCP、按 plan 一次执行到底，
+  不能观察 operation-level measurement/termination，也尚未共享 campaign resource ledger；它不得运行
+  provider 或进入当前方法。新 operation-level runner 必须先通过 deterministic session preflight，再
+  运行一个任务 × 三臂 × seed 0 的真实 session probe；在此之前不得启动五任务 breadth 或多 seed 数据。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 
@@ -567,15 +638,16 @@ outcome channels remain separate so that the analysis can distinguish:
 - 目标：只排除接口、资源和生命周期失败，不检验或筛选科学结果。
 - 验收标准：
   - [ ] 当前 persistent-session 方法完成独立 qualification cells；
-  - [ ] schema-valid action rate、completion、receipts、cost accounting 和 replay 达标；
-  - [ ] 同一 session 内的 prediction snapshots、typed law summary 和 prefix/suffix transitions 全部闭环；
+  - [ ] schema-valid operation rate、committed-operation rate、lifecycle completion、receipts、cost/resource accounting 和 replay 达标；
+  - [ ] 同一 session 内多个 complete experiments、共享资源、prediction checkpoints、typed law summary 和 final recommendation 全部闭环；
+  - [ ] 中途 measurement、continue、`terminate`、final assay、资源拒绝和 right-censoring 均有 fail-closed qualification；
   - [ ] qualification worlds 不进入正式矩阵；
   - [ ] 失败修复只允许修改实现，不允许修改正式科学 estimands；
   - [ ] 形成当前 session method 的冻结 hash 和资格验证报告。
 - 备注：旧 Direct Responses 方法及其 3/3、15/15 development qualification 已归档，不再视为
   当前方法通过。当前待验证方法为 WellAU `gpt-5.6-sol` medium、one persistent Codex session
-  per cell、complete-experiment executor、sealed held-out/blind evaluator。WellAU pricing catalog
-  仍不可验证，货币成本不得记为零。
+  per cell、operation-level ChemWorld MCP、multi-experiment shared-resource discovery campaign、
+  sealed held-out/blind evaluator。WellAU pricing catalog仍不可验证，货币成本不得记为零。
 
 ### W2-11 — 冻结 preregistration 与不可变执行包
 
