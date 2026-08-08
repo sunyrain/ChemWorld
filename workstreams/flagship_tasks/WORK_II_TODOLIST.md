@@ -785,17 +785,27 @@ outcome channels remain separate so that the analysis can distinguish:
 - [x] 每个 cell 恰有一个长驻 Codex process/session；4 个 complete experiments、24 个
   participant-owned operations 和 4 个 typed belief checkpoints 均在该 session 内完成。
 - [x] 三臂共 12/12 experiments、72/72 committed operations、0 resource rejection、72/72 exact
-  replay；共享 campaign ledger、prior-arm blinding 和 paired keyed-noise namespace 通过。
+  replay；共享 campaign ledger 和 paired keyed-noise namespace 通过。运行后边界审计发现公开
+  resource card 的 `card_id/metadata` 泄漏 `prior_arm/world_seed`，因此 prior-arm blinding 未通过。
 - [x] 已将 cumulative input 与 uncached input 分开：总 input 4,457,978，其中 cache hit
   4,004,864、uncached 453,114、output 23,781；高 cache 不等于重复输出。
-- [x] 单 world 描述性结果：aligned prior reliability `0.70→0.65→0.55→0.80`；blinded
-  misindexed prior `0.50→0.45→0.40→0.45`，在第 2 个 experiment 后怀疑 `solvent`，最终怀疑
-  `solvent + electrolyte_profile`，属于部分证据纠偏而非完全排除错误先验。
+- [x] 单 world 数值轨迹已保留为 shakedown 观察，但不得用于 prior confirmation/rejection 或
+  arm-effect 解释；五 seed 中性 resource-card 重跑才是第一个可解释的 blinded contrast。
 - [ ] 本 pilot 尚未执行 evaluator-owned held-out queries 和 blind recommendation replicates，
   因此不能把 checkpoint law summary 解释为已验证的 transfer。
-- [ ] 在启动任何多 seed 或五任务 breadth 前，先补齐：sealed evaluator ledger、prediction/law
-  scoring、独立 heartbeat、task-pattern-specific process-time hard cap。
+- [x] 多 seed 前已补齐：arm/seed-neutral public resource card、独立 heartbeat、task-pattern-specific
+  process-time hard cap、`electrolyze` repeat cap 和 fail-closed cell qualification。sealed evaluator
+  ledger 与 prediction/law scoring 在 participant trajectories 完成后独立执行，不反馈 participant。
 - 证据摘要：`workstreams/flagship_tasks/reports/work-ii-seed0-persistent-campaign-pilot.{json,md}`。
+
+五 seed 扩展（2026-08-08）：
+
+- [x] task-pattern-specific process-time hard cap、`electrolyze` repeat limit 和独立 heartbeat
+  已实现并通过 focused preflight；sealed evaluator ledger/prediction scoring 可在 participant
+  trajectories 完成后独立执行，不要求重跑 participant session。
+- [x] 已冻结 `world_seed=0..4 × 三 prior arms` 共 15 cells；每 cell 一个 session、4 experiments、
+  4 checkpoints，状态：`DOING`。
+- [ ] 15/15 cells 完成并形成五 world paired descriptive report。
 
 ## 7. 完成定义
 

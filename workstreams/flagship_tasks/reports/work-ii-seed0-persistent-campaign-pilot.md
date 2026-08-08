@@ -1,7 +1,8 @@
 # Work II seed-0 persistent campaign pilot result
 
-Status: **development pilot passed** on 2026-08-08. This is descriptive evidence from one world,
-not a formal prior-effect result.
+Status: **operational pilot passed; scientific arm contrast invalidated post hoc** on 2026-08-08.
+The trajectories remain valid for session/resource/replay qualification, but not for prior-effect
+interpretation.
 
 ## Exact execution denominator
 
@@ -24,23 +25,24 @@ not a formal prior-effect result.
 The opaque arm spent the campaign on a clean material factorial and concluded that the material
 interaction was strong. The aligned arm used the dossier to reach a useful region quickly, reduced
 trust after a poor high-forcing condition, and restored trust after returning to the best recipe.
-The blinded misindexed arm did not know its condition label: it began at reliability 0.50, first
-flagged `solvent` after two experiments, and ended flagging both `solvent` and
-`electrolyte_profile`. It nevertheless retained reliability 0.45. The correct interpretation is
-therefore **partial evidence-driven correction**, not complete wrong-prior rejection.
+Post-run boundary audit found that the public campaign resource card still encoded `prior_arm` and
+`world_seed` in its `card_id/metadata`. Consequently, the apparent belief trajectories cannot be
+used to claim prior confirmation or rejection, even though the material dossier and workspace path
+were separately blinded. The numerical trajectories are retained only as shakedown observations.
 
 ## Resource interpretation
 
 Cache-hit context accounted for 85.9–91.9% of input tokens across arms. The high cumulative input
 does not indicate repeated generated answers; it is mostly the same long session context being
-reused across MCP tool loops. Uncached input was substantially higher for the misindexed arm
-(212,472) than the opaque (119,634) or aligned (121,008) arms, consistent with a more expensive
-belief-revision trajectory in this run, but one seed cannot establish a stable causal effect.
+reused across MCP tool loops. Uncached input differed across the three shakedown cells, but the
+resource-card leak means those differences must not be interpreted as an arm effect.
 
 ## Boundaries and next work
 
 This run qualifies the persistent session, operation ownership, campaign ledger, checkpoint path,
-prior-arm blinding, paired noise and replay. It does not yet test law transfer: held-out predictions
-and blind recommendations were committed but not independently executed. The next smallest useful
-block is evaluator-owned held-out/blind validation for these three completed trajectories, followed
-by the remaining prior-identifiable tasks. No multi-seed expansion is authorized or needed yet.
+paired noise and replay. It does not qualify prior-arm blinding and does not yet test law transfer:
+held-out predictions and blind recommendations were committed but not independently executed.
+Before the five-seed rerun, the public resource card was made arm/seed neutral, task-specific process
+time and repeat caps were added, and cell success was made fail-closed on checkpoint, session,
+resource and replay integrity. The neutral-card five-seed matrix is therefore the first run eligible
+for blinded prior-condition interpretation; sealed evaluator execution follows separately.

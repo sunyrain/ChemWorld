@@ -1,6 +1,6 @@
 {
   "schema_version": "chemworld-work-ii-campaign-pilot-0.1",
-  "pilot_id": "work-ii-electrochemical-prior-campaign-seed0",
+  "pilot_id": "work-ii-electrochemical-prior-campaign",
   "formal_result": false,
   "task_id": "electrochemical-conversion",
   "world_split": "public-test",
@@ -11,7 +11,7 @@
   "electrochemical_workflow_mode": "autonomous_open_v1",
   "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
   "observation_noise_mode": "keyed",
-  "observation_noise_namespace": "work-ii-electrochemical-prior-campaign-seed0",
+  "observation_noise_namespace": "work-ii-electrochemical-prior-campaign",
   "prior_arms": {
     "opaque": {"mode": "opaque_codes"},
     "aligned_nominal": {"mode": "anonymous_nominal_properties"},
@@ -28,17 +28,26 @@
     "final_assay_limit": 4,
     "nonfinal_instrument_use_limit": 0,
     "stock_limits": {"reagent_mol": 0.08, "solvent_L": 0.16},
+    "process_time_limit_s": 72000.0,
+    "operation_repeat_limits": {"electrolyze": 5},
+    "process_time_policy": {
+      "pattern_id": "electrochemical-k4-one-repeat",
+      "required_stage_max_s": 57600.0,
+      "repeat_allowance_s": 14400.0,
+      "implicit_stage_reserve_s": 0.0,
+      "formula": "4 required electrolyses x 14400 s + 1 allowed repeat x 14400 s"
+    },
     "checkpoint_complete_experiments": [0, 1, 2, 4]
   },
   "method_resources": {
     "operation_limit": 28,
     "complete_experiment_limit": 4,
     "checkpoint_complete_experiments": [1, 2, 4],
-    "wall_time_limit_s": 10800.0,
+    "wall_time_limit_s": 5400.0,
     "model_call_limit": 1,
     "input_token_limit": 2400000,
     "uncached_input_token_limit": 320000,
-    "output_token_limit": 48000,
+    "output_token_limit": 24000,
     "training_environment_step_limit": 0
   },
   "method_resource_semantics": {

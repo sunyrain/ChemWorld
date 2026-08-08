@@ -8,7 +8,7 @@ import gymnasium as gym
 import pytest
 
 from chemworld.data.logging import load_jsonl
-from chemworld.eval.campaign_resources import CampaignResourceCard
+from chemworld.eval.campaign_resources import CampaignResourceCard, CampaignResourceLedger
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
 from chemworld.physchem.electrochemical_task_contract import (
@@ -48,9 +48,7 @@ def _make_electrochemical_env(
         seed=0,
         budget_override=budget,
         episode_mode_override="campaign",
-        electrochemical_workflow_mode=(
-            ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
-        ),
+        electrochemical_workflow_mode=(ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1),
         campaign_resource_card=card,
     )
 
@@ -74,9 +72,7 @@ def test_env_accepts_card_or_mapping_and_keeps_public_views_bounded(
         assert "mechanism_hash" not in serialized_task_info
         evaluator_provenance = env.unwrapped.evaluator_provenance()
         assert evaluator_provenance["observation_seed"] == 0
-        assert evaluator_provenance[
-            "campaign_resource_card_sha256"
-        ] == card.card_sha256
+        assert evaluator_provenance["campaign_resource_card_sha256"] == card.card_sha256
 
         _, _, _, _, info = env.step(
             {
@@ -85,19 +81,14 @@ def test_env_accepts_card_or_mapping_and_keeps_public_views_bounded(
                 "solvent": 1,
             }
         )
-        public_state = env.unwrapped.campaign_state()[
-            "campaign_resources"
-        ]
+        public_state = env.unwrapped.campaign_state()["campaign_resources"]
         for payload in (info["campaign_resources"], public_state):
             assert "events" not in payload
             assert "card" not in payload
             assert payload["latest_receipt"]["operation_committed"] is True
         full_snapshot = env.unwrapped.campaign_resource_snapshot()
         assert len(full_snapshot["events"]) == 1
-        assert (
-            full_snapshot["card"]["metadata"]["envelope_kind"]
-            == "public-test-envelope"
-        )
+        assert full_snapshot["card"]["metadata"]["envelope_kind"] == "public-test-envelope"
     finally:
         env.close()
 
@@ -122,9 +113,7 @@ def test_stock_rejection_charges_attempt_without_physical_mutation() -> None:
             "temperature_K": env.unwrapped._state.temperature_K,
             "pressure_Pa": env.unwrapped._state.pressure_Pa,
             "phase": env.unwrapped._state.phase,
-            "species_amounts": deepcopy(
-                env.unwrapped._state.species_amounts
-            ),
+            "species_amounts": deepcopy(env.unwrapped._state.species_amounts),
         }
 
         _, _, _, _, rejected = env.step(
@@ -139,43 +128,60 @@ def test_stock_rejection_charges_attempt_without_physical_mutation() -> None:
             "temperature_K": env.unwrapped._state.temperature_K,
             "pressure_Pa": env.unwrapped._state.pressure_Pa,
             "phase": env.unwrapped._state.phase,
-            "species_amounts": deepcopy(
-                env.unwrapped._state.species_amounts
-            ),
+            "species_amounts": deepcopy(env.unwrapped._state.species_amounts),
         }
 
-        assert rejected["transaction_status"] == (
-            "campaign_resource_rejected"
-        )
+        assert rejected["transaction_status"] == ("campaign_resource_rejected")
         assert rejected["rollback_reason"] == "campaign_resource_rejected"
         assert rejected["campaign_resource_rejected"] is True
-        assert rejected["campaign_resource_rejection_reasons"] == [
-            "stock_limit:solvent_L"
-        ]
-        assert (
-            rejected["preconditions"]["campaign_resources_available"]
-            is False
-        )
-        assert rejected["campaign_resource_preflight"][
-            "attempt_charged"
-        ] is True
+        assert rejected["campaign_resource_rejection_reasons"] == ["stock_limit:solvent_L"]
+        assert rejected["preconditions"]["campaign_resources_available"] is False
+        assert rejected["campaign_resource_preflight"]["attempt_charged"] is True
         assert rejected["campaign_resource_outcome_delta"]["stocks"] == {}
         assert physical_after == physical_before
 
         resource_state = rejected["campaign_resources"]["state"]
         assert resource_state["operation_attempts"] == 2
         assert resource_state["vessel_starts"] == 1
-        assert resource_state["stocks_used"]["solvent_L"] == pytest.approx(
-            0.020
-        )
+        assert resource_state["stocks_used"]["solvent_L"] == pytest.approx(0.020)
     finally:
         env.close()
 
 
-def test_resource_ledger_narrows_stock_affordances_and_validation() -> None:
-    env = _make_electrochemical_env(
-        _card(stock_limits={"solvent_L": 0.020, "reagent_mol": 0.08})
+def test_campaign_process_time_and_repeat_limits_are_hard_and_replayable() -> None:
+    card = _card(
+        process_time_limit_s=200.0,
+        operation_repeat_limits={"electrolyze": 1},
     )
+    restored = CampaignResourceCard.from_dict(card.to_dict())
+    assert restored == card
+    ledger = CampaignResourceLedger(card)
+    action = {"operation": "electrolyze", "duration_s": 180.0}
+    preflight = ledger.preflight("event-1", action)
+    assert preflight.allowed is True
+    assert preflight.proposed_delta.process_time_s == 180.0
+    ledger.record_outcome(
+        "event-1",
+        action,
+        {
+            "transaction_status": "committed",
+            "campaign_resource_report_delta": {"process_time_s": 180.0},
+        },
+    )
+    reasons = ledger.preview_rejection_reasons({"operation": "electrolyze", "duration_s": 30.0})
+    assert reasons == (
+        "operation_repeat_limit:electrolyze",
+        "process_time_limit",
+    )
+    state = ledger.snapshot()["state"]
+    assert state["operation_committed_counts"] == {"electrolyze": 1}
+    assert state["remaining"]["process_time_s"] == 20.0
+    assert state["remaining"]["operation_repeats"] == {"electrolyze": 0}
+    assert CampaignResourceLedger.from_snapshot(ledger.snapshot()).snapshot() == ledger.snapshot()
+
+
+def test_resource_ledger_narrows_stock_affordances_and_validation() -> None:
+    env = _make_electrochemical_env(_card(stock_limits={"solvent_L": 0.020, "reagent_mol": 0.08}))
     try:
         env.reset(seed=0)
         initial = env.unwrapped.available_actions()
@@ -185,9 +191,7 @@ def test_resource_ledger_narrows_stock_affordances_and_validation() -> None:
         )
         assert volume_field["bounds"]["high"] == pytest.approx(0.020)
 
-        env.step(
-            {"operation": "add_solvent", "volume_L": 0.020, "solvent": 1}
-        )
+        env.step({"operation": "add_solvent", "volume_L": 0.020, "solvent": 1})
         assert "add_solvent" not in {
             item["operation"] for item in env.unwrapped.available_actions()
         }
@@ -221,14 +225,10 @@ def test_resource_ledger_filters_instrument_choices_and_terminal_tokens() -> Non
         assert instrument_field["choices"] == ["ph_meter"]
 
         env.step({"operation": "measure", "instrument": "ph_meter"})
-        assert "measure" not in {
-            item["operation"] for item in env.unwrapped.available_actions()
-        }
+        assert "measure" not in {item["operation"] for item in env.unwrapped.available_actions()}
         invalid = env.unwrapped.available_actions(include_invalid=True)
         measure = next(item for item in invalid if item["operation"] == "measure")
-        assert "campaign_resource:nonfinal_instrument_use_limit" in measure[
-            "invalid_reasons"
-        ]
+        assert "campaign_resource:nonfinal_instrument_use_limit" in measure["invalid_reasons"]
     finally:
         env.close()
 
@@ -262,35 +262,27 @@ def test_public_lifecycle_reserve_is_advisory_and_tracks_closeout_feasibility() 
     )
     try:
         env.reset(seed=0)
-        initial = env.unwrapped.campaign_state()["campaign_resources"][
-            "lifecycle_reserve"
-        ]
-        assert initial["policy"] == (
-            "advisory_only_agent_controlled_no_hidden_allocation"
-        )
+        initial = env.unwrapped.campaign_state()["campaign_resources"]["lifecycle_reserve"]
+        assert initial["policy"] == ("advisory_only_agent_controlled_no_hidden_allocation")
         assert initial["current_batch"]["minimum_operations_to_final_assay"] == 6
         assert initial["future_unstarted_batches"] == 1
-        assert initial["minimum_future_batch_operation_reserve"][
-            "for_final_assays"
-        ] == 6
-        assert initial["recommended_remaining_attempt_floor"][
-            "to_final_assay_all_planned_batches"
-        ] == 12
+        assert initial["minimum_future_batch_operation_reserve"]["for_final_assays"] == 6
+        assert (
+            initial["recommended_remaining_attempt_floor"]["to_final_assay_all_planned_batches"]
+            == 12
+        )
         assert initial["discretionary_attempts_before_final_assay_floor"] == 16
 
         env.step({"operation": "add_solvent", "volume_L": 0.020, "solvent": 1})
-        after_solvent = env.unwrapped.campaign_state()["campaign_resources"][
-            "lifecycle_reserve"
-        ]
-        assert after_solvent["current_batch"][
-            "minimum_operations_to_final_assay"
-        ] == 5
-        assert after_solvent["recommended_remaining_attempt_floor"][
-            "to_final_assay_all_planned_batches"
-        ] == 11
-        assert after_solvent[
-            "discretionary_attempts_before_final_assay_floor"
-        ] == 16
+        after_solvent = env.unwrapped.campaign_state()["campaign_resources"]["lifecycle_reserve"]
+        assert after_solvent["current_batch"]["minimum_operations_to_final_assay"] == 5
+        assert (
+            after_solvent["recommended_remaining_attempt_floor"][
+                "to_final_assay_all_planned_batches"
+            ]
+            == 11
+        )
+        assert after_solvent["discretionary_attempts_before_final_assay_floor"] == 16
     finally:
         env.close()
 
@@ -299,9 +291,7 @@ def test_invalid_env_action_uses_attempt_but_no_physical_resources() -> None:
     env = _make_electrochemical_env(_card())
     try:
         env.reset(seed=0)
-        _, _, _, _, info = env.step(
-            {"operation": "not-a-real-operation", "amount_mol": 0.04}
-        )
+        _, _, _, _, info = env.step({"operation": "not-a-real-operation", "amount_mol": 0.04})
         state = info["campaign_resources"]["state"]
         assert info["transaction_status"] == "validation_failed"
         assert state["operation_attempts"] == 1
@@ -352,12 +342,8 @@ def test_vessels_final_assays_nonfinal_measurements_and_stocks_are_distinct() ->
             "experiment_index": 1,
             "vessel_started": False,
         }
-        assert final_info["campaign_resource_outcome_delta"][
-            "final_assays"
-        ] == 1
-        assert final_info["campaign_resource_outcome_delta"][
-            "nonfinal_instrument_uses"
-        ] == 0
+        assert final_info["campaign_resource_outcome_delta"]["final_assays"] == 1
+        assert final_info["campaign_resource_outcome_delta"]["nonfinal_instrument_uses"] == 0
 
         _, _, _, _, second = env.step(
             {
@@ -413,12 +399,11 @@ def test_agent_can_discard_started_batch_and_ledger_keeps_consumed_stock() -> No
     env = _make_electrochemical_env(_card(), budget=10)
     try:
         env.reset(seed=0)
-        _, _, _, _, first = env.step(
-            {"operation": "add_solvent", "volume_L": 0.020, "solvent": 1}
+        _, _, _, _, first = env.step({"operation": "add_solvent", "volume_L": 0.020, "solvent": 1})
+        assert (
+            "discard_batch" not in {item["operation"] for item in env.unwrapped.available_actions()}
+            or first["campaign_resources"]["current_experiment"]["vessel_started"] is True
         )
-        assert "discard_batch" not in {
-            item["operation"] for item in env.unwrapped.available_actions()
-        } or first["campaign_resources"]["current_experiment"]["vessel_started"] is True
         _, _, terminated, truncated, info = env.step(
             {"operation": "discard_batch", "reason": "diagnostic branch abandoned"}
         )
@@ -448,9 +433,7 @@ def test_agent_can_discard_batch_on_final_available_operation_attempt() -> None:
     )
     try:
         env.reset(seed=0)
-        env.step(
-            {"operation": "add_solvent", "volume_L": 0.020, "solvent": 1}
-        )
+        env.step({"operation": "add_solvent", "volume_L": 0.020, "solvent": 1})
         _, _, terminated, truncated, info = env.step(
             {"operation": "discard_batch", "reason": "last-attempt closeout"}
         )
@@ -472,16 +455,12 @@ def test_public_resource_state_does_not_repeat_event_history() -> None:
         env.reset(seed=0)
         public_sizes: list[int] = []
         for _ in range(20):
-            _, _, _, _, info = env.step(
-                {"operation": "not-a-real-operation"}
-            )
+            _, _, _, _, info = env.step({"operation": "not-a-real-operation"})
             resource_view = info["campaign_resources"]
             assert "events" not in resource_view
             assert "card" not in resource_view
             assert len(resource_view["latest_receipt"]) == 7
-            public_sizes.append(
-                len(json.dumps(resource_view, sort_keys=True))
-            )
+            public_sizes.append(len(json.dumps(resource_view, sort_keys=True)))
 
         full_snapshot = env.unwrapped.campaign_resource_snapshot()
         assert len(full_snapshot["events"]) == 20
@@ -562,17 +541,13 @@ def test_runner_reconciles_usage_learned_during_agent_update() -> None:
         },
     )
 
-    assert agent.task_info["campaign_resources"]["card"]["card_id"] == (
-        card.card_id
-    )
+    assert agent.task_info["campaign_resources"]["card"]["card_id"] == (card.card_id)
     usage = records[-1].method_resources["agent_usage"]
     assert usage["model_call_count"] == 1
     assert usage["input_token_count"] == 321
     assert usage["output_token_count"] == 45
     assert records[-1].method_resources["operation_count"] == 1
-    assert records[-1].info["campaign_resources"]["state"][
-        "operation_attempts"
-    ] == 1
+    assert records[-1].info["campaign_resources"]["state"]["operation_attempts"] == 1
 
 
 def test_legacy_env_omits_campaign_resource_fields() -> None:
@@ -774,14 +749,9 @@ def test_extended_autonomous_material_trajectory_exactly_replays(
     records = load_jsonl(trajectory)
     replay = verify_records(records)
     assert replay.verified, replay.mismatches
-    assert records[0]["material_information"] == {
-        "mode": material_information["mode"]
-    }
+    assert records[0]["material_information"] == {"mode": material_information["mode"]}
     assert records[0]["material_information_config"] == material_information
     assert records[0]["campaign_resource_card"] == card.to_dict()
     assert records[0]["campaign_resource_card_sha256"] == card.card_sha256
-    assert (
-        records[0]["electrochemical_material_family_id"]
-        == "nominal-prior-latent-v2"
-    )
+    assert records[0]["electrochemical_material_family_id"] == "nominal-prior-latent-v2"
     assert records[0]["observation_seed"] == 123456

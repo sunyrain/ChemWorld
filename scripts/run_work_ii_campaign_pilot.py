@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the seed-0 Work II electrochemical campaign with one Codex MCP session per arm."""
+"""Run one Work II electrochemical world with one Codex session per prior arm."""
 
 from __future__ import annotations
 
@@ -79,6 +79,25 @@ def _checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, Any]:
     }
 
 
+def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
+    campaign = config["campaign"]
+    return CampaignResourceCard(
+        card_id="work-ii-electrochemical-k4",
+        operation_attempt_limit=int(campaign["operation_attempt_limit"]),
+        vessel_start_limit=int(campaign["vessel_start_limit"]),
+        final_assay_limit=int(campaign["final_assay_limit"]),
+        nonfinal_instrument_use_limit=int(campaign["nonfinal_instrument_use_limit"]),
+        stock_limits=dict(campaign["stock_limits"]),
+        process_time_limit_s=float(campaign["process_time_limit_s"]),
+        operation_repeat_limits=dict(campaign["operation_repeat_limits"]),
+        metadata={
+            "pilot_id": config["pilot_id"],
+            "process_time_policy": dict(campaign["process_time_policy"]),
+            "scope": "one_task_prior_world_cell",
+        },
+    )
+
+
 def _progress(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as handle:
@@ -116,12 +135,28 @@ def _analyze(records: list[dict[str, Any]], receipts: list[dict[str, Any]]) -> d
             )
             actions = []
     snapshots = [item for receipt in receipts for item in receipt.get("belief_snapshots", [])]
+    resource_rejection_count = sum(
+        1 for row in records if row.get("transaction_status") == "campaign_resource_rejected"
+    )
+    final_campaign_resources: dict[str, Any] = {}
+    if records:
+        last_view = records[-1].get("agent_view", {})
+        if isinstance(last_view, Mapping):
+            tool_json = last_view.get("tool_json", {})
+            if isinstance(tool_json, Mapping):
+                campaign_state = tool_json.get("campaign_state", {})
+                if isinstance(campaign_state, Mapping):
+                    candidate = campaign_state.get("campaign_resources", {})
+                    if isinstance(candidate, Mapping):
+                        final_campaign_resources = dict(candidate)
     return {
         "operation_attempt_count": len(records),
         "complete_experiment_count": len(experiments),
         "right_censored_open_experiment": bool(actions),
         "experiments": experiments,
         "belief_snapshots": snapshots,
+        "resource_rejection_count": resource_rejection_count,
+        "final_campaign_resources": final_campaign_resources,
         "prior_reliability_trajectory": [
             item["prior_assessment"]["reliability_probability"] for item in snapshots
         ],
@@ -131,8 +166,72 @@ def _analyze(records: list[dict[str, Any]], receipts: list[dict[str, Any]]) -> d
     }
 
 
+def _qualification(
+    *,
+    analysis: Mapping[str, Any],
+    exact_replay: Mapping[str, Any],
+    method_resources: Mapping[str, Any],
+    receipts: list[dict[str, Any]],
+    process_time_limit_s: float,
+) -> dict[str, Any]:
+    """Apply the frozen per-cell qualification contract fail-closed."""
+
+    receipt = receipts[0] if len(receipts) == 1 else {}
+    usage = method_resources.get("agent_usage", {})
+    usage = usage if isinstance(usage, Mapping) else {}
+    limits = method_resources.get("limits", {})
+    limits = limits if isinstance(limits, Mapping) else {}
+    resources = analysis.get("final_campaign_resources", {})
+    resources = resources if isinstance(resources, Mapping) else {}
+    state = resources.get("state", {})
+    state = state if isinstance(state, Mapping) else {}
+    report_only = state.get("report_only", {})
+    report_only = report_only if isinstance(report_only, Mapping) else {}
+    operation_counts = state.get("operation_committed_counts", {})
+    operation_counts = operation_counts if isinstance(operation_counts, Mapping) else {}
+    snapshots = analysis.get("belief_snapshots", [])
+    snapshots = snapshots if isinstance(snapshots, list) else []
+    stages = [item.get("stage") for item in snapshots if isinstance(item, Mapping)]
+    checks = {
+        "four_complete_experiments": analysis.get("complete_experiment_count") == 4
+        and analysis.get("right_censored_open_experiment") is False,
+        "four_typed_belief_checkpoints": len(snapshots) == 4
+        and stages == ["pre_evidence", "post_neutral", "post_discriminating", "final"],
+        "one_campaign_session": len(receipts) == 1
+        and method_resources.get("provider_session_count") == 1
+        and receipt.get("session_scope") == "campaign",
+        "provider_session_completed": receipt.get("status") == "completed"
+        and receipt.get("return_code") == 0
+        and receipt.get("final_payload_valid") is True
+        and receipt.get("final_payload_status") == "campaign_complete",
+        "tool_integrity": receipt.get("experiment_tool_integrity_verified_after_session") is True
+        and receipt.get("lab_tool_integrity_verified_after_session") is True
+        and receipt.get("mcp_tool_integrity_verified_after_session") is True,
+        "no_resource_rejection": analysis.get("resource_rejection_count") == 0,
+        "campaign_terminal": resources.get("campaign_terminal") is True
+        and state.get("closed_batches") == 4
+        and state.get("final_assays") == 4,
+        "process_time_reconciled": "process_time_s" in report_only
+        and float(report_only.get("process_time_s", 0.0)) <= process_time_limit_s,
+        "electrolyze_repeat_reconciled": 4 <= int(operation_counts.get("electrolyze", -1)) <= 5,
+        "exact_replay": exact_replay.get("verified") is True,
+        "provider_usage_reconciled": method_resources.get("provider_usage_pending") is False
+        and usage.get("in_flight_model_call_count") == 0
+        and int(usage.get("input_token_count", 0)) <= int(limits.get("input_token_limit", 0))
+        and int(usage.get("uncached_input_token_count", 0))
+        <= int(limits.get("uncached_input_token_limit", 0))
+        and int(usage.get("output_token_count", 0)) <= int(limits.get("output_token_limit", 0)),
+    }
+    return {
+        "passed": all(checks.values()),
+        "checks": checks,
+        "failed_checks": [name for name, passed in checks.items() if not passed],
+    }
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
     config = _load(args.config.resolve())
+    world_seed = int(args.world_seed if args.world_seed is not None else config["world_seed"])
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     progress_path = args.progress_file.resolve()
@@ -143,19 +242,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         cell_started = perf_counter()
         _progress(
             progress_path,
-            {"stage": "cell_started", "cell": cell_index, "total_cells": len(arms), "arm": arm},
+            {
+                "stage": "cell_started",
+                "world_seed": world_seed,
+                "cell": cell_index,
+                "total_cells": len(arms),
+                "arm": arm,
+            },
         )
         cell_root = output / arm
         cell_root.mkdir()
-        card = CampaignResourceCard(
-            card_id=f"work-ii-{arm}-seed0",
-            operation_attempt_limit=int(config["campaign"]["operation_attempt_limit"]),
-            vessel_start_limit=int(config["campaign"]["vessel_start_limit"]),
-            final_assay_limit=int(config["campaign"]["final_assay_limit"]),
-            nonfinal_instrument_use_limit=int(config["campaign"]["nonfinal_instrument_use_limit"]),
-            stock_limits=dict(config["campaign"]["stock_limits"]),
-            metadata={"pilot_id": config["pilot_id"], "prior_arm": arm, "world_seed": 0},
-        )
+        card = _campaign_card(config)
         provider = config["provider"]
         completed = 0
         failure: dict[str, str] | None = None
@@ -194,6 +291,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     progress_path,
                     {
                         "stage": "operation",
+                        "world_seed": world_seed,
                         "cell": active_cell,
                         "total_cells": len(arms),
                         "arm": active_arm,
@@ -215,8 +313,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     world_split=config["world_split"],
                     budget=int(config["method_resources"]["operation_limit"]),
                     objective=config["objective"],
-                    seed=0,
+                    seed=world_seed,
                     agent_seed=0,
+                    observation_seed=world_seed,
                     task_id=config["task_id"],
                     output_path=cell_root / "trajectory.jsonl",
                     budget_override=int(config["method_resources"]["operation_limit"]),
@@ -231,7 +330,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     electrochemical_workflow_mode=config["electrochemical_workflow_mode"],
                     scoring_contract_id=config["scoring_contract_id"],
                     observation_noise_mode=config["observation_noise_mode"],
-                    observation_noise_namespace=config["observation_noise_namespace"],
+                    observation_noise_namespace=(
+                        f"{config['observation_noise_namespace']}--seed{world_seed}"
+                    ),
                 )
                 del history
             except Exception as error:  # preserve the failed pilot cell and stop the block
@@ -246,16 +347,22 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             if records
             else {"verified": False, "checked_steps": 0, "max_abs_error": None, "mismatches": []}
         )
+        qualification = _qualification(
+            analysis=analysis,
+            exact_replay=replay,
+            method_resources=usage,
+            receipts=receipts,
+            process_time_limit_s=float(config["campaign"]["process_time_limit_s"]),
+        )
         row = {
             "arm": arm,
-            "completed": failure is None
-            and analysis["complete_experiment_count"] == 4
-            and not analysis["right_censored_open_experiment"],
+            "completed": failure is None and qualification["passed"],
             "failure": failure,
             "analysis": analysis,
             "method_resources": usage,
             "provider_receipts": receipts,
             "exact_replay": replay,
+            "qualification": qualification,
             "elapsed_s": round(perf_counter() - cell_started, 1),
         }
         write_json_atomic(cell_root / "summary.json", row)
@@ -264,21 +371,26 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             progress_path,
             {
                 "stage": "cell_completed",
+                "world_seed": world_seed,
                 "cell": cell_index,
                 "total_cells": len(arms),
                 "arm": arm,
                 "completed": row["completed"],
+                "complete_experiments": analysis["complete_experiment_count"],
+                "target_experiments": 4,
+                "qualification_failed_checks": qualification["failed_checks"],
                 "elapsed_s": row["elapsed_s"],
             },
         )
-        if failure is not None:
+        if not row["completed"]:
             break
     report = {
         "schema_version": "chemworld-work-ii-campaign-pilot-report-0.1",
         "pilot_id": config["pilot_id"],
+        "cell_id": f"{config['pilot_id']}--seed{world_seed}",
         "formal_result": False,
         "config_sha256": canonical_json_sha256(config),
-        "world_seed": 0,
+        "world_seed": world_seed,
         "cell_count": len(results),
         "completed_cell_count": sum(row["completed"] for row in results),
         "elapsed_s": round(perf_counter() - started, 1),
@@ -293,6 +405,7 @@ def main() -> int:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--progress-file", type=Path, required=True)
+    parser.add_argument("--world-seed", type=int)
     args = parser.parse_args()
     report = run(args)
     print(

@@ -14,7 +14,7 @@ import hashlib
 import json
 import math
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from types import MappingProxyType
 from typing import Any
 
@@ -32,6 +32,7 @@ def canonical_json_sha256(payload: Any) -> str:
         sort_keys=True,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
 
 CAMPAIGN_RESOURCE_CARD_VERSION = "chemworld-campaign-resource-card-0.1"
 CAMPAIGN_RESOURCE_DELTA_VERSION = "chemworld-campaign-resource-delta-0.1"
@@ -137,6 +138,8 @@ class CampaignResourceCard:
     nonfinal_instrument_use_limit: int
     stock_limits: Mapping[str, float]
     per_instrument_limits: Mapping[str, int | None] = field(default_factory=dict)
+    process_time_limit_s: float | None = None
+    operation_repeat_limits: Mapping[str, int] = field(default_factory=dict)
     metadata: Mapping[str, Any] = field(default_factory=dict)
     schema_version: str = CAMPAIGN_RESOURCE_CARD_VERSION
 
@@ -175,6 +178,22 @@ class CampaignResourceCard:
             "per_instrument_limits",
             MappingProxyType(dict(sorted(instrument_limits.items()))),
         )
+        if self.process_time_limit_s is not None:
+            process_time_limit = _finite_nonnegative(
+                self.process_time_limit_s,
+                name="process_time_limit_s",
+            )
+            if process_time_limit <= 0.0:
+                raise ValueError("process_time_limit_s must be positive when supplied")
+            object.__setattr__(self, "process_time_limit_s", process_time_limit)
+        object.__setattr__(
+            self,
+            "operation_repeat_limits",
+            _normalized_int_map(
+                self.operation_repeat_limits,
+                name="operation_repeat_limits",
+            ),
+        )
         frozen_metadata = _deep_freeze(self.metadata)
         # Fail early if metadata is not canonical-JSON serializable.
         canonical_json_sha256(_deep_thaw(frozen_metadata))
@@ -185,17 +204,22 @@ class CampaignResourceCard:
         return canonical_json_sha256(self._payload())
 
     def _payload(self) -> dict[str, Any]:
+        hard_limits: dict[str, Any] = {
+            "operation_attempts": self.operation_attempt_limit,
+            "vessel_starts": self.vessel_start_limit,
+            "final_assays": self.final_assay_limit,
+            "nonfinal_instrument_uses": self.nonfinal_instrument_use_limit,
+            "stocks": dict(self.stock_limits),
+            "per_instrument": dict(self.per_instrument_limits),
+        }
+        if self.process_time_limit_s is not None:
+            hard_limits["process_time_s"] = self.process_time_limit_s
+        if self.operation_repeat_limits:
+            hard_limits["operation_repeats"] = dict(self.operation_repeat_limits)
         return {
             "schema_version": self.schema_version,
             "card_id": self.card_id,
-            "hard_limits": {
-                "operation_attempts": self.operation_attempt_limit,
-                "vessel_starts": self.vessel_start_limit,
-                "final_assays": self.final_assay_limit,
-                "nonfinal_instrument_uses": self.nonfinal_instrument_use_limit,
-                "stocks": dict(self.stock_limits),
-                "per_instrument": dict(self.per_instrument_limits),
-            },
+            "hard_limits": hard_limits,
             "metadata": _deep_thaw(self.metadata),
         }
 
@@ -219,6 +243,12 @@ class CampaignResourceCard:
             nonfinal_instrument_use_limit=int(hard_limits["nonfinal_instrument_uses"]),
             stock_limits=dict(hard_limits.get("stocks", {})),
             per_instrument_limits=dict(hard_limits.get("per_instrument", {})),
+            process_time_limit_s=(
+                None
+                if hard_limits.get("process_time_s") is None
+                else float(hard_limits["process_time_s"])
+            ),
+            operation_repeat_limits=dict(hard_limits.get("operation_repeats", {})),
             metadata=dict(payload.get("metadata", {})),
         )
         supplied_hash = payload.get("card_sha256")
@@ -320,9 +350,7 @@ class CampaignResourceDelta:
             physical_cost=float(report.get("physical_cost", 0.0)),
             accumulated_risk=float(report.get("accumulated_risk", 0.0)),
             observed_risk=float(report.get("observed_risk", 0.0)),
-            schema_version=str(
-                payload.get("schema_version", CAMPAIGN_RESOURCE_DELTA_VERSION)
-            ),
+            schema_version=str(payload.get("schema_version", CAMPAIGN_RESOURCE_DELTA_VERSION)),
         )
 
 
@@ -437,9 +465,7 @@ def derive_campaign_resource_delta(
             "sample_consumed_delta_L",
             "sample_consumed",
             default=(
-                _positive_action_float(action, "sample_volume_L")
-                if operation == "sample"
-                else 0.0
+                _positive_action_float(action, "sample_volume_L") if operation == "sample" else 0.0
             ),
         )
         physical_cost = _report_value(
@@ -512,6 +538,7 @@ class CampaignResourceLedger:
         self.discarded_batches = 0
         self.nonfinal_instrument_uses = 0
         self.instrument_uses: dict[str, int] = {}
+        self.operation_committed_counts: dict[str, int] = {}
         self.stocks_used: dict[str, float] = {}
         self.process_time_s = 0.0
         self.sample_consumed_L = 0.0
@@ -539,19 +566,22 @@ class CampaignResourceLedger:
                 )
             return self._preflight_from_event(existing)
 
-        proposed = derive_campaign_resource_delta(
+        proposed = self._proposed_delta(
             normalized_action,
             starts_vessel=starts_vessel,
         )
         attempt_charged = self.operation_attempts < self.card.operation_attempt_limit
         reasons = self._hard_rejection_reasons(
             proposed,
+            operation=str(normalized_action.get("operation", "invalid")),
             attempt_charged=attempt_charged,
             vessel_starts=self.vessel_starts,
             final_assays=self.final_assays,
             nonfinal_instrument_uses=self.nonfinal_instrument_uses,
             instrument_uses=self.instrument_uses,
+            operation_committed_counts=self.operation_committed_counts,
             stocks_used=self.stocks_used,
+            process_time_s=self.process_time_s,
         )
         if attempt_charged:
             self.operation_attempts += 1
@@ -591,7 +621,7 @@ class CampaignResourceLedger:
         """
 
         normalized_action = self._normalize_action(action)
-        proposed = derive_campaign_resource_delta(
+        proposed = self._proposed_delta(
             normalized_action,
             starts_vessel=starts_vessel,
         )
@@ -599,12 +629,15 @@ class CampaignResourceLedger:
         return tuple(
             self._hard_rejection_reasons(
                 proposed,
+                operation=str(normalized_action.get("operation", "invalid")),
                 attempt_charged=attempt_charged,
                 vessel_starts=self.vessel_starts,
                 final_assays=self.final_assays,
                 nonfinal_instrument_uses=self.nonfinal_instrument_uses,
                 instrument_uses=self.instrument_uses,
+                operation_committed_counts=self.operation_committed_counts,
                 stocks_used=self.stocks_used,
+                process_time_s=self.process_time_s,
             )
         )
 
@@ -654,7 +687,10 @@ class CampaignResourceLedger:
                 "a resource-rejected action cannot have a committed outcome"
             )
         self._verify_actual_within_reservation(actual, preflight.proposed_delta)
-        self._apply_outcome_delta(actual)
+        self._apply_outcome_delta(
+            actual,
+            operation=(str(normalized_action.get("operation", "invalid")) if committed else None),
+        )
         event["outcome"] = {
             "committed": committed,
             "outcome_sha256": outcome_sha256,
@@ -696,16 +732,16 @@ class CampaignResourceLedger:
         ledger.vessel_starts = int(state.get("vessel_starts", 0))
         ledger.final_assays = int(state.get("final_assays", 0))
         ledger.discarded_batches = int(state.get("discarded_batches", 0))
-        ledger.nonfinal_instrument_uses = int(
-            state.get("nonfinal_instrument_uses", 0)
-        )
+        ledger.nonfinal_instrument_uses = int(state.get("nonfinal_instrument_uses", 0))
         ledger.instrument_uses = {
+            str(key): int(value) for key, value in dict(state.get("instrument_uses", {})).items()
+        }
+        ledger.operation_committed_counts = {
             str(key): int(value)
-            for key, value in dict(state.get("instrument_uses", {})).items()
+            for key, value in dict(state.get("operation_committed_counts", {})).items()
         }
         ledger.stocks_used = {
-            str(key): float(value)
-            for key, value in dict(state.get("stocks_used", {})).items()
+            str(key): float(value) for key, value in dict(state.get("stocks_used", {})).items()
         }
         report = state.get("report_only", {})
         if not isinstance(report, Mapping):
@@ -744,6 +780,7 @@ class CampaignResourceLedger:
         discarded = 0
         nonfinal = 0
         instruments: dict[str, int] = {}
+        operation_committed_counts: dict[str, int] = {}
         stocks: dict[str, float] = {}
         process_time_s = 0.0
         sample_consumed_L = 0.0
@@ -761,19 +798,22 @@ class CampaignResourceLedger:
             if event.get("action_sha256") != self._action_sha256(action, starts_vessel):
                 raise CampaignResourceIntegrityError("campaign resource action hash mismatch")
             preflight = self._preflight_from_event(event)
-            expected_proposed = derive_campaign_resource_delta(
+            expected_proposed = self._proposed_delta(
                 action,
                 starts_vessel=starts_vessel,
             )
             expected_attempt_charged = attempts < self.card.operation_attempt_limit
             expected_reasons = self._hard_rejection_reasons(
                 expected_proposed,
+                operation=str(action.get("operation", "invalid")),
                 attempt_charged=expected_attempt_charged,
                 vessel_starts=vessels,
                 final_assays=finals,
                 nonfinal_instrument_uses=nonfinal,
                 instrument_uses=instruments,
+                operation_committed_counts=operation_committed_counts,
                 stocks_used=stocks,
+                process_time_s=process_time_s,
             )
             if preflight.event_id != event_id:
                 raise CampaignResourceIntegrityError(
@@ -822,6 +862,11 @@ class CampaignResourceLedger:
                     "uncommitted campaign resource outcome has a physical or report debit"
                 )
             self._verify_actual_within_reservation(actual, preflight.proposed_delta)
+            if outcome_view["committed"]:
+                operation = str(action.get("operation", "invalid"))
+                operation_committed_counts[operation] = (
+                    operation_committed_counts.get(operation, 0) + 1
+                )
             vessels += actual.vessel_starts
             finals += actual.final_assays
             discarded += actual.discarded_batches
@@ -842,6 +887,7 @@ class CampaignResourceLedger:
             "discarded_batches": discarded,
             "nonfinal_instrument_uses": nonfinal,
             "instrument_uses": dict(sorted(instruments.items())),
+            "operation_committed_counts": dict(sorted(operation_committed_counts.items())),
             "stocks_used": dict(sorted(stocks.items())),
             "process_time_s": process_time_s,
             "sample_consumed_L": sample_consumed_L,
@@ -856,6 +902,7 @@ class CampaignResourceLedger:
             "discarded_batches": self.discarded_batches,
             "nonfinal_instrument_uses": self.nonfinal_instrument_uses,
             "instrument_uses": dict(sorted(self.instrument_uses.items())),
+            "operation_committed_counts": dict(sorted(self.operation_committed_counts.items())),
             "stocks_used": dict(sorted(self.stocks_used.items())),
             "process_time_s": self.process_time_s,
             "sample_consumed_L": self.sample_consumed_L,
@@ -870,6 +917,7 @@ class CampaignResourceLedger:
             "discarded_batches",
             "nonfinal_instrument_uses",
             "instrument_uses",
+            "operation_committed_counts",
             "stocks_used",
         ):
             if observed[key] != expected[key]:
@@ -899,12 +947,15 @@ class CampaignResourceLedger:
         self,
         proposed: CampaignResourceDelta,
         *,
+        operation: str,
         attempt_charged: bool,
         vessel_starts: int,
         final_assays: int,
         nonfinal_instrument_uses: int,
         instrument_uses: Mapping[str, int],
+        operation_committed_counts: Mapping[str, int],
         stocks_used: Mapping[str, float],
+        process_time_s: float,
     ) -> list[str]:
         reasons: list[str] = []
         if not attempt_charged:
@@ -918,20 +969,29 @@ class CampaignResourceLedger:
             > self.card.nonfinal_instrument_use_limit
         ):
             reasons.append("nonfinal_instrument_use_limit")
+        repeat_limit = self.card.operation_repeat_limits.get(operation)
+        if (
+            repeat_limit is not None
+            and operation_committed_counts.get(operation, 0) + 1 > repeat_limit
+        ):
+            reasons.append(f"operation_repeat_limit:{operation}")
+        if (
+            self.card.process_time_limit_s is not None
+            and process_time_s + proposed.process_time_s > self.card.process_time_limit_s + 1.0e-12
+        ):
+            reasons.append("process_time_limit")
         for instrument, count in proposed.instrument_uses.items():
             instrument_limit = self.card.per_instrument_limits.get(instrument)
             if (
                 instrument_limit is not None
-                and instrument_uses.get(instrument, 0) + count
-                > instrument_limit
+                and instrument_uses.get(instrument, 0) + count > instrument_limit
             ):
                 reasons.append(f"per_instrument_limit:{instrument}")
         for stock_id, amount in proposed.stocks.items():
             stock_limit = self.card.stock_limits.get(stock_id)
             if (
                 stock_limit is not None
-                and stocks_used.get(stock_id, 0.0) + amount
-                > stock_limit + 1.0e-12
+                and stocks_used.get(stock_id, 0.0) + amount > stock_limit + 1.0e-12
             ):
                 reasons.append(f"stock_limit:{stock_id}")
         return sorted(set(reasons))
@@ -959,9 +1019,7 @@ class CampaignResourceLedger:
         }
         instrument_remaining = {
             instrument: (
-                None
-                if limit is None
-                else max(limit - self.instrument_uses.get(instrument, 0), 0)
+                None if limit is None else max(limit - self.instrument_uses.get(instrument, 0), 0)
             )
             for instrument, limit in self.card.per_instrument_limits.items()
         }
@@ -973,6 +1031,7 @@ class CampaignResourceLedger:
             "closed_batches": self.final_assays + self.discarded_batches,
             "nonfinal_instrument_uses": self.nonfinal_instrument_uses,
             "instrument_uses": dict(sorted(self.instrument_uses.items())),
+            "operation_committed_counts": dict(sorted(self.operation_committed_counts.items())),
             "stocks_used": dict(sorted(self.stocks_used.items())),
             "remaining": {
                 "operation_attempts": max(
@@ -988,12 +1047,23 @@ class CampaignResourceLedger:
                     0,
                 ),
                 "nonfinal_instrument_uses": max(
-                    self.card.nonfinal_instrument_use_limit
-                    - self.nonfinal_instrument_uses,
+                    self.card.nonfinal_instrument_use_limit - self.nonfinal_instrument_uses,
                     0,
                 ),
                 "stocks": stocks_remaining,
                 "per_instrument": instrument_remaining,
+                "process_time_s": (
+                    None
+                    if self.card.process_time_limit_s is None
+                    else max(self.card.process_time_limit_s - self.process_time_s, 0.0)
+                ),
+                "operation_repeats": {
+                    operation: max(
+                        limit - self.operation_committed_counts.get(operation, 0),
+                        0,
+                    )
+                    for operation, limit in self.card.operation_repeat_limits.items()
+                },
             },
             "report_only": {
                 "process_time_s": self.process_time_s,
@@ -1004,13 +1074,22 @@ class CampaignResourceLedger:
             },
         }
 
-    def _apply_outcome_delta(self, delta: CampaignResourceDelta) -> None:
+    def _apply_outcome_delta(
+        self,
+        delta: CampaignResourceDelta,
+        *,
+        operation: str | None,
+    ) -> None:
         self.vessel_starts += delta.vessel_starts
         self.final_assays += delta.final_assays
         self.discarded_batches += delta.discarded_batches
         self.nonfinal_instrument_uses += delta.nonfinal_instrument_uses
         for instrument, count in delta.instrument_uses.items():
             self.instrument_uses[instrument] = self.instrument_uses.get(instrument, 0) + count
+        if operation is not None:
+            self.operation_committed_counts[operation] = (
+                self.operation_committed_counts.get(operation, 0) + 1
+            )
         for stock_id, amount in delta.stocks.items():
             self.stocks_used[stock_id] = self.stocks_used.get(stock_id, 0.0) + amount
         self.process_time_s += delta.process_time_s
@@ -1045,6 +1124,28 @@ class CampaignResourceLedger:
                 raise CampaignResourceIntegrityError(
                     f"outcome exceeded stock reservation: {stock_id}"
                 )
+        if (
+            self.card.process_time_limit_s is not None
+            and actual.process_time_s > proposed.process_time_s + 1.0e-12
+        ):
+            raise CampaignResourceIntegrityError("outcome exceeded process-time reservation")
+
+    def _proposed_delta(
+        self,
+        action: Mapping[str, Any],
+        *,
+        starts_vessel: bool,
+    ) -> CampaignResourceDelta:
+        proposed = derive_campaign_resource_delta(
+            action,
+            starts_vessel=starts_vessel,
+        )
+        if self.card.process_time_limit_s is None:
+            return proposed
+        return replace(
+            proposed,
+            process_time_s=_positive_action_float(action, "duration_s"),
+        )
 
     def _verify_state_within_limits(self) -> None:
         checks = (
@@ -1061,16 +1162,20 @@ class CampaignResourceLedger:
         for instrument, instrument_limit in self.card.per_instrument_limits.items():
             if (
                 instrument_limit is not None
-                and self.instrument_uses.get(instrument, 0)
-                > instrument_limit
+                and self.instrument_uses.get(instrument, 0) > instrument_limit
             ):
                 exceeded.append(f"per_instrument_limit:{instrument}")
         for stock_id, stock_limit in self.card.stock_limits.items():
-            if (
-                self.stocks_used.get(stock_id, 0.0)
-                > stock_limit + 1.0e-12
-            ):
+            if self.stocks_used.get(stock_id, 0.0) > stock_limit + 1.0e-12:
                 exceeded.append(f"stock_limit:{stock_id}")
+        if (
+            self.card.process_time_limit_s is not None
+            and self.process_time_s > self.card.process_time_limit_s + 1.0e-12
+        ):
+            exceeded.append("process_time_limit")
+        for operation, repeat_limit in self.card.operation_repeat_limits.items():
+            if self.operation_committed_counts.get(operation, 0) > repeat_limit:
+                exceeded.append(f"operation_repeat_limit:{operation}")
         if exceeded:
             raise CampaignResourceIntegrityError(
                 "campaign resource hard limit exceeded: " + ", ".join(exceeded)
@@ -1143,9 +1248,7 @@ def generous_electrochemical_max_envelope_card(
         name="stock_action_envelopes_per_experiment",
     )
     if stock_envelopes <= 0.0:
-        raise ValueError(
-            "stock_action_envelopes_per_experiment must be positive"
-        )
+        raise ValueError("stock_action_envelopes_per_experiment must be positive")
     return CampaignResourceCard(
         card_id=card_id,
         operation_attempt_limit=operation_attempt_limit,
@@ -1154,13 +1257,10 @@ def generous_electrochemical_max_envelope_card(
         nonfinal_instrument_use_limit=nonfinal_instrument_use_limit,
         stock_limits={
             "reagent_mol": (
-                ELECTROCHEMICAL_REAGENT_ACTION_UPPER_MOL * experiment_count
-                * stock_envelopes
+                ELECTROCHEMICAL_REAGENT_ACTION_UPPER_MOL * experiment_count * stock_envelopes
             ),
             "solvent_L": (
-                ELECTROCHEMICAL_SOLVENT_ACTION_UPPER_L
-                * experiment_count
-                * stock_envelopes
+                ELECTROCHEMICAL_SOLVENT_ACTION_UPPER_L * experiment_count * stock_envelopes
             ),
         },
         metadata={
