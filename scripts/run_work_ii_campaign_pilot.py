@@ -158,6 +158,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         )
         provider = config["provider"]
         completed = 0
+        failure: dict[str, str] | None = None
         with tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-") as temporary:
             agent = InteractiveCodexExperimentAgent(
                 workspace=Path(temporary) / "workspace",
@@ -207,38 +208,50 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     },
                 )
 
-            history = run_agent(
-                env_id=get_task(config["task_id"]).env_id,
-                agent=agent,
-                world_split=config["world_split"],
-                budget=int(config["method_resources"]["operation_limit"]),
-                objective=config["objective"],
-                seed=0,
-                agent_seed=0,
-                task_id=config["task_id"],
-                output_path=cell_root / "trajectory.jsonl",
-                budget_override=int(config["method_resources"]["operation_limit"]),
-                episode_mode_override=config["episode_mode"],
-                step_callback=on_step,
-                method_resource_limits=dict(config["method_resources"]),
-                material_information=dict(config["prior_arms"][arm]),
-                campaign_resource_card=card,
-                electrochemical_material_family_id=config["electrochemical_material_family_id"],
-                electrochemical_workflow_mode=config["electrochemical_workflow_mode"],
-                scoring_contract_id=config["scoring_contract_id"],
-                observation_noise_mode=config["observation_noise_mode"],
-                observation_noise_namespace=config["observation_noise_namespace"],
-            )
-            del history
+            try:
+                history = run_agent(
+                    env_id=get_task(config["task_id"]).env_id,
+                    agent=agent,
+                    world_split=config["world_split"],
+                    budget=int(config["method_resources"]["operation_limit"]),
+                    objective=config["objective"],
+                    seed=0,
+                    agent_seed=0,
+                    task_id=config["task_id"],
+                    output_path=cell_root / "trajectory.jsonl",
+                    budget_override=int(config["method_resources"]["operation_limit"]),
+                    episode_mode_override=config["episode_mode"],
+                    step_callback=on_step,
+                    method_resource_limits=dict(config["method_resources"]),
+                    material_information=dict(config["prior_arms"][arm]),
+                    campaign_resource_card=card,
+                    electrochemical_material_family_id=(
+                        config["electrochemical_material_family_id"]
+                    ),
+                    electrochemical_workflow_mode=config["electrochemical_workflow_mode"],
+                    scoring_contract_id=config["scoring_contract_id"],
+                    observation_noise_mode=config["observation_noise_mode"],
+                    observation_noise_namespace=config["observation_noise_namespace"],
+                )
+                del history
+            except Exception as error:  # preserve the failed pilot cell and stop the block
+                failure = {"type": type(error).__name__, "message": str(error)[:1000]}
             receipts = agent.provider_receipts()
             usage = agent.method_resource_usage()
-        records = load_jsonl(cell_root / "trajectory.jsonl")
+        trajectory_path = cell_root / "trajectory.jsonl"
+        records = load_jsonl(trajectory_path) if trajectory_path.exists() else []
         analysis = _analyze(records, receipts)
-        replay = verify_records(records, tolerance=0.0).to_dict()
+        replay = (
+            verify_records(records, tolerance=0.0).to_dict()
+            if records
+            else {"verified": False, "checked_steps": 0, "max_abs_error": None, "mismatches": []}
+        )
         row = {
             "arm": arm,
-            "completed": analysis["complete_experiment_count"] == 4
+            "completed": failure is None
+            and analysis["complete_experiment_count"] == 4
             and not analysis["right_censored_open_experiment"],
+            "failure": failure,
             "analysis": analysis,
             "method_resources": usage,
             "provider_receipts": receipts,
@@ -258,6 +271,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "elapsed_s": row["elapsed_s"],
             },
         )
+        if failure is not None:
+            break
     report = {
         "schema_version": "chemworld-work-ii-campaign-pilot-report-0.1",
         "pilot_id": config["pilot_id"],

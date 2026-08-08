@@ -38,5 +38,12 @@ workspace paths become arm-neutral, and all three arms share the same keyed-nois
 misindexed attempt also measured 264,302 uncached input tokens, so the predeclared uncached cap is
 raised to 320,000 while the 2,400,000 cumulative cap and all physical limits remain unchanged.
 
+The first arm of the blinded rerun then completed experiment 1 but exceeded the 600 s liveness
+timeout while preparing the next checkpoint/action. No fallback action was emitted. Because one
+campaign turn may perform a typed belief revision between physical operations, the electrochemical
+pilot timeout is raised to 1,200 s. This changes only provider liveness handling; checkpoint stages,
+physical resources, scientific denominators and participant ownership remain frozen. The blinded
+three-arm block restarts from the opaque arm.
+
 Expected outputs: one redacted trajectory and machine-readable summary per arm, one combined pilot
 report, and an external progress JSONL. Raw provider payloads and credentials are not retained.
