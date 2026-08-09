@@ -113,3 +113,31 @@ rates recorded for the execution date, the externally calculated provider cost i
 the runner correctly leaves monetary accounting incomplete rather than writing an unverifiable
 zero-cost claim. DeepSeek is now qualified for this campaign harness and envelope, not for an
 unbounded task/model/scaffold matrix.
+
+## Current V4 catalog and bounded-cost audit
+
+Rechecked against the official DeepSeek API documentation on 2026-08-10. The supported API model
+IDs are `deepseek-v4-flash` and `deepseek-v4-pro`; the legacy `deepseek-chat` and
+`deepseek-reasoner` names were scheduled for retirement on 2026-07-24. The repository already uses
+`deepseek-v4-flash`, so a retired legacy alias is not part of the observed Codex harness failure.
+DeepSeek also states that the same `deepseek-v4-flash` slug now serves the 2026-07-31 model update
+and natively supports the Responses API with Codex adaptation. This provider-managed moving alias
+would need explicit version/provenance treatment in any formal provider amendment.
+
+Official sources:
+
+- <https://api-docs.deepseek.com/quick_start/pricing?article_id=article_1779470751466_8>
+- <https://api-docs.deepseek.com/updates/>
+- <https://api-docs.deepseek.com/api/list-models>
+
+At the rates displayed on 2026-08-10, V4 Flash costs USD 0.0028 per million cache-hit input tokens,
+USD 0.14 per million cache-miss input tokens, and USD 0.28 per million output tokens. If the current
+three-arm qualification hard caps were transferred unchanged to V4 Flash (7.2M cumulative input,
+0.96M uncached input, and 0.072M output), the cache-accounted token-price ceiling would be
+`0.96*0.14 + 6.24*0.0028 + 0.072*0.28 = USD 0.172032`. Treating every input token as a cache miss
+gives the more conservative token-price ceiling `7.2*0.14 + 0.072*0.28 = USD 1.02816`.
+
+These figures exclude taxes, account-specific charges and future price changes. They neither price
+the frozen WellAU contract nor authorize a DeepSeek amendment or provider call. The current formal
+method remains WellAU `gpt-5.6-sol` medium until an outcome-blind user-approved provider amendment
+rebuilds all affected method, preflight, qualification and preregistration bindings.

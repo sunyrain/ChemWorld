@@ -45,6 +45,7 @@ WORK_II_TEST_FILES = (
     "tests/test_work_ii_report.py",
     "tests/test_work_ii_truth.py",
 )
+EXPECTED_WORK_II_TEST_COUNT = 74
 FROZEN_CHECKS = (
     ("formal_preflight", "scripts/run_work_ii_formal_matrix.py", "--preflight", "--check"),
     ("method_qualification", "scripts/run_work_ii_method_qualification.py", "--check"),
@@ -222,7 +223,7 @@ def main() -> int:
             raise RuntimeError("could not parse the Work II pytest denominator")
         passed = int(match.group(1))
         skipped = int(match.group(2) or 0)
-        if passed != 70 or skipped != 0:
+        if passed != EXPECTED_WORK_II_TEST_COUNT or skipped != 0:
             raise RuntimeError(
                 f"unexpected Work II pytest result: passed={passed}, skipped={skipped}"
             )

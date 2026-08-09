@@ -634,6 +634,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   历史证据仅作 pilot/environment/method qualification，以及两条路线的不可逆后果。当前推荐先提交 Nature
   Registered Report presubmission enquiry；若未获邀，则按同一 H3/design/analysis/failure rules 转入常规
   投稿。`selected_option` 仍为空，等待用户明确选择，故不得开始 formal primary data collection。
+  `scripts/select_work_ii_submission_route.py` 已提供显式、write-once 的用户选择入口：必须同时给出
+  route、selection timestamp 和 `--selected-by-user`；缺少任一输入不写文件，已选择记录拒绝改选，
+  formal outcome count 非零的源记录即使重算哈希也拒绝。聚焦测试覆盖两条路线、晚选择、缺参、
+  check 和重复选择，共 9/9 通过；当前 pending decision 未被改写。
 
 ### W2-09 — 完成 manifest-driven formal runner
 
@@ -972,6 +976,12 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   cached、86,693 uncached）、38,993 output；provider 0 errors，final payload 为有效 exact JSON，
   所有 qualification checks 通过。该 run 仅证明当前 DeepSeek campaign harness/envelope 合格，
   不进入科学分母。
+- [x] 2026-08-10 重新核对 DeepSeek 官方 current model/pricing/change-log：仓库已使用仍受支持且
+  Codex/Responses 原生适配的 `deepseek-v4-flash`，不存在 `deepseek-chat`/`deepseek-reasoner`
+  退役别名导致本次 harness 故障的问题；但该 slug 是 provider-managed moving alias，若改为正式 provider
+  必须额外冻结版本/调用时间 provenance。按当前三臂资格 token 硬上限与 2026-08-10 V4 Flash 官方价格，
+  cache-accounted token-price ceiling 为 USD 0.172032，全输入按 cache miss 的保守 ceiling 为 USD 1.02816；
+  这不代表 WellAU 价格，也不授权 provider amendment 或调用。细节与官方链接已补入 DeepSeek 诊断报告。
 - [x] 当前完成范围收束为三个任务：`electrochemical-conversion`、
   `reaction-to-crystallization`、`reaction-to-distillation`；每任务三先验臂 × 五 seeds，cell 内四轮
   complete experiments。三个任务均已推进到冻结终态；该范围是 development qualification，不是
