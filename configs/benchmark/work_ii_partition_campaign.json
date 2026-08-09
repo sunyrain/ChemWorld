@@ -1,0 +1,90 @@
+{
+  "schema_version": "chemworld-work-ii-campaign-pilot-0.2",
+  "pilot_id": "work-ii-partition-prior-campaign",
+  "formal_result": false,
+  "task_id": "partition-discovery",
+  "world_split": "public-test",
+  "world_seed": 0,
+  "objective": "balanced",
+  "episode_mode": "campaign",
+  "observation_noise_mode": "keyed",
+  "observation_noise_namespace": "work-ii-partition-prior-campaign",
+  "prior_arms": {
+    "opaque": {"mode": "opaque_codes"},
+    "aligned_nominal": {"mode": "anonymous_nominal_properties"},
+    "misindexed_nominal": {
+      "mode": "anonymous_misindexed_properties",
+      "target_field": "extractant",
+      "descriptor_permutation": [3, 1, 2, 0]
+    }
+  },
+  "belief_checkpoint": {
+    "allowed_feature_ids": [
+      "solvent",
+      "aqueous_phase_volume_L",
+      "extractant",
+      "extractant_volume_L",
+      "mix_duration_s",
+      "settle_duration_s",
+      "stirring_speed_rpm"
+    ],
+    "allowed_metric_ids": ["phase_ratio", "product_in_organic", "product_in_aqueous"],
+    "allowed_prior_fields": ["solvent", "extractant"],
+    "held_out_queries": [
+      {
+        "query_id": "q-s0-e0",
+        "feature_values": {"solvent": 0, "aqueous_phase_volume_L": 0.015, "extractant": 0, "extractant_volume_L": 0.018, "mix_duration_s": 240.0, "settle_duration_s": 420.0, "stirring_speed_rpm": 700.0},
+        "metric_ids": ["phase_ratio", "product_in_organic", "product_in_aqueous"]
+      },
+      {
+        "query_id": "q-s3-e0",
+        "feature_values": {"solvent": 3, "aqueous_phase_volume_L": 0.015, "extractant": 0, "extractant_volume_L": 0.018, "mix_duration_s": 240.0, "settle_duration_s": 420.0, "stirring_speed_rpm": 700.0},
+        "metric_ids": ["phase_ratio", "product_in_organic", "product_in_aqueous"]
+      },
+      {
+        "query_id": "q-s0-e3",
+        "feature_values": {"solvent": 0, "aqueous_phase_volume_L": 0.015, "extractant": 3, "extractant_volume_L": 0.018, "mix_duration_s": 240.0, "settle_duration_s": 420.0, "stirring_speed_rpm": 700.0},
+        "metric_ids": ["phase_ratio", "product_in_organic", "product_in_aqueous"]
+      },
+      {
+        "query_id": "q-s3-e3",
+        "feature_values": {"solvent": 3, "aqueous_phase_volume_L": 0.015, "extractant": 3, "extractant_volume_L": 0.018, "mix_duration_s": 240.0, "settle_duration_s": 420.0, "stirring_speed_rpm": 700.0},
+        "metric_ids": ["phase_ratio", "product_in_organic", "product_in_aqueous"]
+      }
+    ]
+  },
+  "campaign": {
+    "card_id": "work-ii-partition-k4-one-repeat",
+    "complete_experiments": 4,
+    "operation_attempt_limit": 48,
+    "vessel_start_limit": 4,
+    "final_assay_limit": 4,
+    "nonfinal_instrument_use_limit": 8,
+    "stock_limits": {"solvent_L": 0.112, "phase_liquid_L": 0.096, "extractant_L": 0.12},
+    "process_time_limit_s": 9000.0,
+    "operation_repeat_limits": {"mix": 5, "settle": 5, "separate_phase": 4},
+    "process_time_policy": {
+      "pattern_id": "partition-k4-one-repeat-per-timed-stage",
+      "required_stage_max_s": 7200.0,
+      "repeat_allowance_s": 1800.0,
+      "implicit_stage_reserve_s": 0.0,
+      "formula": "4 x (mix 600 s + settle 1200 s) + one extra mix and one extra settle stage"
+    },
+    "checkpoint_complete_experiments": [0, 1, 2, 4]
+  },
+  "qualification": {"required_operation_counts": {}},
+  "analysis": {"final_metric_ids": ["phase_ratio", "product_in_organic", "product_in_aqueous", "score"]},
+  "method_resources": {
+    "operation_limit": 48,
+    "complete_experiment_limit": 4,
+    "checkpoint_complete_experiments": [1, 2, 4],
+    "wall_time_limit_s": 7200.0,
+    "model_call_limit": 1,
+    "input_token_limit": 4800000,
+    "uncached_input_token_limit": 640000,
+    "output_token_limit": 48000,
+    "training_environment_step_limit": 0
+  },
+  "execution": {"max_concurrency": 3, "parallelization_unit": "same_seed_prior_arm_triplet", "within_cell_concurrency": 1, "failure_semantics": "finish the in-flight seed triplet, then stop before the next world seed"},
+  "provider": {"id": "wellau", "name": "WellAU", "base_url": "https://api.wellau.com/v1", "env_key": "WELLAU_API_KEY", "wire_api": "responses", "model": "gpt-5.6-sol", "reasoning_effort": "medium", "request_timeout_s": 1200.0, "finalization_timeout_s": 600.0}
+}

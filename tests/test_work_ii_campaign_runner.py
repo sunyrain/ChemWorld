@@ -89,6 +89,45 @@ def test_distillation_process_time_policy_includes_evaporation_and_quench() -> N
     assert card.operation_repeat_limits["quench"] == 4
 
 
+def test_partition_process_time_policy_covers_four_lifecycles_and_one_repeat() -> None:
+    config = _task_config("work_ii_partition_campaign.json")
+    card = _campaign_card(config)
+    assert card.process_time_limit_s == 9_000.0
+    assert card.operation_attempt_limit == 48
+    assert card.vessel_start_limit == 4
+    assert card.final_assay_limit == 4
+    assert card.operation_repeat_limits == {"mix": 5, "settle": 5, "separate_phase": 4}
+    assert card.stock_limits == {
+        "extractant_L": 0.12,
+        "phase_liquid_L": 0.096,
+        "solvent_L": 0.112,
+    }
+
+
+def test_safety_process_time_policy_covers_four_lifecycles_and_one_repeat() -> None:
+    config = _task_config("work_ii_safety_campaign.json")
+    card = _campaign_card(config)
+    assert card.process_time_limit_s == 36_480.0
+    assert card.implicit_operation_time_s == {"quench": 120.0}
+    assert card.operation_attempt_limit == 40
+    assert card.operation_repeat_limits == {"heat": 5, "quench": 4}
+
+
+def test_all_five_task_checkpoint_contracts_match_across_informed_arms() -> None:
+    config_names = (
+        "work_ii_campaign_pilot.json",
+        "work_ii_crystallization_campaign.json",
+        "work_ii_distillation_campaign.json",
+        "work_ii_partition_campaign.json",
+        "work_ii_safety_campaign.json",
+    )
+    for config_name in config_names:
+        config = _task_config(config_name)
+        assert _checkpoint_contract(config, "aligned_nominal") == _checkpoint_contract(
+            config, "misindexed_nominal"
+        )
+
+
 def test_aligned_and_misindexed_checkpoint_contracts_are_identical() -> None:
     config = _config()
     assert _checkpoint_contract(config, "aligned_nominal") == _checkpoint_contract(
