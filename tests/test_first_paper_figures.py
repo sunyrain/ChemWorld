@@ -58,7 +58,7 @@ def test_every_bound_asset_exists_and_has_the_expected_publication_geometry() ->
     expected_geometry = {
         "figure-1-system-overview": (2124, 1195),
         "figure-2-composition-and-qualification": (9599, 5400),
-        "figure-3-controlled-forks": (7200, 5400),
+        "figure-3-controlled-forks": (1728, 1296),
     }
     for figure in manifest["figures"]:
         assert [row["format"] for row in figure["outputs"]] == ["svg", "pdf", "png"]
@@ -76,8 +76,11 @@ def test_every_bound_asset_exists_and_has_the_expected_publication_geometry() ->
             "figure-2-composition-and-qualification",
             "figure-3-controlled-forks",
         }:
-            assert svg.count("<image") == 1
-            assert "<text" not in svg
+            # The current publication plates are exported from the editable
+            # author sources: labels stay as text and diagram geometry stays
+            # as independent vector paths instead of one full-plate raster.
+            assert svg.count("<text") >= 90
+            assert svg.count("<path") >= 50
         else:
             assert "<text" in svg
         assert "D:\\Projects" not in svg

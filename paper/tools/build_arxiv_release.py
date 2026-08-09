@@ -55,12 +55,29 @@ def _canonical_sha(value: dict[str, Any]) -> str:
     ).hexdigest()
 
 
-def _tool(name: str, fallback: Path | None = None) -> str:
+def _optional_tool(name: str, fallback: Path | None = None) -> str | None:
     found = shutil.which(name)
     if found:
         return found
     if fallback is not None and fallback.is_file():
         return str(fallback)
+    for package_root in (
+        Path.home() / "miniconda3" / "pkgs",
+        Path.home() / "mambaforge" / "pkgs",
+        Path.home() / "anaconda3" / "pkgs",
+    ):
+        if not package_root.is_dir():
+            continue
+        candidates = sorted(package_root.glob(f"{name}-*/bin/{name}"), reverse=True)
+        if candidates:
+            return str(candidates[0])
+    return None
+
+
+def _tool(name: str, fallback: Path | None = None) -> str:
+    found = _optional_tool(name, fallback)
+    if found is not None:
+        return found
     raise RuntimeError(f"required build tool is unavailable: {name}")
 
 
@@ -199,8 +216,9 @@ def build() -> dict[str, Any]:
         Path.home() / "AppData/Local/Pandoc/pandoc.exe",
     )
     miktex = Path.home() / "AppData/Local/Programs/MiKTeX/miktex/bin/x64"
-    pdflatex = _tool("pdflatex", miktex / "pdflatex.exe")
-    bibtex = _tool("bibtex", miktex / "bibtex.exe")
+    pdflatex = _optional_tool("pdflatex", miktex / "pdflatex.exe")
+    bibtex = _optional_tool("bibtex", miktex / "bibtex.exe")
+    tectonic = None if pdflatex and bibtex else _tool("tectonic")
     BUILD.mkdir(parents=True, exist_ok=True)
     EXPORT.mkdir(parents=True, exist_ok=True)
     shutil.copy2(BIBLIOGRAPHY, ARXIV / "references.bib")
@@ -238,14 +256,18 @@ def build() -> dict[str, Any]:
     _reset_directory(build_figures, allowed_root=BUILD)
     for source in figure_pdfs:
         shutil.copy2(source, build_figures / source.name)
-    latex_args = [pdflatex, "-interaction=nonstopmode", "-halt-on-error", "main.tex"]
-    _run(latex_args, cwd=BUILD)
-    _run([bibtex, "main"], cwd=BUILD)
+    if tectonic is not None:
+        _run([tectonic, "-k", "--keep-logs", "main.tex"], cwd=BUILD)
+    else:
+        assert pdflatex is not None and bibtex is not None
+        latex_args = [pdflatex, "-interaction=nonstopmode", "-halt-on-error", "main.tex"]
+        _run(latex_args, cwd=BUILD)
+        _run([bibtex, "main"], cwd=BUILD)
+        _run(latex_args, cwd=BUILD)
+        _run(latex_args, cwd=BUILD)
     _normalize_text(BUILD / "main.bbl")
-    _run(latex_args, cwd=BUILD)
-    _run(latex_args, cwd=BUILD)
     log = (BUILD / "main.log").read_text(encoding="utf-8", errors="replace")
-    page_match = re.search(r"Output written on main\.pdf \((\d+) pages?", log)
+    page_match = re.search(r"Output written on main\.(?:pdf|xdv) \((\d+) pages?", log)
     if page_match is None:
         raise RuntimeError("could not determine compiled PDF page count")
     pdf_page_count = int(page_match.group(1))

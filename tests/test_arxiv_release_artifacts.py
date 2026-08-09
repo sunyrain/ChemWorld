@@ -187,13 +187,30 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
 
 def test_generated_tex_has_launch_order_and_standard_abstract() -> None:
     tex = (ARXIV / "main.tex").read_text(encoding="utf-8")
+    compact_tex = " ".join(tex.split())
     assert (
-        "\\begin{abstract}\nAutonomous chemistry needs an experimental regime in which"
+        "\\begin{abstract}\nAutonomous chemistry increasingly depends on environments in which"
         in tex
     )
     assert "\\subsection{Abstract}" not in tex
     assert "\\section{1. Introduction}" in tex
-    assert "\\section{10. Conclusion}" in tex
+    assert "\\section{7. Discussion and Conclusion}" in tex
+    assert "\\section{8. Data and Code" in tex
+    assert "\\section{Appendix A. Qualification and Experimental Protocols}" in compact_tex
+    assert "\\section{Appendix B. World Registry and Component Library}" in compact_tex
+    assert "\\section{Appendix C. Coverage and Qualification Results}" in compact_tex
+    assert "\\section{Appendix D. Agent-Facing Evaluation Records}" in compact_tex
+    assert tex.count("\\bibliography{references}") == 1
+    manuscript_order = [
+        compact_tex.index("\\section{7. Discussion and Conclusion}"),
+        compact_tex.index("\\section{8. Data and Code"),
+        compact_tex.index("\\bibliography{references}"),
+        compact_tex.index("\\section{Appendix A. Qualification and Experimental Protocols}"),
+        compact_tex.index("\\section{Appendix B. World Registry and Component Library}"),
+        compact_tex.index("\\section{Appendix C. Coverage and Qualification Results}"),
+        compact_tex.index("\\section{Appendix D. Agent-Facing Evaluation Records}"),
+    ]
+    assert manuscript_order == sorted(manuscript_order)
     assert "\\fancyhead[L]{\\footnotesize Programmable Chemical Worlds}" in tex
     positions = [tex.index(f"figures/figure-{number}-") for number in range(1, 4)]
     assert positions == sorted(positions)
@@ -227,6 +244,12 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
         (RELEASE / "arxiv-v1-derived-data.manifest.json").read_text(encoding="utf-8")
     )
     current = json.loads((ROOT / fvl["evidence_registry_path"]).read_text(encoding="utf-8"))
+    figure_manifest = json.loads(
+        (
+            ROOT / "paper/figures/first-paper-world-instrument-v1/"
+            "first-paper-publication-figure-manifest-v1.json"
+        ).read_text(encoding="utf-8")
+    )
     verification_attestation = json.loads(
         (RELEASE / "verification-attestation.json").read_text(encoding="utf-8")
     )
@@ -238,10 +261,26 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
         fvl["evidence_graph_node_count"]
         == (verification_attestation["evidence_graph"]["node_count"])
     )
-    assert (
-        current["evidence_dag"]["nodes"]["first_paper_composition_qualification"]["artifact_state"]
-        == "current"
+    # The benchmark release is a frozen Work I record. Later source or dependency
+    # changes may intentionally mark its immutable report stale in the live registry;
+    # the paper remains bound to the same report path and content hash.
+    current_composition = current["evidence_dag"]["nodes"]["first_paper_composition_qualification"]
+    bound_composition = next(
+        row
+        for row in figure_manifest["source_bindings"]
+        if row["node_id"] == "first_paper_composition_qualification"
     )
+    assert current_composition["lifecycle"] == "immutable"
+    assert current_composition["path"] == bound_composition["path"]
+    assert current_composition["sha256"] == bound_composition["sha256"]
+    assert (
+        current_composition["artifact_state"],
+        current_composition["freshness"],
+        current_composition["gate_state"],
+    ) in {
+        ("current", "fresh", "passed"),
+        ("stale", "stale_dependency_binding", "invalidated"),
+    }
     assert fvl["work_i_fvl_nodes_current"] == fvl["work_i_fvl_node_count"] == 13
     assert fvl["latent_resolved_shadow_receipts"] == 6
     assert fvl["latent_unresolved_shadow_receipts"] == 30

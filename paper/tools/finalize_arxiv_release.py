@@ -320,6 +320,32 @@ def inject_manuscript_metadata(text: str, metadata: Mapping[str, Any]) -> str:
         r"bodies,\s+private reasoning\s+and hidden evaluator identities are excluded\."
         r")"
         r"|"
+        r"(?P<current_new>"
+        r"ChemWorld code, configuration files, processed experimental records, "
+        r"figure source data,\s+"
+        r"release tooling and public trajectories are available under the MIT License "
+        r"in the project\s+"
+        r"repository at \[github\.com/sunyrain/ChemWorld\]"
+        r"\(https://github\.com/sunyrain/ChemWorld\)\. "
+        r"The\s+repository contains the materials required to reproduce the principal "
+        r"statistics and figures\s+"
+        r"reported here and to replay the released simulator environment--action trajectories, "
+        r"public\s+"
+        r"observations and resource ledgers\..*?"
+        r"numerical execution will be identical across platforms or software\s+versions\."
+        r")"
+        r"|"
+        r"(?P<current_compact>"
+        r"ChemWorld code, configuration files, processed evidence, figure data and "
+        r"released trajectories\s+"
+        r"are available under the MIT License at\s+"
+        r"\[github\.com/sunyrain/ChemWorld\]"
+        r"\(https://github\.com/sunyrain/ChemWorld\)\. The repository contains\s+"
+        r"the materials required to reproduce the reported figures and statistics and "
+        r"to replay the\s+"
+        r"released simulator trajectories\."
+        r")"
+        r"|"
         r"The larger compiled-control execution logs total 17\.7 GB and are not required to\n"
         r"regenerate the reported analyses from the processed data\. "
         r"They have not yet been placed\n"
@@ -363,10 +389,18 @@ def inject_manuscript_metadata(text: str, metadata: Mapping[str, Any]) -> str:
     if existing_archive_pattern.search(updated):
         updated, count = existing_archive_pattern.subn(new_paragraph, updated, count=1)
     else:
+
+        def append_archive(match: re.Match[str]) -> str:
+            preserved = (
+                match.group("current")
+                or match.group("current_new")
+                or match.group("current_compact")
+                or ""
+            )
+            return (preserved + "\n\n" if preserved else "") + new_paragraph
+
         updated, count = availability_pattern.subn(
-            lambda match: (
-                (match.group("current") + "\n\n" if match.group("current") else "") + new_paragraph
-            ),
+            append_archive,
             updated,
             count=1,
         )
@@ -455,6 +489,25 @@ def _run(command: Sequence[str]) -> None:
         raise RuntimeError(f"command failed ({completed.returncode}): {' '.join(command)}\n{tail}")
 
 
+def _optional_release_tool(name: str, fallback: Path | None = None) -> str | None:
+    found = shutil.which(name)
+    if found:
+        return found
+    if fallback is not None and fallback.is_file():
+        return str(fallback)
+    for package_root in (
+        Path.home() / "miniconda3" / "pkgs",
+        Path.home() / "mambaforge" / "pkgs",
+        Path.home() / "anaconda3" / "pkgs",
+    ):
+        if not package_root.is_dir():
+            continue
+        candidates = sorted(package_root.glob(f"{name}-*/bin/{name}"), reverse=True)
+        if candidates:
+            return str(candidates[0])
+    return None
+
+
 def apply_preflight_blockers() -> list[str]:
     blockers: list[str] = []
     if importlib.util.find_spec("markdown") is None:
@@ -462,14 +515,14 @@ def apply_preflight_blockers() -> list[str]:
             "Python package 'markdown' is unavailable; run with "
             "`uv run --extra paper python paper/tools/finalize_arxiv_release.py ...`"
         )
-    tool_candidates = {
-        "pandoc": Path.home() / "AppData/Local/Pandoc/pandoc.exe",
-        "pdflatex": (Path.home() / "AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe"),
-        "bibtex": (Path.home() / "AppData/Local/Programs/MiKTeX/miktex/bin/x64/bibtex.exe"),
-    }
-    for name, fallback in tool_candidates.items():
-        if shutil.which(name) is None and not fallback.is_file():
-            blockers.append(f"required release build tool is unavailable: {name}")
+    windows_pandoc = Path.home() / "AppData/Local/Pandoc/pandoc.exe"
+    windows_tex = Path.home() / "AppData/Local/Programs/MiKTeX/miktex/bin/x64"
+    if _optional_release_tool("pandoc", windows_pandoc) is None:
+        blockers.append("required release build tool is unavailable: pandoc")
+    pdflatex = _optional_release_tool("pdflatex", windows_tex / "pdflatex.exe")
+    bibtex = _optional_release_tool("bibtex", windows_tex / "bibtex.exe")
+    if not (pdflatex and bibtex) and _optional_release_tool("tectonic") is None:
+        blockers.append("required release build tools are unavailable: pdflatex+bibtex or tectonic")
     return blockers
 
 
@@ -608,24 +661,16 @@ def _archive_member_hashes(path: Path) -> dict[str, str]:
     return dict(sorted(hashes.items()))
 
 
-def _verify_isolated_source_build(source_archive: Path) -> dict[str, Any]:
-    pdflatex = shutil.which("pdflatex")
-    if pdflatex is None:
-        fallback = (
-            Path.home()
-            / "AppData"
-            / "Local"
-            / "Programs"
-            / "MiKTeX"
-            / "miktex"
-            / "bin"
-            / "x64"
-            / "pdflatex.exe"
+def _verify_isolated_source_build(
+    source_archive: Path, *, expected_page_count: int | None = None
+) -> dict[str, Any]:
+    windows_tex = Path.home() / "AppData/Local/Programs/MiKTeX/miktex/bin/x64"
+    pdflatex = _optional_release_tool("pdflatex", windows_tex / "pdflatex.exe")
+    tectonic = None if pdflatex else _optional_release_tool("tectonic")
+    if pdflatex is None and tectonic is None:
+        raise RuntimeError(
+            "pdflatex or tectonic is unavailable for isolated source-bundle verification"
         )
-        if fallback.is_file():
-            pdflatex = str(fallback)
-    if pdflatex is None:
-        raise RuntimeError("pdflatex is unavailable for isolated source-bundle verification")
 
     with tempfile.TemporaryDirectory(prefix="chemworld-arxiv-source-") as temporary:
         directory = Path(temporary)
@@ -637,14 +682,19 @@ def _verify_isolated_source_build(source_archive: Path) -> dict[str, Any]:
         environment = os.environ.copy()
         environment["SOURCE_DATE_EPOCH"] = "1785628800"
         environment["FORCE_SOURCE_DATE"] = "1"
-        command = [
-            pdflatex,
-            "-interaction=nonstopmode",
-            "-halt-on-error",
-            "-no-shell-escape",
-            "main.tex",
-        ]
-        for pass_number in (1, 2):
+        command = (
+            [tectonic, "-k", "--keep-logs", "main.tex"]
+            if tectonic is not None
+            else [
+                pdflatex,
+                "-interaction=nonstopmode",
+                "-halt-on-error",
+                "-no-shell-escape",
+                "main.tex",
+            ]
+        )
+        pass_numbers = (1,) if tectonic is not None else (1, 2)
+        for pass_number in pass_numbers:
             completed = subprocess.run(
                 command,
                 cwd=directory,
@@ -669,10 +719,12 @@ def _verify_isolated_source_build(source_archive: Path) -> dict[str, Any]:
             raise RuntimeError(
                 "isolated arXiv source compile has unresolved citations or references"
             )
-        page_match = re.search(r"Output written on main\.pdf \((\d+) pages?", log)
-        if page_match is None or int(page_match.group(1)) != 12:
+        page_match = re.search(r"Output written on main\.(?:pdf|xdv) \((\d+) pages?", log)
+        if page_match is None or (
+            expected_page_count is not None and int(page_match.group(1)) != expected_page_count
+        ):
             raise RuntimeError(
-                "isolated arXiv source compile did not produce the expected 12 pages"
+                "isolated arXiv source compile did not produce the expected page count"
             )
         pdf = directory / "main.pdf"
         if not pdf.is_file() or not pdf.read_bytes().startswith(b"%PDF-"):
@@ -730,12 +782,16 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
             member.startswith(f"figures/figure-{number}-") and member.endswith(".pdf")
             for member in zip_members
         )
-        for number in range(1, 5)
+        for number in range(1, 4)
     ):
         raise RuntimeError("arXiv source archive is missing a release figure")
     isolated_source = {
-        "zip": _verify_isolated_source_build(zip_path),
-        "tar_gz": _verify_isolated_source_build(tar_path),
+        "zip": _verify_isolated_source_build(
+            zip_path, expected_page_count=int(build["pdf_page_count"])
+        ),
+        "tar_gz": _verify_isolated_source_build(
+            tar_path, expected_page_count=int(build["pdf_page_count"])
+        ),
         "member_hashes_match": True,
     }
 

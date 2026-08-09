@@ -54,8 +54,8 @@ def test_publication_svg_text_excludes_internal_engineering_metadata() -> None:
             "figure-2-composition-and-qualification.svg",
             "figure-3-controlled-forks.svg",
         }:
-            assert text.count("<image") == 1
-            assert "<text" not in text
+            assert text.count("<text") >= 90
+            assert text.count("<path") >= 50
         else:
             assert "<text" in text
         assert "workstreams/" not in text
@@ -67,7 +67,7 @@ def test_publication_svg_text_excludes_internal_engineering_metadata() -> None:
 
 
 def test_reader_visible_story_is_advantage_led_and_excludes_development_history() -> None:
-    lowered = _reader_visible_manuscript().lower()
+    lowered = " ".join(_reader_visible_manuscript().lower().split())
     forbidden = (
         "what is not established",
         "chemworld is narrower",
@@ -80,9 +80,9 @@ def test_reader_visible_story_is_advantage_led_and_excludes_development_history(
     assert all(phrase not in lowered for phrase in forbidden)
     required = (
         "world construction as a locus of experimental control",
-        "world construction as an experimental variable",
-        "evaluator-complete observability",
-        "controlled studies of experimental agency",
+        "chemical world itself as an experimental variable",
+        "transactional execution with evaluator-complete records",
+        "controlled studies of world construction, world intervention and agent--world interaction",
         "process-complete evidence for replay and intervention attribution",
     )
     assert all(phrase in lowered for phrase in required)
@@ -91,21 +91,23 @@ def test_reader_visible_story_is_advantage_led_and_excludes_development_history(
 def test_main_figures_prioritize_scientific_capability_over_provider_accounting() -> None:
     figure_one = (FIGURE_DIR / "figure-1-system-overview.svg").read_text(encoding="utf-8").lower()
     figure_two = (
-        FIGURE_DIR / "figure-2-composition-and-qualification.svg"
-    ).read_text(encoding="utf-8").lower()
-    figure_three = (FIGURE_DIR / "figure-3-controlled-forks.svg").read_text(
-        encoding="utf-8"
-    ).lower()
+        (FIGURE_DIR / "figure-2-composition-and-qualification.svg")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    figure_three = (
+        (FIGURE_DIR / "figure-3-controlled-forks.svg").read_text(encoding="utf-8").lower()
+    )
     assert "not a claim of laboratory equivalence" not in figure_one
     assert "no physical reagents or wet-lab hazard" not in figure_one
-    assert figure_one.count("<image") == 1
-    assert "<text" not in figure_one
-    assert figure_two.count("<image") == 1
-    assert "<text" not in figure_two
+    assert figure_one.count("<text") >= 90
+    assert figure_one.count("<path") >= 50
+    assert figure_two.count("<text") >= 90
+    assert figure_two.count("<path") >= 50
     assert "every execution census completed" not in figure_two
     assert "module, interface and fail-closed probes" not in figure_two
-    assert figure_three.count("<image") == 1
-    assert "<text" not in figure_three
+    assert figure_three.count("<text") >= 90
+    assert figure_three.count("<path") >= 50
     assert "one world, two independent execution units" not in figure_three
     assert "one lifecycle, one replayable record" not in figure_three
     assert "signed relative difference" not in figure_three
@@ -128,14 +130,16 @@ def test_public_author_and_correspondence_metadata_are_complete() -> None:
 
 def test_qualification_scope_and_provider_details_have_clear_placement() -> None:
     manuscript = MANUSCRIPT.read_text(encoding="utf-8")
-    main_text, _, methods = manuscript.partition("# 8. Methods")
+    main_text, separator, appendix = manuscript.partition(
+        "# Appendix A. Qualification and Experimental Protocols"
+    )
 
-    assert "## 7.4 Qualification scope" in main_text
-    assert "software-scale experimental regime" in main_text
-    assert "GPT-5.6-sol" not in main_text
-    assert "Codex subscription provider" not in main_text
-    assert "GPT-5.6-sol" in methods
-    assert "Codex subscription provider" in methods
+    assert separator
+    assert "## 7.3 Scope, extensibility and physical validation" in main_text
+    assert "software models within their" in main_text
+    assert "GPT-5.6-sol" not in manuscript
+    assert "Codex subscription provider" not in manuscript
+    assert "## A.5 Public-boundary and exact-replay checks" in appendix
     assert "direction is checked separately by the frozen divergence oracle" in main_text
     assert "protocol-defined" not in _reader_visible_manuscript().lower()
 
@@ -143,12 +147,10 @@ def test_qualification_scope_and_provider_details_have_clear_placement() -> None
 def test_world_transaction_and_private_boundary_formalization_are_closed() -> None:
     manuscript = MANUSCRIPT.read_text(encoding="utf-8")
     lowered = manuscript.lower()
+    normalized = " ".join(lowered.split())
 
     assert r"\mathcal{W}=(W_{\mathrm{pub}},\theta)" in manuscript
-    assert (
-        r"T=(W_{\mathrm{pub}},S_{0,\mathrm{pub}},A,I,O,R,\tau,E)"
-        in manuscript
-    )
+    assert r"T=(W_{\mathrm{pub}},S_{0,\mathrm{pub}},A,I,O,R,\tau,E)" in manuscript
     assert r"T=(W,S_0,A,I,O,R,\tau,E)" not in manuscript
     assert r"\theta_p&\neq\theta_c,& T_p&=T_c=T" in manuscript
 
@@ -158,16 +160,14 @@ def test_world_transaction_and_private_boundary_formalization_are_closed() -> No
     assert "post-execution predicate" not in lowered
     assert "post-execution rollback event" not in lowered
     assert (
-        "candidate physical, observation and uncommitted resource effects are discarded"
-        in lowered
+        "candidate physical, observation and uncommitted resource effects are discarded" in lowered
     )
 
     assert "public/private leakage" not in lowered
-    assert "undeclared private-field exposure" in lowered
-    assert "inferential information about hidden" in lowered
-    assert "state conveyed through task-declared measurements" in lowered
+    assert "undeclared private-field exposure" in normalized
+    assert "inferential information obtained through task-declared measurements" in normalized
     assert "full submitted action/transaction" in lowered
-    assert "every submitted typed action in recorded order" in lowered
+    assert "resubmits every typed action in recorded order" in normalized
     assert "64 invalid-schema/unknown-operation probes" in lowered
     assert "64 campaign-resource-exhaustion probes" in lowered
     assert "64 runtime-precondition probes" in lowered
@@ -217,5 +217,6 @@ def test_fork_and_process_coordinate_details_are_reader_visible() -> None:
     assert all(label in lowered for label in coordinate_labels)
     assert r"N_c=N_a+N_d" in manuscript
     assert r"(j^\star-1)/(N_a-1)" in manuscript
-    assert "each task's frozen score" in lowered
-    assert "orientation and scale binding" in lowered
+    assert "remain separate coordinates rather than a composite score" in lowered
+    normalized = " ".join(lowered.split())
+    assert "or a set of uniformly higher-is-better metrics" in normalized

@@ -43,6 +43,11 @@
 \setlength{\parindent}{1em}
 \setlength{\parskip}{0pt}
 \setlength{\emergencystretch}{1.5em}
+\raggedbottom
+\setlength{\abovedisplayskip}{6pt}
+\setlength{\belowdisplayskip}{9pt}
+\setlength{\abovedisplayshortskip}{4pt}
+\setlength{\belowdisplayshortskip}{9pt}
 \setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
 \setlength{\dbltextfloatsep}{8pt plus 2pt minus 2pt}
 \setlength{\floatsep}{7pt plus 2pt minus 2pt}
@@ -67,7 +72,7 @@
 % Headings carry their frozen manuscript numbers so the Markdown and TeX
 % sources expose the same navigation without duplicate LaTeX counter labels.
 \titleformat{\section}{\large\bfseries\color{chemblue}\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000}{}{0pt}{}
-\titleformat{\subsection}{\normalsize\bfseries}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000}{}{0pt}{}
 \titlespacing*{\section}{0pt}{10pt plus 2pt minus 1pt}{4pt}
 \titlespacing*{\subsection}{0pt}{7pt plus 2pt minus 1pt}{3pt}
 
@@ -109,7 +114,5 @@ $abstract$
 $body$
 
 \balance
-\bibliographystyle{unsrtnat}
-\bibliography{references}
 
 \end{document}

@@ -1198,9 +1198,7 @@ def figure_1_system_overview(data: Mapping[str, Any]) -> plt.Figure:
         (0.69, 0.20),
         0.29,
         0.25,
-        (
-            "PRIVATE theta\nconstitutive + material laws\nhidden parameters\nprivate initialization"
-        ),
+        ("PRIVATE theta\nconstitutive + material laws\nhidden parameters\nprivate initialization"),
         face=PALE_CORAL,
         edge=CORAL,
         fontsize=4.8,
@@ -1698,9 +1696,7 @@ def figure_3_controlled_forks(data: Mapping[str, Any]) -> plt.Figure:
     constitutive = [
         row for row in rows if row["intervention_class"] == "mechanism_or_constitutive_law"
     ]
-    material = [
-        row for row in rows if row["intervention_class"] == "material_law_counterfactual"
-    ]
+    material = [row for row in rows if row["intervention_class"] == "material_law_counterfactual"]
     _fork_effect_panel(
         axes[1, 0],
         constitutive,
@@ -1802,7 +1798,7 @@ def build_manifest(
 
 
 def render(data: Mapping[str, Any], output_dir: Path) -> dict[str, Sequence[Path]]:
-    # The current figures are user-supplied raster plates. Their checked-in publication
+    # The current figures come from editable author sources. Their checked-in publication
     # assets are authoritative; running this manifest tool must never redraw or overwrite
     # them with the legacy matplotlib layouts retained above for provenance.
     del data
