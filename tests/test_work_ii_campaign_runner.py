@@ -123,9 +123,71 @@ def test_all_five_task_checkpoint_contracts_match_across_informed_arms() -> None
     )
     for config_name in config_names:
         config = _task_config(config_name)
+        assert _checkpoint_contract(config, "opaque")["snapshot_stages"] == [
+            "pre_evidence",
+            "after_experiment_1",
+            "after_experiment_2",
+            "final",
+        ]
         assert _checkpoint_contract(config, "aligned_nominal") == _checkpoint_contract(
             config, "misindexed_nominal"
         )
+
+
+def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:
+    config = _config()
+    analysis = {
+        "complete_experiment_count": 4,
+        "right_censored_open_experiment": False,
+        "belief_snapshots": [
+            {"stage": stage} for stage in config["snapshot_stages"]
+        ],
+        "resource_rejection_count": 0,
+        "final_campaign_resources": {
+            "campaign_terminal": True,
+            "state": {
+                "closed_batches": 4,
+                "final_assays": 4,
+                "operation_committed_counts": {},
+                "report_only": {"process_time_s": 7200.0},
+            },
+        },
+    }
+    result = _qualification(
+        analysis=analysis,
+        exact_replay={"verified": True},
+        method_resources={
+            "provider_session_count": 1,
+            "provider_usage_pending": False,
+            "provider_usage_accounting_complete": True,
+            "in_flight_model_call_count": 0,
+            "input_token_count": 1,
+            "uncached_input_token_count": 1,
+            "output_token_count": 1,
+        },
+        method_resource_limits={
+            "complete_experiment_limit": 4,
+            "input_token_limit": 2,
+            "uncached_input_token_limit": 2,
+            "output_token_limit": 2,
+        },
+        receipts=[
+            {
+                "session_scope": "campaign",
+                "status": "completed",
+                "return_code": 0,
+                "final_payload_valid": True,
+                "final_payload_status": "campaign_complete",
+                "experiment_tool_integrity_verified_after_session": True,
+                "lab_tool_integrity_verified_after_session": True,
+                "mcp_tool_integrity_verified_after_session": True,
+            }
+        ],
+        process_time_limit_s=72_000.0,
+        required_operation_counts={},
+        required_snapshot_stages=config["snapshot_stages"],
+    )
+    assert result["passed"] is True
 
 
 def test_aligned_and_misindexed_checkpoint_contracts_are_identical() -> None:

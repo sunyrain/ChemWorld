@@ -86,9 +86,18 @@ def _checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, Any]:
         for item in held_out_queries
     }
     complete_experiments = int(config["campaign"]["complete_experiments"])
+    snapshot_stages = [
+        str(item)
+        for item in config.get(
+            "snapshot_stages",
+            ["pre_evidence", "post_neutral", "post_discriminating", "final"],
+        )
+    ]
+    if len(snapshot_stages) != 4 or len(set(snapshot_stages)) != 4:
+        raise ValueError("snapshot_stages must contain four unique stage IDs")
     return {
         "schema_version": "chemworld-work-ii-campaign-checkpoint-contract-0.1",
-        "snapshot_stages": ["pre_evidence", "post_neutral", "post_discriminating", "final"],
+        "snapshot_stages": snapshot_stages,
         "checkpoint_complete_experiments": list(
             config["campaign"]["checkpoint_complete_experiments"]
         ),
@@ -207,6 +216,7 @@ def _qualification(
     receipts: list[dict[str, Any]],
     process_time_limit_s: float,
     required_operation_counts: Mapping[str, Any],
+    required_snapshot_stages: list[str] | None = None,
 ) -> dict[str, Any]:
     """Apply the frozen per-cell qualification contract fail-closed."""
 
@@ -224,6 +234,12 @@ def _qualification(
     snapshots = analysis.get("belief_snapshots", [])
     snapshots = snapshots if isinstance(snapshots, list) else []
     stages = [item.get("stage") for item in snapshots if isinstance(item, Mapping)]
+    expected_stages = required_snapshot_stages or [
+        "pre_evidence",
+        "post_neutral",
+        "post_discriminating",
+        "final",
+    ]
     required_operations_reconciled = True
     for operation, bounds in required_operation_counts.items():
         low, high = (int(bounds[0]), int(bounds[1]))
@@ -236,8 +252,7 @@ def _qualification(
         "planned_complete_experiments": analysis.get("complete_experiment_count")
         == target_experiments
         and analysis.get("right_censored_open_experiment") is False,
-        "four_typed_belief_checkpoints": len(snapshots) == 4
-        and stages == ["pre_evidence", "post_neutral", "post_discriminating", "final"],
+        "four_typed_belief_checkpoints": len(snapshots) == 4 and stages == expected_stages,
         "one_campaign_session": len(receipts) == 1
         and method_resources.get("provider_session_count") == 1
         and receipt.get("session_scope") == "campaign",
@@ -431,6 +446,7 @@ def _run_cell(
                 "required_operation_counts", {"electrolyze": [4, 5]}
             )
         ),
+        required_snapshot_stages=list(_checkpoint_contract(config, arm)["snapshot_stages"]),
     )
     row = {
         "arm": arm,
