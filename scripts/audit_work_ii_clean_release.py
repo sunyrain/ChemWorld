@@ -101,11 +101,6 @@ def _python_environment(checkout: Path) -> dict[str, str]:
     return env
 
 
-def _venv_python(venv: Path) -> Path:
-    windows = venv / "Scripts/python.exe"
-    return windows if windows.is_file() else venv / "bin/python"
-
-
 def _progress(stage: str, completed: int, total: int, started: float) -> None:
     elapsed = max(time.monotonic() - started, 0.001)
     rate = completed / elapsed
@@ -145,7 +140,7 @@ def main() -> int:
         temp = Path(temp_name).resolve()
         checkout = temp / "checkout"
         dist = temp / "dist"
-        venv = temp / "wheel-venv"
+        wheel_site = temp / "wheel-site"
 
         _run(
             [git, "clone", "--quiet", "--no-local", "--no-hardlinks", str(ROOT), str(checkout)],
@@ -245,26 +240,15 @@ def main() -> int:
         completed += 1
         _progress("clean_wheel_build", completed, total_stages, started)
 
-        _run(
-            [
-                uv,
-                "venv",
-                "--offline",
-                "--python",
-                sys.executable,
-                str(venv),
-            ],
-            cwd=temp,
-        )
-        wheel_python = _venv_python(venv)
         install = _run(
             [
                 uv,
                 "pip",
                 "install",
                 "--offline",
-                "--python",
-                str(wheel_python),
+                "--no-deps",
+                "--target",
+                str(wheel_site),
                 str(wheel),
             ],
             cwd=temp,
@@ -273,11 +257,11 @@ def main() -> int:
         _progress("isolated_wheel_install", completed, total_stages, started)
 
         wheel_env = os.environ.copy()
-        wheel_env.pop("PYTHONPATH", None)
+        wheel_env["PYTHONPATH"] = str(wheel_site)
         wheel_env["PYTHONNOUSERSITE"] = "1"
         smoke = _run(
             [
-                str(wheel_python),
+                sys.executable,
                 "-c",
                 (
                     "import json; from importlib.resources import files; from pathlib import Path; "
@@ -291,7 +275,7 @@ def main() -> int:
         )
         smoke_payload = json.loads(smoke.stdout.strip())
         installed_module = Path(smoke_payload["module"]).resolve()
-        if venv not in installed_module.parents or smoke_payload.get("configs") is not True:
+        if wheel_site not in installed_module.parents or smoke_payload.get("configs") is not True:
             raise RuntimeError(
                 "installed wheel smoke did not use its isolated site-packages/configs"
             )
@@ -343,6 +327,7 @@ def main() -> int:
                 "bytes": wheel.stat().st_size,
                 "installed_import_smoke": True,
                 "bundled_configs_present": True,
+                "dependency_source": "auditor_locked_environment",
                 "build_stdout_sha256": _text_sha256(build.stdout),
                 "build_stderr_sha256": _text_sha256(build.stderr),
                 "install_stdout_sha256": _text_sha256(install.stdout),
