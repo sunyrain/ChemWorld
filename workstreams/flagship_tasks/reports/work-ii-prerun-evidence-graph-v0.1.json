@@ -1,0 +1,252 @@
+{
+  "claim_boundary": {
+    "development_shakedowns_are_not_participant_results": true,
+    "formal_primary_data_present": false,
+    "gate_a_is_environment_qualification_only": true,
+    "private_identities_present": false
+  },
+  "edges": [
+    {
+      "from": "current_registry",
+      "relation": "resolves_current_gate_a",
+      "to": "gate_a_public_decision"
+    },
+    {
+      "from": "gate_a_public_decision",
+      "relation": "qualifies_environment_for",
+      "to": "formal_design"
+    },
+    {
+      "from": "formal_design",
+      "relation": "audited_by",
+      "to": "formal_design_audit"
+    },
+    {
+      "from": "formal_design",
+      "relation": "analyzed_by",
+      "to": "analysis_plan"
+    },
+    {
+      "from": "formal_design",
+      "relation": "resources_audited_by",
+      "to": "power_resource_audit"
+    },
+    {
+      "from": "analysis_plan",
+      "relation": "power_audited_by",
+      "to": "power_resource_audit"
+    },
+    {
+      "from": "formal_design",
+      "relation": "materialized_by",
+      "to": "formal_preflight"
+    },
+    {
+      "from": "analysis_plan",
+      "relation": "materialized_by",
+      "to": "formal_preflight"
+    },
+    {
+      "from": "blind_evaluator_shakedown",
+      "relation": "qualifies_evaluator_contract",
+      "to": "formal_preflight"
+    },
+    {
+      "from": "held_out_evaluator_shakedown",
+      "relation": "qualifies_evaluator_contract",
+      "to": "formal_preflight"
+    },
+    {
+      "from": "formal_preflight",
+      "relation": "bounds_qualification",
+      "to": "method_qualification_readiness"
+    },
+    {
+      "from": "submission_route_decision",
+      "relation": "selects_route_for",
+      "to": "preregistration_readiness"
+    },
+    {
+      "from": "formal_design_audit",
+      "relation": "supports",
+      "to": "preregistration_readiness"
+    },
+    {
+      "from": "power_resource_audit",
+      "relation": "supports",
+      "to": "preregistration_readiness"
+    },
+    {
+      "from": "formal_preflight",
+      "relation": "supports",
+      "to": "preregistration_readiness"
+    },
+    {
+      "from": "method_qualification_readiness",
+      "relation": "blocks_until_passed",
+      "to": "preregistration_readiness"
+    },
+    {
+      "from": "preregistration_readiness",
+      "relation": "renders",
+      "to": "preregistration_draft"
+    }
+  ],
+  "failures": [],
+  "formal_execution_allowed": false,
+  "formal_participant_outcome_count": 0,
+  "formal_result": false,
+  "graph_sha256": "8ff38e06c5f0dd1b6d9b81e0f78a9da3932638d91e4a8b8936659159df02ee65",
+  "nodes": [
+    {
+      "evidence_role": "current_artifact_resolution",
+      "file_sha256": "dda638d6cdc03fd48e2efa54b96ed5efafbcb45ba629b60a7f21703f8f04bdaa",
+      "formal_participant_result": false,
+      "id": "current_registry",
+      "media_type": "application/json",
+      "path": "configs/current.json",
+      "schema_version": "chemworld-current-surface-registry-0.4",
+      "status": "passed"
+    },
+    {
+      "evidence_role": "environment_qualification_only",
+      "file_sha256": "87580100d2a733020211f5e62580ff3f6ea458e9b8778a8cb7dae00332ddbb1d",
+      "formal_participant_result": false,
+      "id": "gate_a_public_decision",
+      "media_type": "application/json",
+      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-public-decision-v0.1-rc29.json",
+      "schema_version": "chemworld-mechanism-public-decision-0.1",
+      "status": "passed"
+    },
+    {
+      "evidence_role": "frozen_protocol",
+      "file_sha256": "b26a900d3c052250026b4a92355285cf14284926dd06787388543b7aee0f09d1",
+      "formal_participant_result": false,
+      "id": "formal_design",
+      "media_type": "application/json",
+      "path": "configs/benchmark/work_ii_formal_design_v0.1.json",
+      "schema_version": "chemworld-work-ii-formal-design-0.1",
+      "status": "frozen_execution_blocked"
+    },
+    {
+      "evidence_role": "frozen_analysis",
+      "file_sha256": "9bb0fbccf2894fd6cb35fc19a568813eba80dbb0ca0b5d44231ec0edb05f2476",
+      "formal_participant_result": false,
+      "id": "analysis_plan",
+      "media_type": "application/json",
+      "path": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
+      "schema_version": "chemworld-work-ii-analysis-plan-0.1",
+      "status": "frozen_execution_blocked"
+    },
+    {
+      "evidence_role": "design_qualification",
+      "file_sha256": "715c5af96043f3cce5daa141e8e366e90c907cd4a15142262b8a9abda7babc8e",
+      "formal_participant_result": false,
+      "id": "formal_design_audit",
+      "media_type": "application/json",
+      "path": "workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit.json",
+      "schema_version": "chemworld-work-ii-formal-design-audit-0.1",
+      "status": "passed"
+    },
+    {
+      "evidence_role": "power_resource_qualification",
+      "file_sha256": "d438fba26b65162db2b748bd4259acb7178e151e90650fd1b70567c315ae5089",
+      "formal_participant_result": false,
+      "id": "power_resource_audit",
+      "media_type": "application/json",
+      "path": "workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json",
+      "schema_version": "chemworld-work-ii-analysis-power-audit-0.2",
+      "status": "passed"
+    },
+    {
+      "evidence_role": "development_evaluator_qualification",
+      "file_sha256": "649416599799eb3754543a4eb4b6f441f4d63cca309cddff1f9f821407f6b2ff",
+      "formal_participant_result": false,
+      "id": "blind_evaluator_shakedown",
+      "media_type": "application/json",
+      "path": "workstreams/flagship_tasks/reports/work-ii-blind-evaluator-development-shakedown-v0.2.json",
+      "schema_version": "chemworld-work-ii-blind-evaluator-shakedown-0.1",
+      "status": "passed"
+    },
+    {
+      "evidence_role": "development_evaluator_qualification",
+      "file_sha256": "0b3387c5e4fc874ca6db086dae213fc8a094f41c2fb2457b655ba175b0e70a7b",
+      "formal_participant_result": false,
+      "id": "held_out_evaluator_shakedown",
+      "media_type": "application/json",
+      "path": "workstreams/flagship_tasks/reports/work-ii-held-out-evaluator-development-shakedown-v0.2.json",
+      "schema_version": "chemworld-work-ii-held-out-evaluator-development-shakedown-0.1",
+      "status": "passed"
+    },
+    {
+      "evidence_role": "execution_preflight",
+      "file_sha256": "a060d5bb1c3757f80ffb9ce26824fa3b09827d8cc43bc302678b4cb439466505",
+      "formal_participant_result": false,
+      "id": "formal_preflight",
+      "media_type": "application/json",
+      "path": "workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json",
+      "schema_version": "chemworld-work-ii-formal-matrix-preflight-0.1",
+      "status": "passed_execution_blocked"
+    },
+    {
+      "evidence_role": "method_qualification_readiness",
+      "file_sha256": "68d1fd612f7716b10fa1096533bb1c2cbd37de75c9d8d3142a456f7d3a89fdb2",
+      "formal_participant_result": false,
+      "id": "method_qualification_readiness",
+      "media_type": "application/json",
+      "path": "workstreams/flagship_tasks/reports/work-ii-method-qualification-readiness-v0.1.json",
+      "schema_version": "chemworld-work-ii-method-qualification-readiness-0.1",
+      "status": "passed_provider_execution_blocked"
+    },
+    {
+      "evidence_role": "outcome_blind_route_decision",
+      "file_sha256": "5e8bfe14fce36b6655f26cb7d53abc3f561d5ef09fcd49383d99edbd2c81d96a",
+      "formal_participant_result": false,
+      "id": "submission_route_decision",
+      "media_type": "application/json",
+      "path": "configs/benchmark/work_ii_submission_route_decision_v0.1.json",
+      "schema_version": "chemworld-work-ii-submission-route-decision-0.1",
+      "status": "awaiting_user_selection"
+    },
+    {
+      "evidence_role": "preregistration_readiness",
+      "file_sha256": "464ab179d7262d8729427d14249e043f29c497223d487844aec7491e00a18b5c",
+      "formal_participant_result": false,
+      "id": "preregistration_readiness",
+      "media_type": "application/json",
+      "path": "workstreams/flagship_tasks/reports/work-ii-preregistration-readiness-v0.1.json",
+      "schema_version": "chemworld-work-ii-preregistration-readiness-0.1",
+      "status": "passed_final_freeze_blocked"
+    },
+    {
+      "evidence_role": "reader_facing_protocol_draft",
+      "file_sha256": "42177f2e86353bfa84f8f0160ef5080e8120664d75f00e7956c31f2846fe7071",
+      "formal_participant_result": false,
+      "id": "preregistration_draft",
+      "media_type": "text/markdown",
+      "path": "workstreams/flagship_tasks/reports/work-ii-preregistration-draft-v0.1.md",
+      "schema_version": null,
+      "status": "final_freeze_blocked"
+    }
+  ],
+  "provider_calls_executed": 0,
+  "schema_version": "chemworld-work-ii-prerun-evidence-graph-0.1",
+  "source_bindings": [
+    {
+      "file_sha256": "1604120c77ba39ddf53f51450a6ce029a79d96c804de4a577d4d5600e543212e",
+      "path": "src/chemworld/eval/work_ii_release.py"
+    },
+    {
+      "file_sha256": "d75e8574a04b7a031beba6af15b2e8c47737c27d7750f8161d113e1a4f56a1a6",
+      "path": "scripts/build_work_ii_prerun_evidence_graph.py"
+    }
+  ],
+  "status": "passed_final_freeze_blocked",
+  "summary": {
+    "edge_count": 17,
+    "failed_node_count": 0,
+    "node_count": 13,
+    "passed_node_count": 13,
+    "preregistration_blocker_count": 6
+  }
+}
