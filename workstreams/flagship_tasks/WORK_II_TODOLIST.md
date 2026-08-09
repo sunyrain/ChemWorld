@@ -651,7 +651,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] 第一篇 19-coordinate contract 的 Work II adapter，排除 evaluator-owned held-out/blind operations；
   - [ ] exact replay、resource replay 和 hidden-boundary audits；
   - [ ] public/private split enforcement；
-  - [ ] formal report generator。
+  - [x] formal report generator：校验并连接 75 个 terminal receipts、25 个 evaluator-truth packs、
+    completed cells 的 blind packs，保留 failed/right-censored cells，并生成 75 个 cell rows 与
+    25 个 H1/H2/H3 cluster contrasts；统计推断仍属于 W2-14。
 - 验收标准：
   - [x] 不依赖 notebook 或人工逐单元操作；
   - [x] 中断后不覆盖、不替换、不重复计数；
@@ -690,6 +692,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   从头执行 v0.2：20/20 queries、68/68 query-metric truths、200/200 operations、20/20 exact replay，
   0 provider calls、0 participant feedback、0 participant-operation denominator impact。报告：
   `workstreams/flagship_tasks/reports/work-ii-held-out-evaluator-development-shakedown-v0.2.json`。
+  formal analysis dataset generator 已完成 fail-closed artifact join：每个 cell row 绑定 terminal receipt、
+  participant trajectory、共享 evaluator-truth report 与 blind report，每个 cluster row 绑定三臂收据并计算
+  H1/H2/H3；其输出自哈希且不会把尚未完成的 W2-14 统计推断伪装为正式结论。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 

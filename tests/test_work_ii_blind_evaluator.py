@@ -12,6 +12,7 @@ from chemworld.eval.work_ii_blind import (
     build_blind_evaluation_plan,
     execute_blind_evaluation_plan,
     validate_blind_evaluation_plan,
+    validate_blind_evaluation_report,
 )
 
 
@@ -159,6 +160,13 @@ def test_blind_executor_runs_six_zero_provider_replays_once(
     assert report["participant_operation_denominator_impact"] == 0
     assert report["participant_feedback_emitted"] is False
     assert report["recommendation_gain_over_incumbent"] == 0.0
-    assert len(list((output / "executions").glob("*/receipt.json"))) == 6
+    receipt_paths = list((output / "executions").glob("*/receipt.json"))
+    assert len(receipt_paths) == 6
+    receipts = [json.loads(path.read_text(encoding="utf-8")) for path in receipt_paths]
+    receipts.sort(key=lambda item: item["execution_id"])
+    # The report binds execution order, which is target then replicate rather than path order.
+    receipt_by_hash = {item["receipt_sha256"]: item for item in receipts}
+    ordered = [receipt_by_hash[digest] for digest in report["receipt_sha256"]]
+    assert validate_blind_evaluation_report(report, plan, ordered) == []
     with pytest.raises(FileExistsError, match="refusing to overwrite"):
         execute_blind_evaluation_plan(plan, config, output)

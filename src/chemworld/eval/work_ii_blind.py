@@ -452,10 +452,84 @@ def execute_blind_evaluation_plan(
     return report
 
 
+def validate_blind_evaluation_report(
+    report: Mapping[str, Any],
+    plan: Mapping[str, Any],
+    receipts: list[Mapping[str, Any]],
+) -> list[str]:
+    """Validate a blind report and its six retained execution receipts."""
+
+    errors = validate_blind_evaluation_plan(plan)
+    expected_hash = canonical_json_sha256(
+        {key: value for key, value in report.items() if key != "report_sha256"}
+    )
+    if report.get("schema_version") != BLIND_EVALUATION_REPORT_VERSION:
+        errors.append("unexpected blind evaluator report schema")
+    if report.get("report_sha256") != expected_hash:
+        errors.append("blind evaluator report self-hash mismatch")
+    if (
+        report.get("plan_sha256") != plan.get("plan_sha256")
+        or report.get("cell_key_sha256") != plan.get("cell_key_sha256")
+    ):
+        errors.append("blind evaluator report plan binding mismatch")
+    if len(receipts) != 6:
+        errors.append("blind evaluator report must retain six receipts")
+    valid_receipts: list[Mapping[str, Any]] = []
+    for receipt in receipts:
+        expected_receipt_hash = canonical_json_sha256(
+            {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+        )
+        if receipt.get("receipt_sha256") != expected_receipt_hash:
+            errors.append("blind evaluator execution receipt self-hash mismatch")
+            continue
+        valid_receipts.append(receipt)
+    observed_hashes = [receipt.get("receipt_sha256") for receipt in receipts]
+    if report.get("receipt_sha256") != observed_hashes:
+        errors.append("blind evaluator report receipt binding mismatch")
+    completed = [
+        receipt for receipt in valid_receipts if receipt.get("status") == "completed"
+    ]
+    if (
+        report.get("scheduled_execution_count") != 6
+        or report.get("completed_execution_count") != len(completed)
+        or report.get("failed_execution_count") != 6 - len(completed)
+    ):
+        errors.append("blind evaluator report execution denominator mismatch")
+    if (
+        report.get("evaluator_provider_call_count") != 0
+        or report.get("participant_operation_denominator_impact") != 0
+        or report.get("participant_feedback_emitted") is not False
+    ):
+        errors.append("blind evaluator report isolation invariant failed")
+    target_means: dict[str, float | None] = {}
+    for target in ("observed_incumbent", "participant_final_recommendation"):
+        scores = [
+            float(receipt["leaderboard_score"])
+            for receipt in completed
+            if receipt.get("target") == target
+            and isinstance(receipt.get("leaderboard_score"), int | float)
+            and not isinstance(receipt.get("leaderboard_score"), bool)
+        ]
+        target_means[target] = sum(scores) / 3.0 if len(scores) == 3 else None
+    if report.get("target_score_means") != target_means:
+        errors.append("blind evaluator target means do not reconcile")
+    recommendation = target_means["participant_final_recommendation"]
+    incumbent = target_means["observed_incumbent"]
+    expected_gain = (
+        recommendation - incumbent
+        if recommendation is not None and incumbent is not None
+        else None
+    )
+    if report.get("recommendation_gain_over_incumbent") != expected_gain:
+        errors.append("blind evaluator recommendation gap does not reconcile")
+    return errors
+
+
 __all__ = [
     "BLIND_EVALUATION_REPORT_VERSION",
     "BLIND_EVALUATOR_VERSION",
     "build_blind_evaluation_plan",
     "execute_blind_evaluation_plan",
     "validate_blind_evaluation_plan",
+    "validate_blind_evaluation_report",
 ]
