@@ -23,6 +23,7 @@ from chemworld.eval.work_ii_formal import (
     validate_formal_preflight,
 )
 from chemworld.eval.work_ii_qualification import validate_method_qualification_receipt
+from chemworld.eval.work_ii_release import validate_preregistration_freeze_receipt
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
@@ -50,6 +51,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--allow-formal-execution", action="store_true")
     parser.add_argument("--qualification-receipt", type=Path)
+    parser.add_argument("--preregistration-freeze-receipt", type=Path)
     parser.add_argument("--currency-ceiling-usd", type=float)
     return parser.parse_args()
 
@@ -63,6 +65,7 @@ def _run_preflight(args: argparse.Namespace) -> int:
             args.resume,
             args.allow_formal_execution,
             args.qualification_receipt is not None,
+            args.preregistration_freeze_receipt is not None,
             args.currency_ceiling_usd is not None,
         )
     ):
@@ -496,6 +499,7 @@ def _run_execute(args: argparse.Namespace) -> int:
         "--manifest": args.manifest,
         "--output-root": args.output_root,
         "--qualification-receipt": args.qualification_receipt,
+        "--preregistration-freeze-receipt": args.preregistration_freeze_receipt,
         "--currency-ceiling-usd": args.currency_ceiling_usd,
         "--progress-file": args.progress_file,
     }
@@ -531,6 +535,20 @@ def _run_execute(args: argparse.Namespace) -> int:
     if receipt_errors:
         raise RuntimeError(
             "method qualification receipt validation failed: " + "; ".join(receipt_errors)
+        )
+    freeze_receipt = _load_object(args.preregistration_freeze_receipt.resolve())
+    freeze_errors = validate_preregistration_freeze_receipt(
+        ROOT,
+        freeze_receipt,
+        manifest,
+        receipt,
+        args.qualification_receipt.resolve(),
+        currency_ceiling_usd=float(args.currency_ceiling_usd),
+    )
+    if freeze_errors:
+        raise RuntimeError(
+            "preregistration freeze receipt validation failed: "
+            + "; ".join(freeze_errors)
         )
     report = execute_manifest(
         manifest=manifest,

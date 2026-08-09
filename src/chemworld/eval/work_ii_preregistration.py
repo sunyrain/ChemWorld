@@ -332,6 +332,7 @@ def build_preregistration_readiness(
                 "--output-root",
                 "--progress-file",
                 "--qualification-receipt",
+                "--preregistration-freeze-receipt",
                 "--currency-ceiling-usd",
                 "--allow-formal-execution",
             ],

@@ -13,10 +13,17 @@ from chemworld.eval.work_ii_preregistration import (
     validate_preregistration_readiness,
     validate_submission_route_decision,
 )
-from chemworld.eval.work_ii_qualification import validate_method_qualification_readiness
+from chemworld.eval.work_ii_qualification import (
+    qualification_receipt_sha256,
+    validate_method_qualification_readiness,
+    validate_method_qualification_receipt,
+)
 
 PRERUN_EVIDENCE_GRAPH_VERSION = "chemworld-work-ii-prerun-evidence-graph-0.1"
 CLEAN_RELEASE_RECEIPT_VERSION = "chemworld-work-ii-clean-release-receipt-0.1"
+PREREGISTRATION_FREEZE_RECEIPT_VERSION = (
+    "chemworld-work-ii-preregistration-freeze-receipt-0.1"
+)
 
 _DEFAULT_PATHS = {
     "current_registry": "configs/current.json",
@@ -96,6 +103,10 @@ def prerun_evidence_graph_sha256(graph: Mapping[str, Any]) -> str:
 
 
 def clean_release_receipt_sha256(receipt: Mapping[str, Any]) -> str:
+    return _self_hash(receipt, "receipt_sha256")
+
+
+def preregistration_freeze_receipt_sha256(receipt: Mapping[str, Any]) -> str:
     return _self_hash(receipt, "receipt_sha256")
 
 
@@ -495,7 +506,7 @@ def validate_clean_release_receipt(receipt: Mapping[str, Any]) -> list[str]:
     tests = tests if isinstance(tests, Mapping) else {}
     if (
         tests.get("status") != "passed"
-        or tests.get("passed") != 63
+        or tests.get("passed") != 66
         or tests.get("failed") != 0
     ):
         errors.append("Work II clean-release receipt lacks the exact release test result")
@@ -515,12 +526,183 @@ def validate_clean_release_receipt(receipt: Mapping[str, Any]) -> list[str]:
     return errors
 
 
+def validate_preregistration_freeze_receipt(
+    root: Path,
+    receipt: Mapping[str, Any],
+    manifest: Mapping[str, Any],
+    qualification_receipt: Mapping[str, Any],
+    qualification_receipt_path: Path,
+    *,
+    currency_ceiling_usd: float,
+) -> list[str]:
+    """Validate the final user-authorized, outcome-blind Work II freeze receipt."""
+
+    errors: list[str] = []
+    if receipt.get("schema_version") != PREREGISTRATION_FREEZE_RECEIPT_VERSION:
+        errors.append("unexpected Work II preregistration-freeze receipt schema")
+    if receipt.get("receipt_sha256") != preregistration_freeze_receipt_sha256(receipt):
+        errors.append("Work II preregistration-freeze receipt self-hash mismatch")
+    if receipt.get("status") != "passed_final_freeze":
+        errors.append("Work II preregistration final freeze has not passed")
+    if (
+        receipt.get("formal_result") is not False
+        or receipt.get("formal_participant_outcome_count") != 0
+        or receipt.get("formal_execution_authorized") is not True
+    ):
+        errors.append("Work II preregistration-freeze receipt crossed its outcome boundary")
+
+    bindings = receipt.get("bindings")
+    bindings = bindings if isinstance(bindings, Mapping) else {}
+    if bindings.get("formal_preflight_sha256") != manifest.get("preflight_sha256"):
+        errors.append("preregistration freeze does not bind the formal manifest")
+
+    route_path = root / "configs/benchmark/work_ii_submission_route_decision_v0.1.json"
+    if not route_path.is_file():
+        errors.append("current submission-route decision is missing")
+        route: dict[str, Any] = {}
+    else:
+        route = _load_object(route_path)
+        errors.extend(validate_submission_route_decision(route))
+    selected_route = route.get("selected_option")
+    if route.get("status") != "selected" or selected_route not in {
+        "nature_registered_report_stage_1",
+        "regular_submission",
+    }:
+        errors.append("submission route lacks outcome-blind user selection")
+    if (
+        bindings.get("route_decision_sha256") != route.get("decision_sha256")
+        or receipt.get("selected_submission_route") != selected_route
+    ):
+        errors.append("preregistration freeze does not bind the selected submission route")
+
+    readiness_path = (
+        root
+        / "workstreams/flagship_tasks/reports/"
+        "work-ii-preregistration-readiness-v0.1.json"
+    )
+    if not readiness_path.is_file():
+        errors.append("preregistration readiness manifest is missing")
+    else:
+        readiness = _load_object(readiness_path)
+        if (
+            bindings.get("preregistration_readiness_sha256")
+            != readiness.get("readiness_sha256")
+            or bindings.get("preregistration_readiness_file_sha256")
+            != file_sha256(readiness_path)
+        ):
+            errors.append("preregistration freeze does not bind its readiness manifest")
+
+    clean_path = (
+        root
+        / "workstreams/flagship_tasks/reports/"
+        "work-ii-clean-release-receipt-v0.1.json"
+    )
+    if not clean_path.is_file():
+        errors.append("clean-release receipt is missing")
+    else:
+        clean = _load_object(clean_path)
+        clean_errors = validate_clean_release_receipt(clean)
+        errors.extend(f"clean release: {error}" for error in clean_errors)
+        clean_binding = bindings.get("clean_release")
+        clean_binding = clean_binding if isinstance(clean_binding, Mapping) else {}
+        if (
+            clean_binding.get("file_sha256") != file_sha256(clean_path)
+            or clean_binding.get("receipt_sha256") != clean.get("receipt_sha256")
+            or clean_binding.get("tested_commit") != clean.get("tested_commit")
+            or clean_binding.get("graph_sha256")
+            != clean.get("evidence_graph", {}).get("graph_sha256")
+        ):
+            errors.append("preregistration freeze does not bind the clean-release receipt")
+
+    qualification_path = qualification_receipt_path.resolve()
+    if not qualification_path.is_file():
+        errors.append("method-qualification receipt file is missing")
+    else:
+        qualification_binding = bindings.get("method_qualification")
+        qualification_binding = (
+            qualification_binding if isinstance(qualification_binding, Mapping) else {}
+        )
+        if (
+            qualification_binding.get("file_sha256") != file_sha256(qualification_path)
+            or qualification_binding.get("receipt_sha256")
+            != qualification_receipt_sha256(qualification_receipt)
+        ):
+            errors.append("preregistration freeze does not bind method qualification")
+    qualification_errors = validate_method_qualification_receipt(
+        root,
+        qualification_receipt,
+        manifest,
+        currency_ceiling_usd=currency_ceiling_usd,
+    )
+    errors.extend(f"method qualification: {error}" for error in qualification_errors)
+
+    authorization = receipt.get("user_authorization")
+    authorization = authorization if isinstance(authorization, Mapping) else {}
+    if (
+        authorization.get("authorized_by") != "user"
+        or not isinstance(authorization.get("authorized_at"), str)
+        or not authorization.get("authorized_at")
+        or authorization.get("credential_rotation_confirmed") is not True
+        or authorization.get("execution_command_approved") is not True
+        or authorization.get("budget_approved") is not True
+        or authorization.get("failure_escalation_approved") is not True
+    ):
+        errors.append("preregistration freeze lacks complete user authorization")
+    if (
+        authorization.get("currency_ceiling_usd") != currency_ceiling_usd
+        or not isinstance(currency_ceiling_usd, float)
+        or currency_ceiling_usd <= 0
+    ):
+        errors.append("preregistration freeze currency ceiling differs from the CLI ceiling")
+    expected_eta = authorization.get("qualified_expected_eta_seconds")
+    if not isinstance(expected_eta, (int, float)) or expected_eta <= 0:
+        errors.append("preregistration freeze lacks a qualified positive ETA")
+    if authorization.get("provider_contract") != manifest.get("provider_contract"):
+        errors.append("preregistration freeze provider contract differs from the manifest")
+
+    escalation = receipt.get("failure_escalation_contract")
+    escalation = escalation if isinstance(escalation, Mapping) else {}
+    if any(
+        escalation.get(field) is not True
+        for field in (
+            "missing_infrastructure_only_resume",
+            "persisted_scientific_trajectory_never_replaced",
+            "halt_on_provider_attempt_cap",
+            "result_direction_early_stopping_forbidden",
+        )
+    ):
+        errors.append("preregistration freeze lacks the failure-escalation contract")
+
+    route_compliance = receipt.get("route_compliance")
+    route_compliance = route_compliance if isinstance(route_compliance, Mapping) else {}
+    if selected_route == "nature_registered_report_stage_1":
+        if (
+            route_compliance.get("stage_1_in_principle_acceptance") is not True
+            or route_compliance.get("approved_protocol_registered") is not True
+            or not isinstance(route_compliance.get("registration_reference"), str)
+            or not route_compliance.get("registration_reference")
+        ):
+            errors.append("Nature Registered Report route lacks IPA/registration evidence")
+    elif selected_route == "regular_submission" and (
+        route_compliance.get("target_and_evidence_threshold_frozen") is not True
+        or not isinstance(route_compliance.get("target"), str)
+        or not route_compliance.get("target")
+        or not isinstance(route_compliance.get("evidence_threshold"), str)
+        or not route_compliance.get("evidence_threshold")
+    ):
+        errors.append("regular-submission route lacks its frozen target/threshold")
+    return errors
+
+
 __all__ = [
     "CLEAN_RELEASE_RECEIPT_VERSION",
+    "PREREGISTRATION_FREEZE_RECEIPT_VERSION",
     "PRERUN_EVIDENCE_GRAPH_VERSION",
     "build_prerun_evidence_graph",
     "clean_release_receipt_sha256",
+    "preregistration_freeze_receipt_sha256",
     "prerun_evidence_graph_sha256",
     "validate_clean_release_receipt",
+    "validate_preregistration_freeze_receipt",
     "validate_prerun_evidence_graph",
 ]

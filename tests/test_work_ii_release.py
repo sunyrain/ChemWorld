@@ -5,9 +5,12 @@ from copy import deepcopy
 from pathlib import Path
 
 from chemworld.eval.work_ii_release import (
+    PREREGISTRATION_FREEZE_RECEIPT_VERSION,
     build_prerun_evidence_graph,
+    preregistration_freeze_receipt_sha256,
     prerun_evidence_graph_sha256,
     validate_clean_release_receipt,
+    validate_preregistration_freeze_receipt,
     validate_prerun_evidence_graph,
 )
 
@@ -57,3 +60,55 @@ def test_prerun_evidence_graph_rejects_cycle_even_with_refreshed_hash() -> None:
 
 def test_clean_release_receipt_validator_rejects_shallow_pass() -> None:
     assert validate_clean_release_receipt({"status": "passed"})
+
+
+def test_preregistration_freeze_receipt_validator_rejects_shallow_pass(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        (
+            ROOT
+            / "workstreams/flagship_tasks/reports/"
+            "work-ii-formal-matrix-runner-preflight-v0.1.json"
+        ).read_text(encoding="utf-8")
+    )
+    errors = validate_preregistration_freeze_receipt(
+        ROOT,
+        {"status": "passed_final_freeze"},
+        manifest,
+        {},
+        tmp_path / "missing-qualification.json",
+        currency_ceiling_usd=1.0,
+    )
+    assert errors
+
+
+def test_preregistration_freeze_forbids_prior_formal_outcomes_even_if_rehashed(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        (
+            ROOT
+            / "workstreams/flagship_tasks/reports/"
+            "work-ii-formal-matrix-runner-preflight-v0.1.json"
+        ).read_text(encoding="utf-8")
+    )
+    receipt: dict[str, object] = {
+        "schema_version": PREREGISTRATION_FREEZE_RECEIPT_VERSION,
+        "status": "passed_final_freeze",
+        "formal_result": False,
+        "formal_participant_outcome_count": 1,
+        "formal_execution_authorized": True,
+    }
+    receipt["receipt_sha256"] = preregistration_freeze_receipt_sha256(receipt)
+    errors = validate_preregistration_freeze_receipt(
+        ROOT,
+        receipt,
+        manifest,
+        {},
+        tmp_path / "missing-qualification.json",
+        currency_ceiling_usd=1.0,
+    )
+    assert (
+        "Work II preregistration-freeze receipt crossed its outcome boundary" in errors
+    )

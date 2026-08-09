@@ -457,6 +457,23 @@ def test_manifest_executor_rejects_blocked_preflight_before_creating_output(
     assert not output.exists()
 
 
+def test_formal_execute_requires_preregistration_freeze_receipt(tmp_path: Path) -> None:
+    args = argparse.Namespace(
+        check=False,
+        output=formal_runner.DEFAULT_PREFLIGHT,
+        manifest=tmp_path / "manifest.json",
+        output_root=tmp_path / "output",
+        qualification_receipt=tmp_path / "qualification.json",
+        preregistration_freeze_receipt=None,
+        currency_ceiling_usd=1.0,
+        progress_file=tmp_path / "progress.jsonl",
+        allow_formal_execution=True,
+        resume=False,
+    )
+    with pytest.raises(RuntimeError, match="--preregistration-freeze-receipt"):
+        formal_runner._run_execute(args)
+
+
 def test_manifest_executor_never_replaces_unfinalized_partial_trajectory(
     monkeypatch,
     tmp_path: Path,

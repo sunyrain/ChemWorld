@@ -166,6 +166,7 @@ _SOURCE_PATHS = (
     "src/chemworld/eval/work_ii_process_profile.py",
     "src/chemworld/eval/work_ii_preregistration.py",
     "src/chemworld/eval/work_ii_qualification.py",
+    "src/chemworld/eval/work_ii_release.py",
     "src/chemworld/eval/work_ii_report.py",
     "src/chemworld/eval/work_ii_truth.py",
     "scripts/analyze_work_ii_formal.py",
