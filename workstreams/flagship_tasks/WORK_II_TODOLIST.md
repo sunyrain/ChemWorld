@@ -356,8 +356,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 | ID | 优先级 | 任务 | 当前状态 | 关键依赖 |
 | --- | --- | --- | --- | --- |
 | W2-01 | P0 | 冻结 Work II 与 Work I 的边界 | DONE | Work I scope |
-| W2-02 | P0 | 重新建立当前 Gate A 证据绑定 | DOING | 干净提交 |
-| W2-03 | P0 | 冻结中心假设与 claim hierarchy | DOING | W2-01、W2-02 |
+| W2-02 | P0 | 重新建立当前 Gate A 证据绑定 | DONE | 干净提交 |
+| W2-03 | P0 | 冻结中心假设与 claim hierarchy | DONE | W2-01、W2-02 |
 | W2-04 | P0 | 冻结先验条件与固定规律 world cohort | DOING | W2-03 |
 | W2-05 | P0 | 冻结 estimands、指标和判定规则 | DOING | W2-03、W2-04 |
 | W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DOING | W2-03 |
@@ -422,21 +422,37 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] 已认领；负责人：`Codex /root`
 - 状态：
   - [ ] 未开始
-  - [x] 进行中
+  - [ ] 进行中
   - [ ] 阻塞
-  - [ ] 完成
+  - [x] 完成
 - 优先级：P0
-- 候选主假设：endpoint optimization、规律发现和错误先验排除可以系统解耦；只有经过证据校准的规律总结才能支持 held-out transfer。
+- 冻结主问题：在 world、预算、公开契约和 fixed hidden law 匹配时，`misindexed_nominal` agent
+  能否仅凭其在 primary free-discovery campaign 中自主获得的证据，比 `aligned_nominal` agent
+  获得更大的 evaluator-held counterfactual prediction error 降低，同时 aligned 条件不发生超容差退化？
+- 唯一 primary hypothesis：H3 selective evidence-driven correction。令 `E_arm,k` 为 checkpoint `k`
+  上预注册 held-out queries 的连续归一化预测误差（越低越好），主对比固定为
+  `C_prior = (E_misindexed,pre - E_misindexed,final) -
+  (E_aligned,pre - E_aligned,final)`。H3 是单侧 world-level paired contrast；确切误差函数、容差、
+  缺失规则与检验在 W2-05 冻结，但不得再更换主 estimand。
+- 层级：H1 prior utility 与 H2 prior vulnerability 为 confirmatory secondary；H4
+  knowledge-to-action translation 为 key secondary。`opaque` 为解释性基准，endpoint、epistemic、
+  behavioral、law-summary 和 transfer channels 分立报告。
+- 主张边界：H3 通过只支持“错误先验发生证据驱动修正”。“从实验发现并迁移规律”还必须同时满足
+  misindexed held-out error 改善、aligned 非劣、typed law summary 可执行、未见连续条件预测有效及
+  预注册 transfer 验证；只取得高 endpoint score、只恢复 ID↔dossier 映射或只写出正确文字摘要均只
+  支持 endpoint heuristic/local repair。只在一个 backend 或一个 task family 成立时，结论分别限定为
+  agent-system-specific 或 world-family-specific。
 - 验收标准：
-  - [ ] 唯一 primary scientific question 已写成可证伪形式；
-  - [ ] 唯一主终点或严格层级化主终点确定；
-  - [ ] H3 selective evidence-driven correction 作为候选唯一 primary hypothesis 被接受、修订或明确否决；
-  - [ ] H1 prior utility、H2 prior vulnerability 和 H4 knowledge-to-action translation 的 confirmatory/exploratory 层级冻结；
-  - [ ] prior condition、discovery、bias rejection、law summary、transfer 的主次层级冻结；
-  - [ ] 明确何种结果支持“从实验发现并迁移规律”，何种结果只支持 endpoint heuristic；
-  - [ ] 明确何种结果只支持 agent-specific 或 world-specific 结论；
-  - [ ] 不把 LLM vs BO 排名设为主比赛。
-- 备注：`Claim: Codex /root — W2-03 — DOING`
+  - [x] 唯一 primary scientific question 已写成可证伪形式；
+  - [x] 唯一主终点或严格层级化主终点确定；
+  - [x] H3 selective evidence-driven correction 作为唯一 primary hypothesis 被接受；
+  - [x] H1 prior utility、H2 prior vulnerability 和 H4 knowledge-to-action translation 的 confirmatory/exploratory 层级冻结；
+  - [x] prior condition、discovery、bias rejection、law summary、transfer 的主次层级冻结；
+  - [x] 明确何种结果支持“从实验发现并迁移规律”，何种结果只支持 endpoint heuristic；
+  - [x] 明确何种结果只支持 agent-specific 或 world-specific 结论；
+  - [x] 不把 LLM vs BO 排名设为主比赛。
+- 备注：`Claim: Codex /root — W2-03 — DONE`。BO/random/property-aware controls 只校准
+  semantics-free search 与信息价值，不构成主比赛，也不改变 H3 的 participant 对比。
 
 ### W2-04 — 冻结先验条件与固定规律 world cohort
 
