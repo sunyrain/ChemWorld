@@ -322,9 +322,22 @@ class ChemWorldMCPServer:
     def _final_response_contract(*, campaign: bool) -> dict[str, Any]:
         return {
             "format": "json_object_only",
-            "required_keys": ["status", "summary"],
+            "required_keys": (
+                ["status", "summary", "final_recommendation"]
+                if campaign
+                else ["status", "summary"]
+            ),
             "status": "campaign_complete" if campaign else "experiment_complete",
             "summary_max_length": 3000 if campaign else 2000,
+            "final_recommendation_contract": (
+                {
+                    "selected_experiment_index": "integer_1_through_4",
+                    "selection_rationale_max_length": 2000,
+                    "committed_before_blind_evaluation": True,
+                }
+                if campaign
+                else None
+            ),
             "prose_or_markdown_allowed": False,
         }
 

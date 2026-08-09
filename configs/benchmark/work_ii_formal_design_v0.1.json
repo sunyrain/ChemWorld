@@ -110,6 +110,22 @@
     "public_matrix_initial_attempt_count": 75,
     "public_matrix_provider_attempt_hard_cap": 150
   },
+  "blind_evaluator_contract": {
+    "participant_final_recommendations_per_cell": 1,
+    "recommendation_unit": "one_selected_completed_experiment_index",
+    "candidate_experiment_indices": [1, 2, 3, 4],
+    "incumbent_definition": "highest_participant_observed_leaderboard_score_tie_smallest_index",
+    "blind_targets_per_cell": ["observed_incumbent", "participant_final_recommendation"],
+    "blind_replicates_per_target": 3,
+    "paired_noise_within_replicate": true,
+    "participant_feedback_from_blind_evaluator": false,
+    "evaluator_provider_calls": 0,
+    "evaluator_trajectory_separate_from_participant": true,
+    "evaluator_resources_excluded_from_participant_ledger": true,
+    "public_matrix_final_recommendation_count": 75,
+    "public_matrix_blind_target_count": 150,
+    "public_matrix_blind_execution_count": 450
+  },
   "selection_and_failure_policy": {
     "tasks_selected_without_participant_outcomes": true,
     "worlds_selected_without_participant_outcomes": true,

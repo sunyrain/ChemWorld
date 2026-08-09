@@ -15,6 +15,7 @@ from scripts.run_work_ii_campaign_pilot import (
 from scripts.run_work_ii_five_seed_campaign import _heartbeat
 
 from chemworld.campaign_resources import CampaignResourceLedger
+from chemworld.eval.provenance import canonical_json_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -136,8 +137,14 @@ def test_all_five_task_checkpoint_contracts_match_across_informed_arms() -> None
 
 def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:
     config = _config()
+    recommendation = {
+        "selected_experiment_index": 2,
+        "selection_rationale": "best public campaign evidence",
+    }
+    recommendation_sha256 = canonical_json_sha256(recommendation)
     analysis = {
         "complete_experiment_count": 4,
+        "experiments": [{"experiment_index": index} for index in range(1, 5)],
         "right_censored_open_experiment": False,
         "belief_snapshots": [
             {"stage": stage} for stage in config["snapshot_stages"]
@@ -152,6 +159,8 @@ def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:
                 "report_only": {"process_time_s": 7200.0},
             },
         },
+        "final_recommendation": recommendation,
+        "final_recommendation_sha256": recommendation_sha256,
     }
     result = _qualification(
         analysis=analysis,
@@ -178,6 +187,8 @@ def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:
                 "return_code": 0,
                 "final_payload_valid": True,
                 "final_payload_status": "campaign_complete",
+                "final_recommendation": recommendation,
+                "final_recommendation_sha256": recommendation_sha256,
                 "experiment_tool_integrity_verified_after_session": True,
                 "lab_tool_integrity_verified_after_session": True,
                 "mcp_tool_integrity_verified_after_session": True,
@@ -198,8 +209,14 @@ def test_aligned_and_misindexed_checkpoint_contracts_are_identical() -> None:
 
 
 def test_cell_qualification_is_fail_closed() -> None:
+    recommendation = {
+        "selected_experiment_index": 2,
+        "selection_rationale": "best public campaign evidence",
+    }
+    recommendation_sha256 = canonical_json_sha256(recommendation)
     analysis = {
         "complete_experiment_count": 4,
+        "experiments": [{"experiment_index": index} for index in range(1, 5)],
         "right_censored_open_experiment": False,
         "belief_snapshots": [
             {"stage": "pre_evidence"},
@@ -217,6 +234,8 @@ def test_cell_qualification_is_fail_closed() -> None:
                 "report_only": {"process_time_s": 7200.0},
             },
         },
+        "final_recommendation": recommendation,
+        "final_recommendation_sha256": recommendation_sha256,
     }
     replay = {"verified": True}
     method_resources = {
@@ -241,6 +260,8 @@ def test_cell_qualification_is_fail_closed() -> None:
             "return_code": 0,
             "final_payload_valid": True,
             "final_payload_status": "campaign_complete",
+            "final_recommendation": recommendation,
+            "final_recommendation_sha256": recommendation_sha256,
             "experiment_tool_integrity_verified_after_session": True,
             "lab_tool_integrity_verified_after_session": True,
             "mcp_tool_integrity_verified_after_session": True,

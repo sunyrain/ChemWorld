@@ -20,6 +20,10 @@ from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
+from chemworld.eval.work_ii_blind import (
+    build_blind_evaluation_plan,
+    validate_blind_evaluation_plan,
+)
 from chemworld.eval.work_ii_formal import (
     build_checkpoint_contract as _checkpoint_contract,
 )
@@ -166,6 +170,20 @@ def _analyze(
                     candidate = campaign_state.get("campaign_resources", {})
                     if isinstance(candidate, Mapping):
                         final_campaign_resources = dict(candidate)
+    receipt = receipts[0] if len(receipts) == 1 else {}
+    recommendation = receipt.get("final_recommendation")
+    recommendation = dict(recommendation) if isinstance(recommendation, Mapping) else None
+    experiment_scores = [
+        (int(item["experiment_index"]), float(item["leaderboard_score"]))
+        for item in experiments
+        if isinstance(item.get("leaderboard_score"), int | float)
+        and not isinstance(item.get("leaderboard_score"), bool)
+    ]
+    incumbent_index = (
+        min(experiment_scores, key=lambda item: (-item[1], item[0]))[0]
+        if experiment_scores
+        else None
+    )
     return {
         "operation_attempt_count": len(records),
         "complete_experiment_count": len(experiments),
@@ -174,6 +192,9 @@ def _analyze(
         "belief_snapshots": snapshots,
         "resource_rejection_count": resource_rejection_count,
         "final_campaign_resources": final_campaign_resources,
+        "final_recommendation": recommendation,
+        "final_recommendation_sha256": receipt.get("final_recommendation_sha256"),
+        "observed_incumbent_experiment_index": incumbent_index,
         "prior_reliability_trajectory": [
             item["prior_assessment"]["reliability_probability"] for item in snapshots
         ],
@@ -210,6 +231,12 @@ def _qualification(
     snapshots = analysis.get("belief_snapshots", [])
     snapshots = snapshots if isinstance(snapshots, list) else []
     stages = [item.get("stage") for item in snapshots if isinstance(item, Mapping)]
+    recommendation = analysis.get("final_recommendation")
+    recommendation = recommendation if isinstance(recommendation, Mapping) else {}
+    selected_experiment_index = recommendation.get("selected_experiment_index")
+    recommendation_hash = (
+        canonical_json_sha256(recommendation) if recommendation else None
+    )
     expected_stages = required_snapshot_stages or [
         "pre_evidence",
         "post_neutral",
@@ -236,6 +263,18 @@ def _qualification(
         and receipt.get("return_code") == 0
         and receipt.get("final_payload_valid") is True
         and receipt.get("final_payload_status") == "campaign_complete",
+        "final_recommendation_committed": (
+            isinstance(selected_experiment_index, int)
+            and not isinstance(selected_experiment_index, bool)
+            and 1 <= selected_experiment_index <= target_experiments
+            and any(
+                item.get("experiment_index") == selected_experiment_index
+                for item in analysis.get("experiments", [])
+                if isinstance(item, Mapping)
+            )
+            and recommendation_hash == analysis.get("final_recommendation_sha256")
+            and recommendation_hash == receipt.get("final_recommendation_sha256")
+        ),
         "tool_integrity": receipt.get("experiment_tool_integrity_verified_after_session") is True
         and receipt.get("lab_tool_integrity_verified_after_session") is True
         and receipt.get("mcp_tool_integrity_verified_after_session") is True,
@@ -458,6 +497,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     config_path = args.config.resolve()
     config = _load(config_path)
     formal_context = _formal_cell_context(args, config_path=config_path)
+    formal_manifest = formal_context[0] if formal_context is not None else None
     formal_cell = formal_context[1] if formal_context is not None else None
     world_seed = int(args.world_seed if args.world_seed is not None else config["world_seed"])
     output = args.output.resolve()
@@ -488,6 +528,32 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         if formal_cell is not None:
             row["formal_cell"] = formal_cell
             row["formal_result"] = True
+            if row["completed"]:
+                plan = build_blind_evaluation_plan(
+                    formal_cell,
+                    row,
+                    formal_manifest["blind_evaluator_contract"],
+                )
+                plan_errors = validate_blind_evaluation_plan(plan)
+                if plan_errors:
+                    raise RuntimeError(
+                        "blind evaluator plan validation failed: " + "; ".join(plan_errors)
+                    )
+                plan_path = cell_root / "blind_evaluation_plan.json"
+                write_json_atomic(plan_path, plan)
+                row["blind_evaluation_plan"] = {
+                    "path": "blind_evaluation_plan.json",
+                    "sha256": file_sha256(plan_path),
+                    "plan_sha256": plan["plan_sha256"],
+                    "scheduled_execution_count": plan["blind_execution_count"],
+                }
+            else:
+                row["blind_evaluation_plan"] = {
+                    "status": "not_materialized_for_noncompleted_cell",
+                    "scheduled_execution_count": 6,
+                    "executed_count": 0,
+                    "denominator_retained": True,
+                }
             write_json_atomic(cell_root / "summary.json", row)
         results.append(row)
         if not row["completed"]:

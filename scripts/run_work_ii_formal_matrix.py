@@ -15,6 +15,7 @@ from typing import Any
 from uuid import uuid4
 
 from chemworld.eval.provenance import file_sha256, write_json_atomic
+from chemworld.eval.work_ii_blind import validate_blind_evaluation_plan
 from chemworld.eval.work_ii_formal import (
     WorkIIFormalCellStore,
     build_formal_preflight,
@@ -163,6 +164,7 @@ def _result_binding(
         "summary": bind(attempt_root / "summary.json"),
         "report": bind(attempt_root / "report.json"),
         "trajectory": bind(attempt_root / "trajectory.jsonl"),
+        "blind_evaluation_plan": bind(attempt_root / "blind_evaluation_plan.json"),
         "completed": summary.get("completed") is True,
         "analysis": summary.get("analysis"),
         "method_resources": summary.get("method_resources"),
@@ -372,6 +374,21 @@ def execute_manifest(
                     or formal_cell.get("cell_key_sha256") != key
                 ):
                     raise ValueError("cell summary lacks its exact formal binding")
+                if summary.get("completed") is True:
+                    plan_path = state["attempt_root"] / "blind_evaluation_plan.json"
+                    plan = _load_object(plan_path)
+                    plan_errors = validate_blind_evaluation_plan(plan)
+                    plan_binding = summary.get("blind_evaluation_plan")
+                    if (
+                        plan_errors
+                        or plan.get("cell_key_sha256") != key
+                        or not isinstance(plan_binding, Mapping)
+                        or plan_binding.get("sha256") != file_sha256(plan_path)
+                        or plan_binding.get("plan_sha256") != plan.get("plan_sha256")
+                    ):
+                        raise ValueError(
+                            "completed formal cell lacks a valid blind evaluator plan binding"
+                        )
                 terminal_state, reason_code = _terminal_state(summary)
                 store.write_terminal(
                     key,

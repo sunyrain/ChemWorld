@@ -584,10 +584,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] formal power 使用 world-level paired contrasts；rounds、prediction snapshots 和多个 endpoints 不作为独立样本；
   - [ ] 对 world、mechanism、agent、session 和交互方差作预期分解；
   - [x] 冻结 worlds、replicates、provider repeats 和最大 provider calls；
-  - [ ] discovery campaign 的 complete-experiment 上限、checkpoint 位置和 optional matched-evidence probe 是否进入 secondary matrix 在 pilot 后、formal outcomes 前冻结；
+  - [x] discovery campaign 的 complete-experiment 上限、checkpoint 位置和 optional matched-evidence probe 是否进入 secondary matrix 在 pilot 后、formal outcomes 前冻结；
   - [ ] 冻结一张跨 discovery experiments 共享的 task-pattern-specific CampaignResourceCard，包括 operation、vessel、assay、instrument、stock、process-time、quench/transfer 和 closeout 余量；
   - [ ] 冻结 token、货币、wall time、并发和失败重试预算；
-  - [ ] 明确早停仅针对基础设施/安全，不针对结果方向；
+  - [x] 明确早停仅针对基础设施/安全，不针对结果方向；
   - [ ] 输出完整资源上界和预计运行 ETA。
 - 备注：`Claim: Codex /root — W2-07 — DOING`。25 个独立 task×world clusters、75 cells 的功效审计已通过：
   规划标准化效应 `d=0.6` 时 power=`0.8946`，80% power 的 MDE=`0.5150`，因此只支持中到大效应设计。
@@ -595,7 +595,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   4,320 万 uncached input tokens、324 万 output tokens，串行 seed-triplet wall 上界 47.5 h。报告：
   `workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`。provider process launch 固定为每 cell 初始
   1 次、纯基础设施失败最多 resume 1 次，即全矩阵计划 75 次、硬上限 150 次；任何已持久化 trajectory 都禁止
-  replacement。仍需由用户批准正式货币硬上限，并用合格 formal runner 校准 ETA，故 W2-07 保持 `DOING`。
+  replacement。blind evaluator 另排 75 个最终推荐、150 个 target 和 450 个无 provider 调用的成对噪声
+  replay。仍需由用户批准正式货币硬上限，并用合格 formal runner 校准 ETA，故 W2-07 保持 `DOING`。
 
 ### W2-08 — Registered Report/常规投稿路线决策
 
@@ -636,7 +637,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 - 优先级：P0
 - 代码交付物：
   - [x] 基于第一篇 `InteractiveCodexExperimentAgent`/ChemWorld MCP 的 persistent operation-level participant runner；
-  - [ ] immutable matrix/schedule manifest（五任务、三臂、session、operation、experiment、checkpoint、held-out/blind denominators）；
+  - [x] immutable matrix/schedule manifest（五任务、三臂、session、operation、experiment、checkpoint、held-out/blind denominators）；
   - [x] session-aware resume 与 right-censoring state machine；
   - [x] provider/session/scaffold receipts；
   - [x] typed prior/evidence/belief/law-summary schema 与可执行 law-summary validator；
@@ -669,8 +670,11 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   append-only infrastructure attempts、缺失单元 resume、重复/篡改拒绝、30 秒 triplet heartbeat 和 75-cell
   denominator audit。离线全矩阵模拟已验证 75 个单元只执行一次；首 triplet 单元级基础设施失败后为 2 个 terminal
   加 73 个 missing，missing-only resume 后达到 75 个 terminal，已完成单元不重跑。preflight 当前按设计 fail-closed，
-  仍缺 blind final-recommendation denominator、provider-attempt/currency contract 与当前方法 qualification receipt；
-  不得据此启动 provider 或正式矩阵。
+  participant 最终输出新增结构化 final recommendation，必须在 4 个已完成实验中选择 1 个；每个 qualified
+  cell 随即生成自哈希、与 participant trajectory 绑定的 blind evaluator plan，固定对 observed incumbent 和
+  participant recommendation 各执行 3 个成对噪声 replay，不向 participant 回传结果，也不计入 participant
+  operation/provider 分母。当前仍缺用户批准的 currency ceiling、当前 persistent-session 方法 qualification
+  receipt，且 design/analysis 仍显式禁止正式执行；不得据此启动 provider 或正式矩阵。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 

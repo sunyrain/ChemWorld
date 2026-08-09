@@ -34,6 +34,7 @@ _SOURCE_PATHS = (
     "src/chemworld/eval/runner.py",
     "src/chemworld/eval/verify.py",
     "src/chemworld/eval/work_ii_analysis.py",
+    "src/chemworld/eval/work_ii_blind.py",
     "src/chemworld/eval/work_ii_formal.py",
     "src/chemworld/eval/work_ii_prior_discovery.py",
     "scripts/run_work_ii_campaign_pilot.py",
@@ -575,6 +576,32 @@ def build_formal_preflight(
     }
     if attempt_contract != expected_attempt_contract:
         errors.append("formal provider-attempt contract differs from the frozen cap")
+    blind_contract = dict(
+        _object(design.get("blind_evaluator_contract"), "blind_evaluator_contract")
+    )
+    expected_blind_contract = {
+        "participant_final_recommendations_per_cell": 1,
+        "recommendation_unit": "one_selected_completed_experiment_index",
+        "candidate_experiment_indices": [1, 2, 3, 4],
+        "incumbent_definition": (
+            "highest_participant_observed_leaderboard_score_tie_smallest_index"
+        ),
+        "blind_targets_per_cell": [
+            "observed_incumbent",
+            "participant_final_recommendation",
+        ],
+        "blind_replicates_per_target": 3,
+        "paired_noise_within_replicate": True,
+        "participant_feedback_from_blind_evaluator": False,
+        "evaluator_provider_calls": 0,
+        "evaluator_trajectory_separate_from_participant": True,
+        "evaluator_resources_excluded_from_participant_ledger": True,
+        "public_matrix_final_recommendation_count": 75,
+        "public_matrix_blind_target_count": 150,
+        "public_matrix_blind_execution_count": 450,
+    }
+    if blind_contract != expected_blind_contract:
+        errors.append("formal blind-evaluator contract differs from the frozen denominator")
     total_query_count = 0
     total_query_metric_count = 0
     for task_index, task in enumerate(tasks, start=1):
@@ -654,6 +681,10 @@ def build_formal_preflight(
                         attempt_contract.get("maximum_total_provider_attempts_per_cell", -1)
                     ),
                     "provider_repeat": 1,
+                    "participant_final_recommendation_count": 1,
+                    "blind_validation_target_count": 2,
+                    "blind_replicates_per_target": 3,
+                    "blind_validation_execution_count": 6,
                     "terminal_states": ["completed", "right_censored", "failed"],
                 }
                 cell["cell_key_sha256"] = _cell_key_hash(cell)
@@ -675,7 +706,6 @@ def build_formal_preflight(
 
     source_bindings = [_binding(root, path) for path in _SOURCE_PATHS]
     blockers = [
-        "blind evaluator and final-recommendation denominator are not yet frozen",
         "formal currency ceiling is not yet approved",
         "current design and analysis plan explicitly forbid formal execution",
         "current persistent-session method lacks its final qualification receipt",
@@ -702,6 +732,7 @@ def build_formal_preflight(
         },
         "provider_contract": provider_contract,
         "provider_attempt_contract": attempt_contract,
+        "blind_evaluator_contract": blind_contract,
         "schedule_policy": {
             "order": "task_then_public_world_then_prior_arm",
             "same_world_arm_triplet_max_concurrency": 3,
@@ -731,7 +762,9 @@ def build_formal_preflight(
             "belief_checkpoints": len(cells) * 4,
             "checkpoint_held_out_queries": total_query_count,
             "checkpoint_held_out_query_metrics": total_query_metric_count,
-            "blind_final_recommendations": None,
+            "participant_final_recommendations": len(cells),
+            "blind_validation_targets": len(cells) * 2,
+            "blind_validation_executions": len(cells) * 2 * 3,
         },
         "task_bindings": task_bindings,
         "source_bindings": source_bindings,

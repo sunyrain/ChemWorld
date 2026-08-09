@@ -17,9 +17,14 @@ from chemworld.agents.experiment_codex_mcp import (
 def test_final_response_contract_matches_session_scope() -> None:
     assert ChemWorldMCPServer._final_response_contract(campaign=True) == {
         "format": "json_object_only",
-        "required_keys": ["status", "summary"],
+        "required_keys": ["status", "summary", "final_recommendation"],
         "status": "campaign_complete",
         "summary_max_length": 3000,
+        "final_recommendation_contract": {
+            "selected_experiment_index": "integer_1_through_4",
+            "selection_rationale_max_length": 2000,
+            "committed_before_blind_evaluation": True,
+        },
         "prose_or_markdown_allowed": False,
     }
     assert ChemWorldMCPServer._final_response_contract(campaign=False)["status"] == (

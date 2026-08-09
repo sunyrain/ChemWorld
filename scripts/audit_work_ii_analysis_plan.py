@@ -59,6 +59,20 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
         attempt_contract["public_matrix_provider_attempt_hard_cap"]
     ):
         failures.append({"check": "provider_attempt_hard_cap"})
+    blind_contract = design["blind_evaluator_contract"]
+    final_recommendations = scheduled_cells * int(
+        blind_contract["participant_final_recommendations_per_cell"]
+    )
+    blind_targets = scheduled_cells * len(blind_contract["blind_targets_per_cell"])
+    blind_executions = blind_targets * int(blind_contract["blind_replicates_per_target"])
+    if final_recommendations != int(
+        blind_contract["public_matrix_final_recommendation_count"]
+    ):
+        failures.append({"check": "final_recommendation_denominator"})
+    if blind_targets != int(blind_contract["public_matrix_blind_target_count"]):
+        failures.append({"check": "blind_target_denominator"})
+    if blind_executions != int(blind_contract["public_matrix_blind_execution_count"]):
+        failures.append({"check": "blind_execution_denominator"})
     population = plan["analysis_population"]
     if public_worlds != population["independent_task_world_clusters"]:
         failures.append({"check": "independent_cluster_denominator"})
@@ -144,6 +158,9 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
             "provider_repeats_per_cell": population["provider_repeats_per_cell"],
             "provider_attempts_initial_planned": planned_provider_attempts,
             "provider_attempts_hard_cap": provider_attempt_hard_cap,
+            "participant_final_recommendations": final_recommendations,
+            "blind_validation_targets": blind_targets,
+            "blind_validation_executions": blind_executions,
         },
         "power": {
             "alpha_one_sided": alpha,

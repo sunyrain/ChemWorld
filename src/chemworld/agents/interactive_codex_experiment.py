@@ -61,8 +61,21 @@ _CAMPAIGN_FINAL_OUTPUT_SCHEMA: dict[str, Any] = {
             "enum": ["campaign_complete", "budget_exhausted", "stopped"],
         },
         "summary": {"type": "string", "maxLength": 3000},
+        "final_recommendation": {
+            "type": "object",
+            "properties": {
+                "selected_experiment_index": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4,
+                },
+                "selection_rationale": {"type": "string", "maxLength": 2000},
+            },
+            "required": ["selected_experiment_index", "selection_rationale"],
+            "additionalProperties": False,
+        },
     },
-    "required": ["status", "summary"],
+    "required": ["status", "summary", "final_recommendation"],
     "additionalProperties": False,
 }
 
@@ -114,7 +127,9 @@ provider budget.
 An experiment_ended outcome closes only the current batch. When campaign_ended=false, preserve your
 scientific context and continue into the next fresh batch using the returned next_state. When
 campaign_ended=true, commit the final checkpoint if it is due, then return exactly one JSON object
-matching the requested final schema, with no prose or Markdown fence.
+matching the requested final schema, with no prose or Markdown fence. The final_recommendation must
+select exactly one of the four completed experiment indices for evaluator-owned blind replay. Commit
+the selection using only participant-visible campaign evidence; no blind outcome will be returned.
 The host never chooses, repairs, terminates, assays, or replaces your operations. Failed and
 resource-rejected attempts remain part of the trajectory. Keep enough operation, stock,
 process-time, and assay capacity to close all planned batches. The 19 process coordinates are
@@ -1007,6 +1022,13 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             receipt_tool_events.extend(_host_mcp_audit_events(mcp_tool_calls))
         final_payload = result.get("final_payload")
         final_valid = _valid_final_payload(final_payload)
+        final_recommendation = (
+            deepcopy(final_payload.get("final_recommendation"))
+            if final_valid
+            and isinstance(final_payload, dict)
+            and isinstance(final_payload.get("final_recommendation"), dict)
+            else None
+        )
         usage_complete = _usage_complete(normalized_usage)
         self._all_session_usage_complete = self._all_session_usage_complete and usage_complete
         receipt = {
@@ -1035,6 +1057,14 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "final_payload_summary": (
                 str(final_payload["summary"])
                 if final_valid and isinstance(final_payload, dict)
+                else None
+            ),
+            "final_recommendation": final_recommendation,
+            "final_recommendation_sha256": (
+                hashlib.sha256(
+                    _canonical_json(final_recommendation).encode("utf-8")
+                ).hexdigest()
+                if final_recommendation is not None
                 else None
             ),
             "stderr_byte_count": result.get("stderr_byte_count", 0),

@@ -10,7 +10,8 @@ import pytest
 import scripts.run_work_ii_campaign_pilot as campaign_runner
 import scripts.run_work_ii_formal_matrix as formal_runner
 
-from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.work_ii_blind import BLIND_EVALUATOR_VERSION
 from chemworld.eval.work_ii_formal import (
     FORMAL_ARMS,
     FORMAL_SNAPSHOT_STAGES,
@@ -26,6 +27,41 @@ from chemworld.eval.work_ii_formal import (
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+
+
+def _fake_blind_plan(cell: dict[str, object]) -> dict[str, object]:
+    target_digests = {
+        "observed_incumbent": "a" * 64,
+        "participant_final_recommendation": "b" * 64,
+    }
+    targets = [
+        {"target": target, "action_plan_sha256": digest}
+        for target, digest in target_digests.items()
+    ]
+    executions = []
+    for target, digest in target_digests.items():
+        for replicate_index in range(1, 4):
+            executions.append(
+                {
+                    "target": target,
+                    "replicate_index": replicate_index,
+                    "action_plan_sha256": digest,
+                    "paired_noise_id_sha256": f"paired-{replicate_index}",
+                    "observation_seed": replicate_index,
+                    "observation_noise_namespace": f"namespace-{replicate_index}",
+                }
+            )
+    plan: dict[str, object] = {
+        "schema_version": BLIND_EVALUATOR_VERSION,
+        "cell_key_sha256": cell["cell_key_sha256"],
+        "evaluator_provider_call_count": 0,
+        "participant_operation_denominator_impact": 0,
+        "participant_feedback_allowed": False,
+        "targets": targets,
+        "executions": executions,
+    }
+    plan["plan_sha256"] = canonical_json_sha256(plan)
+    return plan
 
 
 def _authorized_manifest() -> dict[str, object]:
@@ -79,6 +115,14 @@ class _FakeFormalCellProcess:
             "exact_replay": {"verified": completed},
             "qualification": {"passed": completed},
         }
+        if completed:
+            plan = _fake_blind_plan(cell)
+            plan_path = output / "blind_evaluation_plan.json"
+            plan_path.write_text(json.dumps(plan), encoding="utf-8")
+            summary["blind_evaluation_plan"] = {
+                "sha256": file_sha256(plan_path),
+                "plan_sha256": plan["plan_sha256"],
+            }
         (output / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
         (output / "report.json").write_text("{}", encoding="utf-8")
         if operation_attempt_count:
@@ -112,9 +156,11 @@ def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> Non
         "belief_checkpoints": 300,
         "checkpoint_held_out_queries": 1200,
         "checkpoint_held_out_query_metrics": 4080,
-        "blind_final_recommendations": None,
+        "participant_final_recommendations": 75,
+        "blind_validation_targets": 150,
+        "blind_validation_executions": 450,
     }
-    assert len(report["blocking_requirements"]) == 4
+    assert len(report["blocking_requirements"]) == 3
 
 
 def test_formal_schedule_is_task_world_arm_ordered_and_unique() -> None:
@@ -131,6 +177,8 @@ def test_formal_schedule_is_task_world_arm_ordered_and_unique() -> None:
     assert len({cell["cell_key_sha256"] for cell in cells}) == 75
     assert all(cell["provider_session_limit"] == 1 for cell in cells)
     assert all(cell["provider_attempt_limit"] == 2 for cell in cells)
+    assert all(cell["participant_final_recommendation_count"] == 1 for cell in cells)
+    assert all(cell["blind_validation_execution_count"] == 6 for cell in cells)
     assert all(
         cell["terminal_states"] == ["completed", "right_censored", "failed"]
         for cell in cells
