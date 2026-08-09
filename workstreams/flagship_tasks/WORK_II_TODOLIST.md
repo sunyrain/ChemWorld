@@ -299,7 +299,9 @@ outcome channels remain separate so that the analysis can distinguish:
 - held-out transfer；
 - endpoint outcome、resource efficiency 和 safety behavior。
 
-当前已有的是历史环境 Gate A 证书和大量执行代码；当前证据绑定为 `historical_gate_a_pass_current_binding_stale`，participant-agent 正式 Gates/Outcomes 尚未执行。不得把历史 Gate A 写成当前 agent 规律学习结果。
+当前 Gate A 已在 RC29 的 current source/protocol 上重新资格验证，公开决策为
+`gate_a_passed_remaining_gates_pending`，且 `gate_a_evidence_current=true`；participant-agent 正式
+Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学习结果。
 
 详细历史计划参见：[`RC28_PARTICIPANT_FORMAL_EXPERIMENT_PLAN_AND_TODO_ZH.md`](RC28_PARTICIPANT_FORMAL_EXPERIMENT_PLAN_AND_TODO_ZH.md)。本文件是面向第二篇论文的主控清单；若两者冲突，以后续冻结的 Work II preregistration 为准。
 
@@ -322,12 +324,14 @@ outcome channels remain separate so that the analysis can distinguish:
 ## 3. 当前基线状态
 
 - [x] mechanism-family 与 material-law interventions 已实现；
-- [x] 历史 Gate A 环境实验已完成：A2 4,896 trials、A3 2,016 trials；
+- [x] 当前 RC29 Gate A 环境实验已完成：A2 4,896 trials、A3 2,016 trials；
+- [x] 当前 design audit、semantics audit、release qualification、A1、A2 和 A3 均通过，公开决策与
+  `configs/current.json` 已绑定；
 - [x] 历史 A2 top-1 accuracy 为 0.9826；
 - [x] 历史 A3 detection sensitivity 为 0.9935、AUROC 为 0.9990、end-to-end success 为 0.9657；
 - [x] 历史 experiment-level adaptation、belief metrics、change detection、attribution 和 recovery 的代码骨架已存在；
   它们需要重绑定为固定规律下的 prior/discovery/bias-rejection/law-summary protocol，不能直接当作当前结果；
-- [ ] 当前 source/protocol binding 尚未重新资格验证；
+- [x] 当前 source/protocol binding 已重新资格验证，`gate_a_evidence_current=true`；
 - [ ] participant methods 尚未冻结；
 - [ ] participant formal Outcomes 尚未执行；
 - [ ] private sealed confirmation 尚未执行；
@@ -396,19 +400,20 @@ outcome channels remain separate so that the analysis can distinguish:
   - [x] 已认领；负责人：`Codex /root`
 - 状态：
   - [ ] 未开始
-  - [x] 进行中
+  - [ ] 进行中
   - [ ] 阻塞
-  - [ ] 完成
+  - [x] 完成
 - 优先级：P0
 - 目标：把历史 Gate A 与当前 source/protocol binding 分开，并在当前代码上重新资格验证。
 - 验收标准：
-  - [ ] current design audit、semantics audit、release qualification 全部通过；
-  - [ ] A1 physical validity 在当前 source 上通过；
-  - [ ] A2/A3 当前证书重新生成或由不可变兼容性证明合法继承；
-  - [ ] `gate_a_evidence_current=true`；
-  - [ ] 历史证书仍保留且不会被覆盖；
-  - [ ] 环境资格验证与 participant performance 继续严格分离。
-- 备注：`Claim: Codex /root — W2-02 — DOING`
+  - [x] current design audit、semantics audit、release qualification 全部通过；
+  - [x] A1 physical validity 在当前 source 上通过；
+  - [x] A2/A3 当前证书重新生成：A2 4,896/4,896，A3 2,016/2,016，均结构完整并通过；
+  - [x] `gate_a_evidence_current=true`；
+  - [x] 历史证书仍保留且不会被覆盖；
+  - [x] 环境资格验证与 participant performance 继续严格分离。
+- 备注：`Claim: Codex /root — W2-02 — DONE`。RC29 的协议、审计、A1/A2/A3 证书、公开决策和
+  evidence registry 已重新生成并通过一致性检查；科学指标保持冻结/盲化，未被用于参与者方法选择。
 
 ### W2-03 — 冻结中心假设与 claim hierarchy
 
