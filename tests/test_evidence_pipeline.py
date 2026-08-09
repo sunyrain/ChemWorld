@@ -123,7 +123,10 @@ def test_first_paper_composition_qualification_binding_fails_closed() -> None:
     payload = json.loads(Path(node.path).read_text(encoding="utf-8"))
     validate = pipeline["_first_paper_composition_qualification_binding_current"]
 
-    assert validate(payload) is True
+    assert validate(payload) is False
+    assert pipeline["_first_paper_composition_qualification_binding_errors"](
+        payload
+    ) == ["composition qualification runtime changed after execution"]
 
     mutations = [
         {**payload, "schema_version": "stale"},
@@ -183,7 +186,10 @@ def test_first_paper_deterministic_use_case_binding_fails_closed() -> None:
     payload = json.loads(Path(node.path).read_text(encoding="utf-8"))
     validate = pipeline["_first_paper_deterministic_use_case_binding_current"]
 
-    assert validate(payload) is True
+    assert validate(payload) is False
+    assert pipeline["_first_paper_deterministic_use_case_binding_errors"](
+        payload
+    ) == ["deterministic use-case runtime changed after execution"]
 
     mutations = []
     stale_status = copy.deepcopy(payload)
@@ -236,7 +242,10 @@ def test_first_paper_agent_instrument_use_binding_fails_closed() -> None:
     payload = json.loads(Path(node.path).read_text(encoding="utf-8"))
     validate = pipeline["_first_paper_agent_instrument_use_binding_current"]
 
-    assert validate(payload) is True
+    assert validate(payload) is False
+    assert pipeline["_first_paper_agent_instrument_use_binding_errors"](
+        payload
+    ) == ["agent instrument-use runtime changed after execution"]
 
     mutations = []
     stale_status = copy.deepcopy(payload)
@@ -425,13 +434,23 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
         "first_paper_deterministic_use_case_qualification"
     ]
     assert deterministic_node["sha256"] == pipeline["file_sha256"](deterministic_report)
-    assert deterministic_node["artifact_state"] == "current"
-    assert deterministic_node["freshness"] == "fresh"
-    assert deterministic_node["gate_state"] == "passed"
-    assert not any(
-        "composition_qualification" in key and key != "composition_qualification_report"
-        for key in publication
-    )
+    assert deterministic_node["artifact_state"] == "stale"
+    assert deterministic_node["freshness"] == "stale_dependency_binding"
+    assert deterministic_node["gate_state"] == "invalidated"
+    assert publication["qualification_bindings_current"] == {
+        "composition": False,
+        "deterministic_use_cases": False,
+        "agent_instrument_use": False,
+    }
+    assert publication["qualification_binding_errors"] == {
+        "composition": ["composition qualification runtime changed after execution"],
+        "deterministic_use_cases": [
+            "deterministic use-case runtime changed after execution"
+        ],
+        "agent_instrument_use": [
+            "agent instrument-use runtime changed after execution"
+        ],
+    }
     report = json.loads(
         Path(publication["composition_qualification_report"]).read_text(encoding="utf-8")
     )

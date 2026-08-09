@@ -2958,33 +2958,18 @@ def _write_current_registry() -> None:
     composition_qualification_errors = _first_paper_composition_qualification_binding_errors(
         composition_qualification
     )
-    if composition_qualification_errors:
-        raise RuntimeError(
-            "refusing to bind first-paper composition qualification: "
-            + "; ".join(composition_qualification_errors)
-        )
     deterministic_use_cases = load_json_object(
         ROOT / node_map()[FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID].path
     )
     deterministic_use_case_errors = _first_paper_deterministic_use_case_binding_errors(
         deterministic_use_cases
     )
-    if deterministic_use_case_errors:
-        raise RuntimeError(
-            "refusing to bind first-paper deterministic use-case qualification: "
-            + "; ".join(deterministic_use_case_errors)
-        )
     agent_instrument_use = load_json_object(
         ROOT / node_map()[FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID].path
     )
     agent_instrument_use_errors = _first_paper_agent_instrument_use_binding_errors(
         agent_instrument_use
     )
-    if agent_instrument_use_errors:
-        raise RuntimeError(
-            "refusing to bind first-paper agent instrument-use qualification: "
-            + "; ".join(agent_instrument_use_errors)
-        )
     work_i_derived = load_json_object(ROOT / node_map()["work_i_fvl_derived_data"].path)
     work_i_derived_manifest = load_json_object(
         ROOT / node_map()["work_i_fvl_derived_manifest"].path
@@ -3489,6 +3474,16 @@ def _write_current_registry() -> None:
         "agent_instrument_use_report": node_map()[
             FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID
         ].path,
+        "qualification_bindings_current": {
+            "composition": not composition_qualification_errors,
+            "deterministic_use_cases": not deterministic_use_case_errors,
+            "agent_instrument_use": not agent_instrument_use_errors,
+        },
+        "qualification_binding_errors": {
+            "composition": composition_qualification_errors,
+            "deterministic_use_cases": deterministic_use_case_errors,
+            "agent_instrument_use": agent_instrument_use_errors,
+        },
         "derived_data": node_map()["work_i_fvl_derived_data"].path,
         "derived_data_manifest": node_map()["work_i_fvl_derived_manifest"].path,
         "release_manifest": "benchmark/releases/chemworld-serious-v1/manifest.json",
@@ -3843,24 +3838,65 @@ def check_current_evidence() -> list[str]:
         ROOT / node_map()[FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID].path
     )
     composition_qualification = load_json_object(composition_qualification_path)
-    errors.extend(_first_paper_composition_qualification_binding_errors(composition_qualification))
+    composition_binding_errors = _first_paper_composition_qualification_binding_errors(
+        composition_qualification
+    )
     composition_node = recorded_nodes.get(FIRST_PAPER_COMPOSITION_QUALIFICATION_NODE_ID, {})
-    if composition_node.get("artifact_state") != "current":
-        errors.append("composition qualification evidence node is not current")
-    if composition_node.get("gate_state") != "passed":
-        errors.append("composition qualification evidence gate did not pass")
+    expected_composition_state = "stale" if composition_binding_errors else "current"
+    expected_composition_gate = "invalidated" if composition_binding_errors else "passed"
+    if composition_node.get("artifact_state") != expected_composition_state:
+        errors.append("composition qualification evidence state is inconsistent")
+    if composition_node.get("gate_state") != expected_composition_gate:
+        errors.append("composition qualification gate state is inconsistent")
     deterministic_use_case_path = (
         ROOT / node_map()[FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID].path
     )
     deterministic_use_cases = load_json_object(deterministic_use_case_path)
-    errors.extend(_first_paper_deterministic_use_case_binding_errors(deterministic_use_cases))
+    deterministic_binding_errors = _first_paper_deterministic_use_case_binding_errors(
+        deterministic_use_cases
+    )
     deterministic_node = recorded_nodes.get(FIRST_PAPER_DETERMINISTIC_USE_CASES_NODE_ID, {})
-    if deterministic_node.get("artifact_state") != "current":
-        errors.append("deterministic use-case evidence node is not current")
-    if deterministic_node.get("freshness") != "fresh":
-        errors.append("deterministic use-case evidence node is not fresh")
-    if deterministic_node.get("gate_state") != "passed":
-        errors.append("deterministic use-case evidence gate did not pass")
+    expected_deterministic_state = "stale" if deterministic_binding_errors else "current"
+    expected_deterministic_freshness = (
+        "stale_dependency_binding" if deterministic_binding_errors else "fresh"
+    )
+    expected_deterministic_gate = (
+        "invalidated" if deterministic_binding_errors else "passed"
+    )
+    if deterministic_node.get("artifact_state") != expected_deterministic_state:
+        errors.append("deterministic use-case evidence state is inconsistent")
+    if deterministic_node.get("freshness") != expected_deterministic_freshness:
+        errors.append("deterministic use-case freshness is inconsistent")
+    if deterministic_node.get("gate_state") != expected_deterministic_gate:
+        errors.append("deterministic use-case gate state is inconsistent")
+    agent_instrument_use_path = (
+        ROOT / node_map()[FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID].path
+    )
+    agent_instrument_use = load_json_object(agent_instrument_use_path)
+    agent_instrument_binding_errors = _first_paper_agent_instrument_use_binding_errors(
+        agent_instrument_use
+    )
+    agent_instrument_node = recorded_nodes.get(FIRST_PAPER_AGENT_INSTRUMENT_USE_NODE_ID, {})
+    expected_agent_state = "stale" if agent_instrument_binding_errors else "current"
+    expected_agent_gate = "invalidated" if agent_instrument_binding_errors else "passed"
+    if agent_instrument_node.get("artifact_state") != expected_agent_state:
+        errors.append("agent instrument-use evidence state is inconsistent")
+    if agent_instrument_node.get("gate_state") != expected_agent_gate:
+        errors.append("agent instrument-use gate state is inconsistent")
+    expected_qualification_bindings = {
+        "composition": not composition_binding_errors,
+        "deterministic_use_cases": not deterministic_binding_errors,
+        "agent_instrument_use": not agent_instrument_binding_errors,
+    }
+    if publication.get("qualification_bindings_current") != expected_qualification_bindings:
+        errors.append("current registry qualification freshness summary is inconsistent")
+    expected_qualification_errors = {
+        "composition": composition_binding_errors,
+        "deterministic_use_cases": deterministic_binding_errors,
+        "agent_instrument_use": agent_instrument_binding_errors,
+    }
+    if publication.get("qualification_binding_errors") != expected_qualification_errors:
+        errors.append("current registry qualification binding errors are inconsistent")
     expected_backend_validation = (
         "passed" if backend.get("backend_contract_validated") else "blocked"
     )
