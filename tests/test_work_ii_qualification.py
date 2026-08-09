@@ -13,13 +13,13 @@ import scripts.run_work_ii_method_qualification_triplet as qualification_runner
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_formal import FORMAL_ARMS, build_formal_preflight
 from chemworld.eval.work_ii_qualification import (
-    METHOD_QUALIFICATION_RECEIPT_VERSION,
     METHOD_QUALIFICATION_REPORT_VERSION,
     REQUIRED_CELL_QUALIFICATION_CHECKS,
     build_method_qualification_readiness,
     build_method_qualification_receipt,
     build_qualification_execution_authorization,
     method_qualification_report_sha256,
+    qualification_execution_journal_sha256,
     qualification_receipt_sha256,
     validate_method_qualification_readiness,
     validate_method_qualification_receipt,
@@ -30,6 +30,7 @@ from chemworld.eval.work_ii_qualification import (
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+SYNTHETIC_OBSERVED_COST_USD = 0.00004242
 
 
 @pytest.fixture
@@ -212,72 +213,40 @@ def _qualification_report(
     return report
 
 
-def _receipt(tmp_path: Path) -> tuple[dict[str, object], dict[str, object]]:
+def _receipt(
+    tmp_path: Path,
+    monkeypatch,
+) -> tuple[dict[str, object], dict[str, object]]:
     manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
     authorization = _authorization(manifest)
     authorization_path = tmp_path / "qualification-authorization.json"
     authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
-    report = _qualification_report(manifest, authorization_path)
-    report_path = tmp_path / "qualification-report.json"
-    report_path.write_text(json.dumps(report), encoding="utf-8")
-    task_binding = manifest["task_bindings"][0]
-    receipt: dict[str, object] = {
-        "schema_version": METHOD_QUALIFICATION_RECEIPT_VERSION,
-        "status": "passed",
-        "formal_execution_authorized": True,
-        "formal_preflight_sha256": manifest["preflight_sha256"],
-        "provider_contract_sha256": canonical_json_sha256(manifest["provider_contract"]),
-        "provider_attempt_contract_sha256": canonical_json_sha256(
-            manifest["provider_attempt_contract"]
-        ),
-        "participant_execution_contract_sha256": manifest["participant_execution_contract_sha256"],
-        "method_qualification_contract_sha256": manifest["method_qualification_contract_sha256"],
-        "blind_evaluator_contract_sha256": canonical_json_sha256(
-            manifest["blind_evaluator_contract"]
-        ),
-        "held_out_evaluator_contract_sha256": canonical_json_sha256(
-            manifest["held_out_evaluator_contract"]
-        ),
-        "qualification_execution_authorization_sha256": report[
-            "qualification_execution_authorization_binding"
-        ]["authorization_sha256"],
-        "qualification_split": "development_seed_0",
-        "qualification_task_id": "electrochemical-conversion",
-        "qualification_world_seed": 0,
-        "qualification_campaign_config_sha256": task_binding["campaign_config"]["sha256"],
-        "qualified_prior_arms": list(FORMAL_ARMS),
-        "qualified_cell_count": 3,
-        "formal_participant_outcome_count_before_authorization": 0,
-        "approved_provider_attempt_hard_cap": manifest["expected_counts"][
-            "provider_attempts_hard_cap"
-        ],
-        "qualification_cost_accounting": {
-            "currency": "USD",
-            "accounting_complete": True,
-            "observed_cost_usd": 0.2,
-            "approved_ceiling_usd": 50.0,
-            "approved_by": "user",
-            "approved_at": "2026-08-10T00:00:00+08:00",
-            "pricing_source": "provider pricing catalog",
-            "pricing_observed_at": "2026-08-10T00:00:00+08:00",
-            "scope_method_qualification_contract_sha256": manifest[
-                "method_qualification_contract_sha256"
-            ],
-        },
-        "approved_currency_ceiling_usd": 50.0,
-        "currency_approval": {
-            "approved_by": "user",
-            "approved_at": "2026-08-10T00:00:00+08:00",
-            "approved_currency_ceiling_usd": 50.0,
-            "scope_preflight_sha256": manifest["preflight_sha256"],
-        },
-        "qualification_report_binding": {
-            "path": report_path.resolve().relative_to(ROOT).as_posix(),
-            "sha256": file_sha256(report_path),
-            "report_sha256": report["report_sha256"],
-        },
+    template = _qualification_report(manifest)
+    _FakeQualificationProcess.rows = {
+        row["arm"]: row for row in template["results"]
     }
-    receipt["receipt_sha256"] = qualification_receipt_sha256(receipt)
+    _FakeQualificationProcess.fail_once_arms = set()
+    _FakeQualificationProcess.launched_arms = []
+    monkeypatch.setattr(
+        qualification_runner.subprocess, "Popen", _FakeQualificationProcess
+    )
+    output = tmp_path / "qualification-output"
+    progress = qualification_runner.execute_triplet(
+        authorization_path=authorization_path,
+        output_root=output,
+        progress_path=tmp_path / "qualification-progress.jsonl",
+        resume=False,
+        cell_runner=tmp_path / "fake-cell-runner.py",
+    )
+    assert progress["status"] == "passed"
+    receipt = build_method_qualification_receipt(
+        ROOT,
+        output / "report.json",
+        manifest,
+        observed_cost_usd=SYNTHETIC_OBSERVED_COST_USD,
+        pricing_source="https://provider.example/pricing",
+        pricing_observed_at="2026-08-10T00:00:00+08:00",
+    )
     return receipt, manifest
 
 
@@ -309,17 +278,32 @@ def test_method_qualification_report_without_precall_authorization_is_rejected(
     )
 
 
-def test_method_qualification_receipt_builder_round_trips_validated_triplet(
+def test_authorized_qualification_report_requires_parent_execution_journal(
     repo_tmp_path: Path,
 ) -> None:
-    manual_receipt, manifest = _receipt(repo_tmp_path)
-    report_path = repo_tmp_path / "qualification-report.json"
+    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    authorization = _authorization(manifest)
+    authorization_path = repo_tmp_path / "qualification-authorization.json"
+    authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
+    report = _qualification_report(manifest, authorization_path)
+
+    errors = validate_method_qualification_report(ROOT, report, manifest)
+
+    assert "qualification execution journal binding is missing" in errors
+
+
+def test_method_qualification_receipt_builder_round_trips_validated_triplet(
+    monkeypatch,
+    repo_tmp_path: Path,
+) -> None:
+    manual_receipt, manifest = _receipt(repo_tmp_path, monkeypatch)
+    report_path = repo_tmp_path / "qualification-output" / "report.json"
     built = build_method_qualification_receipt(
         ROOT,
         report_path,
         manifest,
-        observed_cost_usd=0.2,
-        pricing_source="provider pricing catalog",
+        observed_cost_usd=SYNTHETIC_OBSERVED_COST_USD,
+        pricing_source="https://provider.example/pricing",
         pricing_observed_at="2026-08-10T00:00:00+08:00",
     )
     assert validate_method_qualification_receipt(
@@ -332,12 +316,31 @@ def test_method_qualification_receipt_builder_round_trips_validated_triplet(
         "qualification_report_binding"
     ]
     assert built["qualification_execution_authorization_sha256"]
+    assert built["qualification_cost_accounting"]["token_totals"] == {
+        "input_tokens": 300,
+        "uncached_input_tokens": 150,
+        "output_tokens": 75,
+    }
+    assert (
+        built["qualification_cost_accounting"]["calculated_cost_usd"]
+        == SYNTHETIC_OBSERVED_COST_USD
+    )
+    with pytest.raises(ValueError, match="differs from frozen prices"):
+        build_method_qualification_receipt(
+            ROOT,
+            report_path,
+            manifest,
+            observed_cost_usd=0.2,
+            pricing_source="https://provider.example/pricing",
+            pricing_observed_at="2026-08-10T00:00:00+08:00",
+        )
 
 
 def test_method_qualification_receipt_is_semantic_self_hashed_and_cost_bound(
+    monkeypatch,
     repo_tmp_path: Path,
 ) -> None:
-    receipt, manifest = _receipt(repo_tmp_path)
+    receipt, manifest = _receipt(repo_tmp_path, monkeypatch)
     assert (
         validate_method_qualification_receipt(
             ROOT,
@@ -359,10 +362,11 @@ def test_method_qualification_receipt_is_semantic_self_hashed_and_cost_bound(
 
 
 def test_shallow_passed_json_cannot_authorize_formal_execution(
+    monkeypatch,
     repo_tmp_path: Path,
 ) -> None:
-    receipt, manifest = _receipt(repo_tmp_path)
-    report_path = repo_tmp_path / "qualification-report.json"
+    receipt, manifest = _receipt(repo_tmp_path, monkeypatch)
+    report_path = repo_tmp_path / "qualification-output" / "report.json"
     shallow: dict[str, object] = {
         "schema_version": METHOD_QUALIFICATION_REPORT_VERSION,
         "status": "passed",
@@ -384,10 +388,11 @@ def test_shallow_passed_json_cannot_authorize_formal_execution(
 
 
 def test_semantic_failure_is_rejected_even_after_all_hashes_are_refreshed(
+    monkeypatch,
     repo_tmp_path: Path,
 ) -> None:
-    receipt, manifest = _receipt(repo_tmp_path)
-    report_path = repo_tmp_path / "qualification-report.json"
+    receipt, manifest = _receipt(repo_tmp_path, monkeypatch)
+    report_path = repo_tmp_path / "qualification-output" / "report.json"
     report = json.loads(report_path.read_text(encoding="utf-8"))
     report["results"][1]["completed"] = False
     report["report_sha256"] = method_qualification_report_sha256(report)
@@ -403,6 +408,46 @@ def test_semantic_failure_is_rejected_even_after_all_hashes_are_refreshed(
         currency_ceiling_usd=50.0,
     )
     assert "aligned_nominal: method qualification cell did not complete" in errors
+
+
+def test_receipt_rejects_rehashed_journal_that_omits_an_attempt(
+    monkeypatch,
+    repo_tmp_path: Path,
+) -> None:
+    receipt, manifest = _receipt(repo_tmp_path, monkeypatch)
+    output = repo_tmp_path / "qualification-output"
+    journal_path = output / "execution_journal.json"
+    report_path = output / "report.json"
+    journal = json.loads(journal_path.read_text(encoding="utf-8"))
+    journal["attempts"] = journal["attempts"][:-1]
+    journal["execution_journal_sha256"] = qualification_execution_journal_sha256(
+        journal
+    )
+    journal_path.write_text(json.dumps(journal), encoding="utf-8")
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    journal_binding = report["qualification_execution_journal_binding"]
+    journal_binding["sha256"] = file_sha256(journal_path)
+    journal_binding["execution_journal_sha256"] = journal[
+        "execution_journal_sha256"
+    ]
+    report["report_sha256"] = method_qualification_report_sha256(report)
+    report_path.write_text(json.dumps(report), encoding="utf-8")
+    report_binding = receipt["qualification_report_binding"]
+    report_binding["sha256"] = file_sha256(report_path)
+    report_binding["report_sha256"] = report["report_sha256"]
+    receipt["receipt_sha256"] = qualification_receipt_sha256(receipt)
+
+    errors = validate_method_qualification_receipt(
+        ROOT,
+        receipt,
+        manifest,
+        currency_ceiling_usd=50.0,
+    )
+
+    assert (
+        "qualification execution journal omits or adds attempt authorizations"
+        in errors
+    )
 
 
 def test_method_qualification_readiness_is_zero_call_and_execution_blocked() -> None:

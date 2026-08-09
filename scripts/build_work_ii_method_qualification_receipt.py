@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 from chemworld.eval.provenance import write_json_atomic
 from chemworld.eval.work_ii_formal import build_formal_preflight, validate_formal_bindings
@@ -21,16 +22,16 @@ ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
 DEFAULT_REPORT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "work-ii-method-qualification-report-v0.3.json"
+    "work-ii-method-qualification-report-v0.4.json"
 )
 DEFAULT_RECEIPT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "work-ii-method-qualification-receipt-v0.3.json"
+    "work-ii-method-qualification-receipt-v0.4.json"
 )
 
 
-def _load(path: Path) -> dict[str, object]:
+def _load(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise ValueError(f"{path} must contain an object")

@@ -32,10 +32,12 @@ from chemworld.eval.work_ii_formal import (
 from chemworld.eval.work_ii_qualification import (
     METHOD_QUALIFICATION_REPORT_VERSION,
     build_qualification_attempt_authorization,
+    build_qualification_execution_journal,
     method_qualification_report_sha256,
     validate_method_qualification_report,
     validate_qualification_attempt_authorization,
     validate_qualification_execution_authorization,
+    validate_qualification_execution_journal,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -541,6 +543,7 @@ def _build_report(
     output_root: Path,
     *,
     authorization_copy: Path,
+    execution_journal_path: Path,
     config_path: Path,
     world_seed: int,
     elapsed_s: float,
@@ -568,6 +571,13 @@ def _build_report(
             "path": authorization_copy.relative_to(ROOT).as_posix(),
             "sha256": file_sha256(authorization_copy),
             "authorization_sha256": authorization["authorization_sha256"],
+        },
+        "qualification_execution_journal_binding": {
+            "path": execution_journal_path.relative_to(ROOT).as_posix(),
+            "sha256": file_sha256(execution_journal_path),
+            "execution_journal_sha256": _load(execution_journal_path)[
+                "execution_journal_sha256"
+            ],
         },
         "config_sha256": canonical_json_sha256(config),
         "config_file_sha256": file_sha256(config_path),
@@ -831,6 +841,22 @@ def execute_triplet(
     report_errors: list[str] = []
     report: dict[str, Any] | None = None
     if not pending_after:
+        journal_path = output_root / "execution_journal.json"
+        if journal_path.is_file():
+            journal = _load(journal_path)
+            journal_errors = validate_qualification_execution_journal(
+                ROOT, journal, manifest
+            )
+            if journal_errors:
+                raise RuntimeError(
+                    "qualification execution journal failed: "
+                    + "; ".join(journal_errors)
+                )
+        else:
+            journal = build_qualification_execution_journal(
+                ROOT, output_root, manifest
+            )
+            _write_once(journal_path, journal)
         report_path = output_root / "report.json"
         if report_path.is_file():
             report = _load(report_path)
@@ -844,6 +870,7 @@ def execute_triplet(
             report, report_errors = _build_report(
                 output_root,
                 authorization_copy=authorization_copy,
+                execution_journal_path=journal_path,
                 config_path=config_path,
                 world_seed=world_seed,
                 elapsed_s=time.monotonic() - started,

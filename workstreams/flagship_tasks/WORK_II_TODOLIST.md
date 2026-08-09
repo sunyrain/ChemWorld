@@ -772,10 +772,13 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   cost-ledger snapshot。父 runner 并行启动当前缺失的三臂，每臂最多一次纯基础设施 resume；一旦出现任何
   trajectory evidence 即写成 completed/right-censored 终态，禁止 replacement。resume 会重验连续 attempt
   journal、预算快照、终态回执和 report-to-terminal 绑定，只补未形成 trajectory 的缺失臂；三臂终态已写入但
-  report 尚未写入的中断可在不新增 provider call 的情况下恢复。普通 development runner 即使成功也不能进入
-  资格收据。通过的三臂 report 使用
-  v0.3 schema，并由 `scripts/build_work_ii_method_qualification_receipt.py` 逐项复核 pricing source、observed
-  cost、用户 ceiling、三臂 lifecycle/replay/audit/provider receipts 后生成 v0.3 receipt。三个生成器在缺少
+  report 尚未写入的中断可在不新增 provider call 的情况下恢复。父 runner 在聚合 report 前另生成自哈希的
+  execution journal，完整绑定 runner source、pre-call authorization、cost contract、final ledger、每次
+  attempt authorization/ledger snapshot、三臂 terminal receipt 和对应 scientific row；v0.4 report/receipt
+  不允许省略或重排该日志。普通 development runner 即使成功也不能进入资格收据。通过的三臂 report 使用
+  v0.4 schema，并由 `scripts/build_work_ii_method_qualification_receipt.py` 按 authorization 中冻结的定价重算
+  三臂 observed token cost，逐项复核 pricing source/timestamp、token totals、用户 ceiling、三臂
+  lifecycle/replay/audit/provider receipts 后生成 v0.4 receipt。三个生成器在缺少
   用户输入、真实报告或价格证据时均已验证 fail-closed 且不会创建文件。真实三臂资格仍等待 provider 合同、
   凭据轮换确认和 qualification currency ceiling，不能据此授权正式执行。
 
