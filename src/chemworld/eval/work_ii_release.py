@@ -21,6 +21,7 @@ from chemworld.eval.work_ii_qualification import (
 
 PRERUN_EVIDENCE_GRAPH_VERSION = "chemworld-work-ii-prerun-evidence-graph-0.1"
 CLEAN_RELEASE_RECEIPT_VERSION = "chemworld-work-ii-clean-release-receipt-0.1"
+EXPECTED_WORK_II_RELEASE_TEST_COUNT = 74
 PREREGISTRATION_FREEZE_RECEIPT_VERSION = (
     "chemworld-work-ii-preregistration-freeze-receipt-0.1"
 )
@@ -506,7 +507,7 @@ def validate_clean_release_receipt(receipt: Mapping[str, Any]) -> list[str]:
     tests = tests if isinstance(tests, Mapping) else {}
     if (
         tests.get("status") != "passed"
-        or tests.get("passed") != 70
+        or tests.get("passed") != EXPECTED_WORK_II_RELEASE_TEST_COUNT
         or tests.get("failed") != 0
     ):
         errors.append("Work II clean-release receipt lacks the exact release test result")
@@ -784,6 +785,7 @@ def build_preregistration_freeze_receipt(
 
 __all__ = [
     "CLEAN_RELEASE_RECEIPT_VERSION",
+    "EXPECTED_WORK_II_RELEASE_TEST_COUNT",
     "PREREGISTRATION_FREEZE_RECEIPT_VERSION",
     "PRERUN_EVIDENCE_GRAPH_VERSION",
     "build_preregistration_freeze_receipt",

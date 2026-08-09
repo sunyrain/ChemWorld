@@ -20,6 +20,7 @@ from typing import Any
 from chemworld.eval.provenance import file_sha256, write_json_atomic
 from chemworld.eval.work_ii_release import (
     CLEAN_RELEASE_RECEIPT_VERSION,
+    EXPECTED_WORK_II_RELEASE_TEST_COUNT,
     clean_release_receipt_sha256,
     validate_clean_release_receipt,
 )
@@ -45,7 +46,6 @@ WORK_II_TEST_FILES = (
     "tests/test_work_ii_report.py",
     "tests/test_work_ii_truth.py",
 )
-EXPECTED_WORK_II_TEST_COUNT = 74
 FROZEN_CHECKS = (
     ("formal_preflight", "scripts/run_work_ii_formal_matrix.py", "--preflight", "--check"),
     ("method_qualification", "scripts/run_work_ii_method_qualification.py", "--check"),
@@ -223,7 +223,7 @@ def main() -> int:
             raise RuntimeError("could not parse the Work II pytest denominator")
         passed = int(match.group(1))
         skipped = int(match.group(2) or 0)
-        if passed != EXPECTED_WORK_II_TEST_COUNT or skipped != 0:
+        if passed != EXPECTED_WORK_II_RELEASE_TEST_COUNT or skipped != 0:
             raise RuntimeError(
                 f"unexpected Work II pytest result: passed={passed}, skipped={skipped}"
             )
