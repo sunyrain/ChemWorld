@@ -634,16 +634,16 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] 完成
 - 优先级：P0
 - 代码交付物：
-  - [ ] 基于第一篇 `InteractiveCodexExperimentAgent`/ChemWorld MCP 的 persistent operation-level participant runner；
+  - [x] 基于第一篇 `InteractiveCodexExperimentAgent`/ChemWorld MCP 的 persistent operation-level participant runner；
   - [ ] immutable matrix/schedule manifest（五任务、三臂、session、operation、experiment、checkpoint、held-out/blind denominators）；
   - [ ] session-aware resume 与 right-censoring state machine；
-  - [ ] provider/session/scaffold receipts；
+  - [x] provider/session/scaffold receipts；
   - [x] typed prior/evidence/belief/law-summary schema 与可执行 law-summary validator；
-  - [ ] 同一 session 内的 pre-evidence、preregistered experiment checkpoints 和 final snapshot MCP contract；
-  - [ ] 从首个 physical operation 开始的 free-discovery state machine；主实验不注入 protocol-owned discriminating experiment；
+  - [x] 同一 session 内的 pre-evidence、preregistered experiment checkpoints 和 final snapshot MCP contract；
+  - [x] 从首个 physical operation 开始的 free-discovery state machine；主实验不注入 protocol-owned discriminating experiment；
   - [ ] optional matched-evidence mechanism probe 的独立 cloned-world/session/resource contract，默认不进入最小 pilot；
-  - [ ] operation-level `step(action)`、public outcome、termination/final-assay 和 multi-experiment campaign 的统一接口；
-  - [ ] discovery campaign 共享 resource card/ledger、跨 experiment resource snapshot 和 lifecycle reserve；
+  - [x] operation-level `step(action)`、public outcome、termination/final-assay 和 multi-experiment campaign 的统一接口；
+  - [x] discovery campaign 共享 resource card/ledger、跨 experiment resource snapshot 和 lifecycle reserve；
   - [ ] 第一篇 19-coordinate contract 的 Work II adapter，排除 evaluator-owned held-out/blind operations；
   - [ ] exact replay、resource replay 和 hidden-boundary audits；
   - [ ] public/private split enforcement；
@@ -651,16 +651,21 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 - 验收标准：
   - [x] 不依赖 notebook 或人工逐单元操作；
   - [x] 中断后不覆盖、不替换、不重复计数；
-  - [ ] private identities 不进入 agent prompt；
+  - [x] private identities 不进入 agent prompt；
   - [ ] 每个估计量可追溯到 immutable trajectory records；
   - [ ] fail-closed tests 覆盖 provider failure、partial action 和 ledger mismatch。
 - 备注：typed prior/evidence/belief/law-summary schema 与 held-out query validator 保留。旧
   Direct Responses runner、配置、tests 和 mock/real/breadth 报告均已归档；其 15/15 breadth
   只证明旧架构的 transport/schema/executor/recovery 可运行，不是当前 session method 的资格证据。
-  当前未提交的 `CodexSessionClient + complete-experiment plan` prototype 关闭 MCP、按 plan 一次执行到底，
-  不能观察 operation-level measurement/termination，也尚未共享 campaign resource ledger；它不得运行
-  provider 或进入当前方法。新 operation-level runner 必须先通过 deterministic session preflight，再
-  运行一个任务 × 三臂 × seed 0 的真实 session probe；在此之前不得启动五任务 breadth 或多 seed 数据。
+  当前 operation-level runner 已替代关闭 MCP 的旧 `CodexSessionClient + complete-experiment plan` prototype。
+  75-cell outcome-blind preflight 已确定性生成并复核：5 tasks、25 public task×world clusters、3 arms、
+  75 persistent sessions、300 complete experiments、300 typed checkpoints、1,200 checkpoint queries 和
+  4,080 query×metric predictions；private identities、world seed、arm label 与 evaluator truth 均不进入 participant prompt。
+  同时修复了 formal config 的中性 checkpoint IDs 与 typed MCP validator 仍只接受历史语义标签的契约错位，
+  历史标签仅保留 replay 兼容。报告：
+  `workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`。
+  preflight 当前按设计 fail-closed，尚缺 blind final-recommendation denominator、missing-only resume/right-censor
+  terminal store、provider-attempt/currency contract 与当前方法 qualification receipt；不得据此启动 provider 或正式矩阵。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 

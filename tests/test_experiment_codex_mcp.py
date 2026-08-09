@@ -194,7 +194,12 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
     workspace.publish_task_contract({"task_id": "test"})
     workspace.publish_belief_checkpoint_contract(
         {
-            "snapshot_stages": ["pre_evidence", "post_neutral", "post_discriminating", "final"],
+            "snapshot_stages": [
+                "pre_evidence",
+                "after_experiment_1",
+                "after_experiment_2",
+                "final",
+            ],
             "checkpoint_complete_experiments": [0, 1, 2, 4],
             "query_metric_contract": {"q0": ["score"]},
             "allowed_feature_ids": ["potential_V"],

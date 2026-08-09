@@ -20,6 +20,7 @@ from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
+from chemworld.eval.work_ii_formal import build_checkpoint_contract as _checkpoint_contract
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,80 +41,6 @@ def _resolve_optional_path(value: Any) -> str | None:
     if not path.is_absolute():
         path = ROOT / path
     return str(path.resolve())
-
-
-def _checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, Any]:
-    nominal = arm != "opaque"
-    configured = config.get("belief_checkpoint")
-    if isinstance(configured, Mapping):
-        held_out_queries = [dict(item) for item in configured["held_out_queries"]]
-        metric_ids = [str(item) for item in configured["allowed_metric_ids"]]
-        feature_ids = [str(item) for item in configured["allowed_feature_ids"]]
-        prior_fields = [str(item) for item in configured["allowed_prior_fields"]]
-    else:
-        metric_ids = ["selective_product_yield", "energy_efficiency", "safety_risk"]
-        feature_ids = [
-            "electrolyte_profile",
-            "solvent",
-            "reagent_amount_mol",
-            "potential_V",
-            "current_mA",
-            "duration_s",
-        ]
-        prior_fields = ["electrolyte_profile", "solvent"]
-        held_out_queries = [
-            {
-                "query_id": query_id,
-                "feature_values": {
-                    "electrolyte_profile": electrolyte_profile,
-                    "solvent": solvent,
-                    "reagent_amount_mol": 0.01,
-                    "potential_V": 0.8,
-                    "current_mA": 100.0,
-                    "duration_s": 1800.0,
-                },
-                "metric_ids": metric_ids,
-            }
-            for query_id, electrolyte_profile, solvent in (
-                ("q-low", 0, 0),
-                ("q-electrolyte", 3, 0),
-                ("q-solvent", 0, 3),
-                ("q-high", 3, 3),
-            )
-        ]
-    query_metric_contract = {
-        str(item["query_id"]): [str(metric) for metric in item.get("metric_ids", metric_ids)]
-        for item in held_out_queries
-    }
-    complete_experiments = int(config["campaign"]["complete_experiments"])
-    snapshot_stages = [
-        str(item)
-        for item in config.get(
-            "snapshot_stages",
-            ["pre_evidence", "post_neutral", "post_discriminating", "final"],
-        )
-    ]
-    if len(snapshot_stages) != 4 or len(set(snapshot_stages)) != 4:
-        raise ValueError("snapshot_stages must contain four unique stage IDs")
-    return {
-        "schema_version": "chemworld-work-ii-campaign-checkpoint-contract-0.1",
-        "snapshot_stages": snapshot_stages,
-        "checkpoint_complete_experiments": list(
-            config["campaign"]["checkpoint_complete_experiments"]
-        ),
-        "query_metric_contract": query_metric_contract,
-        "held_out_queries": held_out_queries,
-        "allowed_feature_ids": feature_ids,
-        "allowed_metric_ids": metric_ids,
-        "allowed_prior_fields": prior_fields,
-        "evidence_catalog": [
-            f"experiment-{index}-final-assay"
-            for index in range(1, complete_experiments + 1)
-        ],
-        "nominal_information_available": nominal,
-        "stage_labels_are_checkpoint_ids_only": True,
-        "physical_experiment_selection_authority": "participant",
-    }
 
 
 def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:

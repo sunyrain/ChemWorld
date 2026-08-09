@@ -17,6 +17,12 @@ WORK_II_SNAPSHOT_SCHEMA_VERSION = "chemworld-work-ii-belief-snapshot-0.1"
 WORK_II_HELD_OUT_QUERY_SCHEMA_VERSION = "chemworld-work-ii-held-out-query-0.1"
 WORK_II_SNAPSHOT_STAGES = (
     "pre_evidence",
+    "after_experiment_1",
+    "after_experiment_2",
+    "final",
+)
+WORK_II_LEGACY_SNAPSHOT_STAGES = (
+    "pre_evidence",
     "post_neutral",
     "post_discriminating",
     "final",
@@ -531,7 +537,8 @@ def parse_work_ii_belief_snapshot(
     if value["schema_version"] != WORK_II_SNAPSHOT_SCHEMA_VERSION:
         raise ValueError("belief_snapshot.schema_version does not match the frozen contract")
     stage = _text(value["stage"], "belief_snapshot.stage")
-    if expected_stage not in WORK_II_SNAPSHOT_STAGES or stage != expected_stage:
+    allowed_stages = set(WORK_II_SNAPSHOT_STAGES) | set(WORK_II_LEGACY_SNAPSHOT_STAGES)
+    if expected_stage not in allowed_stages or stage != expected_stage:
         raise ValueError("belief_snapshot stage does not match the requested snapshot")
     prior = _mapping(value["prior_assessment"], "belief_snapshot.prior_assessment")
     _exact_fields(
@@ -657,7 +664,11 @@ def parse_work_ii_belief_snapshot(
 def validate_work_ii_snapshot_sequence(
     snapshots: Sequence[WorkIIBeliefSnapshot],
 ) -> None:
-    if tuple(snapshot.stage for snapshot in snapshots) != WORK_II_SNAPSHOT_STAGES:
+    observed_stages = tuple(snapshot.stage for snapshot in snapshots)
+    if observed_stages not in {
+        WORK_II_SNAPSHOT_STAGES,
+        WORK_II_LEGACY_SNAPSHOT_STAGES,
+    }:
         raise ValueError("belief snapshots must follow the frozen four-stage order")
     snapshot_ids = [snapshot.snapshot_id for snapshot in snapshots]
     if len(set(snapshot_ids)) != len(snapshot_ids):
@@ -701,7 +712,7 @@ def parse_work_ii_discovery_schedule(payload: object) -> WorkIIDiscoverySchedule
         "discovery_schedule",
     )
     stages = _string_tuple(value["snapshot_stages"], "discovery_schedule.snapshot_stages")
-    if stages != WORK_II_SNAPSHOT_STAGES:
+    if stages not in {WORK_II_SNAPSHOT_STAGES, WORK_II_LEGACY_SNAPSHOT_STAGES}:
         raise ValueError("discovery schedule must use the frozen four snapshot stages")
     return WorkIIDiscoverySchedule(
         neutral_prefix_experiments=_positive_int(
@@ -775,6 +786,7 @@ __all__ = [
     "WORK_II_LAW_BASES",
     "WORK_II_LAW_LINKS",
     "WORK_II_LAW_SUMMARY_SCHEMA_VERSION",
+    "WORK_II_LEGACY_SNAPSHOT_STAGES",
     "WORK_II_SNAPSHOT_SCHEMA_VERSION",
     "WORK_II_SNAPSHOT_STAGES",
     "WorkIIBeliefSnapshot",
