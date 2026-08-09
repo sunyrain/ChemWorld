@@ -1,0 +1,122 @@
+{
+  "blocking_requirements": [
+    "user must confirm the current provider contract or approve an explicit amendment",
+    "user must confirm that the provider credential was rotated after exposure",
+    "user must approve a qualification currency ceiling bound to the frozen gate contract",
+    "the real-provider three-arm qualification triplet has not been executed"
+  ],
+  "expected_counts": {
+    "accepted_cell_wall_time_cap_s": 16200.0,
+    "accepted_participant_model_calls": 3,
+    "accepted_provider_sessions": 3,
+    "accepted_scientific_cells": 3,
+    "accepted_scientific_codex_processes": 3,
+    "belief_checkpoints": 12,
+    "complete_experiments": 12,
+    "input_tokens_accepted_cell_cap": 7200000,
+    "operation_attempts_hard_cap": 84,
+    "output_tokens_accepted_cell_cap": 72000,
+    "provider_process_attempts_hard_cap": 6,
+    "provider_process_attempts_initial": 3,
+    "uncached_input_tokens_accepted_cell_cap": 960000
+  },
+  "formal_execution_authorized": false,
+  "formal_participant_outcomes_before_authorization": 0,
+  "formal_preflight_sha256": "db335d3ccb3284a7814f038afd3700d752da7f7228d5c55a481c5f0a44363b24",
+  "formal_result": false,
+  "held_out_evaluator_contract_sha256": "d78c285f1c4cfac87129d7cf9a6c657c3aa8a8a23da18c8d40ecbbb81becf6b9",
+  "historical_evidence_assessment": [
+    {
+      "binding": {
+        "path": "workstreams/flagship_tasks/reports/work-ii-seed0-persistent-campaign-pilot.json",
+        "present": true,
+        "sha256": "f9e72586dec75d93fba98d1d798f5b67ae16801ea312ff7454deee60652ec285"
+      },
+      "eligible_for_current_method_receipt": false,
+      "evidence_id": "wellau_seed0_2026_08_08",
+      "reasons": [
+        "public resource card exposed prior-arm identity",
+        "source predates the current participant execution and qualification contracts"
+      ]
+    },
+    {
+      "binding": {
+        "path": "workstreams/flagship_tasks/reports/work-ii-deepseek-codex-harness-diagnosis.md",
+        "present": true,
+        "sha256": "68762a34e0802c7ee7f1dabf7e0aa0c1bb991d829be098902fbbd3cb5f36de7e"
+      },
+      "eligible_for_current_method_receipt": false,
+      "evidence_id": "deepseek_qualification_v2_seed0_opaque",
+      "reasons": [
+        "covered only the opaque arm rather than the frozen three-arm triplet",
+        "used a provider and sampling contract different from the current formal method"
+      ]
+    }
+  ],
+  "internal_errors": [],
+  "method_qualification_contract": {
+    "accepted_participant_model_calls_per_cell": 1,
+    "accepted_participant_provider_sessions_per_cell": 1,
+    "accepted_scientific_codex_processes_per_cell": 1,
+    "all_cells_must_pass": true,
+    "belief_checkpoints_per_cell": 4,
+    "complete_experiments_per_cell": 4,
+    "currency_approval_required": true,
+    "exact_replay_required": true,
+    "execution_audit_required": true,
+    "formal_participant_outcomes_before_authorization": 0,
+    "maximum_infrastructure_resume_attempts_per_cell": 1,
+    "maximum_total_provider_attempts": 6,
+    "qualification_cell_count": 3,
+    "qualification_outcome_use": "platform_and_method_acceptance_only",
+    "qualification_task_id": "electrochemical-conversion",
+    "qualification_world_cohort": "development_and_qualification",
+    "qualification_world_seed": 0,
+    "qualification_worlds_excluded_from_formal": true,
+    "qualified_prior_arms": [
+      "opaque",
+      "aligned_nominal",
+      "misindexed_nominal"
+    ],
+    "real_provider_execution_required": true,
+    "same_provider_and_method_as_formal": true,
+    "scientific_outcome_selection_forbidden": true,
+    "triplet_failure_semantics": "finish_all_three_arms_then_fail_qualification"
+  },
+  "method_qualification_contract_sha256": "2d409f34b9ddfa254012cc27fceb4481f086d7d0b217269fb9762989248259b6",
+  "participant_execution_contract_sha256": "1f045d6489e8d7c2f77753881f615a9ba0e5fbc858a83fb815e85543c58f59d5",
+  "provider_calls_executed": 0,
+  "provider_contract": {
+    "base_url": "https://api.wellau.com/v1",
+    "finalization_timeout_s": 600.0,
+    "id": "wellau",
+    "model": "gpt-5.6-sol",
+    "name": "WellAU",
+    "reasoning_effort": "medium",
+    "request_timeout_s": 1200.0,
+    "wire_api": "responses"
+  },
+  "provider_contract_sha256": "143a2a98dc9cb662ccb0900e60422ebc164a7c00314caad42d9a5ecdf7bbc069",
+  "provider_execution_allowed": false,
+  "qualification_schedule": {
+    "campaign_config": {
+      "hash_kind": "file_sha256",
+      "path": "configs/benchmark/work_ii_campaign_pilot.json",
+      "sha256": "3d5b22431fff3be0ff84b1097ca9c454f39cf50303b142f69dfdc612890ea30b"
+    },
+    "output_scope": "runs/development",
+    "prior_arms": [
+      "opaque",
+      "aligned_nominal",
+      "misindexed_nominal"
+    ],
+    "runner": "scripts/run_work_ii_campaign_pilot.py",
+    "task_id": "electrochemical-conversion",
+    "triplet_failure_semantics": "finish_all_three_arms_then_fail_qualification",
+    "world_cohort": "development_and_qualification",
+    "world_seed": 0
+  },
+  "readiness_sha256": "8972651d1a1b5a1edabe2d8572e8ca35245f97cd0222b9f550491a97a7ce9bb5",
+  "schema_version": "chemworld-work-ii-method-qualification-readiness-0.1",
+  "status": "passed_provider_execution_blocked"
+}

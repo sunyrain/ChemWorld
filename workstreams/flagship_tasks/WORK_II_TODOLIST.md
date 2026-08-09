@@ -641,9 +641,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] 已认领；负责人：`Codex /root`
 - 状态：
   - [ ] 未开始
-  - [x] 进行中
+  - [ ] 进行中
   - [ ] 阻塞
-  - [ ] 完成
+  - [x] 完成
 - 优先级：P0
 - 代码交付物：
   - [x] 基于第一篇 `InteractiveCodexExperimentAgent`/ChemWorld MCP 的 persistent operation-level participant runner；
@@ -730,13 +730,21 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] schema-valid operation rate、committed-operation rate、lifecycle completion、receipts、cost/resource accounting 和 replay 达标；
   - [ ] 同一 session 内多个 complete experiments、共享资源、prediction checkpoints、typed law summary 和 final recommendation 全部闭环；
   - [ ] 中途 measurement、continue、`terminate`、final assay、资源拒绝和 right-censoring 均有 fail-closed qualification；
-  - [ ] qualification worlds 不进入正式矩阵；
-  - [ ] 失败修复只允许修改实现，不允许修改正式科学 estimands；
+  - [x] qualification worlds 不进入正式矩阵；
+  - [x] 失败修复只允许修改实现，不允许修改正式科学 estimands；
   - [ ] 形成当前 session method 的冻结 hash 和资格验证报告。
 - 备注：旧 Direct Responses 方法及其 3/3、15/15 development qualification 已归档，不再视为
   当前方法通过。当前待验证方法为 WellAU `gpt-5.6-sol` medium、one persistent Codex session
   per cell、operation-level ChemWorld MCP、multi-experiment shared-resource discovery campaign、
   sealed held-out/blind evaluator。WellAU pricing catalog仍不可验证，货币成本不得记为零。
+  零外部调用 readiness 已冻结为
+  `workstreams/flagship_tasks/reports/work-ii-method-qualification-readiness-v0.1.json`：当前合同要求
+  electrochemical development seed 0 的 opaque/aligned/misindexed 三臂全部保留，3 sessions、
+  12 complete experiments、12 checkpoints、84 operation-attempt hard cap；若每臂耗尽一次纯基础设施
+  resume，provider-process attempt hard cap 为 6。旧 WellAU 三臂报告因 arm identity 泄露而不合格，
+  DeepSeek qualification-v2 因只覆盖 opaque 单臂且 provider/sampling contract 不同而不合格。
+  readiness 内部校验已通过且执行 0 次 provider call；真实三臂资格仍等待 provider 合同、凭据轮换确认和
+  qualification currency ceiling，不能据此授权正式执行。
 
 ### W2-11 — 冻结 preregistration 与不可变执行包
 

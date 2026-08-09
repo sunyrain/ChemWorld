@@ -27,9 +27,7 @@ def _config() -> dict[str, object]:
 
 
 def _task_config(name: str) -> dict[str, object]:
-    return json.loads(
-        (ROOT / f"configs/benchmark/{name}").read_text(encoding="utf-8")
-    )
+    return json.loads((ROOT / f"configs/benchmark/{name}").read_text(encoding="utf-8"))
 
 
 def test_public_campaign_card_contains_no_arm_or_seed_identity() -> None:
@@ -169,9 +167,7 @@ def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:
         "complete_experiment_count": 4,
         "experiments": [{"experiment_index": index} for index in range(1, 5)],
         "right_censored_open_experiment": False,
-        "belief_snapshots": [
-            {"stage": stage} for stage in config["snapshot_stages"]
-        ],
+        "belief_snapshots": [{"stage": stage} for stage in config["snapshot_stages"]],
         "resource_rejection_count": 0,
         "final_campaign_resources": {
             "campaign_terminal": True,
@@ -411,6 +407,40 @@ def test_single_arm_mode_leaves_cell_directory_creation_to_cell_runner(
     )
     assert report["completed_cell_count"] == 1
     assert (output / "report.json").exists()
+
+
+def test_three_arm_qualification_retains_the_whole_triplet_after_failure(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    observed: list[str] = []
+
+    def fake_run_cell(**kwargs):
+        arm = kwargs["arm"]
+        observed.append(arm)
+        return {
+            "arm": arm,
+            "completed": arm != "opaque",
+            "failure": (
+                {"type": "SyntheticFailure", "message": "retained"} if arm == "opaque" else None
+            ),
+        }
+
+    monkeypatch.setattr(campaign_runner, "_run_cell", fake_run_cell)
+    output = tmp_path / "triplet"
+    report = campaign_runner.run(
+        argparse.Namespace(
+            config=ROOT / "configs/benchmark/work_ii_campaign_pilot.json",
+            output=output,
+            progress_file=tmp_path / "progress.jsonl",
+            world_seed=0,
+            prior_arm=None,
+        )
+    )
+    assert observed == ["opaque", "aligned_nominal", "misindexed_nominal"]
+    assert report["cell_count"] == 3
+    assert report["completed_cell_count"] == 2
+    assert report["results"][0]["failure"]["type"] == "SyntheticFailure"
 
 
 def test_five_seed_runner_uses_os_isolated_three_cell_triplets(

@@ -33,6 +33,11 @@ from chemworld.eval.work_ii_formal import (
 from chemworld.eval.work_ii_process_profile import (
     build_work_ii_execution_artifacts,
 )
+from chemworld.eval.work_ii_qualification import (
+    METHOD_QUALIFICATION_REPORT_VERSION,
+    REQUIRED_CELL_QUALIFICATION_CHECKS,
+    method_qualification_report_sha256,
+)
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,9 +70,7 @@ def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
         nonfinal_instrument_use_limit=int(campaign["nonfinal_instrument_use_limit"]),
         stock_limits=dict(campaign["stock_limits"]),
         process_time_limit_s=float(campaign["process_time_limit_s"]),
-        implicit_operation_time_s=dict(
-            campaign.get("implicit_operation_time_s", {})
-        ),
+        implicit_operation_time_s=dict(campaign.get("implicit_operation_time_s", {})),
         operation_repeat_limits=dict(campaign["operation_repeat_limits"]),
         metadata={
             "pilot_id": config["pilot_id"],
@@ -153,8 +156,7 @@ def _analyze(
                     "operations": actions,
                     "leaderboard_score": row.get("leaderboard_score"),
                     "final_metrics": {
-                        key: row.get("observation", {}).get(key)
-                        for key in final_metric_ids
+                        key: row.get("observation", {}).get(key) for key in final_metric_ids
                     },
                 }
             )
@@ -238,9 +240,7 @@ def _qualification(
     recommendation = analysis.get("final_recommendation")
     recommendation = recommendation if isinstance(recommendation, Mapping) else {}
     selected_experiment_index = recommendation.get("selected_experiment_index")
-    recommendation_hash = (
-        canonical_json_sha256(recommendation) if recommendation else None
-    )
+    recommendation_hash = canonical_json_sha256(recommendation) if recommendation else None
     expected_stages = required_snapshot_stages or [
         "pre_evidence",
         "post_neutral",
@@ -251,9 +251,7 @@ def _qualification(
     for operation, bounds in required_operation_counts.items():
         low, high = (int(bounds[0]), int(bounds[1]))
         observed = int(operation_counts.get(operation, -1))
-        required_operations_reconciled = (
-            required_operations_reconciled and low <= observed <= high
-        )
+        required_operations_reconciled = required_operations_reconciled and low <= observed <= high
     target_experiments = int(method_resource_limits["complete_experiment_limit"])
     checks = {
         "planned_complete_experiments": analysis.get("complete_experiment_count")
@@ -300,6 +298,8 @@ def _qualification(
         <= int(limits.get("uncached_input_token_limit", 0))
         and int(usage.get("output_token_count", 0)) <= int(limits.get("output_token_limit", 0)),
     }
+    if tuple(checks) != REQUIRED_CELL_QUALIFICATION_CHECKS:
+        raise RuntimeError("cell qualification checks drifted from the frozen method gate")
     return {
         "passed": all(checks.values()),
         "checks": checks,
@@ -414,12 +414,8 @@ def _run_cell(
                 method_resource_limits=dict(config["method_resources"]),
                 material_information=dict(config["prior_arms"][arm]),
                 campaign_resource_card=card,
-                electrochemical_material_family_id=config.get(
-                    "electrochemical_material_family_id"
-                ),
-                crystallization_material_family_id=config.get(
-                    "crystallization_material_family_id"
-                ),
+                electrochemical_material_family_id=config.get("electrochemical_material_family_id"),
+                crystallization_material_family_id=config.get("crystallization_material_family_id"),
                 electrochemical_workflow_mode=config.get("electrochemical_workflow_mode"),
                 scoring_contract_id=config.get("scoring_contract_id"),
                 observation_noise_mode=config["observation_noise_mode"],
@@ -583,13 +579,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 }
             write_json_atomic(cell_root / "summary.json", row)
         results.append(row)
-        if not row["completed"]:
-            break
     report = {
         "schema_version": (
             "chemworld-work-ii-formal-cell-report-0.1"
             if formal_cell is not None
-            else "chemworld-work-ii-campaign-pilot-report-0.1"
+            else METHOD_QUALIFICATION_REPORT_VERSION
         ),
         "pilot_id": config["pilot_id"],
         "cell_id": (
@@ -609,6 +603,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "elapsed_s": round(perf_counter() - started, 1),
         "results": results,
     }
+    report["report_sha256"] = method_qualification_report_sha256(report)
     write_json_atomic(output / "report.json", report)
     return report
 

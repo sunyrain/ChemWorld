@@ -121,6 +121,36 @@ EXPECTED_REFERENCE_POLICY_CONTRACT: dict[str, Any] = {
     "outcome_based_method_arm_deletion_forbidden": True,
 }
 
+EXPECTED_METHOD_QUALIFICATION_CONTRACT: dict[str, Any] = {
+    "qualification_task_id": "electrochemical-conversion",
+    "qualification_world_cohort": "development_and_qualification",
+    "qualification_world_seed": 0,
+    "qualified_prior_arms": [
+        "opaque",
+        "aligned_nominal",
+        "misindexed_nominal",
+    ],
+    "qualification_cell_count": 3,
+    "complete_experiments_per_cell": 4,
+    "belief_checkpoints_per_cell": 4,
+    "accepted_scientific_codex_processes_per_cell": 1,
+    "accepted_participant_provider_sessions_per_cell": 1,
+    "accepted_participant_model_calls_per_cell": 1,
+    "maximum_infrastructure_resume_attempts_per_cell": 1,
+    "maximum_total_provider_attempts": 6,
+    "triplet_failure_semantics": "finish_all_three_arms_then_fail_qualification",
+    "qualification_outcome_use": "platform_and_method_acceptance_only",
+    "scientific_outcome_selection_forbidden": True,
+    "formal_participant_outcomes_before_authorization": 0,
+    "real_provider_execution_required": True,
+    "same_provider_and_method_as_formal": True,
+    "all_cells_must_pass": True,
+    "exact_replay_required": True,
+    "execution_audit_required": True,
+    "currency_approval_required": True,
+    "qualification_worlds_excluded_from_formal": True,
+}
+
 _SOURCE_PATHS = (
     "src/chemworld/agents/interactive_codex_experiment.py",
     "src/chemworld/agents/experiment_codex_ipc.py",
@@ -139,6 +169,7 @@ _SOURCE_PATHS = (
     "scripts/analyze_work_ii_formal.py",
     "scripts/run_work_ii_campaign_pilot.py",
     "scripts/run_work_ii_formal_matrix.py",
+    "scripts/run_work_ii_method_qualification.py",
     "pyproject.toml",
     "uv.lock",
 )
@@ -684,7 +715,16 @@ def build_formal_preflight(
     )
     if reference_policy_contract != EXPECTED_REFERENCE_POLICY_CONTRACT:
         errors.append("formal reference-policy contract differs from the frozen role")
+    method_qualification_contract = dict(
+        _object(
+            design.get("method_qualification_contract"),
+            "method_qualification_contract",
+        )
+    )
+    if method_qualification_contract != EXPECTED_METHOD_QUALIFICATION_CONTRACT:
+        errors.append("formal method-qualification contract differs from the frozen gate")
     participant_execution_contract_sha256 = canonical_json_sha256(participant_execution_contract)
+    method_qualification_contract_sha256 = canonical_json_sha256(method_qualification_contract)
 
     cells: list[dict[str, Any]] = []
     task_bindings: list[dict[str, Any]] = []
@@ -961,6 +1001,8 @@ def build_formal_preflight(
         "participant_execution_contract": participant_execution_contract,
         "participant_execution_contract_sha256": (participant_execution_contract_sha256),
         "reference_policy_contract": reference_policy_contract,
+        "method_qualification_contract": method_qualification_contract,
+        "method_qualification_contract_sha256": method_qualification_contract_sha256,
         "provider_attempt_contract": attempt_contract,
         "blind_evaluator_contract": blind_contract,
         "held_out_evaluator_contract": truth_contract,
@@ -1057,6 +1099,14 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
         errors.append("formal preflight participant execution contract is invalid")
     if report.get("reference_policy_contract") != EXPECTED_REFERENCE_POLICY_CONTRACT:
         errors.append("formal preflight reference-policy contract is invalid")
+    qualification_contract = report.get("method_qualification_contract")
+    qualification_contract_hash = report.get("method_qualification_contract_sha256")
+    if (
+        qualification_contract != EXPECTED_METHOD_QUALIFICATION_CONTRACT
+        or qualification_contract_hash
+        != canonical_json_sha256(EXPECTED_METHOD_QUALIFICATION_CONTRACT)
+    ):
+        errors.append("formal preflight method-qualification contract is invalid")
     for cell in cells:
         if not isinstance(cell, Mapping):
             errors.append("formal preflight contains a malformed cell")
@@ -1229,6 +1279,9 @@ def validate_formal_bindings(root: Path, report: Mapping[str, Any]) -> list[str]
 
 
 __all__ = [
+    "EXPECTED_METHOD_QUALIFICATION_CONTRACT",
+    "EXPECTED_PARTICIPANT_EXECUTION_CONTRACT",
+    "EXPECTED_REFERENCE_POLICY_CONTRACT",
     "FORMAL_ARMS",
     "FORMAL_CELL_VERSION",
     "FORMAL_CHECKPOINT_EXPERIMENTS",

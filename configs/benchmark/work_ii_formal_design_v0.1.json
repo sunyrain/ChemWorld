@@ -1,7 +1,7 @@
 {
   "schema_version": "chemworld-work-ii-formal-design-0.1",
   "design_id": "work-ii-fixed-law-prior-formal-v0.1",
-  "status": "w2_04_w2_09_w2_06_execution_contract_frozen_pending_preregistration",
+  "status": "w2_04_w2_09_w2_06_w2_10_readiness_frozen_pending_provider_preregistration",
   "formal_result": false,
   "formal_execution_allowed": false,
   "environment_binding": {
@@ -192,6 +192,31 @@
     "classical_policy_results_required_for_primary_h3": false,
     "classical_policy_results_required_for_resource_calibrated_interpretation": true,
     "outcome_based_method_arm_deletion_forbidden": true
+  },
+  "method_qualification_contract": {
+    "qualification_task_id": "electrochemical-conversion",
+    "qualification_world_cohort": "development_and_qualification",
+    "qualification_world_seed": 0,
+    "qualified_prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+    "qualification_cell_count": 3,
+    "complete_experiments_per_cell": 4,
+    "belief_checkpoints_per_cell": 4,
+    "accepted_scientific_codex_processes_per_cell": 1,
+    "accepted_participant_provider_sessions_per_cell": 1,
+    "accepted_participant_model_calls_per_cell": 1,
+    "maximum_infrastructure_resume_attempts_per_cell": 1,
+    "maximum_total_provider_attempts": 6,
+    "triplet_failure_semantics": "finish_all_three_arms_then_fail_qualification",
+    "qualification_outcome_use": "platform_and_method_acceptance_only",
+    "scientific_outcome_selection_forbidden": true,
+    "formal_participant_outcomes_before_authorization": 0,
+    "real_provider_execution_required": true,
+    "same_provider_and_method_as_formal": true,
+    "all_cells_must_pass": true,
+    "exact_replay_required": true,
+    "execution_audit_required": true,
+    "currency_approval_required": true,
+    "qualification_worlds_excluded_from_formal": true
   },
   "provider_attempt_contract": {
     "attempt_unit": "host_codex_process_launch",

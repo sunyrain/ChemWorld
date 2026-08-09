@@ -2,7 +2,7 @@
   "analysis_binding": {
     "hash_kind": "canonical_json_sha256",
     "path": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
-    "sha256": "d29dad9b521b2e7ca310425be3973e5645486c98563c5320ade93494a22d0a31"
+    "sha256": "cb8bb2dacc2093f075c9e355af9f4fc8c9c49f99c68deb2c10f33b7aa823c3b7"
   },
   "blind_evaluator_contract": {
     "blind_replicates_per_target": 3,
@@ -2438,7 +2438,7 @@
   "design_binding": {
     "hash_kind": "canonical_json_sha256",
     "path": "configs/benchmark/work_ii_formal_design_v0.1.json",
-    "sha256": "28fa1676a174f7adc688fbb998d0030e37b56e2de5d29ee12c356b7e3710c8b5"
+    "sha256": "4ac41d20456b419917140a6ef9ac77e0a9b62547ab8cbf23f80edcb464060da7"
   },
   "errors": [],
   "expected_counts": {
@@ -2500,6 +2500,36 @@
     "shared_across_prior_arms_and_checkpoints": true,
     "truth_unit": "task_x_world_cluster_x_registered_query"
   },
+  "method_qualification_contract": {
+    "accepted_participant_model_calls_per_cell": 1,
+    "accepted_participant_provider_sessions_per_cell": 1,
+    "accepted_scientific_codex_processes_per_cell": 1,
+    "all_cells_must_pass": true,
+    "belief_checkpoints_per_cell": 4,
+    "complete_experiments_per_cell": 4,
+    "currency_approval_required": true,
+    "exact_replay_required": true,
+    "execution_audit_required": true,
+    "formal_participant_outcomes_before_authorization": 0,
+    "maximum_infrastructure_resume_attempts_per_cell": 1,
+    "maximum_total_provider_attempts": 6,
+    "qualification_cell_count": 3,
+    "qualification_outcome_use": "platform_and_method_acceptance_only",
+    "qualification_task_id": "electrochemical-conversion",
+    "qualification_world_cohort": "development_and_qualification",
+    "qualification_world_seed": 0,
+    "qualification_worlds_excluded_from_formal": true,
+    "qualified_prior_arms": [
+      "opaque",
+      "aligned_nominal",
+      "misindexed_nominal"
+    ],
+    "real_provider_execution_required": true,
+    "same_provider_and_method_as_formal": true,
+    "scientific_outcome_selection_forbidden": true,
+    "triplet_failure_semantics": "finish_all_three_arms_then_fail_qualification"
+  },
+  "method_qualification_contract_sha256": "2d409f34b9ddfa254012cc27fceb4481f086d7d0b217269fb9762989248259b6",
   "participant_execution_contract": {
     "accepted_participant_model_calls_per_cell": 1,
     "accepted_participant_provider_sessions_per_cell": 1,
@@ -2577,7 +2607,7 @@
     }
   },
   "participant_execution_contract_sha256": "1f045d6489e8d7c2f77753881f615a9ba0e5fbc858a83fb815e85543c58f59d5",
-  "preflight_sha256": "40e1d01a85077477542b1c7644684d2524e495a064bb03b395d878ac40db0f5b",
+  "preflight_sha256": "db335d3ccb3284a7814f038afd3700d752da7f7228d5c55a481c5f0a44363b24",
   "prompt_boundary": {
     "evaluator_truth_exposed_to_participant": false,
     "prior_arm_label_exposed_to_participant": false,
@@ -2681,7 +2711,7 @@
     {
       "hash_kind": "file_sha256",
       "path": "src/chemworld/eval/work_ii_formal.py",
-      "sha256": "c8bcc975e7bc8036f5fe4e1b133d27a629bb3d7c78f530c26a220b74e8a1b813"
+      "sha256": "c758f7e6542be688943d2976969afacbf496298f3f71ae36f4724368fe316cfd"
     },
     {
       "hash_kind": "file_sha256",
@@ -2696,7 +2726,7 @@
     {
       "hash_kind": "file_sha256",
       "path": "src/chemworld/eval/work_ii_qualification.py",
-      "sha256": "d660f2d91fa6010a4eff1638782cfc542b71554e7fdeb450779aa12ee6fbc365"
+      "sha256": "09991fdf6b4aef22c2f33215f61a51765057b483724013dea03026ba0f8018c7"
     },
     {
       "hash_kind": "file_sha256",
@@ -2716,12 +2746,17 @@
     {
       "hash_kind": "file_sha256",
       "path": "scripts/run_work_ii_campaign_pilot.py",
-      "sha256": "3843ad30b13a1a3d1b779e8e9c61b3a2e37502a2e8ec852d9cd975e175f368f7"
+      "sha256": "27f9dea82f3ed5a6ea85df516453e39d22d5e9eb8d6fcc14a7976168344d1b3d"
     },
     {
       "hash_kind": "file_sha256",
       "path": "scripts/run_work_ii_formal_matrix.py",
       "sha256": "e0302408c7ac6e827ae5591a955cae61b00b09e12fd6d419d5049f2054c60e5f"
+    },
+    {
+      "hash_kind": "file_sha256",
+      "path": "scripts/run_work_ii_method_qualification.py",
+      "sha256": "c0e8d8488930e33c40e91dbff91b42386e4e85e563653ce4445574461e7683b2"
     },
     {
       "hash_kind": "file_sha256",
