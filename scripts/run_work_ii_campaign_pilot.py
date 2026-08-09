@@ -73,6 +73,7 @@ def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
             "pilot_id": config["pilot_id"],
             "task_id": config["task_id"],
             "process_time_policy": dict(campaign["process_time_policy"]),
+            "closeout_policy": dict(campaign["closeout_policy"]),
             "scope": "one_task_prior_world_cell",
         },
     )

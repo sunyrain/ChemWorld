@@ -64,6 +64,16 @@
       "implicit_stage_reserve_s": 480.0,
       "formula": "4 x (heat 7200 s + quench 120 s) + one extra heat stage"
     },
+    "closeout_policy": {
+      "planned_batches": 4,
+      "final_assay_path_operations_per_batch": 2,
+      "discard_path_operations_per_batch": 1,
+      "final_assay_path_total_operation_reserve": 8,
+      "discard_path_total_operation_reserve": 4,
+      "policy": "participant_controlled_advisory_no_hidden_allocation",
+      "automatic_action_repair": false,
+      "automatic_closeout": false
+    },
     "checkpoint_complete_experiments": [0, 1, 2, 4]
   },
   "qualification": {"required_operation_counts": {}},

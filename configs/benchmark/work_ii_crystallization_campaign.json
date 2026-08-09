@@ -77,6 +77,16 @@
       "implicit_operation_time_s": {"filter_crystals": 480.0, "quench": 120.0},
       "formula": "4 x (heat 14400 s + cool_crystallize 14400 s + filter_crystals 480 s) + one extra heat and one extra crystallization stage + up to four quench operations at 120 s each"
     },
+    "closeout_policy": {
+      "planned_batches": 4,
+      "final_assay_path_operations_per_batch": 2,
+      "discard_path_operations_per_batch": 1,
+      "final_assay_path_total_operation_reserve": 8,
+      "discard_path_total_operation_reserve": 4,
+      "policy": "participant_controlled_advisory_no_hidden_allocation",
+      "automatic_action_repair": false,
+      "automatic_closeout": false
+    },
     "checkpoint_complete_experiments": [0, 1, 2, 4]
   },
   "qualification": {"required_operation_counts": {}},

@@ -332,7 +332,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 - [x] 历史 experiment-level adaptation、belief metrics、change detection、attribution 和 recovery 的代码骨架已存在；
   它们需要重绑定为固定规律下的 prior/discovery/bias-rejection/law-summary protocol，不能直接当作当前结果；
 - [x] 当前 source/protocol binding 已重新资格验证，`gate_a_evidence_current=true`；
-- [ ] participant methods 尚未冻结；
+- [x] participant execution contract 已冻结；current persistent-session 方法的最终资格验证仍归 W2-10；
 - [ ] participant formal Outcomes 尚未执行；
 - [ ] private sealed confirmation 尚未执行；
 - [ ] Work II publication claim 尚未形成。
@@ -360,7 +360,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 | W2-03 | P0 | 冻结中心假设与 claim hierarchy | DONE | W2-01、W2-02 |
 | W2-04 | P0 | 冻结先验条件与固定规律 world cohort | DONE | W2-03 |
 | W2-05 | P0 | 冻结 estimands、指标和判定规则 | DONE | W2-03、W2-04 |
-| W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DOING | W2-03 |
+| W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DONE | W2-03 |
 | W2-07 | P0 | 功效、资源和成本审计 | DOING | W2-04、W2-05、W2-06 |
 | W2-08 | P0 | Registered Report/常规投稿路线决策 | 未开始 | W2-03–W2-07 |
 | W2-09 | P0 | 完成 manifest-driven formal runner | DONE | W2-04–W2-07 |
@@ -553,20 +553,24 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   通过 host-owned ChemWorld MCP 控制同一 discovery campaign 的多个 complete experiments；同一 session
   内维护 typed belief、evidence references、law summary 和 next intent；当前不加入第二 backend。
 - 验收标准：
-  - [ ] session start、operation tool loop、checkpoint、interrupt/finalize 和 receipt 使用同一可审计 contract；
-  - [ ] 每个 cell 恰有一个 session identity，所有 operations、complete experiments 和 belief checkpoints 均绑定该 identity；
-  - [ ] agent 每次读取前一 public outcome 后选择一个 operation；host 只负责 validation、transaction、resource 和 hidden-world 执行；
-  - [ ] `terminate`、`final_assay`、discard、budget exhaustion 和 right-censoring 的 lifecycle 语义与第一篇 complete-agent 路径一致；
-  - [ ] 一个 cell 内多个 complete experiments 共享同一 campaign resource card/ledger，不允许逐 experiment 重置资源；
-  - [ ] belief snapshot 通过同一 session 内的结构化 MCP checkpoint 提交，不产生额外 standalone provider session；
-  - [ ] stateful memory 限定为 typed belief、diagnostic focus、evidence references 和 next intent，不使用巨型自由文本状态；
-  - [ ] context、memory、retry、temperature/thinking、timeout 和 failure semantics 冻结；
-  - [ ] provider attempt、MCP tool call、operation attempt、committed operation、complete experiment、cell 和 blind evaluator 分母分开报告；
-  - [ ] classical/reference policies 只承担校准或机制对照角色；若 LLM 获得 property dossier，则至少包含 ID-only 与 property-aware 两类公平对照；
-  - [ ] 不根据 pilot 胜负删除正式方法臂。
-- 备注：`Claim: Codex /root — W2-06 — DOING`。旧 Direct Responses 多调用方法已归档；当前
-  session-based method 尚未完成资格验证。未提交的 high-level complete-experiment-plan prototype
-  不代表当前方法，必须替换为 operation-level complete-agent runner 或归档后才能启动真实 pilot。
+  - [x] session start、operation tool loop、checkpoint、interrupt/finalize 和 receipt 使用同一可审计 contract；
+  - [x] 每个 cell 恰有一个 session identity，所有 operations、complete experiments 和 belief checkpoints 均绑定该 identity；
+  - [x] agent 每次读取前一 public outcome 后选择一个 operation；host 只负责 validation、transaction、resource 和 hidden-world 执行；
+  - [x] `terminate`、`final_assay`、discard、budget exhaustion 和 right-censoring 的 lifecycle 语义与第一篇 complete-agent 路径一致；
+  - [x] 一个 cell 内多个 complete experiments 共享同一 campaign resource card/ledger，不允许逐 experiment 重置资源；
+  - [x] belief snapshot 通过同一 session 内的结构化 MCP checkpoint 提交，不产生额外 standalone provider session；
+  - [x] stateful memory 限定为 typed belief、diagnostic focus、evidence references 和 next intent，不使用巨型自由文本状态；
+  - [x] context、memory、retry、temperature/thinking、timeout 和 failure semantics 冻结；
+  - [x] provider attempt、MCP tool call、operation attempt、committed operation、complete experiment、cell 和 blind evaluator 分母分开报告；
+  - [x] classical/reference policies 只承担校准或机制对照角色；若 LLM 获得 property dossier，则至少包含 ID-only 与 property-aware 两类公平对照；
+  - [x] 不根据 pilot 胜负删除正式方法臂。
+- 备注：`Claim: Codex /root — W2-06 — DONE`。machine-readable design 现冻结一个 cell 一个
+  campaign-scoped Codex process/session/model call、同 session operation/checkpoint/final receipt、typed
+  checkpoint memory、无自动动作修复/closeout、固定 reasoning/timeout/retry/failure 语义和八类独立分母。
+  formal preflight 会逐任务拒绝 provider、timeout、model-call、checkpoint、concurrency 或 session contract
+  漂移。ID-only 与 public-property-vector 的 semantics-free reference pair 也已冻结为同 policy、同 world、同资源
+  的校准对照，位于 75 个 participant cells 之外且不能改变 primary H3。W2-06 只完成方法合同冻结；当前方法的
+  最终真实资格收据仍由 W2-10 管理，未完成前不得执行正式矩阵。
 
 ### W2-07 — 功效、资源和成本审计
 
@@ -582,21 +586,27 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 - 验收标准：
   - [x] 以独立 world clusters 进行功效分析；
   - [x] formal power 使用 world-level paired contrasts；rounds、prediction snapshots 和多个 endpoints 不作为独立样本；
-  - [ ] 对 world、mechanism、agent、session 和交互方差作预期分解；
+  - [x] 对 world、mechanism、agent、session 和交互方差作预期分解；
   - [x] 冻结 worlds、replicates、provider repeats 和最大 provider calls；
   - [x] discovery campaign 的 complete-experiment 上限、checkpoint 位置和 optional matched-evidence probe 是否进入 secondary matrix 在 pilot 后、formal outcomes 前冻结；
-  - [ ] 冻结一张跨 discovery experiments 共享的 task-pattern-specific CampaignResourceCard，包括 operation、vessel、assay、instrument、stock、process-time、quench/transfer 和 closeout 余量；
+  - [x] 冻结一张跨 discovery experiments 共享的 task-pattern-specific CampaignResourceCard，包括 operation、vessel、assay、instrument、stock、process-time、quench/transfer 和 closeout 余量；
   - [ ] 冻结 token、货币、wall time、并发和失败重试预算；
   - [x] 明确早停仅针对基础设施/安全，不针对结果方向；
   - [ ] 输出完整资源上界和预计运行 ETA。
 - 备注：`Claim: Codex /root — W2-07 — DOING`。25 个独立 task×world clusters、75 cells 的功效审计已通过：
   规划标准化效应 `d=0.6` 时 power=`0.8946`，80% power 的 MDE=`0.5150`，因此只支持中到大效应设计。
-  当前上界为 75 provider sessions、300 complete experiments、3,420 operation attempts、3.24 亿 input tokens、
-  4,320 万 uncached input tokens、324 万 output tokens，串行 seed-triplet wall 上界 47.5 h。报告：
+  当前 accepted-cell 上界为 75 provider sessions/model calls、300 complete experiments、3,420 operation attempts、
+  300 vessel starts、300 final assays、420 non-final instrument uses、3.24 亿 input tokens、4,320 万 uncached
+  input tokens、324 万 output tokens；25 个 seed-triplet 的初始串行 wall 上界为 47.5 h。若 75 个 cell 全部耗尽
+  唯一一次纯基础设施 resume，provider-attempt 硬上限为 150、token 硬上限相应为 6.48 亿/8,640 万/648 万，
+  串行 wall 硬上限为 95 h；已持久化 scientific trajectory 仍禁止 replacement。报告：
   `workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`。provider process launch 固定为每 cell 初始
   1 次、纯基础设施失败最多 resume 1 次，即全矩阵计划 75 次、硬上限 150 次；任何已持久化 trajectory 都禁止
   replacement。blind evaluator 另排 75 个最终推荐、150 个 target 和 450 个无 provider 调用的成对噪声
-  replay。仍需由用户批准正式货币硬上限，并用合格 formal runner 校准 ETA，故 W2-07 保持 `DOING`。
+  replay。五张 task-pattern resource card 已冻结 operation、vessel、assay、instrument、stock、process-time、
+  quench/transfer 与 participant-owned closeout reserve，且已登记 world/mechanism/method/session/interaction 的
+  可估计性与混杂边界。仍需由用户批准正式货币硬上限，并用最终合格的 current-method runner 校准 expected ETA，
+  故 W2-07 保持 `DOING`。
 
 ### W2-08 — Registered Report/常规投稿路线决策
 

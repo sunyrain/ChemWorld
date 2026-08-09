@@ -1,7 +1,7 @@
 {
   "schema_version": "chemworld-work-ii-formal-design-0.1",
   "design_id": "work-ii-fixed-law-prior-formal-v0.1",
-  "status": "w2_04_w2_09_evaluator_contract_frozen_pending_preregistration",
+  "status": "w2_04_w2_09_w2_06_execution_contract_frozen_pending_preregistration",
   "formal_result": false,
   "formal_execution_allowed": false,
   "environment_binding": {
@@ -98,6 +98,100 @@
     "provider_repeats": 1,
     "matched_evidence_probe_in_primary_matrix": false,
     "shared_campaign_resource_ledger": true
+  },
+  "participant_execution_contract": {
+    "execution_unit": "task_x_prior_arm_x_world_seed_cell",
+    "session_scope": "campaign",
+    "accepted_scientific_codex_processes_per_cell": 1,
+    "accepted_participant_provider_sessions_per_cell": 1,
+    "accepted_participant_model_calls_per_cell": 1,
+    "same_session_bindings": [
+      "operation_tool_loop",
+      "complete_experiments",
+      "belief_checkpoints",
+      "final_recommendation",
+      "provider_receipt"
+    ],
+    "interaction_contract": {
+      "decision_scope": "one_operation_after_each_public_outcome",
+      "tool_transport": "host_owned_stdio_mcp",
+      "participant_owns_operation_selection": true,
+      "host_roles": [
+        "schema_validation",
+        "transaction_execution",
+        "campaign_resource_accounting",
+        "hidden_world_execution"
+      ],
+      "automatic_action_repair": false,
+      "automatic_closeout": false,
+      "checkpoint_provider_calls": 0
+    },
+    "context_and_memory_contract": {
+      "context_scope": "one_complete_provider_process_transcript_plus_participant_visible_public_outcomes",
+      "checkpoint_state_schema": "typed_work_ii_belief_snapshot",
+      "checkpoint_top_level_fields": [
+        "prior_assessment",
+        "predictions",
+        "law_summary",
+        "evidence_ids",
+        "next_experiment_intent",
+        "overall_confidence"
+      ],
+      "persistent_workspace_notes_allowed": false,
+      "free_text_persistent_memory_allowed": false,
+      "bounded_schema_rationale_fields_allowed": true,
+      "private_chain_of_thought_retained": false
+    },
+    "sampling_contract": {
+      "reasoning_effort": "medium",
+      "temperature": null,
+      "temperature_semantics": "not_exposed_or_set_by_the_codex_harness"
+    },
+    "timeout_contract_s": {
+      "request": 1200.0,
+      "finalization": 600.0
+    },
+    "lifecycle_contract": {
+      "explicit_terminate_required_before_final_assay": true,
+      "final_assay_closes_completed_experiment": true,
+      "explicit_discard_closes_failed_or_abandoned_batch": true,
+      "budget_exhaustion_right_censors_open_experiment": true,
+      "all_planned_batches_share_one_campaign_resource_card": true
+    },
+    "failure_and_retry_contract": {
+      "missing_infrastructure_only_resume": true,
+      "scientific_or_method_failure_retained": true,
+      "persisted_scientific_trajectory_forbids_replacement": true,
+      "result_direction_retry_forbidden": true
+    },
+    "separate_reported_denominators": [
+      "host_provider_process_attempt",
+      "provider_session",
+      "mcp_tool_call",
+      "operation_attempt",
+      "committed_operation",
+      "complete_experiment",
+      "participant_cell",
+      "blind_evaluator_execution"
+    ]
+  },
+  "reference_policy_contract": {
+    "role": "calibration_or_mechanism_reference_only",
+    "participant_formal_denominator": false,
+    "participant_information_arms": [
+      "opaque_id_only",
+      "aligned_property_aware",
+      "misindexed_property_matched"
+    ],
+    "required_semantics_free_calibration_pair": {
+      "policy_identity_matched": true,
+      "information_conditions": ["id_only", "public_property_vector"],
+      "world_and_resource_contract_matched": true
+    },
+    "calibration_execution_in_75_participant_cells": false,
+    "classical_policy_results_required_for_primary_h3": false,
+    "classical_policy_results_required_for_resource_calibrated_interpretation": true,
+    "outcome_based_method_arm_deletion_forbidden": true
   },
   "provider_attempt_contract": {
     "attempt_unit": "host_codex_process_launch",

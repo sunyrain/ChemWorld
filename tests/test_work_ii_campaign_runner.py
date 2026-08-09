@@ -114,6 +114,29 @@ def test_safety_process_time_policy_covers_four_lifecycles_and_one_repeat() -> N
     assert card.operation_repeat_limits == {"heat": 5, "quench": 4}
 
 
+def test_all_five_campaign_cards_freeze_participant_owned_closeout_margin() -> None:
+    config_names = (
+        "work_ii_campaign_pilot.json",
+        "work_ii_crystallization_campaign.json",
+        "work_ii_distillation_campaign.json",
+        "work_ii_partition_campaign.json",
+        "work_ii_safety_campaign.json",
+    )
+    expected = {
+        "planned_batches": 4,
+        "final_assay_path_operations_per_batch": 2,
+        "discard_path_operations_per_batch": 1,
+        "final_assay_path_total_operation_reserve": 8,
+        "discard_path_total_operation_reserve": 4,
+        "policy": "participant_controlled_advisory_no_hidden_allocation",
+        "automatic_action_repair": False,
+        "automatic_closeout": False,
+    }
+    for config_name in config_names:
+        config = _task_config(config_name)
+        assert _campaign_card(config).to_dict()["metadata"]["closeout_policy"] == expected
+
+
 def test_all_five_task_checkpoint_contracts_match_across_informed_arms() -> None:
     config_names = (
         "work_ii_campaign_pilot.json",

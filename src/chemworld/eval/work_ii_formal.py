@@ -26,6 +26,101 @@ FORMAL_RECEIPT_VERSION = "chemworld-work-ii-formal-cell-receipt-0.1"
 FORMAL_STORE_AUDIT_VERSION = "chemworld-work-ii-formal-store-audit-0.1"
 FORMAL_TERMINAL_STATES = frozenset({"completed", "right_censored", "failed"})
 
+EXPECTED_PARTICIPANT_EXECUTION_CONTRACT: dict[str, Any] = {
+    "execution_unit": "task_x_prior_arm_x_world_seed_cell",
+    "session_scope": "campaign",
+    "accepted_scientific_codex_processes_per_cell": 1,
+    "accepted_participant_provider_sessions_per_cell": 1,
+    "accepted_participant_model_calls_per_cell": 1,
+    "same_session_bindings": [
+        "operation_tool_loop",
+        "complete_experiments",
+        "belief_checkpoints",
+        "final_recommendation",
+        "provider_receipt",
+    ],
+    "interaction_contract": {
+        "decision_scope": "one_operation_after_each_public_outcome",
+        "tool_transport": "host_owned_stdio_mcp",
+        "participant_owns_operation_selection": True,
+        "host_roles": [
+            "schema_validation",
+            "transaction_execution",
+            "campaign_resource_accounting",
+            "hidden_world_execution",
+        ],
+        "automatic_action_repair": False,
+        "automatic_closeout": False,
+        "checkpoint_provider_calls": 0,
+    },
+    "context_and_memory_contract": {
+        "context_scope": (
+            "one_complete_provider_process_transcript_plus_participant_visible_public_outcomes"
+        ),
+        "checkpoint_state_schema": "typed_work_ii_belief_snapshot",
+        "checkpoint_top_level_fields": [
+            "prior_assessment",
+            "predictions",
+            "law_summary",
+            "evidence_ids",
+            "next_experiment_intent",
+            "overall_confidence",
+        ],
+        "persistent_workspace_notes_allowed": False,
+        "free_text_persistent_memory_allowed": False,
+        "bounded_schema_rationale_fields_allowed": True,
+        "private_chain_of_thought_retained": False,
+    },
+    "sampling_contract": {
+        "reasoning_effort": "medium",
+        "temperature": None,
+        "temperature_semantics": "not_exposed_or_set_by_the_codex_harness",
+    },
+    "timeout_contract_s": {"request": 1200.0, "finalization": 600.0},
+    "lifecycle_contract": {
+        "explicit_terminate_required_before_final_assay": True,
+        "final_assay_closes_completed_experiment": True,
+        "explicit_discard_closes_failed_or_abandoned_batch": True,
+        "budget_exhaustion_right_censors_open_experiment": True,
+        "all_planned_batches_share_one_campaign_resource_card": True,
+    },
+    "failure_and_retry_contract": {
+        "missing_infrastructure_only_resume": True,
+        "scientific_or_method_failure_retained": True,
+        "persisted_scientific_trajectory_forbids_replacement": True,
+        "result_direction_retry_forbidden": True,
+    },
+    "separate_reported_denominators": [
+        "host_provider_process_attempt",
+        "provider_session",
+        "mcp_tool_call",
+        "operation_attempt",
+        "committed_operation",
+        "complete_experiment",
+        "participant_cell",
+        "blind_evaluator_execution",
+    ],
+}
+
+EXPECTED_REFERENCE_POLICY_CONTRACT: dict[str, Any] = {
+    "role": "calibration_or_mechanism_reference_only",
+    "participant_formal_denominator": False,
+    "participant_information_arms": [
+        "opaque_id_only",
+        "aligned_property_aware",
+        "misindexed_property_matched",
+    ],
+    "required_semantics_free_calibration_pair": {
+        "policy_identity_matched": True,
+        "information_conditions": ["id_only", "public_property_vector"],
+        "world_and_resource_contract_matched": True,
+    },
+    "calibration_execution_in_75_participant_cells": False,
+    "classical_policy_results_required_for_primary_h3": False,
+    "classical_policy_results_required_for_resource_calibrated_interpretation": True,
+    "outcome_based_method_arm_deletion_forbidden": True,
+}
+
 _SOURCE_PATHS = (
     "src/chemworld/agents/interactive_codex_experiment.py",
     "src/chemworld/agents/experiment_codex_ipc.py",
@@ -80,8 +175,7 @@ def build_checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, 
     configured = config.get("belief_checkpoint")
     if isinstance(configured, Mapping):
         held_out_queries = [
-            dict(_object(item, "held_out_query"))
-            for item in configured["held_out_queries"]
+            dict(_object(item, "held_out_query")) for item in configured["held_out_queries"]
         ]
         metric_ids = _string_list(configured["allowed_metric_ids"], "allowed_metric_ids")
         feature_ids = _string_list(configured["allowed_feature_ids"], "allowed_feature_ids")
@@ -133,9 +227,7 @@ def build_checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, 
         raise ValueError("snapshot_stages must contain four unique stage IDs")
     checkpoint_experiments = [
         int(item)
-        for item in _object(config["campaign"], "campaign")[
-            "checkpoint_complete_experiments"
-        ]
+        for item in _object(config["campaign"], "campaign")["checkpoint_complete_experiments"]
     ]
     return {
         "schema_version": "chemworld-work-ii-campaign-checkpoint-contract-0.1",
@@ -147,8 +239,7 @@ def build_checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, 
         "allowed_metric_ids": metric_ids,
         "allowed_prior_fields": prior_fields,
         "evidence_catalog": [
-            f"experiment-{index}-final-assay"
-            for index in range(1, complete_experiments + 1)
+            f"experiment-{index}-final-assay" for index in range(1, complete_experiments + 1)
         ],
         "nominal_information_available": nominal,
         "stage_labels_are_checkpoint_ids_only": True,
@@ -237,9 +328,7 @@ class WorkIIFormalCellStore:
         self.provider_attempts = self.root / "provider_attempt_receipts"
         cells = manifest.get("cells", [])
         self.cells = {
-            str(cell["cell_key_sha256"]): dict(cell)
-            for cell in cells
-            if isinstance(cell, Mapping)
+            str(cell["cell_key_sha256"]): dict(cell) for cell in cells if isinstance(cell, Mapping)
         }
         if len(self.cells) != len(cells):
             raise ValueError("formal manifest contains duplicate cell keys")
@@ -271,18 +360,14 @@ class WorkIIFormalCellStore:
             "failed": ("method_failed_",),
         }[state]
         if not reason_code.startswith(expected_prefixes):
-            raise ValueError(
-                f"{state} formal cell reason code has an invalid domain prefix"
-            )
+            raise ValueError(f"{state} formal cell reason code has an invalid domain prefix")
         result_payload = dict(result)
         payload = {
             "schema_version": FORMAL_RECEIPT_VERSION,
             "cell_key_sha256": cell_key_sha256,
             "cell": cell,
             "state": state,
-            "reason_domain": (
-                "scientific" if reason_code.startswith("scientific_") else "method"
-            ),
+            "reason_domain": ("scientific" if reason_code.startswith("scientific_") else "method"),
             "reason_code": reason_code,
             "result": result_payload,
             "result_sha256": canonical_json_sha256(result_payload),
@@ -322,11 +407,7 @@ class WorkIIFormalCellStore:
             "log_sha256": log_sha256,
         }
         payload["attempt_sha256"] = canonical_json_sha256(payload)
-        target = (
-            self.infrastructure_attempts
-            / cell_key_sha256
-            / f"{uuid4().hex}.json"
-        )
+        target = self.infrastructure_attempts / cell_key_sha256 / f"{uuid4().hex}.json"
         _write_json_once(target, payload)
         return target
 
@@ -378,14 +459,9 @@ class WorkIIFormalCellStore:
         ]
         if exhausted:
             raise ProviderAttemptLimitError(
-                "missing formal cells exhausted their provider attempt cap: "
-                + ", ".join(exhausted)
+                "missing formal cells exhausted their provider attempt cap: " + ", ".join(exhausted)
             )
-        return [
-            dict(cell)
-            for key, cell in self.cells.items()
-            if key not in completed
-        ]
+        return [dict(cell) for key, cell in self.cells.items() if key not in completed]
 
     def audit(self) -> dict[str, Any]:
         observed: dict[str, Mapping[str, Any]] = {}
@@ -429,8 +505,7 @@ class WorkIIFormalCellStore:
                     or attempt_index < 1
                     or attempt_index > int(cell["provider_attempt_limit"])
                     or attempt_index in observed_indices
-                    or int(payload.get("attempt_limit", -1))
-                    != int(cell["provider_attempt_limit"])
+                    or int(payload.get("attempt_limit", -1)) != int(cell["provider_attempt_limit"])
                 ):
                     raise ValueError("provider attempt invariant failed")
                 observed_indices.add(attempt_index)
@@ -482,9 +557,7 @@ class WorkIIFormalCellStore:
             "provider_attempt_counts_by_cell_key_sha256": provider_attempt_counts,
             "recovered_infrastructure_failure_count": len(recovered),
             "complete": (
-                observed_keys == expected
-                and not invalid
-                and not (observed_keys - expected)
+                observed_keys == expected and not invalid and not (observed_keys - expected)
             ),
         }
         report["audit_sha256"] = canonical_json_sha256(report)
@@ -598,6 +671,21 @@ def build_formal_preflight(
     if len(tasks) != 5:
         errors.append("formal design must contain exactly five tasks")
 
+    participant_execution_contract = dict(
+        _object(
+            design.get("participant_execution_contract"),
+            "participant_execution_contract",
+        )
+    )
+    if participant_execution_contract != EXPECTED_PARTICIPANT_EXECUTION_CONTRACT:
+        errors.append("formal participant execution contract differs from the frozen method")
+    reference_policy_contract = dict(
+        _object(design.get("reference_policy_contract"), "reference_policy_contract")
+    )
+    if reference_policy_contract != EXPECTED_REFERENCE_POLICY_CONTRACT:
+        errors.append("formal reference-policy contract differs from the frozen role")
+    participant_execution_contract_sha256 = canonical_json_sha256(participant_execution_contract)
+
     cells: list[dict[str, Any]] = []
     task_bindings: list[dict[str, Any]] = []
     provider_contract: dict[str, Any] | None = None
@@ -679,9 +767,7 @@ def build_formal_preflight(
             "reaction-safety-constrained": {"stirring_speed_rpm": 675.0},
         },
         "query_field_aliases": {
-            "partition-discovery": {
-                "aqueous_phase_volume_L": "aqueous_volume_L"
-            }
+            "partition-discovery": {"aqueous_phase_volume_L": "aqueous_volume_L"}
         },
     }
     if truth_contract != expected_truth_contract:
@@ -714,11 +800,50 @@ def build_formal_preflight(
             errors.append(f"{task_id}: checkpoint experiment schedule differs from formal design")
         if int(_object(config["campaign"], "campaign")["complete_experiments"]) != 4:
             errors.append(f"{task_id}: formal campaign must contain four experiments")
+        campaign = _object(config["campaign"], f"{task_id}.campaign")
+        method_resources = _object(config.get("method_resources"), f"{task_id}.method_resources")
+        execution = _object(config.get("execution"), f"{task_id}.execution")
+        if config.get("episode_mode") != "campaign":
+            errors.append(f"{task_id}: participant session scope is not campaign")
+        if int(method_resources.get("model_call_limit", -1)) != 1:
+            errors.append(f"{task_id}: model-call limit is not one per cell")
+        if int(method_resources.get("operation_limit", -1)) != int(
+            campaign.get("operation_attempt_limit", -2)
+        ):
+            errors.append(f"{task_id}: method and campaign operation limits differ")
+        if int(method_resources.get("complete_experiment_limit", -1)) != 4:
+            errors.append(f"{task_id}: method complete-experiment limit differs")
+        if method_resources.get("checkpoint_complete_experiments") != [1, 2, 4]:
+            errors.append(f"{task_id}: method checkpoint resource schedule differs")
+        if (
+            int(execution.get("max_concurrency", -1)) != 3
+            or int(execution.get("within_cell_concurrency", -1)) != 1
+            or execution.get("parallelization_unit") != "same_seed_prior_arm_triplet"
+        ):
+            errors.append(f"{task_id}: execution concurrency contract differs")
         provider = dict(_object(config.get("provider"), f"{task_id}.provider"))
         reduced_provider = {
             key: provider.get(key)
-            for key in ("id", "name", "base_url", "wire_api", "model", "reasoning_effort")
+            for key in (
+                "id",
+                "name",
+                "base_url",
+                "wire_api",
+                "model",
+                "reasoning_effort",
+                "request_timeout_s",
+                "finalization_timeout_s",
+            )
         }
+        timeout_contract = participant_execution_contract["timeout_contract_s"]
+        sampling_contract = participant_execution_contract["sampling_contract"]
+        if (
+            provider.get("reasoning_effort") != sampling_contract["reasoning_effort"]
+            or float(provider.get("request_timeout_s", -1.0)) != float(timeout_contract["request"])
+            or float(provider.get("finalization_timeout_s", -1.0))
+            != float(timeout_contract["finalization"])
+        ):
+            errors.append(f"{task_id}: provider sampling or timeout contract differs")
         if provider_contract is None:
             provider_contract = reduced_provider
         elif provider_contract != reduced_provider:
@@ -738,8 +863,7 @@ def build_formal_preflight(
         checkpoint_digest = canonical_json_sha256(opaque_contract)
         query_count = len(opaque_contract["query_metric_contract"])
         query_metric_count = sum(
-            len(metric_ids)
-            for metric_ids in opaque_contract["query_metric_contract"].values()
+            len(metric_ids) for metric_ids in opaque_contract["query_metric_contract"].values()
         )
         evaluator_truth_execution_count += query_count * len(seeds)
         evaluator_truth_query_metric_count += query_metric_count * len(seeds)
@@ -770,6 +894,9 @@ def build_formal_preflight(
                     "campaign_config_path": relative_config,
                     "campaign_config_sha256": config_binding["sha256"],
                     "checkpoint_contract_sha256": canonical_json_sha256(checkpoint),
+                    "participant_execution_contract_sha256": (
+                        participant_execution_contract_sha256
+                    ),
                     "complete_experiment_count": 4,
                     "belief_checkpoint_count": 4,
                     "held_out_query_count_per_snapshot": query_count,
@@ -831,6 +958,9 @@ def build_formal_preflight(
             "hash_kind": "canonical_json_sha256",
         },
         "provider_contract": provider_contract,
+        "participant_execution_contract": participant_execution_contract,
+        "participant_execution_contract_sha256": (participant_execution_contract_sha256),
+        "reference_policy_contract": reference_policy_contract,
         "provider_attempt_contract": attempt_contract,
         "blind_evaluator_contract": blind_contract,
         "held_out_evaluator_contract": truth_contract,
@@ -917,12 +1047,24 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
     counts = report.get("expected_counts")
     if not isinstance(counts, Mapping) or counts.get("participant_cells") != len(cells):
         errors.append("formal preflight cell count is inconsistent")
+    participant_contract = report.get("participant_execution_contract")
+    participant_contract_hash = report.get("participant_execution_contract_sha256")
+    if (
+        participant_contract != EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
+        or participant_contract_hash
+        != canonical_json_sha256(EXPECTED_PARTICIPANT_EXECUTION_CONTRACT)
+    ):
+        errors.append("formal preflight participant execution contract is invalid")
+    if report.get("reference_policy_contract") != EXPECTED_REFERENCE_POLICY_CONTRACT:
+        errors.append("formal preflight reference-policy contract is invalid")
     for cell in cells:
         if not isinstance(cell, Mapping):
             errors.append("formal preflight contains a malformed cell")
             continue
         if cell.get("cell_key_sha256") != _cell_key_hash(cell):
             errors.append(f"formal cell self-hash mismatch: {cell.get('cell_id')}")
+        if cell.get("participant_execution_contract_sha256") != participant_contract_hash:
+            errors.append(f"formal cell participant contract mismatch: {cell.get('cell_id')}")
     split = report.get("world_split_contract")
     if not isinstance(split, Mapping):
         errors.append("formal preflight world-split contract is missing")
@@ -944,23 +1086,23 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
             public_size = public.get("namespace_size")
             private_start = private.get("namespace_start")
             private_size = private.get("namespace_size")
-            ranges_valid = all(
-                isinstance(value, int) and not isinstance(value, bool)
-                for value in (public_start, public_size, private_start, private_size)
-            ) and public_size > 0 and private_size > 0
+            ranges_valid = (
+                all(
+                    isinstance(value, int) and not isinstance(value, bool)
+                    for value in (public_start, public_size, private_start, private_size)
+                )
+                and public_size > 0
+                and private_size > 0
+            )
             if not ranges_valid:
                 errors.append("formal preflight world namespaces are invalid")
             else:
                 public_end = public_start + public_size
                 private_end = private_start + private_size
-                if not (
-                    public_end <= private_start or private_end <= public_start
-                ):
+                if not (public_end <= private_start or private_end <= public_start):
                     errors.append("formal preflight public/private namespaces overlap")
                 raw_cell_seeds = [
-                    cell.get("world_seed")
-                    for cell in cells
-                    if isinstance(cell, Mapping)
+                    cell.get("world_seed") for cell in cells if isinstance(cell, Mapping)
                 ]
                 cell_seeds = {
                     seed

@@ -38,6 +38,16 @@
     "implicit_operation_time_s": {"quench": 120.0},
     "operation_repeat_limits": {"heat": 5, "distill": 5, "evaporate": 4, "collect_fraction": 8, "quench": 4},
     "process_time_policy": {"pattern_id": "distillation-k4-one-repeat-per-required-stage", "timed_stage_max_s": 172800.0, "required_stage_max_s": 172800.0, "repeat_allowance_s": 28800.0, "implicit_stage_reserve_s": 0.0, "quench_transfer_allowance_s": 480.0, "implicit_operation_time_s": {"quench": 120.0}, "formula": "4 x (heat 14400 s + evaporate 14400 s + distill 14400 s) + one extra heat and one extra distillation stage + up to four quench operations at 120 s each"},
+    "closeout_policy": {
+      "planned_batches": 4,
+      "final_assay_path_operations_per_batch": 2,
+      "discard_path_operations_per_batch": 1,
+      "final_assay_path_total_operation_reserve": 8,
+      "discard_path_total_operation_reserve": 4,
+      "policy": "participant_controlled_advisory_no_hidden_allocation",
+      "automatic_action_repair": false,
+      "automatic_closeout": false
+    },
     "checkpoint_complete_experiments": [0, 1, 2, 4]
   },
   "qualification": {"required_operation_counts": {}},

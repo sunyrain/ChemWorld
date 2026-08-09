@@ -5,6 +5,8 @@ from pathlib import Path
 
 from scripts.audit_work_ii_formal_design import EXPECTED_TASKS, _public_selection
 
+from chemworld.eval.work_ii_formal import EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -47,3 +49,17 @@ def test_formal_design_freezes_five_tasks_three_arms_and_seventy_five_cells() ->
     assert design["campaign_contract"]["complete_experiments_per_cell"] == 4
     assert design["campaign_contract"]["checkpoint_complete_experiments"] == [0, 1, 2, 4]
     assert design["campaign_contract"]["matched_evidence_probe_in_primary_matrix"] is False
+    assert (
+        design["participant_execution_contract"]
+        == EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
+    )
+    assert design["participant_execution_contract"]["separate_reported_denominators"] == [
+        "host_provider_process_attempt",
+        "provider_session",
+        "mcp_tool_call",
+        "operation_attempt",
+        "committed_operation",
+        "complete_experiment",
+        "participant_cell",
+        "blind_evaluator_execution",
+    ]

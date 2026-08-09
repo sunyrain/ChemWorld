@@ -23,6 +23,7 @@
   },
   "snapshot_stages": ["pre_evidence", "after_experiment_1", "after_experiment_2", "final"],
   "campaign": {
+    "card_id": "work-ii-electrochemical-k4-one-repeat",
     "complete_experiments": 4,
     "operation_attempt_limit": 28,
     "vessel_start_limit": 4,
@@ -37,6 +38,16 @@
       "repeat_allowance_s": 14400.0,
       "implicit_stage_reserve_s": 0.0,
       "formula": "4 required electrolyses x 14400 s + 1 allowed repeat x 14400 s"
+    },
+    "closeout_policy": {
+      "planned_batches": 4,
+      "final_assay_path_operations_per_batch": 2,
+      "discard_path_operations_per_batch": 1,
+      "final_assay_path_total_operation_reserve": 8,
+      "discard_path_total_operation_reserve": 4,
+      "policy": "participant_controlled_advisory_no_hidden_allocation",
+      "automatic_action_repair": false,
+      "automatic_closeout": false
     },
     "checkpoint_complete_experiments": [0, 1, 2, 4]
   },

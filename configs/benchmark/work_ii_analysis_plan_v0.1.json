@@ -1,12 +1,12 @@
 {
   "schema_version": "chemworld-work-ii-analysis-plan-0.1",
   "analysis_plan_id": "work-ii-fixed-law-prior-analysis-v0.1",
-  "status": "w2_05_frozen_w2_07_power_component_complete",
+  "status": "w2_05_frozen_w2_07_power_resource_variance_components_complete",
   "formal_result": false,
   "formal_execution_allowed": false,
   "design_binding": {
     "path": "configs/benchmark/work_ii_formal_design_v0.1.json",
-    "sha256": "40a9f30c21171d6a8daf3414623def9875bb90cbb8432ac6c60a091bc557b136"
+    "sha256": "28fa1676a174f7adc688fbb998d0030e37b56e2de5d29ee12c356b7e3710c8b5"
   },
   "analysis_population": {
     "scheduled_public_cells": 75,
@@ -106,6 +106,17 @@
     "minimum_required_power_at_planning_effect": 0.8,
     "secondary_hypotheses_separately_powered": false,
     "small_effect_claim_allowed": false
+  },
+  "variance_component_contract": {
+    "world_cluster": "independent_random_sampling_unit_within_task",
+    "task_mechanism_family": "five_level_fixed_effect_and_reported_heterogeneity_axis",
+    "prior_arm": "within_world_cluster_paired_fixed_effect",
+    "participant_model_and_scaffold": "single_frozen_method_level_confounded_with_method_version_no_cross_model_generalization",
+    "provider_session": "one_session_nested_within_cell_no_separately_estimable_session_variance",
+    "provider_repeat": "one_nested_technical_observation_not_an_independent_sample",
+    "task_by_prior_interaction": "estimable_heterogeneity_not_a_separate_confirmatory_family",
+    "model_by_session_interaction": "not_identifiable_in_the_frozen_single_method_single_session_design",
+    "operations_experiments_and_checkpoints": "nested_measurements_not_independent_samples"
   },
   "multiplicity_and_reporting": {
     "primary_family": "single_H3_intersection_union",
