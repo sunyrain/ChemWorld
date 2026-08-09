@@ -763,7 +763,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 - 验收标准：
   - [ ] 协议、world cohort、methods、schedule、metrics、power、stopping 和 analysis 全部冻结；
   - [x] preregistration 文档与 machine-readable manifest 一致；
-  - [ ] 干净 wheel、独立 checkout 和预运行 evidence graph 通过；
+  - [x] 干净 wheel、独立 checkout 和预运行 evidence graph 通过；
   - [x] private matrix 密封，只公开 commitment hash；
   - [ ] 正式运行命令、预算和故障升级流程签字确认。
 - 备注：`Claim: Codex /root — W2-11 — DOING`。零 provider 调用 preregistration readiness
@@ -771,9 +771,13 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   `workstreams/flagship_tasks/reports/work-ii-preregistration-draft-v0.1.md`。内部检查通过，冻结并复核了
   H3、5 tasks、25 independent clusters、75 cells、300 experiments、300 checkpoints、75 accepted
   sessions、150 provider-attempt hard cap、outcome-neutral gates、failure/censoring rules 和仅含 commitment
-  的 private boundary；formal outcomes 和本轮 provider calls 均为 0。最终 freeze 仍缺 6 项：用户路线
-  选择、current-method 真实三臂资格收据、provider/正式货币上限、资格运行校准 ETA、clean wheel +
-  independent checkout + evidence graph receipt，以及执行命令/预算/故障升级的用户签字确认。
+  的 private boundary；formal outcomes 和本轮 provider calls 均为 0。2026-08-10 的 clean release
+  receipt `workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json` 绑定提交
+  `07eadf71bcbbfb20f78106da2b2197e519065623`，完成 13-node/17-edge evidence graph、4/4 frozen
+  checks、63/63 Work II tests、clean wheel 和非 editable wheel-target import/config smoke；checkout 前后均
+  clean，provider calls 为 0。readiness v0.1 是该验收前的冻结快照，仍如实列出当时 6 个 blocker；当前台账
+  已由独立 receipt 消除 clean-release blocker，最终 freeze 还缺 5 项：用户路线选择、current-method 真实
+  三臂资格收据、provider/正式货币上限、资格运行校准 ETA，以及执行命令/预算/故障升级的用户签字确认。
 
 ### W2-12 — 执行 public formal matrix
 
