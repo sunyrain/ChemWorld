@@ -362,10 +362,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 | W2-05 | P0 | 冻结 estimands、指标和判定规则 | DONE | W2-03、W2-04 |
 | W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DONE | W2-03 |
 | W2-07 | P0 | 功效、资源和成本审计 | DOING | W2-04、W2-05、W2-06 |
-| W2-08 | P0 | Registered Report/常规投稿路线决策 | 未开始 | W2-03–W2-07 |
+| W2-08 | P0 | Registered Report/常规投稿路线决策 | DOING | W2-03–W2-07 |
 | W2-09 | P0 | 完成 manifest-driven formal runner | DONE | W2-04–W2-07 |
 | W2-10 | P0 | provider/scaffold shakedown 与方法资格验证 | DOING | W2-09 |
-| W2-11 | P0 | 冻结 preregistration 与不可变执行包 | 未开始 | W2-08、W2-10 |
+| W2-11 | P0 | 冻结 preregistration 与不可变执行包 | DOING | W2-08、W2-10 |
 | W2-12 | P0 | 执行 public formal matrix | 未开始 | W2-11 |
 | W2-13 | P0 | 执行 private sealed confirmation | 未开始 | W2-12 |
 | W2-14 | P0 | 分析、稳健性、替代解释排除 | 未开始 | W2-12、W2-13 |
@@ -625,14 +625,15 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] 若申请，确认已有数据只作为 pilot/environment qualification；
   - [ ] 若不申请，冻结常规投稿目标和对应 evidence threshold；
   - [ ] 记录决策日期、负责人和不可逆后果；
-  - [ ] 投稿路线不根据 formal outcomes 事后改变主假设。
-- 备注：`Claim: Codex /root — W2-10 — DOING`；Stage A mock contract preflight 已通过
-  15/15 cells、0 failures。Stage B 真实 WellAU 三臂小探针已通过 3/3 cells、0 failures、
-  3 calls/3 attempts/0 retries；共 12,630 tokens，cache hit 为 0，progress heartbeat 正常。
-  该结果仅资格验证 direct Responses transport、prior delivery 和完整实验执行，不是 prior
-  效应证据，且已随 Direct Responses 实现归档，不资格验证当前 operation-level session method。
-  下一步是 operation-level deterministic/mock preflight 和一个任务 × 三臂 × seed 0 的真实 session
-  probe；此前不得启动五任务 breadth。
+  - [x] 投稿路线不根据 formal outcomes 事后改变主假设。
+- 备注：`Claim: Codex /root — W2-08 — DOING`。2026-08-10 已核对 Nature 官方 Registered
+  Reports 指南及其 2026-05-27 全领域扩展公告：当前必须先提交 presubmission enquiry，获邀后提交
+  Stage 1；若获得 IPA，approved protocol 需注册，正式 primary data 必须在 IPA 后采集，Stage 2 不得按
+  outcome 改写假设或核心方法。outcome-blind decision record 已冻结为
+  `configs/benchmark/work_ii_submission_route_decision_v0.1.json`，记录 formal participant outcomes 为 0、
+  历史证据仅作 pilot/environment/method qualification，以及两条路线的不可逆后果。当前推荐先提交 Nature
+  Registered Report presubmission enquiry；若未获邀，则按同一 H3/design/analysis/failure rules 转入常规
+  投稿。`selected_option` 仍为空，等待用户明确选择，故不得开始 formal primary data collection。
 
 ### W2-09 — 完成 manifest-driven formal runner
 
@@ -692,8 +693,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   operation/provider 分母。formal CLI 对 qualification receipt 执行自哈希、preflight/provider/attempt/blind
   contract、三臂 development 报告文件、零 formal outcome、150 次 provider-attempt 硬上限和用户 currency
   approval 的逐项绑定校验，不再接受仅声明 `status=passed` 的任意 JSON。当前仍缺用户批准的 currency ceiling、
-  当前 persistent-session 方法 qualification receipt，且 design/analysis 仍显式禁止正式执行；不得据此启动
-  provider 或正式矩阵。blind evaluator 的 development-only 零 provider shakedown 使用 synthetic incumbent
+  当前 persistent-session 方法 qualification receipt、W2-08 outcome-blind route selection 和 W2-11 final
+  freeze receipt，且 design/analysis 仍显式禁止正式执行；不得据此启动 provider 或正式矩阵。blind evaluator
+  的 development-only 零 provider shakedown 使用 synthetic incumbent
   fixture（明确不是 participant recommendation），完成 2 targets × 3 paired replicates = 6/6 executions，
   6/6 exact replay、0 failures、0 participant feedback、0 participant-operation denominator impact；报告：
   `workstreams/flagship_tasks/reports/work-ii-blind-evaluator-development-shakedown-v0.2.json`。
@@ -749,22 +751,29 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 ### W2-11 — 冻结 preregistration 与不可变执行包
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
 - 依赖：W2-08、W2-10
 - 验收标准：
   - [ ] 协议、world cohort、methods、schedule、metrics、power、stopping 和 analysis 全部冻结；
-  - [ ] preregistration 文档与 machine-readable manifest 一致；
+  - [x] preregistration 文档与 machine-readable manifest 一致；
   - [ ] 干净 wheel、独立 checkout 和预运行 evidence graph 通过；
-  - [ ] private matrix 密封，只公开 commitment hash；
+  - [x] private matrix 密封，只公开 commitment hash；
   - [ ] 正式运行命令、预算和故障升级流程签字确认。
-- 备注：`TBD`
+- 备注：`Claim: Codex /root — W2-11 — DOING`。零 provider 调用 preregistration readiness
+  已生成：`workstreams/flagship_tasks/reports/work-ii-preregistration-readiness-v0.1.json` 与同哈希绑定的
+  `workstreams/flagship_tasks/reports/work-ii-preregistration-draft-v0.1.md`。内部检查通过，冻结并复核了
+  H3、5 tasks、25 independent clusters、75 cells、300 experiments、300 checkpoints、75 accepted
+  sessions、150 provider-attempt hard cap、outcome-neutral gates、failure/censoring rules 和仅含 commitment
+  的 private boundary；formal outcomes 和本轮 provider calls 均为 0。最终 freeze 仍缺 6 项：用户路线
+  选择、current-method 真实三臂资格收据、provider/正式货币上限、资格运行校准 ETA、clean wheel +
+  independent checkout + evidence graph receipt，以及执行命令/预算/故障升级的用户签字确认。
 
 ### W2-12 — 执行 public formal matrix
 

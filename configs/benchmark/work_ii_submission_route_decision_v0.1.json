@@ -1,0 +1,79 @@
+{
+  "schema_version": "chemworld-work-ii-submission-route-decision-0.1",
+  "decision_id": "work-ii-submission-route-v0.1",
+  "status": "awaiting_user_selection",
+  "formal_result": false,
+  "formal_participant_outcome_count_at_decision": 0,
+  "policy_as_of": "2026-08-10",
+  "policy_sources": [
+    {
+      "source_id": "nature_registered_reports_author_guidelines",
+      "publisher": "Nature",
+      "url": "https://www.nature.com/nature/for-authors/registered-reports",
+      "verified_on": "2026-08-10",
+      "supports": [
+        "presubmission_enquiry_required",
+        "stage_1_review_precedes_primary_data_collection",
+        "pilot_data_may_be_declared_separately",
+        "approved_protocol_registration_required_after_ipa",
+        "stage_2_reports_registered_analyses_regardless_of_outcome",
+        "raw_data_materials_code_and_logs_are_shared",
+        "hypotheses_and_core_methods_cannot_change_after_ipa"
+      ]
+    },
+    {
+      "source_id": "nature_registered_reports_all_fields_editorial_2026",
+      "publisher": "Nature",
+      "url": "https://www.nature.com/articles/d41586-026-01629-y",
+      "published_on": "2026-05-27",
+      "verified_on": "2026-08-10",
+      "supports": ["registered_reports_available_across_nature_research_fields"]
+    }
+  ],
+  "options": {
+    "nature_registered_report_stage_1": {
+      "currently_available": true,
+      "next_action": "submit_presubmission_enquiry_before_any_formal_primary_data",
+      "formal_start_condition": "stage_1_in_principle_acceptance_and_protocol_registration",
+      "historical_data_role": "pilot_and_environment_or_method_qualification_only",
+      "fallback_if_not_invited": "regular_submission_with_the_same_frozen_h3_design_and_analysis",
+      "irreversible_consequences": [
+        "formal_primary_data_collection_waits_for_stage_1_in_principle_acceptance",
+        "approved_hypotheses_and_core_methods_cannot_be_changed_at_stage_2",
+        "all_registered_analyses_must_be_reported",
+        "substantial_protocol_change_requires_withdrawal_and_new_stage_1_submission",
+        "withdrawal_after_ipa_can_create_a_public_withdrawn_registration"
+      ]
+    },
+    "regular_submission": {
+      "currently_available": true,
+      "next_action": "freeze_target_and_evidence_threshold_before_any_formal_primary_data",
+      "formal_start_condition": "w2_10_w2_11_and_user_budget_signoff_complete",
+      "historical_data_role": "pilot_and_environment_or_method_qualification_only",
+      "irreversible_consequences": [
+        "no_in_principle_acceptance_before_results",
+        "route_target_and_evidence_threshold_are_frozen_before_formal_outcomes",
+        "primary_hypothesis_cannot_be_changed_in_response_to_formal_outcomes"
+      ]
+    }
+  },
+  "recommended_option": "nature_registered_report_stage_1",
+  "recommendation_action": "submit_presubmission_enquiry_before_any_formal_primary_data",
+  "recommendation_rationale": [
+    "the_primary_h3_is_confirmatory_and_outcome_blind",
+    "gate_a_and_development_runs_are_explicitly_separated_from_formal_data",
+    "the_formal_matrix_analysis_and_outcome_neutral_quality_checks_are_already_machine_frozen",
+    "formal_primary_data_have_not_started",
+    "a_presubmission_enquiry_preserves_the_regular_submission_fallback_without_changing_h3"
+  ],
+  "selected_option": null,
+  "selected_by": null,
+  "selected_at": null,
+  "outcome_blindness_contract": {
+    "selection_must_precede_formal_primary_data": true,
+    "route_change_based_on_formal_outcomes_forbidden": true,
+    "primary_hypothesis_change_based_on_formal_outcomes_forbidden": true,
+    "fallback_preserves_h3_design_analysis_and_failure_rules": true
+  },
+  "decision_sha256": "d949816d791f6bafc4686b394faa4ecbcab3a0551fbafeb403d8054b11e8c56e"
+}

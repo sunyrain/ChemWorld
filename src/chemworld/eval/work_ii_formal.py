@@ -152,6 +152,7 @@ EXPECTED_METHOD_QUALIFICATION_CONTRACT: dict[str, Any] = {
 }
 
 _SOURCE_PATHS = (
+    "configs/benchmark/work_ii_submission_route_decision_v0.1.json",
     "src/chemworld/agents/interactive_codex_experiment.py",
     "src/chemworld/agents/experiment_codex_ipc.py",
     "src/chemworld/agents/experiment_codex_mcp.py",
@@ -163,10 +164,12 @@ _SOURCE_PATHS = (
     "src/chemworld/eval/work_ii_formal.py",
     "src/chemworld/eval/work_ii_prior_discovery.py",
     "src/chemworld/eval/work_ii_process_profile.py",
+    "src/chemworld/eval/work_ii_preregistration.py",
     "src/chemworld/eval/work_ii_qualification.py",
     "src/chemworld/eval/work_ii_report.py",
     "src/chemworld/eval/work_ii_truth.py",
     "scripts/analyze_work_ii_formal.py",
+    "scripts/build_work_ii_preregistration_readiness.py",
     "scripts/run_work_ii_campaign_pilot.py",
     "scripts/run_work_ii_formal_matrix.py",
     "scripts/run_work_ii_method_qualification.py",
@@ -976,6 +979,8 @@ def build_formal_preflight(
         "formal currency ceiling is not yet approved",
         "current design and analysis plan explicitly forbid formal execution",
         "current persistent-session method lacks its final qualification receipt",
+        "submission route lacks an outcome-blind user selection",
+        "preregistration immutable execution package lacks its final freeze receipt",
     ]
     if (
         design.get("formal_execution_allowed") is True

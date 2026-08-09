@@ -1,0 +1,240 @@
+{
+  "blocking_requirements": [
+    {
+      "id": "submission_route_user_selection",
+      "owner": "user",
+      "satisfied": false
+    },
+    {
+      "id": "current_method_real_provider_qualification_receipt",
+      "owner": "w2_10",
+      "satisfied": false
+    },
+    {
+      "id": "formal_currency_ceiling_and_provider_contract_approval",
+      "owner": "user",
+      "satisfied": false
+    },
+    {
+      "id": "qualified_expected_eta_from_current_method",
+      "owner": "w2_07_w2_10",
+      "satisfied": false
+    },
+    {
+      "id": "clean_wheel_independent_checkout_and_evidence_graph_receipt",
+      "owner": "w2_11",
+      "satisfied": false
+    },
+    {
+      "id": "execution_command_budget_and_escalation_user_signoff",
+      "owner": "user",
+      "satisfied": false
+    }
+  ],
+  "claim_boundary": {
+    "all_other_unregistered_analyses_are_exploratory": true,
+    "endpoint_success_alone_is_not_law_discovery": true,
+    "environment_and_method_qualification_are_not_participant_outcomes": true,
+    "historical_runs_are_pilot_or_qualification_only": true,
+    "primary_h3_is_confirmatory": true
+  },
+  "conditional_route_requirements": {
+    "nature_registered_report_stage_1": [
+      "submit_presubmission_enquiry",
+      "receive_invitation_for_stage_1",
+      "receive_in_principle_acceptance_before_formal_primary_data",
+      "register_approved_protocol_publicly_or_under_embargo"
+    ],
+    "regular_submission": [
+      "freeze_regular_target_and_evidence_threshold_before_formal_primary_data"
+    ]
+  },
+  "execution_command_contract": {
+    "credentials_must_not_appear_in_command_or_git": true,
+    "initial_execution_starts_from_a_clean_immutable_commit": true,
+    "mode": "--execute",
+    "required_flags": [
+      "--manifest",
+      "--output-root",
+      "--progress-file",
+      "--qualification-receipt",
+      "--currency-ceiling-usd",
+      "--allow-formal-execution"
+    ],
+    "runner": "scripts/run_work_ii_formal_matrix.py"
+  },
+  "final_preregistration_freeze_allowed": false,
+  "formal_execution_allowed": false,
+  "formal_participant_outcome_count": 0,
+  "formal_population": {
+    "belief_checkpoints": 300,
+    "complete_experiments": 300,
+    "independent_task_world_clusters": 25,
+    "participant_cells": 75,
+    "prior_arms": [
+      "opaque",
+      "aligned_nominal",
+      "misindexed_nominal"
+    ],
+    "provider_attempts_hard_cap": 150,
+    "provider_sessions": 75,
+    "tasks": 5
+  },
+  "formal_result": false,
+  "frozen_component_readiness": {
+    "analysis_plan": true,
+    "clean_release_receipt": false,
+    "currency_budget_and_expected_eta": false,
+    "current_method_real_provider_qualification": false,
+    "metrics_and_estimands": true,
+    "participant_method_contract": true,
+    "power_and_variance_contract": true,
+    "private_commitment_boundary": true,
+    "protocol": true,
+    "route_selection": false,
+    "schedule_and_denominators": true,
+    "stopping_failure_and_censoring": true,
+    "user_execution_signoff": false,
+    "world_cohort": true
+  },
+  "internal_errors": [],
+  "method_and_evaluator_contracts": {
+    "blind_evaluator_contract_sha256": "20024a447d9d114a07cd2d16c9fbb3b1284eb97dd272269c2312a74a312c8a16",
+    "held_out_evaluator_contract_sha256": "d78c285f1c4cfac87129d7cf9a6c657c3aa8a8a23da18c8d40ecbbb81becf6b9",
+    "method_qualification_contract_sha256": "2d409f34b9ddfa254012cc27fceb4481f086d7d0b217269fb9762989248259b6",
+    "participant_execution_contract_sha256": "1f045d6489e8d7c2f77753881f615a9ba0e5fbc858a83fb815e85543c58f59d5",
+    "provider_contract": {
+      "base_url": "https://api.wellau.com/v1",
+      "finalization_timeout_s": 600.0,
+      "id": "wellau",
+      "model": "gpt-5.6-sol",
+      "name": "WellAU",
+      "reasoning_effort": "medium",
+      "request_timeout_s": 1200.0,
+      "wire_api": "responses"
+    }
+  },
+  "outcome_neutral_quality_gates": {
+    "exact_replay_required": true,
+    "execution_audit_required": true,
+    "formal_design_audit_passed": true,
+    "gate_a_current_and_passed": true,
+    "method_qualification_required_before_formal": true,
+    "power_resource_audit_passed": true,
+    "private_identity_commitment_only": true
+  },
+  "primary_hypothesis": {
+    "aligned_improvement": "Delta_aligned=E_aligned_pre-E_aligned_final",
+    "aligned_noninferiority_tolerance_E_units": 0.05,
+    "alpha": 0.05,
+    "alternative": "grand_mean_C_prior_greater_than_zero",
+    "id": "H3_selective_evidence_driven_correction",
+    "misindexed_improvement": "Delta_misindexed=E_misindexed_pre-E_misindexed_final",
+    "no_multiplicity_adjustment_for_required_intersection_union_components": true,
+    "primary_contrast": "C_prior=Delta_misindexed-Delta_aligned",
+    "required_conditions": [
+      "one_sided_95pct_lower_bound_C_prior_greater_than_0",
+      "one_sided_95pct_lower_bound_Delta_misindexed_greater_than_0",
+      "one_sided_95pct_lower_bound_Delta_aligned_greater_than_-0.05"
+    ],
+    "sidedness": "one_sided",
+    "success_is_intersection_union": true,
+    "test_model": "C_prior ~ 1 + sum_coded_task_fixed_effects"
+  },
+  "private_confirmation": {
+    "one_execution_after_public_analysis_freeze": true,
+    "private_identities_present": false,
+    "sealed_identity_commitment_sha256": "9d76ced7e2f24ce19b8a9c0090573a0220534e620d45dc4ec58c329edcf71efa"
+  },
+  "protocol_bindings": {
+    "analysis_plan": {
+      "hash_kind": "canonical_json_sha256",
+      "path": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
+      "sha256": "cb8bb2dacc2093f075c9e355af9f4fc8c9c49f99c68deb2c10f33b7aa823c3b7"
+    },
+    "formal_design": {
+      "hash_kind": "canonical_json_sha256",
+      "path": "configs/benchmark/work_ii_formal_design_v0.1.json",
+      "sha256": "4ac41d20456b419917140a6ef9ac77e0a9b62547ab8cbf23f80edcb464060da7"
+    },
+    "formal_design_audit": {
+      "file_sha256": "715c5af96043f3cce5daa141e8e366e90c907cd4a15142262b8a9abda7babc8e",
+      "path": "workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit.json"
+    },
+    "formal_preflight": {
+      "file_sha256": "a060d5bb1c3757f80ffb9ce26824fa3b09827d8cc43bc302678b4cb439466505",
+      "path": "workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json",
+      "preflight_sha256": "49dd8e1eee34e8bd97af0b57fb59597c0d900de297acc9d13d0d276fbee900ab"
+    },
+    "method_qualification_readiness": {
+      "file_sha256": "68d1fd612f7716b10fa1096533bb1c2cbd37de75c9d8d3142a456f7d3a89fdb2",
+      "path": "workstreams/flagship_tasks/reports/work-ii-method-qualification-readiness-v0.1.json",
+      "readiness_sha256": "348ee5a432667eec7c254e90a2159b7b3bdf29f60935ac92f858c2d7d8489118"
+    },
+    "power_resource_audit": {
+      "file_sha256": "d438fba26b65162db2b748bd4259acb7178e151e90650fd1b70567c315ae5089",
+      "path": "workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json"
+    }
+  },
+  "provider_calls_executed": 0,
+  "readiness_sha256": "f39fa8baddb8a3dba116cb1d5070626ae0de122569d95e1c5e9546e4f1522b70",
+  "research_question": "Can a persistent scientific agent use controlled experimental evidence to selectively revise a misindexed prior without degrading an aligned prior, and does that revision support executable law recovery and held-out transfer?",
+  "route_decision": {
+    "binding": {
+      "hash_kind": "canonical_json_sha256",
+      "path": "configs/benchmark/work_ii_submission_route_decision_v0.1.json",
+      "sha256": "a5f06f0d6c980ff6c1b6908b26caf84019bebffe27e0146956d693191aced3bb"
+    },
+    "decision_sha256": "d949816d791f6bafc4686b394faa4ecbcab3a0551fbafeb403d8054b11e8c56e",
+    "policy_as_of": "2026-08-10",
+    "policy_sources": [
+      {
+        "publisher": "Nature",
+        "source_id": "nature_registered_reports_author_guidelines",
+        "supports": [
+          "presubmission_enquiry_required",
+          "stage_1_review_precedes_primary_data_collection",
+          "pilot_data_may_be_declared_separately",
+          "approved_protocol_registration_required_after_ipa",
+          "stage_2_reports_registered_analyses_regardless_of_outcome",
+          "raw_data_materials_code_and_logs_are_shared",
+          "hypotheses_and_core_methods_cannot_change_after_ipa"
+        ],
+        "url": "https://www.nature.com/nature/for-authors/registered-reports",
+        "verified_on": "2026-08-10"
+      },
+      {
+        "published_on": "2026-05-27",
+        "publisher": "Nature",
+        "source_id": "nature_registered_reports_all_fields_editorial_2026",
+        "supports": [
+          "registered_reports_available_across_nature_research_fields"
+        ],
+        "url": "https://www.nature.com/articles/d41586-026-01629-y",
+        "verified_on": "2026-08-10"
+      }
+    ],
+    "recommendation_action": "submit_presubmission_enquiry_before_any_formal_primary_data",
+    "recommended_option": "nature_registered_report_stage_1",
+    "selected_option": null,
+    "status": "awaiting_user_selection"
+  },
+  "schema_version": "chemworld-work-ii-preregistration-readiness-0.1",
+  "status": "passed_final_freeze_blocked",
+  "stopping_failure_and_deviation_contract": {
+    "failed_scientific_cells_retained_without_replacement": true,
+    "formal_route_or_h3_change_after_outcomes_forbidden": true,
+    "infrastructure_missing_only_resume": true,
+    "persisted_scientific_trajectory_forbids_replacement": true,
+    "registered_protocol_deviations_must_be_disclosed": true,
+    "result_direction_early_stopping_forbidden": true
+  },
+  "unresolved_requirement_ids": [
+    "submission_route_user_selection",
+    "current_method_real_provider_qualification_receipt",
+    "formal_currency_ceiling_and_provider_contract_approval",
+    "qualified_expected_eta_from_current_method",
+    "clean_wheel_independent_checkout_and_evidence_graph_receipt",
+    "execution_command_budget_and_escalation_user_signoff"
+  ]
+}
