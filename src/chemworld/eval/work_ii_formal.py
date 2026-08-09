@@ -38,6 +38,7 @@ _SOURCE_PATHS = (
     "src/chemworld/eval/work_ii_formal.py",
     "src/chemworld/eval/work_ii_prior_discovery.py",
     "src/chemworld/eval/work_ii_qualification.py",
+    "src/chemworld/eval/work_ii_truth.py",
     "scripts/run_work_ii_campaign_pilot.py",
     "scripts/run_work_ii_formal_matrix.py",
     "pyproject.toml",
@@ -603,8 +604,53 @@ def build_formal_preflight(
     }
     if blind_contract != expected_blind_contract:
         errors.append("formal blind-evaluator contract differs from the frozen denominator")
+    truth_contract = dict(
+        _object(
+            design.get("held_out_evaluator_contract"),
+            "held_out_evaluator_contract",
+        )
+    )
+    expected_truth_contract = {
+        "truth_unit": "task_x_world_cluster_x_registered_query",
+        "queries_per_task_world_cluster": 4,
+        "public_matrix_truth_execution_count": 100,
+        "public_matrix_truth_query_metric_count": 340,
+        "shared_across_prior_arms_and_checkpoints": True,
+        "one_frozen_complete_experiment_per_query": True,
+        "keyed_observation_coordinate_per_query": True,
+        "exact_replay_required": True,
+        "failed_truth_executions_retained_without_replacement": True,
+        "evaluator_provider_calls": 0,
+        "participant_feedback_from_truth_evaluator": False,
+        "evaluator_trajectory_separate_from_participant": True,
+        "evaluator_resources_excluded_from_participant_ledger": True,
+        "frozen_unregistered_controls": {
+            "reaction-to-crystallization": {
+                "stirring_speed_rpm": 675.0,
+                "catalyst_amount_mol": 0.000315,
+            },
+            "reaction-to-distillation": {
+                "stirring_speed_rpm": 675.0,
+                "catalyst_amount_mol": 0.000315,
+                "evaporation_temperature_K": 332.5,
+                "evaporation_duration_s": 900.0,
+                "transfer_fraction": 0.77,
+            },
+            "partition-discovery": {"solvent_volume_L": 0.02},
+            "reaction-safety-constrained": {"stirring_speed_rpm": 675.0},
+        },
+        "query_field_aliases": {
+            "partition-discovery": {
+                "aqueous_phase_volume_L": "aqueous_volume_L"
+            }
+        },
+    }
+    if truth_contract != expected_truth_contract:
+        errors.append("formal held-out evaluator contract differs from the frozen denominator")
     total_query_count = 0
     total_query_metric_count = 0
+    evaluator_truth_execution_count = 0
+    evaluator_truth_query_metric_count = 0
     for task_index, task in enumerate(tasks, start=1):
         task_id = str(task.get("task_id"))
         relative_config = str(task.get("campaign_config"))
@@ -647,6 +693,8 @@ def build_formal_preflight(
             len(metric_ids)
             for metric_ids in opaque_contract["query_metric_contract"].values()
         )
+        evaluator_truth_execution_count += query_count * len(seeds)
+        evaluator_truth_query_metric_count += query_metric_count * len(seeds)
         task_bindings.append(
             {
                 "task_id": task_id,
@@ -734,6 +782,7 @@ def build_formal_preflight(
         "provider_contract": provider_contract,
         "provider_attempt_contract": attempt_contract,
         "blind_evaluator_contract": blind_contract,
+        "held_out_evaluator_contract": truth_contract,
         "schedule_policy": {
             "order": "task_then_public_world_then_prior_arm",
             "same_world_arm_triplet_max_concurrency": 3,
@@ -763,6 +812,8 @@ def build_formal_preflight(
             "belief_checkpoints": len(cells) * 4,
             "checkpoint_held_out_queries": total_query_count,
             "checkpoint_held_out_query_metrics": total_query_metric_count,
+            "evaluator_truth_executions": evaluator_truth_execution_count,
+            "evaluator_truth_query_metrics": evaluator_truth_query_metric_count,
             "participant_final_recommendations": len(cells),
             "blind_validation_targets": len(cells) * 2,
             "blind_validation_executions": len(cells) * 2 * 3,

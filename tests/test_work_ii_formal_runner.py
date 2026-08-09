@@ -156,11 +156,48 @@ def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> Non
         "belief_checkpoints": 300,
         "checkpoint_held_out_queries": 1200,
         "checkpoint_held_out_query_metrics": 4080,
+        "evaluator_truth_executions": 100,
+        "evaluator_truth_query_metrics": 340,
         "participant_final_recommendations": 75,
         "blind_validation_targets": 150,
         "blind_validation_executions": 450,
     }
     assert len(report["blocking_requirements"]) == 3
+    assert report["held_out_evaluator_contract"] == {
+        "truth_unit": "task_x_world_cluster_x_registered_query",
+        "queries_per_task_world_cluster": 4,
+        "public_matrix_truth_execution_count": 100,
+        "public_matrix_truth_query_metric_count": 340,
+        "shared_across_prior_arms_and_checkpoints": True,
+        "one_frozen_complete_experiment_per_query": True,
+        "keyed_observation_coordinate_per_query": True,
+        "exact_replay_required": True,
+        "failed_truth_executions_retained_without_replacement": True,
+        "evaluator_provider_calls": 0,
+        "participant_feedback_from_truth_evaluator": False,
+        "evaluator_trajectory_separate_from_participant": True,
+        "evaluator_resources_excluded_from_participant_ledger": True,
+        "frozen_unregistered_controls": {
+            "reaction-to-crystallization": {
+                "stirring_speed_rpm": 675.0,
+                "catalyst_amount_mol": 0.000315,
+            },
+            "reaction-to-distillation": {
+                "stirring_speed_rpm": 675.0,
+                "catalyst_amount_mol": 0.000315,
+                "evaporation_temperature_K": 332.5,
+                "evaporation_duration_s": 900.0,
+                "transfer_fraction": 0.77,
+            },
+            "partition-discovery": {"solvent_volume_L": 0.02},
+            "reaction-safety-constrained": {"stirring_speed_rpm": 675.0},
+        },
+        "query_field_aliases": {
+            "partition-discovery": {
+                "aqueous_phase_volume_L": "aqueous_volume_L"
+            }
+        },
+    }
 
 
 def test_formal_schedule_is_task_world_arm_ordered_and_unique() -> None:

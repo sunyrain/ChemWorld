@@ -4,7 +4,9 @@ import pytest
 
 from chemworld.eval.work_ii_analysis import (
     WorkIIAnalysisError,
+    build_cluster_correction_record,
     correction_contrast,
+    score_cell_checkpoint_errors,
     score_prediction_error,
 )
 
@@ -70,3 +72,56 @@ def test_primary_contrast_and_missing_final_rule_are_frozen() -> None:
     )
     assert missing.misindexed_improvement == 0.0
     assert missing.primary_contrast == pytest.approx(-0.1)
+
+
+def _snapshot(stage: str, mean: float) -> dict[str, object]:
+    predictions = _predictions()
+    predictions[0]["metrics"][0]["mean"] = mean
+    predictions[0]["metrics"][0]["interval_lower"] = min(mean, 0.6)
+    predictions[0]["metrics"][0]["interval_upper"] = max(mean, 0.9)
+    return {"stage": stage, "predictions": predictions}
+
+
+def test_cell_checkpoint_error_applies_censoring_and_missing_pre_rules() -> None:
+    truth = {"q1": {"yield": 0.9, "risk": 0.1}}
+    censored = score_cell_checkpoint_errors(
+        {
+            "belief_snapshots": [
+                _snapshot("pre_evidence", 0.5),
+                _snapshot("after_experiment_1", 0.8),
+            ]
+        },
+        truth,
+        terminal_state="right_censored",
+    )
+    assert censored["effective_pre_error"] == pytest.approx(0.25)
+    assert censored["effective_final_error"] == pytest.approx(0.1)
+    assert censored["primary_improvement"] == pytest.approx(0.15)
+    assert censored["effective_final_stage"] == "after_experiment_1"
+
+    missing_pre = score_cell_checkpoint_errors(
+        {"belief_snapshots": [_snapshot("after_experiment_1", 0.8)]},
+        truth,
+        terminal_state="failed",
+    )
+    assert missing_pre["effective_pre_error"] is None
+    assert missing_pre["effective_final_error"] is None
+    assert missing_pre["primary_improvement"] == 0.0
+
+
+def test_cluster_record_uses_retained_zero_improvement_cells() -> None:
+    records = {
+        "opaque": {"effective_pre_error": 0.5, "primary_improvement": 0.1},
+        "aligned_nominal": {
+            "effective_pre_error": 0.3,
+            "primary_improvement": 0.05,
+        },
+        "misindexed_nominal": {
+            "effective_pre_error": None,
+            "primary_improvement": 0.0,
+        },
+    }
+    cluster = build_cluster_correction_record(records)
+    assert cluster["H1_prior_utility"] == pytest.approx(0.2)
+    assert cluster["H2_prior_vulnerability"] is None
+    assert cluster["H3_primary_contrast"] == pytest.approx(-0.05)

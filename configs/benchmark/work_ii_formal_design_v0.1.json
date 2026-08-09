@@ -1,7 +1,7 @@
 {
   "schema_version": "chemworld-work-ii-formal-design-0.1",
   "design_id": "work-ii-fixed-law-prior-formal-v0.1",
-  "status": "w2_04_frozen_pending_downstream_preregistration",
+  "status": "w2_04_w2_09_evaluator_contract_frozen_pending_preregistration",
   "formal_result": false,
   "formal_execution_allowed": false,
   "environment_binding": {
@@ -125,6 +125,45 @@
     "public_matrix_final_recommendation_count": 75,
     "public_matrix_blind_target_count": 150,
     "public_matrix_blind_execution_count": 450
+  },
+  "held_out_evaluator_contract": {
+    "truth_unit": "task_x_world_cluster_x_registered_query",
+    "queries_per_task_world_cluster": 4,
+    "public_matrix_truth_execution_count": 100,
+    "public_matrix_truth_query_metric_count": 340,
+    "shared_across_prior_arms_and_checkpoints": true,
+    "one_frozen_complete_experiment_per_query": true,
+    "keyed_observation_coordinate_per_query": true,
+    "exact_replay_required": true,
+    "failed_truth_executions_retained_without_replacement": true,
+    "evaluator_provider_calls": 0,
+    "participant_feedback_from_truth_evaluator": false,
+    "evaluator_trajectory_separate_from_participant": true,
+    "evaluator_resources_excluded_from_participant_ledger": true,
+    "frozen_unregistered_controls": {
+      "reaction-to-crystallization": {
+        "stirring_speed_rpm": 675.0,
+        "catalyst_amount_mol": 0.000315
+      },
+      "reaction-to-distillation": {
+        "stirring_speed_rpm": 675.0,
+        "catalyst_amount_mol": 0.000315,
+        "evaporation_temperature_K": 332.5,
+        "evaporation_duration_s": 900.0,
+        "transfer_fraction": 0.77
+      },
+      "partition-discovery": {
+        "solvent_volume_L": 0.02
+      },
+      "reaction-safety-constrained": {
+        "stirring_speed_rpm": 675.0
+      }
+    },
+    "query_field_aliases": {
+      "partition-discovery": {
+        "aqueous_phase_volume_L": "aqueous_volume_L"
+      }
+    }
   },
   "selection_and_failure_policy": {
     "tasks_selected_without_participant_outcomes": true,

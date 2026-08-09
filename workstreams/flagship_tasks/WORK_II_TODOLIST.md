@@ -642,6 +642,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] provider/session/scaffold receipts；
   - [x] typed prior/evidence/belief/law-summary schema 与可执行 law-summary validator；
   - [x] 同一 session 内的 pre-evidence、preregistered experiment checkpoints 和 final snapshot MCP contract；
+  - [x] evaluator-only held-out truth compiler：每个 task×world cluster 的 4 个注册 query 各冻结为一个完整实验，三臂和四个 checkpoint 共享同一 truth，零 provider 调用且不反馈 participant；
+  - [x] checkpoint prediction-error scorer 与冻结缺失规则：right-censored cell carry-forward 最后有效 checkpoint，缺失 pre 或不可计分 prediction 的 primary improvement 固定为零；
   - [x] 从首个 physical operation 开始的 free-discovery state machine；主实验不注入 protocol-owned discriminating experiment；
   - [ ] optional matched-evidence mechanism probe 的独立 cloned-world/session/resource contract，默认不进入最小 pilot；
   - [x] operation-level `step(action)`、public outcome、termination/final-assay 和 multi-experiment campaign 的统一接口；
@@ -662,7 +664,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   当前 operation-level runner 已替代关闭 MCP 的旧 `CodexSessionClient + complete-experiment plan` prototype。
   75-cell outcome-blind preflight 已确定性生成并复核：5 tasks、25 public task×world clusters、3 arms、
   75 persistent sessions、300 complete experiments、300 typed checkpoints、1,200 checkpoint queries 和
-  4,080 query×metric predictions；private identities、world seed、arm label 与 evaluator truth 均不进入 participant prompt。
+  4,080 query×metric predictions；另冻结 100 个 evaluator truth executions 和 340 个唯一
+  task×world×query-metric truth，三臂和四个 checkpoint 不重复测量；private identities、world seed、arm label
+  与 evaluator truth 均不进入 participant prompt。
   同时修复了 formal config 的中性 checkpoint IDs 与 typed MCP validator 仍只接受历史语义标签的契约错位，
   历史标签仅保留 replay 兼容。报告：
   `workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`。
@@ -681,6 +685,11 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   fixture（明确不是 participant recommendation），完成 2 targets × 3 paired replicates = 6/6 executions，
   6/6 exact replay、0 failures、0 participant feedback、0 participant-operation denominator impact；报告：
   `workstreams/flagship_tasks/reports/work-ii-blind-evaluator-development-shakedown-v0.2.json`。
+  held-out truth compiler 的五任务 seed-0 development shakedown 先因外层命令 timeout 在 task 1 后形成
+  immutable infrastructure-incomplete v0.1（4/20 queries 已完成并保留），随后仅修复 wrapper timeout、以新身份
+  从头执行 v0.2：20/20 queries、68/68 query-metric truths、200/200 operations、20/20 exact replay，
+  0 provider calls、0 participant feedback、0 participant-operation denominator impact。报告：
+  `workstreams/flagship_tasks/reports/work-ii-held-out-evaluator-development-shakedown-v0.2.json`。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 
