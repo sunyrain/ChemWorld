@@ -357,7 +357,7 @@ outcome channels remain separate so that the analysis can distinguish:
 | W2-04 | P0 | 冻结先验条件与固定规律 world cohort | DOING | W2-03 |
 | W2-05 | P0 | 冻结 estimands、指标和判定规则 | DOING | W2-03、W2-04 |
 | W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DOING | W2-03 |
-| W2-07 | P0 | 功效、资源和成本审计 | 未开始 | W2-04、W2-05、W2-06 |
+| W2-07 | P0 | 功效、资源和成本审计 | DOING | W2-04、W2-05、W2-06 |
 | W2-08 | P0 | Registered Report/常规投稿路线决策 | 未开始 | W2-03–W2-07 |
 | W2-09 | P0 | 完成 manifest-driven formal runner | DOING | W2-04–W2-07 |
 | W2-10 | P0 | provider/scaffold shakedown 与方法资格验证 | DOING | W2-09 |
@@ -554,9 +554,11 @@ outcome channels remain separate so that the analysis can distinguish:
   - [ ] 冻结 token、货币、wall time、并发和失败重试预算；
   - [ ] 明确早停仅针对基础设施/安全，不针对结果方向；
   - [ ] 输出完整资源上界和预计运行 ETA。
-- 备注：`Claim: Codex /root — W2-09 — DOING`；已建立 prior-pilot manifest runner、
-  machine-readable execution index 和外置 progress probe；formal trajectory/prefix/law-summary
-  runner 尚未完成。
+- 备注：`Claim: Codex /root — W2-07 — DOING`。已完成 45-cell development campaign 的实测
+  resource/token/wall-time 基线、当前拓扑资源上界与 DeepSeek qualification-v2 成本边界审计；
+  报告：`workstreams/flagship_tasks/reports/work-ii-w2-07-resource-cost-audit-draft.md`。该报告仅是
+  formal freeze 输入；world/replicate/provider-repeat 数量、provider attempt retry、货币硬上限、
+  power 与正式 ETA 仍依赖 W2-04、W2-05、W2-06，故 W2-07 保持 `DOING`。
 
 ### W2-08 — Registered Report/常规投稿路线决策
 
@@ -831,9 +833,29 @@ outcome channels remain separate so that the analysis can distinguish:
 - [x] 两个完整 campaign-cell 资格尝试均未产生物理 operation：首次偏离到 shell/file 探索，第二次
   停留在 MCP resource discovery。两次失败及 usage 均保留为 provider qualification failure，不进入
   科学分母；按预定 fallback 切回已验证 WellAU `gpt-5.6-sol` medium。
+- [x] DeepSeek 失败已定位到 Codex 0.145.0 的工具暴露组合：当前模型目录同时设置
+  `supports_search_tool=true` 与 direct `tool_mode=null`，而 ChemWorld MCP 只发布 tools、不发布
+  resources；领域工具因而进入 deferred/search 路径，模型只能看见 resource discovery 或通用工具。
+  endpoint、鉴权、Responses turn 与 MCP 启动本身均已验证正常，空 `base_instructions` 不是主因。
+- [x] 单变量 canary 仅关闭 `supports_search_tool` 后，DeepSeek 已直接调用领域 MCP 并完成 4/4
+  experiments、4/4 checkpoints、25/25 committed operations、0 resource rejection 和 exact replay；
+  由此确认 tool-routing 根因。诊断报告：
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-codex-harness-diagnosis.md`。
+- [x] DeepSeek qualification-v2 本地修复已冻结：production catalog 使用
+  `supports_search_tool=false`；MCP 0.5 在 final checkpoint 返回严格 JSON-only contract；monitor 仅
+  额外归一化“整个消息恰为一个 JSON code fence”的等价包装并记录 encoding，嵌入 prose 的 JSON
+  仍失败。qualification-only envelope 为 input 2,750,000、uncached input 320,000、output 50,000，
+  finalization retry limit=0；29 个 focused tests 通过。
+- [x] 已按用户明确授权使用本地 ignored/untracked credential 执行唯一一次 seed-0 opaque
+  qualification-v2 live canary：4/4 experiments、4/4 checkpoints、26 attempts（25 committed、
+  1 validation failure、0 resource rejection）、26/26 exact replay、2,031,397 input（1,944,704
+  cached、86,693 uncached）、38,993 output；provider 0 errors，final payload 为有效 exact JSON，
+  所有 qualification checks 通过。该 run 仅证明当前 DeepSeek campaign harness/envelope 合格，
+  不进入科学分母。
 - [x] 当前完成范围收束为三个任务：`electrochemical-conversion`、
   `reaction-to-crystallization`、`reaction-to-distillation`；每任务三先验臂 × 五 seeds，cell 内四轮
-  complete experiments。electrochemical 已完成 15/15 cells，后两任务待真实 pilot 后扩展。
+  complete experiments。三个任务均已推进到冻结终态；该范围是 development qualification，不是
+  W2-12 public formal matrix。
 - [x] crystallization/distillation 的 task-specific belief contract、material-information public binding、
   task-pattern process-time card、required-stage/repeat/quench allowance 和三臂并发配置已实现：
   crystallization 为 146,400 s，distillation 为 202,080 s。
@@ -849,8 +871,17 @@ outcome channels remain separate so that the analysis can distinguish:
   experiments、step 39 后因 `active_session.json` 的瞬时 `PermissionError` 终止。已为 host IPC、
   generated lab tool 和 MCP writer 加入 40 次 × 25 ms 的有界原子替换重试，耗尽仍 fail-closed；
   修复通过 54 个 IPC/MCP/runner focused tests。受影响五-seed block 必须从 seed 0 整体重跑。
-- [ ] distillation seed-0 三臂真实 provider pilot 达到终态。
-- [ ] crystallization 与 distillation 各 15/15 cells 完成，并形成三任务综合报告。
+- [x] crystallization replacement 五-seed block 从 seed 0 重跑并通过：15/15 cells、60/60
+  experiments、663 attempts、651 committed、12 validation failures、0 resource rejection、15/15
+  exact replay；matrix wall time 6,120.0 s。
+- [x] distillation seed-0 三臂真实 provider pilot 通过：3/3 cells、12/12 experiments、132/132
+  committed operations、0 resource rejection、3/3 exact replay；matrix wall time 1,509.7 s。
+- [x] distillation 五-seed block 达到冻结终态：14/15 cells、56/60 experiments、517 attempts、
+  506 committed、11 validation failures、0 resource rejection、14/15 exact replay。唯一失败为
+  seed-4 aligned nominal：provider turn 正常完成但未调用 MCP；按规则保留且不替换。
+- [x] 三任务综合报告已形成：合计 44/45 cells、176/180 experiments、1,547 attempts、1,524
+  committed、23 validation failures、0 resource rejection、44/45 exact replay。报告：
+  `workstreams/flagship_tasks/reports/work-ii-three-task-five-seed-campaign.md`。
 
 ## 7. 完成定义
 

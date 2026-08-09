@@ -7,7 +7,24 @@ from pathlib import Path
 from typing import Any, TextIO
 
 from chemworld.agents.experiment_codex_ipc import ExperimentCodexWorkspace
-from chemworld.agents.experiment_codex_mcp import MCP_SERVER_VERSION, SUPPORTED_TOOLS
+from chemworld.agents.experiment_codex_mcp import (
+    MCP_SERVER_VERSION,
+    SUPPORTED_TOOLS,
+    ChemWorldMCPServer,
+)
+
+
+def test_final_response_contract_matches_session_scope() -> None:
+    assert ChemWorldMCPServer._final_response_contract(campaign=True) == {
+        "format": "json_object_only",
+        "required_keys": ["status", "summary"],
+        "status": "campaign_complete",
+        "summary_max_length": 3000,
+        "prose_or_markdown_allowed": False,
+    }
+    assert ChemWorldMCPServer._final_response_contract(campaign=False)["status"] == (
+        "experiment_complete"
+    )
 
 
 def _write_request(stream: TextIO, request_id: int, method: str, params: Any) -> None:

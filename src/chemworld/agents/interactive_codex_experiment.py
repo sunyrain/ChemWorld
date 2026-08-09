@@ -37,7 +37,7 @@ from chemworld.providers.codex_subscription import (
     SUPPORTED_MODELS,
 )
 
-INTERACTIVE_CODEX_EXPERIMENT_VERSION = "chemworld-interactive-codex-experiment-0.3"
+INTERACTIVE_CODEX_EXPERIMENT_VERSION = "chemworld-interactive-codex-experiment-0.4"
 DEFAULT_FINALIZATION_TIMEOUT_S = 300.0
 
 _FINAL_OUTPUT_SCHEMA: dict[str, Any] = {
@@ -113,7 +113,8 @@ provider budget.
 
 An experiment_ended outcome closes only the current batch. When campaign_ended=false, preserve your
 scientific context and continue into the next fresh batch using the returned next_state. When
-campaign_ended=true, commit the final checkpoint if it is due, then return the requested final JSON.
+campaign_ended=true, commit the final checkpoint if it is due, then return exactly one JSON object
+matching the requested final schema, with no prose or Markdown fence.
 The host never chooses, repairs, terminates, assays, or replaces your operations. Failed and
 resource-rejected attempts remain part of the trajectory. Keep enough operation, stock,
 process-time, and assay capacity to close all planned batches. The 19 process coordinates are
@@ -232,20 +233,17 @@ class _CodexEventMonitor:
         self._stderr_thread.join(timeout=5.0)
         snapshot = self.snapshot()
         final_payload: dict[str, Any] | None = None
+        final_payload_encoding: str | None = None
         with self._lock:
             message = self._final_message
         if message is not None:
-            try:
-                candidate = json.loads(message)
-            except json.JSONDecodeError:
-                candidate = None
-            if isinstance(candidate, dict):
-                final_payload = candidate
+            final_payload, final_payload_encoding = _parse_final_payload(message)
         return {
             **snapshot,
             "status": status,
             "return_code": int(return_code),
             "final_payload": final_payload,
+            "final_payload_encoding": final_payload_encoding,
         }
 
     def stop(self) -> None:
@@ -1028,6 +1026,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "event_counts": result.get("event_counts", {}),
             "provider_errors": result.get("provider_errors", []),
             "final_payload_valid": final_valid,
+            "final_payload_encoding": result.get("final_payload_encoding"),
             "final_payload_status": (
                 final_payload.get("status")
                 if final_valid and isinstance(final_payload, dict)
@@ -1840,6 +1839,28 @@ def _valid_final_payload(value: Any) -> bool:
         and isinstance(value.get("summary"), str)
         and len(value["summary"]) <= 3000
     )
+
+
+def _parse_final_payload(message: str) -> tuple[dict[str, Any] | None, str | None]:
+    """Parse exact JSON or one whole-message JSON fence without retaining raw text."""
+
+    stripped = message.strip()
+    candidates = [(stripped, "json")]
+    fenced = re.fullmatch(
+        r"```(?:json)?\s*(?P<body>\{.*\})\s*```",
+        stripped,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if fenced is not None:
+        candidates.append((fenced.group("body"), "markdown_json_fence"))
+    for candidate_text, encoding in candidates:
+        try:
+            candidate = json.loads(candidate_text)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(candidate, dict):
+            return candidate, encoding
+    return None, None
 
 
 def _system_prompt_hash() -> str:

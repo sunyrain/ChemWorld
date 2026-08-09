@@ -27,7 +27,7 @@ from chemworld.eval.work_ii_prior_discovery import (
     parse_work_ii_belief_snapshot,
 )
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.4"
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.5"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
@@ -160,7 +160,8 @@ class ChemWorldMCPServer:
                             "commit_belief_snapshot. An experiment_ended outcome closes only "
                             "the current batch; continue in the same session when "
                             "campaign_ended=false. After campaign_ended=true, commit the final "
-                            "checkpoint if due and submit the final response."
+                            "checkpoint if due and submit exactly one JSON object matching the "
+                            "final response schema, with no prose or Markdown fence."
                             if campaign
                             else "After a step returns experiment_ended=true, call no more "
                             "tools and submit the final response for that experiment."
@@ -308,11 +309,23 @@ class ChemWorldMCPServer:
     def _status(self) -> dict[str, Any]:
         if self._terminal_outcome is None:
             return _read_object(self.public / "current.json")
+        campaign = self._descriptor().get("session_scope") == "campaign"
         return {
             "schema_version": MCP_SERVER_VERSION,
             "experiment_ended": True,
             "terminal_outcome": self._terminal_outcome,
             "instruction": "Submit the final response now; do not call step again.",
+            "final_response_contract": self._final_response_contract(campaign=campaign),
+        }
+
+    @staticmethod
+    def _final_response_contract(*, campaign: bool) -> dict[str, Any]:
+        return {
+            "format": "json_object_only",
+            "required_keys": ["status", "summary"],
+            "status": "campaign_complete" if campaign else "experiment_complete",
+            "summary_max_length": 3000 if campaign else 2000,
+            "prose_or_markdown_allowed": False,
         }
 
     def _commit_belief_snapshot(
@@ -363,7 +376,7 @@ class ChemWorldMCPServer:
         root.mkdir(parents=True, exist_ok=True)
         path = root / f"{len(existing) + 1:02d}-{expected_stage}.json"
         _atomic_json(path, parsed.to_dict())
-        return {
+        result = {
             "ok": True,
             "schema_version": MCP_SERVER_VERSION,
             "stage": expected_stage,
@@ -371,6 +384,9 @@ class ChemWorldMCPServer:
             "committed_checkpoint_count": len(existing) + 1,
             "remaining_checkpoint_count": len(stages) - len(existing) - 1,
         }
+        if result["remaining_checkpoint_count"] == 0:
+            result["final_response_contract"] = self._final_response_contract(campaign=True)
+        return result
 
     def _completed_experiment_state(self) -> tuple[int, set[str]]:
         rows: list[dict[str, Any]] = []

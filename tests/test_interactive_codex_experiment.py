@@ -15,8 +15,31 @@ from chemworld.agents.interactive_codex_experiment import (
     InteractiveCodexExperimentAgent,
     InteractiveCodexExperimentError,
     _material_information_payload,
+    _parse_final_payload,
     _public_task_contract,
 )
+
+
+def test_final_payload_parser_accepts_exact_json_and_one_json_fence() -> None:
+    payload = {"status": "campaign_complete", "summary": "done"}
+    exact, exact_encoding = _parse_final_payload(json.dumps(payload))
+    fenced, fenced_encoding = _parse_final_payload(
+        "```json\n" + json.dumps(payload) + "\n```"
+    )
+
+    assert exact == payload
+    assert exact_encoding == "json"
+    assert fenced == payload
+    assert fenced_encoding == "markdown_json_fence"
+
+
+def test_final_payload_parser_rejects_json_embedded_in_prose() -> None:
+    payload, encoding = _parse_final_payload(
+        'Campaign complete: {"status":"campaign_complete","summary":"done"}'
+    )
+
+    assert payload is None
+    assert encoding is None
 
 
 @pytest.mark.parametrize(
@@ -582,6 +605,7 @@ def test_one_codex_process_controls_two_runner_operations(
     assert usage["output_token_count"] == 321
     receipt = agent.provider_receipts()[0]
     assert receipt["usage"]["reasoning_output_tokens"] == 200
+    assert receipt["final_payload_encoding"] == "json"
     assert receipt["final_payload_summary"].startswith("The experiment")
     assert receipt["lab_tool_integrity_verified_after_session"] is True
     assert receipt["mcp_tool_integrity_verified_after_session"] is True
