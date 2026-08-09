@@ -402,6 +402,28 @@ def test_v0_3_preflight_separates_method_freeze_from_external_execution() -> Non
     assert report["publication_ready"] is False
 
 
+def test_rc29_preflight_resolves_current_plan_and_semantics_bindings() -> None:
+    report = build_mechanism_adaptation_preflight(
+        ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json",
+        gate_a_plan_path=(
+            ROOT
+            / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc29.json"
+        ),
+        semantics_audit_path=(
+            ROOT
+            / "workstreams/flagship_tasks/reports/"
+            "confirmatory-task-semantics-audit-rc29.json"
+        ),
+    )
+
+    assert report["implementation_complete"] is True
+    assert report["method_freeze_decision_blocker_count"] == 0
+    assert report["protocol_id"].endswith("current-source-rc29")
+    assert report["confirmatory_task_semantics_audit"]["protocol_id"] == report[
+        "protocol_id"
+    ]
+
+
 def test_v0_2_agent_defines_randomizes_and_anonymizes_candidates_without_derived_leakage() -> None:
     agent = _agent(label_mode="anonymous")
     prompt = json.loads(agent._build_prompt(_context(), {"tool_json": {}}))

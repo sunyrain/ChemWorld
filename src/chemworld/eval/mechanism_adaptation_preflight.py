@@ -30,8 +30,16 @@ DEFAULT_PROTOCOL = (
     configuration_root()
     / "benchmark/mechanism_adaptation_v0.3.0_rc28.json"
 )
+DEFAULT_GATE_A_PLAN = (
+    configuration_root()
+    / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json"
+)
+DEFAULT_SEMANTICS_AUDIT = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "confirmatory-task-semantics-audit-rc28.json"
+)
 REQUIRED_IMPLEMENTATION_ARTIFACTS = (
-    "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json",
     "configs/benchmark/mechanism_adaptation_participant_preregistration_rc28.json",
     "src/chemworld/agents/mechanism_adaptation_live_llm.py",
     "src/chemworld/eval/mechanism_adaptation.py",
@@ -52,21 +60,19 @@ REQUIRED_IMPLEMENTATION_ARTIFACTS = (
     "scripts/plan_mechanism_adaptation_matrix.py",
     "tests/test_mechanism_adaptation.py",
     "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-public-matrix.json",
-    "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc28.json",
 )
 
 
 def build_mechanism_adaptation_preflight(
     protocol_path: Path = DEFAULT_PROTOCOL,
+    *,
+    gate_a_plan_path: Path = DEFAULT_GATE_A_PLAN,
+    semantics_audit_path: Path = DEFAULT_SEMANTICS_AUDIT,
 ) -> dict[str, Any]:
     """Check protocol completeness without treating unrun empirical gates as failures."""
 
     protocol = load_mechanism_adaptation_protocol(protocol_path)
     validation_errors = validate_mechanism_adaptation_protocol(protocol)
-    gate_a_plan_path = (
-        configuration_root()
-        / "benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json"
-    )
     gate_a_plan = load_json_object(gate_a_plan_path)
     design_audit_relative = str(
         gate_a_plan["design_validity_precondition"]["report"]
@@ -118,11 +124,7 @@ def build_mechanism_adaptation_preflight(
         if preregistration
         else ["preregistration manifest is missing"]
     )
-    semantics_path = (
-        ROOT
-        / "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc28.json"
-    )
+    semantics_path = semantics_audit_path
     semantics = (
         json.loads(semantics_path.read_text(encoding="utf-8"))
         if semantics_path.is_file()
@@ -151,6 +153,8 @@ def build_mechanism_adaptation_preflight(
     artifacts = []
     required_artifacts = (
         *REQUIRED_IMPLEMENTATION_ARTIFACTS,
+        _relative_path(gate_a_plan_path),
+        _relative_path(semantics_path),
         design_audit_relative,
         str(gate_a_plan["diagnostic_relation_graph"]["report"]),
         str(gate_a_plan["sample_size_audit"]["report"]),

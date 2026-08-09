@@ -284,8 +284,13 @@ NODES = (
             "scripts/check_mechanism_adaptation_protocol.py",
             "--protocol",
             "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json",
+            "--gate-a-plan",
+            "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc29.json",
+            "--semantics-audit",
+            "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc29.json",
             "--output",
             "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-preflight.json",
+            "--skip-pending-state-outputs",
         ),
     ),
     EvidenceNode(
@@ -1058,7 +1063,11 @@ def _run(
     # backend candidate is expected to remain blocked while a freeze-candidate
     # patch is still uncommitted; method freeze is likewise a truthful negative
     # gate until all methods are ready.
-    allowed_codes = {0, 1} if node.node_id == "backend_candidate" else {0}
+    allowed_codes = (
+        {0, 1}
+        if node.node_id in {"backend_candidate", "mechanism_preflight"}
+        else {0}
+    )
     if completed.returncode not in allowed_codes:
         detail = completed.stderr.strip() or completed.stdout.strip()
         raise RuntimeError(f"generator failed for {node.node_id}: {detail}")
@@ -2837,6 +2846,8 @@ def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
         return "passed" if payload.get("status") == "passed" else "blocked"
     if node.node_id == "backend_candidate":
         return "passed" if payload.get("backend_contract_validated") else "blocked"
+    if node.node_id == "mechanism_preflight":
+        return "passed" if payload.get("implementation_complete") else "blocked"
     if "gate_pass" in payload:
         return "passed" if payload.get("gate_pass") is True else "blocked"
     if node.node_id == "mechanism_public_gate_a_decision":
