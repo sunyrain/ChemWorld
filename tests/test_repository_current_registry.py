@@ -61,7 +61,7 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
         registry["formal_evaluation"][
             "environment_benchmark_readiness_claim_allowed"
         ]
-        is False
+        is True
     )
     assert registry["mechanism_adaptation"]["publication_ready"] is False
     assert registry["static_scientific_optimization"]["formal_result"] is True

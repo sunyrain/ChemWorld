@@ -400,7 +400,10 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
 
     summary = pipeline["current_status_summary"](current)
     assert summary["backend_candidate"]["contract_validation"] == "passed"
-    assert summary["release_attestation"]["status"] == "passed"
+    assert summary["release_attestation"]["status"] == "pending_clean_tree"
+    assert summary["release_attestation"]["status"] == current["runtime"][
+        "clean_release_attestation"
+    ]
     assert summary["mechanism_gate_a"]["status"] == current["mechanism_adaptation"]["status"]
     assert (
         summary["mechanism_gate_a"]["evidence_current"]
