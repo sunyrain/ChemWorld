@@ -17,10 +17,15 @@ from chemworld.agents.interactive_codex_experiment import (
 )
 from chemworld.campaign_resources import CampaignResourceCard
 from chemworld.data.logging import load_jsonl
-from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
-from chemworld.eval.work_ii_formal import build_checkpoint_contract as _checkpoint_contract
+from chemworld.eval.work_ii_formal import (
+    build_checkpoint_contract as _checkpoint_contract,
+)
+from chemworld.eval.work_ii_formal import (
+    validate_formal_bindings,
+)
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,6 +69,50 @@ def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
             "scope": "one_task_prior_world_cell",
         },
     )
+
+
+def _formal_cell_context(
+    args: argparse.Namespace,
+    *,
+    config_path: Path,
+) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    manifest_path = getattr(args, "formal_manifest", None)
+    cell_key = getattr(args, "formal_cell_key", None)
+    allow = bool(getattr(args, "allow_formal_execution", False))
+    supplied = (manifest_path is not None, cell_key is not None, allow)
+    if not any(supplied):
+        return None
+    if not all(supplied):
+        raise RuntimeError(
+            "formal cell execution requires --formal-manifest, --formal-cell-key, "
+            "and --allow-formal-execution together"
+        )
+    manifest = _load(Path(manifest_path).resolve())
+    errors = validate_formal_bindings(ROOT, manifest)
+    if errors:
+        raise RuntimeError("formal manifest binding validation failed: " + "; ".join(errors))
+    if manifest.get("formal_execution_allowed") is not True:
+        raise RuntimeError("formal manifest does not authorize participant execution")
+    if manifest.get("blocking_requirements"):
+        raise RuntimeError("formal manifest still contains blocking requirements")
+    matches = [
+        dict(cell)
+        for cell in manifest.get("cells", [])
+        if isinstance(cell, Mapping) and cell.get("cell_key_sha256") == cell_key
+    ]
+    if len(matches) != 1:
+        raise RuntimeError("formal cell key does not identify exactly one scheduled cell")
+    cell = matches[0]
+    expected_config = (ROOT / str(cell["campaign_config_path"])).resolve()
+    if config_path.resolve() != expected_config:
+        raise RuntimeError("formal cell campaign config path differs from its manifest")
+    if file_sha256(config_path) != cell.get("campaign_config_sha256"):
+        raise RuntimeError("formal cell campaign config digest differs from its manifest")
+    if getattr(args, "world_seed", None) != int(cell["world_seed"]):
+        raise RuntimeError("formal cell world seed differs from its manifest")
+    if getattr(args, "prior_arm", None) != str(cell["prior_arm"]):
+        raise RuntimeError("formal cell prior arm differs from its manifest")
+    return manifest, cell
 
 
 def _progress(path: Path, payload: Mapping[str, Any]) -> None:
@@ -406,7 +455,10 @@ def _run_cell(
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    config = _load(args.config.resolve())
+    config_path = args.config.resolve()
+    config = _load(config_path)
+    formal_context = _formal_cell_context(args, config_path=config_path)
+    formal_cell = formal_context[1] if formal_context is not None else None
     world_seed = int(args.world_seed if args.world_seed is not None else config["world_seed"])
     output = args.output.resolve()
     progress_path = args.progress_file.resolve()
@@ -433,15 +485,31 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             cell_root=cell_root,
             progress_path=progress_path,
         )
+        if formal_cell is not None:
+            row["formal_cell"] = formal_cell
+            row["formal_result"] = True
+            write_json_atomic(cell_root / "summary.json", row)
         results.append(row)
         if not row["completed"]:
             break
     report = {
-        "schema_version": "chemworld-work-ii-campaign-pilot-report-0.1",
+        "schema_version": (
+            "chemworld-work-ii-formal-cell-report-0.1"
+            if formal_cell is not None
+            else "chemworld-work-ii-campaign-pilot-report-0.1"
+        ),
         "pilot_id": config["pilot_id"],
-        "cell_id": f"{config['pilot_id']}--seed{world_seed}",
-        "formal_result": False,
+        "cell_id": (
+            formal_cell["cell_id"]
+            if formal_cell is not None
+            else f"{config['pilot_id']}--seed{world_seed}"
+        ),
+        "formal_cell_key_sha256": (
+            formal_cell["cell_key_sha256"] if formal_cell is not None else None
+        ),
+        "formal_result": formal_cell is not None,
         "config_sha256": canonical_json_sha256(config),
+        "config_file_sha256": file_sha256(config_path),
         "world_seed": world_seed,
         "cell_count": len(results),
         "completed_cell_count": sum(row["completed"] for row in results),
@@ -459,6 +527,9 @@ def main() -> int:
     parser.add_argument("--progress-file", type=Path, required=True)
     parser.add_argument("--world-seed", type=int)
     parser.add_argument("--prior-arm")
+    parser.add_argument("--formal-manifest", type=Path)
+    parser.add_argument("--formal-cell-key")
+    parser.add_argument("--allow-formal-execution", action="store_true")
     args = parser.parse_args()
     report = run(args)
     print(

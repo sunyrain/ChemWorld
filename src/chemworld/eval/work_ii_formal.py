@@ -161,7 +161,11 @@ def _binding(root: Path, relative_path: str) -> dict[str, str]:
     path = root / relative_path
     if not path.is_file():
         raise ValueError(f"missing formal dependency: {relative_path}")
-    return {"path": relative_path, "sha256": file_sha256(path)}
+    return {
+        "path": relative_path,
+        "sha256": file_sha256(path),
+        "hash_kind": "file_sha256",
+    }
 
 
 def _self_hash(payload: Mapping[str, Any]) -> str:
@@ -592,10 +596,12 @@ def build_formal_preflight(
         "design_binding": {
             "path": _relative(root, design_path),
             "sha256": design_digest,
+            "hash_kind": "canonical_json_sha256",
         },
         "analysis_binding": {
             "path": _relative(root, analysis_path),
             "sha256": analysis_digest,
+            "hash_kind": "canonical_json_sha256",
         },
         "provider_contract": provider_contract,
         "schedule_policy": {
@@ -672,6 +678,74 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
     return errors
 
 
+def validate_formal_bindings(root: Path, report: Mapping[str, Any]) -> list[str]:
+    """Verify every file binding carried by a committed formal preflight."""
+
+    root = root.resolve()
+    errors = validate_formal_preflight(report)
+    bindings: list[Mapping[str, Any]] = []
+    for name in ("design_binding", "analysis_binding"):
+        candidate = report.get(name)
+        if isinstance(candidate, Mapping):
+            bindings.append(candidate)
+        else:
+            errors.append(f"formal preflight lacks {name}")
+    for name in ("task_bindings", "source_bindings"):
+        rows = report.get(name)
+        if not isinstance(rows, list):
+            errors.append(f"formal preflight lacks {name}")
+            continue
+        for row in rows:
+            if not isinstance(row, Mapping):
+                errors.append(f"formal preflight {name} contains a malformed row")
+                continue
+            candidate = row.get("campaign_config") if name == "task_bindings" else row
+            if isinstance(candidate, Mapping):
+                bindings.append(candidate)
+            else:
+                errors.append(f"formal preflight {name} contains a malformed binding")
+    seen: dict[str, str] = {}
+    for binding in bindings:
+        relative = binding.get("path")
+        digest = binding.get("sha256")
+        hash_kind = binding.get("hash_kind")
+        if (
+            not isinstance(relative, str)
+            or not isinstance(digest, str)
+            or hash_kind not in {"file_sha256", "canonical_json_sha256"}
+        ):
+            errors.append("formal preflight contains an incomplete file binding")
+            continue
+        path = (root / relative).resolve()
+        try:
+            path.relative_to(root)
+        except ValueError:
+            errors.append(f"formal binding escapes the repository: {relative}")
+            continue
+        if relative in seen and seen[relative] != digest:
+            errors.append(f"formal binding has conflicting digests: {relative}")
+            continue
+        seen[relative] = digest
+        if not path.is_file():
+            errors.append(f"formal binding is missing: {relative}")
+        else:
+            actual = (
+                file_sha256(path)
+                if hash_kind == "file_sha256"
+                else canonical_json_sha256(_load_object(path))
+            )
+            if actual != digest:
+                errors.append(f"formal binding digest mismatch: {relative}")
+    for cell in report.get("cells", []):
+        if not isinstance(cell, Mapping):
+            continue
+        relative = cell.get("campaign_config_path")
+        digest = cell.get("campaign_config_sha256")
+        if not isinstance(relative, str) or seen.get(relative) != digest:
+            errors.append(f"formal cell campaign binding mismatch: {cell.get('cell_id')}")
+    return errors
+
+
 __all__ = [
     "FORMAL_ARMS",
     "FORMAL_CELL_VERSION",
@@ -686,5 +760,6 @@ __all__ = [
     "WorkIIFormalCellStore",
     "build_checkpoint_contract",
     "build_formal_preflight",
+    "validate_formal_bindings",
     "validate_formal_preflight",
 ]

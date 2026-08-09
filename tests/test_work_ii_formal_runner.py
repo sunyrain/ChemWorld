@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import argparse
 import json
 from copy import deepcopy
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
+import scripts.run_work_ii_campaign_pilot as campaign_runner
+import scripts.run_work_ii_formal_matrix as formal_runner
 
+from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.work_ii_formal import (
     FORMAL_ARMS,
     FORMAL_SNAPSHOT_STAGES,
@@ -20,6 +25,59 @@ from chemworld.eval.work_ii_formal import (
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+
+
+def _authorized_manifest() -> dict[str, object]:
+    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest["formal_execution_allowed"] = True
+    manifest["blocking_requirements"] = []
+    manifest["preflight_sha256"] = canonical_json_sha256(
+        {key: value for key, value in manifest.items() if key != "preflight_sha256"}
+    )
+    return manifest
+
+
+class _FakeFormalCellProcess:
+    fail_once_keys: ClassVar[set[str]] = set()
+    launched_keys: ClassVar[list[str]] = []
+
+    def __init__(self, command, **kwargs) -> None:
+        del kwargs
+        key = command[command.index("--formal-cell-key") + 1]
+        self.launched_keys.append(key)
+        output = Path(command[command.index("--output") + 1])
+        manifest_path = Path(command[command.index("--formal-manifest") + 1])
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        cell = next(row for row in manifest["cells"] if row["cell_key_sha256"] == key)
+        if key in self.fail_once_keys:
+            self.fail_once_keys.remove(key)
+            self.return_code = 2
+            return
+        output.mkdir(parents=True)
+        arm = cell["prior_arm"]
+        completed = arm == "opaque"
+        operation_attempt_count = 4 if completed else 2 if arm == "aligned_nominal" else 0
+        summary = {
+            "formal_result": True,
+            "formal_cell": cell,
+            "completed": completed,
+            "analysis": {"operation_attempt_count": operation_attempt_count},
+            "method_resources": {"provider_session_count": 1},
+            "provider_receipts": [{"session_id": "test"}],
+            "exact_replay": {"verified": completed},
+            "qualification": {"passed": completed},
+        }
+        (output / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
+        (output / "report.json").write_text("{}", encoding="utf-8")
+        if operation_attempt_count:
+            (output / "trajectory.jsonl").write_text("{}\n", encoding="utf-8")
+        self.return_code = 0 if completed else 1
+
+    def wait(self) -> int:
+        return self.return_code
+
+    def poll(self) -> int:
+        return self.return_code
 
 
 def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> None:
@@ -166,3 +224,133 @@ def test_formal_cell_store_fails_closed_on_receipt_tampering(tmp_path: Path) -> 
     assert audit["invalid_receipts"] == [receipt.as_posix()]
     with pytest.raises(InvalidFormalCellReceiptError):
         store.pending_cells(resume=True)
+
+
+def test_campaign_cell_formal_mode_requires_exact_authorized_binding(
+    tmp_path: Path,
+) -> None:
+    blocked = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    cell = blocked["cells"][0]
+    blocked_path = tmp_path / "blocked.json"
+    blocked_path.write_text(json.dumps(blocked), encoding="utf-8")
+    args = argparse.Namespace(
+        formal_manifest=blocked_path,
+        formal_cell_key=cell["cell_key_sha256"],
+        allow_formal_execution=True,
+        world_seed=cell["world_seed"],
+        prior_arm=cell["prior_arm"],
+    )
+    with pytest.raises(RuntimeError, match="does not authorize"):
+        campaign_runner._formal_cell_context(
+            args,
+            config_path=ROOT / cell["campaign_config_path"],
+        )
+
+    authorized = _authorized_manifest()
+    authorized_cell = authorized["cells"][0]
+    authorized_path = tmp_path / "authorized.json"
+    authorized_path.write_text(json.dumps(authorized), encoding="utf-8")
+    args.formal_manifest = authorized_path
+    args.formal_cell_key = authorized_cell["cell_key_sha256"]
+    context = campaign_runner._formal_cell_context(
+        args,
+        config_path=ROOT / authorized_cell["campaign_config_path"],
+    )
+    assert context is not None
+    assert context[1]["cell_id"] == authorized_cell["cell_id"]
+    args.world_seed += 1
+    with pytest.raises(RuntimeError, match="world seed"):
+        campaign_runner._formal_cell_context(
+            args,
+            config_path=ROOT / authorized_cell["campaign_config_path"],
+        )
+
+
+def test_manifest_executor_terminalizes_all_cells_without_arm_replacement(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    manifest = _authorized_manifest()
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    _FakeFormalCellProcess.fail_once_keys = set()
+    _FakeFormalCellProcess.launched_keys = []
+    monkeypatch.setattr(formal_runner.subprocess, "Popen", _FakeFormalCellProcess)
+    output = tmp_path / "formal-output"
+    report = formal_runner.execute_manifest(
+        manifest=manifest,
+        manifest_path=manifest_path,
+        output_root=output,
+        progress_path=tmp_path / "progress.jsonl",
+        resume=False,
+        cell_runner=tmp_path / "fake-cell-runner.py",
+    )
+    assert report["status"] == "all_cells_terminal"
+    assert report["terminal_count"] == 75
+    assert report["state_counts"] == {
+        "completed": 25,
+        "failed": 25,
+        "right_censored": 25,
+    }
+    assert len(_FakeFormalCellProcess.launched_keys) == 75
+    assert len(set(_FakeFormalCellProcess.launched_keys)) == 75
+
+
+def test_manifest_executor_rejects_blocked_preflight_before_creating_output(
+    tmp_path: Path,
+) -> None:
+    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    output = tmp_path / "formal-output"
+    with pytest.raises(RuntimeError, match="does not authorize"):
+        formal_runner.execute_manifest(
+            manifest=manifest,
+            manifest_path=manifest_path,
+            output_root=output,
+            progress_path=tmp_path / "progress.jsonl",
+            resume=False,
+            cell_runner=tmp_path / "fake-cell-runner.py",
+        )
+    assert not output.exists()
+
+
+def test_manifest_executor_resumes_only_missing_cells_after_triplet_failure(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    manifest = _authorized_manifest()
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    failed_key = manifest["cells"][2]["cell_key_sha256"]
+    _FakeFormalCellProcess.fail_once_keys = {failed_key}
+    _FakeFormalCellProcess.launched_keys = []
+    monkeypatch.setattr(formal_runner.subprocess, "Popen", _FakeFormalCellProcess)
+    output = tmp_path / "formal-output"
+    first = formal_runner.execute_manifest(
+        manifest=manifest,
+        manifest_path=manifest_path,
+        output_root=output,
+        progress_path=tmp_path / "progress.jsonl",
+        resume=False,
+        cell_runner=tmp_path / "fake-cell-runner.py",
+    )
+    assert first["status"] == "infrastructure_incomplete_missing_only_resume_required"
+    assert first["terminal_count"] == 2
+    assert first["missing_cell_count"] == 73
+    assert len(_FakeFormalCellProcess.launched_keys) == 3
+
+    second = formal_runner.execute_manifest(
+        manifest=manifest,
+        manifest_path=manifest_path,
+        output_root=output,
+        progress_path=tmp_path / "progress.jsonl",
+        resume=True,
+        cell_runner=tmp_path / "fake-cell-runner.py",
+    )
+    assert second["status"] == "all_cells_terminal"
+    assert second["terminal_count"] == 75
+    assert len(_FakeFormalCellProcess.launched_keys) == 76
+    assert _FakeFormalCellProcess.launched_keys.count(manifest["cells"][0]["cell_key_sha256"]) == 1
+    assert _FakeFormalCellProcess.launched_keys.count(manifest["cells"][1]["cell_key_sha256"]) == 1
+    assert _FakeFormalCellProcess.launched_keys.count(failed_key) == 2

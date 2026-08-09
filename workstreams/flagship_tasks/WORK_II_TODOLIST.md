@@ -636,7 +636,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 - 代码交付物：
   - [x] 基于第一篇 `InteractiveCodexExperimentAgent`/ChemWorld MCP 的 persistent operation-level participant runner；
   - [ ] immutable matrix/schedule manifest（五任务、三臂、session、operation、experiment、checkpoint、held-out/blind denominators）；
-  - [ ] session-aware resume 与 right-censoring state machine；
+  - [x] session-aware resume 与 right-censoring state machine；
   - [x] provider/session/scaffold receipts；
   - [x] typed prior/evidence/belief/law-summary schema 与可执行 law-summary validator；
   - [x] 同一 session 内的 pre-evidence、preregistered experiment checkpoints 和 final snapshot MCP contract；
@@ -664,10 +664,12 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   同时修复了 formal config 的中性 checkpoint IDs 与 typed MCP validator 仍只接受历史语义标签的契约错位，
   历史标签仅保留 replay 兼容。报告：
   `workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`。
-  write-once terminal store 已覆盖 completed/right-censored/failed、append-only infrastructure attempts、缺失单元
-  resume、重复/篡改拒绝和 75-cell denominator audit，但尚未接入正式 subprocess executor。preflight 当前按设计
-  fail-closed，仍缺 blind final-recommendation denominator、provider-attempt/currency contract 与当前方法 qualification
-  receipt；不得据此启动 provider 或正式矩阵。
+  write-once terminal store 已接入 manifest-driven subprocess executor，覆盖 completed/right-censored/failed、
+  append-only infrastructure attempts、缺失单元 resume、重复/篡改拒绝、30 秒 triplet heartbeat 和 75-cell
+  denominator audit。离线全矩阵模拟已验证 75 个单元只执行一次；首 triplet 单元级基础设施失败后为 2 个 terminal
+  加 73 个 missing，missing-only resume 后达到 75 个 terminal，已完成单元不重跑。preflight 当前按设计 fail-closed，
+  仍缺 blind final-recommendation denominator、provider-attempt/currency contract 与当前方法 qualification receipt；
+  不得据此启动 provider 或正式矩阵。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 
