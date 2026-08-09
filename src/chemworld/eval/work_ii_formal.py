@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 
@@ -19,6 +22,9 @@ FORMAL_SNAPSHOT_STAGES = (
     "final",
 )
 FORMAL_CHECKPOINT_EXPERIMENTS = (0, 1, 2, 4)
+FORMAL_RECEIPT_VERSION = "chemworld-work-ii-formal-cell-receipt-0.1"
+FORMAL_STORE_AUDIT_VERSION = "chemworld-work-ii-formal-store-audit-0.1"
+FORMAL_TERMINAL_STATES = frozenset({"completed", "right_censored", "failed"})
 
 _SOURCE_PATHS = (
     "src/chemworld/agents/interactive_codex_experiment.py",
@@ -164,6 +170,273 @@ def _self_hash(payload: Mapping[str, Any]) -> str:
     )
 
 
+def _cell_key_hash(cell: Mapping[str, Any]) -> str:
+    return canonical_json_sha256(
+        {key: value for key, value in cell.items() if key != "cell_key_sha256"}
+    )
+
+
+def _write_json_once(path: Path, payload: Mapping[str, Any]) -> None:
+    """Atomically publish a JSON artifact without ever replacing a prior file."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, raw_temp = tempfile.mkstemp(
+        dir=path.parent,
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+    )
+    temporary = Path(raw_temp)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2))
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            os.link(temporary, path)
+        except FileExistsError as error:
+            raise DuplicateFormalCellError(
+                f"immutable formal cell artifact already exists: {path}"
+            ) from error
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+class DuplicateFormalCellError(RuntimeError):
+    """A terminal formal cell would be executed or published more than once."""
+
+
+class InvalidFormalCellReceiptError(RuntimeError):
+    """A formal cell receipt does not satisfy its immutable binding."""
+
+
+class WorkIIFormalCellStore:
+    """Write-once terminal receipts plus append-only infrastructure attempts."""
+
+    def __init__(self, root: Path, manifest: Mapping[str, Any]) -> None:
+        errors = validate_formal_preflight(manifest)
+        if errors:
+            raise ValueError("invalid formal manifest: " + "; ".join(errors))
+        self.root = Path(root)
+        self.receipts = self.root / "terminal_receipts"
+        self.infrastructure_attempts = self.root / "infrastructure_attempts"
+        cells = manifest.get("cells", [])
+        self.cells = {
+            str(cell["cell_key_sha256"]): dict(cell)
+            for cell in cells
+            if isinstance(cell, Mapping)
+        }
+        if len(self.cells) != len(cells):
+            raise ValueError("formal manifest contains duplicate cell keys")
+
+    def receipt_path(self, cell_key_sha256: str) -> Path:
+        self._cell(cell_key_sha256)
+        return self.receipts / f"{cell_key_sha256}.json"
+
+    def has_terminal(self, cell_key_sha256: str) -> bool:
+        return self.receipt_path(cell_key_sha256).is_file()
+
+    def write_terminal(
+        self,
+        cell_key_sha256: str,
+        *,
+        state: str,
+        reason_code: str,
+        result: Mapping[str, Any],
+    ) -> Path:
+        cell = self._cell(cell_key_sha256)
+        if state not in FORMAL_TERMINAL_STATES:
+            raise ValueError(f"unsupported formal terminal state: {state}")
+        expected_prefixes = {
+            "completed": ("scientific_completed_",),
+            "right_censored": (
+                "scientific_right_censored_",
+                "method_right_censored_",
+            ),
+            "failed": ("method_failed_",),
+        }[state]
+        if not reason_code.startswith(expected_prefixes):
+            raise ValueError(
+                f"{state} formal cell reason code has an invalid domain prefix"
+            )
+        result_payload = dict(result)
+        payload = {
+            "schema_version": FORMAL_RECEIPT_VERSION,
+            "cell_key_sha256": cell_key_sha256,
+            "cell": cell,
+            "state": state,
+            "reason_domain": (
+                "scientific" if reason_code.startswith("scientific_") else "method"
+            ),
+            "reason_code": reason_code,
+            "result": result_payload,
+            "result_sha256": canonical_json_sha256(result_payload),
+        }
+        payload["receipt_sha256"] = canonical_json_sha256(payload)
+        target = self.receipt_path(cell_key_sha256)
+        _write_json_once(target, payload)
+        return target
+
+    def load_terminal(self, cell_key_sha256: str) -> dict[str, Any]:
+        path = self.receipt_path(cell_key_sha256)
+        payload = _load_object(path)
+        self._validate_receipt(payload, expected_key=cell_key_sha256)
+        return payload
+
+    def record_infrastructure_failure(
+        self,
+        cell_key_sha256: str,
+        error: BaseException,
+        *,
+        log_reference: str | None = None,
+        log_sha256: str | None = None,
+    ) -> Path:
+        cell = self._cell(cell_key_sha256)
+        if (log_reference is None) != (log_sha256 is None):
+            raise ValueError("log reference and digest must be supplied together")
+        payload = {
+            "schema_version": FORMAL_RECEIPT_VERSION,
+            "cell_key_sha256": cell_key_sha256,
+            "cell_id": cell["cell_id"],
+            "state": "retryable_infrastructure_failure",
+            "reason_domain": "infrastructure",
+            "reason_code": "infrastructure_cell_attempt_failed",
+            "error_type": type(error).__name__,
+            "error_message": str(error)[:2000],
+            "log_reference": log_reference,
+            "log_sha256": log_sha256,
+        }
+        payload["attempt_sha256"] = canonical_json_sha256(payload)
+        target = (
+            self.infrastructure_attempts
+            / cell_key_sha256
+            / f"{uuid4().hex}.json"
+        )
+        _write_json_once(target, payload)
+        return target
+
+    def pending_cells(self, *, resume: bool) -> list[dict[str, Any]]:
+        audit = self.audit()
+        if audit["invalid_receipts"] or audit["unexpected_cell_key_sha256"]:
+            raise InvalidFormalCellReceiptError(
+                "formal store contains invalid or unexpected terminal receipts"
+            )
+        if audit["terminal_count"] and not resume:
+            raise DuplicateFormalCellError(
+                "formal store already contains terminal cells; use missing-only resume"
+            )
+        completed = set(audit["terminal_cell_key_sha256"])
+        return [
+            dict(cell)
+            for key, cell in self.cells.items()
+            if key not in completed
+        ]
+
+    def audit(self) -> dict[str, Any]:
+        observed: dict[str, Mapping[str, Any]] = {}
+        invalid: list[str] = []
+        for path in sorted(self.receipts.glob("*.json")):
+            try:
+                payload = _load_object(path)
+                key = str(payload["cell_key_sha256"])
+                self._validate_receipt(payload)
+                if path.stem != key or key in observed:
+                    raise ValueError("receipt path or uniqueness invariant failed")
+                observed[key] = payload
+            except (
+                KeyError,
+                OSError,
+                TypeError,
+                ValueError,
+                json.JSONDecodeError,
+                InvalidFormalCellReceiptError,
+            ):
+                invalid.append(path.as_posix())
+        infrastructure_attempt_count = 0
+        recovered: set[str] = set()
+        for path in sorted(self.infrastructure_attempts.glob("*/*.json")):
+            try:
+                payload = _load_object(path)
+                key = str(payload["cell_key_sha256"])
+                expected_hash = canonical_json_sha256(
+                    {name: value for name, value in payload.items() if name != "attempt_sha256"}
+                )
+                if (
+                    payload.get("schema_version") != FORMAL_RECEIPT_VERSION
+                    or payload.get("state") != "retryable_infrastructure_failure"
+                    or payload.get("reason_domain") != "infrastructure"
+                    or payload.get("attempt_sha256") != expected_hash
+                    or key not in self.cells
+                    or path.parent.name != key
+                ):
+                    raise ValueError("infrastructure attempt invariant failed")
+                infrastructure_attempt_count += 1
+                if key in observed:
+                    recovered.add(key)
+            except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError):
+                invalid.append(path.as_posix())
+        expected = set(self.cells)
+        observed_keys = set(observed)
+        state_counts = {
+            state: sum(payload.get("state") == state for payload in observed.values())
+            for state in sorted(FORMAL_TERMINAL_STATES)
+        }
+        report: dict[str, Any] = {
+            "schema_version": FORMAL_STORE_AUDIT_VERSION,
+            "expected_cell_count": len(expected),
+            "terminal_count": len(observed_keys & expected),
+            "state_counts": state_counts,
+            "terminal_cell_key_sha256": sorted(observed_keys & expected),
+            "missing_cell_key_sha256": sorted(expected - observed_keys),
+            "unexpected_cell_key_sha256": sorted(observed_keys - expected),
+            "invalid_receipts": invalid,
+            "infrastructure_attempt_count": infrastructure_attempt_count,
+            "recovered_infrastructure_failure_count": len(recovered),
+            "complete": (
+                observed_keys == expected
+                and not invalid
+                and not (observed_keys - expected)
+            ),
+        }
+        report["audit_sha256"] = canonical_json_sha256(report)
+        return report
+
+    def _cell(self, cell_key_sha256: str) -> dict[str, Any]:
+        try:
+            return self.cells[str(cell_key_sha256)]
+        except KeyError as error:
+            raise ValueError(f"unknown formal cell key: {cell_key_sha256}") from error
+
+    def _validate_receipt(
+        self,
+        payload: Mapping[str, Any],
+        *,
+        expected_key: str | None = None,
+    ) -> None:
+        key = str(payload.get("cell_key_sha256", ""))
+        state = str(payload.get("state", ""))
+        cell = payload.get("cell")
+        result = payload.get("result")
+        expected_receipt_hash = canonical_json_sha256(
+            {name: value for name, value in payload.items() if name != "receipt_sha256"}
+        )
+        if (
+            payload.get("schema_version") != FORMAL_RECEIPT_VERSION
+            or key not in self.cells
+            or cell != self.cells.get(key)
+            or _cell_key_hash(cell) != key
+            or state not in FORMAL_TERMINAL_STATES
+            or not isinstance(result, Mapping)
+            or canonical_json_sha256(result) != payload.get("result_sha256")
+            or payload.get("receipt_sha256") != expected_receipt_hash
+        ):
+            raise InvalidFormalCellReceiptError("invalid formal terminal receipt")
+        if expected_key is not None and key != expected_key:
+            raise InvalidFormalCellReceiptError(
+                "formal terminal receipt does not match the expected cell"
+            )
+
+
 def build_formal_preflight(
     root: Path,
     design_path: Path,
@@ -281,7 +554,7 @@ def build_formal_preflight(
                     "provider_repeat": 1,
                     "terminal_states": ["completed", "right_censored", "failed"],
                 }
-                cell["cell_key_sha256"] = canonical_json_sha256(cell)
+                cell["cell_key_sha256"] = _cell_key_hash(cell)
                 cells.append(cell)
                 total_query_count += query_count * 4
                 total_query_metric_count += query_metric_count * 4
@@ -404,7 +677,13 @@ __all__ = [
     "FORMAL_CELL_VERSION",
     "FORMAL_CHECKPOINT_EXPERIMENTS",
     "FORMAL_PREFLIGHT_VERSION",
+    "FORMAL_RECEIPT_VERSION",
     "FORMAL_SNAPSHOT_STAGES",
+    "FORMAL_STORE_AUDIT_VERSION",
+    "FORMAL_TERMINAL_STATES",
+    "DuplicateFormalCellError",
+    "InvalidFormalCellReceiptError",
+    "WorkIIFormalCellStore",
     "build_checkpoint_contract",
     "build_formal_preflight",
     "validate_formal_preflight",

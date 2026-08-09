@@ -4,9 +4,14 @@ import json
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
+
 from chemworld.eval.work_ii_formal import (
     FORMAL_ARMS,
     FORMAL_SNAPSHOT_STAGES,
+    DuplicateFormalCellError,
+    InvalidFormalCellReceiptError,
+    WorkIIFormalCellStore,
     build_checkpoint_contract,
     build_formal_preflight,
     validate_formal_preflight,
@@ -75,3 +80,89 @@ def test_formal_preflight_self_hash_fails_closed() -> None:
     tampered = deepcopy(report)
     tampered["cells"][0]["world_seed"] += 1
     assert "formal preflight self-hash mismatch" in validate_formal_preflight(tampered)
+
+
+def test_formal_cell_store_is_write_once_and_missing_only_resumable(
+    tmp_path: Path,
+) -> None:
+    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    store = WorkIIFormalCellStore(tmp_path / "store", manifest)
+    first = manifest["cells"][0]
+    first_key = first["cell_key_sha256"]
+
+    store.record_infrastructure_failure(first_key, TimeoutError("provider timeout"))
+    before = store.audit()
+    assert before["terminal_count"] == 0
+    assert before["infrastructure_attempt_count"] == 1
+    assert len(store.pending_cells(resume=True)) == 75
+
+    store.write_terminal(
+        first_key,
+        state="completed",
+        reason_code="scientific_completed_qualified_campaign",
+        result={"summary_sha256": "a" * 64, "exact_replay": True},
+    )
+    with pytest.raises(DuplicateFormalCellError):
+        store.write_terminal(
+            first_key,
+            state="completed",
+            reason_code="scientific_completed_qualified_campaign",
+            result={"summary_sha256": "b" * 64, "exact_replay": True},
+        )
+    with pytest.raises(DuplicateFormalCellError):
+        store.pending_cells(resume=False)
+    pending = store.pending_cells(resume=True)
+    assert len(pending) == 74
+    assert all(cell["cell_key_sha256"] != first_key for cell in pending)
+    assert store.load_terminal(first_key)["result"]["exact_replay"] is True
+    after = store.audit()
+    assert after["state_counts"]["completed"] == 1
+    assert after["recovered_infrastructure_failure_count"] == 1
+
+
+def test_formal_cell_store_preserves_right_censored_and_failed_cells(
+    tmp_path: Path,
+) -> None:
+    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    store = WorkIIFormalCellStore(tmp_path / "store", manifest)
+    censored, failed = manifest["cells"][:2]
+    store.write_terminal(
+        censored["cell_key_sha256"],
+        state="right_censored",
+        reason_code="method_right_censored_provider_failure_after_operation",
+        result={"operation_attempt_count": 3, "last_checkpoint": "pre_evidence"},
+    )
+    store.write_terminal(
+        failed["cell_key_sha256"],
+        state="failed",
+        reason_code="method_failed_unscorable_before_first_operation",
+        result={"operation_attempt_count": 0, "primary_improvement": 0.0},
+    )
+    audit = store.audit()
+    assert audit["state_counts"] == {
+        "completed": 0,
+        "failed": 1,
+        "right_censored": 1,
+    }
+    assert audit["terminal_count"] == 2
+    assert len(audit["missing_cell_key_sha256"]) == 73
+
+
+def test_formal_cell_store_fails_closed_on_receipt_tampering(tmp_path: Path) -> None:
+    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    store = WorkIIFormalCellStore(tmp_path / "store", manifest)
+    cell = manifest["cells"][0]
+    receipt = store.write_terminal(
+        cell["cell_key_sha256"],
+        state="completed",
+        reason_code="scientific_completed_qualified_campaign",
+        result={"exact_replay": True},
+    )
+    payload = json.loads(receipt.read_text(encoding="utf-8"))
+    payload["result"]["exact_replay"] = False
+    receipt.write_text(json.dumps(payload), encoding="utf-8")
+    audit = store.audit()
+    assert audit["terminal_count"] == 0
+    assert audit["invalid_receipts"] == [receipt.as_posix()]
+    with pytest.raises(InvalidFormalCellReceiptError):
+        store.pending_cells(resume=True)

@@ -664,8 +664,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   同时修复了 formal config 的中性 checkpoint IDs 与 typed MCP validator 仍只接受历史语义标签的契约错位，
   历史标签仅保留 replay 兼容。报告：
   `workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`。
-  preflight 当前按设计 fail-closed，尚缺 blind final-recommendation denominator、missing-only resume/right-censor
-  terminal store、provider-attempt/currency contract 与当前方法 qualification receipt；不得据此启动 provider 或正式矩阵。
+  write-once terminal store 已覆盖 completed/right-censored/failed、append-only infrastructure attempts、缺失单元
+  resume、重复/篡改拒绝和 75-cell denominator audit，但尚未接入正式 subprocess executor。preflight 当前按设计
+  fail-closed，仍缺 blind final-recommendation denominator、provider-attempt/currency contract 与当前方法 qualification
+  receipt；不得据此启动 provider 或正式矩阵。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 
