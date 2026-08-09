@@ -358,7 +358,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 | W2-01 | P0 | 冻结 Work II 与 Work I 的边界 | DONE | Work I scope |
 | W2-02 | P0 | 重新建立当前 Gate A 证据绑定 | DONE | 干净提交 |
 | W2-03 | P0 | 冻结中心假设与 claim hierarchy | DONE | W2-01、W2-02 |
-| W2-04 | P0 | 冻结先验条件与固定规律 world cohort | DOING | W2-03 |
+| W2-04 | P0 | 冻结先验条件与固定规律 world cohort | DONE | W2-03 |
 | W2-05 | P0 | 冻结 estimands、指标和判定规则 | DOING | W2-03、W2-04 |
 | W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DOING | W2-03 |
 | W2-07 | P0 | 功效、资源和成本审计 | DOING | W2-04、W2-05、W2-06 |
@@ -461,9 +461,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] 已认领；负责人：`Codex /root`
 - 状态：
   - [ ] 未开始
-  - [x] 进行中
+  - [ ] 进行中
   - [ ] 阻塞
-  - [ ] 完成
+  - [x] 完成
 - 优先级：P0
 - 最低设计要求：
   - `opaque`：无额外 task-specific dossier；
@@ -472,20 +472,29 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - 固定世界规律，不在单次 run 中改变 hidden law；
   - 至少两个 mechanism families；
   - 随机选择且与开发 worlds 隔离的 formal world cohort。
+- 冻结设计：五任务均进入 formal cohort；每任务 5 个 SHA-256 预选 public-formal worlds，共 25 个
+  独立 `task × world` clusters 和 75 个三臂 participant cells。开发/qualification seeds `[0,1,2,3,4]`
+  不进入正式分母；private confirmation 另封存每任务 5 个 world identity，Git 中只保存 commitment。
+  每个 primary cell 固定 4 个 complete experiments，checkpoints 为 `[0,1,2,4]`；optional
+  matched-evidence probe 不进入 primary matrix。
 - 验收标准：
-  - [ ] 每个固定规律具有明确状态转移、可观测后果和自洽性检查；
-  - [ ] public prior、真实 hidden law 和 instrument mapping 分别控制；
-  - [ ] 三种 prior condition 在 world、预算、契约和安全边界上匹配；
-  - [ ] aligned/misindexed 的字段、数值集合、措辞、token 预算和 dossier 置信强度匹配；
-  - [ ] evaluator-side prior-identifiability checks 的证据设计在 participant outcomes 前冻结，但不得把关键
+  - [x] 每个固定规律具有明确状态转移、可观测后果和自洽性检查；
+  - [x] public prior、真实 hidden law 和 instrument mapping 分别控制；
+  - [x] 三种 prior condition 在 world、预算、契约和安全边界上匹配；
+  - [x] aligned/misindexed 的字段、数值集合、措辞、token 预算和 dossier 置信强度匹配；
+  - [x] evaluator-side prior-identifiability checks 的证据设计在 participant outcomes 前冻结，但不得把关键
     discriminating experiment 直接注入 primary free-discovery trajectory；
-  - [ ] 若增加 matched-evidence mechanism probe，其 cloned world、evidence packet、session、resource
+  - [x] matched-evidence mechanism probe 当前不进入 primary matrix；若以后按预注册增加，其 cloned world、
+    evidence packet、session、resource
     card 和 secondary estimand 必须独立冻结，不得与 primary campaign 混账；
-  - [ ] electrochemical 与 crystallization 是否作为两类正式机制由 Gate A 和 prior-identifiability 决定，而非按 agent 结果挑选；
-  - [ ] prior identity、world identity 和 split 均有不可变哈希；
-  - [ ] qualification worlds、public formal worlds、private worlds 不重叠；
-  - [ ] 不以开发结果选择正式 worlds。
-- 备注：`Claim: Codex /root — W2-04 — DOING`
+  - [x] electrochemical 与 crystallization 及其余三任务均由 Gate A 和 prior-identifiability 决定，而非按 agent 结果挑选；
+  - [x] prior identity、world identity 和 split 均有不可变哈希；
+  - [x] qualification worlds、public formal worlds、private worlds 不重叠；
+  - [x] 不以开发结果选择正式 worlds。
+- 备注：`Claim: Codex /root — W2-04 — DONE`。冻结入口为
+  `configs/benchmark/work_ii_formal_design_v0.1.json`；确定性审计
+  `workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit.json` 为 `passed`，
+  5/5 tasks、50/50 target-field response checks、0 provider calls、0 failures。
 
 ### W2-05 — 冻结 estimands、指标和判定规则
 

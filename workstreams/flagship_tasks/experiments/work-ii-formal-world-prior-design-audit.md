@@ -1,6 +1,6 @@
 # Work II formal world/prior design audit
 
-Date: 2026-08-09  
+Date: 2026-08-09
 Claim: `Codex /root — W2-04/W2-05/W2-07-DESIGN — DOING`
 
 ## Question

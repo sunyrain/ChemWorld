@@ -1,0 +1,109 @@
+{
+  "schema_version": "chemworld-work-ii-formal-design-0.1",
+  "design_id": "work-ii-fixed-law-prior-formal-v0.1",
+  "status": "w2_04_frozen_pending_downstream_preregistration",
+  "formal_result": false,
+  "formal_execution_allowed": false,
+  "environment_binding": {
+    "protocol": "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json",
+    "gate_a_plan": "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc29.json",
+    "public_decision": "workstreams/flagship_tasks/reports/mechanism-adaptation-public-decision-v0.1-rc29.json",
+    "gate_a_evidence_current_required": true
+  },
+  "primary_hypothesis": {
+    "id": "H3_selective_evidence_driven_correction",
+    "estimand": "(E_misindexed_pre-E_misindexed_final)-(E_aligned_pre-E_aligned_final)",
+    "direction": "greater_than_zero",
+    "analysis_unit": "task_x_world_cluster",
+    "evidence_source": "participant_owned_primary_free_discovery_only"
+  },
+  "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+  "prior_contract": {
+    "opaque": "no_additional_task_specific_dossier",
+    "aligned_nominal": "anonymous_incomplete_directionally_useful_nominal_dossier",
+    "misindexed_nominal": "same_property_bundle_multiset_with_one_frozen_two_row_transposition",
+    "experimental_evidence_is_authoritative": true,
+    "aligned_and_misindexed_wording_confidence_and_token_budget_matched": true
+  },
+  "tasks": [
+    {
+      "task_id": "electrochemical-conversion",
+      "mechanism_family": "electrochemical_transport_and_selectivity",
+      "campaign_config": "configs/benchmark/work_ii_campaign_pilot.json",
+      "target_field": "solvent",
+      "descriptor_permutation": [0, 3, 2, 1]
+    },
+    {
+      "task_id": "reaction-to-crystallization",
+      "mechanism_family": "reaction_and_crystallization",
+      "campaign_config": "configs/benchmark/work_ii_crystallization_campaign.json",
+      "target_field": "solvent",
+      "descriptor_permutation": [0, 3, 2, 1]
+    },
+    {
+      "task_id": "reaction-to-distillation",
+      "mechanism_family": "reaction_and_distillation",
+      "campaign_config": "configs/benchmark/work_ii_distillation_campaign.json",
+      "target_field": "solvent",
+      "descriptor_permutation": [0, 3, 2, 1]
+    },
+    {
+      "task_id": "partition-discovery",
+      "mechanism_family": "phase_partition",
+      "campaign_config": "configs/benchmark/work_ii_partition_campaign.json",
+      "target_field": "extractant",
+      "descriptor_permutation": [3, 1, 2, 0]
+    },
+    {
+      "task_id": "reaction-safety-constrained",
+      "mechanism_family": "reaction_kinetics_and_thermal_safety",
+      "campaign_config": "configs/benchmark/work_ii_safety_campaign.json",
+      "target_field": "catalyst",
+      "descriptor_permutation": [0, 2, 1, 3]
+    }
+  ],
+  "world_cohort": {
+    "development_and_qualification": {
+      "world_seeds": [0, 1, 2, 3, 4],
+      "participant_formal_denominator": false
+    },
+    "public_formal": {
+      "selection_algorithm": "sha256_modulo_namespace_v1",
+      "selection_key": "work-ii-public-formal-v0.1-20260809",
+      "namespace_start": 100000000,
+      "namespace_size": 900000000,
+      "worlds_per_task": 5,
+      "task_world_seeds": {
+        "electrochemical-conversion": [672326802, 263752154, 254732618, 553482792, 789741083],
+        "reaction-to-crystallization": [128467214, 876914043, 166055883, 964375871, 218451485],
+        "reaction-to-distillation": [897463930, 294959649, 617827675, 102623012, 705786312],
+        "partition-discovery": [958536734, 274543076, 887544358, 579145448, 328656968],
+        "reaction-safety-constrained": [709004002, 312314252, 762339748, 247136763, 930008953]
+      },
+      "independent_world_cluster_count": 25,
+      "participant_cell_count": 75
+    },
+    "private_confirmation": {
+      "namespace_start": 2000000000,
+      "namespace_size": 1000000000,
+      "worlds_per_task": 5,
+      "sealed_identity_commitment_sha256": "9d76ced7e2f24ce19b8a9c0090573a0220534e620d45dc4ec58c329edcf71efa",
+      "identities_tracked_in_git": false
+    }
+  },
+  "campaign_contract": {
+    "complete_experiments_per_cell": 4,
+    "checkpoint_complete_experiments": [0, 1, 2, 4],
+    "persistent_sessions_per_cell": 1,
+    "provider_repeats": 1,
+    "matched_evidence_probe_in_primary_matrix": false,
+    "shared_campaign_resource_ledger": true
+  },
+  "selection_and_failure_policy": {
+    "tasks_selected_without_participant_outcomes": true,
+    "worlds_selected_without_participant_outcomes": true,
+    "failed_scientific_cells_retained_without_replacement": true,
+    "infrastructure_missing_only_resume": true,
+    "result_direction_early_stopping_forbidden": true
+  }
+}
