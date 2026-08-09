@@ -359,7 +359,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 | W2-02 | P0 | 重新建立当前 Gate A 证据绑定 | DONE | 干净提交 |
 | W2-03 | P0 | 冻结中心假设与 claim hierarchy | DONE | W2-01、W2-02 |
 | W2-04 | P0 | 冻结先验条件与固定规律 world cohort | DONE | W2-03 |
-| W2-05 | P0 | 冻结 estimands、指标和判定规则 | DOING | W2-03、W2-04 |
+| W2-05 | P0 | 冻结 estimands、指标和判定规则 | DONE | W2-03、W2-04 |
 | W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DOING | W2-03 |
 | W2-07 | P0 | 功效、资源和成本审计 | DOING | W2-04、W2-05、W2-06 |
 | W2-08 | P0 | Registered Report/常规投稿路线决策 | 未开始 | W2-03–W2-07 |
@@ -503,9 +503,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] 已认领；负责人：`Codex /root`
 - 状态：
   - [ ] 未开始
-  - [x] 进行中
+  - [ ] 进行中
   - [ ] 阻塞
-  - [ ] 完成
+  - [x] 完成
 - 优先级：P0
 - 必须分层报告：
   - O1 discovery：learning curve、law-recovery error、information gain、counterfactual prediction；
@@ -516,20 +516,25 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - O6 autonomy/resource/safety：completion、invalid actions、measurements、risk、calls、tokens、cost、time。
   - O7 blind outcome：最终推荐的独立 blind validation、validated learning-curve AUC、incumbent 与 recommendation gap。
 - 验收标准：
-  - [ ] endpoint optimization 与 law discovery、prior rejection 和 transfer 指标代数独立或明确建模依赖；
-  - [ ] continuous estimands 优先于阈值分类；
-  - [ ] no-prior、correct-prior 和 wrong-prior 分母分离；
-  - [ ] primary correction contrast 基于 participant 自主获得的证据和固定 checkpoints，同时要求 misindexed
+  - [x] endpoint optimization 与 law discovery、prior rejection 和 transfer 指标代数独立或明确建模依赖；
+  - [x] continuous estimands 优先于阈值分类；
+  - [x] no-prior、correct-prior 和 wrong-prior 分母分离；
+  - [x] primary correction contrast 基于 participant 自主获得的证据和固定 checkpoints，同时要求 misindexed
     改善和 aligned 不发生超容差退化；不得仅凭 gap closure 或被注入的 diagnostic evidence 判定成功；
-  - [ ] 仅恢复材料 ID 与 dossier 的对应关系不得计为规律发现；必须通过连续条件反事实预测、typed law summary 和 transfer 验证；
-  - [ ] prior benefit/harm/recovery 只作为分立 phenotype vector 报告，不合成排行榜分数；
-  - [ ] epistemic、behavioral 和 outcome 三层的联合与解耦规则冻结；
-  - [ ] right censoring、missingness、provider failure 和 multiplicity 规则冻结；
-  - [ ] analysis unit 为独立 world/cell cluster，provider repeats 嵌套；
-  - [ ] 明确“law summary 声明”、反事实预测与后续 operation-level 行为证据的联合成功规则；
-  - [ ] 明确区分“未主动寻找反证”和“看到相同反证后仍不更新”，后者只有在可选 matched-evidence probe
+  - [x] 仅恢复材料 ID 与 dossier 的对应关系不得计为规律发现；必须通过连续条件反事实预测、typed law summary 和 transfer 验证；
+  - [x] prior benefit/harm/recovery 只作为分立 phenotype vector 报告，不合成排行榜分数；
+  - [x] epistemic、behavioral 和 outcome 三层的联合与解耦规则冻结；
+  - [x] right censoring、missingness、provider failure 和 multiplicity 规则冻结；
+  - [x] analysis unit 为独立 world/cell cluster，provider repeats 嵌套；
+  - [x] 明确“law summary 声明”、反事实预测与后续 operation-level 行为证据的联合成功规则；
+  - [x] 明确区分“未主动寻找反证”和“看到相同反证后仍不更新”，后者只有在可选 matched-evidence probe
     中作为 secondary mechanism contrast 报告。
-- 备注：`Claim: Codex /root — W2-05 — DOING`
+- 备注：`Claim: Codex /root — W2-05 — DONE`。主误差固定为注册 query×metric 的未截断平均归一化绝对误差；
+  唯一 primary 为 world-level paired `C_prior`，并要求 misindexed 改善、aligned 非劣于 `-0.05` 的交并判定。
+  H1/H2/H4 组成 Holm secondary family；失败 cell 不替换，缺失 final 按零改善，provider repeat 仅作嵌套技术重复。
+  “规律发现与迁移”还必须同时通过 executable typed law summary、连续条件反事实预测与预注册 transfer。
+  冻结合同和审计分别见 `configs/benchmark/work_ii_analysis_plan_v0.1.json` 与
+  `workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`。
 
 ### W2-06 — 冻结 participant backend × session/scaffold 矩阵
 
@@ -575,8 +580,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] 完成
 - 优先级：P0
 - 验收标准：
-  - [ ] 以独立 world clusters 进行功效分析；
-  - [ ] formal power 使用 world-level paired contrasts；rounds、prediction snapshots 和多个 endpoints 不作为独立样本；
+  - [x] 以独立 world clusters 进行功效分析；
+  - [x] formal power 使用 world-level paired contrasts；rounds、prediction snapshots 和多个 endpoints 不作为独立样本；
   - [ ] 对 world、mechanism、agent、session 和交互方差作预期分解；
   - [ ] 冻结 worlds、replicates、provider repeats 和最大 provider calls；
   - [ ] discovery campaign 的 complete-experiment 上限、checkpoint 位置和 optional matched-evidence probe 是否进入 secondary matrix 在 pilot 后、formal outcomes 前冻结；
@@ -584,11 +589,12 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] 冻结 token、货币、wall time、并发和失败重试预算；
   - [ ] 明确早停仅针对基础设施/安全，不针对结果方向；
   - [ ] 输出完整资源上界和预计运行 ETA。
-- 备注：`Claim: Codex /root — W2-07 — DOING`。已完成 45-cell development campaign 的实测
-  resource/token/wall-time 基线、当前拓扑资源上界与 DeepSeek qualification-v2 成本边界审计；
-  报告：`workstreams/flagship_tasks/reports/work-ii-w2-07-resource-cost-audit-draft.md`。该报告仅是
-  formal freeze 输入；world/replicate/provider-repeat 数量、provider attempt retry、货币硬上限、
-  power 与正式 ETA 仍依赖 W2-04、W2-05、W2-06，故 W2-07 保持 `DOING`。
+- 备注：`Claim: Codex /root — W2-07 — DOING`。25 个独立 task×world clusters、75 cells 的功效审计已通过：
+  规划标准化效应 `d=0.6` 时 power=`0.8946`，80% power 的 MDE=`0.5150`，因此只支持中到大效应设计。
+  当前上界为 75 provider sessions、300 complete experiments、3,420 operation attempts、3.24 亿 input tokens、
+  4,320 万 uncached input tokens、324 万 output tokens，串行 seed-triplet wall 上界 47.5 h。报告：
+  `workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`。仍需冻结 persistent-session provider-attempt
+  上限、由用户批准的正式货币硬上限，并用合格 formal runner 校准 ETA，故 W2-07 保持 `DOING`。
 
 ### W2-08 — Registered Report/常规投稿路线决策
 

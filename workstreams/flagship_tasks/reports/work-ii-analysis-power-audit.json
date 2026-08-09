@@ -1,0 +1,128 @@
+{
+  "analysis_plan_path": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
+  "analysis_plan_sha256": "b467e121441e678ab37e92e2646fc20b13b667d7c09a5e42ef2407b6638aa353",
+  "denominators": {
+    "independent_task_world_clusters": 25,
+    "prior_arms": 3,
+    "provider_repeats_per_cell": 1,
+    "scheduled_participant_cells": 75,
+    "tasks": 5
+  },
+  "design_sha256": "d030e1c787315dcbd37860f8214c75c4987a995f061841a3a569a40c8a3e53f6",
+  "failures": [],
+  "formal_result": false,
+  "participant_provider_calls": 0,
+  "power": {
+    "alpha_one_sided": 0.05,
+    "clusters": 25,
+    "interpretation": "The frozen 25-cluster design is powered for moderate-to-large effects, not small effects.",
+    "minimum_detectable_standardized_effect_80pct": 0.5150246258180232,
+    "planning_standardized_effect": 0.6,
+    "power_at_planning_effect": 0.8945864579764095,
+    "residual_degrees_of_freedom": 20,
+    "sensitivity_table": [
+      {
+        "power": 0.4223993388739973,
+        "standardized_effect": 0.3
+      },
+      {
+        "power": 0.6128742881177494,
+        "standardized_effect": 0.4
+      },
+      {
+        "power": 0.7791036050929059,
+        "standardized_effect": 0.5
+      },
+      {
+        "power": 0.8945864579764095,
+        "standardized_effect": 0.6
+      },
+      {
+        "power": 0.9584694274760783,
+        "standardized_effect": 0.7
+      },
+      {
+        "power": 0.98661549881184,
+        "standardized_effect": 0.8
+      }
+    ]
+  },
+  "resource_topology": {
+    "complete_experiments": 300,
+    "formal_currency_ceiling_approved": false,
+    "input_token_limit": 324000000,
+    "maximum_provider_sessions": 75,
+    "operation_attempt_limit": 3420,
+    "output_token_limit": 3240000,
+    "serial_seed_triplet_wall_limit_h": 47.5,
+    "serial_seed_triplet_wall_limit_s": 171000.0,
+    "task_rows": [
+      {
+        "cells": 15,
+        "complete_experiments": 60,
+        "input_token_limit": 36000000,
+        "operation_attempt_limit": 420,
+        "output_token_limit": 360000,
+        "serial_seed_triplet_wall_limit_s": 27000.0,
+        "task_id": "electrochemical-conversion",
+        "uncached_input_token_limit": 4800000,
+        "worlds": 5
+      },
+      {
+        "cells": 15,
+        "complete_experiments": 60,
+        "input_token_limit": 72000000,
+        "operation_attempt_limit": 840,
+        "output_token_limit": 720000,
+        "serial_seed_triplet_wall_limit_s": 36000.0,
+        "task_id": "reaction-to-crystallization",
+        "uncached_input_token_limit": 9600000,
+        "worlds": 5
+      },
+      {
+        "cells": 15,
+        "complete_experiments": 60,
+        "input_token_limit": 72000000,
+        "operation_attempt_limit": 840,
+        "output_token_limit": 720000,
+        "serial_seed_triplet_wall_limit_s": 36000.0,
+        "task_id": "reaction-to-distillation",
+        "uncached_input_token_limit": 9600000,
+        "worlds": 5
+      },
+      {
+        "cells": 15,
+        "complete_experiments": 60,
+        "input_token_limit": 72000000,
+        "operation_attempt_limit": 720,
+        "output_token_limit": 720000,
+        "serial_seed_triplet_wall_limit_s": 36000.0,
+        "task_id": "partition-discovery",
+        "uncached_input_token_limit": 9600000,
+        "worlds": 5
+      },
+      {
+        "cells": 15,
+        "complete_experiments": 60,
+        "input_token_limit": 72000000,
+        "operation_attempt_limit": 600,
+        "output_token_limit": 720000,
+        "serial_seed_triplet_wall_limit_s": 36000.0,
+        "task_id": "reaction-safety-constrained",
+        "uncached_input_token_limit": 9600000,
+        "worlds": 5
+      }
+    ],
+    "uncached_input_token_limit": 43200000,
+    "wellau_currency_cost_known": false
+  },
+  "schema_version": "chemworld-work-ii-analysis-power-audit-0.1",
+  "status": "passed",
+  "w2_05_complete": true,
+  "w2_07_complete": false,
+  "w2_07_remaining_blockers": [
+    "persistent-session provider-attempt cap",
+    "user-approved formal currency ceiling",
+    "qualified formal runner ETA calibration"
+  ]
+}
