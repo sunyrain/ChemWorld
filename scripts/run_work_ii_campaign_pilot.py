@@ -528,6 +528,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         if formal_cell is not None:
             row["formal_cell"] = formal_cell
             row["formal_result"] = True
+            row["formal_preflight_sha256"] = formal_manifest["preflight_sha256"]
             if row["completed"]:
                 plan = build_blind_evaluation_plan(
                     formal_cell,

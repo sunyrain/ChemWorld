@@ -3,13 +3,72 @@
 from __future__ import annotations
 
 import hashlib
+import math
 from collections.abc import Mapping
 from copy import deepcopy
+from pathlib import Path
 from typing import Any
 
-from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.agents.base import BaseAgent, HistoryRecord
+from chemworld.data.logging import load_jsonl
+from chemworld.eval.provenance import (
+    canonical_json_sha256,
+    file_sha256,
+    write_json_atomic,
+)
+from chemworld.eval.runner import run_agent
+from chemworld.eval.verify import verify_records
+from chemworld.tasks import get_task
 
 BLIND_EVALUATOR_VERSION = "chemworld-work-ii-blind-evaluator-plan-0.1"
+BLIND_EVALUATION_REPORT_VERSION = "chemworld-work-ii-blind-evaluation-report-0.1"
+
+
+class _FrozenBlindReplayAgent(BaseAgent):
+    name = "work_ii_frozen_blind_replay"
+
+    def __init__(self, actions: list[Mapping[str, Any]]) -> None:
+        self._frozen_actions = [deepcopy(dict(action)) for action in actions]
+
+    def reset(self, task_info: dict[str, Any], seed: int) -> None:
+        super().reset(task_info, seed)
+        self._index = 0
+        self._pending: dict[str, Any] | None = None
+
+    def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
+        del history
+        if self._pending is not None:
+            raise RuntimeError("blind replay requested a new action before receiving its outcome")
+        if self._index >= len(self._frozen_actions):
+            raise RuntimeError("blind replay exhausted its frozen action plan before termination")
+        self._pending = deepcopy(self._frozen_actions[self._index])
+        self._index += 1
+        return deepcopy(self._pending)
+
+    def update(
+        self,
+        action: dict[str, Any],
+        observation: dict[str, float | None],
+        reward: float,
+        info: dict[str, Any],
+    ) -> None:
+        del observation, reward, info
+        if self._pending is None or action != self._pending:
+            raise RuntimeError("blind replay outcome does not match its frozen action")
+        self._pending = None
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update(
+            {
+                "requires_online_model": False,
+                "execution_role": "evaluator_blind_replay",
+                "participant_feedback": False,
+                "frozen_action_count": len(self._frozen_actions),
+                "frozen_action_plan_sha256": canonical_json_sha256(self._frozen_actions),
+            }
+        )
+        return manifest
 
 
 def _experiment_rows(summary: Mapping[str, Any]) -> dict[int, dict[str, Any]]:
@@ -146,7 +205,12 @@ def build_blind_evaluation_plan(
             )
     plan: dict[str, Any] = {
         "schema_version": BLIND_EVALUATOR_VERSION,
-        "formal_result": False,
+        "formal_result": summary.get("formal_result") is True,
+        "formal_preflight_sha256": (
+            summary.get("formal_preflight_sha256")
+            if summary.get("formal_result") is True
+            else None
+        ),
         "cell_id": cell["cell_id"],
         "cell_key_sha256": cell["cell_key_sha256"],
         "task_id": cell["task_id"],
@@ -171,6 +235,12 @@ def validate_blind_evaluation_plan(plan: Mapping[str, Any]) -> list[str]:
     errors: list[str] = []
     if plan.get("schema_version") != BLIND_EVALUATOR_VERSION:
         errors.append("unexpected blind evaluator plan schema")
+    if plan.get("formal_result") is True:
+        digest = plan.get("formal_preflight_sha256")
+        if not isinstance(digest, str) or len(digest) != 64:
+            errors.append("formal blind evaluator plan lacks its preflight binding")
+    elif plan.get("formal_preflight_sha256") is not None:
+        errors.append("development blind evaluator plan carries a formal preflight binding")
     expected_hash = canonical_json_sha256(
         {key: value for key, value in plan.items() if key != "plan_sha256"}
     )
@@ -217,8 +287,175 @@ def validate_blind_evaluation_plan(plan: Mapping[str, Any]) -> list[str]:
     return errors
 
 
+def execute_blind_evaluation_plan(
+    plan: Mapping[str, Any],
+    config: Mapping[str, Any],
+    output_root: Path,
+) -> dict[str, Any]:
+    """Execute all six evaluator-only replays once, retaining every failure."""
+
+    plan_errors = validate_blind_evaluation_plan(plan)
+    if plan_errors:
+        raise ValueError("invalid blind evaluator plan: " + "; ".join(plan_errors))
+    output_root = output_root.resolve()
+    if output_root.exists():
+        raise FileExistsError(f"refusing to overwrite blind evaluator output: {output_root}")
+    output_root.mkdir(parents=True)
+    write_json_atomic(output_root / "plan.json", dict(plan))
+    targets = {
+        str(target["target"]): dict(target)
+        for target in plan["targets"]
+        if isinstance(target, Mapping)
+    }
+    receipts: list[dict[str, Any]] = []
+    for execution in plan["executions"]:
+        if not isinstance(execution, Mapping):
+            raise ValueError("blind evaluator execution row is malformed")
+        execution_id = str(execution["execution_id"])
+        execution_root = output_root / "executions" / execution_id
+        execution_root.mkdir(parents=True, exist_ok=False)
+        target = targets[str(execution["target"])]
+        actions = target["action_plan"]
+        if canonical_json_sha256(actions) != execution["action_plan_sha256"]:
+            raise ValueError("blind evaluator execution action binding drifted")
+        trajectory_path = execution_root / "trajectory.jsonl"
+        receipt: dict[str, Any] = {
+            "schema_version": BLIND_EVALUATION_REPORT_VERSION,
+            "execution_id": execution_id,
+            "target": execution["target"],
+            "replicate_index": execution["replicate_index"],
+            "paired_noise_id_sha256": execution["paired_noise_id_sha256"],
+            "action_plan_sha256": execution["action_plan_sha256"],
+            "evaluator_provider_call_count": 0,
+            "participant_operation_denominator_impact": 0,
+            "participant_feedback_emitted": False,
+        }
+        try:
+            run_agent(
+                env_id=get_task(str(config["task_id"])).env_id,
+                agent=_FrozenBlindReplayAgent(actions),
+                world_split=str(config["world_split"]),
+                budget=len(actions),
+                objective=str(config["objective"]),
+                seed=int(plan["world_seed"]),
+                agent_seed=0,
+                observation_seed=int(execution["observation_seed"]),
+                task_id=str(config["task_id"]),
+                output_path=trajectory_path,
+                budget_override=len(actions),
+                episode_mode_override="single_experiment",
+                electrochemical_material_family_id=config.get(
+                    "electrochemical_material_family_id"
+                ),
+                crystallization_material_family_id=config.get(
+                    "crystallization_material_family_id"
+                ),
+                electrochemical_workflow_mode=config.get("electrochemical_workflow_mode"),
+                scoring_contract_id=config.get("scoring_contract_id"),
+                observation_noise_mode=str(config["observation_noise_mode"]),
+                observation_noise_namespace=str(
+                    execution["observation_noise_namespace"]
+                ),
+            )
+            records = load_jsonl(trajectory_path)
+            observed_actions = [record.get("action") for record in records]
+            if observed_actions != actions:
+                raise ValueError("blind evaluator trajectory differs from its frozen action plan")
+            final_rows = [
+                record
+                for record in records
+                if record.get("transaction_status") == "committed"
+                and record.get("operation_type") == "measure"
+                and record.get("instrument") == "final_assay"
+            ]
+            if len(final_rows) != 1:
+                raise ValueError("blind evaluator trajectory lacks exactly one final assay")
+            score = final_rows[0].get("leaderboard_score")
+            if (
+                isinstance(score, bool)
+                or not isinstance(score, int | float)
+                or not math.isfinite(float(score))
+            ):
+                raise ValueError("blind evaluator final score is not finite")
+            replay = verify_records(records, tolerance=0.0).to_dict()
+            if replay.get("verified") is not True:
+                raise ValueError("blind evaluator trajectory does not replay exactly")
+            receipt.update(
+                {
+                    "status": "completed",
+                    "leaderboard_score": float(score),
+                    "operation_attempt_count": len(records),
+                    "trajectory": {
+                        "path": trajectory_path.relative_to(output_root).as_posix(),
+                        "sha256": file_sha256(trajectory_path),
+                    },
+                    "exact_replay": replay,
+                }
+            )
+        except Exception as error:  # retain failed evaluator denominator without replacement
+            receipt.update(
+                {
+                    "status": "failed",
+                    "failure_type": type(error).__name__,
+                    "leaderboard_score": None,
+                    "trajectory": (
+                        {
+                            "path": trajectory_path.relative_to(output_root).as_posix(),
+                            "sha256": file_sha256(trajectory_path),
+                        }
+                        if trajectory_path.is_file()
+                        else None
+                    ),
+                }
+            )
+        receipt["receipt_sha256"] = canonical_json_sha256(receipt)
+        write_json_atomic(execution_root / "receipt.json", receipt)
+        receipts.append(receipt)
+    completed = [receipt for receipt in receipts if receipt["status"] == "completed"]
+    target_scores = {
+        target: [
+            float(receipt["leaderboard_score"])
+            for receipt in completed
+            if receipt["target"] == target
+        ]
+        for target in targets
+    }
+    target_means = {
+        target: (sum(scores) / len(scores) if len(scores) == 3 else None)
+        for target, scores in target_scores.items()
+    }
+    recommendation_mean = target_means["participant_final_recommendation"]
+    incumbent_mean = target_means["observed_incumbent"]
+    report: dict[str, Any] = {
+        "schema_version": BLIND_EVALUATION_REPORT_VERSION,
+        "formal_result": plan.get("formal_result") is True,
+        "cell_id": plan["cell_id"],
+        "cell_key_sha256": plan["cell_key_sha256"],
+        "plan_sha256": plan["plan_sha256"],
+        "status": "completed" if len(completed) == 6 else "failed_retained_no_replacement",
+        "scheduled_execution_count": 6,
+        "completed_execution_count": len(completed),
+        "failed_execution_count": 6 - len(completed),
+        "evaluator_provider_call_count": 0,
+        "participant_operation_denominator_impact": 0,
+        "participant_feedback_emitted": False,
+        "target_score_means": target_means,
+        "recommendation_gain_over_incumbent": (
+            recommendation_mean - incumbent_mean
+            if recommendation_mean is not None and incumbent_mean is not None
+            else None
+        ),
+        "receipt_sha256": [receipt["receipt_sha256"] for receipt in receipts],
+    }
+    report["report_sha256"] = canonical_json_sha256(report)
+    write_json_atomic(output_root / "report.json", report)
+    return report
+
+
 __all__ = [
+    "BLIND_EVALUATION_REPORT_VERSION",
     "BLIND_EVALUATOR_VERSION",
     "build_blind_evaluation_plan",
+    "execute_blind_evaluation_plan",
     "validate_blind_evaluation_plan",
 ]

@@ -1,10 +1,16 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
+from pathlib import Path
 
+import pytest
+
+import chemworld.eval.work_ii_blind as blind
 from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.work_ii_blind import (
     build_blind_evaluation_plan,
+    execute_blind_evaluation_plan,
     validate_blind_evaluation_plan,
 )
 
@@ -93,3 +99,66 @@ def test_blind_plan_rejects_tampering_and_incumbent_drift() -> None:
         assert "incumbent" in str(error)
     else:
         raise AssertionError("incumbent drift should fail closed")
+
+
+def test_blind_executor_runs_six_zero_provider_replays_once(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    plan = build_blind_evaluation_plan(_cell(), _summary(), _contract())
+
+    def fake_run_agent(**kwargs):
+        agent = kwargs["agent"]
+        output_path = Path(kwargs["output_path"])
+        agent.reset({}, 0)
+        rows = []
+        history = []
+        for step in range(1, kwargs["budget"] + 1):
+            action = agent.act(history)
+            info = {
+                "transaction_status": "committed",
+                "operation_type": action["operation"],
+                "instrument": action.get("instrument"),
+            }
+            agent.update(action, {}, 0.0, info)
+            rows.append(
+                {
+                    "action": action,
+                    **info,
+                    "leaderboard_score": 0.75 if step == kwargs["budget"] else None,
+                }
+            )
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            "".join(json.dumps(row) + "\n" for row in rows),
+            encoding="utf-8",
+        )
+        return []
+
+    class _Replay:
+        def to_dict(self):
+            return {"verified": True, "checked_steps": 2, "mismatches": []}
+
+    monkeypatch.setattr(blind, "run_agent", fake_run_agent)
+    monkeypatch.setattr(blind, "verify_records", lambda records, tolerance: _Replay())
+    config = {
+        "task_id": "electrochemical-conversion",
+        "world_split": "test",
+        "objective": "test",
+        "observation_noise_mode": "deterministic_keyed",
+    }
+    output = tmp_path / "blind-output"
+    report = execute_blind_evaluation_plan(
+        plan,
+        config,
+        output,
+    )
+    assert report["status"] == "completed"
+    assert report["completed_execution_count"] == 6
+    assert report["evaluator_provider_call_count"] == 0
+    assert report["participant_operation_denominator_impact"] == 0
+    assert report["participant_feedback_emitted"] is False
+    assert report["recommendation_gain_over_incumbent"] == 0.0
+    assert len(list((output / "executions").glob("*/receipt.json"))) == 6
+    with pytest.raises(FileExistsError, match="refusing to overwrite"):
+        execute_blind_evaluation_plan(plan, config, output)

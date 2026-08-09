@@ -677,7 +677,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   contract、三臂 development 报告文件、零 formal outcome、150 次 provider-attempt 硬上限和用户 currency
   approval 的逐项绑定校验，不再接受仅声明 `status=passed` 的任意 JSON。当前仍缺用户批准的 currency ceiling、
   当前 persistent-session 方法 qualification receipt，且 design/analysis 仍显式禁止正式执行；不得据此启动
-  provider 或正式矩阵。
+  provider 或正式矩阵。blind evaluator 的 development-only 零 provider shakedown 使用 synthetic incumbent
+  fixture（明确不是 participant recommendation），完成 2 targets × 3 paired replicates = 6/6 executions，
+  6/6 exact replay、0 failures、0 participant feedback、0 participant-operation denominator impact；报告：
+  `workstreams/flagship_tasks/reports/work-ii-blind-evaluator-development-shakedown-v0.2.json`。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 
