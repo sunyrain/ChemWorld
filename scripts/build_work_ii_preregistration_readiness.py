@@ -75,7 +75,7 @@ def main() -> int:
     else:
         write_json_atomic(output, report)
         draft.parent.mkdir(parents=True, exist_ok=True)
-        draft.write_text(rendered, encoding="utf-8")
+        draft.write_text(rendered, encoding="utf-8", newline="\n")
     print(
         json.dumps(
             {
