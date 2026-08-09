@@ -38,6 +38,8 @@ SUPPORTED_TOOLS = (
     "commit_belief_snapshot",
     "step",
 )
+ATOMIC_REPLACE_RETRY_LIMIT = 40
+ATOMIC_REPLACE_RETRY_INTERVAL_S = 0.025
 
 
 def _encode(value: Any) -> bytes:
@@ -66,10 +68,23 @@ def _atomic_json(path: Path, value: Any) -> None:
             handle.write(_encode(value) + b"\n")
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temporary, path)
+        _replace_with_retry(temporary, path)
     finally:
         if temporary.exists():
             temporary.unlink()
+
+
+def _replace_with_retry(temporary: Path, path: Path) -> None:
+    """Retry only transient sharing violations; preserve fail-closed semantics."""
+
+    for retry in range(ATOMIC_REPLACE_RETRY_LIMIT + 1):
+        try:
+            os.replace(temporary, path)
+            return
+        except PermissionError:
+            if retry >= ATOMIC_REPLACE_RETRY_LIMIT:
+                raise
+            time.sleep(ATOMIC_REPLACE_RETRY_INTERVAL_S)
 
 
 def _append_jsonl(path: Path, value: Any) -> None:

@@ -42,3 +42,13 @@ the runtime advanced the physical clock. The failed triplet is retained outside 
 denominator. The resource card now carries explicit per-operation implicit-time reservations; the
 crystallization and distillation envelopes were recomputed before restarting the affected block
 from seed 0.
+
+Second platform repair record (2026-08-09): the repaired crystallization seed-0 pilot passed 3/3
+cells, 12/12 experiments and 132/132 committed operations with zero resource rejection and exact
+replay for every cell. The subsequent five-seed block reached 5/15 completed cells and 23/60
+complete experiments across six started cells before the seed-1 aligned cell ended after step 39
+with a transient Windows `PermissionError` while atomically replacing `active_session.json`.
+All 236 recorded steps replay exactly and no resource rejection occurred. Host IPC, the generated
+lab tool and the MCP writer now retry atomic replace for at most 40 attempts separated by 25 ms;
+exhaustion still raises the original error. The failed block remains excluded and the five-seed
+crystallization block restarts from seed 0 without changing scientific coverage or thresholds.

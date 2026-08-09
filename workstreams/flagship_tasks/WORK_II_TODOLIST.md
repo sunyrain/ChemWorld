@@ -841,7 +841,14 @@ outcome channels remain separate so that the analysis can distinguish:
   实际推进 480 s、`quench` 为状态相关耗时，但 campaign preflight 原先预留 0 s。已将隐式操作时间
   纳入一等资源卡字段，修正结晶过滤时间与蒸馏 `evaporate` 上限，并以环境级回归覆盖；失败区块保留，
   按协议从 seed 0 整体重跑。
-- [ ] crystallization seed-0 三臂真实 provider pilot 达到终态。
+- [x] crystallization seed-0 三臂真实 provider pilot 达到终态：3/3 cells、12/12 experiments、
+  132/132 committed operations、0 resource rejection、3/3 exact replay；matrix wall time 1,349.3 s。
+- [x] crystallization 首次五-seed block 在 seed 1 aligned cell 暴露 Windows IPC 原子替换缺陷：
+  运行保留为 5/15 completed cells、23/60 complete experiments、236 operation attempts、
+  225 committed operations、0 resource rejection、6/6 started-cell exact replay；失败 cell 在 3/4
+  experiments、step 39 后因 `active_session.json` 的瞬时 `PermissionError` 终止。已为 host IPC、
+  generated lab tool 和 MCP writer 加入 40 次 × 25 ms 的有界原子替换重试，耗尽仍 fail-closed；
+  修复通过 54 个 IPC/MCP/runner focused tests。受影响五-seed block 必须从 seed 0 整体重跑。
 - [ ] distillation seed-0 三臂真实 provider pilot 达到终态。
 - [ ] crystallization 与 distillation 各 15/15 cells 完成，并形成三任务综合报告。
 

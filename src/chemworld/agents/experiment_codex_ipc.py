@@ -27,6 +27,8 @@ DEFAULT_MAX_TOOL_OUTPUT_BYTES = 32_768
 DEFAULT_HISTORY_EVENT_LIMIT = 64
 DEFAULT_HISTORY_BYTE_LIMIT = 131_072
 DEFAULT_MAX_ARTIFACT_BYTES = 8_388_608
+ATOMIC_REPLACE_RETRY_LIMIT = 40
+ATOMIC_REPLACE_RETRY_INTERVAL_S = 0.025
 
 
 class ExperimentCodexIPCError(RuntimeError):
@@ -757,10 +759,23 @@ def _atomic_write_bytes(path: Path, value: bytes) -> None:
             handle.write(value)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temporary, path)
+        _replace_with_retry(temporary, path)
     finally:
         if temporary is not None and temporary.exists():
             temporary.unlink()
+
+
+def _replace_with_retry(temporary: Path, path: Path) -> None:
+    """Bound transient Windows sharing violations without hiding hard failures."""
+
+    for retry in range(ATOMIC_REPLACE_RETRY_LIMIT + 1):
+        try:
+            os.replace(temporary, path)
+            return
+        except PermissionError:
+            if retry >= ATOMIC_REPLACE_RETRY_LIMIT:
+                raise
+            time.sleep(ATOMIC_REPLACE_RETRY_INTERVAL_S)
 
 
 LAB_TOOL_SOURCE = r'''"""Isolated ChemWorld file-IPC client.  Standard library only."""
@@ -776,6 +791,8 @@ import time
 from pathlib import Path
 
 VERSION = "chemworld-experiment-codex-ipc-0.2"
+ATOMIC_REPLACE_RETRY_LIMIT = 40
+ATOMIC_REPLACE_RETRY_INTERVAL_S = 0.025
 TOOL = Path(__file__).resolve(strict=True)
 AGENT = TOOL.parent
 ROOT = AGENT.parent.resolve(strict=True)
@@ -819,10 +836,21 @@ def atomic_json(path: Path, value: object) -> None:
             handle.write(encode(value) + b"\n")
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temp, path)
+        replace_with_retry(temp, path)
     finally:
         if temp.exists():
             temp.unlink()
+
+
+def replace_with_retry(temp: Path, path: Path) -> None:
+    for retry in range(ATOMIC_REPLACE_RETRY_LIMIT + 1):
+        try:
+            os.replace(temp, path)
+            return
+        except PermissionError:
+            if retry >= ATOMIC_REPLACE_RETRY_LIMIT:
+                raise
+            time.sleep(ATOMIC_REPLACE_RETRY_INTERVAL_S)
 
 
 def descriptor() -> dict:

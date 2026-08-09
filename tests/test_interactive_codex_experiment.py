@@ -8,6 +8,8 @@ from typing import Any
 
 import pytest
 
+import chemworld.agents.experiment_codex_ipc as experiment_ipc
+import chemworld.agents.experiment_codex_mcp as experiment_mcp
 from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.interactive_codex_experiment import (
     InteractiveCodexExperimentAgent,
@@ -15,6 +17,45 @@ from chemworld.agents.interactive_codex_experiment import (
     _material_information_payload,
     _public_task_contract,
 )
+
+
+@pytest.mark.parametrize(
+    ("module", "write"),
+    (
+        (
+            experiment_ipc,
+            lambda path: experiment_ipc._atomic_write_bytes(path, b'{"ok":true}\n'),
+        ),
+        (
+            experiment_mcp,
+            lambda path: experiment_mcp._atomic_json(path, {"ok": True}),
+        ),
+    ),
+)
+def test_atomic_ipc_writes_retry_transient_permission_errors(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    module: Any,
+    write: Any,
+) -> None:
+    target = tmp_path / "active_session.json"
+    real_replace = module.os.replace
+    attempts = 0
+
+    def flaky_replace(source: Any, destination: Any) -> None:
+        nonlocal attempts
+        attempts += 1
+        if attempts <= 2:
+            raise PermissionError(5, "transient sharing violation", str(destination))
+        real_replace(source, destination)
+
+    monkeypatch.setattr(module.os, "replace", flaky_replace)
+    monkeypatch.setattr(module.time, "sleep", lambda _seconds: None)
+
+    write(target)
+
+    assert attempts == 3
+    assert json.loads(target.read_text(encoding="utf-8")) == {"ok": True}
 
 
 def test_material_payload_blinds_aligned_vs_misindexed_mode_labels() -> None:
