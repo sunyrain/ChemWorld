@@ -692,7 +692,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   participant recommendation 各执行 3 个成对噪声 replay，不向 participant 回传结果，也不计入 participant
   operation/provider 分母。formal CLI 对 qualification receipt 执行自哈希、preflight/provider/attempt/blind
   contract、三臂 development 报告文件、零 formal outcome、150 次 provider-attempt 硬上限和用户 currency
-  approval 的逐项绑定校验，不再接受仅声明 `status=passed` 的任意 JSON。当前仍缺用户批准的 currency ceiling、
+  approval 的逐项绑定校验；`--preregistration-freeze-receipt` 现也是不可省略的 execute 参数，并逐项验证
+  selected route、qualification、clean release、credential rotation、currency、qualified ETA、用户命令/预算/
+  故障升级签字，以及相应 Nature IPA+registration 或常规投稿 target+evidence threshold，不再接受仅声明
+  `status=passed` 的任意 JSON。当前仍缺用户批准的 currency ceiling、
   当前 persistent-session 方法 qualification receipt、W2-08 outcome-blind route selection 和 W2-11 final
   freeze receipt，且 design/analysis 仍显式禁止正式执行；不得据此启动 provider 或正式矩阵。blind evaluator
   的 development-only 零 provider shakedown 使用 synthetic incumbent
@@ -773,8 +776,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   sessions、150 provider-attempt hard cap、outcome-neutral gates、failure/censoring rules 和仅含 commitment
   的 private boundary；formal outcomes 和本轮 provider calls 均为 0。2026-08-10 的 clean release
   receipt `workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json` 绑定提交
-  `07eadf71bcbbfb20f78106da2b2197e519065623`，完成 13-node/17-edge evidence graph、4/4 frozen
-  checks、63/63 Work II tests、clean wheel 和非 editable wheel-target import/config smoke；checkout 前后均
+  `afeb047fd6cff7282b5d71222ac27a077750b959`，完成 13-node/17-edge evidence graph、4/4 frozen
+  checks、66/66 Work II tests、clean wheel 和非 editable wheel-target import/config smoke；checkout 前后均
   clean，provider calls 为 0。readiness v0.1 是该验收前的冻结快照，仍如实列出当时 6 个 blocker；当前台账
   已由独立 receipt 消除 clean-release blocker，最终 freeze 还缺 5 项：用户路线选择、current-method 真实
   三臂资格收据、provider/正式货币上限、资格运行校准 ETA，以及执行命令/预算/故障升级的用户签字确认。
