@@ -161,6 +161,7 @@ def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:
         },
         "final_recommendation": recommendation,
         "final_recommendation_sha256": recommendation_sha256,
+        "execution_audit": {"passed": True},
     }
     result = _qualification(
         analysis=analysis,
@@ -236,6 +237,7 @@ def test_cell_qualification_is_fail_closed() -> None:
         },
         "final_recommendation": recommendation,
         "final_recommendation_sha256": recommendation_sha256,
+        "execution_audit": {"passed": True},
     }
     replay = {"verified": True}
     method_resources = {
@@ -303,6 +305,20 @@ def test_cell_qualification_is_fail_closed() -> None:
     )
     assert failed_resource["passed"] is False
     assert failed_resource["failed_checks"] == ["no_resource_rejection"]
+
+    rejected_audit_analysis = deepcopy(analysis)
+    rejected_audit_analysis["execution_audit"] = {"passed": False}
+    failed_audit = _qualification(
+        analysis=rejected_audit_analysis,
+        exact_replay=replay,
+        method_resources=method_resources,
+        method_resource_limits=method_resource_limits,
+        receipts=receipts,
+        process_time_limit_s=72_000.0,
+        required_operation_counts={},
+    )
+    assert failed_audit["passed"] is False
+    assert failed_audit["failed_checks"] == ["execution_audit"]
 
     over_limit = deepcopy(method_resources)
     over_limit["uncached_input_token_count"] = 320_001

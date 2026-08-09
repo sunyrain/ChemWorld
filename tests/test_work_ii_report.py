@@ -142,3 +142,26 @@ def test_formal_analysis_dataset_rejects_tampered_terminal_receipt() -> None:
     )
     assert dataset["status"] == "failed"
     assert any("self-hash mismatch" in error for error in dataset["errors"])
+
+
+def test_formal_analysis_dataset_rejects_malformed_present_process_profile() -> None:
+    manifest = _authorized_manifest()
+    receipts = [_failed_receipt(cell) for cell in manifest["cells"]]
+    result = receipts[0]["result"]
+    result["analysis"]["process_profile"] = {"profile_sha256": "tampered"}
+    receipts[0]["result_sha256"] = canonical_json_sha256(result)
+    receipts[0]["receipt_sha256"] = canonical_json_sha256(
+        {
+            key: value
+            for key, value in receipts[0].items()
+            if key != "receipt_sha256"
+        }
+    )
+    dataset = build_formal_analysis_dataset(
+        manifest,
+        receipts,
+        _truth_packs(manifest),
+        {},
+    )
+    assert dataset["status"] == "failed"
+    assert any("process profile" in error for error in dataset["errors"])

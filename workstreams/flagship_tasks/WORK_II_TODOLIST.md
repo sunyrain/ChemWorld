@@ -648,8 +648,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] optional matched-evidence mechanism probe 的独立 cloned-world/session/resource contract，默认不进入最小 pilot；
   - [x] operation-level `step(action)`、public outcome、termination/final-assay 和 multi-experiment campaign 的统一接口；
   - [x] discovery campaign 共享 resource card/ledger、跨 experiment resource snapshot 和 lifecycle reserve；
-  - [ ] 第一篇 19-coordinate contract 的 Work II adapter，排除 evaluator-owned held-out/blind operations；
-  - [ ] exact replay、resource replay 和 hidden-boundary audits；
+  - [x] 第一篇 19-coordinate contract 的 Work II adapter，排除 evaluator-owned held-out/blind operations；
+  - [x] exact replay、resource replay 和 hidden-boundary audits；
   - [ ] public/private split enforcement；
   - [x] formal report generator：校验并连接 75 个 terminal receipts、25 个 evaluator-truth packs、
     completed cells 的 blind packs，保留 failed/right-censored cells，并生成 75 个 cell rows 与
@@ -694,7 +694,11 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   `workstreams/flagship_tasks/reports/work-ii-held-out-evaluator-development-shakedown-v0.2.json`。
   formal analysis dataset generator 已完成 fail-closed artifact join：每个 cell row 绑定 terminal receipt、
   participant trajectory、共享 evaluator-truth report 与 blind report，每个 cluster row 绑定三臂收据并计算
-  H1/H2/H3；其输出自哈希且不会把尚未完成的 W2-14 统计推断伪装为正式结论。
+  H1/H2/H3；其输出自哈希且不会把尚未完成的 W2-14 统计推断伪装为正式结论。participant process adapter
+  已按实际 planned experiment count 生成第一篇同名 19-coordinate profile；Work II 未注册的两个固定阈值坐标
+  保留为显式 null/inapplicable。每个坐标绑定 participant step 与 record hash，held-out/blind evaluator operations
+  被排除；physical exact replay、逐步 campaign resource-ledger replay 和 participant-visible hidden-boundary audit
+  被合并为 qualification 必需的 execution audit，并由 formal analysis cell row 继续绑定。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 

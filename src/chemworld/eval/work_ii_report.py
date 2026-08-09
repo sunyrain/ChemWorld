@@ -19,6 +19,10 @@ from chemworld.eval.work_ii_formal import (
     WorkIIFormalCellStore,
     validate_formal_preflight,
 )
+from chemworld.eval.work_ii_process_profile import (
+    WORK_II_EXECUTION_AUDIT_VERSION,
+    validate_work_ii_process_profile,
+)
 from chemworld.eval.work_ii_truth import validate_evaluator_truth_report
 
 WORK_II_FORMAL_ANALYSIS_DATASET_VERSION = (
@@ -59,6 +63,104 @@ def _validate_terminal_receipt(
     if receipt.get("receipt_sha256") != expected_receipt_hash:
         errors.append("terminal receipt self-hash mismatch")
     return errors
+
+
+def _participant_process_record(
+    analysis: Mapping[str, Any],
+    *,
+    exact_replay: Mapping[str, Any],
+    terminal_state: str,
+    cell_id: str,
+) -> tuple[dict[str, Any], list[str]]:
+    errors: list[str] = []
+    profile = analysis.get("process_profile")
+    audit = analysis.get("execution_audit")
+    resource = analysis.get("resource_replay")
+    boundary = analysis.get("hidden_boundary_audit")
+    completed = terminal_state == "completed"
+
+    if isinstance(profile, Mapping):
+        errors.extend(
+            f"{cell_id}: {error}" for error in validate_work_ii_process_profile(profile)
+        )
+    elif completed:
+        errors.append(f"{cell_id}: completed cell lacks a participant process profile")
+
+    if isinstance(audit, Mapping):
+        expected_audit_hash = canonical_json_sha256(
+            {key: value for key, value in audit.items() if key != "report_sha256"}
+        )
+        if audit.get("schema_version") != WORK_II_EXECUTION_AUDIT_VERSION:
+            errors.append(f"{cell_id}: unexpected participant execution audit schema")
+        if audit.get("report_sha256") != expected_audit_hash:
+            errors.append(f"{cell_id}: participant execution audit self-hash mismatch")
+        if isinstance(profile, Mapping) and audit.get(
+            "process_profile_sha256"
+        ) != profile.get("profile_sha256"):
+            errors.append(f"{cell_id}: execution audit process-profile binding mismatch")
+        if audit.get("physical_exact_replay_sha256") != canonical_json_sha256(
+            exact_replay
+        ):
+            errors.append(f"{cell_id}: execution audit physical-replay binding mismatch")
+        checks = audit.get("checks")
+        if completed and (
+            audit.get("passed") is not True
+            or audit.get("status") != "passed"
+            or audit.get("failed_checks") != []
+            or not isinstance(checks, Mapping)
+            or not checks
+            or any(value is not True for value in checks.values())
+        ):
+            errors.append(f"{cell_id}: completed cell failed its execution audit")
+    elif completed:
+        errors.append(f"{cell_id}: completed cell lacks a participant execution audit")
+
+    linked_artifacts = (
+        ("resource replay", resource, "resource_replay_report_sha256"),
+        ("hidden-boundary audit", boundary, "hidden_boundary_report_sha256"),
+    )
+    for label, artifact, audit_field in linked_artifacts:
+        if isinstance(artifact, Mapping):
+            expected_hash = canonical_json_sha256(
+                {key: value for key, value in artifact.items() if key != "report_sha256"}
+            )
+            if artifact.get("report_sha256") != expected_hash:
+                errors.append(f"{cell_id}: participant {label} self-hash mismatch")
+            if isinstance(audit, Mapping) and audit.get(audit_field) != artifact.get(
+                "report_sha256"
+            ):
+                errors.append(f"{cell_id}: execution audit {label} binding mismatch")
+            if completed and artifact.get("status") != "passed":
+                errors.append(f"{cell_id}: completed cell failed its {label}")
+        elif completed:
+            errors.append(f"{cell_id}: completed cell lacks its {label}")
+
+    status = "audited" if isinstance(audit, Mapping) else "not_available"
+    return (
+        {
+            "status": status,
+            "process_profile": dict(profile) if isinstance(profile, Mapping) else None,
+            "process_profile_sha256": (
+                profile.get("profile_sha256") if isinstance(profile, Mapping) else None
+            ),
+            "execution_audit": dict(audit) if isinstance(audit, Mapping) else None,
+            "execution_audit_sha256": (
+                audit.get("report_sha256") if isinstance(audit, Mapping) else None
+            ),
+            "resource_replay_report_sha256": (
+                resource.get("report_sha256") if isinstance(resource, Mapping) else None
+            ),
+            "hidden_boundary_report_sha256": (
+                boundary.get("report_sha256") if isinstance(boundary, Mapping) else None
+            ),
+            "evaluator_owned_operation_count": (
+                profile.get("evaluator_owned_operation_count")
+                if isinstance(profile, Mapping)
+                else None
+            ),
+        },
+        errors,
+    )
 
 
 def _truth_packs_by_cluster(
@@ -237,6 +339,17 @@ def build_formal_analysis_dataset(
             evaluator_truth,
             terminal_state=str(receipt["state"]),
         )
+        participant_process, process_errors = _participant_process_record(
+            analysis,
+            exact_replay=(
+                result.get("exact_replay")
+                if isinstance(result.get("exact_replay"), Mapping)
+                else {}
+            ),
+            terminal_state=str(receipt["state"]),
+            cell_id=str(cell["cell_id"]),
+        )
+        errors.extend(process_errors)
         blind, blind_errors = _blind_report_record(
             cell,
             str(receipt["state"]),
@@ -259,6 +372,7 @@ def build_formal_analysis_dataset(
             "participant_trajectory": trajectory,
             "evaluator_truth_report_sha256": truth_report.get("report_sha256"),
             "checkpoint_error": score,
+            "participant_process": participant_process,
             "blind_outcome": blind,
             "provider_receipt_count": result.get("provider_receipt_count", 0),
             "operation_attempt_count": analysis.get("operation_attempt_count", 0),

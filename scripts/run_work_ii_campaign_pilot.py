@@ -30,6 +30,9 @@ from chemworld.eval.work_ii_formal import (
 from chemworld.eval.work_ii_formal import (
     validate_formal_bindings,
 )
+from chemworld.eval.work_ii_process_profile import (
+    build_work_ii_execution_artifacts,
+)
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -286,6 +289,8 @@ def _qualification(
         and float(report_only.get("process_time_s", 0.0)) <= process_time_limit_s,
         "task_required_operations_reconciled": required_operations_reconciled,
         "exact_replay": exact_replay.get("verified") is True,
+        "execution_audit": isinstance(analysis.get("execution_audit"), Mapping)
+        and analysis["execution_audit"].get("passed") is True,
         "provider_usage_reconciled": method_resources.get("provider_usage_pending") is False
         and method_resources.get("provider_usage_accounting_complete") is True
         and usage.get("in_flight_model_call_count") == 0
@@ -448,6 +453,26 @@ def _run_cell(
         verify_records(records, tolerance=0.0).to_dict()
         if records
         else {"verified": False, "checked_steps": 0, "max_abs_error": None, "mismatches": []}
+    )
+    trajectory_terminal_state = (
+        "completed"
+        if analysis["complete_experiment_count"] == target_experiments
+        and analysis["right_censored_open_experiment"] is False
+        else "right_censored"
+        if records
+        else "failed"
+    )
+    analysis.update(
+        build_work_ii_execution_artifacts(
+            records,
+            replay,
+            planned_experiment_count=target_experiments,
+            terminal_state=trajectory_terminal_state,
+            hidden_identity={
+                "prior_arm": arm,
+                "world_seed": world_seed,
+            },
+        )
     )
     qualification = _qualification(
         analysis=analysis,

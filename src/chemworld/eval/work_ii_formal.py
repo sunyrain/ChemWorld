@@ -37,6 +37,7 @@ _SOURCE_PATHS = (
     "src/chemworld/eval/work_ii_blind.py",
     "src/chemworld/eval/work_ii_formal.py",
     "src/chemworld/eval/work_ii_prior_discovery.py",
+    "src/chemworld/eval/work_ii_process_profile.py",
     "src/chemworld/eval/work_ii_qualification.py",
     "src/chemworld/eval/work_ii_report.py",
     "src/chemworld/eval/work_ii_truth.py",
