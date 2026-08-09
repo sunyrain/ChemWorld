@@ -804,8 +804,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   sessions、150 provider-attempt hard cap、outcome-neutral gates、failure/censoring rules 和仅含 commitment
   的 private boundary；formal outcomes 和本轮 provider calls 均为 0。2026-08-10 的 clean release
   receipt `workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json` 最新绑定提交
-  `4f87d3822e11e5b4dd431982d2375281791f2097`，完成 13-node/17-edge evidence graph、4/4 frozen
-  checks、78/78 Work II tests、clean wheel 和非 editable wheel-target import/config smoke；checkout 前后均
+  `3fdee6070e6664d03f8541469768441dbcfd8f4b`，完成 13-node/17-edge evidence graph、4/4 frozen
+  checks、83/83 Work II tests、clean wheel 和非 editable wheel-target import/config smoke；checkout 前后均
   clean，provider calls 为 0。readiness v0.1 是该验收前的冻结快照，仍如实列出当时 6 个 blocker；当前台账
   已由独立 receipt 消除 clean-release blocker，最终 freeze 还缺 5 项：用户路线选择、current-method 真实
   三臂资格收据、provider/正式货币上限、资格运行校准 ETA，以及执行命令/预算/故障升级的用户签字确认。
