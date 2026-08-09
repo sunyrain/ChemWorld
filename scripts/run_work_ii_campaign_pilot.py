@@ -25,10 +25,12 @@ from chemworld.eval.work_ii_blind import (
     validate_blind_evaluation_plan,
 )
 from chemworld.eval.work_ii_formal import (
-    build_checkpoint_contract as _checkpoint_contract,
+    FORMAL_ARMS,
+    build_formal_preflight,
+    validate_formal_bindings,
 )
 from chemworld.eval.work_ii_formal import (
-    validate_formal_bindings,
+    build_checkpoint_contract as _checkpoint_contract,
 )
 from chemworld.eval.work_ii_process_profile import (
     build_work_ii_execution_artifacts,
@@ -37,11 +39,14 @@ from chemworld.eval.work_ii_qualification import (
     METHOD_QUALIFICATION_REPORT_VERSION,
     REQUIRED_CELL_QUALIFICATION_CHECKS,
     method_qualification_report_sha256,
+    validate_qualification_execution_authorization,
 )
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "configs/benchmark/work_ii_campaign_pilot.json"
+DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
+DEFAULT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -124,6 +129,51 @@ def _formal_cell_context(
     if getattr(args, "prior_arm", None) != str(cell["prior_arm"]):
         raise RuntimeError("formal cell prior arm differs from its manifest")
     return manifest, cell
+
+
+def _qualification_execution_context(
+    args: argparse.Namespace,
+    *,
+    config_path: Path,
+    world_seed: int,
+    arms: list[str],
+) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    execute = bool(getattr(args, "qualification_execution", False))
+    authorization_value = getattr(args, "qualification_authorization", None)
+    if not execute:
+        if authorization_value is not None:
+            raise RuntimeError(
+                "--qualification-authorization requires --qualification-execution"
+            )
+        return None
+    if getattr(args, "formal_manifest", None) is not None:
+        raise RuntimeError("qualification execution cannot also be a formal cell")
+    if authorization_value is None:
+        raise RuntimeError("qualification execution requires --qualification-authorization")
+    authorization_path = Path(authorization_value).resolve()
+    try:
+        relative_authorization = authorization_path.relative_to(ROOT.resolve()).as_posix()
+    except ValueError as error:
+        raise RuntimeError("qualification authorization must be inside the repository") from error
+    authorization = _load(authorization_path)
+    manifest = build_formal_preflight(ROOT, DEFAULT_DESIGN, DEFAULT_ANALYSIS)
+    errors = validate_qualification_execution_authorization(authorization, manifest)
+    if errors:
+        raise RuntimeError("qualification execution authorization failed: " + "; ".join(errors))
+    schedule = authorization["qualification_schedule"]
+    if (
+        config_path.resolve() != (ROOT / str(schedule["campaign_config_path"])).resolve()
+        or file_sha256(config_path) != schedule["campaign_config_sha256"]
+        or world_seed != schedule["world_seed"]
+        or arms != list(FORMAL_ARMS)
+        or getattr(args, "prior_arm", None) is not None
+    ):
+        raise RuntimeError("qualification execution differs from its exact authorized triplet")
+    return authorization, {
+        "path": relative_authorization,
+        "sha256": file_sha256(authorization_path),
+        "authorization_sha256": authorization["authorization_sha256"],
+    }
 
 
 def _progress(path: Path, payload: Mapping[str, Any]) -> None:
@@ -528,11 +578,19 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     if args.prior_arm is not None:
         if args.prior_arm not in all_arms:
             raise ValueError(f"unknown prior arm: {args.prior_arm}")
-        output.parent.mkdir(parents=True, exist_ok=True)
         arms = [args.prior_arm]
     else:
-        output.mkdir(parents=True, exist_ok=False)
         arms = all_arms
+    qualification_context = _qualification_execution_context(
+        args,
+        config_path=config_path,
+        world_seed=world_seed,
+        arms=arms,
+    )
+    if args.prior_arm is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        output.mkdir(parents=True, exist_ok=False)
     results: list[dict[str, Any]] = []
     started = perf_counter()
     for arm in arms:
@@ -595,6 +653,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             formal_cell["cell_key_sha256"] if formal_cell is not None else None
         ),
         "formal_result": formal_cell is not None,
+        "qualification_execution_authorized": qualification_context is not None,
+        "qualification_execution_authorization_binding": (
+            qualification_context[1] if qualification_context is not None else None
+        ),
         "config_sha256": canonical_json_sha256(config),
         "config_file_sha256": file_sha256(config_path),
         "world_seed": world_seed,
@@ -618,6 +680,8 @@ def main() -> int:
     parser.add_argument("--formal-manifest", type=Path)
     parser.add_argument("--formal-cell-key")
     parser.add_argument("--allow-formal-execution", action="store_true")
+    parser.add_argument("--qualification-execution", action="store_true")
+    parser.add_argument("--qualification-authorization", type=Path)
     args = parser.parse_args()
     report = run(args)
     print(

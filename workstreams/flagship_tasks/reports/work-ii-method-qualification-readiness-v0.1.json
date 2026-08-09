@@ -22,7 +22,7 @@
   },
   "formal_execution_authorized": false,
   "formal_participant_outcomes_before_authorization": 0,
-  "formal_preflight_sha256": "807e4876c7446ee46c90654facfaf4a2df391310f06f158c3baf7de9695a4553",
+  "formal_preflight_sha256": "d618014515bd5291def90b9507ced8e2acd92ff1549c4a09014f00f06d206bba",
   "formal_result": false,
   "held_out_evaluator_contract_sha256": "d78c285f1c4cfac87129d7cf9a6c657c3aa8a8a23da18c8d40ecbbb81becf6b9",
   "historical_evidence_assessment": [
@@ -99,6 +99,8 @@
   "provider_contract_sha256": "143a2a98dc9cb662ccb0900e60422ebc164a7c00314caad42d9a5ecdf7bbc069",
   "provider_execution_allowed": false,
   "qualification_schedule": {
+    "authorization_builder": "scripts/authorize_work_ii_method_qualification.py",
+    "authorization_schema": "chemworld-work-ii-method-qualification-execution-authorization-0.1",
     "campaign_config": {
       "hash_kind": "file_sha256",
       "path": "configs/benchmark/work_ii_campaign_pilot.json",
@@ -110,13 +112,20 @@
       "aligned_nominal",
       "misindexed_nominal"
     ],
+    "receipt_builder": "scripts/build_work_ii_method_qualification_receipt.py",
+    "receipt_schema": "chemworld-work-ii-method-qualification-receipt-0.3",
+    "report_schema": "chemworld-work-ii-campaign-pilot-report-0.3",
+    "required_execution_flags": [
+      "--qualification-execution",
+      "--qualification-authorization"
+    ],
     "runner": "scripts/run_work_ii_campaign_pilot.py",
     "task_id": "electrochemical-conversion",
     "triplet_failure_semantics": "finish_all_three_arms_then_fail_qualification",
     "world_cohort": "development_and_qualification",
     "world_seed": 0
   },
-  "readiness_sha256": "af2f232f7da58d3dc312d89eeb94975bd834cb58a62b0e7f1c32fe3a512d35b1",
+  "readiness_sha256": "e33aebaec7ea4755a33a956daa3af0e95c39122a70d6f9b16e81f07a4ca41003",
   "schema_version": "chemworld-work-ii-method-qualification-readiness-0.1",
   "status": "passed_provider_execution_blocked"
 }

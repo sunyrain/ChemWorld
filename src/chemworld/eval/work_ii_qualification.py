@@ -17,9 +17,12 @@ from chemworld.eval.work_ii_formal import (
     validate_formal_preflight,
 )
 
-METHOD_QUALIFICATION_REPORT_VERSION = "chemworld-work-ii-campaign-pilot-report-0.2"
+METHOD_QUALIFICATION_REPORT_VERSION = "chemworld-work-ii-campaign-pilot-report-0.3"
 METHOD_QUALIFICATION_READINESS_VERSION = "chemworld-work-ii-method-qualification-readiness-0.1"
-METHOD_QUALIFICATION_RECEIPT_VERSION = "chemworld-work-ii-method-qualification-receipt-0.2"
+METHOD_QUALIFICATION_RECEIPT_VERSION = "chemworld-work-ii-method-qualification-receipt-0.3"
+METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION = (
+    "chemworld-work-ii-method-qualification-execution-authorization-0.1"
+)
 REQUIRED_CELL_QUALIFICATION_CHECKS = (
     "planned_complete_experiments",
     "four_typed_belief_checkpoints",
@@ -48,6 +51,13 @@ def _is_finite_number(value: object, *, minimum: float = 0.0) -> bool:
         and math.isfinite(float(value))
         and float(value) >= minimum
     )
+
+
+def _finite_float(value: object, *, minimum: float = 0.0) -> float | None:
+    if not _is_finite_number(value, minimum=minimum):
+        return None
+    assert not isinstance(value, bool) and isinstance(value, int | float)
+    return float(value)
 
 
 def _is_sha256(value: object) -> bool:
@@ -82,6 +92,149 @@ def qualification_receipt_sha256(receipt: Mapping[str, Any]) -> str:
     return _self_hash(receipt, "receipt_sha256")
 
 
+def qualification_execution_authorization_sha256(
+    authorization: Mapping[str, Any],
+) -> str:
+    return _self_hash(authorization, "authorization_sha256")
+
+
+def build_qualification_execution_authorization(
+    manifest: Mapping[str, Any],
+    *,
+    currency_ceiling_usd: float,
+    approved_at: str,
+) -> dict[str, Any]:
+    """Build the credential-free authorization that must exist before provider execution."""
+
+    contract = manifest.get("method_qualification_contract")
+    contract = contract if isinstance(contract, Mapping) else {}
+    task_id = str(contract.get("qualification_task_id", ""))
+    task_binding = _task_binding(manifest, task_id)
+    campaign_binding = (
+        task_binding.get("campaign_config") if isinstance(task_binding, Mapping) else None
+    )
+    campaign_binding = campaign_binding if isinstance(campaign_binding, Mapping) else {}
+    authorization: dict[str, Any] = {
+        "schema_version": METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION,
+        "status": "authorized",
+        "formal_result": False,
+        "provider_execution_allowed": True,
+        "formal_execution_authorized": False,
+        "formal_participant_outcome_count_before_authorization": 0,
+        "formal_preflight_sha256": manifest.get("preflight_sha256"),
+        "provider_contract_sha256": canonical_json_sha256(manifest.get("provider_contract")),
+        "participant_execution_contract_sha256": manifest.get(
+            "participant_execution_contract_sha256"
+        ),
+        "method_qualification_contract_sha256": manifest.get(
+            "method_qualification_contract_sha256"
+        ),
+        "qualification_schedule": {
+            "task_id": task_id,
+            "world_split": "development_and_qualification",
+            "world_seed": contract.get("qualification_world_seed"),
+            "prior_arms": list(FORMAL_ARMS),
+            "campaign_config_path": campaign_binding.get("path"),
+            "campaign_config_sha256": campaign_binding.get("sha256"),
+            "provider_process_attempts_initial": 3,
+            "provider_process_attempts_hard_cap": 6,
+        },
+        "user_authorization": {
+            "authorized_by": "user",
+            "approved_at": approved_at,
+            "provider_contract_confirmed": True,
+            "credential_rotation_confirmed": True,
+            "currency": "USD",
+            "currency_ceiling_usd": currency_ceiling_usd,
+            "scope_method_qualification_contract_sha256": manifest.get(
+                "method_qualification_contract_sha256"
+            ),
+            "credentials_present": False,
+        },
+    }
+    authorization["authorization_sha256"] = qualification_execution_authorization_sha256(
+        authorization
+    )
+    return authorization
+
+
+def validate_qualification_execution_authorization(
+    authorization: Mapping[str, Any],
+    manifest: Mapping[str, Any],
+) -> list[str]:
+    """Validate the explicit pre-call user authorization for the exact qualification triplet."""
+
+    errors: list[str] = []
+    if (
+        authorization.get("schema_version")
+        != METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION
+    ):
+        errors.append("unexpected method-qualification execution authorization schema")
+    if authorization.get(
+        "authorization_sha256"
+    ) != qualification_execution_authorization_sha256(authorization):
+        errors.append("method-qualification execution authorization self-hash mismatch")
+    if (
+        authorization.get("status") != "authorized"
+        or authorization.get("provider_execution_allowed") is not True
+        or authorization.get("formal_execution_authorized") is not False
+        or authorization.get("formal_result") is not False
+        or authorization.get("formal_participant_outcome_count_before_authorization") != 0
+    ):
+        errors.append("method-qualification execution is not outcome-blind authorized")
+    if authorization.get("formal_preflight_sha256") != manifest.get("preflight_sha256"):
+        errors.append("method-qualification execution binds a different formal preflight")
+    expected_bindings = {
+        "provider_contract_sha256": canonical_json_sha256(manifest.get("provider_contract")),
+        "participant_execution_contract_sha256": manifest.get(
+            "participant_execution_contract_sha256"
+        ),
+        "method_qualification_contract_sha256": manifest.get(
+            "method_qualification_contract_sha256"
+        ),
+    }
+    for field, expected in expected_bindings.items():
+        if authorization.get(field) != expected:
+            errors.append(f"method-qualification execution has a mismatched {field}")
+    contract = manifest.get("method_qualification_contract")
+    contract = contract if isinstance(contract, Mapping) else {}
+    task_binding = _task_binding(manifest, str(contract.get("qualification_task_id", "")))
+    campaign_binding = (
+        task_binding.get("campaign_config") if isinstance(task_binding, Mapping) else None
+    )
+    campaign_binding = campaign_binding if isinstance(campaign_binding, Mapping) else {}
+    schedule = authorization.get("qualification_schedule")
+    schedule = schedule if isinstance(schedule, Mapping) else {}
+    if schedule != {
+        "task_id": contract.get("qualification_task_id"),
+        "world_split": "development_and_qualification",
+        "world_seed": contract.get("qualification_world_seed"),
+        "prior_arms": list(FORMAL_ARMS),
+        "campaign_config_path": campaign_binding.get("path"),
+        "campaign_config_sha256": campaign_binding.get("sha256"),
+        "provider_process_attempts_initial": 3,
+        "provider_process_attempts_hard_cap": 6,
+    }:
+        errors.append("method-qualification execution schedule is not the frozen triplet")
+    user = authorization.get("user_authorization")
+    user = user if isinstance(user, Mapping) else {}
+    ceiling = user.get("currency_ceiling_usd")
+    if (
+        user.get("authorized_by") != "user"
+        or not isinstance(user.get("approved_at"), str)
+        or not user.get("approved_at")
+        or user.get("provider_contract_confirmed") is not True
+        or user.get("credential_rotation_confirmed") is not True
+        or user.get("currency") != "USD"
+        or not _is_finite_number(ceiling, minimum=0.000000001)
+        or user.get("scope_method_qualification_contract_sha256")
+        != manifest.get("method_qualification_contract_sha256")
+        or user.get("credentials_present") is not False
+    ):
+        errors.append("method-qualification execution lacks valid user/provider/currency approval")
+    return errors
+
+
 def validate_method_qualification_report(
     root: Path,
     report: Mapping[str, Any],
@@ -89,7 +242,6 @@ def validate_method_qualification_report(
 ) -> list[str]:
     """Validate the scientific-process contents of a three-arm qualification report."""
 
-    del root  # File provenance is bound by the manifest and authorization receipt.
     errors: list[str] = []
     contract = manifest.get("method_qualification_contract")
     if contract != EXPECTED_METHOD_QUALIFICATION_CONTRACT:
@@ -101,6 +253,46 @@ def validate_method_qualification_report(
         errors.append("method qualification report self-hash mismatch")
     if report.get("formal_result") is not False:
         errors.append("method qualification report is mislabeled as a formal result")
+    if report.get("qualification_execution_authorized") is not True:
+        errors.append("method qualification report lacks pre-execution user authorization")
+    authorization_binding = report.get("qualification_execution_authorization_binding")
+    if not isinstance(authorization_binding, Mapping):
+        errors.append("method qualification report lacks its execution-authorization binding")
+    else:
+        relative = authorization_binding.get("path")
+        digest = authorization_binding.get("sha256")
+        embedded = authorization_binding.get("authorization_sha256")
+        if not isinstance(relative, str) or not isinstance(digest, str):
+            errors.append("method qualification execution-authorization binding is incomplete")
+        else:
+            root = root.resolve()
+            authorization_path = (root / relative).resolve()
+            try:
+                authorization_path.relative_to(root)
+            except ValueError:
+                errors.append("method qualification execution authorization escapes the repository")
+            else:
+                if (
+                    not authorization_path.is_file()
+                    or file_sha256(authorization_path) != digest
+                ):
+                    errors.append(
+                        "method qualification execution authorization is missing or stale"
+                    )
+                else:
+                    loaded = json.loads(authorization_path.read_text(encoding="utf-8"))
+                    if not isinstance(loaded, dict):
+                        errors.append(
+                            "method qualification execution authorization is not an object"
+                        )
+                    else:
+                        if loaded.get("authorization_sha256") != embedded:
+                            errors.append(
+                                "method qualification embedded execution authorization is stale"
+                            )
+                        errors.extend(
+                            validate_qualification_execution_authorization(loaded, manifest)
+                        )
     if report.get("world_seed") != contract["qualification_world_seed"]:
         errors.append("method qualification report uses the wrong development world")
     if (
@@ -363,6 +555,17 @@ def build_method_qualification_readiness(
             "prior_arms": list(FORMAL_ARMS),
             "campaign_config": dict(campaign_binding),
             "runner": "scripts/run_work_ii_campaign_pilot.py",
+            "required_execution_flags": [
+                "--qualification-execution",
+                "--qualification-authorization",
+            ],
+            "authorization_builder": (
+                "scripts/authorize_work_ii_method_qualification.py"
+            ),
+            "authorization_schema": METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION,
+            "report_schema": METHOD_QUALIFICATION_REPORT_VERSION,
+            "receipt_builder": "scripts/build_work_ii_method_qualification_receipt.py",
+            "receipt_schema": METHOD_QUALIFICATION_RECEIPT_VERSION,
             "output_scope": "runs/development",
             "triplet_failure_semantics": contract.get("triplet_failure_semantics"),
         },
@@ -437,6 +640,130 @@ def validate_method_qualification_readiness(report: Mapping[str, Any]) -> list[s
     return errors
 
 
+def build_method_qualification_receipt(
+    root: Path,
+    report_path: Path,
+    manifest: Mapping[str, Any],
+    *,
+    observed_cost_usd: float,
+    pricing_source: str,
+    pricing_observed_at: str,
+) -> dict[str, Any]:
+    """Build the formal authorization receipt from one validated three-arm report."""
+
+    root = root.resolve()
+    report_path = report_path.resolve()
+    try:
+        relative_report = report_path.relative_to(root).as_posix()
+    except ValueError as error:
+        raise ValueError("qualification report must be inside the repository") from error
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    if not isinstance(report, dict):
+        raise ValueError("qualification report must contain an object")
+    report_errors = validate_method_qualification_report(root, report, manifest)
+    if report_errors:
+        raise ValueError("invalid method qualification report: " + "; ".join(report_errors))
+    authorization_binding = report["qualification_execution_authorization_binding"]
+    authorization_path = root / str(authorization_binding["path"])
+    authorization = json.loads(authorization_path.read_text(encoding="utf-8"))
+    if not isinstance(authorization, dict):
+        raise ValueError("qualification execution authorization must contain an object")
+    authorization_errors = validate_qualification_execution_authorization(
+        authorization, manifest
+    )
+    if authorization_errors:
+        raise ValueError(
+            "invalid qualification execution authorization: "
+            + "; ".join(authorization_errors)
+        )
+    user = authorization["user_authorization"]
+    ceiling = float(user["currency_ceiling_usd"])
+    if (
+        not _is_finite_number(observed_cost_usd)
+        or float(observed_cost_usd) > ceiling
+        or not pricing_source
+        or not pricing_observed_at
+    ):
+        raise ValueError("qualification cost accounting is incomplete or exceeds approval")
+    contract = EXPECTED_METHOD_QUALIFICATION_CONTRACT
+    task_binding = _task_binding(manifest, str(contract["qualification_task_id"]))
+    campaign_binding = (
+        task_binding.get("campaign_config") if isinstance(task_binding, Mapping) else None
+    )
+    if not isinstance(campaign_binding, Mapping):
+        raise ValueError("formal manifest lacks the qualification campaign binding")
+    receipt: dict[str, Any] = {
+        "schema_version": METHOD_QUALIFICATION_RECEIPT_VERSION,
+        "status": "passed",
+        "formal_execution_authorized": True,
+        "formal_preflight_sha256": manifest.get("preflight_sha256"),
+        "provider_contract_sha256": canonical_json_sha256(manifest.get("provider_contract")),
+        "provider_attempt_contract_sha256": canonical_json_sha256(
+            manifest.get("provider_attempt_contract")
+        ),
+        "participant_execution_contract_sha256": manifest.get(
+            "participant_execution_contract_sha256"
+        ),
+        "method_qualification_contract_sha256": manifest.get(
+            "method_qualification_contract_sha256"
+        ),
+        "blind_evaluator_contract_sha256": canonical_json_sha256(
+            manifest.get("blind_evaluator_contract")
+        ),
+        "held_out_evaluator_contract_sha256": canonical_json_sha256(
+            manifest.get("held_out_evaluator_contract")
+        ),
+        "qualification_execution_authorization_sha256": authorization.get(
+            "authorization_sha256"
+        ),
+        "qualification_split": "development_seed_0",
+        "qualification_task_id": contract["qualification_task_id"],
+        "qualification_world_seed": contract["qualification_world_seed"],
+        "qualification_campaign_config_sha256": campaign_binding.get("sha256"),
+        "qualified_prior_arms": list(FORMAL_ARMS),
+        "qualified_cell_count": 3,
+        "formal_participant_outcome_count_before_authorization": 0,
+        "approved_provider_attempt_hard_cap": manifest.get("expected_counts", {}).get(
+            "provider_attempts_hard_cap"
+        ),
+        "qualification_cost_accounting": {
+            "currency": "USD",
+            "accounting_complete": True,
+            "observed_cost_usd": float(observed_cost_usd),
+            "approved_ceiling_usd": ceiling,
+            "approved_by": "user",
+            "approved_at": user["approved_at"],
+            "pricing_source": pricing_source,
+            "pricing_observed_at": pricing_observed_at,
+            "scope_method_qualification_contract_sha256": manifest.get(
+                "method_qualification_contract_sha256"
+            ),
+        },
+        "approved_currency_ceiling_usd": ceiling,
+        "currency_approval": {
+            "approved_by": "user",
+            "approved_at": user["approved_at"],
+            "approved_currency_ceiling_usd": ceiling,
+            "scope_preflight_sha256": manifest.get("preflight_sha256"),
+        },
+        "qualification_report_binding": {
+            "path": relative_report,
+            "sha256": file_sha256(report_path),
+            "report_sha256": report.get("report_sha256"),
+        },
+    }
+    receipt["receipt_sha256"] = qualification_receipt_sha256(receipt)
+    errors = validate_method_qualification_receipt(
+        root,
+        receipt,
+        manifest,
+        currency_ceiling_usd=ceiling,
+    )
+    if errors:
+        raise ValueError("built method qualification receipt is invalid: " + "; ".join(errors))
+    return receipt
+
+
 def validate_method_qualification_receipt(
     root: Path,
     receipt: Mapping[str, Any],
@@ -505,6 +832,10 @@ def validate_method_qualification_receipt(
     qualification_cost = qualification_cost if isinstance(qualification_cost, Mapping) else {}
     observed_cost = qualification_cost.get("observed_cost_usd")
     qualification_ceiling = qualification_cost.get("approved_ceiling_usd")
+    observed_cost_value = _finite_float(observed_cost)
+    qualification_ceiling_value = _finite_float(
+        qualification_ceiling, minimum=0.000000001
+    )
     if (
         qualification_cost.get("currency") != "USD"
         or qualification_cost.get("accounting_complete") is not True
@@ -515,19 +846,27 @@ def validate_method_qualification_receipt(
         or not qualification_cost.get("pricing_source")
         or not isinstance(qualification_cost.get("pricing_observed_at"), str)
         or not qualification_cost.get("pricing_observed_at")
-        or not _is_finite_number(observed_cost)
-        or not _is_finite_number(qualification_ceiling, minimum=0.000000001)
-        or float(observed_cost) > float(qualification_ceiling)
+        or observed_cost_value is None
+        or qualification_ceiling_value is None
+        or (
+            observed_cost_value is not None
+            and qualification_ceiling_value is not None
+            and observed_cost_value > qualification_ceiling_value
+        )
         or qualification_cost.get("scope_method_qualification_contract_sha256")
         != manifest.get("method_qualification_contract_sha256")
     ):
         errors.append("method qualification receipt has invalid qualification cost accounting")
 
     approved = receipt.get("approved_currency_ceiling_usd")
-    if not _is_finite_number(approved, minimum=0.000000001) or float(approved) != float(
-        currency_ceiling_usd
-    ):
+    approved_value = _finite_float(approved, minimum=0.000000001)
+    if approved_value is None or approved_value != float(currency_ceiling_usd):
         errors.append("method qualification receipt has a mismatched currency ceiling")
+    if approved_value is not None and (
+        qualification_ceiling_value is None
+        or qualification_ceiling_value != approved_value
+    ):
+        errors.append("qualification cost ceiling differs from the user-approved ceiling")
     approval = receipt.get("currency_approval")
     if not isinstance(approval, Mapping):
         errors.append("method qualification receipt lacks user currency approval")
@@ -566,20 +905,38 @@ def validate_method_qualification_receipt(
                     else:
                         if loaded.get("report_sha256") != embedded_digest:
                             errors.append("method qualification embedded report hash is stale")
+                        authorization_binding = loaded.get(
+                            "qualification_execution_authorization_binding"
+                        )
+                        authorization_binding = (
+                            authorization_binding
+                            if isinstance(authorization_binding, Mapping)
+                            else {}
+                        )
+                        if receipt.get(
+                            "qualification_execution_authorization_sha256"
+                        ) != authorization_binding.get("authorization_sha256"):
+                            errors.append(
+                                "method qualification receipt does not bind pre-call authorization"
+                            )
                         errors.extend(validate_method_qualification_report(root, loaded, manifest))
     return errors
 
 
 __all__ = [
+    "METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION",
     "METHOD_QUALIFICATION_READINESS_VERSION",
     "METHOD_QUALIFICATION_RECEIPT_VERSION",
     "METHOD_QUALIFICATION_REPORT_VERSION",
     "REQUIRED_CELL_QUALIFICATION_CHECKS",
     "build_method_qualification_readiness",
+    "build_qualification_execution_authorization",
     "method_qualification_readiness_sha256",
     "method_qualification_report_sha256",
+    "qualification_execution_authorization_sha256",
     "qualification_receipt_sha256",
     "validate_method_qualification_readiness",
     "validate_method_qualification_receipt",
     "validate_method_qualification_report",
+    "validate_qualification_execution_authorization",
 ]

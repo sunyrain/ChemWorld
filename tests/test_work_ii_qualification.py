@@ -10,10 +10,14 @@ from chemworld.eval.work_ii_qualification import (
     METHOD_QUALIFICATION_REPORT_VERSION,
     REQUIRED_CELL_QUALIFICATION_CHECKS,
     build_method_qualification_readiness,
+    build_method_qualification_receipt,
+    build_qualification_execution_authorization,
     method_qualification_report_sha256,
     qualification_receipt_sha256,
     validate_method_qualification_readiness,
     validate_method_qualification_receipt,
+    validate_method_qualification_report,
+    validate_qualification_execution_authorization,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,7 +25,10 @@ DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
 
 
-def _qualification_report(manifest: dict[str, object]) -> dict[str, object]:
+def _qualification_report(
+    manifest: dict[str, object],
+    authorization_path: Path | None = None,
+) -> dict[str, object]:
     provider = manifest["provider_contract"]
     assert isinstance(provider, dict)
     recommendation = {
@@ -103,6 +110,18 @@ def _qualification_report(manifest: dict[str, object]) -> dict[str, object]:
         "schema_version": METHOD_QUALIFICATION_REPORT_VERSION,
         "pilot_id": "work-ii-electrochemical-prior-campaign",
         "formal_result": False,
+        "qualification_execution_authorized": authorization_path is not None,
+        "qualification_execution_authorization_binding": (
+            {
+                "path": authorization_path.name,
+                "sha256": file_sha256(authorization_path),
+                "authorization_sha256": json.loads(
+                    authorization_path.read_text(encoding="utf-8")
+                )["authorization_sha256"],
+            }
+            if authorization_path is not None
+            else None
+        ),
         "config_sha256": "a" * 64,
         "config_file_sha256": config_file_sha256,
         "world_seed": 0,
@@ -116,7 +135,14 @@ def _qualification_report(manifest: dict[str, object]) -> dict[str, object]:
 
 def _receipt(tmp_path: Path) -> tuple[dict[str, object], dict[str, object]]:
     manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
-    report = _qualification_report(manifest)
+    authorization = build_qualification_execution_authorization(
+        manifest,
+        currency_ceiling_usd=50.0,
+        approved_at="2026-08-10T00:00:00+08:00",
+    )
+    authorization_path = tmp_path / "qualification-authorization.json"
+    authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
+    report = _qualification_report(manifest, authorization_path)
     report_path = tmp_path / "qualification-report.json"
     report_path.write_text(json.dumps(report), encoding="utf-8")
     task_binding = manifest["task_bindings"][0]
@@ -137,6 +163,9 @@ def _receipt(tmp_path: Path) -> tuple[dict[str, object], dict[str, object]]:
         "held_out_evaluator_contract_sha256": canonical_json_sha256(
             manifest["held_out_evaluator_contract"]
         ),
+        "qualification_execution_authorization_sha256": report[
+            "qualification_execution_authorization_binding"
+        ]["authorization_sha256"],
         "qualification_split": "development_seed_0",
         "qualification_task_id": "electrochemical-conversion",
         "qualification_world_seed": 0,
@@ -151,7 +180,7 @@ def _receipt(tmp_path: Path) -> tuple[dict[str, object], dict[str, object]]:
             "currency": "USD",
             "accounting_complete": True,
             "observed_cost_usd": 0.2,
-            "approved_ceiling_usd": 0.5,
+            "approved_ceiling_usd": 50.0,
             "approved_by": "user",
             "approved_at": "2026-08-10T00:00:00+08:00",
             "pricing_source": "provider pricing catalog",
@@ -175,6 +204,57 @@ def _receipt(tmp_path: Path) -> tuple[dict[str, object], dict[str, object]]:
     }
     receipt["receipt_sha256"] = qualification_receipt_sha256(receipt)
     return receipt, manifest
+
+
+def test_qualification_execution_authorization_is_explicit_and_credential_free() -> None:
+    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    authorization = build_qualification_execution_authorization(
+        manifest,
+        currency_ceiling_usd=50.0,
+        approved_at="2026-08-10T00:00:00+08:00",
+    )
+    assert validate_qualification_execution_authorization(authorization, manifest) == []
+    assert authorization["provider_execution_allowed"] is True
+    assert authorization["formal_execution_authorized"] is False
+    assert authorization["user_authorization"]["credentials_present"] is False
+    assert "api_key" not in json.dumps(authorization).lower()
+
+
+def test_method_qualification_report_without_precall_authorization_is_rejected(
+    tmp_path: Path,
+) -> None:
+    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    report = _qualification_report(manifest)
+    errors = validate_method_qualification_report(tmp_path, report, manifest)
+    assert "method qualification report lacks pre-execution user authorization" in errors
+    assert (
+        "method qualification report lacks its execution-authorization binding" in errors
+    )
+
+
+def test_method_qualification_receipt_builder_round_trips_validated_triplet(
+    tmp_path: Path,
+) -> None:
+    manual_receipt, manifest = _receipt(tmp_path)
+    report_path = tmp_path / "qualification-report.json"
+    built = build_method_qualification_receipt(
+        tmp_path,
+        report_path,
+        manifest,
+        observed_cost_usd=0.2,
+        pricing_source="provider pricing catalog",
+        pricing_observed_at="2026-08-10T00:00:00+08:00",
+    )
+    assert validate_method_qualification_receipt(
+        tmp_path,
+        built,
+        manifest,
+        currency_ceiling_usd=50.0,
+    ) == []
+    assert built["qualification_report_binding"] == manual_receipt[
+        "qualification_report_binding"
+    ]
+    assert built["qualification_execution_authorization_sha256"]
 
 
 def test_method_qualification_receipt_is_semantic_self_hashed_and_cost_bound(

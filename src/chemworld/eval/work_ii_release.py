@@ -378,7 +378,7 @@ def build_prerun_evidence_graph(root: Path) -> dict[str, Any]:
 def _dag_errors(node_ids: set[str], edges: Sequence[Mapping[str, Any]]) -> list[str]:
     errors: list[str] = []
     incoming = dict.fromkeys(node_ids, 0)
-    outgoing = {node_id: [] for node_id in node_ids}
+    outgoing: dict[str, list[str]] = {node_id: [] for node_id in node_ids}
     for edge in edges:
         source = edge.get("from")
         target = edge.get("to")
@@ -506,7 +506,7 @@ def validate_clean_release_receipt(receipt: Mapping[str, Any]) -> list[str]:
     tests = tests if isinstance(tests, Mapping) else {}
     if (
         tests.get("status") != "passed"
-        or tests.get("passed") != 66
+        or tests.get("passed") != 70
         or tests.get("failed") != 0
     ):
         errors.append("Work II clean-release receipt lacks the exact release test result")
@@ -623,7 +623,9 @@ def validate_preregistration_freeze_receipt(
             qualification_binding if isinstance(qualification_binding, Mapping) else {}
         )
         if (
-            qualification_binding.get("file_sha256") != file_sha256(qualification_path)
+            qualification_binding.get("path")
+            != _relative(root, qualification_path)
+            or qualification_binding.get("file_sha256") != file_sha256(qualification_path)
             or qualification_binding.get("receipt_sha256")
             != qualification_receipt_sha256(qualification_receipt)
         ):
@@ -694,10 +696,97 @@ def validate_preregistration_freeze_receipt(
     return errors
 
 
+def build_preregistration_freeze_receipt(
+    root: Path,
+    manifest: Mapping[str, Any],
+    qualification_receipt_path: Path,
+    *,
+    currency_ceiling_usd: float,
+    qualified_expected_eta_seconds: float,
+    authorized_at: str,
+    route_compliance: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Build the final receipt after every external W2-08/W2-10/W2-11 condition exists."""
+
+    root = root.resolve()
+    qualification_path = qualification_receipt_path.resolve()
+    route_path = root / "configs/benchmark/work_ii_submission_route_decision_v0.1.json"
+    readiness_path = (
+        root
+        / "workstreams/flagship_tasks/reports/"
+        "work-ii-preregistration-readiness-v0.1.json"
+    )
+    clean_path = (
+        root
+        / "workstreams/flagship_tasks/reports/"
+        "work-ii-clean-release-receipt-v0.1.json"
+    )
+    route = _load_object(route_path)
+    readiness = _load_object(readiness_path)
+    clean = _load_object(clean_path)
+    qualification = _load_object(qualification_path)
+    receipt: dict[str, Any] = {
+        "schema_version": PREREGISTRATION_FREEZE_RECEIPT_VERSION,
+        "status": "passed_final_freeze",
+        "formal_result": False,
+        "formal_participant_outcome_count": 0,
+        "formal_execution_authorized": True,
+        "selected_submission_route": route.get("selected_option"),
+        "bindings": {
+            "formal_preflight_sha256": manifest.get("preflight_sha256"),
+            "route_decision_sha256": route.get("decision_sha256"),
+            "preregistration_readiness_sha256": readiness.get("readiness_sha256"),
+            "preregistration_readiness_file_sha256": file_sha256(readiness_path),
+            "clean_release": {
+                "file_sha256": file_sha256(clean_path),
+                "receipt_sha256": clean.get("receipt_sha256"),
+                "tested_commit": clean.get("tested_commit"),
+                "graph_sha256": clean.get("evidence_graph", {}).get("graph_sha256"),
+            },
+            "method_qualification": {
+                "path": _relative(root, qualification_path),
+                "file_sha256": file_sha256(qualification_path),
+                "receipt_sha256": qualification_receipt_sha256(qualification),
+            },
+        },
+        "user_authorization": {
+            "authorized_by": "user",
+            "authorized_at": authorized_at,
+            "credential_rotation_confirmed": True,
+            "execution_command_approved": True,
+            "budget_approved": True,
+            "failure_escalation_approved": True,
+            "currency_ceiling_usd": float(currency_ceiling_usd),
+            "qualified_expected_eta_seconds": float(qualified_expected_eta_seconds),
+            "provider_contract": manifest.get("provider_contract"),
+        },
+        "failure_escalation_contract": {
+            "missing_infrastructure_only_resume": True,
+            "persisted_scientific_trajectory_never_replaced": True,
+            "halt_on_provider_attempt_cap": True,
+            "result_direction_early_stopping_forbidden": True,
+        },
+        "route_compliance": dict(route_compliance),
+    }
+    receipt["receipt_sha256"] = preregistration_freeze_receipt_sha256(receipt)
+    errors = validate_preregistration_freeze_receipt(
+        root,
+        receipt,
+        manifest,
+        qualification,
+        qualification_path,
+        currency_ceiling_usd=float(currency_ceiling_usd),
+    )
+    if errors:
+        raise ValueError("built preregistration freeze receipt is invalid: " + "; ".join(errors))
+    return receipt
+
+
 __all__ = [
     "CLEAN_RELEASE_RECEIPT_VERSION",
     "PREREGISTRATION_FREEZE_RECEIPT_VERSION",
     "PRERUN_EVIDENCE_GRAPH_VERSION",
+    "build_preregistration_freeze_receipt",
     "build_prerun_evidence_graph",
     "clean_release_receipt_sha256",
     "preregistration_freeze_receipt_sha256",

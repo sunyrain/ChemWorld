@@ -5,6 +5,7 @@ import json
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
 import scripts.run_work_ii_campaign_pilot as campaign_runner
 import scripts.run_work_ii_five_seed_campaign as five_seed_runner
 from scripts.run_work_ii_campaign_pilot import (
@@ -441,6 +442,30 @@ def test_three_arm_qualification_retains_the_whole_triplet_after_failure(
     assert report["cell_count"] == 3
     assert report["completed_cell_count"] == 2
     assert report["results"][0]["failure"]["type"] == "SyntheticFailure"
+
+
+def test_qualification_execution_requires_precall_user_authorization(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "qualification-output"
+    args = argparse.Namespace(
+        config=ROOT / "configs/benchmark/work_ii_campaign_pilot.json",
+        output=output,
+        progress_file=tmp_path / "progress.jsonl",
+        world_seed=0,
+        qualification_execution=True,
+        qualification_authorization=None,
+        formal_manifest=None,
+        formal_cell_key=None,
+        allow_formal_execution=False,
+        prior_arm=None,
+    )
+    with pytest.raises(
+        RuntimeError,
+        match="qualification execution requires --qualification-authorization",
+    ):
+        campaign_runner.run(args)
+    assert not output.exists()
 
 
 def test_five_seed_runner_uses_os_isolated_three_cell_triplets(

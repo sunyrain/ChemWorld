@@ -222,7 +222,7 @@ def main() -> int:
             raise RuntimeError("could not parse the Work II pytest denominator")
         passed = int(match.group(1))
         skipped = int(match.group(2) or 0)
-        if passed != 66 or skipped != 0:
+        if passed != 70 or skipped != 0:
             raise RuntimeError(
                 f"unexpected Work II pytest result: passed={passed}, skipped={skipped}"
             )

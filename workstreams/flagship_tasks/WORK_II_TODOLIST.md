@@ -748,8 +748,14 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   12 complete experiments、12 checkpoints、84 operation-attempt hard cap；若每臂耗尽一次纯基础设施
   resume，provider-process attempt hard cap 为 6。旧 WellAU 三臂报告因 arm identity 泄露而不合格，
   DeepSeek qualification-v2 因只覆盖 opaque 单臂且 provider/sampling contract 不同而不合格。
-  readiness 内部校验已通过且执行 0 次 provider call；真实三臂资格仍等待 provider 合同、凭据轮换确认和
-  qualification currency ceiling，不能据此授权正式执行。
+  readiness 内部校验已通过且执行 0 次 provider call。真实运行现必须先由
+  `scripts/authorize_work_ii_method_qualification.py` 生成 credential-free、用户确认 provider/凭据轮换/
+  USD 上限的 pre-call authorization；runner 只有带 `--qualification-execution` 与该 authorization 才会把
+  report 标记为可资格验证。普通 development report 即使成功也不能进入资格收据。通过的三臂 report 使用
+  v0.3 schema，并由 `scripts/build_work_ii_method_qualification_receipt.py` 逐项复核 pricing source、observed
+  cost、用户 ceiling、三臂 lifecycle/replay/audit/provider receipts 后生成 v0.3 receipt。三个生成器在缺少
+  用户输入、真实报告或价格证据时均已验证 fail-closed 且不会创建文件。真实三臂资格仍等待 provider 合同、
+  凭据轮换确认和 qualification currency ceiling，不能据此授权正式执行。
 
 ### W2-11 — 冻结 preregistration 与不可变执行包
 
@@ -781,6 +787,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   clean，provider calls 为 0。readiness v0.1 是该验收前的冻结快照，仍如实列出当时 6 个 blocker；当前台账
   已由独立 receipt 消除 clean-release blocker，最终 freeze 还缺 5 项：用户路线选择、current-method 真实
   三臂资格收据、provider/正式货币上限、资格运行校准 ETA，以及执行命令/预算/故障升级的用户签字确认。
+  `scripts/build_work_ii_preregistration_freeze_receipt.py` 已把这 5 项编码为 route-specific、不可伪造的最终
+  receipt 生成门；Nature 路线额外要求 IPA 与 protocol registration reference，常规路线要求冻结 target 与
+  evidence threshold。当前缺失输入下已验证拒绝生成，不会提前授权 formal matrix。
 
 ### W2-12 — 执行 public formal matrix
 
