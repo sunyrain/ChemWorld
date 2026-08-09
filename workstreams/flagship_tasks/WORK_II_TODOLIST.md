@@ -1,6 +1,6 @@
 # Work II TODO — 先验、规律发现、偏差排除与迁移
 
-最后更新：2026-08-08
+最后更新：2026-08-09
 工作边界：第二篇研究在固定世界规律下，无先验、正确先验和错误先验如何影响 agent 的实验发现、错误先验排除、规律总结和 held-out 迁移。它不把“运行中规律变化”作为主要情境，也不重复第一篇的装置可观测性主张。
 
 当前执行冻结：
@@ -835,7 +835,12 @@ outcome channels remain separate so that the analysis can distinguish:
   `reaction-to-crystallization`、`reaction-to-distillation`；每任务三先验臂 × 五 seeds，cell 内四轮
   complete experiments。electrochemical 已完成 15/15 cells，后两任务待真实 pilot 后扩展。
 - [x] crystallization/distillation 的 task-specific belief contract、material-information public binding、
-  144,000 s process-time card、required-stage/repeat allowance 和三臂并发配置已实现。
+  task-pattern process-time card、required-stage/repeat/quench allowance 和三臂并发配置已实现：
+  crystallization 为 146,400 s，distillation 为 202,080 s。
+- [x] crystallization seed-0 首次三臂暴露 implicit-duration reservation 缺陷：`filter_crystals`
+  实际推进 480 s、`quench` 为状态相关耗时，但 campaign preflight 原先预留 0 s。已将隐式操作时间
+  纳入一等资源卡字段，修正结晶过滤时间与蒸馏 `evaporate` 上限，并以环境级回归覆盖；失败区块保留，
+  按协议从 seed 0 整体重跑。
 - [ ] crystallization seed-0 三臂真实 provider pilot 达到终态。
 - [ ] distillation seed-0 三臂真实 provider pilot 达到终态。
 - [ ] crystallization 与 distillation 各 15/15 cells 完成，并形成三任务综合报告。

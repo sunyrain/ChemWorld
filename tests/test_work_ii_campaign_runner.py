@@ -25,6 +25,12 @@ def _config() -> dict[str, object]:
     )
 
 
+def _task_config(name: str) -> dict[str, object]:
+    return json.loads(
+        (ROOT / f"configs/benchmark/{name}").read_text(encoding="utf-8")
+    )
+
+
 def test_public_campaign_card_contains_no_arm_or_seed_identity() -> None:
     serialized = json.dumps(_campaign_card(_config()).to_dict(), sort_keys=True).lower()
     for forbidden in (
@@ -60,6 +66,27 @@ def test_electrochemical_process_time_policy_allows_one_repeat_only() -> None:
         "operation_repeat_limit:electrolyze",
         "process_time_limit",
     )
+
+
+def test_crystallization_process_time_policy_reserves_implicit_stages() -> None:
+    config = _task_config("work_ii_crystallization_campaign.json")
+    card = _campaign_card(config)
+    assert card.process_time_limit_s == 146_400.0
+    assert card.implicit_operation_time_s == {
+        "filter_crystals": 480.0,
+        "quench": 120.0,
+    }
+    assert card.operation_repeat_limits["filter_crystals"] == 4
+    assert card.operation_repeat_limits["quench"] == 4
+
+
+def test_distillation_process_time_policy_includes_evaporation_and_quench() -> None:
+    config = _task_config("work_ii_distillation_campaign.json")
+    card = _campaign_card(config)
+    assert card.process_time_limit_s == 202_080.0
+    assert card.implicit_operation_time_s == {"quench": 120.0}
+    assert card.operation_repeat_limits["evaporate"] == 4
+    assert card.operation_repeat_limits["quench"] == 4
 
 
 def test_aligned_and_misindexed_checkpoint_contracts_are_identical() -> None:
@@ -101,6 +128,7 @@ def test_cell_qualification_is_fail_closed() -> None:
         "output_token_count": 8_000,
     }
     method_resource_limits = {
+        "complete_experiment_limit": 4,
         "input_token_limit": 2_400_000,
         "uncached_input_token_limit": 320_000,
         "output_token_limit": 24_000,
@@ -124,6 +152,7 @@ def test_cell_qualification_is_fail_closed() -> None:
         method_resource_limits=method_resource_limits,
         receipts=receipts,
         process_time_limit_s=72_000.0,
+        required_operation_counts={},
     )
     assert passed["passed"] is True
 
@@ -134,6 +163,7 @@ def test_cell_qualification_is_fail_closed() -> None:
         method_resource_limits=method_resource_limits,
         receipts=receipts,
         process_time_limit_s=72_000.0,
+        required_operation_counts={},
     )
     assert failed_replay["passed"] is False
     assert failed_replay["failed_checks"] == ["exact_replay"]
@@ -147,6 +177,7 @@ def test_cell_qualification_is_fail_closed() -> None:
         method_resource_limits=method_resource_limits,
         receipts=receipts,
         process_time_limit_s=72_000.0,
+        required_operation_counts={},
     )
     assert failed_resource["passed"] is False
     assert failed_resource["failed_checks"] == ["no_resource_rejection"]
@@ -160,6 +191,7 @@ def test_cell_qualification_is_fail_closed() -> None:
         method_resource_limits=method_resource_limits,
         receipts=receipts,
         process_time_limit_s=72_000.0,
+        required_operation_counts={},
     )
     assert failed_usage["passed"] is False
     assert failed_usage["failed_checks"] == ["provider_usage_reconciled"]

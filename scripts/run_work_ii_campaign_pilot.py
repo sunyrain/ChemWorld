@@ -117,6 +117,9 @@ def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
         nonfinal_instrument_use_limit=int(campaign["nonfinal_instrument_use_limit"]),
         stock_limits=dict(campaign["stock_limits"]),
         process_time_limit_s=float(campaign["process_time_limit_s"]),
+        implicit_operation_time_s=dict(
+            campaign.get("implicit_operation_time_s", {})
+        ),
         operation_repeat_limits=dict(campaign["operation_repeat_limits"]),
         metadata={
             "pilot_id": config["pilot_id"],

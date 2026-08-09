@@ -63,6 +63,43 @@ def test_generous_electrochemical_card_is_frozen_and_roundtrips() -> None:
         card.metadata["task_id"] = "changed"  # type: ignore[index]
 
 
+def test_implicit_operation_time_is_reserved_debited_and_roundtrips() -> None:
+    card = _small_card(
+        process_time_limit_s=600.0,
+        implicit_operation_time_s={"filter_crystals": 480.0},
+        operation_repeat_limits={"filter_crystals": 1},
+    )
+    restored = CampaignResourceCard.from_dict(card.to_dict())
+    assert restored == card
+    assert restored.implicit_operation_time_s == {"filter_crystals": 480.0}
+    with pytest.raises(TypeError):
+        restored.implicit_operation_time_s["filter_crystals"] = 1.0  # type: ignore[index]
+
+    ledger = CampaignResourceLedger(restored)
+    action = {"operation": "filter_crystals"}
+    preflight = ledger.preflight("filter-1", action)
+    assert preflight.allowed is True
+    assert preflight.proposed_delta.process_time_s == 480.0
+    delta = ledger.record_outcome(
+        "filter-1",
+        action,
+        _committed(
+            campaign_resource_report_delta={"process_time_s": 480.0}
+        ),
+    )
+    assert delta.process_time_s == 480.0
+    assert ledger.snapshot()["state"]["remaining"]["process_time_s"] == 120.0
+    assert ledger.preview_rejection_reasons(action) == (
+        "operation_repeat_limit:filter_crystals",
+        "process_time_limit",
+    )
+
+
+def test_implicit_operation_time_requires_a_process_time_limit() -> None:
+    with pytest.raises(ValueError, match="requires process_time_limit_s"):
+        _small_card(implicit_operation_time_s={"quench": 120.0})
+
+
 def test_card_hash_detects_mutation_and_limits_are_validated() -> None:
     card = _small_card()
     tampered = card.to_dict()

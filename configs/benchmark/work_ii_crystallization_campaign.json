@@ -63,14 +63,18 @@
     "final_assay_limit": 4,
     "nonfinal_instrument_use_limit": 8,
     "stock_limits": {"reagent_mol": 0.08, "solvent_L": 0.16, "catalyst_mol": 0.008, "seed_g": 0.2},
-    "process_time_limit_s": 144000.0,
-    "operation_repeat_limits": {"heat": 5, "cool_crystallize": 5, "seed_crystals": 4, "filter_crystals": 4},
+    "process_time_limit_s": 146400.0,
+    "implicit_operation_time_s": {"filter_crystals": 480.0, "quench": 120.0},
+    "operation_repeat_limits": {"heat": 5, "cool_crystallize": 5, "seed_crystals": 4, "filter_crystals": 4, "quench": 4},
     "process_time_policy": {
       "pattern_id": "crystallization-k4-one-repeat-per-required-stage",
-      "required_stage_max_s": 115200.0,
+      "timed_stage_max_s": 115200.0,
+      "required_stage_max_s": 117120.0,
       "repeat_allowance_s": 28800.0,
-      "implicit_stage_reserve_s": 0.0,
-      "formula": "4 x (heat 14400 s + cool_crystallize 14400 s) + one extra heat and one extra crystallization stage"
+      "implicit_stage_reserve_s": 1920.0,
+      "quench_transfer_allowance_s": 480.0,
+      "implicit_operation_time_s": {"filter_crystals": 480.0, "quench": 120.0},
+      "formula": "4 x (heat 14400 s + cool_crystallize 14400 s + filter_crystals 480 s) + one extra heat and one extra crystallization stage + up to four quench operations at 120 s each"
     },
     "checkpoint_complete_experiments": [0, 1, 2, 4]
   },

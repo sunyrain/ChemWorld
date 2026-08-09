@@ -66,7 +66,7 @@ def test_process_time_limits_are_derived_per_pattern() -> None:
         "phase-observation": 0.0,
         "reaction-thermal-observation": 3600.0,
         "phase-separation-observation": 1860.0,
-        "reaction-crystallization-observation": 11100.0,
+        "reaction-crystallization-observation": 11520.0,
         "reaction-distillation-observation": 10440.0,
         "reaction-continuous-flow-observation": 7200.0,
         "reaction-electrochemistry-observation": 5400.0,

@@ -139,6 +139,7 @@ class CampaignResourceCard:
     stock_limits: Mapping[str, float]
     per_instrument_limits: Mapping[str, int | None] = field(default_factory=dict)
     process_time_limit_s: float | None = None
+    implicit_operation_time_s: Mapping[str, float] = field(default_factory=dict)
     operation_repeat_limits: Mapping[str, int] = field(default_factory=dict)
     metadata: Mapping[str, Any] = field(default_factory=dict)
     schema_version: str = CAMPAIGN_RESOURCE_CARD_VERSION
@@ -188,6 +189,18 @@ class CampaignResourceCard:
             object.__setattr__(self, "process_time_limit_s", process_time_limit)
         object.__setattr__(
             self,
+            "implicit_operation_time_s",
+            _normalized_float_map(
+                self.implicit_operation_time_s,
+                name="implicit_operation_time_s",
+            ),
+        )
+        if self.implicit_operation_time_s and self.process_time_limit_s is None:
+            raise ValueError(
+                "implicit_operation_time_s requires process_time_limit_s"
+            )
+        object.__setattr__(
+            self,
             "operation_repeat_limits",
             _normalized_int_map(
                 self.operation_repeat_limits,
@@ -214,6 +227,10 @@ class CampaignResourceCard:
         }
         if self.process_time_limit_s is not None:
             hard_limits["process_time_s"] = self.process_time_limit_s
+        if self.implicit_operation_time_s:
+            hard_limits["implicit_operation_time_s"] = dict(
+                self.implicit_operation_time_s
+            )
         if self.operation_repeat_limits:
             hard_limits["operation_repeats"] = dict(self.operation_repeat_limits)
         return {
@@ -247,6 +264,9 @@ class CampaignResourceCard:
                 None
                 if hard_limits.get("process_time_s") is None
                 else float(hard_limits["process_time_s"])
+            ),
+            implicit_operation_time_s=dict(
+                hard_limits.get("implicit_operation_time_s", {})
             ),
             operation_repeat_limits=dict(hard_limits.get("operation_repeats", {})),
             metadata=dict(payload.get("metadata", {})),
@@ -686,10 +706,15 @@ class CampaignResourceLedger:
             raise CampaignResourceIntegrityError(
                 "a resource-rejected action cannot have a committed outcome"
             )
-        self._verify_actual_within_reservation(actual, preflight.proposed_delta)
+        operation = str(normalized_action.get("operation", "invalid"))
+        self._verify_actual_within_reservation(
+            actual,
+            preflight.proposed_delta,
+            operation=operation,
+        )
         self._apply_outcome_delta(
             actual,
-            operation=(str(normalized_action.get("operation", "invalid")) if committed else None),
+            operation=(operation if committed else None),
         )
         event["outcome"] = {
             "committed": committed,
@@ -861,7 +886,11 @@ class CampaignResourceLedger:
                 raise CampaignResourceIntegrityError(
                     "uncommitted campaign resource outcome has a physical or report debit"
                 )
-            self._verify_actual_within_reservation(actual, preflight.proposed_delta)
+            self._verify_actual_within_reservation(
+                actual,
+                preflight.proposed_delta,
+                operation=str(action.get("operation", "invalid")),
+            )
             if outcome_view["committed"]:
                 operation = str(action.get("operation", "invalid"))
                 operation_committed_counts[operation] = (
@@ -1103,6 +1132,8 @@ class CampaignResourceLedger:
         self,
         actual: CampaignResourceDelta,
         proposed: CampaignResourceDelta,
+        *,
+        operation: str,
     ) -> None:
         for name in (
             "vessel_starts",
@@ -1128,7 +1159,11 @@ class CampaignResourceLedger:
             self.card.process_time_limit_s is not None
             and actual.process_time_s > proposed.process_time_s + 1.0e-12
         ):
-            raise CampaignResourceIntegrityError("outcome exceeded process-time reservation")
+            raise CampaignResourceIntegrityError(
+                "outcome exceeded process-time reservation: "
+                f"operation={operation}, actual_s={actual.process_time_s}, "
+                f"reserved_s={proposed.process_time_s}"
+            )
 
     def _proposed_delta(
         self,
@@ -1142,9 +1177,16 @@ class CampaignResourceLedger:
         )
         if self.card.process_time_limit_s is None:
             return proposed
+        operation = str(action.get("operation", "invalid"))
+        requested_duration_s = _positive_action_float(action, "duration_s")
+        reserved_time_s = (
+            requested_duration_s
+            if requested_duration_s > 0.0
+            else float(self.card.implicit_operation_time_s.get(operation, 0.0))
+        )
         return replace(
             proposed,
-            process_time_s=_positive_action_float(action, "duration_s"),
+            process_time_s=reserved_time_s,
         )
 
     def _verify_state_within_limits(self) -> None:

@@ -19,9 +19,11 @@ WellAU fallback.
 Measurements: operation attempts and committed operations; lifecycle completion; final metrics;
 belief reliability, suspected misindexed fields, held-out predictions and executable law summary;
 campaign stock, process-time, sample, cost and risk ledgers; provider usage, MCP receipts, failures
-and exact replay. Crystallization and distillation use task-specific process-time caps of 144,000 s:
-115,200 s for four maximum-duration required heat-plus-separation pairs and 28,800 s for one
-allowed repeat of each required timed stage.
+and exact replay. Crystallization uses a 146,400 s task-specific cap: 115,200 s for four
+maximum-duration heat-plus-crystallization pairs, 1,920 s for four committed filters, 28,800 s for
+one allowed repeat of each required timed stage and 480 s for at most one quench per experiment.
+Distillation uses 202,080 s: 172,800 s for four maximum-duration heat, evaporation and distillation
+triples, the same 28,800 s heat/distillation repeat allowance and a 480 s quench allowance.
 
 Pass/failure: a task block passes only if all 15 cells finish four experiments and four checkpoints,
 retain exactly one session identity, reconcile the task-pattern resource card, remain within token
@@ -33,3 +35,10 @@ Expected outputs: ignored per-cell trajectories and summaries under `runs/develo
 machine-readable matrix report per task with exact denominators and failures, an external heartbeat
 JSONL, and one concise repository report combining all three tasks. Credentials, raw provider
 payloads and private reasoning are never retained.
+
+Platform repair record (2026-08-09): the first crystallization seed-0 triplet exposed that campaign preflight
+reserved zero seconds for implicit-duration `filter_crystals` and `quench` operations even though
+the runtime advanced the physical clock. The failed triplet is retained outside the scientific
+denominator. The resource card now carries explicit per-operation implicit-time reservations; the
+crystallization and distillation envelopes were recomputed before restarting the affected block
+from seed 0.

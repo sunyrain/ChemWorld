@@ -33,9 +33,10 @@
     "final_assay_limit": 4,
     "nonfinal_instrument_use_limit": 8,
     "stock_limits": {"reagent_mol": 0.08, "solvent_L": 0.16, "catalyst_mol": 0.008},
-    "process_time_limit_s": 144000.0,
-    "operation_repeat_limits": {"heat": 5, "distill": 5, "evaporate": 4, "collect_fraction": 8},
-    "process_time_policy": {"pattern_id": "distillation-k4-one-repeat-per-required-stage", "required_stage_max_s": 115200.0, "repeat_allowance_s": 28800.0, "implicit_stage_reserve_s": 0.0, "formula": "4 x (heat 14400 s + distill 14400 s) + one extra heat and one extra distillation stage"},
+    "process_time_limit_s": 202080.0,
+    "implicit_operation_time_s": {"quench": 120.0},
+    "operation_repeat_limits": {"heat": 5, "distill": 5, "evaporate": 4, "collect_fraction": 8, "quench": 4},
+    "process_time_policy": {"pattern_id": "distillation-k4-one-repeat-per-required-stage", "timed_stage_max_s": 172800.0, "required_stage_max_s": 172800.0, "repeat_allowance_s": 28800.0, "implicit_stage_reserve_s": 0.0, "quench_transfer_allowance_s": 480.0, "implicit_operation_time_s": {"quench": 120.0}, "formula": "4 x (heat 14400 s + evaporate 14400 s + distill 14400 s) + one extra heat and one extra distillation stage + up to four quench operations at 120 s each"},
     "checkpoint_complete_experiments": [0, 1, 2, 4]
   },
   "qualification": {"required_operation_counts": {}},

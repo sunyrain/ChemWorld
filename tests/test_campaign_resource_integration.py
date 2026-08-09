@@ -180,6 +180,80 @@ def test_campaign_process_time_and_repeat_limits_are_hard_and_replayable() -> No
     assert CampaignResourceLedger.from_snapshot(ledger.snapshot()).snapshot() == ledger.snapshot()
 
 
+def test_crystallization_implicit_quench_and_filter_time_match_reservations() -> None:
+    card = CampaignResourceCard(
+        card_id="crystallization-implicit-time-test",
+        operation_attempt_limit=12,
+        vessel_start_limit=1,
+        final_assay_limit=1,
+        nonfinal_instrument_use_limit=2,
+        stock_limits={
+            "reagent_mol": 0.04,
+            "solvent_L": 0.08,
+            "catalyst_mol": 0.01,
+            "seed_g": 0.05,
+        },
+        process_time_limit_s=5000.0,
+        implicit_operation_time_s={"filter_crystals": 480.0, "quench": 120.0},
+        operation_repeat_limits={"filter_crystals": 1, "quench": 1},
+    )
+    env = gym.make(
+        "ChemWorld",
+        task_id="reaction-to-crystallization",
+        seed=0,
+        budget_override=12,
+        episode_mode_override="campaign",
+        campaign_resource_card=card,
+    )
+    try:
+        env.reset(seed=0)
+        actions = (
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.00035,
+                "catalyst": 1,
+            },
+            {
+                "operation": "heat",
+                "target_temperature_K": 385.0,
+                "duration_s": 1500.0,
+                "stirring_speed_rpm": 720.0,
+            },
+            {"operation": "quench"},
+            {"operation": "measure", "instrument": "hplc"},
+            {"operation": "seed_crystals", "seed_mass_g": 0.006},
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 278.15,
+                "duration_s": 1800.0,
+            },
+            {"operation": "measure", "instrument": "hplc"},
+            {"operation": "filter_crystals"},
+        )
+        receipts: dict[str, dict[str, Any]] = {}
+        for action in actions:
+            _obs, _reward, _terminated, _truncated, info = env.step(action)
+            assert info["transaction_status"] == "committed"
+            receipts[str(action["operation"])] = info["campaign_resources"][
+                "latest_receipt"
+            ]
+
+        quench = receipts["quench"]
+        assert quench["preflight"]["proposed_delta"]["report_only"][
+            "process_time_s"
+        ] == 120.0
+        assert 0.0 < quench["outcome_delta"]["report_only"]["process_time_s"] <= 120.0
+        filtering = receipts["filter_crystals"]
+        assert filtering["preflight"]["proposed_delta"]["report_only"][
+            "process_time_s"
+        ] == 480.0
+        assert filtering["outcome_delta"]["report_only"]["process_time_s"] == 480.0
+    finally:
+        env.close()
+
+
 def test_resource_ledger_narrows_stock_affordances_and_validation() -> None:
     env = _make_electrochemical_env(_card(stock_limits={"solvent_L": 0.020, "reagent_mol": 0.08}))
     try:
