@@ -29,3 +29,12 @@ Expected outputs: one A3 certificate and structural receipt, one compact A2/full
 structural receipt, one release qualification, one public joint decision, resumable ignored trial
 stores, a current-binding audit, and an updated `configs/current.json`. Raw trial stores remain
 ignored; reader-facing records report exact denominators and all failures without private payloads.
+
+Pre-execution design result (2026-08-09): the first RC28 current-source release qualification ran
+123/123 focused tests and Ruff successfully and passed its source-commit check, but failed before
+any A2/A3 trial because current task contracts changed the diagnostic relation graph content and
+hash. The failed receipt is retained. RC29 therefore supersedes only the current-source bindings:
+the scientific coverage, budgets, thresholds and stopping rules remain RC28-identical. Its
+regenerated diagnostic graph contains three declared relations; sample-size, 25-check semantics and
+full design audits pass with zero failures. A2/A3 remain unstarted until the RC29 preregistration and
+release receipt bind a clean source commit.

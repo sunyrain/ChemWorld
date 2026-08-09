@@ -71,6 +71,41 @@ def test_formal_receipt_counts_match_frozen_job_matrices() -> None:
     assert runner["_expected_a2_receipt_count"](protocol, plan) == 4896
 
 
+def test_release_qualification_source_binding_tracks_selected_candidate() -> None:
+    runner = runpy.run_path(
+        ROOT / "scripts" / "qualify_mechanism_adaptation_release.py",
+        run_name="mechanism_release_qualification",
+    )
+    protocol_path = ROOT / "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json"
+    plan_path = (
+        ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc29.json"
+    )
+    semantics_path = (
+        ROOT
+        / "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc29.json"
+    )
+    plan = load_json_object(plan_path)
+
+    command = runner["_source_binding_command"](
+        "source-commit",
+        protocol_path=protocol_path,
+        plan_path=plan_path,
+        plan=plan,
+        semantics_path=semantics_path,
+    )
+
+    assert runner["_release_candidate"](plan) == "rc29"
+    assert "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json" in command
+    assert "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc29.json" in command
+    assert (
+        "workstreams/flagship_tasks/reports/"
+        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc29.json"
+    ) in command
+    assert (
+        "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc29.json"
+    ) in command
+
+
 def test_formal_paired_contrast_encoding_is_accepted() -> None:
     plan = load_json_object(
         ROOT

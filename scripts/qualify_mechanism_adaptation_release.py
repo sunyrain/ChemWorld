@@ -76,7 +76,33 @@ RUFF_TARGETS = (
 )
 
 
-def _source_binding_command(source_commit: str) -> list[str]:
+def _repository_relative(path: Path) -> str:
+    return path.resolve().relative_to(ROOT).as_posix()
+
+
+def _release_candidate(plan: dict[str, Any]) -> str:
+    return str(plan["plan_id"]).rsplit("-", 1)[-1]
+
+
+def _semantics_audit_path(plan: dict[str, Any], supplied: Path | None) -> Path:
+    if supplied is not None:
+        return supplied
+    return (
+        ROOT
+        / "workstreams/flagship_tasks/reports"
+        / f"confirmatory-task-semantics-audit-{_release_candidate(plan)}.json"
+    )
+
+
+def _source_binding_command(
+    source_commit: str,
+    *,
+    protocol_path: Path,
+    plan_path: Path,
+    plan: dict[str, Any],
+    semantics_path: Path,
+) -> list[str]:
+    release_candidate = _release_candidate(plan)
     return [
         "git",
         "diff",
@@ -85,21 +111,18 @@ def _source_binding_command(source_commit: str) -> list[str]:
         "--",
         "src/chemworld",
         "scripts",
-        "configs/benchmark/mechanism_adaptation_v0.3.0_rc28.json",
-        "configs/benchmark/"
-        "mechanism_adaptation_gate_a_v0.3.0_rc28.json",
-        "configs/benchmark/"
-        "mechanism_adaptation_participant_preregistration_rc28.json",
+        _repository_relative(protocol_path),
+        _repository_relative(plan_path),
+        (
+            "configs/benchmark/"
+            f"mechanism_adaptation_participant_preregistration_{release_candidate}.json"
+        ),
         "configs/methods/llm_v0.4/llm_methods_rc25.json",
         "configs/methods/llm_v0.4/llm_methods.json",
-        "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc28.json",
-        "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-design-audit-freeze-rc28.json",
-        "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-sample-size-audit-v0.3.0-rc28.json",
-        "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc28.json",
+        str(plan["diagnostic_relation_graph"]["report"]),
+        str(plan["design_validity_precondition"]["report"]),
+        str(plan["sample_size_audit"]["report"]),
+        _repository_relative(semantics_path),
         *TARGETED_TESTS,
     ]
 
@@ -264,6 +287,7 @@ def build_qualification(
     plan_path: Path,
     source_commit: str,
     run_tests: bool,
+    semantics_path: Path | None = None,
 ) -> dict[str, Any]:
     protocol = load_protocol_object(protocol_path)
     plan = load_json_object(plan_path)
@@ -274,12 +298,17 @@ def build_qualification(
         ROOT / plan["design_validity_precondition"]["report"]
     )
     sample_size = load_json_object(ROOT / plan["sample_size_audit"]["report"])
-    semantics = load_json_object(
-        ROOT
-        / "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc28.json"
+    resolved_semantics_path = _semantics_audit_path(plan, semantics_path)
+    semantics = load_json_object(resolved_semantics_path)
+    source_binding = _run(
+        _source_binding_command(
+            source_commit,
+            protocol_path=protocol_path,
+            plan_path=plan_path,
+            plan=plan,
+            semantics_path=resolved_semantics_path,
+        )
     )
-    source_binding = _run(_source_binding_command(source_commit))
     static_errors = validate_diagnostic_relation_graph(
         protocol,
         plan,
@@ -330,7 +359,7 @@ def build_qualification(
     )
     payload = {
         "schema_version": "chemworld-mechanism-release-qualification-0.1",
-        "release_candidate": "rc28",
+        "release_candidate": _release_candidate(plan),
         "status": "passed" if qualified else "failed",
         "qualified": qualified,
         "formal_result": False,
@@ -361,6 +390,7 @@ def validate_recorded_qualification(
     protocol_path: Path,
     plan_path: Path,
     expected_source_commit: str | None,
+    semantics_path: Path | None = None,
 ) -> list[str]:
     """Validate immutable receipts without rerunning nondeterministic commands."""
 
@@ -376,8 +406,8 @@ def validate_recorded_qualification(
         "chemworld-mechanism-release-qualification-0.1"
     ):
         errors.append("unexpected release qualification schema")
-    if report.get("release_candidate") != "rc28":
-        errors.append("release candidate is not rc28")
+    if report.get("release_candidate") != _release_candidate(plan):
+        errors.append("release candidate does not match the Gate A plan")
     if report.get("status") != "passed" or report.get("qualified") is not True:
         errors.append("release qualification did not pass")
     for field in (
@@ -400,7 +430,16 @@ def validate_recorded_qualification(
             and expected_source_commit != source_commit
         ):
             errors.append("requested source commit differs from recorded receipt")
-        source_binding = _run(_source_binding_command(source_commit))
+        resolved_semantics_path = _semantics_audit_path(plan, semantics_path)
+        source_binding = _run(
+            _source_binding_command(
+                source_commit,
+                protocol_path=protocol_path,
+                plan_path=plan_path,
+                plan=plan,
+                semantics_path=resolved_semantics_path,
+            )
+        )
         if not source_binding["passed"]:
             errors.append("qualified source paths drifted from source_commit")
         ancestor = _run(
@@ -437,11 +476,7 @@ def validate_recorded_qualification(
     except ValueError as error:
         current_static_errors.append(str(error))
     sample_size = load_json_object(ROOT / plan["sample_size_audit"]["report"])
-    semantics = load_json_object(
-        ROOT
-        / "workstreams/flagship_tasks/reports/"
-        "confirmatory-task-semantics-audit-rc28.json"
-    )
+    semantics = load_json_object(_semantics_audit_path(plan, semantics_path))
     if sample_size.get("pass") is not True:
         current_static_errors.append("current sample-size audit did not pass")
     if semantics.get("pass") is not True:
@@ -456,6 +491,7 @@ def main() -> int:
     parser.add_argument("--plan", type=Path, default=DEFAULT_GATE_A_PLAN_PATH)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--source-commit")
+    parser.add_argument("--semantics-audit", type=Path)
     parser.add_argument("--skip-tests", action="store_true")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
@@ -468,6 +504,7 @@ def main() -> int:
             protocol_path=args.protocol,
             plan_path=args.plan,
             expected_source_commit=args.source_commit,
+            semantics_path=args.semantics_audit,
         )
         if errors:
             raise SystemExit(
@@ -480,6 +517,7 @@ def main() -> int:
             plan_path=args.plan,
             source_commit=source_commit,
             run_tests=not args.skip_tests,
+            semantics_path=args.semantics_audit,
         )
         if args.output.exists():
             raise SystemExit(
@@ -492,7 +530,7 @@ def main() -> int:
                 "status": report["status"],
                 "qualified": report["qualified"],
                 "source_commit": report["source_commit"],
-                "output": str(args.output.relative_to(ROOT)),
+                "output": _repository_relative(args.output),
             },
             indent=2,
             sort_keys=True,

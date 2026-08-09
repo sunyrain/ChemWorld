@@ -1,0 +1,29 @@
+{
+  "schema_version": "chemworld-json-composition-0.1",
+  "extends": "mechanism_adaptation_gate_a_v0.3.0_rc28.json",
+  "base_sha256": "6d986133e2ebaa9b0275610ab1a0742e3ca5fd36458ed0e686225416c54f68ed",
+  "overrides": {
+    "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-08-09-current-source-rc29",
+    "protocol": "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json",
+    "diagnostic_relation_graph": {
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc29.json",
+      "expected_graph_sha256": "2977378938546bf526d400d21ac9e85db461c7601771d4951dc9da849a5d22c2"
+    },
+    "design_validity_precondition": {
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc29.json"
+    },
+    "sample_size_audit": {
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-sample-size-audit-v0.3.0-rc29.json"
+    },
+    "preregistration": {
+      "manifest": "configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc29.json"
+    },
+    "release_qualification": {
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-release-qualification-v0.1-rc29.json"
+    },
+    "online_attainability_certificate": {
+      "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-online-attainability-certificate-v0.9-rc29.json"
+    },
+    "supersession_reason": "RC28 scientific design is retained, but current executable task contracts changed its diagnostic relation graph bindings. RC29 regenerates the graph and all dependent audits before rerunning the unchanged A2/A3 coverage, budgets, thresholds and stopping rules."
+  }
+}
