@@ -172,6 +172,31 @@ def _result_binding(
     }
 
 
+def _unfinalized_trajectory_evidence(path: Path) -> dict[str, Any] | None:
+    """Treat any persisted trajectory bytes as scientific use that forbids replacement."""
+
+    if not path.is_file() or path.stat().st_size == 0:
+        return None
+    nonempty_lines = 0
+    valid_json_lines = 0
+    with path.open("r", encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            if not line.strip():
+                continue
+            nonempty_lines += 1
+            try:
+                json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            valid_json_lines += 1
+    return {
+        "trajectory_byte_count": path.stat().st_size,
+        "nonempty_line_count": nonempty_lines,
+        "valid_json_line_count": valid_json_lines,
+        "malformed_or_partial_line_count": nonempty_lines - valid_json_lines,
+    }
+
+
 def execute_manifest(
     *,
     manifest: Mapping[str, Any],
@@ -240,6 +265,7 @@ def execute_manifest(
         for cell in cells:
             key = str(cell["cell_key_sha256"])
             attempt_id = uuid4().hex
+            store.record_provider_attempt_launch(key, attempt_id=attempt_id)
             attempt_root = output_root / "attempts" / key / attempt_id
             log_path = output_root / "logs" / key / f"{attempt_id}.log"
             log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -267,16 +293,36 @@ def execute_manifest(
             kwargs: dict[str, Any] = {}
             if os.name == "nt":
                 kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-            process = subprocess.Popen(
-                command,
-                cwd=ROOT,
-                stdout=log_handle,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                **kwargs,
-            )
+            try:
+                process = subprocess.Popen(
+                    command,
+                    cwd=ROOT,
+                    stdout=log_handle,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    **kwargs,
+                )
+            except OSError as error:
+                log_handle.write(f"provider process launch failed: {type(error).__name__}\n")
+                log_handle.close()
+                infrastructure_failures += 1
+                store.record_infrastructure_failure(
+                    key,
+                    error,
+                    log_reference=log_path.relative_to(output_root).as_posix(),
+                    log_sha256=file_sha256(log_path),
+                )
+                _emit(
+                    progress_path,
+                    {
+                        "event": "formal_cell_infrastructure_failure",
+                        "cell_id": cell["cell_id"],
+                        "error_type": type(error).__name__,
+                    },
+                )
+                continue
             processes.append(
                 {
                     "cell": cell,
@@ -347,22 +393,60 @@ def execute_manifest(
                     },
                 )
             except (OSError, ValueError, json.JSONDecodeError) as error:
-                infrastructure_failures += 1
                 log_path = state["log_path"]
-                store.record_infrastructure_failure(
-                    key,
-                    error,
-                    log_reference=log_path.relative_to(output_root).as_posix(),
-                    log_sha256=file_sha256(log_path),
+                trajectory_evidence = _unfinalized_trajectory_evidence(
+                    state["attempt_root"] / "trajectory.jsonl"
                 )
-                _emit(
-                    progress_path,
-                    {
-                        "event": "formal_cell_infrastructure_failure",
-                        "cell_id": cell["cell_id"],
-                        "error_type": type(error).__name__,
-                    },
-                )
+                if trajectory_evidence is not None:
+                    partial_summary = {
+                        "completed": False,
+                        "analysis": {
+                            "operation_attempt_count": max(
+                                1, int(trajectory_evidence["nonempty_line_count"])
+                            )
+                        },
+                    }
+                    result = _result_binding(
+                        output_root,
+                        state["attempt_root"],
+                        partial_summary,
+                        return_code=return_code,
+                    )
+                    result["unfinalized_trajectory_evidence"] = trajectory_evidence
+                    result["summary_validation_error_type"] = type(error).__name__
+                    store.write_terminal(
+                        key,
+                        state="right_censored",
+                        reason_code=(
+                            "method_right_censored_unfinalized_child_after_trajectory_evidence"
+                        ),
+                        result=result,
+                    )
+                    _emit(
+                        progress_path,
+                        {
+                            "event": "formal_cell_terminal",
+                            "cell_id": cell["cell_id"],
+                            "state": "right_censored",
+                            "unfinalized_trajectory_evidence": True,
+                        },
+                    )
+                else:
+                    infrastructure_failures += 1
+                    store.record_infrastructure_failure(
+                        key,
+                        error,
+                        log_reference=log_path.relative_to(output_root).as_posix(),
+                        log_sha256=file_sha256(log_path),
+                    )
+                    _emit(
+                        progress_path,
+                        {
+                            "event": "formal_cell_infrastructure_failure",
+                            "cell_id": cell["cell_id"],
+                            "error_type": type(error).__name__,
+                        },
+                    )
         if infrastructure_failures:
             break
     audit = store.audit()

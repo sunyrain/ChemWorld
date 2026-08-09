@@ -214,6 +214,10 @@ class InvalidFormalCellReceiptError(RuntimeError):
     """A formal cell receipt does not satisfy its immutable binding."""
 
 
+class ProviderAttemptLimitError(RuntimeError):
+    """A formal cell exhausted its preregistered provider process launch cap."""
+
+
 class WorkIIFormalCellStore:
     """Write-once terminal receipts plus append-only infrastructure attempts."""
 
@@ -224,6 +228,7 @@ class WorkIIFormalCellStore:
         self.root = Path(root)
         self.receipts = self.root / "terminal_receipts"
         self.infrastructure_attempts = self.root / "infrastructure_attempts"
+        self.provider_attempts = self.root / "provider_attempt_receipts"
         cells = manifest.get("cells", [])
         self.cells = {
             str(cell["cell_key_sha256"]): dict(cell)
@@ -319,6 +324,34 @@ class WorkIIFormalCellStore:
         _write_json_once(target, payload)
         return target
 
+    def record_provider_attempt_launch(
+        self,
+        cell_key_sha256: str,
+        *,
+        attempt_id: str,
+    ) -> Path:
+        cell = self._cell(cell_key_sha256)
+        existing = sorted((self.provider_attempts / cell_key_sha256).glob("*.json"))
+        limit = int(cell["provider_attempt_limit"])
+        if len(existing) >= limit:
+            raise ProviderAttemptLimitError(
+                f"formal cell exhausted provider attempt cap {limit}: {cell['cell_id']}"
+            )
+        payload = {
+            "schema_version": FORMAL_RECEIPT_VERSION,
+            "cell_key_sha256": cell_key_sha256,
+            "cell_id": cell["cell_id"],
+            "attempt_id": attempt_id,
+            "attempt_index": len(existing) + 1,
+            "attempt_limit": limit,
+            "state": "provider_process_launch_authorized",
+            "reason_domain": "method",
+        }
+        payload["attempt_sha256"] = canonical_json_sha256(payload)
+        target = self.provider_attempts / cell_key_sha256 / f"{attempt_id}.json"
+        _write_json_once(target, payload)
+        return target
+
     def pending_cells(self, *, resume: bool) -> list[dict[str, Any]]:
         audit = self.audit()
         if audit["invalid_receipts"] or audit["unexpected_cell_key_sha256"]:
@@ -330,6 +363,18 @@ class WorkIIFormalCellStore:
                 "formal store already contains terminal cells; use missing-only resume"
             )
         completed = set(audit["terminal_cell_key_sha256"])
+        attempt_counts = audit["provider_attempt_counts_by_cell_key_sha256"]
+        exhausted = [
+            cell["cell_id"]
+            for key, cell in self.cells.items()
+            if key not in completed
+            and int(attempt_counts.get(key, 0)) >= int(cell["provider_attempt_limit"])
+        ]
+        if exhausted:
+            raise ProviderAttemptLimitError(
+                "missing formal cells exhausted their provider attempt cap: "
+                + ", ".join(exhausted)
+            )
         return [
             dict(cell)
             for key, cell in self.cells.items()
@@ -356,6 +401,38 @@ class WorkIIFormalCellStore:
                 InvalidFormalCellReceiptError,
             ):
                 invalid.append(path.as_posix())
+        provider_attempt_indices: dict[str, set[int]] = {}
+        for path in sorted(self.provider_attempts.glob("*/*.json")):
+            try:
+                payload = _load_object(path)
+                key = str(payload["cell_key_sha256"])
+                attempt_id = str(payload["attempt_id"])
+                expected_hash = canonical_json_sha256(
+                    {name: value for name, value in payload.items() if name != "attempt_sha256"}
+                )
+                cell = self.cells[key]
+                attempt_index = int(payload.get("attempt_index", -1))
+                observed_indices = provider_attempt_indices.setdefault(key, set())
+                if (
+                    payload.get("schema_version") != FORMAL_RECEIPT_VERSION
+                    or payload.get("state") != "provider_process_launch_authorized"
+                    or payload.get("reason_domain") != "method"
+                    or payload.get("attempt_sha256") != expected_hash
+                    or path.parent.name != key
+                    or path.stem != attempt_id
+                    or attempt_index < 1
+                    or attempt_index > int(cell["provider_attempt_limit"])
+                    or attempt_index in observed_indices
+                    or int(payload.get("attempt_limit", -1))
+                    != int(cell["provider_attempt_limit"])
+                ):
+                    raise ValueError("provider attempt invariant failed")
+                observed_indices.add(attempt_index)
+            except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError):
+                invalid.append(path.as_posix())
+        provider_attempt_counts = {
+            key: len(indices) for key, indices in provider_attempt_indices.items()
+        }
         infrastructure_attempt_count = 0
         recovered: set[str] = set()
         for path in sorted(self.infrastructure_attempts.glob("*/*.json")):
@@ -395,6 +472,8 @@ class WorkIIFormalCellStore:
             "unexpected_cell_key_sha256": sorted(observed_keys - expected),
             "invalid_receipts": invalid,
             "infrastructure_attempt_count": infrastructure_attempt_count,
+            "provider_attempt_count": sum(provider_attempt_counts.values()),
+            "provider_attempt_counts_by_cell_key_sha256": provider_attempt_counts,
             "recovered_infrastructure_failure_count": len(recovered),
             "complete": (
                 observed_keys == expected
@@ -480,6 +559,22 @@ def build_formal_preflight(
     cells: list[dict[str, Any]] = []
     task_bindings: list[dict[str, Any]] = []
     provider_contract: dict[str, Any] | None = None
+    attempt_contract = dict(
+        _object(design.get("provider_attempt_contract"), "provider_attempt_contract")
+    )
+    expected_attempt_contract = {
+        "attempt_unit": "host_codex_process_launch",
+        "initial_attempts_per_cell": 1,
+        "maximum_infrastructure_resume_attempts_per_cell": 1,
+        "maximum_total_provider_attempts_per_cell": 2,
+        "pre_action_restart_limit_within_attempt": 0,
+        "any_persisted_trajectory_forbids_replacement": True,
+        "retry_after_scientific_operation_forbidden": True,
+        "public_matrix_initial_attempt_count": 75,
+        "public_matrix_provider_attempt_hard_cap": 150,
+    }
+    if attempt_contract != expected_attempt_contract:
+        errors.append("formal provider-attempt contract differs from the frozen cap")
     total_query_count = 0
     total_query_metric_count = 0
     for task_index, task in enumerate(tasks, start=1):
@@ -555,6 +650,9 @@ def build_formal_preflight(
                     "held_out_query_count_per_snapshot": query_count,
                     "held_out_query_metric_count_per_snapshot": query_metric_count,
                     "provider_session_limit": 1,
+                    "provider_attempt_limit": int(
+                        attempt_contract.get("maximum_total_provider_attempts_per_cell", -1)
+                    ),
                     "provider_repeat": 1,
                     "terminal_states": ["completed", "right_censored", "failed"],
                 }
@@ -578,7 +676,6 @@ def build_formal_preflight(
     source_bindings = [_binding(root, path) for path in _SOURCE_PATHS]
     blockers = [
         "blind evaluator and final-recommendation denominator are not yet frozen",
-        "persistent-session provider-attempt cap is not yet frozen",
         "formal currency ceiling is not yet approved",
         "current design and analysis plan explicitly forbid formal execution",
         "current persistent-session method lacks its final qualification receipt",
@@ -604,6 +701,7 @@ def build_formal_preflight(
             "hash_kind": "canonical_json_sha256",
         },
         "provider_contract": provider_contract,
+        "provider_attempt_contract": attempt_contract,
         "schedule_policy": {
             "order": "task_then_public_world_then_prior_arm",
             "same_world_arm_triplet_max_concurrency": 3,
@@ -625,6 +723,9 @@ def build_formal_preflight(
             "independent_task_world_clusters": len(cluster_ids),
             "participant_cells": len(cells),
             "provider_sessions": len(cells),
+            "provider_attempts_initial_planned": len(cells),
+            "provider_attempts_hard_cap": len(cells)
+            * int(attempt_contract["maximum_total_provider_attempts_per_cell"]),
             "provider_repeats_per_cell": 1,
             "complete_experiments": len(cells) * 4,
             "belief_checkpoints": len(cells) * 4,
@@ -757,6 +858,7 @@ __all__ = [
     "FORMAL_TERMINAL_STATES",
     "DuplicateFormalCellError",
     "InvalidFormalCellReceiptError",
+    "ProviderAttemptLimitError",
     "WorkIIFormalCellStore",
     "build_checkpoint_contract",
     "build_formal_preflight",

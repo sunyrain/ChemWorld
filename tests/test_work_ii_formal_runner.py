@@ -16,6 +16,7 @@ from chemworld.eval.work_ii_formal import (
     FORMAL_SNAPSHOT_STAGES,
     DuplicateFormalCellError,
     InvalidFormalCellReceiptError,
+    ProviderAttemptLimitError,
     WorkIIFormalCellStore,
     build_checkpoint_contract,
     build_formal_preflight,
@@ -39,18 +40,29 @@ def _authorized_manifest() -> dict[str, object]:
 
 class _FakeFormalCellProcess:
     fail_once_keys: ClassVar[set[str]] = set()
+    partial_once_keys: ClassVar[set[str]] = set()
+    spawn_fail_once_keys: ClassVar[set[str]] = set()
     launched_keys: ClassVar[list[str]] = []
 
     def __init__(self, command, **kwargs) -> None:
         del kwargs
         key = command[command.index("--formal-cell-key") + 1]
         self.launched_keys.append(key)
+        if key in self.spawn_fail_once_keys:
+            self.spawn_fail_once_keys.remove(key)
+            raise OSError("simulated provider process launch failure")
         output = Path(command[command.index("--output") + 1])
         manifest_path = Path(command[command.index("--formal-manifest") + 1])
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         cell = next(row for row in manifest["cells"] if row["cell_key_sha256"] == key)
         if key in self.fail_once_keys:
             self.fail_once_keys.remove(key)
+            self.return_code = 2
+            return
+        if key in self.partial_once_keys:
+            self.partial_once_keys.remove(key)
+            output.mkdir(parents=True)
+            (output / "trajectory.jsonl").write_text("{}\n{", encoding="utf-8")
             self.return_code = 2
             return
         output.mkdir(parents=True)
@@ -93,6 +105,8 @@ def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> Non
         "independent_task_world_clusters": 25,
         "participant_cells": 75,
         "provider_sessions": 75,
+        "provider_attempts_initial_planned": 75,
+        "provider_attempts_hard_cap": 150,
         "provider_repeats_per_cell": 1,
         "complete_experiments": 300,
         "belief_checkpoints": 300,
@@ -100,7 +114,7 @@ def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> Non
         "checkpoint_held_out_query_metrics": 4080,
         "blind_final_recommendations": None,
     }
-    assert len(report["blocking_requirements"]) == 5
+    assert len(report["blocking_requirements"]) == 4
 
 
 def test_formal_schedule_is_task_world_arm_ordered_and_unique() -> None:
@@ -116,6 +130,7 @@ def test_formal_schedule_is_task_world_arm_ordered_and_unique() -> None:
     assert len({cell["cell_id"] for cell in cells}) == 75
     assert len({cell["cell_key_sha256"] for cell in cells}) == 75
     assert all(cell["provider_session_limit"] == 1 for cell in cells)
+    assert all(cell["provider_attempt_limit"] == 2 for cell in cells)
     assert all(
         cell["terminal_states"] == ["completed", "right_censored", "failed"]
         for cell in cells
@@ -206,6 +221,24 @@ def test_formal_cell_store_preserves_right_censored_and_failed_cells(
     assert len(audit["missing_cell_key_sha256"]) == 73
 
 
+def test_formal_cell_store_enforces_two_launch_provider_attempt_cap(
+    tmp_path: Path,
+) -> None:
+    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    store = WorkIIFormalCellStore(tmp_path / "store", manifest)
+    cell = manifest["cells"][0]
+    key = cell["cell_key_sha256"]
+    store.record_provider_attempt_launch(key, attempt_id="attempt-1")
+    store.record_provider_attempt_launch(key, attempt_id="attempt-2")
+    audit = store.audit()
+    assert audit["provider_attempt_count"] == 2
+    assert audit["provider_attempt_counts_by_cell_key_sha256"] == {key: 2}
+    with pytest.raises(ProviderAttemptLimitError, match="exhausted provider attempt cap"):
+        store.record_provider_attempt_launch(key, attempt_id="attempt-3")
+    with pytest.raises(ProviderAttemptLimitError, match="missing formal cells exhausted"):
+        store.pending_cells(resume=True)
+
+
 def test_formal_cell_store_fails_closed_on_receipt_tampering(tmp_path: Path) -> None:
     manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
     store = WorkIIFormalCellStore(tmp_path / "store", manifest)
@@ -274,6 +307,8 @@ def test_manifest_executor_terminalizes_all_cells_without_arm_replacement(
     manifest_path = tmp_path / "manifest.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     _FakeFormalCellProcess.fail_once_keys = set()
+    _FakeFormalCellProcess.partial_once_keys = set()
+    _FakeFormalCellProcess.spawn_fail_once_keys = set()
     _FakeFormalCellProcess.launched_keys = []
     monkeypatch.setattr(formal_runner.subprocess, "Popen", _FakeFormalCellProcess)
     output = tmp_path / "formal-output"
@@ -315,6 +350,89 @@ def test_manifest_executor_rejects_blocked_preflight_before_creating_output(
     assert not output.exists()
 
 
+def test_manifest_executor_never_replaces_unfinalized_partial_trajectory(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    manifest = _authorized_manifest()
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    partial_key = manifest["cells"][2]["cell_key_sha256"]
+    _FakeFormalCellProcess.fail_once_keys = set()
+    _FakeFormalCellProcess.partial_once_keys = {partial_key}
+    _FakeFormalCellProcess.spawn_fail_once_keys = set()
+    _FakeFormalCellProcess.launched_keys = []
+    monkeypatch.setattr(formal_runner.subprocess, "Popen", _FakeFormalCellProcess)
+    output = tmp_path / "formal-output"
+    report = formal_runner.execute_manifest(
+        manifest=manifest,
+        manifest_path=manifest_path,
+        output_root=output,
+        progress_path=tmp_path / "progress.jsonl",
+        resume=False,
+        cell_runner=tmp_path / "fake-cell-runner.py",
+    )
+    assert report["status"] == "all_cells_terminal"
+    assert report["terminal_count"] == 75
+    assert report["infrastructure_failure_count_this_attempt"] == 0
+    assert report["state_counts"]["right_censored"] == 26
+    assert _FakeFormalCellProcess.launched_keys.count(partial_key) == 1
+    receipt = json.loads(
+        (output / "store" / "terminal_receipts" / f"{partial_key}.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert receipt["state"] == "right_censored"
+    evidence = receipt["result"]["unfinalized_trajectory_evidence"]
+    assert evidence["trajectory_byte_count"] > 0
+    assert {key: evidence[key] for key in evidence if key != "trajectory_byte_count"} == {
+        "nonempty_line_count": 2,
+        "valid_json_line_count": 1,
+        "malformed_or_partial_line_count": 1,
+    }
+
+
+def test_manifest_executor_records_process_spawn_failure_and_resumes_once(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    manifest = _authorized_manifest()
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    failed_key = manifest["cells"][2]["cell_key_sha256"]
+    _FakeFormalCellProcess.fail_once_keys = set()
+    _FakeFormalCellProcess.partial_once_keys = set()
+    _FakeFormalCellProcess.spawn_fail_once_keys = {failed_key}
+    _FakeFormalCellProcess.launched_keys = []
+    monkeypatch.setattr(formal_runner.subprocess, "Popen", _FakeFormalCellProcess)
+    output = tmp_path / "formal-output"
+    first = formal_runner.execute_manifest(
+        manifest=manifest,
+        manifest_path=manifest_path,
+        output_root=output,
+        progress_path=tmp_path / "progress.jsonl",
+        resume=False,
+        cell_runner=tmp_path / "fake-cell-runner.py",
+    )
+    assert first["terminal_count"] == 2
+    assert first["infrastructure_failure_count_this_attempt"] == 1
+    assert first["missing_cell_count"] == 73
+    second = formal_runner.execute_manifest(
+        manifest=manifest,
+        manifest_path=manifest_path,
+        output_root=output,
+        progress_path=tmp_path / "progress.jsonl",
+        resume=True,
+        cell_runner=tmp_path / "fake-cell-runner.py",
+    )
+    assert second["status"] == "all_cells_terminal"
+    assert second["terminal_count"] == 75
+    assert _FakeFormalCellProcess.launched_keys.count(failed_key) == 2
+    audit = json.loads((output / "store_audit.json").read_text(encoding="utf-8"))
+    assert audit["provider_attempt_count"] == 76
+    assert audit["provider_attempt_counts_by_cell_key_sha256"][failed_key] == 2
+
+
 def test_manifest_executor_resumes_only_missing_cells_after_triplet_failure(
     monkeypatch,
     tmp_path: Path,
@@ -324,6 +442,8 @@ def test_manifest_executor_resumes_only_missing_cells_after_triplet_failure(
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     failed_key = manifest["cells"][2]["cell_key_sha256"]
     _FakeFormalCellProcess.fail_once_keys = {failed_key}
+    _FakeFormalCellProcess.partial_once_keys = set()
+    _FakeFormalCellProcess.spawn_fail_once_keys = set()
     _FakeFormalCellProcess.launched_keys = []
     monkeypatch.setattr(formal_runner.subprocess, "Popen", _FakeFormalCellProcess)
     output = tmp_path / "formal-output"

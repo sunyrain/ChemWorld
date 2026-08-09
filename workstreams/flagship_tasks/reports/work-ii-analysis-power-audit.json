@@ -1,14 +1,16 @@
 {
   "analysis_plan_path": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
-  "analysis_plan_sha256": "b467e121441e678ab37e92e2646fc20b13b667d7c09a5e42ef2407b6638aa353",
+  "analysis_plan_sha256": "d5a027012a67ab4edbecc8df4bd2845a3b86a969d776bf6ac0825072cd1bae7f",
   "denominators": {
     "independent_task_world_clusters": 25,
     "prior_arms": 3,
+    "provider_attempts_hard_cap": 150,
+    "provider_attempts_initial_planned": 75,
     "provider_repeats_per_cell": 1,
     "scheduled_participant_cells": 75,
     "tasks": 5
   },
-  "design_sha256": "d030e1c787315dcbd37860f8214c75c4987a995f061841a3a569a40c8a3e53f6",
+  "design_sha256": "a2ea28bedd6a4db27944b130546e3c0510c21b2187e28b2df31ac6f38ffe893b",
   "failures": [],
   "formal_result": false,
   "participant_provider_calls": 0,
@@ -51,9 +53,12 @@
     "complete_experiments": 300,
     "formal_currency_ceiling_approved": false,
     "input_token_limit": 324000000,
+    "maximum_provider_attempts_per_cell": 2,
     "maximum_provider_sessions": 75,
     "operation_attempt_limit": 3420,
     "output_token_limit": 3240000,
+    "provider_attempts_hard_cap": 150,
+    "provider_attempts_initial_planned": 75,
     "serial_seed_triplet_wall_limit_h": 47.5,
     "serial_seed_triplet_wall_limit_s": 171000.0,
     "task_rows": [
@@ -121,7 +126,6 @@
   "w2_05_complete": true,
   "w2_07_complete": false,
   "w2_07_remaining_blockers": [
-    "persistent-session provider-attempt cap",
     "user-approved formal currency ceiling",
     "qualified formal runner ETA calibration"
   ]

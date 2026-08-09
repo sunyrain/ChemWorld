@@ -44,6 +44,21 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
     public_worlds = sum(len(seeds) for seeds in public["task_world_seeds"].values())
     prior_arm_count = len(design["prior_arms"])
     scheduled_cells = public_worlds * prior_arm_count
+    attempt_contract = design["provider_attempt_contract"]
+    planned_provider_attempts = scheduled_cells * int(
+        attempt_contract["initial_attempts_per_cell"]
+    )
+    provider_attempt_hard_cap = scheduled_cells * int(
+        attempt_contract["maximum_total_provider_attempts_per_cell"]
+    )
+    if planned_provider_attempts != int(
+        attempt_contract["public_matrix_initial_attempt_count"]
+    ):
+        failures.append({"check": "provider_attempt_initial_denominator"})
+    if provider_attempt_hard_cap != int(
+        attempt_contract["public_matrix_provider_attempt_hard_cap"]
+    ):
+        failures.append({"check": "provider_attempt_hard_cap"})
     population = plan["analysis_population"]
     if public_worlds != population["independent_task_world_clusters"]:
         failures.append({"check": "independent_cluster_denominator"})
@@ -127,6 +142,8 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
             "prior_arms": prior_arm_count,
             "scheduled_participant_cells": scheduled_cells,
             "provider_repeats_per_cell": population["provider_repeats_per_cell"],
+            "provider_attempts_initial_planned": planned_provider_attempts,
+            "provider_attempts_hard_cap": provider_attempt_hard_cap,
         },
         "power": {
             "alpha_one_sided": alpha,
@@ -150,6 +167,11 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
         "resource_topology": {
             "task_rows": resource_rows,
             "maximum_provider_sessions": total_sessions,
+            "provider_attempts_initial_planned": planned_provider_attempts,
+            "provider_attempts_hard_cap": provider_attempt_hard_cap,
+            "maximum_provider_attempts_per_cell": attempt_contract[
+                "maximum_total_provider_attempts_per_cell"
+            ],
             "complete_experiments": total_experiments,
             "operation_attempt_limit": total_operations,
             "input_token_limit": total_input,
@@ -163,7 +185,6 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
         "w2_05_complete": not failures,
         "w2_07_complete": False,
         "w2_07_remaining_blockers": [
-            "persistent-session provider-attempt cap",
             "user-approved formal currency ceiling",
             "qualified formal runner ETA calibration",
         ],

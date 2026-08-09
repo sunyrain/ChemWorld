@@ -583,7 +583,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] 以独立 world clusters 进行功效分析；
   - [x] formal power 使用 world-level paired contrasts；rounds、prediction snapshots 和多个 endpoints 不作为独立样本；
   - [ ] 对 world、mechanism、agent、session 和交互方差作预期分解；
-  - [ ] 冻结 worlds、replicates、provider repeats 和最大 provider calls；
+  - [x] 冻结 worlds、replicates、provider repeats 和最大 provider calls；
   - [ ] discovery campaign 的 complete-experiment 上限、checkpoint 位置和 optional matched-evidence probe 是否进入 secondary matrix 在 pilot 后、formal outcomes 前冻结；
   - [ ] 冻结一张跨 discovery experiments 共享的 task-pattern-specific CampaignResourceCard，包括 operation、vessel、assay、instrument、stock、process-time、quench/transfer 和 closeout 余量；
   - [ ] 冻结 token、货币、wall time、并发和失败重试预算；
@@ -593,8 +593,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   规划标准化效应 `d=0.6` 时 power=`0.8946`，80% power 的 MDE=`0.5150`，因此只支持中到大效应设计。
   当前上界为 75 provider sessions、300 complete experiments、3,420 operation attempts、3.24 亿 input tokens、
   4,320 万 uncached input tokens、324 万 output tokens，串行 seed-triplet wall 上界 47.5 h。报告：
-  `workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`。仍需冻结 persistent-session provider-attempt
-  上限、由用户批准的正式货币硬上限，并用合格 formal runner 校准 ETA，故 W2-07 保持 `DOING`。
+  `workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`。provider process launch 固定为每 cell 初始
+  1 次、纯基础设施失败最多 resume 1 次，即全矩阵计划 75 次、硬上限 150 次；任何已持久化 trajectory 都禁止
+  replacement。仍需由用户批准正式货币硬上限，并用合格 formal runner 校准 ETA，故 W2-07 保持 `DOING`。
 
 ### W2-08 — Registered Report/常规投稿路线决策
 
@@ -653,7 +654,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] 中断后不覆盖、不替换、不重复计数；
   - [x] private identities 不进入 agent prompt；
   - [ ] 每个估计量可追溯到 immutable trajectory records；
-  - [ ] fail-closed tests 覆盖 provider failure、partial action 和 ledger mismatch。
+  - [x] fail-closed tests 覆盖 provider failure、partial action 和 ledger mismatch。
 - 备注：typed prior/evidence/belief/law-summary schema 与 held-out query validator 保留。旧
   Direct Responses runner、配置、tests 和 mock/real/breadth 报告均已归档；其 15/15 breadth
   只证明旧架构的 transport/schema/executor/recovery 可运行，不是当前 session method 的资格证据。
