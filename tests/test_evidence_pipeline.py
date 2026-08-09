@@ -294,7 +294,7 @@ def test_current_registry_exposes_work_i_fvl_boundary_without_hiding_failure() -
     assert nodes["work_i_latent_terminal_analysis"]["gate_state"] == "blocked"
 
 
-def test_frozen_rc28_evidence_is_not_regenerated_after_task_contract_drift() -> None:
+def test_frozen_current_evidence_is_not_regenerated_after_task_contract_drift() -> None:
     pipeline = _pipeline()
     node_by_id = {node.node_id: node for node in pipeline["NODES"]}
 
@@ -302,7 +302,7 @@ def test_frozen_rc28_evidence_is_not_regenerated_after_task_contract_drift() -> 
         node = node_by_id[node_id]
         assert node.command is None
         assert pipeline["_node_lifecycle"](node) == "immutable"
-        assert pipeline["_node_producer"](node) == "frozen_rc28_preregistration_evidence"
+        assert pipeline["_node_producer"](node) == "frozen_current_preregistration_evidence"
 
 
 def test_current_evidence_pipeline_records_formal_gate_a_pass() -> None:
@@ -310,12 +310,12 @@ def test_current_evidence_pipeline_records_formal_gate_a_pass() -> None:
     current = json.loads(pipeline["CURRENT_REGISTRY"].read_text(encoding="utf-8"))
 
     mechanism = current["mechanism_adaptation"]
-    assert mechanism["status"] == "historical_gate_a_pass_current_binding_stale"
+    assert mechanism["status"] == "gate_a_passed_remaining_gates_pending"
     assert mechanism["gate_a_pass"] is True
     assert mechanism["gate_a_certificate_status"] == {
         "a1_physical_intervention_validity": "passed",
-        "a2_controlled_matched_identifiability": "historical_pass_current_binding_stale",
-        "a3_online_attainability": "historical_pass_current_binding_stale",
+        "a2_controlled_matched_identifiability": "passed",
+        "a3_online_attainability": "passed",
     }
     assert mechanism["gate_a_evidence_current"] is (
         current["evidence_dag"]["nodes"]["mechanism_public_gate_a_decision"]["artifact_state"]

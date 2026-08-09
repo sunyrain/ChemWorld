@@ -177,12 +177,12 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_protocol",
-        "configs/benchmark/mechanism_adaptation_v0.3.0_rc28.json",
+        "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json",
         "protocol_input",
     ),
     EvidenceNode(
         "mechanism_gate_a_plan",
-        "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc28.json",
+        "configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc29.json",
         "protocol_input",
         ("mechanism_protocol",),
     ),
@@ -195,20 +195,20 @@ NODES = (
     EvidenceNode(
         "mechanism_diagnostic_relation_graph",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc28.json",
+        "mechanism-adaptation-diagnostic-relation-graph-v0.3.0-rc29.json",
         "generated_current",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
     ),
     EvidenceNode(
         "mechanism_sample_size_audit",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-sample-size-audit-v0.3.0-rc28.json",
+        "mechanism-adaptation-sample-size-audit-v0.3.0-rc29.json",
         "generated_current",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
     ),
     EvidenceNode(
         "mechanism_preregistration",
-        "configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc28.json",
+        "configs/benchmark/mechanism-adaptation-preregistration-v0.3.0-rc29.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -219,7 +219,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_confirmatory_task_semantics_audit",
-        "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc28.json",
+        "workstreams/flagship_tasks/reports/confirmatory-task-semantics-audit-rc29.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -230,7 +230,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc28.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc29.json",
         "generated_current",
         (
             "mechanism_diagnostic_relation_graph",
@@ -242,7 +242,7 @@ NODES = (
     EvidenceNode(
         "mechanism_release_qualification",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-release-qualification-v0.1-rc28.json",
+        "mechanism-adaptation-release-qualification-v0.1-rc29.json",
         "release_attestation",
         (
             "mechanism_design_audit",
@@ -258,7 +258,13 @@ NODES = (
         "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-public-matrix.json",
         "generated_current",
         ("mechanism_protocol",),
-        ("scripts/plan_mechanism_adaptation_matrix.py",),
+        (
+            "scripts/plan_mechanism_adaptation_matrix.py",
+            "--protocol",
+            "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json",
+            "--output",
+            "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-public-matrix.json",
+        ),
     ),
     EvidenceNode(
         "mechanism_preflight",
@@ -274,12 +280,18 @@ NODES = (
             "mechanism_release_qualification",
             "mechanism_sample_size_audit",
         ),
-        ("scripts/check_mechanism_adaptation_protocol.py",),
+        (
+            "scripts/check_mechanism_adaptation_protocol.py",
+            "--protocol",
+            "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json",
+            "--output",
+            "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.3.0-preflight.json",
+        ),
     ),
     EvidenceNode(
         "mechanism_a2_structural_receipt",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-a2-structural-receipt-v0.1-rc28.json",
+        "mechanism-adaptation-a2-structural-receipt-v0.1-rc29.json",
         "formal_result",
         (
             "mechanism_design_audit",
@@ -292,7 +304,7 @@ NODES = (
     EvidenceNode(
         "mechanism_a3_structural_receipt",
         "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-a3-structural-receipt-v0.1-rc28.json",
+        "mechanism-adaptation-a3-structural-receipt-v0.1-rc29.json",
         "formal_result",
         (
             "mechanism_design_audit",
@@ -304,7 +316,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_public_gate_a_decision",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-public-decision-v0.1-rc28.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-public-decision-v0.1-rc29.json",
         "formal_result",
         (
             "mechanism_a2_structural_receipt",
@@ -735,7 +747,7 @@ def _node_lifecycle(node: EvidenceNode) -> str:
 
 def _node_producer(node: EvidenceNode) -> str:
     if node.node_id in FROZEN_MECHANISM_NODE_IDS:
-        return "frozen_rc28_preregistration_evidence"
+        return "frozen_current_preregistration_evidence"
     if node.command is not None:
         return "python " + " ".join(node.command)
     return {
