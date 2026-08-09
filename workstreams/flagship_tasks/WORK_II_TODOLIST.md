@@ -673,8 +673,11 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   participant 最终输出新增结构化 final recommendation，必须在 4 个已完成实验中选择 1 个；每个 qualified
   cell 随即生成自哈希、与 participant trajectory 绑定的 blind evaluator plan，固定对 observed incumbent 和
   participant recommendation 各执行 3 个成对噪声 replay，不向 participant 回传结果，也不计入 participant
-  operation/provider 分母。当前仍缺用户批准的 currency ceiling、当前 persistent-session 方法 qualification
-  receipt，且 design/analysis 仍显式禁止正式执行；不得据此启动 provider 或正式矩阵。
+  operation/provider 分母。formal CLI 对 qualification receipt 执行自哈希、preflight/provider/attempt/blind
+  contract、三臂 development 报告文件、零 formal outcome、150 次 provider-attempt 硬上限和用户 currency
+  approval 的逐项绑定校验，不再接受仅声明 `status=passed` 的任意 JSON。当前仍缺用户批准的 currency ceiling、
+  当前 persistent-session 方法 qualification receipt，且 design/analysis 仍显式禁止正式执行；不得据此启动
+  provider 或正式矩阵。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 

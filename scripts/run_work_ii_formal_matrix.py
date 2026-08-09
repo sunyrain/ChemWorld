@@ -22,6 +22,7 @@ from chemworld.eval.work_ii_formal import (
     validate_formal_bindings,
     validate_formal_preflight,
 )
+from chemworld.eval.work_ii_qualification import validate_method_qualification_receipt
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
@@ -521,21 +522,16 @@ def _run_execute(args: argparse.Namespace) -> int:
             "formal manifest binding validation failed: " + "; ".join(binding_errors)
         )
     receipt = _load_object(args.qualification_receipt.resolve())
-    if (
-        receipt.get("schema_version")
-        != "chemworld-work-ii-method-qualification-receipt-0.1"
-        or receipt.get("status") != "passed"
-        or receipt.get("formal_preflight_sha256") != manifest.get("preflight_sha256")
-    ):
-        raise RuntimeError("method qualification receipt does not authorize this manifest")
-    approved_ceiling = receipt.get("approved_currency_ceiling_usd")
-    if (
-        isinstance(approved_ceiling, bool)
-        or not isinstance(approved_ceiling, int | float)
-        or float(approved_ceiling) != float(args.currency_ceiling_usd)
-        or float(approved_ceiling) <= 0.0
-    ):
-        raise RuntimeError("currency ceiling differs from the qualification receipt")
+    receipt_errors = validate_method_qualification_receipt(
+        ROOT,
+        receipt,
+        manifest,
+        currency_ceiling_usd=float(args.currency_ceiling_usd),
+    )
+    if receipt_errors:
+        raise RuntimeError(
+            "method qualification receipt validation failed: " + "; ".join(receipt_errors)
+        )
     report = execute_manifest(
         manifest=manifest,
         manifest_path=args.manifest,
