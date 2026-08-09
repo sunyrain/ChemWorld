@@ -16,14 +16,25 @@ from uuid import uuid4
 
 from chemworld.eval.provenance import file_sha256, write_json_atomic
 from chemworld.eval.work_ii_blind import validate_blind_evaluation_plan
+from chemworld.eval.work_ii_cost import (
+    build_formal_cost_ledger,
+    validate_formal_cost_contract,
+)
 from chemworld.eval.work_ii_formal import (
     WorkIIFormalCellStore,
+    authorize_formal_preflight,
     build_formal_preflight,
     validate_formal_bindings,
     validate_formal_preflight,
 )
-from chemworld.eval.work_ii_qualification import validate_method_qualification_receipt
-from chemworld.eval.work_ii_release import validate_preregistration_freeze_receipt
+from chemworld.eval.work_ii_qualification import (
+    qualification_receipt_sha256,
+    validate_method_qualification_receipt,
+)
+from chemworld.eval.work_ii_release import (
+    preregistration_freeze_receipt_sha256,
+    validate_preregistration_freeze_receipt,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
@@ -52,7 +63,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--allow-formal-execution", action="store_true")
     parser.add_argument("--qualification-receipt", type=Path)
     parser.add_argument("--preregistration-freeze-receipt", type=Path)
-    parser.add_argument("--currency-ceiling-usd", type=float)
+    parser.add_argument(
+        "--formal-currency-ceiling-usd",
+        "--currency-ceiling-usd",
+        dest="formal_currency_ceiling_usd",
+        type=float,
+    )
     return parser.parse_args()
 
 
@@ -66,7 +82,7 @@ def _run_preflight(args: argparse.Namespace) -> int:
             args.allow_formal_execution,
             args.qualification_receipt is not None,
             args.preregistration_freeze_receipt is not None,
-            args.currency_ceiling_usd is not None,
+            args.formal_currency_ceiling_usd is not None,
         )
     ):
         raise RuntimeError("execution-only options cannot be used with --preflight")
@@ -211,9 +227,15 @@ def execute_manifest(
     progress_path: Path,
     resume: bool,
     cell_runner: Path = CELL_RUNNER,
+    formal_cost_contract: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Execute canonical missing cells in same-world three-arm subprocess triplets."""
 
+    manifest_errors = validate_formal_preflight(manifest)
+    if manifest_errors:
+        raise RuntimeError(
+            "formal manifest validation failed: " + "; ".join(manifest_errors)
+        )
     binding_errors = validate_formal_bindings(ROOT, manifest)
     if binding_errors:
         raise RuntimeError(
@@ -223,6 +245,13 @@ def execute_manifest(
         raise RuntimeError("formal manifest does not authorize participant execution")
     if manifest.get("blocking_requirements"):
         raise RuntimeError("formal manifest still contains blocking requirements")
+    if formal_cost_contract is None:
+        raise RuntimeError("formal execution requires its frozen currency budget")
+    cost_errors = validate_formal_cost_contract(ROOT, manifest, formal_cost_contract)
+    if cost_errors:
+        raise RuntimeError(
+            "formal currency budget validation failed: " + "; ".join(cost_errors)
+        )
     output_root = output_root.resolve()
     if output_root.exists() and not resume:
         raise FileExistsError(f"refusing to overwrite formal output root: {output_root}")
@@ -235,6 +264,15 @@ def execute_manifest(
             raise RuntimeError("existing execution manifest differs from the requested manifest")
     else:
         write_json_atomic(manifest_copy, dict(manifest))
+    cost_contract_path = output_root / "formal_cost_contract.json"
+    cost_ledger_path = output_root / "formal_cost_ledger.json"
+    if cost_contract_path.exists():
+        if _load_object(cost_contract_path) != dict(formal_cost_contract):
+            raise RuntimeError(
+                "existing formal cost contract differs from the authorized contract"
+            )
+    else:
+        write_json_atomic(cost_contract_path, dict(formal_cost_contract))
     store = WorkIIFormalCellStore(output_root / "store", manifest)
     pending = store.pending_cells(resume=resume)
     pending_keys = {str(cell["cell_key_sha256"]) for cell in pending}
@@ -270,8 +308,36 @@ def execute_manifest(
         )
         for cell in cells:
             key = str(cell["cell_key_sha256"])
+            attempt_counts = dict(
+                store.audit()["provider_attempt_counts_by_cell_key_sha256"]
+            )
+            attempt_counts[key] = int(attempt_counts.get(key, 0)) + 1
+            proposed_cost_ledger = build_formal_cost_ledger(
+                manifest,
+                formal_cost_contract,
+                attempt_counts,
+            )
+            if proposed_cost_ledger["within_ceiling"] is not True:
+                raise RuntimeError(
+                    "formal currency ceiling would be exceeded before provider launch"
+                )
             attempt_id = uuid4().hex
             store.record_provider_attempt_launch(key, attempt_id=attempt_id)
+            write_json_atomic(cost_ledger_path, proposed_cost_ledger)
+            _emit(
+                progress_path,
+                {
+                    "event": "formal_provider_cost_reserved",
+                    "cell_id": cell["cell_id"],
+                    "provider_attempt_count": proposed_cost_ledger[
+                        "provider_attempt_count"
+                    ],
+                    "reserved_cost_usd": proposed_cost_ledger["reserved_cost_usd"],
+                    "formal_currency_ceiling_usd": proposed_cost_ledger[
+                        "formal_currency_ceiling_usd"
+                    ],
+                },
+            )
             attempt_root = output_root / "attempts" / key / attempt_id
             log_path = output_root / "logs" / key / f"{attempt_id}.log"
             log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -472,6 +538,12 @@ def execute_manifest(
             break
     audit = store.audit()
     write_json_atomic(output_root / "store_audit.json", audit)
+    final_cost_ledger = build_formal_cost_ledger(
+        manifest,
+        formal_cost_contract,
+        audit["provider_attempt_counts_by_cell_key_sha256"],
+    )
+    write_json_atomic(cost_ledger_path, final_cost_ledger)
     report = {
         "schema_version": "chemworld-work-ii-formal-execution-progress-0.1",
         "formal_result": False,
@@ -486,6 +558,10 @@ def execute_manifest(
         "missing_cell_count": len(audit["missing_cell_key_sha256"]),
         "infrastructure_failure_count_this_attempt": infrastructure_failures,
         "store_audit_sha256": audit["audit_sha256"],
+        "formal_cost_ledger_sha256": final_cost_ledger[
+            "formal_cost_ledger_sha256"
+        ],
+        "reserved_provider_cost_usd": final_cost_ledger["reserved_cost_usd"],
     }
     write_json_atomic(output_root / "execution_progress.json", report)
     _emit(progress_path, {"event": "formal_matrix_attempt_finished", **report})
@@ -500,7 +576,7 @@ def _run_execute(args: argparse.Namespace) -> int:
         "--output-root": args.output_root,
         "--qualification-receipt": args.qualification_receipt,
         "--preregistration-freeze-receipt": args.preregistration_freeze_receipt,
-        "--currency-ceiling-usd": args.currency_ceiling_usd,
+        "--formal-currency-ceiling-usd": args.formal_currency_ceiling_usd,
         "--progress-file": args.progress_file,
     }
     missing = [name for name, value in required.items() if value is None]
@@ -514,23 +590,26 @@ def _run_execute(args: argparse.Namespace) -> int:
     errors = validate_formal_preflight(manifest)
     if errors:
         raise RuntimeError("formal manifest validation failed: " + "; ".join(errors))
-    if manifest.get("formal_execution_allowed") is not True:
-        blockers = manifest.get("blocking_requirements", [])
-        raise RuntimeError(
-            "formal execution remains blocked by the committed manifest: "
-            + "; ".join(str(item) for item in blockers)
-        )
+    if manifest.get("formal_execution_allowed") is not False:
+        raise RuntimeError("--manifest must be the committed blocked preflight")
     binding_errors = validate_formal_bindings(ROOT, manifest)
     if binding_errors:
         raise RuntimeError(
             "formal manifest binding validation failed: " + "; ".join(binding_errors)
         )
     receipt = _load_object(args.qualification_receipt.resolve())
+    qualification_ceiling = receipt.get("approved_currency_ceiling_usd")
+    if (
+        isinstance(qualification_ceiling, bool)
+        or not isinstance(qualification_ceiling, int | float)
+        or float(qualification_ceiling) <= 0
+    ):
+        raise RuntimeError("method qualification receipt lacks its own currency ceiling")
     receipt_errors = validate_method_qualification_receipt(
         ROOT,
         receipt,
         manifest,
-        currency_ceiling_usd=float(args.currency_ceiling_usd),
+        currency_ceiling_usd=float(qualification_ceiling),
     )
     if receipt_errors:
         raise RuntimeError(
@@ -543,19 +622,33 @@ def _run_execute(args: argparse.Namespace) -> int:
         manifest,
         receipt,
         args.qualification_receipt.resolve(),
-        currency_ceiling_usd=float(args.currency_ceiling_usd),
+        currency_ceiling_usd=float(args.formal_currency_ceiling_usd),
     )
     if freeze_errors:
         raise RuntimeError(
             "preregistration freeze receipt validation failed: "
             + "; ".join(freeze_errors)
         )
+    formal_cost_contract = freeze_receipt.get("formal_currency_budget")
+    if not isinstance(formal_cost_contract, Mapping):
+        raise RuntimeError("preregistration freeze lacks its formal currency budget")
+    authorized_manifest = authorize_formal_preflight(
+        manifest,
+        qualification_receipt_sha256=qualification_receipt_sha256(receipt),
+        preregistration_freeze_receipt_sha256=preregistration_freeze_receipt_sha256(
+            freeze_receipt
+        ),
+        formal_cost_contract_sha256=str(
+            formal_cost_contract.get("formal_cost_contract_sha256", "")
+        ),
+    )
     report = execute_manifest(
-        manifest=manifest,
+        manifest=authorized_manifest,
         manifest_path=args.manifest,
         output_root=args.output_root,
         progress_path=args.progress_file,
         resume=bool(args.resume),
+        formal_cost_contract=formal_cost_contract,
     )
     return 0 if report["status"] == "all_cells_terminal" else 1
 

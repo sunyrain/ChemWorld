@@ -12,6 +12,7 @@ import scripts.run_work_ii_formal_matrix as formal_runner
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_blind import BLIND_EVALUATOR_VERSION
+from chemworld.eval.work_ii_cost import build_formal_cost_contract
 from chemworld.eval.work_ii_formal import (
     FORMAL_ARMS,
     FORMAL_SNAPSHOT_STAGES,
@@ -19,6 +20,7 @@ from chemworld.eval.work_ii_formal import (
     InvalidFormalCellReceiptError,
     ProviderAttemptLimitError,
     WorkIIFormalCellStore,
+    authorize_formal_preflight,
     build_checkpoint_contract,
     build_formal_preflight,
     validate_formal_preflight,
@@ -66,12 +68,25 @@ def _fake_blind_plan(cell: dict[str, object]) -> dict[str, object]:
 
 def _authorized_manifest() -> dict[str, object]:
     manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
-    manifest["formal_execution_allowed"] = True
-    manifest["blocking_requirements"] = []
-    manifest["preflight_sha256"] = canonical_json_sha256(
-        {key: value for key, value in manifest.items() if key != "preflight_sha256"}
+    return authorize_formal_preflight(
+        manifest,
+        qualification_receipt_sha256="a" * 64,
+        preregistration_freeze_receipt_sha256="b" * 64,
+        formal_cost_contract_sha256="c" * 64,
     )
-    return manifest
+
+
+def _formal_cost_contract(manifest: dict[str, object]) -> dict[str, object]:
+    return build_formal_cost_contract(
+        ROOT,
+        manifest,
+        formal_currency_ceiling_usd=20.0,
+        pricing_source="https://api-docs.deepseek.com/quick_start/pricing",
+        pricing_observed_at="2026-08-10T12:00:00+08:00",
+        cache_hit_input_usd_per_million=0.0028,
+        cache_miss_input_usd_per_million=0.14,
+        output_usd_per_million=0.28,
+    )
 
 
 class _FakeFormalCellProcess:
@@ -419,6 +434,7 @@ def test_manifest_executor_terminalizes_all_cells_without_arm_replacement(
     _FakeFormalCellProcess.launched_keys = []
     monkeypatch.setattr(formal_runner.subprocess, "Popen", _FakeFormalCellProcess)
     output = tmp_path / "formal-output"
+    cost_contract = _formal_cost_contract(manifest)
     report = formal_runner.execute_manifest(
         manifest=manifest,
         manifest_path=manifest_path,
@@ -426,6 +442,7 @@ def test_manifest_executor_terminalizes_all_cells_without_arm_replacement(
         progress_path=tmp_path / "progress.jsonl",
         resume=False,
         cell_runner=tmp_path / "fake-cell-runner.py",
+        formal_cost_contract=cost_contract,
     )
     assert report["status"] == "all_cells_terminal"
     assert report["terminal_count"] == 75
@@ -436,6 +453,15 @@ def test_manifest_executor_terminalizes_all_cells_without_arm_replacement(
     }
     assert len(_FakeFormalCellProcess.launched_keys) == 75
     assert len(set(_FakeFormalCellProcess.launched_keys)) == 75
+    cost_ledger = json.loads(
+        (output / "formal_cost_ledger.json").read_text(encoding="utf-8")
+    )
+    assert cost_ledger["provider_attempt_count"] == 75
+    assert cost_ledger["reserved_cost_usd"] == 7.74144
+    assert cost_ledger["within_ceiling"] is True
+    assert report["formal_cost_ledger_sha256"] == cost_ledger[
+        "formal_cost_ledger_sha256"
+    ]
 
 
 def test_manifest_executor_rejects_blocked_preflight_before_creating_output(
@@ -465,7 +491,7 @@ def test_formal_execute_requires_preregistration_freeze_receipt(tmp_path: Path) 
         output_root=tmp_path / "output",
         qualification_receipt=tmp_path / "qualification.json",
         preregistration_freeze_receipt=None,
-        currency_ceiling_usd=1.0,
+        formal_currency_ceiling_usd=1.0,
         progress_file=tmp_path / "progress.jsonl",
         allow_formal_execution=True,
         resume=False,
@@ -488,6 +514,7 @@ def test_manifest_executor_never_replaces_unfinalized_partial_trajectory(
     _FakeFormalCellProcess.launched_keys = []
     monkeypatch.setattr(formal_runner.subprocess, "Popen", _FakeFormalCellProcess)
     output = tmp_path / "formal-output"
+    cost_contract = _formal_cost_contract(manifest)
     report = formal_runner.execute_manifest(
         manifest=manifest,
         manifest_path=manifest_path,
@@ -495,6 +522,7 @@ def test_manifest_executor_never_replaces_unfinalized_partial_trajectory(
         progress_path=tmp_path / "progress.jsonl",
         resume=False,
         cell_runner=tmp_path / "fake-cell-runner.py",
+        formal_cost_contract=cost_contract,
     )
     assert report["status"] == "all_cells_terminal"
     assert report["terminal_count"] == 75
@@ -530,6 +558,7 @@ def test_manifest_executor_records_process_spawn_failure_and_resumes_once(
     _FakeFormalCellProcess.launched_keys = []
     monkeypatch.setattr(formal_runner.subprocess, "Popen", _FakeFormalCellProcess)
     output = tmp_path / "formal-output"
+    cost_contract = _formal_cost_contract(manifest)
     first = formal_runner.execute_manifest(
         manifest=manifest,
         manifest_path=manifest_path,
@@ -537,6 +566,7 @@ def test_manifest_executor_records_process_spawn_failure_and_resumes_once(
         progress_path=tmp_path / "progress.jsonl",
         resume=False,
         cell_runner=tmp_path / "fake-cell-runner.py",
+        formal_cost_contract=cost_contract,
     )
     assert first["terminal_count"] == 2
     assert first["infrastructure_failure_count_this_attempt"] == 1
@@ -548,6 +578,7 @@ def test_manifest_executor_records_process_spawn_failure_and_resumes_once(
         progress_path=tmp_path / "progress.jsonl",
         resume=True,
         cell_runner=tmp_path / "fake-cell-runner.py",
+        formal_cost_contract=cost_contract,
     )
     assert second["status"] == "all_cells_terminal"
     assert second["terminal_count"] == 75
@@ -571,6 +602,7 @@ def test_manifest_executor_resumes_only_missing_cells_after_triplet_failure(
     _FakeFormalCellProcess.launched_keys = []
     monkeypatch.setattr(formal_runner.subprocess, "Popen", _FakeFormalCellProcess)
     output = tmp_path / "formal-output"
+    cost_contract = _formal_cost_contract(manifest)
     first = formal_runner.execute_manifest(
         manifest=manifest,
         manifest_path=manifest_path,
@@ -578,6 +610,7 @@ def test_manifest_executor_resumes_only_missing_cells_after_triplet_failure(
         progress_path=tmp_path / "progress.jsonl",
         resume=False,
         cell_runner=tmp_path / "fake-cell-runner.py",
+        formal_cost_contract=cost_contract,
     )
     assert first["status"] == "infrastructure_incomplete_missing_only_resume_required"
     assert first["terminal_count"] == 2
@@ -591,6 +624,7 @@ def test_manifest_executor_resumes_only_missing_cells_after_triplet_failure(
         progress_path=tmp_path / "progress.jsonl",
         resume=True,
         cell_runner=tmp_path / "fake-cell-runner.py",
+        formal_cost_contract=cost_contract,
     )
     assert second["status"] == "all_cells_terminal"
     assert second["terminal_count"] == 75

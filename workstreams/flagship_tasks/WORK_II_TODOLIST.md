@@ -605,8 +605,12 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   replacement。blind evaluator 另排 75 个最终推荐、150 个 target 和 450 个无 provider 调用的成对噪声
   replay。五张 task-pattern resource card 已冻结 operation、vessel、assay、instrument、stock、process-time、
   quench/transfer 与 participant-owned closeout reserve，且已登记 world/mechanism/method/session/interaction 的
-  可估计性与混杂边界。仍需由用户批准正式货币硬上限，并用最终合格的 current-method runner 校准 expected ETA，
-  故 W2-07 保持 `DOING`。
+  可估计性与混杂边界。qualification currency ceiling 与 75-cell formal currency ceiling 现已分离；最终 freeze
+  必须绑定 provider/model、价格来源与 cache-hit/cache-miss/output 单价，并按五个 task config 自动重建 75 次初始
+  和 150 次全基础设施 resume 的 token/cost hard cap。formal parent runner 在每次 provider process launch 前先
+  预留该 cell 的完整 token-envelope 成本，超过正式 ceiling 时在调用前拒绝，未知实际账单不会降低预留额。
+  仍需由用户批准可验证价格下的正式货币硬上限，并用最终合格的 current-method runner 校准 expected ETA，故
+  W2-07 保持 `DOING`。
 
 ### W2-08 — Registered Report/常规投稿路线决策
 
@@ -695,13 +699,19 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   cell 随即生成自哈希、与 participant trajectory 绑定的 blind evaluator plan，固定对 observed incumbent 和
   participant recommendation 各执行 3 个成对噪声 replay，不向 participant 回传结果，也不计入 participant
   operation/provider 分母。formal CLI 对 qualification receipt 执行自哈希、preflight/provider/attempt/blind
-  contract、三臂 development 报告文件、零 formal outcome、150 次 provider-attempt 硬上限和用户 currency
-  approval 的逐项绑定校验；`--preregistration-freeze-receipt` 现也是不可省略的 execute 参数，并逐项验证
+  contract、三臂 development 报告文件、零 formal outcome、150 次 provider-attempt 硬上限和 qualification/
+  formal 两个独立 currency approval 的逐项绑定校验；`--preregistration-freeze-receipt` 现也是不可省略的
+  execute 参数，并逐项验证
   selected route、qualification、clean release、credential rotation、currency、qualified ETA、用户命令/预算/
   故障升级签字，以及相应 Nature IPA+registration 或常规投稿 target+evidence threshold，不再接受仅声明
-  `status=passed` 的任意 JSON。当前仍缺用户批准的 currency ceiling、
+  `status=passed` 的任意 JSON。通过全部收据后，runner 从保持 blocked 的 outcome-blind base preflight 派生
+  带 qualification/final-freeze/cost 三重哈希的 runtime-only authorized manifest；手工翻转
+  `formal_execution_allowed` 即使重算自哈希也被拒绝。每次 provider launch 另写 append-derived cost reservation
+  ledger，确保 75-cell/150-attempt formal ceiling 是运行时硬门而非仅一项签字字段。当前仍缺用户批准的
+  qualification 与 formal currency ceiling、
   当前 persistent-session 方法 qualification receipt、W2-08 outcome-blind route selection 和 W2-11 final
-  freeze receipt，且 design/analysis 仍显式禁止正式执行；不得据此启动 provider 或正式矩阵。blind evaluator
+  freeze receipt；committed design/analysis/base preflight 继续显式禁止直接执行，只有完成上述收据验证的派生
+  runtime manifest 可启动正式矩阵。blind evaluator
   的 development-only 零 provider shakedown 使用 synthetic incumbent
   fixture（明确不是 participant recommendation），完成 2 targets × 3 paired replicates = 6/6 executions，
   6/6 exact replay、0 failures、0 participant feedback、0 participant-operation denominator impact；报告：
@@ -792,8 +802,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   已由独立 receipt 消除 clean-release blocker，最终 freeze 还缺 5 项：用户路线选择、current-method 真实
   三臂资格收据、provider/正式货币上限、资格运行校准 ETA，以及执行命令/预算/故障升级的用户签字确认。
   `scripts/build_work_ii_preregistration_freeze_receipt.py` 已把这 5 项编码为 route-specific、不可伪造的最终
-  receipt 生成门；Nature 路线额外要求 IPA 与 protocol registration reference，常规路线要求冻结 target 与
-  evidence threshold。当前缺失输入下已验证拒绝生成，不会提前授权 formal matrix。
+  receipt 生成门，并把 qualification 实际费用/上限与 formal 全矩阵价格表/上限分开；正式上限必须覆盖冻结的
+  150 次 provider-attempt 成本，随后由 parent runner 逐调用预留。Nature 路线额外要求 IPA 与 protocol
+  registration reference，常规路线要求冻结 target 与 evidence threshold。当前缺失输入下已验证拒绝生成，
+  不会提前授权 formal matrix。
 
 ### W2-12 — 执行 public formal matrix
 
@@ -979,9 +991,12 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 - [x] 2026-08-10 重新核对 DeepSeek 官方 current model/pricing/change-log：仓库已使用仍受支持且
   Codex/Responses 原生适配的 `deepseek-v4-flash`，不存在 `deepseek-chat`/`deepseek-reasoner`
   退役别名导致本次 harness 故障的问题；但该 slug 是 provider-managed moving alias，若改为正式 provider
-  必须额外冻结版本/调用时间 provenance。按当前三臂资格 token 硬上限与 2026-08-10 V4 Flash 官方价格，
-  cache-accounted token-price ceiling 为 USD 0.172032，全输入按 cache miss 的保守 ceiling 为 USD 1.02816；
-  这不代表 WellAU 价格，也不授权 provider amendment 或调用。细节与官方链接已补入 DeepSeek 诊断报告。
+  必须额外冻结版本/调用时间 provenance。按当前三臂资格 token envelope 与 2026-08-10 V4 Flash 官方价格，
+  三个 accepted sessions 的 cache-accounted cap 为 USD 0.172032，含每臂一次 infrastructure resume 的六次
+  provider-process hard cap 为 USD 0.344064；USD 1.02816 是故意忽略 uncached-token cap 的 all-cache-miss
+  stress counterfactual，不是当前合同硬上限。若另行批准 DeepSeek formal amendment，则 75 次初始 schedule
+  cap 为 USD 7.74144，150 次全 resume hard cap 为 USD 15.48288；正式 ceiling 必须覆盖后者并逐调用预留。
+  这些数字不代表 WellAU 价格，也不授权 provider amendment 或调用。细节与官方链接已补入 DeepSeek 诊断报告。
 - [x] 当前完成范围收束为三个任务：`electrochemical-conversion`、
   `reaction-to-crystallization`、`reaction-to-distillation`；每任务三先验臂 × 五 seeds，cell 内四轮
   complete experiments。三个任务均已推进到冻结终态；该范围是 development qualification，不是

@@ -8,6 +8,10 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.work_ii_cost import (
+    build_formal_cost_contract,
+    validate_formal_cost_contract,
+)
 from chemworld.eval.work_ii_formal import validate_formal_bindings
 from chemworld.eval.work_ii_preregistration import (
     validate_preregistration_readiness,
@@ -21,7 +25,7 @@ from chemworld.eval.work_ii_qualification import (
 
 PRERUN_EVIDENCE_GRAPH_VERSION = "chemworld-work-ii-prerun-evidence-graph-0.1"
 CLEAN_RELEASE_RECEIPT_VERSION = "chemworld-work-ii-clean-release-receipt-0.1"
-EXPECTED_WORK_II_RELEASE_TEST_COUNT = 74
+EXPECTED_WORK_II_RELEASE_TEST_COUNT = 78
 PREREGISTRATION_FREEZE_RECEIPT_VERSION = (
     "chemworld-work-ii-preregistration-freeze-receipt-0.1"
 )
@@ -631,13 +635,21 @@ def validate_preregistration_freeze_receipt(
             != qualification_receipt_sha256(qualification_receipt)
         ):
             errors.append("preregistration freeze does not bind method qualification")
-    qualification_errors = validate_method_qualification_receipt(
-        root,
-        qualification_receipt,
-        manifest,
-        currency_ceiling_usd=currency_ceiling_usd,
-    )
-    errors.extend(f"method qualification: {error}" for error in qualification_errors)
+    qualification_ceiling = qualification_receipt.get("approved_currency_ceiling_usd")
+    if (
+        isinstance(qualification_ceiling, bool)
+        or not isinstance(qualification_ceiling, int | float)
+        or float(qualification_ceiling) <= 0
+    ):
+        errors.append("method qualification lacks its distinct positive currency ceiling")
+    else:
+        qualification_errors = validate_method_qualification_receipt(
+            root,
+            qualification_receipt,
+            manifest,
+            currency_ceiling_usd=float(qualification_ceiling),
+        )
+        errors.extend(f"method qualification: {error}" for error in qualification_errors)
 
     authorization = receipt.get("user_authorization")
     authorization = authorization if isinstance(authorization, Mapping) else {}
@@ -649,19 +661,33 @@ def validate_preregistration_freeze_receipt(
         or authorization.get("execution_command_approved") is not True
         or authorization.get("budget_approved") is not True
         or authorization.get("failure_escalation_approved") is not True
+        or authorization.get("formal_pricing_contract_approved") is not True
     ):
         errors.append("preregistration freeze lacks complete user authorization")
     if (
-        authorization.get("currency_ceiling_usd") != currency_ceiling_usd
-        or not isinstance(currency_ceiling_usd, float)
-        or currency_ceiling_usd <= 0
+        authorization.get("formal_currency_ceiling_usd") != currency_ceiling_usd
+        or isinstance(currency_ceiling_usd, bool)
+        or not isinstance(currency_ceiling_usd, int | float)
+        or float(currency_ceiling_usd) <= 0
     ):
-        errors.append("preregistration freeze currency ceiling differs from the CLI ceiling")
+        errors.append("preregistration freeze formal currency ceiling differs from the CLI ceiling")
+    if authorization.get("qualification_currency_ceiling_usd") != qualification_ceiling:
+        errors.append("preregistration freeze changed the qualification currency ceiling")
     expected_eta = authorization.get("qualified_expected_eta_seconds")
     if not isinstance(expected_eta, (int, float)) or expected_eta <= 0:
         errors.append("preregistration freeze lacks a qualified positive ETA")
     if authorization.get("provider_contract") != manifest.get("provider_contract"):
         errors.append("preregistration freeze provider contract differs from the manifest")
+
+    formal_budget = receipt.get("formal_currency_budget")
+    if not isinstance(formal_budget, Mapping):
+        errors.append("preregistration freeze lacks a formal currency budget contract")
+    else:
+        errors.extend(validate_formal_cost_contract(root, manifest, formal_budget))
+        if formal_budget.get("formal_currency_ceiling_usd") != float(
+            currency_ceiling_usd
+        ):
+            errors.append("formal currency budget differs from the user-approved ceiling")
 
     escalation = receipt.get("failure_escalation_contract")
     escalation = escalation if isinstance(escalation, Mapping) else {}
@@ -706,6 +732,11 @@ def build_preregistration_freeze_receipt(
     qualified_expected_eta_seconds: float,
     authorized_at: str,
     route_compliance: Mapping[str, Any],
+    pricing_source: str,
+    pricing_observed_at: str,
+    cache_hit_input_usd_per_million: float,
+    cache_miss_input_usd_per_million: float,
+    output_usd_per_million: float,
 ) -> dict[str, Any]:
     """Build the final receipt after every external W2-08/W2-10/W2-11 condition exists."""
 
@@ -726,6 +757,23 @@ def build_preregistration_freeze_receipt(
     readiness = _load_object(readiness_path)
     clean = _load_object(clean_path)
     qualification = _load_object(qualification_path)
+    qualification_ceiling = qualification.get("approved_currency_ceiling_usd")
+    if (
+        isinstance(qualification_ceiling, bool)
+        or not isinstance(qualification_ceiling, int | float)
+        or float(qualification_ceiling) <= 0
+    ):
+        raise ValueError("method qualification lacks its distinct positive currency ceiling")
+    formal_budget = build_formal_cost_contract(
+        root,
+        manifest,
+        formal_currency_ceiling_usd=float(currency_ceiling_usd),
+        pricing_source=pricing_source,
+        pricing_observed_at=pricing_observed_at,
+        cache_hit_input_usd_per_million=float(cache_hit_input_usd_per_million),
+        cache_miss_input_usd_per_million=float(cache_miss_input_usd_per_million),
+        output_usd_per_million=float(output_usd_per_million),
+    )
     receipt: dict[str, Any] = {
         "schema_version": PREREGISTRATION_FREEZE_RECEIPT_VERSION,
         "status": "passed_final_freeze",
@@ -733,6 +781,7 @@ def build_preregistration_freeze_receipt(
         "formal_participant_outcome_count": 0,
         "formal_execution_authorized": True,
         "selected_submission_route": route.get("selected_option"),
+        "formal_currency_budget": formal_budget,
         "bindings": {
             "formal_preflight_sha256": manifest.get("preflight_sha256"),
             "route_decision_sha256": route.get("decision_sha256"),
@@ -757,7 +806,9 @@ def build_preregistration_freeze_receipt(
             "execution_command_approved": True,
             "budget_approved": True,
             "failure_escalation_approved": True,
-            "currency_ceiling_usd": float(currency_ceiling_usd),
+            "formal_pricing_contract_approved": True,
+            "qualification_currency_ceiling_usd": float(qualification_ceiling),
+            "formal_currency_ceiling_usd": float(currency_ceiling_usd),
             "qualified_expected_eta_seconds": float(qualified_expected_eta_seconds),
             "provider_contract": manifest.get("provider_contract"),
         },

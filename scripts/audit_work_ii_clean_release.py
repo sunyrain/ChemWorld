@@ -37,6 +37,7 @@ WORK_II_TEST_FILES = (
     "tests/test_work_ii_analysis_plan_audit.py",
     "tests/test_work_ii_blind_evaluator.py",
     "tests/test_work_ii_campaign_runner.py",
+    "tests/test_work_ii_cost.py",
     "tests/test_work_ii_formal_design.py",
     "tests/test_work_ii_formal_runner.py",
     "tests/test_work_ii_preregistration.py",

@@ -151,6 +151,14 @@ EXPECTED_METHOD_QUALIFICATION_CONTRACT: dict[str, Any] = {
     "qualification_worlds_excluded_from_formal": True,
 }
 
+FORMAL_BLOCKING_REQUIREMENTS = (
+    "formal currency ceiling is not yet approved",
+    "current design and analysis plan explicitly forbid formal execution",
+    "current persistent-session method lacks its final qualification receipt",
+    "submission route lacks an outcome-blind user selection",
+    "preregistration immutable execution package lacks its final freeze receipt",
+)
+
 _SOURCE_PATHS = (
     "configs/benchmark/work_ii_submission_route_decision_v0.1.json",
     "src/chemworld/agents/interactive_codex_experiment.py",
@@ -161,6 +169,7 @@ _SOURCE_PATHS = (
     "src/chemworld/eval/verify.py",
     "src/chemworld/eval/work_ii_analysis.py",
     "src/chemworld/eval/work_ii_blind.py",
+    "src/chemworld/eval/work_ii_cost.py",
     "src/chemworld/eval/work_ii_formal.py",
     "src/chemworld/eval/work_ii_prior_discovery.py",
     "src/chemworld/eval/work_ii_process_profile.py",
@@ -979,13 +988,7 @@ def build_formal_preflight(
         errors.append("analysis cluster denominator differs from the generated schedule")
 
     source_bindings = [_binding(root, path) for path in _SOURCE_PATHS]
-    blockers = [
-        "formal currency ceiling is not yet approved",
-        "current design and analysis plan explicitly forbid formal execution",
-        "current persistent-session method lacks its final qualification receipt",
-        "submission route lacks an outcome-blind user selection",
-        "preregistration immutable execution package lacks its final freeze receipt",
-    ]
+    blockers = list(FORMAL_BLOCKING_REQUIREMENTS)
     if (
         design.get("formal_execution_allowed") is True
         or analysis.get("formal_execution_allowed") is True
@@ -1087,6 +1090,38 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
         errors.append("unexpected formal preflight schema")
     if report.get("preflight_sha256") != _self_hash(report):
         errors.append("formal preflight self-hash mismatch")
+    execution_allowed = report.get("formal_execution_allowed")
+    if execution_allowed is True:
+        authorization = report.get("authorization_bindings")
+        authorization = authorization if isinstance(authorization, Mapping) else {}
+        if (
+            report.get("status") != "passed_execution_authorized"
+            or report.get("blocking_requirements") != []
+            or any(
+                not isinstance(authorization.get(field), str)
+                or len(str(authorization.get(field))) != 64
+                or any(
+                    character not in "0123456789abcdef"
+                    for character in str(authorization.get(field))
+                )
+                for field in (
+                    "base_preflight_sha256",
+                    "qualification_receipt_sha256",
+                    "preregistration_freeze_receipt_sha256",
+                    "formal_cost_contract_sha256",
+                )
+            )
+        ):
+            errors.append("formal execution manifest lacks exact authorization bindings")
+    elif execution_allowed is False:
+        if (
+            report.get("status") != "passed_execution_blocked"
+            or report.get("blocking_requirements") != list(FORMAL_BLOCKING_REQUIREMENTS)
+            or "authorization_bindings" in report
+        ):
+            errors.append("formal preflight does not preserve its blocked authorization state")
+    else:
+        errors.append("formal preflight has an invalid execution authorization state")
     cells = report.get("cells")
     if not isinstance(cells, list):
         errors.append("formal preflight cells are missing")
@@ -1219,6 +1254,51 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
     return errors
 
 
+def authorize_formal_preflight(
+    report: Mapping[str, Any],
+    *,
+    qualification_receipt_sha256: str,
+    preregistration_freeze_receipt_sha256: str,
+    formal_cost_contract_sha256: str,
+) -> dict[str, Any]:
+    """Derive the runtime manifest only after every external receipt validates."""
+
+    errors = validate_formal_preflight(report)
+    if errors:
+        raise ValueError("cannot authorize an invalid formal preflight: " + "; ".join(errors))
+    if report.get("formal_execution_allowed") is not False:
+        raise ValueError("formal preflight has already crossed the authorization boundary")
+    receipt_hashes = (
+        qualification_receipt_sha256,
+        preregistration_freeze_receipt_sha256,
+        formal_cost_contract_sha256,
+    )
+    if any(
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in "0123456789abcdef" for character in value)
+        for value in receipt_hashes
+    ):
+        raise ValueError("formal authorization receipt hashes must be lowercase SHA-256 values")
+    authorized = dict(report)
+    authorized["status"] = "passed_execution_authorized"
+    authorized["formal_execution_allowed"] = True
+    authorized["blocking_requirements"] = []
+    authorized["authorization_bindings"] = {
+        "base_preflight_sha256": report.get("preflight_sha256"),
+        "qualification_receipt_sha256": qualification_receipt_sha256,
+        "preregistration_freeze_receipt_sha256": preregistration_freeze_receipt_sha256,
+        "formal_cost_contract_sha256": formal_cost_contract_sha256,
+    }
+    authorized["preflight_sha256"] = _self_hash(authorized)
+    authorized_errors = validate_formal_preflight(authorized)
+    if authorized_errors:
+        raise ValueError(
+            "built formal execution manifest is invalid: " + "; ".join(authorized_errors)
+        )
+    return authorized
+
+
 def validate_formal_bindings(root: Path, report: Mapping[str, Any]) -> list[str]:
     """Verify every file binding carried by a committed formal preflight."""
 
@@ -1292,6 +1372,7 @@ __all__ = [
     "EXPECTED_PARTICIPANT_EXECUTION_CONTRACT",
     "EXPECTED_REFERENCE_POLICY_CONTRACT",
     "FORMAL_ARMS",
+    "FORMAL_BLOCKING_REQUIREMENTS",
     "FORMAL_CELL_VERSION",
     "FORMAL_CHECKPOINT_EXPERIMENTS",
     "FORMAL_PREFLIGHT_VERSION",
@@ -1303,6 +1384,7 @@ __all__ = [
     "InvalidFormalCellReceiptError",
     "ProviderAttemptLimitError",
     "WorkIIFormalCellStore",
+    "authorize_formal_preflight",
     "build_checkpoint_contract",
     "build_formal_preflight",
     "validate_formal_bindings",

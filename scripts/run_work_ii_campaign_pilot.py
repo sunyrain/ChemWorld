@@ -28,6 +28,7 @@ from chemworld.eval.work_ii_formal import (
     FORMAL_ARMS,
     build_formal_preflight,
     validate_formal_bindings,
+    validate_formal_preflight,
 )
 from chemworld.eval.work_ii_formal import (
     build_checkpoint_contract as _checkpoint_contract,
@@ -104,6 +105,11 @@ def _formal_cell_context(
             "and --allow-formal-execution together"
         )
     manifest = _load(Path(manifest_path).resolve())
+    manifest_errors = validate_formal_preflight(manifest)
+    if manifest_errors:
+        raise RuntimeError(
+            "formal manifest validation failed: " + "; ".join(manifest_errors)
+        )
     errors = validate_formal_bindings(ROOT, manifest)
     if errors:
         raise RuntimeError("formal manifest binding validation failed: " + "; ".join(errors))

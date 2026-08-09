@@ -5,7 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 
 from chemworld.eval.provenance import canonical_json_sha256
-from chemworld.eval.work_ii_formal import build_formal_preflight
+from chemworld.eval.work_ii_formal import authorize_formal_preflight, build_formal_preflight
 from chemworld.eval.work_ii_report import build_formal_analysis_dataset
 from chemworld.eval.work_ii_truth import build_evaluator_truth_plan
 
@@ -16,12 +16,12 @@ ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
 
 def _authorized_manifest() -> dict[str, object]:
     manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
-    manifest["formal_execution_allowed"] = True
-    manifest["blocking_requirements"] = []
-    manifest["preflight_sha256"] = canonical_json_sha256(
-        {key: value for key, value in manifest.items() if key != "preflight_sha256"}
+    return authorize_formal_preflight(
+        manifest,
+        qualification_receipt_sha256="a" * 64,
+        preregistration_freeze_receipt_sha256="b" * 64,
+        formal_cost_contract_sha256="c" * 64,
     )
-    return manifest
 
 
 def _failed_receipt(cell: dict[str, object]) -> dict[str, object]:

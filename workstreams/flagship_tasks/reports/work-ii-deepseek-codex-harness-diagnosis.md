@@ -132,12 +132,23 @@ Official sources:
 
 At the rates displayed on 2026-08-10, V4 Flash costs USD 0.0028 per million cache-hit input tokens,
 USD 0.14 per million cache-miss input tokens, and USD 0.28 per million output tokens. If the current
-three-arm qualification hard caps were transferred unchanged to V4 Flash (7.2M cumulative input,
-0.96M uncached input, and 0.072M output), the cache-accounted token-price ceiling would be
-`0.96*0.14 + 6.24*0.0028 + 0.072*0.28 = USD 0.172032`. Treating every input token as a cache miss
-gives the more conservative token-price ceiling `7.2*0.14 + 0.072*0.28 = USD 1.02816`.
+three-arm qualification token envelopes were transferred unchanged to V4 Flash, the accepted
+three-session schedule caps 7.2M cumulative input, 0.96M uncached input and 0.072M output. Its
+cache-accounted cap is therefore
+`0.96*0.14 + 6.24*0.0028 + 0.072*0.28 = USD 0.172032`. The qualification provider-process hard cap
+also permits one infrastructure-only resume per arm, so reserving all six process attempts doubles
+the enforceable qualification cap to USD 0.344064.
+
+Treating every accepted-schedule input token as a cache miss gives USD 1.02816, but that deliberately
+ignores the separately frozen uncached-input cap. It is a pricing stress counterfactual, not the
+approved qualification contract hard cap. Under the current five-task, five-world, three-arm formal
+design, transferring the same V4 Flash rates to the task-specific token envelopes yields 75 initial
+provider attempts with 324M input, 43.2M uncached input and 3.24M output for USD 7.74144. Reserving
+the full 150-attempt infrastructure-resume ceiling yields 648M input, 86.4M uncached input and 6.48M
+output for USD 15.48288. The final formal ceiling must cover that 150-attempt amount and is enforced
+by reserving each cell's complete token-envelope cost before provider-process launch.
 
 These figures exclude taxes, account-specific charges and future price changes. They neither price
 the frozen WellAU contract nor authorize a DeepSeek amendment or provider call. The current formal
 method remains WellAU `gpt-5.6-sol` medium until an outcome-blind user-approved provider amendment
-rebuilds all affected method, preflight, qualification and preregistration bindings.
+rebuilds all affected method, preflight, qualification, pricing and preregistration bindings.

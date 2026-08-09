@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 from chemworld.eval.provenance import write_json_atomic
 from chemworld.eval.work_ii_formal import build_formal_preflight, validate_formal_bindings
@@ -25,7 +26,7 @@ DEFAULT_OUTPUT = (
 )
 
 
-def _load(path: Path) -> dict[str, object]:
+def _load(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise ValueError(f"{path} must contain an object")
@@ -63,7 +64,12 @@ def _route_compliance(args: argparse.Namespace, selected: object) -> dict[str, o
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--qualification-receipt", type=Path)
-    parser.add_argument("--currency-ceiling-usd", type=float)
+    parser.add_argument("--formal-currency-ceiling-usd", type=float)
+    parser.add_argument("--pricing-source")
+    parser.add_argument("--pricing-observed-at")
+    parser.add_argument("--cache-hit-input-usd-per-million", type=float)
+    parser.add_argument("--cache-miss-input-usd-per-million", type=float)
+    parser.add_argument("--output-usd-per-million", type=float)
     parser.add_argument("--qualified-eta-seconds", type=float)
     parser.add_argument("--authorized-at")
     parser.add_argument("--credential-rotation-confirmed-by-user", action="store_true")
@@ -87,7 +93,12 @@ def main() -> int:
     if args.check:
         creation_values = (
             args.qualification_receipt,
-            args.currency_ceiling_usd,
+            args.formal_currency_ceiling_usd,
+            args.pricing_source,
+            args.pricing_observed_at,
+            args.cache_hit_input_usd_per_million,
+            args.cache_miss_input_usd_per_million,
+            args.output_usd_per_million,
             args.qualified_eta_seconds,
             args.authorized_at,
             args.registration_reference,
@@ -108,7 +119,11 @@ def main() -> int:
         qualification_binding = receipt.get("bindings", {}).get("method_qualification", {})
         qualification_path = ROOT / str(qualification_binding.get("path", ""))
         qualification = _load(qualification_path)
-        ceiling = float(receipt.get("user_authorization", {}).get("currency_ceiling_usd", 0.0))
+        ceiling = float(
+            receipt.get("user_authorization", {}).get(
+                "formal_currency_ceiling_usd", 0.0
+            )
+        )
         errors = validate_preregistration_freeze_receipt(
             ROOT,
             receipt,
@@ -123,7 +138,18 @@ def main() -> int:
         missing = []
         for value, flag in (
             (args.qualification_receipt, "--qualification-receipt"),
-            (args.currency_ceiling_usd, "--currency-ceiling-usd"),
+            (args.formal_currency_ceiling_usd, "--formal-currency-ceiling-usd"),
+            (args.pricing_source, "--pricing-source"),
+            (args.pricing_observed_at, "--pricing-observed-at"),
+            (
+                args.cache_hit_input_usd_per_million,
+                "--cache-hit-input-usd-per-million",
+            ),
+            (
+                args.cache_miss_input_usd_per_million,
+                "--cache-miss-input-usd-per-million",
+            ),
+            (args.output_usd_per_million, "--output-usd-per-million"),
             (args.qualified_eta_seconds, "--qualified-eta-seconds"),
             (args.authorized_at, "--authorized-at"),
         ):
@@ -154,10 +180,19 @@ def main() -> int:
             ROOT,
             manifest,
             args.qualification_receipt.resolve(),
-            currency_ceiling_usd=float(args.currency_ceiling_usd),
+            currency_ceiling_usd=float(args.formal_currency_ceiling_usd),
             qualified_expected_eta_seconds=float(args.qualified_eta_seconds),
             authorized_at=str(args.authorized_at),
             route_compliance=compliance,
+            pricing_source=str(args.pricing_source),
+            pricing_observed_at=str(args.pricing_observed_at),
+            cache_hit_input_usd_per_million=float(
+                args.cache_hit_input_usd_per_million
+            ),
+            cache_miss_input_usd_per_million=float(
+                args.cache_miss_input_usd_per_million
+            ),
+            output_usd_per_million=float(args.output_usd_per_million),
         )
         write_json_atomic(output, receipt)
     print(
@@ -166,6 +201,12 @@ def main() -> int:
                 "status": receipt["status"],
                 "selected_submission_route": receipt["selected_submission_route"],
                 "formal_execution_authorized": receipt["formal_execution_authorized"],
+                "formal_currency_ceiling_usd": receipt["user_authorization"][
+                    "formal_currency_ceiling_usd"
+                ],
+                "formal_all_attempt_cost_cap_usd": receipt["formal_currency_budget"][
+                    "all_infrastructure_resumes"
+                ]["cost_cap_usd"],
                 "receipt_sha256": receipt["receipt_sha256"],
                 "output": str(output),
                 "check": bool(args.check),
