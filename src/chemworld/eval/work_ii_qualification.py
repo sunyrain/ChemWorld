@@ -6,9 +6,13 @@ import json
 import math
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.work_ii_cost import (
+    build_qualification_cost_contract,
+    validate_qualification_cost_contract,
+)
 from chemworld.eval.work_ii_formal import (
     EXPECTED_METHOD_QUALIFICATION_CONTRACT,
     FORMAL_ARMS,
@@ -21,7 +25,10 @@ METHOD_QUALIFICATION_REPORT_VERSION = "chemworld-work-ii-campaign-pilot-report-0
 METHOD_QUALIFICATION_READINESS_VERSION = "chemworld-work-ii-method-qualification-readiness-0.1"
 METHOD_QUALIFICATION_RECEIPT_VERSION = "chemworld-work-ii-method-qualification-receipt-0.3"
 METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION = (
-    "chemworld-work-ii-method-qualification-execution-authorization-0.1"
+    "chemworld-work-ii-method-qualification-execution-authorization-0.2"
+)
+METHOD_QUALIFICATION_ATTEMPT_AUTHORIZATION_VERSION = (
+    "chemworld-work-ii-method-qualification-attempt-authorization-0.1"
 )
 REQUIRED_CELL_QUALIFICATION_CHECKS = (
     "planned_complete_experiments",
@@ -98,11 +105,23 @@ def qualification_execution_authorization_sha256(
     return _self_hash(authorization, "authorization_sha256")
 
 
+def qualification_attempt_authorization_sha256(
+    authorization: Mapping[str, Any],
+) -> str:
+    return _self_hash(authorization, "attempt_authorization_sha256")
+
+
 def build_qualification_execution_authorization(
+    root: Path,
     manifest: Mapping[str, Any],
     *,
     currency_ceiling_usd: float,
     approved_at: str,
+    pricing_source: str,
+    pricing_observed_at: str,
+    cache_hit_input_usd_per_million: float,
+    cache_miss_input_usd_per_million: float,
+    output_usd_per_million: float,
 ) -> dict[str, Any]:
     """Build the credential-free authorization that must exist before provider execution."""
 
@@ -114,6 +133,16 @@ def build_qualification_execution_authorization(
         task_binding.get("campaign_config") if isinstance(task_binding, Mapping) else None
     )
     campaign_binding = campaign_binding if isinstance(campaign_binding, Mapping) else {}
+    cost_contract = build_qualification_cost_contract(
+        root,
+        manifest,
+        qualification_currency_ceiling_usd=float(currency_ceiling_usd),
+        pricing_source=pricing_source,
+        pricing_observed_at=pricing_observed_at,
+        cache_hit_input_usd_per_million=float(cache_hit_input_usd_per_million),
+        cache_miss_input_usd_per_million=float(cache_miss_input_usd_per_million),
+        output_usd_per_million=float(output_usd_per_million),
+    )
     authorization: dict[str, Any] = {
         "schema_version": METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION,
         "status": "authorized",
@@ -129,6 +158,7 @@ def build_qualification_execution_authorization(
         "method_qualification_contract_sha256": manifest.get(
             "method_qualification_contract_sha256"
         ),
+        "qualification_currency_budget": cost_contract,
         "qualification_schedule": {
             "task_id": task_id,
             "world_split": "development_and_qualification",
@@ -159,6 +189,7 @@ def build_qualification_execution_authorization(
 
 
 def validate_qualification_execution_authorization(
+    root: Path,
     authorization: Mapping[str, Any],
     manifest: Mapping[str, Any],
 ) -> list[str]:
@@ -196,6 +227,11 @@ def validate_qualification_execution_authorization(
     for field, expected in expected_bindings.items():
         if authorization.get(field) != expected:
             errors.append(f"method-qualification execution has a mismatched {field}")
+    cost_contract = authorization.get("qualification_currency_budget")
+    if not isinstance(cost_contract, Mapping):
+        errors.append("method-qualification execution lacks a currency budget contract")
+    else:
+        errors.extend(validate_qualification_cost_contract(root, manifest, cost_contract))
     contract = manifest.get("method_qualification_contract")
     contract = contract if isinstance(contract, Mapping) else {}
     task_binding = _task_binding(manifest, str(contract.get("qualification_task_id", "")))
@@ -219,6 +255,11 @@ def validate_qualification_execution_authorization(
     user = authorization.get("user_authorization")
     user = user if isinstance(user, Mapping) else {}
     ceiling = user.get("currency_ceiling_usd")
+    ceiling_value = (
+        float(cast(int | float, ceiling))
+        if _is_finite_number(ceiling)
+        else None
+    )
     if (
         user.get("authorized_by") != "user"
         or not isinstance(user.get("approved_at"), str)
@@ -226,12 +267,85 @@ def validate_qualification_execution_authorization(
         or user.get("provider_contract_confirmed") is not True
         or user.get("credential_rotation_confirmed") is not True
         or user.get("currency") != "USD"
-        or not _is_finite_number(ceiling, minimum=0.000000001)
+        or ceiling_value is None
+        or ceiling_value < 0.000000001
         or user.get("scope_method_qualification_contract_sha256")
         != manifest.get("method_qualification_contract_sha256")
         or user.get("credentials_present") is not False
     ):
         errors.append("method-qualification execution lacks valid user/provider/currency approval")
+    if isinstance(cost_contract, Mapping) and cost_contract.get(
+        "qualification_currency_ceiling_usd"
+    ) != (ceiling_value if ceiling_value is not None else -1.0):
+        errors.append("method-qualification execution currency budget differs from user approval")
+    return errors
+
+
+def build_qualification_attempt_authorization(
+    execution_authorization: Mapping[str, Any],
+    *,
+    arm: str,
+    attempt_number: int,
+    attempt_id: str,
+    qualification_cost_ledger_sha256: str,
+) -> dict[str, Any]:
+    """Bind one parent-managed provider process launch to the approved triplet."""
+
+    receipt: dict[str, Any] = {
+        "schema_version": METHOD_QUALIFICATION_ATTEMPT_AUTHORIZATION_VERSION,
+        "status": "authorized_provider_process_launch",
+        "formal_result": False,
+        "execution_authorization_sha256": execution_authorization.get(
+            "authorization_sha256"
+        ),
+        "arm": arm,
+        "attempt_number": attempt_number,
+        "attempt_id": attempt_id,
+        "qualification_cost_ledger_sha256": qualification_cost_ledger_sha256,
+        "provider_process_launch_allowed": True,
+    }
+    receipt["attempt_authorization_sha256"] = (
+        qualification_attempt_authorization_sha256(receipt)
+    )
+    errors = validate_qualification_attempt_authorization(
+        receipt, execution_authorization
+    )
+    if errors:
+        raise ValueError("invalid qualification attempt authorization: " + "; ".join(errors))
+    return receipt
+
+
+def validate_qualification_attempt_authorization(
+    receipt: Mapping[str, Any],
+    execution_authorization: Mapping[str, Any],
+) -> list[str]:
+    """Validate one immutable, parent-issued qualification launch receipt."""
+
+    errors: list[str] = []
+    if receipt.get("schema_version") != METHOD_QUALIFICATION_ATTEMPT_AUTHORIZATION_VERSION:
+        errors.append("unexpected qualification attempt authorization schema")
+    if receipt.get("attempt_authorization_sha256") != (
+        qualification_attempt_authorization_sha256(receipt)
+    ):
+        errors.append("qualification attempt authorization self-hash mismatch")
+    schedule = execution_authorization.get("qualification_schedule")
+    schedule = schedule if isinstance(schedule, Mapping) else {}
+    attempt_number = receipt.get("attempt_number")
+    if (
+        receipt.get("status") != "authorized_provider_process_launch"
+        or receipt.get("formal_result") is not False
+        or receipt.get("provider_process_launch_allowed") is not True
+        or receipt.get("execution_authorization_sha256")
+        != execution_authorization.get("authorization_sha256")
+        or receipt.get("arm") not in schedule.get("prior_arms", [])
+        or isinstance(attempt_number, bool)
+        or not isinstance(attempt_number, int)
+        or not 1 <= attempt_number <= 2
+        or not isinstance(receipt.get("attempt_id"), str)
+        or not receipt.get("attempt_id")
+        or not _is_sha256(receipt.get("qualification_cost_ledger_sha256"))
+    ):
+        errors.append("qualification attempt authorization is not an exact allowed launch")
     return errors
 
 
@@ -291,7 +405,9 @@ def validate_method_qualification_report(
                                 "method qualification embedded execution authorization is stale"
                             )
                         errors.extend(
-                            validate_qualification_execution_authorization(loaded, manifest)
+                            validate_qualification_execution_authorization(
+                                root, loaded, manifest
+                            )
                         )
     if report.get("world_seed") != contract["qualification_world_seed"]:
         errors.append("method qualification report uses the wrong development world")
@@ -337,7 +453,7 @@ def validate_method_qualification_report(
         if (
             qualification.get("passed") is not True
             or qualification.get("failed_checks") != []
-            or tuple(checks) != REQUIRED_CELL_QUALIFICATION_CHECKS
+            or set(checks) != set(REQUIRED_CELL_QUALIFICATION_CHECKS)
             or any(checks.get(name) is not True for name in REQUIRED_CELL_QUALIFICATION_CHECKS)
         ):
             errors.append(f"{arm}: fail-closed cell qualification did not pass")
@@ -554,10 +670,11 @@ def build_method_qualification_readiness(
             "world_seed": contract.get("qualification_world_seed"),
             "prior_arms": list(FORMAL_ARMS),
             "campaign_config": dict(campaign_binding),
-            "runner": "scripts/run_work_ii_campaign_pilot.py",
+            "runner": "scripts/run_work_ii_method_qualification_triplet.py",
             "required_execution_flags": [
-                "--qualification-execution",
-                "--qualification-authorization",
+                "--execute",
+                "--authorization",
+                "--allow-provider-execution",
             ],
             "authorization_builder": (
                 "scripts/authorize_work_ii_method_qualification.py"
@@ -568,6 +685,9 @@ def build_method_qualification_readiness(
             "receipt_schema": METHOD_QUALIFICATION_RECEIPT_VERSION,
             "output_scope": "runs/development",
             "triplet_failure_semantics": contract.get("triplet_failure_semantics"),
+            "missing_only_resume": True,
+            "per_arm_provider_attempt_hard_cap": 2,
+            "runtime_cost_reservation_required": True,
         },
         "expected_counts": expected_counts,
         "historical_evidence_assessment": [
@@ -634,6 +754,16 @@ def validate_method_qualification_readiness(report: Mapping[str, Any]) -> list[s
         or counts.get("provider_process_attempts_hard_cap") != 6
     ):
         errors.append("method qualification readiness denominators are invalid")
+    schedule = report.get("qualification_schedule")
+    schedule = schedule if isinstance(schedule, Mapping) else {}
+    if (
+        schedule.get("runner")
+        != "scripts/run_work_ii_method_qualification_triplet.py"
+        or schedule.get("missing_only_resume") is not True
+        or schedule.get("per_arm_provider_attempt_hard_cap") != 2
+        or schedule.get("runtime_cost_reservation_required") is not True
+    ):
+        errors.append("method qualification readiness lacks its executable resume contract")
     blockers = report.get("blocking_requirements")
     if not isinstance(blockers, list) or len(blockers) != 4:
         errors.append("method qualification readiness lacks its external blockers")
@@ -669,7 +799,7 @@ def build_method_qualification_receipt(
     if not isinstance(authorization, dict):
         raise ValueError("qualification execution authorization must contain an object")
     authorization_errors = validate_qualification_execution_authorization(
-        authorization, manifest
+        root, authorization, manifest
     )
     if authorization_errors:
         raise ValueError(
@@ -924,19 +1054,23 @@ def validate_method_qualification_receipt(
 
 
 __all__ = [
+    "METHOD_QUALIFICATION_ATTEMPT_AUTHORIZATION_VERSION",
     "METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION",
     "METHOD_QUALIFICATION_READINESS_VERSION",
     "METHOD_QUALIFICATION_RECEIPT_VERSION",
     "METHOD_QUALIFICATION_REPORT_VERSION",
     "REQUIRED_CELL_QUALIFICATION_CHECKS",
     "build_method_qualification_readiness",
+    "build_qualification_attempt_authorization",
     "build_qualification_execution_authorization",
     "method_qualification_readiness_sha256",
     "method_qualification_report_sha256",
+    "qualification_attempt_authorization_sha256",
     "qualification_execution_authorization_sha256",
     "qualification_receipt_sha256",
     "validate_method_qualification_readiness",
     "validate_method_qualification_receipt",
     "validate_method_qualification_report",
+    "validate_qualification_attempt_authorization",
     "validate_qualification_execution_authorization",
 ]

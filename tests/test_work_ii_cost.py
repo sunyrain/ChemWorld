@@ -9,8 +9,12 @@ from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.work_ii_cost import (
     build_formal_cost_contract,
     build_formal_cost_ledger,
+    build_qualification_cost_contract,
+    build_qualification_cost_ledger,
     formal_cost_contract_sha256,
     validate_formal_cost_contract,
+    validate_qualification_cost_contract,
+    validate_qualification_cost_ledger,
 )
 from chemworld.eval.work_ii_formal import (
     authorize_formal_preflight,
@@ -67,6 +71,40 @@ def test_formal_cost_contract_covers_initial_and_all_resume_token_envelopes() ->
 def test_formal_cost_contract_rejects_ceiling_below_retry_hard_cap() -> None:
     with pytest.raises(ValueError, match="below the frozen all-attempt cost cap"):
         _contract(ceiling=15.0)
+
+
+def test_qualification_cost_contract_and_attempt_ledger_cover_all_resumes() -> None:
+    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    contract = build_qualification_cost_contract(
+        ROOT,
+        manifest,
+        qualification_currency_ceiling_usd=0.5,
+        pricing_source="https://provider.example/pricing",
+        pricing_observed_at="2026-08-10T12:00:00+08:00",
+        cache_hit_input_usd_per_million=0.0028,
+        cache_miss_input_usd_per_million=0.14,
+        output_usd_per_million=0.28,
+    )
+    ledger = build_qualification_cost_ledger(
+        manifest,
+        contract,
+        {"opaque": 2, "aligned_nominal": 2, "misindexed_nominal": 2},
+    )
+
+    assert validate_qualification_cost_contract(ROOT, manifest, contract) == []
+    assert contract["initial_schedule"] == {
+        "provider_attempt_count": 3,
+        "token_caps": {
+            "input_tokens": 7_200_000,
+            "uncached_input_tokens": 960_000,
+            "output_tokens": 72_000,
+        },
+        "cost_cap_usd": 0.172032,
+    }
+    assert contract["all_infrastructure_resumes"]["cost_cap_usd"] == 0.344064
+    assert ledger["provider_attempt_count"] == 6
+    assert ledger["reserved_cost_usd"] == 0.344064
+    assert validate_qualification_cost_ledger(manifest, contract, ledger) == []
 
 
 def test_formal_cost_contract_rejects_rehashed_semantic_tampering() -> None:

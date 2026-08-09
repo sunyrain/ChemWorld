@@ -24,14 +24,14 @@ from chemworld.eval.work_ii_blind import (
     build_blind_evaluation_plan,
     validate_blind_evaluation_plan,
 )
+from chemworld.eval.work_ii_cost import validate_qualification_cost_ledger
 from chemworld.eval.work_ii_formal import (
-    FORMAL_ARMS,
+    build_checkpoint_contract as _checkpoint_contract,
+)
+from chemworld.eval.work_ii_formal import (
     build_formal_preflight,
     validate_formal_bindings,
     validate_formal_preflight,
-)
-from chemworld.eval.work_ii_formal import (
-    build_checkpoint_contract as _checkpoint_contract,
 )
 from chemworld.eval.work_ii_process_profile import (
     build_work_ii_execution_artifacts,
@@ -40,6 +40,7 @@ from chemworld.eval.work_ii_qualification import (
     METHOD_QUALIFICATION_REPORT_VERSION,
     REQUIRED_CELL_QUALIFICATION_CHECKS,
     method_qualification_report_sha256,
+    validate_qualification_attempt_authorization,
     validate_qualification_execution_authorization,
 )
 from chemworld.tasks import get_task
@@ -143,19 +144,27 @@ def _qualification_execution_context(
     config_path: Path,
     world_seed: int,
     arms: list[str],
-) -> tuple[dict[str, Any], dict[str, Any]] | None:
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]] | None:
     execute = bool(getattr(args, "qualification_execution", False))
     authorization_value = getattr(args, "qualification_authorization", None)
+    attempt_value = getattr(args, "qualification_attempt_authorization", None)
+    ledger_value = getattr(args, "qualification_cost_ledger", None)
     if not execute:
-        if authorization_value is not None:
+        if any(value is not None for value in (authorization_value, attempt_value, ledger_value)):
             raise RuntimeError(
-                "--qualification-authorization requires --qualification-execution"
+                "qualification authorization inputs require --qualification-execution"
             )
         return None
     if getattr(args, "formal_manifest", None) is not None:
         raise RuntimeError("qualification execution cannot also be a formal cell")
     if authorization_value is None:
         raise RuntimeError("qualification execution requires --qualification-authorization")
+    if attempt_value is None:
+        raise RuntimeError(
+            "qualification execution requires --qualification-attempt-authorization"
+        )
+    if ledger_value is None:
+        raise RuntimeError("qualification execution requires --qualification-cost-ledger")
     authorization_path = Path(authorization_value).resolve()
     try:
         relative_authorization = authorization_path.relative_to(ROOT.resolve()).as_posix()
@@ -163,22 +172,67 @@ def _qualification_execution_context(
         raise RuntimeError("qualification authorization must be inside the repository") from error
     authorization = _load(authorization_path)
     manifest = build_formal_preflight(ROOT, DEFAULT_DESIGN, DEFAULT_ANALYSIS)
-    errors = validate_qualification_execution_authorization(authorization, manifest)
+    errors = validate_qualification_execution_authorization(ROOT, authorization, manifest)
     if errors:
         raise RuntimeError("qualification execution authorization failed: " + "; ".join(errors))
+    attempt_path = Path(attempt_value).resolve()
+    ledger_path = Path(ledger_value).resolve()
+    for path, label in (
+        (attempt_path, "qualification attempt authorization"),
+        (ledger_path, "qualification cost ledger"),
+    ):
+        try:
+            path.relative_to(ROOT.resolve())
+        except ValueError as error:
+            raise RuntimeError(f"{label} must be inside the repository") from error
+    attempt = _load(attempt_path)
+    attempt_errors = validate_qualification_attempt_authorization(
+        attempt, authorization
+    )
+    if attempt_errors:
+        raise RuntimeError(
+            "qualification attempt authorization failed: "
+            + "; ".join(attempt_errors)
+        )
+    ledger = _load(ledger_path)
+    cost_contract = authorization.get("qualification_currency_budget")
+    if not isinstance(cost_contract, Mapping):
+        raise RuntimeError("qualification authorization lacks its cost contract")
+    ledger_errors = validate_qualification_cost_ledger(
+        manifest, cost_contract, ledger
+    )
+    if ledger_errors:
+        raise RuntimeError(
+            "qualification cost ledger failed: " + "; ".join(ledger_errors)
+        )
+    if attempt.get("qualification_cost_ledger_sha256") != ledger.get(
+        "qualification_cost_ledger_sha256"
+    ):
+        raise RuntimeError("qualification attempt does not bind the current cost ledger")
     schedule = authorization["qualification_schedule"]
     if (
         config_path.resolve() != (ROOT / str(schedule["campaign_config_path"])).resolve()
         or file_sha256(config_path) != schedule["campaign_config_sha256"]
         or world_seed != schedule["world_seed"]
-        or arms != list(FORMAL_ARMS)
-        or getattr(args, "prior_arm", None) is not None
+        or len(arms) != 1
+        or arms[0] != attempt.get("arm")
+        or getattr(args, "prior_arm", None) != arms[0]
     ):
-        raise RuntimeError("qualification execution differs from its exact authorized triplet")
+        raise RuntimeError("qualification execution differs from its parent-authorized arm")
     return authorization, {
         "path": relative_authorization,
         "sha256": file_sha256(authorization_path),
         "authorization_sha256": authorization["authorization_sha256"],
+    }, {
+        "path": attempt_path.relative_to(ROOT.resolve()).as_posix(),
+        "sha256": file_sha256(attempt_path),
+        "attempt_authorization_sha256": attempt["attempt_authorization_sha256"],
+        "qualification_cost_ledger_path": ledger_path.relative_to(
+            ROOT.resolve()
+        ).as_posix(),
+        "qualification_cost_ledger_sha256": ledger[
+            "qualification_cost_ledger_sha256"
+        ],
     }
 
 
@@ -611,6 +665,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             cell_root=cell_root,
             progress_path=progress_path,
         )
+        if qualification_context is not None:
+            row["qualification_attempt_authorization_binding"] = (
+                qualification_context[2]
+            )
+            write_json_atomic(cell_root / "summary.json", row)
         if formal_cell is not None:
             row["formal_cell"] = formal_cell
             row["formal_result"] = True
@@ -663,6 +722,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "qualification_execution_authorization_binding": (
             qualification_context[1] if qualification_context is not None else None
         ),
+        "qualification_attempt_authorization_binding": (
+            qualification_context[2] if qualification_context is not None else None
+        ),
         "config_sha256": canonical_json_sha256(config),
         "config_file_sha256": file_sha256(config_path),
         "world_seed": world_seed,
@@ -688,6 +750,8 @@ def main() -> int:
     parser.add_argument("--allow-formal-execution", action="store_true")
     parser.add_argument("--qualification-execution", action="store_true")
     parser.add_argument("--qualification-authorization", type=Path)
+    parser.add_argument("--qualification-attempt-authorization", type=Path)
+    parser.add_argument("--qualification-cost-ledger", type=Path)
     args = parser.parse_args()
     report = run(args)
     print(

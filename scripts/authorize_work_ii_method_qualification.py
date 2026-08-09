@@ -29,6 +29,11 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--currency-ceiling-usd", type=float)
     parser.add_argument("--approved-at")
+    parser.add_argument("--pricing-source")
+    parser.add_argument("--pricing-observed-at")
+    parser.add_argument("--cache-hit-input-usd-per-million", type=float)
+    parser.add_argument("--cache-miss-input-usd-per-million", type=float)
+    parser.add_argument("--output-usd-per-million", type=float)
     parser.add_argument("--provider-contract-confirmed-by-user", action="store_true")
     parser.add_argument("--credential-rotation-confirmed-by-user", action="store_true")
     parser.add_argument("--check", action="store_true")
@@ -44,6 +49,11 @@ def main() -> int:
             (
                 args.currency_ceiling_usd is not None,
                 args.approved_at is not None,
+                args.pricing_source is not None,
+                args.pricing_observed_at is not None,
+                args.cache_hit_input_usd_per_million is not None,
+                args.cache_miss_input_usd_per_million is not None,
+                args.output_usd_per_million is not None,
                 args.provider_contract_confirmed_by_user,
                 args.credential_rotation_confirmed_by_user,
             )
@@ -58,6 +68,21 @@ def main() -> int:
             missing.append("--currency-ceiling-usd")
         if not args.approved_at:
             missing.append("--approved-at")
+        for value, flag in (
+            (args.pricing_source, "--pricing-source"),
+            (args.pricing_observed_at, "--pricing-observed-at"),
+            (
+                args.cache_hit_input_usd_per_million,
+                "--cache-hit-input-usd-per-million",
+            ),
+            (
+                args.cache_miss_input_usd_per_million,
+                "--cache-miss-input-usd-per-million",
+            ),
+            (args.output_usd_per_million, "--output-usd-per-million"),
+        ):
+            if value is None:
+                missing.append(flag)
         if not args.provider_contract_confirmed_by_user:
             missing.append("--provider-contract-confirmed-by-user")
         if not args.credential_rotation_confirmed_by_user:
@@ -68,11 +93,21 @@ def main() -> int:
                 + ", ".join(missing)
             )
         authorization = build_qualification_execution_authorization(
+            ROOT,
             manifest,
             currency_ceiling_usd=float(args.currency_ceiling_usd),
             approved_at=str(args.approved_at),
+            pricing_source=str(args.pricing_source),
+            pricing_observed_at=str(args.pricing_observed_at),
+            cache_hit_input_usd_per_million=float(
+                args.cache_hit_input_usd_per_million
+            ),
+            cache_miss_input_usd_per_million=float(
+                args.cache_miss_input_usd_per_million
+            ),
+            output_usd_per_million=float(args.output_usd_per_million),
         )
-    errors = validate_qualification_execution_authorization(authorization, manifest)
+    errors = validate_qualification_execution_authorization(ROOT, authorization, manifest)
     if errors:
         raise RuntimeError("invalid method-qualification authorization: " + "; ".join(errors))
     if not args.check:
@@ -85,6 +120,9 @@ def main() -> int:
                 "currency_ceiling_usd": authorization["user_authorization"][
                     "currency_ceiling_usd"
                 ],
+                "all_attempt_cost_cap_usd": authorization[
+                    "qualification_currency_budget"
+                ]["all_infrastructure_resumes"]["cost_cap_usd"],
                 "authorization_sha256": authorization["authorization_sha256"],
                 "credentials_present": authorization["user_authorization"][
                     "credentials_present"

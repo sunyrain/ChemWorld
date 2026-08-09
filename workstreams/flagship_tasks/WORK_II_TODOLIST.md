@@ -609,6 +609,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   必须绑定 provider/model、价格来源与 cache-hit/cache-miss/output 单价，并按五个 task config 自动重建 75 次初始
   和 150 次全基础设施 resume 的 token/cost hard cap。formal parent runner 在每次 provider process launch 前先
   预留该 cell 的完整 token-envelope 成本，超过正式 ceiling 时在调用前拒绝，未知实际账单不会降低预留额。
+  qualification 现使用独立的三臂 parent runner，同样在每次 launch 前预留完整 token envelope；计划 3 次、
+  每臂最多 2 次、总硬上限 6 次，且资格预算和正式矩阵预算不得互相挪用。
   仍需由用户批准可验证价格下的正式货币硬上限，并用最终合格的 current-method runner 校准 expected ETA，故
   W2-07 保持 `DOING`。
 
@@ -764,8 +766,14 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   DeepSeek qualification-v2 因只覆盖 opaque 单臂且 provider/sampling contract 不同而不合格。
   readiness 内部校验已通过且执行 0 次 provider call。真实运行现必须先由
   `scripts/authorize_work_ii_method_qualification.py` 生成 credential-free、用户确认 provider/凭据轮换/
-  USD 上限的 pre-call authorization；runner 只有带 `--qualification-execution` 与该 authorization 才会把
-  report 标记为可资格验证。普通 development report 即使成功也不能进入资格收据。通过的三臂 report 使用
+  USD 上限、定价来源/时间及 cache-hit/cache-miss/output 单价的 pre-call authorization；
+  `scripts/run_work_ii_method_qualification_triplet.py` 是唯一三臂执行入口，要求显式
+  `--execute --allow-provider-execution`，并在每个 provider process 前写入不可变的 attempt authorization 与
+  cost-ledger snapshot。父 runner 并行启动当前缺失的三臂，每臂最多一次纯基础设施 resume；一旦出现任何
+  trajectory evidence 即写成 completed/right-censored 终态，禁止 replacement。resume 会重验连续 attempt
+  journal、预算快照、终态回执和 report-to-terminal 绑定，只补未形成 trajectory 的缺失臂；三臂终态已写入但
+  report 尚未写入的中断可在不新增 provider call 的情况下恢复。普通 development runner 即使成功也不能进入
+  资格收据。通过的三臂 report 使用
   v0.3 schema，并由 `scripts/build_work_ii_method_qualification_receipt.py` 逐项复核 pricing source、observed
   cost、用户 ceiling、三臂 lifecycle/replay/audit/provider receipts 后生成 v0.3 receipt。三个生成器在缺少
   用户输入、真实报告或价格证据时均已验证 fail-closed 且不会创建文件。真实三臂资格仍等待 provider 合同、

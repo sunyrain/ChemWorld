@@ -185,6 +185,7 @@ _SOURCE_PATHS = (
     "scripts/build_work_ii_preregistration_freeze_receipt.py",
     "scripts/run_work_ii_campaign_pilot.py",
     "scripts/run_work_ii_formal_matrix.py",
+    "scripts/run_work_ii_method_qualification_triplet.py",
     "scripts/run_work_ii_method_qualification.py",
     "pyproject.toml",
     "uv.lock",

@@ -9,10 +9,14 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
-from chemworld.eval.work_ii_formal import validate_formal_bindings
+from chemworld.eval.work_ii_formal import FORMAL_ARMS, validate_formal_bindings
 
 FORMAL_COST_CONTRACT_VERSION = "chemworld-work-ii-formal-cost-contract-0.1"
 FORMAL_COST_LEDGER_VERSION = "chemworld-work-ii-formal-cost-ledger-0.1"
+QUALIFICATION_COST_CONTRACT_VERSION = (
+    "chemworld-work-ii-qualification-cost-contract-0.1"
+)
+QUALIFICATION_COST_LEDGER_VERSION = "chemworld-work-ii-qualification-cost-ledger-0.1"
 
 
 def _self_hash(payload: Mapping[str, Any], field: str) -> str:
@@ -65,11 +69,296 @@ def formal_cost_ledger_sha256(ledger: Mapping[str, Any]) -> str:
     return _self_hash(ledger, "formal_cost_ledger_sha256")
 
 
+def qualification_cost_contract_sha256(contract: Mapping[str, Any]) -> str:
+    return _self_hash(contract, "qualification_cost_contract_sha256")
+
+
+def qualification_cost_ledger_sha256(ledger: Mapping[str, Any]) -> str:
+    return _self_hash(ledger, "qualification_cost_ledger_sha256")
+
+
 def _base_preflight_sha256(manifest: Mapping[str, Any]) -> object:
     authorization = manifest.get("authorization_bindings")
     if isinstance(authorization, Mapping):
         return authorization.get("base_preflight_sha256")
     return manifest.get("preflight_sha256")
+
+
+def _qualification_campaign(
+    root: Path,
+    manifest: Mapping[str, Any],
+) -> tuple[str, dict[str, Any], str, str]:
+    contract = manifest.get("method_qualification_contract")
+    contract = contract if isinstance(contract, Mapping) else {}
+    task_id = str(contract.get("qualification_task_id", ""))
+    task_bindings = manifest.get("task_bindings")
+    task_bindings = task_bindings if isinstance(task_bindings, list) else []
+    matches = [
+        row
+        for row in task_bindings
+        if isinstance(row, Mapping) and row.get("task_id") == task_id
+    ]
+    if len(matches) != 1:
+        raise ValueError("formal manifest lacks one qualification task binding")
+    campaign = matches[0].get("campaign_config")
+    if not isinstance(campaign, Mapping):
+        raise ValueError("qualification task lacks its campaign binding")
+    relative = campaign.get("path")
+    digest = campaign.get("sha256")
+    if not isinstance(relative, str) or not isinstance(digest, str):
+        raise ValueError("qualification campaign binding is incomplete")
+    path = (root / relative).resolve()
+    if file_sha256(path) != digest:
+        raise ValueError("qualification campaign binding is stale")
+    return task_id, _load_object(path), relative, digest
+
+
+def build_qualification_cost_contract(
+    root: Path,
+    manifest: Mapping[str, Any],
+    *,
+    qualification_currency_ceiling_usd: float,
+    pricing_source: str,
+    pricing_observed_at: str,
+    cache_hit_input_usd_per_million: float,
+    cache_miss_input_usd_per_million: float,
+    output_usd_per_million: float,
+) -> dict[str, Any]:
+    """Build the pre-call reservation contract for all qualification attempts."""
+
+    root = root.resolve()
+    binding_errors = validate_formal_bindings(root, manifest)
+    if binding_errors:
+        raise ValueError("formal bindings are invalid: " + "; ".join(binding_errors))
+    ceiling = _finite_float(qualification_currency_ceiling_usd, positive=True)
+    rates = (
+        _finite_float(cache_hit_input_usd_per_million),
+        _finite_float(cache_miss_input_usd_per_million),
+        _finite_float(output_usd_per_million),
+    )
+    if ceiling is None:
+        raise ValueError("qualification currency ceiling must be finite and positive")
+    if any(rate is None for rate in rates) or not any(float(rate or 0.0) > 0 for rate in rates):
+        raise ValueError("qualification pricing rates must be finite, non-negative and non-zero")
+    if not isinstance(pricing_source, str) or not pricing_source.strip():
+        raise ValueError("qualification pricing source is required")
+    if not isinstance(pricing_observed_at, str) or not pricing_observed_at.strip():
+        raise ValueError("qualification pricing observation timestamp is required")
+    hit_rate, miss_rate, output_rate = (float(rate) for rate in rates if rate is not None)
+    task_id, config, relative, digest = _qualification_campaign(root, manifest)
+    resources = config.get("method_resources")
+    resources = resources if isinstance(resources, Mapping) else {}
+    input_cap = int(resources.get("input_token_limit", -1))
+    uncached_cap = int(resources.get("uncached_input_token_limit", -1))
+    output_cap = int(resources.get("output_token_limit", -1))
+    per_attempt_cost = _cost_usd(
+        input_tokens=input_cap,
+        uncached_input_tokens=uncached_cap,
+        output_tokens=output_cap,
+        cache_hit_input_usd_per_million=hit_rate,
+        cache_miss_input_usd_per_million=miss_rate,
+        output_usd_per_million=output_rate,
+    )
+    method_contract = manifest.get("method_qualification_contract")
+    method_contract = method_contract if isinstance(method_contract, Mapping) else {}
+    initial_attempts = len(FORMAL_ARMS)
+    per_arm_attempt_cap = 1 + int(
+        method_contract.get("maximum_infrastructure_resume_attempts_per_cell", -1)
+    )
+    hard_attempts = initial_attempts * per_arm_attempt_cap
+    if (
+        initial_attempts != int(method_contract.get("qualification_cell_count", -1))
+        or hard_attempts != int(method_contract.get("maximum_total_provider_attempts", -1))
+        or per_arm_attempt_cap != 2
+    ):
+        raise ValueError("qualification provider-attempt contract drifted")
+
+    def envelope(attempts: int) -> dict[str, Any]:
+        return {
+            "provider_attempt_count": attempts,
+            "token_caps": {
+                "input_tokens": input_cap * attempts,
+                "uncached_input_tokens": uncached_cap * attempts,
+                "output_tokens": output_cap * attempts,
+            },
+            "cost_cap_usd": round(per_attempt_cost * attempts, 12),
+        }
+
+    initial = envelope(initial_attempts)
+    hard = envelope(hard_attempts)
+    if ceiling < float(hard["cost_cap_usd"]):
+        raise ValueError(
+            "qualification currency ceiling is below the frozen all-attempt cost cap "
+            f"({ceiling} < {hard['cost_cap_usd']})"
+        )
+    provider = manifest.get("provider_contract")
+    provider = provider if isinstance(provider, Mapping) else {}
+    contract: dict[str, Any] = {
+        "schema_version": QUALIFICATION_COST_CONTRACT_VERSION,
+        "currency": "USD",
+        "provider_id": provider.get("id"),
+        "model_id": provider.get("model"),
+        "provider_contract_sha256": canonical_json_sha256(provider),
+        "formal_preflight_sha256": _base_preflight_sha256(manifest),
+        "method_qualification_contract_sha256": manifest.get(
+            "method_qualification_contract_sha256"
+        ),
+        "qualification_task_id": task_id,
+        "campaign_config_path": relative,
+        "campaign_config_sha256": digest,
+        "prior_arms": list(FORMAL_ARMS),
+        "per_arm_provider_attempt_hard_cap": per_arm_attempt_cap,
+        "per_attempt_token_caps": {
+            "input_tokens": input_cap,
+            "uncached_input_tokens": uncached_cap,
+            "output_tokens": output_cap,
+        },
+        "per_attempt_cost_cap_usd": per_attempt_cost,
+        "pricing": {
+            "source": pricing_source,
+            "observed_at": pricing_observed_at,
+            "unit": "usd_per_million_tokens",
+            "cache_hit_input": hit_rate,
+            "cache_miss_input": miss_rate,
+            "output": output_rate,
+        },
+        "initial_schedule": initial,
+        "all_infrastructure_resumes": hard,
+        "qualification_currency_ceiling_usd": ceiling,
+        "currency_headroom_over_all_attempts_usd": round(
+            ceiling - float(hard["cost_cap_usd"]), 12
+        ),
+        "runtime_enforcement": {
+            "reserve_full_token_cost_before_each_provider_process_launch": True,
+            "missing_infrastructure_only_resume": True,
+            "reject_launch_if_reservations_exceed_ceiling": True,
+            "unknown_or_missing_actual_billing_never_reduces_reservation": True,
+        },
+    }
+    contract["qualification_cost_contract_sha256"] = (
+        qualification_cost_contract_sha256(contract)
+    )
+    return contract
+
+
+def validate_qualification_cost_contract(
+    root: Path,
+    manifest: Mapping[str, Any],
+    contract: Mapping[str, Any],
+) -> list[str]:
+    """Rebuild and validate the qualification price/token envelope."""
+
+    errors: list[str] = []
+    if contract.get("schema_version") != QUALIFICATION_COST_CONTRACT_VERSION:
+        errors.append("unexpected Work II qualification cost contract schema")
+    if contract.get("qualification_cost_contract_sha256") != (
+        qualification_cost_contract_sha256(contract)
+    ):
+        errors.append("Work II qualification cost contract self-hash mismatch")
+    pricing = contract.get("pricing")
+    pricing = pricing if isinstance(pricing, Mapping) else {}
+    try:
+        ceiling = _finite_float(
+            contract.get("qualification_currency_ceiling_usd"), positive=True
+        )
+        hit_rate = _finite_float(pricing.get("cache_hit_input"))
+        miss_rate = _finite_float(pricing.get("cache_miss_input"))
+        output_rate = _finite_float(pricing.get("output"))
+        if ceiling is None or hit_rate is None or miss_rate is None or output_rate is None:
+            raise ValueError("qualification pricing values are missing or invalid")
+        rebuilt = build_qualification_cost_contract(
+            root,
+            manifest,
+            qualification_currency_ceiling_usd=ceiling,
+            pricing_source=str(pricing.get("source", "")),
+            pricing_observed_at=str(pricing.get("observed_at", "")),
+            cache_hit_input_usd_per_million=hit_rate,
+            cache_miss_input_usd_per_million=miss_rate,
+            output_usd_per_million=output_rate,
+        )
+    except (OSError, TypeError, ValueError) as error:
+        errors.append(f"Work II qualification cost contract cannot be rebuilt: {error}")
+    else:
+        if dict(contract) != rebuilt:
+            errors.append("Work II qualification cost contract differs from deterministic rebuild")
+    return errors
+
+
+def build_qualification_cost_ledger(
+    manifest: Mapping[str, Any],
+    contract: Mapping[str, Any],
+    provider_attempt_counts_by_arm: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Reserve the full token envelope for each qualification process launch."""
+
+    allowed = set(FORMAL_ARMS)
+    cap = int(contract.get("per_arm_provider_attempt_hard_cap", -1))
+    cost = _finite_float(contract.get("per_attempt_cost_cap_usd"))
+    if cap != 2 or cost is None:
+        raise ValueError("qualification cost ledger lacks its per-attempt contract")
+    counts: dict[str, int] = {}
+    for arm, raw_count in provider_attempt_counts_by_arm.items():
+        if arm not in allowed:
+            raise ValueError(f"qualification cost ledger contains an unknown arm: {arm}")
+        if isinstance(raw_count, bool) or not isinstance(raw_count, int):
+            raise ValueError(f"qualification cost ledger has a non-integer count: {arm}")
+        if raw_count < 0 or raw_count > cap:
+            raise ValueError(f"qualification provider-attempt cap exceeded: {arm}")
+        counts[arm] = raw_count
+    reserved = round(sum(counts.values()) * cost, 12)
+    ceiling_value = _finite_float(
+        contract.get("qualification_currency_ceiling_usd"), positive=True
+    )
+    if ceiling_value is None:
+        raise ValueError("qualification cost ledger lacks a positive ceiling")
+    ledger: dict[str, Any] = {
+        "schema_version": QUALIFICATION_COST_LEDGER_VERSION,
+        "qualification_cost_contract_sha256": contract.get(
+            "qualification_cost_contract_sha256"
+        ),
+        "formal_preflight_sha256": _base_preflight_sha256(manifest),
+        "provider_attempt_count": sum(counts.values()),
+        "provider_attempt_counts_by_arm": {
+            arm: counts.get(arm, 0) for arm in FORMAL_ARMS
+        },
+        "reserved_cost_usd": reserved,
+        "qualification_currency_ceiling_usd": ceiling_value,
+        "remaining_unreserved_usd": round(ceiling_value - reserved, 12),
+        "within_ceiling": reserved <= ceiling_value,
+        "reservation_semantics": "full_frozen_token_cap_per_launched_provider_process",
+    }
+    ledger["qualification_cost_ledger_sha256"] = qualification_cost_ledger_sha256(
+        ledger
+    )
+    return ledger
+
+
+def validate_qualification_cost_ledger(
+    manifest: Mapping[str, Any],
+    contract: Mapping[str, Any],
+    ledger: Mapping[str, Any],
+) -> list[str]:
+    """Validate a persisted qualification reservation ledger by deterministic rebuild."""
+
+    errors: list[str] = []
+    if ledger.get("schema_version") != QUALIFICATION_COST_LEDGER_VERSION:
+        errors.append("unexpected Work II qualification cost ledger schema")
+    if ledger.get("qualification_cost_ledger_sha256") != (
+        qualification_cost_ledger_sha256(ledger)
+    ):
+        errors.append("Work II qualification cost ledger self-hash mismatch")
+    counts = ledger.get("provider_attempt_counts_by_arm")
+    if not isinstance(counts, Mapping):
+        errors.append("Work II qualification cost ledger lacks attempt counts")
+        return errors
+    try:
+        rebuilt = build_qualification_cost_ledger(manifest, contract, counts)
+    except (TypeError, ValueError) as error:
+        errors.append(f"Work II qualification cost ledger cannot be rebuilt: {error}")
+    else:
+        if dict(ledger) != rebuilt:
+            errors.append("Work II qualification cost ledger differs from deterministic rebuild")
+    return errors
 
 
 def build_formal_cost_contract(
@@ -338,9 +627,17 @@ def build_formal_cost_ledger(
 __all__ = [
     "FORMAL_COST_CONTRACT_VERSION",
     "FORMAL_COST_LEDGER_VERSION",
+    "QUALIFICATION_COST_CONTRACT_VERSION",
+    "QUALIFICATION_COST_LEDGER_VERSION",
     "build_formal_cost_contract",
     "build_formal_cost_ledger",
+    "build_qualification_cost_contract",
+    "build_qualification_cost_ledger",
     "formal_cost_contract_sha256",
     "formal_cost_ledger_sha256",
+    "qualification_cost_contract_sha256",
+    "qualification_cost_ledger_sha256",
     "validate_formal_cost_contract",
+    "validate_qualification_cost_contract",
+    "validate_qualification_cost_ledger",
 ]

@@ -22,7 +22,7 @@
   },
   "formal_execution_authorized": false,
   "formal_participant_outcomes_before_authorization": 0,
-  "formal_preflight_sha256": "b67daeb7b0a2d6ebcb145e112a5e41cd78107e8d64ec556b98e278110a03306d",
+  "formal_preflight_sha256": "224dd2af8cfc8aa6cbb28ae205cb27c312c512dd3b3400de5c343475c37cd3df",
   "formal_result": false,
   "held_out_evaluator_contract_sha256": "d78c285f1c4cfac87129d7cf9a6c657c3aa8a8a23da18c8d40ecbbb81becf6b9",
   "historical_evidence_assessment": [
@@ -100,13 +100,15 @@
   "provider_execution_allowed": false,
   "qualification_schedule": {
     "authorization_builder": "scripts/authorize_work_ii_method_qualification.py",
-    "authorization_schema": "chemworld-work-ii-method-qualification-execution-authorization-0.1",
+    "authorization_schema": "chemworld-work-ii-method-qualification-execution-authorization-0.2",
     "campaign_config": {
       "hash_kind": "file_sha256",
       "path": "configs/benchmark/work_ii_campaign_pilot.json",
       "sha256": "3d5b22431fff3be0ff84b1097ca9c454f39cf50303b142f69dfdc612890ea30b"
     },
+    "missing_only_resume": true,
     "output_scope": "runs/development",
+    "per_arm_provider_attempt_hard_cap": 2,
     "prior_arms": [
       "opaque",
       "aligned_nominal",
@@ -116,16 +118,18 @@
     "receipt_schema": "chemworld-work-ii-method-qualification-receipt-0.3",
     "report_schema": "chemworld-work-ii-campaign-pilot-report-0.3",
     "required_execution_flags": [
-      "--qualification-execution",
-      "--qualification-authorization"
+      "--execute",
+      "--authorization",
+      "--allow-provider-execution"
     ],
-    "runner": "scripts/run_work_ii_campaign_pilot.py",
+    "runner": "scripts/run_work_ii_method_qualification_triplet.py",
+    "runtime_cost_reservation_required": true,
     "task_id": "electrochemical-conversion",
     "triplet_failure_semantics": "finish_all_three_arms_then_fail_qualification",
     "world_cohort": "development_and_qualification",
     "world_seed": 0
   },
-  "readiness_sha256": "bdb185c342821af57935f39278504f09492d61c9a96eef030cbe49f3b94462a1",
+  "readiness_sha256": "830bd90d2bf84231a684ed36e4539edc8ca9b5a4a5eff6f7a8aa8529254b2d21",
   "schema_version": "chemworld-work-ii-method-qualification-readiness-0.1",
   "status": "passed_provider_execution_blocked"
 }
