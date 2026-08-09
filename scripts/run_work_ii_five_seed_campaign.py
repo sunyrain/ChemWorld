@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run one configured Work II task for five world seeds with heartbeats."""
+"""Run one configured Work II task for one or five world seeds with heartbeats."""
 
 from __future__ import annotations
 
@@ -76,11 +76,11 @@ def _heartbeat(
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
     if git_worktree_dirty(ROOT):
-        raise RuntimeError("five-seed provider execution requires a clean committed worktree")
+        raise RuntimeError("provider execution requires a clean committed worktree")
     output = args.output.resolve()
     progress = args.progress_file.resolve()
     if output.exists():
-        raise FileExistsError(f"refusing to overwrite five-seed output: {output}")
+        raise FileExistsError(f"refusing to overwrite provider output: {output}")
     output.mkdir(parents=True)
     config = json.loads(args.config.resolve().read_text(encoding="utf-8"))
     if not isinstance(config, dict) or not isinstance(config.get("prior_arms"), dict):
@@ -100,15 +100,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             raise RuntimeError("configured provider API-key file is not available")
     arms = list(config["prior_arms"])
     if len(arms) != 3:
-        raise ValueError("five-seed execution requires exactly three prior arms")
+        raise ValueError("provider execution requires exactly three prior arms")
     configured_concurrency = int(config.get("execution", {}).get("max_concurrency", 0))
     if configured_concurrency != 3:
         raise ValueError("campaign config must freeze execution.max_concurrency=3")
     if int(args.max_concurrency) != 3:
-        raise ValueError("the frozen five-seed execution requires max_concurrency=3")
+        raise ValueError("the frozen execution requires max_concurrency=3")
     seeds = [int(seed) for seed in args.world_seed]
-    if len(seeds) != 5 or len(set(seeds)) != 5:
-        raise ValueError("five-seed execution requires exactly five distinct world seeds")
+    if len(seeds) not in {1, 5} or len(set(seeds)) != len(seeds):
+        raise ValueError("execution requires one pilot seed or five distinct world seeds")
     total_cells = len(seeds) * 3
     completed_cells = 0
     started = perf_counter()
@@ -299,6 +299,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "provider_id": provider.get("id"),
         "model": provider.get("model"),
         "world_seeds": seeds,
+        "execution_scope": "pilot_seed_triplet" if len(seeds) == 1 else "five_seed_task_block",
         "expected_cell_count": total_cells,
         "completed_cell_count": completed_cells,
         "completed_seed_count": len(seed_reports),
@@ -332,7 +333,7 @@ def main() -> int:
     parser.add_argument(
         "--world-seed",
         type=int,
-        nargs=5,
+        nargs="+",
         default=[0, 1, 2, 3, 4],
     )
     parser.add_argument("--heartbeat-interval-s", type=float, default=30.0)
