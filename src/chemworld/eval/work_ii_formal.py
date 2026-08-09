@@ -553,8 +553,44 @@ def build_formal_preflight(
         errors.append("analysis population prior arms differ from the formal design")
 
     world_cohort = _object(design.get("world_cohort"), "world_cohort")
+    development = _object(
+        world_cohort.get("development_and_qualification"),
+        "world_cohort.development_and_qualification",
+    )
     public = _object(world_cohort.get("public_formal"), "world_cohort.public_formal")
+    private = _object(
+        world_cohort.get("private_confirmation"),
+        "world_cohort.private_confirmation",
+    )
     task_world_seeds = _object(public.get("task_world_seeds"), "task_world_seeds")
+    development_seeds = [int(item) for item in development.get("world_seeds", [])]
+    public_namespace_start = int(public.get("namespace_start", -1))
+    public_namespace_size = int(public.get("namespace_size", -1))
+    private_namespace_start = int(private.get("namespace_start", -1))
+    private_namespace_size = int(private.get("namespace_size", -1))
+    public_namespace_end = public_namespace_start + public_namespace_size
+    private_namespace_end = private_namespace_start + private_namespace_size
+    namespace_disjoint = (
+        public_namespace_end <= private_namespace_start
+        or private_namespace_end <= public_namespace_start
+    )
+    private_commitment = private.get("sealed_identity_commitment_sha256")
+    if len(development_seeds) != len(set(development_seeds)):
+        errors.append("development/qualification world identities are duplicated")
+    if public_namespace_start < 0 or public_namespace_size <= 0:
+        errors.append("public formal world namespace is invalid")
+    if private_namespace_start < 0 or private_namespace_size <= 0:
+        errors.append("private confirmation world namespace is invalid")
+    if not namespace_disjoint:
+        errors.append("public and private world namespaces overlap")
+    if (
+        not isinstance(private_commitment, str)
+        or len(private_commitment) != 64
+        or any(character not in "0123456789abcdef" for character in private_commitment)
+    ):
+        errors.append("private confirmation identity commitment is invalid")
+    if private.get("identities_tracked_in_git") is not False:
+        errors.append("private confirmation identities must remain outside Git")
     raw_tasks = design.get("tasks")
     if isinstance(raw_tasks, (str, bytes)) or not isinstance(raw_tasks, Sequence):
         raise ValueError("design.tasks must be a list")
@@ -654,6 +690,7 @@ def build_formal_preflight(
     total_query_metric_count = 0
     evaluator_truth_execution_count = 0
     evaluator_truth_query_metric_count = 0
+    public_world_seeds: list[int] = []
     for task_index, task in enumerate(tasks, start=1):
         task_id = str(task.get("task_id"))
         relative_config = str(task.get("campaign_config"))
@@ -689,6 +726,14 @@ def build_formal_preflight(
         seeds = [int(item) for item in task_world_seeds.get(task_id, [])]
         if len(seeds) != 5 or len(set(seeds)) != 5:
             errors.append(f"{task_id}: public world schedule must contain five unique seeds")
+        public_world_seeds.extend(seeds)
+        for seed in seeds:
+            if not public_namespace_start <= seed < public_namespace_end:
+                errors.append(f"{task_id}: public world seed is outside its namespace")
+            if seed in development_seeds:
+                errors.append(f"{task_id}: public world seed overlaps qualification")
+            if private_namespace_start <= seed < private_namespace_end:
+                errors.append(f"{task_id}: public world seed enters the private namespace")
         config_binding = _binding(root, relative_config)
         checkpoint_digest = canonical_json_sha256(opaque_contract)
         query_count = len(opaque_contract["query_metric_contract"])
@@ -720,6 +765,7 @@ def build_formal_preflight(
                     "task_id": task_id,
                     "world_index": world_index,
                     "world_seed": world_seed,
+                    "world_split": "public_formal",
                     "prior_arm": arm,
                     "campaign_config_path": relative_config,
                     "campaign_config_sha256": config_binding["sha256"],
@@ -751,6 +797,8 @@ def build_formal_preflight(
         errors.append("formal schedule does not contain 75 unique cells")
     if len(cluster_ids) != 25:
         errors.append("formal schedule does not contain 25 independent world clusters")
+    if len(public_world_seeds) != 25 or len(set(public_world_seeds)) != 25:
+        errors.append("public formal world schedule does not contain 25 unique identities")
     if int(population.get("scheduled_public_cells", -1)) != len(cells):
         errors.append("analysis cell denominator differs from the generated schedule")
     if int(population.get("independent_task_world_clusters", -1)) != len(cluster_ids):
@@ -802,6 +850,25 @@ def build_formal_preflight(
             "private_identity_exposed_to_participant_or_manifest": False,
             "evaluator_truth_exposed_to_participant": False,
         },
+        "world_split_contract": {
+            "manifest_split": "public_formal",
+            "development_and_qualification_world_seeds": development_seeds,
+            "public_formal": {
+                "namespace_start": public_namespace_start,
+                "namespace_size": public_namespace_size,
+                "world_identity_count": len(set(public_world_seeds)),
+            },
+            "private_confirmation": {
+                "namespace_start": private_namespace_start,
+                "namespace_size": private_namespace_size,
+                "sealed_identity_commitment_sha256": private_commitment,
+                "identities_present_in_manifest": False,
+            },
+            "development_public_identity_disjoint": not bool(
+                set(development_seeds) & set(public_world_seeds)
+            ),
+            "public_private_namespace_disjoint": namespace_disjoint,
+        },
         "expected_counts": {
             "tasks": len(tasks),
             "independent_task_world_clusters": len(cluster_ids),
@@ -850,6 +917,90 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
     counts = report.get("expected_counts")
     if not isinstance(counts, Mapping) or counts.get("participant_cells") != len(cells):
         errors.append("formal preflight cell count is inconsistent")
+    for cell in cells:
+        if not isinstance(cell, Mapping):
+            errors.append("formal preflight contains a malformed cell")
+            continue
+        if cell.get("cell_key_sha256") != _cell_key_hash(cell):
+            errors.append(f"formal cell self-hash mismatch: {cell.get('cell_id')}")
+    split = report.get("world_split_contract")
+    if not isinstance(split, Mapping):
+        errors.append("formal preflight world-split contract is missing")
+    else:
+        public = split.get("public_formal")
+        private = split.get("private_confirmation")
+        development_seeds = split.get("development_and_qualification_world_seeds")
+        if (
+            split.get("manifest_split") != "public_formal"
+            or split.get("development_public_identity_disjoint") is not True
+            or split.get("public_private_namespace_disjoint") is not True
+            or not isinstance(public, Mapping)
+            or not isinstance(private, Mapping)
+            or not isinstance(development_seeds, list)
+        ):
+            errors.append("formal preflight world-split contract is not fail-closed")
+        else:
+            public_start = public.get("namespace_start")
+            public_size = public.get("namespace_size")
+            private_start = private.get("namespace_start")
+            private_size = private.get("namespace_size")
+            ranges_valid = all(
+                isinstance(value, int) and not isinstance(value, bool)
+                for value in (public_start, public_size, private_start, private_size)
+            ) and public_size > 0 and private_size > 0
+            if not ranges_valid:
+                errors.append("formal preflight world namespaces are invalid")
+            else:
+                public_end = public_start + public_size
+                private_end = private_start + private_size
+                if not (
+                    public_end <= private_start or private_end <= public_start
+                ):
+                    errors.append("formal preflight public/private namespaces overlap")
+                raw_cell_seeds = [
+                    cell.get("world_seed")
+                    for cell in cells
+                    if isinstance(cell, Mapping)
+                ]
+                cell_seeds = {
+                    seed
+                    for seed in raw_cell_seeds
+                    if isinstance(seed, int) and not isinstance(seed, bool)
+                }
+                if len(cell_seeds) != 25 or public.get("world_identity_count") != 25:
+                    errors.append("formal preflight public identity denominator is invalid")
+                if any(
+                    not isinstance(seed, int)
+                    or isinstance(seed, bool)
+                    or not public_start <= seed < public_end
+                    or private_start <= seed < private_end
+                    or seed in development_seeds
+                    for seed in raw_cell_seeds
+                ):
+                    errors.append("formal preflight contains a cross-split world identity")
+            commitment = private.get("sealed_identity_commitment_sha256")
+            if (
+                private.get("identities_present_in_manifest") is not False
+                or not isinstance(commitment, str)
+                or len(commitment) != 64
+            ):
+                errors.append("formal preflight private identity boundary is invalid")
+        if any(
+            isinstance(cell, Mapping)
+            and (
+                cell.get("world_split") != "public_formal"
+                or any(
+                    field in cell
+                    for field in (
+                        "private_identity",
+                        "private_world_id",
+                        "private_world_seed",
+                    )
+                )
+            )
+            for cell in cells
+        ):
+            errors.append("formal preflight cell crossed the public/private boundary")
     prompt = report.get("prompt_boundary")
     if not isinstance(prompt, Mapping) or any(
         prompt.get(key) is not False

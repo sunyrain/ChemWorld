@@ -363,7 +363,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 | W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DOING | W2-03 |
 | W2-07 | P0 | 功效、资源和成本审计 | DOING | W2-04、W2-05、W2-06 |
 | W2-08 | P0 | Registered Report/常规投稿路线决策 | 未开始 | W2-03–W2-07 |
-| W2-09 | P0 | 完成 manifest-driven formal runner | DOING | W2-04–W2-07 |
+| W2-09 | P0 | 完成 manifest-driven formal runner | DONE | W2-04–W2-07 |
 | W2-10 | P0 | provider/scaffold shakedown 与方法资格验证 | DOING | W2-09 |
 | W2-11 | P0 | 冻结 preregistration 与不可变执行包 | 未开始 | W2-08、W2-10 |
 | W2-12 | P0 | 执行 public formal matrix | 未开始 | W2-11 |
@@ -543,9 +543,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] 已认领；负责人：`Codex /root`
 - 状态：
   - [ ] 未开始
-  - [x] 进行中
+  - [ ] 进行中
   - [ ] 阻塞
-  - [ ] 完成
+  - [x] 完成
 - 优先级：P0
 - 目标：先冻结一个可审计的持久 session execution unit，再决定是否引入第二 scaffold axis；避免把
   model、session、scaffold 和 transport 完全捆绑。
@@ -650,7 +650,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] discovery campaign 共享 resource card/ledger、跨 experiment resource snapshot 和 lifecycle reserve；
   - [x] 第一篇 19-coordinate contract 的 Work II adapter，排除 evaluator-owned held-out/blind operations；
   - [x] exact replay、resource replay 和 hidden-boundary audits；
-  - [ ] public/private split enforcement；
+  - [x] public/private split enforcement；
   - [x] formal report generator：校验并连接 75 个 terminal receipts、25 个 evaluator-truth packs、
     completed cells 的 blind packs，保留 failed/right-censored cells，并生成 75 个 cell rows 与
     25 个 H1/H2/H3 cluster contrasts；统计推断仍属于 W2-14。
@@ -658,7 +658,7 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [x] 不依赖 notebook 或人工逐单元操作；
   - [x] 中断后不覆盖、不替换、不重复计数；
   - [x] private identities 不进入 agent prompt；
-  - [ ] 每个估计量可追溯到 immutable trajectory records；
+  - [x] 每个估计量可追溯到 immutable trajectory records；
   - [x] fail-closed tests 覆盖 provider failure、partial action 和 ledger mismatch。
 - 备注：typed prior/evidence/belief/law-summary schema 与 held-out query validator 保留。旧
   Direct Responses runner、配置、tests 和 mock/real/breadth 报告均已归档；其 15/15 breadth
@@ -698,7 +698,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   已按实际 planned experiment count 生成第一篇同名 19-coordinate profile；Work II 未注册的两个固定阈值坐标
   保留为显式 null/inapplicable。每个坐标绑定 participant step 与 record hash，held-out/blind evaluator operations
   被排除；physical exact replay、逐步 campaign resource-ledger replay 和 participant-visible hidden-boundary audit
-  被合并为 qualification 必需的 execution audit，并由 formal analysis cell row 继续绑定。
+  被合并为 qualification 必需的 execution audit，并由 formal analysis cell row 继续绑定。public formal manifest
+  现逐 cell 冻结 `world_split=public_formal`，验证 25 个 public identities 与 development seeds 不重叠、与
+  private namespace 不相交，并仅携带 private identity commitment；即使重算 cell/manifest hashes，跨 split cell
+  仍被拒绝。`W2-09 — DONE`；optional matched-evidence probe 明确不属于最小正式矩阵，继续延后而不阻塞 runner。
 
 ### W2-10 — provider/scaffold shakedown 与方法资格验证
 

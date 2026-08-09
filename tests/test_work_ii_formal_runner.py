@@ -214,6 +214,7 @@ def test_formal_schedule_is_task_world_arm_ordered_and_unique() -> None:
     assert len({cell["cell_key_sha256"] for cell in cells}) == 75
     assert all(cell["provider_session_limit"] == 1 for cell in cells)
     assert all(cell["provider_attempt_limit"] == 2 for cell in cells)
+    assert all(cell["world_split"] == "public_formal" for cell in cells)
     assert all(cell["participant_final_recommendation_count"] == 1 for cell in cells)
     assert all(cell["blind_validation_execution_count"] == 6 for cell in cells)
     assert all(
@@ -221,6 +222,27 @@ def test_formal_schedule_is_task_world_arm_ordered_and_unique() -> None:
         for cell in cells
     )
     assert not any("private" in cell for cell in cells)
+
+
+def test_formal_preflight_rejects_rehashed_cross_split_cell() -> None:
+    report = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    tampered = deepcopy(report)
+    cell = tampered["cells"][0]
+    cell["world_split"] = "private_confirmation"
+    cell["world_seed"] = 2_000_000_001
+    cell["cell_key_sha256"] = canonical_json_sha256(
+        {key: value for key, value in cell.items() if key != "cell_key_sha256"}
+    )
+    tampered["preflight_sha256"] = canonical_json_sha256(
+        {
+            key: value
+            for key, value in tampered.items()
+            if key != "preflight_sha256"
+        }
+    )
+    errors = validate_formal_preflight(tampered)
+    assert "formal preflight contains a cross-split world identity" in errors
+    assert "formal preflight cell crossed the public/private boundary" in errors
 
 
 def test_all_formal_task_configs_use_neutral_checkpoint_ids() -> None:
