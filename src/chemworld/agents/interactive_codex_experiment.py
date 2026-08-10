@@ -14,6 +14,7 @@ import threading
 from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
 from pathlib import Path
+from time import perf_counter
 from typing import IO, Any, Literal, Protocol
 from uuid import uuid4
 
@@ -360,6 +361,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         process_factory: ProcessFactory | None = None,
         request_timeout_s: float = 600.0,
         finalization_timeout_s: float = DEFAULT_FINALIZATION_TIMEOUT_S,
+        session_wall_time_limit_s: float | None = None,
+        max_recovered_mcp_tool_failures: int | None = None,
+        max_provider_error_events: int | None = None,
         pre_action_restart_limit: int = 1,
         max_initial_prompt_bytes: int = 65_536,
         max_tool_output_bytes: int = 32_768,
@@ -384,11 +388,17 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             model_provider_auth_mode == "experimental_bearer_token"
             and not model_provider_api_key_file
         ):
-            raise ValueError(
-                "experimental_bearer_token auth requires model_provider_api_key_file"
-            )
+            raise ValueError("experimental_bearer_token auth requires model_provider_api_key_file")
         if request_timeout_s <= 0 or finalization_timeout_s <= 0:
             raise ValueError("timeouts must be positive")
+        if session_wall_time_limit_s is not None and session_wall_time_limit_s <= 0:
+            raise ValueError("session_wall_time_limit_s must be positive")
+        for name, value in (
+            ("max_recovered_mcp_tool_failures", max_recovered_mcp_tool_failures),
+            ("max_provider_error_events", max_provider_error_events),
+        ):
+            if value is not None and value < 0:
+                raise ValueError(f"{name} must be non-negative")
         if pre_action_restart_limit < 0:
             raise ValueError("pre_action_restart_limit must be non-negative")
         if max_initial_prompt_bytes < 4_096:
@@ -451,6 +461,17 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._use_isolated_codex_home = False
         self.request_timeout_s = float(request_timeout_s)
         self.finalization_timeout_s = float(finalization_timeout_s)
+        self.session_wall_time_limit_s = (
+            None if session_wall_time_limit_s is None else float(session_wall_time_limit_s)
+        )
+        self.max_recovered_mcp_tool_failures = (
+            None
+            if max_recovered_mcp_tool_failures is None
+            else int(max_recovered_mcp_tool_failures)
+        )
+        self.max_provider_error_events = (
+            None if max_provider_error_events is None else int(max_provider_error_events)
+        )
         self.pre_action_restart_limit = int(pre_action_restart_limit)
         self.max_initial_prompt_bytes = int(max_initial_prompt_bytes)
         self.session_scope = session_scope
@@ -505,6 +526,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._session_action_count = 0
         self._belief_snapshots: list[dict[str, Any]] = []
         self._cumulative_usage = _empty_usage()
+        self._completed_session_elapsed_s = 0.0
+        self._recovered_mcp_tool_failure_count = 0
+        self._provider_error_event_count = 0
         self._session_receipts: list[dict[str, Any]] = []
         self._completed_tool_events: list[dict[str, Any]] = []
         self._last_agent_snapshot = self.workspace.snapshot_agent_files()
@@ -799,6 +823,16 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         active = self._session is not None
         provider_usage_complete = bool(not active and self._all_session_usage_complete)
         usage = dict(self._cumulative_usage)
+        operational = self._active_session_operational_audit()
+        session_elapsed_s = self._completed_session_elapsed_s + float(
+            operational["session_elapsed_s"]
+        )
+        recovered_mcp_tool_failure_count = self._recovered_mcp_tool_failure_count + int(
+            operational["recovered_mcp_tool_failure_count"]
+        )
+        provider_error_event_count = self._provider_error_event_count + int(
+            operational["provider_error_event_count"]
+        )
         return {
             "schema_version": "chemworld-method-resource-usage-0.1",
             "accounting_complete": False,
@@ -836,6 +870,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "training_environment_step_count": 0,
             "cpu_time_s": 0.0,
             "gpu_time_s": 0.0,
+            "active_session_elapsed_s": operational["session_elapsed_s"],
+            "session_elapsed_s": round(session_elapsed_s, 3),
+            "recovered_mcp_tool_failure_count": recovered_mcp_tool_failure_count,
+            "provider_error_event_count": provider_error_event_count,
+            "session_operational_limits": operational["limits"],
             "model_provenance": {
                 "provider": self.model_provider_name,
                 "provider_id": self.model_provider,
@@ -872,6 +911,93 @@ class InteractiveCodexExperimentAgent(BaseAgent):
 
     def provider_receipts(self) -> list[dict[str, Any]]:
         return deepcopy(self._session_receipts)
+
+    def _active_session_remaining_wall_time_s(self) -> float | None:
+        if self._session is None or self.session_wall_time_limit_s is None:
+            return None
+        started_at = self._session.get("started_at")
+        if not isinstance(started_at, (int, float)):
+            return 0.0
+        return max(0.0, self.session_wall_time_limit_s - (perf_counter() - float(started_at)))
+
+    def _active_session_operational_audit(
+        self,
+        *,
+        monitor_snapshot: Mapping[str, Any] | None = None,
+        mcp_tool_calls: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        if self._session is None:
+            return {
+                "session_elapsed_s": 0.0,
+                "recovered_mcp_tool_failure_count": 0,
+                "provider_error_event_count": 0,
+                "limits": {
+                    "session_wall_time_limit_s": self.session_wall_time_limit_s,
+                    "max_recovered_mcp_tool_failures": self.max_recovered_mcp_tool_failures,
+                    "max_provider_error_events": self.max_provider_error_events,
+                },
+            }
+        snapshot = (
+            dict(monitor_snapshot)
+            if isinstance(monitor_snapshot, Mapping)
+            else self._session["monitor"].snapshot()
+        )
+        calls = (
+            mcp_tool_calls
+            if mcp_tool_calls is not None
+            else self.workspace.mcp_tool_call_audit(str(self._session["session_id"]))
+        )
+        started_at = self._session.get("started_at")
+        elapsed = (
+            max(0.0, perf_counter() - float(started_at))
+            if isinstance(started_at, (int, float))
+            else 0.0
+        )
+        failed_calls = [
+            item
+            for item in calls
+            if isinstance(item, Mapping) and item.get("status") != "completed"
+        ]
+        event_counts = snapshot.get("event_counts", {})
+        provider_error_count = (
+            int(event_counts.get("error", 0)) + int(event_counts.get("turn.failed", 0))
+            if isinstance(event_counts, Mapping)
+            else 0
+        )
+        if provider_error_count == 0:
+            provider_errors = snapshot.get("provider_errors", [])
+            provider_error_count = len(provider_errors) if isinstance(provider_errors, list) else 0
+        return {
+            "session_elapsed_s": elapsed,
+            "recovered_mcp_tool_failure_count": len(failed_calls),
+            "provider_error_event_count": provider_error_count,
+            "limits": {
+                "session_wall_time_limit_s": self.session_wall_time_limit_s,
+                "max_recovered_mcp_tool_failures": self.max_recovered_mcp_tool_failures,
+                "max_provider_error_events": self.max_provider_error_events,
+            },
+        }
+
+    def _operational_limit_failure(self, audit: Mapping[str, Any]) -> str | None:
+        elapsed = float(audit.get("session_elapsed_s", 0.0))
+        failed_calls = int(audit.get("recovered_mcp_tool_failure_count", 0))
+        provider_errors = int(audit.get("provider_error_event_count", 0))
+        if self.session_wall_time_limit_s is not None and elapsed > self.session_wall_time_limit_s:
+            return "session_wall_time_limit"
+        if (
+            self.max_recovered_mcp_tool_failures is not None
+            and failed_calls > self.max_recovered_mcp_tool_failures
+        ):
+            return "max_recovered_mcp_tool_failures"
+        if (
+            self.max_provider_error_events is not None
+            and provider_errors > self.max_provider_error_events
+        ):
+            return "max_provider_error_events"
+        return None
+
+    def _active_session_limit_failure(self) -> str | None:
+        return self._operational_limit_failure(self._active_session_operational_audit())
 
     def close(self) -> None:
         """Stop an unfinished process; the official runner may call this on interruption."""
@@ -922,6 +1048,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             instructions_path=instructions_path,
             schema_path=schema_path,
         )
+        session_started_at = perf_counter()
         process = self._process_factory(
             command,
             prompt,
@@ -936,6 +1063,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "accepted_action_count": 0,
             "prompt_byte_count": len(prompt.encode("utf-8")),
             "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+            "started_at": session_started_at,
         }
         self._session_action_count = 0
 
@@ -946,34 +1074,60 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         while True:
             if self._session is None:
                 raise InteractiveCodexExperimentError("Codex session is not active")
+            limit_failure = self._active_session_limit_failure()
+            if limit_failure is not None:
+                self._record_interrupted_session(reason=limit_failure)
+                raise InteractiveCodexExperimentError(
+                    "Codex session crossed a frozen operational limit before the next "
+                    "executable operation; no fallback action was emitted: " + limit_failure
+                )
             session_id = str(self._session["session_id"])
             monitor = self._session["monitor"]
             if not isinstance(monitor, _CodexEventMonitor):
                 raise TypeError("invalid Codex monitor")
+            wait_timeout_s = self.request_timeout_s
+            remaining_wall_time_s = self._active_session_remaining_wall_time_s()
+            if remaining_wall_time_s is not None:
+                wait_timeout_s = min(wait_timeout_s, max(0.001, remaining_wall_time_s))
             try:
                 request = self.workspace.wait_for_request(
                     session_id=session_id,
                     expected_step=self._session_action_count + 1,
-                    timeout_s=self.request_timeout_s,
+                    timeout_s=wait_timeout_s,
                     process_alive=monitor.alive,
                     handled_request_ids=self._handled_request_ids,
                 )
             except (ExperimentCodexIPCError, TimeoutError) as error:
+                limit_failure = self._active_session_limit_failure()
+                failure_reason = limit_failure or type(error).__name__
                 accepted = int(self._session.get("accepted_action_count", 0))
                 can_restart = (
-                    accepted == 0 and self._pre_action_restarts < self.pre_action_restart_limit
+                    accepted == 0
+                    and self._pre_action_restarts < self.pre_action_restart_limit
+                    and limit_failure is None
                 )
                 self._record_interrupted_session(
-                    reason=type(error).__name__,
+                    reason=failure_reason,
                 )
                 if can_restart:
                     self._pre_action_restarts += 1
                     self._start_session(current_packet)
                     continue
-                raise InteractiveCodexExperimentError(
-                    "Codex failed before the next executable operation; "
+                message = (
+                    "Codex session crossed a frozen operational limit before the next "
+                    "executable operation; no fallback action was emitted: " + limit_failure
+                    if limit_failure is not None
+                    else "Codex failed before the next executable operation; "
                     "no fallback action was emitted"
-                ) from error
+                )
+                raise InteractiveCodexExperimentError(message) from error
+            limit_failure = self._active_session_limit_failure()
+            if limit_failure is not None:
+                self._record_interrupted_session(reason=limit_failure)
+                raise InteractiveCodexExperimentError(
+                    "Codex session crossed a frozen operational limit before action "
+                    "acceptance; no fallback action was emitted: " + limit_failure
+                )
             return request
 
     def _finalize_session(self, *, terminal_reason: str) -> None:
@@ -982,7 +1136,14 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         monitor = self._session["monitor"]
         if not isinstance(monitor, _CodexEventMonitor):
             raise TypeError("invalid Codex monitor")
-        result = monitor.wait(self.finalization_timeout_s)
+        finalization_timeout_s = self.finalization_timeout_s
+        remaining_wall_time_s = self._active_session_remaining_wall_time_s()
+        if remaining_wall_time_s is not None:
+            if remaining_wall_time_s <= 0.0:
+                self._record_interrupted_session(reason="session_wall_time_limit")
+                return
+            finalization_timeout_s = min(finalization_timeout_s, remaining_wall_time_s)
+        result = monitor.wait(finalization_timeout_s)
         integrity_error: ExperimentCodexIPCError | None = None
         try:
             self._verify_experiment_tool()
@@ -998,6 +1159,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             )
         session_id = str(self._session["session_id"])
         mcp_tool_calls = self.workspace.mcp_tool_call_audit(session_id)
+        operational = self._active_session_operational_audit(
+            monitor_snapshot=result,
+            mcp_tool_calls=mcp_tool_calls,
+        )
         belief_snapshots = self.workspace.belief_snapshot_audit(session_id)
         committed_recommendation = self.workspace.final_recommendation_audit(session_id)
         if belief_snapshots:
@@ -1064,9 +1229,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "final_recommendation_source": final_recommendation_source,
             "final_recommendation_commit": committed_recommendation,
             "final_recommendation_sha256": (
-                hashlib.sha256(
-                    _canonical_json(final_recommendation).encode("utf-8")
-                ).hexdigest()
+                hashlib.sha256(_canonical_json(final_recommendation).encode("utf-8")).hexdigest()
                 if final_recommendation is not None
                 else None
             ),
@@ -1084,9 +1247,18 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "experiment_tool_integrity_verified_after_session": integrity_error is None,
             "lab_tool_integrity_verified_after_session": integrity_error is None,
             "private_reasoning_retained": False,
+            "session_elapsed_s": operational["session_elapsed_s"],
+            "recovered_mcp_tool_failure_count": operational["recovered_mcp_tool_failure_count"],
+            "provider_error_event_count": operational["provider_error_event_count"],
+            "session_operational_limits": operational["limits"],
         }
         self._session_receipts.append(to_builtin(receipt))
         self._sessions_completed += 1
+        self._completed_session_elapsed_s += float(operational["session_elapsed_s"])
+        self._recovered_mcp_tool_failure_count += int(
+            operational["recovered_mcp_tool_failure_count"]
+        )
+        self._provider_error_event_count += int(operational["provider_error_event_count"])
         if self._last_decision is not None:
             self._last_decision["completed_session_receipt"] = to_builtin(receipt)
         self._retire_active_session()
@@ -1122,6 +1294,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         tool_events = snapshot.get("tool_events")
         session_id = str(self._session["session_id"])
         mcp_tool_calls = self.workspace.mcp_tool_call_audit(session_id)
+        operational = self._active_session_operational_audit(
+            monitor_snapshot=snapshot,
+            mcp_tool_calls=mcp_tool_calls,
+        )
         receipt_tool_events = (
             [item for item in tool_events if isinstance(item, dict)]
             if isinstance(tool_events, list)
@@ -1156,9 +1332,18 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             ),
             "lab_tool_integrity_verified_after_session": (experiment_tool_integrity_verified),
             "private_reasoning_retained": False,
+            "session_elapsed_s": operational["session_elapsed_s"],
+            "recovered_mcp_tool_failure_count": operational["recovered_mcp_tool_failure_count"],
+            "provider_error_event_count": operational["provider_error_event_count"],
+            "session_operational_limits": operational["limits"],
         }
         self._session_receipts.append(to_builtin(receipt))
         self._sessions_completed += 1
+        self._completed_session_elapsed_s += float(operational["session_elapsed_s"])
+        self._recovered_mcp_tool_failure_count += int(
+            operational["recovered_mcp_tool_failure_count"]
+        )
+        self._provider_error_event_count += int(operational["provider_error_event_count"])
         self._retire_active_session()
         self._session = None
 
@@ -1328,13 +1513,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 )
             if self.model_provider_preferred_auth_method:
                 fields.append(
-                    "preferred_auth_method="
-                    + json.dumps(self.model_provider_preferred_auth_method)
+                    "preferred_auth_method=" + json.dumps(self.model_provider_preferred_auth_method)
                 )
             if self.model_provider_forced_login_method:
                 fields.append(
-                    "forced_login_method="
-                    + json.dumps(self.model_provider_forced_login_method)
+                    "forced_login_method=" + json.dumps(self.model_provider_forced_login_method)
                 )
             fields.append(f"model_providers.{self.model_provider}.supports_websockets=false")
             rendered: list[str] = []
@@ -1885,11 +2068,7 @@ def _final_recommendation_from_payload(value: Any) -> dict[str, Any] | None:
         return deepcopy(nested)
     index = value.get("selected_experiment_index")
     rationale = value.get("selection_rationale")
-    if (
-        isinstance(index, int)
-        and not isinstance(index, bool)
-        and isinstance(rationale, str)
-    ):
+    if isinstance(index, int) and not isinstance(index, bool) and isinstance(rationale, str):
         return {
             "selected_experiment_index": index,
             "selection_rationale": rationale,

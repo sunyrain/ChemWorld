@@ -108,3 +108,34 @@ def test_readiness_receipt_rejects_tampering_and_stale_commit(
     errors = validate_development_readiness_receipt(tmp_path, receipt, config, [0])
     assert "readiness receipt self-hash mismatch" in errors
     assert "readiness receipt is not passing" in errors
+
+
+def test_five_seed_readiness_requires_bound_seed0_pilot(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    config = tmp_path / "config.json"
+    config.write_text("{}", encoding="utf-8")
+    trajectory = tmp_path / "trajectory.jsonl"
+    trajectory.write_text('{"step":1}\n', encoding="utf-8")
+    receipt = tmp_path / "readiness.json"
+    _write_receipt(tmp_path, config, trajectory, receipt)
+    payload = json.loads(receipt.read_text(encoding="utf-8"))
+    payload["schedule"]["world_seeds"] = [0, 1, 2, 3, 4]
+    payload["schedule"]["expected_cell_count"] = 15
+    payload["readiness_sha256"] = canonical_json_sha256(
+        {key: value for key, value in payload.items() if key != "readiness_sha256"}
+    )
+    receipt.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(
+        "chemworld.eval.work_ii_development_readiness.git_source_commit",
+        lambda _root: "test-commit",
+    )
+
+    errors = validate_development_readiness_receipt(
+        tmp_path,
+        receipt,
+        config,
+        [0, 1, 2, 3, 4],
+    )
+    assert "five-seed readiness lacks a passing seed-0 expansion pilot" in errors

@@ -54,6 +54,7 @@ REQUIRED_CELL_QUALIFICATION_CHECKS = (
     "exact_replay",
     "execution_audit",
     "provider_usage_reconciled",
+    "provider_operational_limits_reconciled",
 )
 
 

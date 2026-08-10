@@ -20,7 +20,7 @@ from chemworld.eval.provenance import (
 from chemworld.eval.verify import verify_records
 from chemworld.eval.work_ii_process_profile import build_work_ii_execution_artifacts
 
-WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.1"
+WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.2"
 _PRIOR_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 
 
@@ -93,6 +93,16 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
         and int(method.get("input_token_limit", 0)) > 0
         and int(method.get("uncached_input_token_limit", 0)) > 0
         and int(method.get("output_token_limit", 0)) > 0,
+        "bounded_session_and_recovery_limits": float(provider.get("session_wall_time_limit_s", 0.0))
+        > 0.0
+        and float(provider.get("session_wall_time_limit_s", 0.0))
+        <= float(method.get("wall_time_limit_s", 0.0))
+        and isinstance(provider.get("max_recovered_mcp_tool_failures"), int)
+        and int(provider.get("max_recovered_mcp_tool_failures", -1)) >= 0
+        and isinstance(provider.get("max_provider_error_events"), int)
+        and int(provider.get("max_provider_error_events", -1)) >= 0
+        and float(execution.get("pilot_expansion_headroom_fraction", 0.0)) >= 0.1
+        and float(execution.get("pilot_expansion_headroom_fraction", 1.0)) < 1.0,
         "responses_codex_harness_contract": provider.get("wire_api") == "responses"
         and provider.get("model") == "deepseek-v4-flash"
         and provider.get("reasoning_effort") == "high",
@@ -101,6 +111,149 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
         and models[0].get("supported_in_api") is True,
         "credential_file_exists_and_is_git_ignored": api_key_path.is_file()
         and _git_ignored(root, api_key_path),
+    }
+
+
+def _load_object(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} must contain an object")
+    return value
+
+
+def audit_seed0_expansion_pilot(
+    config: Mapping[str, Any],
+    pilot_root: Path | None,
+) -> dict[str, Any] | None:
+    """Audit the exact three-arm pilot that authorizes a five-seed expansion."""
+
+    if pilot_root is None:
+        return None
+    root = pilot_root.resolve()
+    matrix_path = root / "matrix_report.json"
+    failures: list[str] = []
+    bindings: list[dict[str, Any]] = []
+    try:
+        matrix = _load_object(matrix_path)
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return {
+            "root": root.as_posix(),
+            "passed": False,
+            "failures": [f"pilot matrix is unreadable: {error}"],
+            "bindings": [],
+            "cells": [],
+        }
+    bindings.append({"path": matrix_path.as_posix(), "sha256": file_sha256(matrix_path)})
+    if matrix.get("all_cells_completed") is not True:
+        failures.append("pilot matrix did not complete all cells")
+    if matrix.get("world_seeds") != [0] or matrix.get("expected_cell_count") != 3:
+        failures.append("pilot matrix is not exactly seed 0 x three prior arms")
+    if matrix.get("task_id") != config.get("task_id"):
+        failures.append("pilot task differs from the campaign config")
+    provider = config.get("provider", {})
+    if matrix.get("provider_id") != provider.get("id") or matrix.get("model") != provider.get(
+        "model"
+    ):
+        failures.append("pilot provider/model differs from the campaign config")
+    method = config.get("method_resources", {})
+    execution = config.get("execution", {})
+    headroom = float(execution.get("pilot_expansion_headroom_fraction", 0.0))
+    accepted_fraction = 1.0 - headroom
+    cells: list[dict[str, Any]] = []
+    for arm in _PRIOR_ARMS:
+        cell_root = root / "seed-0" / arm
+        summary_path = cell_root / "summary.json"
+        trajectory_path = cell_root / "trajectory.jsonl"
+        cell_failures: list[str] = []
+        try:
+            summary = _load_object(summary_path)
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            failures.append(f"{arm}: summary is unreadable: {error}")
+            continue
+        for path in (summary_path, trajectory_path):
+            if path.is_file():
+                bindings.append({"path": path.as_posix(), "sha256": file_sha256(path)})
+            else:
+                cell_failures.append(f"missing {path.name}")
+        analysis = summary.get("analysis", {})
+        usage = summary.get("method_resources", {})
+        qualification = summary.get("qualification", {})
+        receipts = summary.get("provider_receipts", [])
+        receipt = receipts[0] if isinstance(receipts, list) and len(receipts) == 1 else {}
+        records = load_jsonl(trajectory_path) if trajectory_path.is_file() else []
+        replay = verify_records(records, tolerance=0.0).to_dict() if records else {}
+        artifacts = (
+            build_work_ii_execution_artifacts(
+                records,
+                replay,
+                planned_experiment_count=4,
+                terminal_state="completed",
+                hidden_identity={"prior_arm": arm, "world_seed": 0},
+            )
+            if records
+            else None
+        )
+        failed_mcp_calls = [
+            item
+            for item in receipt.get("mcp_tool_calls", [])
+            if isinstance(item, Mapping) and item.get("status") != "completed"
+        ]
+        provider_errors = receipt.get("provider_errors", [])
+        provider_error_count = len(provider_errors) if isinstance(provider_errors, list) else -1
+        elapsed_s = float(summary.get("elapsed_s", float("inf")))
+        observed = {
+            "input_tokens": int(usage.get("input_token_count", -1)),
+            "uncached_input_tokens": int(usage.get("uncached_input_token_count", -1)),
+            "output_tokens": int(usage.get("output_token_count", -1)),
+            "elapsed_s": elapsed_s,
+            "recovered_mcp_tool_failures": len(failed_mcp_calls),
+            "provider_error_events": provider_error_count,
+        }
+        caps = {
+            "input_tokens": int(int(method.get("input_token_limit", 0)) * accepted_fraction),
+            "uncached_input_tokens": int(
+                int(method.get("uncached_input_token_limit", 0)) * accepted_fraction
+            ),
+            "output_tokens": int(int(method.get("output_token_limit", 0)) * accepted_fraction),
+            "elapsed_s": float(provider.get("session_wall_time_limit_s", 0.0)) * accepted_fraction,
+            "recovered_mcp_tool_failures": int(provider.get("max_recovered_mcp_tool_failures", -1)),
+            "provider_error_events": int(provider.get("max_provider_error_events", -1)),
+        }
+        if summary.get("completed") is not True or qualification.get("passed") is not True:
+            cell_failures.append("cell or qualification did not pass")
+        if analysis.get("complete_experiment_count") != 4:
+            cell_failures.append("cell did not complete four experiments")
+        if analysis.get("resource_rejection_count") != 0:
+            cell_failures.append("cell contains a resource rejection")
+        if replay.get("verified") is not True:
+            cell_failures.append("physical replay failed")
+        if artifacts is None or artifacts.get("execution_audit", {}).get("passed") is not True:
+            cell_failures.append("current-code execution audit failed")
+        if usage.get("provider_usage_accounting_complete") is not True:
+            cell_failures.append("provider usage accounting is incomplete")
+        for name, value in observed.items():
+            if value < 0 or value > caps[name]:
+                cell_failures.append(f"{name} lacks the frozen pilot headroom")
+        if cell_failures:
+            failures.extend(f"{arm}: {failure}" for failure in cell_failures)
+        cells.append(
+            {
+                "arm": arm,
+                "passed": not cell_failures,
+                "failures": cell_failures,
+                "observed": observed,
+                "expansion_caps": caps,
+                "record_count": len(records),
+            }
+        )
+    return {
+        "root": root.as_posix(),
+        "source_commit": matrix.get("source_commit"),
+        "headroom_fraction": headroom,
+        "passed": len(cells) == 3 and not failures,
+        "failures": failures,
+        "bindings": bindings,
+        "cells": cells,
     }
 
 
@@ -200,13 +353,18 @@ def build_development_readiness_receipt(
     seeds: Sequence[int],
     historical_roots: Sequence[Path],
     *,
+    pilot_run: Path | None = None,
     progress: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     resolved_config = _resolved_config_path(root, config_path)
     config = json.loads(resolved_config.read_text(encoding="utf-8"))
     checks = _config_checks(root, resolved_config, seeds)
     historical = audit_historical_trajectories(historical_roots, progress=progress)
+    pilot = audit_seed0_expansion_pilot(config, pilot_run)
     checks["historical_current_code_audits_passed"] = historical["all_trajectories_passed"]
+    checks["five_seed_expansion_has_passing_seed0_pilot"] = len(seeds) == 1 or (
+        pilot is not None and pilot.get("passed") is True
+    )
     receipt: dict[str, Any] = {
         "schema_version": WORK_II_DEVELOPMENT_READINESS_VERSION,
         "generated_at": datetime.now(UTC).isoformat(),
@@ -230,6 +388,7 @@ def build_development_readiness_receipt(
         },
         "checks": checks,
         "historical_audit": historical,
+        "seed0_expansion_pilot": pilot,
         "provider_call_count": 0,
         "ready": all(checks.values()) and historical["provider_call_count"] == 0,
     }
@@ -291,12 +450,25 @@ def validate_development_readiness_receipt(
             path = Path(str(row.get("path", "")))
             if not path.is_file() or row.get("sha256") != file_sha256(path):
                 errors.append(f"readiness trajectory binding changed: {path}")
+    pilot = receipt.get("seed0_expansion_pilot")
+    if len(seeds) == 5:
+        if not isinstance(pilot, Mapping) or pilot.get("passed") is not True:
+            errors.append("five-seed readiness lacks a passing seed-0 expansion pilot")
+        else:
+            for row in pilot.get("bindings", []):
+                if not isinstance(row, Mapping):
+                    errors.append("seed-0 pilot binding is malformed")
+                    continue
+                path = Path(str(row.get("path", "")))
+                if not path.is_file() or row.get("sha256") != file_sha256(path):
+                    errors.append(f"seed-0 pilot binding changed: {path}")
     return errors
 
 
 __all__ = [
     "WORK_II_DEVELOPMENT_READINESS_VERSION",
     "audit_historical_trajectories",
+    "audit_seed0_expansion_pilot",
     "build_development_readiness_receipt",
     "validate_development_readiness_receipt",
 ]

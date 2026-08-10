@@ -14,8 +14,8 @@ from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.interactive_codex_experiment import (
     InteractiveCodexExperimentAgent,
     InteractiveCodexExperimentError,
-    _material_information_payload,
     _final_recommendation_from_payload,
+    _material_information_payload,
     _parse_final_payload,
     _public_task_contract,
 )
@@ -24,9 +24,7 @@ from chemworld.agents.interactive_codex_experiment import (
 def test_final_payload_parser_accepts_exact_json_and_one_json_fence() -> None:
     payload = {"status": "campaign_complete", "summary": "done"}
     exact, exact_encoding = _parse_final_payload(json.dumps(payload))
-    fenced, fenced_encoding = _parse_final_payload(
-        "```json\n" + json.dumps(payload) + "\n```"
-    )
+    fenced, fenced_encoding = _parse_final_payload("```json\n" + json.dumps(payload) + "\n```")
 
     assert exact == payload
     assert exact_encoding == "json"
@@ -460,6 +458,14 @@ emit({
 })
 """
 
+_FAKE_NO_REQUEST = r"""
+import json
+import time
+
+print(json.dumps({"type": "thread.started", "thread_id": "fake-stalled-thread"}), flush=True)
+time.sleep(10)
+"""
+
 
 def _fake_process_factory(
     commands: list[list[str]],
@@ -784,6 +790,36 @@ def test_process_exit_before_action_is_fail_closed_after_bounded_restart(
         for receipt in agent.provider_receipts()
     )
     assert agent.workspace.history_path.read_text(encoding="utf-8") == ""
+
+
+def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(
+    tmp_path: Path,
+) -> None:
+    commands: list[list[str]] = []
+    prompts: list[str] = []
+    agent = InteractiveCodexExperimentAgent(
+        workspace=tmp_path / "workspace",
+        role_id="session-wall-limit-test",
+        process_factory=_fake_process_factory(
+            commands,
+            prompts,
+            script=_FAKE_NO_REQUEST,
+        ),
+        request_timeout_s=5.0,
+        finalization_timeout_s=1.0,
+        session_wall_time_limit_s=0.1,
+        pre_action_restart_limit=0,
+    )
+    agent.reset({"task_id": "x", "budget": 1}, seed=0)
+
+    with pytest.raises(InteractiveCodexExperimentError, match="session_wall_time_limit"):
+        agent.act_with_public_view(_context(1, 1), _view())
+
+    receipt = agent.provider_receipts()[0]
+    assert receipt["status"] == "interrupted_before_next_action"
+    assert receipt["failure_type"] == "session_wall_time_limit"
+    assert receipt["session_elapsed_s"] >= 0.1
+    assert agent.method_resource_usage()["provider_usage_pending"] is False
 
 
 def test_lab_tool_tamper_is_rejected_before_action_acceptance(tmp_path: Path) -> None:

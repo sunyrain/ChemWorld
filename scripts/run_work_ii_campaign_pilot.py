@@ -322,12 +322,22 @@ def _qualification(
     process_time_limit_s: float,
     required_operation_counts: Mapping[str, Any],
     required_snapshot_stages: list[str] | None = None,
+    operational_limits: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Apply the frozen per-cell qualification contract fail-closed."""
 
     receipt = receipts[0] if len(receipts) == 1 else {}
     usage = method_resources
     limits = method_resource_limits
+    operational_limits = operational_limits or {}
+    operational_receipt_complete = all(
+        isinstance(receipt.get(field), (int, float)) and not isinstance(receipt.get(field), bool)
+        for field in (
+            "session_elapsed_s",
+            "recovered_mcp_tool_failure_count",
+            "provider_error_event_count",
+        )
+    )
     resources = analysis.get("final_campaign_resources", {})
     resources = resources if isinstance(resources, Mapping) else {}
     state = resources.get("state", {})
@@ -426,6 +436,18 @@ def _qualification(
         and int(usage.get("uncached_input_token_count", 0))
         <= int(limits.get("uncached_input_token_limit", 0))
         and int(usage.get("output_token_count", 0)) <= int(limits.get("output_token_limit", 0)),
+        "provider_operational_limits_reconciled": (
+            not operational_limits
+            or (
+                operational_receipt_complete
+                and float(receipt["session_elapsed_s"])
+                <= float(operational_limits.get("session_wall_time_limit_s", float("inf")))
+                and int(receipt["recovered_mcp_tool_failure_count"])
+                <= int(operational_limits.get("max_recovered_mcp_tool_failures", 0))
+                and int(receipt["provider_error_event_count"])
+                <= int(operational_limits.get("max_provider_error_events", 0))
+            )
+        ),
     }
     if tuple(checks) != REQUIRED_CELL_QUALIFICATION_CHECKS:
         raise RuntimeError("cell qualification checks drifted from the frozen method gate")
@@ -495,6 +517,11 @@ def _run_cell(
             ),
             request_timeout_s=float(provider["request_timeout_s"]),
             finalization_timeout_s=float(provider["finalization_timeout_s"]),
+            session_wall_time_limit_s=float(provider["session_wall_time_limit_s"])
+            if provider.get("session_wall_time_limit_s") is not None
+            else None,
+            max_recovered_mcp_tool_failures=int(provider.get("max_recovered_mcp_tool_failures", 0)),
+            max_provider_error_events=int(provider.get("max_provider_error_events", 0)),
             pre_action_restart_limit=0,
             session_scope="campaign",
             belief_checkpoint_contract=_checkpoint_contract(config, arm),
@@ -506,6 +533,7 @@ def _run_cell(
             if record.event_type in {"experiment_end", "batch_discard"}:
                 completed += 1
             resources = record.info.get("campaign_resources", {})
+            provider_usage = agent.method_resource_usage()
             _progress(
                 progress_path,
                 {
@@ -521,6 +549,27 @@ def _run_cell(
                     "complete_experiments": completed,
                     "target_experiments": target_experiments,
                     "remaining_resources": resources.get("state", {}).get("remaining"),
+                    "provider_usage_pending": provider_usage.get("provider_usage_pending"),
+                    "session_elapsed_s": provider_usage.get("session_elapsed_s"),
+                    "recovered_mcp_tool_failure_count": provider_usage.get(
+                        "recovered_mcp_tool_failure_count"
+                    ),
+                    "provider_error_event_count": provider_usage.get("provider_error_event_count"),
+                    "input_token_count": (
+                        None
+                        if provider_usage.get("provider_usage_pending")
+                        else provider_usage.get("input_token_count")
+                    ),
+                    "uncached_input_token_count": (
+                        None
+                        if provider_usage.get("provider_usage_pending")
+                        else provider_usage.get("uncached_input_token_count")
+                    ),
+                    "output_token_count": (
+                        None
+                        if provider_usage.get("provider_usage_pending")
+                        else provider_usage.get("output_token_count")
+                    ),
                     "elapsed_s": round(perf_counter() - cell_started, 1),
                 },
             )
@@ -613,6 +662,7 @@ def _run_cell(
             )
         ),
         required_snapshot_stages=list(_checkpoint_contract(config, arm)["snapshot_stages"]),
+        operational_limits=provider,
     )
     row = {
         "arm": arm,

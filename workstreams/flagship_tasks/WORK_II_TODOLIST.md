@@ -1038,6 +1038,13 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 - [x] 三任务综合报告已形成：合计 44/45 cells、176/180 experiments、1,547 attempts、1,524
   committed、23 validation failures、0 resource rejection、44/45 exact replay。报告：
   `workstreams/flagship_tasks/reports/work-ii-three-task-five-seed-campaign.md`。
+- [x] 2026-08-10 完成 DeepSeek crystallization seed-0 三臂资源保护 pilot：3/3 cells、12/12
+  experiments、132/132 committed operations、0 resource rejection、3/3 exact replay，matrix wall
+  462.8 s；opaque/aligned 各保留 1 次 recovered MCP checkpoint validation failure，provider error
+  为 0。已冻结 1,800 s session wall、每 cell 最多 1 次 recovered MCP failure、0 provider error 和
+  20% pilot expansion headroom；运行中字段缺失按失败处理，五-seed readiness 必须 hash-bind pilot
+  并以 current code 重放。报告：
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-crystallization-seed0-safety-pilot.md`。
 
 ## 7. 完成定义
 

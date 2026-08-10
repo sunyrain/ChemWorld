@@ -421,6 +421,46 @@ def test_cell_qualification_is_fail_closed() -> None:
     assert failed_usage["passed"] is False
     assert failed_usage["failed_checks"] == ["provider_usage_reconciled"]
 
+    recovered_tool_failures = deepcopy(receipts)
+    recovered_tool_failures[0]["recovered_mcp_tool_failure_count"] = 2
+    recovered_tool_failures[0]["provider_error_event_count"] = 0
+    recovered_tool_failures[0]["session_elapsed_s"] = 100.0
+    failed_operational = _qualification(
+        analysis=analysis,
+        exact_replay=replay,
+        method_resources=method_resources,
+        method_resource_limits=method_resource_limits,
+        receipts=recovered_tool_failures,
+        process_time_limit_s=72_000.0,
+        required_operation_counts={},
+        operational_limits={
+            "session_wall_time_limit_s": 1_800.0,
+            "max_recovered_mcp_tool_failures": 1,
+            "max_provider_error_events": 0,
+        },
+    )
+    assert failed_operational["passed"] is False
+    assert failed_operational["failed_checks"] == ["provider_operational_limits_reconciled"]
+
+    missing_operational_receipt = _qualification(
+        analysis=analysis,
+        exact_replay=replay,
+        method_resources=method_resources,
+        method_resource_limits=method_resource_limits,
+        receipts=receipts,
+        process_time_limit_s=72_000.0,
+        required_operation_counts={},
+        operational_limits={
+            "session_wall_time_limit_s": 1_800.0,
+            "max_recovered_mcp_tool_failures": 1,
+            "max_provider_error_events": 0,
+        },
+    )
+    assert missing_operational_receipt["passed"] is False
+    assert missing_operational_receipt["failed_checks"] == [
+        "provider_operational_limits_reconciled"
+    ]
+
 
 def test_repeated_heartbeats_preserve_current_cell_coordinate() -> None:
     first = _heartbeat(

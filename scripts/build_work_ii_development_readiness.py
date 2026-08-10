@@ -20,6 +20,7 @@ def main() -> int:
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--historical-run", type=Path, action="append", required=True)
     parser.add_argument("--world-seed", type=int, nargs="+", required=True)
+    parser.add_argument("--pilot-run", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -31,6 +32,7 @@ def main() -> int:
         args.config,
         args.world_seed,
         args.historical_run,
+        pilot_run=args.pilot_run,
         progress=progress,
     )
     write_json_atomic(args.output.resolve(), receipt)
@@ -42,6 +44,11 @@ def main() -> int:
                 "provider_call_count": receipt["provider_call_count"],
                 "historical_passed": receipt["historical_audit"]["passed_trajectory_count"],
                 "historical_total": receipt["historical_audit"]["trajectory_count"],
+                "seed0_pilot_passed": (
+                    receipt.get("seed0_expansion_pilot", {}).get("passed")
+                    if isinstance(receipt.get("seed0_expansion_pilot"), dict)
+                    else None
+                ),
                 "output": str(args.output.resolve()),
             },
             ensure_ascii=False,

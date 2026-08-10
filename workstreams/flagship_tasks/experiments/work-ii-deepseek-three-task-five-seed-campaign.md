@@ -123,6 +123,18 @@ uses a fixed 1e-9 absolute tolerance for stock/process-time machine tails while 
 for a 2e-6 true overage. The retained failed block is not reinterpreted; crystallization restarts
 from seed 0 after this repair.
 
+Post-run resource-protection audit (2026-08-10): a detached seed-0 three-arm crystallization pilot
+completed 3/3 cells, 12/12 experiments and 132/132 committed operations in 462.8 s matrix wall time,
+with zero resource rejection and zero provider error events. The opaque and aligned cells each had
+one recovered `commit_belief_snapshot` validation failure; the misindexed cell had none. Maximum
+observed cell usage was 5,033,061 cumulative input, 133,733 uncached input, 50,876 output and 461.7 s
+wall time. These observations freeze a 20% expansion headroom gate together with a 1,800 s live
+session wall limit, at most one recovered MCP failure and zero provider errors. Missing operational
+receipt fields now fail closed. The detailed result and artifact hashes are recorded in
+`workstreams/flagship_tasks/reports/work-ii-deepseek-crystallization-seed0-safety-pilot.md`.
+This block is operational calibration, not a new scientific denominator or authorization to launch
+another five-seed provider run.
+
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
 payloads and private reasoning are not committed.
