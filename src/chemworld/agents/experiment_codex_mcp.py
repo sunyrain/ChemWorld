@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -27,7 +28,7 @@ from chemworld.eval.work_ii_prior_discovery import (
     parse_work_ii_belief_snapshot,
 )
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.7"
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.8"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
@@ -217,6 +218,9 @@ class ChemWorldMCPServer:
         status: str,
         result: Any,
         error_type: str | None,
+        error_code: str | None,
+        error_field_path: str | None,
+        error_detail: str | None,
     ) -> None:
         session_id = self._leaf(str(descriptor["session_id"]), label="session_id")
         _append_jsonl(
@@ -228,6 +232,21 @@ class ChemWorldMCPServer:
                 "duration_ms": round(duration_ms, 3),
                 "status": status,
                 "error_type": error_type,
+                "error_code": error_code,
+                "error_field_path": error_field_path,
+                "error_detail": error_detail,
+                "error_detail_byte_count": (
+                    len(error_detail.encode("utf-8", errors="replace"))
+                    if error_detail is not None
+                    else 0
+                ),
+                "error_detail_sha256": (
+                    hashlib.sha256(
+                        error_detail.encode("utf-8", errors="replace")
+                    ).hexdigest()
+                    if error_detail is not None
+                    else None
+                ),
                 "arguments_sha256": hashlib.sha256(_encode(arguments)).hexdigest(),
                 "argument_keys": sorted(arguments) if isinstance(arguments, dict) else [],
                 "result_sha256": hashlib.sha256(_encode(result)).hexdigest(),
@@ -242,6 +261,9 @@ class ChemWorldMCPServer:
         started = time.perf_counter()
         status = "completed"
         error_type: str | None = None
+        error_code: str | None = None
+        error_field_path: str | None = None
+        error_detail: str | None = None
         try:
             if name == "material_information":
                 payload = _read_object(self.reference / "material_information.json")
@@ -269,6 +291,9 @@ class ChemWorldMCPServer:
             detail = str(error).strip()
             status = "failed"
             error_type = type(error).__name__
+            error_detail = detail[:1000] if detail else error_type
+            error_code = self._error_code(error_type, error_detail)
+            error_field_path = self._error_field_path(error_detail)
             result = self._tool_error(
                 f"{type(error).__name__}: {detail[:1000]}"
                 if name in {"step", "commit_belief_snapshot", "commit_final_recommendation"}
@@ -284,8 +309,38 @@ class ChemWorldMCPServer:
             status=status,
             result=result,
             error_type=error_type,
+            error_code=error_code,
+            error_field_path=error_field_path,
+            error_detail=error_detail,
         )
         return result
+
+    @staticmethod
+    def _error_code(error_type: str, detail: str) -> str:
+        lowered = detail.lower()
+        if "decision_audit" in lowered and "required" in lowered:
+            return "missing_decision_audit"
+        if "expected_step" in lowered:
+            return "invalid_expected_step"
+        if "belief" in lowered or "snapshot" in lowered:
+            return "invalid_belief_snapshot"
+        if "final_recommendation" in lowered or "selected_experiment_index" in lowered:
+            return "invalid_final_recommendation"
+        if error_type == "PermissionError":
+            return "atomic_replace_permission_error"
+        if error_type == "ValueError":
+            return "validation_error"
+        return "tool_execution_error"
+
+    @staticmethod
+    def _error_field_path(detail: str) -> str | None:
+        match = re.search(
+            r"(?:snapshot\.|decision_audit\.|prior_assessment\.|law_summary\."
+            r"|predictions\[|action\.|expected_step|selected_experiment_index)"
+            r"[A-Za-z0-9_\.\[\]-]*",
+            detail,
+        )
+        return match.group(0).rstrip(".") if match else None
 
     @staticmethod
     def _tool_error(error_type: str) -> dict[str, Any]:

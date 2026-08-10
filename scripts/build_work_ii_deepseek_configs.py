@@ -33,6 +33,11 @@ def _provider() -> dict[str, Any]:
         "reasoning_effort": "high",
         "request_timeout_s": 1200.0,
         "finalization_timeout_s": 600.0,
+        "session_wall_time_limit_s": 1800.0,
+        "max_recovered_mcp_tool_failures": 3,
+        "max_consecutive_mcp_tool_failures": 1,
+        "max_provider_error_events": 1,
+        "progress_interval_s": 30.0,
     }
 
 
@@ -72,10 +77,18 @@ def derive(source: Path, destination: Path) -> None:
         "parallelization_unit": "same_seed_prior_arm_triplet",
         "within_cell_concurrency": 1,
         "failure_semantics": (
-            "finish the in-flight seed triplet, then stop before the next world seed"
+            "retain cell failures and continue every scheduled seed triplet"
         ),
+        "systemic_failure_semantics": (
+            "stop only when all three arms fail before the first committed operation"
+        ),
+        "pilot_expansion_headroom_fraction": 0.2,
     }
     config["provider"] = _provider()
+    config["qualification"] = {
+        **dict(config.get("qualification", {})),
+        "max_resource_rejections": 1,
+    }
     config["method_resources"] = {
         **dict(config["method_resources"]),
         **_limits(task_id),

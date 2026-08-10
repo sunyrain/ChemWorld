@@ -189,6 +189,8 @@ class _CodexEventMonitor:
         self._tool_events: list[dict[str, Any]] = []
         self._event_counts: dict[str, int] = {}
         self._usage = _empty_usage()
+        self._usage_observed = False
+        self._usage_observation_event_type: str | None = None
         self._thread_id: str | None = None
         self._final_message: str | None = None
         self._stderr_sha256 = hashlib.sha256()
@@ -215,6 +217,8 @@ class _CodexEventMonitor:
             return {
                 "thread_id": self._thread_id,
                 "usage": dict(self._usage),
+                "usage_observed": self._usage_observed,
+                "usage_observation_event_type": self._usage_observation_event_type,
                 "event_counts": dict(self._event_counts),
                 "tool_events": deepcopy(self._tool_events),
                 "stderr_byte_count": self._stderr_byte_count,
@@ -300,8 +304,10 @@ class _CodexEventMonitor:
                 value = event.get("thread_id")
                 if isinstance(value, str):
                     self._thread_id = value
-            if event_type == "turn.completed" and isinstance(event.get("usage"), Mapping):
+            if isinstance(event.get("usage"), Mapping):
                 self._usage = _normalize_usage(event["usage"])
+                self._usage_observed = True
+                self._usage_observation_event_type = event_type
             if event_type != "item.completed" or not isinstance(event.get("item"), Mapping):
                 return
             item = event["item"]
@@ -363,7 +369,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         finalization_timeout_s: float = DEFAULT_FINALIZATION_TIMEOUT_S,
         session_wall_time_limit_s: float | None = None,
         max_recovered_mcp_tool_failures: int | None = None,
+        max_consecutive_mcp_tool_failures: int | None = None,
         max_provider_error_events: int | None = None,
+        session_progress_callback: Callable[[dict[str, Any]], None] | None = None,
+        session_progress_interval_s: float = 30.0,
         pre_action_restart_limit: int = 1,
         max_initial_prompt_bytes: int = 65_536,
         max_tool_output_bytes: int = 32_768,
@@ -395,12 +404,15 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             raise ValueError("session_wall_time_limit_s must be positive")
         for name, value in (
             ("max_recovered_mcp_tool_failures", max_recovered_mcp_tool_failures),
+            ("max_consecutive_mcp_tool_failures", max_consecutive_mcp_tool_failures),
             ("max_provider_error_events", max_provider_error_events),
         ):
             if value is not None and value < 0:
                 raise ValueError(f"{name} must be non-negative")
         if pre_action_restart_limit < 0:
             raise ValueError("pre_action_restart_limit must be non-negative")
+        if session_progress_interval_s <= 0:
+            raise ValueError("session_progress_interval_s must be positive")
         if max_initial_prompt_bytes < 4_096:
             raise ValueError("max_initial_prompt_bytes must be at least 4096")
         if session_scope not in {"experiment", "campaign"}:
@@ -469,9 +481,16 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             if max_recovered_mcp_tool_failures is None
             else int(max_recovered_mcp_tool_failures)
         )
+        self.max_consecutive_mcp_tool_failures = (
+            None
+            if max_consecutive_mcp_tool_failures is None
+            else int(max_consecutive_mcp_tool_failures)
+        )
         self.max_provider_error_events = (
             None if max_provider_error_events is None else int(max_provider_error_events)
         )
+        self.session_progress_callback = session_progress_callback
+        self.session_progress_interval_s = float(session_progress_interval_s)
         self.pre_action_restart_limit = int(pre_action_restart_limit)
         self.max_initial_prompt_bytes = int(max_initial_prompt_bytes)
         self.session_scope = session_scope
@@ -515,6 +534,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._sessions_started = 0
         self._sessions_completed = 0
         self._all_session_usage_complete = True
+        self._all_session_usage_observed = True
         self._pre_action_restarts = 0
         self._handled_request_ids: set[str] = set()
         self._pending_request: IPCRequest | None = None
@@ -528,6 +548,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._cumulative_usage = _empty_usage()
         self._completed_session_elapsed_s = 0.0
         self._recovered_mcp_tool_failure_count = 0
+        self._maximum_consecutive_mcp_tool_failure_count = 0
         self._provider_error_event_count = 0
         self._session_receipts: list[dict[str, Any]] = []
         self._completed_tool_events: list[dict[str, Any]] = []
@@ -822,6 +843,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
     def method_resource_usage(self) -> dict[str, Any]:
         active = self._session is not None
         provider_usage_complete = bool(not active and self._all_session_usage_complete)
+        provider_usage_observed = bool(not active and self._all_session_usage_observed)
         usage = dict(self._cumulative_usage)
         operational = self._active_session_operational_audit()
         session_elapsed_s = self._completed_session_elapsed_s + float(
@@ -829,6 +851,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         )
         recovered_mcp_tool_failure_count = self._recovered_mcp_tool_failure_count + int(
             operational["recovered_mcp_tool_failure_count"]
+        )
+        maximum_consecutive_mcp_tool_failure_count = max(
+            self._maximum_consecutive_mcp_tool_failure_count,
+            int(operational["maximum_consecutive_mcp_tool_failure_count"]),
         )
         provider_error_event_count = self._provider_error_event_count + int(
             operational["provider_error_event_count"]
@@ -839,6 +865,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "provider_usage_pending": active,
             "in_flight_model_call_count": 1 if active else 0,
             "provider_usage_accounting_complete": provider_usage_complete,
+            "provider_usage_observed": provider_usage_observed,
+            "token_counts_observed": provider_usage_observed,
             "provider_call_accounting_complete": True,
             "provider_token_accounting_complete": provider_usage_complete,
             "provider_cache_accounting_complete": provider_usage_complete,
@@ -849,7 +877,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 else (
                     "codex_cli_completed_experiment_turns"
                     if provider_usage_complete
-                    else "codex_cli_incomplete_interrupted_turns"
+                    else (
+                        "codex_cli_incomplete_interrupted_turns_with_partial_usage"
+                        if provider_usage_observed
+                        else "codex_cli_interrupted_before_usage_observation"
+                    )
                 )
             ),
             "model_call_count": self._sessions_started,
@@ -873,6 +905,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "active_session_elapsed_s": operational["session_elapsed_s"],
             "session_elapsed_s": round(session_elapsed_s, 3),
             "recovered_mcp_tool_failure_count": recovered_mcp_tool_failure_count,
+            "maximum_consecutive_mcp_tool_failure_count": (
+                maximum_consecutive_mcp_tool_failure_count
+            ),
             "provider_error_event_count": provider_error_event_count,
             "session_operational_limits": operational["limits"],
             "model_provenance": {
@@ -930,10 +965,15 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             return {
                 "session_elapsed_s": 0.0,
                 "recovered_mcp_tool_failure_count": 0,
+                "current_consecutive_mcp_tool_failure_count": 0,
+                "maximum_consecutive_mcp_tool_failure_count": 0,
                 "provider_error_event_count": 0,
                 "limits": {
                     "session_wall_time_limit_s": self.session_wall_time_limit_s,
                     "max_recovered_mcp_tool_failures": self.max_recovered_mcp_tool_failures,
+                    "max_consecutive_mcp_tool_failures": (
+                        self.max_consecutive_mcp_tool_failures
+                    ),
                     "max_provider_error_events": self.max_provider_error_events,
                 },
             }
@@ -958,6 +998,16 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             for item in calls
             if isinstance(item, Mapping) and item.get("status") != "completed"
         ]
+        current_consecutive_failures = 0
+        maximum_consecutive_failures = 0
+        for item in calls:
+            if isinstance(item, Mapping) and item.get("status") != "completed":
+                current_consecutive_failures += 1
+                maximum_consecutive_failures = max(
+                    maximum_consecutive_failures, current_consecutive_failures
+                )
+            else:
+                current_consecutive_failures = 0
         event_counts = snapshot.get("event_counts", {})
         provider_error_count = (
             int(event_counts.get("error", 0)) + int(event_counts.get("turn.failed", 0))
@@ -970,10 +1020,15 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         return {
             "session_elapsed_s": elapsed,
             "recovered_mcp_tool_failure_count": len(failed_calls),
+            "current_consecutive_mcp_tool_failure_count": current_consecutive_failures,
+            "maximum_consecutive_mcp_tool_failure_count": maximum_consecutive_failures,
             "provider_error_event_count": provider_error_count,
             "limits": {
                 "session_wall_time_limit_s": self.session_wall_time_limit_s,
                 "max_recovered_mcp_tool_failures": self.max_recovered_mcp_tool_failures,
+                "max_consecutive_mcp_tool_failures": (
+                    self.max_consecutive_mcp_tool_failures
+                ),
                 "max_provider_error_events": self.max_provider_error_events,
             },
         }
@@ -981,6 +1036,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
     def _operational_limit_failure(self, audit: Mapping[str, Any]) -> str | None:
         elapsed = float(audit.get("session_elapsed_s", 0.0))
         failed_calls = int(audit.get("recovered_mcp_tool_failure_count", 0))
+        consecutive_failed_calls = int(
+            audit.get("current_consecutive_mcp_tool_failure_count", 0)
+        )
         provider_errors = int(audit.get("provider_error_event_count", 0))
         if self.session_wall_time_limit_s is not None and elapsed > self.session_wall_time_limit_s:
             return "session_wall_time_limit"
@@ -989,6 +1047,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             and failed_calls > self.max_recovered_mcp_tool_failures
         ):
             return "max_recovered_mcp_tool_failures"
+        if (
+            self.max_consecutive_mcp_tool_failures is not None
+            and consecutive_failed_calls > self.max_consecutive_mcp_tool_failures
+        ):
+            return "max_consecutive_mcp_tool_failures"
         if (
             self.max_provider_error_events is not None
             and provider_errors > self.max_provider_error_events
@@ -1067,6 +1130,52 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         }
         self._session_action_count = 0
 
+    def _emit_session_progress(self) -> None:
+        if self.session_progress_callback is None or self._session is None:
+            return
+        monitor = self._session.get("monitor")
+        if not isinstance(monitor, _CodexEventMonitor):
+            return
+        snapshot = monitor.snapshot()
+        audit = self._active_session_operational_audit(monitor_snapshot=snapshot)
+        usage_observed = snapshot.get("usage_observed") is True
+        usage = snapshot.get("usage") if usage_observed else None
+        self.session_progress_callback(
+            to_builtin(
+                {
+                    "event": "provider_session_liveness",
+                    "session_id": self._session.get("session_id"),
+                    "thread_id": snapshot.get("thread_id"),
+                    "session_elapsed_s": round(float(audit["session_elapsed_s"]), 3),
+                    "accepted_action_count": int(
+                        self._session.get("accepted_action_count", 0)
+                    ),
+                    "next_expected_step": self._session_action_count + 1,
+                    "event_counts": snapshot.get("event_counts", {}),
+                    "mcp_tool_call_count": len(
+                        self.workspace.mcp_tool_call_audit(
+                            str(self._session.get("session_id"))
+                        )
+                    ),
+                    "recovered_mcp_tool_failure_count": audit[
+                        "recovered_mcp_tool_failure_count"
+                    ],
+                    "current_consecutive_mcp_tool_failure_count": audit[
+                        "current_consecutive_mcp_tool_failure_count"
+                    ],
+                    "maximum_consecutive_mcp_tool_failure_count": audit[
+                        "maximum_consecutive_mcp_tool_failure_count"
+                    ],
+                    "provider_error_event_count": audit["provider_error_event_count"],
+                    "usage_observed": usage_observed,
+                    "usage_observation_event_type": snapshot.get(
+                        "usage_observation_event_type"
+                    ),
+                    "usage": usage,
+                }
+            )
+        )
+
     def _wait_for_next_request(
         self,
         current_packet: Mapping[str, Any],
@@ -1096,6 +1205,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                     timeout_s=wait_timeout_s,
                     process_alive=monitor.alive,
                     handled_request_ids=self._handled_request_ids,
+                    progress_callback=self._emit_session_progress,
+                    progress_interval_s=self.session_progress_interval_s,
                 )
             except (ExperimentCodexIPCError, TimeoutError) as error:
                 limit_failure = self._active_session_limit_failure()
@@ -1151,6 +1262,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             integrity_error = error
         usage = result.get("usage")
         normalized_usage = usage if isinstance(usage, dict) else _empty_usage()
+        usage_observed = result.get("usage_observed") is True
         _merge_usage(self._cumulative_usage, normalized_usage)
         tool_events = result.get("tool_events")
         if isinstance(tool_events, list):
@@ -1197,6 +1309,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         )
         usage_complete = _usage_complete(normalized_usage)
         self._all_session_usage_complete = self._all_session_usage_complete and usage_complete
+        self._all_session_usage_observed = self._all_session_usage_observed and usage_observed
         receipt = {
             "schema_version": "chemworld-interactive-codex-session-receipt-0.2",
             "session_id": self._session["session_id"],
@@ -1207,6 +1320,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "model_id": self.model,
             "reasoning_effort": self.reasoning_effort,
             "usage": normalized_usage,
+            "usage_observed": usage_observed,
+            "usage_observation_event_type": result.get("usage_observation_event_type"),
+            "usage_unavailable_reason": (
+                None if usage_observed else "codex_cli_completed_without_usage_event"
+            ),
             "usage_complete": usage_complete,
             "prompt_byte_count": self._session["prompt_byte_count"],
             "prompt_sha256": self._session["prompt_sha256"],
@@ -1249,6 +1367,12 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "private_reasoning_retained": False,
             "session_elapsed_s": operational["session_elapsed_s"],
             "recovered_mcp_tool_failure_count": operational["recovered_mcp_tool_failure_count"],
+            "current_consecutive_mcp_tool_failure_count": operational[
+                "current_consecutive_mcp_tool_failure_count"
+            ],
+            "maximum_consecutive_mcp_tool_failure_count": operational[
+                "maximum_consecutive_mcp_tool_failure_count"
+            ],
             "provider_error_event_count": operational["provider_error_event_count"],
             "session_operational_limits": operational["limits"],
         }
@@ -1257,6 +1381,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._completed_session_elapsed_s += float(operational["session_elapsed_s"])
         self._recovered_mcp_tool_failure_count += int(
             operational["recovered_mcp_tool_failure_count"]
+        )
+        self._maximum_consecutive_mcp_tool_failure_count = max(
+            self._maximum_consecutive_mcp_tool_failure_count,
+            int(operational["maximum_consecutive_mcp_tool_failure_count"]),
         )
         self._provider_error_event_count += int(operational["provider_error_event_count"])
         if self._last_decision is not None:
@@ -1288,9 +1416,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             experiment_tool_integrity_verified = True
         usage = snapshot.get("usage")
         normalized_usage = usage if isinstance(usage, dict) else _empty_usage()
+        usage_observed = snapshot.get("usage_observed") is True
         _merge_usage(self._cumulative_usage, normalized_usage)
         usage_complete = _usage_complete(normalized_usage)
         self._all_session_usage_complete = self._all_session_usage_complete and usage_complete
+        self._all_session_usage_observed = self._all_session_usage_observed and usage_observed
         tool_events = snapshot.get("tool_events")
         session_id = str(self._session["session_id"])
         mcp_tool_calls = self.workspace.mcp_tool_call_audit(session_id)
@@ -1316,6 +1446,13 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "model_id": self.model,
             "reasoning_effort": self.reasoning_effort,
             "usage": normalized_usage,
+            "usage_observed": usage_observed,
+            "usage_observation_event_type": snapshot.get("usage_observation_event_type"),
+            "usage_unavailable_reason": (
+                None
+                if usage_observed
+                else "codex_cli_emitted_no_usage_before_forced_termination"
+            ),
             "usage_complete": usage_complete,
             "prompt_byte_count": self._session["prompt_byte_count"],
             "prompt_sha256": self._session["prompt_sha256"],
@@ -1334,6 +1471,12 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "private_reasoning_retained": False,
             "session_elapsed_s": operational["session_elapsed_s"],
             "recovered_mcp_tool_failure_count": operational["recovered_mcp_tool_failure_count"],
+            "current_consecutive_mcp_tool_failure_count": operational[
+                "current_consecutive_mcp_tool_failure_count"
+            ],
+            "maximum_consecutive_mcp_tool_failure_count": operational[
+                "maximum_consecutive_mcp_tool_failure_count"
+            ],
             "provider_error_event_count": operational["provider_error_event_count"],
             "session_operational_limits": operational["limits"],
         }
@@ -1342,6 +1485,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._completed_session_elapsed_s += float(operational["session_elapsed_s"])
         self._recovered_mcp_tool_failure_count += int(
             operational["recovered_mcp_tool_failure_count"]
+        )
+        self._maximum_consecutive_mcp_tool_failure_count = max(
+            self._maximum_consecutive_mcp_tool_failure_count,
+            int(operational["maximum_consecutive_mcp_tool_failure_count"]),
         )
         self._provider_error_event_count += int(operational["provider_error_event_count"])
         self._retire_active_session()
@@ -1987,6 +2134,11 @@ def _host_mcp_audit_events(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, 
             "duration_ms": row.get("duration_ms"),
             "status": row.get("status", "called"),
             "error_type": row.get("error_type"),
+            "error_code": row.get("error_code"),
+            "error_field_path": row.get("error_field_path"),
+            "error_detail": row.get("error_detail"),
+            "error_detail_byte_count": row.get("error_detail_byte_count", 0),
+            "error_detail_sha256": row.get("error_detail_sha256"),
             "arguments_body_retained": False,
             "result_body_retained": False,
         }

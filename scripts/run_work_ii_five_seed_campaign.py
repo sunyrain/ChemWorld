@@ -58,10 +58,28 @@ def _terminate_processes(processes: dict[str, subprocess.Popen[str]]) -> None:
             process.wait(timeout=10.0)
 
 
+def _systemic_preoperation_failure(
+    *,
+    cell_failures: list[dict[str, Any]],
+    results: list[dict[str, Any]],
+    arms: list[str],
+) -> bool:
+    """Stop only when the complete triplet failed before any scientific operation."""
+
+    if len(cell_failures) != len(arms):
+        return False
+    by_arm = {str(row.get("arm")): row for row in results if isinstance(row, dict)}
+    return all(
+        int(by_arm.get(arm, {}).get("analysis", {}).get("operation_attempt_count", 0)) == 0
+        for arm in arms
+    )
+
+
 def _heartbeat(
     *,
     started: float,
     completed_cells: int,
+    terminal_cells: int,
     total_cells: int,
     last_event: dict[str, Any],
     active_cells: list[dict[str, Any]] | None = None,
@@ -72,6 +90,7 @@ def _heartbeat(
         "event": "heartbeat",
         "elapsed_s": round(elapsed, 1),
         "completed_cells": completed_cells,
+        "terminal_cells": terminal_cells,
         "total_cells": total_cells,
         "throughput_cells_per_hour": round(rate * 3600.0, 3),
         "eta_s": (
@@ -140,6 +159,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("execution requires one pilot seed or five distinct world seeds")
     total_cells = len(seeds) * 3
     completed_cells = 0
+    terminal_cells = 0
     started = perf_counter()
     seed_reports: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
@@ -150,6 +170,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "event": "matrix_started",
             "world_seeds": seeds,
             "completed_cells": 0,
+            "terminal_cells": 0,
             "total_cells": total_cells,
             "source_commit": git_source_commit(ROOT),
             "task_id": config.get("task_id"),
@@ -227,6 +248,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     last_event = _heartbeat(
                         started=started,
                         completed_cells=completed_cells,
+                        terminal_cells=terminal_cells,
                         total_cells=total_cells,
                         last_event=last_event,
                         active_cells=[
@@ -259,7 +281,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 child_event["matrix_completed_cells_before_event"] = completed_cells
                 if child_event.get("stage") == "cell_completed" and child_event.get("completed"):
                     completed_cells += 1
+                if child_event.get("stage") == "cell_completed":
+                    terminal_cells += 1
                 child_event["completed_cells"] = completed_cells
+                child_event["terminal_cells"] = terminal_cells
                 child_event["total_cells"] = total_cells
                 child_event["active_cells"] = [
                     {"world_seed": seed, "arm": active, "stage": "provider_session"}
@@ -313,6 +338,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "world_seed": seed,
             "cell_count": len(arms),
             "completed_cell_count": sum(row.get("completed") is True for row in results),
+            "terminal_cell_count": len(results),
             "elapsed_s": round(perf_counter() - seed_started, 1),
             "max_concurrency": 3,
             "parallelization_unit": "same_seed_prior_arm_triplet",
@@ -323,7 +349,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         seed_reports.append(seed_report)
         if cell_failures:
             failures.extend(cell_failures)
-            break
+            if _systemic_preoperation_failure(
+                cell_failures=cell_failures,
+                results=results,
+                arms=arms,
+            ):
+                break
+    terminal_record_count = sum(
+        int(seed_report.get("terminal_cell_count", 0)) for seed_report in seed_reports
+    )
     report = {
         "schema_version": "chemworld-work-ii-five-seed-campaign-report-0.1",
         "source_commit": git_source_commit(ROOT),
@@ -333,12 +367,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "world_seeds": seeds,
         "execution_scope": "pilot_seed_triplet" if len(seeds) == 1 else "five_seed_task_block",
         "expected_cell_count": total_cells,
+        "terminal_cell_count": terminal_record_count,
         "completed_cell_count": completed_cells,
         "completed_seed_count": len(seed_reports),
         "max_concurrency": 3,
         "parallelization_unit": "same_seed_prior_arm_triplet",
         "elapsed_s": round(perf_counter() - started, 1),
         "all_cells_completed": completed_cells == total_cells and not failures,
+        "all_cells_terminal": terminal_record_count == total_cells,
+        "systemic_preoperation_stop_triggered": (
+            terminal_record_count < total_cells and bool(failures)
+        ),
         "failures": failures,
         "seed_reports": seed_reports,
     }
@@ -346,8 +385,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     _emit(
         progress,
         {
-            "event": "matrix_completed" if report["all_cells_completed"] else "matrix_failed",
+            "event": (
+                "matrix_completed"
+                if report["all_cells_completed"]
+                else "matrix_terminal_with_failures"
+                if report["all_cells_terminal"]
+                else "matrix_failed"
+            ),
             "completed_cells": completed_cells,
+            "terminal_cells": terminal_record_count,
             "total_cells": total_cells,
             "elapsed_s": report["elapsed_s"],
             "output": str(output),
@@ -373,7 +419,7 @@ def main() -> int:
     parser.add_argument("--readiness-receipt", type=Path, required=True)
     args = parser.parse_args()
     report = run(args)
-    return 0 if report["all_cells_completed"] else 1
+    return 0 if report["all_cells_terminal"] else 1
 
 
 if __name__ == "__main__":

@@ -215,6 +215,15 @@ def test_step_validation_error_exposes_bounded_repair_detail(tmp_path: Path) -> 
     assert result["isError"] is True
     payload = json.loads(result["content"][0]["text"])
     assert payload["error"] == "ValueError: expected_step must be an integer"
+    audit = workspace.mcp_tool_call_audit("experiment-validation-detail-test")
+    assert len(audit) == 1
+    assert audit[0]["error_type"] == "ValueError"
+    assert audit[0]["error_code"] == "invalid_expected_step"
+    assert audit[0]["error_field_path"] == "expected_step"
+    assert audit[0]["error_detail"] == "expected_step must be an integer"
+    assert audit[0]["error_detail_byte_count"] > 0
+    assert len(audit[0]["error_detail_sha256"]) == 64
+    assert "arguments" not in audit[0]
 
 
 def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path) -> None:

@@ -20,7 +20,7 @@ from chemworld.eval.provenance import (
 from chemworld.eval.verify import verify_records
 from chemworld.eval.work_ii_process_profile import build_work_ii_execution_artifacts
 
-WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.2"
+WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.3"
 _PRIOR_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 
 
@@ -76,8 +76,10 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
         "three_cell_os_concurrency": execution.get("max_concurrency") == 3
         and execution.get("within_cell_concurrency") == 1
         and execution.get("parallelization_unit") == "same_seed_prior_arm_triplet",
-        "finish_triplet_then_stop_failure_semantics": execution.get("failure_semantics")
-        == "finish the in-flight seed triplet, then stop before the next world seed",
+        "retain_cell_failure_continue_schedule_semantics": execution.get("failure_semantics")
+        == "retain cell failures and continue every scheduled seed triplet",
+        "systemic_triplet_stop_guard": execution.get("systemic_failure_semantics")
+        == "stop only when all three arms fail before the first committed operation",
         "four_shared_resource_experiments": campaign.get("complete_experiments") == 4
         and campaign.get("vessel_start_limit") == 4
         and campaign.get("final_assay_limit") == 4
@@ -99,10 +101,17 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
         <= float(method.get("wall_time_limit_s", 0.0))
         and isinstance(provider.get("max_recovered_mcp_tool_failures"), int)
         and int(provider.get("max_recovered_mcp_tool_failures", -1)) >= 0
+        and isinstance(provider.get("max_consecutive_mcp_tool_failures"), int)
+        and int(provider.get("max_consecutive_mcp_tool_failures", -1)) >= 0
         and isinstance(provider.get("max_provider_error_events"), int)
         and int(provider.get("max_provider_error_events", -1)) >= 0
+        and 0.0 < float(provider.get("progress_interval_s", 0.0)) <= 60.0
         and float(execution.get("pilot_expansion_headroom_fraction", 0.0)) >= 0.1
         and float(execution.get("pilot_expansion_headroom_fraction", 1.0)) < 1.0,
+        "bounded_resource_rejection_policy": isinstance(
+            config.get("qualification", {}).get("max_resource_rejections"), int
+        )
+        and int(config.get("qualification", {}).get("max_resource_rejections", -1)) >= 0,
         "responses_codex_harness_contract": provider.get("wire_api") == "responses"
         and provider.get("model") == "deepseek-v4-flash"
         and provider.get("reasoning_effort") == "high",
@@ -198,8 +207,21 @@ def audit_seed0_expansion_pilot(
             for item in receipt.get("mcp_tool_calls", [])
             if isinstance(item, Mapping) and item.get("status") != "completed"
         ]
+        raw_max_consecutive = receipt.get(
+            "maximum_consecutive_mcp_tool_failure_count"
+        )
+        max_consecutive = (
+            raw_max_consecutive
+            if isinstance(raw_max_consecutive, int)
+            and not isinstance(raw_max_consecutive, bool)
+            else -1
+        )
         provider_errors = receipt.get("provider_errors", [])
-        provider_error_count = len(provider_errors) if isinstance(provider_errors, list) else -1
+        provider_error_count = receipt.get("provider_error_event_count")
+        if not isinstance(provider_error_count, int) or isinstance(provider_error_count, bool):
+            provider_error_count = (
+                len(provider_errors) if isinstance(provider_errors, list) else -1
+            )
         elapsed_s = float(summary.get("elapsed_s", float("inf")))
         observed = {
             "input_tokens": int(usage.get("input_token_count", -1)),
@@ -207,6 +229,7 @@ def audit_seed0_expansion_pilot(
             "output_tokens": int(usage.get("output_token_count", -1)),
             "elapsed_s": elapsed_s,
             "recovered_mcp_tool_failures": len(failed_mcp_calls),
+            "maximum_consecutive_mcp_tool_failures": max_consecutive,
             "provider_error_events": provider_error_count,
         }
         caps = {
@@ -217,14 +240,20 @@ def audit_seed0_expansion_pilot(
             "output_tokens": int(int(method.get("output_token_limit", 0)) * accepted_fraction),
             "elapsed_s": float(provider.get("session_wall_time_limit_s", 0.0)) * accepted_fraction,
             "recovered_mcp_tool_failures": int(provider.get("max_recovered_mcp_tool_failures", -1)),
+            "maximum_consecutive_mcp_tool_failures": int(
+                provider.get("max_consecutive_mcp_tool_failures", -1)
+            ),
             "provider_error_events": int(provider.get("max_provider_error_events", -1)),
         }
         if summary.get("completed") is not True or qualification.get("passed") is not True:
             cell_failures.append("cell or qualification did not pass")
         if analysis.get("complete_experiment_count") != 4:
             cell_failures.append("cell did not complete four experiments")
-        if analysis.get("resource_rejection_count") != 0:
-            cell_failures.append("cell contains a resource rejection")
+        max_resource_rejections = int(
+            config.get("qualification", {}).get("max_resource_rejections", 0)
+        )
+        if int(analysis.get("resource_rejection_count", 0)) > max_resource_rejections:
+            cell_failures.append("cell exceeds the frozen resource-rejection allowance")
         if replay.get("verified") is not True:
             cell_failures.append("physical replay failed")
         if artifacts is None or artifacts.get("execution_audit", {}).get("passed") is not True:

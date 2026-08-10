@@ -13,7 +13,7 @@ from scripts.run_work_ii_campaign_pilot import (
     _checkpoint_contract,
     _qualification,
 )
-from scripts.run_work_ii_five_seed_campaign import _heartbeat
+from scripts.run_work_ii_five_seed_campaign import _heartbeat, _systemic_preoperation_failure
 
 from chemworld.campaign_resources import CampaignResourceLedger
 from chemworld.eval.provenance import canonical_json_sha256
@@ -155,6 +155,60 @@ def test_all_five_task_checkpoint_contracts_match_across_informed_arms() -> None
         assert _checkpoint_contract(config, "aligned_nominal") == _checkpoint_contract(
             config, "misindexed_nominal"
         )
+
+
+def test_deepseek_configs_freeze_bounded_recovery_and_schedule_completion() -> None:
+    for config_name in (
+        "work_ii_electrochemical_deepseek_v4_flash_campaign.json",
+        "work_ii_crystallization_deepseek_v4_flash_campaign.json",
+        "work_ii_distillation_deepseek_v4_flash_campaign.json",
+    ):
+        config = _task_config(config_name)
+        provider = config["provider"]
+        execution = config["execution"]
+        assert provider["max_recovered_mcp_tool_failures"] == 3
+        assert provider["max_consecutive_mcp_tool_failures"] == 1
+        assert provider["max_provider_error_events"] == 1
+        assert provider["progress_interval_s"] == 30.0
+        assert config["qualification"]["max_resource_rejections"] == 1
+        assert execution["failure_semantics"] == (
+            "retain cell failures and continue every scheduled seed triplet"
+        )
+        assert execution["systemic_failure_semantics"] == (
+            "stop only when all three arms fail before the first committed operation"
+        )
+
+
+def test_systemic_preoperation_guard_does_not_stop_on_cell_local_failure() -> None:
+    arms = ["opaque", "aligned_nominal", "misindexed_nominal"]
+    one_failure = [{"arm": "aligned_nominal"}]
+    results = [
+        {"arm": "opaque", "analysis": {"operation_attempt_count": 20}},
+        {"arm": "aligned_nominal", "analysis": {"operation_attempt_count": 0}},
+        {"arm": "misindexed_nominal", "analysis": {"operation_attempt_count": 22}},
+    ]
+    assert _systemic_preoperation_failure(
+        cell_failures=one_failure,
+        results=results,
+        arms=arms,
+    ) is False
+
+    all_failures = [{"arm": arm} for arm in arms]
+    zero_operation_results = [
+        {"arm": arm, "analysis": {"operation_attempt_count": 0}} for arm in arms
+    ]
+    assert _systemic_preoperation_failure(
+        cell_failures=all_failures,
+        results=zero_operation_results,
+        arms=arms,
+    ) is True
+
+    zero_operation_results[0]["analysis"]["operation_attempt_count"] = 1
+    assert _systemic_preoperation_failure(
+        cell_failures=all_failures,
+        results=zero_operation_results,
+        arms=arms,
+    ) is False
 
 
 def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:
@@ -423,6 +477,7 @@ def test_cell_qualification_is_fail_closed() -> None:
 
     recovered_tool_failures = deepcopy(receipts)
     recovered_tool_failures[0]["recovered_mcp_tool_failure_count"] = 2
+    recovered_tool_failures[0]["maximum_consecutive_mcp_tool_failure_count"] = 1
     recovered_tool_failures[0]["provider_error_event_count"] = 0
     recovered_tool_failures[0]["session_elapsed_s"] = 100.0
     failed_operational = _qualification(
@@ -436,6 +491,7 @@ def test_cell_qualification_is_fail_closed() -> None:
         operational_limits={
             "session_wall_time_limit_s": 1_800.0,
             "max_recovered_mcp_tool_failures": 1,
+            "max_consecutive_mcp_tool_failures": 1,
             "max_provider_error_events": 0,
         },
     )
@@ -453,6 +509,7 @@ def test_cell_qualification_is_fail_closed() -> None:
         operational_limits={
             "session_wall_time_limit_s": 1_800.0,
             "max_recovered_mcp_tool_failures": 1,
+            "max_consecutive_mcp_tool_failures": 1,
             "max_provider_error_events": 0,
         },
     )
@@ -466,6 +523,7 @@ def test_repeated_heartbeats_preserve_current_cell_coordinate() -> None:
     first = _heartbeat(
         started=0.0,
         completed_cells=0,
+        terminal_cells=0,
         total_cells=15,
         last_event={
             "world_seed": 0,
@@ -479,6 +537,7 @@ def test_repeated_heartbeats_preserve_current_cell_coordinate() -> None:
     second = _heartbeat(
         started=0.0,
         completed_cells=0,
+        terminal_cells=0,
         total_cells=15,
         last_event=first,
     )
@@ -488,6 +547,77 @@ def test_repeated_heartbeats_preserve_current_cell_coordinate() -> None:
     assert second["current_step"] is None
     assert second["current_complete_experiments"] == 0
     assert second["liveness_counter"] == first["liveness_counter"] + 1
+
+
+def test_qualification_retains_one_resource_rejection_under_amended_policy() -> None:
+    config = _config()
+    recommendation = {
+        "selected_experiment_index": 1,
+        "selection_rationale": "retained public outcome",
+    }
+    digest = canonical_json_sha256(recommendation)
+    analysis = {
+        "complete_experiment_count": 4,
+        "experiments": [{"experiment_index": index} for index in range(1, 5)],
+        "right_censored_open_experiment": False,
+        "belief_snapshots": [{"stage": stage} for stage in config["snapshot_stages"]],
+        "resource_rejection_count": 1,
+        "final_campaign_resources": {
+            "campaign_terminal": True,
+            "state": {
+                "closed_batches": 4,
+                "final_assays": 4,
+                "operation_committed_counts": {},
+                "report_only": {"process_time_s": 7200.0},
+            },
+        },
+        "final_recommendation": recommendation,
+        "final_recommendation_sha256": digest,
+        "execution_audit": {"passed": True},
+    }
+    result = _qualification(
+        analysis=analysis,
+        exact_replay={"verified": True},
+        method_resources={
+            "provider_session_count": 1,
+            "provider_usage_pending": False,
+            "provider_usage_accounting_complete": True,
+            "in_flight_model_call_count": 0,
+            "input_token_count": 1,
+            "uncached_input_token_count": 1,
+            "output_token_count": 1,
+        },
+        method_resource_limits={
+            "complete_experiment_limit": 4,
+            "input_token_limit": 2,
+            "uncached_input_token_limit": 2,
+            "output_token_limit": 2,
+        },
+        receipts=[
+            {
+                "session_scope": "campaign",
+                "status": "completed",
+                "return_code": 0,
+                "final_payload_valid": True,
+                "final_payload_status": "campaign_complete",
+                "final_recommendation_sha256": digest,
+                "experiment_tool_integrity_verified_after_session": True,
+                "lab_tool_integrity_verified_after_session": True,
+                "mcp_tool_integrity_verified_after_session": True,
+            }
+        ],
+        process_time_limit_s=72_000.0,
+        required_operation_counts={},
+        required_snapshot_stages=config["snapshot_stages"],
+        max_resource_rejections=1,
+    )
+    assert result["passed"] is True
+    assert result["resource_rejection_policy"] == {
+        "observed": 1,
+        "maximum": 1,
+        "semantics": "retained_participant_behavior_no_host_repair",
+        "passed": True,
+    }
 
 
 def test_single_arm_mode_leaves_cell_directory_creation_to_cell_runner(

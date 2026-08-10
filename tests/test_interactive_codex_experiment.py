@@ -797,6 +797,7 @@ def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(
 ) -> None:
     commands: list[list[str]] = []
     prompts: list[str] = []
+    progress: list[dict[str, Any]] = []
     agent = InteractiveCodexExperimentAgent(
         workspace=tmp_path / "workspace",
         role_id="session-wall-limit-test",
@@ -808,6 +809,8 @@ def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(
         request_timeout_s=5.0,
         finalization_timeout_s=1.0,
         session_wall_time_limit_s=0.1,
+        session_progress_callback=progress.append,
+        session_progress_interval_s=0.02,
         pre_action_restart_limit=0,
     )
     agent.reset({"task_id": "x", "budget": 1}, seed=0)
@@ -819,7 +822,51 @@ def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(
     assert receipt["status"] == "interrupted_before_next_action"
     assert receipt["failure_type"] == "session_wall_time_limit"
     assert receipt["session_elapsed_s"] >= 0.1
-    assert agent.method_resource_usage()["provider_usage_pending"] is False
+    assert receipt["usage_observed"] is False
+    assert receipt["usage_unavailable_reason"] == (
+        "codex_cli_emitted_no_usage_before_forced_termination"
+    )
+    usage = agent.method_resource_usage()
+    assert usage["provider_usage_pending"] is False
+    assert usage["token_counts_observed"] is False
+    assert progress
+    assert progress[0]["event"] == "provider_session_liveness"
+
+
+def test_consecutive_mcp_failure_limit_is_independent_of_total_limit(
+    tmp_path: Path,
+) -> None:
+    def unused_factory(command: Any, prompt: str, cwd: Path):
+        del command, prompt, cwd
+        raise AssertionError("no process should be launched")
+
+    agent = InteractiveCodexExperimentAgent(
+        workspace=tmp_path / "workspace",
+        role_id="consecutive-limit-test",
+        process_factory=unused_factory,
+        max_recovered_mcp_tool_failures=3,
+        max_consecutive_mcp_tool_failures=1,
+        max_provider_error_events=1,
+    )
+    assert (
+        agent._operational_limit_failure(
+            {
+                "session_elapsed_s": 1.0,
+                "recovered_mcp_tool_failure_count": 2,
+                "current_consecutive_mcp_tool_failure_count": 1,
+                "provider_error_event_count": 0,
+            }
+        )
+        is None
+    )
+    assert agent._operational_limit_failure(
+        {
+            "session_elapsed_s": 1.0,
+            "recovered_mcp_tool_failure_count": 2,
+            "current_consecutive_mcp_tool_failure_count": 2,
+            "provider_error_event_count": 0,
+        }
+    ) == "max_consecutive_mcp_tool_failures"
 
 
 def test_lab_tool_tamper_is_rejected_before_action_acceptance(tmp_path: Path) -> None:

@@ -355,16 +355,21 @@ class ExperimentCodexWorkspace:
         timeout_s: float,
         process_alive: Callable[[], bool],
         handled_request_ids: set[str],
+        progress_callback: Callable[[], None] | None = None,
+        progress_interval_s: float = 30.0,
     ) -> IPCRequest:
         """Wait for one well-formed, unhandled request from the active Codex turn."""
 
         if timeout_s <= 0:
             raise ValueError("timeout_s must be positive")
+        if progress_interval_s <= 0:
+            raise ValueError("progress_interval_s must be positive")
         request_roots = (
             self.session_root(session_id) / "mcp_requests",
             self.transport_session_root(session_id) / "requests",
         )
         deadline = time.monotonic() + timeout_s
+        next_progress = time.monotonic() + progress_interval_s
         while time.monotonic() < deadline:
             request_paths = sorted(
                 (
@@ -397,6 +402,9 @@ class ExperimentCodexWorkspace:
                 raise ExperimentCodexIPCError(
                     "Codex process exited before submitting the next operation"
                 )
+            if progress_callback is not None and time.monotonic() >= next_progress:
+                progress_callback()
+                next_progress = time.monotonic() + progress_interval_s
             time.sleep(self.poll_interval_s)
         raise TimeoutError("timed out waiting for a Codex lab operation")
 

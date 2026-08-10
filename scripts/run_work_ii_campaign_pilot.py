@@ -323,8 +323,12 @@ def _qualification(
     required_operation_counts: Mapping[str, Any],
     required_snapshot_stages: list[str] | None = None,
     operational_limits: Mapping[str, Any] | None = None,
+    max_resource_rejections: int = 0,
 ) -> dict[str, Any]:
     """Apply the frozen per-cell qualification contract fail-closed."""
+
+    if max_resource_rejections < 0:
+        raise ValueError("max_resource_rejections must be non-negative")
 
     receipt = receipts[0] if len(receipts) == 1 else {}
     usage = method_resources
@@ -335,6 +339,7 @@ def _qualification(
         for field in (
             "session_elapsed_s",
             "recovered_mcp_tool_failure_count",
+            "maximum_consecutive_mcp_tool_failure_count",
             "provider_error_event_count",
         )
     )
@@ -419,7 +424,8 @@ def _qualification(
         "tool_integrity": receipt.get("experiment_tool_integrity_verified_after_session") is True
         and receipt.get("lab_tool_integrity_verified_after_session") is True
         and receipt.get("mcp_tool_integrity_verified_after_session") is True,
-        "no_resource_rejection": analysis.get("resource_rejection_count") == 0,
+        "no_resource_rejection": int(analysis.get("resource_rejection_count", 0))
+        <= max_resource_rejections,
         "campaign_terminal": resources.get("campaign_terminal") is True
         and state.get("closed_batches") == 4
         and state.get("final_assays") == 4,
@@ -444,6 +450,8 @@ def _qualification(
                 <= float(operational_limits.get("session_wall_time_limit_s", float("inf")))
                 and int(receipt["recovered_mcp_tool_failure_count"])
                 <= int(operational_limits.get("max_recovered_mcp_tool_failures", 0))
+                and int(receipt["maximum_consecutive_mcp_tool_failure_count"])
+                <= int(operational_limits.get("max_consecutive_mcp_tool_failures", 0))
                 and int(receipt["provider_error_event_count"])
                 <= int(operational_limits.get("max_provider_error_events", 0))
             )
@@ -455,6 +463,12 @@ def _qualification(
         "passed": all(checks.values()),
         "checks": checks,
         "failed_checks": [name for name, passed in checks.items() if not passed],
+        "resource_rejection_policy": {
+            "observed": int(analysis.get("resource_rejection_count", 0)),
+            "maximum": int(max_resource_rejections),
+            "semantics": "retained_participant_behavior_no_host_repair",
+            "passed": checks["no_resource_rejection"],
+        },
     }
 
 
@@ -486,6 +500,20 @@ def _run_cell(
     target_experiments = int(config["campaign"]["complete_experiments"])
     failure: dict[str, str] | None = None
     with tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-") as temporary:
+        def on_session_progress(payload: dict[str, Any]) -> None:
+            _progress(
+                progress_path,
+                {
+                    "stage": "provider_session_liveness",
+                    "world_seed": world_seed,
+                    "cell": cell_index,
+                    "total_cells": total_cells,
+                    "arm": arm,
+                    **payload,
+                    "elapsed_s": round(perf_counter() - cell_started, 1),
+                },
+            )
+
         agent = InteractiveCodexExperimentAgent(
             workspace=Path(temporary) / "workspace",
             role_id=f"work_ii_{provider['id']}_{provider['model']}_persistent_campaign",
@@ -521,7 +549,12 @@ def _run_cell(
             if provider.get("session_wall_time_limit_s") is not None
             else None,
             max_recovered_mcp_tool_failures=int(provider.get("max_recovered_mcp_tool_failures", 0)),
+            max_consecutive_mcp_tool_failures=int(
+                provider.get("max_consecutive_mcp_tool_failures", 0)
+            ),
             max_provider_error_events=int(provider.get("max_provider_error_events", 0)),
+            session_progress_callback=on_session_progress,
+            session_progress_interval_s=float(provider.get("progress_interval_s", 30.0)),
             pre_action_restart_limit=0,
             session_scope="campaign",
             belief_checkpoint_contract=_checkpoint_contract(config, arm),
@@ -663,6 +696,9 @@ def _run_cell(
         ),
         required_snapshot_stages=list(_checkpoint_contract(config, arm)["snapshot_stages"]),
         operational_limits=provider,
+        max_resource_rejections=int(
+            config.get("qualification", {}).get("max_resource_rejections", 0)
+        ),
     )
     row = {
         "arm": arm,
