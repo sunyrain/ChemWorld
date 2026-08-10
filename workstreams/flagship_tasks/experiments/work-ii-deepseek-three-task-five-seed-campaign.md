@@ -16,7 +16,7 @@ Measurements: operation attempts and committed operations; complete lifecycles; 
 belief snapshots; campaign stock, process-time, instrument, sample, cost and risk ledgers; provider
 usage; session/MCP receipts; failures; and exact replay. Task-specific process caps and repeat,
 quench and transfer allowances remain those in the source task cards. DeepSeek method envelopes are
-frozen before the first task pilot: electrochemical 2.75M cumulative input / 320k uncached / 50k
+frozen before the first task pilot: electrochemical 2.75M cumulative input / 320k uncached / 60k
 output tokens, crystallization and distillation 5.5M cumulative input / 800k uncached / 80k output,
 with the task-card wall-time caps unchanged.
 

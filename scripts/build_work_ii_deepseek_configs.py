@@ -42,7 +42,7 @@ def _limits(task_id: str) -> dict[str, Any]:
         return {
             "input_token_limit": 2750000,
             "uncached_input_token_limit": 320000,
-            "output_token_limit": 50000,
+            "output_token_limit": 60000,
             "wall_time_limit_s": 5400.0,
         }
     if task_id == "reaction-to-crystallization":

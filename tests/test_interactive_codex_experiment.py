@@ -15,6 +15,7 @@ from chemworld.agents.interactive_codex_experiment import (
     InteractiveCodexExperimentAgent,
     InteractiveCodexExperimentError,
     _material_information_payload,
+    _final_recommendation_from_payload,
     _parse_final_payload,
     _public_task_contract,
 )
@@ -40,6 +41,29 @@ def test_final_payload_parser_rejects_json_embedded_in_prose() -> None:
 
     assert payload is None
     assert encoding is None
+
+
+def test_campaign_recommendation_normalizes_flat_and_nested_payloads() -> None:
+    flat = {
+        "status": "campaign_complete",
+        "summary": "done",
+        "selected_experiment_index": 2,
+        "selection_rationale": "best public score",
+    }
+    nested = {
+        "status": "campaign_complete",
+        "summary": "done",
+        "final_recommendation": {
+            "selected_experiment_index": 3,
+            "selection_rationale": "best public score",
+        },
+    }
+
+    assert _final_recommendation_from_payload(flat) == {
+        "selected_experiment_index": 2,
+        "selection_rationale": "best public score",
+    }
+    assert _final_recommendation_from_payload(nested) == nested["final_recommendation"]
 
 
 @pytest.mark.parametrize(
