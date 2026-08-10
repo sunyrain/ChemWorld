@@ -1,6 +1,6 @@
 # Work II preregistration draft - final freeze blocked
 
-Manifest SHA-256: `3be7bfa823300730314f05a926592e3cd84f11238fc67f254d656d09775ad7cb`
+Manifest SHA-256: `fbf700986387fe16b2ea1a47f6daffbb8d94cd8fc38fce5ddaacf57ea090e702`
 Route-decision SHA-256: `d949816d791f6bafc4686b394faa4ecbcab3a0551fbafeb403d8054b11e8c56e`
 
 > This is an outcome-blind readiness draft, not a registered protocol and not an authorization to collect formal primary data.
