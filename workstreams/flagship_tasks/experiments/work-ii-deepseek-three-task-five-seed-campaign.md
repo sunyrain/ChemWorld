@@ -85,6 +85,12 @@ input, 100k output and 9,000 s session wall. This is an operational envelope ame
 physical budgets, repeat/quench/transfer allowances, coverage, seeds and scientific qualification
 rules remain frozen. The crystallization pilot restarts from seed 0.
 
+The replacement crystallization seed-0 pilot passed 3/3 cells and 12/12 experiments with zero
+resource rejections, exact replay and one host-MCP recommendation per cell. Maximum observed usage
+was 5,605,523 cumulative input, 142,227 uncached input and 45,356 output tokens, inside the revised
+7.0M / 1.0M / 100k envelope. The crystallization five-seed block is therefore authorized to start
+from seed 0.
+
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
 payloads and private reasoning are not committed.
