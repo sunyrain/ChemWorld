@@ -1,0 +1,242 @@
+{
+  "schema_version": "chemworld-work-ii-campaign-pilot-0.3",
+  "pilot_id": "work-ii-reaction-to-crystallization-deepseek-v4-flash-prior-campaign",
+  "formal_result": false,
+  "task_id": "reaction-to-crystallization",
+  "world_split": "public-test",
+  "world_seed": 0,
+  "objective": "balanced",
+  "episode_mode": "campaign",
+  "crystallization_material_family_id": "reaction-crystallization-latent-materials-v1",
+  "observation_noise_mode": "keyed",
+  "observation_noise_namespace": "work-ii-reaction-crystallization-prior-campaign",
+  "prior_arms": {
+    "opaque": {
+      "mode": "opaque_codes"
+    },
+    "aligned_nominal": {
+      "mode": "anonymous_nominal_properties"
+    },
+    "misindexed_nominal": {
+      "mode": "anonymous_misindexed_properties",
+      "target_field": "solvent",
+      "descriptor_permutation": [
+        0,
+        3,
+        2,
+        1
+      ]
+    }
+  },
+  "snapshot_stages": [
+    "pre_evidence",
+    "after_experiment_1",
+    "after_experiment_2",
+    "final"
+  ],
+  "belief_checkpoint": {
+    "allowed_feature_ids": [
+      "catalyst",
+      "solvent",
+      "reagent_amount_mol",
+      "reaction_temperature_K",
+      "reaction_duration_s",
+      "crystallization_temperature_K",
+      "crystallization_duration_s",
+      "seed_mass_g"
+    ],
+    "allowed_metric_ids": [
+      "crystal_yield",
+      "crystal_purity",
+      "crystal_csd_quality"
+    ],
+    "allowed_prior_fields": [
+      "catalyst",
+      "solvent"
+    ],
+    "held_out_queries": [
+      {
+        "query_id": "q-c0-s0",
+        "feature_values": {
+          "catalyst": 0,
+          "solvent": 0,
+          "reagent_amount_mol": 0.01,
+          "reaction_temperature_K": 340.0,
+          "reaction_duration_s": 1800.0,
+          "crystallization_temperature_K": 285.0,
+          "crystallization_duration_s": 3600.0,
+          "seed_mass_g": 0.005
+        },
+        "metric_ids": [
+          "crystal_yield",
+          "crystal_purity",
+          "crystal_csd_quality"
+        ]
+      },
+      {
+        "query_id": "q-c3-s0",
+        "feature_values": {
+          "catalyst": 3,
+          "solvent": 0,
+          "reagent_amount_mol": 0.01,
+          "reaction_temperature_K": 340.0,
+          "reaction_duration_s": 1800.0,
+          "crystallization_temperature_K": 285.0,
+          "crystallization_duration_s": 3600.0,
+          "seed_mass_g": 0.005
+        },
+        "metric_ids": [
+          "crystal_yield",
+          "crystal_purity",
+          "crystal_csd_quality"
+        ]
+      },
+      {
+        "query_id": "q-c0-s3",
+        "feature_values": {
+          "catalyst": 0,
+          "solvent": 3,
+          "reagent_amount_mol": 0.01,
+          "reaction_temperature_K": 340.0,
+          "reaction_duration_s": 1800.0,
+          "crystallization_temperature_K": 285.0,
+          "crystallization_duration_s": 3600.0,
+          "seed_mass_g": 0.005
+        },
+        "metric_ids": [
+          "crystal_yield",
+          "crystal_purity",
+          "crystal_csd_quality"
+        ]
+      },
+      {
+        "query_id": "q-c3-s3",
+        "feature_values": {
+          "catalyst": 3,
+          "solvent": 3,
+          "reagent_amount_mol": 0.01,
+          "reaction_temperature_K": 340.0,
+          "reaction_duration_s": 1800.0,
+          "crystallization_temperature_K": 285.0,
+          "crystallization_duration_s": 3600.0,
+          "seed_mass_g": 0.005
+        },
+        "metric_ids": [
+          "crystal_yield",
+          "crystal_purity",
+          "crystal_csd_quality"
+        ]
+      }
+    ]
+  },
+  "campaign": {
+    "card_id": "work-ii-crystallization-k4-one-repeat",
+    "complete_experiments": 4,
+    "operation_attempt_limit": 56,
+    "vessel_start_limit": 4,
+    "final_assay_limit": 4,
+    "nonfinal_instrument_use_limit": 8,
+    "stock_limits": {
+      "reagent_mol": 0.08,
+      "solvent_L": 0.16,
+      "catalyst_mol": 0.008,
+      "seed_g": 0.2
+    },
+    "process_time_limit_s": 146400.0,
+    "implicit_operation_time_s": {
+      "filter_crystals": 480.0,
+      "quench": 120.0
+    },
+    "operation_repeat_limits": {
+      "heat": 5,
+      "cool_crystallize": 5,
+      "seed_crystals": 4,
+      "filter_crystals": 4,
+      "quench": 4
+    },
+    "process_time_policy": {
+      "pattern_id": "crystallization-k4-one-repeat-per-required-stage",
+      "timed_stage_max_s": 115200.0,
+      "required_stage_max_s": 117120.0,
+      "repeat_allowance_s": 28800.0,
+      "implicit_stage_reserve_s": 1920.0,
+      "quench_transfer_allowance_s": 480.0,
+      "implicit_operation_time_s": {
+        "filter_crystals": 480.0,
+        "quench": 120.0
+      },
+      "formula": "4 x (heat 14400 s + cool_crystallize 14400 s + filter_crystals 480 s) + one extra heat and one extra crystallization stage + up to four quench operations at 120 s each"
+    },
+    "closeout_policy": {
+      "planned_batches": 4,
+      "final_assay_path_operations_per_batch": 2,
+      "discard_path_operations_per_batch": 1,
+      "final_assay_path_total_operation_reserve": 8,
+      "discard_path_total_operation_reserve": 4,
+      "policy": "participant_controlled_advisory_no_hidden_allocation",
+      "automatic_action_repair": false,
+      "automatic_closeout": false
+    },
+    "checkpoint_complete_experiments": [
+      0,
+      1,
+      2,
+      4
+    ]
+  },
+  "qualification": {
+    "required_operation_counts": {}
+  },
+  "analysis": {
+    "final_metric_ids": [
+      "crystal_yield",
+      "crystal_purity",
+      "crystal_size",
+      "crystal_csd_quality",
+      "crystal_fines_fraction",
+      "score"
+    ]
+  },
+  "method_resources": {
+    "operation_limit": 56,
+    "complete_experiment_limit": 4,
+    "checkpoint_complete_experiments": [
+      1,
+      2,
+      4
+    ],
+    "wall_time_limit_s": 7200.0,
+    "model_call_limit": 1,
+    "input_token_limit": 5500000,
+    "uncached_input_token_limit": 800000,
+    "output_token_limit": 80000,
+    "training_environment_step_limit": 0
+  },
+  "execution": {
+    "max_concurrency": 3,
+    "parallelization_unit": "same_seed_prior_arm_triplet",
+    "within_cell_concurrency": 1,
+    "failure_semantics": "finish the in-flight seed triplet, then stop before the next world seed"
+  },
+  "provider": {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "base_url": "https://api.deepseek.com/",
+    "wire_api": "responses",
+    "auth_mode": "experimental_bearer_token",
+    "api_key_file": "api.md",
+    "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json",
+    "preferred_auth_method": "apikey",
+    "forced_login_method": "api",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "request_timeout_s": 1200.0,
+    "finalization_timeout_s": 600.0
+  },
+  "provider_qualification": {
+    "basis": "DeepSeek qualification-v2 seed-0 opaque electrochemical cell",
+    "qualification_report": "runs/development/work-ii-deepseek-qualification-v2-seed0-opaque/report.json",
+    "catalog_requirement": "supports_search_tool=false",
+    "session_contract": "one persistent Codex session per task-prior-seed cell"
+  }
+}
