@@ -1045,6 +1045,14 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   20% pilot expansion headroom；运行中字段缺失按失败处理，五-seed readiness 必须 hash-bind pilot
   并以 current code 重放。报告：
   `workstreams/flagship_tasks/reports/work-ii-deepseek-crystallization-seed0-safety-pilot.md`。
+- [x] DeepSeek crystallization guarded 五-seed launch 在 seed 1 misindexed 的第 2 次 recovered MCP
+  checkpoint validation failure 处按门禁止损：5/15 cells、21/60 experiments、0 resource rejection、
+  0 provider error；同 seed 其余两臂完成后未启动 seeds 2--4，失败区块保留且不重跑。该任务按用户
+  fallback 规则使用已有 WellAU 15/15 matrix；electrochemical DeepSeek 的真实 resource rejection
+  同样不做有利替换，任务覆盖使用已有 WellAU 15/15 matrix。
+- [ ] distillation 先执行 DeepSeek seed-0 三臂 guarded pilot；仅在 3/3 cells、12/12 experiments、
+  exact replay、0 resource rejection、每 cell recovered MCP failure ≤1、provider error=0 且 20%
+  expansion headroom 全部通过后启动五 seeds，否则切换已有 WellAU terminal matrix。
 
 ## 7. 完成定义
 

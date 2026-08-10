@@ -215,7 +215,8 @@
     "max_concurrency": 3,
     "parallelization_unit": "same_seed_prior_arm_triplet",
     "within_cell_concurrency": 1,
-    "failure_semantics": "finish the in-flight seed triplet, then stop before the next world seed"
+    "failure_semantics": "finish the in-flight seed triplet, then stop before the next world seed",
+    "pilot_expansion_headroom_fraction": 0.2
   },
   "provider": {
     "id": "deepseek",
@@ -230,7 +231,10 @@
     "model": "deepseek-v4-flash",
     "reasoning_effort": "high",
     "request_timeout_s": 1200.0,
-    "finalization_timeout_s": 600.0
+    "finalization_timeout_s": 600.0,
+    "session_wall_time_limit_s": 1800.0,
+    "max_recovered_mcp_tool_failures": 1,
+    "max_provider_error_events": 0
   },
   "provider_qualification": {
     "basis": "DeepSeek qualification-v2 seed-0 opaque electrochemical cell",

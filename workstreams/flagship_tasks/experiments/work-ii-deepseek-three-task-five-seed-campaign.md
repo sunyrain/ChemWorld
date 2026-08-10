@@ -135,6 +135,31 @@ receipt fields now fail closed. The detailed result and artifact hashes are reco
 This block is operational calibration, not a new scientific denominator or authorization to launch
 another five-seed provider run.
 
+Guarded crystallization execution record (2026-08-10): the clean-commit five-seed launch completed
+the seed-0 triplet and then reached a fail-closed terminal state in seed 1. Five cells completed all
+four experiments; seed-1 misindexed completed one experiment before a second recovered MCP
+checkpoint validation failure crossed the frozen one-failure ceiling. The session was interrupted
+before accepting the next physical operation, the other two in-flight arms completed, and seeds
+2--4 were not started. The retained block is 5/15 completed cells, 21/60 complete experiments and
+zero resource rejection or provider error. It is not rerun. For the requested three-task coverage,
+crystallization falls back to the retained WellAU 15/15 matrix at
+`runs/development/work-ii-crystallization-five-seed-rerun2`.
+
+Provider fallback and distillation pilot freeze (2026-08-10): the DeepSeek electrochemical block
+previously stopped after a genuine participant resource rejection in seed 3 and is not replaced by
+a more favorable rerun; electrochemical coverage therefore uses the retained WellAU 15/15 matrix at
+`runs/development/work-ii-electrochemical-five-seed-20260808T184013`. Distillation remains the only
+task without a DeepSeek attempt under the live resource-protection gate. Its next block is exactly
+world seed 0 × the three frozen prior arms, one persistent Codex session and four complete
+experiments per cell, with the three arms concurrent. It passes only at 3/3 cells, 12/12 experiments,
+zero resource rejection, exact replay, complete provider accounting, at most one recovered MCP
+failure per cell, zero provider errors, and observed input/output/wall usage within the frozen 20%
+expansion headroom. The live ceilings are 1,800 s session wall, one recovered MCP failure and zero
+provider error events. A failure stops five-seed DeepSeek expansion and selects the retained WellAU
+distillation terminal matrix; a pass permits one clean-commit five-seed DeepSeek launch. Expected
+outputs are the ignored matrix report and per-cell summaries/trajectories, plus the external
+heartbeat JSONL; no raw provider payload is committed.
+
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
 payloads and private reasoning are not committed.
