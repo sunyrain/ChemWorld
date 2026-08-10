@@ -137,12 +137,15 @@ another five-seed provider run.
 
 Guarded crystallization execution record (2026-08-10): the clean-commit five-seed launch completed
 the seed-0 triplet and then reached a fail-closed terminal state in seed 1. Five cells completed all
-four experiments; seed-1 misindexed completed one experiment before a second recovered MCP
-checkpoint validation failure crossed the frozen one-failure ceiling. The session was interrupted
-before accepting the next physical operation, the other two in-flight arms completed, and seeds
-2--4 were not started. The retained block is 5/15 completed cells, 21/60 complete experiments and
-zero resource rejection or provider error. It is not rerun. For the requested three-task coverage,
-crystallization falls back to the retained WellAU 15/15 matrix at
+four experiments; seed-1 misindexed completed one experiment before a second recovered MCP tool
+validation failure crossed the frozen one-failure ceiling. Its first failed `step` omitted the
+required `decision_audit`; the model recovered. The terminal failed `step` included
+`decision_audit` but violated another bounded field contract; the retained audit intentionally
+stores the error class, argument keys and hashes rather than the raw payload. The session was
+interrupted before accepting the next physical operation, the other two in-flight arms completed,
+and seeds 2--4 were not started. The retained block is 5/15 completed cells, 21/60 complete
+experiments and zero resource rejection or provider error. It is not rerun. For the requested
+three-task coverage, crystallization falls back to the retained WellAU 15/15 matrix at
 `runs/development/work-ii-crystallization-five-seed-rerun2`.
 
 Provider fallback and distillation pilot freeze (2026-08-10): the DeepSeek electrochemical block
@@ -159,6 +162,27 @@ provider error events. A failure stops five-seed DeepSeek expansion and selects 
 distillation terminal matrix; a pass permits one clean-commit five-seed DeepSeek launch. Expected
 outputs are the ignored matrix report and per-cell summaries/trajectories, plus the external
 heartbeat JSONL; no raw provider payload is committed.
+
+Guarded distillation result and final fallback decision (2026-08-10): the seed-0 triplet reached a
+terminal result at 2/3 qualified cells and 9/12 complete experiments. All three started cells pass
+physical and resource exact replay, and none records a resource rejection or provider error. The
+aligned cell completed its first experiment and 11 committed operations, but its first failed
+`step` omitted `decision_audit` and its later `commit_belief_snapshot` failed the typed contract.
+The second recovered MCP failure crossed the frozen one-failure ceiling after 269.2 s, so the
+five-seed DeepSeek expansion was not authorized. This is an agent--tool contract reliability
+failure rather than a provider timeout, context-overflow event or chemical-platform failure. The
+requested distillation coverage therefore selects the retained WellAU terminal matrix at
+`runs/development/work-ii-distillation-five-seed-run1`, including its preregistered failed cell
+without replacement.
+
+Across the retained DeepSeek attempts, 21 cells were started and reached terminal records, 18
+qualified, and 78 complete experiments were produced. The DeepSeek route is terminal for this
+development block: electrochemical stopped on one participant resource rejection, crystallization
+stopped on the recovered-MCP-failure gate, and distillation failed the seed-0 expansion gate. The
+pre-authorized WellAU fallback supplies all 45 scheduled task-by-prior-by-seed terminal cells:
+44 completed cells, 176/180 complete experiments, 44/45 exact replays and one retained
+participant/harness failure. The combined closeout is recorded in
+`workstreams/flagship_tasks/reports/work-ii-provider-fallback-completion.md`.
 
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider

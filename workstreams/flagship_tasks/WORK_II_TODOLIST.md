@@ -1,6 +1,6 @@
 # Work II TODO — 先验、规律发现、偏差排除与迁移
 
-最后更新：2026-08-09
+最后更新：2026-08-10
 工作边界：第二篇研究在固定世界规律下，无先验、正确先验和错误先验如何影响 agent 的实验发现、错误先验排除、规律总结和 held-out 迁移。它不把“运行中规律变化”作为主要情境，也不重复第一篇的装置可观测性主张。
 
 当前执行冻结：
@@ -1046,13 +1046,21 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   并以 current code 重放。报告：
   `workstreams/flagship_tasks/reports/work-ii-deepseek-crystallization-seed0-safety-pilot.md`。
 - [x] DeepSeek crystallization guarded 五-seed launch 在 seed 1 misindexed 的第 2 次 recovered MCP
-  checkpoint validation failure 处按门禁止损：5/15 cells、21/60 experiments、0 resource rejection、
+  tool validation failure 处按门禁止损：首次失败为 `step` 缺少 `decision_audit`，第二次失败为已包含
+  `decision_audit` 的另一项 `step` 字段校验错误；5/15 cells、21/60 experiments、0 resource rejection、
   0 provider error；同 seed 其余两臂完成后未启动 seeds 2--4，失败区块保留且不重跑。该任务按用户
   fallback 规则使用已有 WellAU 15/15 matrix；electrochemical DeepSeek 的真实 resource rejection
   同样不做有利替换，任务覆盖使用已有 WellAU 15/15 matrix。
-- [ ] distillation 先执行 DeepSeek seed-0 三臂 guarded pilot；仅在 3/3 cells、12/12 experiments、
-  exact replay、0 resource rejection、每 cell recovered MCP failure ≤1、provider error=0 且 20%
-  expansion headroom 全部通过后启动五 seeds，否则切换已有 WellAU terminal matrix。
+- [x] DeepSeek distillation seed-0 三臂 guarded pilot 达到冻结终态：2/3 qualified cells、9/12
+  experiments、98/98 committed operations、3/3 started-cell exact replay、0 resource rejection、
+  0 provider error。aligned cell 首次失败为 `step` 缺少 `decision_audit`，恢复后完成第一轮实验；
+  随后 typed belief snapshot 校验失败，使该 cell 的第 2 次 recovered MCP failure 越过上限。
+  因此不启动 DeepSeek 五 seeds，切换已有 WellAU distillation terminal matrix。
+- [x] 三任务 provider 路线已收口：DeepSeek 共 21 个 started terminal cells、18 个 qualified cells、
+  78 个 complete experiments；三项任务分别因真实 resource rejection 或 recovered-MCP gate 终止，
+  不再重跑。WellAU fallback 覆盖 45/45 scheduled terminal cells，其中 44/45 completed、176/180
+  experiments、44/45 exact replay、0 resource rejection；唯一 participant/harness failure 原样保留。
+  完成报告：`workstreams/flagship_tasks/reports/work-ii-provider-fallback-completion.md`。
 
 ## 7. 完成定义
 
