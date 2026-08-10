@@ -91,6 +91,17 @@ restarted from seed 0 without changing coverage, budgets, estimands or pass/fail
 retained `floatfix-v3` artifacts remain historical development evidence and are not silently
 reclassified as a passed block.
 
+The first post-readiness seed-0 pilot was infrastructure-right-censored before any complete
+experiment. It was launched under a short outer command timeout; when that launcher closed stdout,
+the parent and child progress `print` calls raised Windows `OSError 22`, interrupting two cells after
+three recorded operations and preventing the third summary from closing. The partial trajectories,
+receipts and incomplete usage accounting are retained and excluded from scientific denominators.
+Progress JSONL is now authoritative and console output best-effort at both runner levels; parent
+exceptions also terminate and explicitly reap every active child. Subsequent provider runs must be
+started as detached background processes with stdout/stderr redirected outside the repository and
+monitored only through the independent progress JSONL. The affected pilot requires a fresh clean-
+commit readiness receipt before another seed-0 triplet may start.
+
 The first DeepSeek crystallization pilot exposed the analogous task-pattern tail: seed-0
 misindexed completed all physical and closeout checks with no resource rejection, but reached
 5,599,410 cumulative input tokens against the previous 5.5M cap. Before replacement execution,

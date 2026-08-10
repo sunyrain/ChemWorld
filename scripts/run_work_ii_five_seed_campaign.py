@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import queue
@@ -33,13 +34,28 @@ def _emit(path: Path, payload: dict[str, Any]) -> None:
     safe_rendered = rendered.encode(output_encoding, errors="backslashreplace").decode(
         output_encoding
     )
-    print(safe_rendered, flush=True)
+    with contextlib.suppress(BrokenPipeError, OSError, ValueError):
+        print(safe_rendered, flush=True)
 
 
 def _drain(stream: TextIO, events: queue.Queue[tuple[str, str | None]], arm: str) -> None:
     for line in stream:
         events.put((arm, line.rstrip("\r\n")))
     events.put((arm, None))
+
+
+def _terminate_processes(processes: dict[str, subprocess.Popen[str]]) -> None:
+    """Boundedly terminate and reap every active cell process after parent failure."""
+
+    for process in processes.values():
+        if process.poll() is None:
+            process.terminate()
+    for process in processes.values():
+        try:
+            process.wait(timeout=10.0)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=10.0)
 
 
 def _heartbeat(
@@ -149,108 +165,114 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         processes: dict[str, subprocess.Popen[str]] = {}
         readers: dict[str, threading.Thread] = {}
         active_arms = set(arms)
-        for arm in arms:
-            child_progress = progress.with_name(f"{progress.stem}-seed-{seed}-{arm}.jsonl")
-            command = [
-                sys.executable,
-                str(RUNNER),
-                "--config",
-                str(args.config.resolve()),
-                "--output",
-                str(seed_output / arm),
-                "--progress-file",
-                str(child_progress),
-                "--world-seed",
-                str(seed),
-                "--prior-arm",
-                arm,
-            ]
-            kwargs: dict[str, Any] = {}
-            if os.name == "nt":
-                kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-            process = subprocess.Popen(
-                command,
-                cwd=ROOT,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                **kwargs,
-            )
-            if process.stdout is None:
-                process.kill()
-                raise RuntimeError("five-seed cell stdout was not created")
-            processes[arm] = process
-            reader = threading.Thread(
-                target=_drain,
-                args=(process.stdout, events, arm),
-                daemon=True,
-            )
-            readers[arm] = reader
-            reader.start()
-        _emit(
-            progress,
-            {
-                "event": "seed_triplet_started",
-                "world_seed": seed,
-                "arms": arms,
-                "max_concurrency": 3,
-                "active_cells": [
-                    {"world_seed": seed, "arm": arm, "stage": "process_started"} for arm in arms
-                ],
-                "completed_cells": completed_cells,
-                "total_cells": total_cells,
-            },
-        )
-        while active_arms:
-            try:
-                arm, line = events.get(timeout=float(args.heartbeat_interval_s))
-            except queue.Empty:
-                last_event = _heartbeat(
-                    started=started,
-                    completed_cells=completed_cells,
-                    total_cells=total_cells,
-                    last_event=last_event,
-                    active_cells=[
-                        {"world_seed": seed, "arm": arm, "stage": "provider_session"}
-                        for arm in sorted(active_arms)
+        try:
+            for arm in arms:
+                child_progress = progress.with_name(f"{progress.stem}-seed-{seed}-{arm}.jsonl")
+                command = [
+                    sys.executable,
+                    str(RUNNER),
+                    "--config",
+                    str(args.config.resolve()),
+                    "--output",
+                    str(seed_output / arm),
+                    "--progress-file",
+                    str(child_progress),
+                    "--world-seed",
+                    str(seed),
+                    "--prior-arm",
+                    arm,
+                ]
+                kwargs: dict[str, Any] = {}
+                if os.name == "nt":
+                    kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+                process = subprocess.Popen(
+                    command,
+                    cwd=ROOT,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    **kwargs,
+                )
+                if process.stdout is None:
+                    process.kill()
+                    raise RuntimeError("five-seed cell stdout was not created")
+                processes[arm] = process
+                reader = threading.Thread(
+                    target=_drain,
+                    args=(process.stdout, events, arm),
+                    daemon=True,
+                )
+                readers[arm] = reader
+                reader.start()
+            _emit(
+                progress,
+                {
+                    "event": "seed_triplet_started",
+                    "world_seed": seed,
+                    "arms": arms,
+                    "max_concurrency": 3,
+                    "active_cells": [
+                        {"world_seed": seed, "arm": arm, "stage": "process_started"} for arm in arms
                     ],
-                )
-                _emit(progress, last_event)
-                continue
-            if line is None:
-                active_arms.discard(arm)
-                continue
-            try:
-                child_event = json.loads(line)
-            except json.JSONDecodeError:
-                _emit(
-                    progress,
-                    {
-                        "event": "child_log",
-                        "world_seed": seed,
-                        "arm": arm,
-                        "message": line[:1000],
-                    },
-                )
-                continue
-            if not isinstance(child_event, dict):
-                continue
-            child_event["event"] = child_event.get("event", "child_progress")
-            child_event.setdefault("arm", arm)
-            child_event["matrix_completed_cells_before_event"] = completed_cells
-            if child_event.get("stage") == "cell_completed" and child_event.get("completed"):
-                completed_cells += 1
-            child_event["completed_cells"] = completed_cells
-            child_event["total_cells"] = total_cells
-            child_event["active_cells"] = [
-                {"world_seed": seed, "arm": active, "stage": "provider_session"}
-                for active in sorted(active_arms)
-            ]
-            child_event["liveness_counter"] = int(last_event.get("liveness_counter", 0)) + 1
-            last_event = child_event
-            _emit(progress, child_event)
+                    "completed_cells": completed_cells,
+                    "total_cells": total_cells,
+                },
+            )
+            while active_arms:
+                try:
+                    arm, line = events.get(timeout=float(args.heartbeat_interval_s))
+                except queue.Empty:
+                    last_event = _heartbeat(
+                        started=started,
+                        completed_cells=completed_cells,
+                        total_cells=total_cells,
+                        last_event=last_event,
+                        active_cells=[
+                            {"world_seed": seed, "arm": arm, "stage": "provider_session"}
+                            for arm in sorted(active_arms)
+                        ],
+                    )
+                    _emit(progress, last_event)
+                    continue
+                if line is None:
+                    active_arms.discard(arm)
+                    continue
+                try:
+                    child_event = json.loads(line)
+                except json.JSONDecodeError:
+                    _emit(
+                        progress,
+                        {
+                            "event": "child_log",
+                            "world_seed": seed,
+                            "arm": arm,
+                            "message": line[:1000],
+                        },
+                    )
+                    continue
+                if not isinstance(child_event, dict):
+                    continue
+                child_event["event"] = child_event.get("event", "child_progress")
+                child_event.setdefault("arm", arm)
+                child_event["matrix_completed_cells_before_event"] = completed_cells
+                if child_event.get("stage") == "cell_completed" and child_event.get("completed"):
+                    completed_cells += 1
+                child_event["completed_cells"] = completed_cells
+                child_event["total_cells"] = total_cells
+                child_event["active_cells"] = [
+                    {"world_seed": seed, "arm": active, "stage": "provider_session"}
+                    for active in sorted(active_arms)
+                ]
+                child_event["liveness_counter"] = int(last_event.get("liveness_counter", 0)) + 1
+                last_event = child_event
+                _emit(progress, child_event)
+        except BaseException:
+            _terminate_processes(processes)
+            for reader in readers.values():
+                reader.join(timeout=5.0)
+            raise
         return_codes = {arm: process.wait() for arm, process in processes.items()}
         for reader in readers.values():
             reader.join(timeout=5.0)

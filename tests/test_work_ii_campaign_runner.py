@@ -625,3 +625,54 @@ def test_five_seed_runner_requires_readiness_before_creating_output(
     with pytest.raises(RuntimeError, match="zero-provider readiness receipt"):
         five_seed_runner.run(args)
     assert not output.exists()
+
+
+def test_progress_files_survive_closed_stdout(monkeypatch, tmp_path: Path) -> None:
+    class ClosedStdout:
+        encoding = "utf-8"
+
+        def write(self, _value: str) -> int:
+            raise OSError(22, "closed")
+
+        def flush(self) -> None:
+            raise OSError(22, "closed")
+
+    monkeypatch.setattr(five_seed_runner.sys, "stdout", ClosedStdout())
+    parent_progress = tmp_path / "parent.jsonl"
+    five_seed_runner._emit(parent_progress, {"stage": "alive"})
+    assert json.loads(parent_progress.read_text(encoding="utf-8"))["stage"] == "alive"
+
+    child_progress = tmp_path / "child.jsonl"
+    campaign_runner._progress(child_progress, {"stage": "operation", "step": 1})
+    assert json.loads(child_progress.read_text(encoding="utf-8"))["step"] == 1
+
+
+def test_parent_failure_terminates_and_reaps_active_children() -> None:
+    class FakeProcess:
+        def __init__(self) -> None:
+            self.running = True
+            self.terminated = False
+            self.killed = False
+            self.waited = False
+
+        def poll(self) -> int | None:
+            return None if self.running else 0
+
+        def terminate(self) -> None:
+            self.terminated = True
+            self.running = False
+
+        def kill(self) -> None:
+            self.killed = True
+            self.running = False
+
+        def wait(self, timeout: float | None = None) -> int:
+            del timeout
+            self.waited = True
+            return 0
+
+    first = FakeProcess()
+    second = FakeProcess()
+    five_seed_runner._terminate_processes({"opaque": first, "aligned": second})
+    assert first.terminated and first.waited and not first.killed
+    assert second.terminated and second.waited and not second.killed

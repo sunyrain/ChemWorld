@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import tempfile
 from collections.abc import Mapping
@@ -108,9 +109,7 @@ def _formal_cell_context(
     manifest = _load(Path(manifest_path).resolve())
     manifest_errors = validate_formal_preflight(manifest)
     if manifest_errors:
-        raise RuntimeError(
-            "formal manifest validation failed: " + "; ".join(manifest_errors)
-        )
+        raise RuntimeError("formal manifest validation failed: " + "; ".join(manifest_errors))
     errors = validate_formal_bindings(ROOT, manifest)
     if errors:
         raise RuntimeError("formal manifest binding validation failed: " + "; ".join(errors))
@@ -160,9 +159,7 @@ def _qualification_execution_context(
     if authorization_value is None:
         raise RuntimeError("qualification execution requires --qualification-authorization")
     if attempt_value is None:
-        raise RuntimeError(
-            "qualification execution requires --qualification-attempt-authorization"
-        )
+        raise RuntimeError("qualification execution requires --qualification-attempt-authorization")
     if ledger_value is None:
         raise RuntimeError("qualification execution requires --qualification-cost-ledger")
     authorization_path = Path(authorization_value).resolve()
@@ -186,25 +183,18 @@ def _qualification_execution_context(
         except ValueError as error:
             raise RuntimeError(f"{label} must be inside the repository") from error
     attempt = _load(attempt_path)
-    attempt_errors = validate_qualification_attempt_authorization(
-        attempt, authorization
-    )
+    attempt_errors = validate_qualification_attempt_authorization(attempt, authorization)
     if attempt_errors:
         raise RuntimeError(
-            "qualification attempt authorization failed: "
-            + "; ".join(attempt_errors)
+            "qualification attempt authorization failed: " + "; ".join(attempt_errors)
         )
     ledger = _load(ledger_path)
     cost_contract = authorization.get("qualification_currency_budget")
     if not isinstance(cost_contract, Mapping):
         raise RuntimeError("qualification authorization lacks its cost contract")
-    ledger_errors = validate_qualification_cost_ledger(
-        manifest, cost_contract, ledger
-    )
+    ledger_errors = validate_qualification_cost_ledger(manifest, cost_contract, ledger)
     if ledger_errors:
-        raise RuntimeError(
-            "qualification cost ledger failed: " + "; ".join(ledger_errors)
-        )
+        raise RuntimeError("qualification cost ledger failed: " + "; ".join(ledger_errors))
     if attempt.get("qualification_cost_ledger_sha256") != ledger.get(
         "qualification_cost_ledger_sha256"
     ):
@@ -219,28 +209,30 @@ def _qualification_execution_context(
         or getattr(args, "prior_arm", None) != arms[0]
     ):
         raise RuntimeError("qualification execution differs from its parent-authorized arm")
-    return authorization, {
-        "path": relative_authorization,
-        "sha256": file_sha256(authorization_path),
-        "authorization_sha256": authorization["authorization_sha256"],
-    }, {
-        "path": attempt_path.relative_to(ROOT.resolve()).as_posix(),
-        "sha256": file_sha256(attempt_path),
-        "attempt_authorization_sha256": attempt["attempt_authorization_sha256"],
-        "qualification_cost_ledger_path": ledger_path.relative_to(
-            ROOT.resolve()
-        ).as_posix(),
-        "qualification_cost_ledger_sha256": ledger[
-            "qualification_cost_ledger_sha256"
-        ],
-    }
+    return (
+        authorization,
+        {
+            "path": relative_authorization,
+            "sha256": file_sha256(authorization_path),
+            "authorization_sha256": authorization["authorization_sha256"],
+        },
+        {
+            "path": attempt_path.relative_to(ROOT.resolve()).as_posix(),
+            "sha256": file_sha256(attempt_path),
+            "attempt_authorization_sha256": attempt["attempt_authorization_sha256"],
+            "qualification_cost_ledger_path": ledger_path.relative_to(ROOT.resolve()).as_posix(),
+            "qualification_cost_ledger_sha256": ledger["qualification_cost_ledger_sha256"],
+        },
+    )
 
 
 def _progress(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    rendered = json.dumps(dict(payload), ensure_ascii=False, sort_keys=True)
     with path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(dict(payload), ensure_ascii=False, sort_keys=True) + "\n")
-    print(json.dumps(dict(payload), ensure_ascii=False, sort_keys=True), flush=True)
+        handle.write(rendered + "\n")
+    with contextlib.suppress(BrokenPipeError, OSError, ValueError):
+        print(rendered, flush=True)
 
 
 def _analyze(
@@ -693,9 +685,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             progress_path=progress_path,
         )
         if qualification_context is not None:
-            row["qualification_attempt_authorization_binding"] = (
-                qualification_context[2]
-            )
+            row["qualification_attempt_authorization_binding"] = qualification_context[2]
             write_json_atomic(cell_root / "summary.json", row)
         if formal_cell is not None:
             row["formal_cell"] = formal_cell
