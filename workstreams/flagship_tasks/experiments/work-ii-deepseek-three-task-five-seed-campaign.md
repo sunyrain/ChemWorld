@@ -28,6 +28,15 @@ the frozen provider/session contract after bounded diagnosis, the pre-authorized
 already qualified WellAU task configuration; no mixed-provider scientific denominator is silently
 combined.
 
+Platform closeout amendment before replacement execution: the participant must commit its one
+final experiment selection through the host-owned `commit_final_recommendation` MCP tool in the
+same persistent session, after campaign terminal and the final typed checkpoint. The tool writes an
+atomic, idempotent, hash-bound session record and rejects a differing duplicate. Terminal free text
+now carries only `status` and `summary`; a legacy nested recommendation is readable for historical
+artifacts but does not qualify a new cell. This changes only the unreliable transport of the
+participant-owned decision, not the coverage, scientific denominator, selection authority, resource
+budgets or pass/failure thresholds.
+
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
 payloads and private reasoning are not committed.

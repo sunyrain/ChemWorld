@@ -37,7 +37,7 @@ from chemworld.providers.codex_subscription import (
     SUPPORTED_MODELS,
 )
 
-INTERACTIVE_CODEX_EXPERIMENT_VERSION = "chemworld-interactive-codex-experiment-0.4"
+INTERACTIVE_CODEX_EXPERIMENT_VERSION = "chemworld-interactive-codex-experiment-0.5"
 DEFAULT_FINALIZATION_TIMEOUT_S = 300.0
 
 _FINAL_OUTPUT_SCHEMA: dict[str, Any] = {
@@ -61,21 +61,8 @@ _CAMPAIGN_FINAL_OUTPUT_SCHEMA: dict[str, Any] = {
             "enum": ["campaign_complete", "budget_exhausted", "stopped"],
         },
         "summary": {"type": "string", "maxLength": 3000},
-        "final_recommendation": {
-            "type": "object",
-            "properties": {
-                "selected_experiment_index": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 4,
-                },
-                "selection_rationale": {"type": "string", "maxLength": 2000},
-            },
-            "required": ["selected_experiment_index", "selection_rationale"],
-            "additionalProperties": False,
-        },
     },
-    "required": ["status", "summary", "final_recommendation"],
+    "required": ["status", "summary"],
     "additionalProperties": False,
 }
 
@@ -126,13 +113,13 @@ provider budget.
 
 An experiment_ended outcome closes only the current batch. When campaign_ended=false, preserve your
 scientific context and continue into the next fresh batch using the returned next_state. When
-campaign_ended=true, commit the final checkpoint if it is due, then return exactly one JSON object
-matching the requested final schema, with no prose or Markdown fence. The final_recommendation must
-select exactly one of the four completed experiment indices for evaluator-owned blind replay. Commit
-the selection using only participant-visible campaign evidence; no blind outcome will be returned.
-Your final response must have all three keys and this exact shape (replace the values, do not omit the
-nested object): {"status":"campaign_complete","summary":"...","final_recommendation":{"selected_experiment_index":1,"selection_rationale":"..."}}.
-Return that JSON object as the only final message after the terminal tool outcome.
+    campaign_ended=true, commit the final checkpoint if it is due, then call
+    chemworld_lab.commit_final_recommendation exactly once. Select exactly one of the four completed
+    experiment indices for evaluator-owned blind replay using only participant-visible campaign
+    evidence; no blind outcome will be returned. Only after the tool confirms the commitment, return
+    exactly one
+    JSON object with status and summary, with no prose or Markdown fence:
+    {"status":"campaign_complete","summary":"..."}.
 The host never chooses, repairs, terminates, assays, or replaces your operations. Failed and
 resource-rejected attempts remain part of the trajectory. Keep enough operation, stock,
 process-time, and assay capacity to close all planned batches. The 19 process coordinates are
@@ -1012,6 +999,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         session_id = str(self._session["session_id"])
         mcp_tool_calls = self.workspace.mcp_tool_call_audit(session_id)
         belief_snapshots = self.workspace.belief_snapshot_audit(session_id)
+        committed_recommendation = self.workspace.final_recommendation_audit(session_id)
         if belief_snapshots:
             self._belief_snapshots.extend(deepcopy(belief_snapshots))
         receipt_tool_events = (
@@ -1025,11 +1013,27 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             receipt_tool_events.extend(_host_mcp_audit_events(mcp_tool_calls))
         final_payload = result.get("final_payload")
         final_valid = _valid_final_payload(final_payload)
-        final_recommendation = _final_recommendation_from_payload(final_payload)
+        host_recommendation = (
+            committed_recommendation.get("recommendation")
+            if isinstance(committed_recommendation, dict)
+            else None
+        )
+        final_recommendation = (
+            deepcopy(host_recommendation)
+            if isinstance(host_recommendation, dict)
+            else _final_recommendation_from_payload(final_payload)
+        )
+        final_recommendation_source = (
+            "host_mcp_commit"
+            if isinstance(host_recommendation, dict)
+            else "legacy_final_payload"
+            if final_recommendation is not None
+            else None
+        )
         usage_complete = _usage_complete(normalized_usage)
         self._all_session_usage_complete = self._all_session_usage_complete and usage_complete
         receipt = {
-            "schema_version": "chemworld-interactive-codex-session-receipt-0.1",
+            "schema_version": "chemworld-interactive-codex-session-receipt-0.2",
             "session_id": self._session["session_id"],
             "thread_id": result.get("thread_id"),
             "status": result.get("status"),
@@ -1057,6 +1061,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 else None
             ),
             "final_recommendation": final_recommendation,
+            "final_recommendation_source": final_recommendation_source,
+            "final_recommendation_commit": committed_recommendation,
             "final_recommendation_sha256": (
                 hashlib.sha256(
                     _canonical_json(final_recommendation).encode("utf-8")
@@ -1126,7 +1132,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         ):
             receipt_tool_events.extend(_host_mcp_audit_events(mcp_tool_calls))
         receipt = {
-            "schema_version": "chemworld-interactive-codex-session-receipt-0.1",
+            "schema_version": "chemworld-interactive-codex-session-receipt-0.2",
             "session_id": self._session["session_id"],
             "thread_id": snapshot.get("thread_id"),
             "status": "interrupted_before_next_action",
@@ -1760,6 +1766,7 @@ def _mcp_tool_classification(tool_name: str) -> str:
         "inspect_artifact": "artifact_inspect",
         "material_information": "material_information_read",
         "commit_belief_snapshot": "belief_checkpoint_commit",
+        "commit_final_recommendation": "final_recommendation_commit",
     }.get(tool_name, "other")
 
 

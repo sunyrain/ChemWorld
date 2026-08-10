@@ -17,7 +17,7 @@ from chemworld.agents.experiment_codex_mcp import (
 def test_final_response_contract_matches_session_scope() -> None:
     assert ChemWorldMCPServer._final_response_contract(campaign=True) == {
         "format": "json_object_only",
-        "required_keys": ["status", "summary", "final_recommendation"],
+        "required_keys": ["status", "summary"],
         "status": "campaign_complete",
         "summary_max_length": 3000,
         "final_recommendation_contract": {
@@ -263,3 +263,99 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
     finally:
         process.stdin.close()
         process.wait(timeout=5.0)
+
+
+def test_final_recommendation_is_campaign_terminal_checkpoint_bound_and_idempotent(
+    tmp_path: Path,
+) -> None:
+    workspace = ExperimentCodexWorkspace(tmp_path / "workspace")
+    workspace.initialize_fresh()
+    workspace.publish_material_information({"condition_id": "opaque_codes"})
+    workspace.publish_task_contract({"task_id": "test"})
+    workspace.publish_belief_checkpoint_contract(
+        {
+            "snapshot_stages": [
+                "pre_evidence",
+                "after_experiment_1",
+                "after_experiment_2",
+                "final",
+            ],
+            "checkpoint_complete_experiments": [0, 1, 2, 4],
+            "query_metric_contract": {"q0": ["score"]},
+            "allowed_feature_ids": ["potential_V"],
+            "allowed_metric_ids": ["score"],
+            "allowed_prior_fields": ["solvent"],
+            "evidence_catalog": ["experiment-1-final-assay"],
+            "nominal_information_available": False,
+        }
+    )
+    workspace.publish_current({"expected_step": 1, "available_actions": []})
+    workspace.start_session(
+        session_id="campaign-final-recommendation-test",
+        expected_step=1,
+        response_timeout_s=10.0,
+        session_scope="campaign",
+    )
+    session_root = workspace.session_root("campaign-final-recommendation-test")
+    snapshots = session_root / "belief_snapshots"
+    snapshots.mkdir()
+    for index in range(4):
+        (snapshots / f"{index + 1:02d}-stage.json").write_text("{}", encoding="utf-8")
+    for index in range(4):
+        workspace.append_public_history(
+            {
+                "experiment_ended": True,
+                "campaign_ended": index == 3,
+                "evidence_id": f"experiment-{index + 1}-final-assay",
+            }
+        )
+    server = ChemWorldMCPServer(workspace.root)
+    recommendation = {
+        "selected_experiment_index": 2,
+        "selection_rationale": "best public evidence",
+    }
+
+    committed = server._call_tool("commit_final_recommendation", recommendation)
+    assert committed["isError"] is False
+    committed_payload = json.loads(committed["content"][0]["text"])
+    assert committed_payload["already_committed"] is False
+    assert workspace.final_recommendation_audit("campaign-final-recommendation-test")[
+        "recommendation"
+    ] == recommendation
+
+    repeated = server._call_tool("commit_final_recommendation", recommendation)
+    assert repeated["isError"] is False
+    assert json.loads(repeated["content"][0]["text"])["already_committed"] is True
+
+    conflicting = server._call_tool(
+        "commit_final_recommendation",
+        {
+            "selected_experiment_index": 3,
+            "selection_rationale": "different choice",
+        },
+    )
+    assert conflicting["isError"] is True
+    assert "different final recommendation" in json.loads(
+        conflicting["content"][0]["text"]
+    )["error"]
+
+
+def test_final_recommendation_is_rejected_outside_campaign(tmp_path: Path) -> None:
+    workspace = ExperimentCodexWorkspace(tmp_path / "workspace")
+    workspace.initialize_fresh()
+    workspace.publish_material_information({"condition_id": "opaque_codes"})
+    workspace.publish_task_contract({"task_id": "test"})
+    workspace.publish_current({"expected_step": 1, "available_actions": []})
+    workspace.start_session(
+        session_id="experiment-final-recommendation-test",
+        expected_step=1,
+        response_timeout_s=10.0,
+        session_scope="experiment",
+    )
+    server = ChemWorldMCPServer(workspace.root)
+    result = server._call_tool(
+        "commit_final_recommendation",
+        {"selected_experiment_index": 1, "selection_rationale": "not allowed"},
+    )
+    assert result["isError"] is True
+    assert "campaign sessions" in json.loads(result["content"][0]["text"])["error"]

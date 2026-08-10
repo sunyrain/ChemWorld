@@ -1200,6 +1200,9 @@ def validate_method_qualification_report(
         receipts = raw_row.get("provider_receipts")
         receipts = receipts if isinstance(receipts, list) else []
         receipt = receipts[0] if len(receipts) == 1 and isinstance(receipts[0], Mapping) else {}
+        host_commit_required = receipt.get("schema_version") == (
+            "chemworld-interactive-codex-session-receipt-0.2"
+        )
         if (
             len(receipts) != 1
             or receipt.get("session_scope") != "campaign"
@@ -1208,6 +1211,18 @@ def validate_method_qualification_report(
             or receipt.get("final_payload_valid") is not True
             or receipt.get("final_payload_status") != "campaign_complete"
             or receipt.get("final_recommendation_sha256") != recommendation_hash
+            or (
+                host_commit_required
+                and (
+                    receipt.get("final_recommendation_source") != "host_mcp_commit"
+                    or not any(
+                        isinstance(item, Mapping)
+                        and item.get("tool") == "commit_final_recommendation"
+                        and item.get("status") == "completed"
+                        for item in receipt.get("mcp_tool_calls", [])
+                    )
+                )
+            )
             or receipt.get("experiment_tool_integrity_verified_after_session") is not True
             or receipt.get("lab_tool_integrity_verified_after_session") is not True
             or receipt.get("mcp_tool_integrity_verified_after_session") is not True

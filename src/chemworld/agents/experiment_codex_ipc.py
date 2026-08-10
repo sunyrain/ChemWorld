@@ -249,6 +249,12 @@ class ExperimentCodexWorkspace:
             return []
         return [_read_json_object(path) for path in sorted(root.glob("*.json"))]
 
+    def final_recommendation_audit(self, session_id: str) -> dict[str, Any] | None:
+        """Return the host-owned participant recommendation committed in one session."""
+
+        path = self.session_root(session_id) / "final_recommendation.json"
+        return _read_json_object(path) if path.exists() else None
+
     def start_session(
         self,
         *,

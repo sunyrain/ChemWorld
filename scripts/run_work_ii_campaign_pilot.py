@@ -363,6 +363,9 @@ def _qualification(
         observed = int(operation_counts.get(operation, -1))
         required_operations_reconciled = required_operations_reconciled and low <= observed <= high
     target_experiments = int(method_resource_limits["complete_experiment_limit"])
+    host_commit_required = receipt.get("schema_version") == (
+        "chemworld-interactive-codex-session-receipt-0.2"
+    )
     checks = {
         "planned_complete_experiments": analysis.get("complete_experiment_count")
         == target_experiments
@@ -386,6 +389,18 @@ def _qualification(
             )
             and recommendation_hash == analysis.get("final_recommendation_sha256")
             and recommendation_hash == receipt.get("final_recommendation_sha256")
+            and (
+                not host_commit_required
+                or (
+                    receipt.get("final_recommendation_source") == "host_mcp_commit"
+                    and any(
+                        item.get("tool") == "commit_final_recommendation"
+                        and item.get("status") == "completed"
+                        for item in receipt.get("mcp_tool_calls", [])
+                        if isinstance(item, Mapping)
+                    )
+                )
+            )
         ),
         "tool_integrity": receipt.get("experiment_tool_integrity_verified_after_session") is True
         and receipt.get("lab_tool_integrity_verified_after_session") is True

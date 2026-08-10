@@ -27,7 +27,7 @@ from chemworld.eval.work_ii_prior_discovery import (
     parse_work_ii_belief_snapshot,
 )
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.5"
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.6"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
@@ -36,6 +36,7 @@ SUPPORTED_TOOLS = (
     "history",
     "inspect_artifact",
     "commit_belief_snapshot",
+    "commit_final_recommendation",
     "step",
 )
 ATOMIC_REPLACE_RETRY_LIMIT = 40
@@ -160,8 +161,9 @@ class ChemWorldMCPServer:
                             "commit_belief_snapshot. An experiment_ended outcome closes only "
                             "the current batch; continue in the same session when "
                             "campaign_ended=false. After campaign_ended=true, commit the final "
-                            "checkpoint if due and submit exactly one JSON object matching the "
-                            "final response schema, with no prose or Markdown fence."
+                            "checkpoint if due, commit exactly one participant-owned selection "
+                            "with commit_final_recommendation, then submit exactly one JSON object "
+                            "matching the final response schema, with no prose or Markdown fence."
                             if campaign
                             else "After a step returns experiment_ended=true, call no more "
                             "tools and submit the final response for that experiment."
@@ -251,6 +253,8 @@ class ChemWorldMCPServer:
                 payload = self._inspect(descriptor, arguments)
             elif name == "commit_belief_snapshot":
                 payload = self._commit_belief_snapshot(descriptor, arguments)
+            elif name == "commit_final_recommendation":
+                payload = self._commit_final_recommendation(descriptor, arguments)
             else:
                 payload = self._step(descriptor, arguments)
             cap = int(descriptor["max_tool_output_bytes"])
@@ -267,7 +271,7 @@ class ChemWorldMCPServer:
             error_type = type(error).__name__
             result = self._tool_error(
                 f"{type(error).__name__}: {detail[:1000]}"
-                if name == "commit_belief_snapshot" and detail
+                if name in {"commit_belief_snapshot", "commit_final_recommendation"} and detail
                 else type(error).__name__
             )
         self._audit(
@@ -314,7 +318,13 @@ class ChemWorldMCPServer:
             "schema_version": MCP_SERVER_VERSION,
             "experiment_ended": True,
             "terminal_outcome": self._terminal_outcome,
-            "instruction": "Submit the final response now; do not call step again.",
+            "instruction": (
+                "Commit the final belief checkpoint if due, call "
+                "commit_final_recommendation exactly once, then submit the final response; "
+                "do not call step again."
+                if campaign
+                else "Submit the final response now; do not call step again."
+            ),
             "final_response_contract": self._final_response_contract(campaign=campaign),
         }
 
@@ -322,11 +332,7 @@ class ChemWorldMCPServer:
     def _final_response_contract(*, campaign: bool) -> dict[str, Any]:
         return {
             "format": "json_object_only",
-            "required_keys": (
-                ["status", "summary", "final_recommendation"]
-                if campaign
-                else ["status", "summary"]
-            ),
+            "required_keys": ["status", "summary"],
             "status": "campaign_complete" if campaign else "experiment_complete",
             "summary_max_length": 3000 if campaign else 2000,
             "final_recommendation_contract": (
@@ -400,6 +406,89 @@ class ChemWorldMCPServer:
         if result["remaining_checkpoint_count"] == 0:
             result["final_response_contract"] = self._final_response_contract(campaign=True)
         return result
+
+    def _commit_final_recommendation(
+        self,
+        descriptor: dict[str, Any],
+        arguments: dict[str, Any],
+    ) -> dict[str, Any]:
+        if descriptor.get("session_scope") != "campaign":
+            raise RuntimeError("final recommendations are available only in campaign sessions")
+        completed_count, _ = self._completed_experiment_state()
+        if completed_count < 1 or not self._campaign_terminal_observed():
+            raise RuntimeError("final recommendation is allowed only after campaign terminal")
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        stages = contract.get("snapshot_stages")
+        if not isinstance(stages, list) or not stages:
+            raise ValueError("checkpoint contract has no snapshot stages")
+        session_id = self._leaf(str(descriptor["session_id"]), label="session_id")
+        snapshot_root = self.ipc / "sessions" / session_id / "belief_snapshots"
+        committed_snapshots = (
+            len(list(snapshot_root.glob("*.json"))) if snapshot_root.exists() else 0
+        )
+        if committed_snapshots != len(stages):
+            raise RuntimeError(
+                "all required belief checkpoints must be committed before final recommendation"
+            )
+        index = arguments.get("selected_experiment_index")
+        if isinstance(index, bool) or not isinstance(index, int):
+            raise ValueError("selected_experiment_index must be an integer")
+        if not 1 <= index <= completed_count:
+            raise ValueError(
+                "selected_experiment_index must identify a completed experiment"
+            )
+        rationale = arguments.get("selection_rationale")
+        if not isinstance(rationale, str) or not rationale.strip():
+            raise ValueError("selection_rationale must be a non-empty string")
+        if len(rationale) > 2000:
+            raise ValueError("selection_rationale exceeds 2000 characters")
+        recommendation = {
+            "selected_experiment_index": index,
+            "selection_rationale": rationale.strip(),
+        }
+        path = self.ipc / "sessions" / session_id / "final_recommendation.json"
+        if path.exists():
+            existing = _read_object(path)
+            existing_recommendation = existing.get("recommendation")
+            if _encode(existing_recommendation) != _encode(recommendation):
+                raise RuntimeError("a different final recommendation is already committed")
+            return {
+                "ok": True,
+                "schema_version": MCP_SERVER_VERSION,
+                "already_committed": True,
+                "recommendation_sha256": hashlib.sha256(_encode(recommendation)).hexdigest(),
+                "instruction": "Submit the final response now; do not call more tools.",
+            }
+        record = {
+            "schema_version": MCP_SERVER_VERSION,
+            "recommendation": recommendation,
+            "recommendation_sha256": hashlib.sha256(_encode(recommendation)).hexdigest(),
+            "complete_experiment_count": completed_count,
+            "committed_checkpoint_count": committed_snapshots,
+            "committed_after_campaign_terminal": True,
+            "committed_before_blind_evaluation": True,
+        }
+        _atomic_json(path, record)
+        return {
+            "ok": True,
+            "schema_version": MCP_SERVER_VERSION,
+            "already_committed": False,
+            "recommendation_sha256": record["recommendation_sha256"],
+            "instruction": "Submit the final response now; do not call more tools.",
+        }
+
+    def _campaign_terminal_observed(self) -> bool:
+        if self._terminal_outcome is not None:
+            return self._terminal_outcome.get("campaign_ended") is True
+        path = self.public / "history.jsonl"
+        if not path.exists():
+            return False
+        for line in reversed(path.read_text(encoding="utf-8").splitlines()):
+            if not line:
+                continue
+            value = json.loads(line)
+            return isinstance(value, dict) and value.get("campaign_ended") is True
+        return False
 
     def _completed_experiment_state(self) -> tuple[int, set[str]]:
         rows: list[dict[str, Any]] = []
@@ -845,6 +934,38 @@ class ChemWorldMCPServer:
                     "readOnlyHint": False,
                     "destructiveHint": False,
                     "idempotentHint": False,
+                    "openWorldHint": False,
+                },
+            },
+            {
+                "name": "commit_final_recommendation",
+                "description": (
+                    "After campaign terminal and the final belief checkpoint, commit exactly one "
+                    "participant-selected completed experiment for evaluator-owned blind replay. "
+                    "The host stores the selection atomically; a repeated identical call is "
+                    "idempotent and a differing second selection is rejected."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "selected_experiment_index": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 4,
+                        },
+                        "selection_rationale": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 2000,
+                        },
+                    },
+                    "required": ["selected_experiment_index", "selection_rationale"],
+                    "additionalProperties": False,
+                },
+                "annotations": {
+                    "readOnlyHint": False,
+                    "destructiveHint": False,
+                    "idempotentHint": True,
                     "openWorldHint": False,
                 },
             },
