@@ -13,6 +13,7 @@ import math
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from chemworld.action_codec import ActionCodec
 from chemworld.campaign_resources import (
     CampaignResourceCard,
     CampaignResourceIntegrityError,
@@ -71,6 +72,7 @@ _FORBIDDEN_VISIBLE_KEYS = frozenset(
 _FORBIDDEN_PROTOCOL_TOKENS = ("aligned_nominal", "misindexed_nominal")
 _RETENTION_FRACTION = 0.9
 _FLOAT_TOLERANCE = 1.0e-12
+_RESOURCE_ACTION_CODEC = ActionCodec()
 
 
 class WorkIIProcessProfileError(ValueError):
@@ -165,6 +167,25 @@ def _record_index(records: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
+def _canonical_resource_action(action: Mapping[str, Any]) -> dict[str, Any]:
+    """Apply the runtime action aliases before rebuilding resource events.
+
+    Participant trajectories retain the action selected by the agent.  The
+    environment's action codec may canonicalize aliases (for example,
+    ``amount_mol`` to ``catalyst_amount_mol`` for ``add_catalyst``) before the
+    campaign ledger sees them.  Replay must use that same canonical payload;
+    otherwise a valid runtime event can fail resource replay even though the
+    physical and public ledgers are internally consistent.  Truly malformed
+    actions are left untouched so the replay remains fail-closed.
+    """
+
+    raw = dict(action)
+    try:
+        return _RESOURCE_ACTION_CODEC.canonicalize(raw)
+    except (IndexError, TypeError, ValueError, OverflowError):
+        return raw
+
+
 def replay_work_ii_campaign_resources(
     records: Sequence[Mapping[str, Any]],
 ) -> dict[str, Any]:
@@ -209,7 +230,8 @@ def replay_work_ii_campaign_resources(
                 raise WorkIIProcessProfileError("resource event_id is duplicated")
             seen_events.add(event_id)
             resource_event_steps.append(step)
-            action = _mapping(record.get("action"), "resource event action")
+            raw_action = _mapping(record.get("action"), "resource event action")
+            action = _canonical_resource_action(raw_action)
             recorded_preflight = _mapping(receipt.get("preflight"), "resource preflight")
             proposed = _mapping(
                 recorded_preflight.get("proposed_delta"),

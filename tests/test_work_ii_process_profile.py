@@ -4,6 +4,7 @@ from copy import deepcopy
 
 import pytest
 
+from chemworld.action_codec import ActionCodec
 from chemworld.campaign_resources import CampaignResourceCard, CampaignResourceLedger
 from chemworld.eval.policy_validity_contract import METRICS
 from chemworld.eval.work_ii_process_profile import (
@@ -205,6 +206,70 @@ def test_resource_replay_and_hidden_boundary_fail_closed() -> None:
     boundary = audit_work_ii_hidden_boundary(leaked)
     assert boundary["status"] == "failed"
     assert boundary["leak_count"] >= 1
+
+
+def test_resource_replay_uses_runtime_action_aliases() -> None:
+    """Replay must match the runtime ledger for canonicalized catalyst aliases."""
+
+    card = CampaignResourceCard(
+        card_id="work-ii-catalyst-alias-replay",
+        operation_attempt_limit=2,
+        vessel_start_limit=1,
+        final_assay_limit=0,
+        nonfinal_instrument_use_limit=0,
+        stock_limits={"catalyst_mol": 0.002},
+        metadata={"scope": "test"},
+    )
+    raw_action = {"operation": "add_catalyst", "catalyst": 0, "amount_mol": 0.002}
+    canonical_action = ActionCodec().canonicalize(raw_action)
+    ledger = CampaignResourceLedger(card)
+    event_id = "event-catalyst-alias"
+    preflight = ledger.preflight(event_id, canonical_action, starts_vessel=False)
+    outcome = {
+        "transaction_status": "committed",
+        "campaign_resource_report_delta": {},
+    }
+    delta = ledger.record_outcome(
+        event_id,
+        canonical_action,
+        outcome,
+        starts_vessel=False,
+    )
+    snapshot = ledger.snapshot()
+    receipt = {
+        "event_id": event_id,
+        "preflight": preflight.to_dict(),
+        "operation_committed": True,
+        "outcome_delta": delta.to_dict(),
+        "rejected": False,
+        "rejection_reasons": [],
+        "transaction_status": "committed",
+    }
+    record = {
+        "step": 1,
+        "action": raw_action,
+        "operation_type": "add_catalyst",
+        "transaction_status": "committed",
+        "campaign_resource_card": card.to_dict(),
+        "campaign_resource_card_sha256": card.card_sha256,
+        "agent_view": {
+            "tool_json": {
+                "campaign_state": {
+                    "campaign_resources": {
+                        "ledger_sha256": snapshot["ledger_sha256"],
+                        "state": snapshot["state"],
+                        "last_event_id": event_id,
+                        "latest_receipt": receipt,
+                    }
+                }
+            }
+        },
+        "agent_visible_observation": {"observation": {"score": None}},
+    }
+
+    report = replay_work_ii_campaign_resources([record])
+    assert report["status"] == "passed", report["errors"]
+    assert report["recorded_ledger_sha256"] == report["rebuilt_ledger_sha256"]
 
 
 def test_execution_artifacts_reject_evaluator_owned_records() -> None:
