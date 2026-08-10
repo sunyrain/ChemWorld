@@ -171,7 +171,17 @@ def build() -> dict[str, Any]:
         shutil.copy2(build_dir / "main.pdf", OUTPUT_PDF)
         shutil.copy2(main_tex, OUTPUT_TEX)
 
-    source_paths = [MANUSCRIPT, BIBLIOGRAPHY, TEMPLATE, FIGURE_MANIFEST, *figure_pdfs]
+    source_paths = [
+        MANUSCRIPT,
+        BIBLIOGRAPHY,
+        TEMPLATE,
+        FIGURE_MANIFEST,
+        ROOT / "paper/prior_discovery_evidence_map.md",
+        ROOT / "paper/prior_discovery_display_items.md",
+        ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-closeout-v0.1.json",
+        ROOT / "configs/benchmark/work_ii_deepseek_five_task_development_analysis_sources_v0.1.json",
+        *figure_pdfs,
+    ]
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-draft-build-0.1",
         "status": "compiled_development_draft",
@@ -208,7 +218,8 @@ def build() -> dict[str, Any]:
         ],
         "interpretation_limits": [
             "Figures 1 and 2 describe the frozen design.",
-            "Figure 3 and the current Results text are development-only.",
+            "Figure 3 and the current Results text are development-only; its paired panels use the three-task five-seed subset.",
+            "Partition discovery and safety-constrained reaction are seed-0 gate pilots only and are not paired scientific contrasts.",
             "Public formal and private confirmation results remain uncollected.",
         ],
     }

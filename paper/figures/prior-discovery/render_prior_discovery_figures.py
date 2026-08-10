@@ -919,16 +919,34 @@ def main() -> int:
     preflight_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json"
     wellau_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-development-basic-analysis-v0.1.json"
     deepseek_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-analysis-v0.1.json"
-    source_paths = [design_path, analysis_path, preflight_path, wellau_path, deepseek_path]
+    deepseek_closeout_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-closeout-v0.1.json"
+    deepseek_closeout_sources_path = ROOT / "configs/benchmark/work_ii_deepseek_five_task_development_analysis_sources_v0.1.json"
+    source_paths = [
+        design_path,
+        analysis_path,
+        preflight_path,
+        wellau_path,
+        deepseek_path,
+        deepseek_closeout_path,
+        deepseek_closeout_sources_path,
+    ]
 
     design = json.loads(design_path.read_text(encoding="utf-8"))
     preflight = json.loads(preflight_path.read_text(encoding="utf-8"))
     wellau = json.loads(wellau_path.read_text(encoding="utf-8"))
     deepseek = json.loads(deepseek_path.read_text(encoding="utf-8"))
+    deepseek_closeout = json.loads(deepseek_closeout_path.read_text(encoding="utf-8"))
     if preflight.get("formal_execution_allowed") is not False:
         raise ValueError("expected an outcome-blind execution-blocked formal preflight")
     if wellau.get("formal_result") is not False or deepseek.get("formal_result") is not False:
         raise ValueError("development Figure 3 cannot consume formal results")
+    if deepseek_closeout.get("formal_result") is not False:
+        raise ValueError("DeepSeek five-task closeout must remain development-only")
+    closeout_denominators = deepseek_closeout.get("denominators", {})
+    if closeout_denominators.get("terminal_record_count") != 51:
+        raise ValueError("unexpected DeepSeek five-task closeout terminal denominator")
+    if closeout_denominators.get("qualified_cell_count") != 47:
+        raise ValueError("unexpected DeepSeek five-task closeout qualified denominator")
 
     endpoint_rows, warning_rows = normalize_development_rows()
     denominator_rows = build_denominator_rows(wellau, deepseek)
@@ -985,6 +1003,7 @@ def main() -> int:
         "interpretation_limits": [
             "Figures 1 and 2 show the frozen conceptual and formal design, not participant outcomes.",
             "Figure 3 contains development-only provider-isolated descriptive evidence.",
+            "Partition discovery and safety-constrained reaction are seed-0 gate pilots only and are not paired scientific contrasts.",
             "No formal inference, law-discovery claim, transfer claim or cross-provider capability ranking is supported.",
         ],
     }

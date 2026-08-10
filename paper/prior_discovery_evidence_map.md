@@ -9,6 +9,7 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
 | Primary estimand measures selective wrong-prior correction | Frozen analysis | `configs/benchmark/work_ii_analysis_plan_v0.1.json` and power audit | Complete | Preregistered question; no result yet |
 | WellAU development endpoints change under explicit priors | Development participant evidence | `work-ii-development-basic-analysis-v0.1.json` | Complete, non-formal | Development observation for the retained method/harness only |
 | DeepSeek development endpoints change under explicit priors | Development participant evidence | `work-ii-deepseek-recovery-amended-analysis-v0.1.json` | Complete, non-formal | Development observation for the recovery-amended method/harness only |
+| DeepSeek development breadth reaches two additional task-pattern pilots | Development operational closeout | `work-ii-deepseek-five-task-development-closeout-v0.1.json` and `configs/benchmark/work_ii_deepseek_five_task_development_analysis_sources_v0.1.json` | Complete, non-formal | Seed-0 gate coverage and failure/resource boundaries only; no task-level prior contrast |
 | Misindex warnings are not selective | Development belief evidence | Provider-isolated development analyses and source-data CSVs | Complete, non-formal | Self-report does not establish correction |
 | DeepSeek and WellAU differ in scientific capability | Cross-provider comparison | None: provider, sampling and recovery contracts are not matched | Unsupported | Forbidden |
 | The participant selectively corrects a wrong prior | Public formal outcome | Future 75-cell public matrix and preregistered analysis | Not collected | Forbidden until the primary decision is available |
@@ -21,6 +22,10 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
 - WellAU/Codex: 45 terminal cells, 44 completed cells and 176/180 complete experiments.
 - DeepSeek recovery-amended: 45 terminal cells, 43 completed cells, 174/180 complete experiments
   and 45/45 exact replay.
+- DeepSeek five-task closeout: 51/51 terminal cells, 47/51 runner-qualified cells, 196 complete
+  experiments, 48 recovered MCP failures, 0 provider errors, 2 resource rejections and 51/51 exact
+  replay. The stricter experiment-note audit is 46/51 protocol-qualified; partition discovery and
+  safety-constrained reaction remain seed-0 pilots and do not enter paired scientific contrasts.
 - Provider groups remain separate in every scientific contrast.
 
 ## Formal denominators reserved for later integration

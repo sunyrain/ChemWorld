@@ -37,7 +37,9 @@ capability result.
 
 Use the provider-isolated paired endpoint, reliability, warning-specificity and completion panels.
 WellAU and DeepSeek must be presented as separate method/harness configurations. Do not place them on
-a common capability ranking axis.
+a common capability ranking axis. The paired panels remain restricted to the three DeepSeek tasks with
+five-seed coverage; partition discovery and safety-constrained reaction are reported as seed-0 gate
+pilots in the Results text and a separate closeout table.
 
 ## Figure 4 — Evidence-driven correction in the public formal cohort
 
@@ -80,3 +82,4 @@ private result remains visible and cannot be replaced by another private cohort.
 3. Complete public cell, failure, censoring and replay denominators.
 4. Provider, token, cost, wall-time and safety profile.
 5. Development/formal/private evidence-boundary table.
+6. Five-task development closeout table with terminal, qualification, resource and replay denominators.

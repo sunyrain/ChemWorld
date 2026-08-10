@@ -1,6 +1,7 @@
 # Prior-discovery figure and draft QA
 
-Date: 2026-08-10. Status: development/design draft; not a formal result.
+Date: 2026-08-10. Status: development/design draft updated through the DeepSeek five-task closeout;
+not a formal result.
 
 ## Figure contract
 
@@ -15,8 +16,10 @@ Date: 2026-08-10. Status: development/design draft; not a formal result.
 ## Data and source binding
 
 - Figure 1 and Figure 2 are frozen design displays; they do not contain participant outcomes.
-- Figure 3 uses all retained development rows: 58 paired endpoint rows, 18 warning-rate rows and
-  6 execution-denominator rows.
+- Figure 3 uses all retained paired development rows for the three five-seed task matrices: 58 paired
+  endpoint rows, 18 warning-rate rows and 6 execution-denominator rows. The two additional DeepSeek
+  seed-0 gate pilots are bound in the figure manifest and reported in the manuscript closeout table,
+  but are not treated as paired scientific contrasts.
 - WellAU/Codex and DeepSeek recovery are provider-isolated; no scientific cross-provider contrast
   is calculated.
 - Development source hashes, output hashes and interpretation limits are recorded in
@@ -38,6 +41,8 @@ Date: 2026-08-10. Status: development/design draft; not a formal result.
 - References: no undefined citations.
 - LaTeX errors: none.
 - Overfull/underfull boxes: 0/0.
+- The five-task closeout table is a full-width display on page 8; all columns, labels and denominators
+  were inspected from a 180 dpi page rendering with no clipping or overlap.
 - The PDF is explicitly a development/design draft. Public formal participant results, private
   confirmation and transfer results remain uncollected and are not substituted by development data.
 

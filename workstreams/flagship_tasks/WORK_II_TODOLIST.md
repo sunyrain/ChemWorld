@@ -819,6 +819,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   当前 source digest 漂移已通过零 provider 调用的确定性重建修复：formal preflight、preregistration
   readiness/draft 与 13-node/17-edge pre-run evidence graph 已重新一致，完整 Work II 聚焦套件为 98/98
   通过；这只恢复 current evidence binding，不替代资格运行后的最终 clean-release receipt。
+  2026-08-10 再次审计发现 method-qualification readiness 曾残留上一代 formal-preflight digest；已用当前
+  `work-ii-formal-matrix-runner-preflight-v0.1.json` 零 provider 调用重建 qualification readiness 与其下游
+  preregistration package。当前绑定一致，资格仍为 3 cells / 0 provider calls / 4 个用户授权 blocker，formal
+  execution 仍关闭；该修复不改变 worlds、estimands、阈值、预算或任何 participant outcome。
   `scripts/build_work_ii_preregistration_freeze_receipt.py` 已把这些项编码为 route-specific、不可伪造的最终
   receipt 生成门，并把 qualification 实际费用/上限与 formal 全矩阵价格表/上限分开；正式上限必须覆盖冻结的
   150 次 provider-attempt 成本，随后由 parent runner 逐调用预留。Nature 路线额外要求 IPA 与 protocol
@@ -916,8 +920,11 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   ownership。主稿已完成标题、摘要、引言、相关工作、概念框架、五任务正式设计、
   provider-separated 开发结果、预注册 estimand、讨论、方法和发布边界；development、public formal 与 private
   confirmation 三层证据明确分离，未把 endpoint 或 verbal warning 写成规律发现。Figure 1–3、source data、
-  图源、QA 记录和 9 页开发/设计 PDF 草稿已生成并通过 14/14 图源静态 QA、0 overfull/underfull、0 未定义引用、
-  0 LaTeX 错误；入口为 `paper/figures/prior-discovery/README.md`、`paper/figures/prior-discovery/QA.md` 和
+  图源、QA 记录和 9 页开发/设计 PDF 草稿已生成。DeepSeek 五任务开发 closeout 已纳入摘要、Results、证据图、
+  display plan 和构建 manifest：三项五-seed 任务继续承担 descriptive prior contrasts；partition/safety 仅作为
+  seed-0 expansion-gate 与资源/工具边界，未被提升为任务级科学对比。新增五任务终态表已完成 PDF 视觉检查，
+  当前构建为 0 overfull/underfull、0 未定义引用、0 LaTeX 错误；入口为
+  `paper/figures/prior-discovery/README.md`、`paper/figures/prior-discovery/QA.md` 和
   `paper/exports/prior-discovery-draft/build-manifest.json`。正式结果、private transfer、最终统计表、
   clean wheel、independent checkout、final claim audit、数据归档和投稿包必须等待 W2-12--W2-14 后补齐，
   故 W2-15 保持 `DOING`。

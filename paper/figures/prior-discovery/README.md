@@ -29,7 +29,9 @@ editable-text SVG/PDF plus 600 dpi PNG/TIFF previews.
 - **Statistics:** paired seed points and descriptive means only; no confidence intervals, formal
   tests or cross-provider capability comparison.
 - **Source data:** all retained endpoint pairs, warning denominators and execution denominators are
-  written under `source_data/`; no rows are sampled or excluded for plotting.
+  written under `source_data/`; no rows are sampled or excluded for plotting. The DeepSeek five-task
+  closeout is additionally bound as an operational source, while its two seed-0 pilots are kept out
+  of the paired endpoint panels.
 - **Reviewer risk:** WellAU and DeepSeek differ in provider, sampling and recovery contracts and must
   remain separate facets rather than a model leaderboard.
 
