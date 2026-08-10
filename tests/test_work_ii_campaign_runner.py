@@ -222,6 +222,75 @@ def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:
     assert result["passed"] is True
 
 
+def test_new_host_commit_receipt_does_not_require_trailing_final_text() -> None:
+    config = _config()
+    recommendation = {
+        "selected_experiment_index": 2,
+        "selection_rationale": "best public campaign evidence",
+    }
+    recommendation_sha256 = canonical_json_sha256(recommendation)
+    analysis = {
+        "complete_experiment_count": 4,
+        "experiments": [{"experiment_index": index} for index in range(1, 5)],
+        "right_censored_open_experiment": False,
+        "belief_snapshots": [{"stage": stage} for stage in config["snapshot_stages"]],
+        "resource_rejection_count": 0,
+        "final_campaign_resources": {
+            "campaign_terminal": True,
+            "state": {
+                "closed_batches": 4,
+                "final_assays": 4,
+                "operation_committed_counts": {},
+                "report_only": {"process_time_s": 7200.0},
+            },
+        },
+        "final_recommendation": recommendation,
+        "final_recommendation_sha256": recommendation_sha256,
+        "execution_audit": {"passed": True},
+    }
+    receipt = {
+        "schema_version": "chemworld-interactive-codex-session-receipt-0.2",
+        "session_scope": "campaign",
+        "status": "completed",
+        "return_code": 0,
+        "final_payload_valid": False,
+        "final_payload_status": None,
+        "final_recommendation": recommendation,
+        "final_recommendation_sha256": recommendation_sha256,
+        "final_recommendation_source": "host_mcp_commit",
+        "mcp_tool_calls": [
+            {"tool": "commit_final_recommendation", "status": "completed"}
+        ],
+        "experiment_tool_integrity_verified_after_session": True,
+        "lab_tool_integrity_verified_after_session": True,
+        "mcp_tool_integrity_verified_after_session": True,
+    }
+    result = _qualification(
+        analysis=analysis,
+        exact_replay={"verified": True},
+        method_resources={
+            "provider_session_count": 1,
+            "provider_usage_pending": False,
+            "provider_usage_accounting_complete": True,
+            "in_flight_model_call_count": 0,
+            "input_token_count": 1,
+            "uncached_input_token_count": 1,
+            "output_token_count": 1,
+        },
+        method_resource_limits={
+            "complete_experiment_limit": 4,
+            "input_token_limit": 2,
+            "uncached_input_token_limit": 2,
+            "output_token_limit": 2,
+        },
+        receipts=[receipt],
+        process_time_limit_s=72_000.0,
+        required_operation_counts={},
+        required_snapshot_stages=config["snapshot_stages"],
+    )
+    assert result["passed"] is True
+
+
 def test_aligned_and_misindexed_checkpoint_contracts_are_identical() -> None:
     config = _config()
     assert _checkpoint_contract(config, "aligned_nominal") == _checkpoint_contract(

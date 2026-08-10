@@ -37,6 +37,14 @@ artifacts but does not qualify a new cell. This changes only the unreliable tran
 participant-owned decision, not the coverage, scientific denominator, selection authority, resource
 budgets or pass/failure thresholds.
 
+Closeout completion rule after live validation: for the new host-commit receipt, a normally exited
+Codex turn (`status=completed`, `return_code=0`) plus the hash-bound host MCP recommendation is the
+authoritative session closeout. The trailing `status`/`summary` message is retained as best-effort
+descriptive metadata but is not a scientific datum and is not required when DeepSeek omits it after
+the tool commitment. Historical receipts without the host commit continue to require a valid legacy
+final payload. The first five-seed attempt exposing this case is retained; the electrochemical task
+block restarts from seed 0 after this platform amendment.
+
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
 payloads and private reasoning are not committed.

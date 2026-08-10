@@ -1203,13 +1203,25 @@ def validate_method_qualification_report(
         host_commit_required = receipt.get("schema_version") == (
             "chemworld-interactive-codex-session-receipt-0.2"
         )
+        provider_terminal_completed = (
+            receipt.get("status") == "completed"
+            and receipt.get("return_code") == 0
+            and (
+                (
+                    host_commit_required
+                    and receipt.get("final_recommendation_source") == "host_mcp_commit"
+                )
+                or (
+                    not host_commit_required
+                    and receipt.get("final_payload_valid") is True
+                    and receipt.get("final_payload_status") == "campaign_complete"
+                )
+            )
+        )
         if (
             len(receipts) != 1
             or receipt.get("session_scope") != "campaign"
-            or receipt.get("status") != "completed"
-            or receipt.get("return_code") != 0
-            or receipt.get("final_payload_valid") is not True
-            or receipt.get("final_payload_status") != "campaign_complete"
+            or not provider_terminal_completed
             or receipt.get("final_recommendation_sha256") != recommendation_hash
             or (
                 host_commit_required

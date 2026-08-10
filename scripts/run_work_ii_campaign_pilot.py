@@ -366,6 +366,21 @@ def _qualification(
     host_commit_required = receipt.get("schema_version") == (
         "chemworld-interactive-codex-session-receipt-0.2"
     )
+    provider_terminal_completed = (
+        receipt.get("status") == "completed"
+        and receipt.get("return_code") == 0
+        and (
+            (
+                host_commit_required
+                and receipt.get("final_recommendation_source") == "host_mcp_commit"
+            )
+            or (
+                not host_commit_required
+                and receipt.get("final_payload_valid") is True
+                and receipt.get("final_payload_status") == "campaign_complete"
+            )
+        )
+    )
     checks = {
         "planned_complete_experiments": analysis.get("complete_experiment_count")
         == target_experiments
@@ -374,10 +389,7 @@ def _qualification(
         "one_campaign_session": len(receipts) == 1
         and method_resources.get("provider_session_count") == 1
         and receipt.get("session_scope") == "campaign",
-        "provider_session_completed": receipt.get("status") == "completed"
-        and receipt.get("return_code") == 0
-        and receipt.get("final_payload_valid") is True
-        and receipt.get("final_payload_status") == "campaign_complete",
+        "provider_session_completed": provider_terminal_completed,
         "final_recommendation_committed": (
             isinstance(selected_experiment_index, int)
             and not isinstance(selected_experiment_index, bool)
