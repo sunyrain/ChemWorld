@@ -747,7 +747,7 @@ def build_denominator_rows(wellau: dict[str, Any], deepseek: dict[str, Any]) -> 
                     "provider": provider,
                     "metric": "Complete experiments",
                     "numerator": int(denominator["complete_experiment_count"]),
-                    "denominator": 180,
+                    "denominator": int(denominator["expected_cell_count"]) * 4,
                 },
                 {
                     "provider": provider,
@@ -919,8 +919,8 @@ def main() -> int:
     preflight_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json"
     wellau_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-development-basic-analysis-v0.1.json"
     deepseek_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-analysis-v0.1.json"
-    deepseek_closeout_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-closeout-v0.1.json"
-    deepseek_closeout_sources_path = ROOT / "configs/benchmark/work_ii_deepseek_five_task_development_analysis_sources_v0.1.json"
+    deepseek_closeout_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.json"
+    deepseek_closeout_sources_path = ROOT / "configs/benchmark/work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json"
     source_paths = [
         design_path,
         analysis_path,
@@ -943,13 +943,13 @@ def main() -> int:
     if deepseek_closeout.get("formal_result") is not False:
         raise ValueError("DeepSeek five-task closeout must remain development-only")
     closeout_denominators = deepseek_closeout.get("denominators", {})
-    if closeout_denominators.get("terminal_record_count") != 51:
+    if closeout_denominators.get("terminal_record_count") != 75:
         raise ValueError("unexpected DeepSeek five-task closeout terminal denominator")
-    if closeout_denominators.get("qualified_cell_count") != 47:
+    if closeout_denominators.get("qualified_cell_count") != 69:
         raise ValueError("unexpected DeepSeek five-task closeout qualified denominator")
 
     endpoint_rows, warning_rows = normalize_development_rows()
-    denominator_rows = build_denominator_rows(wellau, deepseek)
+    denominator_rows = build_denominator_rows(wellau, deepseek_closeout)
     write_csv(
         SOURCE_DIR / "figure-3-endpoint-contrasts.csv",
         endpoint_rows,
@@ -1003,7 +1003,7 @@ def main() -> int:
         "interpretation_limits": [
             "Figures 1 and 2 show the frozen conceptual and formal design, not participant outcomes.",
             "Figure 3 contains development-only provider-isolated descriptive evidence.",
-            "Partition discovery and safety-constrained reaction are seed-0 gate pilots only and are not paired scientific contrasts.",
+            "Partition discovery and safety-constrained reaction complete the five-task development coverage but remain operational descriptive evidence; they are not pooled into the three-task paired endpoint panels.",
             "No formal inference, law-discovery claim, transfer claim or cross-provider capability ranking is supported.",
         ],
     }

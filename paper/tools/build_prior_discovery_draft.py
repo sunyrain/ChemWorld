@@ -178,8 +178,8 @@ def build() -> dict[str, Any]:
         FIGURE_MANIFEST,
         ROOT / "paper/prior_discovery_evidence_map.md",
         ROOT / "paper/prior_discovery_display_items.md",
-        ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-closeout-v0.1.json",
-        ROOT / "configs/benchmark/work_ii_deepseek_five_task_development_analysis_sources_v0.1.json",
+        ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.json",
+        ROOT / "configs/benchmark/work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json",
         *figure_pdfs,
     ]
     manifest: dict[str, Any] = {
@@ -218,8 +218,8 @@ def build() -> dict[str, Any]:
         ],
         "interpretation_limits": [
             "Figures 1 and 2 describe the frozen design.",
-            "Figure 3 and the current Results text are development-only; its paired panels use the three-task five-seed subset.",
-            "Partition discovery and safety-constrained reaction are seed-0 gate pilots only and are not paired scientific contrasts.",
+            "Figure 3 and the current Results text are development-only; its paired endpoint/warning panels retain the common three-task source while the closeout table binds the complete five-task DeepSeek denominator.",
+            "Partition discovery and safety-constrained reaction include immutable seed-0 failures plus seeds 1--4 continuation; they remain operational descriptive evidence and are not pooled into the common paired endpoint panels.",
             "Public formal and private confirmation results remain uncollected.",
         ],
     }

@@ -10,7 +10,7 @@ EVIDENCE_MAP = ROOT / "paper/prior_discovery_evidence_map.md"
 DISPLAY_ITEMS = ROOT / "paper/prior_discovery_display_items.md"
 FIGURE_MANIFEST = ROOT / "paper/figures/prior-discovery/figure_manifest.json"
 BUILD_MANIFEST = ROOT / "paper/exports/prior-discovery-draft/build-manifest.json"
-CLOSEOUT = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-closeout-v0.1.json"
+CLOSEOUT = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.json"
 
 
 def test_deepseek_five_task_closeout_denominators_are_bound_without_overclaim() -> None:
@@ -19,17 +19,17 @@ def test_deepseek_five_task_closeout_denominators_are_bound_without_overclaim() 
     closeout = json.loads(CLOSEOUT.read_text(encoding="utf-8"))
 
     denominators = closeout["denominators"]
-    assert denominators["terminal_record_count"] == 51
-    assert denominators["qualified_cell_count"] == 47
-    assert denominators["complete_experiment_count"] == 196
+    assert denominators["terminal_record_count"] == 75
+    assert denominators["qualified_cell_count"] == 69
+    assert denominators["complete_experiment_count"] == 290
     assert denominators["provider_error_event_count"] == 0
-    assert denominators["exact_replay_verified_count"] == 51
+    assert denominators["exact_replay_verified_count"] == 75
     combined = manuscript + evidence_map
-    assert "51/51 terminal cells" in combined
-    assert "47/51 runner-qualified cells" in combined
-    assert "46/51 protocol-qualified" in combined
-    assert "not five-task scientific contrasts" in manuscript
-    assert "These are operational development observations, not five-task scientific contrasts." in manuscript
+    assert "75/75" in combined
+    assert "69/75" in combined
+    assert "290/300" in combined
+    assert "formal hypothesis test" in manuscript
+    assert "provider groups are never pooled into a capability ranking" in manuscript
 
 
 def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> None:
@@ -38,13 +38,14 @@ def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> Non
     figure_manifest = json.loads(FIGURE_MANIFEST.read_text(encoding="utf-8"))
     evidence_map = EVIDENCE_MAP.read_text(encoding="utf-8")
 
-    assert "seeds 1--4 were not launched" in manuscript
+    assert "their seeds 1--4 in a separate continuation block" in manuscript
     assert "partition discovery and" in evidence_map
-    assert "safety-constrained reaction remain seed-0 pilots" in evidence_map
-    assert "paired panels remain restricted to the three DeepSeek tasks" in display_items
+    assert "immutable seed-0 failures" in evidence_map
+    assert "common three-task" in display_items
+    assert "paired endpoint/warning panels" in display_items
     limits = " ".join(figure_manifest["interpretation_limits"])
-    assert "seed-0 gate pilots only" in limits
-    assert "not paired scientific contrasts" in limits
+    assert "operational descriptive evidence" in limits
+    assert "not pooled into the three-task paired endpoint panels" in limits
 
 
 def test_draft_manifest_preserves_development_formal_private_boundaries() -> None:
@@ -53,14 +54,14 @@ def test_draft_manifest_preserves_development_formal_private_boundaries() -> Non
     assert manifest["formal_result"] is False
     assert manifest["status"] == "compiled_development_draft"
     limits = " ".join(manifest["interpretation_limits"])
-    assert "three-task five-seed subset" in limits
+    assert "common three-task source" in limits
     assert "Public formal and private confirmation results remain uncollected." in limits
     sources = {row["path"] for row in manifest["sources"]}
     assert (
         "workstreams/flagship_tasks/reports/"
-        "work-ii-deepseek-five-task-development-closeout-v0.1.json"
+        "work-ii-deepseek-five-task-development-complete-20260810.json"
     ) in sources
     assert (
         "configs/benchmark/"
-        "work_ii_deepseek_five_task_development_analysis_sources_v0.1.json"
+        "work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json"
     ) in sources

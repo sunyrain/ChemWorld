@@ -34,10 +34,11 @@ formal-study results and do not support claims of law discovery, causal prior ef
 - `deepseek_recovery_amended_prior_results.{svg,pdf,png,tiff}` — the provider-isolated 45-cell
   recovery-amended DeepSeek development matrix, including paired endpoint contrasts, belief-signal
   contrasts, warning specificity and the two retained crystallization contract failures.
-- The later partition and safety seed-0 gate triplets are intentionally excluded from the paired
-  endpoint figure because each has one world seed and failed the five-seed expansion gate. Their
-  operational closeout is reported in
-  `workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-closeout-v0.1.md`.
+- The completed five-task DeepSeek continuation is intentionally excluded from the common paired
+  endpoint figure because its task-specific continuation contracts are not the same source as the
+  three-task recovery-amended endpoint panel. Its full terminal/qualification/resource/replay
+  closeout is reported in
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.md`.
 - `source_data/*.csv` — exact plotted rows and denominators extracted from the frozen analysis.
 - `figure_manifest.json` and `deepseek_recovery_figure_manifest.json` — source bindings, row counts
   and interpretation limits for the baseline and recovery-amended figures, respectively.

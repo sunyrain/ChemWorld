@@ -29,12 +29,12 @@ abstract: |
   a multi-experiment campaign through one persistent operation-level session, records predictions and
   belief updates at fixed checkpoints, and commits an executable law summary and final recommendation.
   Evaluator-owned counterfactual queries and blind replay separate epistemic recovery from endpoint
-  optimization. Development campaigns spanning three five-seed task matrices, together with seed-0
-  expansion-gate pilots on partition discovery and safety-constrained reaction, show that explicit
-  dossiers can substantially change experimental behavior and best endpoints, while verbal warnings
-  do not selectively distinguish aligned from misindexed information. The two pilot-only tasks also
-  expose task-pattern-specific resource and tool-contract failure modes that are retained rather than
-  hidden. These observations motivate a preregistered five-task study whose primary estimand tests whether
+  optimization. A completed DeepSeek development matrix spanning five tasks, three prior arms and
+  five world seeds per task reached terminal records for all 75 scheduled cells while retaining
+  failures, resource rejections and tool-recovery tails. The matrix shows that explicit dossiers can
+  substantially change experimental behavior and best endpoints, while verbal warnings do not
+  selectively distinguish aligned from misindexed information. These observations motivate a
+  preregistered five-task study whose primary estimand tests whether
   evidence reduces held-out prediction error more strongly under a wrong prior than under a correct
   prior without degrading the correct-prior condition. The resulting framework distinguishes prior
   confirmation, evidence-driven correction, local policy repair and reusable law discovery, and
@@ -289,7 +289,7 @@ used for a cross-provider capability ranking.
 \caption{\textbf{Provider-separated development evidence for prior-sensitive behavior.}
 \textbf{a,b,} Paired world-seed differences in the best endpoint observed during four-experiment campaigns for aligned versus opaque and misindexed versus opaque information. Points are retained paired seeds and horizontal bars are descriptive means. WellAU/Codex contains five pairs per task except the aligned distillation contrast ($n=4$); DeepSeek recovery contains five pairs except the misindexed crystallization contrast ($n=4$).
 \textbf{c,} Final explicit misindex warnings, shown as flagged cells over available terminal belief records for every provider, task and prior arm.
-\textbf{d,} Completed-cell, complete-experiment and exact-replay denominators. Failures remain in the scheduled or terminal denominator and are not replaced. The paired endpoint and warning panels intentionally use only the three DeepSeek tasks with five-seed coverage; partition and safety seed-0 gate pilots are summarized in the text and a separate operational table. All panels are development-only descriptive summaries; no confidence interval, formal hypothesis test or cross-provider capability comparison is performed. Endpoint gains and verbal warnings do not establish law discovery, selective wrong-prior correction or transfer.}
+\textbf{d,} Completed-cell, complete-experiment and exact-replay denominators. Failures remain in the scheduled or terminal denominator and are not replaced. Panels a--c retain the common three-task paired endpoint/warning source used for provider-separated continuity; the complete five-task DeepSeek operational denominator is shown in the closeout table. All panels are development-only descriptive summaries; no confidence interval, formal hypothesis test or cross-provider capability comparison is performed. Endpoint gains and verbal warnings do not establish law discovery, selective wrong-prior correction or transfer.}
 \label{fig:development-prior-effects}
 \end{figure*}
 \FloatBarrier
@@ -304,29 +304,25 @@ conversion, +0.057 for crystallization and -0.036 for distillation, with the dis
 based on four complete pairs. Misindexed information was not consistently harmful, and explicit
 misindex warnings included substantial false positives in aligned cells.
 
-A separate recovery-amended DeepSeek development matrix reached terminal records for all 45 cells;
-43 completed, yielding 174 complete experiments out of 180 and exact replay for all terminal
-trajectories. The two incomplete cells were retained participant--tool contract failures in the
-crystallization task, with zero provider errors and zero resource rejections.
-
-To test breadth without selecting tasks by participant outcome, the two remaining task patterns in
-the frozen development scope were first run as seed-0 three-arm expansion-gate pilots. Partition
-discovery reached 3/3 terminal cells and 12/12 complete experiments, but the misindexed arm exceeded
-the 48,000-output-token cap (54,295 tokens); one resource rejection was also retained. The
-safety-constrained reaction pilot reached 3/3 terminal cells and 10/12 complete experiments; its
-aligned arm exhausted the campaign attempt budget after repeated inapplicable `wait` proposals,
-with six recovered MCP failures and input/output usage above the task envelope. Both triplets had
-zero provider errors and exact replay for every terminal trajectory, but neither passed the frozen
-expansion gate, so seeds 1--4 were not launched. Across the three full matrices and two pilots this
-gives 51/51 terminal cells, 47/51 runner-qualified cells and 196 complete experiments; the stricter
-experiment-note audit is 46/51 protocol-qualified because the partition pilot required zero resource
-rejections. These are operational development observations, not five-task scientific contrasts.
+A recovery-amended DeepSeek development block was completed across all five task families, retaining
+the immutable seed-0 gate records for partition discovery and safety-constrained reaction and adding
+their seeds 1--4 in a separate continuation block. No seed-0 outcome was rerun or replaced. Every
+scheduled cell reached a terminal record (**75/75**); **69/75** cells were completed and qualified,
+with **290/300** complete experiments, **2,663/2,587** operation attempts/committed operations,
+**73** validation failures, **3** resource rejections, **69** recovered MCP failures and **0**
+provider-error events. Exact physical/resource replay passed for **75/75** terminal trajectories.
+Provider accounting covered 72/75 cells; the remaining three stopped before a provider terminal event
+and retain usage as unavailable rather than zero. The complete development block is still descriptive:
+it has no evaluator-truth prediction scoring, blind recommendation replay, private transfer
+confirmation or formal hypothesis test, and provider groups are never pooled into a capability ranking.
 
 ```{=latex}
 \begin{table*}[!t]
 \centering
-\caption{\textbf{Five-task DeepSeek development closeout.} The two additional tasks were stopped at
-seed-0 expansion gates and are not included in paired five-seed endpoint contrasts.}
+\caption{\textbf{Five-task DeepSeek development closeout.} All five task families reached the
+scheduled five-seed terminal denominator. The partition and safety continuation preserved their
+immutable seed-0 gate outcomes; their operational rows are reported descriptively and are not pooled
+with the common three-task paired endpoint panels.}
 \label{tab:deepseek-five-task-closeout}
 \scriptsize
 \begin{tabular}{lrrrrrr}
@@ -336,8 +332,8 @@ Task & Terminal & Qualified & Experiments & Attempts/committed & MCP failures & 
 Electrochemical conversion & 15/15 & 15/15 & 60/60 & 373/372 & 13 & 15/15 \\
 Reaction to crystallization & 15/15 & 13/15 & 54/60 & 606/605 & 18 & 15/15 \\
 Reaction to distillation & 15/15 & 15/15 & 60/60 & 637/637 & 7 & 15/15 \\
-Partition discovery (pilot) & 3/3 & 2/3 & 12/12 & 106/92 & 2 & 3/3 \\
-Safety-constrained reaction (pilot) & 3/3 & 2/3 & 10/12 & 100/78 & 8 & 3/3 \\
+Partition discovery & 15/15 & 12/15 & 58/60 & 553/501 & 14 & 15/15 \\
+Safety-constrained reaction & 15/15 & 14/15 & 58/60 & 494/472 & 17 & 15/15 \\
 \bottomrule
 \end{tabular}
 \end{table*}
