@@ -78,6 +78,12 @@ def _limits(task_id: str) -> dict[str, Any]:
     raise ValueError(f"unsupported Work II task: {task_id}")
 
 
+def _max_resource_rejections(task_id: str) -> int:
+    if task_id in {"partition-discovery", "reaction-safety-constrained"}:
+        return 0
+    return 1
+
+
 def derive(source: Path, destination: Path) -> None:
     config = _load(source)
     task_id = str(config["task_id"])
@@ -99,7 +105,7 @@ def derive(source: Path, destination: Path) -> None:
     config["provider"] = _provider()
     config["qualification"] = {
         **dict(config.get("qualification", {})),
-        "max_resource_rejections": 1,
+        "max_resource_rejections": _max_resource_rejections(task_id),
     }
     config["method_resources"] = {
         **dict(config["method_resources"]),

@@ -1,0 +1,85 @@
+{
+  "schema_version": "chemworld-work-ii-single-provider-development-analysis-sources-0.1",
+  "analysis_id": "work-ii-deepseek-five-task-development-closeout-2026-08-10",
+  "analysis_date": "2026-08-10",
+  "formal_result": false,
+  "provider_group": "deepseek_five_task_development",
+  "interpretation_contract": {
+    "scientific_provider_group": "deepseek_five_task_development",
+    "mix_provider_cells_in_prior_contrasts": false,
+    "compare_unequal_task_coverage_as_scientific_effect": false,
+    "held_out_evaluator_available": false,
+    "blind_recommendation_evaluator_available": false,
+    "formal_inference_allowed": false,
+    "strict_protocol_audit": {
+      "runner_qualified_cell_count": 47,
+      "experiment_note_qualified_cell_count": 46,
+      "terminal_cell_count": 51,
+      "difference_cell": {
+        "task_id": "partition-discovery",
+        "world_seed": 0,
+        "prior_arm": "opaque",
+        "runner_resource_rejection_maximum": 1,
+        "experiment_note_resource_rejection_maximum": 0,
+        "observed_resource_rejection_count": 1
+      },
+      "expansion_decision_changed": false,
+      "rerun_permitted": false,
+      "reason": "both seed-0 task triplets failed independent frozen gates and neither expanded"
+    },
+    "limitations": [
+      "development data only",
+      "electrochemical, crystallization and distillation have five world seeds",
+      "partition and safety have only the terminal seed-0 gate triplet because expansion was not authorized",
+      "the partition runner allowed one resource rejection per cell while the experiment note required zero; the stricter note-level audit governs expansion",
+      "two retained crystallization participant-tool contract failures",
+      "one retained partition output-token-cap failure",
+      "one retained safety resource-allocation and operation-budget failure",
+      "no evaluator-truth prediction-error scoring",
+      "no blind recommendation replay",
+      "no scientific cross-provider comparison"
+    ]
+  },
+  "sources": [
+    {
+      "source_id": "deepseek-electrochemical-recovery-amended-five-seed",
+      "provider_group": "deepseek_five_task_development",
+      "provider_id": "deepseek",
+      "task_id": "electrochemical-conversion",
+      "path": "runs/development/work-ii-deepseek-electrochemical-five-seed-recovery-amended-1c02edfb-r1/matrix_report.json",
+      "sha256": "a5c8396db9997c7a1a003a31875a7c3a26973be45a0f50567b1a991667275cdb"
+    },
+    {
+      "source_id": "deepseek-crystallization-recovery-amended-five-seed",
+      "provider_group": "deepseek_five_task_development",
+      "provider_id": "deepseek",
+      "task_id": "reaction-to-crystallization",
+      "path": "runs/development/work-ii-deepseek-crystallization-five-seed-recovery-amended-1c02edfb-r1/matrix_report.json",
+      "sha256": "eda127b4d9534fa021008f274367c540c19e67a658978da810da7c24d2816c8a"
+    },
+    {
+      "source_id": "deepseek-distillation-recovery-amended-five-seed",
+      "provider_group": "deepseek_five_task_development",
+      "provider_id": "deepseek",
+      "task_id": "reaction-to-distillation",
+      "path": "runs/development/work-ii-deepseek-distillation-five-seed-recovery-amended-1c02edfb-r1/matrix_report.json",
+      "sha256": "d2ab107db3cbdc6ca311dbe5ff281322310a87a25488b2c23bbe6afb1262ee56"
+    },
+    {
+      "source_id": "deepseek-partition-seed0-five-task-completion-gate",
+      "provider_group": "deepseek_five_task_development",
+      "provider_id": "deepseek",
+      "task_id": "partition-discovery",
+      "path": "runs/development/work-ii-deepseek-partition-seed0-five-task-completion-0675794b/matrix_report.json",
+      "sha256": "042fc2f9431879122b3bc15ad2db9130cd1524b7f67eb674df7fabecf09ce419"
+    },
+    {
+      "source_id": "deepseek-safety-seed0-five-task-completion-gate",
+      "provider_group": "deepseek_five_task_development",
+      "provider_id": "deepseek",
+      "task_id": "reaction-safety-constrained",
+      "path": "runs/development/work-ii-deepseek-safety-seed0-five-task-completion-0675794b/matrix_report.json",
+      "sha256": "59f0cafe708e549df5a6e7f11e7a968c1d642ea5bef443588780365624377c9a"
+    }
+  ]
+}

@@ -30,3 +30,14 @@ Expected outputs: ignored run roots under `runs/development/`, external heartbea
 30-second liveness, one machine-readable per-task report, a combined provider-separated analysis,
 and concise audit prose. No formal claim, cross-provider ranking or held-out transfer claim is
 authorized from this block.
+
+Terminal record (2026-08-10): both seed-0 triplets reached 3/3 terminal cells but only 2/3
+runner-qualified cells, so neither expanded. Partition completed 12/12 experiments; its
+misindexed cell crossed the 48,000 output-token cap at 54,295. Safety completed 10/12 experiments;
+its aligned cell exhausted the 40-attempt budget after repeated inapplicable `wait` proposals and
+crossed input/output and MCP-recovery limits. Both task triplets had zero provider errors and 3/3
+exact replay. Audit also found that the derived configs had inherited the recovery-amended
+one-resource-rejection allowance even though this note required zero. The stricter note-level
+audit therefore counts partition opaque as non-passing as well. This mismatch does not alter the
+no-expansion decision, and the affected pilots are not rerun. The generator is corrected only for
+future execution.

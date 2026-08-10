@@ -1103,12 +1103,19 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   不构造跨 provider 科学能力排名。机器分析与解释报告：
   `workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-analysis-v0.1.json` 和
   `workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-results-v0.1.md`。
-- [ ] DeepSeek 五任务开发覆盖补齐进行中：保留上述三任务终态，不重跑或替换；新增
-  `partition-discovery` 与 `reaction-safety-constrained` 两个任务的 seed-0 三臂 pilot，只有各自
-  3/3 cells、12/12 experiments、完整 provider 记账和 exact replay 均通过后才扩展到 seeds 0--4。
-  每 cell 仍为一个长驻 Codex process/session、四个共享资源 complete experiments；三臂并发、cell
-  内串行。实验说明：
-  `workstreams/flagship_tasks/experiments/work-ii-deepseek-five-task-completion.md`。
+- [x] DeepSeek 五任务开发系列已按 pilot-expansion 门控收口：保留上述三任务 45-cell
+  recovery-amended 终态，不重跑或替换；`partition-discovery` 与
+  `reaction-safety-constrained` 各完成 seed-0 三臂 terminal pilot。partition 为 3/3 terminal、
+  2/3 runner-qualified、12/12 experiments，misindexed 因 54,295 output tokens 越过 48,000 上限
+  失败；safety 为 3/3 terminal、2/3 qualified、10/12 experiments，aligned 因错误资源分配、
+  40-attempt 耗尽和 6 次 MCP failure 失败。两项均 0 provider error、3/3 exact replay，均未授权
+  seeds 1--4。合并观察为 51/51 terminal、47/51 runner-qualified、196 complete experiments、
+  1,822 attempts、1,784 committed、48 MCP failures、0 provider errors、2 resource rejections、
+  51/51 exact replay。实验 note 要求 pilot 零 resource rejection，而配置继承了每 cell 最多一次
+  的 recovery allowance；严格 note-level 口径因此为 46/51 protocol-qualified。该错位不改变两项
+  pilot 均失败和不扩展的决定，不改阈值、不重跑；生成器与两个 current task configs 已在终态后修正为
+  零 rejection，防止未来复发。机器摘要与报告：
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-closeout-v0.1.{json,md}`。
 
 ## 7. 完成定义
 
