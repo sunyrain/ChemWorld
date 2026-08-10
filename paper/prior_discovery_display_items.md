@@ -69,6 +69,11 @@ Planned panels:
 - C: blind incumbent-versus-recommendation paired outcomes;
 - D: process features associated with knowledge-to-action translation.
 
+Panel A must use the frozen cell-level evaluator fields: exact registered query-metric execution,
+truth-normalized law-summary error, pre-to-summary improvement, summary-minus-final-checkpoint error
+and consistency with final explicit predictions. It is descriptive and must not introduce a binary
+public law-validity threshold; reusable-law status remains conditional on Figure 6.
+
 ## Figure 6 — Private confirmation and transfer
 
 **Claim:** any public discovery claim survives one sealed confirmation and transfers beyond exact

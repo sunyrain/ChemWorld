@@ -45,6 +45,8 @@ not a formal result.
   were inspected from a 180 dpi page rendering with no clipping or overlap.
 - The persistent-session accounting, harness discussion and Codex/MCP Methods additions were inspected
   on pages 7--9 at 150 dpi; headings, columns and page transitions have no clipping or overlap.
+- The evaluator-owned final law-summary contract and Methods description were inspected on pages 4
+  and 9 at 150 dpi; the added text preserves column balance and introduces no float or heading drift.
 - The PDF is explicitly a development/design draft. Public formal participant results, private
   confirmation and transfer results remain uncollected and are not substituted by development data.
 

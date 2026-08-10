@@ -532,7 +532,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 - 备注：`Claim: Codex /root — W2-05 — DONE`。主误差固定为注册 query×metric 的未截断平均归一化绝对误差；
   唯一 primary 为 world-level paired `C_prior`，并要求 misindexed 改善、aligned 非劣于 `-0.05` 的交并判定。
   H1/H2/H4 组成 Holm secondary family；失败 cell 不替换，缺失 final 按零改善，provider repeat 仅作嵌套技术重复。
-  “规律发现与迁移”还必须同时通过 executable typed law summary、连续条件反事实预测与预注册 transfer。
+  final typed law summary 现冻结为 evaluator-owned 可执行对象：在与 checkpoint 相同的 4 个注册 query 上逐
+  query×metric 执行，报告 truth-normalized MAE、pre-to-summary improvement、summary-minus-final-checkpoint
+  error 与 final explicit prediction consistency；public 阶段不事后设置二元 validity threshold。
+  “规律发现与迁移”仍必须同时通过 executable typed law summary、连续条件反事实预测与预注册 private transfer。
   冻结合同和审计分别见 `configs/benchmark/work_ii_analysis_plan_v0.1.json` 与
   `workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`。
 
@@ -848,7 +851,13 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] provider、token、cost、resource 和 wall-time 账本完整；
   - [ ] 每个 completed trajectory exact replay；
   - [ ] 运行期间只发布盲化进度，不发布 arm contrasts。
-- 备注：`TBD`
+- 备注：正式 outcome analysis 尚未开始。其零 outcome 实现已提前冻结：formal dataset 会保留全部 75 cells、
+  25 clusters、checkpoint errors、blind outcomes、process profiles 与逐 cell law-summary evaluator 记录；
+  confirmatory 层已实现 H3 intersection--union、Holm secondary、complete-case、unbounded failed-arm
+  worst-case、HC3、task-stratified bootstrap 和四类 phenotype。law-summary evaluator 真实执行 typed summary，
+  不再只检查 schema present；public 层仅报告 executability/error/compression/consistency，private transfer 前
+  `reusable_law_discovery` 固定为 false。上述实现通过合成正效应、零效应、失败、缺失与篡改测试，但不得写成
+  participant 结果。
 
 ### W2-13 — 执行 private sealed confirmation
 
@@ -928,7 +937,10 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   three-task endpoint source 混合。主稿现另设 persistent-session accounting、harness-as-agent-system 与
   Codex/MCP execution 段落，明确 267,929,149 input tokens 中 97.05% 为长 session 前缀缓存而非重复输出，
   并将 validation、MCP recovery、resource rejection 与 provider transport 分母分开。新增五任务终态表及
-  第 7--9 页新增段落已完成 PDF 视觉检查，当前构建为 0 overfull、1 个非阻断 underfull、0 未定义引用、
+  第 7--9 页新增段落已完成 PDF 视觉检查。formal Methods 现进一步写明 final law summary 在 evaluator-held
+  query 上的真实执行、truth-normalized error、compression 与 final-prediction consistency，且 private
+  transfer 前不生成二元 reusable-law 结论；对应第 4、9 页已检查。当前构建为 0 overfull、1 个非阻断
+  underfull、0 未定义引用、
   0 LaTeX 错误；入口为
   `paper/figures/prior-discovery/README.md`、`paper/figures/prior-discovery/QA.md` 和
   `paper/exports/prior-discovery-draft/build-manifest.json`。正式结果、private transfer、最终统计表、

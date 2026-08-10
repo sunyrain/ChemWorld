@@ -14,7 +14,7 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
 | Misindex warnings are not selective | Development belief evidence | Provider-isolated development analyses and source-data CSVs | Complete, non-formal | Self-report does not establish correction |
 | DeepSeek and WellAU differ in scientific capability | Cross-provider comparison | None: provider, sampling and recovery contracts are not matched | Unsupported | Forbidden |
 | The participant selectively corrects a wrong prior | Public formal outcome | Future 75-cell public matrix and preregistered analysis | Not collected | Forbidden until the primary decision is available |
-| Final summaries are executable and predict continuous held-out conditions | Public formal evaluator outcome | Future truth packs, law-summary validation and formal analysis | Not collected | Forbidden until evaluated |
+| Final summaries execute and predict continuous held-out conditions | Public formal evaluator outcome | Frozen law-summary evaluation contract, future truth packs and formal analysis | Contract complete; outcomes not collected | Report exact coverage, normalized error, compression and consistency after execution; no public binary law-discovery threshold |
 | Recovered laws transfer to sealed worlds or mechanism families | Private confirmation | Future one-shot private cohort | Not collected | Forbidden until confirmation reaches terminal state |
 | The method generalizes to language models broadly | Multi-model matched study | No matched model axis in the frozen formal design | Unsupported | Conclusions must remain agent-system-specific |
 

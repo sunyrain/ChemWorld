@@ -232,6 +232,13 @@ evaluator. Their truth is shared across prior arms and checkpoints and is never 
 participant. The primary prediction error is the mean normalized absolute error across registered
 query-metric pairs.
 
+The evaluator also executes each final typed law summary on the same registered query coordinates.
+This produces a separate cell-level record of schema validity, complete query-metric executability,
+truth-normalized error, error change relative to the pre-evidence and effective-final checkpoints,
+and consistency with the participant's final explicit predictions. These public measures are
+descriptive: no post-hoc binary validity threshold is applied, and reusable-law status remains
+unavailable without the prespecified private transfer test.
+
 After the campaign, the participant commits one completed experiment as its final recommendation.
 The evaluator then performs paired blind replay of the observed incumbent and the committed
 recommendation. These executions use separate resources and do not enter participant-operation or
@@ -416,7 +423,8 @@ execution. The section is reserved for:
 - the primary selective-correction contrast and its three required conditions;
 - correct-prior utility and wrong-prior vulnerability;
 - checkpoint-level prediction-error and calibration trajectories;
-- executable law-summary validity and continuous counterfactual prediction;
+- executable law-summary coverage, continuous counterfactual error, compression stability and
+  consistency with final explicit predictions;
 - evidence-seeking, selective measurement, attribution and prior-persistence phenotypes;
 - blind incumbent-versus-recommendation outcomes;
 - complete failure, censoring, resource, token, cost and wall-time denominators.
@@ -524,8 +532,12 @@ provider conversations.
 
 Checkpoint records contain prior assessment, predictions, uncertainty, evidence references, an
 executable law summary, next-experiment intent and overall confidence. The schema permits bounded
-rationales but not an unconstrained persistent notebook. Predictions are evaluated only after the
-campaign against sealed truth packs.
+rationales but not an unconstrained persistent notebook. After the campaign, explicit predictions
+and the final law summary are evaluated against sealed truth packs. The summary must execute for the
+exact registered query-metric set; the analysis records its normalized error, pre-to-summary
+improvement, error relative to the effective final checkpoint and prediction-consistency error.
+These quantities are not converted into a public binary law-discovery decision before private
+transfer.
 
 ## 9.5 Statistical analysis
 
