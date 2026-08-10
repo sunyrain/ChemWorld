@@ -149,11 +149,7 @@ def test_work_ii_profile_reuses_exact_19_coordinate_surface() -> None:
         planned_experiment_count=3,
         terminal_state="completed",
     )
-    observed = {
-        metric_id
-        for axis in profile["construct_axes"].values()
-        for metric_id in axis
-    }
+    observed = {metric_id for axis in profile["construct_axes"].values() for metric_id in axis}
     assert observed == {spec.metric_id for spec in METRICS}
     assert len(observed) == 19
     assert profile["counts"] == {
@@ -191,12 +187,8 @@ def test_work_ii_profile_reuses_exact_19_coordinate_surface() -> None:
 def test_resource_replay_and_hidden_boundary_fail_closed() -> None:
     rows = _records()
     tampered = deepcopy(rows)
-    resources = tampered[3]["agent_view"]["tool_json"]["campaign_state"][
-        "campaign_resources"
-    ]
-    resources["latest_receipt"]["outcome_delta"]["report_only"][
-        "process_time_s"
-    ] = 11.0
+    resources = tampered[3]["agent_view"]["tool_json"]["campaign_state"]["campaign_resources"]
+    resources["latest_receipt"]["outcome_delta"]["report_only"]["process_time_s"] = 11.0
     report = replay_work_ii_campaign_resources(tampered)
     assert report["status"] == "failed"
     assert any("ledger hash mismatch" in error for error in report["errors"])

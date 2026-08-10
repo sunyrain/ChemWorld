@@ -29,9 +29,7 @@ from chemworld.eval.provenance import canonical_json_sha256
 
 WORK_II_PROCESS_PROFILE_VERSION = "chemworld-work-ii-process-profile-0.1"
 WORK_II_RESOURCE_REPLAY_VERSION = "chemworld-work-ii-resource-replay-0.1"
-WORK_II_HIDDEN_BOUNDARY_AUDIT_VERSION = (
-    "chemworld-work-ii-hidden-boundary-audit-0.1"
-)
+WORK_II_HIDDEN_BOUNDARY_AUDIT_VERSION = "chemworld-work-ii-hidden-boundary-audit-0.1"
 WORK_II_EXECUTION_AUDIT_VERSION = "chemworld-work-ii-execution-audit-0.1"
 
 _PROCESS_EXCLUSIONS = frozenset({"measure", "terminate", "discard_batch"})
@@ -80,9 +78,7 @@ class WorkIIProcessProfileError(ValueError):
 
 
 def _self_hash(payload: Mapping[str, Any], field: str) -> str:
-    return canonical_json_sha256(
-        {key: value for key, value in payload.items() if key != field}
-    )
+    return canonical_json_sha256({key: value for key, value in payload.items() if key != field})
 
 
 def _mapping(value: Any, label: str) -> Mapping[str, Any]:
@@ -353,9 +349,7 @@ def audit_work_ii_hidden_boundary(
     forbidden_values = {
         value
         for value in (
-            str(item)
-            for item in (hidden_identity or {}).values()
-            if isinstance(item, str)
+            str(item) for item in (hidden_identity or {}).values() if isinstance(item, str)
         )
         if len(value) >= 8
     }
@@ -406,9 +400,7 @@ def _trajectory_values(scores: Sequence[float]) -> dict[str, dict[str, Any]]:
         }
     best = max(scores)
     best_index = next(
-        index
-        for index, score in enumerate(scores)
-        if abs(score - best) <= _FLOAT_TOLERANCE
+        index for index, score in enumerate(scores) if abs(score - best) <= _FLOAT_TOLERANCE
     )
     discovery_denominator = max(len(scores) - 1, 0)
     discovery = best_index / discovery_denominator if discovery_denominator else 0.0
@@ -563,15 +555,11 @@ def build_work_ii_process_profile(
     if len(closed_lifecycles) > planned_experiment_count:
         raise WorkIIProcessProfileError("closed lifecycle count exceeds the frozen plan")
 
-    terminal_steps = [
-        _step(lifecycle["rows"][-1], 1) for lifecycle in closed_lifecycles
-    ]
+    terminal_steps = [_step(lifecycle["rows"][-1], 1) for lifecycle in closed_lifecycles]
     final_lifecycles = [
         item for item in closed_lifecycles if item["terminal_kind"] == "final_assay"
     ]
-    discard_lifecycles = [
-        item for item in closed_lifecycles if item["terminal_kind"] == "discard"
-    ]
+    discard_lifecycles = [item for item in closed_lifecycles if item["terminal_kind"] == "discard"]
     measured_lifecycles = 0
     nonfinal_measurement_steps: list[int] = []
     first_measurement_fractions: list[float] = []
@@ -589,9 +577,7 @@ def build_work_ii_process_profile(
         if not measurements:
             continue
         measured_lifecycles += 1
-        nonfinal_measurement_steps.extend(
-            _step(rows[index], index + 1) for index in measurements
-        )
+        nonfinal_measurement_steps.extend(_step(rows[index], index + 1) for index in measurements)
         first_index = measurements[0]
         first_measurement_fractions.append(first_index / len(rows))
         later = [
@@ -613,8 +599,7 @@ def build_work_ii_process_profile(
         for item in final_lifecycles
     ]
     final_score_steps = [
-        _step(item["rows"][-1], index + 1)
-        for index, item in enumerate(final_lifecycles)
+        _step(item["rows"][-1], index + 1) for index, item in enumerate(final_lifecycles)
     ]
     state = _mapping(resource_replay.get("rebuilt_state"), "rebuilt resource state")
     report_only = _mapping(state.get("report_only"), "rebuilt resource report_only")
@@ -768,9 +753,7 @@ def build_work_ii_process_profile(
                 else None
             ),
             "calculation": {
-                "total_physical_cost": _finite(
-                    report_only.get("physical_cost"), "physical cost"
-                ),
+                "total_physical_cost": _finite(report_only.get("physical_cost"), "physical cost"),
                 "closed_lifecycle_count": closed,
             },
             "registered_denominator_count": closed,
@@ -779,8 +762,7 @@ def build_work_ii_process_profile(
         },
         "total_risk_per_closed_lifecycle": {
             "value": (
-                _finite(report_only.get("accumulated_risk"), "accumulated risk")
-                / closed
+                _finite(report_only.get("accumulated_risk"), "accumulated risk") / closed
                 if closed
                 else None
             ),
@@ -835,9 +817,7 @@ def build_work_ii_process_profile(
             "mean_assayed_score": {
                 "value": sum(scores) / len(scores) if scores else None,
                 "unit": next(
-                    item.unit
-                    for item in ENDPOINT_CONTEXT
-                    if item.metric_id == "mean_assayed_score"
+                    item.unit for item in ENDPOINT_CONTEXT if item.metric_id == "mean_assayed_score"
                 ),
                 "denominator_count": final_count,
                 "source_steps": final_score_steps,
@@ -845,9 +825,7 @@ def build_work_ii_process_profile(
             "best_assayed_score": {
                 "value": max(scores) if scores else None,
                 "unit": next(
-                    item.unit
-                    for item in ENDPOINT_CONTEXT
-                    if item.metric_id == "best_assayed_score"
+                    item.unit for item in ENDPOINT_CONTEXT if item.metric_id == "best_assayed_score"
                 ),
                 "denominator_count": final_count,
                 "source_steps": final_score_steps,
@@ -905,15 +883,14 @@ def validate_work_ii_process_profile(profile: Mapping[str, Any]) -> list[str]:
     ):
         errors.append("process profile counts contain an invalid denominator")
     else:
-        if counts["final_assay_count"] + counts["discard_count"] != counts[
-            "closed_lifecycle_count"
-        ]:
+        if (
+            counts["final_assay_count"] + counts["discard_count"]
+            != counts["closed_lifecycle_count"]
+        ):
             errors.append("process profile terminal counts do not reconcile")
         if isinstance(planned, int) and counts["closed_lifecycle_count"] > planned:
             errors.append("process profile closed count exceeds the frozen plan")
-        if counts["committed_operation_count"] > counts[
-            "participant_operation_attempt_count"
-        ]:
+        if counts["committed_operation_count"] > counts["participant_operation_attempt_count"]:
             errors.append("process profile committed count exceeds attempts")
         if counts["measured_lifecycle_count"] > counts["closed_lifecycle_count"]:
             errors.append("process profile measured count exceeds closed lifecycles")
@@ -947,15 +924,17 @@ def validate_work_ii_process_profile(profile: Mapping[str, Any]) -> list[str]:
                 if raw_metric.get("unit") != spec.unit:
                     errors.append(f"process coordinate {metric_id} unit mismatch")
                 if raw_metric.get("registered_denominator_id") != spec.denominator:
-                    errors.append(
-                        f"process coordinate {metric_id} denominator identity mismatch"
-                    )
-                if value is not None and spec.lower_bound is not None and float(value) < (
-                    spec.lower_bound - _FLOAT_TOLERANCE
+                    errors.append(f"process coordinate {metric_id} denominator identity mismatch")
+                if (
+                    value is not None
+                    and spec.lower_bound is not None
+                    and float(value) < (spec.lower_bound - _FLOAT_TOLERANCE)
                 ):
                     errors.append(f"process coordinate {metric_id} is below its bound")
-                if value is not None and spec.upper_bound is not None and float(value) > (
-                    spec.upper_bound + _FLOAT_TOLERANCE
+                if (
+                    value is not None
+                    and spec.upper_bound is not None
+                    and float(value) > (spec.upper_bound + _FLOAT_TOLERANCE)
                 ):
                     errors.append(f"process coordinate {metric_id} is above its bound")
             denominator_count = raw_metric.get("registered_denominator_count")
@@ -989,9 +968,7 @@ def validate_work_ii_process_profile(profile: Mapping[str, Any]) -> list[str]:
             for step in indexed_steps
         ):
             errors.append("process profile record index has invalid or duplicate steps")
-        if isinstance(counts, Mapping) and len(index) != counts.get(
-            "participant_record_count"
-        ):
+        if isinstance(counts, Mapping) and len(index) != counts.get("participant_record_count"):
             errors.append("process profile record index count mismatch")
         if any(
             not isinstance(item, Mapping)

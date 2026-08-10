@@ -258,9 +258,7 @@ def test_new_host_commit_receipt_does_not_require_trailing_final_text() -> None:
         "final_recommendation": recommendation,
         "final_recommendation_sha256": recommendation_sha256,
         "final_recommendation_source": "host_mcp_commit",
-        "mcp_tool_calls": [
-            {"tool": "commit_final_recommendation", "status": "completed"}
-        ],
+        "mcp_tool_calls": [{"tool": "commit_final_recommendation", "status": "completed"}],
         "experiment_tool_integrity_verified_after_session": True,
         "lab_tool_integrity_verified_after_session": True,
         "mcp_tool_integrity_verified_after_session": True,
@@ -579,6 +577,11 @@ print(json.dumps(completed), flush=True)
     monkeypatch.setattr(five_seed_runner, "RUNNER", fake_runner)
     monkeypatch.setattr(five_seed_runner, "git_worktree_dirty", lambda _root: False)
     monkeypatch.setattr(five_seed_runner, "git_source_commit", lambda _root: "test-commit")
+    monkeypatch.setattr(
+        five_seed_runner,
+        "validate_development_readiness_receipt",
+        lambda *_args, **_kwargs: [],
+    )
     monkeypatch.setenv("WELLAU_API_KEY", "test-key")
     output = tmp_path / "output"
     progress = tmp_path / "progress.jsonl"
@@ -590,6 +593,7 @@ print(json.dumps(completed), flush=True)
             world_seed=[0, 1, 2, 3, 4],
             heartbeat_interval_s=0.05,
             max_concurrency=3,
+            readiness_receipt=tmp_path / "readiness.json",
         )
     )
     assert report["all_cells_completed"] is True
@@ -601,3 +605,23 @@ print(json.dumps(completed), flush=True)
     triplets = [event for event in events if event.get("event") == "seed_triplet_started"]
     assert len(triplets) == 5
     assert all(len(event["active_cells"]) == 3 for event in triplets)
+
+
+def test_five_seed_runner_requires_readiness_before_creating_output(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(five_seed_runner, "git_worktree_dirty", lambda _root: False)
+    output = tmp_path / "must-not-exist"
+    args = argparse.Namespace(
+        config=ROOT / "configs/benchmark/work_ii_campaign_pilot.json",
+        output=output,
+        progress_file=tmp_path / "progress.jsonl",
+        world_seed=[0],
+        heartbeat_interval_s=0.05,
+        max_concurrency=3,
+        readiness_receipt=None,
+    )
+    with pytest.raises(RuntimeError, match="zero-provider readiness receipt"):
+        five_seed_runner.run(args)
+    assert not output.exists()

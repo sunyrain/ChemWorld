@@ -77,6 +77,20 @@ campaign stock and produced one `campaign_resource_rejected` event; the frozen
 `no_resource_rejection` check therefore failed and seed 4 was not started. This is retained as agent
 resource-allocation behavior, not repaired or replaced as a platform failure.
 
+Post-run audit amendment before the next crystallization replacement: the crystallization
+`floatfix-v3` block reached 11/15 cells before `seed-3 / opaque` was rejected by the independent
+resource replay audit. The participant trajectory itself completed four experiments, four typed
+checkpoints, final recommendation commitment and physical exact replay with no resource rejection.
+The retained action used the public/runtime alias `amount_mol` for `add_catalyst`; the live action
+codec canonicalized it to `catalyst_amount_mol` before updating the authoritative campaign ledger,
+whereas the replay auditor reconstructed the event from the raw alias. This created a replay-only
+resource hash/state mismatch from step 3 onward. The replay path now applies the same action codec
+before resource reconstruction and has a focused regression test for this alias. Because the
+resource audit is part of the frozen qualification gate, the affected crystallization block is
+restarted from seed 0 without changing coverage, budgets, estimands or pass/failure rules. The
+retained `floatfix-v3` artifacts remain historical development evidence and are not silently
+reclassified as a passed block.
+
 The first DeepSeek crystallization pilot exposed the analogous task-pattern tail: seed-0
 misindexed completed all physical and closeout checks with no resource rejection, but reached
 5,599,410 cumulative input tokens against the previous 5.5M cap. Before replacement execution,

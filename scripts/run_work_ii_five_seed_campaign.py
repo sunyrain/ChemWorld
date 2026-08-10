@@ -15,6 +15,9 @@ from time import perf_counter
 from typing import Any, TextIO
 
 from chemworld.eval.provenance import git_source_commit, git_worktree_dirty, write_json_atomic
+from chemworld.eval.work_ii_development_readiness import (
+    validate_development_readiness_receipt,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "configs/benchmark/work_ii_campaign_pilot.json"
@@ -77,6 +80,17 @@ def _heartbeat(
 def run(args: argparse.Namespace) -> dict[str, Any]:
     if git_worktree_dirty(ROOT):
         raise RuntimeError("provider execution requires a clean committed worktree")
+    if args.readiness_receipt is None:
+        raise RuntimeError("provider execution requires a zero-provider readiness receipt")
+    seeds = [int(seed) for seed in args.world_seed]
+    readiness_errors = validate_development_readiness_receipt(
+        ROOT,
+        args.readiness_receipt.resolve(),
+        args.config.resolve(),
+        seeds,
+    )
+    if readiness_errors:
+        raise RuntimeError("provider readiness failed: " + "; ".join(readiness_errors))
     output = args.output.resolve()
     progress = args.progress_file.resolve()
     if output.exists():
@@ -106,7 +120,6 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("campaign config must freeze execution.max_concurrency=3")
     if int(args.max_concurrency) != 3:
         raise ValueError("the frozen execution requires max_concurrency=3")
-    seeds = [int(seed) for seed in args.world_seed]
     if len(seeds) not in {1, 5} or len(set(seeds)) != len(seeds):
         raise ValueError("execution requires one pilot seed or five distinct world seeds")
     total_cells = len(seeds) * 3
@@ -137,9 +150,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         readers: dict[str, threading.Thread] = {}
         active_arms = set(arms)
         for arm in arms:
-            child_progress = progress.with_name(
-                f"{progress.stem}-seed-{seed}-{arm}.jsonl"
-            )
+            child_progress = progress.with_name(f"{progress.stem}-seed-{seed}-{arm}.jsonl")
             command = [
                 sys.executable,
                 str(RUNNER),
@@ -186,8 +197,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "arms": arms,
                 "max_concurrency": 3,
                 "active_cells": [
-                    {"world_seed": seed, "arm": arm, "stage": "process_started"}
-                    for arm in arms
+                    {"world_seed": seed, "arm": arm, "stage": "process_started"} for arm in arms
                 ],
                 "completed_cells": completed_cells,
                 "total_cells": total_cells,
@@ -338,6 +348,7 @@ def main() -> int:
     )
     parser.add_argument("--heartbeat-interval-s", type=float, default=30.0)
     parser.add_argument("--max-concurrency", type=int, default=3)
+    parser.add_argument("--readiness-receipt", type=Path, required=True)
     args = parser.parse_args()
     report = run(args)
     return 0 if report["all_cells_completed"] else 1

@@ -1,0 +1,302 @@
+"""Zero-provider readiness receipts for Work II development campaigns."""
+
+from __future__ import annotations
+
+import json
+import subprocess
+from collections.abc import Callable, Mapping, Sequence
+from datetime import UTC, datetime
+from pathlib import Path
+from time import perf_counter
+from typing import Any
+
+from chemworld.data.logging import load_jsonl
+from chemworld.eval.provenance import (
+    canonical_json_sha256,
+    file_sha256,
+    git_source_commit,
+    git_worktree_dirty,
+)
+from chemworld.eval.verify import verify_records
+from chemworld.eval.work_ii_process_profile import build_work_ii_execution_artifacts
+
+WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.1"
+_PRIOR_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
+
+
+def _self_hash(payload: Mapping[str, Any]) -> str:
+    body = dict(payload)
+    body.pop("readiness_sha256", None)
+    return canonical_json_sha256(body)
+
+
+def _git_ignored(root: Path, path: Path) -> bool:
+    completed = subprocess.run(
+        ["git", "check-ignore", "--quiet", str(path.resolve())],
+        cwd=root,
+        check=False,
+    )
+    return completed.returncode == 0
+
+
+def _resolved_config_path(root: Path, config_path: Path) -> Path:
+    resolved = config_path.resolve()
+    if not resolved.is_relative_to(root.resolve()):
+        raise ValueError("campaign config must be inside the repository")
+    return resolved
+
+
+def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[str, bool]:
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    provider = config.get("provider", {})
+    execution = config.get("execution", {})
+    campaign = config.get("campaign", {})
+    method = config.get("method_resources", {})
+    catalog_value = provider.get("model_catalog_json")
+    catalog_path = (root / str(catalog_value)).resolve() if catalog_value else Path()
+    catalog: dict[str, Any] = {}
+    if catalog_path.is_file():
+        loaded = json.loads(catalog_path.read_text(encoding="utf-8"))
+        catalog = loaded if isinstance(loaded, dict) else {}
+    models = [
+        item
+        for item in catalog.get("models", [])
+        if isinstance(item, Mapping) and item.get("slug") == provider.get("model")
+    ]
+    api_key_value = provider.get("api_key_file")
+    api_key_path = (root / str(api_key_value)).resolve() if api_key_value else Path()
+    prior_arms = tuple(config.get("prior_arms", {}))
+    checkpoint_experiments = list(campaign.get("checkpoint_complete_experiments", []))
+    method_checkpoints = list(method.get("checkpoint_complete_experiments", []))
+    return {
+        "clean_committed_worktree": not git_worktree_dirty(root),
+        "seed_schedule_is_one_pilot_or_five_seed_block": len(seeds) in {1, 5}
+        and len(set(seeds)) == len(seeds),
+        "three_frozen_prior_arms": prior_arms == _PRIOR_ARMS,
+        "three_cell_os_concurrency": execution.get("max_concurrency") == 3
+        and execution.get("within_cell_concurrency") == 1
+        and execution.get("parallelization_unit") == "same_seed_prior_arm_triplet",
+        "finish_triplet_then_stop_failure_semantics": execution.get("failure_semantics")
+        == "finish the in-flight seed triplet, then stop before the next world seed",
+        "four_shared_resource_experiments": campaign.get("complete_experiments") == 4
+        and campaign.get("vessel_start_limit") == 4
+        and campaign.get("final_assay_limit") == 4
+        and method.get("complete_experiment_limit") == 4,
+        "four_in_session_checkpoints": list(config.get("snapshot_stages", []))
+        == ["pre_evidence", "after_experiment_1", "after_experiment_2", "final"]
+        and checkpoint_experiments == [0, 1, 2, 4]
+        and method_checkpoints == [1, 2, 4],
+        "one_provider_turn_per_campaign_cell": method.get("model_call_limit") == 1,
+        "operation_and_wall_envelopes_positive": int(method.get("operation_limit", 0))
+        == int(campaign.get("operation_attempt_limit", -1))
+        and float(method.get("wall_time_limit_s", 0.0)) > 0.0
+        and int(method.get("input_token_limit", 0)) > 0
+        and int(method.get("uncached_input_token_limit", 0)) > 0
+        and int(method.get("output_token_limit", 0)) > 0,
+        "responses_codex_harness_contract": provider.get("wire_api") == "responses"
+        and provider.get("model") == "deepseek-v4-flash"
+        and provider.get("reasoning_effort") == "high",
+        "domain_mcp_routing_catalog_frozen": len(models) == 1
+        and models[0].get("supports_search_tool") is False
+        and models[0].get("supported_in_api") is True,
+        "credential_file_exists_and_is_git_ignored": api_key_path.is_file()
+        and _git_ignored(root, api_key_path),
+    }
+
+
+def audit_historical_trajectories(
+    historical_roots: Sequence[Path],
+    *,
+    progress: Callable[[dict[str, Any]], None] | None = None,
+) -> dict[str, Any]:
+    """Rebuild every retained trajectory without making a provider call."""
+
+    trajectories = sorted(
+        {
+            trajectory.resolve()
+            for root in historical_roots
+            for trajectory in root.resolve().glob("seed-*/**/trajectory.jsonl")
+        }
+    )
+    started = perf_counter()
+    rows: list[dict[str, Any]] = []
+    for index, trajectory in enumerate(trajectories, start=1):
+        records = load_jsonl(trajectory)
+        replay = (
+            verify_records(records, tolerance=0.0).to_dict()
+            if records
+            else {
+                "verified": False,
+                "checked_steps": 0,
+                "max_abs_error": None,
+                "mismatches": ["empty trajectory"],
+            }
+        )
+        arm = trajectory.parent.name
+        seed_name = trajectory.parent.parent.name
+        seed = int(seed_name.removeprefix("seed-"))
+        artifacts = (
+            build_work_ii_execution_artifacts(
+                records,
+                replay,
+                planned_experiment_count=4,
+                terminal_state="completed",
+                hidden_identity={"prior_arm": arm, "world_seed": seed},
+            )
+            if records
+            else None
+        )
+        execution = artifacts["execution_audit"] if artifacts is not None else {}
+        passed = execution.get("passed") is True
+        row = {
+            "path": trajectory.as_posix(),
+            "sha256": file_sha256(trajectory),
+            "world_seed": seed,
+            "arm": arm,
+            "record_count": len(records),
+            "physical_exact_replay": replay.get("verified") is True,
+            "resource_exact_replay": (
+                artifacts is not None and artifacts["resource_replay"].get("status") == "passed"
+            ),
+            "hidden_boundary": (
+                artifacts is not None
+                and artifacts["hidden_boundary_audit"].get("status") == "passed"
+            ),
+            "process_profile_constructed": (
+                artifacts is not None and artifacts.get("process_profile") is not None
+            ),
+            "execution_audit_passed": passed,
+            "failed_checks": list(execution.get("failed_checks", [])),
+        }
+        rows.append(row)
+        if progress is not None:
+            elapsed = perf_counter() - started
+            rate = index / elapsed if elapsed > 0.0 else 0.0
+            progress(
+                {
+                    "stage": "historical_trajectory_audit",
+                    "completed": index,
+                    "total": len(trajectories),
+                    "passed": sum(item["execution_audit_passed"] for item in rows),
+                    "throughput_trajectories_per_minute": round(rate * 60.0, 2),
+                    "eta_s": (round((len(trajectories) - index) / rate, 1) if rate > 0.0 else None),
+                    "current": trajectory.as_posix(),
+                }
+            )
+    return {
+        "historical_root_count": len(historical_roots),
+        "trajectory_count": len(rows),
+        "passed_trajectory_count": sum(item["execution_audit_passed"] for item in rows),
+        "all_trajectories_passed": bool(rows)
+        and all(item["execution_audit_passed"] for item in rows),
+        "provider_call_count": 0,
+        "trajectories": rows,
+    }
+
+
+def build_development_readiness_receipt(
+    root: Path,
+    config_path: Path,
+    seeds: Sequence[int],
+    historical_roots: Sequence[Path],
+    *,
+    progress: Callable[[dict[str, Any]], None] | None = None,
+) -> dict[str, Any]:
+    resolved_config = _resolved_config_path(root, config_path)
+    config = json.loads(resolved_config.read_text(encoding="utf-8"))
+    checks = _config_checks(root, resolved_config, seeds)
+    historical = audit_historical_trajectories(historical_roots, progress=progress)
+    checks["historical_current_code_audits_passed"] = historical["all_trajectories_passed"]
+    receipt: dict[str, Any] = {
+        "schema_version": WORK_II_DEVELOPMENT_READINESS_VERSION,
+        "generated_at": datetime.now(UTC).isoformat(),
+        "source_commit": git_source_commit(root),
+        "config": {
+            "path": resolved_config.relative_to(root.resolve()).as_posix(),
+            "sha256": file_sha256(resolved_config),
+            "task_id": config.get("task_id"),
+        },
+        "schedule": {
+            "world_seeds": [int(seed) for seed in seeds],
+            "prior_arms": list(config.get("prior_arms", {})),
+            "expected_cell_count": len(seeds) * 3,
+            "max_concurrency": 3,
+        },
+        "provider": {
+            "provider_id": config.get("provider", {}).get("id"),
+            "model": config.get("provider", {}).get("model"),
+            "wire_api": config.get("provider", {}).get("wire_api"),
+            "reasoning_effort": config.get("provider", {}).get("reasoning_effort"),
+        },
+        "checks": checks,
+        "historical_audit": historical,
+        "provider_call_count": 0,
+        "ready": all(checks.values()) and historical["provider_call_count"] == 0,
+    }
+    receipt["readiness_sha256"] = _self_hash(receipt)
+    return receipt
+
+
+def validate_development_readiness_receipt(
+    root: Path,
+    receipt_path: Path,
+    config_path: Path,
+    seeds: Sequence[int],
+) -> list[str]:
+    errors: list[str] = []
+    try:
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return [f"readiness receipt is unreadable: {error}"]
+    if not isinstance(receipt, dict):
+        return ["readiness receipt must contain an object"]
+    if receipt.get("schema_version") != WORK_II_DEVELOPMENT_READINESS_VERSION:
+        errors.append("readiness receipt schema mismatch")
+    if receipt.get("readiness_sha256") != _self_hash(receipt):
+        errors.append("readiness receipt self-hash mismatch")
+    if receipt.get("ready") is not True:
+        errors.append("readiness receipt is not passing")
+    checks = receipt.get("checks")
+    if (
+        not isinstance(checks, Mapping)
+        or not checks
+        or not all(value is True for value in checks.values())
+    ):
+        errors.append("readiness receipt checks are incomplete or failing")
+    if receipt.get("provider_call_count") != 0:
+        errors.append("readiness receipt was not produced by a zero-provider audit")
+    if receipt.get("source_commit") != git_source_commit(root):
+        errors.append("readiness receipt source commit is stale")
+    resolved_config = _resolved_config_path(root, config_path)
+    config_binding = receipt.get("config", {})
+    if not isinstance(config_binding, Mapping):
+        errors.append("readiness receipt lacks config binding")
+    elif config_binding.get("path") != resolved_config.relative_to(
+        root.resolve()
+    ).as_posix() or config_binding.get("sha256") != file_sha256(resolved_config):
+        errors.append("readiness receipt config binding mismatch")
+    schedule = receipt.get("schedule", {})
+    if not isinstance(schedule, Mapping) or schedule.get("world_seeds") != [
+        int(seed) for seed in seeds
+    ]:
+        errors.append("readiness receipt seed schedule mismatch")
+    historical = receipt.get("historical_audit", {})
+    if not isinstance(historical, Mapping) or historical.get("all_trajectories_passed") is not True:
+        errors.append("readiness receipt historical audit is not passing")
+    else:
+        for row in historical.get("trajectories", []):
+            if not isinstance(row, Mapping):
+                errors.append("readiness receipt trajectory binding is malformed")
+                continue
+            path = Path(str(row.get("path", "")))
+            if not path.is_file() or row.get("sha256") != file_sha256(path):
+                errors.append(f"readiness trajectory binding changed: {path}")
+    return errors
+
+
+__all__ = [
+    "WORK_II_DEVELOPMENT_READINESS_VERSION",
+    "audit_historical_trajectories",
+    "build_development_readiness_receipt",
+    "validate_development_readiness_receipt",
+]
