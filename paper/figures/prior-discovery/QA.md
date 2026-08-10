@@ -37,12 +37,14 @@ not a formal result.
 
 ## Manuscript-build QA
 
-- PDF: 9 pages, Letter size.
+- PDF: 10 pages, Letter size.
 - References: no undefined citations.
 - LaTeX errors: none.
-- Overfull/underfull boxes: 0/0.
-- The five-task closeout table is a full-width display on page 8; all columns, labels and denominators
+- Overfull boxes: 0; underfull boxes: 1 non-blocking paragraph warning.
+- The five-task closeout table is a full-width display on page 7; all columns, labels and denominators
   were inspected from a 180 dpi page rendering with no clipping or overlap.
+- The persistent-session accounting, harness discussion and Codex/MCP Methods additions were inspected
+  on pages 7--9 at 150 dpi; headings, columns and page transitions have no clipping or overlap.
 - The PDF is explicitly a development/design draft. Public formal participant results, private
   confirmation and transfer results remain uncollected and are not substituted by development data.
 
