@@ -189,6 +189,43 @@ def build_preregistration_readiness(
         internal_errors.append("private confirmation boundary is not commitment-only")
 
     selected_route = route.get("selected_option")
+
+    # Imported lazily because work_ii_release imports this module for the
+    # preregistration validator; a top-level import would create a cycle.
+    from chemworld.eval.work_ii_release import validate_clean_release_receipt
+
+    # Keep this one-way: readiness may consume a clean-release receipt, but the
+    # receipt's embedded graph hash is not required to equal the graph rebuilt
+    # from this readiness manifest, avoiding a self-referential hash cycle.
+    clean_release_path = (
+        root
+        / "workstreams/flagship_tasks/reports/"
+        "work-ii-clean-release-receipt-v0.1.json"
+    )
+    clean_release_binding: dict[str, Any] = {
+        "path": _relative(root, clean_release_path),
+        "present": clean_release_path.is_file(),
+    }
+    clean_release_satisfied = False
+    if clean_release_path.is_file():
+        clean_release = _load_object(clean_release_path)
+        clean_errors = validate_clean_release_receipt(clean_release)
+        clean_graph = clean_release.get("evidence_graph")
+        clean_graph = clean_graph if isinstance(clean_graph, Mapping) else {}
+        clean_release_satisfied = (
+            not clean_errors
+            and clean_graph.get("status") == "passed"
+            and clean_graph.get("node_count") == 13
+            and clean_graph.get("edge_count") == 17
+        )
+        clean_release_binding.update(
+            {
+                "receipt_sha256": clean_release.get("receipt_sha256"),
+                "tested_commit": clean_release.get("tested_commit"),
+                "graph_sha256": clean_graph.get("graph_sha256"),
+                "validation_errors": clean_errors,
+            }
+        )
     blockers = [
         {
             "id": "submission_route_user_selection",
@@ -213,7 +250,7 @@ def build_preregistration_readiness(
         {
             "id": "clean_wheel_independent_checkout_and_evidence_graph_receipt",
             "owner": "w2_11",
-            "satisfied": False,
+            "satisfied": clean_release_satisfied,
         },
         {
             "id": "execution_command_budget_and_escalation_user_signoff",
@@ -352,9 +389,10 @@ def build_preregistration_readiness(
             "route_selection": selected_route in ROUTE_OPTIONS,
             "current_method_real_provider_qualification": False,
             "currency_budget_and_expected_eta": False,
-            "clean_release_receipt": False,
+            "clean_release_receipt": clean_release_satisfied,
             "user_execution_signoff": False,
         },
+        "clean_release": clean_release_binding,
         "conditional_route_requirements": {
             "nature_registered_report_stage_1": [
                 "submit_presubmission_enquiry",
@@ -425,7 +463,12 @@ def validate_preregistration_readiness(report: Mapping[str, Any]) -> list[str]:
     else:
         errors.append("preregistration readiness contains an invalid route status")
     unresolved = report.get("unresolved_requirement_ids")
-    expected_blocker_count = 6 if selected_route is None else 5
+    frozen_components = report.get("frozen_component_readiness")
+    frozen_components = frozen_components if isinstance(frozen_components, Mapping) else {}
+    clean_release_satisfied = frozen_components.get("clean_release_receipt") is True
+    expected_blocker_count = (5 if clean_release_satisfied else 6) - (
+        0 if selected_route is None else 1
+    )
     if not isinstance(unresolved, list) or len(unresolved) != expected_blocker_count:
         errors.append("Work II preregistration readiness has an invalid blocker set")
     return errors

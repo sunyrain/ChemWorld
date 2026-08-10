@@ -195,7 +195,8 @@ def test_preregistration_readiness_is_deterministic_zero_call_and_blocked() -> N
         "provider_attempts_hard_cap": 150,
     }
     assert first["private_confirmation"]["private_identities_present"] is False
-    assert len(first["unresolved_requirement_ids"]) == 6
+    assert len(first["unresolved_requirement_ids"]) == 5
+    assert first["frozen_component_readiness"]["clean_release_receipt"] is True
 
 
 def test_preregistration_draft_is_bound_to_manifest_and_has_no_private_identity() -> None:
@@ -254,6 +255,5 @@ def test_selected_route_is_accepted_and_removes_only_the_route_blocker(
         "current_method_real_provider_qualification_receipt",
         "formal_currency_ceiling_and_provider_contract_approval",
         "qualified_expected_eta_from_current_method",
-        "clean_wheel_independent_checkout_and_evidence_graph_receipt",
         "execution_command_budget_and_escalation_user_signoff",
     ]

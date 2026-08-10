@@ -29,7 +29,7 @@ def test_prerun_evidence_graph_is_deterministic_current_and_acyclic() -> None:
         "edge_count": 17,
         "passed_node_count": 13,
         "failed_node_count": 0,
-        "preregistration_blocker_count": 6,
+        "preregistration_blocker_count": 5,
     }
     assert first["provider_calls_executed"] == 0
     assert first["formal_participant_outcome_count"] == 0
