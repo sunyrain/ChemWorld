@@ -70,6 +70,13 @@ input, 400k uncached input, 80k output and 7,200 s session wall. This amendment 
 28-attempt physical budget, four-experiment denominator, repeat allowance, process-time card,
 coverage, seeds or scientific pass/failure criteria; the affected task block restarts from seed 0.
 
+The final MCP-0.7 electrochemical replacement block reached a protocol-valid terminal result at
+11/15 qualified cells. Seed-3 misindexed completed all four experiments, checkpoints, host-MCP
+recommendation and exact replay, but its attempt to add 0.06 L of solvent exceeded the remaining
+campaign stock and produced one `campaign_resource_rejected` event; the frozen
+`no_resource_rejection` check therefore failed and seed 4 was not started. This is retained as agent
+resource-allocation behavior, not repaired or replaced as a platform failure.
+
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
 payloads and private reasoning are not committed.
