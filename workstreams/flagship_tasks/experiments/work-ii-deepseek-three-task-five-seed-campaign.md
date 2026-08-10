@@ -55,6 +55,12 @@ action. A seed-1 aligned single-cell diagnostic must verify that invalid retries
 return inside the unchanged frozen envelope before the electrochemical task block restarts from
 seed 0.
 
+The required diagnostic passed on 2026-08-10: seed-1 aligned completed 4/4 experiments with 26
+operation attempts, 32 MCP calls, zero failed `step` calls, exact replay and host-MCP recommendation
+commitment. Usage was 2,216,172 cumulative input (76,396 uncached) and 38,150 output tokens, all
+inside the unchanged electrochemical envelope. The replacement five-seed electrochemical block is
+therefore authorized to restart from seed 0 under MCP 0.7.
+
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
 payloads and private reasoning are not committed.
