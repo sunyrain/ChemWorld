@@ -14,6 +14,7 @@ from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_blind import BLIND_EVALUATOR_VERSION
 from chemworld.eval.work_ii_cost import build_formal_cost_contract
 from chemworld.eval.work_ii_formal import (
+    EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT,
     FORMAL_ARMS,
     FORMAL_SNAPSHOT_STAGES,
     DuplicateFormalCellError,
@@ -181,6 +182,10 @@ def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> Non
     source_paths = {row["path"] for row in report["source_bindings"]}
     assert "src/chemworld/eval/work_ii_confirmatory.py" in source_paths
     assert "scripts/analyze_work_ii_confirmatory.py" in source_paths
+    assert (
+        report["law_summary_evaluation_contract"]
+        == EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT
+    )
     assert report["held_out_evaluator_contract"] == {
         "truth_unit": "task_x_world_cluster_x_registered_query",
         "queries_per_task_world_cluster": 4,

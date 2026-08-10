@@ -79,6 +79,22 @@
     "O6_autonomy_resource_safety": ["completion", "invalid_actions", "measurements", "risk", "sessions", "provider_attempts", "tokens", "cost", "wall_time"],
     "O7_blind_outcome": ["blind_validated_recommendation", "validated_learning_curve_AUC", "incumbent_recommendation_gap"]
   },
+  "law_summary_evaluation_contract": {
+    "evaluation_unit": "participant_cell_x_final_law_summary_x_registered_query_metric",
+    "query_source": "same_four_evaluator_held_out_queries_scored_at_belief_checkpoints",
+    "truth_source": "shared_task_world_evaluator_truth_pack",
+    "required_summary_schema": "chemworld-work-ii-law-summary-0.1",
+    "required_query_coverage": "exact_registered_query_metric_set",
+    "normalized_error": "mean_over_registered_query_metric_pairs_abs_law_prediction_minus_truth_over_metric_scale",
+    "compression_stability": "law_summary_normalized_error_minus_effective_final_checkpoint_error",
+    "prediction_consistency": "mean_normalized_absolute_difference_between_law_summary_and_final_checkpoint_predictions",
+    "pre_to_summary_improvement": "effective_pre_evidence_error_minus_law_summary_normalized_error",
+    "evaluator_provider_calls": 0,
+    "participant_feedback_allowed": false,
+    "binary_public_validity_threshold": null,
+    "public_interpretation": "descriptive_executability_error_compression_and_consistency_only",
+    "private_transfer_required_for_reusable_law_claim": true
+  },
   "joint_claim_rules": {
     "selective_correction": "all_H3_required_conditions_pass",
     "law_discovery_and_transfer": [

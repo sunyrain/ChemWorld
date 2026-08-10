@@ -4,6 +4,8 @@ from pathlib import Path
 
 from scripts.audit_work_ii_analysis_plan import audit
 
+from chemworld.eval.work_ii_formal import EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT
+
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
 
@@ -26,4 +28,8 @@ def test_analysis_audit_freezes_resource_cards_denominators_and_hard_bounds(
     assert report["execution_budget_and_eta"]["initial_schedule_wall_limit_h"] == 47.5
     assert report["execution_budget_and_eta"]["all_infrastructure_resumes_wall_hard_cap_h"] == 95.0
     assert report["denominator_ledger"]["mcp_tool_call"]["hard_cap"] is None
+    assert (
+        report["law_summary_evaluation_contract"]
+        == EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT
+    )
     assert report["currency_budget"]["formal_currency_ceiling_approved"] is False

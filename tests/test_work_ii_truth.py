@@ -74,6 +74,33 @@ def test_truth_plan_is_shared_across_arms_and_self_bound() -> None:
     assert plan["evaluator_provider_call_count"] == 0
     assert plan["participant_operation_denominator_impact"] == 0
     assert plan["shared_across_prior_arms"] is True
+    assert plan["law_summary_contract"] == {
+        "allowed_feature_ids": [
+            "solvent",
+            "aqueous_phase_volume_L",
+            "extractant",
+            "extractant_volume_L",
+            "mix_duration_s",
+            "settle_duration_s",
+            "stirring_speed_rpm",
+        ],
+        "allowed_metric_ids": [
+            "phase_ratio",
+            "product_in_organic",
+            "product_in_aqueous",
+        ],
+        "required_metric_ids": [
+            "phase_ratio",
+            "product_in_organic",
+            "product_in_aqueous",
+        ],
+        "evidence_catalog": [
+            "experiment-1-final-assay",
+            "experiment-2-final-assay",
+            "experiment-3-final-assay",
+            "experiment-4-final-assay",
+        ],
+    }
 
     tampered = deepcopy(plan)
     tampered["queries"][0]["feature_values"]["solvent"] = 3

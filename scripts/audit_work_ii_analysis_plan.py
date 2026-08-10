@@ -13,7 +13,10 @@ from scipy.stats import nct, t
 
 from chemworld.campaign_resources import CampaignResourceCard
 from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
-from chemworld.eval.work_ii_formal import EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
+from chemworld.eval.work_ii_formal import (
+    EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT,
+    EXPECTED_PARTICIPANT_EXECUTION_CONTRACT,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLAN = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
@@ -113,6 +116,9 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
     participant_contract = design.get("participant_execution_contract")
     if participant_contract != EXPECTED_PARTICIPANT_EXECUTION_CONTRACT:
         failures.append({"check": "participant_execution_contract"})
+    law_summary_contract = plan.get("law_summary_evaluation_contract")
+    if law_summary_contract != EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT:
+        failures.append({"check": "law_summary_evaluation_contract"})
     variance_contract = plan.get("variance_component_contract")
     expected_variance_keys = {
         "world_cluster",
@@ -387,6 +393,7 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
             "unknown_cost_must_not_be_reported_as_zero": True,
         },
         "variance_component_contract": variance_contract,
+        "law_summary_evaluation_contract": law_summary_contract,
         "w2_06_contract_complete": not failures,
         "w2_10_final_method_qualification_complete": False,
         "w2_07_completed_components": {

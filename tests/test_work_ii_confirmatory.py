@@ -79,8 +79,13 @@ def _dataset(*, primary_effect: float = 0.20) -> dict[str, object]:
                         "final_law_summary": {
                             "present": True,
                             "schema_version_matches": True,
-                            "evaluator_executability_status": "not_evaluated",
-                            "continuous_prediction_validity_status": "not_evaluated",
+                            "evaluator_executability_status": (
+                                "passed_registered_query_execution"
+                            ),
+                            "continuous_prediction_validity_status": (
+                                "evaluated_descriptive_no_public_binary_threshold"
+                            ),
+                            "normalized_mae": 0.10 + 0.002 * arm_index,
                         },
                     }
                 )
@@ -130,6 +135,24 @@ def test_confirmatory_positive_fixture_passes_h3_and_is_deterministic() -> None:
         == "estimated"
     )
     assert first["law_summary_and_transfer_boundary"]["typed_final_summary_present_count"] == 75
+    assert (
+        first["law_summary_and_transfer_boundary"][
+            "evaluator_executability_passed_count"
+        ]
+        == 75
+    )
+    assert (
+        first["law_summary_and_transfer_boundary"][
+            "continuous_prediction_validity_evaluated_count"
+        ]
+        == 75
+    )
+    assert (
+        first["law_summary_and_transfer_boundary"]["descriptive_normalized_mae"][
+            "formal_test_performed"
+        ]
+        is False
+    )
     assert first["claim_decisions"]["reusable_law_discovery"] is False
     assert first["claim_decisions"]["private_transfer"] == "not_collected_by_public_analysis"
 

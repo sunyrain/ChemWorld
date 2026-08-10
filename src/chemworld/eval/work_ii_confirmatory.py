@@ -481,9 +481,23 @@ def _phenotypes(cell_rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
 
 def _law_summary_denominators(cell_rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     summaries = [
-        row.get("final_law_summary") if isinstance(row.get("final_law_summary"), Mapping) else {}
+        (
+            row.get("final_law_summary")
+            if isinstance(row.get("final_law_summary"), Mapping)
+            else {}
+        )
         for row in cell_rows
     ]
+    evaluated_rows = [
+        (row, summary)
+        for row, summary in zip(cell_rows, summaries, strict=True)
+        if isinstance(summary.get("normalized_mae"), int | float)
+        and not isinstance(summary.get("normalized_mae"), bool)
+    ]
+    errors_by_arm: dict[str, list[float]] = defaultdict(list)
+    for row, summary in evaluated_rows:
+        errors_by_arm[str(row.get("prior_arm"))].append(float(summary["normalized_mae"]))
+    errors = [float(summary["normalized_mae"]) for _, summary in evaluated_rows]
     return {
         "scheduled_cell_count": len(cell_rows),
         "typed_final_summary_present_count": sum(
@@ -493,13 +507,31 @@ def _law_summary_denominators(cell_rows: Sequence[Mapping[str, Any]]) -> dict[st
             summary.get("schema_version_matches") is True for summary in summaries
         ),
         "evaluator_executability_evaluated_count": sum(
-            summary.get("evaluator_executability_status") != "not_evaluated"
+            not str(summary.get("evaluator_executability_status", "")).startswith(
+                "not_evaluated"
+            )
+            for summary in summaries
+        ),
+        "evaluator_executability_passed_count": sum(
+            summary.get("evaluator_executability_status")
+            == "passed_registered_query_execution"
             for summary in summaries
         ),
         "continuous_prediction_validity_evaluated_count": sum(
-            summary.get("continuous_prediction_validity_status") != "not_evaluated"
+            str(summary.get("continuous_prediction_validity_status", "")).startswith(
+                "evaluated_"
+            )
             for summary in summaries
         ),
+        "descriptive_normalized_mae": {
+            "evaluated_cell_count": len(errors),
+            "mean": None if not errors else sum(errors) / len(errors),
+            "mean_by_prior_arm": {
+                arm: (None if not values else sum(values) / len(values))
+                for arm, values in sorted(errors_by_arm.items())
+            },
+            "formal_test_performed": False,
+        },
         "law_discovery_joint_rule_status": (
             "not_established_without_evaluator_executability_and_private_transfer"
         ),

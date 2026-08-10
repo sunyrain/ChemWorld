@@ -307,6 +307,12 @@ def build_evaluator_truth_plan(
         "participant_operation_denominator_impact": 0,
         "participant_feedback_allowed": False,
         "shared_across_prior_arms": True,
+        "law_summary_contract": {
+            "allowed_feature_ids": list(checkpoint["allowed_feature_ids"]),
+            "allowed_metric_ids": list(checkpoint["allowed_metric_ids"]),
+            "required_metric_ids": list(checkpoint["allowed_metric_ids"]),
+            "evidence_catalog": list(checkpoint["evidence_catalog"]),
+        },
         "queries": queries,
     }
     plan["plan_sha256"] = canonical_json_sha256(plan)
@@ -359,6 +365,43 @@ def validate_evaluator_truth_plan(plan: Mapping[str, Any]) -> list[str]:
             errors.append("evaluator truth action plan lacks terminal final_assay")
     if len(set(query_ids)) != len(query_ids):
         errors.append("evaluator truth query IDs are not unique")
+    law_contract = plan.get("law_summary_contract")
+    law_contract = law_contract if isinstance(law_contract, Mapping) else {}
+    feature_ids = law_contract.get("allowed_feature_ids")
+    metric_ids = law_contract.get("allowed_metric_ids")
+    required_metric_ids = law_contract.get("required_metric_ids")
+    evidence_catalog = law_contract.get("evidence_catalog")
+    query_feature_ids = {
+        str(field)
+        for query in queries
+        if isinstance(query, Mapping)
+        for field in (
+            query.get("feature_values", {}).keys()
+            if isinstance(query.get("feature_values"), Mapping)
+            else ()
+        )
+    }
+    query_metric_ids = {
+        str(metric)
+        for query in queries
+        if isinstance(query, Mapping)
+        for metric in (
+            query.get("metric_ids", [])
+            if isinstance(query.get("metric_ids"), list)
+            else ()
+        )
+    }
+    if (
+        not isinstance(feature_ids, list)
+        or {str(item) for item in feature_ids} != query_feature_ids
+        or not isinstance(metric_ids, list)
+        or {str(item) for item in metric_ids} != query_metric_ids
+        or required_metric_ids != metric_ids
+        or not isinstance(evidence_catalog, list)
+        or evidence_catalog
+        != [f"experiment-{index}-final-assay" for index in range(1, 5)]
+    ):
+        errors.append("evaluator truth law-summary contract is invalid")
     if plan.get("truth_query_count") != len(queries):
         errors.append("evaluator truth query denominator mismatch")
     if plan.get("truth_query_metric_count") != metric_count:

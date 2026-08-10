@@ -123,6 +123,10 @@ def test_formal_analysis_dataset_retains_failed_cells_and_zero_improvement() -> 
     assert dataset["blind_scheduled_execution_count"] == 450
     assert dataset["blind_completed_execution_count"] == 0
     assert dataset["blind_failed_or_unstarted_execution_count"] == 450
+    assert all(
+        row["final_law_summary"]["status"] == "missing_final_law_summary"
+        for row in dataset["cell_rows"]
+    )
     assert all(row["H3_primary_contrast"] == 0.0 for row in dataset["cluster_rows"])
     assert dataset["dataset_sha256"] == canonical_json_sha256(
         {key: value for key, value in dataset.items() if key != "dataset_sha256"}

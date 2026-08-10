@@ -151,6 +151,33 @@ EXPECTED_METHOD_QUALIFICATION_CONTRACT: dict[str, Any] = {
     "qualification_worlds_excluded_from_formal": True,
 }
 
+EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT: dict[str, Any] = {
+    "evaluation_unit": "participant_cell_x_final_law_summary_x_registered_query_metric",
+    "query_source": "same_four_evaluator_held_out_queries_scored_at_belief_checkpoints",
+    "truth_source": "shared_task_world_evaluator_truth_pack",
+    "required_summary_schema": "chemworld-work-ii-law-summary-0.1",
+    "required_query_coverage": "exact_registered_query_metric_set",
+    "normalized_error": (
+        "mean_over_registered_query_metric_pairs_abs_law_prediction_minus_truth_over_metric_scale"
+    ),
+    "compression_stability": (
+        "law_summary_normalized_error_minus_effective_final_checkpoint_error"
+    ),
+    "prediction_consistency": (
+        "mean_normalized_absolute_difference_between_law_summary_and_final_checkpoint_predictions"
+    ),
+    "pre_to_summary_improvement": (
+        "effective_pre_evidence_error_minus_law_summary_normalized_error"
+    ),
+    "evaluator_provider_calls": 0,
+    "participant_feedback_allowed": False,
+    "binary_public_validity_threshold": None,
+    "public_interpretation": (
+        "descriptive_executability_error_compression_and_consistency_only"
+    ),
+    "private_transfer_required_for_reusable_law_claim": True,
+}
+
 FORMAL_BLOCKING_REQUIREMENTS = (
     "formal currency ceiling is not yet approved",
     "current design and analysis plan explicitly forbid formal execution",
@@ -172,6 +199,7 @@ _SOURCE_PATHS = (
     "src/chemworld/eval/work_ii_confirmatory.py",
     "src/chemworld/eval/work_ii_cost.py",
     "src/chemworld/eval/work_ii_formal.py",
+    "src/chemworld/eval/work_ii_law_summary.py",
     "src/chemworld/eval/work_ii_prior_discovery.py",
     "src/chemworld/eval/work_ii_process_profile.py",
     "src/chemworld/eval/work_ii_preregistration.py",
@@ -674,6 +702,17 @@ def build_formal_preflight(
     population = _object(analysis.get("analysis_population"), "analysis_population")
     if tuple(population.get("prior_arms", [])) != FORMAL_ARMS:
         errors.append("analysis population prior arms differ from the formal design")
+    law_summary_evaluation_contract = dict(
+        _object(
+            analysis.get("law_summary_evaluation_contract"),
+            "law_summary_evaluation_contract",
+        )
+    )
+    if law_summary_evaluation_contract != EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT:
+        errors.append("formal law-summary evaluation contract differs from the frozen analysis")
+    law_summary_evaluation_contract_sha256 = canonical_json_sha256(
+        law_summary_evaluation_contract
+    )
 
     world_cohort = _object(design.get("world_cohort"), "world_cohort")
     development = _object(
@@ -956,6 +995,9 @@ def build_formal_preflight(
                     "participant_execution_contract_sha256": (
                         participant_execution_contract_sha256
                     ),
+                    "law_summary_evaluation_contract_sha256": (
+                        law_summary_evaluation_contract_sha256
+                    ),
                     "complete_experiment_count": 4,
                     "belief_checkpoint_count": 4,
                     "held_out_query_count_per_snapshot": query_count,
@@ -1015,6 +1057,10 @@ def build_formal_preflight(
         "provider_contract": provider_contract,
         "participant_execution_contract": participant_execution_contract,
         "participant_execution_contract_sha256": (participant_execution_contract_sha256),
+        "law_summary_evaluation_contract": law_summary_evaluation_contract,
+        "law_summary_evaluation_contract_sha256": (
+            law_summary_evaluation_contract_sha256
+        ),
         "reference_policy_contract": reference_policy_contract,
         "method_qualification_contract": method_qualification_contract,
         "method_qualification_contract_sha256": method_qualification_contract_sha256,
@@ -1146,6 +1192,14 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
         errors.append("formal preflight participant execution contract is invalid")
     if report.get("reference_policy_contract") != EXPECTED_REFERENCE_POLICY_CONTRACT:
         errors.append("formal preflight reference-policy contract is invalid")
+    law_summary_contract = report.get("law_summary_evaluation_contract")
+    law_summary_contract_hash = report.get("law_summary_evaluation_contract_sha256")
+    if (
+        law_summary_contract != EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT
+        or law_summary_contract_hash
+        != canonical_json_sha256(EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT)
+    ):
+        errors.append("formal preflight law-summary evaluation contract is invalid")
     qualification_contract = report.get("method_qualification_contract")
     qualification_contract_hash = report.get("method_qualification_contract_sha256")
     if (
@@ -1162,6 +1216,8 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
             errors.append(f"formal cell self-hash mismatch: {cell.get('cell_id')}")
         if cell.get("participant_execution_contract_sha256") != participant_contract_hash:
             errors.append(f"formal cell participant contract mismatch: {cell.get('cell_id')}")
+        if cell.get("law_summary_evaluation_contract_sha256") != law_summary_contract_hash:
+            errors.append(f"formal cell law-summary contract mismatch: {cell.get('cell_id')}")
     split = report.get("world_split_contract")
     if not isinstance(split, Mapping):
         errors.append("formal preflight world-split contract is missing")
@@ -1371,6 +1427,7 @@ def validate_formal_bindings(root: Path, report: Mapping[str, Any]) -> list[str]
 
 
 __all__ = [
+    "EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT",
     "EXPECTED_METHOD_QUALIFICATION_CONTRACT",
     "EXPECTED_PARTICIPANT_EXECUTION_CONTRACT",
     "EXPECTED_REFERENCE_POLICY_CONTRACT",

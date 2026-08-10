@@ -19,7 +19,7 @@ from chemworld.eval.work_ii_formal import (
     WorkIIFormalCellStore,
     validate_formal_preflight,
 )
-from chemworld.eval.work_ii_prior_discovery import WORK_II_LAW_SUMMARY_SCHEMA_VERSION
+from chemworld.eval.work_ii_law_summary import evaluate_final_law_summary
 from chemworld.eval.work_ii_process_profile import (
     WORK_II_EXECUTION_AUDIT_VERSION,
     validate_work_ii_process_profile,
@@ -158,8 +158,15 @@ def _participant_process_record(
     )
 
 
-def _final_law_summary_record(analysis: Mapping[str, Any]) -> dict[str, Any]:
-    """Extract typed final-law metadata without substituting evaluator validity."""
+def _final_law_summary_record(
+    analysis: Mapping[str, Any],
+    *,
+    truth_plan: Mapping[str, Any],
+    evaluator_truth: Mapping[str, Mapping[str, Any]],
+    checkpoint_error: Mapping[str, Any],
+    evaluation_contract: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Execute the final typed law on evaluator-held registered queries."""
 
     snapshots = analysis.get("belief_snapshots")
     if isinstance(snapshots, (str, bytes)) or not isinstance(snapshots, Sequence):
@@ -169,65 +176,18 @@ def _final_law_summary_record(analysis: Mapping[str, Any]) -> dict[str, Any]:
         None,
     )
     raw_law = final_snapshot.get("law_summary") if isinstance(final_snapshot, Mapping) else None
-    if not isinstance(raw_law, Mapping):
-        return {
-            "status": "missing_final_law_summary",
-            "present": False,
-            "schema_version": None,
-            "schema_version_matches": False,
-            "summary_id": None,
-            "feature_count": 0,
-            "metric_law_count": 0,
-            "term_count": 0,
-            "evidence_reference_count": 0,
-            "confidence": None,
-            "evaluator_executability_status": "not_evaluated",
-            "continuous_prediction_validity_status": "not_evaluated",
-        }
-    feature_ids = raw_law.get("feature_ids")
-    feature_ids = (
-        feature_ids
-        if isinstance(feature_ids, Sequence) and not isinstance(feature_ids, str | bytes)
-        else []
+    final_predictions = (
+        final_snapshot.get("predictions") if isinstance(final_snapshot, Mapping) else None
     )
-    metric_laws = raw_law.get("metric_laws")
-    metric_laws = (
-        metric_laws
-        if isinstance(metric_laws, Sequence) and not isinstance(metric_laws, str | bytes)
-        else []
+    return evaluate_final_law_summary(
+        raw_law,
+        truth_plan=truth_plan,
+        evaluator_truth=evaluator_truth,
+        final_checkpoint_predictions=final_predictions,
+        effective_pre_error=checkpoint_error.get("effective_pre_error"),
+        effective_final_error=checkpoint_error.get("effective_final_error"),
+        evaluation_contract=evaluation_contract,
     )
-    evidence_ids = raw_law.get("evidence_ids")
-    evidence_ids = (
-        evidence_ids
-        if isinstance(evidence_ids, Sequence) and not isinstance(evidence_ids, str | bytes)
-        else []
-    )
-    term_count = 0
-    for metric_law in metric_laws:
-        if not isinstance(metric_law, Mapping):
-            continue
-        terms = metric_law.get("terms")
-        if isinstance(terms, Sequence) and not isinstance(terms, str | bytes):
-            term_count += len(terms)
-    confidence = raw_law.get("confidence")
-    if isinstance(confidence, bool) or not isinstance(confidence, int | float):
-        confidence = None
-    return {
-        "status": "typed_final_law_summary_present",
-        "present": True,
-        "schema_version": raw_law.get("schema_version"),
-        "schema_version_matches": (
-            raw_law.get("schema_version") == WORK_II_LAW_SUMMARY_SCHEMA_VERSION
-        ),
-        "summary_id": raw_law.get("summary_id"),
-        "feature_count": len(feature_ids),
-        "metric_law_count": len(metric_laws),
-        "term_count": term_count,
-        "evidence_reference_count": len(evidence_ids),
-        "confidence": float(confidence) if confidence is not None else None,
-        "evaluator_executability_status": "not_evaluated",
-        "continuous_prediction_validity_status": "not_evaluated",
-    }
 
 
 def _truth_packs_by_cluster(
@@ -383,6 +343,12 @@ def build_formal_analysis_dataset(
 
     truth_reports, truth_errors = _truth_packs_by_cluster(manifest, truth_packs)
     errors.extend(truth_errors)
+    law_summary_evaluation_contract = manifest.get("law_summary_evaluation_contract")
+    law_summary_evaluation_contract = (
+        law_summary_evaluation_contract
+        if isinstance(law_summary_evaluation_contract, Mapping)
+        else {}
+    )
     cell_rows: list[dict[str, Any]] = []
     cluster_arm_rows: dict[str, dict[str, dict[str, Any]]] = {}
     for cell in manifest["cells"]:
@@ -397,6 +363,9 @@ def build_formal_analysis_dataset(
         truth_report = truth_reports.get(str(cell["world_cluster_id"]), {})
         evaluator_truth = truth_report.get("truth")
         evaluator_truth = evaluator_truth if isinstance(evaluator_truth, Mapping) else {}
+        truth_pack = truth_packs.get(str(cell["world_cluster_id"]), {})
+        truth_plan = truth_pack.get("plan") if isinstance(truth_pack, Mapping) else {}
+        truth_plan = truth_plan if isinstance(truth_plan, Mapping) else {}
         score = score_cell_checkpoint_errors(
             analysis,
             evaluator_truth,
@@ -435,7 +404,13 @@ def build_formal_analysis_dataset(
             "participant_trajectory": trajectory,
             "evaluator_truth_report_sha256": truth_report.get("report_sha256"),
             "checkpoint_error": score,
-            "final_law_summary": _final_law_summary_record(analysis),
+            "final_law_summary": _final_law_summary_record(
+                analysis,
+                truth_plan=truth_plan,
+                evaluator_truth=evaluator_truth,
+                checkpoint_error=score,
+                evaluation_contract=law_summary_evaluation_contract,
+            ),
             "participant_process": participant_process,
             "blind_outcome": blind,
             "provider_receipt_count": result.get("provider_receipt_count", 0),
