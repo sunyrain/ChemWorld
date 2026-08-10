@@ -162,7 +162,9 @@ def test_host_owned_stdio_mcp_round_trip(tmp_path: Path) -> None:
         rejected_step = _read_response(process.stdout)["result"]
         assert rejected_step["isError"] is True
         rejected_payload = json.loads(rejected_step["content"][0]["text"])
-        assert rejected_payload["error"] == "RuntimeError"
+        assert rejected_payload["error"] == (
+            "RuntimeError: campaign_already_ended_submit_final_response"
+        )
 
         audit = workspace.mcp_tool_call_audit("experiment-0001-test")
         assert [row["tool"] for row in audit] == [
@@ -190,6 +192,29 @@ def test_host_owned_stdio_mcp_round_trip(tmp_path: Path) -> None:
     finally:
         process.stdin.close()
         process.wait(timeout=5.0)
+
+
+def test_step_validation_error_exposes_bounded_repair_detail(tmp_path: Path) -> None:
+    workspace = ExperimentCodexWorkspace(tmp_path / "workspace")
+    workspace.initialize_fresh()
+    workspace.publish_material_information({"condition_id": "opaque_codes"})
+    workspace.publish_task_contract({"task_id": "test"})
+    workspace.publish_current({"expected_step": 1, "available_actions": []})
+    workspace.start_session(
+        session_id="experiment-validation-detail-test",
+        expected_step=1,
+        response_timeout_s=10.0,
+    )
+    server = ChemWorldMCPServer(workspace.root)
+
+    result = server._call_tool(
+        "step",
+        {"action": {"operation": "terminate"}, "request_id": "missing-step"},
+    )
+
+    assert result["isError"] is True
+    payload = json.loads(result["content"][0]["text"])
+    assert payload["error"] == "ValueError: expected_step must be an integer"
 
 
 def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path) -> None:

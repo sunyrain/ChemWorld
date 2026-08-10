@@ -27,7 +27,7 @@ from chemworld.eval.work_ii_prior_discovery import (
     parse_work_ii_belief_snapshot,
 )
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.6"
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.7"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
@@ -271,7 +271,8 @@ class ChemWorldMCPServer:
             error_type = type(error).__name__
             result = self._tool_error(
                 f"{type(error).__name__}: {detail[:1000]}"
-                if name in {"commit_belief_snapshot", "commit_final_recommendation"} and detail
+                if name in {"step", "commit_belief_snapshot", "commit_final_recommendation"}
+                and detail
                 else type(error).__name__
             )
         self._audit(

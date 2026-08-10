@@ -45,6 +45,16 @@ the tool commitment. Historical receipts without the host commit continue to req
 final payload. The first five-seed attempt exposing this case is retained; the electrochemical task
 block restarts from seed 0 after this platform amendment.
 
+Validation-feedback amendment after the replacement block: seed-1 aligned completed all physical
+work but made 55 schema-invalid `step` calls, mostly without `expected_step`. MCP 0.6 returned only
+the class name `ValueError`, so DeepSeek could not identify the repair and accumulated 8.60M input
+and 117,849 output tokens before the otherwise successful closeout. MCP 0.7 returns the existing
+bounded validation detail for `step` errors (for example, `expected_step must be an integer`) while
+preserving fail-closed CAS and decision-audit requirements; it does not auto-fill or repair an
+action. A seed-1 aligned single-cell diagnostic must verify that invalid retries and provider usage
+return inside the unchanged frozen envelope before the electrochemical task block restarts from
+seed 0.
+
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
 payloads and private reasoning are not committed.
