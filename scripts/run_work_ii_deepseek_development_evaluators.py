@@ -40,16 +40,31 @@ DEFAULT_SOURCES = ROOT / (
 DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 DEFAULT_RAW = ROOT / (
     "runs/development/"
-    "work-ii-deepseek-five-task-development-evaluation-20260810"
+    "work-ii-deepseek-five-task-development-evaluation-20260810-r1"
 )
 DEFAULT_REPORT = ROOT / (
     "workstreams/flagship_tasks/reports/"
-    "work-ii-deepseek-five-task-development-evaluation-20260810.json"
+    "work-ii-deepseek-five-task-development-evaluation-20260810-r1.json"
 )
 DEFAULT_MARKDOWN = ROOT / (
     "workstreams/flagship_tasks/reports/"
-    "work-ii-deepseek-five-task-development-evaluation-20260810.md"
+    "work-ii-deepseek-five-task-development-evaluation-20260810-r1.md"
 )
+PRIOR_INFRASTRUCTURE_ATTEMPT = {
+    "raw_root": (
+        "runs/development/"
+        "work-ii-deepseek-five-task-development-evaluation-20260810"
+    ),
+    "source_commit": "3977a299495e4e0111d5d767bee6089c7fbfec9e",
+    "analysis_sha256": "2bacb17933211ebc9cba6c28bceffaff1e581db8c79472bddcec6e63f9e8337d",
+    "truth_completed_query_count": 100,
+    "truth_exact_replay_count": 100,
+    "blind_scheduled_execution_count": 414,
+    "blind_completed_execution_count": 0,
+    "failure_class": "windows_path_length_before_first_blind_execution",
+    "scientific_blind_trajectory_count": 0,
+    "replacement_policy": "rerun_complete_evaluator_block_after_platform_fix",
+}
 DEEPSEEK_CONFIGS = {
     "electrochemical-conversion": (
         "configs/benchmark/work_ii_electrochemical_deepseek_v4_flash_campaign.json"
@@ -521,6 +536,7 @@ def main() -> int:
         cluster_rows=cluster_rows,
         truth_rows=truth_rows,
         failures=failures,
+        prior_infrastructure_attempt=PRIOR_INFRASTRUCTURE_ATTEMPT,
     )
     raw_receipt = {
         "preflight_sha256": preflight["preflight_sha256"],

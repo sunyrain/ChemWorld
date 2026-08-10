@@ -229,6 +229,7 @@ def build_confirmation_summary(
     cluster_rows: Sequence[Mapping[str, Any]],
     truth_rows: Sequence[Mapping[str, Any]],
     failures: Sequence[Mapping[str, Any]],
+    prior_infrastructure_attempt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a compact, exact-denominator development confirmation report."""
 
@@ -339,6 +340,11 @@ def build_confirmation_summary(
             "interpretation": (
                 "provider-separated development evidence only; no formal inference, "
                 "private transfer claim or cross-provider ranking"
+            ),
+            "prior_infrastructure_attempt": (
+                dict(prior_infrastructure_attempt)
+                if isinstance(prior_infrastructure_attempt, Mapping)
+                else None
             ),
         },
     }

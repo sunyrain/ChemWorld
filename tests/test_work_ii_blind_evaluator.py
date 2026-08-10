@@ -9,6 +9,7 @@ import pytest
 import chemworld.eval.work_ii_blind as blind
 from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.work_ii_blind import (
+    blind_execution_directory_name,
     build_blind_evaluation_plan,
     execute_blind_evaluation_plan,
     validate_blind_evaluation_plan,
@@ -100,6 +101,17 @@ def test_blind_plan_rejects_tampering_and_incumbent_drift() -> None:
         assert "incumbent" in str(error)
     else:
         raise AssertionError("incumbent drift should fail closed")
+
+
+def test_blind_execution_directory_is_short_for_long_cell_identity() -> None:
+    cell = _cell()
+    cell["cell_id"] = "development-cell-" + "x" * 240
+    plan = build_blind_evaluation_plan(cell, _summary(), _contract())
+    names = [blind_execution_directory_name(row) for row in plan["executions"]]
+    assert len(names) == 6
+    assert len(set(names)) == 6
+    assert all(len(name) == 19 for name in names)
+    assert all(str(cell["cell_id"]) not in name for name in names)
 
 
 def test_blind_executor_runs_six_zero_provider_replays_once(

@@ -24,6 +24,19 @@ BLIND_EVALUATOR_VERSION = "chemworld-work-ii-blind-evaluator-plan-0.1"
 BLIND_EVALUATION_REPORT_VERSION = "chemworld-work-ii-blind-evaluation-report-0.1"
 
 
+def blind_execution_directory_name(execution: Mapping[str, Any]) -> str:
+    """Return a short deterministic directory name while receipts keep the full ID."""
+
+    index = execution.get("execution_index")
+    if isinstance(index, bool) or not isinstance(index, int) or index < 1:
+        raise ValueError("blind evaluator execution index is invalid")
+    execution_id = str(execution.get("execution_id", ""))
+    if not execution_id:
+        raise ValueError("blind evaluator execution ID is missing")
+    digest = hashlib.sha256(execution_id.encode()).hexdigest()[:16]
+    return f"{index:02d}-{digest}"
+
+
 class _FrozenBlindReplayAgent(BaseAgent):
     name = "work_ii_frozen_blind_replay"
 
@@ -312,7 +325,11 @@ def execute_blind_evaluation_plan(
         if not isinstance(execution, Mapping):
             raise ValueError("blind evaluator execution row is malformed")
         execution_id = str(execution["execution_id"])
-        execution_root = output_root / "executions" / execution_id
+        execution_root = (
+            output_root
+            / "executions"
+            / blind_execution_directory_name(execution)
+        )
         execution_root.mkdir(parents=True, exist_ok=False)
         target = targets[str(execution["target"])]
         actions = target["action_plan"]
@@ -397,6 +414,7 @@ def execute_blind_evaluation_plan(
                 {
                     "status": "failed",
                     "failure_type": type(error).__name__,
+                    "failure_message": str(error),
                     "leaderboard_score": None,
                     "trajectory": (
                         {
@@ -528,6 +546,7 @@ def validate_blind_evaluation_report(
 __all__ = [
     "BLIND_EVALUATION_REPORT_VERSION",
     "BLIND_EVALUATOR_VERSION",
+    "blind_execution_directory_name",
     "build_blind_evaluation_plan",
     "execute_blind_evaluation_plan",
     "validate_blind_evaluation_plan",

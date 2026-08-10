@@ -27,3 +27,11 @@ method outcome, not repaired. No formal hypothesis test or transfer claim is aut
 Expected outputs: an ignored raw evaluator root under `runs/development/`, progress events during
 execution, and one tracked JSON plus Markdown report with exact denominators, source hashes and all
 failures.
+
+Infrastructure amendment before the accepted block: the first zero-provider evaluator attempt
+completed 100/100 truth queries but created 0/414 blind trajectories because the full participant
+cell ID was used as a Windows directory name and exceeded the filesystem path limit. The raw failed
+root and its denominators are retained. The blind evaluator now keeps the complete execution ID in
+the receipt while using a deterministic short-hash directory. Because this is a platform defect,
+the entire evaluator block is rerun from the first truth cluster; no participant trajectory is
+rerun and no scientific result is selected or replaced.
