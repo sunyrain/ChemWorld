@@ -37,6 +37,7 @@ def canonical_json_sha256(payload: Any) -> str:
 CAMPAIGN_RESOURCE_CARD_VERSION = "chemworld-campaign-resource-card-0.1"
 CAMPAIGN_RESOURCE_DELTA_VERSION = "chemworld-campaign-resource-delta-0.1"
 CAMPAIGN_RESOURCE_LEDGER_VERSION = "chemworld-campaign-resource-ledger-0.1"
+RESOURCE_FLOAT_ABS_TOL = 1.0e-9
 
 # Public action-space upper bounds.  They are copied here rather than importing
 # agent-facing prompt code, so the evaluator resource contract stays below all
@@ -1006,7 +1007,8 @@ class CampaignResourceLedger:
             reasons.append(f"operation_repeat_limit:{operation}")
         if (
             self.card.process_time_limit_s is not None
-            and process_time_s + proposed.process_time_s > self.card.process_time_limit_s + 1.0e-12
+            and process_time_s + proposed.process_time_s
+            > self.card.process_time_limit_s + RESOURCE_FLOAT_ABS_TOL
         ):
             reasons.append("process_time_limit")
         for instrument, count in proposed.instrument_uses.items():
@@ -1151,13 +1153,13 @@ class CampaignResourceLedger:
                     f"outcome exceeded instrument reservation: {instrument}"
                 )
         for stock_id, amount in actual.stocks.items():
-            if amount > proposed.stocks.get(stock_id, 0.0) + 1.0e-12:
+            if amount > proposed.stocks.get(stock_id, 0.0) + RESOURCE_FLOAT_ABS_TOL:
                 raise CampaignResourceIntegrityError(
                     f"outcome exceeded stock reservation: {stock_id}"
                 )
         if (
             self.card.process_time_limit_s is not None
-            and actual.process_time_s > proposed.process_time_s + 1.0e-12
+            and actual.process_time_s > proposed.process_time_s + RESOURCE_FLOAT_ABS_TOL
         ):
             raise CampaignResourceIntegrityError(
                 "outcome exceeded process-time reservation: "
@@ -1208,11 +1210,11 @@ class CampaignResourceLedger:
             ):
                 exceeded.append(f"per_instrument_limit:{instrument}")
         for stock_id, stock_limit in self.card.stock_limits.items():
-            if self.stocks_used.get(stock_id, 0.0) > stock_limit + 1.0e-12:
+            if self.stocks_used.get(stock_id, 0.0) > stock_limit + RESOURCE_FLOAT_ABS_TOL:
                 exceeded.append(f"stock_limit:{stock_id}")
         if (
             self.card.process_time_limit_s is not None
-            and self.process_time_s > self.card.process_time_limit_s + 1.0e-12
+            and self.process_time_s > self.card.process_time_limit_s + RESOURCE_FLOAT_ABS_TOL
         ):
             exceeded.append("process_time_limit")
         for operation, repeat_limit in self.card.operation_repeat_limits.items():

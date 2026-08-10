@@ -95,6 +95,38 @@ def test_implicit_operation_time_is_reserved_debited_and_roundtrips() -> None:
     )
 
 
+def test_process_time_reservation_ignores_only_floating_point_tail() -> None:
+    card = _small_card(
+        process_time_limit_s=14_400.0,
+        implicit_operation_time_s={"cool_crystallize": 14_400.0},
+        operation_repeat_limits={"cool_crystallize": 1},
+    )
+    ledger = CampaignResourceLedger(card)
+    action = {"operation": "cool_crystallize", "duration_s": 14_400.0}
+    event_id = campaign_resource_event_id("float-tail", 1)
+    preflight = ledger.preflight(event_id, action)
+    assert preflight.allowed is True
+    ledger.record_outcome(
+        event_id,
+        action,
+        _committed(
+            campaign_resource_report_delta={"process_time_s": 14_400.000000000004}
+        ),
+    )
+
+    rejecting = CampaignResourceLedger(card)
+    over_event_id = campaign_resource_event_id("real-overage", 1)
+    rejecting.preflight(over_event_id, action)
+    with pytest.raises(CampaignResourceIntegrityError, match="process-time reservation"):
+        rejecting.record_outcome(
+            over_event_id,
+            action,
+            _committed(
+                campaign_resource_report_delta={"process_time_s": 14_400.0 + 2.0e-6}
+            ),
+        )
+
+
 def test_implicit_operation_time_requires_a_process_time_limit() -> None:
     with pytest.raises(ValueError, match="requires process_time_limit_s"):
         _small_card(implicit_operation_time_s={"quench": 120.0})

@@ -91,6 +91,13 @@ was 5,605,523 cumulative input, 142,227 uncached input and 45,356 output tokens,
 7.0M / 1.0M / 100k envelope. The crystallization five-seed block is therefore authorized to start
 from seed 0.
 
+The first crystallization five-seed block reached 14/15 cells before seed-4 aligned exposed a
+platform floating-point boundary defect: a 14,400 s cooling operation was reported as
+14,400.000000000004 s and rejected against an exact 14,400.0 s reservation. The resource ledger now
+uses a fixed 1e-9 absolute tolerance for stock/process-time machine tails while retaining failure
+for a 2e-6 true overage. The retained failed block is not reinterpreted; crystallization restarts
+from seed 0 after this repair.
+
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
 payloads and private reasoning are not committed.
