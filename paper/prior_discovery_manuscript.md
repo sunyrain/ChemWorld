@@ -382,7 +382,25 @@ This is a scientifically useful negative boundary. A warning token or reduced st
 not a valid bias-rejection endpoint unless it predicts evaluator-scored correction and subsequent
 evidence-aligned action.
 
-## 5.3 Development conclusion
+## 5.3 Persistent-session accounting exposes a separate operational layer
+
+The 75 terminal DeepSeek trajectories accumulated **267,929,149 input tokens**, including
+**260,033,536 cached tokens** (97.05%), **7,895,613 uncached input tokens** and **2,932,468 output
+tokens**. These are cumulative turn-level provider counters for long-lived sessions. The large cached
+fraction therefore reflects reuse of the shared prompt and growing campaign history; it is not
+repeated model output and does not represent additional independent experimental evidence. Usage was
+reconciled for 72/75 cells. The other three cells stopped before a provider terminal event, so their
+usage remains unavailable rather than being imputed as zero.
+
+Operational failures also require their own denominator. The matrix recorded 73 schema-validation
+failures and 69 recovered MCP tool failures but no provider-error events. Moreover, 76 of 2,663
+operation attempts did not become committed operations. Thus, a zero provider-error count would have
+hidden most of the execution burden: model-to-tool conformance, recovery and resource preflight were
+more consequential than provider transport in this block. These events are properties of the complete
+agent system and remain separate from both physical outcomes and independent world-level scientific
+samples.
+
+## 5.4 Development conclusion
 
 Across the retained development configurations, explicit priors clearly alter the course and endpoint
 of experimentation. The same evidence does not show selective wrong-prior rejection. It instead
@@ -443,7 +461,19 @@ accurate model; or it may state the right model while continuing to choose incon
 The joint evaluation therefore supports four interpretable phenotypes: understands and acts,
 understands but cannot act, acts without understanding, and neither.
 
-## 8.4 Scope and limitations
+## 8.4 The harness is part of the evaluated agent system
+
+A persistent Codex session contributes capabilities that a stateless model call does not: it retains
+the campaign history, chooses among tools after each observation and can revise a plan without a host
+reconstructing its reasoning state. The same harness also introduces failure surfaces through tool
+discovery, schema conformance, retry rules, context growth and checkpoint submission. Provider-side
+caching changes resource use but not the number of experiments or independent worlds. Consequently,
+the participant is the frozen combination of model, reasoning setting, prompt, Codex runtime, MCP
+interface and resource policy—not the model weights in isolation. A cross-model claim requires these
+components to be matched or explicitly manipulated; the present development providers are therefore
+reported separately.
+
+## 8.5 Scope and limitations
 
 The study evaluates bounded executable chemical worlds rather than universal chemical fidelity or
 direct wet-laboratory validity. A single frozen participant method supports conclusions about that
@@ -473,14 +503,31 @@ attempts retain their declared reporting debit without entering committed physic
 resource cards bound vessel starts, assays, measurements, stocks, process time, repeated operations,
 quench and transfer time, and closeout reserve across all experiments in a campaign.
 
-## 9.3 Belief and law-summary checkpoints
+## 9.3 Persistent Codex/MCP execution
+
+Each participant cell launches one Codex Responses process and retains one provider session across the
+four complete experiments. Web search is disabled. The participant instructions prohibit shell use,
+file changes and repository inspection and require physical decisions to pass through the host-owned
+`chemworld_lab` STDIO MCP server. The bounded domain tools expose material information, belief
+checkpoints, operation submission, public status and history, artifact inspection and final
+recommendation commitment. The host validates and executes submitted actions but never chooses a
+fallback scientific action.
+
+Every operation submission contains a bounded decision audit stating its expected effect, diagnostic
+target and evidence dependence. Tool receipts retain call order, status, timestamps, error classes and
+argument/result hashes without retaining raw provider payloads or private chain-of-thought. A provider
+retry or infrastructure resume is an operational attempt within the same cell, not a new experiment or
+independent sample. Belief checkpoints are MCP calls inside the existing session rather than separate
+provider conversations.
+
+## 9.4 Belief and law-summary checkpoints
 
 Checkpoint records contain prior assessment, predictions, uncertainty, evidence references, an
 executable law summary, next-experiment intent and overall confidence. The schema permits bounded
 rationales but not an unconstrained persistent notebook. Predictions are evaluated only after the
 campaign against sealed truth packs.
 
-## 9.4 Statistical analysis
+## 9.5 Statistical analysis
 
 The independent units are the 25 task-by-world clusters. The primary contrast is estimated with task
 fixed effects and a one-sided 0.05 criterion under an intersection--union rule. Three secondary
@@ -489,7 +536,7 @@ estimates rather than independent confirmatory claims. Prespecified sensitivity 
 complete-case, worst-case failed-arm, heteroscedasticity-robust and task-stratified cluster-bootstrap
 analyses.
 
-## 9.5 Reproducibility and failure accounting
+## 9.6 Reproducibility and failure accounting
 
 Participant trajectories, evaluator truth packs and blind-replay packs are stored separately and
 joined through immutable receipts. Every terminal participant trajectory must pass physical replay,

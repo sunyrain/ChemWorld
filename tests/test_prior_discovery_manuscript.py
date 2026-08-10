@@ -24,12 +24,22 @@ def test_deepseek_five_task_closeout_denominators_are_bound_without_overclaim() 
     assert denominators["complete_experiment_count"] == 290
     assert denominators["provider_error_event_count"] == 0
     assert denominators["exact_replay_verified_count"] == 75
+    usage = denominators["provider_usage_totals"]
+    assert usage["input_token_count"] == 267_929_149
+    assert usage["cached_input_token_count"] == 260_033_536
+    assert usage["uncached_input_token_count"] == 7_895_613
+    assert usage["output_token_count"] == 2_932_468
     combined = manuscript + evidence_map
     assert "75/75" in combined
     assert "69/75" in combined
     assert "290/300" in combined
     assert "formal hypothesis test" in manuscript
     assert "provider groups are never pooled into a capability ranking" in manuscript
+    assert "267,929,149 input tokens" in manuscript
+    assert "97.05%" in manuscript
+    assert "repeated model output" in manuscript
+    assert "Web search is disabled" in manuscript
+    assert "not the model weights in isolation" in manuscript
 
 
 def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> None:
