@@ -1,0 +1,415 @@
+---
+title: "Can AI Scientists Correct a Wrong Prior? Controlled Experiments in Executable Chemical Worlds"
+subject: "Experimental discovery, prior correction and law transfer in AI agents"
+keywords: "AI scientist; autonomous experimentation; scientific priors; bias correction; law discovery; counterfactual prediction; chemical worlds"
+pdf_author: "Jiangjie Qiu; Yijun Li; Xiaonan Wang"
+author:
+  - name: "Jiangjie Qiu"
+    affiliation_markers: "1"
+  - name: "Yijun Li"
+    affiliation_markers: "1"
+  - name: "Xiaonan Wang"
+    affiliation_markers: "1,*"
+affiliation:
+  - id: "1"
+    name: "Beijing Key Laboratory of Artificial Intelligence for Advanced Chemical Engineering Materials, State Key Laboratory of Chemical Engineering and Low-Carbon Technology, Department of Chemical Engineering, Tsinghua University, Beijing 100084, China"
+correspondence: "wangxiaonan@tsinghua.edu.cn"
+date: ""
+bibliography: prior_discovery_references.bib
+abstract: |
+  Scientific agents rarely begin from a blank state: they inherit model knowledge, task descriptions
+  and investigator-supplied assumptions. A useful endpoint therefore does not show whether an agent
+  discovered the governing relation, followed a correct prior or succeeded despite a wrong one. We
+  formulate prior use and correction as controlled experimental variables in executable chemical
+  worlds. The same hidden world, public operations, evidence budget and safety surface are paired
+  across three conditions: anonymous materials without a task-specific dossier, directionally useful
+  nominal information and an equally detailed but deliberately misindexed dossier. Each agent controls
+  a multi-experiment campaign through one persistent operation-level session, records predictions and
+  belief updates at fixed checkpoints, and commits an executable law summary and final recommendation.
+  Evaluator-owned counterfactual queries and blind replay separate epistemic recovery from endpoint
+  optimization. Development campaigns across electrochemical conversion, crystallization and
+  distillation show that explicit dossiers can substantially change experimental behavior and best
+  endpoints, while verbal warnings do not selectively distinguish aligned from misindexed information.
+  These observations motivate a preregistered five-task study whose primary estimand tests whether
+  evidence reduces held-out prediction error more strongly under a wrong prior than under a correct
+  prior without degrading the correct-prior condition. The resulting framework distinguishes prior
+  confirmation, evidence-driven correction, local policy repair and reusable law discovery, and
+  provides a process-complete basis for studying when an AI scientist can abandon a plausible but
+  incorrect scientific belief.
+---
+
+# 1. Introduction
+
+Scientific discovery is not simply the production of a high-scoring outcome. A researcher can obtain
+a useful result for several different reasons: a prior model was already correct, an incorrect model
+was repaired by evidence, a local heuristic happened to work, or the endpoint was reached without a
+reusable account of the underlying relation. These explanations are scientifically distinct even when
+their final scores are identical.
+
+This distinction is increasingly important for AI systems that choose and execute experiments.
+Language-model agents can plan syntheses, call chemistry tools, operate instruments and participate in
+self-driving laboratory workflows [@boiko2023autonomous; @bran2024augmenting;
+@szymanski2023alab; @darvish2025organa; @song2025chemagents; @vriza2026instruments]. Interactive
+scientific environments likewise test whether agents can formulate hypotheses, acquire evidence and
+recover hidden rules [@jansen2024discoveryworld; @gandhi2025boxinggym; @duan2025scigym;
+@zheng2026newtonbench; @yang2026causalab; @batzoglou2026replayscm]. Yet an agent's apparent scientific
+success can remain difficult to interpret because pretrained knowledge, prompt-provided information,
+experiment selection, endpoint optimization and verbal explanation are usually entangled.
+
+The central problem is the prior. An agent entering an experimental campaign may receive no additional
+task-specific information, a useful but incomplete description, or a plausible description attached
+to the wrong material. The important capability is not merely whether the prior changes behavior. A
+scientifically adaptive agent should decide which evidence is worth acquiring, use observations to
+revise its predictions, reduce confidence in a contradicted prior, summarize the recovered relation in
+an executable form and transfer that relation to conditions it has not directly tested. Conversely,
+an agent may preserve an incorrect prior through selective measurement, reinterpret contradictory
+observations or patch only its action policy.
+
+Physical self-driving laboratories are indispensable for real-material validation, but they make this
+causal question difficult to study at scale. Strictly matching hidden laws, material identities,
+measurement noise, budgets and safety conditions across alternative prior states is expensive and
+often impossible. ChemWorld provides a complementary experimental instrument: chemical processes,
+observations and private material laws can be instantiated as executable worlds, while the public
+experimental interface and complete operation history remain controlled. This permits the prior
+condition to change while the hidden world and evidence opportunity remain fixed.
+
+Here we introduce a controlled framework for studying prior use, wrong-prior correction and law
+transfer in experimental agents. It makes four contributions.
+
+1. **Prior quality becomes a matched intervention.** Anonymous, aligned and misindexed information
+   conditions share the same world, information volume, public contract and resource card.
+2. **Discovery is evaluated through predictions and actions, not self-report alone.** Fixed
+   checkpoints bind beliefs to evaluator-owned counterfactual queries and to the next experimental
+   operation selected by the agent.
+3. **Endpoint success is separated from reusable understanding.** Blind outcome replay, executable
+   law summaries and transfer tests distinguish local optimization from law recovery.
+4. **The complete experimental process remains auditable.** One persistent session controls multiple
+   experiments under a shared resource ledger, while failures, invalid actions, stopping and exact
+   replay remain part of the outcome rather than being silently repaired.
+
+Development results already establish a consequential boundary: explicit priors reshape behavior,
+but nominal-information warnings and endpoint gains do not reliably reveal whether the supplied prior
+is correct. The formal study therefore asks a narrower and harder question: does autonomously acquired
+evidence selectively repair the wrong prior?
+
+# 2. Related work
+
+## 2.1 Autonomous experimentation and laboratory agents
+
+Autonomous chemistry systems combine planning, analysis and physical execution. Coscientist,
+ChemCrow, A-Lab and instrument-facing agents demonstrate tool use, synthesis planning, materials
+search and closed-loop experimentation on real equipment [@boiko2023autonomous; @bran2024augmenting;
+@szymanski2023alab; @dai2024mobile; @darvish2025organa; @song2025chemagents]. These systems establish
+that AI agents can participate in consequential experimental workflows. Their main evidential strength
+is physical validity; their practical constraint for the present question is the cost of repeatedly
+constructing matched alternative worlds in which only the correctness of a prior changes.
+
+## 2.2 Virtual chemistry and process environments
+
+Summit and Olympus support repeatable reaction optimization and experimental-design benchmarks, while
+PC-Gym exposes nonlinear process-control problems [@felton2021summit; @hase2021olympus;
+@bloor2024pcgym]. ChemGymRL provides modular interactive benches for reaction, extraction,
+distillation and characterization, enabling reinforcement-learning agents to act within a virtual
+chemistry laboratory [@beeler2024chemgymrl]. MADE extends closed-loop discovery benchmarks to
+budget-constrained materials settings [@malik2026made]. These systems make experimentation cheaper,
+safer and more repeatable than physical execution, but they are generally used to compare policies or
+optimize endpoints under one task definition. The present study instead treats the correctness of
+agent-facing scientific information as the experimental intervention.
+
+## 2.3 Interactive scientific-discovery benchmarks
+
+DiscoveryWorld, BoxingGym, SciGym, SciExplorer and NewtonBench organize tasks around repeated cycles
+of hypothesis formation, intervention and inference [@jansen2024discoveryworld;
+@gandhi2025boxinggym; @duan2025scigym; @nagele2026sciexplorer; @zheng2026newtonbench]. CausaLab and
+ReplaySCM further emphasize interventional causal discovery and executable mechanism induction
+[@yang2026causalab; @batzoglou2026replayscm]. SciDisco uses process-verifiable discovery environments
+to provide intermediate training signals [@xu2026scidisco]. These studies motivate evaluating the
+trajectory of discovery rather than only the final answer. Our focus is complementary: the hidden law
+does not change during a campaign; what changes is whether an explicit prior is absent, useful or
+systematically wrong.
+
+## 2.4 The unresolved identification problem
+
+Three ambiguities remain when endpoint score, belief statement and scientific understanding are not
+separated. First, a correct prior can make an agent look like a rapid discoverer even if it merely
+confirms supplied information. Second, a wrong prior can improve an endpoint by encouraging useful
+exploration without ever being rejected. Third, a verbal law summary can be correct while the agent's
+subsequent predictions or actions remain inconsistent with it. A matched prior intervention, typed
+checkpoints and evaluator-owned tests are needed to distinguish these cases.
+
+# 3. Conceptual framework
+
+## 3.1 Fixed world, variable prior
+
+Each comparison begins with one executable world containing a fixed evaluator-owned law. The public
+task, action space, observation channels, resource card, safety rules and bound stochastic identity are
+held constant. Only the task-specific dossier changes:
+
+- **Opaque:** materials use anonymous identifiers and no additional task-specific dossier.
+- **Aligned nominal:** each anonymous identifier is paired with incomplete nominal properties that are
+  directionally useful in the fixed world.
+- **Misindexed nominal:** the same property bundles, fields, values, wording and confidence language are
+  retained, but the bundles are permuted across material identifiers.
+
+Experimental evidence is explicitly authoritative in all conditions. The misindexed arm is therefore
+not a trick question about obedience; it tests whether the agent seeks and uses evidence that can
+override a plausible prior.
+
+## 3.2 Operation, experiment and campaign
+
+An operation is one submitted physical or measurement action. A complete experiment begins with a new
+batch and ends with a committed final assay or an allowed discard. A discovery campaign comprises
+multiple complete experiments under one fixed world, one persistent agent session and one shared
+resource ledger. Physical batch state resets between experiments, but the public history, agent
+context, hidden law and remaining resources persist.
+
+This distinction matters because repeated operations and experiments inside one campaign are nested
+observations, not independent scientific samples. The independent analysis unit is the matched
+task-by-world cluster.
+
+## 3.3 Four separable outcomes
+
+We distinguish four outcomes that are often collapsed into a single score.
+
+1. **Endpoint optimization:** whether the campaign identifies a high-quality experimental outcome.
+2. **Predictive recovery:** whether held-out counterfactual prediction error decreases.
+3. **Prior correction:** whether evidence selectively improves the wrong-prior condition without
+   degrading the correct-prior condition.
+4. **Reusable law recovery:** whether the final executable summary predicts unseen continuous
+   conditions and supports held-out control or transfer.
+
+An agent can succeed on any subset. In particular, endpoint success without predictive and transfer
+validity is classified as local optimization rather than law discovery.
+
+# 4. Study design
+
+## 4.1 Chemical-world cohort
+
+The formal public cohort spans five task families: electrochemical conversion, reaction followed by
+crystallization, reaction followed by distillation, phase-partition discovery and safety-constrained
+reaction. Five independently selected public worlds per task yield 25 task-by-world clusters. Each
+cluster contains the three prior arms, for 75 participant cells. Development and method-qualification
+worlds are disjoint from this cohort. A separate private cohort is committed in advance and remains
+sealed until public analysis is frozen.
+
+Environment qualification and participant outcomes form separate evidence layers. Environment tests
+establish that the hidden relations are coherent, identifiable and executable through the public
+measurement surface. They do not show that an agent discovers those relations.
+
+## 4.2 Persistent experimental agent
+
+Each cell is controlled by one persistent Codex process and one provider session. After every public
+outcome, the participant chooses the next operation through the host-owned laboratory tool. The host
+validates schemas, executes transactions, updates resources and protects private state, but does not
+select or repair scientific actions.
+
+Each campaign contains four complete experiments and typed checkpoints before evidence, after the
+first and second experiments, and at the end of the fourth experiment. A checkpoint records the
+agent's assessment of prior reliability, predictions, uncertainty, evidence references, executable
+law summary and next experimental intent. Checkpoints do not create additional provider sessions.
+
+## 4.3 Evaluator-owned evidence
+
+Four registered counterfactual queries per task-world cluster are executed independently by the
+evaluator. Their truth is shared across prior arms and checkpoints and is never returned to the
+participant. The primary prediction error is the mean normalized absolute error across registered
+query-metric pairs.
+
+After the campaign, the participant commits one completed experiment as its final recommendation.
+The evaluator then performs paired blind replay of the observed incumbent and the committed
+recommendation. These executions use separate resources and do not enter participant-operation or
+provider denominators.
+
+## 4.4 Hypotheses and estimands
+
+Let $E_{a,k}$ denote held-out prediction error for prior arm $a$ at checkpoint $k$. The primary
+hypothesis tests selective evidence-driven correction:
+
+$$
+C_{\mathrm{prior}} =
+  (E_{\mathrm{misindexed,pre}}-E_{\mathrm{misindexed,final}})
+  -(E_{\mathrm{aligned,pre}}-E_{\mathrm{aligned,final}}).
+$$
+
+Success requires the lower confidence bound for $C_{\mathrm{prior}}$ to exceed zero, the wrong-prior
+condition to improve, and the aligned condition not to deteriorate beyond a prespecified tolerance.
+Correct-prior utility, wrong-prior vulnerability and knowledge-to-action translation form a
+hierarchical secondary family. Endpoint, calibration, behavior, law-summary, transfer, resource and
+safety outcomes are reported as separate channels rather than one leaderboard score.
+
+Failed scientific cells remain in the denominator and are not replaced. A right-censored cell carries
+its last valid checkpoint forward; a missing final prediction receives zero primary improvement. Only
+a pure infrastructure failure without persisted trajectory may resume under the frozen attempt cap.
+
+# 5. Development evidence
+
+The following results qualify the method and sharpen the scientific question. They are not part of
+the public formal or private-confirmation denominator, and the two provider configurations are not
+used for a cross-provider capability ranking.
+
+## 5.1 Explicit priors reshape endpoint behavior
+
+One development matrix used the frozen persistent-session interface with a WellAU-provided Codex
+model. It produced 44 completed cells out of 45 and 176 complete experiments out of 180. Mean paired
+aligned-minus-opaque differences in the best observed endpoint were +0.211 for electrochemical
+conversion, +0.057 for crystallization and -0.036 for distillation, with the distillation contrast
+based on four complete pairs. Misindexed information was not consistently harmful, and explicit
+misindex warnings included substantial false positives in aligned cells.
+
+A separate recovery-amended DeepSeek development matrix reached terminal records for all 45 cells;
+43 completed, yielding 174 complete experiments out of 180 and exact replay for all terminal
+trajectories. The two incomplete cells were retained participant--tool contract failures in the
+crystallization task, with zero provider errors and zero resource rejections.
+
+| Task | Aligned minus opaque | Misindexed minus opaque |
+|---|---:|---:|
+| Electrochemical conversion | +0.0785, $n=5$ | +0.0915, $n=5$ |
+| Reaction to crystallization | +0.0305, $n=5$ | +0.0690, $n=4$ |
+| Reaction to distillation | +0.0374, $n=5$ | +0.1080, $n=5$ |
+
+The ordering is not aligned, opaque, then misindexed. In distillation, every paired seed favored both
+explicit-information arms over opaque identifiers, and the misindexed mean gain was larger. A better
+endpoint therefore cannot be treated as evidence that the agent accepted a correct prior, rejected a
+wrong prior or recovered the hidden law.
+
+## 5.2 Verbal suspicion is not selective correction
+
+Final DeepSeek misindex warnings were 0/5, 5/5 and 3/5 for opaque, aligned and misindexed
+electrochemical cells; 0/4, 5/5 and 4/4 in crystallization; and 0/5, 5/5 and 5/5 in distillation.
+The model largely associated dossier presence with possible misindexing rather than distinguishing
+the correct and incorrect dossiers. Mean aligned-minus-misindexed changes in self-reported prior
+reliability were small and heterogeneous across tasks.
+
+This is a scientifically useful negative boundary. A warning token or reduced stated confidence is
+not a valid bias-rejection endpoint unless it predicts evaluator-scored correction and subsequent
+evidence-aligned action.
+
+## 5.3 Development conclusion
+
+Across the retained development configurations, explicit priors clearly alter the course and endpoint
+of experimentation. The same evidence does not show selective wrong-prior rejection. It instead
+demonstrates why the formal study must score held-out predictions, executable summaries and blind
+recommendations rather than infer understanding from endpoint performance or verbal self-report.
+
+# 6. Formal results
+
+This section will report the preregistered public matrix only after every scheduled cell has reached a
+completed, right-censored or failed terminal state. Arm contrasts will remain blinded during
+execution. The section is reserved for:
+
+- the primary selective-correction contrast and its three required conditions;
+- correct-prior utility and wrong-prior vulnerability;
+- checkpoint-level prediction-error and calibration trajectories;
+- executable law-summary validity and continuous counterfactual prediction;
+- evidence-seeking, selective measurement, attribution and prior-persistence phenotypes;
+- blind incumbent-versus-recommendation outcomes;
+- complete failure, censoring, resource, token, cost and wall-time denominators.
+
+No development value will be substituted for a missing formal result.
+
+# 7. Private confirmation and transfer
+
+After the public method and analysis code are frozen, the committed private cohort will be executed
+once. The same prediction, law-summary and control metrics will test world-held-out and
+mechanism-family transfer. Private identities will not be revealed to the participant, and a negative
+or incomplete result will not trigger a replacement run.
+
+The strongest claim—discovery of a reusable law—requires joint evidence: selective wrong-prior
+correction, aligned-prior non-degradation, an executable typed law summary, valid predictions on
+unseen continuous conditions and successful preregistered transfer. Anything less will be reported as
+confirmation, local correction, policy repair or endpoint optimization according to the observed
+combination.
+
+# 8. Discussion
+
+## 8.1 Why endpoint success is insufficient
+
+The development matrices show that a deliberately wrong dossier can improve the best observed
+endpoint. This is not paradoxical. A prior can change where an agent searches, increase experimental
+diversity or direct attention toward a useful region even when its material mapping is wrong. Endpoint
+improvement measures utility of the induced search trajectory, not truth of the agent's scientific
+model.
+
+## 8.2 Bias rejection must be behaviorally selective
+
+The broad tendency to distrust any explicit dossier illustrates a second ambiguity. Generic skepticism
+can generate the right verbal stance without identifying the wrong prior. A valid correction measure
+must be selective: contradictory evidence should improve wrong-prior predictions more than
+correct-prior predictions, and that improvement should influence subsequent experimental choices.
+
+## 8.3 Scientific understanding as a coupled capability
+
+Prediction, explanation and action can dissociate. An agent may understand a relation but lack the
+operational competence or remaining resources to exploit it; it may act successfully without an
+accurate model; or it may state the right model while continuing to choose inconsistent experiments.
+The joint evaluation therefore supports four interpretable phenotypes: understands and acts,
+understands but cannot act, acts without understanding, and neither.
+
+## 8.4 Scope and limitations
+
+The study evaluates bounded executable chemical worlds rather than universal chemical fidelity or
+direct wet-laboratory validity. A single frozen participant method supports conclusions about that
+agent-system configuration, not language models in general. Five task families provide mechanistic
+breadth but only five independent public worlds per task, so the confirmatory design is powered for
+moderate-to-large effects rather than subtle differences. Evaluator queries are registered before
+participant execution, but any finite query set samples only part of a hidden law. Finally, exact
+software replay does not eliminate model-provider variability; provider attempts and session failures
+are reported as operational characteristics rather than independent scientific samples.
+
+# 9. Methods
+
+## 9.1 World and prior construction
+
+Each task instantiates a public experimental contract and a private evaluator-owned material or
+process law. Public formal worlds are selected deterministically from a namespace disjoint from
+development worlds. Within each world cluster, the three prior arms share the hidden law, public
+contract, resource card and stochastic identity. Aligned and misindexed dossiers contain identical
+fields, values, wording and confidence language; the latter applies a frozen permutation to the
+material identifiers.
+
+## 9.2 Transactional execution and resources
+
+Every operation enters schema validation and resource preflight before candidate execution.
+Committed operations update physical state and the campaign ledger; invalid or resource-rejected
+attempts retain their declared reporting debit without entering committed physical state. Task-specific
+resource cards bound vessel starts, assays, measurements, stocks, process time, repeated operations,
+quench and transfer time, and closeout reserve across all experiments in a campaign.
+
+## 9.3 Belief and law-summary checkpoints
+
+Checkpoint records contain prior assessment, predictions, uncertainty, evidence references, an
+executable law summary, next-experiment intent and overall confidence. The schema permits bounded
+rationales but not an unconstrained persistent notebook. Predictions are evaluated only after the
+campaign against sealed truth packs.
+
+## 9.4 Statistical analysis
+
+The independent units are the 25 task-by-world clusters. The primary contrast is estimated with task
+fixed effects and a one-sided 0.05 criterion under an intersection--union rule. Three secondary
+hypotheses use Holm familywise correction. Task-specific contrasts are reported as heterogeneity
+estimates rather than independent confirmatory claims. Prespecified sensitivity analyses include
+complete-case, worst-case failed-arm, heteroscedasticity-robust and task-stratified cluster-bootstrap
+analyses.
+
+## 9.5 Reproducibility and failure accounting
+
+Participant trajectories, evaluator truth packs and blind-replay packs are stored separately and
+joined through immutable receipts. Every terminal participant trajectory must pass physical replay,
+campaign-resource replay and hidden-boundary audit. Provider process attempts, provider sessions,
+tool calls, operation attempts, committed operations, complete experiments, cells and evaluator
+executions are reported with distinct denominators.
+
+# 10. Data and code availability
+
+The executable environment, frozen protocols, analysis code, source data and reproducible figure
+scripts will accompany the public release. Raw provider payloads, credentials and private world
+identities are excluded. The private cohort commitment will be released before execution, and the
+identities and results will be disclosed with the final confirmation package.
+
+# 11. Author contributions
+
+Author contributions will be finalized before submission using a role-based contribution statement.
+
+# 12. Competing interests
+
+The authors declare no competing interests.

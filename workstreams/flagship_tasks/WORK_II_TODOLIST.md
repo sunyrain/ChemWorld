@@ -612,7 +612,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   qualification 现使用独立的三臂 parent runner，同样在每次 launch 前预留完整 token envelope；计划 3 次、
   每臂最多 2 次、总硬上限 6 次，且资格预算和正式矩阵预算不得互相挪用。
   仍需由用户批准可验证价格下的正式货币硬上限，并用最终合格的 current-method runner 校准 expected ETA，故
-  W2-07 保持 `DOING`。
+  W2-07 保持 `DOING`。剩余选择、费用字段与严格执行顺序已汇总为
+  `workstreams/flagship_tasks/reports/work-ii-formal-launch-decision-brief.md`，其中不包含凭据。
 
 ### W2-08 — Registered Report/常规投稿路线决策
 
@@ -780,7 +781,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   三臂 observed token cost，逐项复核 pricing source/timestamp、token totals、用户 ceiling、三臂
   lifecycle/replay/audit/provider receipts 后生成 v0.4 receipt。三个生成器在缺少
   用户输入、真实报告或价格证据时均已验证 fail-closed 且不会创建文件。真实三臂资格仍等待 provider 合同、
-  凭据轮换确认和 qualification currency ceiling，不能据此授权正式执行。
+  凭据轮换确认和 qualification currency ceiling，不能据此授权正式执行。该数据产生块的单一实验记录已写入
+  `workstreams/flagship_tasks/experiments/work-ii-current-method-qualification-triplet.md`；其覆盖、测量、通过/
+  失败规则和输出已固定，不会按运行结果改变。
 
 ### W2-11 — 冻结 preregistration 与不可变执行包
 
@@ -813,6 +816,9 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   历史 clean-release 证据，不能授权当前提交执行正式矩阵。最终 freeze 现缺 6 项：用户路线选择、current-method
   真实三臂资格收据、provider/正式货币上限、资格运行校准 ETA、最终方法提交上的新 clean-release receipt，
   以及执行命令/预算/故障升级的用户签字确认。
+  当前 source digest 漂移已通过零 provider 调用的确定性重建修复：formal preflight、preregistration
+  readiness/draft 与 13-node/17-edge pre-run evidence graph 已重新一致，完整 Work II 聚焦套件为 98/98
+  通过；这只恢复 current evidence binding，不替代资格运行后的最终 clean-release receipt。
   `scripts/build_work_ii_preregistration_freeze_receipt.py` 已把这些项编码为 route-specific、不可伪造的最终
   receipt 生成门，并把 qualification 实际费用/上限与 formal 全矩阵价格表/上限分开；正式上限必须覆盖冻结的
   150 次 provider-attempt 成本，随后由 parent runner 逐调用预留。Nature 路线额外要求 IPA 与 protocol
@@ -888,11 +894,11 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 ### W2-15 — 第二篇论文、数据与发布包
 
 - 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
 - 状态：
-  - [x] 未开始
-  - [ ] 进行中
+  - [ ] 未开始
+  - [x] 进行中
   - [ ] 阻塞
   - [ ] 完成
 - 优先级：P0
@@ -904,7 +910,13 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] 全部代码、协议、轨迹、派生数据、图表和统计表可独立重建；
   - [ ] 证据图、clean wheel、independent checkout 和 final claim audit 通过；
   - [ ] 数据归档、作者信息和投稿包完整。
-- 备注：`TBD`
+- 备注：`Claim: Codex /root — W2-15 — DOING`。已建立 venue-neutral 主稿
+  `paper/prior_discovery_manuscript.md` 与 display plan
+  `paper/prior_discovery_display_items.md`，并以 `paper/prior_discovery_evidence_map.md` 约束逐项 claim
+  ownership。主稿已完成标题、摘要、引言、相关工作、概念框架、五任务正式设计、
+  provider-separated 开发结果、预注册 estimand、讨论、方法和发布边界；development、public formal 与 private
+  confirmation 三层证据明确分离，未把 endpoint 或 verbal warning 写成规律发现。正式结果、private transfer、
+  最终图表、统计表与发布包必须等待 W2-12--W2-14 后补齐，故 W2-15 保持 `DOING`。
 
 ### W2-16 — 物理或高保真桥接（可选增强）
 

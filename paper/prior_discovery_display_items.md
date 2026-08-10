@@ -1,0 +1,82 @@
+# Display plan — prior correction and law discovery
+
+This document defines the reader-facing evidence role of each proposed display. Development and
+formal evidence must remain visually distinct.
+
+## Figure 1 — From prior to reusable law
+
+**Claim:** endpoint success can arise from prior confirmation, evidence-driven correction or local
+policy repair; only evaluator-valid prediction and transfer support reusable law discovery.
+
+Panels:
+
+- A: one fixed hidden world with opaque, aligned and misindexed prior interventions;
+- B: persistent campaign loop from operation to observation, checkpoint and next experiment;
+- C: separate outcome channels for endpoint, prediction, prior correction, executable summary and
+  transfer;
+- D: joint decision rule distinguishing confirmation, correction, policy repair and law discovery.
+
+This is the conceptual hero figure and should not contain development effect sizes.
+
+## Figure 2 — Frozen cohort and evidence architecture
+
+**Claim:** the design isolates prior quality while preserving independent world-level denominators.
+
+Panels:
+
+- A: five task families and 25 public task-by-world clusters;
+- B: three matched prior arms within each world;
+- C: four experiments and checkpoints at 0, 1, 2 and 4 completed experiments;
+- D: strict separation of participant trajectory, evaluator-truth queries, blind outcome replay and
+  private confirmation.
+
+## Figure 3 — Development observation: priors shift behavior without selective rejection
+
+**Claim:** existing development evidence motivates the formal estimand but is not a formal agent
+capability result.
+
+Use the provider-isolated paired endpoint, reliability, warning-specificity and completion panels.
+WellAU and DeepSeek must be presented as separate method/harness configurations. Do not place them on
+a common capability ranking axis.
+
+## Figure 4 — Evidence-driven correction in the public formal cohort
+
+**Claim:** the wrong-prior arm improves held-out predictions more than the aligned arm without aligned
+degradation.
+
+Planned panels:
+
+- A: checkpoint-level held-out prediction-error trajectories by prior arm;
+- B: world-level primary selective-correction contrasts with task heterogeneity;
+- C: prior reliability and calibration changes against evaluator truth;
+- D: failure/censoring-aware primary decision and sensitivity analyses.
+
+Do not generate this figure before formal data reach a complete terminal denominator.
+
+## Figure 5 — From stated law to action and blind outcome
+
+**Claim:** reusable understanding requires agreement between predictions, executable summaries,
+subsequent operations and independently validated recommendations.
+
+Planned panels:
+
+- A: executable law-summary validity and prediction consistency;
+- B: understands-and-acts phenotype map;
+- C: blind incumbent-versus-recommendation paired outcomes;
+- D: process features associated with knowledge-to-action translation.
+
+## Figure 6 — Private confirmation and transfer
+
+**Claim:** any public discovery claim survives one sealed confirmation and transfers beyond exact
+diagnostic points.
+
+Panels should separate within-mechanism, across-mechanism and world-held-out transfer. A negative
+private result remains visible and cannot be replaced by another private cohort.
+
+## Core tables
+
+1. Claim-to-estimand and success-rule table.
+2. Task, prior and resource-contract table.
+3. Complete public cell, failure, censoring and replay denominators.
+4. Provider, token, cost, wall-time and safety profile.
+5. Development/formal/private evidence-boundary table.

@@ -19,3 +19,10 @@ remains at `workstreams/arxiv_v1/reports/experimental-intelligence-experiment-le
 The active Work II execution surface is `workstreams/flagship_tasks/WORK_II_TODOLIST.md`. Superseded
 plans, smoke notes, stopped extensions, and editorial snapshots are available from Git history rather
 than kept as competing entry points in the working tree.
+
+The current Work II manuscript draft is `paper/prior_discovery_manuscript.md`, with its display plan
+in `paper/prior_discovery_display_items.md`. The next real-provider gate is the three-arm current-method
+qualification experiment recorded at
+`workstreams/flagship_tasks/experiments/work-ii-current-method-qualification-triplet.md`; the exact
+non-secret route, pricing and budget inputs needed to authorize it are summarized in
+`workstreams/flagship_tasks/reports/work-ii-formal-launch-decision-brief.md`.
