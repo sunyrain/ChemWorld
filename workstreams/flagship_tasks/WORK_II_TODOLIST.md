@@ -1079,10 +1079,14 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   session wall 与 amended recovery envelope 内。electrochemical 首次启动时把输出目录误命名为
   `matrix_report.json`，但其嵌套 matrix report、三臂 summary/trajectory 和 replay 均完整；该路径记账缺陷
   不改变科学结果，后续完整矩阵必须使用全新 run root，不复用或覆盖 pilot。
-- [ ] 若继续完成 DeepSeek 对照开发块，需从全新 run root 分别启动三个任务的完整
-  `world_seed=0..4 × 三 prior arms` matrices，共 45 个新 cells；pilot 不并入该不可变五-seed 分母，
-  WellAU 与 DeepSeek 仍按 provider/harness 分开分析。该扩展不是当前 WellAU-only formal matrix 的门禁，
-  只有在论文需要跨 provider 的开发性对照时才是必做项。
+- [x] DeepSeek recovery-amended 完整开发块已从三个全新 run root 执行：三任务各
+  `world_seed=0..4 × 三 prior arms`，共 45/45 terminal cells、43/45 completed cells、174/180
+  complete experiments、1,616 attempts、1,614 committed operations、38 次 MCP tool failures、
+  0 provider errors、0 resource rejection、45/45 exact replay。两项 crystallization contract
+  failure 原样保留且未替换；WellAU、pre-amendment DeepSeek 与 recovery-amended DeepSeek 分层分析，
+  不构造跨 provider 科学能力排名。机器分析与解释报告：
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-analysis-v0.1.json` 和
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-results-v0.1.md`。
 
 ## 7. 完成定义
 

@@ -11,6 +11,9 @@ from typing import Any
 from chemworld.eval.provenance import canonical_json_sha256
 
 WORK_II_DEVELOPMENT_ANALYSIS_VERSION = "chemworld-work-ii-development-analysis-0.1"
+WORK_II_SINGLE_PROVIDER_DEVELOPMENT_ANALYSIS_VERSION = (
+    "chemworld-work-ii-single-provider-development-analysis-0.1"
+)
 ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 
 
@@ -469,6 +472,61 @@ def _provider_summary(rows: Sequence[Mapping[str, Any]], expected_cell_count: in
     }
 
 
+def _task_reports(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    reports: dict[str, Any] = {}
+    for task_id in sorted({str(row["task_id"]) for row in rows}):
+        task_rows = [row for row in rows if row["task_id"] == task_id]
+        reports[task_id] = {
+            "arm_summaries": {
+                arm: _arm_summary([row for row in task_rows if row["arm"] == arm])
+                for arm in ARMS
+            },
+            "paired_endpoint_contrasts": {
+                "aligned_minus_opaque_best_score": _paired_contrast(
+                    task_rows,
+                    left_arm="aligned_nominal",
+                    right_arm="opaque",
+                    metric="best_score",
+                ),
+                "misindexed_minus_opaque_best_score": _paired_contrast(
+                    task_rows,
+                    left_arm="misindexed_nominal",
+                    right_arm="opaque",
+                    metric="best_score",
+                ),
+                "aligned_minus_misindexed_best_score": _paired_contrast(
+                    task_rows,
+                    left_arm="aligned_nominal",
+                    right_arm="misindexed_nominal",
+                    metric="best_score",
+                ),
+            },
+            "paired_belief_contrasts": {
+                "aligned_minus_misindexed_reliability_delta": _paired_contrast(
+                    task_rows,
+                    left_arm="aligned_nominal",
+                    right_arm="misindexed_nominal",
+                    metric="prior_reliability_delta",
+                )
+            },
+        }
+    return reports
+
+
+def _three_arm_cluster_counts(rows: Sequence[Mapping[str, Any]]) -> tuple[int, int]:
+    terminal_clusters: dict[tuple[str, int], set[str]] = defaultdict(set)
+    completed_clusters: dict[tuple[str, int], set[str]] = defaultdict(set)
+    for row in rows:
+        key = (str(row["task_id"]), int(row["world_seed"]))
+        terminal_clusters[key].add(str(row["arm"]))
+        if row["completed"] is True:
+            completed_clusters[key].add(str(row["arm"]))
+    return (
+        sum(arms == set(ARMS) for arms in completed_clusters.values()),
+        sum(arms == set(ARMS) for arms in terminal_clusters.values()),
+    )
+
+
 def build_development_analysis(
     source_manifest: Mapping[str, Any],
     loaded_sources: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
@@ -518,51 +576,8 @@ def build_development_analysis(
 
     wellau_rows = [row for row in rows if row["provider_group"] == "wellau_fallback"]
     deepseek_rows = [row for row in rows if row["provider_group"] == "deepseek_attempt"]
-    task_reports: dict[str, Any] = {}
-    for task_id in sorted({str(row["task_id"]) for row in wellau_rows}):
-        task_rows = [row for row in wellau_rows if row["task_id"] == task_id]
-        task_reports[task_id] = {
-            "arm_summaries": {
-                arm: _arm_summary([row for row in task_rows if row["arm"] == arm])
-                for arm in ARMS
-            },
-            "paired_endpoint_contrasts": {
-                "aligned_minus_opaque_best_score": _paired_contrast(
-                    task_rows,
-                    left_arm="aligned_nominal",
-                    right_arm="opaque",
-                    metric="best_score",
-                ),
-                "misindexed_minus_opaque_best_score": _paired_contrast(
-                    task_rows,
-                    left_arm="misindexed_nominal",
-                    right_arm="opaque",
-                    metric="best_score",
-                ),
-                "aligned_minus_misindexed_best_score": _paired_contrast(
-                    task_rows,
-                    left_arm="aligned_nominal",
-                    right_arm="misindexed_nominal",
-                    metric="best_score",
-                ),
-            },
-            "paired_belief_contrasts": {
-                "aligned_minus_misindexed_reliability_delta": _paired_contrast(
-                    task_rows,
-                    left_arm="aligned_nominal",
-                    right_arm="misindexed_nominal",
-                    metric="prior_reliability_delta",
-                )
-            },
-        }
-
-    wellau_clusters: dict[tuple[str, int], set[str]] = defaultdict(set)
-    completed_clusters: dict[tuple[str, int], set[str]] = defaultdict(set)
-    for row in wellau_rows:
-        key = (str(row["task_id"]), int(row["world_seed"]))
-        wellau_clusters[key].add(str(row["arm"]))
-        if row["completed"] is True:
-            completed_clusters[key].add(str(row["arm"]))
+    task_reports = _task_reports(wellau_rows)
+    complete_cluster_count, terminal_cluster_count = _three_arm_cluster_counts(wellau_rows)
 
     report: dict[str, Any] = {
         "schema_version": WORK_II_DEVELOPMENT_ANALYSIS_VERSION,
@@ -575,12 +590,8 @@ def build_development_analysis(
             "denominators": _provider_summary(
                 wellau_rows, expected_by_group["wellau_fallback"]
             ),
-            "complete_three_arm_cluster_count": sum(
-                arms == set(ARMS) for arms in completed_clusters.values()
-            ),
-            "terminal_three_arm_cluster_count": sum(
-                arms == set(ARMS) for arms in wellau_clusters.values()
-            ),
+            "complete_three_arm_cluster_count": complete_cluster_count,
+            "terminal_three_arm_cluster_count": terminal_cluster_count,
             "task_reports": task_reports,
         },
         "deepseek_attempt": {
@@ -624,8 +635,104 @@ def build_development_analysis(
     return report
 
 
+def build_single_provider_development_analysis(
+    source_manifest: Mapping[str, Any],
+    loaded_sources: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
+) -> dict[str, Any]:
+    """Build one deterministic prior-arm analysis without mixing provider groups."""
+
+    provider_group = str(source_manifest["provider_group"])
+    rows: list[dict[str, Any]] = []
+    source_records: list[dict[str, Any]] = []
+    expected_cell_count = 0
+    provider_ids: set[str] = set()
+    for source, matrix in loaded_sources:
+        if str(source["provider_group"]) != provider_group:
+            raise ValueError("single-provider analysis cannot mix provider groups")
+        source_id = str(source["source_id"])
+        provider_id = str(source["provider_id"])
+        provider_ids.add(provider_id)
+        task_id = str(source["task_id"])
+        expected = int(matrix.get("expected_cell_count", 0))
+        expected_cell_count += expected
+        source_records.append(
+            {
+                "source_id": source_id,
+                "provider_group": provider_group,
+                "provider_id": provider_id,
+                "task_id": task_id,
+                "path": source["path"],
+                "sha256": source["sha256"],
+                "expected_cell_count": expected,
+                "matrix_elapsed_s": matrix.get("elapsed_s"),
+            }
+        )
+        seed_reports = matrix.get("seed_reports")
+        for seed_report in (seed_reports if isinstance(seed_reports, list) else ()):
+            if not isinstance(seed_report, Mapping):
+                continue
+            world_seed = int(seed_report["world_seed"])
+            results = seed_report.get("results")
+            for result in (results if isinstance(results, list) else ()):
+                if isinstance(result, Mapping):
+                    rows.append(
+                        _cell_record(
+                            source_id=source_id,
+                            provider_group=provider_group,
+                            provider_id=provider_id,
+                            task_id=task_id,
+                            world_seed=world_seed,
+                            result=result,
+                        )
+                    )
+    if len(provider_ids) != 1:
+        raise ValueError("single-provider analysis requires exactly one provider_id")
+    complete_clusters, terminal_clusters = _three_arm_cluster_counts(rows)
+    ordered_rows = sorted(
+        rows,
+        key=lambda row: (
+            str(row["task_id"]),
+            int(row["world_seed"]),
+            ARMS.index(str(row["arm"])),
+        ),
+    )
+    report: dict[str, Any] = {
+        "schema_version": WORK_II_SINGLE_PROVIDER_DEVELOPMENT_ANALYSIS_VERSION,
+        "analysis_id": source_manifest["analysis_id"],
+        "analysis_date": source_manifest["analysis_date"],
+        "formal_result": False,
+        "provider_group": provider_group,
+        "provider_id": next(iter(provider_ids)),
+        "interpretation_contract": dict(source_manifest["interpretation_contract"]),
+        "sources": source_records,
+        "denominators": _provider_summary(rows, expected_cell_count),
+        "complete_three_arm_cluster_count": complete_clusters,
+        "terminal_three_arm_cluster_count": terminal_clusters,
+        "task_reports": _task_reports(rows),
+        "cell_records": ordered_rows,
+        "audit": {
+            "predictions_scored_against_evaluator_truth": False,
+            "final_law_summaries_schema_present_count": sum(
+                row["final_law_confidence"] is not None for row in rows
+            ),
+            "final_recommendation_committed_count": sum(
+                row["final_recommendation_committed"] is True for row in rows
+            ),
+            "provider_groups_mixed_in_prior_contrasts": False,
+            "formal_hypothesis_tests_run": False,
+            "limitations": list(
+                source_manifest["interpretation_contract"].get("limitations", [])
+            ),
+        },
+    }
+    report["analysis_sha256"] = canonical_json_sha256(report)
+    return report
+
+
 __all__ = [
     "ARMS",
     "WORK_II_DEVELOPMENT_ANALYSIS_VERSION",
+    "WORK_II_SINGLE_PROVIDER_DEVELOPMENT_ANALYSIS_VERSION",
     "build_development_analysis",
+    "build_single_provider_development_analysis",
 ]
