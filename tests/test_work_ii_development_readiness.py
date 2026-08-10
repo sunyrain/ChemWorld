@@ -139,3 +139,44 @@ def test_five_seed_readiness_requires_bound_seed0_pilot(
         [0, 1, 2, 3, 4],
     )
     assert "five-seed readiness lacks a passing seed-0 expansion pilot" in errors
+
+
+def test_continuation_readiness_binds_terminal_seed0_without_requalifying_it(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    config = tmp_path / "config.json"
+    config.write_text("{}", encoding="utf-8")
+    trajectory = tmp_path / "trajectory.jsonl"
+    trajectory.write_text('{"step":1}\n', encoding="utf-8")
+    seed0_matrix = tmp_path / "matrix_report.json"
+    seed0_matrix.write_text('{"terminal_cell_count":3}\n', encoding="utf-8")
+    receipt = tmp_path / "readiness.json"
+    _write_receipt(tmp_path, config, trajectory, receipt)
+    payload = json.loads(receipt.read_text(encoding="utf-8"))
+    payload["schedule"].update(
+        {
+            "world_seeds": [1, 2, 3, 4],
+            "expected_cell_count": 12,
+            "execution_scope": "terminal_seed0_preserving_continuation",
+        }
+    )
+    payload["seed0_terminal_continuation"] = {
+        "passed": True,
+        "semantics": "retain_seed0_outcomes_without_requalification_or_replacement",
+        "bindings": [{"path": seed0_matrix.as_posix(), "sha256": file_sha256(seed0_matrix)}],
+    }
+    payload["readiness_sha256"] = canonical_json_sha256(
+        {key: value for key, value in payload.items() if key != "readiness_sha256"}
+    )
+    receipt.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(
+        "chemworld.eval.work_ii_development_readiness.git_source_commit",
+        lambda _root: "test-commit",
+    )
+
+    assert validate_development_readiness_receipt(tmp_path, receipt, config, [1, 2, 3, 4]) == []
+
+    seed0_matrix.write_text('{"terminal_cell_count":2}\n', encoding="utf-8")
+    errors = validate_development_readiness_receipt(tmp_path, receipt, config, [1, 2, 3, 4])
+    assert any("seed-0 continuation binding changed" in error for error in errors)

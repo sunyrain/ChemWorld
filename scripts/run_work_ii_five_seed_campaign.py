@@ -112,6 +112,19 @@ def _heartbeat(
     }
 
 
+def _execution_scope(seeds: list[int]) -> str:
+    if len(seeds) == 1:
+        return "pilot_seed_triplet"
+    if len(seeds) == 5 and len(set(seeds)) == 5:
+        return "five_seed_task_block"
+    if seeds == [1, 2, 3, 4]:
+        return "terminal_seed0_preserving_continuation"
+    raise ValueError(
+        "execution requires one pilot seed, five distinct world seeds, or "
+        "exact continuation seeds 1 2 3 4"
+    )
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
     if git_worktree_dirty(ROOT):
         raise RuntimeError("provider execution requires a clean committed worktree")
@@ -155,8 +168,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("campaign config must freeze execution.max_concurrency=3")
     if int(args.max_concurrency) != 3:
         raise ValueError("the frozen execution requires max_concurrency=3")
-    if len(seeds) not in {1, 5} or len(set(seeds)) != len(seeds):
-        raise ValueError("execution requires one pilot seed or five distinct world seeds")
+    execution_scope = _execution_scope(seeds)
     total_cells = len(seeds) * 3
     completed_cells = 0
     terminal_cells = 0
@@ -365,7 +377,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "provider_id": provider.get("id"),
         "model": provider.get("model"),
         "world_seeds": seeds,
-        "execution_scope": "pilot_seed_triplet" if len(seeds) == 1 else "five_seed_task_block",
+        "execution_scope": execution_scope,
         "expected_cell_count": total_cells,
         "terminal_cell_count": terminal_record_count,
         "completed_cell_count": completed_cells,

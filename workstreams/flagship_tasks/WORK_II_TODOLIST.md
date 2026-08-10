@@ -1123,6 +1123,15 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   pilot 均失败和不扩展的决定，不改阈值、不重跑；生成器与两个 current task configs 已在终态后修正为
   零 rejection，防止未来复发。机器摘要与报告：
   `workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-closeout-v0.1.{json,md}`。
+- [ ] 2026-08-10 用户进一步授权补齐 DeepSeek 五任务 development 观察矩阵。新 continuation
+  不撤销上述 pilot-expansion 决定，也不重跑或追认 partition/safety 的 seed-0 失败；它只执行两项任务
+  原先未启动的 seeds 1--4，共 24 个新 cell，并把旧 seed-0 三臂终态 hash-bind 到 readiness 与最终汇总。
+  数据生产说明已冻结在
+  `workstreams/flagship_tasks/experiments/work-ii-deepseek-terminal-matrix-continuation.md`。
+  partition 的物理时长仍为 9,000 s、48 attempts、`mix/settle/separate_phase = 5/5/4`，仅将 provider
+  output 长尾上限冻结为 66k；safety 的物理时长仍为 36,480 s（含 480 s quench 余量）、40 attempts、
+  `heat/quench = 5/4`，provider input/output 长尾上限冻结为 6.4M/80k。两项均保持零 resource
+  rejection、MCP 总失败 ≤3/连续 ≤1、单 session 与 exact replay，不因结果再次改阈值或替换失败。
 
 ## 7. 完成定义
 

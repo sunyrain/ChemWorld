@@ -13,12 +13,24 @@ from scripts.run_work_ii_campaign_pilot import (
     _checkpoint_contract,
     _qualification,
 )
-from scripts.run_work_ii_five_seed_campaign import _heartbeat, _systemic_preoperation_failure
+from scripts.run_work_ii_five_seed_campaign import (
+    _execution_scope,
+    _heartbeat,
+    _systemic_preoperation_failure,
+)
 
 from chemworld.campaign_resources import CampaignResourceLedger
 from chemworld.eval.provenance import canonical_json_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_five_seed_runner_accepts_only_frozen_schedule_shapes() -> None:
+    assert _execution_scope([0]) == "pilot_seed_triplet"
+    assert _execution_scope([0, 1, 2, 3, 4]) == "five_seed_task_block"
+    assert _execution_scope([1, 2, 3, 4]) == "terminal_seed0_preserving_continuation"
+    with pytest.raises(ValueError, match="exact continuation"):
+        _execution_scope([0, 1, 2, 3])
 
 
 def _config() -> dict[str, object]:
@@ -187,28 +199,37 @@ def test_systemic_preoperation_guard_does_not_stop_on_cell_local_failure() -> No
         {"arm": "aligned_nominal", "analysis": {"operation_attempt_count": 0}},
         {"arm": "misindexed_nominal", "analysis": {"operation_attempt_count": 22}},
     ]
-    assert _systemic_preoperation_failure(
-        cell_failures=one_failure,
-        results=results,
-        arms=arms,
-    ) is False
+    assert (
+        _systemic_preoperation_failure(
+            cell_failures=one_failure,
+            results=results,
+            arms=arms,
+        )
+        is False
+    )
 
     all_failures = [{"arm": arm} for arm in arms]
     zero_operation_results = [
         {"arm": arm, "analysis": {"operation_attempt_count": 0}} for arm in arms
     ]
-    assert _systemic_preoperation_failure(
-        cell_failures=all_failures,
-        results=zero_operation_results,
-        arms=arms,
-    ) is True
+    assert (
+        _systemic_preoperation_failure(
+            cell_failures=all_failures,
+            results=zero_operation_results,
+            arms=arms,
+        )
+        is True
+    )
 
     zero_operation_results[0]["analysis"]["operation_attempt_count"] = 1
-    assert _systemic_preoperation_failure(
-        cell_failures=all_failures,
-        results=zero_operation_results,
-        arms=arms,
-    ) is False
+    assert (
+        _systemic_preoperation_failure(
+            cell_failures=all_failures,
+            results=zero_operation_results,
+            arms=arms,
+        )
+        is False
+    )
 
 
 def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:

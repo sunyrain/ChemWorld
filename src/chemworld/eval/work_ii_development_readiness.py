@@ -20,7 +20,7 @@ from chemworld.eval.provenance import (
 from chemworld.eval.verify import verify_records
 from chemworld.eval.work_ii_process_profile import build_work_ii_execution_artifacts
 
-WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.3"
+WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.4"
 _PRIOR_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 
 
@@ -70,8 +70,9 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
     method_checkpoints = list(method.get("checkpoint_complete_experiments", []))
     return {
         "clean_committed_worktree": not git_worktree_dirty(root),
-        "seed_schedule_is_one_pilot_or_five_seed_block": len(seeds) in {1, 5}
-        and len(set(seeds)) == len(seeds),
+        "seed_schedule_is_pilot_full_or_terminal_continuation": (
+            (len(seeds) in {1, 5} and len(set(seeds)) == len(seeds)) or list(seeds) == [1, 2, 3, 4]
+        ),
         "three_frozen_prior_arms": prior_arms == _PRIOR_ARMS,
         "three_cell_os_concurrency": execution.get("max_concurrency") == 3
         and execution.get("within_cell_concurrency") == 1
@@ -207,21 +208,16 @@ def audit_seed0_expansion_pilot(
             for item in receipt.get("mcp_tool_calls", [])
             if isinstance(item, Mapping) and item.get("status") != "completed"
         ]
-        raw_max_consecutive = receipt.get(
-            "maximum_consecutive_mcp_tool_failure_count"
-        )
+        raw_max_consecutive = receipt.get("maximum_consecutive_mcp_tool_failure_count")
         max_consecutive = (
             raw_max_consecutive
-            if isinstance(raw_max_consecutive, int)
-            and not isinstance(raw_max_consecutive, bool)
+            if isinstance(raw_max_consecutive, int) and not isinstance(raw_max_consecutive, bool)
             else -1
         )
         provider_errors = receipt.get("provider_errors", [])
         provider_error_count = receipt.get("provider_error_event_count")
         if not isinstance(provider_error_count, int) or isinstance(provider_error_count, bool):
-            provider_error_count = (
-                len(provider_errors) if isinstance(provider_errors, list) else -1
-            )
+            provider_error_count = len(provider_errors) if isinstance(provider_errors, list) else -1
         elapsed_s = float(summary.get("elapsed_s", float("inf")))
         observed = {
             "input_tokens": int(usage.get("input_token_count", -1)),
@@ -279,6 +275,89 @@ def audit_seed0_expansion_pilot(
         "root": root.as_posix(),
         "source_commit": matrix.get("source_commit"),
         "headroom_fraction": headroom,
+        "passed": len(cells) == 3 and not failures,
+        "failures": failures,
+        "bindings": bindings,
+        "cells": cells,
+    }
+
+
+def audit_seed0_terminal_continuation(
+    config: Mapping[str, Any],
+    seed0_root: Path | None,
+) -> dict[str, Any] | None:
+    """Bind a retained failed-or-passing seed-0 triplet without requalifying it."""
+
+    if seed0_root is None:
+        return None
+    root = seed0_root.resolve()
+    matrix_path = root / "matrix_report.json"
+    failures: list[str] = []
+    bindings: list[dict[str, Any]] = []
+    try:
+        matrix = _load_object(matrix_path)
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return {
+            "root": root.as_posix(),
+            "passed": False,
+            "failures": [f"seed-0 matrix is unreadable: {error}"],
+            "bindings": [],
+            "cells": [],
+        }
+    bindings.append({"path": matrix_path.as_posix(), "sha256": file_sha256(matrix_path)})
+    if matrix.get("world_seeds") != [0] or matrix.get("expected_cell_count") != 3:
+        failures.append("retained source is not exactly seed 0 x three prior arms")
+    if matrix.get("terminal_cell_count") != 3 or matrix.get("all_cells_terminal") is not True:
+        failures.append("retained seed-0 triplet is not terminal-complete")
+    if matrix.get("task_id") != config.get("task_id"):
+        failures.append("retained seed-0 task differs from the continuation config")
+    provider = config.get("provider", {})
+    if matrix.get("provider_id") != provider.get("id") or matrix.get("model") != provider.get(
+        "model"
+    ):
+        failures.append("retained seed-0 provider/model differs from the continuation config")
+
+    cells: list[dict[str, Any]] = []
+    for arm in _PRIOR_ARMS:
+        cell_root = root / "seed-0" / arm
+        summary_path = cell_root / "summary.json"
+        trajectory_path = cell_root / "trajectory.jsonl"
+        cell_failures: list[str] = []
+        try:
+            summary = _load_object(summary_path)
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            failures.append(f"{arm}: summary is unreadable: {error}")
+            continue
+        for path in (summary_path, trajectory_path):
+            if path.is_file():
+                bindings.append({"path": path.as_posix(), "sha256": file_sha256(path)})
+            else:
+                cell_failures.append(f"missing {path.name}")
+        records = load_jsonl(trajectory_path) if trajectory_path.is_file() else []
+        replay = verify_records(records, tolerance=0.0).to_dict() if records else {}
+        if replay.get("verified") is not True:
+            cell_failures.append("retained trajectory exact replay failed")
+        analysis = summary.get("analysis", {})
+        qualification = summary.get("qualification", {})
+        cells.append(
+            {
+                "arm": arm,
+                "terminal_record_present": True,
+                "original_completed": summary.get("completed") is True,
+                "original_qualification_passed": qualification.get("passed") is True,
+                "original_failed_checks": list(qualification.get("failed_checks", [])),
+                "complete_experiment_count": analysis.get("complete_experiment_count"),
+                "operation_attempt_count": analysis.get("operation_attempt_count"),
+                "resource_rejection_count": analysis.get("resource_rejection_count"),
+                "exact_replay_verified": replay.get("verified") is True,
+                "failures": cell_failures,
+            }
+        )
+        failures.extend(f"{arm}: {failure}" for failure in cell_failures)
+    return {
+        "root": root.as_posix(),
+        "source_commit": matrix.get("source_commit"),
+        "semantics": "retain_seed0_outcomes_without_requalification_or_replacement",
         "passed": len(cells) == 3 and not failures,
         "failures": failures,
         "bindings": bindings,
@@ -383,6 +462,7 @@ def build_development_readiness_receipt(
     historical_roots: Sequence[Path],
     *,
     pilot_run: Path | None = None,
+    continuation_seed0_run: Path | None = None,
     progress: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     resolved_config = _resolved_config_path(root, config_path)
@@ -390,9 +470,17 @@ def build_development_readiness_receipt(
     checks = _config_checks(root, resolved_config, seeds)
     historical = audit_historical_trajectories(historical_roots, progress=progress)
     pilot = audit_seed0_expansion_pilot(config, pilot_run)
+    continuation = audit_seed0_terminal_continuation(config, continuation_seed0_run)
+    seed_schedule = [int(seed) for seed in seeds]
     checks["historical_current_code_audits_passed"] = historical["all_trajectories_passed"]
-    checks["five_seed_expansion_has_passing_seed0_pilot"] = len(seeds) == 1 or (
-        pilot is not None and pilot.get("passed") is True
+    checks["scheduled_block_has_required_seed0_authority"] = (
+        len(seeds) == 1
+        or (len(seeds) == 5 and pilot is not None and pilot.get("passed") is True)
+        or (
+            seed_schedule == [1, 2, 3, 4]
+            and continuation is not None
+            and continuation.get("passed") is True
+        )
     )
     receipt: dict[str, Any] = {
         "schema_version": WORK_II_DEVELOPMENT_READINESS_VERSION,
@@ -404,10 +492,17 @@ def build_development_readiness_receipt(
             "task_id": config.get("task_id"),
         },
         "schedule": {
-            "world_seeds": [int(seed) for seed in seeds],
+            "world_seeds": seed_schedule,
             "prior_arms": list(config.get("prior_arms", {})),
             "expected_cell_count": len(seeds) * 3,
             "max_concurrency": 3,
+            "execution_scope": (
+                "pilot_seed_triplet"
+                if len(seeds) == 1
+                else "five_seed_task_block"
+                if len(seeds) == 5
+                else "terminal_seed0_preserving_continuation"
+            ),
         },
         "provider": {
             "provider_id": config.get("provider", {}).get("id"),
@@ -418,6 +513,7 @@ def build_development_readiness_receipt(
         "checks": checks,
         "historical_audit": historical,
         "seed0_expansion_pilot": pilot,
+        "seed0_terminal_continuation": continuation,
         "provider_call_count": 0,
         "ready": all(checks.values()) and historical["provider_call_count"] == 0,
     }
@@ -491,6 +587,18 @@ def validate_development_readiness_receipt(
                 path = Path(str(row.get("path", "")))
                 if not path.is_file() or row.get("sha256") != file_sha256(path):
                     errors.append(f"seed-0 pilot binding changed: {path}")
+    continuation = receipt.get("seed0_terminal_continuation")
+    if list(seeds) == [1, 2, 3, 4]:
+        if not isinstance(continuation, Mapping) or continuation.get("passed") is not True:
+            errors.append("continuation readiness lacks a bound terminal seed-0 triplet")
+        else:
+            for row in continuation.get("bindings", []):
+                if not isinstance(row, Mapping):
+                    errors.append("seed-0 continuation binding is malformed")
+                    continue
+                path = Path(str(row.get("path", "")))
+                if not path.is_file() or row.get("sha256") != file_sha256(path):
+                    errors.append(f"seed-0 continuation binding changed: {path}")
     return errors
 
 
@@ -498,6 +606,7 @@ __all__ = [
     "WORK_II_DEVELOPMENT_READINESS_VERSION",
     "audit_historical_trajectories",
     "audit_seed0_expansion_pilot",
+    "audit_seed0_terminal_continuation",
     "build_development_readiness_receipt",
     "validate_development_readiness_receipt",
 ]

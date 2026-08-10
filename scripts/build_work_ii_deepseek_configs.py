@@ -63,16 +63,24 @@ def _limits(task_id: str) -> dict[str, Any]:
             "output_token_limit": 100000,
             "wall_time_limit_s": 9000.0,
         }
-    if task_id in {"partition-discovery", "reaction-safety-constrained"}:
-        # These two five-task development blocks inherit the task-specific
-        # physical/process cards and WellAU pilot envelope.  The DeepSeek
-        # envelope is intentionally task-specific, matching their expected
-        # four-experiment operation-level trajectories rather than using a
-        # single global token or wall-time ceiling.
+    if task_id == "partition-discovery":
+        # Keep the task-owned physical and operation budgets unchanged.  The
+        # output ceiling covers the retained seed-0 54,295-token tail plus
+        # roughly 20% continuation headroom.
         return {
             "input_token_limit": 4800000,
             "uncached_input_token_limit": 640000,
-            "output_token_limit": 48000,
+            "output_token_limit": 66000,
+            "wall_time_limit_s": 7200.0,
+        }
+    if task_id == "reaction-safety-constrained":
+        # The retained seed-0 failure used 5.29M input and 64.6k output tokens.
+        # These task-specific ceilings add about 20% tail headroom without
+        # changing the 40-operation, process-time, repeat or recovery limits.
+        return {
+            "input_token_limit": 6400000,
+            "uncached_input_token_limit": 640000,
+            "output_token_limit": 80000,
             "wall_time_limit_s": 7200.0,
         }
     raise ValueError(f"unsupported Work II task: {task_id}")
@@ -94,9 +102,7 @@ def derive(source: Path, destination: Path) -> None:
         "max_concurrency": 3,
         "parallelization_unit": "same_seed_prior_arm_triplet",
         "within_cell_concurrency": 1,
-        "failure_semantics": (
-            "retain cell failures and continue every scheduled seed triplet"
-        ),
+        "failure_semantics": ("retain cell failures and continue every scheduled seed triplet"),
         "systemic_failure_semantics": (
             "stop only when all three arms fail before the first committed operation"
         ),
