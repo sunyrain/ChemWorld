@@ -447,7 +447,7 @@ def _run_cell(
     with tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-") as temporary:
         agent = InteractiveCodexExperimentAgent(
             workspace=Path(temporary) / "workspace",
-            role_id="work_ii_wellau_sol_medium_persistent_campaign",
+            role_id=f"work_ii_{provider['id']}_{provider['model']}_persistent_campaign",
             model=str(provider["model"]),
             reasoning_effort=str(provider["reasoning_effort"]),
             model_provider=str(provider["id"]),
