@@ -63,6 +63,18 @@ def _limits(task_id: str) -> dict[str, Any]:
             "output_token_limit": 100000,
             "wall_time_limit_s": 9000.0,
         }
+    if task_id in {"partition-discovery", "reaction-safety-constrained"}:
+        # These two five-task development blocks inherit the task-specific
+        # physical/process cards and WellAU pilot envelope.  The DeepSeek
+        # envelope is intentionally task-specific, matching their expected
+        # four-experiment operation-level trajectories rather than using a
+        # single global token or wall-time ceiling.
+        return {
+            "input_token_limit": 4800000,
+            "uncached_input_token_limit": 640000,
+            "output_token_limit": 48000,
+            "wall_time_limit_s": 7200.0,
+        }
     raise ValueError(f"unsupported Work II task: {task_id}")
 
 
@@ -110,18 +122,31 @@ def derive(source: Path, destination: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task", choices=["electrochemical", "crystallization", "distillation"])
+    parser.add_argument(
+        "--task",
+        choices=[
+            "electrochemical",
+            "crystallization",
+            "distillation",
+            "partition",
+            "safety",
+        ],
+    )
     parser.add_argument("--output-dir", type=Path, default=ROOT / "configs/benchmark")
     args = parser.parse_args()
     source_names = {
         "electrochemical": "work_ii_campaign_pilot.json",
         "crystallization": "work_ii_crystallization_campaign.json",
         "distillation": "work_ii_distillation_campaign.json",
+        "partition": "work_ii_partition_campaign.json",
+        "safety": "work_ii_safety_campaign.json",
     }
     target_names = {
         "electrochemical": "work_ii_electrochemical_deepseek_v4_flash_campaign.json",
         "crystallization": "work_ii_crystallization_deepseek_v4_flash_campaign.json",
         "distillation": "work_ii_distillation_deepseek_v4_flash_campaign.json",
+        "partition": "work_ii_partition_deepseek_v4_flash_campaign.json",
+        "safety": "work_ii_safety_deepseek_v4_flash_campaign.json",
     }
     selected = [args.task] if args.task else list(source_names)
     for key in selected:

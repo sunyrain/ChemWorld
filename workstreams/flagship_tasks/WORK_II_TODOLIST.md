@@ -1103,6 +1103,12 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   不构造跨 provider 科学能力排名。机器分析与解释报告：
   `workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-analysis-v0.1.json` 和
   `workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-results-v0.1.md`。
+- [ ] DeepSeek 五任务开发覆盖补齐进行中：保留上述三任务终态，不重跑或替换；新增
+  `partition-discovery` 与 `reaction-safety-constrained` 两个任务的 seed-0 三臂 pilot，只有各自
+  3/3 cells、12/12 experiments、完整 provider 记账和 exact replay 均通过后才扩展到 seeds 0--4。
+  每 cell 仍为一个长驻 Codex process/session、四个共享资源 complete experiments；三臂并发、cell
+  内串行。实验说明：
+  `workstreams/flagship_tasks/experiments/work-ii-deepseek-five-task-completion.md`。
 
 ## 7. 完成定义
 

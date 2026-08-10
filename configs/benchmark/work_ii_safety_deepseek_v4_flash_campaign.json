@@ -1,0 +1,232 @@
+{
+  "schema_version": "chemworld-work-ii-campaign-pilot-0.3",
+  "pilot_id": "work-ii-reaction-safety-constrained-deepseek-v4-flash-prior-campaign",
+  "formal_result": false,
+  "task_id": "reaction-safety-constrained",
+  "world_split": "public-test",
+  "world_seed": 0,
+  "objective": "safe",
+  "episode_mode": "campaign",
+  "observation_noise_mode": "keyed",
+  "observation_noise_namespace": "work-ii-reaction-safety-prior-campaign",
+  "prior_arms": {
+    "opaque": {
+      "mode": "opaque_codes"
+    },
+    "aligned_nominal": {
+      "mode": "anonymous_nominal_properties"
+    },
+    "misindexed_nominal": {
+      "mode": "anonymous_misindexed_properties",
+      "target_field": "catalyst",
+      "descriptor_permutation": [
+        0,
+        2,
+        1,
+        3
+      ]
+    }
+  },
+  "snapshot_stages": [
+    "pre_evidence",
+    "after_experiment_1",
+    "after_experiment_2",
+    "final"
+  ],
+  "belief_checkpoint": {
+    "allowed_feature_ids": [
+      "catalyst",
+      "solvent",
+      "reagent_amount_mol",
+      "catalyst_amount_mol",
+      "reaction_temperature_K",
+      "reaction_duration_s"
+    ],
+    "allowed_metric_ids": [
+      "yield",
+      "selectivity",
+      "safety_risk",
+      "score"
+    ],
+    "allowed_prior_fields": [
+      "catalyst",
+      "solvent"
+    ],
+    "held_out_queries": [
+      {
+        "query_id": "q-c0-s0",
+        "feature_values": {
+          "catalyst": 0,
+          "solvent": 0,
+          "reagent_amount_mol": 0.01,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_temperature_K": 360.0,
+          "reaction_duration_s": 1800.0
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ]
+      },
+      {
+        "query_id": "q-c3-s0",
+        "feature_values": {
+          "catalyst": 3,
+          "solvent": 0,
+          "reagent_amount_mol": 0.01,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_temperature_K": 360.0,
+          "reaction_duration_s": 1800.0
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ]
+      },
+      {
+        "query_id": "q-c0-s3",
+        "feature_values": {
+          "catalyst": 0,
+          "solvent": 3,
+          "reagent_amount_mol": 0.01,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_temperature_K": 360.0,
+          "reaction_duration_s": 1800.0
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ]
+      },
+      {
+        "query_id": "q-c3-s3",
+        "feature_values": {
+          "catalyst": 3,
+          "solvent": 3,
+          "reagent_amount_mol": 0.01,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_temperature_K": 360.0,
+          "reaction_duration_s": 1800.0
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ]
+      }
+    ]
+  },
+  "campaign": {
+    "card_id": "work-ii-reaction-safety-k4-one-repeat",
+    "complete_experiments": 4,
+    "operation_attempt_limit": 40,
+    "vessel_start_limit": 4,
+    "final_assay_limit": 4,
+    "nonfinal_instrument_use_limit": 4,
+    "stock_limits": {
+      "reagent_mol": 0.12,
+      "solvent_L": 0.1,
+      "catalyst_mol": 0.0022
+    },
+    "process_time_limit_s": 36480.0,
+    "implicit_operation_time_s": {
+      "quench": 120.0
+    },
+    "operation_repeat_limits": {
+      "heat": 5,
+      "quench": 4
+    },
+    "process_time_policy": {
+      "pattern_id": "reaction-safety-k4-one-repeat",
+      "required_stage_max_s": 29280.0,
+      "repeat_allowance_s": 7200.0,
+      "implicit_stage_reserve_s": 480.0,
+      "formula": "4 x (heat 7200 s + quench 120 s) + one extra heat stage"
+    },
+    "closeout_policy": {
+      "planned_batches": 4,
+      "final_assay_path_operations_per_batch": 2,
+      "discard_path_operations_per_batch": 1,
+      "final_assay_path_total_operation_reserve": 8,
+      "discard_path_total_operation_reserve": 4,
+      "policy": "participant_controlled_advisory_no_hidden_allocation",
+      "automatic_action_repair": false,
+      "automatic_closeout": false
+    },
+    "checkpoint_complete_experiments": [
+      0,
+      1,
+      2,
+      4
+    ]
+  },
+  "qualification": {
+    "required_operation_counts": {},
+    "max_resource_rejections": 1
+  },
+  "analysis": {
+    "final_metric_ids": [
+      "yield",
+      "selectivity",
+      "safety_risk",
+      "constraint_violations",
+      "score"
+    ]
+  },
+  "method_resources": {
+    "operation_limit": 40,
+    "complete_experiment_limit": 4,
+    "checkpoint_complete_experiments": [
+      1,
+      2,
+      4
+    ],
+    "wall_time_limit_s": 7200.0,
+    "model_call_limit": 1,
+    "input_token_limit": 4800000,
+    "uncached_input_token_limit": 640000,
+    "output_token_limit": 48000,
+    "training_environment_step_limit": 0
+  },
+  "execution": {
+    "max_concurrency": 3,
+    "parallelization_unit": "same_seed_prior_arm_triplet",
+    "within_cell_concurrency": 1,
+    "failure_semantics": "retain cell failures and continue every scheduled seed triplet",
+    "systemic_failure_semantics": "stop only when all three arms fail before the first committed operation",
+    "pilot_expansion_headroom_fraction": 0.2
+  },
+  "provider": {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "base_url": "https://api.deepseek.com/",
+    "wire_api": "responses",
+    "auth_mode": "experimental_bearer_token",
+    "api_key_file": "api.md",
+    "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json",
+    "preferred_auth_method": "apikey",
+    "forced_login_method": "api",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "request_timeout_s": 1200.0,
+    "finalization_timeout_s": 600.0,
+    "session_wall_time_limit_s": 1800.0,
+    "max_recovered_mcp_tool_failures": 3,
+    "max_consecutive_mcp_tool_failures": 1,
+    "max_provider_error_events": 1,
+    "progress_interval_s": 30.0
+  },
+  "provider_qualification": {
+    "basis": "DeepSeek qualification-v2 seed-0 opaque electrochemical cell",
+    "qualification_report": "runs/development/work-ii-deepseek-qualification-v2-seed0-opaque/report.json",
+    "catalog_requirement": "supports_search_tool=false",
+    "session_contract": "one persistent Codex session per task-prior-seed cell"
+  }
+}
