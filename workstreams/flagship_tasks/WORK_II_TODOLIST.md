@@ -806,13 +806,14 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   H3、5 tasks、25 independent clusters、75 cells、300 experiments、300 checkpoints、75 accepted
   sessions、150 provider-attempt hard cap、outcome-neutral gates、failure/censoring rules 和仅含 commitment
   的 private boundary；formal outcomes 和本轮 provider calls 均为 0。2026-08-10 的 clean release
-  receipt `workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json` 最新绑定提交
-  `99eb07bb6f32da83a92cceab71ac49eb54434626`，完成 13-node/17-edge evidence graph、4/4 frozen
+  receipt `workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json` 绑定提交
+  `99eb07bb6f32da83a92cceab71ac49eb54434626`，在生成时完成 13-node/17-edge evidence graph、4/4 frozen
   checks、85/85 Work II tests、clean wheel 和非 editable wheel-target import/config smoke；checkout 前后均
-  clean，provider calls 为 0。readiness v0.1 是该验收前的冻结快照，仍如实列出当时 6 个 blocker；当前台账
-  已由独立 receipt 消除 clean-release blocker，最终 freeze 还缺 5 项：用户路线选择、current-method 真实
-  三臂资格收据、provider/正式货币上限、资格运行校准 ETA，以及执行命令/预算/故障升级的用户签字确认。
-  `scripts/build_work_ii_preregistration_freeze_receipt.py` 已把这 5 项编码为 route-specific、不可伪造的最终
+  clean，provider calls 为 0。该 receipt 之后已有 harness、provider recovery 和结果分析提交，因此目前只保留为
+  历史 clean-release 证据，不能授权当前提交执行正式矩阵。最终 freeze 现缺 6 项：用户路线选择、current-method
+  真实三臂资格收据、provider/正式货币上限、资格运行校准 ETA、最终方法提交上的新 clean-release receipt，
+  以及执行命令/预算/故障升级的用户签字确认。
+  `scripts/build_work_ii_preregistration_freeze_receipt.py` 已把这些项编码为 route-specific、不可伪造的最终
   receipt 生成门，并把 qualification 实际费用/上限与 formal 全矩阵价格表/上限分开；正式上限必须覆盖冻结的
   150 次 provider-attempt 成本，随后由 parent runner 逐调用预留。Nature 路线额外要求 IPA 与 protocol
   registration reference，常规路线要求冻结 target 与 evidence threshold。当前缺失输入下已验证拒绝生成，
@@ -1071,8 +1072,17 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   safety、process-time、operation/repeat 和 exact replay 边界不变，旧运行不覆盖。
 - [x] harness 记录补齐 bounded validation error code/path/detail、连续/累计错误计数、强制终止时明确的
   usage-unavailable 状态和 progress liveness；完成 focused regression 后再生成 clean-commit readiness。
-- [ ] 新约束先执行最小真实 DeepSeek pilot；通过后从 seed 0 启动三个任务各三 prior × 五 seeds 的新
-  development matrices，并将新旧方法版本严格分开分析。
+- [x] recovery-amended 最小真实 DeepSeek pilot 已在三个任务上分别完成 seed-0 三臂：合计 9/9
+  qualified cells、36/36 complete experiments、346/346 committed operations、8 次 recovered MCP
+  failures（单 cell 最大 2、最大连续 1）、0 provider errors、0 resource rejection、9/9 exact replay。
+  三个 task-level matrix wall time 分别为 375.3 s、404.4 s 和 683.0 s；全部落在冻结的 1,800 s
+  session wall 与 amended recovery envelope 内。electrochemical 首次启动时把输出目录误命名为
+  `matrix_report.json`，但其嵌套 matrix report、三臂 summary/trajectory 和 replay 均完整；该路径记账缺陷
+  不改变科学结果，后续完整矩阵必须使用全新 run root，不复用或覆盖 pilot。
+- [ ] 若继续完成 DeepSeek 对照开发块，需从全新 run root 分别启动三个任务的完整
+  `world_seed=0..4 × 三 prior arms` matrices，共 45 个新 cells；pilot 不并入该不可变五-seed 分母，
+  WellAU 与 DeepSeek 仍按 provider/harness 分开分析。该扩展不是当前 WellAU-only formal matrix 的门禁，
+  只有在论文需要跨 provider 的开发性对照时才是必做项。
 
 ## 7. 完成定义
 
