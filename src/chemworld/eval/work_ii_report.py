@@ -19,15 +19,14 @@ from chemworld.eval.work_ii_formal import (
     WorkIIFormalCellStore,
     validate_formal_preflight,
 )
+from chemworld.eval.work_ii_prior_discovery import WORK_II_LAW_SUMMARY_SCHEMA_VERSION
 from chemworld.eval.work_ii_process_profile import (
     WORK_II_EXECUTION_AUDIT_VERSION,
     validate_work_ii_process_profile,
 )
 from chemworld.eval.work_ii_truth import validate_evaluator_truth_report
 
-WORK_II_FORMAL_ANALYSIS_DATASET_VERSION = (
-    "chemworld-work-ii-formal-analysis-dataset-0.1"
-)
+WORK_II_FORMAL_ANALYSIS_DATASET_VERSION = "chemworld-work-ii-formal-analysis-dataset-0.1"
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -56,9 +55,9 @@ def _validate_terminal_receipt(
         errors.append("terminal receipt key mismatch")
     if receipt.get("state") not in FORMAL_TERMINAL_STATES:
         errors.append("terminal receipt state is invalid")
-    if not isinstance(result, Mapping) or receipt.get(
-        "result_sha256"
-    ) != canonical_json_sha256(result if isinstance(result, Mapping) else {}):
+    if not isinstance(result, Mapping) or receipt.get("result_sha256") != canonical_json_sha256(
+        result if isinstance(result, Mapping) else {}
+    ):
         errors.append("terminal receipt result binding mismatch")
     if receipt.get("receipt_sha256") != expected_receipt_hash:
         errors.append("terminal receipt self-hash mismatch")
@@ -80,9 +79,7 @@ def _participant_process_record(
     completed = terminal_state == "completed"
 
     if isinstance(profile, Mapping):
-        errors.extend(
-            f"{cell_id}: {error}" for error in validate_work_ii_process_profile(profile)
-        )
+        errors.extend(f"{cell_id}: {error}" for error in validate_work_ii_process_profile(profile))
     elif completed:
         errors.append(f"{cell_id}: completed cell lacks a participant process profile")
 
@@ -94,13 +91,11 @@ def _participant_process_record(
             errors.append(f"{cell_id}: unexpected participant execution audit schema")
         if audit.get("report_sha256") != expected_audit_hash:
             errors.append(f"{cell_id}: participant execution audit self-hash mismatch")
-        if isinstance(profile, Mapping) and audit.get(
-            "process_profile_sha256"
-        ) != profile.get("profile_sha256"):
-            errors.append(f"{cell_id}: execution audit process-profile binding mismatch")
-        if audit.get("physical_exact_replay_sha256") != canonical_json_sha256(
-            exact_replay
+        if isinstance(profile, Mapping) and audit.get("process_profile_sha256") != profile.get(
+            "profile_sha256"
         ):
+            errors.append(f"{cell_id}: execution audit process-profile binding mismatch")
+        if audit.get("physical_exact_replay_sha256") != canonical_json_sha256(exact_replay):
             errors.append(f"{cell_id}: execution audit physical-replay binding mismatch")
         checks = audit.get("checks")
         if completed and (
@@ -163,6 +158,78 @@ def _participant_process_record(
     )
 
 
+def _final_law_summary_record(analysis: Mapping[str, Any]) -> dict[str, Any]:
+    """Extract typed final-law metadata without substituting evaluator validity."""
+
+    snapshots = analysis.get("belief_snapshots")
+    if isinstance(snapshots, (str, bytes)) or not isinstance(snapshots, Sequence):
+        snapshots = []
+    final_snapshot = next(
+        (item for item in snapshots if isinstance(item, Mapping) and item.get("stage") == "final"),
+        None,
+    )
+    raw_law = final_snapshot.get("law_summary") if isinstance(final_snapshot, Mapping) else None
+    if not isinstance(raw_law, Mapping):
+        return {
+            "status": "missing_final_law_summary",
+            "present": False,
+            "schema_version": None,
+            "schema_version_matches": False,
+            "summary_id": None,
+            "feature_count": 0,
+            "metric_law_count": 0,
+            "term_count": 0,
+            "evidence_reference_count": 0,
+            "confidence": None,
+            "evaluator_executability_status": "not_evaluated",
+            "continuous_prediction_validity_status": "not_evaluated",
+        }
+    feature_ids = raw_law.get("feature_ids")
+    feature_ids = (
+        feature_ids
+        if isinstance(feature_ids, Sequence) and not isinstance(feature_ids, str | bytes)
+        else []
+    )
+    metric_laws = raw_law.get("metric_laws")
+    metric_laws = (
+        metric_laws
+        if isinstance(metric_laws, Sequence) and not isinstance(metric_laws, str | bytes)
+        else []
+    )
+    evidence_ids = raw_law.get("evidence_ids")
+    evidence_ids = (
+        evidence_ids
+        if isinstance(evidence_ids, Sequence) and not isinstance(evidence_ids, str | bytes)
+        else []
+    )
+    term_count = 0
+    for metric_law in metric_laws:
+        if not isinstance(metric_law, Mapping):
+            continue
+        terms = metric_law.get("terms")
+        if isinstance(terms, Sequence) and not isinstance(terms, str | bytes):
+            term_count += len(terms)
+    confidence = raw_law.get("confidence")
+    if isinstance(confidence, bool) or not isinstance(confidence, int | float):
+        confidence = None
+    return {
+        "status": "typed_final_law_summary_present",
+        "present": True,
+        "schema_version": raw_law.get("schema_version"),
+        "schema_version_matches": (
+            raw_law.get("schema_version") == WORK_II_LAW_SUMMARY_SCHEMA_VERSION
+        ),
+        "summary_id": raw_law.get("summary_id"),
+        "feature_count": len(feature_ids),
+        "metric_law_count": len(metric_laws),
+        "term_count": term_count,
+        "evidence_reference_count": len(evidence_ids),
+        "confidence": float(confidence) if confidence is not None else None,
+        "evaluator_executability_status": "not_evaluated",
+        "continuous_prediction_validity_status": "not_evaluated",
+    }
+
+
 def _truth_packs_by_cluster(
     manifest: Mapping[str, Any],
     truth_packs: Mapping[str, Mapping[str, Any]],
@@ -197,8 +264,7 @@ def _truth_packs_by_cluster(
             plan.get("world_cluster_id") != cluster_id
             or plan.get("task_id") != expected["task_id"]
             or plan.get("world_seed") != expected["world_seed"]
-            or plan.get("formal_preflight_sha256")
-            != manifest.get("preflight_sha256")
+            or plan.get("formal_preflight_sha256") != manifest.get("preflight_sha256")
         ):
             errors.append(f"{cluster_id}: evaluator truth identity binding mismatch")
         reports[cluster_id] = report
@@ -264,9 +330,8 @@ def _blind_report_record(
         f"{cell['cell_id']}: {error}"
         for error in validate_blind_evaluation_report(report, plan, receipts)
     ]
-    if (
-        plan.get("cell_key_sha256") != key
-        or plan.get("formal_preflight_sha256") != manifest.get("preflight_sha256")
+    if plan.get("cell_key_sha256") != key or plan.get("formal_preflight_sha256") != manifest.get(
+        "preflight_sha256"
     ):
         errors.append(f"{cell['cell_id']}: blind evaluator identity binding mismatch")
     completed = int(report.get("completed_execution_count", 0))
@@ -277,9 +342,7 @@ def _blind_report_record(
             "completed_execution_count": completed,
             "failed_or_unstarted_execution_count": 6 - completed,
             "report_sha256": report.get("report_sha256"),
-            "recommendation_gain_over_incumbent": report.get(
-                "recommendation_gain_over_incumbent"
-            ),
+            "recommendation_gain_over_incumbent": report.get("recommendation_gain_over_incumbent"),
         },
         errors,
     )
@@ -372,15 +435,16 @@ def build_formal_analysis_dataset(
             "participant_trajectory": trajectory,
             "evaluator_truth_report_sha256": truth_report.get("report_sha256"),
             "checkpoint_error": score,
+            "final_law_summary": _final_law_summary_record(analysis),
             "participant_process": participant_process,
             "blind_outcome": blind,
             "provider_receipt_count": result.get("provider_receipt_count", 0),
             "operation_attempt_count": analysis.get("operation_attempt_count", 0),
         }
         cell_rows.append(row)
-        cluster_arm_rows.setdefault(str(cell["world_cluster_id"]), {})[
-            str(cell["prior_arm"])
-        ] = score
+        cluster_arm_rows.setdefault(str(cell["world_cluster_id"]), {})[str(cell["prior_arm"])] = (
+            score
+        )
 
     cluster_rows: list[dict[str, Any]] = []
     for cluster_id, arm_rows in cluster_arm_rows.items():
@@ -389,18 +453,33 @@ def build_formal_analysis_dataset(
             continue
         first = next(row for row in cell_rows if row["world_cluster_id"] == cluster_id)
         contrast = build_cluster_correction_record(arm_rows)
+        arm_cells = {
+            str(row["prior_arm"]): row for row in cell_rows if row["world_cluster_id"] == cluster_id
+        }
+        arm_terminal_states = {
+            arm: arm_cells[arm]["terminal_state"] for arm in WORK_II_ANALYSIS_ARMS
+        }
+        arm_missing_failure_rules = {
+            arm: arm_rows[arm]["missing_failure_rule"] for arm in WORK_II_ANALYSIS_ARMS
+        }
+        complete_case = all(
+            arm_terminal_states[arm] == "completed"
+            and arm_missing_failure_rules[arm] == "observed_final"
+            for arm in WORK_II_ANALYSIS_ARMS
+        )
         cluster_rows.append(
             {
                 "world_cluster_id": cluster_id,
                 "task_id": first["task_id"],
-                "evaluator_truth_report_sha256": first[
-                    "evaluator_truth_report_sha256"
-                ],
+                "evaluator_truth_report_sha256": first["evaluator_truth_report_sha256"],
                 "arm_terminal_receipt_sha256": {
                     row["prior_arm"]: row["terminal_receipt_sha256"]
                     for row in cell_rows
                     if row["world_cluster_id"] == cluster_id
                 },
+                "arm_terminal_states": arm_terminal_states,
+                "arm_missing_failure_rules": arm_missing_failure_rules,
+                "complete_case": complete_case,
                 **contrast,
             }
         )
@@ -436,8 +515,7 @@ def build_formal_analysis_dataset(
         "blind_completed_execution_count": blind_completed,
         "blind_failed_or_unstarted_execution_count": 450 - blind_completed,
         "primary_estimand": (
-            "(E_misindexed_pre-E_misindexed_final)-"
-            "(E_aligned_pre-E_aligned_final)"
+            "(E_misindexed_pre-E_misindexed_final)-(E_aligned_pre-E_aligned_final)"
         ),
         "statistical_inference_included": False,
         "cell_rows": cell_rows,
@@ -461,8 +539,7 @@ def load_formal_analysis_dataset(
     if audit.get("complete") is not True:
         raise ValueError("formal participant store is not terminal-complete")
     terminal_receipts = [
-        store.load_terminal(str(cell["cell_key_sha256"]))
-        for cell in manifest["cells"]
+        store.load_terminal(str(cell["cell_key_sha256"])) for cell in manifest["cells"]
     ]
     cluster_ids = sorted({str(cell["world_cluster_id"]) for cell in manifest["cells"]})
     truth_packs = {
