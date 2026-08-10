@@ -62,5 +62,8 @@ development matrix with one retained failed cell. The frozen DeepSeek baseline c
 seed-0 pilots are outside this figure. All completion bars display their own denominators; DeepSeek
 exact replay is 21/21 among retained terminal records, not 21/33 scheduled cells. Operational-event
 rates are normalized by operation attempts but remain descriptive because provider, task coverage,
-harness version and recovery policy differ. Cached tokens are cached input tokens and do not indicate
-repeated model output.
+harness version and recovery policy differ. For legacy receipts without an explicit method-level
+counter, the analysis counts all non-completed MCP calls, including both recovered and terminal
+failures; the plotted `MCP tool failures` total therefore is not the same denominator as the explicit
+recovery-gate count in the fallback completion report. Cached tokens are cached input tokens and do
+not indicate repeated model output.

@@ -80,6 +80,7 @@ def configure_matplotlib() -> None:
             "axes.linewidth": 0.75,
             "legend.frameon": False,
             "svg.fonttype": "none",
+            "svg.hashsalt": "chemworld-work-ii-development-figures-0.1",
             "pdf.fonttype": 42,
             "savefig.facecolor": "white",
             "figure.facecolor": "white",
@@ -117,7 +118,12 @@ def load_json(path: Path) -> dict[str, Any]:
 def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=fieldnames,
+            extrasaction="ignore",
+            lineterminator="\n",
+        )
         writer.writeheader()
         writer.writerows(rows)
 
@@ -133,11 +139,15 @@ def sha256_file(path: Path) -> str:
 def export_figure(fig: mpl.figure.Figure, output_dir: Path, stem: str) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     svg_path = output_dir / f"{stem}.svg"
-    fig.savefig(svg_path, bbox_inches="tight")
+    fig.savefig(svg_path, bbox_inches="tight", metadata={"Date": None})
     svg_text = svg_path.read_text(encoding="utf-8")
     with svg_path.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write("\n".join(line.rstrip() for line in svg_text.splitlines()) + "\n")
-    fig.savefig(output_dir / f"{stem}.pdf", bbox_inches="tight")
+    fig.savefig(
+        output_dir / f"{stem}.pdf",
+        bbox_inches="tight",
+        metadata={"CreationDate": None, "ModDate": None},
+    )
     fig.savefig(output_dir / f"{stem}.png", dpi=600, bbox_inches="tight")
     fig.savefig(
         output_dir / f"{stem}.tiff",
@@ -694,7 +704,7 @@ def event_rate_panel(ax: mpl.axes.Axes, provider: dict[str, Any], color: str) ->
     attempts = float(provider["operation_attempt_count"])
     events = [
         ("Validation", int(provider["validation_failure_count"])),
-        ("Recovered MCP", int(provider["recovered_mcp_tool_failure_count"])),
+        ("MCP tool failures", int(provider["recovered_mcp_tool_failure_count"])),
         ("Provider errors", int(provider["provider_error_event_count"])),
         ("Resource rejects", int(provider["resource_rejection_count"])),
     ]
@@ -927,7 +937,7 @@ def make_provider_audit_figure(
         0.10,
         0.027,
         "Exact denominators are printed on every completion bar. *DeepSeek replay is 21/21 among terminal retained records, not 21/33 scheduled cells. "
-        "Operational rates are descriptive: provider, task coverage, harness version and recovery policy differ. Cached tokens are cached input, not repeated model output; providers are not pooled into a scientific contrast. Later recovery-amended seed-0 pilots are excluded from this frozen baseline.",
+        "Operational rates are receipt-normalized and descriptive: provider, task coverage, harness version and recovery policy differ. Cached tokens are cached input, not repeated model output; providers are not pooled into a scientific contrast. Later recovery-amended seed-0 pilots are excluded from this frozen baseline.",
         ha="left",
         va="bottom",
         fontsize=6.6,
@@ -971,9 +981,9 @@ def write_manifest(
             "no law-discovery or transfer claim",
         ],
     }
-    (output_dir / "figure_manifest.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
+    manifest_path = output_dir / "figure_manifest.json"
+    with manifest_path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
 
 
 def main() -> None:
