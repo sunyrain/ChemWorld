@@ -26,8 +26,8 @@ from chemworld.eval.work_ii_qualification import (
 PRERUN_EVIDENCE_GRAPH_VERSION = "chemworld-work-ii-prerun-evidence-graph-0.1"
 CLEAN_RELEASE_RECEIPT_VERSION = "chemworld-work-ii-clean-release-receipt-0.1"
 # Keep the clean-release receipt tied to the full Work II release test set.
-# The audited set currently contains 94 tests across the 13 declared files.
-EXPECTED_WORK_II_RELEASE_TEST_COUNT = 94
+# The audited set currently contains 99 tests across the 14 declared files.
+EXPECTED_WORK_II_RELEASE_TEST_COUNT = 99
 PREREGISTRATION_FREEZE_RECEIPT_VERSION = (
     "chemworld-work-ii-preregistration-freeze-receipt-0.1"
 )

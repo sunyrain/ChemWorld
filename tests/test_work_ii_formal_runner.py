@@ -178,6 +178,9 @@ def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> Non
         "blind_validation_executions": 450,
     }
     assert len(report["blocking_requirements"]) == 5
+    source_paths = {row["path"] for row in report["source_bindings"]}
+    assert "src/chemworld/eval/work_ii_confirmatory.py" in source_paths
+    assert "scripts/analyze_work_ii_confirmatory.py" in source_paths
     assert report["held_out_evaluator_contract"] == {
         "truth_unit": "task_x_world_cluster_x_registered_query",
         "queries_per_task_world_cluster": 4,

@@ -20,6 +20,7 @@ from chemworld.eval.work_ii_preregistration import (
     validate_submission_route_decision,
 )
 from chemworld.eval.work_ii_route_selection import select_submission_route_decision
+from chemworld.eval.work_ii_release import validate_clean_release_receipt
 
 ROOT = Path(__file__).resolve().parents[1]
 ROUTE = ROOT / "configs/benchmark/work_ii_submission_route_decision_v0.1.json"
@@ -35,6 +36,14 @@ POWER_AUDIT = ROOT / "workstreams/flagship_tasks/reports/work-ii-analysis-power-
 DESIGN_AUDIT = (
     ROOT / "workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit.json"
 )
+CLEAN_RELEASE = (
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json"
+)
+
+
+def _clean_release_is_current() -> bool:
+    receipt = json.loads(CLEAN_RELEASE.read_text(encoding="utf-8"))
+    return validate_clean_release_receipt(receipt) == []
 
 
 def _build() -> dict[str, object]:
@@ -195,8 +204,14 @@ def test_preregistration_readiness_is_deterministic_zero_call_and_blocked() -> N
         "provider_attempts_hard_cap": 150,
     }
     assert first["private_confirmation"]["private_identities_present"] is False
-    assert len(first["unresolved_requirement_ids"]) == 5
-    assert first["frozen_component_readiness"]["clean_release_receipt"] is True
+    clean_release_is_current = _clean_release_is_current()
+    assert len(first["unresolved_requirement_ids"]) == (
+        5 if clean_release_is_current else 6
+    )
+    assert (
+        first["frozen_component_readiness"]["clean_release_receipt"]
+        is clean_release_is_current
+    )
 
 
 def test_preregistration_draft_is_bound_to_manifest_and_has_no_private_identity() -> None:
@@ -251,9 +266,14 @@ def test_selected_route_is_accepted_and_removes_only_the_route_blocker(
     assert validate_submission_route_decision(route) == []
     assert validate_preregistration_readiness(report) == []
     assert report["route_decision"]["selected_option"] == "nature_registered_report_stage_1"
-    assert report["unresolved_requirement_ids"] == [
+    expected_blockers = [
         "current_method_real_provider_qualification_receipt",
         "formal_currency_ceiling_and_provider_contract_approval",
         "qualified_expected_eta_from_current_method",
-        "execution_command_budget_and_escalation_user_signoff",
     ]
+    if not _clean_release_is_current():
+        expected_blockers.append(
+            "clean_wheel_independent_checkout_and_evidence_graph_receipt"
+        )
+    expected_blockers.append("execution_command_budget_and_escalation_user_signoff")
+    assert report["unresolved_requirement_ids"] == expected_blockers

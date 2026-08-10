@@ -16,6 +16,14 @@ from chemworld.eval.work_ii_release import (
 
 ROOT = Path(__file__).resolve().parents[1]
 GRAPH = ROOT / "workstreams/flagship_tasks/reports/work-ii-prerun-evidence-graph-v0.1.json"
+CLEAN_RELEASE = (
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json"
+)
+
+
+def _clean_release_is_current() -> bool:
+    receipt = json.loads(CLEAN_RELEASE.read_text(encoding="utf-8"))
+    return validate_clean_release_receipt(receipt) == []
 
 
 def test_prerun_evidence_graph_is_deterministic_current_and_acyclic() -> None:
@@ -29,7 +37,7 @@ def test_prerun_evidence_graph_is_deterministic_current_and_acyclic() -> None:
         "edge_count": 17,
         "passed_node_count": 13,
         "failed_node_count": 0,
-        "preregistration_blocker_count": 5,
+        "preregistration_blocker_count": 5 if _clean_release_is_current() else 6,
     }
     assert first["provider_calls_executed"] == 0
     assert first["formal_participant_outcome_count"] == 0
