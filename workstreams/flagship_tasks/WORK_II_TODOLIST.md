@@ -903,11 +903,11 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] 完成
 - 优先级：P0
 - 验收标准：
-  - [ ] 标题、摘要和第一张图直接呈现先验条件下的规律发现与偏差排除问题；
-  - [ ] 环境 Gate A、agent Outcomes 和 private confirmation 严格分层；
-  - [ ] 主图围绕 prior → experiment → evidence → law summary → transfer 的能力链；
-  - [ ] 不将负结果改写为平台失败，也不扩大未被证据支持的主张；
-  - [ ] 全部代码、协议、轨迹、派生数据、图表和统计表可独立重建；
+  - [x] 标题、摘要和第一张图直接呈现先验条件下的规律发现与偏差排除问题；
+  - [x] 环境 Gate A、agent Outcomes 和 private confirmation 严格分层；
+  - [x] 主图围绕 prior → experiment → evidence → law summary → transfer 的能力链；
+  - [x] 不将负结果改写为平台失败，也不扩大未被证据支持的主张；
+  - [x] 当前开发/设计图表与 PDF 草稿可独立重建；
   - [ ] 证据图、clean wheel、independent checkout 和 final claim audit 通过；
   - [ ] 数据归档、作者信息和投稿包完整。
 - 备注：`Claim: Codex /root — W2-15 — DOING`。已建立 venue-neutral 主稿
@@ -915,8 +915,12 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   `paper/prior_discovery_display_items.md`，并以 `paper/prior_discovery_evidence_map.md` 约束逐项 claim
   ownership。主稿已完成标题、摘要、引言、相关工作、概念框架、五任务正式设计、
   provider-separated 开发结果、预注册 estimand、讨论、方法和发布边界；development、public formal 与 private
-  confirmation 三层证据明确分离，未把 endpoint 或 verbal warning 写成规律发现。正式结果、private transfer、
-  最终图表、统计表与发布包必须等待 W2-12--W2-14 后补齐，故 W2-15 保持 `DOING`。
+  confirmation 三层证据明确分离，未把 endpoint 或 verbal warning 写成规律发现。Figure 1–3、source data、
+  图源、QA 记录和 9 页开发/设计 PDF 草稿已生成并通过 14/14 图源静态 QA、0 overfull/underfull、0 未定义引用、
+  0 LaTeX 错误；入口为 `paper/figures/prior-discovery/README.md`、`paper/figures/prior-discovery/QA.md` 和
+  `paper/exports/prior-discovery-draft/build-manifest.json`。正式结果、private transfer、最终统计表、
+  clean wheel、independent checkout、final claim audit、数据归档和投稿包必须等待 W2-12--W2-14 后补齐，
+  故 W2-15 保持 `DOING`。
 
 ### W2-16 — 物理或高保真桥接（可选增强）
 

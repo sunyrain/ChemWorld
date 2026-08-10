@@ -1,0 +1,117 @@
+\documentclass[10pt,twocolumn]{article}
+
+\usepackage[letterpaper,top=0.67in,bottom=0.72in,left=0.67in,right=0.67in,columnsep=0.24in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{balance}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage{etoolbox}
+\usepackage{amsmath,amssymb}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[font=small,labelfont=bf,labelsep=period]{caption}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[hidelinks,breaklinks=true]{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+\definecolor{chemblue}{HTML}{26577C}
+\definecolor{chemlink}{HTML}{234F70}
+\hypersetup{
+  unicode=true,
+  pdfencoding=auto,
+  colorlinks=true,
+  linkcolor=chemlink,
+  citecolor=chemlink,
+  urlcolor=chemlink,
+  pdftitle={$title$},
+  pdfauthor={$if(pdf_author)$$pdf_author$$else$$for(author)$$author$$sep$; $endfor$$endif$},
+  pdfsubject={$subject$},
+  pdfkeywords={$keywords$}
+}
+
+\setlength{\parindent}{1em}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{1.5em}
+\raggedbottom
+\setlength{\abovedisplayskip}{6pt}
+\setlength{\belowdisplayskip}{9pt}
+\setlength{\abovedisplayshortskip}{4pt}
+\setlength{\belowdisplayshortskip}{9pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{7pt plus 2pt minus 2pt}
+\setlength{\dblfloatsep}{7pt plus 2pt minus 2pt}
+\setlength{\intextsep}{7pt plus 2pt minus 2pt}
+\setcounter{topnumber}{3}
+\setcounter{dbltopnumber}{3}
+\setcounter{totalnumber}{5}
+\renewcommand{\topfraction}{0.94}
+\renewcommand{\dbltopfraction}{0.94}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.82}
+\renewcommand{\dblfloatpagefraction}{0.82}
+\captionsetup{justification=justified,singlelinecheck=false}
+\captionsetup[figure]{skip=5pt}
+\captionsetup[table]{skip=4pt}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\clubpenalty=8000
+\widowpenalty=8000
+\displaywidowpenalty=8000
+\titleformat{\section}{\large\bfseries\color{chemblue}\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000}{}{0pt}{}
+\titlespacing*{\section}{0pt}{10pt plus 2pt minus 1pt}{4pt}
+\titlespacing*{\subsection}{0pt}{7pt plus 2pt minus 1pt}{3pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize Prior Correction in AI Scientists}
+\fancyhead[R]{\footnotesize Working manuscript}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.25pt}
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\AtBeginEnvironment{thebibliography}{\small}
+
+\title{\vspace{-1.8em}\textbf{$title_line_one$\\$title_line_two$}}
+\author{%
+$for(author)$$author.name$$if(author.affiliation_markers)$\textsuperscript{$author.affiliation_markers$}$endif$$sep$, $endfor$%
+$if(affiliation)$\\[0.45em]
+\parbox{0.92\textwidth}{\centering\small
+$for(affiliation)$\textsuperscript{$affiliation.id$}$affiliation.name$$sep$\\[0.25em]
+$endfor$}$endif$%
+$if(correspondence)$\\[0.35em]\small *Correspondence: \texttt{$correspondence$}$endif$%
+}
+\date{$date$}
+
+\begin{document}
+
+\twocolumn[
+\begin{@twocolumnfalse}
+\maketitle
+\begin{abstract}
+$abstract$
+\end{abstract}
+\vspace{0.6em}
+\end{@twocolumnfalse}
+]
+
+$body$
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\balance
+
+\end{document}

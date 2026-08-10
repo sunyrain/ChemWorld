@@ -1,5 +1,7 @@
 ---
 title: "Can AI Scientists Correct a Wrong Prior? Controlled Experiments in Executable Chemical Worlds"
+title_line_one: "Can AI Scientists Correct a Wrong Prior?"
+title_line_two: "Controlled Experiments in Executable Chemical Worlds"
 subject: "Experimental discovery, prior correction and law transfer in AI agents"
 keywords: "AI scientist; autonomous experimentation; scientific priors; bias correction; law discovery; counterfactual prediction; chemical worlds"
 pdf_author: "Jiangjie Qiu; Yijun Li; Xiaonan Wang"
@@ -91,6 +93,19 @@ Development results already establish a consequential boundary: explicit priors 
 but nominal-information warnings and endpoint gains do not reliably reveal whether the supplied prior
 is correct. The formal study therefore asks a narrower and harder question: does autonomously acquired
 evidence selectively repair the wrong prior?
+
+```{=latex}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figures/prior-discovery/figure-1-prior-to-law.pdf}
+\caption{\textbf{From prior to reusable law.}
+\textbf{a,} Opaque, aligned and misindexed dossiers enter the same fixed executable world with matched operations, evidence budget, noise and safety surface.
+\textbf{b,} One persistent session repeatedly predicts, selects an operation, observes the public outcome and updates its belief and executable law summary across a shared-resource campaign.
+\textbf{c,} Participant trajectories and evaluator-owned held-out truth remain separate until the campaign reaches a terminal state; prediction error, calibration and blind recommendation outcomes are scored afterward.
+\textbf{d,} Predictive recovery and evidence-aligned action define four distinguishable phenotypes. Only their joint success, followed by transfer, supports a reusable-law claim; endpoint success or a correct statement alone does not.}
+\label{fig:prior-to-law}
+\end{figure*}
+```
 
 # 2. Related work
 
@@ -225,11 +240,15 @@ provider denominators.
 Let $E_{a,k}$ denote held-out prediction error for prior arm $a$ at checkpoint $k$. The primary
 hypothesis tests selective evidence-driven correction:
 
-$$
-C_{\mathrm{prior}} =
-  (E_{\mathrm{misindexed,pre}}-E_{\mathrm{misindexed,final}})
-  -(E_{\mathrm{aligned,pre}}-E_{\mathrm{aligned,final}}).
-$$
+```{=latex}
+\[
+\begin{aligned}
+C_{\mathrm{prior}}={}&
+  (E_{\mathrm{misindexed,pre}}-E_{\mathrm{misindexed,final}})\\
+&-(E_{\mathrm{aligned,pre}}-E_{\mathrm{aligned,final}}).
+\end{aligned}
+\]
+```
 
 Success requires the lower confidence bound for $C_{\mathrm{prior}}$ to exceed zero, the wrong-prior
 condition to improve, and the aligned condition not to deteriorate beyond a prespecified tolerance.
@@ -241,11 +260,38 @@ Failed scientific cells remain in the denominator and are not replaced. A right-
 its last valid checkpoint forward; a missing final prediction receives zero primary improvement. Only
 a pure infrastructure failure without persisted trajectory may resume under the frozen attempt cap.
 
+```{=latex}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figures/prior-discovery/figure-2-formal-cohort.pdf}
+\caption{\textbf{Frozen cohort and evidence architecture.}
+\textbf{a,} Five task families each contribute five public-formal worlds selected independently of participant outcomes; development, public and private identities are disjoint.
+\textbf{b,} Each independent task--world cluster contains opaque, aligned and misindexed participant cells. Every cell uses one persistent session for four complete experiments, with checkpoints before evidence and after one, two and four experiments.
+\textbf{c,} Participant trajectories, evaluator-held truth, blind outcome replay and private confirmation retain separate resources and records and are joined only after terminal execution.
+\textbf{d,} The planned public denominator comprises 25 independent clusters, 75 participant cells and 300 complete experiments, with 100 provider-free held-out truth executions and 450 provider-free blind executions nested within the corresponding clusters. These are frozen design denominators, not completed outcomes.}
+\label{fig:formal-cohort}
+\end{figure*}
+\FloatBarrier
+```
+
 # 5. Development evidence
 
 The following results qualify the method and sharpen the scientific question. They are not part of
 the public formal or private-confirmation denominator, and the two provider configurations are not
 used for a cross-provider capability ranking.
+
+```{=latex}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figures/prior-discovery/figure-3-development-prior-effects.pdf}
+\caption{\textbf{Provider-separated development evidence for prior-sensitive behavior.}
+\textbf{a,b,} Paired world-seed differences in the best endpoint observed during four-experiment campaigns for aligned versus opaque and misindexed versus opaque information. Points are retained paired seeds and horizontal bars are descriptive means. WellAU/Codex contains five pairs per task except the aligned distillation contrast ($n=4$); DeepSeek recovery contains five pairs except the misindexed crystallization contrast ($n=4$).
+\textbf{c,} Final explicit misindex warnings, shown as flagged cells over available terminal belief records for every provider, task and prior arm.
+\textbf{d,} Completed-cell, complete-experiment and exact-replay denominators. Failures remain in the scheduled or terminal denominator and are not replaced. All panels are development-only descriptive summaries; no confidence interval, formal hypothesis test or cross-provider capability comparison is performed. Endpoint gains and verbal warnings do not establish law discovery, selective wrong-prior correction or transfer.}
+\label{fig:development-prior-effects}
+\end{figure*}
+\FloatBarrier
+```
 
 ## 5.1 Explicit priors reshape endpoint behavior
 
@@ -261,11 +307,23 @@ A separate recovery-amended DeepSeek development matrix reached terminal records
 trajectories. The two incomplete cells were retained participant--tool contract failures in the
 crystallization task, with zero provider errors and zero resource rejections.
 
-| Task | Aligned minus opaque | Misindexed minus opaque |
-|---|---:|---:|
-| Electrochemical conversion | +0.0785, $n=5$ | +0.0915, $n=5$ |
-| Reaction to crystallization | +0.0305, $n=5$ | +0.0690, $n=4$ |
-| Reaction to distillation | +0.0374, $n=5$ | +0.1080, $n=5$ |
+```{=latex}
+\begin{table}[!t]
+\centering
+\caption{\textbf{DeepSeek recovery-amended development endpoint contrasts.} Values are descriptive paired-seed means in best endpoint score.}
+\label{tab:deepseek-development-contrasts}
+\scriptsize
+\begin{tabular}{lcc}
+\toprule
+Task & \shortstack{Aligned--\\opaque} & \shortstack{Misindexed--\\opaque} \\
+\midrule
+Electrochemical & $+0.0785$ ($n=5$) & $+0.0915$ ($n=5$) \\
+Crystallization & $+0.0305$ ($n=5$) & $+0.0690$ ($n=4$) \\
+Distillation & $+0.0374$ ($n=5$) & $+0.1080$ ($n=5$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+```
 
 The ordering is not aligned, opaque, then misindexed. In distillation, every paired seed favored both
 explicit-information arms over opaque identifiers, and the misindexed mean gain was larger. A better
