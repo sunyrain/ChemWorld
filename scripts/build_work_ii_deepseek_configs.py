@@ -8,7 +8,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -40,10 +39,10 @@ def _provider() -> dict[str, Any]:
 def _limits(task_id: str) -> dict[str, Any]:
     if task_id == "electrochemical-conversion":
         return {
-            "input_token_limit": 2750000,
-            "uncached_input_token_limit": 320000,
-            "output_token_limit": 60000,
-            "wall_time_limit_s": 5400.0,
+            "input_token_limit": 4000000,
+            "uncached_input_token_limit": 400000,
+            "output_token_limit": 80000,
+            "wall_time_limit_s": 7200.0,
         }
     if task_id == "reaction-to-crystallization":
         return {

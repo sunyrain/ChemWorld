@@ -15,10 +15,11 @@ retained and the affected seed triplet is terminal before later seeds advance.
 Measurements: operation attempts and committed operations; complete lifecycles; final metrics;
 belief snapshots; campaign stock, process-time, instrument, sample, cost and risk ledgers; provider
 usage; session/MCP receipts; failures; and exact replay. Task-specific process caps and repeat,
-quench and transfer allowances remain those in the source task cards. DeepSeek method envelopes are
-frozen before the first task pilot: electrochemical 2.75M cumulative input / 320k uncached / 60k
-output tokens, crystallization and distillation 5.5M cumulative input / 800k uncached / 80k output,
-with the task-card wall-time caps unchanged.
+quench and transfer allowances remain those in the source task cards. The replacement DeepSeek
+method envelopes are task-pattern specific: electrochemical 4.0M cumulative input / 400k uncached /
+80k output tokens / 7,200 s session wall; crystallization and distillation 5.5M cumulative input /
+800k uncached / 80k output / 7,200 s session wall. Physical task-card process-time caps remain
+unchanged.
 
 Pass/failure: a pilot or five-seed block passes only when every scheduled cell completes four
 experiments and four checkpoints, retains one campaign session, stays within its task envelope,
@@ -60,6 +61,14 @@ operation attempts, 32 MCP calls, zero failed `step` calls, exact replay and hos
 commitment. Usage was 2,216,172 cumulative input (76,396 uncached) and 38,150 output tokens, all
 inside the unchanged electrochemical envelope. The replacement five-seed electrochemical block is
 therefore authorized to restart from seed 0 under MCP 0.7.
+
+The first MCP-0.7 replacement attempt retained zero failed tool calls but exposed a genuine
+task-pattern envelope tail: seed-1 aligned completed 27 valid operations and all closeout checks at
+2,966,829 cumulative input and 59,384 output tokens, exceeding only the previous 2.75M input cap.
+Before another replacement run, the electrochemical method envelope was revised to 4.0M cumulative
+input, 400k uncached input, 80k output and 7,200 s session wall. This amendment does not change the
+28-attempt physical budget, four-experiment denominator, repeat allowance, process-time card,
+coverage, seeds or scientific pass/failure criteria; the affected task block restarts from seed 0.
 
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
