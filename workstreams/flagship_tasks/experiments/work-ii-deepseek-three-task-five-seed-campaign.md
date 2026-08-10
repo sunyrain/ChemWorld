@@ -77,6 +77,14 @@ campaign stock and produced one `campaign_resource_rejected` event; the frozen
 `no_resource_rejection` check therefore failed and seed 4 was not started. This is retained as agent
 resource-allocation behavior, not repaired or replaced as a platform failure.
 
+The first DeepSeek crystallization pilot exposed the analogous task-pattern tail: seed-0
+misindexed completed all physical and closeout checks with no resource rejection, but reached
+5,599,410 cumulative input tokens against the previous 5.5M cap. Before replacement execution,
+crystallization and distillation envelopes were revised to 7.0M cumulative input, 1.0M uncached
+input, 100k output and 9,000 s session wall. This is an operational envelope amendment only; the
+physical budgets, repeat/quench/transfer allowances, coverage, seeds and scientific qualification
+rules remain frozen. The crystallization pilot restarts from seed 0.
+
 Expected outputs: one machine-readable report per task, external heartbeat JSONL, concise combined
 summary, and retained per-cell trajectories under `runs/development/`. Credentials, raw provider
 payloads and private reasoning are not committed.

@@ -46,17 +46,17 @@ def _limits(task_id: str) -> dict[str, Any]:
         }
     if task_id == "reaction-to-crystallization":
         return {
-            "input_token_limit": 5500000,
-            "uncached_input_token_limit": 800000,
-            "output_token_limit": 80000,
-            "wall_time_limit_s": 7200.0,
+            "input_token_limit": 7000000,
+            "uncached_input_token_limit": 1000000,
+            "output_token_limit": 100000,
+            "wall_time_limit_s": 9000.0,
         }
     if task_id == "reaction-to-distillation":
         return {
-            "input_token_limit": 5500000,
-            "uncached_input_token_limit": 800000,
-            "output_token_limit": 80000,
-            "wall_time_limit_s": 7200.0,
+            "input_token_limit": 7000000,
+            "uncached_input_token_limit": 1000000,
+            "output_token_limit": 100000,
+            "wall_time_limit_s": 9000.0,
         }
     raise ValueError(f"unsupported Work II task: {task_id}")
 
