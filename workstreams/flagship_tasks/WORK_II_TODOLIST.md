@@ -920,9 +920,11 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   ownership。主稿已完成标题、摘要、引言、相关工作、概念框架、五任务正式设计、
   provider-separated 开发结果、预注册 estimand、讨论、方法和发布边界；development、public formal 与 private
   confirmation 三层证据明确分离，未把 endpoint 或 verbal warning 写成规律发现。Figure 1–3、source data、
-  图源、QA 记录和 9 页开发/设计 PDF 草稿已生成。DeepSeek 五任务开发 closeout 已纳入摘要、Results、证据图、
-  display plan 和构建 manifest：三项五-seed 任务继续承担 descriptive prior contrasts；partition/safety 仅作为
-  seed-0 expansion-gate 与资源/工具边界，未被提升为任务级科学对比。新增五任务终态表已完成 PDF 视觉检查，
+  图源、QA 记录和 9 页开发/设计 PDF 草稿已生成。DeepSeek 五任务 development completion 已纳入摘要、Results、
+  证据图、display plan 和构建 manifest：75/75 terminal、69/75 completed/qualified、290/300 complete
+  experiments、75/75 exact replay；partition/safety 的 seed-0 失败与 seeds 1--4 continuation 均保留，
+  但其 task-pattern continuation 仍只作 operational/descriptive evidence，不与 Figure 3 的 common
+  three-task endpoint source 混合。新增五任务终态表已完成 PDF 视觉检查，
   当前构建为 0 overfull/underfull、0 未定义引用、0 LaTeX 错误；入口为
   `paper/figures/prior-discovery/README.md`、`paper/figures/prior-discovery/QA.md` 和
   `paper/exports/prior-discovery-draft/build-manifest.json`。正式结果、private transfer、最终统计表、

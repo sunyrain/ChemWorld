@@ -49,6 +49,34 @@ No failed cell was replaced by a favorable rerun. The two continuation task-spec
 ceilings were frozen before execution; physical process-time formulas, operation/repeat budgets,
 resource rejection policy, recovery limits, one-session semantics and exact replay were unchanged.
 
+## Descriptive endpoint and warning summaries
+
+The following paired differences are descriptive means of the best observed endpoint score. They
+are not formal tests, are not pooled across providers, and do not turn endpoint behavior into a law-
+discovery claim.
+
+| Task | Aligned − opaque | Misindexed − opaque |
+|---|---:|---:|
+| Electrochemical conversion | +0.0785 (n=5) | +0.0915 (n=5) |
+| Reaction to crystallization | +0.0305 (n=5) | +0.0690 (n=4) |
+| Reaction to distillation | +0.0374 (n=5) | +0.1080 (n=5) |
+| Partition discovery | −0.1397 (n=5) | −0.1063 (n=5) |
+| Safety-constrained reaction | +0.0223 (n=5) | −0.0196 (n=5) |
+
+Final explicit misindex warnings over available terminal belief records were:
+
+| Task | Opaque | Aligned | Misindexed |
+|---|---:|---:|---:|
+| Electrochemical conversion | 0/5 | 5/5 | 3/5 |
+| Reaction to crystallization | 0/4 | 5/5 | 4/4 |
+| Reaction to distillation | 0/5 | 5/5 | 5/5 |
+| Partition discovery | 0/4 | 2/4 | 3/4 |
+| Safety-constrained reaction | 0/5 | 2/4 | 0/5 |
+
+These warning records show dossier-presence suspicion more reliably than selective identification of
+the deliberately misindexed dossier. The denominators are available terminal belief records, not
+independent scientific samples.
+
 ## Interpretation boundary
 
 This is a provider-separated development completion, not the public formal matrix. It supports an
