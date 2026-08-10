@@ -1061,6 +1061,18 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   不再重跑。WellAU fallback 覆盖 45/45 scheduled terminal cells，其中 44/45 completed、176/180
   experiments、44/45 exact replay、0 resource rejection；唯一 participant/harness failure 原样保留。
   完成报告：`workstreams/flagship_tasks/reports/work-ii-provider-fallback-completion.md`。
+- [x] 现有结果的 provider-separated 基础分析与审计已完成：WellAU prior 对比只使用 15 个 task×seed
+  三臂配对簇，DeepSeek partial runs 只进入 harness audit；未混合 provider 分母，未执行 formal test。
+  结果显示 aligned prior 的 endpoint 收益集中于 electrochemical/crystallization，misindexed endpoint
+  并不稳定受损，而显式 misindex 报警存在较高 false positive。机器摘要与解释报告：
+  `workstreams/flagship_tasks/reports/work-ii-development-basic-analysis-v0.1.{json,md}`。
+- [ ] 在新的真实 provider 数据产生前冻结 recovery amendment：每 cell MCP failure 总量 ≤3、连续失败
+  ≤1、provider error event ≤1、resource rejection ≤1 且作为 participant behavior 保留；物理资源、
+  safety、process-time、operation/repeat 和 exact replay 边界不变，旧运行不覆盖。
+- [ ] harness 记录补齐 bounded validation error code/path/detail、连续/累计错误计数、强制终止时明确的
+  usage-unavailable 状态和 progress liveness；完成 focused regression 后再生成 clean-commit readiness。
+- [ ] 新约束先执行最小真实 DeepSeek pilot；通过后从 seed 0 启动三个任务各三 prior × 五 seeds 的新
+  development matrices，并将新旧方法版本严格分开分析。
 
 ## 7. 完成定义
 

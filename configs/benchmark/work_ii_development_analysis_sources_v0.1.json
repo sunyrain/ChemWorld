@@ -1,0 +1,64 @@
+{
+  "schema_version": "chemworld-work-ii-development-analysis-sources-0.1",
+  "analysis_id": "work-ii-three-task-development-baseline-2026-08-10",
+  "analysis_date": "2026-08-10",
+  "formal_result": false,
+  "interpretation_contract": {
+    "primary_scientific_provider_group": "wellau_fallback",
+    "deepseek_role": "separate_provider_harness_audit_only",
+    "mix_provider_cells_in_prior_contrasts": false,
+    "held_out_evaluator_available": false,
+    "blind_recommendation_evaluator_available": false,
+    "formal_inference_allowed": false
+  },
+  "sources": [
+    {
+      "source_id": "wellau-electrochemical-five-seed",
+      "provider_group": "wellau_fallback",
+      "provider_id": "wellau",
+      "task_id": "electrochemical-conversion",
+      "path": "runs/development/work-ii-electrochemical-five-seed-20260808T184013/matrix_report.json",
+      "sha256": "61793dbedcb34046e2e4011469d3eb97524458c05dff839bca4465a824bdf91a"
+    },
+    {
+      "source_id": "wellau-crystallization-five-seed",
+      "provider_group": "wellau_fallback",
+      "provider_id": "wellau",
+      "task_id": "reaction-to-crystallization",
+      "path": "runs/development/work-ii-crystallization-five-seed-rerun2/matrix_report.json",
+      "sha256": "3baa5e5edf763c3fb54f59445eb6ff7b8c6c71c90ee21396e34ee6aed5113d52"
+    },
+    {
+      "source_id": "wellau-distillation-five-seed",
+      "provider_group": "wellau_fallback",
+      "provider_id": "wellau",
+      "task_id": "reaction-to-distillation",
+      "path": "runs/development/work-ii-distillation-five-seed-run1/matrix_report.json",
+      "sha256": "26c57db3b774a1ffe24be6f5a67c537974f82ac92c448babfa5f9fe793077b8f"
+    },
+    {
+      "source_id": "deepseek-electrochemical-guarded-attempt",
+      "provider_group": "deepseek_attempt",
+      "provider_id": "deepseek",
+      "task_id": "electrochemical-conversion",
+      "path": "runs/development/work-ii-deepseek-electrochemical-five-seed-envelope-v4/matrix_report.json",
+      "sha256": "a7bfd5f77c957b31139237ce7acec69413fc419163efe5202eef1358931a23b3"
+    },
+    {
+      "source_id": "deepseek-crystallization-guarded-attempt",
+      "provider_group": "deepseek_attempt",
+      "provider_id": "deepseek",
+      "task_id": "reaction-to-crystallization",
+      "path": "runs/development/work-ii-deepseek-crystallization-five-seed-guarded-5c4254f3/matrix_report.json",
+      "sha256": "73ef1e513afefd314fb781dff1c5ac3b890ebbc2b7cd26790748b9af85305405"
+    },
+    {
+      "source_id": "deepseek-distillation-guarded-pilot",
+      "provider_group": "deepseek_attempt",
+      "provider_id": "deepseek",
+      "task_id": "reaction-to-distillation",
+      "path": "runs/development/work-ii-deepseek-distillation-seed0-pilot-guarded-c78be460/matrix_report.json",
+      "sha256": "8d826106727f21782621c82bca97730f984da10b154137929decc6006d481ed1"
+    }
+  ]
+}

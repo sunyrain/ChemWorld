@@ -1,0 +1,3532 @@
+{
+  "analysis_date": "2026-08-10",
+  "analysis_id": "work-ii-three-task-development-baseline-2026-08-10",
+  "analysis_sha256": "c210d085424693885a2a085bd42e15cdcb1835893af09e1e467d9184114b6f3f",
+  "audit": {
+    "formal_hypothesis_tests_run": false,
+    "limitations": [
+      "development data only",
+      "five world seeds per task",
+      "one retained WellAU failed cell",
+      "no evaluator-truth prediction-error scoring",
+      "no blind recommendation replay",
+      "DeepSeek partial attempts are harness evidence and are not mixed into prior contrasts"
+    ],
+    "provider_groups_mixed_in_prior_contrasts": false,
+    "wellau_final_law_summaries_schema_present_count": 44,
+    "wellau_final_recommendation_committed_count": 0,
+    "wellau_predictions_scored_against_evaluator_truth": false
+  },
+  "deepseek_attempt": {
+    "denominators": {
+      "committed_operation_count": 617,
+      "complete_experiment_count": 78,
+      "completed_cell_count": 18,
+      "exact_replay_verified_count": 21,
+      "expected_cell_count": 33,
+      "failed_cells": [
+        {
+          "arm": "misindexed_nominal",
+          "complete_experiment_count": 4,
+          "failure": null,
+          "qualification_failed_checks": [
+            "no_resource_rejection"
+          ],
+          "task_id": "electrochemical-conversion",
+          "world_seed": 3
+        },
+        {
+          "arm": "misindexed_nominal",
+          "complete_experiment_count": 1,
+          "failure": {
+            "message": "Codex session crossed a frozen operational limit before action acceptance; no fallback action was emitted: max_recovered_mcp_tool_failures",
+            "type": "InteractiveCodexExperimentError"
+          },
+          "qualification_failed_checks": [
+            "planned_complete_experiments",
+            "four_typed_belief_checkpoints",
+            "one_campaign_session",
+            "provider_session_completed",
+            "final_recommendation_committed",
+            "campaign_terminal",
+            "provider_usage_reconciled",
+            "provider_operational_limits_reconciled"
+          ],
+          "task_id": "reaction-to-crystallization",
+          "world_seed": 1
+        },
+        {
+          "arm": "aligned_nominal",
+          "complete_experiment_count": 1,
+          "failure": {
+            "message": "Codex session crossed a frozen operational limit before action acceptance; no fallback action was emitted: max_recovered_mcp_tool_failures",
+            "type": "InteractiveCodexExperimentError"
+          },
+          "qualification_failed_checks": [
+            "planned_complete_experiments",
+            "four_typed_belief_checkpoints",
+            "one_campaign_session",
+            "provider_session_completed",
+            "final_recommendation_committed",
+            "campaign_terminal",
+            "provider_usage_reconciled",
+            "provider_operational_limits_reconciled"
+          ],
+          "task_id": "reaction-to-distillation",
+          "world_seed": 0
+        }
+      ],
+      "operation_attempt_count": 620,
+      "provider_error_entry_count": 1,
+      "provider_error_event_count": 1,
+      "provider_usage_accounting_complete_cell_count": 19,
+      "provider_usage_totals": {
+        "cached_input_token_count": 54747648.0,
+        "input_cache_hit_ratio": 0.968252253299375,
+        "input_token_count": 56542753.0,
+        "output_token_count": 710530.0,
+        "uncached_input_token_count": 1795105.0
+      },
+      "qualified_cell_count": 18,
+      "recovered_mcp_tool_failure_count": 14,
+      "resource_rejection_count": 1,
+      "terminal_record_count": 21,
+      "validation_failure_count": 2
+    },
+    "task_attempts": {
+      "electrochemical-conversion": {
+        "committed_operation_count": 299,
+        "complete_experiment_count": 48,
+        "completed_cell_count": 11,
+        "exact_replay_verified_count": 12,
+        "expected_cell_count": 15,
+        "failed_cells": [
+          {
+            "arm": "misindexed_nominal",
+            "complete_experiment_count": 4,
+            "failure": null,
+            "qualification_failed_checks": [
+              "no_resource_rejection"
+            ],
+            "task_id": "electrochemical-conversion",
+            "world_seed": 3
+          }
+        ],
+        "operation_attempt_count": 300,
+        "provider_error_entry_count": 1,
+        "provider_error_event_count": 1,
+        "provider_usage_accounting_complete_cell_count": 12,
+        "provider_usage_totals": {
+          "cached_input_token_count": 23599232.0,
+          "input_cache_hit_ratio": 0.963078883828706,
+          "input_token_count": 24503945.0,
+          "output_token_count": 400020.0,
+          "uncached_input_token_count": 904713.0
+        },
+        "qualified_cell_count": 11,
+        "recovered_mcp_tool_failure_count": 8,
+        "resource_rejection_count": 1,
+        "terminal_record_count": 12,
+        "validation_failure_count": 0
+      },
+      "reaction-to-crystallization": {
+        "committed_operation_count": 220,
+        "complete_experiment_count": 21,
+        "completed_cell_count": 5,
+        "exact_replay_verified_count": 6,
+        "expected_cell_count": 15,
+        "failed_cells": [
+          {
+            "arm": "misindexed_nominal",
+            "complete_experiment_count": 1,
+            "failure": {
+              "message": "Codex session crossed a frozen operational limit before action acceptance; no fallback action was emitted: max_recovered_mcp_tool_failures",
+              "type": "InteractiveCodexExperimentError"
+            },
+            "qualification_failed_checks": [
+              "planned_complete_experiments",
+              "four_typed_belief_checkpoints",
+              "one_campaign_session",
+              "provider_session_completed",
+              "final_recommendation_committed",
+              "campaign_terminal",
+              "provider_usage_reconciled",
+              "provider_operational_limits_reconciled"
+            ],
+            "task_id": "reaction-to-crystallization",
+            "world_seed": 1
+          }
+        ],
+        "operation_attempt_count": 222,
+        "provider_error_entry_count": 0,
+        "provider_error_event_count": 0,
+        "provider_usage_accounting_complete_cell_count": 5,
+        "provider_usage_totals": {
+          "cached_input_token_count": 21019648.0,
+          "input_cache_hit_ratio": 0.9715797082873208,
+          "input_token_count": 21634507.0,
+          "output_token_count": 205679.0,
+          "uncached_input_token_count": 614859.0
+        },
+        "qualified_cell_count": 5,
+        "recovered_mcp_tool_failure_count": 3,
+        "resource_rejection_count": 0,
+        "terminal_record_count": 6,
+        "validation_failure_count": 2
+      },
+      "reaction-to-distillation": {
+        "committed_operation_count": 98,
+        "complete_experiment_count": 9,
+        "completed_cell_count": 2,
+        "exact_replay_verified_count": 3,
+        "expected_cell_count": 3,
+        "failed_cells": [
+          {
+            "arm": "aligned_nominal",
+            "complete_experiment_count": 1,
+            "failure": {
+              "message": "Codex session crossed a frozen operational limit before action acceptance; no fallback action was emitted: max_recovered_mcp_tool_failures",
+              "type": "InteractiveCodexExperimentError"
+            },
+            "qualification_failed_checks": [
+              "planned_complete_experiments",
+              "four_typed_belief_checkpoints",
+              "one_campaign_session",
+              "provider_session_completed",
+              "final_recommendation_committed",
+              "campaign_terminal",
+              "provider_usage_reconciled",
+              "provider_operational_limits_reconciled"
+            ],
+            "task_id": "reaction-to-distillation",
+            "world_seed": 0
+          }
+        ],
+        "operation_attempt_count": 98,
+        "provider_error_entry_count": 0,
+        "provider_error_event_count": 0,
+        "provider_usage_accounting_complete_cell_count": 2,
+        "provider_usage_totals": {
+          "cached_input_token_count": 10128768.0,
+          "input_cache_hit_ratio": 0.9735173943929535,
+          "input_token_count": 10404301.0,
+          "output_token_count": 104831.0,
+          "uncached_input_token_count": 275533.0
+        },
+        "qualified_cell_count": 2,
+        "recovered_mcp_tool_failure_count": 3,
+        "resource_rejection_count": 0,
+        "terminal_record_count": 3,
+        "validation_failure_count": 0
+      }
+    }
+  },
+  "formal_result": false,
+  "interpretation_contract": {
+    "blind_recommendation_evaluator_available": false,
+    "deepseek_role": "separate_provider_harness_audit_only",
+    "formal_inference_allowed": false,
+    "held_out_evaluator_available": false,
+    "mix_provider_cells_in_prior_contrasts": false,
+    "primary_scientific_provider_group": "wellau_fallback"
+  },
+  "schema_version": "chemworld-work-ii-development-analysis-0.1",
+  "sources": [
+    {
+      "expected_cell_count": 15,
+      "matrix_elapsed_s": 2661.4,
+      "path": "runs/development/work-ii-electrochemical-five-seed-20260808T184013/matrix_report.json",
+      "provider_group": "wellau_fallback",
+      "provider_id": "wellau",
+      "sha256": "61793dbedcb34046e2e4011469d3eb97524458c05dff839bca4465a824bdf91a",
+      "source_id": "wellau-electrochemical-five-seed",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "expected_cell_count": 15,
+      "matrix_elapsed_s": 6120.0,
+      "path": "runs/development/work-ii-crystallization-five-seed-rerun2/matrix_report.json",
+      "provider_group": "wellau_fallback",
+      "provider_id": "wellau",
+      "sha256": "3baa5e5edf763c3fb54f59445eb6ff7b8c6c71c90ee21396e34ee6aed5113d52",
+      "source_id": "wellau-crystallization-five-seed",
+      "task_id": "reaction-to-crystallization"
+    },
+    {
+      "expected_cell_count": 15,
+      "matrix_elapsed_s": 3068.9,
+      "path": "runs/development/work-ii-distillation-five-seed-run1/matrix_report.json",
+      "provider_group": "wellau_fallback",
+      "provider_id": "wellau",
+      "sha256": "26c57db3b774a1ffe24be6f5a67c537974f82ac92c448babfa5f9fe793077b8f",
+      "source_id": "wellau-distillation-five-seed",
+      "task_id": "reaction-to-distillation"
+    },
+    {
+      "expected_cell_count": 15,
+      "matrix_elapsed_s": 1515.6,
+      "path": "runs/development/work-ii-deepseek-electrochemical-five-seed-envelope-v4/matrix_report.json",
+      "provider_group": "deepseek_attempt",
+      "provider_id": "deepseek",
+      "sha256": "a7bfd5f77c957b31139237ce7acec69413fc419163efe5202eef1358931a23b3",
+      "source_id": "deepseek-electrochemical-guarded-attempt",
+      "task_id": "electrochemical-conversion"
+    },
+    {
+      "expected_cell_count": 15,
+      "matrix_elapsed_s": 873.3,
+      "path": "runs/development/work-ii-deepseek-crystallization-five-seed-guarded-5c4254f3/matrix_report.json",
+      "provider_group": "deepseek_attempt",
+      "provider_id": "deepseek",
+      "sha256": "73ef1e513afefd314fb781dff1c5ac3b890ebbc2b7cd26790748b9af85305405",
+      "source_id": "deepseek-crystallization-guarded-attempt",
+      "task_id": "reaction-to-crystallization"
+    },
+    {
+      "expected_cell_count": 3,
+      "matrix_elapsed_s": 619.3,
+      "path": "runs/development/work-ii-deepseek-distillation-seed0-pilot-guarded-c78be460/matrix_report.json",
+      "provider_group": "deepseek_attempt",
+      "provider_id": "deepseek",
+      "sha256": "8d826106727f21782621c82bca97730f984da10b154137929decc6006d481ed1",
+      "source_id": "deepseek-distillation-guarded-pilot",
+      "task_id": "reaction-to-distillation"
+    }
+  ],
+  "wellau_fallback": {
+    "complete_three_arm_cluster_count": 14,
+    "denominators": {
+      "committed_operation_count": 1524,
+      "complete_experiment_count": 176,
+      "completed_cell_count": 44,
+      "exact_replay_verified_count": 44,
+      "expected_cell_count": 45,
+      "failed_cells": [
+        {
+          "arm": "aligned_nominal",
+          "complete_experiment_count": 0,
+          "failure": {
+            "message": "Codex failed before the next executable operation; no fallback action was emitted",
+            "type": "InteractiveCodexExperimentError"
+          },
+          "qualification_failed_checks": [
+            "planned_complete_experiments",
+            "four_typed_belief_checkpoints",
+            "one_campaign_session",
+            "provider_session_completed",
+            "campaign_terminal",
+            "process_time_reconciled",
+            "exact_replay"
+          ],
+          "task_id": "reaction-to-distillation",
+          "world_seed": 4
+        }
+      ],
+      "operation_attempt_count": 1547,
+      "provider_error_entry_count": 24,
+      "provider_error_event_count": 39,
+      "provider_usage_accounting_complete_cell_count": 45,
+      "provider_usage_totals": {
+        "cached_input_token_count": 52824576.0,
+        "input_cache_hit_ratio": 0.8890861771850459,
+        "input_token_count": 59414461.0,
+        "output_token_count": 406611.0,
+        "uncached_input_token_count": 6589885.0
+      },
+      "qualified_cell_count": 44,
+      "recovered_mcp_tool_failure_count": 91,
+      "resource_rejection_count": 0,
+      "terminal_record_count": 45,
+      "validation_failure_count": 23
+    },
+    "task_reports": {
+      "electrochemical-conversion": {
+        "arm_summaries": {
+          "aligned_nominal": {
+            "belief": {
+              "final_evidence_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 4.0,
+                "median": 4.0,
+                "minimum": 4.0,
+                "sample_sd": 0.0
+              },
+              "final_law_confidence": {
+                "count": 5,
+                "maximum": 0.82,
+                "mean": 0.744,
+                "median": 0.75,
+                "minimum": 0.67,
+                "sample_sd": 0.06804410334481598
+              },
+              "final_law_feature_count": {
+                "count": 5,
+                "maximum": 6.0,
+                "mean": 6.0,
+                "median": 6.0,
+                "minimum": 6.0,
+                "sample_sd": 0.0
+              },
+              "final_law_term_count": {
+                "count": 5,
+                "maximum": 17.0,
+                "mean": 11.2,
+                "median": 12.0,
+                "minimum": 6.0,
+                "sample_sd": 4.324349662087931
+              },
+              "final_misindex_flag_count": 1,
+              "final_misindex_flag_denominator": 5,
+              "final_overall_confidence": {
+                "count": 5,
+                "maximum": 0.84,
+                "mean": 0.754,
+                "median": 0.76,
+                "minimum": 0.67,
+                "sample_sd": 0.07797435475847167
+              },
+              "final_prior_reliability": {
+                "count": 5,
+                "maximum": 0.83,
+                "mean": 0.702,
+                "median": 0.78,
+                "minimum": 0.38,
+                "sample_sd": 0.18281137820168633
+              },
+              "final_recommendation_committed_count": 0,
+              "overall_confidence_delta": {
+                "count": 5,
+                "maximum": 0.52,
+                "mean": 0.384,
+                "median": 0.37000000000000005,
+                "minimum": 0.28,
+                "sample_sd": 0.08792041856133306
+              },
+              "pre_overall_confidence": {
+                "count": 5,
+                "maximum": 0.42,
+                "mean": 0.37,
+                "median": 0.4,
+                "minimum": 0.3,
+                "sample_sd": 0.055677643628300216
+              },
+              "pre_prior_reliability": {
+                "count": 5,
+                "maximum": 0.68,
+                "mean": 0.662,
+                "median": 0.65,
+                "minimum": 0.65,
+                "sample_sd": 0.016431676725154998
+              },
+              "prior_reliability_delta": {
+                "count": 5,
+                "maximum": 0.17999999999999994,
+                "mean": 0.039999999999999966,
+                "median": 0.09999999999999998,
+                "minimum": -0.30000000000000004,
+                "sample_sd": 0.1932614809008769
+              }
+            },
+            "complete_experiment_count": 20,
+            "completed_cell_count": 5,
+            "endpoint": {
+              "best_minus_first": {
+                "count": 5,
+                "maximum": 0.2803893066107093,
+                "mean": 0.19527160086970186,
+                "median": 0.2135195952338378,
+                "minimum": 0.0301607169591237,
+                "sample_sd": 0.10193028374347901
+              },
+              "best_score": {
+                "count": 5,
+                "maximum": 0.7481409602713852,
+                "mean": 0.6220272524821062,
+                "median": 0.6966955022484507,
+                "minimum": 0.43876290285747827,
+                "sample_sd": 0.14633076434979692
+              },
+              "final_score": {
+                "count": 5,
+                "maximum": 0.7481409602713852,
+                "mean": 0.6116589907347189,
+                "median": 0.6966955022484507,
+                "minimum": 0.38692159412054133,
+                "sample_sd": 0.1634029642270593
+              },
+              "first_score": {
+                "count": 5,
+                "maximum": 0.5231009923564496,
+                "mean": 0.42675565161240436,
+                "median": 0.4677516536606759,
+                "minimum": 0.21471459940830884,
+                "sample_sd": 0.12735360726656608
+              },
+              "score_by_experiment_index": {
+                "1": {
+                  "count": 5,
+                  "maximum": 0.5231009923564496,
+                  "mean": 0.42675565161240436,
+                  "median": 0.4677516536606759,
+                  "minimum": 0.21471459940830884,
+                  "sample_sd": 0.12735360726656608
+                },
+                "2": {
+                  "count": 5,
+                  "maximum": 0.43876290285747827,
+                  "mean": 0.37520279581565297,
+                  "median": 0.3859058613475769,
+                  "minimum": 0.27780413045698527,
+                  "sample_sd": 0.061991713002426466
+                },
+                "3": {
+                  "count": 5,
+                  "maximum": 0.6308469003901557,
+                  "mean": 0.49362530891848877,
+                  "median": 0.610803934923452,
+                  "minimum": 0.2828005096524285,
+                  "sample_sd": 0.17377014151570577
+                },
+                "4": {
+                  "count": 5,
+                  "maximum": 0.7481409602713852,
+                  "mean": 0.6116589907347189,
+                  "median": 0.6966955022484507,
+                  "minimum": 0.38692159412054133,
+                  "sample_sd": 0.1634029642270593
+                }
+              }
+            },
+            "execution": {
+              "accumulated_risk": {
+                "count": 5,
+                "maximum": 0.36128404700363553,
+                "mean": 0.2783435048075726,
+                "median": 0.2866566812356465,
+                "minimum": 0.20965195597525768,
+                "sample_sd": 0.05779982372961449
+              },
+              "cached_input_token_count": {
+                "count": 5,
+                "maximum": 1330688.0,
+                "mean": 1278361.6,
+                "median": 1307136.0,
+                "minimum": 1192448.0,
+                "sample_sd": 56066.22096057483
+              },
+              "committed_operation_count": {
+                "count": 5,
+                "maximum": 25.0,
+                "mean": 24.8,
+                "median": 25.0,
+                "minimum": 24.0,
+                "sample_sd": 0.4472135954999579
+              },
+              "elapsed_s": {
+                "count": 5,
+                "maximum": 573.4,
+                "mean": 523.2,
+                "median": 531.9,
+                "minimum": 471.5,
+                "sample_sd": 40.73131473448898
+              },
+              "input_token_count": {
+                "count": 5,
+                "maximum": 1445439.0,
+                "mean": 1400726.4,
+                "median": 1409940.0,
+                "minimum": 1313030.0,
+                "sample_sd": 51502.44670207426
+              },
+              "nonfinal_measurement_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "operation_attempt_count": {
+                "count": 5,
+                "maximum": 25.0,
+                "mean": 24.8,
+                "median": 25.0,
+                "minimum": 24.0,
+                "sample_sd": 0.4472135954999579
+              },
+              "output_token_count": {
+                "count": 5,
+                "maximum": 12898.0,
+                "mean": 11467.2,
+                "median": 11353.0,
+                "minimum": 9893.0,
+                "sample_sd": 1091.1549844087228
+              },
+              "physical_cost": {
+                "count": 5,
+                "maximum": 1.082736,
+                "mean": 0.9998016,
+                "median": 0.977792,
+                "minimum": 0.964944,
+                "sample_sd": 0.04853138082519387
+              },
+              "process_time_s": {
+                "count": 5,
+                "maximum": 72000.0,
+                "mean": 50040.0,
+                "median": 64800.0,
+                "minimum": 14400.0,
+                "sample_sd": 24693.480921085225
+              },
+              "provider_error_event_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "recovered_mcp_tool_failure_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "resource_rejection_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "uncached_input_token_count": {
+                "count": 5,
+                "maximum": 176771.0,
+                "mean": 122364.8,
+                "median": 114751.0,
+                "minimum": 98964.0,
+                "sample_sd": 31763.660851671364
+              },
+              "unique_material_recipe_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 3.2,
+                "median": 3.0,
+                "minimum": 2.0,
+                "sample_sd": 0.8366600265340756
+              },
+              "validation_failure_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              }
+            },
+            "terminal_cell_count": 5
+          },
+          "misindexed_nominal": {
+            "belief": {
+              "final_evidence_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 4.0,
+                "median": 4.0,
+                "minimum": 4.0,
+                "sample_sd": 0.0
+              },
+              "final_law_confidence": {
+                "count": 5,
+                "maximum": 0.9,
+                "mean": 0.806,
+                "median": 0.76,
+                "minimum": 0.73,
+                "sample_sd": 0.07797435475847173
+              },
+              "final_law_feature_count": {
+                "count": 5,
+                "maximum": 6.0,
+                "mean": 6.0,
+                "median": 6.0,
+                "minimum": 6.0,
+                "sample_sd": 0.0
+              },
+              "final_law_term_count": {
+                "count": 5,
+                "maximum": 16.0,
+                "mean": 10.8,
+                "median": 12.0,
+                "minimum": 7.0,
+                "sample_sd": 3.8340579025361627
+              },
+              "final_misindex_flag_count": 2,
+              "final_misindex_flag_denominator": 5,
+              "final_overall_confidence": {
+                "count": 5,
+                "maximum": 0.9,
+                "mean": 0.8160000000000001,
+                "median": 0.78,
+                "minimum": 0.72,
+                "sample_sd": 0.08049844718999244
+              },
+              "final_prior_reliability": {
+                "count": 5,
+                "maximum": 0.86,
+                "mean": 0.592,
+                "median": 0.58,
+                "minimum": 0.3,
+                "sample_sd": 0.2567489045740994
+              },
+              "final_recommendation_committed_count": 0,
+              "overall_confidence_delta": {
+                "count": 5,
+                "maximum": 0.55,
+                "mean": 0.4600000000000001,
+                "median": 0.46,
+                "minimum": 0.31999999999999995,
+                "sample_sd": 0.09354143466934857
+              },
+              "pre_overall_confidence": {
+                "count": 5,
+                "maximum": 0.4,
+                "mean": 0.356,
+                "median": 0.35,
+                "minimum": 0.32,
+                "sample_sd": 0.028809720581775874
+              },
+              "pre_prior_reliability": {
+                "count": 5,
+                "maximum": 0.72,
+                "mean": 0.6639999999999999,
+                "median": 0.65,
+                "minimum": 0.6,
+                "sample_sd": 0.047222875812470366
+              },
+              "prior_reliability_delta": {
+                "count": 5,
+                "maximum": 0.26,
+                "mean": -0.07200000000000001,
+                "median": -0.12,
+                "minimum": -0.35000000000000003,
+                "sample_sd": 0.287349960849136
+              }
+            },
+            "complete_experiment_count": 20,
+            "completed_cell_count": 5,
+            "endpoint": {
+              "best_minus_first": {
+                "count": 5,
+                "maximum": 0.17151802845352404,
+                "mean": 0.04999014694312681,
+                "median": 0.03209498993037091,
+                "minimum": 0.0,
+                "sample_sd": 0.07088834964413786
+              },
+              "best_score": {
+                "count": 5,
+                "maximum": 0.5818991798858213,
+                "mean": 0.45833674928099744,
+                "median": 0.41861399256619697,
+                "minimum": 0.38532911935290287,
+                "sample_sd": 0.0882170016029618
+              },
+              "final_score": {
+                "count": 5,
+                "maximum": 0.5818991798858213,
+                "mean": 0.3252906406369947,
+                "median": 0.31811118821327894,
+                "minimum": 0.0,
+                "sample_sd": 0.21237081520160472
+              },
+              "first_score": {
+                "count": 5,
+                "maximum": 0.5355614635540822,
+                "mean": 0.40834660233787057,
+                "median": 0.41861399256619697,
+                "minimum": 0.21471459940830884,
+                "sample_sd": 0.13152857106369994
+              },
+              "score_by_experiment_index": {
+                "1": {
+                  "count": 5,
+                  "maximum": 0.5355614635540822,
+                  "mean": 0.40834660233787057,
+                  "median": 0.41861399256619697,
+                  "minimum": 0.21471459940830884,
+                  "sample_sd": 0.13152857106369994
+                },
+                "2": {
+                  "count": 5,
+                  "maximum": 0.4794325167323364,
+                  "mean": 0.34105250519182767,
+                  "median": 0.38532911935290287,
+                  "minimum": 0.07459741738587428,
+                  "sample_sd": 0.15462560008693751
+                },
+                "3": {
+                  "count": 5,
+                  "maximum": 0.4816961971113004,
+                  "mean": 0.3740833121974376,
+                  "median": 0.3612651229010296,
+                  "minimum": 0.28643724376953816,
+                  "sample_sd": 0.07061637337880344
+                },
+                "4": {
+                  "count": 5,
+                  "maximum": 0.5818991798858213,
+                  "mean": 0.3252906406369947,
+                  "median": 0.31811118821327894,
+                  "minimum": 0.0,
+                  "sample_sd": 0.21237081520160472
+                }
+              }
+            },
+            "execution": {
+              "accumulated_risk": {
+                "count": 5,
+                "maximum": 0.2942111497670573,
+                "mean": 0.2615850686298028,
+                "median": 0.24025195597525767,
+                "minimum": 0.23969186611478657,
+                "sample_sd": 0.029648514989607147
+              },
+              "cached_input_token_count": {
+                "count": 5,
+                "maximum": 1312256.0,
+                "mean": 1228083.2,
+                "median": 1225728.0,
+                "minimum": 1120768.0,
+                "sample_sd": 73254.12154411519
+              },
+              "committed_operation_count": {
+                "count": 5,
+                "maximum": 25.0,
+                "mean": 24.6,
+                "median": 25.0,
+                "minimum": 24.0,
+                "sample_sd": 0.5477225575051661
+              },
+              "elapsed_s": {
+                "count": 5,
+                "maximum": 511.3,
+                "mean": 485.34,
+                "median": 483.9,
+                "minimum": 467.1,
+                "sample_sd": 17.003029141891158
+              },
+              "input_token_count": {
+                "count": 5,
+                "maximum": 1430650.0,
+                "mean": 1356354.0,
+                "median": 1368805.0,
+                "minimum": 1282707.0,
+                "sample_sd": 64916.45719307239
+              },
+              "nonfinal_measurement_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "operation_attempt_count": {
+                "count": 5,
+                "maximum": 25.0,
+                "mean": 24.6,
+                "median": 25.0,
+                "minimum": 24.0,
+                "sample_sd": 0.5477225575051661
+              },
+              "output_token_count": {
+                "count": 5,
+                "maximum": 12085.0,
+                "mean": 10411.0,
+                "median": 10293.0,
+                "minimum": 9118.0,
+                "sample_sd": 1132.5786948375817
+              },
+              "physical_cost": {
+                "count": 5,
+                "maximum": 0.9790148336733541,
+                "mean": 0.9721410787647237,
+                "median": 0.9768425601502644,
+                "minimum": 0.9639040000000001,
+                "sample_sd": 0.007567212105268113
+              },
+              "process_time_s": {
+                "count": 5,
+                "maximum": 72000.0,
+                "mean": 46080.0,
+                "median": 72000.0,
+                "minimum": 7200.0,
+                "sample_sd": 35492.42172633477
+              },
+              "provider_error_event_count": {
+                "count": 5,
+                "maximum": 1.0,
+                "mean": 0.2,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.4472135954999579
+              },
+              "recovered_mcp_tool_failure_count": {
+                "count": 5,
+                "maximum": 1.0,
+                "mean": 0.2,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.4472135954999579
+              },
+              "resource_rejection_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "uncached_input_token_count": {
+                "count": 5,
+                "maximum": 177330.0,
+                "mean": 128270.8,
+                "median": 118394.0,
+                "minimum": 91302.0,
+                "sample_sd": 39661.37831316506
+              },
+              "unique_material_recipe_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 3.4,
+                "median": 3.0,
+                "minimum": 3.0,
+                "sample_sd": 0.5477225575051661
+              },
+              "validation_failure_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              }
+            },
+            "terminal_cell_count": 5
+          },
+          "opaque": {
+            "belief": {
+              "final_evidence_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 4.0,
+                "median": 4.0,
+                "minimum": 4.0,
+                "sample_sd": 0.0
+              },
+              "final_law_confidence": {
+                "count": 5,
+                "maximum": 0.88,
+                "mean": 0.8320000000000001,
+                "median": 0.82,
+                "minimum": 0.76,
+                "sample_sd": 0.050199601592044535
+              },
+              "final_law_feature_count": {
+                "count": 5,
+                "maximum": 6.0,
+                "mean": 6.0,
+                "median": 6.0,
+                "minimum": 6.0,
+                "sample_sd": 0.0
+              },
+              "final_law_term_count": {
+                "count": 5,
+                "maximum": 9.0,
+                "mean": 9.0,
+                "median": 9.0,
+                "minimum": 9.0,
+                "sample_sd": 0.0
+              },
+              "final_misindex_flag_count": 0,
+              "final_misindex_flag_denominator": 5,
+              "final_overall_confidence": {
+                "count": 5,
+                "maximum": 0.88,
+                "mean": 0.82,
+                "median": 0.82,
+                "minimum": 0.74,
+                "sample_sd": 0.054772255750516606
+              },
+              "final_prior_reliability": {
+                "count": 0,
+                "maximum": null,
+                "mean": null,
+                "median": null,
+                "minimum": null,
+                "sample_sd": null
+              },
+              "final_recommendation_committed_count": 0,
+              "overall_confidence_delta": {
+                "count": 5,
+                "maximum": 0.74,
+                "mean": 0.6900000000000001,
+                "median": 0.6699999999999999,
+                "minimum": 0.65,
+                "sample_sd": 0.04183300132670377
+              },
+              "pre_overall_confidence": {
+                "count": 5,
+                "maximum": 0.15,
+                "mean": 0.13,
+                "median": 0.15,
+                "minimum": 0.08,
+                "sample_sd": 0.03082207001484488
+              },
+              "pre_prior_reliability": {
+                "count": 0,
+                "maximum": null,
+                "mean": null,
+                "median": null,
+                "minimum": null,
+                "sample_sd": null
+              },
+              "prior_reliability_delta": {
+                "count": 0,
+                "maximum": null,
+                "mean": null,
+                "median": null,
+                "minimum": null,
+                "sample_sd": null
+              }
+            },
+            "complete_experiment_count": 20,
+            "completed_cell_count": 5,
+            "endpoint": {
+              "best_minus_first": {
+                "count": 5,
+                "maximum": 0.11247089457910947,
+                "mean": 0.04296814523295275,
+                "median": 0.03209498993037091,
+                "minimum": 0.0,
+                "sample_sd": 0.04844335958604212
+              },
+              "best_score": {
+                "count": 5,
+                "maximum": 0.5380264953159593,
+                "mean": 0.4112362519332341,
+                "median": 0.38532911935290287,
+                "minimum": 0.3271854939874183,
+                "sample_sd": 0.08352874403584033
+              },
+              "final_score": {
+                "count": 5,
+                "maximum": 0.5380264953159593,
+                "mean": 0.28293470577522234,
+                "median": 0.30930260317516467,
+                "minimum": 0.10539427009038693,
+                "sample_sd": 0.17406908561036316
+              },
+              "first_score": {
+                "count": 5,
+                "maximum": 0.4677516536606759,
+                "mean": 0.3682681067002813,
+                "median": 0.35835061956817926,
+                "minimum": 0.21471459940830884,
+                "sample_sd": 0.10005550748141696
+              },
+              "score_by_experiment_index": {
+                "1": {
+                  "count": 5,
+                  "maximum": 0.4677516536606759,
+                  "mean": 0.3682681067002813,
+                  "median": 0.35835061956817926,
+                  "minimum": 0.21471459940830884,
+                  "sample_sd": 0.10005550748141696
+                },
+                "2": {
+                  "count": 5,
+                  "maximum": 0.42293536832219414,
+                  "mean": 0.2957110201510513,
+                  "median": 0.28948254058775785,
+                  "minimum": 0.10300394203541624,
+                  "sample_sd": 0.12421041329552081
+                },
+                "3": {
+                  "count": 5,
+                  "maximum": 0.41960738278788645,
+                  "mean": 0.26758771529597253,
+                  "median": 0.28643724376953816,
+                  "minimum": 0.15805411014065987,
+                  "sample_sd": 0.10718811166866508
+                },
+                "4": {
+                  "count": 5,
+                  "maximum": 0.5380264953159593,
+                  "mean": 0.28293470577522234,
+                  "median": 0.30930260317516467,
+                  "minimum": 0.10539427009038693,
+                  "sample_sd": 0.17406908561036316
+                }
+              }
+            },
+            "execution": {
+              "accumulated_risk": {
+                "count": 5,
+                "maximum": 0.29425195597525766,
+                "mean": 0.2831850686298028,
+                "median": 0.2939136900562659,
+                "minimum": 0.23985668123564652,
+                "sample_sd": 0.024222384926154642
+              },
+              "cached_input_token_count": {
+                "count": 5,
+                "maximum": 1225728.0,
+                "mean": 1024000.0,
+                "median": 1165824.0,
+                "minimum": 410624.0,
+                "sample_sd": 344131.6124043242
+              },
+              "committed_operation_count": {
+                "count": 5,
+                "maximum": 24.0,
+                "mean": 24.0,
+                "median": 24.0,
+                "minimum": 24.0,
+                "sample_sd": 0.0
+              },
+              "elapsed_s": {
+                "count": 5,
+                "maximum": 520.7,
+                "mean": 462.41999999999996,
+                "median": 470.6,
+                "minimum": 378.0,
+                "sample_sd": 53.87130033700692
+              },
+              "input_token_count": {
+                "count": 5,
+                "maximum": 1362227.0,
+                "mean": 1134851.4,
+                "median": 1288384.0,
+                "minimum": 463386.0,
+                "sample_sd": 378814.8282747126
+              },
+              "nonfinal_measurement_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "operation_attempt_count": {
+                "count": 5,
+                "maximum": 24.0,
+                "mean": 24.0,
+                "median": 24.0,
+                "minimum": 24.0,
+                "sample_sd": 0.0
+              },
+              "output_token_count": {
+                "count": 5,
+                "maximum": 10823.0,
+                "mean": 9593.0,
+                "median": 9474.0,
+                "minimum": 8505.0,
+                "sample_sd": 957.5246733113461
+              },
+              "physical_cost": {
+                "count": 5,
+                "maximum": 0.9639040000000003,
+                "mean": 0.9595904000000001,
+                "median": 0.9639040000000001,
+                "minimum": 0.9423360000000001,
+                "sample_sd": 0.009645502827743143
+              },
+              "process_time_s": {
+                "count": 5,
+                "maximum": 19800.0,
+                "mean": 9720.0,
+                "median": 7200.0,
+                "minimum": 7200.0,
+                "sample_sd": 5634.89130329947
+              },
+              "provider_error_event_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "recovered_mcp_tool_failure_count": {
+                "count": 5,
+                "maximum": 2.0,
+                "mean": 0.6,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.8944271909999159
+              },
+              "resource_rejection_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "uncached_input_token_count": {
+                "count": 5,
+                "maximum": 196403.0,
+                "mean": 110851.4,
+                "median": 107568.0,
+                "minimum": 52762.0,
+                "sample_sd": 54159.61307838157
+              },
+              "unique_material_recipe_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 3.8,
+                "median": 4.0,
+                "minimum": 3.0,
+                "sample_sd": 0.4472135954999579
+              },
+              "validation_failure_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              }
+            },
+            "terminal_cell_count": 5
+          }
+        },
+        "paired_belief_contrasts": {
+          "aligned_minus_misindexed_reliability_delta": {
+            "difference_summary": {
+              "count": 5,
+              "maximum": 0.48000000000000004,
+              "mean": 0.11199999999999996,
+              "median": -0.08000000000000007,
+              "minimum": -0.18000000000000005,
+              "sample_sd": 0.3160221511223541
+            },
+            "left_arm": "aligned_nominal",
+            "metric": "prior_reliability_delta",
+            "negative_count": 3,
+            "paired_seed_count": 5,
+            "pairs": [
+              {
+                "difference": -0.08000000000000007,
+                "left": 0.17999999999999994,
+                "right": 0.26,
+                "world_seed": 0
+              },
+              {
+                "difference": 0.42999999999999994,
+                "left": 0.08999999999999997,
+                "right": -0.33999999999999997,
+                "world_seed": 1
+              },
+              {
+                "difference": -0.08999999999999997,
+                "left": 0.09999999999999998,
+                "right": 0.18999999999999995,
+                "world_seed": 2
+              },
+              {
+                "difference": -0.18000000000000005,
+                "left": -0.30000000000000004,
+                "right": -0.12,
+                "world_seed": 3
+              },
+              {
+                "difference": 0.48000000000000004,
+                "left": 0.13,
+                "right": -0.35000000000000003,
+                "world_seed": 4
+              }
+            ],
+            "positive_count": 2,
+            "right_arm": "misindexed_nominal",
+            "zero_count": 0
+          }
+        },
+        "paired_endpoint_contrasts": {
+          "aligned_minus_misindexed_best_score": {
+            "difference_summary": {
+              "count": 5,
+              "maximum": 0.3180065950240904,
+              "mean": 0.16369050320110884,
+              "median": 0.16624178038556392,
+              "minimum": 0.053433783504575394,
+              "sample_sd": 0.09969551835777526
+            },
+            "left_arm": "aligned_nominal",
+            "metric": "best_score",
+            "negative_count": 0,
+            "paired_seed_count": 5,
+            "pairs": [
+              {
+                "difference": 0.10368368158109681,
+                "left": 0.4899163094429297,
+                "right": 0.3862326278618329,
+                "world_seed": 0
+              },
+              {
+                "difference": 0.16624178038556392,
+                "left": 0.7481409602713852,
+                "right": 0.5818991798858213,
+                "world_seed": 1
+              },
+              {
+                "difference": 0.053433783504575394,
+                "left": 0.43876290285747827,
+                "right": 0.38532911935290287,
+                "world_seed": 2
+              },
+              {
+                "difference": 0.3180065950240904,
+                "left": 0.7366205875902874,
+                "right": 0.41861399256619697,
+                "world_seed": 3
+              },
+              {
+                "difference": 0.17708667551021762,
+                "left": 0.6966955022484507,
+                "right": 0.519608826738233,
+                "world_seed": 4
+              }
+            ],
+            "positive_count": 5,
+            "right_arm": "misindexed_nominal",
+            "zero_count": 0
+          },
+          "aligned_minus_opaque_best_score": {
+            "difference_summary": {
+              "count": 5,
+              "maximum": 0.3782699680221081,
+              "mean": 0.21079100054887218,
+              "median": 0.21011446495542596,
+              "minimum": 0.053433783504575394,
+              "sample_sd": 0.1189662276882188
+            },
+            "left_arm": "aligned_nominal",
+            "metric": "best_score",
+            "negative_count": 0,
+            "paired_seed_count": 5,
+            "pairs": [
+              {
+                "difference": 0.16273081545551138,
+                "left": 0.4899163094429297,
+                "right": 0.3271854939874183,
+                "world_seed": 0
+              },
+              {
+                "difference": 0.21011446495542596,
+                "left": 0.7481409602713852,
+                "right": 0.5380264953159593,
+                "world_seed": 1
+              },
+              {
+                "difference": 0.053433783504575394,
+                "left": 0.43876290285747827,
+                "right": 0.38532911935290287,
+                "world_seed": 2
+              },
+              {
+                "difference": 0.3782699680221081,
+                "left": 0.7366205875902874,
+                "right": 0.35835061956817926,
+                "world_seed": 3
+              },
+              {
+                "difference": 0.24940597080674004,
+                "left": 0.6966955022484507,
+                "right": 0.44728953144171063,
+                "world_seed": 4
+              }
+            ],
+            "positive_count": 5,
+            "right_arm": "opaque",
+            "zero_count": 0
+          },
+          "misindexed_minus_opaque_best_score": {
+            "difference_summary": {
+              "count": 5,
+              "maximum": 0.07231929529652242,
+              "mean": 0.04710049734776335,
+              "median": 0.05904713387441457,
+              "minimum": 0.0,
+              "sample_sd": 0.028199498290750476
+            },
+            "left_arm": "misindexed_nominal",
+            "metric": "best_score",
+            "negative_count": 0,
+            "paired_seed_count": 5,
+            "pairs": [
+              {
+                "difference": 0.05904713387441457,
+                "left": 0.3862326278618329,
+                "right": 0.3271854939874183,
+                "world_seed": 0
+              },
+              {
+                "difference": 0.04387268456986204,
+                "left": 0.5818991798858213,
+                "right": 0.5380264953159593,
+                "world_seed": 1
+              },
+              {
+                "difference": 0.0,
+                "left": 0.38532911935290287,
+                "right": 0.38532911935290287,
+                "world_seed": 2
+              },
+              {
+                "difference": 0.060263372998017706,
+                "left": 0.41861399256619697,
+                "right": 0.35835061956817926,
+                "world_seed": 3
+              },
+              {
+                "difference": 0.07231929529652242,
+                "left": 0.519608826738233,
+                "right": 0.44728953144171063,
+                "world_seed": 4
+              }
+            ],
+            "positive_count": 4,
+            "right_arm": "opaque",
+            "zero_count": 1
+          }
+        }
+      },
+      "reaction-to-crystallization": {
+        "arm_summaries": {
+          "aligned_nominal": {
+            "belief": {
+              "final_evidence_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 4.0,
+                "median": 4.0,
+                "minimum": 4.0,
+                "sample_sd": 0.0
+              },
+              "final_law_confidence": {
+                "count": 5,
+                "maximum": 0.78,
+                "mean": 0.75,
+                "median": 0.76,
+                "minimum": 0.7,
+                "sample_sd": 0.03162277660168382
+              },
+              "final_law_feature_count": {
+                "count": 5,
+                "maximum": 8.0,
+                "mean": 7.6,
+                "median": 8.0,
+                "minimum": 7.0,
+                "sample_sd": 0.5477225575051661
+              },
+              "final_law_term_count": {
+                "count": 5,
+                "maximum": 12.0,
+                "mean": 7.6,
+                "median": 10.0,
+                "minimum": 0.0,
+                "sample_sd": 5.029910535983717
+              },
+              "final_misindex_flag_count": 4,
+              "final_misindex_flag_denominator": 5,
+              "final_overall_confidence": {
+                "count": 5,
+                "maximum": 0.78,
+                "mean": 0.756,
+                "median": 0.77,
+                "minimum": 0.7,
+                "sample_sd": 0.03209361307176245
+              },
+              "final_prior_reliability": {
+                "count": 5,
+                "maximum": 0.78,
+                "mean": 0.48200000000000004,
+                "median": 0.42,
+                "minimum": 0.15,
+                "sample_sd": 0.27985710639538885
+              },
+              "final_recommendation_committed_count": 0,
+              "overall_confidence_delta": {
+                "count": 5,
+                "maximum": 0.6,
+                "mean": 0.45,
+                "median": 0.44,
+                "minimum": 0.34,
+                "sample_sd": 0.09539392014169455
+              },
+              "pre_overall_confidence": {
+                "count": 5,
+                "maximum": 0.43,
+                "mean": 0.306,
+                "median": 0.32,
+                "minimum": 0.1,
+                "sample_sd": 0.12361229712289955
+              },
+              "pre_prior_reliability": {
+                "count": 5,
+                "maximum": 0.75,
+                "mean": 0.67,
+                "median": 0.7,
+                "minimum": 0.5,
+                "sample_sd": 0.09848857801796104
+              },
+              "prior_reliability_delta": {
+                "count": 5,
+                "maximum": 0.07999999999999996,
+                "mean": -0.188,
+                "median": -0.27999999999999997,
+                "minimum": -0.42,
+                "sample_sd": 0.22796929617823536
+              }
+            },
+            "complete_experiment_count": 20,
+            "completed_cell_count": 5,
+            "endpoint": {
+              "best_minus_first": {
+                "count": 5,
+                "maximum": 0.08980050304316972,
+                "mean": 0.03351220403884492,
+                "median": 0.019383067555775846,
+                "minimum": 0.0,
+                "sample_sd": 0.03513008430973013
+              },
+              "best_score": {
+                "count": 5,
+                "maximum": 0.5729149808958713,
+                "mean": 0.49682787355381464,
+                "median": 0.49094164445829536,
+                "minimum": 0.43220287582771566,
+                "sample_sd": 0.05176442926308103
+              },
+              "final_score": {
+                "count": 5,
+                "maximum": 0.5006944100949624,
+                "mean": 0.46550178521956553,
+                "median": 0.45988284325080014,
+                "minimum": 0.43220287582771566,
+                "sample_sd": 0.025058866183060073
+              },
+              "first_score": {
+                "count": 5,
+                "maximum": 0.5729149808958713,
+                "mean": 0.4633156695149697,
+                "median": 0.43182752379363776,
+                "minimum": 0.4128198082719398,
+                "sample_sd": 0.06584480427282596
+              },
+              "score_by_experiment_index": {
+                "1": {
+                  "count": 5,
+                  "maximum": 0.5729149808958713,
+                  "mean": 0.4633156695149697,
+                  "median": 0.43182752379363776,
+                  "minimum": 0.4128198082719398,
+                  "sample_sd": 0.06584480427282596
+                },
+                "2": {
+                  "count": 5,
+                  "maximum": 0.49094164445829536,
+                  "mean": 0.4201415957137108,
+                  "median": 0.45235750470139063,
+                  "minimum": 0.34067524321865345,
+                  "sample_sd": 0.07123240862152849
+                },
+                "3": {
+                  "count": 5,
+                  "maximum": 0.5455671655617703,
+                  "mean": 0.4620846724436558,
+                  "median": 0.43753849439066406,
+                  "minimum": 0.38377861769550636,
+                  "sample_sd": 0.0656791772520813
+                },
+                "4": {
+                  "count": 5,
+                  "maximum": 0.5006944100949624,
+                  "mean": 0.46550178521956553,
+                  "median": 0.45988284325080014,
+                  "minimum": 0.43220287582771566,
+                  "sample_sd": 0.025058866183060073
+                }
+              }
+            },
+            "execution": {
+              "accumulated_risk": {
+                "count": 5,
+                "maximum": 0.5667625647729169,
+                "mean": 0.5282851873912539,
+                "median": 0.5204377465487067,
+                "minimum": 0.48501225568598605,
+                "sample_sd": 0.03134405835379561
+              },
+              "cached_input_token_count": {
+                "count": 5,
+                "maximum": 3675776.0,
+                "mean": 2493900.8,
+                "median": 2749824.0,
+                "minimum": 844288.0,
+                "sample_sd": 1071782.6477207027
+              },
+              "committed_operation_count": {
+                "count": 5,
+                "maximum": 48.0,
+                "mean": 44.8,
+                "median": 44.0,
+                "minimum": 44.0,
+                "sample_sd": 1.7888543819998317
+              },
+              "elapsed_s": {
+                "count": 5,
+                "maximum": 1431.4,
+                "mean": 1067.52,
+                "median": 997.5,
+                "minimum": 718.6,
+                "sample_sd": 310.4522620307348
+              },
+              "input_token_count": {
+                "count": 5,
+                "maximum": 4006310.0,
+                "mean": 2734991.2,
+                "median": 2995036.0,
+                "minimum": 1083477.0,
+                "sample_sd": 1106307.6006919143
+              },
+              "nonfinal_measurement_count": {
+                "count": 5,
+                "maximum": 8.0,
+                "mean": 7.4,
+                "median": 8.0,
+                "minimum": 5.0,
+                "sample_sd": 1.3416407864998738
+              },
+              "operation_attempt_count": {
+                "count": 5,
+                "maximum": 48.0,
+                "mean": 44.8,
+                "median": 44.0,
+                "minimum": 44.0,
+                "sample_sd": 1.7888543819998317
+              },
+              "output_token_count": {
+                "count": 5,
+                "maximum": 17711.0,
+                "mean": 12597.0,
+                "median": 12794.0,
+                "minimum": 6247.0,
+                "sample_sd": 4226.395568330064
+              },
+              "physical_cost": {
+                "count": 5,
+                "maximum": 9.222109175082235,
+                "mean": 7.912644684198144,
+                "median": 7.172974316223031,
+                "minimum": 6.978238792941978,
+                "sample_sd": 1.1190659326131704
+              },
+              "process_time_s": {
+                "count": 5,
+                "maximum": 95570.77238409342,
+                "mean": 80796.64087828531,
+                "median": 75720.0,
+                "minimum": 66749.61012142125,
+                "sample_sd": 12385.872477661582
+              },
+              "provider_error_event_count": {
+                "count": 5,
+                "maximum": 1.0,
+                "mean": 0.2,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.4472135954999579
+              },
+              "recovered_mcp_tool_failure_count": {
+                "count": 5,
+                "maximum": 2.0,
+                "mean": 0.6,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.8944271909999159
+              },
+              "resource_rejection_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "uncached_input_token_count": {
+                "count": 5,
+                "maximum": 330534.0,
+                "mean": 241090.4,
+                "median": 242701.0,
+                "minimum": 147816.0,
+                "sample_sd": 64659.62460685957
+              },
+              "unique_material_recipe_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 3.2,
+                "median": 3.0,
+                "minimum": 3.0,
+                "sample_sd": 0.4472135954999579
+              },
+              "validation_failure_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              }
+            },
+            "terminal_cell_count": 5
+          },
+          "misindexed_nominal": {
+            "belief": {
+              "final_evidence_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 4.0,
+                "median": 4.0,
+                "minimum": 4.0,
+                "sample_sd": 0.0
+              },
+              "final_law_confidence": {
+                "count": 5,
+                "maximum": 0.84,
+                "mean": 0.724,
+                "median": 0.74,
+                "minimum": 0.6,
+                "sample_sd": 0.10237187113655782
+              },
+              "final_law_feature_count": {
+                "count": 5,
+                "maximum": 8.0,
+                "mean": 8.0,
+                "median": 8.0,
+                "minimum": 8.0,
+                "sample_sd": 0.0
+              },
+              "final_law_term_count": {
+                "count": 5,
+                "maximum": 8.0,
+                "mean": 3.6,
+                "median": 3.0,
+                "minimum": 0.0,
+                "sample_sd": 3.361547262794322
+              },
+              "final_misindex_flag_count": 2,
+              "final_misindex_flag_denominator": 5,
+              "final_overall_confidence": {
+                "count": 5,
+                "maximum": 0.86,
+                "mean": 0.728,
+                "median": 0.74,
+                "minimum": 0.6,
+                "sample_sd": 0.10825894882179488
+              },
+              "final_prior_reliability": {
+                "count": 5,
+                "maximum": 0.7,
+                "mean": 0.536,
+                "median": 0.55,
+                "minimum": 0.25,
+                "sample_sd": 0.180914344373242
+              },
+              "final_recommendation_committed_count": 0,
+              "overall_confidence_delta": {
+                "count": 5,
+                "maximum": 0.7000000000000001,
+                "mean": 0.496,
+                "median": 0.48,
+                "minimum": 0.36,
+                "sample_sd": 0.12601587201618694
+              },
+              "pre_overall_confidence": {
+                "count": 5,
+                "maximum": 0.38,
+                "mean": 0.23200000000000004,
+                "median": 0.28,
+                "minimum": 0.1,
+                "sample_sd": 0.12617448236470002
+              },
+              "pre_prior_reliability": {
+                "count": 5,
+                "maximum": 0.7,
+                "mean": 0.594,
+                "median": 0.62,
+                "minimum": 0.5,
+                "sample_sd": 0.09044335243676009
+              },
+              "prior_reliability_delta": {
+                "count": 5,
+                "maximum": 0.19999999999999996,
+                "mean": -0.05799999999999998,
+                "median": -0.019999999999999907,
+                "minimum": -0.37,
+                "sample_sd": 0.20644611887851028
+              }
+            },
+            "complete_experiment_count": 20,
+            "completed_cell_count": 5,
+            "endpoint": {
+              "best_minus_first": {
+                "count": 5,
+                "maximum": 0.20127844638514272,
+                "mean": 0.08441582086130127,
+                "median": 0.04659804169895637,
+                "minimum": 0.03152392593315548,
+                "sample_sd": 0.07057724781050256
+              },
+              "best_score": {
+                "count": 5,
+                "maximum": 0.5502816457513844,
+                "mean": 0.4343265212373302,
+                "median": 0.46314277846768476,
+                "minimum": 0.2571635351158462,
+                "sample_sd": 0.10824821875041728
+              },
+              "final_score": {
+                "count": 5,
+                "maximum": 0.5502816457513844,
+                "mean": 0.4177291418115339,
+                "median": 0.4625326498967453,
+                "minimum": 0.23549052850320443,
+                "sample_sd": 0.11884190763441081
+              },
+              "first_score": {
+                "count": 5,
+                "maximum": 0.44980475622244864,
+                "mean": 0.3499107003760289,
+                "median": 0.4209409777073687,
+                "minimum": 0.22563960918269074,
+                "sample_sd": 0.11171472610520762
+              },
+              "score_by_experiment_index": {
+                "1": {
+                  "count": 5,
+                  "maximum": 0.44980475622244864,
+                  "mean": 0.3499107003760289,
+                  "median": 0.4209409777073687,
+                  "minimum": 0.22563960918269074,
+                  "sample_sd": 0.11171472610520762
+                },
+                "2": {
+                  "count": 5,
+                  "maximum": 0.45891373765089655,
+                  "mean": 0.34851279611823754,
+                  "median": 0.404944485515489,
+                  "minimum": 0.20258570151316732,
+                  "sample_sd": 0.11177502653939764
+                },
+                "3": {
+                  "count": 5,
+                  "maximum": 0.46900756348618877,
+                  "mean": 0.37266656315618457,
+                  "median": 0.42714777888828237,
+                  "minimum": 0.2201865522780223,
+                  "sample_sd": 0.1029023350948494
+                },
+                "4": {
+                  "count": 5,
+                  "maximum": 0.5502816457513844,
+                  "mean": 0.4177291418115339,
+                  "median": 0.4625326498967453,
+                  "minimum": 0.23549052850320443,
+                  "sample_sd": 0.11884190763441081
+                }
+              }
+            },
+            "execution": {
+              "accumulated_risk": {
+                "count": 5,
+                "maximum": 0.5869724175887984,
+                "mean": 0.5459728711292126,
+                "median": 0.5517437386795145,
+                "minimum": 0.5091392627432958,
+                "sample_sd": 0.029067700165885037
+              },
+              "cached_input_token_count": {
+                "count": 5,
+                "maximum": 3104256.0,
+                "mean": 1216307.2,
+                "median": 751616.0,
+                "minimum": 412160.0,
+                "sample_sd": 1102063.6527475172
+              },
+              "committed_operation_count": {
+                "count": 5,
+                "maximum": 52.0,
+                "mean": 44.4,
+                "median": 44.0,
+                "minimum": 35.0,
+                "sample_sd": 6.877499545619759
+              },
+              "elapsed_s": {
+                "count": 5,
+                "maximum": 1377.5,
+                "mean": 846.04,
+                "median": 882.3,
+                "minimum": 427.2,
+                "sample_sd": 358.58026019288906
+              },
+              "input_token_count": {
+                "count": 5,
+                "maximum": 3317591.0,
+                "mean": 1349877.2,
+                "median": 859343.0,
+                "minimum": 488164.0,
+                "sample_sd": 1148098.4981536644
+              },
+              "nonfinal_measurement_count": {
+                "count": 5,
+                "maximum": 8.0,
+                "mean": 6.4,
+                "median": 8.0,
+                "minimum": 4.0,
+                "sample_sd": 2.1908902300206643
+              },
+              "operation_attempt_count": {
+                "count": 5,
+                "maximum": 52.0,
+                "mean": 46.6,
+                "median": 47.0,
+                "minimum": 40.0,
+                "sample_sd": 4.774934554525329
+              },
+              "output_token_count": {
+                "count": 5,
+                "maximum": 11053.0,
+                "mean": 8248.0,
+                "median": 10068.0,
+                "minimum": 3967.0,
+                "sample_sd": 3142.587946263398
+              },
+              "physical_cost": {
+                "count": 5,
+                "maximum": 8.422800399456577,
+                "mean": 7.517702952652688,
+                "median": 7.676599056065203,
+                "minimum": 6.067439061413761,
+                "sample_sd": 0.9470474236147672
+              },
+              "process_time_s": {
+                "count": 5,
+                "maximum": 95637.91043432654,
+                "mean": 79257.96161657726,
+                "median": 85989.74359935234,
+                "minimum": 45120.0,
+                "sample_sd": 21046.259494914208
+              },
+              "provider_error_event_count": {
+                "count": 5,
+                "maximum": 2.0,
+                "mean": 0.6,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.8944271909999159
+              },
+              "recovered_mcp_tool_failure_count": {
+                "count": 5,
+                "maximum": 25.0,
+                "mean": 5.4,
+                "median": 1.0,
+                "minimum": 0.0,
+                "sample_sd": 10.96813566655701
+              },
+              "resource_rejection_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "uncached_input_token_count": {
+                "count": 5,
+                "maximum": 213335.0,
+                "mean": 133570.0,
+                "median": 126956.0,
+                "minimum": 76004.0,
+                "sample_sd": 51217.99437209544
+              },
+              "unique_material_recipe_count": {
+                "count": 5,
+                "maximum": 3.0,
+                "mean": 3.0,
+                "median": 3.0,
+                "minimum": 3.0,
+                "sample_sd": 0.0
+              },
+              "validation_failure_count": {
+                "count": 5,
+                "maximum": 6.0,
+                "mean": 2.2,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 3.03315017762062
+              }
+            },
+            "terminal_cell_count": 5
+          },
+          "opaque": {
+            "belief": {
+              "final_evidence_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 4.0,
+                "median": 4.0,
+                "minimum": 4.0,
+                "sample_sd": 0.0
+              },
+              "final_law_confidence": {
+                "count": 5,
+                "maximum": 0.88,
+                "mean": 0.818,
+                "median": 0.84,
+                "minimum": 0.7,
+                "sample_sd": 0.06942621983083914
+              },
+              "final_law_feature_count": {
+                "count": 5,
+                "maximum": 8.0,
+                "mean": 6.8,
+                "median": 8.0,
+                "minimum": 2.0,
+                "sample_sd": 2.6832815729997477
+              },
+              "final_law_term_count": {
+                "count": 5,
+                "maximum": 9.0,
+                "mean": 5.4,
+                "median": 9.0,
+                "minimum": 0.0,
+                "sample_sd": 4.929503017546495
+              },
+              "final_misindex_flag_count": 0,
+              "final_misindex_flag_denominator": 5,
+              "final_overall_confidence": {
+                "count": 5,
+                "maximum": 0.88,
+                "mean": 0.818,
+                "median": 0.84,
+                "minimum": 0.7,
+                "sample_sd": 0.06942621983083914
+              },
+              "final_prior_reliability": {
+                "count": 0,
+                "maximum": null,
+                "mean": null,
+                "median": null,
+                "minimum": null,
+                "sample_sd": null
+              },
+              "final_recommendation_committed_count": 0,
+              "overall_confidence_delta": {
+                "count": 5,
+                "maximum": 0.7899999999999999,
+                "mean": 0.728,
+                "median": 0.75,
+                "minimum": 0.6,
+                "sample_sd": 0.07661592523751182
+              },
+              "pre_overall_confidence": {
+                "count": 5,
+                "maximum": 0.1,
+                "mean": 0.09,
+                "median": 0.1,
+                "minimum": 0.05,
+                "sample_sd": 0.022360679774997897
+              },
+              "pre_prior_reliability": {
+                "count": 0,
+                "maximum": null,
+                "mean": null,
+                "median": null,
+                "minimum": null,
+                "sample_sd": null
+              },
+              "prior_reliability_delta": {
+                "count": 0,
+                "maximum": null,
+                "mean": null,
+                "median": null,
+                "minimum": null,
+                "sample_sd": null
+              }
+            },
+            "complete_experiment_count": 20,
+            "completed_cell_count": 5,
+            "endpoint": {
+              "best_minus_first": {
+                "count": 5,
+                "maximum": 0.09764530102282398,
+                "mean": 0.03237611236174942,
+                "median": 0.022270709797270305,
+                "minimum": 0.0,
+                "sample_sd": 0.04046773285003827
+              },
+              "best_score": {
+                "count": 5,
+                "maximum": 0.49059018623150435,
+                "mean": 0.4397815406266177,
+                "median": 0.4408431849750115,
+                "minimum": 0.3710666268315933,
+                "sample_sd": 0.05147403419545508
+              },
+              "final_score": {
+                "count": 5,
+                "maximum": 0.48790302870047497,
+                "mean": 0.32771499624741357,
+                "median": 0.33319815142087633,
+                "minimum": 0.20722459187473183,
+                "sample_sd": 0.10745497661989427
+              },
+              "first_score": {
+                "count": 5,
+                "maximum": 0.49059018623150435,
+                "mean": 0.40740542826486825,
+                "median": 0.390257727677651,
+                "minimum": 0.3710666268315933,
+                "sample_sd": 0.04757938916383803
+              },
+              "score_by_experiment_index": {
+                "1": {
+                  "count": 5,
+                  "maximum": 0.49059018623150435,
+                  "mean": 0.40740542826486825,
+                  "median": 0.390257727677651,
+                  "minimum": 0.3710666268315933,
+                  "sample_sd": 0.04757938916383803
+                },
+                "2": {
+                  "count": 5,
+                  "maximum": 0.4408431849750115,
+                  "mean": 0.3998840849839643,
+                  "median": 0.4085046763945044,
+                  "minimum": 0.31442733643171206,
+                  "sample_sd": 0.05000502588616895
+                },
+                "3": {
+                  "count": 5,
+                  "maximum": 0.42725521309513276,
+                  "mean": 0.3550161363238736,
+                  "median": 0.350526323345951,
+                  "minimum": 0.2576153453436085,
+                  "sample_sd": 0.0737107366305031
+                },
+                "4": {
+                  "count": 5,
+                  "maximum": 0.48790302870047497,
+                  "mean": 0.32771499624741357,
+                  "median": 0.33319815142087633,
+                  "minimum": 0.20722459187473183,
+                  "sample_sd": 0.10745497661989427
+                }
+              }
+            },
+            "execution": {
+              "accumulated_risk": {
+                "count": 5,
+                "maximum": 0.589477530448057,
+                "mean": 0.5118518570664384,
+                "median": 0.4875647447488205,
+                "minimum": 0.4835157145003335,
+                "sample_sd": 0.045212556868679955
+              },
+              "cached_input_token_count": {
+                "count": 5,
+                "maximum": 3118464.0,
+                "mean": 1554201.6,
+                "median": 686080.0,
+                "minimum": 372736.0,
+                "sample_sd": 1385885.302433358
+              },
+              "committed_operation_count": {
+                "count": 5,
+                "maximum": 44.0,
+                "mean": 41.0,
+                "median": 44.0,
+                "minimum": 35.0,
+                "sample_sd": 4.242640687119285
+              },
+              "elapsed_s": {
+                "count": 5,
+                "maximum": 1420.4,
+                "mean": 984.72,
+                "median": 881.0,
+                "minimum": 564.8,
+                "sample_sd": 376.19639418792946
+              },
+              "input_token_count": {
+                "count": 5,
+                "maximum": 3282907.0,
+                "mean": 1713847.6,
+                "median": 790259.0,
+                "minimum": 581818.0,
+                "sample_sd": 1423935.0293669652
+              },
+              "nonfinal_measurement_count": {
+                "count": 5,
+                "maximum": 8.0,
+                "mean": 6.0,
+                "median": 8.0,
+                "minimum": 2.0,
+                "sample_sd": 2.8284271247461903
+              },
+              "operation_attempt_count": {
+                "count": 5,
+                "maximum": 44.0,
+                "mean": 41.2,
+                "median": 44.0,
+                "minimum": 36.0,
+                "sample_sd": 3.898717737923586
+              },
+              "output_token_count": {
+                "count": 5,
+                "maximum": 13456.0,
+                "mean": 9109.8,
+                "median": 8901.0,
+                "minimum": 4805.0,
+                "sample_sd": 3976.411284060038
+              },
+              "physical_cost": {
+                "count": 5,
+                "maximum": 7.571589565280458,
+                "mean": 7.3256359323701545,
+                "median": 7.27454837617905,
+                "minimum": 7.203171305317593,
+                "sample_sd": 0.1458876209372105
+              },
+              "process_time_s": {
+                "count": 5,
+                "maximum": 117120.0,
+                "mean": 103710.00668375747,
+                "median": 116640.0,
+                "minimum": 79350.03341878737,
+                "sample_sd": 18419.42705296213
+              },
+              "provider_error_event_count": {
+                "count": 5,
+                "maximum": 1.0,
+                "mean": 0.2,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.4472135954999579
+              },
+              "recovered_mcp_tool_failure_count": {
+                "count": 5,
+                "maximum": 12.0,
+                "mean": 3.0,
+                "median": 1.0,
+                "minimum": 0.0,
+                "sample_sd": 5.0990195135927845
+              },
+              "resource_rejection_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "uncached_input_token_count": {
+                "count": 5,
+                "maximum": 244944.0,
+                "mean": 159646.0,
+                "median": 164443.0,
+                "minimum": 75582.0,
+                "sample_sd": 70508.90421429055
+              },
+              "unique_material_recipe_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 4.0,
+                "median": 4.0,
+                "minimum": 4.0,
+                "sample_sd": 0.0
+              },
+              "validation_failure_count": {
+                "count": 5,
+                "maximum": 1.0,
+                "mean": 0.2,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.4472135954999579
+              }
+            },
+            "terminal_cell_count": 5
+          }
+        },
+        "paired_belief_contrasts": {
+          "aligned_minus_misindexed_reliability_delta": {
+            "difference_summary": {
+              "count": 5,
+              "maximum": 0.13,
+              "mean": -0.13,
+              "median": -0.04999999999999999,
+              "minimum": -0.5499999999999999,
+              "sample_sd": 0.2790161285660741
+            },
+            "left_arm": "aligned_nominal",
+            "metric": "prior_reliability_delta",
+            "negative_count": 3,
+            "paired_seed_count": 5,
+            "pairs": [
+              {
+                "difference": -0.26000000000000006,
+                "left": -0.27999999999999997,
+                "right": -0.019999999999999907,
+                "world_seed": 0
+              },
+              {
+                "difference": -0.04999999999999999,
+                "left": -0.42,
+                "right": -0.37,
+                "world_seed": 1
+              },
+              {
+                "difference": 0.13,
+                "left": 0.030000000000000027,
+                "right": -0.09999999999999998,
+                "world_seed": 2
+              },
+              {
+                "difference": 0.07999999999999996,
+                "left": 0.07999999999999996,
+                "right": 0.0,
+                "world_seed": 3
+              },
+              {
+                "difference": -0.5499999999999999,
+                "left": -0.35,
+                "right": 0.19999999999999996,
+                "world_seed": 4
+              }
+            ],
+            "positive_count": 2,
+            "right_arm": "misindexed_nominal",
+            "zero_count": 0
+          }
+        },
+        "paired_endpoint_contrasts": {
+          "aligned_minus_misindexed_best_score": {
+            "difference_summary": {
+              "count": 5,
+              "maximum": 0.21813615540722886,
+              "mean": 0.06250135231648449,
+              "median": 0.0496373975964311,
+              "minimum": -0.05934000129308903,
+              "sample_sd": 0.10586922707094897
+            },
+            "left_arm": "aligned_nominal",
+            "metric": "best_score",
+            "negative_count": 1,
+            "paired_seed_count": 5,
+            "pairs": [
+              {
+                "difference": -0.05934000129308903,
+                "left": 0.49094164445829536,
+                "right": 0.5502816457513844,
+                "world_seed": 0
+              },
+              {
+                "difference": 0.10390741740968257,
+                "left": 0.5729149808958713,
+                "right": 0.46900756348618877,
+                "world_seed": 1
+              },
+              {
+                "difference": 0.0496373975964311,
+                "left": 0.5127801760641159,
+                "right": 0.46314277846768476,
+                "world_seed": 2
+              },
+              {
+                "difference": 0.21813615540722886,
+                "left": 0.4752996905230751,
+                "right": 0.2571635351158462,
+                "world_seed": 3
+              },
+              {
+                "difference": 0.0001657924621689122,
+                "left": 0.43220287582771566,
+                "right": 0.43203708336554675,
+                "world_seed": 4
+              }
+            ],
+            "positive_count": 4,
+            "right_arm": "misindexed_nominal",
+            "zero_count": 0
+          },
+          "aligned_minus_opaque_best_score": {
+            "difference_summary": {
+              "count": 5,
+              "maximum": 0.08232479466436698,
+              "mean": 0.05704633292719695,
+              "median": 0.0667950141285707,
+              "minimum": 0.0030386157578203843,
+              "sample_sd": 0.031182246714904112
+            },
+            "left_arm": "aligned_nominal",
+            "metric": "best_score",
+            "negative_count": 0,
+            "paired_seed_count": 5,
+            "pairs": [
+              {
+                "difference": 0.0030386157578203843,
+                "left": 0.49094164445829536,
+                "right": 0.48790302870047497,
+                "world_seed": 0
+              },
+              {
+                "difference": 0.08232479466436698,
+                "left": 0.5729149808958713,
+                "right": 0.49059018623150435,
+                "world_seed": 1
+              },
+              {
+                "difference": 0.07193699108910434,
+                "left": 0.5127801760641159,
+                "right": 0.4408431849750115,
+                "world_seed": 2
+              },
+              {
+                "difference": 0.0667950141285707,
+                "left": 0.4752996905230751,
+                "right": 0.4085046763945044,
+                "world_seed": 3
+              },
+              {
+                "difference": 0.061136248996122355,
+                "left": 0.43220287582771566,
+                "right": 0.3710666268315933,
+                "world_seed": 4
+              }
+            ],
+            "positive_count": 5,
+            "right_arm": "opaque",
+            "zero_count": 0
+          },
+          "misindexed_minus_opaque_best_score": {
+            "difference_summary": {
+              "count": 5,
+              "maximum": 0.06237861705090941,
+              "mean": -0.0054550193892875295,
+              "median": 0.022299593492673242,
+              "minimum": -0.15134114127865816,
+              "sample_sd": 0.08849706883632794
+            },
+            "left_arm": "misindexed_nominal",
+            "metric": "best_score",
+            "negative_count": 2,
+            "paired_seed_count": 5,
+            "pairs": [
+              {
+                "difference": 0.06237861705090941,
+                "left": 0.5502816457513844,
+                "right": 0.48790302870047497,
+                "world_seed": 0
+              },
+              {
+                "difference": -0.021582622745315583,
+                "left": 0.46900756348618877,
+                "right": 0.49059018623150435,
+                "world_seed": 1
+              },
+              {
+                "difference": 0.022299593492673242,
+                "left": 0.46314277846768476,
+                "right": 0.4408431849750115,
+                "world_seed": 2
+              },
+              {
+                "difference": -0.15134114127865816,
+                "left": 0.2571635351158462,
+                "right": 0.4085046763945044,
+                "world_seed": 3
+              },
+              {
+                "difference": 0.06097045653395344,
+                "left": 0.43203708336554675,
+                "right": 0.3710666268315933,
+                "world_seed": 4
+              }
+            ],
+            "positive_count": 3,
+            "right_arm": "opaque",
+            "zero_count": 0
+          }
+        }
+      },
+      "reaction-to-distillation": {
+        "arm_summaries": {
+          "aligned_nominal": {
+            "belief": {
+              "final_evidence_count": {
+                "count": 4,
+                "maximum": 4.0,
+                "mean": 4.0,
+                "median": 4.0,
+                "minimum": 4.0,
+                "sample_sd": 0.0
+              },
+              "final_law_confidence": {
+                "count": 4,
+                "maximum": 0.82,
+                "mean": 0.7749999999999999,
+                "median": 0.79,
+                "minimum": 0.7,
+                "sample_sd": 0.05744562646538028
+              },
+              "final_law_feature_count": {
+                "count": 4,
+                "maximum": 8.0,
+                "mean": 7.0,
+                "median": 7.5,
+                "minimum": 5.0,
+                "sample_sd": 1.4142135623730951
+              },
+              "final_law_term_count": {
+                "count": 4,
+                "maximum": 12.0,
+                "mean": 6.0,
+                "median": 6.0,
+                "minimum": 0.0,
+                "sample_sd": 5.163977794943222
+              },
+              "final_misindex_flag_count": 3,
+              "final_misindex_flag_denominator": 4,
+              "final_overall_confidence": {
+                "count": 4,
+                "maximum": 0.82,
+                "mean": 0.78,
+                "median": 0.8,
+                "minimum": 0.7,
+                "sample_sd": 0.0565685424949238
+              },
+              "final_prior_reliability": {
+                "count": 4,
+                "maximum": 0.72,
+                "mean": 0.63,
+                "median": 0.7,
+                "minimum": 0.4,
+                "sample_sd": 0.15362291495737213
+              },
+              "final_recommendation_committed_count": 0,
+              "overall_confidence_delta": {
+                "count": 4,
+                "maximum": 0.6,
+                "mean": 0.5549999999999999,
+                "median": 0.55,
+                "minimum": 0.52,
+                "sample_sd": 0.0369684550213647
+              },
+              "pre_overall_confidence": {
+                "count": 4,
+                "maximum": 0.3,
+                "mean": 0.225,
+                "median": 0.25,
+                "minimum": 0.1,
+                "sample_sd": 0.08660254037844387
+              },
+              "pre_prior_reliability": {
+                "count": 4,
+                "maximum": 0.65,
+                "mean": 0.5875,
+                "median": 0.6,
+                "minimum": 0.5,
+                "sample_sd": 0.06291528696058958
+              },
+              "prior_reliability_delta": {
+                "count": 4,
+                "maximum": 0.12,
+                "mean": 0.04249999999999998,
+                "median": 0.07499999999999996,
+                "minimum": -0.09999999999999998,
+                "sample_sd": 0.0994568583189046
+              }
+            },
+            "complete_experiment_count": 16,
+            "completed_cell_count": 4,
+            "endpoint": {
+              "best_minus_first": {
+                "count": 4,
+                "maximum": 0.129513194528417,
+                "mean": 0.07760593002336263,
+                "median": 0.08090300084179561,
+                "minimum": 0.019104523881442292,
+                "sample_sd": 0.05887329385770172
+              },
+              "best_score": {
+                "count": 4,
+                "maximum": 0.29224879665765546,
+                "mean": 0.2589797931193761,
+                "median": 0.26569290712303784,
+                "minimum": 0.2122845615737732,
+                "sample_sd": 0.03895569022367543
+              },
+              "final_score": {
+                "count": 4,
+                "maximum": 0.29077494236935875,
+                "mean": 0.2553554844679641,
+                "median": 0.2628937609287546,
+                "minimum": 0.20485947364498835,
+                "sample_sd": 0.04015605712653336
+              },
+              "first_score": {
+                "count": 4,
+                "maximum": 0.20669924812333812,
+                "mean": 0.18137386309601347,
+                "median": 0.17803030106573864,
+                "minimum": 0.16273560212923846,
+                "sample_sd": 0.02213705605584342
+              },
+              "score_by_experiment_index": {
+                "1": {
+                  "count": 4,
+                  "maximum": 0.20669924812333812,
+                  "mean": 0.18137386309601347,
+                  "median": 0.17803030106573864,
+                  "minimum": 0.16273560212923846,
+                  "sample_sd": 0.02213705605584342
+                },
+                "2": {
+                  "count": 4,
+                  "maximum": 0.29224879665765546,
+                  "mean": 0.2276224533547252,
+                  "median": 0.21087120641515456,
+                  "minimum": 0.19649860393093624,
+                  "sample_sd": 0.04362897334468088
+                },
+                "3": {
+                  "count": 4,
+                  "maximum": 0.28993372350397945,
+                  "mean": 0.2338478103905683,
+                  "median": 0.21995586383519722,
+                  "minimum": 0.2055457903878993,
+                  "sample_sd": 0.03813996335107348
+                },
+                "4": {
+                  "count": 4,
+                  "maximum": 0.29077494236935875,
+                  "mean": 0.2553554844679641,
+                  "median": 0.2628937609287546,
+                  "minimum": 0.20485947364498835,
+                  "sample_sd": 0.04015605712653336
+                }
+              }
+            },
+            "execution": {
+              "accumulated_risk": {
+                "count": 4,
+                "maximum": 1.3516604994822035,
+                "mean": 1.2494322188055602,
+                "median": 1.247027935130026,
+                "minimum": 1.1520125054799855,
+                "sample_sd": 0.0854702184082188
+              },
+              "cached_input_token_count": {
+                "count": 4,
+                "maximum": 1151488.0,
+                "mean": 653664.0,
+                "median": 565760.0,
+                "minimum": 331648.0,
+                "sample_sd": 363513.41026891064
+              },
+              "committed_operation_count": {
+                "count": 4,
+                "maximum": 41.0,
+                "mean": 38.25,
+                "median": 38.0,
+                "minimum": 36.0,
+                "sample_sd": 2.6299556396765835
+              },
+              "elapsed_s": {
+                "count": 4,
+                "maximum": 644.1,
+                "mean": 510.05,
+                "median": 493.35,
+                "minimum": 409.4,
+                "sample_sd": 97.75433494224184
+              },
+              "input_token_count": {
+                "count": 4,
+                "maximum": 1398498.0,
+                "mean": 827195.5,
+                "median": 723670.0,
+                "minimum": 462944.0,
+                "sample_sd": 410659.4818536805
+              },
+              "nonfinal_measurement_count": {
+                "count": 4,
+                "maximum": 3.0,
+                "mean": 1.0,
+                "median": 0.5,
+                "minimum": 0.0,
+                "sample_sd": 1.4142135623730951
+              },
+              "operation_attempt_count": {
+                "count": 4,
+                "maximum": 41.0,
+                "mean": 38.5,
+                "median": 38.5,
+                "minimum": 36.0,
+                "sample_sd": 2.3804761428476167
+              },
+              "output_token_count": {
+                "count": 4,
+                "maximum": 10085.0,
+                "mean": 7776.25,
+                "median": 7794.0,
+                "minimum": 5432.0,
+                "sample_sd": 2594.369335696057
+              },
+              "physical_cost": {
+                "count": 4,
+                "maximum": 9.8232,
+                "mean": 8.089484115536786,
+                "median": 7.790499773057752,
+                "minimum": 6.953736916031644,
+                "sample_sd": 1.3043124439273945
+              },
+              "process_time_s": {
+                "count": 4,
+                "maximum": 172800.0,
+                "mean": 103558.96502368979,
+                "median": 84717.93004737957,
+                "minimum": 72000.0,
+                "sample_sd": 46571.6104349664
+              },
+              "provider_error_event_count": {
+                "count": 4,
+                "maximum": 6.0,
+                "mean": 3.5,
+                "median": 3.5,
+                "minimum": 1.0,
+                "sample_sd": 2.3804761428476167
+              },
+              "recovered_mcp_tool_failure_count": {
+                "count": 4,
+                "maximum": 1.0,
+                "mean": 0.5,
+                "median": 0.5,
+                "minimum": 0.0,
+                "sample_sd": 0.5773502691896257
+              },
+              "resource_rejection_count": {
+                "count": 4,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "uncached_input_token_count": {
+                "count": 4,
+                "maximum": 247010.0,
+                "mean": 173531.5,
+                "median": 157910.0,
+                "minimum": 131296.0,
+                "sample_sd": 51051.854517408734
+              },
+              "unique_material_recipe_count": {
+                "count": 4,
+                "maximum": 4.0,
+                "mean": 3.25,
+                "median": 3.0,
+                "minimum": 3.0,
+                "sample_sd": 0.5
+              },
+              "validation_failure_count": {
+                "count": 4,
+                "maximum": 1.0,
+                "mean": 0.25,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.5
+              }
+            },
+            "terminal_cell_count": 5
+          },
+          "misindexed_nominal": {
+            "belief": {
+              "final_evidence_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 4.0,
+                "median": 4.0,
+                "minimum": 4.0,
+                "sample_sd": 0.0
+              },
+              "final_law_confidence": {
+                "count": 5,
+                "maximum": 0.78,
+                "mean": 0.718,
+                "median": 0.7,
+                "minimum": 0.68,
+                "sample_sd": 0.04494441010848846
+              },
+              "final_law_feature_count": {
+                "count": 5,
+                "maximum": 8.0,
+                "mean": 8.0,
+                "median": 8.0,
+                "minimum": 8.0,
+                "sample_sd": 0.0
+              },
+              "final_law_term_count": {
+                "count": 5,
+                "maximum": 14.0,
+                "mean": 6.0,
+                "median": 6.0,
+                "minimum": 0.0,
+                "sample_sd": 5.0990195135927845
+              },
+              "final_misindex_flag_count": 4,
+              "final_misindex_flag_denominator": 5,
+              "final_overall_confidence": {
+                "count": 5,
+                "maximum": 0.76,
+                "mean": 0.7060000000000001,
+                "median": 0.7,
+                "minimum": 0.67,
+                "sample_sd": 0.03577708763999662
+              },
+              "final_prior_reliability": {
+                "count": 5,
+                "maximum": 0.7,
+                "mean": 0.47000000000000003,
+                "median": 0.55,
+                "minimum": 0.2,
+                "sample_sd": 0.21095023109728986
+              },
+              "final_recommendation_committed_count": 0,
+              "overall_confidence_delta": {
+                "count": 5,
+                "maximum": 0.62,
+                "mean": 0.536,
+                "median": 0.51,
+                "minimum": 0.47000000000000003,
+                "sample_sd": 0.0694982014155762
+              },
+              "pre_overall_confidence": {
+                "count": 5,
+                "maximum": 0.25,
+                "mean": 0.17,
+                "median": 0.2,
+                "minimum": 0.1,
+                "sample_sd": 0.0670820393249937
+              },
+              "pre_prior_reliability": {
+                "count": 5,
+                "maximum": 0.65,
+                "mean": 0.5599999999999999,
+                "median": 0.55,
+                "minimum": 0.5,
+                "sample_sd": 0.0651920240520265
+              },
+              "prior_reliability_delta": {
+                "count": 5,
+                "maximum": 0.19999999999999996,
+                "mean": -0.09000000000000001,
+                "median": -0.050000000000000044,
+                "minimum": -0.3,
+                "sample_sd": 0.1981161275615895
+              }
+            },
+            "complete_experiment_count": 20,
+            "completed_cell_count": 5,
+            "endpoint": {
+              "best_minus_first": {
+                "count": 5,
+                "maximum": 0.39550513922731173,
+                "mean": 0.18953496852822477,
+                "median": 0.09109519137092192,
+                "minimum": 0.07252130533704398,
+                "sample_sd": 0.15249880068658775
+              },
+              "best_score": {
+                "count": 5,
+                "maximum": 0.3974425458888765,
+                "mean": 0.3055657214021428,
+                "median": 0.28686500828970124,
+                "minimum": 0.24840574915254374,
+                "sample_sd": 0.05598934550059581
+              },
+              "final_score": {
+                "count": 5,
+                "maximum": 0.3974425458888765,
+                "mean": 0.3047208113698274,
+                "median": 0.28686500828970124,
+                "minimum": 0.24418119899096682,
+                "sample_sd": 0.05708864825339633
+              },
+              "first_score": {
+                "count": 5,
+                "maximum": 0.21434370295265726,
+                "mean": 0.11603075287391802,
+                "median": 0.1706887278247792,
+                "minimum": 0.0,
+                "sample_sd": 0.10616728534293501
+              },
+              "score_by_experiment_index": {
+                "1": {
+                  "count": 5,
+                  "maximum": 0.21434370295265726,
+                  "mean": 0.11603075287391802,
+                  "median": 0.1706887278247792,
+                  "minimum": 0.0,
+                  "sample_sd": 0.10616728534293501
+                },
+                "2": {
+                  "count": 5,
+                  "maximum": 0.3621236566738445,
+                  "mean": 0.2474157826918542,
+                  "median": 0.25478172541536465,
+                  "minimum": 0.1401226766819451,
+                  "sample_sd": 0.08226765606093842
+                },
+                "3": {
+                  "count": 5,
+                  "maximum": 0.3457431249172956,
+                  "mean": 0.25703444415690246,
+                  "median": 0.24840574915254374,
+                  "minimum": 0.2117222878882537,
+                  "sample_sd": 0.05253113531286389
+                },
+                "4": {
+                  "count": 5,
+                  "maximum": 0.3974425458888765,
+                  "mean": 0.3047208113698274,
+                  "median": 0.28686500828970124,
+                  "minimum": 0.24418119899096682,
+                  "sample_sd": 0.05708864825339633
+                }
+              }
+            },
+            "execution": {
+              "accumulated_risk": {
+                "count": 5,
+                "maximum": 1.2268225355371003,
+                "mean": 1.1211889487931979,
+                "median": 1.070707994382551,
+                "minimum": 1.0452281591093666,
+                "sample_sd": 0.08765226845719648
+              },
+              "cached_input_token_count": {
+                "count": 5,
+                "maximum": 1989120.0,
+                "mean": 712396.8,
+                "median": 395776.0,
+                "minimum": 196608.0,
+                "sample_sd": 729734.5986721474
+              },
+              "committed_operation_count": {
+                "count": 5,
+                "maximum": 47.0,
+                "mean": 36.6,
+                "median": 35.0,
+                "minimum": 32.0,
+                "sample_sd": 6.024948132556827
+              },
+              "elapsed_s": {
+                "count": 5,
+                "maximum": 867.3,
+                "mean": 510.32,
+                "median": 467.9,
+                "minimum": 332.2,
+                "sample_sd": 207.47196678105695
+              },
+              "input_token_count": {
+                "count": 5,
+                "maximum": 2116057.0,
+                "mean": 843829.8,
+                "median": 507968.0,
+                "minimum": 372758.0,
+                "sample_sd": 721774.2694026298
+              },
+              "nonfinal_measurement_count": {
+                "count": 5,
+                "maximum": 5.0,
+                "mean": 1.8,
+                "median": 2.0,
+                "minimum": 0.0,
+                "sample_sd": 2.04939015319192
+              },
+              "operation_attempt_count": {
+                "count": 5,
+                "maximum": 47.0,
+                "mean": 37.8,
+                "median": 36.0,
+                "minimum": 32.0,
+                "sample_sd": 5.585696017507576
+              },
+              "output_token_count": {
+                "count": 5,
+                "maximum": 14626.0,
+                "mean": 7900.4,
+                "median": 5589.0,
+                "minimum": 4954.0,
+                "sample_sd": 4076.6796906305995
+              },
+              "physical_cost": {
+                "count": 5,
+                "maximum": 11.08327705450516,
+                "mean": 9.19641541090103,
+                "median": 9.372599999999998,
+                "minimum": 7.255,
+                "sample_sd": 1.4182054415378778
+              },
+              "process_time_s": {
+                "count": 5,
+                "maximum": 201712.02045398334,
+                "mean": 141142.40409079666,
+                "median": 129600.0,
+                "minimum": 86400.0,
+                "sample_sd": 46026.75317948115
+              },
+              "provider_error_event_count": {
+                "count": 5,
+                "maximum": 5.0,
+                "mean": 2.0,
+                "median": 2.0,
+                "minimum": 0.0,
+                "sample_sd": 2.1213203435596424
+              },
+              "recovered_mcp_tool_failure_count": {
+                "count": 5,
+                "maximum": 2.0,
+                "mean": 0.6,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.8944271909999159
+              },
+              "resource_rejection_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "uncached_input_token_count": {
+                "count": 5,
+                "maximum": 176150.0,
+                "mean": 131433.0,
+                "median": 126937.0,
+                "minimum": 94207.0,
+                "sample_sd": 31779.50510155877
+              },
+              "unique_material_recipe_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 3.2,
+                "median": 3.0,
+                "minimum": 3.0,
+                "sample_sd": 0.4472135954999579
+              },
+              "validation_failure_count": {
+                "count": 5,
+                "maximum": 3.0,
+                "mean": 1.2,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 1.6431676725154984
+              }
+            },
+            "terminal_cell_count": 5
+          },
+          "opaque": {
+            "belief": {
+              "final_evidence_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 4.0,
+                "median": 4.0,
+                "minimum": 4.0,
+                "sample_sd": 0.0
+              },
+              "final_law_confidence": {
+                "count": 5,
+                "maximum": 0.9,
+                "mean": 0.8220000000000001,
+                "median": 0.88,
+                "minimum": 0.65,
+                "sample_sd": 0.10825894882179486
+              },
+              "final_law_feature_count": {
+                "count": 5,
+                "maximum": 8.0,
+                "mean": 8.0,
+                "median": 8.0,
+                "minimum": 8.0,
+                "sample_sd": 0.0
+              },
+              "final_law_term_count": {
+                "count": 5,
+                "maximum": 12.0,
+                "mean": 6.4,
+                "median": 8.0,
+                "minimum": 0.0,
+                "sample_sd": 6.06630035524124
+              },
+              "final_misindex_flag_count": 0,
+              "final_misindex_flag_denominator": 5,
+              "final_overall_confidence": {
+                "count": 5,
+                "maximum": 0.9,
+                "mean": 0.8220000000000001,
+                "median": 0.88,
+                "minimum": 0.65,
+                "sample_sd": 0.10825894882179486
+              },
+              "final_prior_reliability": {
+                "count": 0,
+                "maximum": null,
+                "mean": null,
+                "median": null,
+                "minimum": null,
+                "sample_sd": null
+              },
+              "final_recommendation_committed_count": 0,
+              "overall_confidence_delta": {
+                "count": 5,
+                "maximum": 0.8,
+                "mean": 0.7220000000000001,
+                "median": 0.78,
+                "minimum": 0.6,
+                "sample_sd": 0.09859006035092993
+              },
+              "pre_overall_confidence": {
+                "count": 5,
+                "maximum": 0.15,
+                "mean": 0.1,
+                "median": 0.1,
+                "minimum": 0.05,
+                "sample_sd": 0.035355339059327376
+              },
+              "pre_prior_reliability": {
+                "count": 0,
+                "maximum": null,
+                "mean": null,
+                "median": null,
+                "minimum": null,
+                "sample_sd": null
+              },
+              "prior_reliability_delta": {
+                "count": 0,
+                "maximum": null,
+                "mean": null,
+                "median": null,
+                "minimum": null,
+                "sample_sd": null
+              }
+            },
+            "complete_experiment_count": 20,
+            "completed_cell_count": 5,
+            "endpoint": {
+              "best_minus_first": {
+                "count": 5,
+                "maximum": 0.4138780133368157,
+                "mean": 0.15475883848867958,
+                "median": 0.07355060462070223,
+                "minimum": 0.01956037375489128,
+                "sample_sd": 0.16704674240824638
+              },
+              "best_score": {
+                "count": 5,
+                "maximum": 0.41581541999838045,
+                "mean": 0.28231704824701553,
+                "median": 0.2300724764773713,
+                "minimum": 0.2227799170547479,
+                "sample_sd": 0.0833711254270572
+              },
+              "final_score": {
+                "count": 5,
+                "maximum": 0.3981637566459829,
+                "mean": 0.25328129805692,
+                "median": 0.22979823595070598,
+                "minimum": 0.1956834241764147,
+                "sample_sd": 0.08234782337552919
+              },
+              "first_score": {
+                "count": 5,
+                "maximum": 0.23956858713317003,
+                "mean": 0.127558209758336,
+                "median": 0.19306551169708858,
+                "minimum": 0.0,
+                "sample_sd": 0.1168480334533473
+              },
+              "score_by_experiment_index": {
+                "1": {
+                  "count": 5,
+                  "maximum": 0.23956858713317003,
+                  "mean": 0.127558209758336,
+                  "median": 0.19306551169708858,
+                  "minimum": 0.0,
+                  "sample_sd": 0.1168480334533473
+                },
+                "2": {
+                  "count": 5,
+                  "maximum": 0.41581541999838045,
+                  "mean": 0.27257925715097975,
+                  "median": 0.2300724764773713,
+                  "minimum": 0.18217157748099405,
+                  "sample_sd": 0.09317639953412618
+                },
+                "3": {
+                  "count": 5,
+                  "maximum": 0.35737170823558506,
+                  "mean": 0.2573271934488764,
+                  "median": 0.2227799170547479,
+                  "minimum": 0.19891915386427328,
+                  "sample_sd": 0.06736532157644319
+                },
+                "4": {
+                  "count": 5,
+                  "maximum": 0.3981637566459829,
+                  "mean": 0.25328129805692,
+                  "median": 0.22979823595070598,
+                  "minimum": 0.1956834241764147,
+                  "sample_sd": 0.08234782337552919
+                }
+              }
+            },
+            "execution": {
+              "accumulated_risk": {
+                "count": 5,
+                "maximum": 1.3163171788242944,
+                "mean": 1.1424418102116731,
+                "median": 1.163859281589854,
+                "minimum": 0.9243673038205333,
+                "sample_sd": 0.14030766984357088
+              },
+              "cached_input_token_count": {
+                "count": 5,
+                "maximum": 691200.0,
+                "mean": 534732.8,
+                "median": 580608.0,
+                "minimum": 365568.0,
+                "sample_sd": 129353.53473021138
+              },
+              "committed_operation_count": {
+                "count": 5,
+                "maximum": 40.0,
+                "mean": 34.0,
+                "median": 36.0,
+                "minimum": 27.0,
+                "sample_sd": 5.70087712549569
+              },
+              "elapsed_s": {
+                "count": 5,
+                "maximum": 588.3,
+                "mean": 424.98,
+                "median": 420.9,
+                "minimum": 312.7,
+                "sample_sd": 114.43448780852735
+              },
+              "input_token_count": {
+                "count": 5,
+                "maximum": 966847.0,
+                "mean": 683483.6,
+                "median": 682148.0,
+                "minimum": 521193.0,
+                "sample_sd": 183240.05954293947
+              },
+              "nonfinal_measurement_count": {
+                "count": 5,
+                "maximum": 2.0,
+                "mean": 0.4,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.8944271909999159
+              },
+              "operation_attempt_count": {
+                "count": 5,
+                "maximum": 40.0,
+                "mean": 34.8,
+                "median": 36.0,
+                "minimum": 29.0,
+                "sample_sd": 4.658325879540846
+              },
+              "output_token_count": {
+                "count": 5,
+                "maximum": 6844.0,
+                "mean": 5740.8,
+                "median": 6052.0,
+                "minimum": 3613.0,
+                "sample_sd": 1237.239144223945
+              },
+              "physical_cost": {
+                "count": 5,
+                "maximum": 9.133811003868335,
+                "mean": 8.127202200773665,
+                "median": 8.906599999999997,
+                "minimum": 4.8738,
+                "sample_sd": 1.8282796006823319
+              },
+              "process_time_s": {
+                "count": 5,
+                "maximum": 172865.03399423964,
+                "mean": 124573.00679884793,
+                "median": 172800.0,
+                "minimum": 18000.0,
+                "sample_sd": 70354.08634773918
+              },
+              "provider_error_event_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 1.8,
+                "median": 2.0,
+                "minimum": 0.0,
+                "sample_sd": 1.7888543819998317
+              },
+              "recovered_mcp_tool_failure_count": {
+                "count": 5,
+                "maximum": 35.0,
+                "mean": 7.4,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 15.453155017665486
+              },
+              "resource_rejection_count": {
+                "count": 5,
+                "maximum": 0.0,
+                "mean": 0.0,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 0.0
+              },
+              "uncached_input_token_count": {
+                "count": 5,
+                "maximum": 275647.0,
+                "mean": 148750.8,
+                "median": 131972.0,
+                "minimum": 78970.0,
+                "sample_sd": 76696.88392431599
+              },
+              "unique_material_recipe_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 3.2,
+                "median": 4.0,
+                "minimum": 2.0,
+                "sample_sd": 1.0954451150103321
+              },
+              "validation_failure_count": {
+                "count": 5,
+                "maximum": 4.0,
+                "mean": 0.8,
+                "median": 0.0,
+                "minimum": 0.0,
+                "sample_sd": 1.7888543819998317
+              }
+            },
+            "terminal_cell_count": 5
+          }
+        },
+        "paired_belief_contrasts": {
+          "aligned_minus_misindexed_reliability_delta": {
+            "difference_summary": {
+              "count": 4,
+              "maximum": 0.15000000000000008,
+              "mean": 0.08,
+              "median": 0.12499999999999994,
+              "minimum": -0.07999999999999996,
+              "sample_sd": 0.10923979738782626
+            },
+            "left_arm": "aligned_nominal",
+            "metric": "prior_reliability_delta",
+            "negative_count": 1,
+            "paired_seed_count": 4,
+            "pairs": [
+              {
+                "difference": 0.09999999999999987,
+                "left": 0.04999999999999993,
+                "right": -0.04999999999999993,
+                "world_seed": 0
+              },
+              {
+                "difference": 0.15000000000000002,
+                "left": 0.09999999999999998,
+                "right": -0.050000000000000044,
+                "world_seed": 1
+              },
+              {
+                "difference": 0.15000000000000008,
+                "left": -0.09999999999999998,
+                "right": -0.25000000000000006,
+                "world_seed": 2
+              },
+              {
+                "difference": -0.07999999999999996,
+                "left": 0.12,
+                "right": 0.19999999999999996,
+                "world_seed": 3
+              }
+            ],
+            "positive_count": 3,
+            "right_arm": "misindexed_nominal",
+            "zero_count": 0
+          }
+        },
+        "paired_endpoint_contrasts": {
+          "aligned_minus_misindexed_best_score": {
+            "difference_summary": {
+              "count": 4,
+              "maximum": 0.00796967835614465,
+              "mean": -0.06087592134516646,
+              "median": -0.03315768971085359,
+              "minimum": -0.1851579843151033,
+              "sample_sd": 0.08567911010046873
+            },
+            "left_arm": "aligned_nominal",
+            "metric": "best_score",
+            "negative_count": 3,
+            "paired_seed_count": 4,
+            "pairs": [
+              {
+                "difference": 0.00796967835614465,
+                "left": 0.29224879665765546,
+                "right": 0.2842791183015108,
+                "world_seed": 0
+              },
+              {
+                "difference": -0.1851579843151033,
+                "left": 0.2122845615737732,
+                "right": 0.3974425458888765,
+                "world_seed": 1
+              },
+              {
+                "difference": -0.04541291754760496,
+                "left": 0.24145209074209628,
+                "right": 0.28686500828970124,
+                "world_seed": 2
+              },
+              {
+                "difference": -0.02090246187410222,
+                "left": 0.28993372350397945,
+                "right": 0.31083618537808166,
+                "world_seed": 3
+              }
+            ],
+            "positive_count": 1,
+            "right_arm": "misindexed_nominal",
+            "zero_count": 0
+          },
+          "aligned_minus_opaque_best_score": {
+            "difference_summary": {
+              "count": 4,
+              "maximum": 0.06715380644923155,
+              "mean": -0.03639839807005055,
+              "median": -0.004608270152413246,
+              "minimum": -0.20353085842460725,
+              "sample_sd": 0.1171984872575665
+            },
+            "left_arm": "aligned_nominal",
+            "metric": "best_score",
+            "negative_count": 2,
+            "paired_seed_count": 4,
+            "pairs": [
+              {
+                "difference": -0.0208703950962168,
+                "left": 0.29224879665765546,
+                "right": 0.31311919175387226,
+                "world_seed": 0
+              },
+              {
+                "difference": -0.20353085842460725,
+                "left": 0.2122845615737732,
+                "right": 0.41581541999838045,
+                "world_seed": 1
+              },
+              {
+                "difference": 0.011653854791390306,
+                "left": 0.24145209074209628,
+                "right": 0.22979823595070598,
+                "world_seed": 2
+              },
+              {
+                "difference": 0.06715380644923155,
+                "left": 0.28993372350397945,
+                "right": 0.2227799170547479,
+                "world_seed": 3
+              }
+            ],
+            "positive_count": 2,
+            "right_arm": "opaque",
+            "zero_count": 0
+          },
+          "misindexed_minus_opaque_best_score": {
+            "difference_summary": {
+              "count": 5,
+              "maximum": 0.08805626832333377,
+              "mean": 0.023248673155127214,
+              "median": 0.01833327267517243,
+              "minimum": -0.028840073452361448,
+              "sample_sd": 0.049531404446107506
+            },
+            "left_arm": "misindexed_nominal",
+            "metric": "best_score",
+            "negative_count": 2,
+            "paired_seed_count": 5,
+            "pairs": [
+              {
+                "difference": -0.028840073452361448,
+                "left": 0.2842791183015108,
+                "right": 0.31311919175387226,
+                "world_seed": 0
+              },
+              {
+                "difference": -0.018372874109503945,
+                "left": 0.3974425458888765,
+                "right": 0.41581541999838045,
+                "world_seed": 1
+              },
+              {
+                "difference": 0.057066772338995264,
+                "left": 0.28686500828970124,
+                "right": 0.22979823595070598,
+                "world_seed": 2
+              },
+              {
+                "difference": 0.08805626832333377,
+                "left": 0.31083618537808166,
+                "right": 0.2227799170547479,
+                "world_seed": 3
+              },
+              {
+                "difference": 0.01833327267517243,
+                "left": 0.24840574915254374,
+                "right": 0.2300724764773713,
+                "world_seed": 4
+              }
+            ],
+            "positive_count": 3,
+            "right_arm": "opaque",
+            "zero_count": 0
+          }
+        }
+      }
+    },
+    "terminal_three_arm_cluster_count": 15
+  }
+}
