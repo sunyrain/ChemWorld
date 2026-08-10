@@ -810,14 +810,16 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   sessions、150 provider-attempt hard cap、outcome-neutral gates、failure/censoring rules 和仅含 commitment
   的 private boundary；formal outcomes 和本轮 provider calls 均为 0。2026-08-10 的当前 clean release
   receipt `workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json` 绑定提交
-  `89771360a5c484919b640b86f1b7488198fc8f58`，独立 clone 中 9/9 stages 通过，包括 13-node/17-edge
-  evidence graph、4/4 frozen checks、94/94 Work II tests、clean wheel 和非 editable wheel-target
+  `2ea3fd4e0d879091906e342d13509feab965f08d`，独立 clone 中 9/9 stages 通过，包括 13-node/17-edge
+  evidence graph、4/4 frozen checks、14 个文件中的 99/99 Work II tests、clean wheel 和非 editable wheel-target
   import/config smoke；checkout 前后均 clean，provider calls 为 0。readiness 现消费并验证该 receipt，
   clean-release blocker 已完成。最终 freeze 现缺 5 项：用户路线选择、current-method 真实三臂资格收据、
   provider/正式货币上限、资格运行校准 ETA，以及执行命令/预算/故障升级的用户签字确认。
   当前 source digest 漂移已通过零 provider 调用的确定性重建修复：formal preflight、preregistration
-  readiness/draft 与 13-node/17-edge pre-run evidence graph 已重新一致，完整 Work II 聚焦套件为 98/98
-  通过；本轮 clean-release 接入的 preregistration/release/qualification 聚焦回归为 28/28 通过。
+  readiness/draft 与 13-node/17-edge pre-run evidence graph 已重新一致。审计进一步发现最终
+  `work_ii_confirmatory.py` 与 `scripts/analyze_work_ii_confirmatory.py` 原先未进入 formal source binding，
+  confirmatory tests 也未进入 clean-release 分母；现已补入源码冻结和独立审计，正/零效应、失败臂无界
+  worst-case、blind outcome 缺失和输入篡改共 5 类测试均在 99/99 分母内通过。
   2026-08-10 再次审计发现 method-qualification readiness 曾残留上一代 formal-preflight digest；已用当前
   `work-ii-formal-matrix-runner-preflight-v0.1.json` 零 provider 调用重建 qualification readiness 与其下游
   preregistration package。当前绑定一致，资格仍为 3 cells / 0 provider calls / 4 个用户授权 blocker，formal
