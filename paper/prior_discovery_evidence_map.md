@@ -1,4 +1,4 @@
-# Prior-discovery manuscript evidence map
+# Initial-world-model and experimental-intelligence evidence map
 
 This is an internal authoring aid. It is not reader-facing manuscript prose.
 
@@ -6,6 +6,8 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
 |---|---|---|---|---|
 | Selected fixed-law worlds expose coherent and identifiable evaluator relations | Environment qualification | Current Gate A bindings in `configs/current.json` and the bound design/qualification reports | Complete | Environment qualified; never agent discovery |
 | Prior quality is the only matched participant intervention within a world cluster | Frozen protocol | `configs/benchmark/work_ii_formal_design_v0.1.json` and formal-design audit | Complete | Design property, not an observed effect |
+| The current formal core manipulates the entity/ontology layer of the initial world model | Frozen protocol and manuscript scope | Current Work II design plus the updated intervention matrix in `WORK_II_TODOLIST.md` | Complete | The 75-cell core is entity-level; do not generalize it to structural, parametric or observation-model priors |
+| Structural, parametric and observation-model interventions are supported by current outcomes | Future registered extensions | None | Not collected | Describe as prespecified extensions only; no empirical claim until their own preflights and terminal denominators exist |
 | Primary estimand measures selective wrong-prior correction | Frozen analysis | `configs/benchmark/work_ii_analysis_plan_v0.1.json` and power audit | Complete | Preregistered question; no result yet |
 | WellAU development endpoints change under explicit priors | Development participant evidence | `work-ii-development-basic-analysis-v0.1.json` | Complete, non-formal | Development observation for the retained method/harness only |
 | DeepSeek development endpoints change under explicit priors | Development participant evidence | `work-ii-deepseek-recovery-amended-analysis-v0.1.json` | Complete, non-formal | Development observation for the recovery-amended method/harness only |
@@ -19,6 +21,7 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
 | The participant selectively corrects a wrong prior | Public formal outcome | Future 75-cell public matrix and preregistered analysis | Not collected | Forbidden until the primary decision is available |
 | Final summaries execute and predict continuous held-out conditions | Public formal evaluator outcome | Frozen law-summary evaluation contract, future truth packs and formal analysis | Contract complete; outcomes not collected | Report exact coverage, normalized error, compression and consistency after execution; no public binary law-discovery threshold |
 | Recovered laws transfer to sealed worlds or mechanism families | Private confirmation | Future one-shot private cohort | Not collected | Forbidden until confirmation reaches terminal state |
+| Within-family private replication demonstrates compositional transfer | Artifact-only context-reset study | Future Study D | Unsupported | Keep replication and compositional transfer separate; require verified shared modules and no-artifact/raw/prose/law controls |
 | The method generalizes to language models broadly | Multi-model matched study | No matched model axis in the frozen formal design | Unsupported | Conclusions must remain agent-system-specific |
 
 ## Development denominators retained in the draft

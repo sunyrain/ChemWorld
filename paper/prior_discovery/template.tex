@@ -75,7 +75,7 @@
 
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\footnotesize Prior Correction in AI Scientists}
+\fancyhead[L]{\footnotesize Experimental Intelligence in AI Scientists}
 \fancyhead[R]{\footnotesize Working manuscript}
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.25pt}
@@ -86,11 +86,12 @@
 
 \title{\vspace{-1.8em}\textbf{$title_line_one$\\$title_line_two$}}
 \author{%
-$for(author)$$author.name$$if(author.affiliation_markers)$\textsuperscript{$author.affiliation_markers$}$endif$$sep$, $endfor$%
+$for(author)$$author.name$$if(author.affiliation_markers)$\textsuperscript{$author.affiliation_markers$$if(author.equal_contribution)$,\textdagger$endif$$if(author.corresponding)$,*$endif$}$endif$$sep$, $endfor$%
 $if(affiliation)$\\[0.45em]
 \parbox{0.92\textwidth}{\centering\small
 $for(affiliation)$\textsuperscript{$affiliation.id$}$affiliation.name$$sep$\\[0.25em]
 $endfor$}$endif$%
+$if(equal_contribution_note)$\\[0.22em]\small $equal_contribution_note$$endif$%
 $if(correspondence)$\\[0.35em]\small *Correspondence: \texttt{$correspondence$}$endif$%
 }
 \date{$date$}
@@ -111,7 +112,5 @@ $body$
 
 \bibliographystyle{plainnat}
 \bibliography{references}
-
-\balance
 
 \end{document}

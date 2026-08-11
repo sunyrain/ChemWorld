@@ -1,7 +1,7 @@
-# Work II TODO — 先验、规律发现、偏差排除与迁移
+# Work II TODO — 初始世界模型、实验智能与可迁移规律
 
 最后更新：2026-08-11
-工作边界：第二篇研究在固定世界规律下，无先验、正确先验和错误先验如何影响 agent 的实验发现、错误先验排除、规律总结和 held-out 迁移。它不把“运行中规律变化”作为主要情境，也不重复第一篇的装置可观测性主张。
+工作边界：第二篇研究在固定世界规律下，agent-facing initial world model 的层级与正确性如何影响实验选择、证据获取、预测更新、错误模型排除、可执行规律、行动和迁移。当前 75-cell 核心只操纵 entity/ontology layer；structural/mechanistic、parametric 与 observation-model 干预必须独立冻结和验证。它不把“运行中规律变化”作为主要情境，也不重复第一篇的装置可观测性主张。
 
 当前执行冻结：
 
@@ -70,23 +70,22 @@ question, methods and preregistration are frozen.
 
 ### Working title and one-sentence thesis
 
-Working title: **Controlled Experiments on Scientific Prior Use, Revision and Transfer in AI
-Agents**.
+Working title: **Experimental Intelligence in AI Scientists: From Initial World Models to
+Transferable Laws**.
 
 The paper should test one scientific dissociation rather than rank agents:
 
-> An agent may reach a useful endpoint by following a prior-shaped heuristic without discovering
-> the governing law. Process-complete experiments should distinguish no-prior discovery,
-> correct-prior confirmation and wrong-prior rejection, then test whether the agent can summarize
-> the recovered law and transfer it to held-out conditions.
+> An agent may reach a useful endpoint without constructing a correct scientific model. Process-
+> complete experiments should intervene on the agent's initial world model, then locate whether the
+> conversion from evidence to prediction, executable law, action and transfer succeeds or breaks.
 
 ### Claim hierarchy
 
 1. **Primary claim — endpoint success is not law discovery.** Under a fixed hidden law, endpoint
    optimization, predictive law recovery and calibrated uncertainty are separate estimands.
-2. **Prior-condition claim — prior quality changes discovery strategy.** No prior, correct prior
-   and wrong prior should produce distinct evidence acquisition, exploration and calibration
-   profiles under the same public contract.
+2. **Initial-model claim — model locus and quality change discovery strategy.** Opaque, aligned and
+   misspecified entity, structural, parametric or observation models may produce distinct evidence
+   acquisition, exploration and calibration profiles under the same public contract.
 3. **Bias-resistance claim — wrong priors can be rejected.** A scientifically adaptive agent must
    reduce confidence in an incorrect prior when observations contradict it, rather than preserve
    the prior through selective measurement or post-hoc explanation.
@@ -104,9 +103,9 @@ The manuscript should maintain four visibly separate evidence layers:
 - **Environment qualification:** current Gate A proves that fixed hidden laws, public observations
   and instrument mappings are internally coherent. It is not evidence that an agent discovered a
   law.
-- **Matched prior conditions:** the same fixed world cohort is entered with no prior, a correct
-  prior or an intentionally wrong/biased prior; public contract, budget and safety surface stay
-  matched.
+- **Matched initial-world-model conditions:** the same fixed world cohort is entered with an opaque,
+  aligned or intentionally misspecified agent-facing model at one frozen layer; public contract,
+  budget and safety surface stay matched.
 - **Process-level discovery:** each trajectory records experiment selection, evidence acquisition,
   predictive revision, uncertainty/calibration, prior rejection, law summary and endpoint outcome.
 - **Summary and confirmation:** the law summary is evaluated on held-out conditions after public
@@ -245,14 +244,65 @@ reasoning. Direct and compact stateful-scientific scaffolds may form a matched s
 stateful memory is a small typed belief/evidence/next-intent object, not unconstrained free text.
 No second model or provider enters the current completion scope.
 
+### Initial-world-model intervention programme
+
+“Prior” is henceforth treated as one layer of an **agent-facing initial world model**, not as a
+synonym for a material-property dossier. ChemWorld can program both the external world and the
+representation with which an agent enters it, but a matched causal comparison must keep the external
+world fixed and change only the declared initial-model layer.
+
+| Layer | Manipulable agent-facing content | Current role |
+|---|---|---|
+| Entity / ontology | material identity, entity class, property bundle and ID mapping | Study A confirmatory core; current 75-cell matrix |
+| Structural / mechanistic | causal topology, active modules, dominant pathway and process-order hypothesis | separately frozen non-entity extension |
+| Parametric | direction, coefficient ordering, threshold and plausible parameter range | separately frozen non-entity extension |
+| Observation model | instrument-to-state mapping, reliability, bias and noise assumptions | secondary mechanism probe |
+| Contract / resource | budget, safety, action permissions and actual observation interface | authoritative fixed boundary; never manipulated as a prior |
+
+Every admitted layer uses matched `opaque / aligned / misspecified` conditions. Aligned and
+misspecified arms must match information volume, specificity, confidence language and token budget.
+The manipulated locus, not merely the text string, must be independently identifiable before any
+provider run. A structural or parametric result cannot be manufactured by relabelling the completed
+material-misindexing matrix.
+
+The paper is organized into four studies rather than a single oversized factorial benchmark:
+
+1. **Study A — prior-conditioned free discovery.** The current five-task entity/ontology core remains
+   unchanged. Non-entity generalization enters only through sparse, separately frozen structural and
+   parametric extensions selected by identifiability and mechanism coverage, never by Study A outcome.
+2. **Study B — matched-evidence falsification.** Independent cloned-world sessions expose identical
+   contradictory evidence to distinguish “did not seek disconfirmation” from “saw it but did not
+   update.” These cells have their own resource ledger and never enter Study A denominators.
+3. **Study C — executable law and action.** Final explicit predictions, executable-law error,
+   law-compression loss, law/action inconsistency and blind recommendation gain locate the
+   `prediction → law → action` failure point. No single ratio or verbal summary is the endpoint.
+4. **Study D — artifact-only compositional transfer.** Source learning exports either no artifact,
+   raw evidence/trajectory, prose summary or executable law. The target agent is context-reset and
+   receives only the assigned artifact. Within-family private replication is reported separately and
+   never renamed compositional transfer.
+
+The cross-locus extension uses a sparse admission rule rather than a full Cartesian product. Before a
+broad “initial world model” empirical claim is allowed, at least one structural/mechanistic block and
+one parametric or observation-model block must each reach their prespecified terminal denominator on
+independently qualified tasks. If those blocks are not executed, the final title, abstract and claims
+must be narrowed back to entity/ontology priors.
+
+The analysis reports an experimental-intelligence profile, not a total score:
+
+`initial model → experiment selection → evidence → prediction/update → executable law → action → transfer`
+
+Primary transition losses are `L_prediction→law`, `L_law→action` and `L_action→transfer`, with
+resource, safety, invalid-action, token, time and recovery channels reported alongside rather than
+collapsed into the scientific score.
+
 ### Claim ownership map
 
 - **Work I owns:** composable-world construction, task/instrument contract validity, transaction
   semantics, public/private observation boundaries, resource ledgers, controlled world forks and
   exact environment/action-trace replay.
-- **Work II owns:** prior manipulation, experiment selection, evidence interpretation, selective
-  rejection of wrong priors, typed law summaries, knowledge-to-action translation and held-out
-  transfer.
+- **Work II owns:** initial-world-model manipulation, experiment selection, evidence interpretation,
+  selective rejection of wrong entity/structural/parametric/observation assumptions, typed law
+  summaries, knowledge-to-action translation and held-out transfer.
 - **Shared boundary:** Work II may reuse only currently bound Work I qualification evidence; agent
   outcomes never qualify the environment, and Work I fork results never count as participant law
   discovery.
@@ -290,11 +340,12 @@ outcome channels remain separate so that the analysis can distinguish:
 
 候选中心问题：
 
-> **在固定的隐藏规律下，agent 能否从实验中发现规律、摒弃错误先验，并将总结出的规律迁移到未见条件？**
+> **在固定的隐藏世界中，agent 能否通过实验修正其初始世界模型，并把证据依次转化为预测、可执行规律、行动与可迁移知识；若不能，能力链在哪一环断裂？**
 
 正式研究必须同时测量并区分：
 
-- prior condition（无先验、正确先验、错误/带偏差先验）；
+- initial-world-model locus（entity/ontology、structure/mechanism、parameter、observation model）与
+  quality（opaque、aligned、misspecified）；
 - experiment selection 与 information gain；
 - law discovery 与 predictive calibration；
 - wrong-prior rejection 与 bias resistance；
@@ -933,20 +984,26 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] 完成
 - 优先级：P0
 - 验收标准：
-  - [x] 标题、摘要和第一张图直接呈现先验条件下的规律发现与偏差排除问题；
+  - [x] 标题、摘要和第一张图直接呈现 initial world model → evidence → executable law → action → transfer 能力链；
+  - [x] 当前 entity/ontology 75-cell 核心与 structural/parametric/observation 扩展边界明确；
   - [x] 环境 Gate A、agent Outcomes 和 private confirmation 严格分层；
   - [x] 主图围绕 prior → experiment → evidence → law summary → transfer 的能力链；
   - [x] 不将负结果改写为平台失败，也不扩大未被证据支持的主张；
   - [x] 当前开发/设计图表与 PDF 草稿可独立重建；
   - [ ] 证据图、clean wheel、independent checkout 和 final claim audit 通过；
-  - [ ] 数据归档、作者信息和投稿包完整。
+  - [x] 作者顺序、三位共同一作与通讯作者元数据写入主稿和 PDF 模板；
+  - [ ] 数据归档、完整 CRediT 作者贡献和投稿包完整。
 - 备注：`Claim: Codex /root — W2-15 — DOING`。已建立 venue-neutral 主稿
   `paper/prior_discovery_manuscript.md` 与 display plan
   `paper/prior_discovery_display_items.md`，并以 `paper/prior_discovery_evidence_map.md` 约束逐项 claim
-  ownership。主稿已完成标题、摘要、引言、相关工作、概念框架、五任务正式设计、
+  ownership。2026-08-11 起主稿使用 **Experimental Intelligence in AI Scientists: From Initial
+  World Models to Transferable Laws** 定位；当前五任务 75-cell 矩阵被明确限定为 entity/ontology
+  confirmatory core，并新增 structural/mechanistic、parametric 与 observation-model 独立扩展边界，
+  matched-evidence、law/action 与 artifact-only compositional transfer 分别定义为 Study B--D，禁止把
+  private within-family replication 改写为 compositional transfer。主稿已完成标题、摘要、引言、相关工作、概念框架、五任务正式设计、
   provider-separated 开发结果、预注册 estimand、讨论、方法和发布边界；development、public formal 与 private
-  confirmation 三层证据明确分离，未把 endpoint 或 verbal warning 写成规律发现。Figure 1–3、source data、
-  图源、QA 记录和 10 页开发/设计 PDF 草稿已生成。DeepSeek 五任务 development completion 已纳入摘要、Results、
+  confirmation 三层证据明确分离，未把 endpoint 或 verbal warning 写成规律发现。Figure 1–4、source data、
+  图源、QA 记录和 12 页开发/设计 PDF 草稿已生成。DeepSeek 五任务 development completion 已纳入摘要、Results、
   证据图、display plan 和构建 manifest：75/75 terminal、69/75 completed/qualified、290/300 complete
   experiments、75/75 exact replay；partition/safety 的 seed-0 失败与 seeds 1--4 continuation 均保留，
   但其 task-pattern continuation 仍只作 operational/descriptive evidence，不与 Figure 3 的 common
@@ -955,9 +1012,11 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   并将 validation、MCP recovery、resource rejection 与 provider transport 分母分开。新增五任务终态表及
   第 7--9 页新增段落已完成 PDF 视觉检查。formal Methods 现进一步写明 final law summary 在 evaluator-held
   query 上的真实执行、truth-normalized error、compression 与 final-prediction consistency，且 private
-  transfer 前不生成二元 reusable-law 结论；对应第 4、9 页已检查。当前构建为 0 overfull、1 个非阻断
+  transfer 前不生成二元 reusable-law 结论；对应设计/方法页面已检查。当前构建为 0 overfull、2 个非阻断
   underfull、0 未定义引用、
   0 LaTeX 错误；入口为
+  作者顺序现为 Jiangjie Qiu、Yijun Li、Yaotian Yang（共同一作）、Honghao Chen、Wentao Li、
+  Xiaonan Wang（通讯作者，`wangxiaonan@tsinghua.edu.cn`）；PDF 模板已支持共同一作与通讯作者标记。
   `paper/figures/prior-discovery/README.md`、`paper/figures/prior-discovery/QA.md` 和
   `paper/exports/prior-discovery-draft/build-manifest.json`。正式结果、private transfer、最终统计表、
   clean wheel、independent checkout、final claim audit、数据归档和投稿包必须等待 W2-12--W2-14 后补齐，
@@ -1191,9 +1250,12 @@ Work II 只有在以下条件全部满足时才标记完成：
 
 - [ ] 当前 Gate A 证据绑定有效；
 - [ ] 至少两个机制家族和无/正确/错误先验进入随机 formal world cohort，且每个 formal world 内规律固定；
+- [ ] entity/ontology 核心之外，至少一个 structural/mechanistic block 与一个 parametric 或
+  observation-model block 达到各自冻结分母；若未完成，最终标题和经验主张必须收窄回 entity-level prior；
 - [ ] participant backend × scaffold 至少有一条可识别 matched axis；
 - [ ] optimization、discovery、prior rejection、law summary 和 transfer 均有预注册指标；
 - [ ] public formal matrix 与 private sealed confirmation 均达到终态；
+- [ ] within-family private replication 与 context-reset artifact-only compositional transfer 在设计、分母和措辞上严格分离；
 - [ ] 能明确判断 agent 是依据证据发现并总结规律，还是只取得 endpoint 或维持先验偏差；
 - [ ] 所有结论与 world/agent/sample scope 一致；
 - [ ] 第二篇不依赖第一篇的阈值敏感 supporting result；

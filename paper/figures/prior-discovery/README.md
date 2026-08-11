@@ -1,25 +1,28 @@
-# Prior-correction manuscript figures
+# Experimental-intelligence manuscript figures
 
 These figures are venue-neutral manuscript assets. They use Python/matplotlib exclusively and export
 editable-text SVG/PDF plus 600 dpi PNG/TIFF previews.
 
 ## Figure contracts
 
-### Figure 1 — From prior to reusable law
+### Figure 1 — From an initial world model to a reusable law
 
 - **Core conclusion:** a useful endpoint is insufficient evidence of law discovery.
 - **Archetype:** schematic-led composite.
-- **Panel map:** matched prior intervention; persistent campaign; participant/evaluator evidence
-  separation; joint understanding/action phenotype.
+- **Panel map:** programmable initial-model layers with the current entity/ontology instantiation;
+  persistent campaign; participant/evaluator evidence separation; joint understanding/action
+  phenotype.
 - **Reviewer risk:** the diagram is a conceptual claim map, not an observed causal result.
 
-### Figure 2 — Frozen cohort and evidence architecture
+### Figure 2 — Entity-level confirmatory core and study architecture
 
-- **Core conclusion:** matched prior interventions preserve 25 independent world-level denominators
-  while operations, experiments, checkpoints and evaluator executions remain nested.
+- **Core conclusion:** the entity/ontology core preserves 25 independent world-level denominators,
+  while non-entity extensions, matched-evidence probes, private replication and artifact-only transfer
+  retain separate protocols and denominators.
 - **Archetype:** schematic-led quantitative design summary.
 - **Source:** frozen formal design and outcome-blind execution-blocked preflight.
-- **Reviewer risk:** planned denominators must never be shown as completed outcomes.
+- **Reviewer risk:** planned denominators must never be shown as completed outcomes, and within-family
+  private replication must not be relabelled compositional transfer.
 
 ### Figure 3 — Development evidence
 

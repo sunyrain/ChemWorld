@@ -9,15 +9,19 @@ confirmation; not a formal result.
 - Output size: 182.9 mm wide; schematic-led Figures 1–2 and quantitative-grid Figures 3–4.
 - Editable text: SVG `svg.fonttype=none`; PDF `pdf.fonttype=42`.
 - Raster output: 600 dpi PNG and LZW-compressed TIFF.
-- Figure 1 claim: a useful endpoint is not sufficient evidence of law discovery.
-- Figure 2 claim: matched prior interventions preserve the world-level denominator.
+- Figure 1 claim: the agent-facing initial world model can be intervened on at multiple layers, but a
+  useful endpoint remains insufficient evidence of law discovery.
+- Figure 2 claim: the entity/ontology confirmatory core preserves the world-level denominator while
+  other intervention loci and transfer studies retain separate protocols.
 - Figure 3 claim: explicit priors reshape development behavior, but warnings are not selective.
 - Figure 4 claim: held-out predictions often improve, but misindexed correction does not exceed
   aligned improvement; executable compression and final recommendation provide little added value.
 
 ## Data and source binding
 
-- Figure 1 and Figure 2 are frozen design displays; they do not contain participant outcomes.
+- Figure 1 and Figure 2 are design displays; they do not contain participant outcomes. Figure 2 binds
+  the frozen entity/ontology core, while structural, parametric and observation-model interventions
+  remain unexecuted extensions.
 - Figure 3 uses all retained paired development rows for the three five-seed task matrices: 58 paired
   endpoint rows, 18 warning-rate rows and 6 execution-denominator rows. The two additional DeepSeek
   seed-0 gate pilots are bound in the figure manifest and reported in the manuscript closeout table,
@@ -33,7 +37,7 @@ confirmation; not a formal result.
 
 - Nature Figure static preflight: 14 PASS, 0 WARN, 0 FAIL.
 - Python syntax compilation: passed.
-- SVG text-node audit: Figure 1 = 53, Figure 2 = 66, Figure 3 = 118 and Figure 4 = 74 `<text>` nodes.
+- SVG text-node audit: Figure 1 = 54, Figure 2 = 66, Figure 3 = 118 and Figure 4 = 74 `<text>` nodes.
 - Two consecutive figure-generation passes produced identical hashes for all 16 figure outputs,
   source CSVs and the figure manifest.
 - Two consecutive manuscript-build passes produced identical hashes for the PDF, generated TeX and
@@ -44,13 +48,14 @@ confirmation; not a formal result.
 - PDF: 12 pages, Letter size.
 - References: no undefined citations.
 - LaTeX errors: none.
-- Overfull boxes: 0; underfull boxes: 1 non-blocking paragraph warning.
+- Overfull boxes: 0; underfull boxes: 2 non-blocking paragraph warnings.
 - The five-task closeout table is a full-width display on page 7; all columns, labels and denominators
   were inspected from a 180 dpi page rendering with no clipping or overlap.
 - The persistent-session accounting, harness discussion and Codex/MCP Methods additions were inspected
   on pages 7--9 at 150 dpi; headings, columns and page transitions have no clipping or overlap.
-- The evaluator-owned final law-summary contract and Methods description were inspected on pages 4
-  and 9 at 150 dpi; the added text preserves column balance and introduces no float or heading drift.
+- The initial-world-model table, Study A--D architecture and Methods boundary were inspected on pages
+  3--5 and 10 at 110--180 dpi; the added text preserves column balance and introduces no float or
+  heading drift.
 - Figure 4 and its caption were inspected on page 8 at 180 dpi. All four panels remain legible at the
   manuscript width, panel labels and titles do not overlap, and the following two-column Results text
   begins without float collision or clipping.
@@ -61,5 +66,5 @@ confirmation; not a formal result.
 
 Rendered page previews were inspected at reduced page size and the original-resolution PNGs were
 inspected for all four figures. No clipping, text overlap, panel-label collision, or provider-ranking
-ambiguity remains. Figures 2–4 are forced to appear before their corresponding manuscript sections
-using explicit float barriers.
+ambiguity remains. Figure 2 was moved to the Study A design boundary, and the development figures use
+natural two-column float placement so that no blank half-pages are introduced.

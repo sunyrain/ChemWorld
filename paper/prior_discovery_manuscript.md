@@ -1,55 +1,66 @@
 ---
-title: "Can AI Scientists Correct a Wrong Prior? Controlled Experiments in Executable Chemical Worlds"
-title_line_one: "Can AI Scientists Correct a Wrong Prior?"
-title_line_two: "Controlled Experiments in Executable Chemical Worlds"
-subject: "Experimental discovery, prior correction and law transfer in AI agents"
-keywords: "AI scientist; autonomous experimentation; scientific priors; bias correction; law discovery; counterfactual prediction; chemical worlds"
-pdf_author: "Jiangjie Qiu; Yijun Li; Xiaonan Wang"
+title: "Experimental Intelligence in AI Scientists: From Initial World Models to Transferable Laws"
+title_line_one: "Experimental Intelligence in AI Scientists:"
+title_line_two: "From Initial World Models to Transferable Laws"
+subject: "Initial world models, experimental discovery and law transfer in AI agents"
+keywords: "AI scientist; autonomous experimentation; initial world model; scientific priors; bias correction; law discovery; counterfactual prediction; chemical worlds"
+pdf_author: "Jiangjie Qiu; Yijun Li; Yaotian Yang; Honghao Chen; Wentao Li; Xiaonan Wang"
 author:
   - name: "Jiangjie Qiu"
     affiliation_markers: "1"
+    equal_contribution: true
   - name: "Yijun Li"
     affiliation_markers: "1"
+    equal_contribution: true
+  - name: "Yaotian Yang"
+    affiliation_markers: "1"
+    equal_contribution: true
+  - name: "Honghao Chen"
+    affiliation_markers: "1"
+  - name: "Wentao Li"
+    affiliation_markers: "1"
   - name: "Xiaonan Wang"
-    affiliation_markers: "1,*"
+    affiliation_markers: "1"
+    corresponding: true
 affiliation:
   - id: "1"
     name: "Beijing Key Laboratory of Artificial Intelligence for Advanced Chemical Engineering Materials, State Key Laboratory of Chemical Engineering and Low-Carbon Technology, Department of Chemical Engineering, Tsinghua University, Beijing 100084, China"
 correspondence: "wangxiaonan@tsinghua.edu.cn"
+equal_contribution_note: "Jiangjie Qiu, Yijun Li and Yaotian Yang contributed equally."
 date: ""
 bibliography: prior_discovery_references.bib
 abstract: |
-  Scientific agents rarely begin from a blank state: they inherit model knowledge, task descriptions
-  and investigator-supplied assumptions. A useful endpoint therefore does not show whether an agent
-  discovered the governing relation, followed a correct prior or succeeded despite a wrong one. We
-  formulate prior use and correction as controlled experimental variables in executable chemical
-  worlds. The same hidden world, public operations, evidence budget and safety surface are paired
-  across three conditions: anonymous materials without a task-specific dossier, directionally useful
-  nominal information and an equally detailed but deliberately misindexed dossier. Each agent controls
-  a multi-experiment campaign through one persistent operation-level session, records predictions and
+  Scientific agents never enter an experiment with a neutral mind: they carry an initial world model
+  that may encode entities, mechanisms, parameter values and assumptions about how observations map to
+  hidden states. A useful endpoint therefore does not show whether an agent discovered the governing
+  relation, confirmed a correct model or succeeded despite a wrong one. We define initial-world-model
+  intervention as a controlled variable in executable chemical worlds. The hidden world, public
+  operations, evidence budget and safety surface are held fixed while the agent-facing model is
+  changed at matched entity/ontology, structural/mechanistic, parametric or observation-model
+  layers. The present completed development matrix and planned formal core instantiate the
+  entity-level slice with opaque, aligned and misindexed dossiers; the other layers are registered
+  extensions rather than post-hoc re-labellings of the same result. Each agent controls a
+  multi-experiment campaign through one persistent operation-level session, records predictions and
   belief updates at fixed checkpoints, and commits an executable law summary and final recommendation.
-  Evaluator-owned counterfactual queries and blind replay separate epistemic recovery from endpoint
-  optimization. A completed DeepSeek development matrix spanning five tasks, three prior arms and
-  five world seeds per task reached terminal records for all 75 scheduled cells while retaining
-  failures, resource rejections and tool-recovery tails. A zero-provider evaluator subsequently
-  completed 100/100 registered truth queries and 414/414 blind replays. Held-out prediction usually
-  improved, but wrong-prior improvement did not exceed aligned-prior improvement (mean primary
-  contrast $-0.042$ across 25 task-by-world clusters). Executable law summaries often degraded the
-  final explicit predictions, and no committed recommendation outperformed the observed incumbent.
-  These development observations motivate a preregistered five-task study whose primary estimand
-  tests the same selective-correction contrast prospectively. The resulting framework distinguishes prior
-  confirmation, evidence-driven correction, local policy repair and reusable law discovery, and
-  provides a process-complete basis for studying when an AI scientist can abandon a plausible but
-  incorrect scientific belief.
+  Evaluator-owned counterfactual queries, artifact-only transfer and blind replay separate evidence
+  acquisition, law compression, action and generalization. In the completed DeepSeek development
+  matrix, held-out prediction usually improved, but wrong-prior improvement did not exceed
+  aligned-prior improvement (mean primary contrast $-0.042$ across 25 task-by-world clusters); executable law
+  summaries often degraded the final explicit predictions, and no committed recommendation
+  outperformed the observed incumbent. These observations support a focused research programme on
+  experimental intelligence: how an agent turns an initial world model into evidence, an executable
+  law, a decision and a transferable scientific artifact, and where that capability chain breaks.
 ---
 
 # 1. Introduction
 
 Scientific discovery is not simply the production of a high-scoring outcome. A researcher can obtain
-a useful result for several different reasons: a prior model was already correct, an incorrect model
-was repaired by evidence, a local heuristic happened to work, or the endpoint was reached without a
+a useful result because an initial model was already correct, because evidence repaired an incorrect
+model, because a local heuristic happened to work, or because the endpoint was reached without a
 reusable account of the underlying relation. These explanations are scientifically distinct even when
-their final scores are identical.
+their final scores are identical. The corresponding object of study is therefore not a single prompt
+or material hint, but the agent's initial model of what exists in the world, how it works, which
+quantities matter and how measurements should be interpreted.
 
 This distinction is increasingly important for AI systems that choose and execute experiments.
 Language-model agents can plan syntheses, call chemistry tools, operate instruments and participate in
@@ -61,48 +72,53 @@ recover hidden rules [@jansen2024discoveryworld; @gandhi2025boxinggym; @duan2025
 success can remain difficult to interpret because pretrained knowledge, prompt-provided information,
 experiment selection, endpoint optimization and verbal explanation are usually entangled.
 
-The central problem is the prior. An agent entering an experimental campaign may receive no additional
-task-specific information, a useful but incomplete description, or a plausible description attached
-to the wrong material. The important capability is not merely whether the prior changes behavior. A
+The central problem is the initial world model. An agent entering an experimental campaign may carry
+assumptions about entity identities and properties, causal structure, parameter signs and ranges, or
+the reliability and meaning of observations. Any of these assumptions may be absent, useful or
+plausibly wrong. The important capability is not merely whether such information changes behavior. A
 scientifically adaptive agent should decide which evidence is worth acquiring, use observations to
-revise its predictions, reduce confidence in a contradicted prior, summarize the recovered relation in
-an executable form and transfer that relation to conditions it has not directly tested. Conversely,
-an agent may preserve an incorrect prior through selective measurement, reinterpret contradictory
-observations or patch only its action policy.
+revise the relevant part of its model, reduce confidence in contradicted structure or parameters,
+summarize the recovered relation in an executable form and transfer that relation to conditions or
+compositions it has not directly tested. Conversely, an agent may preserve an incorrect model through
+selective measurement, reinterpret contradictory observations or patch only its action policy.
 
 Physical self-driving laboratories are indispensable for real-material validation, but they make this
 causal question difficult to study at scale. Strictly matching hidden laws, material identities,
-measurement noise, budgets and safety conditions across alternative prior states is expensive and
-often impossible. ChemWorld provides a complementary experimental instrument: chemical processes,
-observations and private material laws can be instantiated as executable worlds, while the public
-experimental interface and complete operation history remain controlled. This permits the prior
-condition to change while the hidden world and evidence opportunity remain fixed.
+measurement noise, budgets and safety conditions across alternative initial-model states is expensive
+and often impossible. ChemWorld provides a complementary experimental instrument: chemical entities,
+process structure, parameters, instrument mappings and private laws can be instantiated as executable
+worlds, while the public experimental interface and complete operation history remain controlled.
+This programmability permits the agent-facing initial model to change at a chosen layer while the
+external world and evidence opportunity remain fixed.
 
-Here we introduce a controlled framework for studying prior use, wrong-prior correction and law
-transfer in experimental agents. It makes four contributions.
+Here we introduce a controlled framework for studying experimental intelligence from initial world
+models to transferable laws. It makes four contributions.
 
-1. **Prior quality becomes a matched intervention.** Anonymous, aligned and misindexed information
-   conditions share the same world, information volume, public contract and resource card.
-2. **Discovery is evaluated through predictions and actions, not self-report alone.** Fixed
+1. **The initial world model becomes a layered intervention.** Entity/ontology,
+   structural/mechanistic, parametric and observation-model assumptions can each be made opaque,
+   aligned or deliberately wrong while the executable world remains fixed.
+2. **Discovery is evaluated through evidence-conditioned transitions, not self-report alone.** Fixed
    checkpoints bind beliefs to evaluator-owned counterfactual queries and to the next experimental
    operation selected by the agent.
 3. **Endpoint success is separated from reusable understanding.** Blind outcome replay, executable
-   law summaries and transfer tests distinguish local optimization from law recovery.
+   law summaries and context-reset artifact transfer distinguish local optimization from law recovery.
 4. **The complete experimental process remains auditable.** One persistent session controls multiple
    experiments under a shared resource ledger, while failures, invalid actions, stopping and exact
    replay remain part of the outcome rather than being silently repaired.
 
-Development results already establish a consequential boundary: explicit priors reshape behavior,
-but nominal-information warnings and endpoint gains do not reliably reveal whether the supplied prior
-is correct. The formal study therefore asks a narrower and harder question: does autonomously acquired
-evidence selectively repair the wrong prior?
+Development results already establish a consequential boundary in the entity/ontology layer: explicit
+information reshapes behavior, but nominal-information warnings and endpoint gains do not reliably
+reveal whether the supplied mapping is correct. The formal core therefore asks whether autonomously
+acquired evidence selectively repairs that wrong mapping. Registered extensions ask whether the same
+capability holds when the error lies in causal structure, parameterization or observation semantics,
+and whether the resulting law survives transfer without the original session context.
 
 ```{=latex}
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{figures/prior-discovery/figure-1-prior-to-law.pdf}
-\caption{\textbf{From prior to reusable law.}
-\textbf{a,} Opaque, aligned and misindexed dossiers enter the same fixed executable world with matched operations, evidence budget, noise and safety surface.
+\caption{\textbf{From an initial world model to a reusable law.}
+\textbf{a,} The current entity-level instantiation uses opaque, aligned and misindexed dossiers in the same fixed executable world; the same intervention logic can target structural, parametric or observation-model assumptions.
 \textbf{b,} One persistent session repeatedly predicts, selects an operation, observes the public outcome and updates its belief and executable law summary across a shared-resource campaign.
 \textbf{c,} Participant trajectories and evaluator-owned held-out truth remain separate until the campaign reaches a terminal state; prediction error, calibration and blind recommendation outcomes are scored afterward.
 \textbf{d,} Predictive recovery and evidence-aligned action define four distinguishable phenotypes. Only their joint success, followed by transfer, supports a reusable-law claim; endpoint success or a correct statement alone does not.}
@@ -131,8 +147,8 @@ distillation and characterization, enabling reinforcement-learning agents to act
 chemistry laboratory [@beeler2024chemgymrl]. MADE extends closed-loop discovery benchmarks to
 budget-constrained materials settings [@malik2026made]. These systems make experimentation cheaper,
 safer and more repeatable than physical execution, but they are generally used to compare policies or
-optimize endpoints under one task definition. The present study instead treats the correctness of
-agent-facing scientific information as the experimental intervention.
+optimize endpoints under one task definition. The present study instead uses world programmability to
+hold the executable task fixed while intervening on the agent's initial scientific model.
 
 ## 2.3 Interactive scientific-discovery benchmarks
 
@@ -143,8 +159,8 @@ ReplaySCM further emphasize interventional causal discovery and executable mecha
 [@yang2026causalab; @batzoglou2026replayscm]. SciDisco uses process-verifiable discovery environments
 to provide intermediate training signals [@xu2026scidisco]. These studies motivate evaluating the
 trajectory of discovery rather than only the final answer. Our focus is complementary: the hidden law
-does not change during a campaign; what changes is whether an explicit prior is absent, useful or
-systematically wrong.
+does not change during a matched campaign; what changes is the entity, structural, parametric or
+observation-level model with which the agent enters that world.
 
 ## 2.4 The unresolved identification problem
 
@@ -157,21 +173,51 @@ checkpoints and evaluator-owned tests are needed to distinguish these cases.
 
 # 3. Conceptual framework
 
-## 3.1 Fixed world, variable prior
+## 3.1 Fixed world, programmable initial world model
 
-Each comparison begins with one executable world containing a fixed evaluator-owned law. The public
-task, action space, observation channels, resource card, safety rules and bound stochastic identity are
-held constant. Only the task-specific dossier changes:
+Each matched comparison begins with one executable world containing a fixed evaluator-owned law. The
+public task, action space, actual observation channels, resource card, safety rules and bound
+stochastic identity are held constant. We intervene only on the agent-facing initial world model
+$M_0$: the compact set of assumptions available before the first experiment. This separation is
+essential. Changing the hidden law or public contract would create a different task; changing $M_0$
+creates a controlled epistemic intervention within the same task.
 
-- **Opaque:** materials use anonymous identifiers and no additional task-specific dossier.
-- **Aligned nominal:** each anonymous identifier is paired with incomplete nominal properties that are
-  directionally useful in the fixed world.
-- **Misindexed nominal:** the same property bundles, fields, values, wording and confidence language are
-  retained, but the bundles are permuted across material identifiers.
+The programmable intervention space has four scientific layers and one non-intervention boundary.
 
-Experimental evidence is explicitly authoritative in all conditions. The misindexed arm is therefore
-not a trick question about obedience; it tests whether the agent seeks and uses evidence that can
-override a plausible prior.
+```{=latex}
+\begin{table*}[!t]
+\centering
+\caption{\textbf{Programmable layers of the agent's initial world model.} The external executable world and public contract remain fixed within every matched comparison.}
+\label{tab:initial-world-model-layers}
+\scriptsize
+\begin{tabularx}{\textwidth}{L{0.18\textwidth}Y L{0.29\textwidth}}
+\toprule
+Initial-model layer & What may be aligned or wrong & Role in this paper \\
+\midrule
+Entity / ontology & identity--property mappings, entity classes and property bundles & current development evidence and confirmatory core \\
+Structural / mechanistic & causal topology, active process modules and dominant-pathway assumptions & separately registered extension \\
+Parametric & coefficient signs, thresholds, orderings and plausible ranges & separately registered extension \\
+Observation model & instrument mapping, reliability, bias and noise assumptions & secondary diagnostic probe \\
+Contract / resource boundary & budget, safety, action permissions and actual observation interface & authoritative and fixed; never treated as a manipulable prior \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+```
+
+Within any selected layer, intervention quality follows the same logic:
+
+- **Opaque:** no additional task-specific claim is supplied for the manipulated layer.
+- **Aligned:** incomplete information is directionally consistent with the fixed world.
+- **Misspecified:** an equally detailed and equally confident model is wrong at the frozen target layer.
+
+The current entity/ontology implementation realizes the misspecified condition through a misindexed
+dossier: the same property bundles, fields, values, wording and confidence language are retained, but
+the bundles are permuted across material identifiers. Structural, parametric and observation-model
+interventions require their own matched encodings and identifiability qualification; they cannot be
+declared equivalent to material misindexing after observing the result. Experimental evidence remains
+explicitly authoritative in all conditions. A wrong initial model is therefore not a trick question
+about obedience; it tests whether the agent seeks and uses evidence that can override a plausible
+scientific representation.
 
 ## 3.2 Operation, experiment and campaign
 
@@ -185,9 +231,10 @@ This distinction matters because repeated operations and experiments inside one 
 observations, not independent scientific samples. The independent analysis unit is the matched
 task-by-world cluster.
 
-## 3.3 Four separable outcomes
+## 3.3 Four separable outcomes and one capability chain
 
-We distinguish four outcomes that are often collapsed into a single score.
+We distinguish four outcomes that are often collapsed into a single score, while recording the
+intermediate transitions that connect them.
 
 1. **Endpoint optimization:** whether the campaign identifies a high-quality experimental outcome.
 2. **Predictive recovery:** whether held-out counterfactual prediction error decreases.
@@ -196,25 +243,75 @@ We distinguish four outcomes that are often collapsed into a single score.
 4. **Reusable law recovery:** whether the final executable summary predicts unseen continuous
    conditions and supports held-out control or transfer.
 
+The process-level chain is therefore
+
+```{=latex}
+\begin{center}
+\small initial world model $\rightarrow$ experiment selection $\rightarrow$ evidence acquisition\\
+$\rightarrow$ prediction / belief update $\rightarrow$ executable law $\rightarrow$ action $\rightarrow$ transfer
+\end{center}
+```
+
+The paper reports transition losses rather than a composite intelligence score: prediction-to-law
+loss, law-to-action inconsistency and action-to-transfer loss. This makes it possible to identify
+where a capability fails without treating a successful endpoint as proof that every upstream step was
+correct.
+
 An agent can succeed on any subset. In particular, endpoint success without predictive and transfer
 validity is classified as local optimization rather than law discovery.
 
 # 4. Study design
 
-## 4.1 Chemical-world cohort
+## 4.1 Chemical-world cohort and intervention studies
 
 The formal public cohort spans five task families: electrochemical conversion, reaction followed by
 crystallization, reaction followed by distillation, phase-partition discovery and safety-constrained
 reaction. Five independently selected public worlds per task yield 25 task-by-world clusters. Each
-cluster contains the three prior arms, for 75 participant cells. Development and method-qualification
-worlds are disjoint from this cohort. A separate private cohort is committed in advance and remains
-sealed until public analysis is frozen.
+cluster contains the three entity/ontology arms, for 75 participant cells. Development and
+method-qualification worlds are disjoint from this cohort. A separate private cohort is committed in
+advance and remains sealed until public analysis is frozen.
+
+This 75-cell matrix is the primary, entity-level slice of a broader initial-world-model programme;
+it is not a claim that material dossiers exhaust the space of scientific priors. The studies are
+organized so that breadth does not become an uncontrolled benchmark:
+
+1. **Study A — Prior-conditioned free discovery.** The current five-task, three-arm matrix tests
+   whether an agent acquires evidence, updates predictions and rejects a wrong entity/ontology model
+   under a fixed world and shared campaign ledger.
+2. **Study B — Matched-evidence falsification.** A cloned-world secondary probe presents the same
+   contradictory evidence to each arm, separating failure to seek evidence from failure to update
+   after seeing it. It uses independent sessions and is excluded from Study A denominators.
+3. **Study C — Executable law and action.** Typed law summaries, held-out predictions and blind
+   recommendations test the transitions from prediction to law and from law to action; no verbal
+   statement alone counts as discovery.
+4. **Study D — Artifact-only compositional transfer.** After source-world learning, raw evidence,
+   prose summaries or executable laws are transferred to a context-reset agent in a new combination.
+   No-artifact, trajectory and typed-law conditions are compared, and within-family replication is
+   kept separate from genuine compositional transfer.
+
+Structural/mechanistic, parametric and observation-model interventions are registered extensions to
+Study A rather than hidden post-hoc subgroups. Each extension must first pass its own identifiability
+and matched-information preflight; the experiment matrix is intentionally sparse and selected by
+mechanistic coverage, not expanded into a full factorial by default.
 
 Environment qualification and participant outcomes form separate evidence layers. Environment tests
 establish that the hidden relations are coherent, identifiable and executable through the public
 measurement surface. They do not show that an agent discovers those relations.
 
-## 4.2 Persistent experimental agent
+```{=latex}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figures/prior-discovery/figure-2-formal-cohort.pdf}
+\caption{\textbf{Entity-level confirmatory core and separated study architecture.}
+\textbf{a,} Five task families each contribute five public-formal worlds to Study A, selected independently of participant outcomes; development, public and private identities are disjoint.
+\textbf{b,} Each independent task--world cluster contains opaque, aligned and misindexed entity/ontology cells. Every cell uses one persistent session for four complete experiments, with checkpoints before evidence and after one, two and four experiments.
+\textbf{c,} Free discovery, matched-evidence falsification, evaluator truth and action tests, private within-family replication and artifact-only compositional transfer retain separate sessions, resources and denominators.
+\textbf{d,} The planned public denominator comprises 25 independent clusters, 75 participant cells and 300 complete experiments, with 100 provider-free held-out truth executions and 450 provider-free blind executions nested within the corresponding clusters. These are frozen design denominators, not completed outcomes.}
+\label{fig:formal-cohort}
+\end{figure*}
+```
+
+## 4.2 Persistent experimental agent (Study A)
 
 Each cell is controlled by one persistent Codex process and one provider session. After every public
 outcome, the participant chooses the next operation through the host-owned laboratory tool. The host
@@ -223,8 +320,9 @@ select or repair scientific actions.
 
 Each campaign contains four complete experiments and typed checkpoints before evidence, after the
 first and second experiments, and at the end of the fourth experiment. A checkpoint records the
-agent's assessment of prior reliability, predictions, uncertainty, evidence references, executable
-law summary and next experimental intent. Checkpoints do not create additional provider sessions.
+agent's assessment of initial-model reliability at the manipulated layer, predictions, uncertainty,
+evidence references, executable law summary and next experimental intent. Checkpoints do not create
+additional provider sessions.
 
 ## 4.3 Evaluator-owned evidence
 
@@ -263,32 +361,23 @@ C_{\mathrm{prior}}={}&
 Success requires the lower confidence bound for $C_{\mathrm{prior}}$ to exceed zero, the wrong-prior
 condition to improve, and the aligned condition not to deteriorate beyond a prespecified tolerance.
 Correct-prior utility, wrong-prior vulnerability and knowledge-to-action translation form a
-hierarchical secondary family. Endpoint, calibration, behavior, law-summary, transfer, resource and
-safety outcomes are reported as separate channels rather than one leaderboard score.
+hierarchical secondary family. For the structural, parametric and observation-model extensions, the
+same estimands are re-bound to the manipulated layer before execution; their results cannot be pooled
+with the entity-level primary contrast unless the intervention semantics and denominators are identical.
+Endpoint, calibration, behavior, law-summary, transfer, resource and safety outcomes are reported as
+separate channels rather than one leaderboard score.
 
 Failed scientific cells remain in the denominator and are not replaced. A right-censored cell carries
 its last valid checkpoint forward; a missing final prediction receives zero primary improvement. Only
 a pure infrastructure failure without persisted trajectory may resume under the frozen attempt cap.
 
-```{=latex}
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=\textwidth]{figures/prior-discovery/figure-2-formal-cohort.pdf}
-\caption{\textbf{Frozen cohort and evidence architecture.}
-\textbf{a,} Five task families each contribute five public-formal worlds selected independently of participant outcomes; development, public and private identities are disjoint.
-\textbf{b,} Each independent task--world cluster contains opaque, aligned and misindexed participant cells. Every cell uses one persistent session for four complete experiments, with checkpoints before evidence and after one, two and four experiments.
-\textbf{c,} Participant trajectories, evaluator-held truth, blind outcome replay and private confirmation retain separate resources and records and are joined only after terminal execution.
-\textbf{d,} The planned public denominator comprises 25 independent clusters, 75 participant cells and 300 complete experiments, with 100 provider-free held-out truth executions and 450 provider-free blind executions nested within the corresponding clusters. These are frozen design denominators, not completed outcomes.}
-\label{fig:formal-cohort}
-\end{figure*}
-\FloatBarrier
-```
-
 # 5. Development evidence
 
 The following results qualify the method and sharpen the scientific question. They are not part of
 the public formal or private-confirmation denominator, and the two provider configurations are not
-used for a cross-provider capability ranking.
+used for a cross-provider capability ranking. They instantiate only the entity/ontology layer of the
+initial-world-model intervention matrix; they should not be read as evidence that structural,
+parametric or observation-model priors have already been tested.
 
 ```{=latex}
 \begin{figure*}[!t]
@@ -300,10 +389,9 @@ used for a cross-provider capability ranking.
 \textbf{d,} Completed-cell, complete-experiment and exact-replay denominators. Failures remain in the scheduled or terminal denominator and are not replaced. Panels a--c retain the common three-task paired endpoint/warning source used for provider-separated continuity; the complete five-task DeepSeek operational denominator is shown in the closeout table. All panels are development-only descriptive summaries; no confidence interval, formal hypothesis test or cross-provider capability comparison is performed. Endpoint gains and verbal warnings do not establish law discovery, selective wrong-prior correction or transfer.}
 \label{fig:development-prior-effects}
 \end{figure*}
-\FloatBarrier
 ```
 
-## 5.1 Explicit priors reshape endpoint behavior
+## 5.1 Entity-level priors reshape endpoint behavior
 
 One development matrix used the frozen persistent-session interface with a WellAU-provided Codex
 model. It produced 44 completed cells out of 45 and 176 complete experiments out of 180. Mean paired
@@ -386,10 +474,9 @@ law.
 \textbf{d,} Paired blind replay of the committed recommendation versus the observed incumbent for 69 qualified cells. The evaluator completed 414/414 replays with zero provider calls. All panels are development-only descriptive evidence; no formal test, private transfer claim or cross-provider ranking is performed.}
 \label{fig:development-confirmation}
 \end{figure*}
-\FloatBarrier
 ```
 
-## 5.2 Held-out prediction improves, but correction is not selective
+## 5.2 Held-out prediction improves, but entity-level correction is not selective
 
 The post-hoc development evaluator executed four registered counterfactual queries for each of the
 25 task-by-world clusters. All **100/100** truth queries completed with exact replay and without a
@@ -469,6 +556,11 @@ execution. The section is reserved for:
 - blind incumbent-versus-recommendation outcomes;
 - complete failure, censoring, resource, token, cost and wall-time denominators.
 
+The primary formal result is the entity/ontology intervention in Study A. Any structural,
+parametric or observation-model extension will be reported in a separately identified subsection with
+its own intervention audit and denominator; it will not be silently merged into the primary arm
+contrast.
+
 No development value will be substituted for a missing formal result.
 
 # 7. Private confirmation and transfer
@@ -476,8 +568,10 @@ No development value will be substituted for a missing formal result.
 After the public method and analysis code are frozen, the committed private cohort will be executed
 once. The same prediction, law-summary and control metrics will test world-held-out transfer within
 the five registered task families. Private identities will not be revealed to the participant, and a
-negative or incomplete result will not trigger a replacement run. The current design does not contain
-a mechanism-family-held-out cohort; such a claim would require a separately registered extension.
+negative or incomplete result will not trigger a replacement run. This within-family replication is
+not compositional transfer. Study D requires a context reset and an artifact-only hand-off into a new
+task combination, with no-artifact and raw-trajectory controls; a mechanism-family-held-out result
+would require a separately registered extension.
 
 The strongest claim—discovery of a reusable law—requires joint evidence: selective wrong-prior
 correction, aligned-prior non-degradation, an executable typed law summary, valid predictions on
@@ -531,20 +625,25 @@ breadth but only five independent public worlds per task, so the confirmatory de
 moderate-to-large effects rather than subtle differences. Evaluator queries are registered before
 participant execution, but any finite query set samples only part of a hidden law. The private cohort
 tests new worlds within the same task families rather than transfer to an unseen mechanism family.
-Finally, exact software replay does not eliminate model-provider variability; provider attempts and
-session failures are reported as operational characteristics rather than independent scientific
-samples.
+The current completed data also manipulate only the entity/ontology layer; structural, parametric and
+observation-model interventions remain registered extensions until their independent preflights and
+formal blocks are run. Finally, exact software replay does not eliminate model-provider variability;
+provider attempts and session failures are reported as operational characteristics rather than
+independent scientific samples.
 
 # 9. Methods
 
-## 9.1 World and prior construction
+## 9.1 World and initial-model construction
 
 Each task instantiates a public experimental contract and a private evaluator-owned material or
 process law. Public formal worlds are selected deterministically from a namespace disjoint from
-development worlds. Within each world cluster, the three prior arms share the hidden law, public
-contract, resource card and stochastic identity. Aligned and misindexed dossiers contain identical
-fields, values, wording and confidence language; the latter applies a frozen permutation to the
-material identifiers.
+development worlds. Within each world cluster, the three entity/ontology arms share the hidden law,
+public contract, resource card and stochastic identity. Aligned and misindexed dossiers contain
+identical fields, values, wording and confidence language; the latter applies a frozen permutation to
+the material identifiers. Structural, parametric and observation-model extensions alter only their
+declared agent-facing representation while retaining the same external world and contract. A layer
+extension is admitted only after a separate identifiability audit confirms that its aligned and
+misspecified encodings are matched in information volume, wording and confidence.
 
 ## 9.2 Transactional execution and resources
 
@@ -625,7 +724,9 @@ identities and results will be disclosed with the final confirmation package.
 
 # 11. Author contributions
 
-Author contributions will be finalized before submission using a role-based contribution statement.
+Jiangjie Qiu, Yijun Li and Yaotian Yang contributed equally. A role-based contribution statement for
+all six authors will be finalized before submission without changing the author order or
+corresponding-author designation.
 
 # 12. Competing interests
 

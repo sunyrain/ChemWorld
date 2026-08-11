@@ -276,8 +276,17 @@ def render_figure_1() -> list[Path]:
         setup_schematic_ax(ax)
     ax_a, ax_b, ax_c, ax_d = axes
 
-    # a — matched prior intervention
-    ax_a.set_title("Change the prior, not the world", loc="left", fontweight="bold", pad=5)
+    # a — matched initial-world-model intervention
+    ax_a.set_title("Intervene on the initial model, not the world", loc="left", fontweight="bold", pad=5)
+    ax_a.text(
+        0.50,
+        0.95,
+        "Target layer: entity · structure · parameter · observation",
+        ha="center",
+        va="center",
+        fontsize=5.8,
+        color=COLORS["muted"],
+    )
     arm_specs = [
         ("Opaque", "Anonymous IDs\nNo task dossier", COLORS["opaque"], "#EEF1F2"),
         ("Aligned", "Useful nominal\nproperties", COLORS["aligned"], COLORS["teal_light"]),
@@ -288,7 +297,7 @@ def render_figure_1() -> list[Path]:
         rounded_box(
             ax_a,
             x,
-            0.61,
+            0.58,
             0.285,
             0.25,
             f"{name}\n{detail}",
@@ -297,13 +306,13 @@ def render_figure_1() -> list[Path]:
             fontsize=6.6,
             fontweight="bold" if index else "normal",
         )
-        arrow(ax_a, (x + 0.142, 0.60), (0.50, 0.42), color=edge)
+        arrow(ax_a, (x + 0.142, 0.57), (0.50, 0.40), color=edge)
     rounded_box(
         ax_a,
         0.22,
-        0.16,
+        0.14,
         0.56,
-        0.24,
+        0.23,
         "One fixed executable chemical world\nMatched operations, evidence budget, noise and safety",
         facecolor=COLORS["blue_light"],
         edgecolor=COLORS["blue"],
@@ -312,8 +321,8 @@ def render_figure_1() -> list[Path]:
     )
     ax_a.text(
         0.50,
-        0.07,
-        "Only the agent-facing dossier changes",
+        0.045,
+        "Current confirmatory core: entity / ontology layer",
         ha="center",
         va="center",
         fontsize=6.8,
@@ -458,7 +467,7 @@ def render_figure_1() -> list[Path]:
     fig.text(
         0.045,
         0.018,
-        "The prior is manipulated under one fixed world; predictions, experiments, executable summaries and blind outcomes are evaluated as separate evidence channels.",
+        "The agent-facing initial model is manipulated under one fixed world; prediction, executable law, action and transfer remain separate evidence channels.",
         ha="left",
         fontsize=6.7,
         color=COLORS["muted"],
@@ -496,7 +505,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     for ax in (ax_a, ax_b, ax_c, ax_d):
         setup_schematic_ax(ax)
 
-    ax_a.set_title("Five heterogeneous task families define the public cohort", loc="left", fontweight="bold", pad=5)
+    ax_a.set_title("Five heterogeneous task families define the entity-level core", loc="left", fontweight="bold", pad=5)
     task_colors = [COLORS["blue"], COLORS["aligned"], COLORS["misindexed"], COLORS["violet"], COLORS["red"]]
     short_names = ["Electrochemical", "Crystallization", "Distillation", "Partition", "Safety-constrained"]
     mechanisms = [
@@ -533,7 +542,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     )
     panel_label(ax_a, "a", x=-0.018)
 
-    ax_b.set_title("One independent world cluster", loc="left", fontweight="bold", pad=5)
+    ax_b.set_title("Study A: one world cluster", loc="left", fontweight="bold", pad=5)
     y_positions = [0.72, 0.49, 0.26]
     for arm, y in zip(ARM_ORDER, y_positions):
         color = ARM_COLOR[arm]
@@ -571,34 +580,25 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     ax_b.text(0.50, 0.08, "Three cells share the world but never share a session", ha="center", fontsize=6.5, color=COLORS["muted"])
     panel_label(ax_b, "b", x=-0.10)
 
-    ax_c.set_title("Evidence remains partitioned", loc="left", fontweight="bold", pad=5)
+    ax_c.set_title("Evidence partitions", loc="left", fontweight="bold", pad=5)
     evidence_boxes = [
-        (0.10, 0.73, "Participant\ntrajectory", COLORS["teal_light"], COLORS["aligned"]),
-        (0.55, 0.73, "Held-out\ntruth", COLORS["blue_light"], COLORS["blue"]),
-        (0.10, 0.32, "Blind outcome\nreplay", COLORS["violet_light"], COLORS["violet"]),
-        (0.55, 0.32, "Private\nconfirmation", COLORS["orange_light"], COLORS["misindexed"]),
+        (0.03, 0.73, "Study A\nfree discovery", COLORS["teal_light"], COLORS["aligned"]),
+        (0.63, 0.73, "Study B\nmatched evidence", COLORS["red_light"], COLORS["red"]),
+        (0.33, 0.47, "Study C\nlaw + action", COLORS["blue_light"], COLORS["blue"]),
+        (0.03, 0.20, "Private\nreplication", COLORS["violet_light"], COLORS["violet"]),
+        (0.63, 0.20, "Study D\nartifact transfer", COLORS["orange_light"], COLORS["misindexed"]),
     ]
     for x, y, label, face, edge in evidence_boxes:
-        rounded_box(ax_c, x, y, 0.34, 0.18, label, facecolor=face, edgecolor=edge, fontsize=6.7, fontweight="bold")
-    arrow(ax_c, (0.27, 0.70), (0.45, 0.57), color=COLORS["aligned"], connectionstyle="arc3,rad=-0.1")
-    arrow(ax_c, (0.72, 0.70), (0.55, 0.57), color=COLORS["blue"], connectionstyle="arc3,rad=0.1")
-    rounded_box(
-        ax_c,
-        0.31,
-        0.48,
-        0.38,
-        0.14,
-        "Formal join\nafter terminal state",
-        facecolor="#F7F9FA",
-        edgecolor=COLORS["ink"],
-        fontsize=6.5,
-    )
-    arrow(ax_c, (0.28, 0.32), (0.42, 0.47), color=COLORS["violet"], connectionstyle="arc3,rad=0.1")
-    arrow(ax_c, (0.72, 0.32), (0.58, 0.47), color=COLORS["misindexed"], connectionstyle="arc3,rad=-0.1")
+        width = 0.34
+        rounded_box(ax_c, x, y, width, 0.16, label, facecolor=face, edgecolor=edge, fontsize=6.1, fontweight="bold")
+    arrow(ax_c, (0.20, 0.71), (0.43, 0.64), color=COLORS["aligned"], connectionstyle="arc3,rad=-0.1")
+    arrow(ax_c, (0.80, 0.71), (0.57, 0.64), color=COLORS["red"], connectionstyle="arc3,rad=0.1")
+    arrow(ax_c, (0.43, 0.46), (0.20, 0.37), color=COLORS["violet"], connectionstyle="arc3,rad=0.1")
+    arrow(ax_c, (0.57, 0.46), (0.80, 0.37), color=COLORS["misindexed"], connectionstyle="arc3,rad=-0.1")
     ax_c.text(0.50, 0.10, "No evaluator feedback enters the participant session", ha="center", fontsize=6.4, color=COLORS["muted"])
     panel_label(ax_c, "c", x=-0.10)
 
-    ax_d.set_title("Frozen public denominators", loc="left", fontweight="bold", pad=5)
+    ax_d.set_title("Core denominators", loc="left", fontweight="bold", pad=5)
     denominator_rows = [
         ("Independent clusters", "25", COLORS["blue"]),
         ("Participant cells", "75", COLORS["aligned"]),
@@ -615,7 +615,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     panel_label(ax_d, "d", x=-0.10)
 
     fig.suptitle(
-        "Matched prior interventions preserve the world-level denominator",
+        "The entity-level confirmatory core preserves the world-level denominator",
         x=0.045,
         y=0.965,
         ha="left",
@@ -626,7 +626,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     fig.text(
         0.045,
         0.018,
-        "The formal design contains 25 independent task × world clusters; all participant, held-out and blind observations are nested within those clusters.",
+        "Study A contains 25 independent task × world clusters; non-entity extensions and artifact transfer retain separate protocols and denominators.",
         ha="left",
         fontsize=6.7,
         color=COLORS["muted"],
@@ -1405,7 +1405,8 @@ def main() -> int:
             for figure_id, paths in outputs.items()
         },
         "interpretation_limits": [
-            "Figures 1 and 2 show the frozen conceptual and formal design, not participant outcomes.",
+            "Figure 1 shows the layered initial-world-model concept; Figure 2 shows the frozen entity/ontology confirmatory core and separated study denominators, not participant outcomes.",
+            "Structural, parametric and observation-model interventions remain registered extensions with no participant outcomes in this figure package.",
             "Figure 3 contains development-only provider-isolated descriptive evidence.",
             "Figure 4 contains DeepSeek development-only evaluator confirmation; H3 values are descriptive and use the frozen missing-outcome rules.",
             "Partition discovery and safety-constrained reaction complete the five-task development coverage but remain operational descriptive evidence; they are not pooled into the three-task paired endpoint panels.",
