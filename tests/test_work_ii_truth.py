@@ -40,8 +40,7 @@ def test_all_formal_queries_compile_to_complete_frozen_experiments() -> None:
         config = _load_config(name)
         checkpoint = build_checkpoint_contract(config, "opaque")
         compiled = [
-            compile_evaluator_truth_query(config, query)
-            for query in checkpoint["held_out_queries"]
+            compile_evaluator_truth_query(config, query) for query in checkpoint["held_out_queries"]
         ]
         assert len(compiled) == 4
         assert all(
@@ -49,8 +48,7 @@ def test_all_formal_queries_compile_to_complete_frozen_experiments() -> None:
             for item in compiled
         )
         assert all(
-            item["action_plan"][-1]
-            == {"operation": "measure", "instrument": "final_assay"}
+            item["action_plan"][-1] == {"operation": "measure", "instrument": "final_assay"}
             for item in compiled
         )
 
@@ -104,9 +102,7 @@ def test_truth_plan_is_shared_across_arms_and_self_bound() -> None:
 
     tampered = deepcopy(plan)
     tampered["queries"][0]["feature_values"]["solvent"] = 3
-    assert "evaluator truth plan self-hash mismatch" in validate_evaluator_truth_plan(
-        tampered
-    )
+    assert "evaluator truth plan self-hash mismatch" in validate_evaluator_truth_plan(tampered)
 
 
 def test_truth_plan_accepts_pattern_owned_query_and_evidence_denominators() -> None:
@@ -128,11 +124,32 @@ def test_truth_plan_accepts_pattern_owned_query_and_evidence_denominators() -> N
         f"experiment-{index}-final-assay" for index in range(1, 11)
     ]
     heat = next(
-        action
-        for action in plan["queries"][0]["action_plan"]
-        if action["operation"] == "heat"
+        action for action in plan["queries"][0]["action_plan"] if action["operation"] == "heat"
     )
     assert heat["stirring_speed_rpm"] == 400.0
+
+
+def test_electrochemical_matched_prior_truth_uses_autonomous_open_contract() -> None:
+    config = _load_config("work_ii_electrochemical_matched_prior_d1_execution.json")
+    plan = build_evaluator_truth_plan(
+        {
+            "world_cluster_id": "electrochemical-matched-prior-d1-seed0",
+            "task_id": "electrochemical-conversion",
+            "world_seed": 0,
+        },
+        config,
+        formal_result=False,
+        formal_preflight_sha256=None,
+    )
+
+    assert validate_evaluator_truth_plan(plan) == []
+    assert plan["truth_query_count"] == 16
+    assert all(query["workflow_mode"] == "autonomous_open_v1" for query in plan["queries"])
+    assert all(len(query["action_plan"]) == 11 for query in plan["queries"])
+    assert all(
+        sum(action["operation"] == "electrolyze" for action in query["action_plan"]) == 2
+        for query in plan["queries"]
+    )
 
 
 def test_truth_executor_retains_exact_four_query_denominator(

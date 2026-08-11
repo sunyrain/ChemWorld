@@ -55,3 +55,18 @@ potential direction audit against the exact 16 held-out evaluator queries.
 One ignored zero-provider readiness receipt, one ignored three-cell participant matrix with 30-second
 liveness, one tracked machine summary and one concise analysis. The result can authorize a later user-
 reviewed expansion, but cannot establish a five-world or formal claim by itself.
+
+## Readiness run-1 platform rejection
+
+The first zero-provider readiness attempt made no provider call. All `3/3` historical WellAU
+trajectories passed current-code audit, and every config, resource, credential, Codex/MCP and schedule
+check passed. The controlled-potential truth stage failed before executing a query because the truth
+compiler unconditionally forced the legacy `static_single_stage` electrochemical workflow while the
+current Q2 and participant config use the public nine-field `autonomous_open_v1` contract. The
+resulting `recipe_parameters fields do not match the contract` error is a readiness compiler defect,
+not a participant or scientific result.
+
+The correction makes evaluator truth honor the config-owned electrochemical workflow mode and adds a
+regression that all 16 Q2 queries compile to the two-electrolysis, 11-action autonomous-open recipe.
+No world, query, prior, threshold, resource or provider setting changes. The readiness block must
+restart from historical trajectory 1 and truth query 1 on a new clean commit before any provider call.

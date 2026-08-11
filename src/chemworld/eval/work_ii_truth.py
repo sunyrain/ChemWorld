@@ -21,7 +21,10 @@ from chemworld.agents.static_optimization import (
     StaticOptimizationValidator,
     compile_static_optimization_plan,
 )
-from chemworld.agents.task_recipes import task_recipe_coordinate_schema
+from chemworld.agents.task_recipes import (
+    electrochemical_recipe_parameter_schema,
+    task_recipe_coordinate_schema,
+)
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import (
     canonical_json_sha256,
@@ -111,9 +114,7 @@ class _FrozenTruthReplayAgent(BaseAgent):
                 "execution_role": "evaluator_held_out_truth_replay",
                 "participant_feedback": False,
                 "frozen_action_count": len(self._frozen_actions),
-                "frozen_action_plan_sha256": canonical_json_sha256(
-                    self._frozen_actions
-                ),
+                "frozen_action_plan_sha256": canonical_json_sha256(self._frozen_actions),
             }
         )
         return manifest
@@ -128,9 +129,16 @@ def _finite_number(value: Any, *, field: str) -> float:
     return number
 
 
-def _workflow_mode(config: Mapping[str, Any]) -> str:
+def _workflow_mode(
+    config: Mapping[str, Any],
+    feature_values: Mapping[str, Any],
+) -> str:
     if config.get("task_id") == "electrochemical-conversion":
-        return ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
+        compiled_fields = set(
+            _compiled_control_values("electrochemical-conversion", feature_values)
+        )
+        if compiled_fields != set(electrochemical_recipe_parameter_schema()):
+            return ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
     return str(config.get("electrochemical_workflow_mode", "static_single_stage"))
 
 
@@ -259,7 +267,7 @@ def compile_evaluator_truth_query(
     feature_values = query.get("feature_values")
     if not isinstance(feature_values, Mapping):
         raise ValueError("held-out query feature_values must be an object")
-    workflow_mode = _workflow_mode(config)
+    workflow_mode = _workflow_mode(config, feature_values)
     validator = StaticOptimizationValidator(
         task_info,
         electrochemical_workflow_mode=workflow_mode,
@@ -326,9 +334,7 @@ def _noise_binding(
     return {
         "observation_coordinate_sha256": digest,
         "observation_seed": int(digest[:8], 16) % 2_147_483_647,
-        "observation_noise_namespace": (
-            f"work-ii-truth-v0.1-{world_cluster_id}-{digest[:12]}"
-        ),
+        "observation_noise_namespace": (f"work-ii-truth-v0.1-{world_cluster_id}-{digest[:12]}"),
     }
 
 
@@ -342,9 +348,7 @@ def build_evaluator_truth_plan(
     """Build one pattern-owned evaluator plan shared by a task/world arm triplet."""
 
     if formal_result:
-        if not isinstance(formal_preflight_sha256, str) or len(
-            formal_preflight_sha256
-        ) != 64:
+        if not isinstance(formal_preflight_sha256, str) or len(formal_preflight_sha256) != 64:
             raise ValueError("formal truth plan requires its preflight binding")
     elif formal_preflight_sha256 is not None:
         raise ValueError("development truth plan cannot carry a formal binding")
@@ -470,9 +474,7 @@ def validate_evaluator_truth_plan(plan: Mapping[str, Any]) -> list[str]:
         for query in queries
         if isinstance(query, Mapping)
         for metric in (
-            query.get("metric_ids", [])
-            if isinstance(query.get("metric_ids"), list)
-            else ()
+            query.get("metric_ids", []) if isinstance(query.get("metric_ids"), list) else ()
         )
     }
     if (
@@ -484,10 +486,7 @@ def validate_evaluator_truth_plan(plan: Mapping[str, Any]) -> list[str]:
         or not isinstance(evidence_catalog, list)
         or not evidence_catalog
         or evidence_catalog
-        != [
-            f"experiment-{index}-final-assay"
-            for index in range(1, len(evidence_catalog) + 1)
-        ]
+        != [f"experiment-{index}-final-assay" for index in range(1, len(evidence_catalog) + 1)]
     ):
         errors.append("evaluator truth law-summary contract is invalid")
     if declared_query_count != len(queries):
@@ -553,9 +552,7 @@ def execute_evaluator_truth_plan(
             "query_id": query_id,
             "metric_ids": list(query["metric_ids"]),
             "action_plan_sha256": query["action_plan_sha256"],
-            "observation_coordinate_sha256": query[
-                "observation_coordinate_sha256"
-            ],
+            "observation_coordinate_sha256": query["observation_coordinate_sha256"],
             "evaluator_provider_call_count": 0,
             "participant_operation_denominator_impact": 0,
             "participant_feedback_emitted": False,
@@ -574,12 +571,8 @@ def execute_evaluator_truth_plan(
                 output_path=trajectory_path,
                 budget_override=len(actions),
                 episode_mode_override="single_experiment",
-                electrochemical_material_family_id=config.get(
-                    "electrochemical_material_family_id"
-                ),
-                crystallization_material_family_id=config.get(
-                    "crystallization_material_family_id"
-                ),
+                electrochemical_material_family_id=config.get("electrochemical_material_family_id"),
+                crystallization_material_family_id=config.get("crystallization_material_family_id"),
                 electrochemical_workflow_mode=str(query["workflow_mode"]),
                 scoring_contract_id=config.get("scoring_contract_id"),
                 observation_noise_mode=str(config["observation_noise_mode"]),
@@ -645,13 +638,9 @@ def execute_evaluator_truth_plan(
         "truth_query_count": len(receipts),
         "completed_truth_query_count": completed,
         "failed_truth_query_count": len(receipts) - completed,
-        "truth_query_metric_count": sum(
-            len(item["metric_ids"]) for item in receipts
-        ),
+        "truth_query_metric_count": sum(len(item["metric_ids"]) for item in receipts),
         "completed_truth_query_metric_count": sum(
-            len(item["metric_ids"])
-            for item in receipts
-            if item["status"] == "completed"
+            len(item["metric_ids"]) for item in receipts if item["status"] == "completed"
         ),
         "evaluator_provider_call_count": 0,
         "participant_operation_denominator_impact": 0,
