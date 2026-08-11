@@ -72,6 +72,12 @@ Every world must pass all of the following:
   `[0.30,0.40]`, while `S*` remains below the `0.35` safety limit;
 - all five worlds pass separately. Means cannot mask a failed world.
 
+A schema-valid public recipe that reaches a dynamic constitution boundary is retained as an
+evaluator-owned physical failure, ranked behind completed safe and unsafe outcomes, and counted
+against the 0.5% incomplete allowance. It is not a platform defect by itself. A rejected public
+payload, compiler/runtime mismatch, missing optimizer generation, observation failure or replay
+failure is a platform defect and restarts the task from world 0.
+
 The composite-score floor fraction, historical threshold and exact optimum location are diagnostics,
 not hard gates. Q2 may use only compressed local-law summaries and disagreement regions; it may not
 copy the exact oracle optimum or hidden mechanism payload into a participant prompt.

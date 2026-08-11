@@ -123,6 +123,25 @@ def _environment_kwargs(
     return kwargs
 
 
+def _rollback_failed_checks(info: Mapping[str, Any]) -> list[str]:
+    checks: set[str] = set()
+    for event in info.get("world_events", []):
+        if not isinstance(event, Mapping) or event.get("event_type") != "transaction_rollback":
+            continue
+        payload = event.get("payload", {})
+        if not isinstance(payload, Mapping):
+            continue
+        raw = payload.get("failed_checks", [])
+        if isinstance(raw, str):
+            values = raw.split(",")
+        elif isinstance(raw, Sequence):
+            values = raw
+        else:
+            values = []
+        checks.update(str(value) for value in values if str(value))
+    return sorted(checks)
+
+
 class InMemoryMechanismEvaluator:
     """Execute public recipes while retaining only non-leaking evaluator summaries."""
 
@@ -160,6 +179,7 @@ class InMemoryMechanismEvaluator:
         self._cache: dict[tuple[float, ...], dict[str, Any]] = {}
         self.request_count = 0
         self.failure_count = 0
+        self.physical_failure_count = 0
 
     def close(self) -> None:
         self.env.close()
@@ -180,7 +200,11 @@ class InMemoryMechanismEvaluator:
             if extra:
                 row.update(dict(extra))
             if self.progress_callback is not None:
-                self.progress_callback(phase, self.request_count, self.failure_count)
+                self.progress_callback(
+                    phase,
+                    self.request_count,
+                    self.failure_count + self.physical_failure_count,
+                )
             return row
 
         started = perf_counter()
@@ -193,6 +217,7 @@ class InMemoryMechanismEvaluator:
         scoring_cost: float | None = None
         action_count: int | None = None
         metadata_sha256: str | None = None
+        physical_failure: dict[str, Any] | None = None
         try:
             actions, metadata = _compile_actions(self.task_id, self.config, canonical)
             action_count = len(actions)
@@ -202,6 +227,19 @@ class InMemoryMechanismEvaluator:
             for action_index, action in enumerate(actions, start=1):
                 _, _, terminated, truncated, info = self.env.step(action)
                 last_info = info
+                if (
+                    info.get("transaction_status") == "rolled_back"
+                    and info.get("rollback_reason") == "constitution_failed"
+                ):
+                    physical_failure = {
+                        "operation_index": action_index,
+                        "operation": str(action.get("operation")),
+                        "transaction_status": "rolled_back",
+                        "rollback_reason": "constitution_failed",
+                        "failed_checks": _rollback_failed_checks(info),
+                    }
+                    self.physical_failure_count += 1
+                    break
                 if info.get("transaction_status") != "committed":
                     raise ValueError(
                         "mechanism recipe operation was not committed: "
@@ -212,38 +250,40 @@ class InMemoryMechanismEvaluator:
                     raise ValueError("mechanism recipe truncated before completion")
                 if terminated and action_index != len(actions):
                     raise ValueError("mechanism recipe terminated before its final action")
-            if last_info is None or last_info.get("leaderboard_score") is None:
+            if physical_failure is not None:
+                last_info = None
+            elif last_info is None or last_info.get("leaderboard_score") is None:
                 raise ValueError("mechanism recipe lacks a committed final assay")
-
-            state = self.base_env._state
-            truth = self.base_env.observation_kernel._truth_values(state)
-            ledger_cost = float(state.ledger.cost)
-            scoring_cost = min(1.0, ledger_cost)
-            risk = float(state.ledger.risk)
-            scoring_values: dict[str, float | None] = {
-                **truth,
-                "cost": scoring_cost,
-                "safety_risk": risk,
-            }
-            score = float(
-                task_score_observation(
-                    contract=self.base_env.scoring_contract,
-                    values=scoring_values,
+            if physical_failure is None:
+                state = self.base_env._state
+                truth = self.base_env.observation_kernel._truth_values(state)
+                ledger_cost = float(state.ledger.cost)
+                scoring_cost = min(1.0, ledger_cost)
+                risk = float(state.ledger.risk)
+                scoring_values: dict[str, float | None] = {
+                    **truth,
+                    "cost": scoring_cost,
+                    "safety_risk": risk,
+                }
+                score = float(
+                    task_score_observation(
+                        contract=self.base_env.scoring_contract,
+                        values=scoring_values,
+                    )
                 )
-            )
-            metrics = {}
-            for metric in self.spec["metrics"]:
-                metric_id = str(metric)
-                if metric_id == "score":
-                    metrics[metric_id] = score
-                elif metric_id == "safety_risk":
-                    metrics[metric_id] = risk
-                elif metric_id == "cost":
-                    metrics[metric_id] = ledger_cost
-                elif metric_id in truth:
-                    metrics[metric_id] = float(truth[metric_id])
-                else:
-                    raise ValueError(f"mechanism truth lacks metric {metric_id}")
+                metrics = {}
+                for metric in self.spec["metrics"]:
+                    metric_id = str(metric)
+                    if metric_id == "score":
+                        metrics[metric_id] = score
+                    elif metric_id == "safety_risk":
+                        metrics[metric_id] = risk
+                    elif metric_id == "cost":
+                        metrics[metric_id] = ledger_cost
+                    elif metric_id in truth:
+                        metrics[metric_id] = float(truth[metric_id])
+                    else:
+                        raise ValueError(f"mechanism truth lacks metric {metric_id}")
         except Exception as error:
             failure = {"type": type(error).__name__, "message": str(error)[:1000]}
             self.failure_count += 1
@@ -253,7 +293,13 @@ class InMemoryMechanismEvaluator:
             "phase": phase,
             "world_seed": self.world_seed,
             "vector": list(canonical),
-            "status": "completed" if failure is None else "failed",
+            "status": (
+                "failed"
+                if failure is not None
+                else "physical_failure"
+                if physical_failure is not None
+                else "completed"
+            ),
             "safe": bool(
                 failure is None
                 and risk is not None
@@ -267,6 +313,7 @@ class InMemoryMechanismEvaluator:
             "action_count": action_count,
             "recipe_metadata_sha256": metadata_sha256,
             "failure": failure,
+            "physical_failure": physical_failure,
             "elapsed_s": round(perf_counter() - started, 6),
             "cache_hit": False,
         }
@@ -276,7 +323,11 @@ class InMemoryMechanismEvaluator:
         if extra:
             output.update(dict(extra))
         if self.progress_callback is not None:
-            self.progress_callback(phase, self.request_count, self.failure_count)
+            self.progress_callback(
+                phase,
+                self.request_count,
+                self.failure_count + self.physical_failure_count,
+            )
         return output
 
 
@@ -470,7 +521,7 @@ def _run_world(
         progress.update(
             "optimizer",
             int(optimizer["request_count"]),
-            evaluator.failure_count,
+            evaluator.failure_count + evaluator.physical_failure_count,
             force=True,
         )
         evaluator.progress_callback = None
@@ -508,7 +559,7 @@ def _run_world(
                 progress.update(
                     "target_grid",
                     index,
-                    evaluator.failure_count,
+                    evaluator.failure_count + evaluator.physical_failure_count,
                     force=index == len(target_design),
                 )
 
@@ -530,7 +581,7 @@ def _run_world(
                 progress.update(
                     "full_dimensional_perturbation",
                     index,
-                    evaluator.failure_count,
+                    evaluator.failure_count + evaluator.physical_failure_count,
                     force=index == len(perturbations),
                 )
 
@@ -546,7 +597,7 @@ def _run_world(
             candidates=candidates,
             world_root=world_root,
             progress=progress,
-            prior_failure_count=evaluator.failure_count,
+            prior_failure_count=evaluator.failure_count + evaluator.physical_failure_count,
         )
     finally:
         evaluator.close()
@@ -581,6 +632,15 @@ def _run_world(
         for row in evaluator.rows
         if row.get("failure") is not None
     ]
+    physical_failures = [
+        {
+            "evaluation_id": row["evaluation_id"],
+            "phase": row["phase"],
+            **dict(row["physical_failure"]),
+        }
+        for row in evaluator.rows
+        if row.get("physical_failure") is not None
+    ]
     operational_failure = bool(mechanism_failures or validation_failures)
     report: dict[str, Any] = {
         "schema_version": WORLD_REPORT_VERSION,
@@ -604,6 +664,8 @@ def _run_world(
         "operational_failure": operational_failure,
         "failure_count": len(mechanism_failures) + len(validation_failures),
         "failures": [*mechanism_failures, *validation_failures],
+        "physical_failure_count": len(physical_failures),
+        "physical_failures": physical_failures,
         "mechanism_rows": evaluator.rows,
         "target_grid_rows": target_rows,
         "full_perturbation_rows": perturbation_rows,
@@ -771,6 +833,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 for report in world_reports
             ),
             "provider_call_count": 0,
+            "physical_failure_count": sum(
+                int(report["physical_failure_count"]) for report in world_reports
+            ),
         },
         "worlds": [
             {

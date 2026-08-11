@@ -243,3 +243,36 @@ def test_reaction_mechanism_evaluator_completes_low_mid_high_recipes() -> None:
     assert all(set(row["metrics"]) == set(spec["metrics"]) for row in rows)
     forbidden = {"species", "rate_constants", "mechanism", "hidden"}
     assert all(not forbidden.intersection(row) for row in rows)
+
+
+def test_reaction_mechanism_evaluator_retains_dynamic_constitution_failure() -> None:
+    spec = TASK_SPECS[TASK_ID]
+    config_path = Path(ROOT, str(spec["config"]))
+    evaluator = InMemoryMechanismEvaluator(
+        task_id=TASK_ID,
+        config=_load(config_path),
+        spec=spec,
+        world_seed=0,
+    )
+    try:
+        row = evaluator.evaluate(
+            [
+                0.936209324747324,
+                0.024569489061832428,
+                0.8398885484784842,
+                0.207385815680027,
+                0.7181448694318533,
+                0.25351104512810707,
+                0.24715753830969334,
+                0.08105175383388996,
+            ],
+            phase="physical_failure_test",
+        )
+    finally:
+        evaluator.close()
+    assert row["status"] == "physical_failure"
+    assert row["failure"] is None
+    assert row["physical_failure"]["rollback_reason"] == "constitution_failed"
+    assert row["physical_failure"]["failed_checks"] == ["vessel_temperature_bound"]
+    assert evaluator.failure_count == 0
+    assert evaluator.physical_failure_count == 1
