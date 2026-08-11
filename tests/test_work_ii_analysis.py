@@ -109,6 +109,34 @@ def test_cell_checkpoint_error_applies_censoring_and_missing_pre_rules() -> None
     assert missing_pre["primary_improvement"] == 0.0
 
 
+def test_checkpoint_scoring_accepts_pattern_owned_snapshot_stages() -> None:
+    truth = {"q1": {"yield": 0.9, "risk": 0.1}}
+    stages = (
+        "pre_evidence",
+        "after_experiment_2",
+        "after_experiment_4",
+        "after_experiment_7",
+        "final",
+    )
+    analysis = {
+        "belief_snapshots": [
+            _snapshot(stage, mean)
+            for stage, mean in zip(stages, (0.5, 0.6, 0.7, 0.8, 0.9), strict=True)
+        ]
+    }
+
+    report = score_cell_checkpoint_errors(
+        analysis,
+        truth,
+        terminal_state="completed",
+        snapshot_stages=stages,
+    )
+
+    assert report["scheduled_snapshot_count"] == 5
+    assert list(report["checkpoint_scores"]) == list(stages)
+    assert report["primary_improvement"] == pytest.approx(0.2)
+
+
 def test_cluster_record_uses_retained_zero_improvement_cells() -> None:
     records = {
         "opaque": {"effective_pre_error": 0.5, "primary_improvement": 0.1},

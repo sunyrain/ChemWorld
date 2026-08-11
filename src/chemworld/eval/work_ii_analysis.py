@@ -165,6 +165,7 @@ def score_cell_checkpoint_errors(
     evaluator_truth: Mapping[str, Mapping[str, Any]],
     *,
     terminal_state: str,
+    snapshot_stages: Sequence[str] | None = None,
     metric_scales: Mapping[str, float] | None = None,
     default_metric_scale: float = 1.0,
 ) -> dict[str, Any]:
@@ -172,6 +173,21 @@ def score_cell_checkpoint_errors(
 
     if terminal_state not in {"completed", "right_censored", "failed"}:
         raise WorkIIAnalysisError("terminal_state is outside the formal contract")
+    stages = tuple(
+        str(stage)
+        for stage in (
+            WORK_II_ANALYSIS_SNAPSHOT_STAGES
+            if snapshot_stages is None
+            else snapshot_stages
+        )
+    )
+    if (
+        len(stages) < 2
+        or stages[0] != "pre_evidence"
+        or stages[-1] != "final"
+        or len(set(stages)) != len(stages)
+    ):
+        raise WorkIIAnalysisError("snapshot stages must be unique from pre_evidence to final")
     raw_snapshots = analysis.get("belief_snapshots", [])
     if not isinstance(raw_snapshots, Sequence) or isinstance(
         raw_snapshots, str | bytes
@@ -191,7 +207,7 @@ def score_cell_checkpoint_errors(
             )
             continue
         stage = str(snapshot.get("stage", ""))
-        if stage not in WORK_II_ANALYSIS_SNAPSHOT_STAGES or stage in seen_stages:
+        if stage not in stages or stage in seen_stages:
             unscorable.append(
                 {
                     "snapshot_index": str(snapshot_index),
@@ -250,7 +266,7 @@ def score_cell_checkpoint_errors(
         elif terminal_state == "right_censored":
             available = [
                 stage
-                for stage in WORK_II_ANALYSIS_SNAPSHOT_STAGES[1:-1]
+                for stage in stages[1:-1]
                 if stage in scored
             ]
             if available:
@@ -269,7 +285,7 @@ def score_cell_checkpoint_errors(
 
     return {
         "terminal_state": terminal_state,
-        "scheduled_snapshot_count": len(WORK_II_ANALYSIS_SNAPSHOT_STAGES),
+        "scheduled_snapshot_count": len(stages),
         "observed_snapshot_count": len(raw_snapshots),
         "scored_snapshot_count": len(scored),
         "checkpoint_scores": scored,

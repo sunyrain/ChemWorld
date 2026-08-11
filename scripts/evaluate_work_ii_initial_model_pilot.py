@@ -770,6 +770,7 @@ def main() -> int:
                 if _scientific_trajectory_complete(summary, expected_experiment_count)
                 else "failed"
             ),
+            snapshot_stages=[str(stage) for stage in _sequence(config.get("snapshot_stages"))],
         )
         pre_snapshot = _snapshot(analysis, "pre_evidence")
         final_snapshot = _final_snapshot(analysis)
