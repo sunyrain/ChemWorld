@@ -308,6 +308,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | electrochemical D1, WellAU seed 1 | 3/3 cells、12/12 experiments；descriptive H3 `+0.0173` | development evidence；不自动扩展 |
 | electrochemical D1, DeepSeek seed 1 | 3/3 cells、12/12 experiments；descriptive H3 `-0.0025` | operational pass；未观察到科学修正 |
 | reaction-safety old screen, seed 0 | 16/16 exact replay；旧 gap `0.1043173` | 不满足新 absolute-quality、interior、non-saturation 与 safety-frontier gates |
+| reaction-safety full-envelope Q1, seeds 0–4 | 2,560/2,560 final assays 与 exact replay；0 failures；0/5 worlds pass；max score `0.288–0.438`；每 world 54–64 个 safety-frontier recipes | 有效 task-design rejection；风险与动态范围可见，但 success threshold、非饱和 success basin 和局部结构均不成立；禁止进入 Q2/provider，不重跑 |
 | reaction-safety DeepSeek D1, seed 0 | 3/3 terminal、2/3 qualified；descriptive H3 `+0.1005` | retained operational failure；不重跑 |
 | 首批 crystallization/partition structural screens | module gap 分别 `0.0069301`、`0.0744505` | 拒绝；不能解释为 agent 推理失败 |
 
@@ -320,8 +321,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 
 - [x] **W2-21** 写一个 concise experiment note，冻结 Q0–Q2 的 5-world coverage、512 recipes/world、指标、
   pass/failure rules 和输出文件。
-- [ ] **W2-22** 实现 provider-free oracle response-surface runner 与 readable machine summary；先覆盖
-  reaction-safety A-P，再复核 electrochemical A-P。
+- [ ] **W2-22** 实现 provider-free oracle response-surface runner 与 readable machine summary；
+  reaction-safety A-P 已完成并在 Q1 以 0/5 worlds 被拒绝，当前转入 electrochemical A-P。
 - [ ] **W2-23** 按预注册 lexicographic gates 选择 reference context，构造 matched aligned/misspecified laws，
   完成 blind leakage/identifiability audit。
 - [ ] **W2-24** 为通过 Q2 的 task 各运行一个三臂 D1；只有预注册条件触发时运行 D2。
@@ -359,7 +360,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-19 | CONDITIONAL | matched-evidence probe B |
 | W2-20 | CONDITIONAL | artifact-only transfer D |
 | W2-21 | DONE | five-world oracle qualification note 已冻结 |
-| W2-22 | DOING | response-surface runner + summary |
+| W2-22 | DOING | runner complete；reaction-safety Q1 rejected；electrochemical Q1 pending |
 | W2-23 | NOT STARTED | matched-prior constructor + blind audit |
 | W2-24 | NOT STARTED | new D1/D2 pilots |
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
@@ -393,6 +394,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   `workstreams/flagship_tasks/reports/work-ii-partition-structural-screen-20260811.json`
 - Reaction-safety screen/evaluator：
   `workstreams/flagship_tasks/reports/work-ii-reaction-safety-parametric-screen-20260811.json`、
-  `workstreams/flagship_tasks/reports/work-ii-deepseek-reaction-safety-parametric-pilot-evaluation-20260811.json`
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-reaction-safety-parametric-pilot-evaluation-20260811.json`、
+  `workstreams/flagship_tasks/reports/work-ii-q1-reaction-safety-five-world-20260811.json`
 
 Git history 保存本文件过去的详细任务卡和运行日志；不恢复并行的旧主控入口。

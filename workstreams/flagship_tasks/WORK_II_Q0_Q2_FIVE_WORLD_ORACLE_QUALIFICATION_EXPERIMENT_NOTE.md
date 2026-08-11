@@ -1,7 +1,7 @@
 # Work II Q0–Q2 five-world oracle qualification
 
 Date: 2026-08-11
-Status: frozen before execution
+Status: reaction-safety Q1 complete and rejected; electrochemical Q1 pending
 
 ## Question and units
 
@@ -89,3 +89,16 @@ failures are retained and are not repaired by changing seeds, surfaces or gates.
 Expected outputs are one raw five-world response-surface root, one readable tracked JSON summary per
 task, a Q0/Q1 go/no-go decision, and—only after 5/5 Q1 pass—a separately frozen Q2 prior-pair artifact
 and D1 config. No provider call is authorized by this note.
+
+## Phase conclusion — reaction safety
+
+The corrected full-envelope block completed `2,560/2,560` final assays and `2,560/2,560` exact
+replays with zero failed recipes and zero provider calls. All five worlds failed Q1 in the same four
+places: absolute threshold reachability, floor saturation, a non-isolated success basin and local
+parametric structure. No recipe reached the task threshold `0.70`; per-world maximum scores ranged
+from `0.2876904` to `0.4377345`, while floor fractions ranged from `0.3222656` to `0.4414062`.
+This was not a missing-risk problem: every world passed safety-frontier coverage with 54–64 recipes
+inside risk `[0.30,0.40]`, and every world passed the dynamic-range, primary-metric-effect and
+target-interior gates. The task cohort is therefore rejected before Q2. It is retained as evidence
+that the current reaction-safety scoring/threshold contract exposes risk variation but does not
+provide a reachable safe high-quality basin suitable for the registered A-P discovery question.
