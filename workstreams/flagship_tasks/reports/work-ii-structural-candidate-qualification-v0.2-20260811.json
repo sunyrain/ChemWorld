@@ -1,0 +1,2891 @@
+{
+  "all_candidates_passed": false,
+  "candidates": {
+    "crystallization_nucleation_growth": {
+      "denominators": {
+        "attempted": 90,
+        "completed": 90,
+        "exact_replay": 90,
+        "physical_failures": 0,
+        "platform_failures": 0,
+        "unsafe_completed": 0
+      },
+      "passed_world_count": 0,
+      "qualification_passed": false,
+      "task_id": "reaction-to-crystallization",
+      "world_count": 5,
+      "worlds": [
+        {
+          "effects": {
+            "axis_a": {
+              "margin": -0.044100350913393455,
+              "metric": "crystal_csd_quality",
+              "passed": false,
+              "sigma_observed": 0.015335580835241072,
+              "signature": "axis_a_range",
+              "threshold": 0.09201348501144643,
+              "value": 0.04791313409805298
+            },
+            "axis_b": {
+              "margin": 0.45749633263790956,
+              "metric": "crystal_yield",
+              "passed": true,
+              "sigma_observed": 0.0180234557204042,
+              "signature": "axis_b_range",
+              "threshold": 0.10814073432242519,
+              "value": 0.5656370669603348
+            },
+            "topology_candidates": [
+              {
+                "margin": -0.09100077229439016,
+                "metric": "crystal_csd_quality",
+                "passed": false,
+                "sigma_observed": 0.015335580835241072,
+                "signature": "seed_by_cooling_interaction",
+                "threshold": 0.09201348501144643,
+                "value": 0.0010127127170562744
+              },
+              {
+                "margin": -0.044100350913393455,
+                "metric": "crystal_csd_quality",
+                "passed": false,
+                "sigma_observed": 0.015335580835241072,
+                "signature": "seed_driven_csd_or_fines_contrast",
+                "threshold": 0.09201348501144643,
+                "value": 0.04791313409805298
+              },
+              {
+                "margin": -0.060639503149647556,
+                "metric": "crystal_fines_fraction",
+                "passed": false,
+                "sigma_observed": 0.012336383685214492,
+                "signature": "seed_by_cooling_interaction",
+                "threshold": 0.07401830211128696,
+                "value": 0.013378798961639404
+              },
+              {
+                "margin": -0.060639503149647556,
+                "metric": "crystal_fines_fraction",
+                "passed": false,
+                "sigma_observed": 0.012336383685214492,
+                "signature": "seed_driven_csd_or_fines_contrast",
+                "threshold": 0.07401830211128696,
+                "value": 0.013378798961639404
+              }
+            ],
+            "topology_signature": {
+              "margin": -0.044100350913393455,
+              "metric": "crystal_csd_quality",
+              "passed": false,
+              "sigma_observed": 0.015335580835241072,
+              "signature": "seed_driven_csd_or_fines_contrast",
+              "threshold": 0.09201348501144643,
+              "value": 0.04791313409805298
+            }
+          },
+          "failures": [
+            "axis_a_effect",
+            "held_out_disagreement",
+            "high_counterexample_region",
+            "low_counterexample_region",
+            "topology_signature"
+          ],
+          "model_qualification": {
+            "aligned_validation_mae": 0.007256629842299017,
+            "baseline_error_gap": 0.0,
+            "blind_identified_aligned_model": true,
+            "checks": {
+              "baseline_error_matched": true,
+              "blind_identification": true,
+              "held_out_disagreement": false,
+              "high_counterexample_region": false,
+              "low_counterexample_region": false,
+              "prior_schema_matched": true,
+              "prior_word_count_matched": true
+            },
+            "comparison_count": 9,
+            "comparisons": [
+              {
+                "aligned_error": 0.008560371895631191,
+                "aligned_prediction": 0.5592203264435133,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.10814073432242519,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.0071382919947307055,
+                "misspecified_prediction": 0.5577982465426128,
+                "observed_validation_mean": 0.5506599545478821,
+                "prediction_difference": 0.0014220799009004859
+              },
+              {
+                "aligned_error": 0.007019932071367863,
+                "aligned_prediction": 0.4321002115805944,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.09201348501144643,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.0210625330607096,
+                "misspecified_prediction": 0.4180576105912527,
+                "observed_validation_mean": 0.4391201436519623,
+                "prediction_difference": 0.014042600989341736
+              },
+              {
+                "aligned_error": 0.001243501901626476,
+                "aligned_prediction": 0.9956269363562267,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.07401830211128696,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.0034733017285663026,
+                "misspecified_prediction": 0.9933971365292869,
+                "observed_validation_mean": 0.9968704382578532,
+                "prediction_difference": 0.0022297998269398267
+              },
+              {
+                "aligned_error": 0.010252296924591175,
+                "aligned_prediction": 0.5577982465426128,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.10814073432242519,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.010252296924591175,
+                "misspecified_prediction": 0.5577982465426128,
+                "observed_validation_mean": 0.5475459496180216,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.011440763870875004,
+                "aligned_prediction": 0.4180576105912527,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.09201348501144643,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.011440763870875004,
+                "misspecified_prediction": 0.4180576105912527,
+                "observed_validation_mean": 0.4294983744621277,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.012983381748199574,
+                "aligned_prediction": 0.9933971365292869,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.07401830211128696,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.012983381748199574,
+                "misspecified_prediction": 0.9933971365292869,
+                "observed_validation_mean": 0.9804137547810873,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.0017766878008841358,
+                "aligned_prediction": 0.5563761666417123,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.10814073432242519,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.00035460789998364994,
+                "misspecified_prediction": 0.5577982465426128,
+                "observed_validation_mean": 0.5581528544425964,
+                "prediction_difference": 0.0014220799009004859
+              },
+              {
+                "aligned_error": 0.010149493813514654,
+                "aligned_prediction": 0.40401500960191095,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.09201348501144643,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.003893107175827082,
+                "misspecified_prediction": 0.4180576105912527,
+                "observed_validation_mean": 0.4141645034154256,
+                "prediction_difference": 0.014042600989341736
+              },
+              {
+                "aligned_error": 0.0018832385540010765,
+                "aligned_prediction": 0.991167336702347,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.07401830211128696,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.004113038380940903,
+                "misspecified_prediction": 0.9933971365292869,
+                "observed_validation_mean": 0.989284098148346,
+                "prediction_difference": 0.0022297998269398267
+              }
+            ],
+            "disagreement_count": 0,
+            "disagreement_fraction": 0.0,
+            "high_counterexample_support": 0,
+            "low_counterexample_support": 0,
+            "misspecified_validation_mae": 0.008301258087158222,
+            "model_coefficients": {
+              "aligned": {
+                "crystal_csd_quality": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4180576105912527,
+                    0.0035585214694341186,
+                    0.0226131429274877,
+                    -0.014042600989341717,
+                    0.00025317817926404345
+                  ]
+                },
+                "crystal_fines_fraction": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.9933971365292869,
+                    -0.002542545398076356,
+                    0.00406031807263689,
+                    -0.0022297998269398813,
+                    -0.0033446997404098762
+                  ]
+                },
+                "crystal_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.5577982465426128,
+                    0.2752325187126796,
+                    -0.09312048057715105,
+                    -0.0014220799009004859,
+                    -0.004452791064977701
+                  ]
+                }
+              },
+              "misspecified": {
+                "crystal_csd_quality": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4180576105912527,
+                    0.0035585214694341186,
+                    0.0226131429274877
+                  ]
+                },
+                "crystal_fines_fraction": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.9933971365292869,
+                    -0.002542545398076356,
+                    0.004060318072636888
+                  ]
+                },
+                "crystal_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.5577982465426128,
+                    0.2752325187126796,
+                    -0.09312048057715105
+                  ]
+                }
+              }
+            },
+            "passed": false,
+            "prior_word_counts": {
+              "aligned": 20,
+              "misspecified": 20
+            }
+          },
+          "passed": false,
+          "world_seed": 0
+        },
+        {
+          "effects": {
+            "axis_a": {
+              "margin": -0.024666275129634707,
+              "metric": "crystal_fines_fraction",
+              "passed": false,
+              "sigma_observed": 0.00808503653372635,
+              "signature": "axis_a_range",
+              "threshold": 0.048510219202358096,
+              "value": 0.02384394407272339
+            },
+            "axis_b": {
+              "margin": 0.39914050808835955,
+              "metric": "crystal_yield",
+              "passed": true,
+              "sigma_observed": 0.008442153349040402,
+              "signature": "axis_b_range",
+              "threshold": 0.05065292009424241,
+              "value": 0.44979342818260193
+            },
+            "topology_candidates": [
+              {
+                "margin": -0.07896386461722266,
+                "metric": "crystal_csd_quality",
+                "passed": false,
+                "sigma_observed": 0.020082397390185813,
+                "signature": "seed_by_cooling_interaction",
+                "threshold": 0.12049438434111487,
+                "value": 0.04153051972389221
+              },
+              {
+                "margin": -0.0674823709057511,
+                "metric": "crystal_csd_quality",
+                "passed": false,
+                "sigma_observed": 0.020082397390185813,
+                "signature": "seed_driven_csd_or_fines_contrast",
+                "threshold": 0.12049438434111487,
+                "value": 0.05301201343536377
+              },
+              {
+                "margin": -0.043866898165065615,
+                "metric": "crystal_fines_fraction",
+                "passed": false,
+                "sigma_observed": 0.00808503653372635,
+                "signature": "seed_by_cooling_interaction",
+                "threshold": 0.048510219202358096,
+                "value": 0.0046433210372924805
+              },
+              {
+                "margin": -0.025132741079646914,
+                "metric": "crystal_fines_fraction",
+                "passed": false,
+                "sigma_observed": 0.00808503653372635,
+                "signature": "seed_driven_csd_or_fines_contrast",
+                "threshold": 0.048510219202358096,
+                "value": 0.02337747812271118
+              }
+            ],
+            "topology_signature": {
+              "margin": -0.025132741079646914,
+              "metric": "crystal_fines_fraction",
+              "passed": false,
+              "sigma_observed": 0.00808503653372635,
+              "signature": "seed_driven_csd_or_fines_contrast",
+              "threshold": 0.048510219202358096,
+              "value": 0.02337747812271118
+            }
+          },
+          "failures": [
+            "axis_a_effect",
+            "blind_identification",
+            "held_out_disagreement",
+            "high_counterexample_region",
+            "low_counterexample_region",
+            "topology_signature"
+          ],
+          "model_qualification": {
+            "aligned_validation_mae": 0.00906852218839848,
+            "baseline_error_gap": 0.0,
+            "blind_identified_aligned_model": false,
+            "checks": {
+              "baseline_error_matched": true,
+              "blind_identification": false,
+              "held_out_disagreement": false,
+              "high_counterexample_region": false,
+              "low_counterexample_region": false,
+              "prior_schema_matched": true,
+              "prior_word_count_matched": true
+            },
+            "comparison_count": 9,
+            "comparisons": [
+              {
+                "aligned_error": 0.011092081665992848,
+                "aligned_prediction": 0.6138806293408077,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.05065292009424241,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.0057767430941264575,
+                "misspecified_prediction": 0.6085652907689413,
+                "observed_validation_mean": 0.6027885476748148,
+                "prediction_difference": 0.00531533857186639
+              },
+              {
+                "aligned_error": 0.00840766727924347,
+                "aligned_prediction": 0.43136581281820935,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.12049438434111487,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.016794135173161806,
+                "misspecified_prediction": 0.422979344924291,
+                "observed_validation_mean": 0.4397734800974528,
+                "prediction_difference": 0.008386467893918337
+              },
+              {
+                "aligned_error": 0.009592165549595855,
+                "aligned_prediction": 0.9887741704781853,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.048510219202358096,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.0064698060353594045,
+                "misspecified_prediction": 0.9918965299924217,
+                "observed_validation_mean": 0.9983663360277811,
+                "prediction_difference": 0.00312235951423645
+              },
+              {
+                "aligned_error": 0.0011680324872335168,
+                "aligned_prediction": 0.6085652907689413,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.05065292009424241,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.0011680324872335168,
+                "misspecified_prediction": 0.6085652907689413,
+                "observed_validation_mean": 0.6073972582817078,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.015855282545089666,
+                "aligned_prediction": 0.422979344924291,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.12049438434111487,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.015855282545089666,
+                "misspecified_prediction": 0.422979344924291,
+                "observed_validation_mean": 0.4388346274693807,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.0034355719884233693,
+                "aligned_prediction": 0.9918965299924217,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.048510219202358096,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.0034355719884233693,
+                "misspecified_prediction": 0.9918965299924217,
+                "observed_validation_mean": 0.9953321019808451,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.010619814197222355,
+                "aligned_prediction": 0.6032499521970749,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.05065292009424241,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.005304475625355964,
+                "misspecified_prediction": 0.6085652907689413,
+                "observed_validation_mean": 0.6138697663942972,
+                "prediction_difference": 0.00531533857186639
+              },
+              {
+                "aligned_error": 0.01818287869294477,
+                "aligned_prediction": 0.4145928770303727,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.12049438434111487,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.009796410799026434,
+                "misspecified_prediction": 0.422979344924291,
+                "observed_validation_mean": 0.43277575572331745,
+                "prediction_difference": 0.008386467893918337
+              },
+              {
+                "aligned_error": 0.003263205289840476,
+                "aligned_prediction": 0.9950188895066582,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.048510219202358096,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.006385564804076926,
+                "misspecified_prediction": 0.9918965299924217,
+                "observed_validation_mean": 0.9982820947964987,
+                "prediction_difference": 0.00312235951423645
+              }
+            ],
+            "disagreement_count": 0,
+            "disagreement_fraction": 0.0,
+            "high_counterexample_support": 0,
+            "low_counterexample_support": 0,
+            "misspecified_validation_mae": 0.007887335839094838,
+            "model_coefficients": {
+              "aligned": {
+                "crystal_csd_quality": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.422979344924291,
+                    0.011635929346084603,
+                    0.0020676652590433994,
+                    -0.008386467893918345,
+                    0.010382629930973036
+                  ]
+                },
+                "crystal_fines_fraction": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.9918965299924217,
+                    -0.0012885729471842464,
+                    0.0038267970085144537,
+                    0.003122359514236452,
+                    -0.0011608302593231208
+                  ]
+                },
+                "crystal_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.6085652907689413,
+                    0.2214690546194712,
+                    -0.06688871979713432,
+                    -0.005315338571866363,
+                    0.005063839256763458
+                  ]
+                }
+              },
+              "misspecified": {
+                "crystal_csd_quality": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.422979344924291,
+                    0.011635929346084605,
+                    0.0020676652590433994
+                  ]
+                },
+                "crystal_fines_fraction": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.9918965299924217,
+                    -0.0012885729471842464,
+                    0.0038267970085144537
+                  ]
+                },
+                "crystal_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.6085652907689413,
+                    0.2214690546194712,
+                    -0.06688871979713432
+                  ]
+                }
+              }
+            },
+            "passed": false,
+            "prior_word_counts": {
+              "aligned": 20,
+              "misspecified": 20
+            }
+          },
+          "passed": false,
+          "world_seed": 1
+        },
+        {
+          "effects": {
+            "axis_a": {
+              "margin": 0.016783294123132092,
+              "metric": "crystal_csd_quality",
+              "passed": true,
+              "sigma_observed": 0.022609433028148437,
+              "signature": "axis_a_range",
+              "threshold": 0.1356565981688906,
+              "value": 0.1524398922920227
+            },
+            "axis_b": {
+              "margin": 0.63801572395645,
+              "metric": "crystal_yield",
+              "passed": true,
+              "sigma_observed": 0.0056413314023242836,
+              "signature": "axis_b_range",
+              "threshold": 0.0338479884139457,
+              "value": 0.6718637123703957
+            },
+            "topology_candidates": [
+              {
+                "margin": -0.053872051793615955,
+                "metric": "crystal_csd_quality",
+                "passed": false,
+                "sigma_observed": 0.022609433028148437,
+                "signature": "seed_by_cooling_interaction",
+                "threshold": 0.1356565981688906,
+                "value": 0.08178454637527466
+              },
+              {
+                "margin": 0.016783294123132092,
+                "metric": "crystal_csd_quality",
+                "passed": true,
+                "sigma_observed": 0.022609433028148437,
+                "signature": "seed_driven_csd_or_fines_contrast",
+                "threshold": 0.1356565981688906,
+                "value": 0.1524398922920227
+              },
+              {
+                "margin": -0.06134115925597482,
+                "metric": "crystal_fines_fraction",
+                "passed": false,
+                "sigma_observed": 0.018334516669590163,
+                "signature": "seed_by_cooling_interaction",
+                "threshold": 0.11000710001754098,
+                "value": 0.04866594076156616
+              },
+              {
+                "margin": -0.07924854031371407,
+                "metric": "crystal_fines_fraction",
+                "passed": false,
+                "sigma_observed": 0.018334516669590163,
+                "signature": "seed_driven_csd_or_fines_contrast",
+                "threshold": 0.11000710001754098,
+                "value": 0.030758559703826904
+              }
+            ],
+            "topology_signature": {
+              "margin": 0.016783294123132092,
+              "metric": "crystal_csd_quality",
+              "passed": true,
+              "sigma_observed": 0.022609433028148437,
+              "signature": "seed_driven_csd_or_fines_contrast",
+              "threshold": 0.1356565981688906,
+              "value": 0.1524398922920227
+            }
+          },
+          "failures": [
+            "blind_identification",
+            "held_out_disagreement",
+            "high_counterexample_region",
+            "low_counterexample_region"
+          ],
+          "model_qualification": {
+            "aligned_validation_mae": 0.01537502474255037,
+            "baseline_error_gap": 0.0,
+            "blind_identified_aligned_model": false,
+            "checks": {
+              "baseline_error_matched": true,
+              "blind_identification": false,
+              "held_out_disagreement": false,
+              "high_counterexample_region": false,
+              "low_counterexample_region": false,
+              "prior_schema_matched": true,
+              "prior_word_count_matched": true
+            },
+            "comparison_count": 9,
+            "comparisons": [
+              {
+                "aligned_error": 0.009390833787620123,
+                "aligned_prediction": 0.47483452440549934,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.0338479884139457,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.006603340307871575,
+                "misspecified_prediction": 0.4720470309257508,
+                "observed_validation_mean": 0.4654436906178792,
+                "prediction_difference": 0.0027874934797485484
+              },
+              {
+                "aligned_error": 0.030473574995994568,
+                "aligned_prediction": 0.4801853249470393,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.1356565981688906,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.017773667971293095,
+                "misspecified_prediction": 0.43193808197975164,
+                "observed_validation_mean": 0.44971174995104474,
+                "prediction_difference": 0.04824724296728766
+              },
+              {
+                "aligned_error": 0.008677889903386471,
+                "aligned_prediction": 1.0002316534519196,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.11000710001754098,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.004625817139943589,
+                "misspecified_prediction": 0.9961795806884767,
+                "observed_validation_mean": 0.9915537635485331,
+                "prediction_difference": 0.004052072763442882
+              },
+              {
+                "aligned_error": 0.0037136276563008996,
+                "aligned_prediction": 0.4720470309257508,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.0338479884139457,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.0037136276563008996,
+                "misspecified_prediction": 0.4720470309257508,
+                "observed_validation_mean": 0.4683334032694499,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.012421876192092951,
+                "aligned_prediction": 0.43193808197975164,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.1356565981688906,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.012421876192092951,
+                "misspecified_prediction": 0.43193808197975164,
+                "observed_validation_mean": 0.4195162057876587,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.0010717113812765966,
+                "aligned_prediction": 0.9961795806884767,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.11000710001754098,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.0010717113812765966,
+                "misspecified_prediction": 0.9961795806884767,
+                "observed_validation_mean": 0.9951078693072001,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.004800058590869183,
+                "aligned_prediction": 0.46925953744600224,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.0338479884139457,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.007587552070617731,
+                "misspecified_prediction": 0.4720470309257508,
+                "observed_validation_mean": 0.46445947885513306,
+                "prediction_difference": 0.0027874934797485484
+              },
+              {
+                "aligned_error": 0.05776471396287275,
+                "aligned_prediction": 0.383690839012464,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.1356565981688906,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.009517470995585087,
+                "misspecified_prediction": 0.43193808197975164,
+                "observed_validation_mean": 0.44145555297533673,
+                "prediction_difference": 0.04824724296728766
+              },
+              {
+                "aligned_error": 0.010060936212539784,
+                "aligned_prediction": 0.9921275079250337,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.11000710001754098,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.014113008975982777,
+                "misspecified_prediction": 0.9961795806884767,
+                "observed_validation_mean": 0.9820665717124939,
+                "prediction_difference": 0.004052072763442993
+              }
+            ],
+            "disagreement_count": 0,
+            "disagreement_fraction": 0.0,
+            "high_counterexample_support": 0,
+            "low_counterexample_support": 0,
+            "misspecified_validation_mae": 0.008603119187884922,
+            "model_coefficients": {
+              "aligned": {
+                "crystal_csd_quality": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.43193808197975164,
+                    0.04286325971285504,
+                    -0.009884436925252267,
+                    -0.048247242967287676,
+                    0.020446136593818637
+                  ]
+                },
+                "crystal_fines_fraction": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.9961795806884767,
+                    -0.0037943621476491107,
+                    -0.0067567328612010286,
+                    -0.004052072763442976,
+                    -0.012166485190391565
+                  ]
+                },
+                "crystal_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4720470309257508,
+                    0.3339270787934462,
+                    -0.11954188719391817,
+                    -0.0027874934797485484,
+                    0.00037859799340367317
+                  ]
+                }
+              },
+              "misspecified": {
+                "crystal_csd_quality": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.43193808197975164,
+                    0.04286325971285505,
+                    -0.009884436925252267
+                  ]
+                },
+                "crystal_fines_fraction": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.9961795806884767,
+                    -0.0037943621476491107,
+                    -0.0067567328612010286
+                  ]
+                },
+                "crystal_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4720470309257508,
+                    0.3339270787934462,
+                    -0.11954188719391817
+                  ]
+                }
+              }
+            },
+            "passed": false,
+            "prior_word_counts": {
+              "aligned": 20,
+              "misspecified": 20
+            }
+          },
+          "passed": false,
+          "world_seed": 2
+        },
+        {
+          "effects": {
+            "axis_a": {
+              "margin": -0.010760892609295886,
+              "metric": "crystal_fines_fraction",
+              "passed": false,
+              "sigma_observed": 0.006411163207480914,
+              "signature": "axis_a_range",
+              "threshold": 0.038466979244885485,
+              "value": 0.0277060866355896
+            },
+            "axis_b": {
+              "margin": 0.6350571950666172,
+              "metric": "crystal_yield",
+              "passed": true,
+              "sigma_observed": 0.006809768736493879,
+              "signature": "axis_b_range",
+              "threshold": 0.04085861241896327,
+              "value": 0.6759158074855804
+            },
+            "topology_candidates": [
+              {
+                "margin": -0.010873269541746333,
+                "metric": "crystal_csd_quality",
+                "passed": false,
+                "sigma_observed": 0.022512119926294677,
+                "signature": "seed_by_cooling_interaction",
+                "threshold": 0.13507271955776806,
+                "value": 0.12419945001602173
+              },
+              {
+                "margin": -0.01707110951710339,
+                "metric": "crystal_csd_quality",
+                "passed": false,
+                "sigma_observed": 0.022512119926294677,
+                "signature": "seed_driven_csd_or_fines_contrast",
+                "threshold": 0.13507271955776806,
+                "value": 0.11800161004066467
+              },
+              {
+                "margin": -0.010760892609295886,
+                "metric": "crystal_fines_fraction",
+                "passed": false,
+                "sigma_observed": 0.006411163207480914,
+                "signature": "seed_by_cooling_interaction",
+                "threshold": 0.038466979244885485,
+                "value": 0.0277060866355896
+              },
+              {
+                "margin": -0.010760892609295886,
+                "metric": "crystal_fines_fraction",
+                "passed": false,
+                "sigma_observed": 0.006411163207480914,
+                "signature": "seed_driven_csd_or_fines_contrast",
+                "threshold": 0.038466979244885485,
+                "value": 0.0277060866355896
+              }
+            ],
+            "topology_signature": {
+              "margin": -0.010760892609295886,
+              "metric": "crystal_fines_fraction",
+              "passed": false,
+              "sigma_observed": 0.006411163207480914,
+              "signature": "seed_by_cooling_interaction",
+              "threshold": 0.038466979244885485,
+              "value": 0.0277060866355896
+            }
+          },
+          "failures": [
+            "axis_a_effect",
+            "blind_identification",
+            "held_out_disagreement",
+            "high_counterexample_region",
+            "low_counterexample_region",
+            "topology_signature"
+          ],
+          "model_qualification": {
+            "aligned_validation_mae": 0.009149924472526216,
+            "baseline_error_gap": 0.0,
+            "blind_identified_aligned_model": false,
+            "checks": {
+              "baseline_error_matched": true,
+              "blind_identification": false,
+              "held_out_disagreement": false,
+              "high_counterexample_region": false,
+              "low_counterexample_region": false,
+              "prior_schema_matched": true,
+              "prior_word_count_matched": true
+            },
+            "comparison_count": 9,
+            "comparisons": [
+              {
+                "aligned_error": 0.003114203612009536,
+                "aligned_prediction": 0.47963466246922826,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.04085861241896327,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.00624130169550563,
+                "misspecified_prediction": 0.47650756438573216,
+                "observed_validation_mean": 0.4827488660812378,
+                "prediction_difference": 0.0031270980834960938
+              },
+              {
+                "aligned_error": 0.007293472687403435,
+                "aligned_prediction": 0.45995780825614935,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.13507271955776806,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.012205829222996956,
+                "misspecified_prediction": 0.44045850634574896,
+                "observed_validation_mean": 0.4526643355687459,
+                "prediction_difference": 0.01949930191040039
+              },
+              {
+                "aligned_error": 0.0033804674943288537,
+                "aligned_prediction": 0.9953823188940684,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.038466979244885485,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.0012372136116027832,
+                "misspecified_prediction": 1.0,
+                "observed_validation_mean": 0.9987627863883972,
+                "prediction_difference": 0.004617681105931637
+              },
+              {
+                "aligned_error": 0.0032658676306405177,
+                "aligned_prediction": 0.47650756438573216,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.04085861241896327,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.0032658676306405177,
+                "misspecified_prediction": 0.47650756438573216,
+                "observed_validation_mean": 0.4797734320163727,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.020265350739161248,
+                "aligned_prediction": 0.44045850634574896,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.13507271955776806,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.020265350739161248,
+                "misspecified_prediction": 0.44045850634574896,
+                "observed_validation_mean": 0.4201931556065877,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.0016094247500101355,
+                "aligned_prediction": 1.0,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.038466979244885485,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.0016094247500101355,
+                "misspecified_prediction": 1.0,
+                "observed_validation_mean": 0.9983905752499899,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.01786281665166206,
+                "aligned_prediction": 0.47338046630223607,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.04085861241896327,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.014735718568165967,
+                "misspecified_prediction": 0.47650756438573216,
+                "observed_validation_mean": 0.49124328295389813,
+                "prediction_difference": 0.0031270980834960938
+              },
+              {
+                "aligned_error": 0.01372169454892469,
+                "aligned_prediction": 0.42095920443534857,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.13507271955776806,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.005777607361475701,
+                "misspecified_prediction": 0.44045850634574896,
+                "observed_validation_mean": 0.43468089898427326,
+                "prediction_difference": 0.01949930191040039
+              },
+              {
+                "aligned_error": 0.01183602213859547,
+                "aligned_prediction": 1.0046176811059315,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.038466979244885485,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.007218341032663944,
+                "misspecified_prediction": 1.0,
+                "observed_validation_mean": 0.9927816589673361,
+                "prediction_difference": 0.004617681105931526
+              }
+            ],
+            "disagreement_count": 0,
+            "disagreement_fraction": 0.0,
+            "high_counterexample_support": 0,
+            "low_counterexample_support": 0,
+            "misspecified_validation_mae": 0.008061850512469208,
+            "model_coefficients": {
+              "aligned": {
+                "crystal_csd_quality": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.44045850634574896,
+                    -0.003743191560109438,
+                    -0.013709495464960718,
+                    -0.01949930191040037,
+                    0.031049862504005397
+                  ]
+                },
+                "crystal_fines_fraction": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    1.0,
+                    0.0038130184014638635,
+                    -0.0054223438103994034,
+                    0.004617681105931632,
+                    -0.006926521658897453
+                  ]
+                },
+                "crystal_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.47650756438573216,
+                    0.33132607489824306,
+                    -0.09918583184480673,
+                    -0.0031270980834960938,
+                    -0.0004722326993942261
+                  ]
+                }
+              },
+              "misspecified": {
+                "crystal_csd_quality": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.44045850634574896,
+                    -0.003743191560109438,
+                    -0.013709495464960718
+                  ]
+                },
+                "crystal_fines_fraction": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    1.0,
+                    0.0038130184014638635,
+                    -0.0054223438103994034
+                  ]
+                },
+                "crystal_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.47650756438573216,
+                    0.33132607489824306,
+                    -0.09918583184480673
+                  ]
+                }
+              }
+            },
+            "passed": false,
+            "prior_word_counts": {
+              "aligned": 20,
+              "misspecified": 20
+            }
+          },
+          "passed": false,
+          "world_seed": 3
+        },
+        {
+          "effects": {
+            "axis_a": {
+              "margin": -0.010906111130498927,
+              "metric": "crystal_csd_quality",
+              "passed": false,
+              "sigma_observed": 0.00942431074536229,
+              "signature": "axis_a_range",
+              "threshold": 0.05654586447217373,
+              "value": 0.045639753341674805
+            },
+            "axis_b": {
+              "margin": 0.5889919554992835,
+              "metric": "crystal_yield",
+              "passed": true,
+              "sigma_observed": 0.01086053987668089,
+              "signature": "axis_b_range",
+              "threshold": 0.06516323926008534,
+              "value": 0.6541551947593689
+            },
+            "topology_candidates": [
+              {
+                "margin": -0.03951401604154019,
+                "metric": "crystal_csd_quality",
+                "passed": false,
+                "sigma_observed": 0.00942431074536229,
+                "signature": "seed_by_cooling_interaction",
+                "threshold": 0.05654586447217373,
+                "value": 0.017031848430633545
+              },
+              {
+                "margin": -0.010906111130498927,
+                "metric": "crystal_csd_quality",
+                "passed": false,
+                "sigma_observed": 0.00942431074536229,
+                "signature": "seed_driven_csd_or_fines_contrast",
+                "threshold": 0.05654586447217373,
+                "value": 0.045639753341674805
+              },
+              {
+                "margin": -0.07828261901946595,
+                "metric": "crystal_fines_fraction",
+                "passed": false,
+                "sigma_observed": 0.016089383843891705,
+                "signature": "seed_by_cooling_interaction",
+                "threshold": 0.09653630306335023,
+                "value": 0.018253684043884277
+              },
+              {
+                "margin": -0.0685813074311786,
+                "metric": "crystal_fines_fraction",
+                "passed": false,
+                "sigma_observed": 0.016089383843891705,
+                "signature": "seed_driven_csd_or_fines_contrast",
+                "threshold": 0.09653630306335023,
+                "value": 0.02795499563217163
+              }
+            ],
+            "topology_signature": {
+              "margin": -0.010906111130498927,
+              "metric": "crystal_csd_quality",
+              "passed": false,
+              "sigma_observed": 0.00942431074536229,
+              "signature": "seed_driven_csd_or_fines_contrast",
+              "threshold": 0.05654586447217373,
+              "value": 0.045639753341674805
+            }
+          },
+          "failures": [
+            "axis_a_effect",
+            "held_out_disagreement",
+            "high_counterexample_region",
+            "low_counterexample_region",
+            "topology_signature"
+          ],
+          "model_qualification": {
+            "aligned_validation_mae": 0.009703867137432105,
+            "baseline_error_gap": 0.0,
+            "blind_identified_aligned_model": true,
+            "checks": {
+              "baseline_error_matched": true,
+              "blind_identification": true,
+              "held_out_disagreement": false,
+              "high_counterexample_region": false,
+              "low_counterexample_region": false,
+              "prior_schema_matched": true,
+              "prior_word_count_matched": true
+            },
+            "comparison_count": 9,
+            "comparisons": [
+              {
+                "aligned_error": 0.013010056068499865,
+                "aligned_prediction": 0.49486510828137403,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.06516323926008534,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.01044580340385437,
+                "misspecified_prediction": 0.4974293609460195,
+                "observed_validation_mean": 0.5078751643498739,
+                "prediction_difference": 0.0025642526646454944
+              },
+              {
+                "aligned_error": 0.014203707377115793,
+                "aligned_prediction": 0.4564023713270824,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.05654586447217373,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.030566702286402292,
+                "misspecified_prediction": 0.4400393764177959,
+                "observed_validation_mean": 0.4706060787041982,
+                "prediction_difference": 0.0163629949092865
+              },
+              {
+                "aligned_error": 0.020040879646937237,
+                "aligned_prediction": 1.0041361351807914,
+                "axis_a_index": 0,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.09653630306335023,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.011624912420908795,
+                "misspecified_prediction": 0.9957201679547629,
+                "observed_validation_mean": 0.9840952555338541,
+                "prediction_difference": 0.008415967226028442
+              },
+              {
+                "aligned_error": 0.022021224101384407,
+                "aligned_prediction": 0.4974293609460195,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.06516323926008534,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.022021224101384407,
+                "misspecified_prediction": 0.4974293609460195,
+                "observed_validation_mean": 0.5194505850474039,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.001544942458470755,
+                "aligned_prediction": 0.4400393764177959,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.05654586447217373,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.001544942458470755,
+                "misspecified_prediction": 0.4400393764177959,
+                "observed_validation_mean": 0.43849443395932514,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.004638036092122544,
+                "aligned_prediction": 0.9957201679547629,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.09653630306335023,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.004638036092122544,
+                "misspecified_prediction": 0.9957201679547629,
+                "observed_validation_mean": 0.9910821318626404,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.0056666148205598565,
+                "aligned_prediction": 0.499993613610665,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.06516323926008534,
+                "disagrees": false,
+                "metric": "crystal_yield",
+                "misspecified_error": 0.003102362155914362,
+                "misspecified_prediction": 0.4974293609460195,
+                "observed_validation_mean": 0.49432699879010517,
+                "prediction_difference": 0.0025642526646454944
+              },
+              {
+                "aligned_error": 0.004533549149831062,
+                "aligned_prediction": 0.4236763815085094,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.05654586447217373,
+                "disagrees": false,
+                "metric": "crystal_csd_quality",
+                "misspecified_error": 0.011829445759455437,
+                "misspecified_prediction": 0.4400393764177959,
+                "observed_validation_mean": 0.42820993065834045,
+                "prediction_difference": 0.0163629949092865
+              },
+              {
+                "aligned_error": 0.001675794521967422,
+                "aligned_prediction": 0.9873042007287345,
+                "axis_a_index": 2,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.09653630306335023,
+                "disagrees": false,
+                "metric": "crystal_fines_fraction",
+                "misspecified_error": 0.00674017270406102,
+                "misspecified_prediction": 0.9957201679547629,
+                "observed_validation_mean": 0.9889799952507019,
+                "prediction_difference": 0.008415967226028442
+              }
+            ],
+            "disagreement_count": 0,
+            "disagreement_fraction": 0.0,
+            "high_counterexample_support": 0,
+            "low_counterexample_support": 0,
+            "misspecified_validation_mae": 0.011390400153619331,
+            "model_coefficients": {
+              "aligned": {
+                "crystal_csd_quality": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4400393764177959,
+                    1.549720764180973e-06,
+                    0.01294012864430744,
+                    -0.016362994909286478,
+                    0.0042579621076583585
+                  ]
+                },
+                "crystal_fines_fraction": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.9957201679547629,
+                    -2.6226043700998403e-06,
+                    -0.007186988989512116,
+                    -0.008415967226028425,
+                    -0.004563421010971096
+                  ]
+                },
+                "crystal_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4974293609460195,
+                    0.32598564897974336,
+                    -0.09957215065757435,
+                    0.0025642526646454944,
+                    -0.0007951650768519003
+                  ]
+                }
+              },
+              "misspecified": {
+                "crystal_csd_quality": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4400393764177959,
+                    1.5497207641792382e-06,
+                    0.01294012864430744
+                  ]
+                },
+                "crystal_fines_fraction": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.9957201679547629,
+                    -2.6226043700998403e-06,
+                    -0.007186988989512116
+                  ]
+                },
+                "crystal_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4974293609460195,
+                    0.32598564897974336,
+                    -0.09957215065757435
+                  ]
+                }
+              }
+            },
+            "passed": false,
+            "prior_word_counts": {
+              "aligned": 20,
+              "misspecified": 20
+            }
+          },
+          "passed": false,
+          "world_seed": 4
+        }
+      ]
+    },
+    "electrochemical_transport": {
+      "denominators": {
+        "attempted": 90,
+        "completed": 90,
+        "exact_replay": 90,
+        "physical_failures": 0,
+        "platform_failures": 0,
+        "unsafe_completed": 0
+      },
+      "passed_world_count": 3,
+      "qualification_passed": false,
+      "task_id": "electrochemical-conversion",
+      "world_count": 5,
+      "worlds": [
+        {
+          "effects": {
+            "axis_a": {
+              "margin": 0.34734164218706737,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.016313296985952637,
+              "signature": "axis_a_range",
+              "threshold": 0.09787978191571582,
+              "value": 0.4452214241027832
+            },
+            "axis_b": {
+              "margin": 0.7407783013145413,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.016313296985952637,
+              "signature": "axis_b_range",
+              "threshold": 0.09787978191571582,
+              "value": 0.838658083230257
+            },
+            "topology_candidates": [
+              {
+                "margin": 0.7068353738607213,
+                "metric": "transport_efficiency",
+                "passed": true,
+                "sigma_observed": 0.018916313909470298,
+                "signature": "high_current_efficiency_loss",
+                "threshold": 0.1134978834568218,
+                "value": 0.820333257317543
+              },
+              {
+                "margin": 0.7407783013145413,
+                "metric": "faradaic_efficiency",
+                "passed": true,
+                "sigma_observed": 0.016313296985952637,
+                "signature": "high_current_efficiency_loss",
+                "threshold": 0.09787978191571582,
+                "value": 0.838658083230257
+              },
+              {
+                "margin": -0.05030698572859654,
+                "metric": "selective_product_yield",
+                "passed": false,
+                "sigma_observed": 0.008384497621432757,
+                "signature": "diminishing_high_current_yield_gain",
+                "threshold": 0.05030698572859654,
+                "value": 0.0
+              }
+            ],
+            "topology_signature": {
+              "margin": 0.7407783013145413,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.016313296985952637,
+              "signature": "high_current_efficiency_loss",
+              "threshold": 0.09787978191571582,
+              "value": 0.838658083230257
+            }
+          },
+          "failures": [
+            "held_out_disagreement",
+            "high_counterexample_region"
+          ],
+          "model_qualification": {
+            "aligned_validation_mae": 0.04135937336401123,
+            "baseline_error_gap": 0.0,
+            "blind_identified_aligned_model": true,
+            "checks": {
+              "baseline_error_matched": true,
+              "blind_identification": true,
+              "held_out_disagreement": false,
+              "high_counterexample_region": false,
+              "low_counterexample_region": true,
+              "prior_schema_matched": true,
+              "prior_word_count_matched": true
+            },
+            "comparison_count": 9,
+            "comparisons": [
+              {
+                "aligned_error": 0.012927916832268242,
+                "aligned_prediction": 0.018931129636863872,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.05030698572859654,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.0060039416033153695,
+                "misspecified_prediction": 0.012007154407911,
+                "observed_validation_mean": 0.00600321280459563,
+                "prediction_difference": 0.006923975228952873
+              },
+              {
+                "aligned_error": 0.13064012924830132,
+                "aligned_prediction": 0.5888562699158988,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.09787978191571582,
+                "disagrees": true,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.3080145319302877,
+                "misspecified_prediction": 0.15020160873730978,
+                "observed_validation_mean": 0.45821614066759747,
+                "prediction_difference": 0.438654661178589
+              },
+              {
+                "aligned_error": 0.13843627770741812,
+                "aligned_prediction": 0.5964698890844984,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.1134978834568218,
+                "disagrees": true,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.30357350409030914,
+                "misspecified_prediction": 0.15446010728677112,
+                "observed_validation_mean": 0.45803361137708026,
+                "prediction_difference": 0.44200978179772726
+              },
+              {
+                "aligned_error": 0.006437783401149019,
+                "aligned_prediction": 0.006342487914177275,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.05030698572859654,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.006437783401149019,
+                "misspecified_prediction": 0.006342487914177275,
+                "observed_validation_mean": 0.012780271315326294,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.027407057583332076,
+                "aligned_prediction": 0.15020160873730978,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.09787978191571582,
+                "disagrees": false,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.027407057583332076,
+                "misspecified_prediction": 0.15020160873730978,
+                "observed_validation_mean": 0.12279455115397771,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.020884558558464023,
+                "aligned_prediction": 0.15446010728677112,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.1134978834568218,
+                "disagrees": false,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.020884558558464023,
+                "misspecified_prediction": 0.15446010728677112,
+                "observed_validation_mean": 0.1335755487283071,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.004818131526311232,
+                "aligned_prediction": 0.007601796649396413,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.05030698572859654,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.0021058437026416307,
+                "misspecified_prediction": 0.0006778214204435501,
+                "observed_validation_mean": 0.0027836651230851808,
+                "prediction_difference": 0.0069239752289528625
+              },
+              {
+                "aligned_error": 0.012634646147489784,
+                "aligned_prediction": 0.05520174155632632,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.09787978191571582,
+                "disagrees": false,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.08236522103349368,
+                "misspecified_prediction": 0.15020160873730978,
+                "observed_validation_mean": 0.0678363877038161,
+                "prediction_difference": 0.09499986718098347
+              },
+              {
+                "aligned_error": 0.01804785927136726,
+                "aligned_prediction": 0.07474206884702034,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.1134978834568218,
+                "disagrees": false,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.09776589771111804,
+                "misspecified_prediction": 0.15446010728677112,
+                "observed_validation_mean": 0.056694209575653076,
+                "prediction_difference": 0.07971803843975078
+              }
+            ],
+            "disagreement_count": 2,
+            "disagreement_fraction": 0.2222222222222222,
+            "high_counterexample_support": 0,
+            "low_counterexample_support": 2,
+            "misspecified_validation_mae": 0.09495092662379008,
+            "model_coefficients": {
+              "aligned": {
+                "faradaic_efficiency": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.15020160873730978,
+                    -0.0799337116380533,
+                    -0.26682726417978625,
+                    0.11497552134096625,
+                    0.17182739699880278
+                  ]
+                },
+                "selective_product_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.006342487914177275,
+                    0.006024148683839792,
+                    -0.00566466649373373,
+                    -0.0027753990143537517,
+                    0.006923975228952868
+                  ]
+                },
+                "transport_efficiency": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.15446010728677112,
+                    -0.07896334057052934,
+                    -0.260863910118739,
+                    0.1174184773117305,
+                    0.1811458716789882
+                  ]
+                }
+              },
+              "misspecified": {
+                "faradaic_efficiency": {
+                  "baseline_offset": -0.11455159799920181,
+                  "coefficients": [
+                    0.2647532067365116,
+                    -0.07993371163805328
+                  ]
+                },
+                "selective_product_yield": {
+                  "baseline_offset": -0.0046159834859685785,
+                  "coefficients": [
+                    0.010958471400145853,
+                    0.006024148683839792,
+                    -0.0056646664937337245,
+                    -0.0027753990143537504
+                  ]
+                },
+                "transport_efficiency": {
+                  "baseline_offset": -0.12076391445265872,
+                  "coefficients": [
+                    0.27522402173942984,
+                    -0.07896334057052931
+                  ]
+                }
+              }
+            },
+            "passed": false,
+            "prior_word_counts": {
+              "aligned": 20,
+              "misspecified": 21
+            }
+          },
+          "passed": false,
+          "world_seed": 0
+        },
+        {
+          "effects": {
+            "axis_a": {
+              "margin": 0.730934534354309,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.018628524594290433,
+              "signature": "axis_a_range",
+              "threshold": 0.1117711475657426,
+              "value": 0.8427056819200516
+            },
+            "axis_b": {
+              "margin": 0.33700500965393615,
+              "metric": "transport_efficiency",
+              "passed": true,
+              "sigma_observed": 0.009321316182154692,
+              "signature": "axis_b_range",
+              "threshold": 0.055927897092928155,
+              "value": 0.3929329067468643
+            },
+            "topology_candidates": [
+              {
+                "margin": 0.33700500965393615,
+                "metric": "transport_efficiency",
+                "passed": true,
+                "sigma_observed": 0.009321316182154692,
+                "signature": "high_current_efficiency_loss",
+                "threshold": 0.055927897092928155,
+                "value": 0.3929329067468643
+              },
+              {
+                "margin": 0.2986261734200515,
+                "metric": "faradaic_efficiency",
+                "passed": true,
+                "sigma_observed": 0.018628524594290433,
+                "signature": "high_current_efficiency_loss",
+                "threshold": 0.1117711475657426,
+                "value": 0.41039732098579407
+              },
+              {
+                "margin": 0.008084563895145752,
+                "metric": "selective_product_yield",
+                "passed": true,
+                "sigma_observed": 0.011532256009830419,
+                "signature": "diminishing_high_current_yield_gain",
+                "threshold": 0.06919353605898251,
+                "value": 0.07727809995412827
+              }
+            ],
+            "topology_signature": {
+              "margin": 0.33700500965393615,
+              "metric": "transport_efficiency",
+              "passed": true,
+              "sigma_observed": 0.009321316182154692,
+              "signature": "high_current_efficiency_loss",
+              "threshold": 0.055927897092928155,
+              "value": 0.3929329067468643
+            }
+          },
+          "failures": [],
+          "model_qualification": {
+            "aligned_validation_mae": 0.1370680295017169,
+            "baseline_error_gap": 0.0,
+            "blind_identified_aligned_model": true,
+            "checks": {
+              "baseline_error_matched": true,
+              "blind_identification": true,
+              "held_out_disagreement": true,
+              "high_counterexample_region": true,
+              "low_counterexample_region": true,
+              "prior_schema_matched": true,
+              "prior_word_count_matched": true
+            },
+            "comparison_count": 9,
+            "comparisons": [
+              {
+                "aligned_error": 0.007929390606780825,
+                "aligned_prediction": 0.007929390606780825,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.06919353605898251,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.017367010858530797,
+                "misspecified_prediction": 0.017367010858530797,
+                "observed_validation_mean": 0.0,
+                "prediction_difference": 0.009437620251749972
+              },
+              {
+                "aligned_error": 0.13684428731600456,
+                "aligned_prediction": 0.6076675256093345,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.1117711475657426,
+                "disagrees": true,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.07028747101624794,
+                "misspecified_prediction": 0.40053576727708196,
+                "observed_validation_mean": 0.4708232382933299,
+                "prediction_difference": 0.2071317583322525
+              },
+              {
+                "aligned_error": 0.15051948030789702,
+                "aligned_prediction": 0.6138029694557191,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.055927897092928155,
+                "disagrees": true,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.05900931855042757,
+                "misspecified_prediction": 0.4042741705973945,
+                "observed_validation_mean": 0.4632834891478221,
+                "prediction_difference": 0.2095287988583246
+              },
+              {
+                "aligned_error": 0.022568647361670933,
+                "aligned_prediction": 0.03307401551865041,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.06919353605898251,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.022568647361670933,
+                "misspecified_prediction": 0.03307401551865041,
+                "observed_validation_mean": 0.01050536815697948,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.2606907213727635,
+                "aligned_prediction": 0.40053576727708196,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.1117711475657426,
+                "disagrees": false,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.2606907213727635,
+                "misspecified_prediction": 0.40053576727708196,
+                "observed_validation_mean": 0.13984504590431848,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.28409153471390425,
+                "aligned_prediction": 0.4042741705973945,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.055927897092928155,
+                "disagrees": false,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.28409153471390425,
+                "misspecified_prediction": 0.4042741705973945,
+                "observed_validation_mean": 0.12018263588349025,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.03226539601261417,
+                "aligned_prediction": 0.03934339992702007,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.06919353605898251,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.04170301626436412,
+                "misspecified_prediction": 0.04878102017877003,
+                "observed_validation_mean": 0.007078003914405902,
+                "prediction_difference": 0.009437620251749955
+              },
+              {
+                "aligned_error": 0.1649854754408199,
+                "aligned_prediction": 0.23816505571206395,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.1117711475657426,
+                "disagrees": true,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.3273561870058379,
+                "misspecified_prediction": 0.40053576727708196,
+                "observed_validation_mean": 0.07317958027124405,
+                "prediction_difference": 0.162370711565018
+              },
+              {
+                "aligned_error": 0.17371733238299675,
+                "aligned_prediction": 0.2559916401902833,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.055927897092928155,
+                "disagrees": true,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.32199986279010795,
+                "misspecified_prediction": 0.4042741705973945,
+                "observed_validation_mean": 0.08227430780728658,
+                "prediction_difference": 0.1482825304071112
+              }
+            ],
+            "disagreement_count": 4,
+            "disagreement_fraction": 0.4444444444444444,
+            "high_counterexample_support": 2,
+            "low_counterexample_support": 2,
+            "misspecified_validation_mae": 0.15611930777042832,
+            "model_coefficients": {
+              "aligned": {
+                "faradaic_efficiency": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.40053576727708196,
+                    -0.3093762596448264,
+                    -0.18475123494863524,
+                    -0.027326710522174787,
+                    0.022380523383617235
+                  ]
+                },
+                "selective_product_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.03307401551865041,
+                    -0.02204376552253962,
+                    0.015707004660119626,
+                    -0.02146568847820164,
+                    -0.009437620251749962
+                  ]
+                },
+                "transport_efficiency": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4042741705973945,
+                    -0.3147597399850688,
+                    -0.17890566463271793,
+                    -0.025179440155625295,
+                    0.030623134225606696
+                  ]
+                }
+              },
+              "misspecified": {
+                "faradaic_efficiency": {
+                  "baseline_offset": -0.014920348922411453,
+                  "coefficients": [
+                    0.4154561161994934,
+                    -0.30937625964482635
+                  ]
+                },
+                "selective_product_yield": {
+                  "baseline_offset": 0.00629174683449997,
+                  "coefficients": [
+                    0.026782268684150443,
+                    -0.02204376552253962,
+                    0.015707004660119615,
+                    -0.021465688478201635
+                  ]
+                },
+                "transport_efficiency": {
+                  "baseline_offset": -0.02041542281707104,
+                  "coefficients": [
+                    0.42468959341446555,
+                    -0.3147597399850688
+                  ]
+                }
+              }
+            },
+            "passed": true,
+            "prior_word_counts": {
+              "aligned": 20,
+              "misspecified": 21
+            }
+          },
+          "passed": true,
+          "world_seed": 1
+        },
+        {
+          "effects": {
+            "axis_a": {
+              "margin": 0.5501601278342917,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.017937164264286317,
+              "signature": "axis_a_range",
+              "threshold": 0.1076229855857179,
+              "value": 0.6577831134200096
+            },
+            "axis_b": {
+              "margin": 0.32806124831816696,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.017937164264286317,
+              "signature": "axis_b_range",
+              "threshold": 0.1076229855857179,
+              "value": 0.4356842339038849
+            },
+            "topology_candidates": [
+              {
+                "margin": 0.3245048053255273,
+                "metric": "transport_efficiency",
+                "passed": true,
+                "sigma_observed": 0.02186629958963075,
+                "signature": "high_current_efficiency_loss",
+                "threshold": 0.1311977975377845,
+                "value": 0.45570260286331177
+              },
+              {
+                "margin": 0.32806124831816696,
+                "metric": "faradaic_efficiency",
+                "passed": true,
+                "sigma_observed": 0.017937164264286317,
+                "signature": "high_current_efficiency_loss",
+                "threshold": 0.1076229855857179,
+                "value": 0.4356842339038849
+              },
+              {
+                "margin": -0.0442809988201556,
+                "metric": "selective_product_yield",
+                "passed": false,
+                "sigma_observed": 0.007380166470025934,
+                "signature": "diminishing_high_current_yield_gain",
+                "threshold": 0.0442809988201556,
+                "value": 0.0
+              }
+            ],
+            "topology_signature": {
+              "margin": 0.32806124831816696,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.017937164264286317,
+              "signature": "high_current_efficiency_loss",
+              "threshold": 0.1076229855857179,
+              "value": 0.4356842339038849
+            }
+          },
+          "failures": [],
+          "model_qualification": {
+            "aligned_validation_mae": 0.10983979313944775,
+            "baseline_error_gap": 0.0,
+            "blind_identified_aligned_model": true,
+            "checks": {
+              "baseline_error_matched": true,
+              "blind_identification": true,
+              "held_out_disagreement": true,
+              "high_counterexample_region": true,
+              "low_counterexample_region": true,
+              "prior_schema_matched": true,
+              "prior_word_count_matched": true
+            },
+            "comparison_count": 9,
+            "comparisons": [
+              {
+                "aligned_error": 0.011059020335475591,
+                "aligned_prediction": 0.015325531673928089,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.0442809988201556,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.0031478458549827346,
+                "misspecified_prediction": 0.007414357193435233,
+                "observed_validation_mean": 0.004266511338452498,
+                "prediction_difference": 0.007911174480492856
+              },
+              {
+                "aligned_error": 0.13539923230806988,
+                "aligned_prediction": 0.5514659285545349,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.1076229855857179,
+                "disagrees": true,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.07297214120626444,
+                "misspecified_prediction": 0.3430945550402006,
+                "observed_validation_mean": 0.41606669624646503,
+                "prediction_difference": 0.20837137351433432
+              },
+              {
+                "aligned_error": 0.16580642263094586,
+                "aligned_prediction": 0.5744745135307312,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.1311977975377845,
+                "disagrees": true,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.0793696070710817,
+                "misspecified_prediction": 0.32929848382870364,
+                "observed_validation_mean": 0.40866809089978534,
+                "prediction_difference": 0.24517602970202756
+              },
+              {
+                "aligned_error": 0.007945084323485695,
+                "aligned_prediction": 0.012206025421619419,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.0442809988201556,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.007945084323485695,
+                "misspecified_prediction": 0.012206025421619419,
+                "observed_validation_mean": 0.004260941098133723,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.22518944740295416,
+                "aligned_prediction": 0.3430945550402006,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.1076229855857179,
+                "disagrees": false,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.22518944740295416,
+                "misspecified_prediction": 0.3430945550402006,
+                "observed_validation_mean": 0.11790510763724645,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.20636582871278136,
+                "aligned_prediction": 0.32929848382870364,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.1311977975377845,
+                "disagrees": false,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.20636582871278136,
+                "misspecified_prediction": 0.32929848382870364,
+                "observed_validation_mean": 0.12293265511592229,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.014723241794854413,
+                "aligned_prediction": 0.02490886813029648,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.0442809988201556,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.006812067314361538,
+                "misspecified_prediction": 0.016997693649803605,
+                "observed_validation_mean": 0.010185626335442066,
+                "prediction_difference": 0.007911174480492875
+              },
+              {
+                "aligned_error": 0.1252725683152674,
+                "aligned_prediction": 0.18336929877599065,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.1076229855857179,
+                "disagrees": true,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.28499782457947737,
+                "misspecified_prediction": 0.3430945550402006,
+                "observed_validation_mean": 0.058096730460723243,
+                "prediction_difference": 0.15972525626420994
+              },
+              {
+                "aligned_error": 0.09679729243119538,
+                "aligned_prediction": 0.1704011062781014,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.1311977975377845,
+                "disagrees": true,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.25569466998179763,
+                "misspecified_prediction": 0.32929848382870364,
+                "observed_validation_mean": 0.07360381384690602,
+                "prediction_difference": 0.15889737755060224
+              }
+            ],
+            "disagreement_count": 4,
+            "disagreement_fraction": 0.4444444444444444,
+            "high_counterexample_support": 2,
+            "low_counterexample_support": 2,
+            "misspecified_validation_mae": 0.12694383516079852,
+            "model_coefficients": {
+              "aligned": {
+                "faradaic_efficiency": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.3430945550402006,
+                    -0.2406235871215662,
+                    -0.18404831488927215,
+                    0.02683199755847457,
+                    0.024323058625062205
+                  ]
+                },
+                "selective_product_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.012206025421619419,
+                    -0.017751740058884025,
+                    0.004791668228184194,
+                    -0.013241894193924967,
+                    0.007911174480492864
+                  ]
+                },
+                "transport_efficiency": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.32929848382870364,
+                    -0.2524177345136803,
+                    -0.20203670362631493,
+                    0.017239367589354525,
+                    0.04313932607571269
+                  ]
+                }
+              },
+              "misspecified": {
+                "faradaic_efficiency": {
+                  "baseline_offset": -0.016215372416708118,
+                  "coefficients": [
+                    0.3593099274569087,
+                    -0.2406235871215662
+                  ]
+                },
+                "selective_product_yield": {
+                  "baseline_offset": -0.005274116320328575,
+                  "coefficients": [
+                    0.017480141741947994,
+                    -0.017751740058884025,
+                    0.004791668228184186,
+                    -0.013241894193924965
+                  ]
+                },
+                "transport_efficiency": {
+                  "baseline_offset": -0.028759550717141757,
+                  "coefficients": [
+                    0.3580580345458454,
+                    -0.2524177345136802
+                  ]
+                }
+              }
+            },
+            "passed": true,
+            "prior_word_counts": {
+              "aligned": 20,
+              "misspecified": 21
+            }
+          },
+          "passed": true,
+          "world_seed": 2
+        },
+        {
+          "effects": {
+            "axis_a": {
+              "margin": 0.39441210965918916,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.01492621345551905,
+              "signature": "axis_a_range",
+              "threshold": 0.08955728073311431,
+              "value": 0.48396939039230347
+            },
+            "axis_b": {
+              "margin": 0.7222866770188751,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.01492621345551905,
+              "signature": "axis_b_range",
+              "threshold": 0.08955728073311431,
+              "value": 0.8118439577519894
+            },
+            "topology_candidates": [
+              {
+                "margin": 0.6859779931178568,
+                "metric": "transport_efficiency",
+                "passed": true,
+                "sigma_observed": 0.018870130560946496,
+                "signature": "high_current_efficiency_loss",
+                "threshold": 0.11322078336567898,
+                "value": 0.7991987764835358
+              },
+              {
+                "margin": 0.7222866770188751,
+                "metric": "faradaic_efficiency",
+                "passed": true,
+                "sigma_observed": 0.01492621345551905,
+                "signature": "high_current_efficiency_loss",
+                "threshold": 0.08955728073311431,
+                "value": 0.8118439577519894
+              },
+              {
+                "margin": 0.0017043188136576237,
+                "metric": "selective_product_yield",
+                "passed": true,
+                "sigma_observed": 0.010421662064943734,
+                "signature": "diminishing_high_current_yield_gain",
+                "threshold": 0.0625299723896624,
+                "value": 0.06423429120332003
+              }
+            ],
+            "topology_signature": {
+              "margin": 0.7222866770188751,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.01492621345551905,
+              "signature": "high_current_efficiency_loss",
+              "threshold": 0.08955728073311431,
+              "value": 0.8118439577519894
+            }
+          },
+          "failures": [
+            "held_out_disagreement",
+            "high_counterexample_region"
+          ],
+          "model_qualification": {
+            "aligned_validation_mae": 0.04381849726067038,
+            "baseline_error_gap": 0.0,
+            "blind_identified_aligned_model": true,
+            "checks": {
+              "baseline_error_matched": true,
+              "blind_identification": true,
+              "held_out_disagreement": false,
+              "high_counterexample_region": false,
+              "low_counterexample_region": true,
+              "prior_schema_matched": true,
+              "prior_word_count_matched": true
+            },
+            "comparison_count": 9,
+            "comparisons": [
+              {
+                "aligned_error": 0.005680478682431083,
+                "aligned_prediction": 0.006881274903813997,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.0625299723896624,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.009198768966598438,
+                "misspecified_prediction": 0.02176052255284352,
+                "observed_validation_mean": 0.01256175358624508,
+                "prediction_difference": 0.014879247649029521
+              },
+              {
+                "aligned_error": 0.17339809735616069,
+                "aligned_prediction": 0.5315137207508089,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.08955728073311431,
+                "disagrees": true,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.2596715713540714,
+                "misspecified_prediction": 0.09844405204057691,
+                "observed_validation_mean": 0.35811562339464825,
+                "prediction_difference": 0.433069668710232
+              },
+              {
+                "aligned_error": 0.16104741891225205,
+                "aligned_prediction": 0.5285751124223076,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.11322078336567898,
+                "disagrees": true,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.25804933408896125,
+                "misspecified_prediction": 0.1094783594210943,
+                "observed_validation_mean": 0.36752769351005554,
+                "prediction_difference": 0.4190967530012133
+              },
+              {
+                "aligned_error": 0.021195671986788515,
+                "aligned_prediction": 0.02239612396806479,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.0625299723896624,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.021195671986788515,
+                "misspecified_prediction": 0.02239612396806479,
+                "observed_validation_mean": 0.0012004519812762737,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.004754217962423993,
+                "aligned_prediction": 0.09844405204057691,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.08955728073311431,
+                "disagrees": false,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.004754217962423993,
+                "misspecified_prediction": 0.09844405204057691,
+                "observed_validation_mean": 0.1031982700030009,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.00264166047175729,
+                "aligned_prediction": 0.1094783594210943,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.11322078336567898,
+                "disagrees": false,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.00264166047175729,
+                "misspecified_prediction": 0.1094783594210943,
+                "observed_validation_mean": 0.106836698949337,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.008699764361760268,
+                "aligned_prediction": 0.008152477734256538,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.0625299723896624,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.006179483287269253,
+                "misspecified_prediction": 0.02303172538328606,
+                "observed_validation_mean": 0.016852242096016806,
+                "prediction_difference": 0.014879247649029521
+              },
+              {
+                "aligned_error": 0.00720723097523069,
+                "aligned_prediction": 0.049421114226182145,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.08955728073311431,
+                "disagrees": false,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.04181570683916407,
+                "misspecified_prediction": 0.09844405204057691,
+                "observed_validation_mean": 0.056628345201412834,
+                "prediction_difference": 0.04902293781439476
+              },
+              {
+                "aligned_error": 0.009741934637228833,
+                "aligned_prediction": 0.05295882498224558,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.11322078336567898,
+                "disagrees": false,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.046777599801619885,
+                "misspecified_prediction": 0.1094783594210943,
+                "observed_validation_mean": 0.06270075961947441,
+                "prediction_difference": 0.05651953443884872
+              }
+            ],
+            "disagreement_count": 2,
+            "disagreement_fraction": 0.2222222222222222,
+            "high_counterexample_support": 0,
+            "low_counterexample_support": 2,
+            "misspecified_validation_mae": 0.07225377941762823,
+            "model_coefficients": {
+              "aligned": {
+                "faradaic_efficiency": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.09844405204057691,
+                    -0.07518516915539902,
+                    -0.24104630326231336,
+                    0.12775291595607996,
+                    0.1920233654479186
+                  ]
+                },
+                "selective_product_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.02239612396806479,
+                    0.002774548571323976,
+                    0.0006356014152212688,
+                    0.002733951914706267,
+                    -0.014879247649029521
+                  ]
+                },
+                "transport_efficiency": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.1094783594210943,
+                    -0.07764197948078316,
+                    -0.237808143720031,
+                    0.1207269625738264,
+                    0.1812886092811823
+                  ]
+                }
+              },
+              "misspecified": {
+                "faradaic_efficiency": {
+                  "baseline_offset": -0.12801557696527904,
+                  "coefficients": [
+                    0.22645962900585595,
+                    -0.075185169155399
+                  ]
+                },
+                "selective_product_yield": {
+                  "baseline_offset": 0.00991949843268635,
+                  "coefficients": [
+                    0.012476625535378438,
+                    0.002774548571323977,
+                    0.0006356014152212702,
+                    0.002733951914706266
+                  ]
+                },
+                "transport_efficiency": {
+                  "baseline_offset": -0.12085907285412148,
+                  "coefficients": [
+                    0.23033743227521578,
+                    -0.07764197948078316
+                  ]
+                }
+              }
+            },
+            "passed": false,
+            "prior_word_counts": {
+              "aligned": 20,
+              "misspecified": 21
+            }
+          },
+          "passed": false,
+          "world_seed": 3
+        },
+        {
+          "effects": {
+            "axis_a": {
+              "margin": 0.7268371853429285,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.01636393909324859,
+              "signature": "axis_a_range",
+              "threshold": 0.09818363455949154,
+              "value": 0.82502081990242
+            },
+            "axis_b": {
+              "margin": 0.3482243392068354,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.01636393909324859,
+              "signature": "axis_b_range",
+              "threshold": 0.09818363455949154,
+              "value": 0.4464079737663269
+            },
+            "topology_candidates": [
+              {
+                "margin": 0.3268297657520839,
+                "metric": "transport_efficiency",
+                "passed": true,
+                "sigma_observed": 0.024910295255461193,
+                "signature": "high_current_efficiency_loss",
+                "threshold": 0.14946177153276716,
+                "value": 0.4762915372848511
+              },
+              {
+                "margin": 0.3296526792842356,
+                "metric": "faradaic_efficiency",
+                "passed": true,
+                "sigma_observed": 0.01636393909324859,
+                "signature": "high_current_efficiency_loss",
+                "threshold": 0.09818363455949154,
+                "value": 0.4278363138437271
+              },
+              {
+                "margin": -0.04557090623020642,
+                "metric": "selective_product_yield",
+                "passed": false,
+                "sigma_observed": 0.01791136936547775,
+                "signature": "diminishing_high_current_yield_gain",
+                "threshold": 0.10746821619286649,
+                "value": 0.061897309962660074
+              }
+            ],
+            "topology_signature": {
+              "margin": 0.3296526792842356,
+              "metric": "faradaic_efficiency",
+              "passed": true,
+              "sigma_observed": 0.01636393909324859,
+              "signature": "high_current_efficiency_loss",
+              "threshold": 0.09818363455949154,
+              "value": 0.4278363138437271
+            }
+          },
+          "failures": [],
+          "model_qualification": {
+            "aligned_validation_mae": 0.1384387117556158,
+            "baseline_error_gap": 0.0,
+            "blind_identified_aligned_model": true,
+            "checks": {
+              "baseline_error_matched": true,
+              "blind_identification": true,
+              "held_out_disagreement": true,
+              "high_counterexample_region": true,
+              "low_counterexample_region": true,
+              "prior_schema_matched": true,
+              "prior_word_count_matched": true
+            },
+            "comparison_count": 9,
+            "comparisons": [
+              {
+                "aligned_error": 0.01656607664578286,
+                "aligned_prediction": 0.0025609377577590214,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.10746821619286649,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.003081679412086185,
+                "misspecified_prediction": 0.022208693815628067,
+                "observed_validation_mean": 0.01912701440354188,
+                "prediction_difference": 0.019647756057869045
+              },
+              {
+                "aligned_error": 0.15483938654263812,
+                "aligned_prediction": 0.647159069776535,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.09818363455949154,
+                "disagrees": true,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.06578104694684334,
+                "misspecified_prediction": 0.4265386362870536,
+                "observed_validation_mean": 0.4923196832338969,
+                "prediction_difference": 0.22062043348948146
+              },
+              {
+                "aligned_error": 0.1580317815144856,
+                "aligned_prediction": 0.6435022254784901,
+                "axis_a_index": 1,
+                "axis_b_index": 0,
+                "disagreement_gate": 0.14946177153276716,
+                "disagrees": true,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.06389867762724544,
+                "misspecified_prediction": 0.4215717663367591,
+                "observed_validation_mean": 0.4854704439640045,
+                "prediction_difference": 0.22193045914173104
+              },
+              {
+                "aligned_error": 0.030052662671854104,
+                "aligned_prediction": 0.0366515467564265,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.10746821619286649,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.030052662671854104,
+                "misspecified_prediction": 0.0366515467564265,
+                "observed_validation_mean": 0.006598884084572394,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.2845338135957719,
+                "aligned_prediction": 0.4265386362870536,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.09818363455949154,
+                "disagrees": false,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.2845338135957719,
+                "misspecified_prediction": 0.4265386362870536,
+                "observed_validation_mean": 0.14200482269128165,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.28284551699956273,
+                "aligned_prediction": 0.4215717663367591,
+                "axis_a_index": 1,
+                "axis_b_index": 1,
+                "disagreement_gate": 0.14946177153276716,
+                "disagrees": false,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.28284551699956273,
+                "misspecified_prediction": 0.4215717663367591,
+                "observed_validation_mean": 0.13872624933719635,
+                "prediction_difference": 0.0
+              },
+              {
+                "aligned_error": 0.028056092249850433,
+                "aligned_prediction": 0.0314466436393559,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.10746821619286649,
+                "disagrees": false,
+                "metric": "selective_product_yield",
+                "misspecified_error": 0.04770384830771946,
+                "misspecified_prediction": 0.05109439969722493,
+                "observed_validation_mean": 0.003390551389505466,
+                "prediction_difference": 0.01964775605786903
+              },
+              {
+                "aligned_error": 0.15088356782992673,
+                "aligned_prediction": 0.22693770130475355,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.09818363455949154,
+                "disagrees": true,
+                "metric": "faradaic_efficiency",
+                "misspecified_error": 0.35048450281222676,
+                "misspecified_prediction": 0.4265386362870536,
+                "observed_validation_mean": 0.07605413347482681,
+                "prediction_difference": 0.19960093498230003
+              },
+              {
+                "aligned_error": 0.14013950775067002,
+                "aligned_prediction": 0.21602128197749448,
+                "axis_a_index": 1,
+                "axis_b_index": 2,
+                "disagreement_gate": 0.14946177153276716,
+                "disagrees": true,
+                "metric": "transport_efficiency",
+                "misspecified_error": 0.3456899921099346,
+                "misspecified_prediction": 0.4215717663367591,
+                "observed_validation_mean": 0.07588177422682445,
+                "prediction_difference": 0.2055504843592646
+              }
+            ],
+            "disagreement_count": 4,
+            "disagreement_fraction": 0.4444444444444444,
+            "high_counterexample_support": 2,
+            "low_counterexample_support": 2,
+            "misspecified_validation_mae": 0.16378574894258272,
+            "model_coefficients": {
+              "aligned": {
+                "faradaic_efficiency": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4265386362870536,
+                    -0.2864216143886249,
+                    -0.21011068423589074,
+                    0.0018078126013279681,
+                    0.010509749253590717
+                  ]
+                },
+                "selective_product_yield": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.0366515467564265,
+                    -0.025455608032643795,
+                    0.014442852940798438,
+                    -0.0187456242274493,
+                    -0.01964775605786904
+                  ]
+                },
+                "transport_efficiency": {
+                  "baseline_offset": 0.0,
+                  "coefficients": [
+                    0.4215717663367591,
+                    -0.2941487841308118,
+                    -0.21374047175049787,
+                    0.015409482643008275,
+                    0.008189987391233278
+                  ]
+                }
+              },
+              "misspecified": {
+                "faradaic_efficiency": {
+                  "baseline_offset": -0.007006499502393737,
+                  "coefficients": [
+                    0.4335451357894473,
+                    -0.2864216143886249
+                  ]
+                },
+                "selective_product_yield": {
+                  "baseline_offset": 0.013098504038579355,
+                  "coefficients": [
+                    0.023553042717847143,
+                    -0.0254556080326438,
+                    0.014442852940798431,
+                    -0.018745624227449298
+                  ]
+                },
+                "transport_efficiency": {
+                  "baseline_offset": -0.0054599915941554444,
+                  "coefficients": [
+                    0.4270317579309145,
+                    -0.2941487841308118
+                  ]
+                }
+              }
+            },
+            "passed": true,
+            "prior_word_counts": {
+              "aligned": 20,
+              "misspecified": 21
+            }
+          },
+          "passed": true,
+          "world_seed": 4
+        }
+      ]
+    }
+  },
+  "coverage": {
+    "candidate_count": 2,
+    "main_grid_per_world": 9,
+    "noisy_validation_per_world": 9,
+    "planned_execution_count": 180,
+    "worlds_per_candidate": 5
+  },
+  "decision": "retain_scientific_rejections_and_do_not_generate_d1",
+  "denominators": {
+    "attempted": 180,
+    "completed": 180,
+    "exact_replay": 180,
+    "physical_failures": 0,
+    "platform_failures": 0,
+    "unsafe_completed": 0
+  },
+  "elapsed_s": 1254.261,
+  "formal_r5_authorized": false,
+  "formal_result": false,
+  "generated_d1_configs": {
+    "crystallization_nucleation_growth": null,
+    "electrochemical_transport": null
+  },
+  "generated_package": {
+    "path": "configs/benchmark/work_ii_structural_candidate_package_v0.2.json",
+    "sha256": "2f3fa03c72723c9b83c0b0fadcb9fc34714a98b421f09886b1df756b9e3ced0b"
+  },
+  "outcome_ownership": "protocol_owned_provider_free",
+  "provider_call_count": 0,
+  "provider_execution_authorized": false,
+  "q2_packages_generated": 0,
+  "qualification_schema_version": "chemworld-work-ii-structural-candidate-qualification-0.2",
+  "raw_bindings": [
+    {
+      "candidate_id": "electrochemical_transport",
+      "passed": false,
+      "path": "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811/electrochemical_transport/world-0/world-report.json",
+      "sha256": "0cd9a38c73422113ad91dba736a71ce6b1dcf19e9c1a270422fecaf642e106b5",
+      "world_seed": 0
+    },
+    {
+      "candidate_id": "electrochemical_transport",
+      "passed": true,
+      "path": "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811/electrochemical_transport/world-1/world-report.json",
+      "sha256": "56ced82a5f54171df2eee12f45018069a175db5326ed2d9b60976104a8d27738",
+      "world_seed": 1
+    },
+    {
+      "candidate_id": "electrochemical_transport",
+      "passed": true,
+      "path": "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811/electrochemical_transport/world-2/world-report.json",
+      "sha256": "f0101a95f4627aaaa64f9ca710125049ed12268bd5f32bc978c440e6798f81b0",
+      "world_seed": 2
+    },
+    {
+      "candidate_id": "electrochemical_transport",
+      "passed": false,
+      "path": "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811/electrochemical_transport/world-3/world-report.json",
+      "sha256": "cd0b8043f95941ab4e5a614ac720c06620ff4a06adae1190d6a7153724f64524",
+      "world_seed": 3
+    },
+    {
+      "candidate_id": "electrochemical_transport",
+      "passed": true,
+      "path": "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811/electrochemical_transport/world-4/world-report.json",
+      "sha256": "6075013fda6538ae32516bfd3449e6a38dde87765fa4ffe9afce0ac1744fd623",
+      "world_seed": 4
+    },
+    {
+      "candidate_id": "crystallization_nucleation_growth",
+      "passed": false,
+      "path": "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811/crystallization_nucleation_growth/world-0/world-report.json",
+      "sha256": "7c01c7b6351efb9f2a73fc3a9bcafbed6ef85f234fe997828dd5ceb01cdef3cd",
+      "world_seed": 0
+    },
+    {
+      "candidate_id": "crystallization_nucleation_growth",
+      "passed": false,
+      "path": "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811/crystallization_nucleation_growth/world-1/world-report.json",
+      "sha256": "9e0656d3664306f3ba64a0d8a0a18b8ebe2842f40d97d48dde4c57110af23061",
+      "world_seed": 1
+    },
+    {
+      "candidate_id": "crystallization_nucleation_growth",
+      "passed": false,
+      "path": "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811/crystallization_nucleation_growth/world-2/world-report.json",
+      "sha256": "9066adfda175b51daf660c0c229c76526e933758f624796fac5f163778f3ef21",
+      "world_seed": 2
+    },
+    {
+      "candidate_id": "crystallization_nucleation_growth",
+      "passed": false,
+      "path": "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811/crystallization_nucleation_growth/world-3/world-report.json",
+      "sha256": "359850488ee1359a7415c77fd8a26e1341329f73346f85ca31afd12db1a026bd",
+      "world_seed": 3
+    },
+    {
+      "candidate_id": "crystallization_nucleation_growth",
+      "passed": false,
+      "path": "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811/crystallization_nucleation_growth/world-4/world-report.json",
+      "sha256": "847184dd09e21390f4aa460a395aa92c8f3b1c074954ad9d0a1f7c0b5872f347",
+      "world_seed": 4
+    }
+  ],
+  "schema_version": "chemworld-work-ii-structural-candidate-five-world-summary-0.2",
+  "source_commit": "ad545201b247ca1efcf2d9dddd1bb1219457a00d",
+  "summary_sha256": "b29e709abdce5be4d4d5ed61543c14d6900372577593bbe6f0d82ff05fc174f0"
+}

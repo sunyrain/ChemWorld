@@ -1,0 +1,150 @@
+{
+  "candidates": {
+    "crystallization_nucleation_growth": {
+      "axis_levels": [
+        [
+          0.001,
+          0.008,
+          0.015
+        ],
+        [
+          310.0,
+          290.0,
+          270.0
+        ]
+      ],
+      "axis_names": [
+        "seed_mass_g",
+        "crystallization_temperature_K"
+      ],
+      "fixed_context": {
+        "catalyst": 0,
+        "catalyst_amount_mol": 0.000315,
+        "crystallization_duration_s": 7200.0,
+        "reaction_duration_s": 7200.0,
+        "reaction_temperature_K": 398.15,
+        "reagent_amount_mol": 0.015,
+        "solvent": 0,
+        "stirring_speed_rpm": 675.0
+      },
+      "prior_arms": {
+        "aligned_nominal": {
+          "availability": "supplied_incomplete_model",
+          "claim": "At fixed cooling, increasing seed mass changes crystal-size quality and fines, with the seed effect depending measurably on cooling severity.",
+          "confidence": 0.7,
+          "intervention_controls": [
+            "seed_mass_g",
+            "crystallization_temperature_K"
+          ],
+          "locus": "structural_mechanistic",
+          "schema_version": "chemworld-work-ii-initial-world-model-0.3",
+          "scope_limit": "This is an incomplete local causal model. Public experimental evidence is authoritative outside the registered context.",
+          "target": "seed_mediated_nucleation_growth"
+        },
+        "misindexed_nominal": {
+          "availability": "supplied_incomplete_model",
+          "claim": "At fixed cooling, increasing seed mass leaves crystal-size quality and fines stable, with the outcome governed primarily by cooling severity.",
+          "confidence": 0.7,
+          "intervention_controls": [
+            "seed_mass_g",
+            "crystallization_temperature_K"
+          ],
+          "locus": "structural_mechanistic",
+          "schema_version": "chemworld-work-ii-initial-world-model-0.3",
+          "scope_limit": "This is an incomplete local causal model. Public experimental evidence is authoritative outside the registered context.",
+          "target": "seed_mediated_nucleation_growth"
+        },
+        "opaque": {
+          "availability": "opaque_for_target_locus",
+          "claim": null,
+          "confidence": 0.7,
+          "intervention_controls": [
+            "seed_mass_g",
+            "crystallization_temperature_K"
+          ],
+          "locus": "structural_mechanistic",
+          "schema_version": "chemworld-work-ii-initial-world-model-0.3",
+          "scope_limit": "This is an incomplete local causal model. Public experimental evidence is authoritative outside the registered context.",
+          "target": "seed_mediated_nucleation_growth"
+        }
+      },
+      "qualification_passed": false,
+      "task_id": "reaction-to-crystallization"
+    },
+    "electrochemical_transport": {
+      "axis_levels": [
+        [
+          0.75,
+          1.05,
+          1.35
+        ],
+        [
+          15.0,
+          91.0,
+          190.0
+        ]
+      ],
+      "axis_names": [
+        "controlled_potential_V",
+        "controlled_current_mA"
+      ],
+      "fixed_context": {
+        "controlled_duration_s": 1800.0,
+        "electrolyte_profile": 0,
+        "probe_current_mA": 90.0,
+        "probe_duration_s": 300.0,
+        "probe_potential_V": 0.8,
+        "reagent_amount_mol": 0.012,
+        "solvent": 0
+      },
+      "prior_arms": {
+        "aligned_nominal": {
+          "availability": "supplied_incomplete_model",
+          "claim": "At fixed potential, increasing current beyond the middle regime gives diminishing product benefit while transport and Faradaic efficiencies decline measurably.",
+          "confidence": 0.7,
+          "intervention_controls": [
+            "controlled_potential_V",
+            "controlled_current_mA"
+          ],
+          "locus": "structural_mechanistic",
+          "schema_version": "chemworld-work-ii-initial-world-model-0.3",
+          "scope_limit": "This is an incomplete local causal model. Public experimental evidence is authoritative outside the registered context.",
+          "target": "current_transport_limitation"
+        },
+        "misindexed_nominal": {
+          "availability": "supplied_incomplete_model",
+          "claim": "At fixed potential, increasing current beyond the middle regime gives continuing product benefit while transport and Faradaic efficiencies remain approximately stable.",
+          "confidence": 0.7,
+          "intervention_controls": [
+            "controlled_potential_V",
+            "controlled_current_mA"
+          ],
+          "locus": "structural_mechanistic",
+          "schema_version": "chemworld-work-ii-initial-world-model-0.3",
+          "scope_limit": "This is an incomplete local causal model. Public experimental evidence is authoritative outside the registered context.",
+          "target": "current_transport_limitation"
+        },
+        "opaque": {
+          "availability": "opaque_for_target_locus",
+          "claim": null,
+          "confidence": 0.7,
+          "intervention_controls": [
+            "controlled_potential_V",
+            "controlled_current_mA"
+          ],
+          "locus": "structural_mechanistic",
+          "schema_version": "chemworld-work-ii-initial-world-model-0.3",
+          "scope_limit": "This is an incomplete local causal model. Public experimental evidence is authoritative outside the registered context.",
+          "target": "current_transport_limitation"
+        }
+      },
+      "qualification_passed": false,
+      "task_id": "electrochemical-conversion"
+    }
+  },
+  "formal_result": false,
+  "package_sha256": "f672a627de5d594dff3b948912e060d73ebf59011e5cb36ee181787d6dcfdb7f",
+  "provider_call_count": 0,
+  "qualification_schema_version": "chemworld-work-ii-structural-candidate-qualification-0.2",
+  "schema_version": "chemworld-work-ii-structural-candidate-package-0.2"
+}

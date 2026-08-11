@@ -336,6 +336,8 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | reaction-safety matched-prior D2 world 4 | `3/3` qualified；`30/30` experiments；`210/210` committed operations；`15/15` checkpoints；`16/16` truth 与 `18/18` blind exact replay；0 unsafe、0 physical、0 platform failures | 三臂 prediction 均改善；nominal misspecified reliability `0.70->0.35` 且持续挑战 temperature，但两个 supplied-prior law errors 为 `0.3816/0.5054`。注册 lower-temperature 与 16-query empirical higher-temperature 冲突，修复 evaluator 后 binary direction 标为 not scored，participant 未重跑。 |
 | reaction-safety DeepSeek D1, seed 0 | 3/3 terminal、2/3 qualified；descriptive H3 `+0.1005` | retained operational failure；不重跑 |
 | 首批 crystallization/partition structural screens | module gap 分别 `0.0069301`、`0.0744505` | 拒绝；不能解释为 agent 推理失败 |
+| W2-28 structural candidate screen v0.1 | `180/180` provider-free、`180/180` exact replay、0 physical/platform failures | diagonal validation 同时改变两个干预轴，Q2 identification contract 无效；不作科学 rejection；两项 candidate 从 world 0 重跑 |
+| W2-28 structural candidate qualification v0.2 | `180/180` provider-free、`180/180` exact replay、0 physical/platform failures；electrochemical `3/5` worlds pass、crystallization `0/5` | electrochemical 五 world 均有强 current/potential response，但 world 0/3 的 Q2 disagreement 仅 `2/9`；crystallization cooling `5/5` 通过而 seed effect 仅 `1/5` 通过、Q2 disagreement `0/9`；两项均不生成 D1。详见 `WORK_II_STRUCTURAL_CANDIDATE_QUALIFICATION_ANALYSIS_ZH.md` |
 
 正式 A-E 尚未执行，因此可以在不污染 participant outcomes 的情况下把 4 轮改为 8 轮；但已有 formal design、
 analysis plan、manifest preflight 和 power/resource 文件在重新生成前只视为历史 planning artifacts，不能作为执行授权。
@@ -359,10 +361,12 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [ ] 用户审核 D1/D2、轨迹样例、资源和 evaluator 结果；未经审核不进入 R5。
 - [x] **W2-30** 完成 electrochemical matched-prior WellAU world-0 D1 participant/evaluator 审计；失败轨迹、
   中间 checkpoint 信号、model/platform 归因和 evaluator 修复均已冻结。未经用户审核不得重启新的 D1 block。
-- [ ] **W2-28** A-S provider-free qualification note 已冻结两个候选：electrochemical transport limitation
-  与 crystallization seed-mediated nucleation/growth。下一步按 2 tasks × 5 worlds 的 Q0/Q1/Q2 固定设计运行；
-  通过后才生成 12-experiment D1 config。A-O 仍需独立 identifiability/D1 决策卡；在用户审核前不把
-  observation-model 或 scope/compositionality 扩展加入正式 provider 分母。
+- [x] **W2-28** A-S provider-free qualification 已完成 v0.2：2 tasks × 5 worlds、`180/180` exact replay、0
+  physical/platform failures。v0.1 因 diagonal validation 轴混杂被标为 analysis-contract defect 并从 world 0
+  重跑；v0.2 的 electrochemical 只通过 `3/5` worlds，crystallization 通过 `0/5`，所以不生成
+  12-experiment D1 config、不进入 participant/R5。下一步只能另行冻结可识别的新 candidate；不得降低
+  `6 sigma` 或 `40%` gates，也不把 observation-model/scope 扩展加入本分母。A-O 仍需独立 identifiability/D1
+  决策卡。
 - [x] **W2-29** 运行 mechanism-oracle relative qualification：先直接求 reaction-safety 的安全相对最优、
   Pareto/局部规律和独立 noisy replay，再以同一原则审计 electrochemical。旧 Q1-v0.2 artifact 永久保留为
   platform-defect audit，不再称为 scientific rejection；historical leaderboard threshold 只作诊断，不直接改值。
