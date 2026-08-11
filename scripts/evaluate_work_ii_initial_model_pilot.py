@@ -392,6 +392,8 @@ def _descriptive_interpretation(report: Mapping[str, Any]) -> dict[str, Any]:
             return None
         return left_number - right_number
 
+    cluster_contrast = _mapping(report.get("cluster_contrast"))
+    complete_case = cluster_contrast.get("complete_case") is True
     return {
         "opaque_prediction_improvement": optional_float(opaque["checkpoint_improvement"]),
         "aligned_prediction_improvement": optional_float(aligned["checkpoint_improvement"]),
@@ -407,7 +409,11 @@ def _descriptive_interpretation(report: Mapping[str, Any]) -> dict[str, Any]:
         "aligned_minus_opaque_best_endpoint": optional_difference(
             aligned["best_observed_score"], opaque["best_observed_score"]
         ),
-        "H3_primary_contrast": report.get("cluster_contrast", {}).get("H3_primary_contrast"),
+        "H3_primary_contrast": (
+            cluster_contrast.get("H3_primary_contrast") if complete_case else None
+        ),
+        "H3_failure_penalty_contrast": cluster_contrast.get("H3_primary_contrast"),
+        "H3_complete_case": complete_case,
         "selected_observed_incumbent_count": selected_incumbent_count,
         "submitted_recommendation_count": submitted_recommendation_count,
         "participant_cell_count": len(report["cells"]),
@@ -491,6 +497,8 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
     )
     h3_value = interpretation.get("H3_primary_contrast")
     h3_text = "NA" if h3_value is None else f"{float(h3_value):.4f}"
+    h3_penalty_value = interpretation.get("H3_failure_penalty_contrast")
+    h3_penalty_text = "NA" if h3_penalty_value is None else f"{float(h3_penalty_value):.4f}"
     held_out_change = _change_phrase(
         interpretation["misspecified_prediction_improvement"],
         noun="Held-out prediction",
@@ -636,7 +644,9 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
             (
                 f"Across this single development world, {opaque_change}, {aligned_change}, "
                 f"and {misspecified_change}. "
-                f"The descriptive H3 contrast was {h3_text}; it is not an inferential result."
+                f"The descriptive complete-case H3 contrast was {h3_text}; the frozen missing-"
+                f"checkpoint failure penalty gives {h3_penalty_text}. Neither is an inferential "
+                "result."
             ),
             "",
             (
@@ -939,6 +949,10 @@ def main() -> int:
             final_snapshot.get("predictions") if final_snapshot is not None else None
         )
         law_direction = score_direction(law.get("query_predictions"))
+        final_checkpoint_available = final_snapshot is not None
+        final_law_available = final_checkpoint_available and isinstance(
+            final_snapshot.get("law_summary"), Mapping
+        )
         usage = _mapping(summary.get("method_resources"))
         cells.append(
             {
@@ -1010,34 +1024,47 @@ def main() -> int:
                     "final_checkpoint": final_direction,
                     "final_law_summary": law_direction,
                     "final_checkpoint_recovered": (
-                        final_direction.get("preferred_side")
+                        None
+                        if not final_checkpoint_available
+                        else final_direction.get("preferred_side")
                         == registered_direction.get("preferred_side")
                         if direction_contract["recovery_scoring_authorized"]
                         else None
                     ),
                     "final_law_summary_recovered": (
-                        law_direction.get("preferred_side")
+                        None
+                        if not final_law_available
+                        else law_direction.get("preferred_side")
                         == registered_direction.get("preferred_side")
                         if direction_contract["recovery_scoring_authorized"]
                         else None
                     ),
                     "final_checkpoint_matches_registered": (
-                        final_direction.get("preferred_side")
+                        None
+                        if not final_checkpoint_available
+                        else final_direction.get("preferred_side")
                         == registered_direction.get("preferred_side")
                         and registered_direction.get("preferred_side") is not None
                     ),
                     "final_checkpoint_matches_held_out_truth": (
-                        final_direction.get("preferred_side")
+                        None
+                        if not final_checkpoint_available
+                        else final_direction.get("preferred_side")
                         == truth_direction.get("preferred_side")
                         and truth_direction.get("preferred_side") is not None
                     ),
                     "final_law_summary_matches_registered": (
-                        law_direction.get("preferred_side")
+                        None
+                        if not final_law_available
+                        else law_direction.get("preferred_side")
                         == registered_direction.get("preferred_side")
                         and registered_direction.get("preferred_side") is not None
                     ),
                     "final_law_summary_matches_held_out_truth": (
-                        law_direction.get("preferred_side") == truth_direction.get("preferred_side")
+                        None
+                        if not final_law_available
+                        else law_direction.get("preferred_side")
+                        == truth_direction.get("preferred_side")
                         and truth_direction.get("preferred_side") is not None
                     ),
                 },
@@ -1162,6 +1189,8 @@ def main() -> int:
                     is True
                     for row in cells
                 )
+                else "incomplete_recommendations_retained"
+                if any(row.get("selected_experiment_index") is None for row in cells)
                 else "participant_interpretable"
             ),
             "submitted_recommendations_replaced": False,
