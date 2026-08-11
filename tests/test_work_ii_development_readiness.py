@@ -269,7 +269,7 @@ def test_readiness_accepts_pattern_owned_ten_experiment_schedule(
     config = tmp_path / "wellau-ten.json"
     payload = json.loads(
         (Path(__file__).resolve().parents[1]
-         / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json").read_text(
+         / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1_execution.json").read_text(
             encoding="utf-8"
         )
     )
@@ -301,3 +301,24 @@ def test_readiness_accepts_pattern_owned_ten_experiment_schedule(
     assert checks["pattern_owned_shared_resource_experiments"] is True
     assert checks["pattern_owned_in_session_checkpoints"] is True
     assert all(checks.values())
+
+
+def test_readiness_rejects_unknown_method_resource_fields(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("WELLAU_API_KEY", "test-only")
+    monkeypatch.setattr(readiness, "git_worktree_dirty", lambda _root: False)
+    config = tmp_path / "invalid-resource.json"
+    payload = json.loads(
+        (Path(__file__).resolve().parents[1]
+         / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1_execution.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    payload["method_resources"]["unknown_metadata"] = "not-a-limit"
+    config.write_text(json.dumps(payload), encoding="utf-8")
+
+    checks = readiness._config_checks(tmp_path, config, [0])
+
+    assert checks["method_resource_payload_constructs"] is False

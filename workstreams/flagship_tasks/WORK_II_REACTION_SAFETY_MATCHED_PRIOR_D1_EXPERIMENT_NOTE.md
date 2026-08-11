@@ -56,3 +56,16 @@ those worlds.
 Expected outputs are an ignored readiness receipt, one ignored three-cell participant run with
 30-second liveness events, a tracked machine evaluation and concise analysis. This D1 does not
 authorize R5.
+
+## Pre-operation launch audit
+
+The first triplet launch ended in `0.1 s` per cell before any provider session, operation, token or
+experiment was created. All three cells hit the same configuration error:
+`MethodResourceLimits` rejected the descriptive `resource_status` key that had been placed inside
+the executable limit payload. The empty run is retained under the ignored run-1 root and is not a
+scientific trajectory.
+
+The correction moves descriptive resource provenance outside `method_resources` and makes the
+zero-provider readiness gate instantiate the exact `MethodResourceLimits` payload, so unknown fields
+now fail before launch. No experiment design, prior, threshold, world, resource ceiling or D2 rule
+changed. The complete triplet restarts as run 2 after a fresh clean-commit readiness receipt.

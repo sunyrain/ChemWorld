@@ -18,6 +18,7 @@ from chemworld.eval.provenance import (
     git_source_commit,
     git_worktree_dirty,
 )
+from chemworld.eval.resource_accounting import MethodResourceLimits
 from chemworld.eval.verify import verify_records
 from chemworld.eval.work_ii_process_profile import build_work_ii_execution_artifacts
 
@@ -85,6 +86,14 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
         and checkpoint_experiments[-1] == complete_experiments
         and method_checkpoints == checkpoint_experiments[1:]
     )
+    try:
+        MethodResourceLimits.from_payload(
+            method,
+            operation_limit=int(campaign.get("operation_attempt_limit", 0)),
+        )
+        method_resource_schema_valid = True
+    except (TypeError, ValueError):
+        method_resource_schema_valid = False
     return {
         "clean_committed_worktree": not git_worktree_dirty(root),
         "seed_schedule_is_pilot_full_or_terminal_continuation": (
@@ -111,6 +120,7 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
         and int(method.get("input_token_limit", 0)) > 0
         and int(method.get("uncached_input_token_limit", 0)) > 0
         and int(method.get("output_token_limit", 0)) > 0,
+        "method_resource_payload_constructs": method_resource_schema_valid,
         "bounded_session_and_recovery_limits": float(provider.get("session_wall_time_limit_s", 0.0))
         > 0.0
         and float(provider.get("session_wall_time_limit_s", 0.0))

@@ -43,13 +43,13 @@ def build(source: dict, *, source_path: Path) -> dict:
             "progress_interval_s": 30.0,
         }
     )
+    config["method_resources"].pop("resource_status", None)
     config["method_resources"].update(
         {
             "input_token_limit": 12_000_000,
             "uncached_input_token_limit": 1_200_000,
             "output_token_limit": 96_000,
             "wall_time_limit_s": 7200.0,
-            "resource_status": "development_d1_calibration_envelope",
         }
     )
     config["qualification"].update(
