@@ -1,6 +1,6 @@
 # Work II structural/mechanistic candidate qualification — experiment note
 
-状态：**provider-free design freeze；尚未产生新结果**  
+状态：**v0.2 provider-free design freeze；v0.1 execution 因识别设计缺陷不作科学结论**
 适用阶段：W2-28；任何 candidate 必须先通过 Q0–Q2，才可生成 12-experiment participant config。
 
 ## Question
@@ -64,7 +64,7 @@ A platform defect restarts the complete affected candidate from world 0 with the
 design. Passing Q0–Q2 authorizes only a 12-experiment D1 configuration; it does not support a
 participant capability claim.
 
-### Frozen executable design
+### Frozen executable design v0.2
 
 - Electrochemical fixed context: electrolyte profile `0`, solvent `0`, reagent `0.012 mol`, probe
   potential `0.80 V`, probe current `90 mA`, probe duration `300 s`, controlled duration `1800 s`.
@@ -75,9 +75,11 @@ participant capability claim.
   `0.000315 mol`, crystallization duration `7200 s`. The registered grid is seed mass
   `{0.001, 0.008, 0.015} g` × crystallization temperature `{310, 290, 270} K`; lower temperature is
   the more severe cooling intervention.
-- For both candidates the separately keyed noisy validation groups are grid coordinates
-  `(low, low)`, `(middle, middle)` and `(high, high)`, with three replicates per group. Validation
-  noise is estimated within group and never by mixing different interventions.
+- Electrochemical noisy-validation groups fix potential at its middle level and use current levels
+  `(middle, low)`, `(middle, middle)` and `(middle, high)`. Crystallization groups fix cooling at
+  its middle level and use seed levels `(low, middle)`, `(middle, middle)` and `(high, middle)`.
+  Every group has three separately keyed replicates. Validation noise is estimated within group and
+  never by mixing different interventions.
 - The electrochemical axis effects are evaluated on selective-product yield and transport/Faradaic
   efficiency. Its topology signature is the largest registered high-current transport/Faradaic
   efficiency loss or diminishing high-current yield gain. The crystallization axis effects are
@@ -87,6 +89,14 @@ participant capability claim.
   is `protocol_owned_physical_boundary`; in a later participant campaign the same schema-valid
   boundary event is `participant_induced_physical_boundary`. Only compiler/payload, observation,
   ledger, replay or execution-contract defects are `platform_failure`.
+
+The v0.1 execution completed `180/180` provider-free experiments with `180/180` exact replay and
+zero physical/platform failures, but its diagonal validation groups changed both axes together.
+That design could not identify the registered current-specific or seed-specific mechanism. The
+electrochemical reduced model also allowed current-dependent efficiency despite the frozen
+stable-efficiency claim. Those are analysis-contract defects, so v0.1 supports no Q2 rejection and
+both candidates restart from world 0 under v0.2. Coverage, worlds, effect floor, `6 sigma` rule and
+the 40% disagreement gate remain unchanged.
 
 ## Expected outputs
 

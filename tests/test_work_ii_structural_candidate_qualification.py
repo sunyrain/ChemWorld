@@ -10,6 +10,7 @@ from chemworld.eval.work_ii_structural_candidate_qualification import (
     build_prior_arms,
     candidate_specs,
     registered_queries,
+    validation_groups,
 )
 
 
@@ -75,6 +76,12 @@ def test_frozen_design_and_analysis_pass_structurally_distinct_surfaces(
     assert len(queries) == 18
     assert sum(query["phase"] == "main_grid" for query in queries) == 9
     assert sum(query["phase"] == "noisy_validation" for query in queries) == 9
+    observed_groups = {
+        (int(query["axis_a_index"]), int(query["axis_b_index"]))
+        for query in queries
+        if query["phase"] == "noisy_validation"
+    }
+    assert observed_groups == set(validation_groups(candidate_id))
 
     result = analyze_candidate_world(candidate_id, _rows(candidate_id, metric_function))
 

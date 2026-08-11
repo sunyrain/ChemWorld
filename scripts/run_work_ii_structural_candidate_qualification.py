@@ -34,18 +34,18 @@ from chemworld.eval.work_ii_truth import _FrozenTruthReplayAgent, compile_evalua
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
-SUMMARY_VERSION = "chemworld-work-ii-structural-candidate-five-world-summary-0.1"
-WORLD_REPORT_VERSION = "chemworld-work-ii-structural-candidate-world-report-0.1"
-PACKAGE_VERSION = "chemworld-work-ii-structural-candidate-package-0.1"
+SUMMARY_VERSION = "chemworld-work-ii-structural-candidate-five-world-summary-0.2"
+WORLD_REPORT_VERSION = "chemworld-work-ii-structural-candidate-world-report-0.2"
+PACKAGE_VERSION = "chemworld-work-ii-structural-candidate-package-0.2"
 DEFAULT_OUTPUT_ROOT = (
-    ROOT / "runs/development/work-ii-structural-candidate-qualification-20260811"
+    ROOT / "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811"
 )
 DEFAULT_SUMMARY = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "work-ii-structural-candidate-qualification-20260811.json"
+    "work-ii-structural-candidate-qualification-v0.2-20260811.json"
 )
-DEFAULT_PACKAGE = ROOT / "configs/benchmark/work_ii_structural_candidate_package.json"
+DEFAULT_PACKAGE = ROOT / "configs/benchmark/work_ii_structural_candidate_package_v0.2.json"
 D1_PATHS = {
     "electrochemical_transport": (
         ROOT / "configs/benchmark/work_ii_electrochemical_transport_structural_d1.json"

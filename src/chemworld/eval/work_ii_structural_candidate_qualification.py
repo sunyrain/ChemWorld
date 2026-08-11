@@ -8,10 +8,9 @@ from typing import Any
 
 import numpy as np
 
-STRUCTURAL_QUALIFICATION_VERSION = "chemworld-work-ii-structural-candidate-qualification-0.1"
+STRUCTURAL_QUALIFICATION_VERSION = "chemworld-work-ii-structural-candidate-qualification-0.2"
 WORLD_SEEDS = (0, 1, 2, 3, 4)
 GRID_LEVELS = (0, 1, 2)
-VALIDATION_GROUPS = ((0, 0), (1, 1), (2, 2))
 VALIDATION_REPLICATES = 3
 EFFECT_FLOOR = 0.03
 NOISE_MULTIPLIER = 6.0
@@ -108,7 +107,9 @@ def registered_queries(candidate_id: str) -> list[dict[str, Any]]:
                     "metric_ids": list(spec["metrics"]),
                 }
             )
-    for group_index, (axis_a_index, axis_b_index) in enumerate(VALIDATION_GROUPS):
+    for group_index, (axis_a_index, axis_b_index) in enumerate(
+        validation_groups(candidate_id)
+    ):
         for replicate in range(1, VALIDATION_REPLICATES + 1):
             feature_values = {
                 **spec["fixed_context"],
@@ -130,6 +131,14 @@ def registered_queries(candidate_id: str) -> list[dict[str, Any]]:
     return rows
 
 
+def validation_groups(candidate_id: str) -> tuple[tuple[int, int], ...]:
+    if candidate_id == "electrochemical_transport":
+        return ((1, 0), (1, 1), (1, 2))
+    if candidate_id == "crystallization_nucleation_growth":
+        return ((0, 1), (1, 1), (2, 1))
+    raise ValueError(f"unknown structural candidate: {candidate_id}")
+
+
 def analyze_candidate_world(
     candidate_id: str,
     rows: Sequence[Mapping[str, Any]],
@@ -137,7 +146,8 @@ def analyze_candidate_world(
     spec = candidate_specs()[candidate_id]
     main = [row for row in rows if row.get("phase") == "main_grid"]
     validation = [row for row in rows if row.get("phase") == "noisy_validation"]
-    expected = 9 + len(VALIDATION_GROUPS) * VALIDATION_REPLICATES
+    groups = validation_groups(candidate_id)
+    expected = 9 + len(groups) * VALIDATION_REPLICATES
     checks: dict[str, bool] = {
         "fixed_query_count": len(rows) == expected,
         "main_grid_count": len(main) == 9,
@@ -160,7 +170,7 @@ def analyze_candidate_world(
     if not all(checks.values()):
         return _early_result(candidate_id, rows, checks)
 
-    sigma = _validation_sigma(completed_validation, spec["metrics"])
+    sigma = _validation_sigma(completed_validation, spec["metrics"], groups=groups)
     if candidate_id == "electrochemical_transport":
         effects = _electrochemical_effects(completed_main, sigma)
         model = _model_qualification(
@@ -170,6 +180,8 @@ def analyze_candidate_world(
             metrics=spec["model_metrics"],
             aligned_features=_electrochemical_aligned_features,
             misspecified_features=_electrochemical_misspecified_features,
+            validation_groups=groups,
+            target_axis="b",
             candidate_id=candidate_id,
         )
     elif candidate_id == "crystallization_nucleation_growth":
@@ -181,6 +193,8 @@ def analyze_candidate_world(
             metrics=spec["model_metrics"],
             aligned_features=_crystallization_aligned_features,
             misspecified_features=_crystallization_misspecified_features,
+            validation_groups=groups,
+            target_axis="a",
             candidate_id=candidate_id,
         )
     else:
@@ -268,12 +282,15 @@ def build_prior_arms(candidate_id: str) -> dict[str, Any]:
 
 
 def _validation_sigma(
-    rows: Sequence[Mapping[str, Any]], metrics: Sequence[str]
+    rows: Sequence[Mapping[str, Any]],
+    metrics: Sequence[str],
+    *,
+    groups: Sequence[tuple[int, int]],
 ) -> dict[str, float]:
     output: dict[str, float] = {}
     for metric in metrics:
         group_sigmas = []
-        for group_index in range(len(VALIDATION_GROUPS)):
+        for group_index in range(len(groups)):
             values = [
                 float(row["metrics"][metric])
                 for row in rows
@@ -446,6 +463,8 @@ def _model_qualification(
     metrics: Sequence[str],
     aligned_features: Any,
     misspecified_features: Any,
+    validation_groups: Sequence[tuple[int, int]],
+    target_axis: str,
     candidate_id: str,
 ) -> dict[str, Any]:
     aligned_models = {
@@ -456,25 +475,32 @@ def _model_qualification(
     }
     baseline = (1, 1)
     for metric in metrics:
-        aligned_baseline = _predict(aligned_models[metric], baseline, aligned_features)
+        aligned_baseline = _predict(
+            aligned_models[metric], metric, baseline, aligned_features
+        )
         misspecified_baseline = _predict(
-            misspecified_models[metric], baseline, misspecified_features
+            misspecified_models[metric], metric, baseline, misspecified_features
         )
         misspecified_models[metric]["baseline_offset"] = (
             aligned_baseline - misspecified_baseline
         )
 
-    group_means = _validation_group_means(validation, metrics)
+    group_means = _validation_group_means(
+        validation,
+        metrics,
+        groups=validation_groups,
+    )
     comparisons = []
     aligned_errors = []
     misspecified_errors = []
     for (axis_a, axis_b), observed in group_means.items():
         for metric in metrics:
             aligned_prediction = _predict(
-                aligned_models[metric], (axis_a, axis_b), aligned_features
+                aligned_models[metric], metric, (axis_a, axis_b), aligned_features
             )
             misspecified_prediction = _predict(
                 misspecified_models[metric],
+                metric,
                 (axis_a, axis_b),
                 misspecified_features,
             )
@@ -507,8 +533,9 @@ def _model_qualification(
     )
     disagreement = [row for row in comparisons if row["disagrees"]]
     disagreement_fraction = len(disagreement) / len(comparisons)
-    low_support = sum(row["axis_a_index"] == 0 for row in disagreement)
-    high_support = sum(row["axis_a_index"] == 2 for row in disagreement)
+    target_index = "axis_a_index" if target_axis == "a" else "axis_b_index"
+    low_support = sum(row[target_index] == 0 for row in disagreement)
+    high_support = sum(row[target_index] == 2 for row in disagreement)
     aligned_mae = float(np.mean(aligned_errors))
     misspecified_mae = float(np.mean(misspecified_errors))
     priors = build_prior_arms(candidate_id)
@@ -554,7 +581,14 @@ def _fit_model(
     rows: Sequence[Mapping[str, Any]], metric: str, feature_function: Any
 ) -> dict[str, Any]:
     design = np.asarray(
-        [feature_function(int(row["axis_a_index"]), int(row["axis_b_index"])) for row in rows],
+        [
+            feature_function(
+                metric,
+                int(row["axis_a_index"]),
+                int(row["axis_b_index"]),
+            )
+            for row in rows
+        ],
         dtype=float,
     )
     target = np.asarray([float(row["metrics"][metric]) for row in rows], dtype=float)
@@ -562,40 +596,61 @@ def _fit_model(
     return {"coefficients": coefficients.tolist(), "baseline_offset": 0.0}
 
 
-def _predict(model: Mapping[str, Any], point: tuple[int, int], feature_function: Any) -> float:
+def _predict(
+    model: Mapping[str, Any],
+    metric: str,
+    point: tuple[int, int],
+    feature_function: Any,
+) -> float:
     value = float(
         np.asarray(model["coefficients"], dtype=float)
-        @ np.asarray(feature_function(*point), dtype=float)
+        @ np.asarray(feature_function(metric, *point), dtype=float)
     )
     return value + float(model.get("baseline_offset", 0.0))
 
 
-def _electrochemical_aligned_features(axis_a: int, axis_b: int) -> list[float]:
+def _electrochemical_aligned_features(
+    metric: str, axis_a: int, axis_b: int
+) -> list[float]:
+    del metric
     p, current = float(axis_a - 1), float(axis_b - 1)
     return [1.0, p, current, p * current, current * current]
 
 
-def _electrochemical_misspecified_features(axis_a: int, axis_b: int) -> list[float]:
+def _electrochemical_misspecified_features(
+    metric: str, axis_a: int, axis_b: int
+) -> list[float]:
     p, current = float(axis_a - 1), float(axis_b - 1)
+    if metric in {"faradaic_efficiency", "transport_efficiency"}:
+        return [1.0, p]
     return [1.0, p, current, p * current]
 
 
-def _crystallization_aligned_features(axis_a: int, axis_b: int) -> list[float]:
+def _crystallization_aligned_features(
+    metric: str, axis_a: int, axis_b: int
+) -> list[float]:
+    del metric
     seed, cooling = float(axis_a - 1), float(axis_b - 1)
     return [1.0, cooling, cooling * cooling, seed, seed * cooling]
 
 
-def _crystallization_misspecified_features(axis_a: int, axis_b: int) -> list[float]:
+def _crystallization_misspecified_features(
+    metric: str, axis_a: int, axis_b: int
+) -> list[float]:
+    del metric
     del axis_a
     cooling = float(axis_b - 1)
     return [1.0, cooling, cooling * cooling]
 
 
 def _validation_group_means(
-    rows: Sequence[Mapping[str, Any]], metrics: Sequence[str]
+    rows: Sequence[Mapping[str, Any]],
+    metrics: Sequence[str],
+    *,
+    groups: Sequence[tuple[int, int]],
 ) -> dict[tuple[int, int], dict[str, float]]:
     output = {}
-    for group_index, point in enumerate(VALIDATION_GROUPS):
+    for group_index, point in enumerate(groups):
         group = [row for row in rows if int(row["validation_group"]) == group_index]
         output[point] = {
             metric: float(np.mean([float(row["metrics"][metric]) for row in group]))
@@ -667,4 +722,5 @@ __all__ = [
     "candidate_specs",
     "finite_metrics",
     "registered_queries",
+    "validation_groups",
 ]
