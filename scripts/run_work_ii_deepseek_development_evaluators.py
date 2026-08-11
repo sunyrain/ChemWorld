@@ -44,11 +44,11 @@ DEFAULT_RAW = ROOT / (
 )
 DEFAULT_REPORT = ROOT / (
     "workstreams/flagship_tasks/reports/"
-    "work-ii-deepseek-five-task-development-evaluation-20260810-r1.json"
+    "work-ii-deepseek-five-task-development-evaluation-20260811.json"
 )
 DEFAULT_MARKDOWN = ROOT / (
     "workstreams/flagship_tasks/reports/"
-    "work-ii-deepseek-five-task-development-evaluation-20260810-r1.md"
+    "work-ii-deepseek-five-task-development-evaluation-20260811.md"
 )
 PRIOR_INFRASTRUCTURE_ATTEMPT = {
     "raw_root": (
@@ -172,7 +172,11 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
     lines = [
         "# Work II DeepSeek development evaluator confirmation",
         "",
-        "Date: 2026-08-10. Status: development evidence only; not formal or private evidence.",
+        (
+            f"Date: {report['analysis_date']}. Participant matrix completed 2026-08-10; "
+            "evaluator confirmation completed 2026-08-11. Status: development evidence only; "
+            "not formal or private evidence."
+        ),
         "",
         "## Exact denominators",
         "",
@@ -261,6 +265,14 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--markdown", type=Path, default=DEFAULT_MARKDOWN)
     parser.add_argument("--preflight", action="store_true")
+    parser.add_argument(
+        "--reuse-existing-raw",
+        action="store_true",
+        help=(
+            "validate and summarize an existing accepted raw evaluator root without "
+            "executing truth queries or blind replays"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -278,26 +290,47 @@ def main() -> int:
         task_id: _load(ROOT / relative_path)
         for task_id, relative_path in DEEPSEEK_CONFIGS.items()
     }
-    preflight = build_development_confirmation_preflight(
-        source_manifest=source_manifest,
-        cells=cells,
-        task_configs=task_configs,
-        participant_configs=participant_configs,
-        source_bindings=source_bindings,
-        source_commit=_source_commit(),
-    )
+    raw_root = args.raw_output.resolve()
+    report_path = args.report.resolve()
+    markdown_path = args.markdown.resolve()
+    if args.reuse_existing_raw:
+        if not raw_root.is_dir():
+            raise FileNotFoundError(f"existing evaluator raw root is missing: {raw_root}")
+        stored_preflight = _load(raw_root / "preflight.json")
+        preflight = build_development_confirmation_preflight(
+            source_manifest=source_manifest,
+            cells=cells,
+            task_configs=task_configs,
+            participant_configs=participant_configs,
+            source_bindings=source_bindings,
+            source_commit=str(stored_preflight.get("source_commit")),
+        )
+        if preflight != stored_preflight:
+            raise ValueError("existing evaluator preflight differs from current bound inputs")
+    else:
+        preflight = build_development_confirmation_preflight(
+            source_manifest=source_manifest,
+            cells=cells,
+            task_configs=task_configs,
+            participant_configs=participant_configs,
+            source_bindings=source_bindings,
+            source_commit=_source_commit(),
+        )
     print(json.dumps({"event": "preflight", **preflight}, sort_keys=True), flush=True)
     if args.preflight or preflight["status"] != "passed":
         return 0 if preflight["status"] == "passed" else 1
 
-    raw_root = args.raw_output.resolve()
-    report_path = args.report.resolve()
-    markdown_path = args.markdown.resolve()
-    for path in (raw_root, report_path, markdown_path):
+    protected_outputs = (
+        (report_path, markdown_path)
+        if args.reuse_existing_raw
+        else (raw_root, report_path, markdown_path)
+    )
+    for path in protected_outputs:
         if path.exists():
             raise FileExistsError(f"refusing to overwrite development evidence: {path}")
-    raw_root.mkdir(parents=True)
-    write_json_atomic(raw_root / "preflight.json", preflight)
+    if not args.reuse_existing_raw:
+        raw_root.mkdir(parents=True)
+        write_json_atomic(raw_root / "preflight.json", preflight)
 
     cells_by_cluster: dict[tuple[str, int], list[dict[str, Any]]] = {}
     for cell in cells:
@@ -336,7 +369,12 @@ def main() -> int:
             formal_result=False,
             formal_preflight_sha256=None,
         )
-        truth_report = execute_evaluator_truth_plan(truth_plan, config, truth_root)
+        if args.reuse_existing_raw:
+            if _load(truth_root / "plan.json") != truth_plan:
+                raise ValueError(f"stored truth plan mismatch: {cluster_id}")
+            truth_report = _load(truth_root / "report.json")
+        else:
+            truth_report = execute_evaluator_truth_plan(truth_plan, config, truth_root)
         truth_errors = validate_evaluator_truth_report(truth_report, truth_plan)
         for error in truth_errors:
             failures.append(
@@ -408,11 +446,18 @@ def main() -> int:
                         blind_contract,
                     )
                     blind_root = raw_root / "blind" / str(cell["cell_key_sha256"])
-                    blind_report = execute_blind_evaluation_plan(
-                        blind_plan,
-                        config,
-                        blind_root,
-                    )
+                    if args.reuse_existing_raw:
+                        if _load(blind_root / "plan.json") != blind_plan:
+                            raise ValueError(
+                                f"stored blind plan mismatch: {cell['cell_id']}"
+                            )
+                        blind_report = _load(blind_root / "report.json")
+                    else:
+                        blind_report = execute_blind_evaluation_plan(
+                            blind_plan,
+                            config,
+                            blind_root,
+                        )
                     receipt_paths = sorted(
                         (blind_root / "executions").glob("*/receipt.json")
                     )
@@ -530,6 +575,38 @@ def main() -> int:
         )
 
     cluster_rows = build_cluster_rows(cell_rows)
+    accepted_raw_receipt = None
+    existing_raw_receipt = None
+    if args.reuse_existing_raw:
+        existing_raw_receipt = _load(raw_root / "receipt.json")
+        claimed_receipt_sha256 = str(existing_raw_receipt.get("receipt_sha256"))
+        unhashed_receipt = dict(existing_raw_receipt)
+        unhashed_receipt.pop("receipt_sha256", None)
+        if canonical_json_sha256(unhashed_receipt) != claimed_receipt_sha256:
+            raise ValueError("existing evaluator raw receipt self-hash mismatch")
+        if existing_raw_receipt.get("preflight_sha256") != preflight["preflight_sha256"]:
+            raise ValueError("existing evaluator raw receipt preflight mismatch")
+        truth_hashes = [row["report_sha256"] for row in truth_rows]
+        blind_hashes = [
+            row["blind_report_sha256"]
+            for row in cell_rows
+            if row["blind_report_sha256"] is not None
+        ]
+        if existing_raw_receipt.get("truth_report_sha256") != truth_hashes:
+            raise ValueError("existing evaluator truth receipt sequence mismatch")
+        if existing_raw_receipt.get("blind_report_sha256") != blind_hashes:
+            raise ValueError("existing evaluator blind receipt sequence mismatch")
+        try:
+            raw_root_record = raw_root.relative_to(ROOT).as_posix()
+        except ValueError:
+            raw_root_record = str(raw_root)
+        accepted_raw_receipt = {
+            "raw_root": raw_root_record,
+            "receipt_sha256": claimed_receipt_sha256,
+            "original_analysis_sha256": existing_raw_receipt.get("analysis_sha256"),
+            "summary_regenerated_without_evaluator_execution": True,
+            "provider_call_count": 0,
+        }
     report = build_confirmation_summary(
         preflight=preflight,
         cell_rows=cell_rows,
@@ -537,19 +614,21 @@ def main() -> int:
         truth_rows=truth_rows,
         failures=failures,
         prior_infrastructure_attempt=PRIOR_INFRASTRUCTURE_ATTEMPT,
+        accepted_raw_receipt=accepted_raw_receipt,
     )
-    raw_receipt = {
-        "preflight_sha256": preflight["preflight_sha256"],
-        "analysis_sha256": report["analysis_sha256"],
-        "truth_report_sha256": [row["report_sha256"] for row in truth_rows],
-        "blind_report_sha256": [
-            row["blind_report_sha256"]
-            for row in cell_rows
-            if row["blind_report_sha256"] is not None
-        ],
-    }
-    raw_receipt["receipt_sha256"] = canonical_json_sha256(raw_receipt)
-    write_json_atomic(raw_root / "receipt.json", raw_receipt)
+    if not args.reuse_existing_raw:
+        raw_receipt = {
+            "preflight_sha256": preflight["preflight_sha256"],
+            "analysis_sha256": report["analysis_sha256"],
+            "truth_report_sha256": [row["report_sha256"] for row in truth_rows],
+            "blind_report_sha256": [
+                row["blind_report_sha256"]
+                for row in cell_rows
+                if row["blind_report_sha256"] is not None
+            ],
+        }
+        raw_receipt["receipt_sha256"] = canonical_json_sha256(raw_receipt)
+        write_json_atomic(raw_root / "receipt.json", raw_receipt)
     write_json_atomic(report_path, report)
     markdown_path.parent.mkdir(parents=True, exist_ok=True)
     markdown_path.write_text(_render_markdown(report), encoding="utf-8", newline="\n")
@@ -559,6 +638,11 @@ def main() -> int:
                 "event": "completed",
                 "status": report["status"],
                 "analysis_sha256": report["analysis_sha256"],
+                "execution_mode": (
+                    "reuse_existing_raw"
+                    if args.reuse_existing_raw
+                    else "execute_evaluator_block"
+                ),
                 "report": str(report_path),
                 "markdown": str(markdown_path),
             },

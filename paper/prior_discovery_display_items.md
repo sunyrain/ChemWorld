@@ -43,7 +43,23 @@ and replay denominators are reported in the Results closeout table. Partition di
 safety-constrained reaction are not omitted; their seed-0 failures and seeds 1--4 continuation are
 shown as operational/descriptive evidence only.
 
-## Figure 4 — Evidence-driven correction in the public formal cohort
+## Figure 4 — Development confirmation: prediction repair is not reusable law recovery
+
+**Claim:** held-out prediction often improves in the DeepSeek development matrix, but misindexed
+correction does not exceed aligned improvement; executable compression and committed recommendation
+remain separate failure points.
+
+Panels:
+
+- A: aligned-versus-misindexed prediction improvement for all 25 development clusters;
+- B: task-wise H3 development contrasts with retained incomplete clusters;
+- C: executable law-summary error relative to final explicit predictions;
+- D: blind recommendation outcome relative to the observed incumbent.
+
+This is post-hoc provider-separated development evidence. It must not be presented as the
+preregistered public result or as private transfer confirmation.
+
+## Figure 5 — Evidence-driven correction in the public formal cohort
 
 **Claim:** the wrong-prior arm improves held-out predictions more than the aligned arm without aligned
 degradation.
@@ -57,7 +73,7 @@ Planned panels:
 
 Do not generate this figure before formal data reach a complete terminal denominator.
 
-## Figure 5 — From stated law to action and blind outcome
+## Figure 6 — From stated law to action and blind outcome
 
 **Claim:** reusable understanding requires agreement between predictions, executable summaries,
 subsequent operations and independently validated recommendations.
@@ -72,9 +88,9 @@ Planned panels:
 Panel A must use the frozen cell-level evaluator fields: exact registered query-metric execution,
 truth-normalized law-summary error, pre-to-summary improvement, summary-minus-final-checkpoint error
 and consistency with final explicit predictions. It is descriptive and must not introduce a binary
-public law-validity threshold; reusable-law status remains conditional on Figure 6.
+public law-validity threshold; reusable-law status remains conditional on Figure 7.
 
-## Figure 6 — Private confirmation and transfer
+## Figure 7 — Private confirmation and transfer
 
 **Claim:** any public discovery claim survives one sealed confirmation and transfers beyond exact
 diagnostic points.

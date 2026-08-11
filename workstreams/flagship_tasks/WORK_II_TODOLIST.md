@@ -1,6 +1,6 @@
 # Work II TODO — 先验、规律发现、偏差排除与迁移
 
-最后更新：2026-08-10
+最后更新：2026-08-11
 工作边界：第二篇研究在固定世界规律下，无先验、正确先验和错误先验如何影响 agent 的实验发现、错误先验排除、规律总结和 held-out 迁移。它不把“运行中规律变化”作为主要情境，也不重复第一篇的装置可观测性主张。
 
 当前执行冻结：
@@ -1157,6 +1157,20 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   attempts/committed、0 provider errors、75/75 exact replay 的 provider-separated development
   closeout：
   `workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.{json,md}`。
+- [x] 2026-08-11 DeepSeek 五任务终态轨迹已补做零 provider evaluator confirmation，且未重跑或替换任何 participant
+  cell。首次 evaluator attempt 完成 100/100 truth queries，但因完整 `cell_id` 被拼入 Windows blind
+  目录名而在首个 blind trajectory 前触发路径长度缺陷；该 raw root、0/414 blind 分母与分析哈希保留。
+  修复后 filesystem 仅使用 deterministic short hash，完整 execution identity 仍保留在 receipt，并按协议
+  从第一个 truth cluster 重跑整个 evaluator block。接受块完成 25/25 clusters、75/75 retained cells、
+  100/100 truth queries exact replay、414/414 blind replays、0 provider calls；72/75 cells 的 final
+  checkpoint 可评分，71/75 final law summaries 可执行。development H3 均值为 -0.042、中位数 -0.039，
+  仅 7/25 clusters 为正；complete-case 19 clusters 均值 -0.039。law summary 相对 final explicit
+  predictions 在 opaque/aligned/misindexed 分别为 12/23、7/24、3/24 改善；69 个 blind-evaluated cells
+  中 0 个 recommendation 优于 observed incumbent、66 个等价、3 个更差。该结果为 provider-separated
+  development evidence，不执行 formal test、不支持 private transfer 或跨 provider 排名。participant 矩阵于
+  2026-08-10 完成，evaluator block 于 2026-08-11 执行；最终摘要通过已接受 raw receipt 零执行重建，未增加
+  truth、blind 或 provider 调用。机器与解释报告：
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-evaluation-20260811.{json,md}`。
 
 ## 7. 完成定义
 

@@ -31,12 +31,13 @@ abstract: |
   Evaluator-owned counterfactual queries and blind replay separate epistemic recovery from endpoint
   optimization. A completed DeepSeek development matrix spanning five tasks, three prior arms and
   five world seeds per task reached terminal records for all 75 scheduled cells while retaining
-  failures, resource rejections and tool-recovery tails. The matrix shows that explicit dossiers can
-  substantially change experimental behavior and best endpoints, while verbal warnings do not
-  selectively distinguish aligned from misindexed information. These observations motivate a
-  preregistered five-task study whose primary estimand tests whether
-  evidence reduces held-out prediction error more strongly under a wrong prior than under a correct
-  prior without degrading the correct-prior condition. The resulting framework distinguishes prior
+  failures, resource rejections and tool-recovery tails. A zero-provider evaluator subsequently
+  completed 100/100 registered truth queries and 414/414 blind replays. Held-out prediction usually
+  improved, but wrong-prior improvement did not exceed aligned-prior improvement (mean primary
+  contrast $-0.042$ across 25 task-by-world clusters). Executable law summaries often degraded the
+  final explicit predictions, and no committed recommendation outperformed the observed incumbent.
+  These development observations motivate a preregistered five-task study whose primary estimand
+  tests the same selective-correction contrast prospectively. The resulting framework distinguishes prior
   confirmation, evidence-driven correction, local policy repair and reusable law discovery, and
   provides a process-complete basis for studying when an AI scientist can abandon a plausible but
   incorrect scientific belief.
@@ -320,8 +321,8 @@ with **290/300** complete experiments, **2,663/2,587** operation attempts/commit
 provider-error events. Exact physical/resource replay passed for **75/75** terminal trajectories.
 Provider accounting covered 72/75 cells; the remaining three stopped before a provider terminal event
 and retain usage as unavailable rather than zero. The complete development block is still descriptive:
-it has no evaluator-truth prediction scoring, blind recommendation replay, private transfer
-confirmation or formal hypothesis test, and provider groups are never pooled into a capability ranking.
+it is not part of the preregistered public matrix, has no private transfer confirmation or formal
+hypothesis test, and provider groups are never pooled into a capability ranking.
 
 ```{=latex}
 \begin{table*}[!t]
@@ -374,7 +375,43 @@ contract; they do not support a pooled provider effect. A better endpoint theref
 as evidence that the agent accepted a correct prior, rejected a wrong prior or recovered the hidden
 law.
 
-## 5.2 Verbal suspicion is not selective correction
+```{=latex}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figures/prior-discovery/figure-4-development-confirmation.pdf}
+\caption{\textbf{Held-out evaluator confirmation of the five-task DeepSeek development matrix.}
+\textbf{a,} Aligned-prior and misindexed-prior reductions in normalized held-out prediction error for all 25 task-by-world clusters. The identity line marks equal improvement; filled points are complete three-arm clusters and open points retain at least one failed arm under the frozen missing-outcome rule.
+\textbf{b,} The primary development contrast $C_{\mathrm{prior}}$ by task and seed. Diamonds are task means; positive values favor greater correction in the misindexed arm.
+\textbf{c,} Executable law-summary error minus final explicit-prediction error for 71 evaluable summaries. Negative values indicate beneficial compression.
+\textbf{d,} Paired blind replay of the committed recommendation versus the observed incumbent for 69 qualified cells. The evaluator completed 414/414 replays with zero provider calls. All panels are development-only descriptive evidence; no formal test, private transfer claim or cross-provider ranking is performed.}
+\label{fig:development-confirmation}
+\end{figure*}
+\FloatBarrier
+```
+
+## 5.2 Held-out prediction improves, but correction is not selective
+
+The post-hoc development evaluator executed four registered counterfactual queries for each of the
+25 task-by-world clusters. All **100/100** truth queries completed with exact replay and without a
+provider call. Final checkpoint predictions were scoreable for **72/75** retained participant cells.
+Using the frozen failure rules, aligned-prior prediction error improved in 24/25 cells and
+misindexed-prior error improved in 22/25 cells. Improvement was therefore common, but it was not
+selectively stronger under the wrong prior: the primary contrast had a descriptive mean of
+**$-0.042$**, median **$-0.039$**, and was positive in only **7/25** clusters. Restricting description
+to the 19 complete-case clusters gave the same direction (mean **$-0.039$**; 6/19 positive). Only the
+safety-constrained task had a positive task-level mean; the other four task means were negative.
+
+The evaluator executed **71/75** final typed law summaries on the same registered coordinates. The
+summary improved on the final explicit predictions in 12/23 opaque, 7/24 aligned and only 3/24
+misindexed cells; it was worse in the remaining 11, 17 and 21 cells, respectively. Thus, an agent can
+improve its checkpoint predictions without compressing that improvement into a reusable executable
+law. Blind replay sharpened the action boundary: **414/414** scheduled executions completed across
+69 qualified cells, but the committed recommendation beat the observed incumbent in 0 cells, was
+equivalent in 66 and was worse in 3. These results do not prove that correction is impossible; they
+show that endpoint gains, prediction repair, law compression and recommendation quality are distinct
+development outcomes.
+
+## 5.3 Verbal suspicion is not selective correction
 
 Across available terminal belief records, final DeepSeek misindex warnings were 0/5, 5/5 and 3/5
 for opaque, aligned and misindexed electrochemical cells; 0/4, 5/5 and 4/4 in crystallization;
@@ -389,7 +426,7 @@ This is a scientifically useful negative boundary. A warning token or reduced st
 not a valid bias-rejection endpoint unless it predicts evaluator-scored correction and subsequent
 evidence-aligned action.
 
-## 5.3 Persistent-session accounting exposes a separate operational layer
+## 5.4 Persistent-session accounting exposes a separate operational layer
 
 The 75 terminal DeepSeek trajectories accumulated **267,929,149 input tokens**, including
 **260,033,536 cached tokens** (97.05%), **7,895,613 uncached input tokens** and **2,932,468 output
@@ -407,12 +444,15 @@ more consequential than provider transport in this block. These events are prope
 agent system and remain separate from both physical outcomes and independent world-level scientific
 samples.
 
-## 5.4 Development conclusion
+## 5.5 Development conclusion
 
 Across the retained development configurations, explicit priors clearly alter the course and endpoint
-of experimentation. The same evidence does not show selective wrong-prior rejection. It instead
-demonstrates why the formal study must score held-out predictions, executable summaries and blind
-recommendations rather than infer understanding from endpoint performance or verbal self-report.
+of experimentation, and most cells improve their held-out predictions. The same evidence does not
+show selective wrong-prior rejection: aligned improvement exceeds misindexed improvement on average,
+typed law compression is frequently lossy and committed recommendations do not outperform the
+observed incumbent. The formal study is therefore necessary for prospective inference, while the
+development block already establishes that prediction repair, law recovery and action quality must
+remain separate outcomes.
 
 # 6. Formal results
 

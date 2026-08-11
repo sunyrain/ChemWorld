@@ -36,6 +36,22 @@ editable-text SVG/PDF plus 600 dpi PNG/TIFF previews.
 - **Reviewer risk:** WellAU and DeepSeek differ in provider, sampling and recovery contracts and must
   remain separate facets rather than a model leaderboard.
 
+### Figure 4 — Held-out development confirmation
+
+- **Core conclusion:** DeepSeek development trajectories often improve held-out predictions, but
+  wrong-prior correction does not exceed aligned-prior improvement; compressed law summaries and
+  committed recommendations add little or negative value beyond the final typed predictions and
+  observed incumbent.
+- **Archetype:** quantitative grid with the H3 paired-improvement plane as the hero panel.
+- **Panel map:** aligned-versus-misindexed prediction improvement; task-wise H3 contrasts; executable
+  law-summary compression error; paired blind recommendation outcomes.
+- **Statistics:** all 25 task×seed clusters, all 71 executable law summaries and all 69 qualified
+  blind-evaluated cells; descriptive values only, with no confidence intervals or formal tests.
+- **Source data:** 25 cluster rows, 71 law-summary rows and 69 blind-recommendation rows are exported
+  without sampling. Frozen missing-outcome rules remain in the H3 denominator.
+- **Reviewer risk:** this is post-hoc development evaluation, not the preregistered public matrix or
+  private transfer confirmation.
+
 ## Reproduction
 
 From the repository root:

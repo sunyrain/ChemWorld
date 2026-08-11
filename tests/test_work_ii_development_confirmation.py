@@ -4,7 +4,9 @@ from copy import deepcopy
 
 import pytest
 
+from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.work_ii_development_confirmation import (
+    build_confirmation_summary,
     build_development_confirmation_preflight,
     collect_development_cells,
     physical_campaign_contract,
@@ -110,3 +112,45 @@ def test_preflight_freezes_75_cells_25_clusters_and_qualified_blind_denominator(
     assert preflight["qualified_blind_cell_count"] == 74
     assert preflight["scheduled_truth_query_count"] == 100
     assert preflight["scheduled_blind_execution_count"] == 444
+
+
+def test_confirmation_summary_records_evaluator_date_and_accepted_raw_receipt() -> None:
+    row = {
+        "cell_id": "cell-a",
+        "task_id": "task-a",
+        "world_seed": 0,
+        "prior_arm": "opaque",
+        "participant_state": "completed",
+        "effective_pre_error": 0.2,
+        "effective_final_error": 0.1,
+        "checkpoint_improvement": 0.1,
+        "law_summary_status": "evaluated",
+        "law_summary_error": 0.15,
+        "law_summary_improvement": 0.05,
+        "blind_recommendation_gain": 0.0,
+        "blind_scheduled_execution_count": 6,
+        "blind_completed_execution_count": 6,
+    }
+    accepted = {
+        "raw_root": "runs/development/accepted",
+        "receipt_sha256": "a" * 64,
+        "original_analysis_sha256": "b" * 64,
+        "summary_regenerated_without_evaluator_execution": True,
+        "provider_call_count": 0,
+    }
+    report = build_confirmation_summary(
+        preflight={
+            "preflight_sha256": "c" * 64,
+            "provider_group": "deepseek",
+            "source_analysis_id": "development",
+        },
+        cell_rows=[row],
+        cluster_rows=[],
+        truth_rows=[],
+        failures=[],
+        accepted_raw_receipt=accepted,
+    )
+    assert report["analysis_date"] == "2026-08-11"
+    assert report["audit"]["accepted_raw_receipt"] == accepted
+    claimed = report.pop("analysis_sha256")
+    assert canonical_json_sha256(report) == claimed

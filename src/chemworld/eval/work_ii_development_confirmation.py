@@ -230,6 +230,7 @@ def build_confirmation_summary(
     truth_rows: Sequence[Mapping[str, Any]],
     failures: Sequence[Mapping[str, Any]],
     prior_infrastructure_attempt: Mapping[str, Any] | None = None,
+    accepted_raw_receipt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a compact, exact-denominator development confirmation report."""
 
@@ -272,7 +273,7 @@ def build_confirmation_summary(
     law_status = Counter(str(row.get("law_summary_status")) for row in cell_rows)
     report: dict[str, Any] = {
         "schema_version": WORK_II_DEVELOPMENT_CONFIRMATION_VERSION,
-        "analysis_date": "2026-08-10",
+        "analysis_date": "2026-08-11",
         "formal_result": False,
         "status": "passed" if not failures else "failed",
         "preflight_sha256": preflight["preflight_sha256"],
@@ -344,6 +345,11 @@ def build_confirmation_summary(
             "prior_infrastructure_attempt": (
                 dict(prior_infrastructure_attempt)
                 if isinstance(prior_infrastructure_attempt, Mapping)
+                else None
+            ),
+            "accepted_raw_receipt": (
+                dict(accepted_raw_receipt)
+                if isinstance(accepted_raw_receipt, Mapping)
                 else None
             ),
         },

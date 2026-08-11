@@ -24,7 +24,8 @@ EXPORT_DIR = ROOT / "paper/exports/prior-discovery-draft"
 OUTPUT_PDF = EXPORT_DIR / "prior-discovery-draft.pdf"
 OUTPUT_TEX = EXPORT_DIR / "prior-discovery-draft.tex"
 BUILD_MANIFEST = EXPORT_DIR / "build-manifest.json"
-SOURCE_DATE_EPOCH = 1_786_320_000  # 2026-08-10 00:00:00 UTC
+SOURCE_DATE_EPOCH = 1_786_406_400  # 2026-08-11 00:00:00 UTC
+EXPECTED_FIGURE_IDS = ("figure_1", "figure_2", "figure_3", "figure_4")
 
 
 def sha256_file(path: Path) -> str:
@@ -90,10 +91,10 @@ def load_figure_pdfs() -> list[Path]:
     if declared != canonical_sha(manifest):
         raise RuntimeError("figure manifest self-hash mismatch")
     figures = manifest.get("figures")
-    if not isinstance(figures, dict) or set(figures) != {"figure_1", "figure_2", "figure_3"}:
-        raise RuntimeError("draft requires exactly Figures 1--3")
+    if not isinstance(figures, dict) or set(figures) != set(EXPECTED_FIGURE_IDS):
+        raise RuntimeError("draft requires exactly Figures 1--4")
     pdfs: list[Path] = []
-    for figure_id in ("figure_1", "figure_2", "figure_3"):
+    for figure_id in EXPECTED_FIGURE_IDS:
         outputs = figures[figure_id]
         matches = [row for row in outputs if str(row.get("path", "")).endswith(".pdf")]
         if len(matches) != 1:
@@ -179,6 +180,10 @@ def build() -> dict[str, Any]:
         ROOT / "paper/prior_discovery_evidence_map.md",
         ROOT / "paper/prior_discovery_display_items.md",
         ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.json",
+        ROOT / (
+            "workstreams/flagship_tasks/reports/"
+            "work-ii-deepseek-five-task-development-evaluation-20260811.json"
+        ),
         ROOT / "configs/benchmark/work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json",
         *figure_pdfs,
     ]
@@ -218,7 +223,8 @@ def build() -> dict[str, Any]:
         ],
         "interpretation_limits": [
             "Figures 1 and 2 describe the frozen design.",
-            "Figure 3 and the current Results text are development-only; its paired endpoint/warning panels retain the common three-task source while the closeout table binds the complete five-task DeepSeek denominator.",
+            "Figure 3 and its paired endpoint/warning panels are development-only and retain the common three-task provider-separated source.",
+            "Figure 4 is a post-hoc zero-provider evaluator confirmation of the retained five-task DeepSeek development matrix; it is descriptive and not the public formal result.",
             "Partition discovery and safety-constrained reaction include immutable seed-0 failures plus seeds 1--4 continuation; they remain operational descriptive evidence and are not pooled into the common paired endpoint panels.",
             "Public formal and private confirmation results remain uncollected.",
         ],

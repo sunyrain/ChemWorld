@@ -1,17 +1,19 @@
 # Prior-discovery figure and draft QA
 
-Date: 2026-08-10. Status: development/design draft updated through the DeepSeek five-task closeout;
-not a formal result.
+Date: 2026-08-11. Status: development/design draft updated through the DeepSeek five-task evaluator
+confirmation; not a formal result.
 
 ## Figure contract
 
 - Backend: Python/matplotlib only.
-- Output size: 182.9 mm wide; schematic-led Figures 1–2 and quantitative-grid Figure 3.
+- Output size: 182.9 mm wide; schematic-led Figures 1–2 and quantitative-grid Figures 3–4.
 - Editable text: SVG `svg.fonttype=none`; PDF `pdf.fonttype=42`.
 - Raster output: 600 dpi PNG and LZW-compressed TIFF.
 - Figure 1 claim: a useful endpoint is not sufficient evidence of law discovery.
 - Figure 2 claim: matched prior interventions preserve the world-level denominator.
 - Figure 3 claim: explicit priors reshape development behavior, but warnings are not selective.
+- Figure 4 claim: held-out predictions often improve, but misindexed correction does not exceed
+  aligned improvement; executable compression and final recommendation provide little added value.
 
 ## Data and source binding
 
@@ -24,20 +26,22 @@ not a formal result.
   is calculated.
 - Development source hashes, output hashes and interpretation limits are recorded in
   `figure_manifest.json`.
+- Figure 4 uses all 25 H3 cluster rows, all 71 executable law-summary rows and all 69 qualified blind
+  recommendation rows. No row is sampled; the frozen missing-outcome rules remain in the H3 source.
 
 ## Automated QA
 
 - Nature Figure static preflight: 14 PASS, 0 WARN, 0 FAIL.
 - Python syntax compilation: passed.
-- SVG text-node audit: Figure 1 = 53, Figure 2 = 66, Figure 3 = 118 `<text>` nodes.
-- Two consecutive figure-generation passes produced identical hashes for all 12 figure outputs,
+- SVG text-node audit: Figure 1 = 53, Figure 2 = 66, Figure 3 = 118 and Figure 4 = 74 `<text>` nodes.
+- Two consecutive figure-generation passes produced identical hashes for all 16 figure outputs,
   source CSVs and the figure manifest.
 - Two consecutive manuscript-build passes produced identical hashes for the PDF, generated TeX and
   build manifest.
 
 ## Manuscript-build QA
 
-- PDF: 10 pages, Letter size.
+- PDF: 12 pages, Letter size.
 - References: no undefined citations.
 - LaTeX errors: none.
 - Overfull boxes: 0; underfull boxes: 1 non-blocking paragraph warning.
@@ -47,12 +51,15 @@ not a formal result.
   on pages 7--9 at 150 dpi; headings, columns and page transitions have no clipping or overlap.
 - The evaluator-owned final law-summary contract and Methods description were inspected on pages 4
   and 9 at 150 dpi; the added text preserves column balance and introduces no float or heading drift.
+- Figure 4 and its caption were inspected on page 8 at 180 dpi. All four panels remain legible at the
+  manuscript width, panel labels and titles do not overlap, and the following two-column Results text
+  begins without float collision or clipping.
 - The PDF is explicitly a development/design draft. Public formal participant results, private
   confirmation and transfer results remain uncollected and are not substituted by development data.
 
 ## Visual inspection
 
 Rendered page previews were inspected at reduced page size and the original-resolution PNGs were
-inspected for all three figures. No clipping, text overlap, panel-label collision, or provider-ranking
-ambiguity remains. Figure 2 and Figure 3 are forced to appear before their corresponding manuscript
-sections using explicit float barriers.
+inspected for all four figures. No clipping, text overlap, panel-label collision, or provider-ranking
+ambiguity remains. Figures 2–4 are forced to appear before their corresponding manuscript sections
+using explicit float barriers.

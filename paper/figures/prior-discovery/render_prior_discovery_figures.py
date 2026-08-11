@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the first three figures for the prior-correction manuscript."""
+"""Render the first four figures for the prior-correction manuscript."""
 
 from __future__ import annotations
 
@@ -53,6 +53,27 @@ TASK_LABEL = {
     "electrochemical-conversion": "Electrochemical\nconversion",
     "reaction-to-crystallization": "Reaction to\ncrystallization",
     "reaction-to-distillation": "Reaction to\ndistillation",
+}
+FULL_TASK_ORDER = [
+    "electrochemical-conversion",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "partition-discovery",
+    "reaction-safety-constrained",
+]
+FULL_TASK_LABEL = {
+    "electrochemical-conversion": "Electrochemical",
+    "reaction-to-crystallization": "Crystallization",
+    "reaction-to-distillation": "Distillation",
+    "partition-discovery": "Partition",
+    "reaction-safety-constrained": "Safety constrained",
+}
+FULL_TASK_COLOR = {
+    "electrochemical-conversion": "#477AA5",
+    "reaction-to-crystallization": "#6F62A6",
+    "reaction-to-distillation": "#4F9785",
+    "partition-discovery": "#D18B3E",
+    "reaction-safety-constrained": "#B85C62",
 }
 ARM_ORDER = ["opaque", "aligned_nominal", "misindexed_nominal"]
 ARM_LABEL = {
@@ -912,6 +933,295 @@ def render_figure_3(
     return export_figure(fig, "figure-3-development-prior-effects")
 
 
+def render_figure_4(confirmation: dict[str, Any]) -> list[Path]:
+    cluster_rows = confirmation["cluster_rows"]
+    cell_rows = confirmation["cell_rows"]
+    fig = plt.figure(figsize=(7.2, 5.75))
+    grid = fig.add_gridspec(
+        2,
+        2,
+        left=0.085,
+        right=0.985,
+        bottom=0.12,
+        top=0.82,
+        wspace=0.32,
+        hspace=0.50,
+        width_ratios=[1.05, 0.95],
+    )
+    ax_a = fig.add_subplot(grid[0, 0])
+    ax_b = fig.add_subplot(grid[0, 1])
+    ax_c = fig.add_subplot(grid[1, 0])
+    ax_d = fig.add_subplot(grid[1, 1])
+
+    # a — paired aligned versus misindexed held-out prediction improvement.
+    for row in cluster_rows:
+        task_id = str(row["task_id"])
+        aligned = float(row["arm_primary_improvements"]["aligned_nominal"])
+        misindexed = float(row["arm_primary_improvements"]["misindexed_nominal"])
+        color = FULL_TASK_COLOR[task_id]
+        complete_case = row.get("complete_case") is True
+        ax_a.scatter(
+            aligned,
+            misindexed,
+            s=34,
+            facecolor=color if complete_case else "white",
+            edgecolor=color,
+            linewidth=1.0,
+            alpha=0.88,
+            zorder=3,
+        )
+    low, high = -0.08, 0.38
+    ax_a.plot([low, high], [low, high], color="#97A5AC", linewidth=1.0, zorder=1)
+    ax_a.axhline(0, color=COLORS["grid"], linewidth=0.7, zorder=0)
+    ax_a.axvline(0, color=COLORS["grid"], linewidth=0.7, zorder=0)
+    ax_a.set_xlim(low, high)
+    ax_a.set_ylim(low, high)
+    ax_a.set_aspect("equal", adjustable="box")
+    ax_a.set_xlabel("Aligned-prior prediction improvement")
+    ax_a.set_ylabel("Misindexed-prior prediction improvement")
+    ax_a.set_title(
+        "Misindexed correction does not exceed\naligned-prior improvement",
+        loc="left",
+        fontweight="bold",
+        pad=7,
+        fontsize=8.8,
+    )
+    ax_a.text(
+        0.03,
+        0.96,
+        "7/25 clusters above identity\n18/25 below identity",
+        transform=ax_a.transAxes,
+        ha="left",
+        va="top",
+        fontsize=6.6,
+        color=COLORS["muted"],
+    )
+    style_quant_axis(ax_a)
+    panel_label(ax_a, "a", x=-0.12, y=1.10)
+
+    # b — primary H3 contrast by task and seed.
+    jitter = np.linspace(-0.16, 0.16, 5)
+    for task_index, task_id in enumerate(FULL_TASK_ORDER):
+        rows = sorted(
+            (row for row in cluster_rows if row["task_id"] == task_id),
+            key=lambda row: int(row["world_seed"]),
+        )
+        values = [float(row["H3_primary_contrast"]) for row in rows]
+        for offset, row, value in zip(jitter, rows, values, strict=True):
+            color = FULL_TASK_COLOR[task_id]
+            complete_case = row.get("complete_case") is True
+            ax_b.scatter(
+                value,
+                task_index + offset,
+                s=28,
+                facecolor=color if complete_case else "white",
+                edgecolor=color,
+                linewidth=0.9,
+                alpha=0.90,
+                zorder=3,
+            )
+        ax_b.scatter(
+            float(np.mean(values)),
+            task_index,
+            marker="D",
+            s=34,
+            color=COLORS["ink"],
+            edgecolor="white",
+            linewidth=0.5,
+            zorder=4,
+        )
+    ax_b.axvline(0, color="#89989F", linewidth=1.0)
+    ax_b.set_yticks(
+        range(len(FULL_TASK_ORDER)),
+        [FULL_TASK_LABEL[task] for task in FULL_TASK_ORDER],
+    )
+    ax_b.set_xlim(-0.28, 0.33)
+    ax_b.invert_yaxis()
+    ax_b.set_xlabel("H3 = misindexed improvement - aligned improvement")
+    ax_b.set_title(
+        "Only safety has a positive\ntask-level mean H3",
+        loc="left",
+        fontweight="bold",
+        pad=7,
+        fontsize=8.8,
+    )
+    ax_b.text(
+        0.98,
+        0.96,
+        "Overall mean -0.042\nmedian -0.039",
+        transform=ax_b.transAxes,
+        ha="right",
+        va="top",
+        fontsize=6.6,
+        color=COLORS["muted"],
+    )
+    style_quant_axis(ax_b)
+    panel_label(ax_b, "b", x=-0.10, y=1.10)
+
+    # c — executable law-summary compression relative to final typed predictions.
+    law_by_arm: list[list[float]] = []
+    for arm in ARM_ORDER:
+        law_by_arm.append(
+            [
+                float(row["law_summary_minus_final_error"])
+                for row in cell_rows
+                if row["prior_arm"] == arm
+                and isinstance(row.get("law_summary_minus_final_error"), int | float)
+            ]
+        )
+    boxes = ax_c.boxplot(
+        law_by_arm,
+        positions=np.arange(3),
+        widths=0.50,
+        patch_artist=True,
+        showfliers=False,
+        medianprops={"color": COLORS["ink"], "linewidth": 1.1},
+        whiskerprops={"color": "#87969D", "linewidth": 0.8},
+        capprops={"color": "#87969D", "linewidth": 0.8},
+        boxprops={"color": "#87969D", "linewidth": 0.8},
+    )
+    for patch, arm in zip(boxes["boxes"], ARM_ORDER, strict=True):
+        patch.set_facecolor(ARM_COLOR[arm])
+        patch.set_alpha(0.22)
+    for arm_index, (arm, values) in enumerate(
+        zip(ARM_ORDER, law_by_arm, strict=True)
+    ):
+        offsets = np.linspace(-0.15, 0.15, len(values))
+        ax_c.scatter(
+            arm_index + offsets,
+            values,
+            s=16,
+            color=ARM_COLOR[arm],
+            alpha=0.72,
+            edgecolor="white",
+            linewidth=0.35,
+            zorder=3,
+        )
+        better = sum(value < 0 for value in values)
+        worse = sum(value > 0 for value in values)
+        ax_c.text(
+            arm_index,
+            0.69,
+            f"{better} better / {worse} worse",
+            ha="center",
+            va="top",
+            fontsize=6.0,
+            color=COLORS["muted"],
+        )
+    ax_c.axhline(0, color="#89989F", linewidth=1.0)
+    ax_c.set_xticks(range(3), [ARM_LABEL[arm] for arm in ARM_ORDER])
+    ax_c.set_ylim(-0.13, 0.72)
+    ax_c.set_ylabel("Law-summary error - final-prediction error")
+    ax_c.set_title(
+        "Executable law compression is often\nworse than final predictions",
+        loc="left",
+        fontweight="bold",
+        pad=7,
+        fontsize=8.8,
+    )
+    style_quant_axis(ax_c)
+    panel_label(ax_c, "c", x=-0.02, y=1.17)
+
+    # d — blind recommendation compared with the observed incumbent.
+    gains = [
+        float(row["blind_recommendation_gain"])
+        for row in cell_rows
+        if isinstance(row.get("blind_recommendation_gain"), int | float)
+    ]
+    counts = [
+        sum(value > 1e-12 for value in gains),
+        sum(abs(value) <= 1e-12 for value in gains),
+        sum(value < -1e-12 for value in gains),
+    ]
+    bars = ax_d.bar(
+        np.arange(3),
+        counts,
+        width=0.62,
+        color=[COLORS["green"], COLORS["opaque"], COLORS["red"]],
+        edgecolor="white",
+        linewidth=0.7,
+    )
+    for bar, count in zip(bars, counts, strict=True):
+        ax_d.text(
+            bar.get_x() + bar.get_width() / 2,
+            count + 1.3,
+            str(count),
+            ha="center",
+            va="bottom",
+            fontsize=8.0,
+            fontweight="bold",
+            color=COLORS["ink"],
+        )
+    ax_d.set_xticks(range(3), ["Better", "Equivalent", "Worse"])
+    ax_d.set_ylim(0, 73)
+    ax_d.set_ylabel("Qualified participant cells")
+    ax_d.set_title(
+        "Recommendations do not beat\nthe observed incumbent",
+        loc="left",
+        fontweight="bold",
+        pad=7,
+        fontsize=8.8,
+    )
+    ax_d.text(
+        0.03,
+        0.91,
+        "414/414 paired blind replays completed\n69 qualified cells; 0 provider calls",
+        transform=ax_d.transAxes,
+        ha="left",
+        va="top",
+        fontsize=6.6,
+        color=COLORS["muted"],
+    )
+    style_quant_axis(ax_d)
+    panel_label(ax_d, "d", x=-0.10, y=1.10)
+
+    fig.suptitle(
+        "Held-out evaluation separates prediction repair from reusable law recovery",
+        x=0.075,
+        y=0.975,
+        ha="left",
+        fontsize=12.5,
+        fontweight="bold",
+        color=COLORS["ink"],
+    )
+    fig.legend(
+        handles=[
+            mpl.lines.Line2D(
+                [],
+                [],
+                marker="o",
+                linestyle="",
+                markerfacecolor=color,
+                markeredgecolor=color,
+                color=color,
+                label=FULL_TASK_LABEL[task],
+            )
+            for task, color in FULL_TASK_COLOR.items()
+        ],
+        loc="upper left",
+        bbox_to_anchor=(0.075, 0.905),
+        ncol=5,
+        fontsize=6.0,
+        borderaxespad=0,
+        handletextpad=0.25,
+        columnspacing=0.75,
+    )
+    fig.text(
+        0.075,
+        0.027,
+        "DeepSeek development-only evidence: 25 task x seed clusters, 75 retained cells, "
+        "100/100 evaluator-truth queries and 414/414 blind replays. Open points mark "
+        "clusters with a retained failed arm; frozen missing-outcome rules remain in H3. "
+        "No formal test, private transfer claim or cross-provider ranking is performed.",
+        ha="left",
+        va="bottom",
+        fontsize=6.35,
+        color=COLORS["muted"],
+        wrap=True,
+    )
+    return export_figure(fig, "figure-4-development-confirmation")
+
+
 def main() -> int:
     configure_matplotlib()
     design_path = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
@@ -921,6 +1231,10 @@ def main() -> int:
     deepseek_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-analysis-v0.1.json"
     deepseek_closeout_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.json"
     deepseek_closeout_sources_path = ROOT / "configs/benchmark/work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json"
+    deepseek_confirmation_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-deepseek-five-task-development-evaluation-20260811.json"
+    )
     source_paths = [
         design_path,
         analysis_path,
@@ -929,6 +1243,7 @@ def main() -> int:
         deepseek_path,
         deepseek_closeout_path,
         deepseek_closeout_sources_path,
+        deepseek_confirmation_path,
     ]
 
     design = json.loads(design_path.read_text(encoding="utf-8"))
@@ -936,6 +1251,9 @@ def main() -> int:
     wellau = json.loads(wellau_path.read_text(encoding="utf-8"))
     deepseek = json.loads(deepseek_path.read_text(encoding="utf-8"))
     deepseek_closeout = json.loads(deepseek_closeout_path.read_text(encoding="utf-8"))
+    deepseek_confirmation = json.loads(
+        deepseek_confirmation_path.read_text(encoding="utf-8")
+    )
     if preflight.get("formal_execution_allowed") is not False:
         raise ValueError("expected an outcome-blind execution-blocked formal preflight")
     if wellau.get("formal_result") is not False or deepseek.get("formal_result") is not False:
@@ -947,6 +1265,13 @@ def main() -> int:
         raise ValueError("unexpected DeepSeek five-task closeout terminal denominator")
     if closeout_denominators.get("qualified_cell_count") != 69:
         raise ValueError("unexpected DeepSeek five-task closeout qualified denominator")
+    confirmation_denominators = deepseek_confirmation.get("denominators", {})
+    if deepseek_confirmation.get("status") != "passed":
+        raise ValueError("DeepSeek development evaluator confirmation did not pass")
+    if confirmation_denominators.get("truth_completed_query_count") != 100:
+        raise ValueError("unexpected DeepSeek truth-query denominator")
+    if confirmation_denominators.get("blind_completed_execution_count") != 414:
+        raise ValueError("unexpected DeepSeek blind-replay denominator")
 
     endpoint_rows, warning_rows = normalize_development_rows()
     denominator_rows = build_denominator_rows(wellau, deepseek_closeout)
@@ -965,11 +1290,87 @@ def main() -> int:
         denominator_rows,
         ["provider", "metric", "numerator", "denominator", "rate"],
     )
+    figure_4_cluster_rows = [
+        {
+            "task_id": row["task_id"],
+            "world_seed": row["world_seed"],
+            "complete_case": row["complete_case"],
+            "aligned_improvement": row["arm_primary_improvements"][
+                "aligned_nominal"
+            ],
+            "misindexed_improvement": row["arm_primary_improvements"][
+                "misindexed_nominal"
+            ],
+            "H3_primary_contrast": row["H3_primary_contrast"],
+        }
+        for row in deepseek_confirmation["cluster_rows"]
+    ]
+    figure_4_law_rows = [
+        {
+            "cell_id": row["cell_id"],
+            "task_id": row["task_id"],
+            "world_seed": row["world_seed"],
+            "prior_arm": row["prior_arm"],
+            "participant_state": row["participant_state"],
+            "law_summary_minus_final_error": row[
+                "law_summary_minus_final_error"
+            ],
+        }
+        for row in deepseek_confirmation["cell_rows"]
+        if isinstance(row.get("law_summary_minus_final_error"), int | float)
+    ]
+    figure_4_blind_rows = [
+        {
+            "cell_id": row["cell_id"],
+            "task_id": row["task_id"],
+            "world_seed": row["world_seed"],
+            "prior_arm": row["prior_arm"],
+            "blind_recommendation_gain": row["blind_recommendation_gain"],
+        }
+        for row in deepseek_confirmation["cell_rows"]
+        if isinstance(row.get("blind_recommendation_gain"), int | float)
+    ]
+    write_csv(
+        SOURCE_DIR / "figure-4-cluster-contrasts.csv",
+        figure_4_cluster_rows,
+        [
+            "task_id",
+            "world_seed",
+            "complete_case",
+            "aligned_improvement",
+            "misindexed_improvement",
+            "H3_primary_contrast",
+        ],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-4-law-summary-vs-final.csv",
+        figure_4_law_rows,
+        [
+            "cell_id",
+            "task_id",
+            "world_seed",
+            "prior_arm",
+            "participant_state",
+            "law_summary_minus_final_error",
+        ],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-4-blind-recommendation.csv",
+        figure_4_blind_rows,
+        [
+            "cell_id",
+            "task_id",
+            "world_seed",
+            "prior_arm",
+            "blind_recommendation_gain",
+        ],
+    )
 
     outputs = {
         "figure_1": render_figure_1(),
         "figure_2": render_figure_2(design, preflight),
         "figure_3": render_figure_3(endpoint_rows, warning_rows, denominator_rows),
+        "figure_4": render_figure_4(deepseek_confirmation),
     }
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-figure-manifest-0.1",
@@ -988,6 +1389,9 @@ def main() -> int:
             "endpoint_rows": len(endpoint_rows),
             "warning_rows": len(warning_rows),
             "denominator_rows": len(denominator_rows),
+            "confirmation_cluster_rows": len(figure_4_cluster_rows),
+            "confirmation_law_rows": len(figure_4_law_rows),
+            "confirmation_blind_rows": len(figure_4_blind_rows),
         },
         "figures": {
             figure_id: [
@@ -1003,6 +1407,7 @@ def main() -> int:
         "interpretation_limits": [
             "Figures 1 and 2 show the frozen conceptual and formal design, not participant outcomes.",
             "Figure 3 contains development-only provider-isolated descriptive evidence.",
+            "Figure 4 contains DeepSeek development-only evaluator confirmation; H3 values are descriptive and use the frozen missing-outcome rules.",
             "Partition discovery and safety-constrained reaction complete the five-task development coverage but remain operational descriptive evidence; they are not pooled into the three-task paired endpoint panels.",
             "No formal inference, law-discovery claim, transfer claim or cross-provider capability ranking is supported.",
         ],
