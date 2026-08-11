@@ -10,9 +10,9 @@ evaluator-valid prediction, action and transfer support reusable law discovery.
 
 Panels:
 
-- A: entity/ontology, structural/mechanistic, parametric and observation-model intervention layers;
-  the current core uses opaque, aligned and misindexed entity dossiers while the world and contract
-  remain fixed;
+- A: the external world $W$ versus the agent-facing $M_0$, with entity/ontology,
+  structural/mechanistic, parametric/dynamical, observation/measurement and scope/compositional
+  intervention layers; the current completed multi-task evidence uses only the entity layer;
 - B: persistent campaign loop from operation to observation, checkpoint and next experiment;
 - C: separate outcome channels for endpoint, prediction, prior correction, executable summary and
   transfer;
@@ -20,17 +20,19 @@ Panels:
 
 This is the conceptual hero figure and should not contain development effect sizes.
 
-## Figure 2 — Frozen core cohort and study architecture
+## Figure 2 — Sparse multi-layer programme and study architecture
 
-**Claim:** the design keeps the entity-level confirmatory core fixed while separating matched-evidence,
-law-action and artifact-transfer studies from the primary denominator.
+**Claim:** ChemWorld exposes a broad programmable intervention space, but the paper uses a sparse,
+one-locus-at-a-time programme with independent qualification and denominators rather than a full
+factorial benchmark.
 
 Panels:
 
-- A: Study A with five task families and 25 public task-by-world clusters;
-- B: three matched entity/ontology arms within each world, plus the separately registered structural,
-  parametric and observation-model extension slots;
-- C: four experiments and checkpoints at 0, 1, 2 and 4 completed experiments;
+- A: A-E entity/ontology backbone with five task families and 25 public task-by-world clusters;
+- B: A-P and A-S with two independently qualified task families each; A-O remains a separately
+  admitted boundary probe and D-Scope belongs to transfer;
+- C: pattern-owned campaigns and checkpoints: A-E 8, A-P 10 and A-S 12 complete experiments,
+  subject to resource calibration before final freeze;
 - D: strict separation of free discovery, matched-evidence falsification, evaluator truth, blind
   outcome replay, within-family private confirmation and artifact-only compositional transfer.
 
@@ -63,17 +65,18 @@ Panels:
 This is post-hoc provider-separated development evidence. It must not be presented as the
 preregistered public result or as private transfer confirmation.
 
-## Figure 5 — Evidence-driven correction in the public formal core
+## Figure 5 — Evidence-driven correction across predeclared initial-model loci
 
-**Claim:** the wrong-prior arm improves held-out predictions more than the aligned arm without aligned
-degradation.
+**Claim:** within each qualified locus, the misspecified arm improves held-out predictions more than
+the aligned arm without aligned degradation; cross-locus generalization requires concordant A-E,
+A-P and A-S results rather than pooling unlike raw contrasts.
 
 Planned panels:
 
-- A: checkpoint-level held-out prediction-error trajectories by prior arm;
-- B: world-level primary selective-correction contrasts with task heterogeneity;
-- C: prior reliability and calibration changes against evaluator truth;
-- D: failure/censoring-aware primary decision and sensitivity analyses.
+- A: A-E checkpoint-level held-out prediction-error trajectories by initial-model arm;
+- B: locus-specific $C_E$, $C_P$ and $C_S$ contrasts with task/world heterogeneity;
+- C: reliability and calibration changes at the manipulated locus against evaluator truth;
+- D: failure/censoring-aware locus decisions and the predeclared cross-locus synthesis.
 
 Do not generate this figure before formal data reach a complete terminal denominator.
 

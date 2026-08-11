@@ -3,7 +3,7 @@ title: "Experimental Intelligence in AI Scientists: From Initial World Models to
 title_line_one: "Experimental Intelligence in AI Scientists:"
 title_line_two: "From Initial World Models to Transferable Laws"
 subject: "Initial world models, experimental discovery and law transfer in AI agents"
-keywords: "AI scientist; autonomous experimentation; initial world model; scientific priors; bias correction; law discovery; counterfactual prediction; chemical worlds"
+keywords: "AI scientist; autonomous experimentation; initial world model; world-model intervention; scientific priors; law discovery; counterfactual prediction; chemical worlds"
 pdf_author: "Jiangjie Qiu; Yijun Li; Yaotian Yang; Honghao Chen; Wentao Li; Xiaonan Wang"
 author:
   - name: "Jiangjie Qiu"
@@ -36,10 +36,12 @@ abstract: |
   relation, confirmed a correct model or succeeded despite a wrong one. We define initial-world-model
   intervention as a controlled variable in executable chemical worlds. The hidden world, public
   operations, evidence budget and safety surface are held fixed while the agent-facing model is
-  changed at matched entity/ontology, structural/mechanistic, parametric or observation-model
-  layers. The present completed development matrix and planned formal core instantiate the
-  entity-level slice with opaque, aligned and misindexed dossiers; the other layers are registered
-  extensions rather than post-hoc re-labellings of the same result. Each agent controls a
+  changed at matched entity/ontology, structural/mechanistic, parametric/dynamical,
+  observation/measurement or scope/compositional layers. The experimental programme is deliberately
+  sparse rather than fully factorial: an entity-level backbone is complemented by independently
+  qualified non-entity blocks, while transfer tests the scope of learned laws after a context reset.
+  The completed development matrix instantiates the entity-level slice with opaque, aligned and
+  misindexed dossiers; it is not treated as evidence for the other layers. Each agent controls a
   multi-experiment campaign through one persistent operation-level session, records predictions and
   belief updates at fixed checkpoints, and commits an executable law summary and final recommendation.
   Evaluator-owned counterfactual queries, artifact-only transfer and blind replay separate evidence
@@ -73,9 +75,10 @@ success can remain difficult to interpret because pretrained knowledge, prompt-p
 experiment selection, endpoint optimization and verbal explanation are usually entangled.
 
 The central problem is the initial world model. An agent entering an experimental campaign may carry
-assumptions about entity identities and properties, causal structure, parameter signs and ranges, or
-the reliability and meaning of observations. Any of these assumptions may be absent, useful or
-plausibly wrong. The important capability is not merely whether such information changes behavior. A
+assumptions about entity identities and properties, causal structure, parameter signs and ranges,
+the reliability and meaning of observations, or the conditions under which a learned law should
+transfer. Any of these assumptions may be absent, useful or plausibly wrong. The important capability
+is not merely whether such information changes behavior. A
 scientifically adaptive agent should decide which evidence is worth acquiring, use observations to
 revise the relevant part of its model, reduce confidence in contradicted structure or parameters,
 summarize the recovered relation in an executable form and transfer that relation to conditions or
@@ -95,8 +98,9 @@ Here we introduce a controlled framework for studying experimental intelligence 
 models to transferable laws. It makes four contributions.
 
 1. **The initial world model becomes a layered intervention.** Entity/ontology,
-   structural/mechanistic, parametric and observation-model assumptions can each be made opaque,
-   aligned or deliberately wrong while the executable world remains fixed.
+   structural/mechanistic, parametric/dynamical, observation/measurement and scope/compositional
+   assumptions can be separated while the executable world remains fixed. Each matched comparison
+   changes one locus rather than conflating all programmable dimensions.
 2. **Discovery is evaluated through evidence-conditioned transitions, not self-report alone.** Fixed
    checkpoints bind beliefs to evaluator-owned counterfactual queries and to the next experimental
    operation selected by the agent.
@@ -108,10 +112,11 @@ models to transferable laws. It makes four contributions.
 
 Development results already establish a consequential boundary in the entity/ontology layer: explicit
 information reshapes behavior, but nominal-information warnings and endpoint gains do not reliably
-reveal whether the supplied mapping is correct. The formal core therefore asks whether autonomously
-acquired evidence selectively repairs that wrong mapping. Registered extensions ask whether the same
-capability holds when the error lies in causal structure, parameterization or observation semantics,
-and whether the resulting law survives transfer without the original session context.
+reveal whether the supplied mapping is correct. The formal programme therefore begins with selective
+repair of that wrong mapping, then requires independently qualified parametric/dynamical and
+structural/mechanistic blocks before making a cross-locus claim. Observation-model interventions and
+scope-aware transfer remain separately identifiable boundaries rather than convenient post-hoc
+re-labellings of entity results.
 
 ```{=latex}
 \begin{figure*}[!t]
@@ -175,12 +180,15 @@ checkpoints and evaluator-owned tests are needed to distinguish these cases.
 
 ## 3.1 Fixed world, programmable initial world model
 
-Each matched comparison begins with one executable world containing a fixed evaluator-owned law. The
+Each matched comparison begins with one executable world containing a fixed evaluator-owned law. Write
+the world as $W=(\mathcal{E},G,\Theta,O,C)$: entities, causal/mechanistic structure, parameters and
+dynamics, observation mapping and the authoritative public contract. The agent instead begins with
+$M_0=(\widehat{\mathcal{E}},\widehat{G},\widehat{\Theta},\widehat{O},\widehat{S})$, where
+$\widehat{S}$ represents assumptions about scope, modularity and compositional applicability. The
 public task, action space, actual observation channels, resource card, safety rules and bound
-stochastic identity are held constant. We intervene only on the agent-facing initial world model
-$M_0$: the compact set of assumptions available before the first experiment. This separation is
-essential. Changing the hidden law or public contract would create a different task; changing $M_0$
-creates a controlled epistemic intervention within the same task.
+stochastic identity are held constant. We intervene only on one declared component of $M_0$ before
+the first experiment. Changing $W$ or the public contract would create a different task; changing one
+component of $M_0$ creates a controlled epistemic intervention within the same task.
 
 The programmable intervention space has four scientific layers and one non-intervention boundary.
 
@@ -198,6 +206,7 @@ Entity / ontology & identity--property mappings, entity classes and property bun
 Structural / mechanistic & causal topology, active process modules and dominant-pathway assumptions & separately registered extension \\
 Parametric & coefficient signs, thresholds, orderings and plausible ranges & separately registered extension \\
 Observation model & instrument mapping, reliability, bias and noise assumptions & secondary diagnostic probe \\
+Scope / compositionality & applicability domains, invariant modules and transfer boundaries & context-reset artifact-transfer study \\
 Contract / resource boundary & budget, safety, action permissions and actual observation interface & authoritative and fixed; never treated as a manipulable prior \\
 \bottomrule
 \end{tabularx}
@@ -214,7 +223,8 @@ The current entity/ontology implementation realizes the misspecified condition t
 dossier: the same property bundles, fields, values, wording and confidence language are retained, but
 the bundles are permuted across material identifiers. Structural, parametric and observation-model
 interventions require their own matched encodings and identifiability qualification; they cannot be
-declared equivalent to material misindexing after observing the result. Experimental evidence remains
+declared equivalent to material misindexing after observing the result. Scope/compositionality is
+tested only when a learned artifact enters a fresh target context. Experimental evidence remains
 explicitly authoritative in all conditions. A wrong initial model is therefore not a trick question
 about obedience; it tests whether the agent seeks and uses evidence that can override a plausible
 scientific representation.
@@ -264,20 +274,23 @@ validity is classified as local optimization rather than law discovery.
 
 ## 4.1 Chemical-world cohort and intervention studies
 
-The formal public cohort spans five task families: electrochemical conversion, reaction followed by
-crystallization, reaction followed by distillation, phase-partition discovery and safety-constrained
-reaction. Five independently selected public worlds per task yield 25 task-by-world clusters. Each
-cluster contains the three entity/ontology arms, for 75 participant cells. Development and
-method-qualification worlds are disjoint from this cohort. A separate private cohort is committed in
-advance and remains sealed until public analysis is frozen.
+The programme is layer-stratified. Its entity/ontology backbone spans electrochemical conversion,
+reaction followed by crystallization, reaction followed by distillation, phase-partition discovery
+and safety-constrained reaction. Five independently selected public worlds per task yield 25
+task-by-world clusters and 75 participant cells across opaque, aligned and misspecified arms. A
+separate private cohort repeats this entity-level comparison once under sealed within-family worlds.
+Parametric/dynamical and structural/mechanistic blocks each require two independently qualified task
+families and five worlds per task. Development, qualification, public and private identities remain
+disjoint.
 
-This 75-cell matrix is the primary, entity-level slice of a broader initial-world-model programme;
-it is not a claim that material dossiers exhaust the space of scientific priors. The studies are
-organized so that breadth does not become an uncontrolled benchmark:
+This design uses ChemWorld's programmability to manipulate different components of $M_0$, but does
+not turn the paper into a full factorial benchmark. Every block changes one locus, has its own
+identifiability gate and retains its own denominator:
 
-1. **Study A — Prior-conditioned free discovery.** The current five-task, three-arm matrix tests
-   whether an agent acquires evidence, updates predictions and rejects a wrong entity/ontology model
-   under a fixed world and shared campaign ledger.
+1. **Study A — Initial-model-conditioned free discovery.** A-E tests entity/ontology models across
+   five task families; A-P and A-S test parametric/dynamical and structural/mechanistic models across
+   two qualified task families each. A cross-locus claim requires terminal evidence from all three
+   predeclared blocks; an entity-only result remains entity-specific.
 2. **Study B — Matched-evidence falsification.** A cloned-world secondary probe presents the same
    contradictory evidence to each arm, separating failure to seek evidence from failure to update
    after seeing it. It uses independent sessions and is excluded from Study A denominators.
@@ -289,10 +302,11 @@ organized so that breadth does not become an uncontrolled benchmark:
    No-artifact, trajectory and typed-law conditions are compared, and within-family replication is
    kept separate from genuine compositional transfer.
 
-Structural/mechanistic, parametric and observation-model interventions are registered extensions to
-Study A rather than hidden post-hoc subgroups. Each extension must first pass its own identifiability
-and matched-information preflight; the experiment matrix is intentionally sparse and selected by
-mechanistic coverage, not expanded into a full factorial by default.
+Observation/measurement interventions are registered as a separate boundary probe. They first require
+two-task identifiability and a development triplet and do not enter the formal denominator without a
+new user freeze. Scope/compositional assumptions are tested only in Study D. This preserves a complete
+conceptual intervention space without claiming that every programmable coordinate has already been
+executed.
 
 Environment qualification and participant outcomes form separate evidence layers. Environment tests
 establish that the hidden relations are coherent, identifiable and executable through the public
@@ -302,11 +316,11 @@ measurement surface. They do not show that an agent discovers those relations.
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{figures/prior-discovery/figure-2-formal-cohort.pdf}
-\caption{\textbf{Entity-level confirmatory core and separated study architecture.}
-\textbf{a,} Five task families each contribute five public-formal worlds to Study A, selected independently of participant outcomes; development, public and private identities are disjoint.
-\textbf{b,} Each independent task--world cluster contains opaque, aligned and misindexed entity/ontology cells. Every cell uses one persistent session for four complete experiments, with checkpoints before evidence and after one, two and four experiments.
-\textbf{c,} Free discovery, matched-evidence falsification, evaluator truth and action tests, private within-family replication and artifact-only compositional transfer retain separate sessions, resources and denominators.
-\textbf{d,} The planned public denominator comprises 25 independent clusters, 75 participant cells and 300 complete experiments, with 100 provider-free held-out truth executions and 450 provider-free blind executions nested within the corresponding clusters. These are frozen design denominators, not completed outcomes.}
+\caption{\textbf{Layer-stratified study architecture.}
+\textbf{a,} The entity/ontology backbone uses five task families and five public worlds per task; development, public and sealed private identities are disjoint.
+\textbf{b,} Every matched task--world cluster contains opaque, aligned and misspecified initial models for one declared locus. Campaign length and checkpoints are owned by the locus pattern rather than forced into one universal four-experiment limit.
+\textbf{c,} Parametric/dynamical and structural/mechanistic blocks require separate qualification; observation-model and scope/compositional studies retain separate admission decisions.
+\textbf{d,} Free discovery, matched-evidence falsification, evaluator truth and action tests, within-family replication and context-reset artifact transfer retain separate sessions, resources and denominators. The diagram is a design map, not completed outcome evidence.}
 \label{fig:formal-cohort}
 \end{figure*}
 ```
@@ -318,8 +332,10 @@ outcome, the participant chooses the next operation through the host-owned labor
 validates schemas, executes transactions, updates resources and protects private state, but does not
 select or repair scientific actions.
 
-Each campaign contains four complete experiments and typed checkpoints before evidence, after the
-first and second experiments, and at the end of the fourth experiment. A checkpoint records the
+Campaign length is pattern-owned: A-E uses eight complete experiments with checkpoints after
+0, 2, 4, 6 and 8 experiments; A-P uses ten with checkpoints after 0, 2, 4, 7 and 10; A-S uses twelve
+with checkpoints after 0, 3, 6, 9 and 12. These counts remain subject to the registered resource
+calibration and final freeze before participant execution. A checkpoint records the
 agent's assessment of initial-model reliability at the manipulated layer, predictions, uncertainty,
 evidence references, executable law summary and next experimental intent. Checkpoints do not create
 additional provider sessions.
@@ -345,25 +361,27 @@ provider denominators.
 
 ## 4.4 Hypotheses and estimands
 
-Let $E_{a,k}$ denote held-out prediction error for prior arm $a$ at checkpoint $k$. The primary
-hypothesis tests selective evidence-driven correction:
+Let $E_{a,k}^{(\ell)}$ denote held-out prediction error for initial-model arm $a$, checkpoint $k$ and
+intervention locus $\ell$. Each block tests selective evidence-driven correction:
 
 ```{=latex}
 \[
 \begin{aligned}
-C_{\mathrm{prior}}={}&
-  (E_{\mathrm{misindexed,pre}}-E_{\mathrm{misindexed,final}})\\
-&-(E_{\mathrm{aligned,pre}}-E_{\mathrm{aligned,final}}).
+C_{\ell}={}&
+  (E^{(\ell)}_{\mathrm{misspecified,pre}}-E^{(\ell)}_{\mathrm{misspecified,final}})\\
+&-(E^{(\ell)}_{\mathrm{aligned,pre}}-E^{(\ell)}_{\mathrm{aligned,final}}).
 \end{aligned}
 \]
 ```
 
-Success requires the lower confidence bound for $C_{\mathrm{prior}}$ to exceed zero, the wrong-prior
-condition to improve, and the aligned condition not to deteriorate beyond a prespecified tolerance.
-Correct-prior utility, wrong-prior vulnerability and knowledge-to-action translation form a
-hierarchical secondary family. For the structural, parametric and observation-model extensions, the
-same estimands are re-bound to the manipulated layer before execution; their results cannot be pooled
-with the entity-level primary contrast unless the intervention semantics and denominators are identical.
+For A-E, the misspecified arm is instantiated by the frozen misindexing and $C_{\ell}=C_E$ is the
+confirmatory contrast. Success requires the lower confidence bound for the locus-specific contrast to
+exceed zero, the wrong-prior condition to improve, and the aligned condition not to deteriorate beyond
+a prespecified tolerance. Correct-prior utility, wrong-prior vulnerability and knowledge-to-action
+translation form a hierarchical secondary family. A cross-locus conclusion requires concordant,
+separately reported A-E, A-P and A-S results; standardized effects may be synthesized hierarchically,
+but raw contrasts are not pooled as if their intervention semantics were identical. Observation-model
+results remain a distinct boundary analysis unless separately frozen.
 Endpoint, calibration, behavior, law-summary, transfer, resource and safety outcomes are reported as
 separate channels rather than one leaderboard score.
 
@@ -587,10 +605,10 @@ execution. The section is reserved for:
 - blind incumbent-versus-recommendation outcomes;
 - complete failure, censoring, resource, token, cost and wall-time denominators.
 
-The primary formal result is the entity/ontology intervention in Study A. Any structural,
-parametric or observation-model extension will be reported in a separately identified subsection with
-its own intervention audit and denominator; it will not be silently merged into the primary arm
-contrast.
+The first formal result is the entity/ontology intervention in Study A-E. The paper-level
+initial-world-model claim remains conditional on terminal A-P and A-S blocks with their own
+qualification, denominators and locus-specific estimands. Any observation-model extension is reported
+as a separately frozen boundary study rather than silently pooled into the main effect.
 
 No development value will be substituted for a missing formal result.
 
@@ -656,9 +674,11 @@ breadth but only five independent public worlds per task, so the confirmatory de
 moderate-to-large effects rather than subtle differences. Evaluator queries are registered before
 participant execution, but any finite query set samples only part of a hidden law. The private cohort
 tests new worlds within the same task families rather than transfer to an unseen mechanism family.
-The current completed data also manipulate only the entity/ontology layer; structural, parametric and
-observation-model interventions remain registered extensions until their independent preflights and
-formal blocks are run. Finally, exact software replay does not eliminate model-provider variability;
+The current completed multi-task data manipulate only the entity/ontology layer, with one retained
+single-world parametric pilot. Structural, multi-world parametric and observation-model interventions
+remain unsupported until their independent preflights and registered blocks reach terminal state.
+Scope/compositional transfer is a further conditional claim, not a synonym for private replication.
+Finally, exact software replay does not eliminate model-provider variability;
 provider attempts and session failures are reported as operational characteristics rather than
 independent scientific samples.
 
@@ -666,15 +686,16 @@ independent scientific samples.
 
 ## 9.1 World and initial-model construction
 
-Each task instantiates a public experimental contract and a private evaluator-owned material or
-process law. Public formal worlds are selected deterministically from a namespace disjoint from
-development worlds. Within each world cluster, the three entity/ontology arms share the hidden law,
-public contract, resource card and stochastic identity. Aligned and misindexed dossiers contain
-identical fields, values, wording and confidence language; the latter applies a frozen permutation to
-the material identifiers. Structural, parametric and observation-model extensions alter only their
-declared agent-facing representation while retaining the same external world and contract. A layer
-extension is admitted only after a separate identifiability audit confirms that its aligned and
-misspecified encodings are matched in information volume, wording and confidence.
+Each task instantiates an executable $W=(\mathcal{E},G,\Theta,O,C)$ and a participant-facing
+$M_0=(\widehat{\mathcal{E}},\widehat{G},\widehat{\Theta},\widehat{O},\widehat{S})$. Public formal
+worlds are selected deterministically from a namespace disjoint from development worlds. Within each
+world cluster, all arms share $W$, the resource card and stochastic identity; exactly one declared
+component of $M_0$ changes. In A-E, aligned and misindexed dossiers contain identical fields, values,
+wording and confidence language, while the latter applies a frozen permutation to material
+identifiers. Structural, parametric and observation-model extensions alter only their declared
+agent-facing representation while retaining the external world and contract. A layer extension is
+admitted only after a separate identifiability audit confirms that aligned and misspecified encodings
+are matched in information volume, wording, confidence, baseline plausibility and falsification cost.
 
 ## 9.2 Transactional execution and resources
 
@@ -687,7 +708,7 @@ quench and transfer time, and closeout reserve across all experiments in a campa
 ## 9.3 Persistent Codex/MCP execution
 
 Each participant cell launches one Codex Responses process and retains one provider session across the
-four complete experiments. Web search is disabled. The participant instructions prohibit shell use,
+complete pattern-owned campaign. Web search is disabled. The participant instructions prohibit shell use,
 file changes and repository inspection and require physical decisions to pass through the host-owned
 `chemworld_lab` STDIO MCP server. The bounded domain tools expose material information, belief
 checkpoints, operation submission, public status and history, artifact inspection and final

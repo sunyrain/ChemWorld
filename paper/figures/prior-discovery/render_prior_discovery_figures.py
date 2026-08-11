@@ -281,16 +281,16 @@ def render_figure_1() -> list[Path]:
     ax_a.text(
         0.50,
         0.95,
-        "Target layer: entity · structure · parameter · observation",
+        "Target locus: entity · structure · dynamics · observation · scope",
         ha="center",
         va="center",
         fontsize=5.8,
         color=COLORS["muted"],
     )
     arm_specs = [
-        ("Opaque", "Anonymous IDs\nNo task dossier", COLORS["opaque"], "#EEF1F2"),
-        ("Aligned", "Useful nominal\nproperties", COLORS["aligned"], COLORS["teal_light"]),
-        ("Misindexed", "Same properties\nWrong ID mapping", COLORS["misindexed"], COLORS["orange_light"]),
+        ("Opaque", "No claim at the\ntarget locus", COLORS["opaque"], "#EEF1F2"),
+        ("Aligned", "Matched model\nconsistent with W", COLORS["aligned"], COLORS["teal_light"]),
+        ("Misspecified", "Matched model\nwrong at one locus", COLORS["misindexed"], COLORS["orange_light"]),
     ]
     for index, (name, detail, edge, face) in enumerate(arm_specs):
         x = 0.02 + index * 0.325
@@ -322,7 +322,7 @@ def render_figure_1() -> list[Path]:
     ax_a.text(
         0.50,
         0.045,
-        "Current confirmatory core: entity / ontology layer",
+        "One preregistered component of M0 changes; W and the public contract stay fixed",
         ha="center",
         va="center",
         fontsize=6.8,
@@ -370,7 +370,7 @@ def render_figure_1() -> list[Path]:
     ax_b.text(
         0.50,
         0.07,
-        "Four complete experiments; checkpoints after 0, 1, 2 and 4",
+        "Pattern-owned campaign: A-E 8 · A-P 10 · A-S 12 complete experiments",
         ha="center",
         fontsize=6.6,
         color=COLORS["muted"],
@@ -481,9 +481,8 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
         len(design["tasks"]) != 5
         or expected["independent_task_world_clusters"] != 25
         or expected["participant_cells"] != 75
-        or expected["complete_experiments"] != 300
     ):
-        raise ValueError("formal design denominators do not match the frozen figure contract")
+        raise ValueError("entity-level design inputs do not match the figure contract")
 
     fig = plt.figure(figsize=(7.2, 5.05))
     grid = fig.add_gridspec(
@@ -505,7 +504,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     for ax in (ax_a, ax_b, ax_c, ax_d):
         setup_schematic_ax(ax)
 
-    ax_a.set_title("Five heterogeneous task families define the entity-level core", loc="left", fontweight="bold", pad=5)
+    ax_a.set_title("A-E: five task families form the entity / ontology backbone", loc="left", fontweight="bold", pad=5)
     task_colors = [COLORS["blue"], COLORS["aligned"], COLORS["misindexed"], COLORS["violet"], COLORS["red"]]
     short_names = ["Electrochemical", "Crystallization", "Distillation", "Partition", "Safety-constrained"]
     mechanisms = [
@@ -542,42 +541,32 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     )
     panel_label(ax_a, "a", x=-0.018)
 
-    ax_b.set_title("Study A: one world cluster", loc="left", fontweight="bold", pad=5)
-    y_positions = [0.72, 0.49, 0.26]
-    for arm, y in zip(ARM_ORDER, y_positions):
-        color = ARM_COLOR[arm]
+    ax_b.set_title("Study A: sparse locus-specific blocks", loc="left", fontweight="bold", pad=5)
+    block_specs = [
+        ("A-E", "Entity / ontology", "5 tasks × 5 worlds", "8 experiments", COLORS["blue"]),
+        ("A-P", "Parameters / dynamics", "2 tasks × 5 worlds", "10 experiments", COLORS["aligned"]),
+        ("A-S", "Structure / mechanism", "2 tasks × 5 worlds", "12 experiments", COLORS["violet"]),
+    ]
+    for index, (block, locus, coverage, campaign, color) in enumerate(block_specs):
+        y = 0.74 - index * 0.25
         rounded_box(
             ax_b,
             0.02,
             y - 0.07,
-            0.22,
+            0.18,
             0.14,
-            ARM_LABEL[arm],
+            block,
             facecolor="#F7F9FA",
             edgecolor=color,
-            fontsize=6.6,
+            fontsize=7.0,
             fontweight="bold",
         )
-        for experiment in range(4):
-            x = 0.33 + experiment * 0.15
-            ax_b.add_patch(
-                Rectangle(
-                    (x, y - 0.045),
-                    0.105,
-                    0.09,
-                    facecolor=color,
-                    edgecolor="white",
-                    linewidth=0.6,
-                    alpha=0.88,
-                )
-            )
-            ax_b.text(x + 0.052, y, f"E{experiment + 1}", ha="center", va="center", fontsize=6.0, color="white", fontweight="bold")
-            if experiment < 3:
-                arrow(ax_b, (x + 0.108, y), (x + 0.145, y), color=COLORS["muted"], width=0.8, mutation_scale=6)
-        for checkpoint_x in [0.285, 0.435, 0.585, 0.885]:
-            ax_b.add_patch(Circle((checkpoint_x, y + 0.09), 0.012, facecolor="white", edgecolor=color, linewidth=1.1))
-    ax_b.text(0.62, 0.93, "Checkpoints: pre · 1 · 2 · 4 experiments", ha="center", fontsize=6.3, color=COLORS["muted"])
-    ax_b.text(0.50, 0.08, "Three cells share the world but never share a session", ha="center", fontsize=6.5, color=COLORS["muted"])
+        ax_b.text(0.25, y + 0.035, locus, ha="left", va="center", fontsize=6.5, fontweight="bold", color=COLORS["ink"])
+        ax_b.text(0.25, y - 0.038, f"{coverage} · {campaign}", ha="left", va="center", fontsize=6.0, color=COLORS["muted"])
+        for arm_index, arm_color in enumerate((COLORS["opaque"], COLORS["aligned"], COLORS["misindexed"])):
+            ax_b.add_patch(Circle((0.78 + arm_index * 0.075, y), 0.026, facecolor=arm_color, edgecolor="white", linewidth=0.5))
+    ax_b.text(0.855, 0.93, "opaque · aligned · wrong", ha="center", fontsize=6.2, color=COLORS["muted"])
+    ax_b.text(0.50, 0.08, "A-O requires a separate admission; scope is tested only after context reset", ha="center", fontsize=6.3, color=COLORS["muted"])
     panel_label(ax_b, "b", x=-0.10)
 
     ax_c.set_title("Evidence partitions", loc="left", fontweight="bold", pad=5)
@@ -598,24 +587,24 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     ax_c.text(0.50, 0.10, "No evaluator feedback enters the participant session", ha="center", fontsize=6.4, color=COLORS["muted"])
     panel_label(ax_c, "c", x=-0.10)
 
-    ax_d.set_title("Core denominators", loc="left", fontweight="bold", pad=5)
+    ax_d.set_title("Planned block denominators", loc="left", fontweight="bold", pad=5)
     denominator_rows = [
-        ("Independent clusters", "25", COLORS["blue"]),
-        ("Participant cells", "75", COLORS["aligned"]),
-        ("Complete experiments", "300", COLORS["misindexed"]),
-        ("Held-out truth runs", "100", COLORS["violet"]),
-        ("Blind executions", "450", COLORS["red"]),
+        ("A-E public", "25 · 75 · 600", COLORS["blue"]),
+        ("A-P", "10 · 30 · 300", COLORS["aligned"]),
+        ("A-S", "10 · 30 · 360", COLORS["violet"]),
+        ("A-E private", "25 · 75 · 600", COLORS["misindexed"]),
     ]
     for index, (label, value, color) in enumerate(denominator_rows):
-        y = 0.80 - index * 0.16
-        ax_d.add_patch(Circle((0.15, y), 0.042, facecolor=color, edgecolor="white", linewidth=0.6))
-        ax_d.text(0.15, y, value, ha="center", va="center", fontsize=6.3, color="white", fontweight="bold")
-        ax_d.text(0.25, y, label, ha="left", va="center", fontsize=6.5, color=COLORS["ink"])
-    ax_d.text(0.08, 0.05, "Operations, checkpoints and repeats remain nested—not extra samples", ha="left", fontsize=6.2, color=COLORS["muted"], wrap=True)
+        y = 0.80 - index * 0.19
+        ax_d.add_patch(Rectangle((0.05, y - 0.055), 0.90, 0.11, facecolor="#F7F9FA", edgecolor=color, linewidth=0.9))
+        ax_d.text(0.11, y, label, ha="left", va="center", fontsize=6.3, color=COLORS["ink"], fontweight="bold")
+        ax_d.text(0.91, y, value, ha="right", va="center", fontsize=6.2, color=color, fontweight="bold")
+    ax_d.text(0.07, 0.08, "clusters · sessions · experiments", ha="left", fontsize=6.1, color=COLORS["muted"])
+    ax_d.text(0.07, 0.035, "Final evaluator counts follow the resource/design freeze", ha="left", fontsize=5.8, color=COLORS["muted"])
     panel_label(ax_d, "d", x=-0.10)
 
     fig.suptitle(
-        "The entity-level confirmatory core preserves the world-level denominator",
+        "A sparse programme intervenes on the initial world model one locus at a time",
         x=0.045,
         y=0.965,
         ha="left",
@@ -626,7 +615,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     fig.text(
         0.045,
         0.018,
-        "Study A contains 25 independent task × world clusters; non-entity extensions and artifact transfer retain separate protocols and denominators.",
+        "World programmability defines the intervention space; qualification, matched arms and separate denominators preserve causal interpretability.",
         ha="left",
         fontsize=6.7,
         color=COLORS["muted"],

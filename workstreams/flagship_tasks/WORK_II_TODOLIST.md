@@ -6,6 +6,11 @@
 估算已经撤回，等待按本文件重新冻结。** 现有 pilot 全部保留为 development evidence，不重跑、不替换，
 也不自动进入 5-seed block。
 
+论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
+Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
+`wangxiaonan@tsinghua.edu.cn`。稿件 front matter 是作者信息的唯一当前入口，后续构建不得改变顺序、共同一作
+标记或通讯作者标记。
+
 ## 1. 核心问题与论文边界
 
 中心问题：
@@ -18,12 +23,27 @@
 `initial model → experiment selection → evidence → prediction/update → executable law → action → transfer`
 
 - Work I 提供可组合世界、有效测量、资源账本、事务语义和 exact replay。
-- Work II 研究对 agent 初始世界认识的干预，不局限于材料名称：
-  - **A-E：entity / ontology**，材料、类别或实体关系先验；
-  - **A-P：parametric**，连续过程规律、响应面、最优窗口和 turnover 先验；
-  - **A-S：structural / mechanistic**，因果结构、主导机制和交互模块先验。
+- Work II 的基本实验对象不是“材料提示”，而是外部可执行世界与 agent 初始世界模型之间的可控错配：
+  - 外部世界记为 `W = (E, G, Θ, O, C)`，分别表示实体、机制/因果图、参数与动力学、观测映射以及公开契约；
+  - agent 初始世界模型记为 `M0 = (Ê, Ĝ, Θ̂, Ô, Ŝ)`，最后一项表示规律的适用域、模块边界与可组合性认识；
+  - 同一个 matched cluster 内固定 `W`，只把 `M0` 中一个预注册 locus 设为 opaque、aligned 或
+    misspecified，其他信息量、置信度、资源、噪声和安全面匹配。
+- 可干预的初始认识不局限于材料名称：
+  - **A-E：entity / ontology**，材料、类别、实体关系和属性归属；
+  - **A-P：parametric / dynamical**，连续规律、阈值、响应面、最优窗口和 turnover；
+  - **A-S：structural / mechanistic**，因果拓扑、主导路径、交互模块和干预后果；
+  - **A-O：observation / measurement**，仪器映射、偏差、噪声结构、可靠性和可观测性假设；
+  - **D-Scope：scope / compositionality**，某条规律能否跨模块、组合世界或条件域迁移，只在 context-reset
+    transfer 中研究，不与同任务 private replication 混同。
+- `C` 中的真实预算、安全限制、允许操作和观测接口始终是权威公开契约，不制造错误契约来冒充科学先验；
+  否则测到的是 instruction conflict、风险服从或接口理解，而不是世界模型修正。
+- 世界可编程定义的是**干预宇宙**，不是全因子执行义务。每个正式比较只改变一个 locus；论文用稀疏、
+  机制覆盖导向的代表性 blocks 建立跨层结论，不把 entity、process、mechanism、observation 和 transfer
+  一次性全部放开。
 - 每个 world 内物理规律保持固定；不把“运行中物理规律变化”作为主问题。
-- A-E 是 primary confirmatory study；A-P/A-S 是解释初始世界模型影响边界的 registered secondary studies。
+- A-E 是实体层 confirmatory backbone；A-P/A-S 是形成 general initial-world-model claim 所必需的预注册
+  non-entity blocks。A-O 先作为独立边界 probe 资格化，不能在看见 participant outcome 后临时并入主结论；
+  D-Scope 由 Study D 单独承担。
 - 当前 formal participant 只允许 WellAU `gpt-5.6-sol`、medium reasoning、Codex harness + ChemWorld MCP。
   DeepSeek `deepseek-v4-flash` 只用于 development harness 和预实验，结果不能混入 formal denominator。
 - 论文结论归属于完整 agent system，不外推为裸模型能力或跨模型排名。
@@ -159,6 +179,9 @@ stirring；participant cell 只自主改变预注册的两个连续变量。refe
 
 A-E 的五个 task family 保持 electrochemical、crystallization、distillation、partition 和 reaction safety；
 A-P 当前候选为 electrochemical 与重新设计后的 reaction safety；A-S 需重新产生两个通过 Q0–Q2 的任务候选。
+A-O 不直接膨胀当前基线矩阵：先在至少两个 task family 上完成 provider-free identifiability screen 和一个 D1，
+再由用户决定是否注册成独立 formal block。即使 A-O 不执行，论文也可以准确声称初始世界模型具有观测层；
+但不能声称 agent 已在该层完成修正。D-Scope 只通过 Study D 的 target-context 初始状态与 artifact hand-off 测量。
 
 轮次依据：
 
@@ -204,7 +227,7 @@ D 保持 conditional：C2 未证明规律可被形成和执行前，不启动 tr
 | Claim | 必需证据 | Sessions | Complete experiments | 允许的最高表述 |
 |---|---|---:|---:|---|
 | C1 | A-E public + private + C | 150 | 1,200 | entity-level explicit-prior correction |
-| C2 | C1 + terminal A-P + A-S，且每 locus 两个 tasks | 210 | 1,860 | general initial-world-model effects |
+| C2 | C1 + terminal A-P + A-S，且每 locus 两个 tasks | 210 | 1,860 | cross-locus initial-world-model effects across entity, dynamics and mechanism |
 | C3 | C2 + B | 240 | 1,860 | acquisition failure 与 updating failure 的机制区分 |
 | C4 | C3 + D | 280 | 2,180 | context-reset compositional transfer of executable laws |
 
@@ -303,6 +326,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   完成 blind leakage/identifiability audit。
 - [ ] **W2-24** 为通过 Q2 的 task 各运行一个三臂 D1；只有预注册条件触发时运行 D2。
 - [ ] 用户审核 D1/D2、轨迹样例、资源和 evaluator 结果；未经审核不进入 R5。
+- [ ] **W2-28** 冻结 A-S 的两个机制干预候选，并为 A-O 写独立的 identifiability/D1 决策卡；在用户审核前
+  不把 observation-model 或 scope/compositionality 扩展加入正式 provider 分母。
 
 ### P1 — 重冻正式矩阵
 

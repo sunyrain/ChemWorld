@@ -5,10 +5,12 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
 | Manuscript claim | Evidence layer | Authoritative source | Current status | Allowed wording |
 |---|---|---|---|---|
 | Selected fixed-law worlds expose coherent and identifiable evaluator relations | Environment qualification | Current Gate A bindings in `configs/current.json` and the bound design/qualification reports | Complete | Environment qualified; never agent discovery |
-| Prior quality is the only matched participant intervention within a world cluster | Frozen protocol | `configs/benchmark/work_ii_formal_design_v0.1.json` and formal-design audit | Complete | Design property, not an observed effect |
-| The current formal core manipulates the entity/ontology layer of the initial world model | Frozen protocol and manuscript scope | Current Work II design plus the updated intervention matrix in `WORK_II_TODOLIST.md` | Complete | The 75-cell core is entity-level; do not generalize it to structural, parametric or observation-model priors |
+| Exactly one component of the participant-facing initial world model changes within a matched world cluster | Paper-level design contract | `WORK_II_TODOLIST.md` and the locus-specific experiment note frozen before each block | Defined; formal redesign pending | The external world, contract, resources, noise and safety remain fixed; design property, not an observed effect |
+| ChemWorld supports entity, structural, parametric, observation and scope/compositional initial-model interventions | Platform/design scope | Work I world programmability plus the Work II intervention map | Conceptually supported; outcome support differs by locus | Describe the intervention universe, but never imply that unexecuted loci have agent outcomes |
+| The entity/ontology block is the confirmatory backbone rather than the whole paper | Current programme scope | `WORK_II_TODOLIST.md` | Complete as a scope decision; formal outcomes absent | A-E supports only entity-level claims; general initial-world-model wording requires terminal A-P and A-S evidence |
 | Electrochemical parametric initial-model intervention produces a scoreable one-world participant/evaluator trajectory | Development D1 extension | `work-ii-parametric-initial-model-pilot-evaluation-20260811.json` | Complete for one task/world, non-formal | The wrong parameter model was behaviorally rejected and prediction error improved, but finite-budget endpoint recovery remained incomplete; do not generalize across tasks or loci |
-| Structural and observation-model interventions are supported by current outcomes | Future registered extensions | Structural distillation screen failed admission; no observation-model outcome | Not supported | Describe as candidate extensions only; no agent-capability inference |
+| Structural and observation-model interventions are supported by current outcomes | Future registered extensions | Structural distillation screen failed admission; no observation-model outcome | Not supported | Describe the layers and qualification plan only; no agent-capability inference |
+| Scope/compositional assumptions have been corrected or transferred | Future Study D | No context-reset artifact-transfer outcome | Not supported | Programmable transfer boundary only; private within-family replication is not compositional transfer |
 | Primary estimand measures selective wrong-prior correction | Frozen analysis | `configs/benchmark/work_ii_analysis_plan_v0.1.json` and power audit | Complete | Preregistered question; no result yet |
 | WellAU development endpoints change under explicit priors | Development participant evidence | `work-ii-development-basic-analysis-v0.1.json` | Complete, non-formal | Development observation for the retained method/harness only |
 | DeepSeek development endpoints change under explicit priors | Development participant evidence | `work-ii-deepseek-recovery-amended-analysis-v0.1.json` | Complete, non-formal | Development observation for the recovery-amended method/harness only |
@@ -48,11 +50,13 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
   single-world parametric case study, not a general initial-world-model result.
 - Provider groups remain separate in every scientific contrast.
 
-## Formal denominators reserved for later integration
+## Planned formal denominators reserved for later integration
 
-- Five tasks, five public worlds per task and three prior arms: 25 independent world clusters and
-  75 participant cells.
-- Four complete experiments and four prediction/belief checkpoints per cell.
-- Four evaluator-held queries per task-world cluster, shared across arms and checkpoints.
-- One final recommendation per cell, with blind incumbent and recommendation targets evaluated in
-  three paired-noise replicates each.
+- A-E public: five tasks × five public worlds × three initial-model arms = 25 independent clusters,
+  75 participant cells and 600 complete experiments under the planned eight-experiment pattern.
+- A-E private: the same 25-cluster/75-cell/600-experiment denominator under a one-shot sealed
+  within-family cohort; this is replication, not compositional transfer.
+- A-P and A-S: two independently qualified tasks × five worlds × three arms per locus, with planned
+  ten- and twelve-experiment patterns respectively. They keep separate estimands and denominators.
+- Exact held-out-query and blind-replay counts must be regenerated in W2-25 with the pattern-specific
+  checkpoints and evaluator contract; the superseded four-experiment design is not an execution authority.
