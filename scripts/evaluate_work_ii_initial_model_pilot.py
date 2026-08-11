@@ -36,7 +36,7 @@ from chemworld.eval.work_ii_truth import (
 
 ROOT = Path(__file__).resolve().parents[1]
 ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
-REPORT_VERSION = "chemworld-work-ii-initial-model-pilot-evaluation-0.2"
+REPORT_VERSION = "chemworld-work-ii-initial-model-pilot-evaluation-0.3"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -352,6 +352,62 @@ def _temperature_direction_diagnostic(
     }
 
 
+def _registered_temperature_direction(config: Mapping[str, Any]) -> dict[str, Any]:
+    aligned = _mapping(_mapping(config.get("prior_arms")).get("aligned_nominal"))
+    initial_model = _mapping(aligned.get("initial_world_model"))
+    claim = _mapping(_mapping(initial_model.get("model")).get("claim"))
+    relation = claim.get("expected_relation")
+    if not isinstance(relation, str):
+        return {
+            "preferred_side": None,
+            "source": None,
+            "claim": None,
+        }
+    higher = "higher-temperature side" in relation
+    lower = "lower-temperature side" in relation
+    if not higher or not lower:
+        return {
+            "preferred_side": None,
+            "source": "aligned_nominal.initial_world_model.model.claim.expected_relation",
+            "claim": relation,
+        }
+    preferred_side = (
+        "higher_temperature"
+        if relation.index("higher-temperature side") < relation.index("lower-temperature side")
+        else "lower_temperature"
+    )
+    return {
+        "preferred_side": preferred_side,
+        "source": "aligned_nominal.initial_world_model.model.claim.expected_relation",
+        "claim": relation,
+    }
+
+
+def _temperature_direction_contract(
+    registered: Mapping[str, Any],
+    held_out_truth: Mapping[str, Any],
+) -> dict[str, Any]:
+    registered_side = registered.get("preferred_side")
+    held_out_side = held_out_truth.get("preferred_side")
+    if registered_side is None or held_out_side is None:
+        status = "undefined"
+    elif registered_side == held_out_side:
+        status = "stable"
+    else:
+        status = "query_subset_conflict"
+    return {
+        "status": status,
+        "registered_side": registered_side,
+        "held_out_truth_side": held_out_side,
+        "recovery_scoring_authorized": status == "stable",
+        "interpretation": (
+            "Binary direction recovery is scored only when the frozen aligned-prior direction and "
+            "the evaluator-held query direction agree. Prediction and executable-law errors remain "
+            "scored directly against evaluator truth regardless of this diagnostic."
+        ),
+    }
+
+
 def _truth_prediction_rows(
     evaluator_truth: Mapping[str, Any],
 ) -> list[dict[str, Any]]:
@@ -422,6 +478,9 @@ def _descriptive_interpretation(report: Mapping[str, Any]) -> dict[str, Any]:
         "H3_primary_contrast": report.get("cluster_contrast", {}).get("H3_primary_contrast"),
         "selected_observed_incumbent_count": selected_incumbent_count,
         "participant_cell_count": len(report["cells"]),
+        "temperature_direction_diagnostic_status": _mapping(
+            report.get("temperature_direction_diagnostic")
+        ).get("status"),
     }
 
 
@@ -517,6 +576,8 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
     logical_turns = denominators["participant_logical_codex_turn_count"]
     incumbent_count = interpretation["selected_observed_incumbent_count"]
     participant_count = interpretation["participant_cell_count"]
+    direction_contract = _mapping(report.get("temperature_direction_diagnostic"))
+    direction_status = direction_contract.get("status")
     lines = [
         "# Work II parametric initial-world-model pilot evaluation",
         "",
@@ -560,13 +621,23 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
         behavior = _mapping(row.get("participant_behavior"))
         direction = _mapping(row.get("temperature_direction"))
         index_diagnostic = _mapping(row.get("recommendation_index_diagnostic"))
+        recovered = direction.get("final_checkpoint_recovered")
+        direction_text = (
+            "yes"
+            if recovered is True
+            else "no"
+            if recovered is False
+            else "not scored"
+            if direction_status == "query_subset_conflict"
+            else "NA"
+        )
         lines.append(
             f"| {row['prior_arm']} | {_format_value(row, 'best_observed_score')} | "
             f"{_format_value(row, 'effective_pre_error')} | "
             f"{_format_value(row, 'effective_final_error')} | "
             f"{_format_value(row, 'checkpoint_improvement')} | "
             f"{_format_value(row, 'law_summary_error')} | "
-            f"{'yes' if direction.get('final_checkpoint_recovered') is True else 'no'} | "
+            f"{direction_text} | "
             f"{behavior.get('unique_recipe_count', 0)}/{behavior.get('exact_repeat_count', 0)} | "
             f"{behavior.get('public_unsafe_operation_count', 0)}/"
             f"{behavior.get('dynamic_physical_failure_count', 0)} | "
@@ -598,6 +669,20 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
                 f"rejections and {denominators.get('participant_platform_failure_count', 0)} "
                 "platform failures. Unsafe or physically infeasible model-selected operations "
                 "remain scientific outcomes rather than platform failures."
+            ),
+            *(
+                [
+                    "",
+                    (
+                        "The frozen registered temperature direction and the 16-query empirical "
+                        "truth direction disagree in this world. Binary direction recovery is "
+                        "therefore not scored; held-out prediction error and executable-law error "
+                        "remain valid because both are evaluated directly against exact query "
+                        "truths."
+                    ),
+                ]
+                if direction_status == "query_subset_conflict"
+                else []
             ),
             "",
             "## Development interpretation",
@@ -745,6 +830,11 @@ def main() -> int:
         truth_plan=truth_plan,
         reference_temperature_K=reference_temperature_K,
         temperature_tolerance_K=temperature_tolerance_K,
+    )
+    registered_direction = _registered_temperature_direction(config)
+    direction_contract = _temperature_direction_contract(
+        registered_direction,
+        truth_direction,
     )
     print(
         json.dumps(
@@ -948,15 +1038,39 @@ def main() -> int:
                 ),
                 "temperature_direction": {
                     "truth": truth_direction,
+                    "registered_target": registered_direction,
+                    "diagnostic_status": direction_contract["status"],
                     "pre_evidence": pre_direction,
                     "final_checkpoint": final_direction,
                     "final_law_summary": law_direction,
                     "final_checkpoint_recovered": (
                         final_direction.get("preferred_side")
+                        == registered_direction.get("preferred_side")
+                        if direction_contract["recovery_scoring_authorized"]
+                        else None
+                    ),
+                    "final_law_summary_recovered": (
+                        law_direction.get("preferred_side")
+                        == registered_direction.get("preferred_side")
+                        if direction_contract["recovery_scoring_authorized"]
+                        else None
+                    ),
+                    "final_checkpoint_matches_registered": (
+                        final_direction.get("preferred_side")
+                        == registered_direction.get("preferred_side")
+                        and registered_direction.get("preferred_side") is not None
+                    ),
+                    "final_checkpoint_matches_held_out_truth": (
+                        final_direction.get("preferred_side")
                         == truth_direction.get("preferred_side")
                         and truth_direction.get("preferred_side") is not None
                     ),
-                    "final_law_summary_recovered": (
+                    "final_law_summary_matches_registered": (
+                        law_direction.get("preferred_side")
+                        == registered_direction.get("preferred_side")
+                        and registered_direction.get("preferred_side") is not None
+                    ),
+                    "final_law_summary_matches_held_out_truth": (
                         law_direction.get("preferred_side")
                         == truth_direction.get("preferred_side")
                         and truth_direction.get("preferred_side") is not None
@@ -1073,6 +1187,8 @@ def main() -> int:
         "cluster_contrast": cluster_rows[0] if len(cluster_rows) == 1 else None,
         "truth_report_sha256": truth_report.get("report_sha256"),
         "truth_temperature_direction": truth_direction,
+        "registered_temperature_direction": registered_direction,
+        "temperature_direction_diagnostic": direction_contract,
         "action_layer": {
             "status": (
                 "platform_confounded_retained"

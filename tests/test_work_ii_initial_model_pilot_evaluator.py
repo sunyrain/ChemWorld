@@ -4,9 +4,11 @@ from scripts.evaluate_work_ii_initial_model_pilot import (
     _descriptive_interpretation,
     _parametric_controls,
     _rationale_score_match,
+    _registered_temperature_direction,
     _render_markdown,
     _scientific_trajectory_complete,
     _supplied_model_distance,
+    _temperature_direction_contract,
 )
 
 
@@ -185,3 +187,38 @@ def test_operational_failure_can_retain_a_complete_scientific_trajectory() -> No
 
     summary["analysis"]["complete_experiment_count"] = 10
     assert _scientific_trajectory_complete(summary, 10) is True
+
+
+def test_registered_temperature_direction_uses_frozen_aligned_claim() -> None:
+    config = {
+        "prior_arms": {
+            "aligned_nominal": {
+                "initial_world_model": {
+                    "model": {
+                        "claim": {
+                            "expected_relation": (
+                                "Relative to the stated reference region, the lower-temperature "
+                                "side should retain safe balanced performance more reliably than "
+                                "the higher-temperature side."
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    registered = _registered_temperature_direction(config)
+
+    assert registered["preferred_side"] == "lower_temperature"
+    assert registered["source"].endswith("claim.expected_relation")
+
+
+def test_query_subset_direction_conflict_disables_binary_recovery_scoring() -> None:
+    contract = _temperature_direction_contract(
+        {"preferred_side": "lower_temperature"},
+        {"preferred_side": "higher_temperature"},
+    )
+
+    assert contract["status"] == "query_subset_conflict"
+    assert contract["recovery_scoring_authorized"] is False
