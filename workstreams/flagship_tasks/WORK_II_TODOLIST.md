@@ -48,7 +48,7 @@
 | A-E public | entity/ontology；electrochemical、crystallization、distillation、partition、reaction safety | 25 | 75 | 300 | 设计已冻结，执行未授权 |
 | A-E private | 与 public 同任务的 sealed world-held-out replication | 25 | 75 | 300 | commitment 已冻结，public 分析后一次执行 |
 | A-S | structural/mechanistic；计划 2 tasks × 5 worlds | 10 | 30 | 120 | 候选阶段 |
-| A-P | parametric；计划 2 tasks × 5 worlds | 10 | 30 | 120 | electrochemical 环境门控通过，第二任务待筛选 |
+| A-P | parametric；计划 2 tasks × 5 worlds | 10 | 30 | 120 | electrochemical 环境门控与单-world D1 通过；第二任务及 5-world freeze 待定 |
 
 A-E 是唯一 primary confirmatory block。A-S/A-P 是 additive registered secondary blocks，不改变 A-E 的
 H3、alpha、worlds、failure rules 或正式分母。
@@ -186,6 +186,8 @@ C1 之后每一级都包含新增实现和独立资格，不应把纯 provider r
 - A-E 75-cell manifest preflight、held-out truth compiler、blind evaluator 和 formal dataset builder；
 - agent-facing `initial_world_model` 输入与 hidden arm identity 防泄露；
 - parametric/structural environment diagnostic builders 和 machine-readable summaries。
+- electrochemical parametric seed-1 D1：3/3 persistent participant sessions、12/12 experiments、
+  4/4 shared truth queries 和 18/18 paired blind replays 完成且 exact replay；未重跑 participant 轨迹。
 
 ### Intervention screening
 
@@ -193,13 +195,15 @@ C1 之后每一级都包含新增实现和独立资格，不应把纯 provider r
 |---|---|---|
 | electrochemical parametric v1, seed 0 | repaired 20/20 exact replay；gap `0.0055333 < 0.10` | 不接纳 |
 | distillation structural v1, seed 0 | 4/4 exact replay；gap `0.0303474 < 0.10` | 不接纳，不调用 provider |
-| electrochemical parametric v2, seed 1 | 20/20、0 failures、exact replay；gap `0.5849161 ≥ 0.10` | environment-qualified，D1 尚未启动 |
+| electrochemical parametric v2, seed 1 | 20/20、0 failures、exact replay；gap `0.5849161 ≥ 0.10` | environment-qualified |
+| electrochemical parametric D1, seed 1 | 3/3 cells、12/12 experiments、4/4 truth、18/18 blind exact replay | 单-world D1 通过；等待用户审核后才可冻结 5-world block |
 
 未通过的 diagnostic 只说明 intervention 不可识别，不能解释为 agent 缺乏相应推理能力。
 
 ### 当前 blockers
 
-1. W2-17：冻结两个 structural candidates 和第二个 parametric task，并完成 environment-only screens。
+1. W2-17：冻结两个 structural candidates 和第二个 parametric task，并完成 environment-only screens；
+   electrochemical parametric 5-world 扩展等待本次 D1 的用户审核。
 2. W2-10：当前 WellAU persistent-session method 的独立三臂真实资格收据尚未完成。
 3. W2-07：正式价格来源、currency ceiling 和 qualified expected ETA 尚未签字。
 4. W2-08：正式数据采集路线尚未由用户锁定。
@@ -222,7 +226,8 @@ C1 之后每一级都包含新增实现和独立资格，不应把纯 provider r
 ### P1 — 并行准备 C2，但不抢跑 provider
 
 - [ ] Structural roster：优先筛选 reaction-to-crystallization 与 reaction-safety-constrained。
-- [ ] Parametric roster：保留 qualified electrochemical candidate；筛选 flow-reaction temperature/residence-time
+- [x] Electrochemical parametric：environment gate 与单-world D1 participant/evaluator pilot 已完成；不自动扩展。
+- [ ] Parametric roster：筛选 flow-reaction temperature/residence-time
   或 flow-rate operating-window law。
 - [ ] 新 checkpoint 写通用字段 `initial_model_available` 与 `challenged_model_fields`；历史 entity 轨迹只读兼容。
 - [ ] 每个通过环境门控的 task 先执行一个三臂 D1 pilot，再冻结 5-world block。
@@ -275,6 +280,8 @@ C1 之后每一级都包含新增实现和独立资格，不应把纯 provider r
 - WellAU development timing：`workstreams/flagship_tasks/reports/work-ii-three-task-five-seed-campaign.md`
 - Parametric v2 diagnostic：
   `workstreams/flagship_tasks/reports/work-ii-parametric-initial-model-diagnostic-seed1-v2-20260811.json`
+- Parametric v2 D1 participant/evaluator report：
+  `workstreams/flagship_tasks/reports/work-ii-parametric-initial-model-pilot-evaluation-20260811.json`
 - Structural v1 diagnostic：
   `workstreams/flagship_tasks/reports/work-ii-structural-initial-model-diagnostic-20260811.json`
 

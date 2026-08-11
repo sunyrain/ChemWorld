@@ -541,6 +541,37 @@ observed incumbent. The formal study is therefore necessary for prospective infe
 development block already establishes that prediction repair, law recovery and action quality must
 remain separate outcomes.
 
+## 5.6 Parametric initial-model pilot: rejection is not recovery
+
+We next asked whether this separation extends beyond entity-level dossiers to a parameter-level
+initial world model. A provider-free screen selected one electrochemical seed in which an aligned
+potential/current window and a matched but misspecified window were strongly separable in the
+executable world. This screen fixed the intervention before any participant outcome was observed.
+The subsequent development pilot retained one opaque, one aligned and one misspecified cell. Each
+cell used one persistent WellAU `gpt-5.6-sol` medium Codex session, four complete experiments and four
+belief checkpoints under a shared within-cell resource ledger.
+
+All **3/3** cells, **12/12** participant experiments and **12/12** checkpoints completed. A separate
+zero-provider evaluator completed **4/4** shared held-out truth queries and **18/18** paired blind
+replays, all with exact replay. Normalized prediction error changed from **0.347 to 0.320** in the
+opaque arm, **0.359 to 0.155** in the aligned arm and **0.420 to 0.198** in the misspecified arm. The
+one-cluster correction contrast was therefore positive but remains descriptive.
+
+The trajectory reveals a distinction hidden by aggregate error. The misspecified agent first tested
+inside its supplied window and obtained a score of zero. It then reduced the model's stated
+reliability from **0.70** to **0.12**, explicitly identified `potential_V` as the challenged field and
+moved its second experiment **2.41 V** outside the supplied window; terminal reliability reached
+**0.03**. This is behavioral model rejection rather than a free-standing verbal warning. Yet the arm's
+best observed score was only **0.274**, compared with **0.568** for aligned and **0.670** for opaque.
+The agent had learned that the supplied model was wrong without recovering the best finite-budget
+experimental policy.
+
+Final executable-law errors were **0.424**, **0.238** and **0.242** for opaque, aligned and
+misspecified, respectively. All three committed recommendations selected their own observed
+incumbent, so paired blind replay confirmed reproducibility but produced zero recommendation gain.
+This one-world pilot supports a task-specific parametric case study and admission to user review for
+a five-world extension; it does not yet support a cross-task or general initial-world-model claim.
+
 # 6. Formal results
 
 This section will report the preregistered public matrix only after every scheduled cell has reached a

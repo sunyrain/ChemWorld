@@ -1,7 +1,7 @@
 # Work II parametric initial-world-model pilot v2
 
 Date: 2026-08-11
-Status: environment-qualified; real-provider D1 triplet not yet started
+Status: environment-qualified; real-provider D1 triplet and evaluator confirmation completed
 
 ## Rationale and question
 
@@ -55,3 +55,32 @@ input tokens, 320,000 uncached input tokens and 24,000 output tokens. At most th
 failures, one consecutive MCP failure, one provider-error event and one resource rejection are
 retained; liveness is emitted every 30 s. These operational limits do not alter the intervention,
 diagnostic threshold, world, participant model or scientific success rule.
+
+## D1 participant and evaluator result
+
+The frozen seed-1 triplet completed **3/3** participant cells, **12/12** complete experiments,
+**12/12** belief checkpoints and **73** operation attempts. Every cell used exactly one persistent
+Codex session and passed exact physical/resource replay, hidden-boundary, final-recommendation and
+usage-accounting checks. The three sessions completed in 437.5 s wall time with zero provider-error
+events; two cells each recovered one bounded MCP failure, and no trajectory was rerun or replaced.
+
+The zero-provider evaluator then completed **4/4** shared held-out truth queries and **18/18** paired
+blind replays, all with exact replay. Normalized held-out prediction error changed from `0.3471` to
+`0.3202` in the opaque arm, `0.3592` to `0.1550` in the aligned arm and `0.4200` to `0.1985` in the
+misspecified arm. The misspecified arm reduced its stated prior reliability from `0.70` to `0.12`
+after its first contradictory assay, then to `0.05` and `0.03`, repeatedly naming `potential_V` as
+the challenged field. Its second experiment moved from inside the supplied window to `2.41 V`
+outside it. This is behavioral rejection of the supplied parameter model, not merely a warning token.
+
+Finite-budget endpoint recovery remained incomplete. Best observed scores were `0.6703` for opaque,
+`0.5680` for aligned and `0.2743` for misspecified. Final executable-law normalized errors were
+`0.4235`, `0.2377` and `0.2421`, respectively. Every final recommendation selected its own observed
+incumbent, so paired blind recommendation gain was exactly zero by construction while reproducibility
+was confirmed.
+
+Decision: the electrochemical parametric candidate passes its one-world D1 operational and evaluator
+pilot and is eligible for user review before a five-world task-specific extension. No five-seed
+provider expansion is automatically authorized, and this single task/world cannot support a general
+initial-world-model claim. The authoritative readable and machine reports are
+`workstreams/flagship_tasks/reports/work-ii-parametric-initial-model-pilot-evaluation-20260811.md`
+and `.json`.

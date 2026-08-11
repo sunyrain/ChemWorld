@@ -7,7 +7,8 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
 | Selected fixed-law worlds expose coherent and identifiable evaluator relations | Environment qualification | Current Gate A bindings in `configs/current.json` and the bound design/qualification reports | Complete | Environment qualified; never agent discovery |
 | Prior quality is the only matched participant intervention within a world cluster | Frozen protocol | `configs/benchmark/work_ii_formal_design_v0.1.json` and formal-design audit | Complete | Design property, not an observed effect |
 | The current formal core manipulates the entity/ontology layer of the initial world model | Frozen protocol and manuscript scope | Current Work II design plus the updated intervention matrix in `WORK_II_TODOLIST.md` | Complete | The 75-cell core is entity-level; do not generalize it to structural, parametric or observation-model priors |
-| Structural, parametric and observation-model interventions are supported by current outcomes | Future registered extensions | None | Not collected | Describe as prespecified extensions only; no empirical claim until their own preflights and terminal denominators exist |
+| Electrochemical parametric initial-model intervention produces a scoreable one-world participant/evaluator trajectory | Development D1 extension | `work-ii-parametric-initial-model-pilot-evaluation-20260811.json` | Complete for one task/world, non-formal | The wrong parameter model was behaviorally rejected and prediction error improved, but finite-budget endpoint recovery remained incomplete; do not generalize across tasks or loci |
+| Structural and observation-model interventions are supported by current outcomes | Future registered extensions | Structural distillation screen failed admission; no observation-model outcome | Not supported | Describe as candidate extensions only; no agent-capability inference |
 | Primary estimand measures selective wrong-prior correction | Frozen analysis | `configs/benchmark/work_ii_analysis_plan_v0.1.json` and power audit | Complete | Preregistered question; no result yet |
 | WellAU development endpoints change under explicit priors | Development participant evidence | `work-ii-development-basic-analysis-v0.1.json` | Complete, non-formal | Development observation for the retained method/harness only |
 | DeepSeek development endpoints change under explicit priors | Development participant evidence | `work-ii-deepseek-recovery-amended-analysis-v0.1.json` | Complete, non-formal | Development observation for the recovery-amended method/harness only |
@@ -40,6 +41,11 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
   scoreable for 72/75 cells and final law summaries were executable for 71/75. The development H3
   mean is -0.042 (7/25 positive), and no recommendation beats the observed incumbent. These are
   descriptive post-hoc outcomes, not the public formal result.
+- WellAU electrochemical parametric D1: 3/3 participant cells, 12/12 complete experiments and 12/12
+  checkpoints; 4/4 shared truth queries and 18/18 paired blind replays completed with exact replay and
+  zero evaluator provider calls. Misspecified reliability fell from 0.70 to 0.03 and held-out error
+  from 0.4200 to 0.1985, but its best endpoint score was 0.2743 versus 0.6703 for opaque. This is a
+  single-world parametric case study, not a general initial-world-model result.
 - Provider groups remain separate in every scientific contrast.
 
 ## Formal denominators reserved for later integration
