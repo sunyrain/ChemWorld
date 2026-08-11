@@ -21,6 +21,7 @@
 - 规律在每个 world 内固定；不把运行中物理规律变化作为主问题。
 - 当前 participant method 只有 WellAU `gpt-5.6-sol`、medium reasoning、Codex harness + ChemWorld MCP。
   结果只能表述为这个完整 agent system 的能力，不能外推为裸模型或跨模型排名。
+- DeepSeek `deepseek-v4-flash` 仅用于 development harness/pre-experiment 对照，不是当前 formal participant。
 
 ## 2. 冻结执行语义
 
@@ -48,7 +49,7 @@
 | A-E public | entity/ontology；electrochemical、crystallization、distillation、partition、reaction safety | 25 | 75 | 300 | 设计已冻结，执行未授权 |
 | A-E private | 与 public 同任务的 sealed world-held-out replication | 25 | 75 | 300 | commitment 已冻结，public 分析后一次执行 |
 | A-S | structural/mechanistic；计划 2 tasks × 5 worlds | 10 | 30 | 120 | 候选阶段 |
-| A-P | parametric；计划 2 tasks × 5 worlds | 10 | 30 | 120 | electrochemical 环境门控及 WellAU/DeepSeek 单-world D1 通过；第二任务及 5-world freeze 待定 |
+| A-P | parametric；计划 2 tasks × 5 worlds | 10 | 30 | 120 | electrochemical 单-world D1 通过；reaction-safety 环境门通过但 DeepSeek D1 为 3/3 terminal、2/3 operationally qualified，禁止自动扩展 |
 
 A-E 是唯一 primary confirmatory block。A-S/A-P 是 additive registered secondary blocks，不改变 A-E 的
 H3、alpha、worlds、failure rules 或正式分母。
@@ -189,6 +190,9 @@ C1 之后每一级都包含新增实现和独立资格，不应把纯 provider r
 - electrochemical parametric seed-1 D1 已分别用 WellAU 与 DeepSeek 完成；每个 provider 均为 3/3
   persistent participant sessions、12/12 experiments、4/4 shared truth queries 和 18/18 paired blind
   replays，且 evaluator 未重跑 participant 轨迹。
+- reaction-safety parametric seed-0 DeepSeek D1 已完成 3/3 terminal trajectories、12/12 experiments、
+  4/4 truth queries 和 18/18 blind replays；其中 aligned arm 因最大连续 MCP validation failures 为 2、
+  超过冻结上限 1 而保留为 operational qualification failure，整个 D1 不通过且不自动扩展。
 
 ### Intervention screening
 
@@ -199,14 +203,18 @@ C1 之后每一级都包含新增实现和独立资格，不应把纯 provider r
 | electrochemical parametric v2, seed 1 | 20/20、0 failures、exact replay；gap `0.5849161 ≥ 0.10` | environment-qualified |
 | electrochemical parametric D1, WellAU seed 1 | 3/3 cells、12/12 experiments、4/4 truth、18/18 blind exact replay；H3 `+0.0173` | provider-specific development pass |
 | electrochemical parametric D1, DeepSeek seed 1 | 3/3 cells、12/12 experiments、4/4 truth、18/18 blind exact replay；H3 `-0.0025` | operational pass；scientific correction not observed in this world |
+| crystallization structural, seed 0 | 4/4 exact replay；module gap `0.0069301 < 0.10` | 不接纳，不调用 provider |
+| partition structural, seed 0 | 4/4 exact replay；module gap `0.0744505 < 0.10` | 不接纳，不调用 provider |
+| reaction-safety parametric, seed 0 | 16/16、0 failures、exact replay；gap `0.1043173 ≥ 0.10` | environment-qualified |
+| reaction-safety parametric D1, DeepSeek seed 0 | 3/3 terminal、2/3 qualified、12/12 experiments、4/4 truth、18/18 blind；descriptive H3 `+0.1005` | retained operational failure；不扩展 |
 
 未通过的 diagnostic 只说明 intervention 不可识别，不能解释为 agent 缺乏相应推理能力。
 
 ### 当前 blockers
 
-1. W2-17：冻结两个 structural candidates 和第二个 parametric task，并完成 environment-only screens；
-   electrochemical parametric 5-world 扩展还需冻结 per-world aligned/misspecified construction，不能把
-   seed-1 window 原样复制到其他 worlds。
+1. W2-17：首批两个 A-S candidates 均未过环境门，A-S 仍缺合格任务；第二个 A-P task 已过环境门，
+   但 DeepSeek D1 operationally failed，不能自动进入 5-world block。electrochemical parametric 扩展仍需
+   冻结 per-world aligned/misspecified construction，不能把 seed-1 window 原样复制到其他 worlds。
 2. W2-10：当前 WellAU persistent-session method 的独立三臂真实资格收据尚未完成。
 3. W2-07：正式价格来源、currency ceiling 和 qualified expected ETA 尚未签字。
 4. W2-08：正式数据采集路线尚未由用户锁定。
@@ -228,10 +236,12 @@ C1 之后每一级都包含新增实现和独立资格，不应把纯 provider r
 
 ### P1 — 并行准备 C2，但不抢跑 provider
 
-- [ ] Structural roster：优先筛选 reaction-to-crystallization 与 reaction-safety-constrained。
+- [x] 首批 structural screens：reaction-to-crystallization 与 partition 均未过冻结门槛，结果保留。
+- [ ] 若 C2 仍需 A-S，先设计新的可辨识 structural candidates，再做 environment-only screen。
 - [x] Electrochemical parametric：environment gate 与单-world D1 participant/evaluator pilot 已完成；不自动扩展。
-- [ ] Parametric roster：筛选 flow-reaction temperature/residence-time
-  或 flow-rate operating-window law。
+- [x] Reaction-safety parametric：environment gate 与 DeepSeek 单-world D1 已完成；D1 为 retained
+  operational failure，不自动扩展或重跑。
+- [ ] 若继续第二个 A-P task，先冻结新的 task/world 与 recovery-policy qualification，而不是替换本次轨迹。
 - [ ] 新 checkpoint 写通用字段 `initial_model_available` 与 `challenged_model_fields`；历史 entity 轨迹只读兼容。
 - [ ] 每个通过环境门控的 task 先执行一个三臂 D1 pilot，再冻结 5-world block。
 
@@ -291,5 +301,13 @@ C1 之后每一级都包含新增实现和独立资格，不应把纯 provider r
   `workstreams/flagship_tasks/reports/work-ii-deepseek-parametric-initial-model-pilot-evaluator-attempt1-invalidated-20260811.md`
 - Structural v1 diagnostic：
   `workstreams/flagship_tasks/reports/work-ii-structural-initial-model-diagnostic-20260811.json`
+- Non-entity candidate screens：
+  `workstreams/flagship_tasks/reports/work-ii-crystallization-structural-screen-20260811.json`、
+  `workstreams/flagship_tasks/reports/work-ii-partition-structural-screen-20260811.json`、
+  `workstreams/flagship_tasks/reports/work-ii-reaction-safety-parametric-screen-20260811.json`
+- Reaction-safety parametric DeepSeek D1 evaluator：
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-reaction-safety-parametric-pilot-evaluation-20260811.json`
+- Reaction-safety evaluator attempt-1 invalidation：
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-reaction-safety-parametric-pilot-evaluator-attempt1-invalidated-20260811.md`
 
 Git history保存本文件过去的详细任务卡和运行日志；不再在当前主控页重复维护历史版本。
