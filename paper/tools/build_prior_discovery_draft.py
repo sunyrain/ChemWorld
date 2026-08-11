@@ -13,7 +13,6 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[2]
 MANUSCRIPT = ROOT / "paper/prior_discovery_manuscript.md"
 BIBLIOGRAPHY = ROOT / "paper/prior_discovery_references.bib"
@@ -179,12 +178,24 @@ def build() -> dict[str, Any]:
         FIGURE_MANIFEST,
         ROOT / "paper/prior_discovery_evidence_map.md",
         ROOT / "paper/prior_discovery_display_items.md",
-        ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.json",
+        ROOT
+        / (
+            "workstreams/flagship_tasks/reports/"
+            "work-ii-deepseek-five-task-development-complete-20260810.json"
+        ),
         ROOT / (
             "workstreams/flagship_tasks/reports/"
             "work-ii-deepseek-five-task-development-evaluation-20260811.json"
         ),
-        ROOT / "configs/benchmark/work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json",
+        ROOT / (
+            "workstreams/flagship_tasks/reports/"
+            "work-ii-parametric-initial-model-pilot-evaluation-20260811.json"
+        ),
+        ROOT
+        / (
+            "configs/benchmark/"
+            "work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json"
+        ),
         *figure_pdfs,
     ]
     manifest: dict[str, Any] = {
@@ -223,9 +234,27 @@ def build() -> dict[str, Any]:
         ],
         "interpretation_limits": [
             "Figures 1 and 2 describe the frozen design.",
-            "Figure 3 and its paired endpoint/warning panels are development-only and retain the common three-task provider-separated source.",
-            "Figure 4 is a post-hoc zero-provider evaluator confirmation of the retained five-task DeepSeek development matrix; it is descriptive and not the public formal result.",
-            "Partition discovery and safety-constrained reaction include immutable seed-0 failures plus seeds 1--4 continuation; they remain operational descriptive evidence and are not pooled into the common paired endpoint panels.",
+            (
+                "Figure 3 and its paired endpoint/warning panels are development-only and "
+                "retain the common three-task provider-separated source."
+            ),
+            (
+                "Figure 4 is a post-hoc zero-provider evaluator confirmation of the "
+                "retained five-task DeepSeek development matrix; it is descriptive and "
+                "not the public formal result."
+            ),
+            (
+                "Partition discovery and safety-constrained reaction include immutable "
+                "seed-0 failures plus seeds 1--4 continuation; they remain operational "
+                "descriptive evidence and are not pooled into the common paired endpoint "
+                "panels."
+            ),
+            (
+                "The electrochemical parametric initial-model result is one development "
+                "world with three participant cells, shared truth queries and paired blind "
+                "replay; it does not support a cross-task or general initial-world-model "
+                "claim."
+            ),
             "Public formal and private confirmation results remain uncollected.",
         ],
     }
