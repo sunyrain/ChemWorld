@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from scripts.evaluate_work_ii_initial_model_pilot import (
     _descriptive_interpretation,
+    _parametric_controls,
     _render_markdown,
+    _supplied_model_distance,
 )
 
 
@@ -57,8 +59,16 @@ def test_markdown_interpretation_tracks_endpoint_and_prediction_directions() -> 
         },
         "cluster_contrast": {"H3_primary_contrast": -0.01},
         "cells": [
-            _cell("opaque", best=0.58, improvement=0.24, reliability=[None] * 4, challenged=[[]] * 4),
-            _cell("aligned_nominal", best=0.81, improvement=-0.01, reliability=[0.7, 0.8], challenged=[[]] * 2),
+            _cell(
+                "opaque", best=0.58, improvement=0.24, reliability=[None] * 4, challenged=[[]] * 4
+            ),
+            _cell(
+                "aligned_nominal",
+                best=0.81,
+                improvement=-0.01,
+                reliability=[0.7, 0.8],
+                challenged=[[]] * 2,
+            ),
             _cell(
                 "misindexed_nominal",
                 best=0.83,
@@ -79,3 +89,45 @@ def test_markdown_interpretation_tracks_endpoint_and_prediction_directions() -> 
     assert "challenged potential_V" in rendered
     assert "remained below the opaque" not in rendered
     assert "300 input tokens (240 cached; 60 uncached)" in rendered
+
+
+def test_reaction_safety_parametric_controls_and_model_distance() -> None:
+    experiment = {
+        "operations": [
+            {
+                "operation": "heat",
+                "target_temperature_K": 390.0,
+                "duration_s": 1800.0,
+            },
+            {
+                "operation": "heat",
+                "target_temperature_K": 420.0,
+                "duration_s": 3600.0,
+            },
+        ]
+    }
+    model = {
+        "model": {
+            "claim": {
+                "reaction_temperature_K": 420.0,
+                "reaction_duration_s": 7200.0,
+                "temperature_tolerance_K": 15.0,
+                "duration_tolerance_s": 300.0,
+            }
+        }
+    }
+
+    controls = _parametric_controls(experiment, "reaction-safety-constrained")
+
+    assert controls == {
+        "heat_stages": [
+            {"reaction_temperature_K": 390.0, "reaction_duration_s": 1800.0},
+            {"reaction_temperature_K": 420.0, "reaction_duration_s": 3600.0},
+        ],
+        "reaction_duration_s": 5400.0,
+        "reaction_temperature_K": 420.0,
+    }
+    assert _supplied_model_distance(controls, model) == {
+        "reaction_temperature_K": 0.0,
+        "reaction_duration_s": 1500.0,
+    }

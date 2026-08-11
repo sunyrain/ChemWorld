@@ -1,0 +1,286 @@
+{
+  "analysis": {
+    "final_metric_ids": [
+      "yield",
+      "selectivity",
+      "safety_risk",
+      "constraint_violations",
+      "score"
+    ]
+  },
+  "belief_checkpoint": {
+    "allowed_feature_ids": [
+      "catalyst",
+      "solvent",
+      "reagent_amount_mol",
+      "catalyst_amount_mol",
+      "reaction_temperature_K",
+      "reaction_duration_s"
+    ],
+    "allowed_metric_ids": [
+      "yield",
+      "selectivity",
+      "safety_risk",
+      "score"
+    ],
+    "allowed_prior_fields": [
+      "reaction_temperature_K",
+      "reaction_duration_s"
+    ],
+    "held_out_queries": [
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_duration_s": 900.0,
+          "reaction_temperature_K": 340.0,
+          "reagent_amount_mol": 0.01,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "t340-d900"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_duration_s": 7200.0,
+          "reaction_temperature_K": 340.0,
+          "reagent_amount_mol": 0.01,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "t340-d7200"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_duration_s": 900.0,
+          "reaction_temperature_K": 420.0,
+          "reagent_amount_mol": 0.01,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "t420-d900"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_duration_s": 7200.0,
+          "reaction_temperature_K": 420.0,
+          "reagent_amount_mol": 0.01,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "t420-d7200"
+      }
+    ]
+  },
+  "campaign": {
+    "card_id": "work-ii-reaction-safety-k4-one-repeat",
+    "checkpoint_complete_experiments": [
+      0,
+      1,
+      2,
+      4
+    ],
+    "closeout_policy": {
+      "automatic_action_repair": false,
+      "automatic_closeout": false,
+      "discard_path_operations_per_batch": 1,
+      "discard_path_total_operation_reserve": 4,
+      "final_assay_path_operations_per_batch": 2,
+      "final_assay_path_total_operation_reserve": 8,
+      "planned_batches": 4,
+      "policy": "participant_controlled_advisory_no_hidden_allocation"
+    },
+    "complete_experiments": 4,
+    "final_assay_limit": 4,
+    "implicit_operation_time_s": {
+      "quench": 120.0
+    },
+    "nonfinal_instrument_use_limit": 4,
+    "operation_attempt_limit": 40,
+    "operation_repeat_limits": {
+      "heat": 5,
+      "quench": 4
+    },
+    "process_time_limit_s": 36480.0,
+    "process_time_policy": {
+      "formula": "4 x (heat 7200 s + quench 120 s) + one extra heat stage",
+      "implicit_stage_reserve_s": 480.0,
+      "pattern_id": "reaction-safety-k4-one-repeat",
+      "repeat_allowance_s": 7200.0,
+      "required_stage_max_s": 29280.0
+    },
+    "stock_limits": {
+      "catalyst_mol": 0.0022,
+      "reagent_mol": 0.12,
+      "solvent_L": 0.1
+    },
+    "vessel_start_limit": 4
+  },
+  "episode_mode": "campaign",
+  "execution": {
+    "failure_semantics": "finish the in-flight seed triplet, then stop before the next world seed",
+    "max_concurrency": 3,
+    "parallelization_unit": "same_seed_prior_arm_triplet",
+    "within_cell_concurrency": 1
+  },
+  "formal_result": false,
+  "intervention": {
+    "diagnostic_grid": {
+      "reaction_duration_s": [
+        900.0,
+        1800.0,
+        3600.0,
+        7200.0
+      ],
+      "reaction_temperature_K": [
+        340.0,
+        360.0,
+        390.0,
+        420.0
+      ]
+    },
+    "locus": "parametric",
+    "material_information_matched_opaque": true,
+    "target": "reaction_temperature_duration_operating_point",
+    "world_and_resource_contract_matched": true
+  },
+  "method_resources": {
+    "checkpoint_complete_experiments": [
+      1,
+      2,
+      4
+    ],
+    "complete_experiment_limit": 4,
+    "input_token_limit": 4800000,
+    "model_call_limit": 1,
+    "operation_limit": 40,
+    "output_token_limit": 48000,
+    "training_environment_step_limit": 0,
+    "uncached_input_token_limit": 640000,
+    "wall_time_limit_s": 7200.0
+  },
+  "objective": "safe",
+  "observation_noise_mode": "keyed",
+  "observation_noise_namespace": "work-ii-reaction-safety-parametric-initial-model-pilot",
+  "pilot_id": "work-ii-reaction-safety-parametric-initial-model-pilot",
+  "prior_arms": {
+    "aligned_nominal": {
+      "initial_world_model": {
+        "availability": "supplied_incomplete_model",
+        "interpretation": "The supplied model may be reliable or shifted. Experimental evidence is authoritative.",
+        "locus": "parametric",
+        "model": {
+          "claim": {
+            "duration_tolerance_s": 300.0,
+            "expected_relation": "At the stated material context, safe balanced performance is more likely near this approximate operating point than far from it.",
+            "reaction_duration_s": 7200.0,
+            "reaction_temperature_K": 420.0,
+            "temperature_tolerance_K": 15.0
+          },
+          "confidence": 0.7,
+          "reference_context": {
+            "catalyst": 0,
+            "catalyst_amount_mol": 0.0003,
+            "reagent_amount_mol": 0.01,
+            "solvent": 0
+          },
+          "scope_limit": "This is an incomplete local process model, not ground truth."
+        },
+        "schema_version": "chemworld-work-ii-initial-world-model-0.1"
+      },
+      "material_information": {
+        "mode": "opaque_codes"
+      }
+    },
+    "misindexed_nominal": {
+      "initial_world_model": {
+        "availability": "supplied_incomplete_model",
+        "interpretation": "The supplied model may be reliable or shifted. Experimental evidence is authoritative.",
+        "locus": "parametric",
+        "model": {
+          "claim": {
+            "duration_tolerance_s": 300.0,
+            "expected_relation": "At the stated material context, safe balanced performance is more likely near this approximate operating point than far from it.",
+            "reaction_duration_s": 900.0,
+            "reaction_temperature_K": 340.0,
+            "temperature_tolerance_K": 15.0
+          },
+          "confidence": 0.7,
+          "reference_context": {
+            "catalyst": 0,
+            "catalyst_amount_mol": 0.0003,
+            "reagent_amount_mol": 0.01,
+            "solvent": 0
+          },
+          "scope_limit": "This is an incomplete local process model, not ground truth."
+        },
+        "schema_version": "chemworld-work-ii-initial-world-model-0.1"
+      },
+      "material_information": {
+        "mode": "opaque_codes"
+      }
+    },
+    "opaque": {
+      "initial_world_model": {
+        "availability": "opaque_for_target_locus",
+        "interpretation": "No task-specific temperature-duration operating point is supplied. Experimental evidence is authoritative.",
+        "locus": "parametric",
+        "model": null,
+        "schema_version": "chemworld-work-ii-initial-world-model-0.1"
+      },
+      "material_information": {
+        "mode": "opaque_codes"
+      }
+    }
+  },
+  "provider": {
+    "base_url": "https://api.wellau.com/v1",
+    "env_key": "WELLAU_API_KEY",
+    "finalization_timeout_s": 600.0,
+    "id": "wellau",
+    "model": "gpt-5.6-sol",
+    "name": "WellAU",
+    "reasoning_effort": "medium",
+    "request_timeout_s": 1200.0,
+    "wire_api": "responses"
+  },
+  "qualification": {
+    "required_operation_counts": {}
+  },
+  "schema_version": "chemworld-work-ii-campaign-pilot-0.3",
+  "snapshot_stages": [
+    "pre_evidence",
+    "after_experiment_1",
+    "after_experiment_2",
+    "final"
+  ],
+  "task_id": "reaction-safety-constrained",
+  "world_seed": 0,
+  "world_split": "public-test"
+}

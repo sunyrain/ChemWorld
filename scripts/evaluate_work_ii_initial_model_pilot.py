@@ -59,22 +59,50 @@ def _final_snapshot(analysis: Mapping[str, Any]) -> Mapping[str, Any] | None:
     return None
 
 
-def _set_potential(experiment: Mapping[str, Any]) -> dict[str, float] | None:
-    for operation in _sequence(experiment.get("operations")):
-        if isinstance(operation, Mapping) and operation.get("operation") == "set_potential":
-            return {
-                "potential_V": float(operation["potential_V"]),
-                "current_mA": float(operation["current_mA"]),
-            }
-    return None
-
-
-def _electrolysis_duration(experiment: Mapping[str, Any]) -> float:
-    return sum(
-        float(operation["duration_s"])
+def _parametric_controls(experiment: Mapping[str, Any], task_id: str) -> dict[str, Any]:
+    operations = [
+        operation
         for operation in _sequence(experiment.get("operations"))
-        if isinstance(operation, Mapping) and operation.get("operation") == "electrolyze"
-    )
+        if isinstance(operation, Mapping)
+    ]
+    if task_id == "electrochemical-conversion":
+        setpoints = [
+            operation for operation in operations if operation.get("operation") == "set_potential"
+        ]
+        controls: dict[str, Any] = {
+            "duration_s": sum(
+                float(operation["duration_s"])
+                for operation in operations
+                if operation.get("operation") == "electrolyze"
+            )
+        }
+        if setpoints:
+            controls.update(
+                {
+                    "potential_V": float(setpoints[-1]["potential_V"]),
+                    "current_mA": float(setpoints[-1]["current_mA"]),
+                }
+            )
+        return controls
+    if task_id == "reaction-safety-constrained":
+        heat_stages = [
+            {
+                "reaction_temperature_K": float(operation["target_temperature_K"]),
+                "reaction_duration_s": float(operation["duration_s"]),
+            }
+            for operation in operations
+            if operation.get("operation") == "heat"
+        ]
+        controls = {
+            "heat_stages": heat_stages,
+            "reaction_duration_s": sum(
+                float(stage["reaction_duration_s"]) for stage in heat_stages
+            ),
+        }
+        if heat_stages:
+            controls["reaction_temperature_K"] = heat_stages[-1]["reaction_temperature_K"]
+        return controls
+    raise ValueError(f"unsupported parametric pilot task: {task_id}")
 
 
 def _interval_distance(value: float, interval: Sequence[Any]) -> float:
@@ -86,23 +114,46 @@ def _interval_distance(value: float, interval: Sequence[Any]) -> float:
     return max(low - value, 0.0, value - high)
 
 
-def _window_distance(
-    experiment: Mapping[str, Any],
+def _supplied_model_distance(
+    controls: Mapping[str, Any],
     initial_model: Mapping[str, Any],
 ) -> dict[str, float] | None:
-    controls = _set_potential(experiment)
     model = _mapping(initial_model.get("model"))
     claim = _mapping(model.get("claim"))
-    if controls is None or not claim:
+    if not controls or not claim:
         return None
-    return {
-        "potential_V": _interval_distance(
-            controls["potential_V"], _sequence(claim.get("potential_window_V"))
-        ),
-        "current_mA": _interval_distance(
-            controls["current_mA"], _sequence(claim.get("current_window_mA"))
-        ),
-    }
+    if "potential_window_V" in claim and "current_window_mA" in claim:
+        if "potential_V" not in controls or "current_mA" not in controls:
+            return None
+        return {
+            "potential_V": _interval_distance(
+                float(controls["potential_V"]),
+                _sequence(claim.get("potential_window_V")),
+            ),
+            "current_mA": _interval_distance(
+                float(controls["current_mA"]),
+                _sequence(claim.get("current_window_mA")),
+            ),
+        }
+    if "reaction_temperature_K" in claim and "reaction_duration_s" in claim:
+        if "reaction_temperature_K" not in controls or "reaction_duration_s" not in controls:
+            return None
+        return {
+            "reaction_temperature_K": max(
+                abs(
+                    float(controls["reaction_temperature_K"])
+                    - float(claim["reaction_temperature_K"])
+                )
+                - float(claim.get("temperature_tolerance_K", 0.0)),
+                0.0,
+            ),
+            "reaction_duration_s": max(
+                abs(float(controls["reaction_duration_s"]) - float(claim["reaction_duration_s"]))
+                - float(claim.get("duration_tolerance_s", 0.0)),
+                0.0,
+            ),
+        }
+    raise ValueError("unsupported supplied parametric initial-model claim")
 
 
 def _truth_replay_count(report: Mapping[str, Any]) -> int:
@@ -152,15 +203,11 @@ def _descriptive_interpretation(report: Mapping[str, Any]) -> dict[str, Any]:
         "misspecified_initial_reliability": reliability[0] if reliability else None,
         "misspecified_final_reliability": reliability[-1] if reliability else None,
         "misspecified_challenged_fields": challenged_fields,
-        "misspecified_minus_opaque_best_endpoint": float(
-            misspecified["best_observed_score"]
-        )
+        "misspecified_minus_opaque_best_endpoint": float(misspecified["best_observed_score"])
         - float(opaque["best_observed_score"]),
         "aligned_minus_opaque_best_endpoint": float(aligned["best_observed_score"])
         - float(opaque["best_observed_score"]),
-        "H3_primary_contrast": report.get("cluster_contrast", {}).get(
-            "H3_primary_contrast"
-        ),
+        "H3_primary_contrast": report.get("cluster_contrast", {}).get("H3_primary_contrast"),
         "selected_observed_incumbent_count": selected_incumbent_count,
         "participant_cell_count": len(report["cells"]),
     }
@@ -198,10 +245,7 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
         for row in report["cells"]
     )
     total_recovered_mcp = sum(
-        int(
-            _mapping(row.get("provider_usage")).get("recovered_mcp_tool_failure_count")
-            or 0
-        )
+        int(_mapping(row.get("provider_usage")).get("recovered_mcp_tool_failure_count") or 0)
         for row in report["cells"]
     )
     total_provider_errors = sum(
@@ -231,6 +275,26 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
     )
     h3_value = interpretation.get("H3_primary_contrast")
     h3_text = "NA" if h3_value is None else f"{float(h3_value):.4f}"
+    held_out_change = _change_phrase(
+        float(interpretation["misspecified_prediction_improvement"]),
+        noun="Held-out prediction",
+    )
+    opaque_change = _change_phrase(
+        float(interpretation["opaque_prediction_improvement"]),
+        noun="opaque prediction",
+    )
+    aligned_change = _change_phrase(
+        float(interpretation["aligned_prediction_improvement"]),
+        noun="aligned prediction",
+    )
+    misspecified_change = _change_phrase(
+        float(interpretation["misspecified_prediction_improvement"]),
+        noun="misspecified prediction",
+    )
+    participant_operations = denominators["participant_operation_attempt_count"]
+    logical_turns = denominators["participant_logical_codex_turn_count"]
+    incumbent_count = interpretation["selected_observed_incumbent_count"]
+    participant_count = interpretation["participant_cell_count"]
     lines = [
         "# Work II parametric initial-world-model pilot evaluation",
         "",
@@ -284,34 +348,35 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
             "## Operational profile",
             "",
             (
-                f"The three persistent sessions recorded {denominators['participant_operation_attempt_count']} "
-                f"operation attempts and {denominators['participant_logical_codex_turn_count']} logical Codex "
+                f"The three persistent sessions recorded {participant_operations} "
+                f"operation attempts and {logical_turns} logical Codex "
                 f"turns. Provider accounting was {total_input:,} input tokens "
-                f"({total_cached:,} cached; {total_uncached:,} uncached), {total_output:,} output tokens, "
-                f"{total_recovered_mcp} recovered MCP failures, {total_provider_errors} provider-error events "
+                f"({total_cached:,} cached; {total_uncached:,} uncached), "
+                f"{total_output:,} output tokens, {total_recovered_mcp} recovered MCP failures, "
+                f"{total_provider_errors} provider-error events "
                 f"and a maximum session time of {max_session_elapsed:.1f} s."
             ),
             "",
             "## Development interpretation",
             "",
             (
-                f"In the misspecified arm, stated prior reliability {reliability_text}; the trajectory "
-                f"challenged {challenged_text}. {_change_phrase(float(interpretation['misspecified_prediction_improvement']), noun='Held-out prediction')} "
-                f"while its best observed endpoint {endpoint_text}. This separates endpoint search, prior "
-                f"self-report and held-out predictive correction rather than treating them as one outcome."
+                f"In the misspecified arm, stated prior reliability {reliability_text}; "
+                f"the trajectory challenged {challenged_text}. {held_out_change} while its best "
+                f"observed endpoint {endpoint_text}. This separates endpoint search, prior "
+                "self-report and held-out predictive correction rather than treating them as one "
+                "outcome."
             ),
             "",
             (
-                f"Across this single development world, {_change_phrase(float(interpretation['opaque_prediction_improvement']), noun='opaque prediction')}, "
-                f"{_change_phrase(float(interpretation['aligned_prediction_improvement']), noun='aligned prediction')}, "
-                f"and {_change_phrase(float(interpretation['misspecified_prediction_improvement']), noun='misspecified prediction')}. "
+                f"Across this single development world, {opaque_change}, {aligned_change}, "
+                f"and {misspecified_change}. "
                 f"The descriptive H3 contrast was {h3_text}; it is not an inferential result."
             ),
             "",
             (
-                f"{interpretation['selected_observed_incumbent_count']}/{interpretation['participant_cell_count']} "
-                "final recommendations selected their own observed incumbent. Paired blind replay therefore "
-                "checks reproducibility and action commitment but cannot show an additional "
+                f"{incumbent_count}/{participant_count} final recommendations selected their own "
+                "observed incumbent. Paired blind replay therefore checks reproducibility and "
+                "action commitment but cannot show an additional "
                 "recommendation-over-incumbent gain when the two targets are identical."
             ),
             "",
@@ -446,12 +511,9 @@ def main() -> int:
         blind_plan = build_blind_evaluation_plan(cell, summary, design["blind_evaluator_contract"])
         blind_report = execute_blind_evaluation_plan(blind_plan, config, blind_root)
         blind_receipts = _blind_receipts(blind_root, blind_report)
-        blind_errors = validate_blind_evaluation_report(
-            blind_report, blind_plan, blind_receipts
-        )
+        blind_errors = validate_blind_evaluation_report(blind_report, blind_plan, blind_receipts)
         failures.extend(
-            {"scope": "blind", "prior_arm": arm, "error": error}
-            for error in blind_errors
+            {"scope": "blind", "prior_arm": arm, "error": error} for error in blind_errors
         )
         blind_exact = sum(
             _mapping(receipt.get("exact_replay")).get("verified") is True
@@ -474,15 +536,13 @@ def main() -> int:
         model = _mapping(_mapping(config["prior_arms"][arm]).get("initial_world_model"))
         settings = []
         for experiment in experiments:
-            controls = _set_potential(experiment)
+            controls = _parametric_controls(experiment, task_id)
             settings.append(
                 {
                     "experiment_index": int(experiment["experiment_index"]),
-                    "potential_V": controls["potential_V"] if controls else None,
-                    "current_mA": controls["current_mA"] if controls else None,
-                    "electrolysis_duration_s": _electrolysis_duration(experiment),
+                    "parametric_controls": controls,
                     "leaderboard_score": float(experiment["leaderboard_score"]),
-                    "distance_to_supplied_window": _window_distance(experiment, model),
+                    "distance_to_supplied_model": _supplied_model_distance(controls, model),
                 }
             )
         reliability = list(_sequence(analysis.get("prior_reliability_trajectory")))
@@ -497,9 +557,9 @@ def main() -> int:
                     "sha256": file_sha256(summary_path),
                 },
                 "participant_state": "completed" if summary.get("completed") is True else "failed",
-                "participant_qualification_passed": _mapping(
-                    summary.get("qualification")
-                ).get("passed")
+                "participant_qualification_passed": _mapping(summary.get("qualification")).get(
+                    "passed"
+                )
                 is True,
                 "complete_experiment_count": int(analysis.get("complete_experiment_count", 0)),
                 "operation_attempt_count": int(analysis.get("operation_attempt_count", 0)),
