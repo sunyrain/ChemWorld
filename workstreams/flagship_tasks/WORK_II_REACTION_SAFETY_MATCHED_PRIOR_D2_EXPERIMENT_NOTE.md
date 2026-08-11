@@ -1,7 +1,7 @@
 # Work II reaction-safety matched-prior D2
 
 Date: 2026-08-11
-Status: frozen before provider execution
+Status: world 1 completed and evaluated; world 4 pending execution
 
 ## Question and tested units
 
@@ -58,3 +58,21 @@ experiments, operations, tool calls, throughput and ETA when defined.
 Expected outputs are ignored provider runs and readiness receipts, tracked world-owned configs, one
 provider-free evaluator per world, and a combined D1/D2 analysis with exact denominators. D2 remains
 development evidence and does not authorize R5 without user review.
+
+## Interim result: world 1
+
+Both world-owned zero-provider readiness receipts passed before participant execution. World 1 then
+completed `3/3` qualified cells, `30/30` experiments, `210/210` committed operations and `15/15`
+checkpoints. The evaluator completed `16/16` truth queries and `18/18` blind replays with exact replay,
+zero evaluator provider calls and zero participant reruns. Participant execution recorded four public
+unsafe outcomes, zero dynamic physical-constraint events, zero resource rejections and zero platform
+failures.
+
+The world-1 truth favored the higher-temperature side. Opaque, aligned and misspecified final
+predictions all recovered that direction. Held-out error changed by `0.1118 -> 0.0351`,
+`0.1213 -> 0.0188` and `0.1386 -> 0.0344`, respectively. The misspecified arm therefore corrected its
+predictive direction, but its stated prior reliability increased from `0.70` to `0.85` and it never
+registered the temperature field as challenged. This is evidence that predictive correction and
+explicit prior rejection can dissociate. The aligned arm alone produced four unsafe outcomes, so the
+D1 descriptive signal that supplied priors reduced unsafe exploration did not replicate in world 1.
+World 4 remains required to test the preregistered opposite-direction regime.
