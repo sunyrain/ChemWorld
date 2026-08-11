@@ -501,9 +501,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             else None
         )
         self.initial_world_model = (
-            deepcopy(dict(initial_world_model))
-            if initial_world_model is not None
-            else None
+            deepcopy(dict(initial_world_model)) if initial_world_model is not None else None
         )
         self.workspace = ExperimentCodexWorkspace(
             workspace,
@@ -997,9 +995,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 "limits": {
                     "session_wall_time_limit_s": self.session_wall_time_limit_s,
                     "max_recovered_mcp_tool_failures": self.max_recovered_mcp_tool_failures,
-                    "max_consecutive_mcp_tool_failures": (
-                        self.max_consecutive_mcp_tool_failures
-                    ),
+                    "max_consecutive_mcp_tool_failures": (self.max_consecutive_mcp_tool_failures),
                     "max_provider_error_events": self.max_provider_error_events,
                 },
             }
@@ -1052,9 +1048,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "limits": {
                 "session_wall_time_limit_s": self.session_wall_time_limit_s,
                 "max_recovered_mcp_tool_failures": self.max_recovered_mcp_tool_failures,
-                "max_consecutive_mcp_tool_failures": (
-                    self.max_consecutive_mcp_tool_failures
-                ),
+                "max_consecutive_mcp_tool_failures": (self.max_consecutive_mcp_tool_failures),
                 "max_provider_error_events": self.max_provider_error_events,
             },
         }
@@ -1062,9 +1056,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
     def _operational_limit_failure(self, audit: Mapping[str, Any]) -> str | None:
         elapsed = float(audit.get("session_elapsed_s", 0.0))
         failed_calls = int(audit.get("recovered_mcp_tool_failure_count", 0))
-        consecutive_failed_calls = int(
-            audit.get("current_consecutive_mcp_tool_failure_count", 0)
-        )
+        consecutive_failed_calls = int(audit.get("current_consecutive_mcp_tool_failure_count", 0))
         provider_errors = int(audit.get("provider_error_event_count", 0))
         if self.session_wall_time_limit_s is not None and elapsed > self.session_wall_time_limit_s:
             return "session_wall_time_limit"
@@ -1173,19 +1165,13 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                     "session_id": self._session.get("session_id"),
                     "thread_id": snapshot.get("thread_id"),
                     "session_elapsed_s": round(float(audit["session_elapsed_s"]), 3),
-                    "accepted_action_count": int(
-                        self._session.get("accepted_action_count", 0)
-                    ),
+                    "accepted_action_count": int(self._session.get("accepted_action_count", 0)),
                     "next_expected_step": self._session_action_count + 1,
                     "event_counts": snapshot.get("event_counts", {}),
                     "mcp_tool_call_count": len(
-                        self.workspace.mcp_tool_call_audit(
-                            str(self._session.get("session_id"))
-                        )
+                        self.workspace.mcp_tool_call_audit(str(self._session.get("session_id")))
                     ),
-                    "recovered_mcp_tool_failure_count": audit[
-                        "recovered_mcp_tool_failure_count"
-                    ],
+                    "recovered_mcp_tool_failure_count": audit["recovered_mcp_tool_failure_count"],
                     "current_consecutive_mcp_tool_failure_count": audit[
                         "current_consecutive_mcp_tool_failure_count"
                     ],
@@ -1194,9 +1180,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                     ],
                     "provider_error_event_count": audit["provider_error_event_count"],
                     "usage_observed": usage_observed,
-                    "usage_observation_event_type": snapshot.get(
-                        "usage_observation_event_type"
-                    ),
+                    "usage_observation_event_type": snapshot.get("usage_observation_event_type"),
                     "usage": usage,
                 }
             )
@@ -1450,6 +1434,15 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         tool_events = snapshot.get("tool_events")
         session_id = str(self._session["session_id"])
         mcp_tool_calls = self.workspace.mcp_tool_call_audit(session_id)
+        belief_snapshots = self.workspace.belief_snapshot_audit(session_id)
+        committed_recommendation = self.workspace.final_recommendation_audit(session_id)
+        if belief_snapshots:
+            self._belief_snapshots.extend(deepcopy(belief_snapshots))
+        host_recommendation = (
+            committed_recommendation.get("recommendation")
+            if isinstance(committed_recommendation, dict)
+            else None
+        )
         operational = self._active_session_operational_audit(
             monitor_snapshot=snapshot,
             mcp_tool_calls=mcp_tool_calls,
@@ -1475,9 +1468,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "usage_observed": usage_observed,
             "usage_observation_event_type": snapshot.get("usage_observation_event_type"),
             "usage_unavailable_reason": (
-                None
-                if usage_observed
-                else "codex_cli_emitted_no_usage_before_forced_termination"
+                None if usage_observed else "codex_cli_emitted_no_usage_before_forced_termination"
             ),
             "usage_complete": usage_complete,
             "prompt_byte_count": self._session["prompt_byte_count"],
@@ -1487,7 +1478,23 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "provider_errors": snapshot.get("provider_errors", []),
             "stderr_byte_count": snapshot.get("stderr_byte_count", 0),
             "stderr_sha256": snapshot.get("stderr_sha256"),
+            "final_recommendation": (
+                deepcopy(host_recommendation) if isinstance(host_recommendation, dict) else None
+            ),
+            "final_recommendation_source": (
+                "host_mcp_commit" if isinstance(host_recommendation, dict) else None
+            ),
+            "final_recommendation_commit": committed_recommendation,
+            "final_recommendation_sha256": (
+                hashlib.sha256(_canonical_json(host_recommendation).encode("utf-8")).hexdigest()
+                if isinstance(host_recommendation, dict)
+                else None
+            ),
+            "artifact_access": self.workspace.artifact_access_audit(session_id),
             "mcp_tool_calls": mcp_tool_calls,
+            "session_scope": self.session_scope,
+            "belief_snapshots": belief_snapshots,
+            "belief_snapshot_count": len(belief_snapshots),
             "experiment_tool_transport": "host_owned_stdio_mcp",
             "mcp_tool_integrity_verified_after_session": (experiment_tool_integrity_verified),
             "experiment_tool_integrity_verified_after_session": (

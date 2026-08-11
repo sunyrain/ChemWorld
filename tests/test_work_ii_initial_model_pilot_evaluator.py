@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from scripts.evaluate_work_ii_initial_model_pilot import (
+    _blind_skip_reason,
     _descriptive_interpretation,
     _parametric_controls,
     _rationale_score_match,
@@ -187,6 +188,22 @@ def test_operational_failure_can_retain_a_complete_scientific_trajectory() -> No
 
     summary["analysis"]["complete_experiment_count"] = 10
     assert _scientific_trajectory_complete(summary, 10) is True
+
+
+def test_blind_skip_reason_never_invents_missing_recommendation() -> None:
+    summary = {
+        "completed": False,
+        "analysis": {
+            "complete_experiment_count": 10,
+            "right_censored_open_experiment": False,
+            "final_recommendation": None,
+        },
+        "exact_replay": {"verified": True},
+    }
+
+    assert _blind_skip_reason(summary, 10) == "missing_committed_final_recommendation"
+    summary["analysis"]["complete_experiment_count"] = 0
+    assert _blind_skip_reason(summary, 10) == "participant_trajectory_incomplete"
 
 
 def test_registered_temperature_direction_uses_frozen_aligned_claim() -> None:

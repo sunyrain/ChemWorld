@@ -70,12 +70,8 @@ def test_codex_campaign_view_uses_one_based_experiment_indices() -> None:
         {
             "experiment_index": 1,
             "done": False,
-            "experiment_summaries": [
-                {"experiment_index": 0, "leaderboard_score": 0.4}
-            ],
-            "completed_batches": [
-                {"experiment_index": 0, "leaderboard_score": 0.4}
-            ],
+            "experiment_summaries": [{"experiment_index": 0, "leaderboard_score": 0.4}],
+            "completed_batches": [{"experiment_index": 0, "leaderboard_score": 0.4}],
             "discarded_batches": [],
             "last_terminal_summary": {
                 "experiment_index": 0,
@@ -909,6 +905,10 @@ def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(
     assert receipt["usage_unavailable_reason"] == (
         "codex_cli_emitted_no_usage_before_forced_termination"
     )
+    assert receipt["belief_snapshots"] == []
+    assert receipt["belief_snapshot_count"] == 0
+    assert receipt["final_recommendation"] is None
+    assert receipt["final_recommendation_source"] is None
     usage = agent.method_resource_usage()
     assert usage["provider_usage_pending"] is False
     assert usage["token_counts_observed"] is False
@@ -942,14 +942,17 @@ def test_consecutive_mcp_failure_limit_is_independent_of_total_limit(
         )
         is None
     )
-    assert agent._operational_limit_failure(
-        {
-            "session_elapsed_s": 1.0,
-            "recovered_mcp_tool_failure_count": 2,
-            "current_consecutive_mcp_tool_failure_count": 2,
-            "provider_error_event_count": 0,
-        }
-    ) == "max_consecutive_mcp_tool_failures"
+    assert (
+        agent._operational_limit_failure(
+            {
+                "session_elapsed_s": 1.0,
+                "recovered_mcp_tool_failure_count": 2,
+                "current_consecutive_mcp_tool_failure_count": 2,
+                "provider_error_event_count": 0,
+            }
+        )
+        == "max_consecutive_mcp_tool_failures"
+    )
 
 
 def test_lab_tool_tamper_is_rejected_before_action_acceptance(tmp_path: Path) -> None:

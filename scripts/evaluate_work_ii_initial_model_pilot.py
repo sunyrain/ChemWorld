@@ -108,6 +108,20 @@ def _scientific_trajectory_complete(
     )
 
 
+def _blind_skip_reason(
+    summary: Mapping[str, Any],
+    expected_experiment_count: int,
+) -> str | None:
+    """Return why blind replay cannot run without inventing participant output."""
+
+    if not _scientific_trajectory_complete(summary, expected_experiment_count):
+        return "participant_trajectory_incomplete"
+    analysis = _mapping(summary.get("analysis"))
+    if not isinstance(analysis.get("final_recommendation"), Mapping):
+        return "missing_committed_final_recommendation"
+    return None
+
+
 def _parametric_controls(experiment: Mapping[str, Any], task_id: str) -> dict[str, Any]:
     operations = [
         operation
@@ -205,10 +219,7 @@ def _supplied_model_distance(
                 0.0,
             ),
         }
-    if (
-        "reaction_temperature_K" in reference_region
-        and "reaction_duration_s" in reference_region
-    ):
+    if "reaction_temperature_K" in reference_region and "reaction_duration_s" in reference_region:
         if "reaction_temperature_K" not in controls or "reaction_duration_s" not in controls:
             return None
         return {
@@ -329,22 +340,45 @@ def _descriptive_interpretation(report: Mapping[str, Any]) -> dict[str, Any]:
         }
     )
     selected_incumbent_count = sum(
-        row.get("selected_experiment_index") == row.get("observed_incumbent_experiment_index")
+        row.get("selected_experiment_index") is not None
+        and row.get("selected_experiment_index") == row.get("observed_incumbent_experiment_index")
         for row in report["cells"]
     )
+    submitted_recommendation_count = sum(
+        row.get("selected_experiment_index") is not None for row in report["cells"]
+    )
+
+    def optional_float(value: object) -> float | None:
+        if value is None:
+            return None
+        number = float(value)
+        return number if math.isfinite(number) else None
+
+    def optional_difference(left: object, right: object) -> float | None:
+        left_number = optional_float(left)
+        right_number = optional_float(right)
+        if left_number is None or right_number is None:
+            return None
+        return left_number - right_number
+
     return {
-        "opaque_prediction_improvement": float(opaque["checkpoint_improvement"]),
-        "aligned_prediction_improvement": float(aligned["checkpoint_improvement"]),
-        "misspecified_prediction_improvement": float(misspecified["checkpoint_improvement"]),
+        "opaque_prediction_improvement": optional_float(opaque["checkpoint_improvement"]),
+        "aligned_prediction_improvement": optional_float(aligned["checkpoint_improvement"]),
+        "misspecified_prediction_improvement": optional_float(
+            misspecified["checkpoint_improvement"]
+        ),
         "misspecified_initial_reliability": reliability[0] if reliability else None,
         "misspecified_final_reliability": reliability[-1] if reliability else None,
         "misspecified_challenged_fields": challenged_fields,
-        "misspecified_minus_opaque_best_endpoint": float(misspecified["best_observed_score"])
-        - float(opaque["best_observed_score"]),
-        "aligned_minus_opaque_best_endpoint": float(aligned["best_observed_score"])
-        - float(opaque["best_observed_score"]),
+        "misspecified_minus_opaque_best_endpoint": optional_difference(
+            misspecified["best_observed_score"], opaque["best_observed_score"]
+        ),
+        "aligned_minus_opaque_best_endpoint": optional_difference(
+            aligned["best_observed_score"], opaque["best_observed_score"]
+        ),
         "H3_primary_contrast": report.get("cluster_contrast", {}).get("H3_primary_contrast"),
         "selected_observed_incumbent_count": selected_incumbent_count,
+        "submitted_recommendation_count": submitted_recommendation_count,
         "participant_cell_count": len(report["cells"]),
         "temperature_direction_diagnostic_status": _mapping(
             report.get("temperature_direction_diagnostic")
@@ -352,7 +386,9 @@ def _descriptive_interpretation(report: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _change_phrase(value: float, *, noun: str) -> str:
+def _change_phrase(value: float | None, *, noun: str) -> str:
+    if value is None:
+        return f"{noun} was unavailable"
     if value > 0.0:
         return f"{noun} improved by {value:.4f}"
     if value < 0.0:
@@ -414,35 +450,38 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
         if initial_reliability is None or final_reliability is None
         else f"changed from {float(initial_reliability):.2f} to {float(final_reliability):.2f}"
     )
-    endpoint_delta = float(interpretation["misspecified_minus_opaque_best_endpoint"])
+    endpoint_delta = interpretation["misspecified_minus_opaque_best_endpoint"]
     endpoint_text = (
-        f"exceeded the opaque endpoint by {endpoint_delta:.4f}"
-        if endpoint_delta > 0.0
-        else f"trailed the opaque endpoint by {abs(endpoint_delta):.4f}"
-        if endpoint_delta < 0.0
+        "was unavailable"
+        if endpoint_delta is None
+        else f"exceeded the opaque endpoint by {float(endpoint_delta):.4f}"
+        if float(endpoint_delta) > 0.0
+        else f"trailed the opaque endpoint by {abs(float(endpoint_delta)):.4f}"
+        if float(endpoint_delta) < 0.0
         else "matched the opaque endpoint"
     )
     h3_value = interpretation.get("H3_primary_contrast")
     h3_text = "NA" if h3_value is None else f"{float(h3_value):.4f}"
     held_out_change = _change_phrase(
-        float(interpretation["misspecified_prediction_improvement"]),
+        interpretation["misspecified_prediction_improvement"],
         noun="Held-out prediction",
     )
     opaque_change = _change_phrase(
-        float(interpretation["opaque_prediction_improvement"]),
+        interpretation["opaque_prediction_improvement"],
         noun="opaque prediction",
     )
     aligned_change = _change_phrase(
-        float(interpretation["aligned_prediction_improvement"]),
+        interpretation["aligned_prediction_improvement"],
         noun="aligned prediction",
     )
     misspecified_change = _change_phrase(
-        float(interpretation["misspecified_prediction_improvement"]),
+        interpretation["misspecified_prediction_improvement"],
         noun="misspecified prediction",
     )
     participant_operations = denominators["participant_operation_attempt_count"]
     logical_turns = denominators["participant_logical_codex_turn_count"]
     incumbent_count = interpretation["selected_observed_incumbent_count"]
+    submitted_count = interpretation["submitted_recommendation_count"]
     participant_count = interpretation["participant_cell_count"]
     direction_contract = _mapping(report.get("temperature_direction_diagnostic"))
     direction_status = direction_contract.get("status")
@@ -579,9 +618,16 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
                 if _mapping(report.get("action_layer")).get("status")
                 == "platform_confounded_retained"
                 else (
-                    f"{incumbent_count}/{participant_count} final recommendations selected their "
-                    "own observed incumbent. Paired blind replay checks reproducibility and "
-                    "action commitment."
+                    f"Only {submitted_count}/{participant_count} cells committed a final "
+                    "recommendation. Missing recommendations are retained as method failures; "
+                    "the evaluator neither reconstructs nor substitutes them, and their blind "
+                    "replays remain scheduled but unexecuted."
+                    if submitted_count < participant_count
+                    else (
+                        f"{incumbent_count}/{participant_count} final recommendations selected "
+                        "their own observed incumbent. Paired blind replay checks reproducibility "
+                        "and action commitment."
+                    )
                 )
             ),
             "",
@@ -759,41 +805,57 @@ def main() -> int:
             "world_seed": world_seed,
         }
         blind_root = raw_root / "blind" / cell_key
-        print(json.dumps({"event": "blind_started", "arm": arm, "cell": index}), flush=True)
         blind_contract = dict(_mapping(design["blind_evaluator_contract"]))
-        blind_contract["participant_complete_experiments_per_cell"] = (
-            expected_experiment_count
-        )
+        blind_contract["participant_complete_experiments_per_cell"] = expected_experiment_count
         blind_contract["candidate_experiment_indices"] = list(
             range(1, expected_experiment_count + 1)
         )
-        blind_plan = build_blind_evaluation_plan(
-            cell,
-            summary,
-            blind_contract,
-            allow_unqualified_terminal_trajectory=(
-                summary.get("completed") is not True
-                and _scientific_trajectory_complete(summary, expected_experiment_count)
-            ),
-        )
-        blind_report = execute_blind_evaluation_plan(blind_plan, config, blind_root)
-        blind_receipts = _blind_receipts(blind_root, blind_report)
-        blind_errors = validate_blind_evaluation_report(blind_report, blind_plan, blind_receipts)
-        failures.extend(
-            {"scope": "blind", "prior_arm": arm, "error": error} for error in blind_errors
-        )
-        blind_exact = sum(
-            _mapping(receipt.get("exact_replay")).get("verified") is True
-            for receipt in blind_receipts
-        )
+        blind_targets = _sequence(blind_contract.get("blind_targets_per_cell"))
+        blind_replicates = int(blind_contract.get("blind_replicates_per_target", 0))
+        blind_scheduled = len(blind_targets) * blind_replicates
+        blind_skip_reason = _blind_skip_reason(summary, expected_experiment_count)
+        if blind_skip_reason is None:
+            print(
+                json.dumps({"event": "blind_started", "arm": arm, "cell": index}),
+                flush=True,
+            )
+            blind_plan = build_blind_evaluation_plan(
+                cell,
+                summary,
+                blind_contract,
+                allow_unqualified_terminal_trajectory=(summary.get("completed") is not True),
+            )
+            blind_report = execute_blind_evaluation_plan(blind_plan, config, blind_root)
+            blind_receipts = _blind_receipts(blind_root, blind_report)
+            blind_errors = validate_blind_evaluation_report(
+                blind_report, blind_plan, blind_receipts
+            )
+            failures.extend(
+                {"scope": "blind", "prior_arm": arm, "error": error} for error in blind_errors
+            )
+            blind_exact = sum(
+                _mapping(receipt.get("exact_replay")).get("verified") is True
+                for receipt in blind_receipts
+            )
+            blind_status = "completed"
+        else:
+            blind_report = {
+                "scheduled_execution_count": blind_scheduled,
+                "completed_execution_count": 0,
+                "recommendation_gain_over_incumbent": None,
+            }
+            blind_exact = 0
+            blind_status = f"not_executed_{blind_skip_reason}"
+            failures.append({"scope": "blind", "prior_arm": arm, "error": blind_skip_reason})
         total_blind_exact += blind_exact
         print(
             json.dumps(
                 {
-                    "event": "blind_completed",
+                    "event": "blind_completed" if blind_skip_reason is None else "blind_skipped",
                     "arm": arm,
                     "completed": blind_report["completed_execution_count"],
                     "total": blind_report["scheduled_execution_count"],
+                    "reason": blind_skip_reason,
                 }
             ),
             flush=True,
@@ -865,7 +927,8 @@ def main() -> int:
                 "checkpoint_count": len(_sequence(analysis.get("belief_snapshots"))),
                 "experiments": settings,
                 "best_observed_score": max(
-                    float(item["leaderboard_score"]) for item in experiments
+                    (float(item["leaderboard_score"]) for item in experiments),
+                    default=None,
                 ),
                 "observed_incumbent_experiment_index": observed_incumbent_index,
                 "selected_experiment_index": submitted_index,
@@ -883,9 +946,7 @@ def main() -> int:
                 },
                 "participant_behavior": {
                     **behavior,
-                    "resource_rejection_count": int(
-                        analysis.get("resource_rejection_count", 0)
-                    ),
+                    "resource_rejection_count": int(analysis.get("resource_rejection_count", 0)),
                     "platform_failure_count": 0,
                 },
                 "prior_reliability_trajectory": reliability,
@@ -939,8 +1000,7 @@ def main() -> int:
                         and registered_direction.get("preferred_side") is not None
                     ),
                     "final_law_summary_matches_held_out_truth": (
-                        law_direction.get("preferred_side")
-                        == truth_direction.get("preferred_side")
+                        law_direction.get("preferred_side") == truth_direction.get("preferred_side")
                         and truth_direction.get("preferred_side") is not None
                     ),
                 },
@@ -948,6 +1008,7 @@ def main() -> int:
                 "blind_completed_execution_count": blind_report.get("completed_execution_count"),
                 "blind_exact_replay_count": blind_exact,
                 "blind_recommendation_gain": blind_report.get("recommendation_gain_over_incumbent"),
+                "blind_evaluation_status": blind_status,
                 "provider_usage": {
                     "provider_session_count": usage.get("provider_session_count"),
                     "logical_codex_turn_count": usage.get("logical_codex_turn_count"),
@@ -1002,9 +1063,7 @@ def main() -> int:
             "participant_terminal_trajectory_count": sum(
                 row["participant_trajectory_state"] == "completed" for row in cells
             ),
-            "participant_scheduled_experiment_count": (
-                len(cells) * expected_experiment_count
-            ),
+            "participant_scheduled_experiment_count": (len(cells) * expected_experiment_count),
             "participant_complete_experiment_count": sum(
                 int(row["complete_experiment_count"]) for row in cells
             ),
@@ -1012,9 +1071,7 @@ def main() -> int:
                 int(row["operation_attempt_count"]) for row in cells
             ),
             "participant_checkpoint_count": sum(int(row["checkpoint_count"]) for row in cells),
-            "participant_scheduled_checkpoint_count": (
-                len(cells) * expected_checkpoint_count
-            ),
+            "participant_scheduled_checkpoint_count": (len(cells) * expected_checkpoint_count),
             "participant_provider_session_count": sum(
                 int(_mapping(row["provider_usage"]).get("provider_session_count") or 0)
                 for row in cells
@@ -1082,7 +1139,10 @@ def main() -> int:
         ),
     }
     report["descriptive_interpretation"] = _descriptive_interpretation(report)
-    if not all(math.isfinite(float(row["best_observed_score"])) for row in cells):
+    if not all(
+        row["best_observed_score"] is None or math.isfinite(float(row["best_observed_score"]))
+        for row in cells
+    ):
         raise ValueError("participant score summary contains a non-finite value")
     report["report_sha256"] = canonical_json_sha256(report)
     write_json_atomic(report_path, report)
