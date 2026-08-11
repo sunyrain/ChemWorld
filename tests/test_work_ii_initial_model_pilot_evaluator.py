@@ -3,6 +3,7 @@ from __future__ import annotations
 from scripts.evaluate_work_ii_initial_model_pilot import (
     _descriptive_interpretation,
     _parametric_controls,
+    _rationale_score_match,
     _render_markdown,
     _scientific_trajectory_complete,
     _supplied_model_distance,
@@ -133,6 +134,38 @@ def test_reaction_safety_parametric_controls_and_model_distance() -> None:
         "reaction_duration_s": 1500.0,
     }
 
+    matched_prior_model = {
+        "model": {"claim": {"directional_axis": "reaction_temperature_K"}},
+        "context_contract": {
+            "approximate_reference_region": {
+                "reaction_temperature_K": 420.0,
+                "reaction_duration_s": 3300.0,
+                "temperature_tolerance_K": 10.0,
+                "duration_tolerance_s": 600.0,
+            }
+        },
+    }
+    assert _supplied_model_distance(controls, matched_prior_model) == {
+        "reaction_temperature_K": 0.0,
+        "reaction_duration_s": 1500.0,
+    }
+
+
+def test_rationale_score_match_detects_one_based_incumbent_reference() -> None:
+    experiments = [
+        {"experiment_index": 9, "leaderboard_score": 0.4150832466018063},
+        {"experiment_index": 10, "leaderboard_score": 0.41915356995221154},
+    ]
+    recommendation = {
+        "selected_experiment_index": 9,
+        "selection_rationale": (
+            "Experiment index 9 delivered the highest participant-visible score (0.41915); "
+            "the repeat scored 0.41508."
+        ),
+    }
+
+    assert _rationale_score_match(recommendation, experiments) == 10
+
 
 def test_operational_failure_can_retain_a_complete_scientific_trajectory() -> None:
     summary = {
@@ -149,3 +182,6 @@ def test_operational_failure_can_retain_a_complete_scientific_trajectory() -> No
     }
 
     assert _scientific_trajectory_complete(summary) is True
+
+    summary["analysis"]["complete_experiment_count"] = 10
+    assert _scientific_trajectory_complete(summary, 10) is True

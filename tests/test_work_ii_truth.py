@@ -109,6 +109,32 @@ def test_truth_plan_is_shared_across_arms_and_self_bound() -> None:
     )
 
 
+def test_truth_plan_accepts_pattern_owned_query_and_evidence_denominators() -> None:
+    config = _load_config("work_ii_reaction_safety_matched_prior_d1.json")
+    plan = build_evaluator_truth_plan(
+        {
+            "world_cluster_id": "reaction-safety-d1-seed0",
+            "task_id": "reaction-safety-constrained",
+            "world_seed": 0,
+        },
+        config,
+        formal_result=False,
+        formal_preflight_sha256=None,
+    )
+
+    assert validate_evaluator_truth_plan(plan) == []
+    assert plan["truth_query_count"] == 16
+    assert plan["law_summary_contract"]["evidence_catalog"] == [
+        f"experiment-{index}-final-assay" for index in range(1, 11)
+    ]
+    heat = next(
+        action
+        for action in plan["queries"][0]["action_plan"]
+        if action["operation"] == "heat"
+    )
+    assert heat["stirring_speed_rpm"] == 400.0
+
+
 def test_truth_executor_retains_exact_four_query_denominator(
     tmp_path: Path,
     monkeypatch,

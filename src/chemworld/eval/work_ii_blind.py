@@ -84,7 +84,31 @@ class _FrozenBlindReplayAgent(BaseAgent):
         return manifest
 
 
-def _experiment_rows(summary: Mapping[str, Any]) -> dict[int, dict[str, Any]]:
+def _candidate_experiment_indices(contract: Mapping[str, Any]) -> list[int]:
+    raw = contract.get("candidate_experiment_indices", [1, 2, 3, 4])
+    if not isinstance(raw, list) or not raw:
+        raise ValueError("blind evaluator candidate experiment indices are invalid")
+    indices: list[int] = []
+    for value in raw:
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise ValueError("blind evaluator candidate experiment indices are invalid")
+        indices.append(value)
+    if indices != list(range(1, len(indices) + 1)):
+        raise ValueError("blind evaluator candidate experiments must be consecutive and 1-based")
+    declared = contract.get("participant_complete_experiments_per_cell")
+    if declared is not None and (
+        isinstance(declared, bool)
+        or not isinstance(declared, int)
+        or declared != len(indices)
+    ):
+        raise ValueError("blind evaluator participant experiment denominator drifted")
+    return indices
+
+
+def _experiment_rows(
+    summary: Mapping[str, Any],
+    expected_indices: list[int],
+) -> dict[int, dict[str, Any]]:
     analysis = summary.get("analysis")
     if not isinstance(analysis, Mapping):
         raise ValueError("formal cell summary lacks analysis")
@@ -120,8 +144,8 @@ def _experiment_rows(summary: Mapping[str, Any]) -> dict[int, dict[str, Any]]:
             "leaderboard_score": float(score),
             "operations": [deepcopy(dict(action)) for action in actions],
         }
-    if set(experiments) != {1, 2, 3, 4}:
-        raise ValueError("blind evaluator requires the exact four completed experiments")
+    if set(experiments) != set(expected_indices):
+        raise ValueError("blind evaluator requires the configured completed experiments")
     return experiments
 
 
@@ -146,6 +170,7 @@ def build_blind_evaluation_plan(
 ) -> dict[str, Any]:
     """Bind a qualified cell's committed choice to six evaluator-owned replays."""
 
+    expected_indices = _candidate_experiment_indices(contract)
     qualification_passed = summary.get("completed") is True
     development_override = not qualification_passed
     if development_override:
@@ -153,7 +178,7 @@ def build_blind_evaluation_plan(
         replay = summary.get("exact_replay")
         terminal_scientific_trajectory = (
             isinstance(analysis, Mapping)
-            and int(analysis.get("complete_experiment_count", 0)) == 4
+            and int(analysis.get("complete_experiment_count", 0)) == len(expected_indices)
             and analysis.get("right_censored_open_experiment") is False
             and isinstance(replay, Mapping)
             and replay.get("verified") is True
@@ -181,7 +206,7 @@ def build_blind_evaluation_plan(
     ):
         raise ValueError("blind evaluator isolation contract drifted")
 
-    experiments = _experiment_rows(summary)
+    experiments = _experiment_rows(summary, expected_indices)
     analysis = summary["analysis"]
     recommendation = analysis.get("final_recommendation")
     if not isinstance(recommendation, Mapping):
@@ -244,6 +269,8 @@ def build_blind_evaluation_plan(
         "world_seed": cell["world_seed"],
         "recommendation_sha256": recommendation_digest,
         "participant_final_recommendation_count": 1,
+        "participant_complete_experiment_count": len(expected_indices),
+        "candidate_experiment_indices": expected_indices,
         "participant_operational_qualification_passed": qualification_passed,
         "development_terminal_trajectory_override": development_override,
         "blind_target_count": len(target_rows),
@@ -283,6 +310,16 @@ def validate_blind_evaluation_plan(plan: Mapping[str, Any]) -> list[str]:
     )
     if plan.get("plan_sha256") != expected_hash:
         errors.append("blind evaluator plan self-hash mismatch")
+    try:
+        candidate_indices = _candidate_experiment_indices(plan)
+    except ValueError as error:
+        errors.append(str(error))
+        candidate_indices = []
+    if plan.get("participant_complete_experiment_count") not in (
+        None,
+        len(candidate_indices),
+    ):
+        errors.append("blind evaluator participant experiment denominator mismatch")
     targets = plan.get("targets")
     executions = plan.get("executions")
     if not isinstance(targets, list) or len(targets) != 2:

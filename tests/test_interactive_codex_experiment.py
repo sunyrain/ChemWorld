@@ -17,6 +17,7 @@ from chemworld.agents.interactive_codex_experiment import (
     _final_recommendation_from_payload,
     _material_information_payload,
     _parse_final_payload,
+    _participant_visible_campaign,
     _public_task_contract,
 )
 
@@ -62,6 +63,45 @@ def test_campaign_recommendation_normalizes_flat_and_nested_payloads() -> None:
         "selection_rationale": "best public score",
     }
     assert _final_recommendation_from_payload(nested) == nested["final_recommendation"]
+
+
+def test_codex_campaign_view_uses_one_based_experiment_indices() -> None:
+    visible = _participant_visible_campaign(
+        {
+            "experiment_index": 1,
+            "done": False,
+            "experiment_summaries": [
+                {"experiment_index": 0, "leaderboard_score": 0.4}
+            ],
+            "completed_batches": [
+                {"experiment_index": 0, "leaderboard_score": 0.4}
+            ],
+            "discarded_batches": [],
+            "last_terminal_summary": {
+                "experiment_index": 0,
+                "leaderboard_score": 0.4,
+            },
+            "campaign_resources": {
+                "campaign_terminal": False,
+                "current_experiment": {
+                    "experiment_index": 1,
+                    "vessel_started": False,
+                },
+            },
+        }
+    )
+
+    assert visible["experiment_index_base"] == 1
+    assert visible["completed_experiment_count"] == 1
+    assert visible["experiment_index"] == 2
+    assert visible["experiment_summaries"][0]["experiment_index"] == 1
+    assert visible["completed_batches"][0]["experiment_index"] == 1
+    assert visible["last_terminal_summary"]["experiment_index"] == 1
+    assert visible["campaign_resources"]["current_experiment"] == {
+        "experiment_index": 2,
+        "vessel_started": False,
+        "experiment_index_base": 1,
+    }
 
 
 @pytest.mark.parametrize(

@@ -116,9 +116,9 @@ An experiment_ended outcome closes only the current batch. When campaign_ended=f
 scientific context and continue into the next fresh batch using the returned next_state. When
     campaign_ended=true, commit the final checkpoint if it is due, then call
     chemworld_lab.commit_final_recommendation exactly once. Select exactly one completed
-    experiment index for evaluator-owned blind replay using only participant-visible campaign
-    evidence; no blind outcome will be returned. Only after the tool confirms the commitment, return
-    exactly one
+    1-based experiment index for evaluator-owned blind replay using only participant-visible
+    campaign evidence; no blind outcome will be returned. Only after the tool confirms the
+    commitment, return exactly one
     JSON object with status and summary, with no prose or Markdown fence:
     {"status":"campaign_complete","summary":"..."}.
 The host never chooses, repairs, terminates, assays, or replaces your operations. Failed and
@@ -709,6 +709,15 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             if self.session_scope == "experiment"
             else info.get("campaign_terminal", False) or budget_exhausted
         )
+        next_experiment_index = info.get("next_experiment_index")
+        if (
+            info.get("next_experiment_ready") is True
+            and isinstance(next_experiment_index, int)
+            and not isinstance(next_experiment_index, bool)
+        ):
+            next_experiment_index += 1
+        else:
+            next_experiment_index = None
         self._pending_outcome = {
             "ok": True,
             "schema_version": EXPERIMENT_CODEX_IPC_VERSION,
@@ -720,7 +729,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "campaign_ended": campaign_ended,
             "campaign_terminal_reason": info.get("campaign_terminal_reason"),
             "next_experiment_ready": info.get("next_experiment_ready"),
-            "next_experiment_index": info.get("next_experiment_index"),
+            "next_experiment_index": next_experiment_index,
+            "experiment_index_base": 1,
             "evidence_id": evidence_id,
         }
         self.workspace.append_public_history(
@@ -1838,10 +1848,12 @@ def _bounded_current_packet(
                 break
         if resource_snapshot is not None:
             break
-    compact_campaign = _compact_scalars(campaign_mapping)
+    participant_campaign = _participant_visible_campaign(campaign_mapping)
+    compact_campaign = _compact_scalars(participant_campaign)
     for key in ("completed_batches", "discarded_batches", "experiment_summaries"):
-        if key in campaign_mapping:
-            compact_campaign[key] = _compact_nested(campaign_mapping.get(key))
+        if key in participant_campaign:
+            compact_campaign[key] = _compact_nested(participant_campaign.get(key))
+    resource_snapshot = _participant_visible_resource_state(resource_snapshot)
     return {
         "schema_version": INTERACTIVE_CODEX_EXPERIMENT_VERSION,
         "step": context.step,
@@ -1860,6 +1872,64 @@ def _bounded_current_packet(
         "uncertainty": _compact_scalars(context.uncertainty),
         "legal_actions": actions,
     }
+
+
+def _one_based_experiment_summary(value: object) -> object:
+    if not isinstance(value, Mapping):
+        return deepcopy(value)
+    result = deepcopy(dict(value))
+    index = result.get("experiment_index")
+    if isinstance(index, int) and not isinstance(index, bool) and index >= 0:
+        result["experiment_index"] = index + 1
+    return result
+
+
+def _participant_visible_resource_state(value: object) -> object:
+    if not isinstance(value, Mapping):
+        return deepcopy(value)
+    result = deepcopy(dict(value))
+    current = result.get("current_experiment")
+    if isinstance(current, Mapping):
+        current_result = deepcopy(dict(current))
+        raw_index = current_result.get("experiment_index")
+        terminal = result.get("campaign_terminal") is True
+        if isinstance(raw_index, int) and not isinstance(raw_index, bool) and raw_index >= 0:
+            current_result["experiment_index"] = None if terminal else raw_index + 1
+        current_result["experiment_index_base"] = 1
+        result["current_experiment"] = current_result
+    return result
+
+
+def _participant_visible_campaign(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Expose one unambiguous 1-based experiment namespace to Codex participants."""
+
+    result = deepcopy(dict(value))
+    summaries = result.get("experiment_summaries")
+    completed_count = len(summaries) if isinstance(summaries, list) else 0
+    result["completed_experiment_count"] = completed_count
+    result["experiment_index_base"] = 1
+    raw_index = result.get("experiment_index")
+    terminal = result.get("done") is True or _mapping_flag(
+        result.get("campaign_resources"), "campaign_terminal"
+    )
+    if isinstance(raw_index, int) and not isinstance(raw_index, bool) and raw_index >= 0:
+        result["experiment_index"] = None if terminal else raw_index + 1
+    for key in ("completed_batches", "discarded_batches", "experiment_summaries"):
+        rows = result.get(key)
+        if isinstance(rows, list):
+            result[key] = [_one_based_experiment_summary(row) for row in rows]
+    if result.get("last_terminal_summary") is not None:
+        result["last_terminal_summary"] = _one_based_experiment_summary(
+            result["last_terminal_summary"]
+        )
+    result["campaign_resources"] = _participant_visible_resource_state(
+        result.get("campaign_resources")
+    )
+    return result
+
+
+def _mapping_flag(value: object, key: str) -> bool:
+    return isinstance(value, Mapping) and value.get(key) is True
 
 
 def _compact_outcome(

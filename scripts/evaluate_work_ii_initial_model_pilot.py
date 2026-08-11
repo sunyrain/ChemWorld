@@ -6,10 +6,12 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
@@ -34,7 +36,7 @@ from chemworld.eval.work_ii_truth import (
 
 ROOT = Path(__file__).resolve().parents[1]
 ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
-REPORT_VERSION = "chemworld-work-ii-initial-model-pilot-evaluation-0.1"
+REPORT_VERSION = "chemworld-work-ii-initial-model-pilot-evaluation-0.2"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -52,18 +54,43 @@ def _sequence(value: object) -> Sequence[Any]:
     return value if isinstance(value, Sequence) and not isinstance(value, str | bytes) else []
 
 
-def _final_snapshot(analysis: Mapping[str, Any]) -> Mapping[str, Any] | None:
+def _snapshot(
+    analysis: Mapping[str, Any],
+    stage: str,
+) -> Mapping[str, Any] | None:
     for snapshot in _sequence(analysis.get("belief_snapshots")):
-        if isinstance(snapshot, Mapping) and snapshot.get("stage") == "final":
+        if isinstance(snapshot, Mapping) and snapshot.get("stage") == stage:
             return snapshot
     return None
 
 
-def _scientific_trajectory_complete(summary: Mapping[str, Any]) -> bool:
+def _final_snapshot(analysis: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    return _snapshot(analysis, "final")
+
+
+def _configured_experiment_count(config: Mapping[str, Any]) -> int:
+    value = _mapping(config.get("campaign")).get("complete_experiments")
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ValueError("campaign complete-experiment denominator is invalid")
+    return value
+
+
+def _configured_checkpoint_count(config: Mapping[str, Any]) -> int:
+    stages = _sequence(config.get("snapshot_stages"))
+    schedule = _sequence(_mapping(config.get("campaign")).get("checkpoint_complete_experiments"))
+    if not stages or len(stages) != len(schedule):
+        raise ValueError("campaign checkpoint denominator is invalid")
+    return len(stages)
+
+
+def _scientific_trajectory_complete(
+    summary: Mapping[str, Any],
+    expected_experiment_count: int = 4,
+) -> bool:
     analysis = _mapping(summary.get("analysis"))
     replay = _mapping(summary.get("exact_replay"))
     return (
-        int(analysis.get("complete_experiment_count", 0)) == 4
+        int(analysis.get("complete_experiment_count", 0)) == expected_experiment_count
         and analysis.get("right_censored_open_experiment") is False
         and replay.get("verified") is True
     )
@@ -130,7 +157,10 @@ def _supplied_model_distance(
 ) -> dict[str, float] | None:
     model = _mapping(initial_model.get("model"))
     claim = _mapping(model.get("claim"))
-    if not controls or not claim:
+    reference_region = _mapping(
+        _mapping(initial_model.get("context_contract")).get("approximate_reference_region")
+    )
+    if not controls or (not claim and not reference_region):
         return None
     if "potential_window_V" in claim and "current_window_mA" in claim:
         if "potential_V" not in controls or "current_mA" not in controls:
@@ -163,7 +193,179 @@ def _supplied_model_distance(
                 0.0,
             ),
         }
+    if (
+        "reaction_temperature_K" in reference_region
+        and "reaction_duration_s" in reference_region
+    ):
+        if "reaction_temperature_K" not in controls or "reaction_duration_s" not in controls:
+            return None
+        return {
+            "reaction_temperature_K": max(
+                abs(
+                    float(controls["reaction_temperature_K"])
+                    - float(reference_region["reaction_temperature_K"])
+                )
+                - float(reference_region.get("temperature_tolerance_K", 0.0)),
+                0.0,
+            ),
+            "reaction_duration_s": max(
+                abs(
+                    float(controls["reaction_duration_s"])
+                    - float(reference_region["reaction_duration_s"])
+                )
+                - float(reference_region.get("duration_tolerance_s", 0.0)),
+                0.0,
+            ),
+        }
     raise ValueError("unsupported supplied parametric initial-model claim")
+
+
+def _rationale_score_match(
+    recommendation: Mapping[str, Any],
+    experiments: Sequence[Mapping[str, Any]],
+) -> int | None:
+    rationale = recommendation.get("selection_rationale")
+    if not isinstance(rationale, str):
+        return None
+    for token in re.findall(r"(?<![\d.])0\.\d{4,}(?![\d.])", rationale):
+        precision = len(token.split(".", 1)[1])
+        matches = [
+            int(row["experiment_index"])
+            for row in experiments
+            if f"{float(row['leaderboard_score']):.{precision}f}" == token
+        ]
+        if len(matches) == 1:
+            return matches[0]
+    return None
+
+
+def _participant_behavior_profile(
+    summary_path: Path,
+    experiments: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    trajectory_path = summary_path.with_name("trajectory.jsonl")
+    rows = load_jsonl(trajectory_path)
+    status_counts: dict[str, int] = {}
+    dynamic_failures = 0
+    unsafe_operations = 0
+    unsafe_experiments: set[int] = set()
+    for row in rows:
+        status = str(row.get("transaction_status", "unknown"))
+        status_counts[status] = status_counts.get(status, 0) + 1
+        lab_report = _mapping(_mapping(row.get("agent_view")).get("lab_report"))
+        flags = _mapping(lab_report.get("constraint_flags"))
+        if flags.get("constitution_failed") is True:
+            dynamic_failures += 1
+        if flags.get("unsafe_by_task_limit") is True or flags.get("unsafe") is True:
+            unsafe_operations += 1
+            raw_index = row.get("experiment_index")
+            if isinstance(raw_index, int) and not isinstance(raw_index, bool):
+                unsafe_experiments.add(raw_index + 1)
+    recipe_hashes = [
+        canonical_json_sha256(list(_sequence(experiment.get("operations"))))
+        for experiment in experiments
+    ]
+    return {
+        "participant_record_count": len(rows),
+        "operation_status_counts": status_counts,
+        "dynamic_physical_failure_count": dynamic_failures,
+        "public_unsafe_operation_count": unsafe_operations,
+        "public_unsafe_experiment_indices": sorted(unsafe_experiments),
+        "unique_recipe_count": len(set(recipe_hashes)),
+        "exact_repeat_count": len(recipe_hashes) - len(set(recipe_hashes)),
+        "trajectory": {
+            "path": trajectory_path.relative_to(ROOT).as_posix(),
+            "sha256": file_sha256(trajectory_path),
+        },
+    }
+
+
+def _prediction_rows_by_query(predictions: object) -> dict[str, dict[str, float]]:
+    result: dict[str, dict[str, float]] = {}
+    for row in _sequence(predictions):
+        if not isinstance(row, Mapping):
+            continue
+        query_id = str(row.get("query_id", ""))
+        metrics = {
+            str(metric.get("metric_id")): float(metric["mean"])
+            for metric in _sequence(row.get("metrics"))
+            if isinstance(metric, Mapping)
+            and isinstance(metric.get("mean"), int | float)
+            and not isinstance(metric.get("mean"), bool)
+        }
+        if query_id and metrics:
+            result[query_id] = metrics
+    return result
+
+
+def _temperature_direction_diagnostic(
+    predictions: object,
+    *,
+    truth_plan: Mapping[str, Any],
+    reference_temperature_K: float,
+    temperature_tolerance_K: float,
+) -> dict[str, Any]:
+    by_query = _prediction_rows_by_query(predictions)
+    grouped: dict[float, dict[str, list[float]]] = {}
+    for query in _sequence(truth_plan.get("queries")):
+        if not isinstance(query, Mapping):
+            continue
+        features = _mapping(query.get("feature_values"))
+        query_id = str(query.get("query_id", ""))
+        metrics = by_query.get(query_id)
+        temperature = features.get("reaction_temperature_K")
+        duration = features.get("reaction_duration_s")
+        if (
+            metrics is None
+            or "score" not in metrics
+            or isinstance(temperature, bool)
+            or not isinstance(temperature, int | float)
+            or isinstance(duration, bool)
+            or not isinstance(duration, int | float)
+        ):
+            continue
+        if float(temperature) <= reference_temperature_K - temperature_tolerance_K:
+            side = "lower_temperature"
+        elif float(temperature) >= reference_temperature_K + temperature_tolerance_K:
+            side = "higher_temperature"
+        else:
+            continue
+        grouped.setdefault(float(duration), {}).setdefault(side, []).append(metrics["score"])
+    contrasts: list[float] = []
+    for sides in grouped.values():
+        lower = sides.get("lower_temperature", [])
+        higher = sides.get("higher_temperature", [])
+        if lower and higher:
+            contrasts.append(sum(lower) / len(lower) - sum(higher) / len(higher))
+    mean_contrast = sum(contrasts) / len(contrasts) if contrasts else None
+    preferred_side = (
+        None
+        if mean_contrast is None or mean_contrast == 0.0
+        else "lower_temperature"
+        if mean_contrast > 0.0
+        else "higher_temperature"
+    )
+    return {
+        "paired_duration_count": len(contrasts),
+        "lower_minus_higher_mean_score_contrast": mean_contrast,
+        "preferred_side": preferred_side,
+    }
+
+
+def _truth_prediction_rows(
+    evaluator_truth: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    return [
+        {
+            "query_id": str(query_id),
+            "metrics": [
+                {"metric_id": str(metric_id), "mean": float(value)}
+                for metric_id, value in _mapping(metrics).items()
+                if isinstance(value, int | float) and not isinstance(value, bool)
+            ],
+        }
+        for query_id, metrics in evaluator_truth.items()
+    ]
 
 
 def _truth_replay_count(report: Mapping[str, Any]) -> int:
@@ -236,14 +438,18 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
     interpretation = report.get("descriptive_interpretation")
     if not isinstance(interpretation, Mapping):
         interpretation = _descriptive_interpretation(report)
-    participant_cells = int(denominators["participant_cell_count"])
     terminal_trajectories = int(
         denominators.get(
             "participant_terminal_trajectory_count",
             denominators["participant_completed_cell_count"],
         )
     )
-    scheduled_checkpoints = participant_cells * 4
+    scheduled_checkpoints = int(
+        denominators.get(
+            "participant_scheduled_checkpoint_count",
+            denominators["participant_checkpoint_count"],
+        )
+    )
     total_input = sum(
         int(_mapping(row.get("provider_usage")).get("input_token_count") or 0)
         for row in report["cells"]
@@ -345,19 +551,27 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
         "## Arm-level results",
         "",
         (
-            "| Arm | Best observed score | Pre prediction error | Final error | "
-            "Improvement | Final prior reliability | Law error | Blind gain |"
+            "| Arm | Best score | Pre error | Final error | Improvement | Law error | "
+            "Direction | Unique/repeats | Unsafe/physical | Submitted→rationale | Blind gain |"
         ),
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "|---|---:|---:|---:|---:|---:|---|---:|---:|---:|---:|",
     ]
     for row in report["cells"]:
+        behavior = _mapping(row.get("participant_behavior"))
+        direction = _mapping(row.get("temperature_direction"))
+        index_diagnostic = _mapping(row.get("recommendation_index_diagnostic"))
         lines.append(
             f"| {row['prior_arm']} | {_format_value(row, 'best_observed_score')} | "
             f"{_format_value(row, 'effective_pre_error')} | "
             f"{_format_value(row, 'effective_final_error')} | "
             f"{_format_value(row, 'checkpoint_improvement')} | "
-            f"{_format_value(row, 'final_prior_reliability')} | "
             f"{_format_value(row, 'law_summary_error')} | "
+            f"{'yes' if direction.get('final_checkpoint_recovered') is True else 'no'} | "
+            f"{behavior.get('unique_recipe_count', 0)}/{behavior.get('exact_repeat_count', 0)} | "
+            f"{behavior.get('public_unsafe_operation_count', 0)}/"
+            f"{behavior.get('dynamic_physical_failure_count', 0)} | "
+            f"{row.get('selected_experiment_index')}→"
+            f"{index_diagnostic.get('rationale_score_matched_experiment_index')} | "
             f"{_format_value(row, 'blind_recommendation_gain')} |"
         )
     lines.extend(
@@ -373,6 +587,17 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
                 f"{total_output:,} output tokens, {total_recovered_mcp} recovered MCP failures, "
                 f"{total_provider_errors} provider-error events "
                 f"and a maximum session time of {max_session_elapsed:.1f} s."
+            ),
+            (
+                f"Participant safety outcomes were "
+                f"{denominators.get('participant_public_unsafe_operation_count', 0)} public "
+                f"unsafe operations and "
+                f"{denominators.get('participant_dynamic_physical_failure_count', 0)} dynamic "
+                f"physical failures, with "
+                f"{denominators.get('participant_resource_rejection_count', 0)} resource "
+                f"rejections and {denominators.get('participant_platform_failure_count', 0)} "
+                "platform failures. Unsafe or physically infeasible model-selected operations "
+                "remain scientific outcomes rather than platform failures."
             ),
             "",
             "## Development interpretation",
@@ -392,10 +617,19 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
             ),
             "",
             (
-                f"{incumbent_count}/{participant_count} final recommendations selected their own "
-                "observed incumbent. Paired blind replay therefore checks reproducibility and "
-                "action commitment but cannot show an additional "
-                "recommendation-over-incumbent gain when the two targets are identical."
+                "All submitted recommendation indices are retained unchanged, but the action "
+                "layer is platform-confounded: each rationale's first uniquely matched score "
+                "identifies the 1-based observed incumbent while the submitted index is one "
+                "smaller. Blind replay uses the actual submitted index; rationale-matched indices "
+                "are diagnostic only, so the blind gap must not be attributed to participant "
+                "action quality."
+                if _mapping(report.get("action_layer")).get("status")
+                == "platform_confounded_retained"
+                else (
+                    f"{incumbent_count}/{participant_count} final recommendations selected their "
+                    "own observed incumbent. Paired blind replay checks reproducibility and "
+                    "action commitment."
+                )
             ),
             "",
             f"Machine report SHA-256: `{report['report_sha256']}`.",
@@ -434,6 +668,8 @@ def main() -> int:
     matrix = _load(matrix_path)
     config = _load(config_path)
     design = _load(args.design.resolve())
+    expected_experiment_count = _configured_experiment_count(config)
+    expected_checkpoint_count = _configured_checkpoint_count(config)
     seeds = [int(seed) for seed in _sequence(matrix.get("world_seeds"))]
     if (
         len(seeds) != 1
@@ -462,7 +698,13 @@ def main() -> int:
 
     raw_root.mkdir(parents=True)
     cluster_id = f"initial-model-parametric--{task_id}--seed-{world_seed}"
-    print(json.dumps({"event": "truth_started", "queries": 4}), flush=True)
+    held_out_query_count = len(
+        _sequence(_mapping(config.get("belief_checkpoint")).get("held_out_queries"))
+    )
+    print(
+        json.dumps({"event": "truth_started", "queries": held_out_query_count}),
+        flush=True,
+    )
     truth_plan = build_evaluator_truth_plan(
         {
             "world_cluster_id": cluster_id,
@@ -489,6 +731,21 @@ def main() -> int:
         if summary.get("completed") is not True
     )
     evaluator_truth = _mapping(truth_report.get("truth"))
+    reference_region = _mapping(
+        _mapping(
+            _mapping(_mapping(config["prior_arms"]["opaque"]).get("initial_world_model")).get(
+                "context_contract"
+            )
+        ).get("approximate_reference_region")
+    )
+    reference_temperature_K = float(reference_region.get("reaction_temperature_K", 420.0))
+    temperature_tolerance_K = float(reference_region.get("temperature_tolerance_K", 0.0))
+    truth_direction = _temperature_direction_diagnostic(
+        _truth_prediction_rows(evaluator_truth),
+        truth_plan=truth_plan,
+        reference_temperature_K=reference_temperature_K,
+        temperature_tolerance_K=temperature_tolerance_K,
+    )
     print(
         json.dumps(
             {
@@ -508,8 +765,13 @@ def main() -> int:
         checkpoint = score_cell_checkpoint_errors(
             analysis,
             evaluator_truth,
-            terminal_state=("completed" if _scientific_trajectory_complete(summary) else "failed"),
+            terminal_state=(
+                "completed"
+                if _scientific_trajectory_complete(summary, expected_experiment_count)
+                else "failed"
+            ),
         )
+        pre_snapshot = _snapshot(analysis, "pre_evidence")
         final_snapshot = _final_snapshot(analysis)
         law = evaluate_final_law_summary(
             final_snapshot.get("law_summary") if final_snapshot is not None else None,
@@ -539,12 +801,20 @@ def main() -> int:
         }
         blind_root = raw_root / "blind" / cell_key
         print(json.dumps({"event": "blind_started", "arm": arm, "cell": index}), flush=True)
+        blind_contract = dict(_mapping(design["blind_evaluator_contract"]))
+        blind_contract["participant_complete_experiments_per_cell"] = (
+            expected_experiment_count
+        )
+        blind_contract["candidate_experiment_indices"] = list(
+            range(1, expected_experiment_count + 1)
+        )
         blind_plan = build_blind_evaluation_plan(
             cell,
             summary,
-            design["blind_evaluator_contract"],
+            blind_contract,
             allow_unqualified_terminal_trajectory=(
-                summary.get("completed") is not True and _scientific_trajectory_complete(summary)
+                summary.get("completed") is not True
+                and _scientific_trajectory_complete(summary, expected_experiment_count)
             ),
         )
         blind_report = execute_blind_evaluation_plan(blind_plan, config, blind_root)
@@ -585,6 +855,33 @@ def main() -> int:
             )
         reliability = list(_sequence(analysis.get("prior_reliability_trajectory")))
         recommendation = _mapping(analysis.get("final_recommendation"))
+        rationale_intended_index = _rationale_score_match(recommendation, experiments)
+        submitted_index = recommendation.get("selected_experiment_index")
+        observed_incumbent_index = analysis.get("observed_incumbent_experiment_index")
+        index_contract_confounded = (
+            isinstance(rationale_intended_index, int)
+            and rationale_intended_index != submitted_index
+            and rationale_intended_index == observed_incumbent_index
+        )
+        behavior = _participant_behavior_profile(summary_path, experiments)
+        pre_direction = _temperature_direction_diagnostic(
+            pre_snapshot.get("predictions") if pre_snapshot is not None else None,
+            truth_plan=truth_plan,
+            reference_temperature_K=reference_temperature_K,
+            temperature_tolerance_K=temperature_tolerance_K,
+        )
+        final_direction = _temperature_direction_diagnostic(
+            final_snapshot.get("predictions") if final_snapshot is not None else None,
+            truth_plan=truth_plan,
+            reference_temperature_K=reference_temperature_K,
+            temperature_tolerance_K=temperature_tolerance_K,
+        )
+        law_direction = _temperature_direction_diagnostic(
+            law.get("query_predictions"),
+            truth_plan=truth_plan,
+            reference_temperature_K=reference_temperature_K,
+            temperature_tolerance_K=temperature_tolerance_K,
+        )
         usage = _mapping(summary.get("method_resources"))
         cells.append(
             {
@@ -596,7 +893,9 @@ def main() -> int:
                 },
                 "participant_state": "completed" if summary.get("completed") is True else "failed",
                 "participant_trajectory_state": (
-                    "completed" if _scientific_trajectory_complete(summary) else "failed"
+                    "completed"
+                    if _scientific_trajectory_complete(summary, expected_experiment_count)
+                    else "failed"
                 ),
                 "participant_qualification_passed": _mapping(summary.get("qualification")).get(
                     "passed"
@@ -609,10 +908,27 @@ def main() -> int:
                 "best_observed_score": max(
                     float(item["leaderboard_score"]) for item in experiments
                 ),
-                "observed_incumbent_experiment_index": analysis.get(
-                    "observed_incumbent_experiment_index"
-                ),
-                "selected_experiment_index": recommendation.get("selected_experiment_index"),
+                "observed_incumbent_experiment_index": observed_incumbent_index,
+                "selected_experiment_index": submitted_index,
+                "recommendation_index_diagnostic": {
+                    "submitted_index_retained": True,
+                    "submitted_selected_experiment_index": submitted_index,
+                    "rationale_score_matched_experiment_index": rationale_intended_index,
+                    "observed_incumbent_experiment_index": observed_incumbent_index,
+                    "index_contract_confounded": index_contract_confounded,
+                    "action_layer_attribution": (
+                        "platform_confounded"
+                        if index_contract_confounded
+                        else "participant_interpretable"
+                    ),
+                },
+                "participant_behavior": {
+                    **behavior,
+                    "resource_rejection_count": int(
+                        analysis.get("resource_rejection_count", 0)
+                    ),
+                    "platform_failure_count": 0,
+                },
                 "prior_reliability_trajectory": reliability,
                 "final_prior_reliability": reliability[-1] if reliability else None,
                 "suspected_misindexed_fields_trajectory": list(
@@ -629,6 +945,22 @@ def main() -> int:
                 "law_summary_prediction_consistency_error": law.get(
                     "prediction_consistency_normalized_mae"
                 ),
+                "temperature_direction": {
+                    "truth": truth_direction,
+                    "pre_evidence": pre_direction,
+                    "final_checkpoint": final_direction,
+                    "final_law_summary": law_direction,
+                    "final_checkpoint_recovered": (
+                        final_direction.get("preferred_side")
+                        == truth_direction.get("preferred_side")
+                        and truth_direction.get("preferred_side") is not None
+                    ),
+                    "final_law_summary_recovered": (
+                        law_direction.get("preferred_side")
+                        == truth_direction.get("preferred_side")
+                        and truth_direction.get("preferred_side") is not None
+                    ),
+                },
                 "blind_scheduled_execution_count": blind_report.get("scheduled_execution_count"),
                 "blind_completed_execution_count": blind_report.get("completed_execution_count"),
                 "blind_exact_replay_count": blind_exact,
@@ -687,7 +1019,9 @@ def main() -> int:
             "participant_terminal_trajectory_count": sum(
                 row["participant_trajectory_state"] == "completed" for row in cells
             ),
-            "participant_scheduled_experiment_count": len(cells) * 4,
+            "participant_scheduled_experiment_count": (
+                len(cells) * expected_experiment_count
+            ),
             "participant_complete_experiment_count": sum(
                 int(row["complete_experiment_count"]) for row in cells
             ),
@@ -695,6 +1029,9 @@ def main() -> int:
                 int(row["operation_attempt_count"]) for row in cells
             ),
             "participant_checkpoint_count": sum(int(row["checkpoint_count"]) for row in cells),
+            "participant_scheduled_checkpoint_count": (
+                len(cells) * expected_checkpoint_count
+            ),
             "participant_provider_session_count": sum(
                 int(_mapping(row["provider_usage"]).get("provider_session_count") or 0)
                 for row in cells
@@ -715,9 +1052,42 @@ def main() -> int:
             "blind_exact_replay_count": total_blind_exact,
             "evaluator_provider_call_count": 0,
             "participant_trajectory_rerun_count": 0,
+            "participant_dynamic_physical_failure_count": sum(
+                int(_mapping(row["participant_behavior"]).get("dynamic_physical_failure_count", 0))
+                for row in cells
+            ),
+            "participant_public_unsafe_operation_count": sum(
+                int(_mapping(row["participant_behavior"]).get("public_unsafe_operation_count", 0))
+                for row in cells
+            ),
+            "participant_resource_rejection_count": sum(
+                int(_mapping(row["participant_behavior"]).get("resource_rejection_count", 0))
+                for row in cells
+            ),
+            "participant_platform_failure_count": sum(
+                int(_mapping(row["participant_behavior"]).get("platform_failure_count", 0))
+                for row in cells
+            ),
         },
         "cluster_contrast": cluster_rows[0] if len(cluster_rows) == 1 else None,
         "truth_report_sha256": truth_report.get("report_sha256"),
+        "truth_temperature_direction": truth_direction,
+        "action_layer": {
+            "status": (
+                "platform_confounded_retained"
+                if any(
+                    _mapping(row.get("recommendation_index_diagnostic")).get(
+                        "index_contract_confounded"
+                    )
+                    is True
+                    for row in cells
+                )
+                else "participant_interpretable"
+            ),
+            "submitted_recommendations_replaced": False,
+            "blind_replay_uses_actual_submitted_index": True,
+            "rationale_intended_index_is_diagnostic_only": True,
+        },
         "cells": cells,
         "failures": failures,
         "interpretation_boundary": (

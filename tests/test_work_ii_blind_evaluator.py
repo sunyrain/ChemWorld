@@ -81,6 +81,35 @@ def test_blind_plan_freezes_two_targets_three_paired_replicates() -> None:
         assert len({row["observation_seed"] for row in rows}) == 1
 
 
+def test_blind_plan_uses_pattern_owned_ten_experiment_denominator() -> None:
+    summary = _summary()
+    experiments = summary["analysis"]["experiments"]
+    experiments.extend(
+        {
+            "experiment_index": index,
+            "leaderboard_score": 0.1 + index / 100.0,
+            "operations": [
+                {"operation": "wait", "duration_s": index},
+                {"operation": "measure", "instrument": "final_assay"},
+            ],
+        }
+        for index in range(5, 11)
+    )
+    contract = _contract()
+    contract.update(
+        {
+            "participant_complete_experiments_per_cell": 10,
+            "candidate_experiment_indices": list(range(1, 11)),
+        }
+    )
+
+    plan = build_blind_evaluation_plan(_cell(), summary, contract)
+
+    assert validate_blind_evaluation_plan(plan) == []
+    assert plan["participant_complete_experiment_count"] == 10
+    assert plan["candidate_experiment_indices"] == list(range(1, 11))
+
+
 def test_blind_plan_rejects_tampering_and_incumbent_drift() -> None:
     plan = build_blind_evaluation_plan(_cell(), _summary(), _contract())
     tampered = deepcopy(plan)

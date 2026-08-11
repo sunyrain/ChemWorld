@@ -39,8 +39,9 @@ from chemworld.tasks import get_task
 WORK_II_TRUTH_PLAN_VERSION = "chemworld-work-ii-evaluator-truth-plan-0.1"
 WORK_II_TRUTH_REPORT_VERSION = "chemworld-work-ii-evaluator-truth-report-0.1"
 
-# Query fields are intentionally narrower than complete executable recipes.  These
-# constants freeze the controls that are not varied by the registered query set.
+# Query fields may be narrower than complete executable recipes. These defaults
+# fill only controls omitted by the registered query; an explicitly frozen query
+# value is authoritative and remains bound by the campaign-config hash.
 _FROZEN_RECIPE_DEFAULTS: dict[str, dict[str, int | float]] = {
     "electrochemical-conversion": {},
     "reaction-to-crystallization": {
@@ -143,8 +144,6 @@ def _compiled_control_values(
     values = dict(_FROZEN_RECIPE_DEFAULTS[task_id])
     for field, raw_value in feature_values.items():
         compiled_field = aliases.get(str(field), str(field))
-        if compiled_field in values and values[compiled_field] != raw_value:
-            raise ValueError(f"query overrides frozen control {compiled_field}")
         values[compiled_field] = raw_value
     return values
 
@@ -183,6 +182,72 @@ def _unit_vector(
     return vector
 
 
+def _reaction_safety_pattern_actions(
+    feature_values: Mapping[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    expected = {
+        "reaction_temperature_K",
+        "reaction_duration_s",
+        "reagent_amount_mol",
+        "stirring_speed_rpm",
+        "catalyst",
+        "catalyst_amount_mol",
+        "solvent",
+        "solvent_volume_L",
+    }
+    if set(feature_values) != expected:
+        raise ValueError(
+            "reaction-safety held-out query does not match its executable pattern: "
+            f"missing={sorted(expected - set(feature_values))}, "
+            f"extra={sorted(set(feature_values) - expected)}"
+        )
+    physical = dict(feature_values)
+    numeric_bounds = {
+        "reaction_temperature_K": (250.0, 470.0),
+        "reaction_duration_s": (1.0, 14_400.0),
+        "reagent_amount_mol": (0.003, 0.030),
+        "stirring_speed_rpm": (100.0, 1200.0),
+        "catalyst_amount_mol": (0.00008, 0.00055),
+        "solvent_volume_L": (0.005, 0.050),
+    }
+    for field, (low, high) in numeric_bounds.items():
+        value = _finite_number(physical[field], field=field)
+        if not low <= value <= high:
+            raise ValueError(f"{field} is outside its reaction-safety pattern bounds")
+        physical[field] = value
+    for field in ("catalyst", "solvent"):
+        value = physical[field]
+        if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value < 4:
+            raise ValueError(f"{field} is outside its reaction-safety categorical domain")
+    actions = [
+        {
+            "operation": "add_solvent",
+            "volume_L": physical["solvent_volume_L"],
+            "solvent": physical["solvent"],
+        },
+        {"operation": "add_reagent", "amount_mol": physical["reagent_amount_mol"]},
+        {
+            "operation": "add_catalyst",
+            "catalyst_amount_mol": physical["catalyst_amount_mol"],
+            "catalyst": physical["catalyst"],
+        },
+        {
+            "operation": "heat",
+            "target_temperature_K": physical["reaction_temperature_K"],
+            "duration_s": physical["reaction_duration_s"],
+            "stirring_speed_rpm": physical["stirring_speed_rpm"],
+        },
+        {"operation": "quench"},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"},
+    ]
+    return actions, {
+        "schema_version": "chemworld-work-ii-reaction-safety-truth-plan-0.1",
+        "recipe_contract": "work-ii-reaction-safety-q1-executable-control-envelope-0.2",
+        "physical_controls": physical,
+    }
+
+
 def compile_evaluator_truth_query(
     config: Mapping[str, Any],
     query: Mapping[str, Any],
@@ -206,20 +271,31 @@ def compile_evaluator_truth_query(
         "expected_effect": "produce evaluator truth without participant feedback",
         "uncertainty": 0.0,
     }
-    if task_id in {"electrochemical-conversion", "reaction-to-crystallization"}:
+    if task_id == "reaction-safety-constrained" and "solvent_volume_L" in feature_values:
+        actions, compiled_plan = _reaction_safety_pattern_actions(feature_values)
+    elif task_id in {"electrochemical-conversion", "reaction-to-crystallization"}:
         payload = {
             **common,
             "recipe_parameters": _compiled_control_values(task_id, feature_values),
         }
+        plan = validator.validate(payload)
+        compiled_plan = plan.to_dict()
+        recipe = compile_static_optimization_plan(
+            task_info,
+            plan,
+            electrochemical_workflow_mode=workflow_mode,
+        )
+        actions = [deepcopy(dict(item)) for item in recipe["steps"]]
     else:
         payload = {**common, "search_vector": _unit_vector(task_id, feature_values)}
-    plan = validator.validate(payload)
-    recipe = compile_static_optimization_plan(
-        task_info,
-        plan,
-        electrochemical_workflow_mode=workflow_mode,
-    )
-    actions = [deepcopy(dict(item)) for item in recipe["steps"]]
+        plan = validator.validate(payload)
+        compiled_plan = plan.to_dict()
+        recipe = compile_static_optimization_plan(
+            task_info,
+            plan,
+            electrochemical_workflow_mode=workflow_mode,
+        )
+        actions = [deepcopy(dict(item)) for item in recipe["steps"]]
     if (
         not actions
         or actions[-1].get("operation") != "measure"
@@ -231,8 +307,8 @@ def compile_evaluator_truth_query(
         "feature_values": dict(feature_values),
         "metric_ids": [str(item) for item in query["metric_ids"]],
         "workflow_mode": workflow_mode,
-        "compiled_plan": plan.to_dict(),
-        "compiled_plan_sha256": canonical_json_sha256(plan.to_dict()),
+        "compiled_plan": compiled_plan,
+        "compiled_plan_sha256": canonical_json_sha256(compiled_plan),
         "action_plan": actions,
         "action_plan_sha256": canonical_json_sha256(actions),
     }
@@ -263,7 +339,7 @@ def build_evaluator_truth_plan(
     formal_result: bool,
     formal_preflight_sha256: str | None,
 ) -> dict[str, Any]:
-    """Build one four-query evaluator plan shared by a task/world arm triplet."""
+    """Build one pattern-owned evaluator plan shared by a task/world arm triplet."""
 
     if formal_result:
         if not isinstance(formal_preflight_sha256, str) or len(
@@ -335,8 +411,16 @@ def validate_evaluator_truth_plan(plan: Mapping[str, Any]) -> list[str]:
     if plan.get("plan_sha256") != expected_hash:
         errors.append("evaluator truth plan self-hash mismatch")
     queries = plan.get("queries")
-    if not isinstance(queries, list) or len(queries) != 4:
-        errors.append("evaluator truth plan must contain four queries")
+    declared_query_count = plan.get("truth_query_count")
+    if (
+        isinstance(declared_query_count, bool)
+        or not isinstance(declared_query_count, int)
+        or declared_query_count < 1
+    ):
+        errors.append("evaluator truth plan has an invalid query denominator")
+        declared_query_count = 0
+    if not isinstance(queries, list) or len(queries) != declared_query_count:
+        errors.append("evaluator truth plan query denominator mismatch")
         queries = []
     query_ids: list[str] = []
     metric_count = 0
@@ -398,11 +482,15 @@ def validate_evaluator_truth_plan(plan: Mapping[str, Any]) -> list[str]:
         or {str(item) for item in metric_ids} != query_metric_ids
         or required_metric_ids != metric_ids
         or not isinstance(evidence_catalog, list)
+        or not evidence_catalog
         or evidence_catalog
-        != [f"experiment-{index}-final-assay" for index in range(1, 5)]
+        != [
+            f"experiment-{index}-final-assay"
+            for index in range(1, len(evidence_catalog) + 1)
+        ]
     ):
         errors.append("evaluator truth law-summary contract is invalid")
-    if plan.get("truth_query_count") != len(queries):
+    if declared_query_count != len(queries):
         errors.append("evaluator truth query denominator mismatch")
     if plan.get("truth_query_metric_count") != metric_count:
         errors.append("evaluator truth metric denominator mismatch")
@@ -590,9 +678,17 @@ def validate_evaluator_truth_report(
         errors.append("evaluator truth report self-hash mismatch")
     if report.get("plan_sha256") != plan.get("plan_sha256"):
         errors.append("evaluator truth report plan binding mismatch")
+    expected_query_count = plan.get("truth_query_count")
+    if (
+        isinstance(expected_query_count, bool)
+        or not isinstance(expected_query_count, int)
+        or expected_query_count < 1
+    ):
+        errors.append("evaluator truth report plan denominator is invalid")
+        expected_query_count = 0
     receipts = report.get("receipts")
-    if not isinstance(receipts, list) or len(receipts) != 4:
-        errors.append("evaluator truth report must retain four receipts")
+    if not isinstance(receipts, list) or len(receipts) != expected_query_count:
+        errors.append("evaluator truth report receipt denominator mismatch")
         receipts = []
     completed = [
         receipt
@@ -601,7 +697,9 @@ def validate_evaluator_truth_report(
     ]
     if report.get("completed_truth_query_count") != len(completed):
         errors.append("evaluator truth completed denominator mismatch")
-    if report.get("status") == "completed" and len(completed) != 4:
+    if report.get("truth_query_count") != expected_query_count:
+        errors.append("evaluator truth report query denominator mismatch")
+    if report.get("status") == "completed" and len(completed) != expected_query_count:
         errors.append("completed evaluator truth report is incomplete")
     if (
         report.get("evaluator_provider_call_count") != 0

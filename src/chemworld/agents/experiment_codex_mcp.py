@@ -393,7 +393,9 @@ class ChemWorldMCPServer:
             "summary_max_length": 3000 if campaign else 2000,
             "final_recommendation_contract": (
                 {
-                    "selected_experiment_index": "integer_identifying_a_completed_experiment",
+                    "selected_experiment_index": (
+                        "1-based_integer_identifying_a_completed_experiment"
+                    ),
                     "selection_rationale_max_length": 2000,
                     "committed_before_blind_evaluation": True,
                 }
@@ -491,7 +493,7 @@ class ChemWorldMCPServer:
             raise ValueError("selected_experiment_index must be an integer")
         if not 1 <= index <= completed_count:
             raise ValueError(
-                "selected_experiment_index must identify a completed experiment"
+                "selected_experiment_index must identify a completed 1-based experiment"
             )
         rationale = arguments.get("selection_rationale")
         if not isinstance(rationale, str) or not rationale.strip():
@@ -1007,6 +1009,7 @@ class ChemWorldMCPServer:
                 "description": (
                     "After campaign terminal and the final belief checkpoint, commit exactly one "
                     "participant-selected completed experiment for evaluator-owned blind replay. "
+                    "The index is 1-based and uses the same namespace as public campaign history. "
                     "The host stores the selection atomically; a repeated identical call is "
                     "idempotent and a differing second selection is rejected."
                 ),
