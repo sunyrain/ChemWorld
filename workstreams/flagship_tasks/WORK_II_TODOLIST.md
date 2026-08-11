@@ -156,15 +156,20 @@ outside the reader-facing package.
 
 ### Execution phases and stop conditions
 
-- **P0 — Architecture and claim freeze:** W2-01 through W2-05.
-- **P1 — Method qualification:** W2-06 through W2-10; no scientific arm selection by outcome.
-- **P2 — Preregistration freeze:** W2-08 and W2-11, including power, budgets and sealed commitment.
-- **P3 — Public formal matrix:** W2-12, with blind progress only and no live arm changes.
-- **P4 — Private sealed confirmation:** W2-13, one execution after public analysis code is frozen.
-- **P5 — Analysis and release:** W2-14 and W2-15; stop if the primary dissociation and transfer
-  boundary are answered, even if optional bridging is deferred.
+- **P0 — Architecture and A-E claim freeze:** W2-01 through W2-05. The primary 75-cell entity matrix
+  remains unchanged by later cross-locus work.
+- **P1 — Participant and intervention qualification:** W2-06 through W2-10 plus W2-17. Candidate
+  interventions are admitted by environment/harness criteria only, never by agent effect direction.
+- **P2 — Preregistration freeze:** W2-08 and W2-11 freeze A-E; every A-S/A-P/B/D extension requires
+  its own additive manifest, analysis and budget freeze without reopening A-E.
+- **P3 — Public A-E formal matrix:** W2-12, with blind progress only and no live arm changes.
+- **P4 — Confirmation and registered extensions:** W2-13 executes one-shot A-E private replication;
+  W2-18 through W2-20 execute only if their independent qualification and signoff gates passed.
+- **P5 — Analysis and release:** W2-14 and W2-15. Stop at the highest fully supported claim package
+  C1--C4 and automatically narrow the title/abstract rather than filling missing blocks post hoc.
 
-The paper must not begin formal data collection until P0--P2 are complete. Historical Gate A
+The paper must not begin A-E formal data collection until its P0--P2 gates are complete. No extension
+inherits execution authorization from A-E or from another locus. Historical Gate A
 numbers remain pilot/environment context until W2-02 rebinds them to the current source. A law
 is fixed within each formal world; prior condition, not mid-run law drift, is the primary causal
 factor.
@@ -244,50 +249,113 @@ reasoning. Direct and compact stateful-scientific scaffolds may form a matched s
 stateful memory is a small typed belief/evidence/next-intent object, not unconstrained free text.
 No second model or provider enters the current completion scope.
 
-### Initial-world-model intervention programme
+### Experimental programme matrix — current source of truth
 
-“Prior” is henceforth treated as one layer of an **agent-facing initial world model**, not as a
-synonym for a material-property dossier. ChemWorld can program both the external world and the
-representation with which an agent enters it, but a matched causal comparison must keep the external
-world fixed and change only the declared initial-model layer.
+“Prior” is treated as one layer of an **agent-facing initial world model**, not as a synonym for a
+material-property dossier. A causal comparison keeps the executable world, public task contract,
+noise identity, resource ledger, safety boundary and actual observation interface fixed, and changes
+only one declared initial-model locus. The programme is deliberately sparse: it is not a Cartesian
+product of every task, locus, arm, scaffold and evaluator.
 
-| Layer | Manipulable agent-facing content | Current role |
-|---|---|---|
-| Entity / ontology | material identity, entity class, property bundle and ID mapping | Study A confirmatory core; current 75-cell matrix |
-| Structural / mechanistic | causal topology, active modules, dominant pathway and process-order hypothesis | separately frozen non-entity extension |
-| Parametric | direction, coefficient ordering, threshold and plausible parameter range | separately frozen non-entity extension |
-| Observation model | instrument-to-state mapping, reliability, bias and noise assumptions | secondary mechanism probe |
-| Contract / resource | budget, safety, action permissions and actual observation interface | authoritative fixed boundary; never manipulated as a prior |
+Status labels are binding:
 
-Every admitted layer uses matched `opaque / aligned / misspecified` conditions. Aligned and
-misspecified arms must match information volume, specificity, confidence language and token budget.
-The manipulated locus, not merely the text string, must be independently identifiable before any
-provider run. A structural or parametric result cannot be manufactured by relabelling the completed
-material-misindexing matrix.
+- **FROZEN**: exact units, denominators, estimand and failure rules are already machine-bound;
+- **QUALIFIED**: an outcome-blind environment or method gate passed, but formal execution is not yet
+  authorized;
+- **CANDIDATE**: scientifically motivated, but its intervention or denominator is not executable
+  until a concise experiment note and machine-readable freeze are complete;
+- **DEFERRED**: outside the minimum completion scope and unable to support a headline claim.
 
-The paper is organized into four studies rather than a single oversized factorial benchmark:
+#### Intervention loci and task coverage
 
-1. **Study A — prior-conditioned free discovery.** The current five-task entity/ontology core remains
-   unchanged. Non-entity generalization enters only through sparse, separately frozen structural and
-   parametric extensions selected by identifiability and mechanism coverage, never by Study A outcome.
-2. **Study B — matched-evidence falsification.** Independent cloned-world sessions expose identical
-   contradictory evidence to distinguish “did not seek disconfirmation” from “saw it but did not
-   update.” These cells have their own resource ledger and never enter Study A denominators.
-3. **Study C — executable law and action.** Final explicit predictions, executable-law error,
-   law-compression loss, law/action inconsistency and blind recommendation gain locate the
-   `prediction → law → action` failure point. No single ratio or verbal summary is the endpoint.
-4. **Study D — artifact-only compositional transfer.** Source learning exports either no artifact,
-   raw evidence/trajectory, prose summary or executable law. The target agent is context-reset and
-   receives only the assigned artifact. Within-family private replication is reported separately and
-   never renamed compositional transfer.
+| Locus | Agent-facing intervention | Planned task coverage | Role and claim ceiling |
+|---|---|---|---|
+| Entity / ontology | anonymous entity ID, nominal class/property bundle and ID mapping | five frozen tasks: electrochemical conversion, crystallization, distillation, partition and reaction safety | confirmatory core; supports entity-level prior correction only |
+| Structural / mechanistic | causal topology, dominant bottleneck, active module or process-order hypothesis | two independently qualified tasks, provisionally crystallization and reaction safety; failed distillation candidate remains a screen failure | registered secondary cross-locus extension; one qualified task supports only task-specific inference |
+| Parametric | direction, ordering, threshold or plausible operating window | two independently qualified tasks, provisionally electrochemical conversion and flow-reaction optimization | registered secondary cross-locus extension; electrochemical candidate v2 is environment-qualified, not provider-qualified |
+| Observation model | instrument-to-state mapping, reliability, bias or noise assumption | no current formal block | deferred mechanism extension; not required if structural and parametric blocks both complete |
+| Contract / resource | budget, permissions, safety rules and the actual observation surface | never manipulated | authoritative boundary, not a prior condition |
 
-The cross-locus extension uses a sparse admission rule rather than a full Cartesian product. Before a
-broad “initial world model” empirical claim is allowed, at least one structural/mechanistic block and
-one parametric or observation-model block must each reach their prespecified terminal denominator on
-independently qualified tasks. If those blocks are not executed, the final title, abstract and claims
-must be narrowed back to entity/ontology priors.
+Every admitted locus uses matched `opaque / aligned / misspecified` conditions. Aligned and
+misspecified arms must match information volume, specificity, confidence wording and input budget.
+The locus must be identifiable in the executable world before a provider call; relabelling an entity
+misindexing result as a structural or parametric result is prohibited.
 
-The analysis reports an experimental-intelligence profile, not a total score:
+#### Study matrix and exact counting units
+
+| Block | Scientific role and estimand | Independent units | Participant denominator | Nested observations and evaluators | Current status |
+|---|---|---:|---:|---|---|
+| **A-E public** | Primary free discovery under entity-level `opaque/aligned/misindexed`; H3 selective evidence-driven correction | 5 tasks × 5 public worlds = **25 clusters** | **75 sessions/cells**, 4 complete experiments per cell = **300 experiments** | 4 checkpoints per cell = 300; 4 held-out truth queries per cluster = 100 shared truth executions; at most 450 blind replays | **FROZEN**, execution blocked by W2-08/W2-10/W2-11 |
+| **A-E private** | One-shot within-family world-held-out confirmation of A-E; not compositional transfer | 5 tasks × 5 sealed worlds = **25 clusters** | **75 sessions/cells**, **300 experiments** | same checkpoint, truth, law and blind contracts as public; private identities remain sealed | **FROZEN**, only after public analysis is hash-bound |
+| **A-S** | Free-discovery generalization to structural/mechanistic initial models; secondary locus × arm contrasts | 2 tasks × 5 new worlds = **10 clusters** | **30 sessions/cells**, **120 experiments** | 120 checkpoints; task-specific held-out truth and blind action evaluation | **CANDIDATE**; both task interventions must independently pass admission gates |
+| **A-P** | Free-discovery generalization to parametric initial models; secondary locus × arm contrasts | 2 tasks × 5 new worlds = **10 clusters** | **30 sessions/cells**, **120 experiments** | 120 checkpoints; task-specific held-out truth and blind action evaluation | **CANDIDATE**; electrochemical environment gate passed, second task and provider method gate pending |
+| **B** | Matched-evidence falsification: distinguish failure to seek contradiction from failure to update after seeing it | 2 loci × 1 frozen task × 5 new worlds = **10 clusters** | **30 fresh sessions**, one per arm; never pooled with Study A | pre-evidence checkpoint, one identical evaluator-generated contradictory evidence packet, post-evidence checkpoint and one action/recommendation | **CANDIDATE secondary**; design must be frozen before A-E outcomes are inspected |
+| **C** | Locate `prediction → executable law → action` losses on Study A trajectories | no new independent units | **0 new participant sessions** | execute typed law summaries on held-out truth; score prediction-to-law loss, law-to-action consistency and blind recommendation gain with 0 provider calls | evaluator is implemented for A-E; extend task contracts only after A-S/A-P admission |
+| **D** | Context-reset, artifact-only compositional transfer | 2 source-pair→target composition families × 5 linked target worlds = **10 clusters** | 4 artifact arms × 10 clusters = **40 fresh target sessions**, provisionally 4 experiments each = **160 experiments** | arms: no artifact, token-budget-matched raw evidence, prose law, executable law; target receives no source context beyond the assigned artifact | **CANDIDATE extension**; source/target constructor, artifact budget and evaluator are not yet frozen |
+
+Operations, experiments, checkpoints, queries, blind replicates and provider retries are nested
+observations, never independent samples. Study C is an evaluator layer, not another agent experiment.
+Study B uses fresh cloned-world sessions and an independent resource/evidence contract. Study D uses a
+new context and target campaign; re-evaluating A-E on private worlds is replication, not transfer.
+
+#### Admission and stopping gates for every new locus
+
+1. **D0 — environment-only candidate screen:** before any provider call, freeze the candidate roster,
+   diagnostic recipes, metric, threshold and tie rule in one experiment note. Require the exact planned
+   denominator, exact replay and a prespecified task-scale discriminability margin. A failed candidate
+   is evidence about intervention identifiability, not agent capability.
+2. **D1 — one-world real-provider triplet:** after D0 passes, run exactly one development world with
+   three fresh persistent sessions. Admission depends only on lifecycle completion, checkpoint/law
+   schema validity, hidden-boundary integrity, resource accounting, exact replay and harness recovery;
+   agent score or prior-effect direction cannot be an admission criterion.
+3. **D2 — block freeze:** before multi-seed execution, bind task, locus, three arms, five non-development
+   world identities, four-experiment campaign, checkpoint schedule, truth queries, evaluator, missingness
+   rules, token/cost/time ceilings and one infrastructure-only resume allowance.
+4. **D3 — five-world terminal block:** execute exactly five independent worlds per admitted task. Stop
+   at five; expansion requires explicit user review. Scientific/method failures are retained without
+   replacement. Missing-only infrastructure resume never creates a new scientific identity.
+
+Fixing an implementation defect after D0 or D1 is allowed, but the affected qualification block must
+restart from its first unit under a new attempt identity. Coverage, thresholds or task selection cannot
+change in response to agent outcomes.
+
+#### Current intervention-screen ledger
+
+| Candidate | Frozen diagnostic | Result | Decision |
+|---|---:|---|---|
+| Parametric v1, electrochemical seed 0 | 20 recipes | repaired run: 20/20 complete and exact replay; aligned–mirror gap `0.0055333 < 0.10` | **not admitted**; the initial unsupported-noise failure and repaired rerun are both retained |
+| Structural v1, distillation seed 0 | 4 recipes | 4/4 complete and exact replay; influence gap `0.0303474 < 0.10` | **not admitted**; do not run a provider on this intervention |
+| Parametric v2, electrochemical seed 1 | 20 recipes | 20/20 complete, 0 failures, all exact replay; best–worst score gap `0.5849161 ≥ 0.10` | **environment-qualified**; generated config is eligible for D1, but no provider run is authorized by this result |
+
+The next environment-only work is therefore bounded: qualify one second parametric task and redesign
+two structural candidates from a task roster frozen before diagnostics. Observation-model manipulation
+remains deferred rather than becoming a fourth full matrix.
+
+#### Claim packages and automatic narrowing
+
+- **C1 — entity-prior correction:** requires A-E public, A-E private and C. Without later blocks, the
+  title/abstract must refer to explicit entity-level priors, not general initial world models.
+- **C2 — initial-world-model generalization:** additionally requires terminal A-S and A-P blocks with
+  two independently qualified tasks per locus. A single-task locus remains a task-specific case study.
+- **C3 — acquisition-versus-updating attribution:** additionally requires B. Without B, selective
+  evidence seeking and resistance after matched evidence must remain observationally conflated.
+- **C4 — transferable executable laws:** additionally requires D. Private A-E confirmation alone
+  cannot license “compositional transfer” or “transferable laws” in the title.
+
+The staged participant scale is therefore explicit rather than hidden inside one headline matrix:
+
+| Highest claim package | Incremental sessions | Cumulative sessions | Cumulative planned complete experiments |
+|---|---:|---:|---:|
+| C1: A-E public + private | 150 | 150 | 600 |
+| C2: add A-S + A-P | 60 | 210 | 840 |
+| C3: add matched-evidence B | 30 | 240 | 840; B is not a participant-owned free-discovery campaign |
+| C4: add artifact transfer D | 40 | 280 | 1,000 |
+
+These are scientific session counts, not provider-attempt hard caps. Infrastructure-only resume,
+token, currency, wall-time and evaluator execution ceilings must be calculated and approved per block;
+unused budget in one block cannot authorize another.
+
+The analysis reports a profile rather than a total score:
 
 `initial model → experiment selection → evidence → prediction/update → executable law → action → transfer`
 
@@ -420,11 +488,15 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 | W2-09 | P0 | 完成 manifest-driven formal runner | DONE | W2-04–W2-07 |
 | W2-10 | P0 | provider/scaffold shakedown 与方法资格验证 | DOING | W2-09 |
 | W2-11 | P0 | 冻结 preregistration 与不可变执行包 | DOING | W2-08、W2-10 |
-| W2-12 | P0 | 执行 public formal matrix | 未开始 | W2-11 |
-| W2-13 | P0 | 执行 private sealed confirmation | 未开始 | W2-12 |
+| W2-12 | P0 | 执行 A-E public entity-prior formal matrix | 未开始 | W2-11 |
+| W2-13 | P0 | 执行 A-E private sealed confirmation | 未开始 | W2-12 |
 | W2-14 | P0 | 分析、稳健性、替代解释排除 | 未开始 | W2-12、W2-13 |
-| W2-15 | P0 | 第二篇论文、数据与发布包 | 未开始 | W2-14 |
+| W2-15 | P0 | 第二篇论文、数据与发布包 | DOING | W2-14 |
 | W2-16 | P1 | 物理或高保真桥接 | 未开始，可选增强 | W2-12 |
+| W2-17 | P0 | 非 entity 初始模型的候选筛选与方法资格 | DOING | W2-09、W2-10 |
+| W2-18 | P1 | 执行 A-S/A-P 跨 locus 注册扩展 | 未开始 | W2-17、W2-11 |
+| W2-19 | P1 | 执行 B matched-evidence mechanism probe | 未开始 | W2-09、W2-11 |
+| W2-20 | P1 | 执行 D context-reset artifact transfer | 未开始 | W2-17、W2-18 |
 
 ## 6. 详细任务卡
 
@@ -548,7 +620,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 - 备注：`Claim: Codex /root — W2-04 — DONE`。冻结入口为
   `configs/benchmark/work_ii_formal_design_v0.1.json`；确定性审计
   `workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit.json` 为 `passed`，
-  5/5 tasks、50/50 target-field response checks、0 provider calls、0 failures。
+  5/5 tasks、50/50 target-field response checks、0 provider calls、0 failures。该 DONE 只覆盖 A-E
+  entity/ontology core；A-S/A-P/B/D 的新增 world cohorts 必须由 W2-17--W2-20 分别冻结，不能继承本收据。
 
 ### W2-05 — 冻结 estimands、指标和判定规则
 
@@ -671,7 +744,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   每臂最多 2 次、总硬上限 6 次，且资格预算和正式矩阵预算不得互相挪用。
   仍需由用户批准可验证价格下的正式货币硬上限，并用最终合格的 current-method runner 校准 expected ETA，故
   W2-07 保持 `DOING`。剩余选择、费用字段与严格执行顺序已汇总为
-  `workstreams/flagship_tasks/reports/work-ii-formal-launch-decision-brief.md`，其中不包含凭据。
+  `workstreams/flagship_tasks/reports/work-ii-formal-launch-decision-brief.md`，其中不包含凭据。上述上界仅覆盖
+  A-E public 75-cell block；A-E private、A-S、A-P、B、D 必须分别重算并批准预算，禁止从 A-E ceiling 借用。
 
 ### W2-08 — Registered Report/常规投稿路线决策
 
@@ -891,7 +965,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   receipt 生成门，并把 qualification 实际费用/上限与 formal 全矩阵价格表/上限分开；正式上限必须覆盖冻结的
   150 次 provider-attempt 成本，随后由 parent runner 逐调用预留。Nature 路线额外要求 IPA 与 protocol
   registration reference，常规路线要求冻结 target 与 evidence threshold。当前缺失输入下已验证拒绝生成，
-  不会提前授权 formal matrix。
+  不会提前授权 formal matrix。当前 W2-11 package 只冻结 A-E；任何 W2-18--W2-20 执行包均须 additive freeze，
+  且不得改变 A-E 的 hypotheses、worlds、estimands、thresholds 或 failure rules。
 
 ### W2-12 — 执行 public formal matrix
 
@@ -1043,6 +1118,112 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] 安全、审批、废物和设备边界明确；
   - [ ] 迁移结果独立报告，不把小规模现实桥接泛化为全面现实有效性。
 - 备注：是否进入 Work II 主文须在 formal results 前冻结：`TBD`
+
+### W2-17 — 非 entity 初始模型的候选筛选与方法资格
+
+- 认领：
+  - [ ] 未认领
+  - [x] 已认领；负责人：`Codex /root`
+- 状态：
+  - [ ] 未开始
+  - [x] 进行中
+  - [ ] 阻塞
+  - [ ] 完成
+- 优先级：P0
+- 目标：在不查看 agent 效果的前提下，为 A-S 和 A-P 各冻结两个可识别任务，并完成从
+  environment-only screen 到 one-world real-provider triplet 的资格链。
+- 验收标准：
+  - [ ] structural candidate roster 在下一次 diagnostic 前冻结，至少覆盖
+    `reaction-to-crystallization` 与 `reaction-safety-constrained` 两个机制家族；
+  - [x] distillation structural v1 的 4/4 exact-replay、gap=`0.0303474` 未通过结果保留，且未启动 provider；
+  - [x] electrochemical parametric v1 的 repaired 20/20 exact-replay、gap=`0.0055333` 未通过结果保留；
+  - [x] electrochemical parametric v2 在独立 seed 1 达到 20/20 complete、20/20 exact replay、
+    gap=`0.5849161 ≥ 0.10`，仅标记为 environment-qualified；
+  - [ ] 第二个 parametric task 在 diagnostic 前冻结；优先评估
+    `flow-reaction-optimization` 的温度/停留时间或流量 operating-window law；
+  - [ ] 每个候选先有一份简洁 experiment note，固定 recipes、metric、threshold、tie rule、失败规则和输出；
+  - [ ] 每个被 D0 接纳的 task 只运行一个三臂 real-provider development triplet；资格只依据 harness、
+    lifecycle、checkpoint、resource、hidden-boundary 和 replay，不依据科学结果方向；
+  - [ ] checkpoint schema 完成通用字段迁移：新轨迹写 `initial_model_available` 与
+    `challenged_model_fields`；历史 entity 轨迹中的 `nominal_information_available` 与
+    `suspected_misindexed_fields` 只读兼容，不原地改写；
+  - [ ] 为 A-S/A-P 输出独立、不可混用的 qualification receipt 和 go/no-go 决定。
+- 备注：当前只授权设计、确定性诊断和聚焦验证；本任务本身不授权新的真实 provider 调用。两次未通过
+  diagnostic 是 intervention screening 结果，不能写成模型缺乏 structural/parametric reasoning。
+
+### W2-18 — 执行 A-S/A-P 跨 locus 注册扩展
+
+- 认领：
+  - [x] 未认领
+  - [ ] 已认领；负责人：`TBD`
+- 状态：
+  - [x] 未开始
+  - [ ] 进行中
+  - [ ] 阻塞
+  - [ ] 完成
+- 优先级：P1；若论文保留 general initial-world-model claim，则升级为 P0。
+- 依赖：W2-17 完成；相应扩展 manifest、analysis plan、成本上限与用户 execution signoff 全部冻结。
+- 验收标准：
+  - [ ] A-S 为 2 tasks × 5 worlds × 3 arms = 10 clusters / 30 sessions / 120 experiments；
+  - [ ] A-P 为 2 tasks × 5 worlds × 3 arms = 10 clusters / 30 sessions / 120 experiments；
+  - [ ] 每个 task 使用五个未参与 development/qualification 的 deterministic world identities；
+  - [ ] 三臂只改变一个 initial-model locus，world、resource、noise、public contract 和 input budget 匹配；
+  - [ ] 每个 cell 一个 persistent Codex session、4 complete experiments、4 checkpoints；
+  - [ ] task-specific held-out truth、typed law execution 和 blind action evaluator 在 launch 前冻结；
+  - [ ] 每 task 到 5 seeds 即终止；任何扩展须重新取得用户审核；
+  - [ ] 失败/right-censored cells 全部保留，科学结果不触发 replacement 或新增 task。
+- Claim ceiling：两个 task 均达终态时才允许 locus-level secondary claim；一个 task 只允许 case-study
+  wording。A-S/A-P 不改变 A-E 的 H3、alpha 或正式分母。
+
+### W2-19 — 执行 B matched-evidence mechanism probe
+
+- 认领：
+  - [x] 未认领
+  - [ ] 已认领；负责人：`TBD`
+- 状态：
+  - [x] 未开始
+  - [ ] 进行中
+  - [ ] 阻塞
+  - [ ] 完成
+- 优先级：P1；若论文要区分 evidence acquisition failure 与 evidence interpretation failure，则必须完成。
+- 设计上界：2 loci × 1 prespecified task × 5 worlds = 10 independent clusters；三臂共 30 fresh sessions。
+- 验收标准：
+  - [ ] task/locus、world identities、contradictory evidence packet 和 informativeness gate 在 A-E outcomes
+    被查看前冻结；若未提前冻结，后续结果只能标记 exploratory；
+  - [ ] 每个 session 先提交 pre-evidence prediction/confidence，再读取同 world、同 arm-token-budget 的
+    identical evidence packet，随后提交 post-evidence prediction/confidence 与一个 action/recommendation；
+  - [ ] participant 不选择该 evidence packet，因此 B 不能进入 free-discovery、resource-efficiency 或
+    experiment-selection 分母；
+  - [ ] 主要机制估计量为 matched evidence 后的 prediction-error change、wrong-model confidence change 和
+    action alignment；不得把 B 的改善替代 A 的自主发现结果；
+  - [ ] B 使用独立 session/evidence/resource receipts，失败不替换。
+
+### W2-20 — 执行 D context-reset artifact-only compositional transfer
+
+- 认领：
+  - [x] 未认领
+  - [ ] 已认领；负责人：`TBD`
+- 状态：
+  - [x] 未开始
+  - [ ] 进行中
+  - [ ] 阻塞
+  - [ ] 完成
+- 优先级：P1；若标题或摘要保留“transferable laws”，则本任务是硬门禁。
+- 设计上界：2 source-pair→target composition families × 5 linked target worlds = 10 independent target
+  clusters；`none / token-matched raw evidence / prose law / executable law` 四臂共 40 fresh target sessions，
+  provisionally 4 complete experiments per session。
+- 验收标准：
+  - [ ] source mechanisms、target composition、linkage seed 和 target-held-out axes 在 source outcomes 前冻结；
+  - [ ] source artifacts 来自同一冻结 source evidence，四臂的信息预算、provenance 和可见字段可审计；
+  - [ ] target agent 以新 Codex process/context 启动，不可访问 source session、hidden state、raw workspace 或
+    未分配 artifact；
+  - [ ] primary transfer contrast、artifact-token efficiency、executable-law validity、target prediction 和
+    target action metrics 在 provider launch 前冻结；
+  - [ ] 先完成 provider-free composition/contamination/replay qualification，再做 one-world four-arm pilot，
+    最后才允许五-world block；
+  - [ ] A-E private world-held-out replication 与 D 的 compositional transfer 在图、表、分母和措辞中分开。
+- Claim ceiling：D 未完成时，论文只能讨论 law representation 与 within-family replication，不能声称
+  compositional transfer 或 transferable laws。
 
 ## 2026-08-08 persistent-campaign pilot checkpoint
 
@@ -1246,17 +1427,28 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
 
 ## 7. 完成定义
 
-Work II 只有在以下条件全部满足时才标记完成：
+Work II 以“达到最高被完整支持的 claim package”为完成原则，不要求为了维持大标题而补做未资格验证的
+矩阵。基础发布条件与条件性扩展如下：
 
-- [ ] 当前 Gate A 证据绑定有效；
-- [ ] 至少两个机制家族和无/正确/错误先验进入随机 formal world cohort，且每个 formal world 内规律固定；
-- [ ] entity/ontology 核心之外，至少一个 structural/mechanistic block 与一个 parametric 或
-  observation-model block 达到各自冻结分母；若未完成，最终标题和经验主张必须收窄回 entity-level prior；
-- [ ] participant backend × scaffold 至少有一条可识别 matched axis；
-- [ ] optimization、discovery、prior rejection、law summary 和 transfer 均有预注册指标；
-- [ ] public formal matrix 与 private sealed confirmation 均达到终态；
-- [ ] within-family private replication 与 context-reset artifact-only compositional transfer 在设计、分母和措辞上严格分离；
-- [ ] 能明确判断 agent 是依据证据发现并总结规律，还是只取得 endpoint 或维持先验偏差；
-- [ ] 所有结论与 world/agent/sample scope 一致；
+- [x] 当前 Gate A 证据绑定有效，且只作为 environment qualification；
+- [ ] A-E public 达到 25 clusters / 75 terminal cells / 300 planned experiments，全部失败和删失进入分母；
+- [ ] A-E private 达到独立 25 sealed clusters / 75 terminal cells，并完成 one-shot within-family confirmation；
+- [ ] Study C 在所有 A-E terminal cells 上完成 held-out prediction、typed executable law 和 blind action
+  evaluation，且 evaluator operations 不进入 participant 分母；
+- [ ] participant method、provider、harness、resource、token、time、recovery 和 censoring contract 全部冻结；
+  当前只研究一个完整 agent system，不把结果写成裸模型能力或跨模型排名；
+- [ ] optimization、discovery、prior rejection、law summary、action 和 replication 的预注册指标及联合/解耦
+  规则完整；
+- [ ] 若保留 general initial-world-model claim：A-S 与 A-P 各完成 2 tasks × 5 worlds × 3 arms；否则自动
+  收窄为 entity-level prior correction；
+- [ ] 若区分“未寻找反证”与“见到反证仍不更新”：Study B 的 10 clusters / 30 sessions 达到终态；否则
+  两种机制保持不可区分；
+- [ ] 若保留 compositional-transfer 或 transferable-laws claim：Study D 的 10 target clusters / 40
+  context-reset sessions 达到终态；否则只报告 law representation 与 within-family replication；
+- [ ] within-family private replication 与 context-reset artifact-only compositional transfer 在设计、分母、
+  图表和措辞上严格分离；
+- [ ] 能判断 agent 是依据证据形成可执行规律并据此行动，还是只取得 endpoint、维持先验偏差，或在
+  prediction→law→action 链条中断裂；
+- [ ] 所有结论与 world、task、locus、agent-system 和独立样本范围一致；
 - [ ] 第二篇不依赖第一篇的阈值敏感 supporting result；
 - [ ] 论文、代码、轨迹、数据和发布包可公开重建。
