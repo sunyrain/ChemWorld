@@ -566,7 +566,9 @@ def audit_direction_stability(
                     raise ValueError("temperature-direction reference region is incomplete")
                 plan = build_evaluator_truth_plan(
                     {
-                        "world_cluster_id": f"readiness--{task_id}--seed-{int(seed)}",
+                        "world_cluster_id": (
+                            f"initial-model-parametric--{task_id}--seed-{int(seed)}"
+                        ),
                         "task_id": task_id,
                         "world_seed": int(seed),
                     },

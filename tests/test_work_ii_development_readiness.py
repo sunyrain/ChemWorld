@@ -392,7 +392,13 @@ def test_direction_stability_audit_fails_closed_on_registered_query_conflict(
         "report_sha256": "truth",
         "truth": {"low": {"score": 0.2}, "high": {"score": 0.8}},
     }
-    monkeypatch.setattr(readiness, "build_evaluator_truth_plan", lambda *_a, **_k: plan)
+    captured: dict[str, object] = {}
+
+    def build_plan(cluster: dict[str, object], *_args, **_kwargs):
+        captured.update(cluster)
+        return plan
+
+    monkeypatch.setattr(readiness, "build_evaluator_truth_plan", build_plan)
     monkeypatch.setattr(readiness, "execute_evaluator_truth_plan", lambda *_a, **_k: report)
     monkeypatch.setattr(readiness, "validate_evaluator_truth_report", lambda *_a, **_k: [])
 
@@ -400,3 +406,6 @@ def test_direction_stability_audit_fails_closed_on_registered_query_conflict(
 
     assert audit["passed"] is False
     assert audit["worlds"][0]["direction_contract"]["status"] == "query_subset_conflict"
+    assert captured["world_cluster_id"] == (
+        "initial-model-parametric--reaction-safety-constrained--seed-4"
+    )
