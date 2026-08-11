@@ -258,3 +258,46 @@ def test_wellau_sol_medium_is_an_authorized_responses_harness(
     assert checks["domain_mcp_routing_catalog_frozen"] is True
     assert checks["credential_file_exists_and_is_git_ignored"] is True
     assert all(checks.values())
+
+
+def test_readiness_accepts_pattern_owned_ten_experiment_schedule(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("WELLAU_API_KEY", "test-only")
+    monkeypatch.setattr(readiness, "git_worktree_dirty", lambda _root: False)
+    config = tmp_path / "wellau-ten.json"
+    payload = json.loads(
+        (Path(__file__).resolve().parents[1]
+         / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    payload["execution"].update(
+        {
+            "failure_semantics": (
+                "retain cell failures and continue every scheduled seed triplet"
+            ),
+            "systemic_failure_semantics": (
+                "stop only when all three arms fail before the first committed operation"
+            ),
+            "pilot_expansion_headroom_fraction": 0.2,
+        }
+    )
+    payload["provider"].update(
+        {
+            "session_wall_time_limit_s": 6600,
+            "max_recovered_mcp_tool_failures": 3,
+            "max_consecutive_mcp_tool_failures": 1,
+            "max_provider_error_events": 1,
+            "progress_interval_s": 30,
+        }
+    )
+    payload["qualification"]["max_resource_rejections"] = 1
+    config.write_text(json.dumps(payload), encoding="utf-8")
+
+    checks = readiness._config_checks(tmp_path, config, [0])
+
+    assert checks["pattern_owned_shared_resource_experiments"] is True
+    assert checks["pattern_owned_in_session_checkpoints"] is True
+    assert all(checks.values())

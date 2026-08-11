@@ -74,6 +74,17 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
     prior_arms = tuple(config.get("prior_arms", {}))
     checkpoint_experiments = list(campaign.get("checkpoint_complete_experiments", []))
     method_checkpoints = list(method.get("checkpoint_complete_experiments", []))
+    complete_experiments = int(campaign.get("complete_experiments", 0))
+    snapshot_stages = list(config.get("snapshot_stages", []))
+    checkpoint_schedule_valid = (
+        len(snapshot_stages) >= 2
+        and len(set(snapshot_stages)) == len(snapshot_stages)
+        and len(checkpoint_experiments) == len(snapshot_stages)
+        and checkpoint_experiments == sorted(set(checkpoint_experiments))
+        and checkpoint_experiments[0] == 0
+        and checkpoint_experiments[-1] == complete_experiments
+        and method_checkpoints == checkpoint_experiments[1:]
+    )
     return {
         "clean_committed_worktree": not git_worktree_dirty(root),
         "seed_schedule_is_pilot_full_or_terminal_continuation": (
@@ -88,14 +99,11 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
         == "retain cell failures and continue every scheduled seed triplet",
         "systemic_triplet_stop_guard": execution.get("systemic_failure_semantics")
         == "stop only when all three arms fail before the first committed operation",
-        "four_shared_resource_experiments": campaign.get("complete_experiments") == 4
-        and campaign.get("vessel_start_limit") == 4
-        and campaign.get("final_assay_limit") == 4
-        and method.get("complete_experiment_limit") == 4,
-        "four_in_session_checkpoints": list(config.get("snapshot_stages", []))
-        == ["pre_evidence", "after_experiment_1", "after_experiment_2", "final"]
-        and checkpoint_experiments == [0, 1, 2, 4]
-        and method_checkpoints == [1, 2, 4],
+        "pattern_owned_shared_resource_experiments": complete_experiments > 0
+        and campaign.get("vessel_start_limit") == complete_experiments
+        and campaign.get("final_assay_limit") == complete_experiments
+        and method.get("complete_experiment_limit") == complete_experiments,
+        "pattern_owned_in_session_checkpoints": checkpoint_schedule_valid,
         "one_provider_turn_per_campaign_cell": method.get("model_call_limit") == 1,
         "operation_and_wall_envelopes_positive": int(method.get("operation_limit", 0))
         == int(campaign.get("operation_attempt_limit", -1))
@@ -191,6 +199,7 @@ def audit_seed0_expansion_pilot(
         failures.append("pilot provider/model differs from the campaign config")
     method = config.get("method_resources", {})
     execution = config.get("execution", {})
+    target_experiments = int(config.get("campaign", {}).get("complete_experiments", 0))
     headroom = float(execution.get("pilot_expansion_headroom_fraction", 0.0))
     accepted_fraction = 1.0 - headroom
     cells: list[dict[str, Any]] = []
@@ -220,7 +229,7 @@ def audit_seed0_expansion_pilot(
             build_work_ii_execution_artifacts(
                 records,
                 replay,
-                planned_experiment_count=4,
+                planned_experiment_count=target_experiments,
                 terminal_state="completed",
                 hidden_identity={"prior_arm": arm, "world_seed": 0},
             )
@@ -267,8 +276,10 @@ def audit_seed0_expansion_pilot(
         }
         if summary.get("completed") is not True or qualification.get("passed") is not True:
             cell_failures.append("cell or qualification did not pass")
-        if analysis.get("complete_experiment_count") != 4:
-            cell_failures.append("cell did not complete four experiments")
+        if analysis.get("complete_experiment_count") != target_experiments:
+            cell_failures.append(
+                f"cell did not complete {target_experiments} experiments"
+            )
         max_resource_rejections = int(
             config.get("qualification", {}).get("max_resource_rejections", 0)
         )
