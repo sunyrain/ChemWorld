@@ -55,7 +55,7 @@ SOURCE_SUMMARY = (
     "work-ii-mechanism-oracle-reaction-safety-classified-v0.2-20260811.json"
 )
 DEFAULT_OUTPUT_ROOT = (
-    ROOT / "runs/development/work-ii-reaction-safety-matched-prior-qualification-20260811"
+    ROOT / "runs/development/work-ii-reaction-safety-matched-prior-qualification-v0.2-20260811"
 )
 DEFAULT_SUMMARY = (
     ROOT
@@ -68,9 +68,9 @@ DEFAULT_PACKAGE = (
 DEFAULT_D1_CONFIG = (
     ROOT / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json"
 )
-SUMMARY_VERSION = "chemworld-work-ii-matched-prior-five-world-summary-0.1"
-WORLD_REPORT_VERSION = "chemworld-work-ii-matched-prior-world-report-0.1"
-PACKAGE_VERSION = "chemworld-work-ii-matched-prior-package-0.1"
+SUMMARY_VERSION = "chemworld-work-ii-matched-prior-five-world-summary-0.2"
+WORLD_REPORT_VERSION = "chemworld-work-ii-matched-prior-world-report-0.2"
+PACKAGE_VERSION = "chemworld-work-ii-matched-prior-package-0.2"
 
 
 class Progress:
@@ -194,11 +194,11 @@ def _run_world(
             "material_information": {"mode": "opaque_codes"},
             "initial_world_model": public.get("opaque"),
         },
-        "aligned": {
+        "aligned_nominal": {
             "material_information": {"mode": "opaque_codes"},
             "initial_world_model": public.get("supplied_a"),
         },
-        "misspecified": {
+        "misindexed_nominal": {
             "material_information": {"mode": "opaque_codes"},
             "initial_world_model": public.get("supplied_b"),
         },
@@ -381,6 +381,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "sha256": file_sha256(SOURCE_SUMMARY),
         },
         "qualification_passed": qualification_passed,
+        "arm_semantics": {
+            "opaque": "opaque",
+            "aligned_nominal": "aligned",
+            "misindexed_nominal": "misspecified",
+        },
         "worlds": package_worlds,
     }
     package["package_sha256"] = canonical_json_sha256(package)
