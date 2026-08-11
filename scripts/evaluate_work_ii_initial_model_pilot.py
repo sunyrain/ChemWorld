@@ -27,6 +27,12 @@ from chemworld.eval.work_ii_blind import (
 )
 from chemworld.eval.work_ii_development_confirmation import build_cluster_rows
 from chemworld.eval.work_ii_direction import (
+    controlled_potential_direction_diagnostic as _controlled_potential_direction_diagnostic,
+)
+from chemworld.eval.work_ii_direction import (
+    registered_control_direction as _registered_control_direction,
+)
+from chemworld.eval.work_ii_direction import (
     registered_temperature_direction as _registered_temperature_direction,
 )
 from chemworld.eval.work_ii_direction import (
@@ -48,7 +54,7 @@ from chemworld.eval.work_ii_truth import (
 
 ROOT = Path(__file__).resolve().parents[1]
 ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
-REPORT_VERSION = "chemworld-work-ii-initial-model-pilot-evaluation-0.3"
+REPORT_VERSION = "chemworld-work-ii-initial-model-pilot-evaluation-0.4"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -398,9 +404,7 @@ def _descriptive_interpretation(report: Mapping[str, Any]) -> dict[str, Any]:
         "selected_observed_incumbent_count": selected_incumbent_count,
         "submitted_recommendation_count": submitted_recommendation_count,
         "participant_cell_count": len(report["cells"]),
-        "temperature_direction_diagnostic_status": _mapping(
-            report.get("temperature_direction_diagnostic")
-        ).get("status"),
+        "direction_diagnostic_status": _mapping(report.get("direction_diagnostic")).get("status"),
     }
 
 
@@ -501,8 +505,9 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
     incumbent_count = interpretation["selected_observed_incumbent_count"]
     submitted_count = interpretation["submitted_recommendation_count"]
     participant_count = interpretation["participant_cell_count"]
-    direction_contract = _mapping(report.get("temperature_direction_diagnostic"))
+    direction_contract = _mapping(report.get("direction_diagnostic"))
     direction_status = direction_contract.get("status")
+    direction_axis = str(report.get("direction_axis") or "target control")
     lines = [
         "# Work II parametric initial-world-model pilot evaluation",
         "",
@@ -544,7 +549,7 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
     ]
     for row in report["cells"]:
         behavior = _mapping(row.get("participant_behavior"))
-        direction = _mapping(row.get("temperature_direction"))
+        direction = _mapping(row.get("direction"))
         index_diagnostic = _mapping(row.get("recommendation_index_diagnostic"))
         recovered = direction.get("final_checkpoint_recovered")
         direction_text = (
@@ -599,8 +604,9 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
                 [
                     "",
                     (
-                        "The frozen registered temperature direction and the 16-query empirical "
-                        "truth direction disagree in this world. Binary direction recovery is "
+                        f"The frozen registered {direction_axis} direction and the 16-query "
+                        "empirical truth direction disagree in this world. Binary direction "
+                        "recovery is "
                         "therefore not scored; held-out prediction error and executable-law error "
                         "remain valid because both are evaluated directly against exact query "
                         "truths."
@@ -748,22 +754,38 @@ def main() -> int:
         if summary.get("completed") is not True
     )
     evaluator_truth = _mapping(truth_report.get("truth"))
-    reference_region = _mapping(
-        _mapping(
-            _mapping(_mapping(config["prior_arms"]["opaque"]).get("initial_world_model")).get(
-                "context_contract"
+    opaque_initial_model = _mapping(
+        _mapping(config["prior_arms"]["opaque"]).get("initial_world_model")
+    )
+    direction_context = _mapping(opaque_initial_model.get("context_contract"))
+    if task_id == "electrochemical-conversion":
+        direction_axis = "controlled_potential_V"
+        reference_context = _mapping(direction_context.get("reference_context"))
+
+        def score_direction(predictions: object) -> dict[str, Any]:
+            return _controlled_potential_direction_diagnostic(
+                predictions,
+                truth_plan=truth_plan,
+                reference_context=reference_context,
             )
-        ).get("approximate_reference_region")
-    )
-    reference_temperature_K = float(reference_region.get("reaction_temperature_K", 420.0))
-    temperature_tolerance_K = float(reference_region.get("temperature_tolerance_K", 0.0))
-    truth_direction = _temperature_direction_diagnostic(
-        _truth_prediction_rows(evaluator_truth),
-        truth_plan=truth_plan,
-        reference_temperature_K=reference_temperature_K,
-        temperature_tolerance_K=temperature_tolerance_K,
-    )
-    registered_direction = _registered_temperature_direction(config)
+
+        registered_direction = _registered_control_direction(config)
+    else:
+        direction_axis = "reaction_temperature_K"
+        reference_region = _mapping(direction_context.get("approximate_reference_region"))
+        reference_temperature_K = float(reference_region.get("reaction_temperature_K", 420.0))
+        temperature_tolerance_K = float(reference_region.get("temperature_tolerance_K", 0.0))
+
+        def score_direction(predictions: object) -> dict[str, Any]:
+            return _temperature_direction_diagnostic(
+                predictions,
+                truth_plan=truth_plan,
+                reference_temperature_K=reference_temperature_K,
+                temperature_tolerance_K=temperature_tolerance_K,
+            )
+
+        registered_direction = _registered_temperature_direction(config)
+    truth_direction = score_direction(_truth_prediction_rows(evaluator_truth))
     direction_contract = _temperature_direction_contract(
         registered_direction,
         truth_direction,
@@ -903,24 +925,13 @@ def main() -> int:
             and rationale_intended_index == observed_incumbent_index
         )
         behavior = _participant_behavior_profile(summary_path, experiments)
-        pre_direction = _temperature_direction_diagnostic(
-            pre_snapshot.get("predictions") if pre_snapshot is not None else None,
-            truth_plan=truth_plan,
-            reference_temperature_K=reference_temperature_K,
-            temperature_tolerance_K=temperature_tolerance_K,
+        pre_direction = score_direction(
+            pre_snapshot.get("predictions") if pre_snapshot is not None else None
         )
-        final_direction = _temperature_direction_diagnostic(
-            final_snapshot.get("predictions") if final_snapshot is not None else None,
-            truth_plan=truth_plan,
-            reference_temperature_K=reference_temperature_K,
-            temperature_tolerance_K=temperature_tolerance_K,
+        final_direction = score_direction(
+            final_snapshot.get("predictions") if final_snapshot is not None else None
         )
-        law_direction = _temperature_direction_diagnostic(
-            law.get("query_predictions"),
-            truth_plan=truth_plan,
-            reference_temperature_K=reference_temperature_K,
-            temperature_tolerance_K=temperature_tolerance_K,
-        )
+        law_direction = score_direction(law.get("query_predictions"))
         usage = _mapping(summary.get("method_resources"))
         cells.append(
             {
@@ -983,7 +994,8 @@ def main() -> int:
                 "law_summary_prediction_consistency_error": law.get(
                     "prediction_consistency_normalized_mae"
                 ),
-                "temperature_direction": {
+                "direction": {
+                    "axis": direction_axis,
                     "truth": truth_direction,
                     "registered_target": registered_direction,
                     "diagnostic_status": direction_contract["status"],
@@ -1129,9 +1141,10 @@ def main() -> int:
         },
         "cluster_contrast": cluster_rows[0] if len(cluster_rows) == 1 else None,
         "truth_report_sha256": truth_report.get("report_sha256"),
-        "truth_temperature_direction": truth_direction,
-        "registered_temperature_direction": registered_direction,
-        "temperature_direction_diagnostic": direction_contract,
+        "direction_axis": direction_axis,
+        "truth_direction": truth_direction,
+        "registered_direction": registered_direction,
+        "direction_diagnostic": direction_contract,
         "action_layer": {
             "status": (
                 "platform_confounded_retained"
