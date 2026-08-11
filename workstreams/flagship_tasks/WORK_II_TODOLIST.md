@@ -371,8 +371,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   至少 6 个 unique recipes、最多 2 个 exact repeats。五个 planning resource cards、analysis denominators、
   manifest preflight、power/resource audit、method-qualification readiness 与 preregistration readiness 已同步重建；
   formal execution 仍被 W2-26/W2-27 和用户授权锁死。
-- [ ] **W2-26** 分别运行 8/10/12-experiment resource calibration triplet，冻结 task-pattern process time、
-  repeat count、closeout reserve、token 和 currency ceilings。
+- [ ] **W2-26** 实验 note 已写入 `WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md`；待用户确认当前
+  provider/credential/pricing/currency 边界后，分别运行 8/10/12-experiment resource calibration triplet，
+  冻结 task-pattern process time、repeat count、closeout reserve、token 和 currency ceilings。
 - [ ] **W2-27** 完成 current WellAU method qualification triplet，只按 harness/lifecycle/replay 资格，不按科学效果。
 - [ ] 用户冻结 submission route、currency ceilings、failure-escalation 和 public/private 执行授权。
 - [ ] 生成 final freeze receipt；此后不再改变 coverage、worlds、arms、轮次或 failure rules。
@@ -401,7 +402,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-23 | DONE | reaction-safety 与 electrochemical matched-prior Q2 均以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
 | W2-25 | DONE | 8-experiment A-E formal redesign；600 public experiments、375 checkpoints、6 unique + 2 repeats/cell；静态审计通过，资源上限待 W2-26 校准 |
-| W2-26 | NOT STARTED | 8/10/12 resource calibration |
+| W2-26 | READY/BLOCKED | calibration experiment note 已完成；等待 provider contract、credential rotation、pricing/currency ceiling 授权后执行 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
