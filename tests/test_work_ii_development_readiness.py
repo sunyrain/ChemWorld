@@ -246,7 +246,8 @@ def test_wellau_sol_medium_is_an_authorized_responses_harness(
                     "progress_interval_s": 30,
                 },
                 "qualification": {"max_resource_rejections": 1},
-            }
+            },
+            sort_keys=True,
         ),
         encoding="utf-8",
     )

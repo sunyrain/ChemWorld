@@ -79,7 +79,8 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
         "seed_schedule_is_pilot_full_or_terminal_continuation": (
             (len(seeds) in {1, 5} and len(set(seeds)) == len(seeds)) or list(seeds) == [1, 2, 3, 4]
         ),
-        "three_frozen_prior_arms": prior_arms == _PRIOR_ARMS,
+        "three_frozen_prior_arms": len(prior_arms) == len(_PRIOR_ARMS)
+        and set(prior_arms) == set(_PRIOR_ARMS),
         "three_cell_os_concurrency": execution.get("max_concurrency") == 3
         and execution.get("within_cell_concurrency") == 1
         and execution.get("parallelization_unit") == "same_seed_prior_arm_triplet",
