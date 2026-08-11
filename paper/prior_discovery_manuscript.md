@@ -474,9 +474,10 @@ No development value will be substituted for a missing formal result.
 # 7. Private confirmation and transfer
 
 After the public method and analysis code are frozen, the committed private cohort will be executed
-once. The same prediction, law-summary and control metrics will test world-held-out and
-mechanism-family transfer. Private identities will not be revealed to the participant, and a negative
-or incomplete result will not trigger a replacement run.
+once. The same prediction, law-summary and control metrics will test world-held-out transfer within
+the five registered task families. Private identities will not be revealed to the participant, and a
+negative or incomplete result will not trigger a replacement run. The current design does not contain
+a mechanism-family-held-out cohort; such a claim would require a separately registered extension.
 
 The strongest claim—discovery of a reusable law—requires joint evidence: selective wrong-prior
 correction, aligned-prior non-degradation, an executable typed law summary, valid predictions on
@@ -528,9 +529,11 @@ direct wet-laboratory validity. A single frozen participant method supports conc
 agent-system configuration, not language models in general. Five task families provide mechanistic
 breadth but only five independent public worlds per task, so the confirmatory design is powered for
 moderate-to-large effects rather than subtle differences. Evaluator queries are registered before
-participant execution, but any finite query set samples only part of a hidden law. Finally, exact
-software replay does not eliminate model-provider variability; provider attempts and session failures
-are reported as operational characteristics rather than independent scientific samples.
+participant execution, but any finite query set samples only part of a hidden law. The private cohort
+tests new worlds within the same task families rather than transfer to an unseen mechanism family.
+Finally, exact software replay does not eliminate model-provider variability; provider attempts and
+session failures are reported as operational characteristics rather than independent scientific
+samples.
 
 # 9. Methods
 
@@ -588,7 +591,24 @@ estimates rather than independent confirmatory claims. Prespecified sensitivity 
 complete-case, worst-case failed-arm, heteroscedasticity-robust and task-stratified cluster-bootstrap
 analyses.
 
-## 9.6 Reproducibility and failure accounting
+## 9.6 Private confirmation boundary
+
+Private confirmation is derived only after the public 75-cell matrix is terminal and the public
+confirmatory analysis, participant method and analysis source are hash-bound. An external seal
+commits five new world identities for each of the five registered task families. The validator checks
+that the 25 identities are unique, lie inside the private namespace and are disjoint from development
+and public-formal worlds. The repository records only the commitment; the seal nonce and identity
+schedule remain outside version control.
+
+The sealed schedule deterministically expands to 75 prior-arm cells with the same participant,
+campaign-resource, checkpoint, prediction, executable-summary and blind-replay contracts used in the
+public matrix. A preflight cannot authorize execution: it remains blocked until a separate private
+currency ceiling, one-shot command approval and final runner/analysis release receipt exist. Its
+identity-bearing artifact can be created only once under the ignored private run root. A completed or
+failed private cell is never replaced because of its result; at most one missing-infrastructure-only
+resume is permitted per cell, and all failures and unstarted cells remain in the denominator.
+
+## 9.7 Reproducibility and failure accounting
 
 Participant trajectories, evaluator truth packs and blind-replay packs are stored separately and
 joined through immutable receipts. Every terminal participant trajectory must pass physical replay,

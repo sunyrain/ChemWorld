@@ -178,6 +178,43 @@ EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT: dict[str, Any] = {
     "private_transfer_required_for_reusable_law_claim": True,
 }
 
+EXPECTED_PRIVATE_CONFIRMATION_CONTRACT: dict[str, Any] = {
+    "identity_source": "external_ignored_private_seal",
+    "identity_commitment_hash": "canonical_json_sha256_of_complete_seal",
+    "task_count": 5,
+    "worlds_per_task": 5,
+    "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+    "participant_cell_count": 75,
+    "same_participant_method_campaign_resources_and_metrics_as_public": True,
+    "private_participant_receives_public_outcomes_or_analysis": False,
+    "unseal_requires": [
+        "public_75_cell_matrix_terminal",
+        "public_confirmatory_analysis_completed_and_hash_bound",
+        "public_analysis_and_private_runner_source_frozen",
+        "separate_private_currency_ceiling_and_user_execution_signoff",
+        "private_seal_commitment_matches_preregistered_hash",
+    ],
+    "one_shot_policy": {
+        "result_direction_rerun_forbidden": True,
+        "accepted_or_failed_private_cell_replacement_forbidden": True,
+        "missing_infrastructure_only_resume_allowed": True,
+        "maximum_infrastructure_resume_attempts_per_cell": 1,
+        "all_failures_and_unstarted_cells_retained": True,
+    },
+    "private_results_may_not_change": [
+        "public_hypotheses",
+        "public_estimands",
+        "analysis_thresholds",
+        "participant_method",
+        "task_roster",
+        "exclusion_or_missingness_rules",
+    ],
+    "transfer_reporting": (
+        "same_public_prediction_law_summary_blind_action_and_failure_metrics_"
+        "with_private_world_split_label"
+    ),
+}
+
 FORMAL_BLOCKING_REQUIREMENTS = (
     "formal currency ceiling is not yet approved",
     "current design and analysis plan explicitly forbid formal execution",
@@ -202,6 +239,7 @@ _SOURCE_PATHS = (
     "src/chemworld/eval/work_ii_law_summary.py",
     "src/chemworld/eval/work_ii_prior_discovery.py",
     "src/chemworld/eval/work_ii_process_profile.py",
+    "src/chemworld/eval/work_ii_private.py",
     "src/chemworld/eval/work_ii_preregistration.py",
     "src/chemworld/eval/work_ii_qualification.py",
     "src/chemworld/eval/work_ii_release.py",
@@ -211,6 +249,7 @@ _SOURCE_PATHS = (
     "scripts/analyze_work_ii_formal.py",
     "scripts/authorize_work_ii_method_qualification.py",
     "scripts/build_work_ii_preregistration_readiness.py",
+    "scripts/build_work_ii_private_confirmation_preflight.py",
     "scripts/build_work_ii_method_qualification_receipt.py",
     "scripts/build_work_ii_preregistration_freeze_receipt.py",
     "scripts/run_work_ii_campaign_pilot.py",
@@ -713,6 +752,17 @@ def build_formal_preflight(
     law_summary_evaluation_contract_sha256 = canonical_json_sha256(
         law_summary_evaluation_contract
     )
+    private_confirmation_contract = dict(
+        _object(
+            analysis.get("private_confirmation_contract"),
+            "private_confirmation_contract",
+        )
+    )
+    if private_confirmation_contract != EXPECTED_PRIVATE_CONFIRMATION_CONTRACT:
+        errors.append("private confirmation contract differs from the frozen analysis")
+    private_confirmation_contract_sha256 = canonical_json_sha256(
+        private_confirmation_contract
+    )
 
     world_cohort = _object(design.get("world_cohort"), "world_cohort")
     development = _object(
@@ -998,6 +1048,9 @@ def build_formal_preflight(
                     "law_summary_evaluation_contract_sha256": (
                         law_summary_evaluation_contract_sha256
                     ),
+                    "private_confirmation_contract_sha256": (
+                        private_confirmation_contract_sha256
+                    ),
                     "complete_experiment_count": 4,
                     "belief_checkpoint_count": 4,
                     "held_out_query_count_per_snapshot": query_count,
@@ -1060,6 +1113,10 @@ def build_formal_preflight(
         "law_summary_evaluation_contract": law_summary_evaluation_contract,
         "law_summary_evaluation_contract_sha256": (
             law_summary_evaluation_contract_sha256
+        ),
+        "private_confirmation_contract": private_confirmation_contract,
+        "private_confirmation_contract_sha256": (
+            private_confirmation_contract_sha256
         ),
         "reference_policy_contract": reference_policy_contract,
         "method_qualification_contract": method_qualification_contract,
@@ -1200,6 +1257,14 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
         != canonical_json_sha256(EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT)
     ):
         errors.append("formal preflight law-summary evaluation contract is invalid")
+    private_contract = report.get("private_confirmation_contract")
+    private_contract_hash = report.get("private_confirmation_contract_sha256")
+    if (
+        private_contract != EXPECTED_PRIVATE_CONFIRMATION_CONTRACT
+        or private_contract_hash
+        != canonical_json_sha256(EXPECTED_PRIVATE_CONFIRMATION_CONTRACT)
+    ):
+        errors.append("formal preflight private-confirmation contract is invalid")
     qualification_contract = report.get("method_qualification_contract")
     qualification_contract_hash = report.get("method_qualification_contract_sha256")
     if (
@@ -1218,6 +1283,11 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
             errors.append(f"formal cell participant contract mismatch: {cell.get('cell_id')}")
         if cell.get("law_summary_evaluation_contract_sha256") != law_summary_contract_hash:
             errors.append(f"formal cell law-summary contract mismatch: {cell.get('cell_id')}")
+        if cell.get("private_confirmation_contract_sha256") != private_contract_hash:
+            errors.append(
+                "formal cell private-confirmation contract mismatch: "
+                f"{cell.get('cell_id')}"
+            )
     split = report.get("world_split_contract")
     if not isinstance(split, Mapping):
         errors.append("formal preflight world-split contract is missing")
@@ -1430,6 +1500,7 @@ __all__ = [
     "EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT",
     "EXPECTED_METHOD_QUALIFICATION_CONTRACT",
     "EXPECTED_PARTICIPANT_EXECUTION_CONTRACT",
+    "EXPECTED_PRIVATE_CONFIRMATION_CONTRACT",
     "EXPECTED_REFERENCE_POLICY_CONTRACT",
     "FORMAL_ARMS",
     "FORMAL_BLOCKING_REQUIREMENTS",

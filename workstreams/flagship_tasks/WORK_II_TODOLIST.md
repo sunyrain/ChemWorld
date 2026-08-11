@@ -110,7 +110,8 @@ The manuscript should maintain four visibly separate evidence layers:
 - **Process-level discovery:** each trajectory records experiment selection, evidence acquisition,
   predictive revision, uncertainty/calibration, prior rejection, law summary and endpoint outcome.
 - **Summary and confirmation:** the law summary is evaluated on held-out conditions after public
-  execution; private sealed worlds test transfer once with the same preregistered estimands.
+  execution; private sealed worlds test world-held-out transfer once within the registered task
+  families. Mechanism-family-held-out transfer requires a separately registered extension.
 
 ### Manuscript chapter skeleton
 
@@ -127,7 +128,8 @@ The manuscript should maintain four visibly separate evidence layers:
 6. **Results II — rejecting biased priors.** Test contradictory evidence, posterior/calibration
    movement, counterfactual prediction and whether the agent stops defending the wrong prior.
 7. **Results III — law summaries and transfer.** Evaluate compressed law summaries on held-out
-   conditions and mechanism/world-held-out instances, with private sealed confirmation.
+   conditions and registered world-held-out instances with private sealed confirmation; reserve
+   mechanism-family-held-out transfer for a separately registered extension.
 8. **Results IV — resource and safety profile.** Report measurement cost, calls, tokens, wall time,
    invalid actions, risk debits and stopping behavior as bounded operational consequences.
 9. **Discussion.** State when evidence supports law discovery, when it only supports local policy
@@ -144,7 +146,8 @@ The manuscript should maintain four visibly separate evidence layers:
 - **Figure 3 — Experimental discovery process.** Chosen measurements, information gain, predictive
   law recovery and calibration trajectories, with endpoint success shown as a separate channel.
 - **Figure 4 — Bias rejection and law transfer.** Wrong-prior confidence collapse, counterfactual
-  prediction improvement, law-summary quality and mechanism/world-held-out transfer.
+  prediction improvement, law-summary quality and registered world-held-out transfer. Any
+  mechanism-family-held-out extension must remain visually and statistically separate.
 - **Figure 5 (optional or supplement) — Operational profile.** Resource, safety and stopping
   consequences; include only if the denominator and interpretation are independently strong.
 
@@ -512,7 +515,8 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - O2 prior calibration：prior-to-posterior movement、Brier、credible coverage 和 uncertainty；
   - O3 bias rejection：错误先验置信度下降、选择性测量、错误归因和 prior persistence；
   - O4 law summary：结构/参数摘要的可执行性、压缩稳定性和反事实预测一致性；
-  - O5 transfer：机制内、机制外和 world-held-out 的预测与控制；
+  - O5 transfer：当前 primary private block 检验已注册任务家族内的 world-held-out 预测与控制；机制外
+    transfer 仅能由另行预注册的扩展检验；
   - O6 autonomy/resource/safety：completion、invalid actions、measurements、risk、calls、tokens、cost、time。
   - O7 blind outcome：最终推荐的独立 blind validation、validated learning-curve AUC、incumbent 与 recommendation gap。
 - 验收标准：
@@ -882,7 +886,14 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   - [ ] 只执行一次，不因结果 rerun；
   - [ ] public/private transfer 使用同一预注册指标；
   - [ ] 完整记录任何基础设施删失和未启动单元。
-- 备注：`TBD`
+- 备注：零 provider 的 private-confirmation preflight 已实现并进入测试：外部 ignored seal 必须提供 5 tasks
+  × 5 worlds 的 25 个 split-disjoint identities，派生 75 个三臂 participant cells、300 experiments、
+  300 checkpoints、100 truth executions 和最多 450 blind executions；seal nonce 不进入 preflight，真实
+  identities 只能写入 ignored `runs/private/`，且写入为 create-once。unseal 前必须同时满足 public 75-cell
+  matrix 终态、public confirmatory analysis hash binding、runner/analysis source freeze、独立 private currency
+  ceiling 与用户 execution signoff、seal commitment 匹配。private preflight 自身固定为 execution-blocked，
+  0 provider calls；每 cell 最多一次纯基础设施 resume，任何 accepted/failed cell 均不得按结果替换。当前
+  合成测试只验证边界与分母，不生成真实 private identity、participant outcome 或 transfer 结果。
 
 ### W2-14 — 分析、稳健性和替代解释排除
 

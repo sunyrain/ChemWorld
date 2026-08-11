@@ -44,6 +44,7 @@ WORK_II_TEST_FILES = (
     "tests/test_work_ii_formal_runner.py",
     "tests/test_work_ii_law_summary.py",
     "tests/test_work_ii_preregistration.py",
+    "tests/test_work_ii_private.py",
     "tests/test_work_ii_process_profile.py",
     "tests/test_work_ii_qualification.py",
     "tests/test_work_ii_release.py",

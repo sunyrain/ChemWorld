@@ -95,8 +95,9 @@ public law-validity threshold; reusable-law status remains conditional on Figure
 **Claim:** any public discovery claim survives one sealed confirmation and transfers beyond exact
 diagnostic points.
 
-Panels should separate within-mechanism, across-mechanism and world-held-out transfer. A negative
-private result remains visible and cannot be replaced by another private cohort.
+Panels should separate the current within-task-family world-held-out transfer from any separately
+registered across-mechanism extension. A negative private result remains visible and cannot be
+replaced by another private cohort.
 
 ## Core tables
 
