@@ -115,8 +115,8 @@ provider budget.
 An experiment_ended outcome closes only the current batch. When campaign_ended=false, preserve your
 scientific context and continue into the next fresh batch using the returned next_state. When
     campaign_ended=true, commit the final checkpoint if it is due, then call
-    chemworld_lab.commit_final_recommendation exactly once. Select exactly one of the four completed
-    experiment indices for evaluator-owned blind replay using only participant-visible campaign
+    chemworld_lab.commit_final_recommendation exactly once. Select exactly one completed
+    experiment index for evaluator-owned blind replay using only participant-visible campaign
     evidence; no blind outcome will be returned. Only after the tool confirms the commitment, return
     exactly one
     JSON object with status and summary, with no prose or Markdown fence:

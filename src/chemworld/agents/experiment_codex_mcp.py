@@ -393,7 +393,7 @@ class ChemWorldMCPServer:
             "summary_max_length": 3000 if campaign else 2000,
             "final_recommendation_contract": (
                 {
-                    "selected_experiment_index": "integer_1_through_4",
+                    "selected_experiment_index": "integer_identifying_a_completed_experiment",
                     "selection_rationale_max_length": 2000,
                     "committed_before_blind_evaluation": True,
                 }
@@ -926,6 +926,15 @@ class ChemWorldMCPServer:
     def _tool_definitions(self) -> list[dict[str, Any]]:
         campaign = self._descriptor().get("session_scope") == "campaign"
         snapshot_schema = self._belief_snapshot_schema() if campaign else {"type": "object"}
+        contract = (
+            _read_object(self.reference / "belief_checkpoint_contract.json")
+            if campaign
+            else {}
+        )
+        checkpoint_counts = contract.get("checkpoint_complete_experiments", [])
+        completed_experiment_limit = (
+            max(int(item) for item in checkpoint_counts) if checkpoint_counts else 1
+        )
         read_annotations = {
             "readOnlyHint": True,
             "destructiveHint": False,
@@ -1007,7 +1016,7 @@ class ChemWorldMCPServer:
                         "selected_experiment_index": {
                             "type": "integer",
                             "minimum": 1,
-                            "maximum": 4,
+                            "maximum": completed_experiment_limit,
                         },
                         "selection_rationale": {
                             "type": "string",

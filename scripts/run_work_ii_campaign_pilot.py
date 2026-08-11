@@ -418,7 +418,8 @@ def _qualification(
         "planned_complete_experiments": analysis.get("complete_experiment_count")
         == target_experiments
         and analysis.get("right_censored_open_experiment") is False,
-        "four_typed_belief_checkpoints": len(snapshots) == 4 and stages == expected_stages,
+        "four_typed_belief_checkpoints": len(snapshots) == len(expected_stages)
+        and stages == expected_stages,
         "one_campaign_session": len(receipts) == 1
         and method_resources.get("provider_session_count") == 1
         and receipt.get("session_scope") == "campaign",
@@ -453,8 +454,8 @@ def _qualification(
         "no_resource_rejection": int(analysis.get("resource_rejection_count", 0))
         <= max_resource_rejections,
         "campaign_terminal": resources.get("campaign_terminal") is True
-        and state.get("closed_batches") == 4
-        and state.get("final_assays") == 4,
+        and state.get("closed_batches") == target_experiments
+        and state.get("final_assays") == target_experiments,
         "process_time_reconciled": "process_time_s" in report_only
         and float(report_only.get("process_time_s", 0.0)) <= process_time_limit_s,
         "task_required_operations_reconciled": required_operations_reconciled,

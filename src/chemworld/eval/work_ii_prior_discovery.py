@@ -537,8 +537,7 @@ def parse_work_ii_belief_snapshot(
     if value["schema_version"] != WORK_II_SNAPSHOT_SCHEMA_VERSION:
         raise ValueError("belief_snapshot.schema_version does not match the frozen contract")
     stage = _text(value["stage"], "belief_snapshot.stage")
-    allowed_stages = set(WORK_II_SNAPSHOT_STAGES) | set(WORK_II_LEGACY_SNAPSHOT_STAGES)
-    if expected_stage not in allowed_stages or stage != expected_stage:
+    if stage != expected_stage:
         raise ValueError("belief_snapshot stage does not match the requested snapshot")
     prior = _mapping(value["prior_assessment"], "belief_snapshot.prior_assessment")
     _exact_fields(
@@ -663,13 +662,20 @@ def parse_work_ii_belief_snapshot(
 
 def validate_work_ii_snapshot_sequence(
     snapshots: Sequence[WorkIIBeliefSnapshot],
+    *,
+    expected_stages: Sequence[str] | None = None,
 ) -> None:
     observed_stages = tuple(snapshot.stage for snapshot in snapshots)
-    if observed_stages not in {
-        WORK_II_SNAPSHOT_STAGES,
-        WORK_II_LEGACY_SNAPSHOT_STAGES,
-    }:
-        raise ValueError("belief snapshots must follow the frozen four-stage order")
+    if expected_stages is None:
+        valid = observed_stages in {
+            WORK_II_SNAPSHOT_STAGES,
+            WORK_II_LEGACY_SNAPSHOT_STAGES,
+        }
+    else:
+        frozen = tuple(str(stage) for stage in expected_stages)
+        valid = bool(frozen) and observed_stages == frozen and len(set(frozen)) == len(frozen)
+    if not valid:
+        raise ValueError("belief snapshots must follow the frozen checkpoint order")
     snapshot_ids = [snapshot.snapshot_id for snapshot in snapshots]
     if len(set(snapshot_ids)) != len(snapshot_ids):
         raise ValueError("belief snapshot IDs must be unique")

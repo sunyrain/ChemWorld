@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-MATCHED_PRIOR_VERSION = "chemworld-work-ii-matched-prior-qualification-0.2"
+MATCHED_PRIOR_VERSION = "chemworld-work-ii-matched-prior-qualification-0.3"
 TEMPERATURES_K = tuple(float(value) for value in range(370, 471, 10))
 DURATIONS_S = tuple(float(value) for value in range(300, 6301, 600))
 BASELINE_TEMPERATURE_K = 420.0

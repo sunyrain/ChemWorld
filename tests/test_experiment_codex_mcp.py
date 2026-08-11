@@ -21,7 +21,7 @@ def test_final_response_contract_matches_session_scope() -> None:
         "status": "campaign_complete",
         "summary_max_length": 3000,
         "final_recommendation_contract": {
-            "selected_experiment_index": "integer_1_through_4",
+            "selected_experiment_index": "integer_identifying_a_completed_experiment",
             "selection_rationale_max_length": 2000,
             "committed_before_blind_evaluation": True,
         },
@@ -294,6 +294,8 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
             "chemworld-work-ii-belief-snapshot"
         )
         assert "law_summary" in snapshot["required"]
+        recommendation = by_name["commit_final_recommendation"]["inputSchema"]
+        assert recommendation["properties"]["selected_experiment_index"]["maximum"] == 4
     finally:
         process.stdin.close()
         process.wait(timeout=5.0)

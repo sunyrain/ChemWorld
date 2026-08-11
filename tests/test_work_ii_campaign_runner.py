@@ -193,6 +193,23 @@ def test_all_five_task_checkpoint_contracts_match_across_informed_arms() -> None
         )
 
 
+def test_checkpoint_contract_supports_frozen_ten_experiment_pattern() -> None:
+    config = _config()
+    config["campaign"]["complete_experiments"] = 10
+    config["campaign"]["checkpoint_complete_experiments"] = [0, 2, 4, 7, 10]
+    config["snapshot_stages"] = [
+        "pre_evidence",
+        "after_experiment_2",
+        "after_experiment_4",
+        "after_experiment_7",
+        "final",
+    ]
+    contract = _checkpoint_contract(config, "aligned_nominal")
+    assert contract["snapshot_stages"] == config["snapshot_stages"]
+    assert contract["checkpoint_complete_experiments"] == [0, 2, 4, 7, 10]
+    assert len(contract["evidence_catalog"]) == 10
+
+
 def test_deepseek_configs_freeze_bounded_recovery_and_schedule_completion() -> None:
     for config_name in (
         "work_ii_electrochemical_deepseek_v4_flash_campaign.json",
@@ -317,6 +334,77 @@ def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:
         process_time_limit_s=72_000.0,
         required_operation_counts={},
         required_snapshot_stages=config["snapshot_stages"],
+    )
+    assert result["passed"] is True
+
+
+def test_qualification_accepts_ten_experiments_and_five_checkpoints() -> None:
+    stages = [
+        "pre_evidence",
+        "after_experiment_2",
+        "after_experiment_4",
+        "after_experiment_7",
+        "final",
+    ]
+    recommendation = {
+        "selected_experiment_index": 8,
+        "selection_rationale": "best public campaign evidence",
+    }
+    recommendation_sha256 = canonical_json_sha256(recommendation)
+    analysis = {
+        "complete_experiment_count": 10,
+        "experiments": [{"experiment_index": index} for index in range(1, 11)],
+        "right_censored_open_experiment": False,
+        "belief_snapshots": [{"stage": stage} for stage in stages],
+        "resource_rejection_count": 0,
+        "final_campaign_resources": {
+            "campaign_terminal": True,
+            "state": {
+                "closed_batches": 10,
+                "final_assays": 10,
+                "operation_committed_counts": {},
+                "report_only": {"process_time_s": 100_000.0},
+            },
+        },
+        "final_recommendation": recommendation,
+        "final_recommendation_sha256": recommendation_sha256,
+        "execution_audit": {"passed": True},
+    }
+    result = _qualification(
+        analysis=analysis,
+        exact_replay={"verified": True},
+        method_resources={
+            "provider_session_count": 1,
+            "provider_usage_pending": False,
+            "provider_usage_accounting_complete": True,
+            "in_flight_model_call_count": 0,
+            "input_token_count": 1,
+            "uncached_input_token_count": 1,
+            "output_token_count": 1,
+        },
+        method_resource_limits={
+            "complete_experiment_limit": 10,
+            "input_token_limit": 2,
+            "uncached_input_token_limit": 2,
+            "output_token_limit": 2,
+        },
+        receipts=[
+            {
+                "session_scope": "campaign",
+                "status": "completed",
+                "return_code": 0,
+                "final_payload_valid": True,
+                "final_payload_status": "campaign_complete",
+                "final_recommendation": recommendation,
+                "final_recommendation_sha256": recommendation_sha256,
+                "experiment_tool_integrity_verified_after_session": True,
+                "lab_tool_integrity_verified_after_session": True,
+                "mcp_tool_integrity_verified_after_session": True,
+            }
+        ],
+        process_time_limit_s=145_200.0,
+        required_operation_counts={},
+        required_snapshot_stages=stages,
     )
     assert result["passed"] is True
 

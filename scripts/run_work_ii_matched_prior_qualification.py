@@ -55,7 +55,7 @@ SOURCE_SUMMARY = (
     "work-ii-mechanism-oracle-reaction-safety-classified-v0.2-20260811.json"
 )
 DEFAULT_OUTPUT_ROOT = (
-    ROOT / "runs/development/work-ii-reaction-safety-matched-prior-qualification-v0.2-20260811"
+    ROOT / "runs/development/work-ii-reaction-safety-matched-prior-qualification-v0.3-20260811"
 )
 DEFAULT_SUMMARY = (
     ROOT
@@ -68,9 +68,9 @@ DEFAULT_PACKAGE = (
 DEFAULT_D1_CONFIG = (
     ROOT / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json"
 )
-SUMMARY_VERSION = "chemworld-work-ii-matched-prior-five-world-summary-0.2"
-WORLD_REPORT_VERSION = "chemworld-work-ii-matched-prior-world-report-0.2"
-PACKAGE_VERSION = "chemworld-work-ii-matched-prior-package-0.2"
+SUMMARY_VERSION = "chemworld-work-ii-matched-prior-five-world-summary-0.3"
+WORLD_REPORT_VERSION = "chemworld-work-ii-matched-prior-world-report-0.3"
+PACKAGE_VERSION = "chemworld-work-ii-matched-prior-package-0.3"
 
 
 class Progress:

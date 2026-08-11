@@ -340,12 +340,18 @@ def build_checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, 
             ["pre_evidence", "post_neutral", "post_discriminating", "final"],
         )
     ]
-    if len(snapshot_stages) != 4 or len(set(snapshot_stages)) != 4:
-        raise ValueError("snapshot_stages must contain four unique stage IDs")
     checkpoint_experiments = [
         int(item)
         for item in _object(config["campaign"], "campaign")["checkpoint_complete_experiments"]
     ]
+    if len(snapshot_stages) < 2 or len(set(snapshot_stages)) != len(snapshot_stages):
+        raise ValueError("snapshot_stages must contain at least two unique stage IDs")
+    if len(checkpoint_experiments) != len(snapshot_stages):
+        raise ValueError("checkpoint experiment counts must match snapshot stages")
+    if checkpoint_experiments != sorted(set(checkpoint_experiments)):
+        raise ValueError("checkpoint experiment counts must be strictly increasing")
+    if checkpoint_experiments[0] != 0 or checkpoint_experiments[-1] != complete_experiments:
+        raise ValueError("checkpoint schedule must span pre-evidence through campaign completion")
     return {
         "schema_version": "chemworld-work-ii-campaign-checkpoint-contract-0.1",
         "snapshot_stages": snapshot_stages,
