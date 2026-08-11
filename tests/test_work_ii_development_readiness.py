@@ -52,6 +52,17 @@ def _write_receipt(
                 }
             ],
         },
+        "direction_stability_audit": {
+            "applicable": False,
+            "passed": True,
+            "registered_temperature_direction": {
+                "preferred_side": None,
+                "source": None,
+                "claim": None,
+            },
+            "worlds": [],
+            "provider_call_count": 0,
+        },
         "provider_call_count": 0,
         "ready": True,
     }
@@ -322,3 +333,70 @@ def test_readiness_rejects_unknown_method_resource_fields(
     checks = readiness._config_checks(tmp_path, config, [0])
 
     assert checks["method_resource_payload_constructs"] is False
+
+
+def test_direction_stability_audit_fails_closed_on_registered_query_conflict(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    config = {
+        "task_id": "reaction-safety-constrained",
+        "prior_arms": {
+            "opaque": {
+                "initial_world_model": {
+                    "context_contract": {
+                        "approximate_reference_region": {
+                            "reaction_temperature_K": 420.0,
+                            "temperature_tolerance_K": 10.0,
+                        }
+                    }
+                }
+            },
+            "aligned_nominal": {
+                "initial_world_model": {
+                    "model": {
+                        "claim": {
+                            "expected_relation": (
+                                "Relative to the stated reference region, the lower-temperature "
+                                "side should retain safe balanced performance more reliably than "
+                                "the higher-temperature side."
+                            )
+                        }
+                    }
+                }
+            },
+            "misindexed_nominal": {},
+        },
+    }
+    plan = {
+        "queries": [
+            {
+                "query_id": "low",
+                "feature_values": {
+                    "reaction_temperature_K": 370.0,
+                    "reaction_duration_s": 900.0,
+                },
+            },
+            {
+                "query_id": "high",
+                "feature_values": {
+                    "reaction_temperature_K": 470.0,
+                    "reaction_duration_s": 900.0,
+                },
+            },
+        ]
+    }
+    report = {
+        "truth_query_count": 2,
+        "completed_truth_query_count": 2,
+        "report_sha256": "truth",
+        "truth": {"low": {"score": 0.2}, "high": {"score": 0.8}},
+    }
+    monkeypatch.setattr(readiness, "build_evaluator_truth_plan", lambda *_a, **_k: plan)
+    monkeypatch.setattr(readiness, "execute_evaluator_truth_plan", lambda *_a, **_k: report)
+    monkeypatch.setattr(readiness, "validate_evaluator_truth_report", lambda *_a, **_k: [])
+
+    audit = readiness.audit_direction_stability(config, [4])
+
+    assert audit["passed"] is False
+    assert audit["worlds"][0]["direction_contract"]["status"] == "query_subset_conflict"

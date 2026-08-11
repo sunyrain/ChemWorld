@@ -8,6 +8,7 @@ import subprocess
 from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from time import perf_counter
 from typing import Any
 
@@ -20,9 +21,20 @@ from chemworld.eval.provenance import (
 )
 from chemworld.eval.resource_accounting import MethodResourceLimits
 from chemworld.eval.verify import verify_records
+from chemworld.eval.work_ii_direction import (
+    registered_temperature_direction,
+    temperature_direction_contract,
+    temperature_direction_diagnostic,
+    truth_prediction_rows,
+)
 from chemworld.eval.work_ii_process_profile import build_work_ii_execution_artifacts
+from chemworld.eval.work_ii_truth import (
+    build_evaluator_truth_plan,
+    execute_evaluator_truth_plan,
+    validate_evaluator_truth_report,
+)
 
-WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.4"
+WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.5"
 _PRIOR_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 
 
@@ -500,6 +512,131 @@ def audit_historical_trajectories(
     }
 
 
+def audit_direction_stability(
+    config: Mapping[str, Any],
+    seeds: Sequence[int],
+    *,
+    progress: Callable[[dict[str, Any]], None] | None = None,
+) -> dict[str, Any]:
+    registered = registered_temperature_direction(config)
+    if registered.get("preferred_side") is None:
+        return {
+            "applicable": False,
+            "passed": True,
+            "registered_temperature_direction": registered,
+            "worlds": [],
+            "provider_call_count": 0,
+            "interpretation": "No frozen binary temperature-direction claim is present.",
+        }
+    opaque = config.get("prior_arms", {}).get("opaque", {})
+    initial_model = opaque.get("initial_world_model", {}) if isinstance(opaque, Mapping) else {}
+    context_contract = (
+        initial_model.get("context_contract", {})
+        if isinstance(initial_model, Mapping)
+        else {}
+    )
+    reference_region = (
+        context_contract.get("approximate_reference_region", {})
+        if isinstance(context_contract, Mapping)
+        else {}
+    )
+    reference_temperature = reference_region.get("reaction_temperature_K")
+    temperature_tolerance = reference_region.get("temperature_tolerance_K")
+    task_id = str(config.get("task_id", ""))
+    rows: list[dict[str, Any]] = []
+    with TemporaryDirectory(prefix="chemworld-work-ii-direction-readiness-") as temporary:
+        temporary_root = Path(temporary)
+        for index, seed in enumerate(seeds, start=1):
+            if progress is not None:
+                progress(
+                    {
+                        "stage": "direction_stability_truth",
+                        "completed": index - 1,
+                        "total": len(seeds),
+                        "world_seed": int(seed),
+                    }
+                )
+            try:
+                if (
+                    isinstance(reference_temperature, bool)
+                    or not isinstance(reference_temperature, int | float)
+                    or isinstance(temperature_tolerance, bool)
+                    or not isinstance(temperature_tolerance, int | float)
+                ):
+                    raise ValueError("temperature-direction reference region is incomplete")
+                plan = build_evaluator_truth_plan(
+                    {
+                        "world_cluster_id": f"readiness--{task_id}--seed-{int(seed)}",
+                        "task_id": task_id,
+                        "world_seed": int(seed),
+                    },
+                    config,
+                    formal_result=False,
+                    formal_preflight_sha256=None,
+                )
+                report = execute_evaluator_truth_plan(
+                    plan,
+                    config,
+                    temporary_root / f"seed-{int(seed)}",
+                )
+                errors = validate_evaluator_truth_report(report, plan)
+                empirical = temperature_direction_diagnostic(
+                    truth_prediction_rows(
+                        report.get("truth", {})
+                        if isinstance(report.get("truth"), Mapping)
+                        else {}
+                    ),
+                    truth_plan=plan,
+                    reference_temperature_K=float(reference_temperature),
+                    temperature_tolerance_K=float(temperature_tolerance),
+                )
+                contract = temperature_direction_contract(registered, empirical)
+                passed = not errors and contract["status"] == "stable"
+                rows.append(
+                    {
+                        "world_seed": int(seed),
+                        "passed": passed,
+                        "truth_query_count": report.get("truth_query_count"),
+                        "completed_truth_query_count": report.get(
+                            "completed_truth_query_count"
+                        ),
+                        "truth_report_sha256": report.get("report_sha256"),
+                        "validation_errors": errors,
+                        "empirical_temperature_direction": empirical,
+                        "direction_contract": contract,
+                    }
+                )
+            except Exception as error:  # readiness must fail closed before provider execution
+                rows.append(
+                    {
+                        "world_seed": int(seed),
+                        "passed": False,
+                        "error": f"{type(error).__name__}: {error}",
+                    }
+                )
+            if progress is not None:
+                progress(
+                    {
+                        "stage": "direction_stability_truth",
+                        "completed": index,
+                        "total": len(seeds),
+                        "world_seed": int(seed),
+                        "passed": rows[-1]["passed"],
+                    }
+                )
+    return {
+        "applicable": True,
+        "passed": bool(rows) and all(row["passed"] is True for row in rows),
+        "registered_temperature_direction": registered,
+        "worlds": rows,
+        "provider_call_count": 0,
+        "interpretation": (
+            "A directional-prior provider block is authorized only when the frozen registered "
+            "direction agrees with exact provider-free truth on its evaluator query distribution."
+        ),
+    }
+
+
 def build_development_readiness_receipt(
     root: Path,
     config_path: Path,
@@ -514,10 +651,12 @@ def build_development_readiness_receipt(
     config = json.loads(resolved_config.read_text(encoding="utf-8"))
     checks = _config_checks(root, resolved_config, seeds)
     historical = audit_historical_trajectories(historical_roots, progress=progress)
+    direction_stability = audit_direction_stability(config, seeds, progress=progress)
     pilot = audit_seed0_expansion_pilot(config, pilot_run)
     continuation = audit_seed0_terminal_continuation(config, continuation_seed0_run)
     seed_schedule = [int(seed) for seed in seeds]
     checks["historical_current_code_audits_passed"] = historical["all_trajectories_passed"]
+    checks["directional_prior_query_distribution_stable"] = direction_stability["passed"]
     checks["scheduled_block_has_required_seed0_authority"] = (
         len(seeds) == 1
         or (len(seeds) == 5 and pilot is not None and pilot.get("passed") is True)
@@ -557,6 +696,7 @@ def build_development_readiness_receipt(
         },
         "checks": checks,
         "historical_audit": historical,
+        "direction_stability_audit": direction_stability,
         "seed0_expansion_pilot": pilot,
         "seed0_terminal_continuation": continuation,
         "provider_call_count": 0,
@@ -620,6 +760,13 @@ def validate_development_readiness_receipt(
             path = Path(str(row.get("path", "")))
             if not path.is_file() or row.get("sha256") != file_sha256(path):
                 errors.append(f"readiness trajectory binding changed: {path}")
+    direction_stability = receipt.get("direction_stability_audit")
+    if (
+        not isinstance(direction_stability, Mapping)
+        or direction_stability.get("passed") is not True
+        or direction_stability.get("provider_call_count") != 0
+    ):
+        errors.append("readiness direction-stability audit is not passing")
     pilot = receipt.get("seed0_expansion_pilot")
     if len(seeds) == 5:
         if not isinstance(pilot, Mapping) or pilot.get("passed") is not True:
@@ -649,6 +796,7 @@ def validate_development_readiness_receipt(
 
 __all__ = [
     "WORK_II_DEVELOPMENT_READINESS_VERSION",
+    "audit_direction_stability",
     "audit_historical_trajectories",
     "audit_seed0_expansion_pilot",
     "audit_seed0_terminal_continuation",

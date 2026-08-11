@@ -46,6 +46,10 @@ def main() -> int:
                 "provider_call_count": receipt["provider_call_count"],
                 "historical_passed": receipt["historical_audit"]["passed_trajectory_count"],
                 "historical_total": receipt["historical_audit"]["trajectory_count"],
+                "direction_stability_applicable": receipt["direction_stability_audit"][
+                    "applicable"
+                ],
+                "direction_stability_passed": receipt["direction_stability_audit"]["passed"],
                 "seed0_pilot_passed": (
                     receipt.get("seed0_expansion_pilot", {}).get("passed")
                     if isinstance(receipt.get("seed0_expansion_pilot"), dict)

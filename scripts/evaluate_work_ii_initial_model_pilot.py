@@ -26,6 +26,18 @@ from chemworld.eval.work_ii_blind import (
     validate_blind_evaluation_report,
 )
 from chemworld.eval.work_ii_development_confirmation import build_cluster_rows
+from chemworld.eval.work_ii_direction import (
+    registered_temperature_direction as _registered_temperature_direction,
+)
+from chemworld.eval.work_ii_direction import (
+    temperature_direction_contract as _temperature_direction_contract,
+)
+from chemworld.eval.work_ii_direction import (
+    temperature_direction_diagnostic as _temperature_direction_diagnostic,
+)
+from chemworld.eval.work_ii_direction import (
+    truth_prediction_rows as _truth_prediction_rows,
+)
 from chemworld.eval.work_ii_formal import EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT
 from chemworld.eval.work_ii_law_summary import evaluate_final_law_summary
 from chemworld.eval.work_ii_truth import (
@@ -278,150 +290,6 @@ def _participant_behavior_profile(
             "sha256": file_sha256(trajectory_path),
         },
     }
-
-
-def _prediction_rows_by_query(predictions: object) -> dict[str, dict[str, float]]:
-    result: dict[str, dict[str, float]] = {}
-    for row in _sequence(predictions):
-        if not isinstance(row, Mapping):
-            continue
-        query_id = str(row.get("query_id", ""))
-        metrics = {
-            str(metric.get("metric_id")): float(metric["mean"])
-            for metric in _sequence(row.get("metrics"))
-            if isinstance(metric, Mapping)
-            and isinstance(metric.get("mean"), int | float)
-            and not isinstance(metric.get("mean"), bool)
-        }
-        if query_id and metrics:
-            result[query_id] = metrics
-    return result
-
-
-def _temperature_direction_diagnostic(
-    predictions: object,
-    *,
-    truth_plan: Mapping[str, Any],
-    reference_temperature_K: float,
-    temperature_tolerance_K: float,
-) -> dict[str, Any]:
-    by_query = _prediction_rows_by_query(predictions)
-    grouped: dict[float, dict[str, list[float]]] = {}
-    for query in _sequence(truth_plan.get("queries")):
-        if not isinstance(query, Mapping):
-            continue
-        features = _mapping(query.get("feature_values"))
-        query_id = str(query.get("query_id", ""))
-        metrics = by_query.get(query_id)
-        temperature = features.get("reaction_temperature_K")
-        duration = features.get("reaction_duration_s")
-        if (
-            metrics is None
-            or "score" not in metrics
-            or isinstance(temperature, bool)
-            or not isinstance(temperature, int | float)
-            or isinstance(duration, bool)
-            or not isinstance(duration, int | float)
-        ):
-            continue
-        if float(temperature) <= reference_temperature_K - temperature_tolerance_K:
-            side = "lower_temperature"
-        elif float(temperature) >= reference_temperature_K + temperature_tolerance_K:
-            side = "higher_temperature"
-        else:
-            continue
-        grouped.setdefault(float(duration), {}).setdefault(side, []).append(metrics["score"])
-    contrasts: list[float] = []
-    for sides in grouped.values():
-        lower = sides.get("lower_temperature", [])
-        higher = sides.get("higher_temperature", [])
-        if lower and higher:
-            contrasts.append(sum(lower) / len(lower) - sum(higher) / len(higher))
-    mean_contrast = sum(contrasts) / len(contrasts) if contrasts else None
-    preferred_side = (
-        None
-        if mean_contrast is None or mean_contrast == 0.0
-        else "lower_temperature"
-        if mean_contrast > 0.0
-        else "higher_temperature"
-    )
-    return {
-        "paired_duration_count": len(contrasts),
-        "lower_minus_higher_mean_score_contrast": mean_contrast,
-        "preferred_side": preferred_side,
-    }
-
-
-def _registered_temperature_direction(config: Mapping[str, Any]) -> dict[str, Any]:
-    aligned = _mapping(_mapping(config.get("prior_arms")).get("aligned_nominal"))
-    initial_model = _mapping(aligned.get("initial_world_model"))
-    claim = _mapping(_mapping(initial_model.get("model")).get("claim"))
-    relation = claim.get("expected_relation")
-    if not isinstance(relation, str):
-        return {
-            "preferred_side": None,
-            "source": None,
-            "claim": None,
-        }
-    higher = "higher-temperature side" in relation
-    lower = "lower-temperature side" in relation
-    if not higher or not lower:
-        return {
-            "preferred_side": None,
-            "source": "aligned_nominal.initial_world_model.model.claim.expected_relation",
-            "claim": relation,
-        }
-    preferred_side = (
-        "higher_temperature"
-        if relation.index("higher-temperature side") < relation.index("lower-temperature side")
-        else "lower_temperature"
-    )
-    return {
-        "preferred_side": preferred_side,
-        "source": "aligned_nominal.initial_world_model.model.claim.expected_relation",
-        "claim": relation,
-    }
-
-
-def _temperature_direction_contract(
-    registered: Mapping[str, Any],
-    held_out_truth: Mapping[str, Any],
-) -> dict[str, Any]:
-    registered_side = registered.get("preferred_side")
-    held_out_side = held_out_truth.get("preferred_side")
-    if registered_side is None or held_out_side is None:
-        status = "undefined"
-    elif registered_side == held_out_side:
-        status = "stable"
-    else:
-        status = "query_subset_conflict"
-    return {
-        "status": status,
-        "registered_side": registered_side,
-        "held_out_truth_side": held_out_side,
-        "recovery_scoring_authorized": status == "stable",
-        "interpretation": (
-            "Binary direction recovery is scored only when the frozen aligned-prior direction and "
-            "the evaluator-held query direction agree. Prediction and executable-law errors remain "
-            "scored directly against evaluator truth regardless of this diagnostic."
-        ),
-    }
-
-
-def _truth_prediction_rows(
-    evaluator_truth: Mapping[str, Any],
-) -> list[dict[str, Any]]:
-    return [
-        {
-            "query_id": str(query_id),
-            "metrics": [
-                {"metric_id": str(metric_id), "mean": float(value)}
-                for metric_id, value in _mapping(metrics).items()
-                if isinstance(value, int | float) and not isinstance(value, bool)
-            ],
-        }
-        for query_id, metrics in evaluator_truth.items()
-    ]
 
 
 def _truth_replay_count(report: Mapping[str, Any]) -> int:
