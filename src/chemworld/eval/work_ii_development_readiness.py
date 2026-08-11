@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
@@ -65,6 +66,11 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
     ]
     api_key_value = provider.get("api_key_file")
     api_key_path = (root / str(api_key_value)).resolve() if api_key_value else Path()
+    env_key_value = provider.get("env_key")
+    env_credential_present = bool(
+        env_key_value is not None and os.environ.get(str(env_key_value))
+    )
+    file_credential_present = api_key_path.is_file() and _git_ignored(root, api_key_path)
     prior_arms = tuple(config.get("prior_arms", {}))
     checkpoint_experiments = list(campaign.get("checkpoint_complete_experiments", []))
     method_checkpoints = list(method.get("checkpoint_complete_experiments", []))
@@ -114,13 +120,30 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
         )
         and int(config.get("qualification", {}).get("max_resource_rejections", -1)) >= 0,
         "responses_codex_harness_contract": provider.get("wire_api") == "responses"
-        and provider.get("model") == "deepseek-v4-flash"
-        and provider.get("reasoning_effort") == "high",
-        "domain_mcp_routing_catalog_frozen": len(models) == 1
-        and models[0].get("supports_search_tool") is False
-        and models[0].get("supported_in_api") is True,
-        "credential_file_exists_and_is_git_ignored": api_key_path.is_file()
-        and _git_ignored(root, api_key_path),
+        and (
+            (
+                provider.get("id") == "deepseek"
+                and provider.get("model") == "deepseek-v4-flash"
+                and provider.get("reasoning_effort") == "high"
+            )
+            or (
+                provider.get("id") == "wellau"
+                and provider.get("model") == "gpt-5.6-sol"
+                and provider.get("reasoning_effort") == "medium"
+            )
+        ),
+        "domain_mcp_routing_catalog_frozen": (
+            len(models) == 1
+            and models[0].get("supports_search_tool") is False
+            and models[0].get("supported_in_api") is True
+        )
+        or (
+            provider.get("id") == "wellau"
+            and not catalog_value
+        ),
+        "credential_file_exists_and_is_git_ignored": (
+            env_credential_present or file_credential_present
+        ),
     }
 
 

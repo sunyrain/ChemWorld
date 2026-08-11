@@ -68,6 +68,32 @@ def _resolve_optional_path(value: Any) -> str | None:
     return str(path.resolve())
 
 
+def _arm_contract(config: Mapping[str, Any], arm: str) -> Mapping[str, Any]:
+    value = config["prior_arms"][arm]
+    if not isinstance(value, Mapping):
+        raise ValueError(f"prior_arms.{arm} must be an object")
+    return value
+
+
+def _arm_material_information(config: Mapping[str, Any], arm: str) -> dict[str, Any]:
+    contract = _arm_contract(config, arm)
+    value = contract.get("material_information", contract)
+    if not isinstance(value, Mapping):
+        raise ValueError(f"prior_arms.{arm}.material_information must be an object")
+    return dict(value)
+
+
+def _arm_initial_world_model(
+    config: Mapping[str, Any], arm: str
+) -> dict[str, Any] | None:
+    value = _arm_contract(config, arm).get("initial_world_model")
+    if value is None:
+        return None
+    if not isinstance(value, Mapping):
+        raise ValueError(f"prior_arms.{arm}.initial_world_model must be an object")
+    return dict(value)
+
+
 def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
     campaign = config["campaign"]
     return CampaignResourceCard(
@@ -558,6 +584,7 @@ def _run_cell(
             pre_action_restart_limit=0,
             session_scope="campaign",
             belief_checkpoint_contract=_checkpoint_contract(config, arm),
+            initial_world_model=_arm_initial_world_model(config, arm),
         )
 
         def on_step(record: Any, trace: list[dict[str, Any]]) -> None:
@@ -623,7 +650,7 @@ def _run_cell(
                 episode_mode_override=config["episode_mode"],
                 step_callback=on_step,
                 method_resource_limits=dict(config["method_resources"]),
-                material_information=dict(config["prior_arms"][arm]),
+                material_information=_arm_material_information(config, arm),
                 campaign_resource_card=card,
                 electrochemical_material_family_id=config.get("electrochemical_material_family_id"),
                 crystallization_material_family_id=config.get("crystallization_material_family_id"),

@@ -380,6 +380,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         history_byte_limit: int = 131_072,
         session_scope: str = "experiment",
         belief_checkpoint_contract: Mapping[str, Any] | None = None,
+        initial_world_model: Mapping[str, Any] | None = None,
     ) -> None:
         if not model:
             raise ValueError(f"unsupported Codex model: {model}")
@@ -499,6 +500,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             if belief_checkpoint_contract is not None
             else None
         )
+        self.initial_world_model = (
+            deepcopy(dict(initial_world_model))
+            if initial_world_model is not None
+            else None
+        )
         self.workspace = ExperimentCodexWorkspace(
             workspace,
             max_tool_output_bytes=max_tool_output_bytes,
@@ -520,7 +526,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         super().reset(task_info, seed)
         self.workspace.initialize_fresh()
         material_manifest = self.workspace.publish_material_information(
-            _material_information_payload(task_info)
+            _material_information_payload(
+                task_info,
+                initial_world_model=self.initial_world_model,
+            )
         )
         self._material_manifest = material_manifest
         self._task_contract = _public_task_contract(task_info)
@@ -821,6 +830,13 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 "agent_workspace_optional": True,
                 "forced_notebook": False,
                 "material_information_reference": deepcopy(self._material_manifest),
+                "initial_world_model_sha256": (
+                    hashlib.sha256(
+                        _canonical_json(self.initial_world_model).encode("utf-8")
+                    ).hexdigest()
+                    if self.initial_world_model is not None
+                    else None
+                ),
                 "task_contract_reference": deepcopy(self._task_contract_manifest),
                 "belief_checkpoint_contract_reference": deepcopy(self._belief_checkpoint_manifest),
                 "workspace": self.workspace.manifest(),
@@ -1884,7 +1900,11 @@ def _compact_outcome(
     }
 
 
-def _material_information_payload(task_info: Mapping[str, Any]) -> dict[str, Any]:
+def _material_information_payload(
+    task_info: Mapping[str, Any],
+    *,
+    initial_world_model: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     raw = task_info.get("material_information")
     material = raw if isinstance(raw, Mapping) else {}
     dossier = material.get("dossier")
@@ -1906,11 +1926,35 @@ def _material_information_payload(task_info: Mapping[str, Any]) -> dict[str, Any
                 "is authoritative."
             ),
         }
-    return {
+    payload = {
         "schema_version": "chemworld-env-owned-material-information-reference-0.1",
         "material_information": public_material_information,
         "material_catalog": to_builtin(task_info.get("material_catalog", {})),
     }
+    if initial_world_model is not None:
+        forbidden = {"arm", "prior_arm", "world_seed", "condition_id", "quality"}
+        leaked: list[str] = []
+
+        def collect_identity_fields(value: Any, path: str) -> None:
+            if isinstance(value, Mapping):
+                for raw_key, child in value.items():
+                    key = str(raw_key)
+                    child_path = f"{path}.{key}"
+                    if key in forbidden:
+                        leaked.append(child_path)
+                    collect_identity_fields(child, child_path)
+            elif isinstance(value, (list, tuple)):
+                for index, child in enumerate(value):
+                    collect_identity_fields(child, f"{path}[{index}]")
+
+        collect_identity_fields(initial_world_model, "initial_world_model")
+        if leaked:
+            raise ValueError(
+                "initial_world_model contains participant-visible identity fields: "
+                f"{sorted(leaked)}"
+            )
+        payload["initial_world_model"] = to_builtin(dict(initial_world_model))
+    return payload
 
 
 def _public_task_contract(task_info: Mapping[str, Any]) -> dict[str, Any]:

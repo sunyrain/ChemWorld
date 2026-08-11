@@ -139,6 +139,49 @@ def test_material_payload_marks_opaque_without_internal_mode_name() -> None:
     assert "opaque_codes" not in serialized
 
 
+def test_material_payload_can_carry_a_blinded_initial_world_model() -> None:
+    initial_model = {
+        "schema_version": "chemworld-work-ii-initial-world-model-0.1",
+        "locus": "parametric",
+        "availability": "supplied_incomplete_model",
+        "model": {
+            "reference_context": {"electrolyte_profile": 0, "solvent": 0},
+            "potential_window_V": [0.82, 0.96],
+            "current_window_mA": [45.0, 65.0],
+        },
+        "interpretation": "Experimental evidence is authoritative.",
+    }
+    payload = _material_information_payload(
+        {
+            "material_information": {"mode": "opaque_codes"},
+            "material_catalog": {},
+        },
+        initial_world_model=initial_model,
+    )
+
+    assert payload["material_information"]["availability"] == "opaque_identifiers_only"
+    assert payload["initial_world_model"] == initial_model
+
+
+def test_initial_world_model_rejects_participant_visible_arm_identity() -> None:
+    with pytest.raises(ValueError, match="identity fields"):
+        _material_information_payload(
+            {"material_information": {"mode": "opaque_codes"}},
+            initial_world_model={"locus": "parametric", "prior_arm": "aligned"},
+        )
+
+
+def test_initial_world_model_rejects_nested_participant_identity() -> None:
+    with pytest.raises(ValueError, match=r"model\.condition_id"):
+        _material_information_payload(
+            {"material_information": {"mode": "opaque_codes"}},
+            initial_world_model={
+                "locus": "parametric",
+                "model": {"condition_id": "hidden-arm-label"},
+            },
+        )
+
+
 def test_public_task_contract_exposes_composition_and_explicit_closeout() -> None:
     composition = {
         "composition_id": "generated-world",

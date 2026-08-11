@@ -9,6 +9,8 @@ import pytest
 import scripts.run_work_ii_campaign_pilot as campaign_runner
 import scripts.run_work_ii_five_seed_campaign as five_seed_runner
 from scripts.run_work_ii_campaign_pilot import (
+    _arm_initial_world_model,
+    _arm_material_information,
     _campaign_card,
     _checkpoint_contract,
     _qualification,
@@ -54,6 +56,28 @@ def test_public_campaign_card_contains_no_arm_or_seed_identity() -> None:
         "seed0",
     ):
         assert forbidden not in serialized
+
+
+def test_nested_initial_model_arm_keeps_material_information_opaque() -> None:
+    config = _config()
+    config["prior_arms"]["aligned_nominal"] = {
+        "material_information": {"mode": "opaque_codes"},
+        "initial_world_model": {
+            "schema_version": "chemworld-work-ii-initial-world-model-0.1",
+            "locus": "parametric",
+            "availability": "supplied_incomplete_model",
+        },
+    }
+
+    assert _arm_material_information(config, "aligned_nominal") == {
+        "mode": "opaque_codes"
+    }
+    assert _arm_initial_world_model(config, "aligned_nominal") == {
+        "schema_version": "chemworld-work-ii-initial-world-model-0.1",
+        "locus": "parametric",
+        "availability": "supplied_incomplete_model",
+    }
+    assert _arm_initial_world_model(config, "opaque") is None
 
 
 def test_electrochemical_process_time_policy_allows_one_repeat_only() -> None:
