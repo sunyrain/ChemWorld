@@ -131,11 +131,11 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE / 统一附录结构**：将原 Appendix A--D 合并为一个 `Appendix` 主节，并保留 A--D 四个功能小节；移除
   表格 caption 中误用的 `Appendix D.` 前缀，使组件 model-card 表显示为正常的 `Table 10.` 标题。规范源、arXiv
   TeX/PDF、source bundle 与 build manifest 已同次重建并完成附录页视觉检查。
-- **READY / 待独立公开仓库首推**：`Claim: Codex /root — PUBLIC-REPOSITORY-RELEASE — READY`；第一篇冻结代码、
-  协议、机器报告、图件和 arXiv 包已整理到本地独立仓库 `sunyrain/ChemWorld-Public`，后续 benchmark/Work II
-  配置、实验专用模块、运行结果和 provider payload 均未纳入；正文 Data and Code Availability 已改指该仓库。
-  本地公开提交 `9df2783` 通过 87 项定向/集成测试、382 文件 release manifest、离线 denominator verifier
-  与凭据扫描；arXiv PDF/source bundle 已同次重建。远端首推仍按约定等待用户明确确认。
+- **DONE / 独立公开发布**：`Claim: Codex /root — PUBLIC-REPOSITORY-RELEASE — DONE`；第一篇冻结代码、协议、
+  机器报告、图件和 arXiv 包已发布到公开仓库 `sunyrain/ChemWorld-Public`，冻结提交 `9df2783` 并建立
+  `v0.1.0` 标签；后续 benchmark/Work II 配置、实验专用模块、运行结果和 provider payload 均未纳入。
+  公开快照通过 87 项定向/集成测试、382 文件 release manifest、离线 denominator verifier 与凭据扫描；
+  引言和 Data and Code Availability 均提供仓库主页及固定版本链接，arXiv PDF/source bundle 同次重建。
 
 ## 1. 论文只讲什么
 
