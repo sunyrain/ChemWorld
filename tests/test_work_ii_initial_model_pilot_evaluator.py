@@ -176,6 +176,31 @@ def test_reaction_safety_parametric_controls_and_model_distance() -> None:
     )
 
 
+def test_electrochemical_parametric_controls_exclude_probe_duration() -> None:
+    experiment = {
+        "operations": [
+            {
+                "operation": "set_potential",
+                "potential_V": 1.18,
+                "current_mA": 70.0,
+            },
+            {"operation": "electrolyze", "duration_s": 630.0},
+            {
+                "operation": "set_potential",
+                "potential_V": 1.05,
+                "current_mA": 90.0,
+            },
+            {"operation": "electrolyze", "duration_s": 3540.0},
+        ]
+    }
+
+    assert _parametric_controls(experiment, "electrochemical-conversion") == {
+        "potential_V": 1.05,
+        "current_mA": 90.0,
+        "duration_s": 3540.0,
+    }
+
+
 def test_rationale_score_match_detects_one_based_incumbent_reference() -> None:
     experiments = [
         {"experiment_index": 9, "leaderboard_score": 0.4150832466018063},

@@ -136,22 +136,29 @@ def _parametric_controls(experiment: Mapping[str, Any], task_id: str) -> dict[st
     ]
     if task_id == "electrochemical-conversion":
         setpoints = [
-            operation for operation in operations if operation.get("operation") == "set_potential"
+            (index, operation)
+            for index, operation in enumerate(operations)
+            if operation.get("operation") == "set_potential"
         ]
-        controls: dict[str, Any] = {
-            "duration_s": sum(
-                float(operation["duration_s"])
-                for operation in operations
-                if operation.get("operation") == "electrolyze"
-            )
-        }
+        controls: dict[str, Any] = {}
         if setpoints:
+            last_setpoint_index, last_setpoint = setpoints[-1]
+            controlled_duration_s = next(
+                (
+                    float(operation["duration_s"])
+                    for operation in operations[last_setpoint_index + 1 :]
+                    if operation.get("operation") == "electrolyze"
+                ),
+                None,
+            )
             controls.update(
                 {
-                    "potential_V": float(setpoints[-1]["potential_V"]),
-                    "current_mA": float(setpoints[-1]["current_mA"]),
+                    "potential_V": float(last_setpoint["potential_V"]),
+                    "current_mA": float(last_setpoint["current_mA"]),
                 }
             )
+            if controlled_duration_s is not None:
+                controls["duration_s"] = controlled_duration_s
         return controls
     if task_id == "reaction-safety-constrained":
         heat_stages = [
