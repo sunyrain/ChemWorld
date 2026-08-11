@@ -539,7 +539,14 @@ def main() -> int:
         }
         blind_root = raw_root / "blind" / cell_key
         print(json.dumps({"event": "blind_started", "arm": arm, "cell": index}), flush=True)
-        blind_plan = build_blind_evaluation_plan(cell, summary, design["blind_evaluator_contract"])
+        blind_plan = build_blind_evaluation_plan(
+            cell,
+            summary,
+            design["blind_evaluator_contract"],
+            allow_unqualified_terminal_trajectory=(
+                summary.get("completed") is not True and _scientific_trajectory_complete(summary)
+            ),
+        )
         blind_report = execute_blind_evaluation_plan(blind_plan, config, blind_root)
         blind_receipts = _blind_receipts(blind_root, blind_report)
         blind_errors = validate_blind_evaluation_report(blind_report, blind_plan, blind_receipts)

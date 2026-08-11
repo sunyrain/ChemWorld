@@ -141,11 +141,29 @@ def build_blind_evaluation_plan(
     cell: Mapping[str, Any],
     summary: Mapping[str, Any],
     contract: Mapping[str, Any],
+    *,
+    allow_unqualified_terminal_trajectory: bool = False,
 ) -> dict[str, Any]:
     """Bind a qualified cell's committed choice to six evaluator-owned replays."""
 
-    if summary.get("completed") is not True:
-        raise ValueError("blind evaluator plan requires a qualified completed cell")
+    qualification_passed = summary.get("completed") is True
+    development_override = not qualification_passed
+    if development_override:
+        analysis = summary.get("analysis")
+        replay = summary.get("exact_replay")
+        terminal_scientific_trajectory = (
+            isinstance(analysis, Mapping)
+            and int(analysis.get("complete_experiment_count", 0)) == 4
+            and analysis.get("right_censored_open_experiment") is False
+            and isinstance(replay, Mapping)
+            and replay.get("verified") is True
+        )
+        if not allow_unqualified_terminal_trajectory:
+            raise ValueError("blind evaluator plan requires a qualified completed cell")
+        if summary.get("formal_result") is True:
+            raise ValueError("formal blind evaluation forbids an unqualified trajectory override")
+        if not terminal_scientific_trajectory:
+            raise ValueError("development blind override requires a terminal scientific trajectory")
     if int(contract.get("participant_final_recommendations_per_cell", -1)) != 1:
         raise ValueError("blind evaluator final-recommendation denominator drifted")
     targets = contract.get("blind_targets_per_cell")
@@ -195,9 +213,7 @@ def build_blind_evaluation_plan(
             {
                 "target": target,
                 "source_experiment_index": experiment["experiment_index"],
-                "participant_observed_leaderboard_score": experiment[
-                    "leaderboard_score"
-                ],
+                "participant_observed_leaderboard_score": experiment["leaderboard_score"],
                 "action_plan": action_plan,
                 "action_plan_sha256": action_plan_sha256,
             }
@@ -220,9 +236,7 @@ def build_blind_evaluation_plan(
         "schema_version": BLIND_EVALUATOR_VERSION,
         "formal_result": summary.get("formal_result") is True,
         "formal_preflight_sha256": (
-            summary.get("formal_preflight_sha256")
-            if summary.get("formal_result") is True
-            else None
+            summary.get("formal_preflight_sha256") if summary.get("formal_result") is True else None
         ),
         "cell_id": cell["cell_id"],
         "cell_key_sha256": cell["cell_key_sha256"],
@@ -230,6 +244,8 @@ def build_blind_evaluation_plan(
         "world_seed": cell["world_seed"],
         "recommendation_sha256": recommendation_digest,
         "participant_final_recommendation_count": 1,
+        "participant_operational_qualification_passed": qualification_passed,
+        "development_terminal_trajectory_override": development_override,
         "blind_target_count": len(target_rows),
         "blind_execution_count": len(execution_rows),
         "evaluator_provider_call_count": 0,
@@ -248,10 +264,18 @@ def validate_blind_evaluation_plan(plan: Mapping[str, Any]) -> list[str]:
     errors: list[str] = []
     if plan.get("schema_version") != BLIND_EVALUATOR_VERSION:
         errors.append("unexpected blind evaluator plan schema")
+    qualification_passed = plan.get("participant_operational_qualification_passed")
+    development_override = plan.get("development_terminal_trajectory_override")
+    if not isinstance(qualification_passed, bool) or not isinstance(development_override, bool):
+        errors.append("blind evaluator participant qualification binding is malformed")
+    elif qualification_passed == development_override:
+        errors.append("blind evaluator participant qualification binding is inconsistent")
     if plan.get("formal_result") is True:
         digest = plan.get("formal_preflight_sha256")
         if not isinstance(digest, str) or len(digest) != 64:
             errors.append("formal blind evaluator plan lacks its preflight binding")
+        if development_override is True:
+            errors.append("formal blind evaluator plan uses a development override")
     elif plan.get("formal_preflight_sha256") is not None:
         errors.append("development blind evaluator plan carries a formal preflight binding")
     expected_hash = canonical_json_sha256(
@@ -276,9 +300,7 @@ def validate_blind_evaluation_plan(plan: Mapping[str, Any]) -> list[str]:
         if not isinstance(execution, Mapping):
             errors.append("blind evaluator execution row is malformed")
             continue
-        if target_digests.get(str(execution.get("target"))) != execution.get(
-            "action_plan_sha256"
-        ):
+        if target_digests.get(str(execution.get("target"))) != execution.get("action_plan_sha256"):
             errors.append("blind evaluator action plan binding mismatch")
     for replicate_index in range(1, 4):
         rows = [
@@ -325,11 +347,7 @@ def execute_blind_evaluation_plan(
         if not isinstance(execution, Mapping):
             raise ValueError("blind evaluator execution row is malformed")
         execution_id = str(execution["execution_id"])
-        execution_root = (
-            output_root
-            / "executions"
-            / blind_execution_directory_name(execution)
-        )
+        execution_root = output_root / "executions" / blind_execution_directory_name(execution)
         execution_root.mkdir(parents=True, exist_ok=False)
         target = targets[str(execution["target"])]
         actions = target["action_plan"]
@@ -361,18 +379,12 @@ def execute_blind_evaluation_plan(
                 output_path=trajectory_path,
                 budget_override=len(actions),
                 episode_mode_override="single_experiment",
-                electrochemical_material_family_id=config.get(
-                    "electrochemical_material_family_id"
-                ),
-                crystallization_material_family_id=config.get(
-                    "crystallization_material_family_id"
-                ),
+                electrochemical_material_family_id=config.get("electrochemical_material_family_id"),
+                crystallization_material_family_id=config.get("crystallization_material_family_id"),
                 electrochemical_workflow_mode=config.get("electrochemical_workflow_mode"),
                 scoring_contract_id=config.get("scoring_contract_id"),
                 observation_noise_mode=str(config["observation_noise_mode"]),
-                observation_noise_namespace=str(
-                    execution["observation_noise_namespace"]
-                ),
+                observation_noise_namespace=str(execution["observation_noise_namespace"]),
             )
             records = load_jsonl(trajectory_path)
             observed_actions = [record.get("action") for record in records]
@@ -485,10 +497,9 @@ def validate_blind_evaluation_report(
         errors.append("unexpected blind evaluator report schema")
     if report.get("report_sha256") != expected_hash:
         errors.append("blind evaluator report self-hash mismatch")
-    if (
-        report.get("plan_sha256") != plan.get("plan_sha256")
-        or report.get("cell_key_sha256") != plan.get("cell_key_sha256")
-    ):
+    if report.get("plan_sha256") != plan.get("plan_sha256") or report.get(
+        "cell_key_sha256"
+    ) != plan.get("cell_key_sha256"):
         errors.append("blind evaluator report plan binding mismatch")
     if len(receipts) != 6:
         errors.append("blind evaluator report must retain six receipts")
@@ -504,9 +515,7 @@ def validate_blind_evaluation_report(
     observed_hashes = [receipt.get("receipt_sha256") for receipt in receipts]
     if report.get("receipt_sha256") != observed_hashes:
         errors.append("blind evaluator report receipt binding mismatch")
-    completed = [
-        receipt for receipt in valid_receipts if receipt.get("status") == "completed"
-    ]
+    completed = [receipt for receipt in valid_receipts if receipt.get("status") == "completed"]
     if (
         report.get("scheduled_execution_count") != 6
         or report.get("completed_execution_count") != len(completed)
@@ -534,9 +543,7 @@ def validate_blind_evaluation_report(
     recommendation = target_means["participant_final_recommendation"]
     incumbent = target_means["observed_incumbent"]
     expected_gain = (
-        recommendation - incumbent
-        if recommendation is not None and incumbent is not None
-        else None
+        recommendation - incumbent if recommendation is not None and incumbent is not None else None
     )
     if report.get("recommendation_gain_over_incumbent") != expected_gain:
         errors.append("blind evaluator recommendation gap does not reconcile")

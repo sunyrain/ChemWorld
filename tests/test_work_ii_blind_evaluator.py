@@ -76,11 +76,7 @@ def test_blind_plan_freezes_two_targets_three_paired_replicates() -> None:
     assert plan["evaluator_provider_call_count"] == 0
     assert [target["source_experiment_index"] for target in plan["targets"]] == [2, 2]
     for replicate_index in range(1, 4):
-        rows = [
-            row
-            for row in plan["executions"]
-            if row["replicate_index"] == replicate_index
-        ]
+        rows = [row for row in plan["executions"] if row["replicate_index"] == replicate_index]
         assert len({row["paired_noise_id_sha256"] for row in rows}) == 1
         assert len({row["observation_seed"] for row in rows}) == 1
 
@@ -101,6 +97,47 @@ def test_blind_plan_rejects_tampering_and_incumbent_drift() -> None:
         assert "incumbent" in str(error)
     else:
         raise AssertionError("incumbent drift should fail closed")
+
+
+def test_development_blind_plan_can_retain_unqualified_terminal_trajectory() -> None:
+    summary = _summary()
+    summary.update(
+        {
+            "completed": False,
+            "formal_result": False,
+            "exact_replay": {"verified": True},
+        }
+    )
+    summary["analysis"].update(
+        {
+            "complete_experiment_count": 4,
+            "right_censored_open_experiment": False,
+        }
+    )
+
+    with pytest.raises(ValueError, match="qualified completed cell"):
+        build_blind_evaluation_plan(_cell(), summary, _contract())
+
+    plan = build_blind_evaluation_plan(
+        _cell(),
+        summary,
+        _contract(),
+        allow_unqualified_terminal_trajectory=True,
+    )
+
+    assert validate_blind_evaluation_plan(plan) == []
+    assert plan["participant_operational_qualification_passed"] is False
+    assert plan["development_terminal_trajectory_override"] is True
+
+    formal_summary = deepcopy(summary)
+    formal_summary["formal_result"] = True
+    with pytest.raises(ValueError, match="formal blind evaluation forbids"):
+        build_blind_evaluation_plan(
+            _cell(),
+            formal_summary,
+            _contract(),
+            allow_unqualified_terminal_trajectory=True,
+        )
 
 
 def test_blind_execution_directory_is_short_for_long_cell_identity() -> None:
