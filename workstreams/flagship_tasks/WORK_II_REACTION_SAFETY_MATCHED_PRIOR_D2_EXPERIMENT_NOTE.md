@@ -93,3 +93,7 @@ evaluator report had incorrectly treated the query-subset direction as the regis
 the provider-free evaluator was corrected and rerun from its first truth query. Participant data were
 not rerun. Binary direction recovery is therefore not scored for world 4, while pointwise prediction,
 law, endpoint, safety and blind-replay measurements remain valid.
+
+The readiness path now executes the same evaluator truth plan with the same world-cluster key before
+any directional-prior provider block. Regression against the frozen D2 configs admits world 1 and
+rejects world 4 with zero provider calls, reproducing the final evaluator contrast exactly.

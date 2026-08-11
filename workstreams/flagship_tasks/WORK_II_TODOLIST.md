@@ -7,7 +7,8 @@ Q2、world-0 D1 与预注册 D2 worlds 1/4 均已完成。** D1/D2 共 `9/9` cel
 `630/630` operations、`45/45` checkpoints、`48/48` truth 与 `54/54` blind exact replay，0 platform
 failures。结果显示 conflict detection、confidence revision、predictive correction、direction recovery、law
 formation、action 和 safety 明显分离；world 4 的注册方向与 16-query empirical direction 冲突，因此 binary
-direction 不计分。结果待用户审核；未经审核不进入 R5。
+direction 不计分。新的 zero-provider readiness direction gate 已用 world 1/4 回归为 pass/fail，能够在
+provider 调用前拦截同类冲突。结果待用户审核；未经审核不进入 R5。
 
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为

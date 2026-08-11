@@ -98,8 +98,9 @@ empirical direction。其根源不是平台执行错误，而是二维非线性�
 
 ## 5. 对下一阶段的约束
 
-1. 在任何新的 directional-prior provider block 前，readiness 必须验证注册方向与 evaluator query
-   distribution 的 empirical direction 一致；不一致则在 provider 调用前停止。
+1. directional-prior readiness gate 已实现并以原始 D2 configs 回归验证：world 1 在 `16/16` exact truth
+   queries 上通过，world 4 因 `lower` 注册方向与 `higher` empirical direction 冲突而 fail closed；两次验证的
+   provider call count 均为 0。后续任何同类 provider block 必须先通过此门。
 2. A-P 仍需第二个通过同等 Q0--Q2 和 stability gate 的 task，才能形成跨 task 结论。
 3. 正式分析必须保留 prediction、law、reliability、conflict、action 和 safety 六层，不得退化为 endpoint 表。
 4. D1/D2 结果提交用户审核；未经审核不进入 R5，也不启动 conditional transfer。
