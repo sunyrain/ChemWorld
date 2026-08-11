@@ -11,6 +11,8 @@ failures。结果显示 conflict detection、confidence revision、predictive co
 formation、action 和 safety 明显分离；world 4 的注册方向与 16-query empirical direction 冲突，因此 binary
 direction 不计分。新的 zero-provider readiness direction gate 已用 world 1/4 回归为 pass/fail，能够在
 provider 调用前拦截同类冲突。结果待用户审核；未经审核不进入 R5。
+当前 WellAU 三臂 method-qualification triplet 已完成零 provider readiness 重建，但仍被四项外部授权要求阻断，
+没有启动新的真实 provider call。
 
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
@@ -317,6 +319,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | electrochemical mechanism-oracle v0.2, seeds 0–4 | `14,160/14,160` outcomes completed；`120/120` validation replay；0 physical/platform failures；5/5 worlds pass | Oracle score `0.770–0.849`、relative basin `36–68`、strong potential/current direction and curvature；历史 `0.58` threshold 每 world 有 `877–1,597` 个点达到。授权 Q2；因未激发安全边界，只用于参数规律结论。 |
 | electrochemical matched-prior Q2 v0.3, seeds 0–4 | `605/605` completed；`180` safe fit、`425` safe held-out；0 physical/platform；5/5 worlds pass | 五个 world 均选择 lower-controlled-potential law；aligned MAE `0.122–0.152`、blind margin `0.095–0.445`、disagreement `73/85`；supplied priors 均为 127 words 且只改 directional claim。授权 world-0 D1 static readiness，不授权 provider/R5；无 heterogeneity-triggered D2。 |
 | electrochemical matched-prior WellAU D1, world 0 | `2/3` terminal scientific trajectories；`0/3` qualified；`20/30` experiments、`180` operations、`8/15` checkpoints；`16/16` truth exact replay；`0/18` blind（缺 final recommendation）；0 physical/platform execution failures | opaque/aligned 中间 checkpoint prediction error 分别 `0.2907→0.0902`、`0.2503→0.1429`，但最终 checkpoint/recommendation 均缺失；misspecified 在 physical operation 前因 5 次 snapshot contract failures 中止。保留为 retained operational failure；不支持错误先验纠正、final law、H3 或 R5。详见 `WORK_II_ELECTROCHEMICAL_MATCHED_PRIOR_D1_ANALYSIS_ZH.md`。 |
+| current WellAU method-qualification readiness | zero provider calls；3 qualification cells；6 provider-attempt hard cap；`formal_execution_authorized=false` | readiness 内部校验通过，但缺 provider contract confirmation、credential rotation confirmation、pricing/currency ceiling 和真实 triplet；不得启动 provider。 |
 | reaction-safety old screen, seed 0 | 16/16 exact replay；旧 gap `0.1043173` | 不满足新 absolute-quality、interior、non-saturation 与 safety-frontier gates |
 | reaction-safety Q1-v0.2, seeds 0–4 | 表面为 2,560/2,560 final assays 与 exact replay；事后逐 operation 审计发现 403/2,560 recipes 的 heat 因使用通用 `520 K` 而非任务可执行 `470 K` 上限被拒绝（357 broad、46 adaptive） | 平台缺陷导致该 block 无法作 scientific rejection；旧 artifact 永久保留为 defective development audit，但 `0/5`、floor saturation、local structure 与 adaptive 结论均不得继续作证据。修复后的 Q1-v0.3 与独立 mechanism-oracle block 均须从 world 0 开始。 |
 | reaction-safety Q1-v0.3, seeds 0–4 | 2,560 attempted；2,557 recipes 全 operation committed 且 exact replay；3 个 schema-valid heat 触发动态 `vessel_temperature_bound` rollback；0/5 worlds pass；max score `0.291–0.433`；45–81 safety-frontier recipes/world | 有效 absolute-Q1 scientific rejection：3 个 clean worlds 仍独立失败 absolute reachability、floor saturation、local structure 与 success basin；动态范围与 primary-metric range 成立。禁止据此进入原 Q2，但允许执行已独立冻结的 mechanism-oracle relative question。 |
@@ -392,7 +395,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
 | W2-26 | NOT STARTED | 8/10/12 resource calibration |
-| W2-27 | NOT STARTED | current WellAU method qualification |
+| W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
 
