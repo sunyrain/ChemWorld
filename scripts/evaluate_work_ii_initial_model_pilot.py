@@ -124,8 +124,113 @@ def _format_value(row: Mapping[str, Any], field: str) -> str:
     return "NA" if item is None else f"{float(item):.4f}"
 
 
+def _descriptive_interpretation(report: Mapping[str, Any]) -> dict[str, Any]:
+    by_arm = {str(row["prior_arm"]): row for row in report["cells"]}
+    opaque = by_arm["opaque"]
+    aligned = by_arm["aligned_nominal"]
+    misspecified = by_arm["misindexed_nominal"]
+    reliability = [
+        float(value)
+        for value in misspecified.get("prior_reliability_trajectory", [])
+        if value is not None
+    ]
+    challenged_fields = sorted(
+        {
+            str(field)
+            for fields in misspecified.get("suspected_misindexed_fields_trajectory", [])
+            for field in fields
+        }
+    )
+    selected_incumbent_count = sum(
+        row.get("selected_experiment_index") == row.get("observed_incumbent_experiment_index")
+        for row in report["cells"]
+    )
+    return {
+        "opaque_prediction_improvement": float(opaque["checkpoint_improvement"]),
+        "aligned_prediction_improvement": float(aligned["checkpoint_improvement"]),
+        "misspecified_prediction_improvement": float(misspecified["checkpoint_improvement"]),
+        "misspecified_initial_reliability": reliability[0] if reliability else None,
+        "misspecified_final_reliability": reliability[-1] if reliability else None,
+        "misspecified_challenged_fields": challenged_fields,
+        "misspecified_minus_opaque_best_endpoint": float(
+            misspecified["best_observed_score"]
+        )
+        - float(opaque["best_observed_score"]),
+        "aligned_minus_opaque_best_endpoint": float(aligned["best_observed_score"])
+        - float(opaque["best_observed_score"]),
+        "H3_primary_contrast": report.get("cluster_contrast", {}).get(
+            "H3_primary_contrast"
+        ),
+        "selected_observed_incumbent_count": selected_incumbent_count,
+        "participant_cell_count": len(report["cells"]),
+    }
+
+
+def _change_phrase(value: float, *, noun: str) -> str:
+    if value > 0.0:
+        return f"{noun} improved by {value:.4f}"
+    if value < 0.0:
+        return f"{noun} worsened by {abs(value):.4f}"
+    return f"{noun} was unchanged"
+
+
 def _render_markdown(report: Mapping[str, Any]) -> str:
     denominators = report["denominators"]
+    interpretation = report.get("descriptive_interpretation")
+    if not isinstance(interpretation, Mapping):
+        interpretation = _descriptive_interpretation(report)
+    participant_cells = int(denominators["participant_cell_count"])
+    scheduled_checkpoints = participant_cells * 4
+    total_input = sum(
+        int(_mapping(row.get("provider_usage")).get("input_token_count") or 0)
+        for row in report["cells"]
+    )
+    total_cached = sum(
+        int(_mapping(row.get("provider_usage")).get("cached_input_token_count") or 0)
+        for row in report["cells"]
+    )
+    total_uncached = sum(
+        int(_mapping(row.get("provider_usage")).get("uncached_input_token_count") or 0)
+        for row in report["cells"]
+    )
+    total_output = sum(
+        int(_mapping(row.get("provider_usage")).get("output_token_count") or 0)
+        for row in report["cells"]
+    )
+    total_recovered_mcp = sum(
+        int(
+            _mapping(row.get("provider_usage")).get("recovered_mcp_tool_failure_count")
+            or 0
+        )
+        for row in report["cells"]
+    )
+    total_provider_errors = sum(
+        int(_mapping(row.get("provider_usage")).get("provider_error_event_count") or 0)
+        for row in report["cells"]
+    )
+    max_session_elapsed = max(
+        float(_mapping(row.get("provider_usage")).get("session_elapsed_s") or 0.0)
+        for row in report["cells"]
+    )
+    challenged = interpretation["misspecified_challenged_fields"]
+    challenged_text = ", ".join(challenged) if challenged else "no registered fields"
+    initial_reliability = interpretation["misspecified_initial_reliability"]
+    final_reliability = interpretation["misspecified_final_reliability"]
+    reliability_text = (
+        "was unavailable"
+        if initial_reliability is None or final_reliability is None
+        else f"changed from {float(initial_reliability):.2f} to {float(final_reliability):.2f}"
+    )
+    endpoint_delta = float(interpretation["misspecified_minus_opaque_best_endpoint"])
+    endpoint_text = (
+        f"exceeded the opaque endpoint by {endpoint_delta:.4f}"
+        if endpoint_delta > 0.0
+        else f"trailed the opaque endpoint by {abs(endpoint_delta):.4f}"
+        if endpoint_delta < 0.0
+        else "matched the opaque endpoint"
+    )
+    h3_value = interpretation.get("H3_primary_contrast")
+    h3_text = "NA" if h3_value is None else f"{float(h3_value):.4f}"
     lines = [
         "# Work II parametric initial-world-model pilot evaluation",
         "",
@@ -140,7 +245,8 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
         (
             f"- Participant experiments: **{denominators['participant_complete_experiment_count']}/"
             f"{denominators['participant_scheduled_experiment_count']}** complete; belief "
-            f"checkpoints: **{denominators['participant_checkpoint_count']}/12**."
+            f"checkpoints: **{denominators['participant_checkpoint_count']}/"
+            f"{scheduled_checkpoints}**."
         ),
         (
             f"- Held-out truth queries: **{denominators['truth_completed_query_count']}/"
@@ -175,20 +281,38 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
     lines.extend(
         [
             "",
+            "## Operational profile",
+            "",
+            (
+                f"The three persistent sessions recorded {denominators['participant_operation_attempt_count']} "
+                f"operation attempts and {denominators['participant_logical_codex_turn_count']} logical Codex "
+                f"turns. Provider accounting was {total_input:,} input tokens "
+                f"({total_cached:,} cached; {total_uncached:,} uncached), {total_output:,} output tokens, "
+                f"{total_recovered_mcp} recovered MCP failures, {total_provider_errors} provider-error events "
+                f"and a maximum session time of {max_session_elapsed:.1f} s."
+            ),
+            "",
             "## Development interpretation",
             "",
             (
-                "The misspecified arm sharply reduced its stated prior reliability after the first "
-                "contradictory assay and explicitly flagged the potential field, demonstrating "
-                "behavioral rejection of a wrong parametric model. It nevertheless remained below "
-                "the opaque arm's best endpoint within four experiments, separating model "
-                "rejection from finite-budget performance recovery."
+                f"In the misspecified arm, stated prior reliability {reliability_text}; the trajectory "
+                f"challenged {challenged_text}. {_change_phrase(float(interpretation['misspecified_prediction_improvement']), noun='Held-out prediction')} "
+                f"while its best observed endpoint {endpoint_text}. This separates endpoint search, prior "
+                f"self-report and held-out predictive correction rather than treating them as one outcome."
             ),
             "",
             (
-                "All three final recommendations selected their own observed incumbent. Paired "
-                "blind replay therefore checks reproducibility and action commitment but cannot "
-                "show an additional recommendation-over-incumbent gain in this pilot."
+                f"Across this single development world, {_change_phrase(float(interpretation['opaque_prediction_improvement']), noun='opaque prediction')}, "
+                f"{_change_phrase(float(interpretation['aligned_prediction_improvement']), noun='aligned prediction')}, "
+                f"and {_change_phrase(float(interpretation['misspecified_prediction_improvement']), noun='misspecified prediction')}. "
+                f"The descriptive H3 contrast was {h3_text}; it is not an inferential result."
+            ),
+            "",
+            (
+                f"{interpretation['selected_observed_incumbent_count']}/{interpretation['participant_cell_count']} "
+                "final recommendations selected their own observed incumbent. Paired blind replay therefore "
+                "checks reproducibility and action commitment but cannot show an additional "
+                "recommendation-over-incumbent gain when the two targets are identical."
             ),
             "",
             f"Machine report SHA-256: `{report['report_sha256']}`.",
@@ -498,6 +622,7 @@ def main() -> int:
             "claim, cross-task transfer or cross-provider ranking."
         ),
     }
+    report["descriptive_interpretation"] = _descriptive_interpretation(report)
     if not all(math.isfinite(float(row["best_observed_score"])) for row in cells):
         raise ValueError("participant score summary contains a non-finite value")
     report["report_sha256"] = canonical_json_sha256(report)
