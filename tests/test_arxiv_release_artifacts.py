@@ -183,6 +183,23 @@ def test_arxiv_build_manifest_binds_pdf_and_self_contained_sources() -> None:
             member.startswith(f"figures/figure-{number}-") and member.endswith(".pdf")
             for member in zip_members
         )
+    submission_path = ROOT / manifest["submission_zip"]
+    with zipfile.ZipFile(submission_path) as archive:
+        submission_members = archive.namelist()
+    assert submission_members == manifest["submission_members"]
+    assert set(submission_members) == {
+        "main.tex",
+        "main.bbl",
+        "references.bib",
+        "figures/figure-1-system-overview.pdf",
+        "figures/figure-2-composition-and-qualification.pdf",
+        "figures/figure-3-controlled-forks.pdf",
+    }
+    assert "manuscript.md" not in submission_members
+    assert all(
+        not member.startswith("/") and ".." not in Path(member).parts
+        for member in submission_members
+    )
 
 
 def test_generated_tex_has_launch_order_and_standard_abstract() -> None:

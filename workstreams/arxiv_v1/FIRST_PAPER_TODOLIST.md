@@ -136,6 +136,10 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
   `v0.1.0` 标签；后续 benchmark/Work II 配置、实验专用模块、运行结果和 provider payload 均未纳入。
   公开快照通过 87 项定向/集成测试、382 文件 release manifest、离线 denominator verifier 与凭据扫描；
   引言和 Data and Code Availability 均提供仓库主页及固定版本链接，arXiv PDF/source bundle 同次重建。
+- **DONE / arXiv 最小上传包**：`Claim: Codex /root — ARXIV-SUBMISSION-ZIP — DONE`；在完整 source ZIP/TAR
+  之外新增可直接上传的 `chemworld-arxiv-submission.zip`，仅含顶层 `main.tex`、`main.bbl`、
+  `references.bib` 和三张正文引用 PDF 图；排除 manuscript Markdown、成品 PDF、日志、缓存与本地元数据，
+  并由 build manifest 固定成员列表、文件大小和 SHA-256。
 
 ## 1. 论文只讲什么
 

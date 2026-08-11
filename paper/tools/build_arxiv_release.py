@@ -209,6 +209,32 @@ def _write_archives(bundle: Path, archive_base: Path) -> tuple[Path, Path]:
     return zip_path, tar_path
 
 
+def _write_submission_zip(bundle: Path, output: Path, figure_pdfs: list[Path]) -> list[str]:
+    """Create the minimal, top-level source archive intended for direct arXiv upload."""
+    member_names = [
+        "main.tex",
+        "main.bbl",
+        "references.bib",
+        *(f"figures/{path.name}" for path in figure_pdfs),
+    ]
+    members = [bundle / name for name in member_names]
+    missing = [name for name, path in zip(member_names, members, strict=True) if not path.is_file()]
+    if missing:
+        raise RuntimeError(f"arXiv submission members are missing: {missing}")
+    with zipfile.ZipFile(
+        output,
+        mode="w",
+        compression=zipfile.ZIP_DEFLATED,
+        compresslevel=9,
+    ) as archive:
+        for name, path in zip(member_names, members, strict=True):
+            info = zipfile.ZipInfo(name, ZIP_TIMESTAMP)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, path.read_bytes(), compresslevel=9)
+    return member_names
+
+
 def build() -> dict[str, Any]:
     figure_pdfs = _canonical_figure_pdfs()
     pandoc = _tool(
@@ -277,7 +303,9 @@ def build() -> dict[str, Any]:
     copied = _copy_sources(bundle, figure_pdfs)
     archive_base = EXPORT / "chemworld-experimental-agency-arxiv-source"
     zip_path, tar_path = _write_archives(bundle, archive_base)
-    files = [pdf, zip_path, tar_path, ARXIV / "main.tex", *copied]
+    submission_zip = EXPORT / "chemworld-arxiv-submission.zip"
+    submission_members = _write_submission_zip(bundle, submission_zip, figure_pdfs)
+    files = [pdf, zip_path, tar_path, submission_zip, ARXIV / "main.tex", *copied]
     manifest: dict[str, Any] = {
         "schema_version": SCHEMA,
         "status": "compiled_arxiv_release",
@@ -289,6 +317,8 @@ def build() -> dict[str, Any]:
         "pdf": pdf.relative_to(ROOT).as_posix(),
         "source_zip": zip_path.relative_to(ROOT).as_posix(),
         "source_tar_gz": tar_path.relative_to(ROOT).as_posix(),
+        "submission_zip": submission_zip.relative_to(ROOT).as_posix(),
+        "submission_members": submission_members,
         "files": [
             {
                 "path": path.relative_to(ROOT).as_posix(),
@@ -310,6 +340,7 @@ def build() -> dict[str, Any]:
         "pdf": str(pdf),
         "source_zip": str(zip_path),
         "source_tar_gz": str(tar_path),
+        "submission_zip": str(submission_zip),
         "manifest": str(manifest_path),
     }
 
