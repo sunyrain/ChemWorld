@@ -1,7 +1,7 @@
 # Work II reaction-safety matched-prior D1
 
 Date: 2026-08-11
-Status: frozen before provider execution
+Status: completed and evaluated; development evidence only
 
 ## Question and tested units
 
@@ -69,3 +69,44 @@ The correction moves descriptive resource provenance outside `method_resources` 
 zero-provider readiness gate instantiate the exact `MethodResourceLimits` payload, so unknown fields
 now fail before launch. No experiment design, prior, threshold, world, resource ceiling or D2 rule
 changed. The complete triplet restarts as run 2 after a fresh clean-commit readiness receipt.
+
+## Phase conclusion
+
+The provider block completed all frozen units: `3/3` persistent sessions, `30/30` experiments,
+`210/210` committed operations and `15/15` typed checkpoints. All participant trajectories passed
+physical and resource exact replay. There were zero resource rejections, zero provider errors, zero
+platform failures, one recovered MCP failure and seven participant-selected public unsafe heat
+outcomes. None crossed a dynamic constitution boundary, so the dynamic-physical-failure count was
+zero. The three sessions used `4,332,263` cumulative input tokens (`3,910,144` cache-hit and
+`422,119` uncached), `47,505` output tokens and at most `1,003.781 s` session time.
+
+The provider-free evaluator completed `16/16` held-out truth queries and `18/18` blind executions,
+all with exact replay and zero provider calls. The first evaluator execution retained all scientific
+values but exposed a legacy analysis defect: the scorer accepted only the old intermediate
+checkpoint names and omitted the valid after-experiment-4 and after-experiment-7 snapshots. That
+raw evaluator run remains ignored evidence. After making the scorer use the config-owned five-stage
+schedule, the complete evaluator block restarted from truth query 1; no participant trajectory was
+rerun or modified.
+
+The development result is partial correction, not law recovery. The misspecified arm reduced
+held-out normalized MAE from `0.1785` to `0.1361`, reduced stated prior reliability from `0.70` to
+`0.20`, and named `reaction_temperature_K` at every post-evidence checkpoint. However, its final
+prediction still preferred the wrong higher-temperature side, and its executable law collapsed to
+a constant surface. The aligned arm began with the correct lower-temperature direction but ended
+with the wrong higher-temperature direction; its held-out error changed from `0.1052` to `0.1107`,
+and its executable-law error was `0.3036`. The opaque arm improved from `0.1088` to `0.0589` but also
+ended with the wrong direction. Thus the strongest observation is a separation among conflict
+detection, predictive improvement, direction recovery and executable-law fidelity.
+
+All three final recommendations are action-layer platform-confounded. Participant-visible completed
+history used zero-based experiment labels while `commit_final_recommendation` interpreted the input
+as one-based. In every arm the rationale's uniquely named score identifies the observed incumbent,
+but the submitted index is one smaller (`9->10`, `4->5`, `6->7`). The submitted values remain
+immutable and are the targets actually blind-replayed; rationale-matched indices are diagnostic
+only. Future executions expose one participant-visible one-based namespace throughout. This defect
+does not invalidate experiment selection, observations, belief snapshots or law summaries, but it
+prevents attribution of the D1 blind recommendation gap to participant action quality.
+
+The preregistered heterogeneity trigger remains independently satisfied, so D2 remains authorized
+for worlds 1 and 4. D1 outcomes do not alter those worlds, the three arms, the experiment count or
+any scientific threshold. D1 does not authorize R5.
