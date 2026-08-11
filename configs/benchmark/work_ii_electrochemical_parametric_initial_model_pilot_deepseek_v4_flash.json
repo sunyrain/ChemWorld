@@ -1,0 +1,321 @@
+{
+  "belief_checkpoint": {
+    "allowed_feature_ids": [
+      "electrolyte_profile",
+      "solvent",
+      "reagent_amount_mol",
+      "potential_V",
+      "current_mA",
+      "duration_s"
+    ],
+    "allowed_metric_ids": [
+      "selective_product_yield",
+      "electrochemical_selectivity",
+      "faradaic_efficiency",
+      "energy_efficiency",
+      "safety_risk",
+      "score"
+    ],
+    "allowed_prior_fields": [
+      "potential_V",
+      "current_mA"
+    ],
+    "held_out_queries": [
+      {
+        "feature_values": {
+          "current_mA": 25.0,
+          "duration_s": 1800.0,
+          "electrolyte_profile": 0,
+          "potential_V": 0.68,
+          "reagent_amount_mol": 0.01,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "selective_product_yield",
+          "electrochemical_selectivity",
+          "faradaic_efficiency",
+          "energy_efficiency",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "p0.68-i25"
+      },
+      {
+        "feature_values": {
+          "current_mA": 85.0,
+          "duration_s": 1800.0,
+          "electrolyte_profile": 0,
+          "potential_V": 0.68,
+          "reagent_amount_mol": 0.01,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "selective_product_yield",
+          "electrochemical_selectivity",
+          "faradaic_efficiency",
+          "energy_efficiency",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "p0.68-i85"
+      },
+      {
+        "feature_values": {
+          "current_mA": 25.0,
+          "duration_s": 1800.0,
+          "electrolyte_profile": 0,
+          "potential_V": 1.24,
+          "reagent_amount_mol": 0.01,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "selective_product_yield",
+          "electrochemical_selectivity",
+          "faradaic_efficiency",
+          "energy_efficiency",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "p1.24-i25"
+      },
+      {
+        "feature_values": {
+          "current_mA": 85.0,
+          "duration_s": 1800.0,
+          "electrolyte_profile": 0,
+          "potential_V": 1.24,
+          "reagent_amount_mol": 0.01,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "selective_product_yield",
+          "electrochemical_selectivity",
+          "faradaic_efficiency",
+          "energy_efficiency",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "p1.24-i85"
+      }
+    ]
+  },
+  "campaign": {
+    "card_id": "work-ii-electrochemical-k4-one-repeat",
+    "checkpoint_complete_experiments": [
+      0,
+      1,
+      2,
+      4
+    ],
+    "closeout_policy": {
+      "automatic_action_repair": false,
+      "automatic_closeout": false,
+      "discard_path_operations_per_batch": 1,
+      "discard_path_total_operation_reserve": 4,
+      "final_assay_path_operations_per_batch": 2,
+      "final_assay_path_total_operation_reserve": 8,
+      "planned_batches": 4,
+      "policy": "participant_controlled_advisory_no_hidden_allocation"
+    },
+    "complete_experiments": 4,
+    "final_assay_limit": 4,
+    "nonfinal_instrument_use_limit": 0,
+    "operation_attempt_limit": 28,
+    "operation_repeat_limits": {
+      "electrolyze": 5
+    },
+    "process_time_limit_s": 72000.0,
+    "process_time_policy": {
+      "formula": "4 required electrolyses x 14400 s + 1 allowed repeat x 14400 s",
+      "implicit_stage_reserve_s": 0.0,
+      "pattern_id": "electrochemical-k4-one-repeat",
+      "repeat_allowance_s": 14400.0,
+      "required_stage_max_s": 57600.0
+    },
+    "stock_limits": {
+      "reagent_mol": 0.08,
+      "solvent_L": 0.16
+    },
+    "vessel_start_limit": 4
+  },
+  "electrochemical_material_family_id": "nominal-prior-latent-v2",
+  "electrochemical_workflow_mode": "autonomous_open_v1",
+  "episode_mode": "campaign",
+  "execution": {
+    "failure_semantics": "retain cell failures and continue every scheduled seed triplet",
+    "max_concurrency": 3,
+    "parallelization_unit": "same_seed_prior_arm_triplet",
+    "pilot_expansion_headroom_fraction": 0.2,
+    "systemic_failure_semantics": "stop only when all three arms fail before the first committed operation",
+    "within_cell_concurrency": 1
+  },
+  "formal_result": false,
+  "intervention": {
+    "diagnostic_grid": {
+      "current_mA": [
+        25.0,
+        45.0,
+        65.0,
+        85.0
+      ],
+      "potential_V": [
+        0.68,
+        0.82,
+        0.96,
+        1.1,
+        1.24
+      ]
+    },
+    "diagnostic_reference_context": {
+      "duration_s": 1800.0,
+      "electrolyte_profile": 0,
+      "reagent_amount_mol": 0.01,
+      "solvent": 0
+    },
+    "locus": "parametric",
+    "material_information_matched_opaque": true,
+    "target": "potential_current_operating_window",
+    "world_and_resource_contract_matched": true
+  },
+  "method_resource_semantics": {
+    "input_token_semantics": "cumulative context across one MCP tool loop, including cache hits",
+    "uncached_input_semantics": "new provider input after cache reuse; primary prompt-growth guard"
+  },
+  "method_resources": {
+    "checkpoint_complete_experiments": [
+      1,
+      2,
+      4
+    ],
+    "complete_experiment_limit": 4,
+    "input_token_limit": 4000000,
+    "model_call_limit": 1,
+    "operation_limit": 28,
+    "output_token_limit": 80000,
+    "training_environment_step_limit": 0,
+    "uncached_input_token_limit": 400000,
+    "wall_time_limit_s": 7200.0
+  },
+  "objective": "balanced",
+  "observation_noise_mode": "keyed",
+  "observation_noise_namespace": "work-ii-electrochemical-parametric-initial-model-pilot",
+  "pilot_id": "work-ii-electrochemical-conversion-deepseek-v4-flash-prior-campaign",
+  "prior_arms": {
+    "aligned_nominal": {
+      "initial_world_model": {
+        "availability": "supplied_incomplete_model",
+        "interpretation": "The supplied model may be reliable or shifted. Experimental evidence is authoritative.",
+        "locus": "parametric",
+        "model": {
+          "claim": {
+            "current_window_mA": [
+              75.0,
+              95.0
+            ],
+            "expected_relation": "At the stated reference context, balanced performance is more likely inside than outside this approximate operating window.",
+            "potential_window_V": [
+              1.03,
+              1.17
+            ]
+          },
+          "confidence": 0.7,
+          "reference_context": {
+            "duration_s": 1800.0,
+            "electrolyte_profile": 0,
+            "reagent_amount_mol": 0.01,
+            "solvent": 0
+          },
+          "scope_limit": "This is an incomplete local process model, not ground truth and not a material-property claim."
+        },
+        "schema_version": "chemworld-work-ii-initial-world-model-0.1"
+      },
+      "material_information": {
+        "mode": "opaque_codes"
+      }
+    },
+    "misindexed_nominal": {
+      "initial_world_model": {
+        "availability": "supplied_incomplete_model",
+        "interpretation": "The supplied model may be reliable or shifted. Experimental evidence is authoritative.",
+        "locus": "parametric",
+        "model": {
+          "claim": {
+            "current_window_mA": [
+              75.0,
+              95.0
+            ],
+            "expected_relation": "At the stated reference context, balanced performance is more likely inside than outside this approximate operating window.",
+            "potential_window_V": [
+              1.17,
+              1.31
+            ]
+          },
+          "confidence": 0.7,
+          "reference_context": {
+            "duration_s": 1800.0,
+            "electrolyte_profile": 0,
+            "reagent_amount_mol": 0.01,
+            "solvent": 0
+          },
+          "scope_limit": "This is an incomplete local process model, not ground truth and not a material-property claim."
+        },
+        "schema_version": "chemworld-work-ii-initial-world-model-0.1"
+      },
+      "material_information": {
+        "mode": "opaque_codes"
+      }
+    },
+    "opaque": {
+      "initial_world_model": {
+        "availability": "opaque_for_target_locus",
+        "interpretation": "No task-specific potential/current operating-window claim is supplied. Experimental evidence is authoritative.",
+        "locus": "parametric",
+        "model": null,
+        "schema_version": "chemworld-work-ii-initial-world-model-0.1"
+      },
+      "material_information": {
+        "mode": "opaque_codes"
+      }
+    }
+  },
+  "provider": {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "base_url": "https://api.deepseek.com/",
+    "wire_api": "responses",
+    "auth_mode": "experimental_bearer_token",
+    "api_key_file": "api.md",
+    "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json",
+    "preferred_auth_method": "apikey",
+    "forced_login_method": "api",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "request_timeout_s": 1200.0,
+    "finalization_timeout_s": 600.0,
+    "session_wall_time_limit_s": 1800.0,
+    "max_recovered_mcp_tool_failures": 3,
+    "max_consecutive_mcp_tool_failures": 1,
+    "max_provider_error_events": 1,
+    "progress_interval_s": 30.0
+  },
+  "qualification": {
+    "max_resource_rejections": 1
+  },
+  "schema_version": "chemworld-work-ii-campaign-pilot-0.3",
+  "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+  "snapshot_stages": [
+    "pre_evidence",
+    "after_experiment_1",
+    "after_experiment_2",
+    "final"
+  ],
+  "task_id": "electrochemical-conversion",
+  "world_seed": 1,
+  "world_split": "public-test",
+  "provider_qualification": {
+    "basis": "DeepSeek qualification-v2 seed-0 opaque electrochemical cell",
+    "qualification_report": "runs/development/work-ii-deepseek-qualification-v2-seed0-opaque/report.json",
+    "catalog_requirement": "supports_search_tool=false",
+    "session_contract": "one persistent Codex session per task-prior-seed cell"
+  }
+}
