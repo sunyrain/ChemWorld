@@ -5,6 +5,7 @@ import math
 from typing import Any
 
 import pytest
+from scripts.run_work_ii_q1_response_surface import ROOT, TASK_SPECS, _load, _q0_audit
 
 from chemworld.eval.work_ii_response_surface_qualification import (
     ADAPTIVE_RECIPE_COUNT,
@@ -15,7 +16,6 @@ from chemworld.eval.work_ii_response_surface_qualification import (
     build_adaptive_design,
     select_adaptive_anchors,
 )
-from scripts.run_work_ii_q1_response_surface import ROOT, TASK_SPECS, _load, _q0_audit
 
 
 @pytest.mark.parametrize("task_id", sorted(TASK_SPECS))
