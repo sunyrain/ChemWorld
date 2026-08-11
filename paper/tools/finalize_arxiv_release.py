@@ -346,6 +346,19 @@ def inject_manuscript_metadata(text: str, metadata: Mapping[str, Any]) -> str:
         r"released simulator trajectories\."
         r")"
         r"|"
+        r"(?P<current_public>"
+        r"A frozen public release of the ChemWorld code, configuration files, processed "
+        r"qualification\s+evidence, figure data and replayable trajectories associated with "
+        r"this study is provided under\s+the MIT License at\s+"
+        r"\[github\.com/sunyrain/ChemWorld-Public\]"
+        r"\(https://github\.com/sunyrain/ChemWorld-Public\)\. This\s+"
+        r"paper-specific repository is separated from subsequent benchmark development and "
+        r"contains the\s+versioned materials required to verify the reported denominators, "
+        r"regenerate the release\s+figures and replay the released simulator "
+        r"environment--action trajectories\. Credentials, raw\s+provider payloads, private "
+        r"seeds and local run caches are not included\."
+        r")"
+        r"|"
         r"The larger compiled-control execution logs total 17\.7 GB and are not required to\n"
         r"regenerate the reported analyses from the processed data\. "
         r"They have not yet been placed\n"
@@ -395,6 +408,7 @@ def inject_manuscript_metadata(text: str, metadata: Mapping[str, Any]) -> str:
                 match.group("current")
                 or match.group("current_new")
                 or match.group("current_compact")
+                or match.group("current_public")
                 or ""
             )
             return (preserved + "\n\n" if preserved else "") + new_paragraph

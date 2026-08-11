@@ -747,11 +747,14 @@ discovery in changing worlds, are natural directions enabled by this foundation.
 
 # 8. Data and Code Availability
 
-ChemWorld code, configuration files, processed evidence, figure data and released trajectories
-are available under the MIT License at
-[github.com/sunyrain/ChemWorld](https://github.com/sunyrain/ChemWorld). The repository contains
-the materials required to reproduce the reported figures and statistics and to replay the
-released simulator trajectories.
+A frozen public release of the ChemWorld code, configuration files, processed qualification
+evidence, figure data and replayable trajectories associated with this study is provided under
+the MIT License at
+[github.com/sunyrain/ChemWorld-Public](https://github.com/sunyrain/ChemWorld-Public). This
+paper-specific repository is separated from subsequent benchmark development and contains the
+versioned materials required to verify the reported denominators, regenerate the release
+figures and replay the released simulator environment--action trajectories. Credentials, raw
+provider payloads, private seeds and local run caches are not included.
 
 ```{=latex}
 \clearpage
