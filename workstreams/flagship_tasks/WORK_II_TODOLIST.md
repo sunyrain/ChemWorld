@@ -3,7 +3,8 @@
 最后更新：2026-08-11
 
 当前状态：**正式/R5 participant outcomes 尚未执行；reaction-safety mechanism-oracle Q1、matched-prior
-Q2、world-0 D1 与预注册 D2 worlds 1/4 均已完成。** D1/D2 共 `9/9` cells、`90/90` experiments、
+Q2、world-0 D1 与预注册 D2 worlds 1/4 均已完成；electrochemical mechanism-oracle 已通过 5/5 worlds，
+当前进入 Q2 matched-prior construction。** Reaction-safety D1/D2 共 `9/9` cells、`90/90` experiments、
 `630/630` operations、`45/45` checkpoints、`48/48` truth 与 `54/54` blind exact replay，0 platform
 failures。结果显示 conflict detection、confidence revision、predictive correction、direction recovery、law
 formation、action 和 safety 明显分离；world 4 的注册方向与 16-query empirical direction 冲突，因此 binary
@@ -312,6 +313,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | electrochemical parametric v2 screen, seed 1 | 20/20 exact replay；旧 gap `0.5849161` | 需按 Q1/Q2 五-world 响应面门重新资格化 |
 | electrochemical D1, WellAU seed 1 | 3/3 cells、12/12 experiments；descriptive H3 `+0.0173` | development evidence；不自动扩展 |
 | electrochemical D1, DeepSeek seed 1 | 3/3 cells、12/12 experiments；descriptive H3 `-0.0025` | operational pass；未观察到科学修正 |
+| electrochemical mechanism-oracle v0.2, seeds 0–4 | `14,160/14,160` outcomes completed；`120/120` validation replay；0 physical/platform failures；5/5 worlds pass | Oracle score `0.770–0.849`、relative basin `36–68`、strong potential/current direction and curvature；历史 `0.58` threshold 每 world 有 `877–1,597` 个点达到。授权 Q2；因未激发安全边界，只用于参数规律结论。 |
 | reaction-safety old screen, seed 0 | 16/16 exact replay；旧 gap `0.1043173` | 不满足新 absolute-quality、interior、non-saturation 与 safety-frontier gates |
 | reaction-safety Q1-v0.2, seeds 0–4 | 表面为 2,560/2,560 final assays 与 exact replay；事后逐 operation 审计发现 403/2,560 recipes 的 heat 因使用通用 `520 K` 而非任务可执行 `470 K` 上限被拒绝（357 broad、46 adaptive） | 平台缺陷导致该 block 无法作 scientific rejection；旧 artifact 永久保留为 defective development audit，但 `0/5`、floor saturation、local structure 与 adaptive 结论均不得继续作证据。修复后的 Q1-v0.3 与独立 mechanism-oracle block 均须从 world 0 开始。 |
 | reaction-safety Q1-v0.3, seeds 0–4 | 2,560 attempted；2,557 recipes 全 operation committed 且 exact replay；3 个 schema-valid heat 触发动态 `vessel_temperature_bound` rollback；0/5 worlds pass；max score `0.291–0.433`；45–81 safety-frontier recipes/world | 有效 absolute-Q1 scientific rejection：3 个 clean worlds 仍独立失败 absolute reachability、floor saturation、local structure 与 success basin；动态范围与 primary-metric range 成立。禁止据此进入原 Q2，但允许执行已独立冻结的 mechanism-oracle relative question。 |
@@ -333,10 +335,11 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 
 - [x] **W2-21** 写一个 concise experiment note，冻结 Q0–Q2 的 5-world coverage、512 recipes/world、指标、
   pass/failure rules 和输出文件。
-- [ ] **W2-22** 实现 provider-free oracle response-surface runner 与 readable machine summary；
+- [x] **W2-22** 实现 provider-free oracle response-surface runner 与 readable machine summary；
   reaction-safety Q1-v0.2 因 403 个未提交 heat operations 被判定为平台缺陷、结论失效；修复后的
   Q1-v0.3 已从 world 0 完整重跑并作为 absolute qualification 被拒绝。当前执行独立冻结的
-  reaction-safety mechanism-oracle block，随后决定是否转入 electrochemical A-P。
+  reaction-safety 与 electrochemical 当前 relative mechanism-oracle blocks 均已完整运行；absolute reaction-safety
+  rejection 与 relative qualification 分开保留，不再要求 electrochemical 重复一条已由相对资格替代的旧 absolute route。
 - [x] **W2-23** 按预注册 lexicographic gates 选择 reference context，构造 matched aligned/misspecified laws，
   完成 blind leakage/identifiability audit；最终为 5/5 worlds、605/605 classified、0 platform failures，D1 config
   的 arm/checkpoint/MCP/resource 静态预检全部通过。
@@ -345,7 +348,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [ ] 用户审核 D1/D2、轨迹样例、资源和 evaluator 结果；未经审核不进入 R5。
 - [ ] **W2-28** 冻结 A-S 的两个机制干预候选，并为 A-O 写独立的 identifiability/D1 决策卡；在用户审核前
   不把 observation-model 或 scope/compositionality 扩展加入正式 provider 分母。
-- [ ] **W2-29** 运行 mechanism-oracle relative qualification：先直接求 reaction-safety 的安全相对最优、
+- [x] **W2-29** 运行 mechanism-oracle relative qualification：先直接求 reaction-safety 的安全相对最优、
   Pareto/局部规律和独立 noisy replay，再以同一原则审计 electrochemical。旧 Q1-v0.2 artifact 永久保留为
   platform-defect audit，不再称为 scientific rejection；historical leaderboard threshold 只作诊断，不直接改值。
 
@@ -379,13 +382,13 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-19 | CONDITIONAL | matched-evidence probe B |
 | W2-20 | CONDITIONAL | artifact-only transfer D |
 | W2-21 | DONE | five-world oracle qualification note 已冻结 |
-| W2-22 | DOING | reaction-safety Q1-v0.3 已完成并有效拒绝 absolute qualification；electrochemical Q1 pending |
+| W2-22 | DONE | provider-free response-surface runner 与 readable summaries 已完成；reaction-safety absolute rejection 和两个 task 的 relative qualification 分层保留 |
 | W2-23 | DONE | reaction-safety matched-prior Q2 以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
 | W2-26 | NOT STARTED | 8/10/12 resource calibration |
 | W2-27 | NOT STARTED | current WellAU method qualification |
-| W2-29 | DOING | reaction-safety mechanism-oracle v0.2 已 5/5 通过并授权 Q2；electrochemical classified-outcome qualification pending |
+| W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 
 ## 12. 不可违反的规则
 
@@ -408,7 +411,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - Electrochemical parametric reports：
   `workstreams/flagship_tasks/reports/work-ii-parametric-initial-model-diagnostic-seed1-v2-20260811.json`、
   `workstreams/flagship_tasks/reports/work-ii-parametric-initial-model-pilot-evaluation-20260811.json`、
-  `workstreams/flagship_tasks/reports/work-ii-deepseek-parametric-initial-model-pilot-evaluation-20260811.json`
+  `workstreams/flagship_tasks/reports/work-ii-deepseek-parametric-initial-model-pilot-evaluation-20260811.json`、
+  `workstreams/flagship_tasks/reports/work-ii-mechanism-oracle-electrochemical-classified-v0.2-20260811.json`、
+  `workstreams/flagship_tasks/WORK_II_ELECTROCHEMICAL_MECHANISM_ORACLE_ANALYSIS_ZH.md`
 - Structural/non-entity screens：`workstreams/flagship_tasks/reports/work-ii-structural-initial-model-diagnostic-20260811.json`、
   `workstreams/flagship_tasks/reports/work-ii-crystallization-structural-screen-20260811.json`、
   `workstreams/flagship_tasks/reports/work-ii-partition-structural-screen-20260811.json`

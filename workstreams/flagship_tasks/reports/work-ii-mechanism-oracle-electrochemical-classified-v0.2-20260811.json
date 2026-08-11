@@ -1,0 +1,763 @@
+{
+  "coverage": {
+    "full_perturbations_per_world": 64,
+    "observed_validations_per_world": 24,
+    "optimizer_requests_per_world": 2688,
+    "planned_request_count": 14285,
+    "target_grid_requests_per_world": 81,
+    "world_count": 5
+  },
+  "decision": "proceed_to_q2_matched_prior_construction",
+  "denominators": {
+    "classified_mechanism_evaluation_count": 14160,
+    "completed_mechanism_evaluation_count": 14160,
+    "observed_validation_count": 120,
+    "observed_validation_exact_replay_count": 120,
+    "operational_failure_world_count": 0,
+    "passed_world_count": 5,
+    "physical_failure_count": 0,
+    "provider_call_count": 0,
+    "unclassified_mechanism_evaluation_count": 0,
+    "unique_mechanism_evaluation_count": 14160,
+    "world_count": 5
+  },
+  "elapsed_s": 4208.665,
+  "failure_count": 0,
+  "failures": [],
+  "formal_result": false,
+  "interpretation": "Provider-free evaluator qualification. Historical threshold reachability is diagnostic; the pass decision uses safe oracle-relative quality, local-law identifiability and independent observed replay.",
+  "q0": {
+    "checks": {
+      "coverage_controls_present": true,
+      "finite_safety_limit": true,
+      "finite_task_threshold": true,
+      "midpoint_compiles": true,
+      "target_controls_present": true,
+      "target_indices_match_schema": true,
+      "target_operation_reachable": true,
+      "target_physical_bounds_match": true,
+      "terminal_final_assay_present": true
+    },
+    "expected_target_bounds": [],
+    "midpoint_action_count": 8,
+    "midpoint_operations": [
+      "add_solvent",
+      "add_reagent",
+      "set_potential",
+      "electrolyze",
+      "set_potential",
+      "electrolyze",
+      "terminate",
+      "measure"
+    ],
+    "midpoint_recipe_metadata_sha256": "ade0a60045a43c68a30e792b03378a2f96e8f067c29befd185f19971cd57ab1c",
+    "observed_target_bounds": [],
+    "passed": true,
+    "required_coverage_control_ids": [
+      "controlled_potential_delta_V",
+      "controlled_current_delta_mA"
+    ],
+    "safety_limit": 0.65,
+    "schema": [
+      {
+        "category_count": 4,
+        "control_id": "electrolyte_profile",
+        "coordinate": 0,
+        "kind": "categorical"
+      },
+      {
+        "category_count": 4,
+        "control_id": "solvent",
+        "coordinate": 1,
+        "kind": "categorical"
+      },
+      {
+        "control_id": "reagent_amount_mol",
+        "coordinate": 2,
+        "kind": "linear",
+        "physical_bounds": [
+          0.003,
+          0.03
+        ],
+        "unit": "mol"
+      },
+      {
+        "control_id": "probe_potential_V",
+        "coordinate": 3,
+        "kind": "linear",
+        "physical_bounds": [
+          0.65,
+          1.25
+        ],
+        "unit": "V"
+      },
+      {
+        "control_id": "probe_current_mA",
+        "coordinate": 4,
+        "kind": "linear_magnitude_cap",
+        "physical_bounds": [
+          15.0,
+          90.0
+        ],
+        "unit": "mA"
+      },
+      {
+        "control_id": "probe_duration_s",
+        "coordinate": 5,
+        "kind": "linear",
+        "physical_bounds": [
+          180.0,
+          900.0
+        ],
+        "unit": "s"
+      },
+      {
+        "absolute_delta_bounds": [
+          0.02,
+          0.55
+        ],
+        "control_id": "controlled_potential_delta_V",
+        "coordinate": 6,
+        "kind": "signed_delta_from_probe",
+        "result_bounds": [
+          0.6,
+          1.8
+        ],
+        "unit": "V"
+      },
+      {
+        "absolute_delta_bounds": [
+          1.0,
+          100.0
+        ],
+        "control_id": "controlled_current_delta_mA",
+        "coordinate": 7,
+        "kind": "signed_delta_from_probe_magnitude_cap",
+        "result_bounds": [
+          0.001,
+          220.0
+        ],
+        "unit": "mA"
+      },
+      {
+        "control_id": "controlled_duration_s",
+        "coordinate": 8,
+        "kind": "linear",
+        "physical_bounds": [
+          300.0,
+          3600.0
+        ],
+        "unit": "s"
+      }
+    ],
+    "target_control_ids": [
+      "controlled_potential_delta_V",
+      "controlled_current_delta_mA"
+    ],
+    "target_indices": [
+      6,
+      7
+    ],
+    "task_contract_hash": "c93f5daf6e0c8643f7e8899e0d71086fd912853be17e39bb1879f7b880d9f43b",
+    "task_id": "electrochemical-conversion",
+    "task_threshold": 0.58,
+    "world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "q2_authorized": true,
+  "qualification_passed": true,
+  "qualification_schema_version": "chemworld-work-ii-mechanism-oracle-qualification-0.2",
+  "raw_bindings": [
+    {
+      "operational_failure": false,
+      "passed": true,
+      "path": "runs/development/work-ii-mechanism-oracle-electrochemical-classified-v0.2-20260811/world-0/world-report.json",
+      "sha256": "e7571b126ed1ba6382c71426bbc8a6d91640ec14bac969f23e6b5f90128f98b2",
+      "world_seed": 0
+    },
+    {
+      "operational_failure": false,
+      "passed": true,
+      "path": "runs/development/work-ii-mechanism-oracle-electrochemical-classified-v0.2-20260811/world-1/world-report.json",
+      "sha256": "9210b788c2c72a91d24ddee4fbcc886c2ef01d4bee8ab727e9aaf6441e0c1505",
+      "world_seed": 1
+    },
+    {
+      "operational_failure": false,
+      "passed": true,
+      "path": "runs/development/work-ii-mechanism-oracle-electrochemical-classified-v0.2-20260811/world-2/world-report.json",
+      "sha256": "14eef3552f28812e6b12ca21d3e5f9a589435dc797384d9c230bf79d6bb642d5",
+      "world_seed": 2
+    },
+    {
+      "operational_failure": false,
+      "passed": true,
+      "path": "runs/development/work-ii-mechanism-oracle-electrochemical-classified-v0.2-20260811/world-3/world-report.json",
+      "sha256": "488a1cb5d6df3d1da4851f654ee7ba9e16b87ccf376ba8c93d4c5b449a1e2dd9",
+      "world_seed": 3
+    },
+    {
+      "operational_failure": false,
+      "passed": true,
+      "path": "runs/development/work-ii-mechanism-oracle-electrochemical-classified-v0.2-20260811/world-4/world-report.json",
+      "sha256": "f171e1e828ea6bd80135a13cb566af16e28ead1577f2f6f90c06fc07a7278b37",
+      "world_seed": 4
+    }
+  ],
+  "restart_required": false,
+  "schema_version": "chemworld-work-ii-mechanism-oracle-five-world-summary-0.2",
+  "scoped_runtime_clean": true,
+  "source_commit": "b559712d51f3ba153b3d105f08033242b4b8c313",
+  "summary_sha256": "7cb732343d81492cbec4aaf885a4ed038fe72622359b17f9968ec6c3fa31eff6",
+  "task_id": "electrochemical-conversion",
+  "unrelated_dirty_paths_excluded": [],
+  "world_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "worlds": [
+    {
+      "analysis": {
+        "checks": {
+          "all_mechanism_outcomes_classified": true,
+          "all_observed_validation_completed": true,
+          "all_observed_validation_exact_replay": true,
+          "local_law_identifiable": true,
+          "observed_optimum_agreement": true,
+          "optimizer_generations_complete": true,
+          "optimizer_requests_complete": true,
+          "primary_metric_range": true,
+          "relative_high_quality_basin": true,
+          "safe_dynamic_range": true,
+          "safe_oracle_optimum_exists": true,
+          "safety_frontier_coverage": true,
+          "validation_candidate_groups": true
+        },
+        "historical_task_threshold": 0.58,
+        "historical_threshold_reaching_count": 1334,
+        "local_law_identifiable": true,
+        "mechanism_classification_fraction": 1.0,
+        "mechanism_classified_count": 2832,
+        "mechanism_completed_count": 2832,
+        "mechanism_completion_fraction": 1.0,
+        "mechanism_evaluation_count": 2832,
+        "mechanism_failed_count": 0,
+        "mechanism_physical_failure_count": 0,
+        "mechanism_unclassified_count": 0,
+        "observed_validation_completed_count": 24,
+        "observed_validation_exact_replay_count": 24,
+        "optimizer_generation_count": 20,
+        "optimizer_request_count": 2688,
+        "optimum_observed_median_score": 0.8529514438781682,
+        "oracle_optimum": {
+          "evaluation_id": "m002817",
+          "metrics": {
+            "electrochemical_selectivity": 0.9842629314368905,
+            "energy_efficiency": 0.9399580113043282,
+            "faradaic_efficiency": 0.9298150483711346,
+            "safety_risk": 0.06427220735963839,
+            "score": 0.8490010181294143,
+            "selective_product_yield": 0.6957264270376677
+          },
+          "safety_risk": 0.06427220735963839,
+          "score": 0.8490010181294143,
+          "vector": [
+            0.625,
+            0.375,
+            0.02,
+            0.862680092682,
+            0.79839610572,
+            0.513879199211,
+            0.618673519102,
+            0.800066601297,
+            0.98
+          ]
+        },
+        "passed": true,
+        "primary_metric": "selective_product_yield",
+        "primary_metric_distribution": {
+          "count": 2832,
+          "maximum": 0.7422971687015617,
+          "mean": 0.17381356249387728,
+          "median": 0.09149898945904097,
+          "minimum": 0.0,
+          "p10": 0.005988666859149328,
+          "p90": 0.504352205903563,
+          "sample_sd": 0.19647736386349537
+        },
+        "primary_metric_range": 0.7422971687015617,
+        "relative_high_quality_tolerance": 0.05,
+        "safe_dynamic_range_p90_p10": 0.6698348261395549,
+        "safe_mechanism_count": 2832,
+        "safe_score_distribution": {
+          "count": 2832,
+          "maximum": 0.8490010181294143,
+          "mean": 0.487000858877369,
+          "median": 0.5706609926801421,
+          "minimum": 0.0,
+          "p10": 0.08762921583817161,
+          "p90": 0.7574640419777265,
+          "sample_sd": 0.24222705505963993
+        },
+        "safety_frontier_count": 0,
+        "structure_effect_gate": 0.039812708897995236,
+        "target_grid": {
+          "completed_count": 81,
+          "curvature_effect": 0.3701416924401746,
+          "directional_slope_effect": 0.7411414599810964,
+          "interaction_effect": 0.036939235028836614,
+          "relative_high_quality_count": 54,
+          "relative_high_quality_has_interior": true,
+          "safety_frontier_crossing": false,
+          "target_x_span": 0.24000000000000005,
+          "target_y_span": 0.305060218761
+        },
+        "validation_noise": {
+          "complete_group_count": 8,
+          "planned_group_count": 8,
+          "sigma": 0.006635451482999206
+        }
+      },
+      "elapsed_s": 844.47,
+      "operational_failure": false,
+      "passed": true,
+      "world_seed": 0
+    },
+    {
+      "analysis": {
+        "checks": {
+          "all_mechanism_outcomes_classified": true,
+          "all_observed_validation_completed": true,
+          "all_observed_validation_exact_replay": true,
+          "local_law_identifiable": true,
+          "observed_optimum_agreement": true,
+          "optimizer_generations_complete": true,
+          "optimizer_requests_complete": true,
+          "primary_metric_range": true,
+          "relative_high_quality_basin": true,
+          "safe_dynamic_range": true,
+          "safe_oracle_optimum_exists": true,
+          "safety_frontier_coverage": true,
+          "validation_candidate_groups": true
+        },
+        "historical_task_threshold": 0.58,
+        "historical_threshold_reaching_count": 877,
+        "local_law_identifiable": true,
+        "mechanism_classification_fraction": 1.0,
+        "mechanism_classified_count": 2832,
+        "mechanism_completed_count": 2832,
+        "mechanism_completion_fraction": 1.0,
+        "mechanism_evaluation_count": 2832,
+        "mechanism_failed_count": 0,
+        "mechanism_physical_failure_count": 0,
+        "mechanism_unclassified_count": 0,
+        "observed_validation_completed_count": 24,
+        "observed_validation_exact_replay_count": 24,
+        "optimizer_generation_count": 20,
+        "optimizer_request_count": 2688,
+        "optimum_observed_median_score": 0.769774933492018,
+        "oracle_optimum": {
+          "evaluation_id": "m002809",
+          "metrics": {
+            "electrochemical_selectivity": 0.9825308467384926,
+            "energy_efficiency": 0.9546129038407313,
+            "faradaic_efficiency": 0.9387756664948919,
+            "safety_risk": 0.040783810363491255,
+            "score": 0.770420076545369,
+            "selective_product_yield": 0.4867552993689367
+          },
+          "safety_risk": 0.040783810363491255,
+          "score": 0.770420076545369,
+          "vector": [
+            0.375,
+            0.125,
+            0.02,
+            0.651473366128,
+            0.851959587098,
+            0.486219658794,
+            0.459021338042,
+            0.551899690075,
+            0.98
+          ]
+        },
+        "passed": true,
+        "primary_metric": "selective_product_yield",
+        "primary_metric_distribution": {
+          "count": 2832,
+          "maximum": 0.544371930091871,
+          "mean": 0.09648956123333022,
+          "median": 0.04951964720802757,
+          "minimum": 0.0,
+          "p10": 0.005194592882701072,
+          "p90": 0.28430778204741813,
+          "sample_sd": 0.11636697809062677
+        },
+        "primary_metric_range": 0.544371930091871,
+        "relative_high_quality_tolerance": 0.05,
+        "safe_dynamic_range_p90_p10": 0.5779769441801882,
+        "safe_mechanism_count": 2832,
+        "safe_score_distribution": {
+          "count": 2832,
+          "maximum": 0.770420076545369,
+          "mean": 0.4229904409090772,
+          "median": 0.5259958317466259,
+          "minimum": 0.0,
+          "p10": 0.07387490231919948,
+          "p90": 0.6518518464993877,
+          "sample_sd": 0.22184812870203938
+        },
+        "safety_frontier_count": 0,
+        "structure_effect_gate": 0.03,
+        "target_grid": {
+          "completed_count": 81,
+          "curvature_effect": 0.2501192234509636,
+          "directional_slope_effect": 0.4885939759104377,
+          "interaction_effect": 0.035286230272634556,
+          "relative_high_quality_count": 36,
+          "relative_high_quality_has_interior": true,
+          "safety_frontier_crossing": false,
+          "target_x_span": 0.15999999999999998,
+          "target_y_span": 0.28
+        },
+        "validation_noise": {
+          "complete_group_count": 8,
+          "planned_group_count": 8,
+          "sigma": 0.004668501606746457
+        }
+      },
+      "elapsed_s": 843.792,
+      "operational_failure": false,
+      "passed": true,
+      "world_seed": 1
+    },
+    {
+      "analysis": {
+        "checks": {
+          "all_mechanism_outcomes_classified": true,
+          "all_observed_validation_completed": true,
+          "all_observed_validation_exact_replay": true,
+          "local_law_identifiable": true,
+          "observed_optimum_agreement": true,
+          "optimizer_generations_complete": true,
+          "optimizer_requests_complete": true,
+          "primary_metric_range": true,
+          "relative_high_quality_basin": true,
+          "safe_dynamic_range": true,
+          "safe_oracle_optimum_exists": true,
+          "safety_frontier_coverage": true,
+          "validation_candidate_groups": true
+        },
+        "historical_task_threshold": 0.58,
+        "historical_threshold_reaching_count": 1597,
+        "local_law_identifiable": true,
+        "mechanism_classification_fraction": 1.0,
+        "mechanism_classified_count": 2832,
+        "mechanism_completed_count": 2832,
+        "mechanism_completion_fraction": 1.0,
+        "mechanism_evaluation_count": 2832,
+        "mechanism_failed_count": 0,
+        "mechanism_physical_failure_count": 0,
+        "mechanism_unclassified_count": 0,
+        "observed_validation_completed_count": 24,
+        "observed_validation_exact_replay_count": 24,
+        "optimizer_generation_count": 20,
+        "optimizer_request_count": 2688,
+        "optimum_observed_median_score": 0.8428770735471259,
+        "oracle_optimum": {
+          "evaluation_id": "m002753",
+          "metrics": {
+            "electrochemical_selectivity": 0.9876489134601016,
+            "energy_efficiency": 0.9522291830879429,
+            "faradaic_efficiency": 0.9371113372029048,
+            "safety_risk": 0.06346900499107556,
+            "score": 0.8375426543397161,
+            "selective_product_yield": 0.6560745478857275
+          },
+          "safety_risk": 0.06346900499107556,
+          "score": 0.8375426543397161,
+          "vector": [
+            0.375,
+            0.375,
+            0.003288513654,
+            0.744642524152,
+            0.515398395323,
+            0.967720759932,
+            0.436476079243,
+            0.757825054624,
+            0.985477929635
+          ]
+        },
+        "passed": true,
+        "primary_metric": "selective_product_yield",
+        "primary_metric_distribution": {
+          "count": 2832,
+          "maximum": 0.7177035910644503,
+          "mean": 0.22883329386012882,
+          "median": 0.13736954518466937,
+          "minimum": 0.0,
+          "p10": 0.006668202587226828,
+          "p90": 0.5908092562078331,
+          "sample_sd": 0.2244719358412766
+        },
+        "primary_metric_range": 0.7177035910644503,
+        "relative_high_quality_tolerance": 0.05,
+        "safe_dynamic_range_p90_p10": 0.7009913397646357,
+        "safe_mechanism_count": 2832,
+        "safe_score_distribution": {
+          "count": 2832,
+          "maximum": 0.8375426543397161,
+          "mean": 0.5266649134262226,
+          "median": 0.605930736129098,
+          "minimum": 0.0,
+          "p10": 0.09827258397294845,
+          "p90": 0.7992639237375841,
+          "sample_sd": 0.24841477420457306
+        },
+        "safety_frontier_count": 0,
+        "structure_effect_gate": 0.03,
+        "target_grid": {
+          "completed_count": 81,
+          "curvature_effect": 0.2842319516530971,
+          "directional_slope_effect": 0.5563974909210319,
+          "interaction_effect": 0.02256303335638654,
+          "relative_high_quality_count": 68,
+          "relative_high_quality_has_interior": true,
+          "safety_frontier_crossing": false,
+          "target_x_span": 0.28,
+          "target_y_span": 0.302174945376
+        },
+        "validation_noise": {
+          "complete_group_count": 8,
+          "planned_group_count": 8,
+          "sigma": 0.00428624736991676
+        }
+      },
+      "elapsed_s": 842.387,
+      "operational_failure": false,
+      "passed": true,
+      "world_seed": 2
+    },
+    {
+      "analysis": {
+        "checks": {
+          "all_mechanism_outcomes_classified": true,
+          "all_observed_validation_completed": true,
+          "all_observed_validation_exact_replay": true,
+          "local_law_identifiable": true,
+          "observed_optimum_agreement": true,
+          "optimizer_generations_complete": true,
+          "optimizer_requests_complete": true,
+          "primary_metric_range": true,
+          "relative_high_quality_basin": true,
+          "safe_dynamic_range": true,
+          "safe_oracle_optimum_exists": true,
+          "safety_frontier_coverage": true,
+          "validation_candidate_groups": true
+        },
+        "historical_task_threshold": 0.58,
+        "historical_threshold_reaching_count": 994,
+        "local_law_identifiable": true,
+        "mechanism_classification_fraction": 1.0,
+        "mechanism_classified_count": 2832,
+        "mechanism_completed_count": 2832,
+        "mechanism_completion_fraction": 1.0,
+        "mechanism_evaluation_count": 2832,
+        "mechanism_failed_count": 0,
+        "mechanism_physical_failure_count": 0,
+        "mechanism_unclassified_count": 0,
+        "observed_validation_completed_count": 24,
+        "observed_validation_exact_replay_count": 24,
+        "optimizer_generation_count": 20,
+        "optimizer_request_count": 2688,
+        "optimum_observed_median_score": 0.8353046697663821,
+        "oracle_optimum": {
+          "evaluation_id": "m002827",
+          "metrics": {
+            "electrochemical_selectivity": 0.9874806679980412,
+            "energy_efficiency": 0.9207205856450962,
+            "faradaic_efficiency": 0.9451081289421368,
+            "safety_risk": 0.06414270941890002,
+            "score": 0.833370525473312,
+            "selective_product_yield": 0.6594016925306231
+          },
+          "safety_risk": 0.06414270941890002,
+          "score": 0.833370525473312,
+          "vector": [
+            0.625,
+            0.375,
+            0.02,
+            0.835692638181,
+            0.592584787106,
+            0.968161807638,
+            0.422227989344,
+            0.809985873595,
+            0.98
+          ]
+        },
+        "passed": true,
+        "primary_metric": "selective_product_yield",
+        "primary_metric_distribution": {
+          "count": 2832,
+          "maximum": 0.7161159311560175,
+          "mean": 0.11165440669561194,
+          "median": 0.04394114281108449,
+          "minimum": 0.0,
+          "p10": 0.0039680135314440115,
+          "p90": 0.3599647296807212,
+          "sample_sd": 0.15797237553129836
+        },
+        "primary_metric_range": 0.7161159311560175,
+        "relative_high_quality_tolerance": 0.05,
+        "safe_dynamic_range_p90_p10": 0.6280764071997663,
+        "safe_mechanism_count": 2832,
+        "safe_score_distribution": {
+          "count": 2832,
+          "maximum": 0.833370525473312,
+          "mean": 0.42076391721681317,
+          "median": 0.5052475830860585,
+          "minimum": 0.0,
+          "p10": 0.05981869617977279,
+          "p90": 0.6878951033795391,
+          "sample_sd": 0.23887191017192488
+        },
+        "safety_frontier_count": 0,
+        "structure_effect_gate": 0.03,
+        "target_grid": {
+          "completed_count": 81,
+          "curvature_effect": 0.28540812977348784,
+          "directional_slope_effect": 0.5834615041532065,
+          "interaction_effect": 0.03157380050604297,
+          "relative_high_quality_count": 47,
+          "relative_high_quality_has_interior": true,
+          "safety_frontier_crossing": false,
+          "target_x_span": 0.2,
+          "target_y_span": 0.31999999999999995
+        },
+        "validation_noise": {
+          "complete_group_count": 8,
+          "planned_group_count": 8,
+          "sigma": 0.00352343250071895
+        }
+      },
+      "elapsed_s": 838.2,
+      "operational_failure": false,
+      "passed": true,
+      "world_seed": 3
+    },
+    {
+      "analysis": {
+        "checks": {
+          "all_mechanism_outcomes_classified": true,
+          "all_observed_validation_completed": true,
+          "all_observed_validation_exact_replay": true,
+          "local_law_identifiable": true,
+          "observed_optimum_agreement": true,
+          "optimizer_generations_complete": true,
+          "optimizer_requests_complete": true,
+          "primary_metric_range": true,
+          "relative_high_quality_basin": true,
+          "safe_dynamic_range": true,
+          "safe_oracle_optimum_exists": true,
+          "safety_frontier_coverage": true,
+          "validation_candidate_groups": true
+        },
+        "historical_task_threshold": 0.58,
+        "historical_threshold_reaching_count": 1032,
+        "local_law_identifiable": true,
+        "mechanism_classification_fraction": 1.0,
+        "mechanism_classified_count": 2832,
+        "mechanism_completed_count": 2832,
+        "mechanism_completion_fraction": 1.0,
+        "mechanism_evaluation_count": 2832,
+        "mechanism_failed_count": 0,
+        "mechanism_physical_failure_count": 0,
+        "mechanism_unclassified_count": 0,
+        "observed_validation_completed_count": 24,
+        "observed_validation_exact_replay_count": 24,
+        "optimizer_generation_count": 20,
+        "optimizer_request_count": 2688,
+        "optimum_observed_median_score": 0.8060652987484982,
+        "oracle_optimum": {
+          "evaluation_id": "m002119",
+          "metrics": {
+            "electrochemical_selectivity": 0.938259842235316,
+            "energy_efficiency": 0.8819898529048209,
+            "faradaic_efficiency": 0.9151105094004507,
+            "safety_risk": 0.0639130866372603,
+            "score": 0.8090664335011114,
+            "selective_product_yield": 0.6382121389319891
+          },
+          "safety_risk": 0.0639130866372603,
+          "score": 0.8090664335011114,
+          "vector": [
+            0.625,
+            0.375,
+            0.011688432923,
+            0.841608714297,
+            0.804630891659,
+            0.608136281901,
+            0.580293818668,
+            0.719365351128,
+            0.994455516949
+          ]
+        },
+        "passed": true,
+        "primary_metric": "selective_product_yield",
+        "primary_metric_distribution": {
+          "count": 2832,
+          "maximum": 0.6792891888129966,
+          "mean": 0.14180075996326136,
+          "median": 0.06285434303725848,
+          "minimum": 0.0,
+          "p10": 0.005253038896528004,
+          "p90": 0.4317210615358267,
+          "sample_sd": 0.17174334349745862
+        },
+        "primary_metric_range": 0.6792891888129966,
+        "relative_high_quality_tolerance": 0.05,
+        "safe_dynamic_range_p90_p10": 0.638058821468227,
+        "safe_mechanism_count": 2832,
+        "safe_score_distribution": {
+          "count": 2832,
+          "maximum": 0.8090664335011114,
+          "mean": 0.4415149886743512,
+          "median": 0.524366427181415,
+          "minimum": 0.0,
+          "p10": 0.07455908454828652,
+          "p90": 0.7126179060165135,
+          "sample_sd": 0.23652253316671953
+        },
+        "safety_frontier_count": 0,
+        "structure_effect_gate": 0.03,
+        "target_grid": {
+          "completed_count": 81,
+          "curvature_effect": 0.32082648641100797,
+          "directional_slope_effect": 0.6434890805382001,
+          "interaction_effect": 0.03639232678388338,
+          "relative_high_quality_count": 43,
+          "relative_high_quality_has_interior": true,
+          "safety_frontier_crossing": false,
+          "target_x_span": 0.20000000000000007,
+          "target_y_span": 0.31999999999999995
+        },
+        "validation_noise": {
+          "complete_group_count": 8,
+          "planned_group_count": 8,
+          "sigma": 0.004279413968806962
+        }
+      },
+      "elapsed_s": 839.237,
+      "operational_failure": false,
+      "passed": true,
+      "world_seed": 4
+    }
+  ]
+}

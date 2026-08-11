@@ -1,7 +1,7 @@
 # Work II mechanism-oracle relative qualification
 
 Date: 2026-08-11
-Status: frozen after executable-envelope correction and before execution
+Status: completed for reaction safety and electrochemical conversion
 
 ## Question and units
 
@@ -35,7 +35,7 @@ For each world:
    seed, mutation `(0.5,1.0)`, recombination `0.7`, no polishing and one worker;
 3. optimize the lexicographic objective: invalid recipe, then safety violation above the task limit,
    then negative noiseless task score; retain every unique evaluated recipe and all failures;
-4. around the best safe oracle point, execute an `9 × 9` target-coordinate grid over normalized
+4. around the best safe oracle point, execute a `9 × 9` target-coordinate grid over normalized
    offsets `[-0.16,0.16]` and 64 deterministic full-dimensional perturbations within `±0.08`;
 5. independently execute the oracle optimum and the seven best separated safe candidates with three
    keyed-noise final-assay replicates each, with exact replay. Optimizer truth never enters these
@@ -110,3 +110,28 @@ the physical failures are part of the safety landscape, this gate conflates eval
 with physical feasibility. v0.1 remains an immutable rejection. A separately frozen v0.2 must change
 only this classification gate, retain every scientific threshold, and rerun from world 0 before any
 Q2 authorization.
+
+## Phase conclusion — electrochemical conversion v0.2
+
+The complete five-world block passed in `4,208.665 s` with zero provider calls. All `14,160/14,160`
+unique mechanism outcomes reached committed endpoints, all `120/120` observed validation executions
+completed and exact-replayed, and no physical, unclassified or platform failure occurred. Every
+world passed every registered scientific gate; the frozen decision is
+`proceed_to_q2_matched_prior_construction`.
+
+Safe oracle scores were `0.770420--0.849001` at risks `0.040784--0.064272`. The observed median at
+each oracle candidate differed from its noiseless score by only `0.000645--0.005334`. All worlds
+contained a non-isolated relative-high-quality basin (`36--68` local-grid points), broad safe score
+variation (`P90-P10 = 0.577977--0.700991`) and primary selective-product-yield ranges of
+`0.544372--0.742297`. Controlled-potential/current neighborhoods exposed strong directional effects
+(`0.488594--0.741141`) and curvature (`0.250119--0.370142`). The historical `0.58` threshold was
+reached by `877--1,597` of `2,832` mechanism samples per world, so absolute reachability is not the
+limiting issue for this task.
+
+No evaluated mechanism point approached the `0.65` safety limit and the safety-frontier count was
+zero in every world. This does not weaken the parametric-law qualification, because safety-frontier
+coverage was registered only for reaction safety; it does bound the scientific role of this task.
+Electrochemical conversion can test discovery and correction of potential/current laws, whereas
+reaction safety remains the qualified task for unsafe exploration and dynamic-boundary behavior.
+Q2 may now construct matched, falsifiable potential/current priors without exposing oracle vectors,
+hidden mechanism parameters or optimizer provenance.
