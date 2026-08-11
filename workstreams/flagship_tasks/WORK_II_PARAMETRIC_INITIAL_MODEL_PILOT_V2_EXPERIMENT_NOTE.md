@@ -1,7 +1,7 @@
 # Work II parametric initial-world-model pilot v2
 
 Date: 2026-08-11
-Status: frozen before world-seed-1 diagnostic or participant execution
+Status: environment-qualified; real-provider D1 triplet not yet started
 
 ## Rationale and question
 
@@ -40,3 +40,18 @@ reliability, held-out prediction error, executable-law error, law/action consist
 recommendation, exact replay, calls, tokens, cache, wall time, validation, MCP recovery and resource
 failures. Outputs are one seed-1 diagnostic report, one generated three-arm config if qualified, three
 participant terminal cells, and a readable go/no-go analysis for a five-seed extension.
+
+## Environment result and provider-execution freeze
+
+The seed-1 best-versus-worst diagnostic completed **20/20** recipes with **20/20 exact replay**, zero
+failures and an aligned-minus-misspecified score gap of **0.5849161**, passing the frozen `0.10`
+threshold. The only D1 candidate is the generated
+`configs/benchmark/work_ii_electrochemical_parametric_initial_model_pilot.json` contract; no other
+parametric construction is admitted.
+
+Before any provider call, D1 is capped at three OS-isolated concurrent cells, one persistent session
+per cell, four experiments, 28 operation attempts, 1,800 s session wall time, 2.4 million cumulative
+input tokens, 320,000 uncached input tokens and 24,000 output tokens. At most three recovered MCP
+failures, one consecutive MCP failure, one provider-error event and one resource rejection are
+retained; liveness is emitted every 30 s. These operational limits do not alter the intervention,
+diagnostic threshold, world, participant model or scientific success rule.

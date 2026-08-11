@@ -1,7 +1,7 @@
 # Work II structural initial-world-model pilot
 
 Date: 2026-08-11
-Status: design frozen before evaluator diagnostics or participant execution
+Status: environment screen completed; intervention not admitted to provider execution
 
 ## Question and tested units
 
@@ -54,3 +54,11 @@ before a persisted operation may use the existing single-resume rule.
 - one matched three-arm structural pilot config;
 - one terminal summary and trajectory per participant cell plus a combined pilot analysis;
 - a go/no-go decision for a five-seed structural extension.
+
+## Environment-screen result
+
+All **4/4** frozen factorial recipes completed and replayed exactly. Reaction influence was
+`0.0768558`, separation influence was `0.0465084`, and the absolute influence gap was
+`0.0303474 < 0.10`. The intervention therefore failed its prespecified identifiability gate. No
+provider call is authorized, and this distillation construction remains a retained negative design
+result rather than an agent-capability outcome.
