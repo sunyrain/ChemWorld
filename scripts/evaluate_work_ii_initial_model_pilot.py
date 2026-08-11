@@ -59,6 +59,16 @@ def _final_snapshot(analysis: Mapping[str, Any]) -> Mapping[str, Any] | None:
     return None
 
 
+def _scientific_trajectory_complete(summary: Mapping[str, Any]) -> bool:
+    analysis = _mapping(summary.get("analysis"))
+    replay = _mapping(summary.get("exact_replay"))
+    return (
+        int(analysis.get("complete_experiment_count", 0)) == 4
+        and analysis.get("right_censored_open_experiment") is False
+        and replay.get("verified") is True
+    )
+
+
 def _parametric_controls(experiment: Mapping[str, Any], task_id: str) -> dict[str, Any]:
     operations = [
         operation
@@ -227,6 +237,12 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
     if not isinstance(interpretation, Mapping):
         interpretation = _descriptive_interpretation(report)
     participant_cells = int(denominators["participant_cell_count"])
+    terminal_trajectories = int(
+        denominators.get(
+            "participant_terminal_trajectory_count",
+            denominators["participant_completed_cell_count"],
+        )
+    )
     scheduled_checkpoints = participant_cells * 4
     total_input = sum(
         int(_mapping(row.get("provider_usage")).get("input_token_count") or 0)
@@ -303,8 +319,10 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
         "## Exact denominators",
         "",
         (
-            f"- Participant cells: **{denominators['participant_completed_cell_count']}/"
-            f"{denominators['participant_cell_count']}** completed and qualified."
+            f"- Participant scientific trajectories: **{terminal_trajectories}/"
+            f"{denominators['participant_cell_count']}** terminal; operationally qualified cells: "
+            f"**{denominators['participant_completed_cell_count']}/"
+            f"{denominators['participant_cell_count']}**."
         ),
         (
             f"- Participant experiments: **{denominators['participant_complete_experiment_count']}/"
@@ -417,8 +435,12 @@ def main() -> int:
     config = _load(config_path)
     design = _load(args.design.resolve())
     seeds = [int(seed) for seed in _sequence(matrix.get("world_seeds"))]
-    if len(seeds) != 1 or matrix.get("all_cells_completed") is not True:
-        raise ValueError("participant run must be one completed seed triplet")
+    if (
+        len(seeds) != 1
+        or matrix.get("all_cells_terminal") is not True
+        or int(matrix.get("terminal_cell_count", 0)) != 3
+    ):
+        raise ValueError("participant run must be one terminal seed triplet")
     if set(_mapping(config.get("prior_arms"))) != set(ARMS):
         raise ValueError("campaign config does not contain the frozen three arms")
     world_seed = seeds[0]
@@ -457,6 +479,15 @@ def main() -> int:
         {"scope": "truth", "error": error}
         for error in validate_evaluator_truth_report(truth_report, truth_plan)
     ]
+    failures.extend(
+        {
+            "scope": "participant_qualification",
+            "prior_arm": arm,
+            "error": list(_sequence(summary.get("qualification", {}).get("failed_checks"))),
+        }
+        for arm, (_, summary) in summaries.items()
+        if summary.get("completed") is not True
+    )
     evaluator_truth = _mapping(truth_report.get("truth"))
     print(
         json.dumps(
@@ -477,7 +508,7 @@ def main() -> int:
         checkpoint = score_cell_checkpoint_errors(
             analysis,
             evaluator_truth,
-            terminal_state="completed" if summary.get("completed") is True else "failed",
+            terminal_state=("completed" if _scientific_trajectory_complete(summary) else "failed"),
         )
         final_snapshot = _final_snapshot(analysis)
         law = evaluate_final_law_summary(
@@ -557,6 +588,9 @@ def main() -> int:
                     "sha256": file_sha256(summary_path),
                 },
                 "participant_state": "completed" if summary.get("completed") is True else "failed",
+                "participant_trajectory_state": (
+                    "completed" if _scientific_trajectory_complete(summary) else "failed"
+                ),
                 "participant_qualification_passed": _mapping(summary.get("qualification")).get(
                     "passed"
                 )
@@ -642,6 +676,9 @@ def main() -> int:
                 row["participant_state"] == "completed"
                 and row["participant_qualification_passed"] is True
                 for row in cells
+            ),
+            "participant_terminal_trajectory_count": sum(
+                row["participant_trajectory_state"] == "completed" for row in cells
             ),
             "participant_scheduled_experiment_count": len(cells) * 4,
             "participant_complete_experiment_count": sum(

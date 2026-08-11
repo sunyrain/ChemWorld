@@ -4,6 +4,7 @@ from scripts.evaluate_work_ii_initial_model_pilot import (
     _descriptive_interpretation,
     _parametric_controls,
     _render_markdown,
+    _scientific_trajectory_complete,
     _supplied_model_distance,
 )
 
@@ -131,3 +132,20 @@ def test_reaction_safety_parametric_controls_and_model_distance() -> None:
         "reaction_temperature_K": 0.0,
         "reaction_duration_s": 1500.0,
     }
+
+
+def test_operational_failure_can_retain_a_complete_scientific_trajectory() -> None:
+    summary = {
+        "completed": False,
+        "analysis": {
+            "complete_experiment_count": 4,
+            "right_censored_open_experiment": False,
+        },
+        "exact_replay": {"verified": True},
+        "qualification": {
+            "passed": False,
+            "failed_checks": ["provider_operational_limits_reconciled"],
+        },
+    }
+
+    assert _scientific_trajectory_complete(summary) is True
