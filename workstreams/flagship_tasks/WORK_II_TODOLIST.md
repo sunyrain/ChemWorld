@@ -359,8 +359,10 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [ ] 用户审核 D1/D2、轨迹样例、资源和 evaluator 结果；未经审核不进入 R5。
 - [x] **W2-30** 完成 electrochemical matched-prior WellAU world-0 D1 participant/evaluator 审计；失败轨迹、
   中间 checkpoint 信号、model/platform 归因和 evaluator 修复均已冻结。未经用户审核不得重启新的 D1 block。
-- [ ] **W2-28** 冻结 A-S 的两个机制干预候选，并为 A-O 写独立的 identifiability/D1 决策卡；在用户审核前
-  不把 observation-model 或 scope/compositionality 扩展加入正式 provider 分母。
+- [ ] **W2-28** A-S provider-free qualification note 已冻结两个候选：electrochemical transport limitation
+  与 crystallization seed-mediated nucleation/growth。下一步按 2 tasks × 5 worlds 的 Q0/Q1/Q2 固定设计运行；
+  通过后才生成 12-experiment D1 config。A-O 仍需独立 identifiability/D1 决策卡；在用户审核前不把
+  observation-model 或 scope/compositionality 扩展加入正式 provider 分母。
 - [x] **W2-29** 运行 mechanism-oracle relative qualification：先直接求 reaction-safety 的安全相对最优、
   Pareto/局部规律和独立 noisy replay，再以同一原则审计 electrochemical。旧 Q1-v0.2 artifact 永久保留为
   platform-defect audit，不再称为 scientific rejection；historical leaderboard threshold 只作诊断，不直接改值。
