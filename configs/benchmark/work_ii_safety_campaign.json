@@ -18,7 +18,7 @@
       "descriptor_permutation": [0, 2, 1, 3]
     }
   },
-  "snapshot_stages": ["pre_evidence", "after_experiment_1", "after_experiment_2", "final"],
+  "snapshot_stages": ["pre_evidence", "after_experiment_2", "after_experiment_4", "after_experiment_6", "final"],
   "belief_checkpoint": {
     "allowed_feature_ids": ["catalyst", "solvent", "reagent_amount_mol", "catalyst_amount_mol", "reaction_temperature_K", "reaction_duration_s"],
     "allowed_metric_ids": ["yield", "selectivity", "safety_risk", "score"],
@@ -47,41 +47,43 @@
     ]
   },
   "campaign": {
-    "card_id": "work-ii-reaction-safety-k4-one-repeat",
-    "complete_experiments": 4,
-    "operation_attempt_limit": 40,
-    "vessel_start_limit": 4,
-    "final_assay_limit": 4,
-    "nonfinal_instrument_use_limit": 4,
-    "stock_limits": {"reagent_mol": 0.12, "solvent_L": 0.1, "catalyst_mol": 0.0022},
-    "process_time_limit_s": 36480.0,
+    "card_id": "work-ii-reaction-safety-k8-six-unique-two-repeat-planning",
+    "complete_experiments": 8,
+    "operation_attempt_limit": 80,
+    "vessel_start_limit": 8,
+    "final_assay_limit": 8,
+    "nonfinal_instrument_use_limit": 8,
+    "stock_limits": {"reagent_mol": 0.276, "solvent_L": 0.23, "catalyst_mol": 0.00506},
+    "process_time_limit_s": 67344.0,
     "implicit_operation_time_s": {"quench": 120.0},
-    "operation_repeat_limits": {"heat": 5, "quench": 4},
+    "operation_repeat_limits": {"heat": 8, "quench": 8},
     "process_time_policy": {
-      "pattern_id": "reaction-safety-k4-one-repeat",
-      "required_stage_max_s": 29280.0,
-      "repeat_allowance_s": 7200.0,
-      "implicit_stage_reserve_s": 480.0,
-      "formula": "4 x (heat 7200 s + quench 120 s) + one extra heat stage"
+      "pattern_id": "reaction-safety-k8-six-unique-two-repeat-planning",
+      "required_stage_max_s": 43920.0,
+      "repeat_allowance_s": 14640.0,
+      "protected_reserve_s": 8784.0,
+      "protected_reserve_fraction": 0.15,
+      "implicit_stage_reserve_s": 720.0,
+      "formula": "6 unique heat-plus-quench stages + 2 exact-repeat heat-plus-quench stages + 15% protected time reserve"
     },
     "closeout_policy": {
-      "planned_batches": 4,
+      "planned_batches": 8,
       "final_assay_path_operations_per_batch": 2,
       "discard_path_operations_per_batch": 1,
-      "final_assay_path_total_operation_reserve": 8,
-      "discard_path_total_operation_reserve": 4,
-      "policy": "participant_controlled_advisory_no_hidden_allocation",
+      "final_assay_path_total_operation_reserve": 16,
+      "discard_path_total_operation_reserve": 8,
+      "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement",
       "automatic_action_repair": false,
       "automatic_closeout": false
     },
-    "checkpoint_complete_experiments": [0, 1, 2, 4]
+    "checkpoint_complete_experiments": [0, 2, 4, 6, 8]
   },
-  "qualification": {"required_operation_counts": {}},
+  "qualification": {"required_operation_counts": {}, "minimum_unique_recipes": 6, "maximum_exact_repeats": 2, "resource_calibration_status": "pending_w2_26"},
   "analysis": {"final_metric_ids": ["yield", "selectivity", "safety_risk", "constraint_violations", "score"]},
   "method_resources": {
-    "operation_limit": 40,
-    "complete_experiment_limit": 4,
-    "checkpoint_complete_experiments": [1, 2, 4],
+    "operation_limit": 80,
+    "complete_experiment_limit": 8,
+    "checkpoint_complete_experiments": [2, 4, 6, 8],
     "wall_time_limit_s": 7200.0,
     "model_call_limit": 1,
     "input_token_limit": 4800000,

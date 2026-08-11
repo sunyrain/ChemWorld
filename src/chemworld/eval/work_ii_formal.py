@@ -17,11 +17,15 @@ FORMAL_CELL_VERSION = "chemworld-work-ii-formal-cell-0.1"
 FORMAL_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 FORMAL_SNAPSHOT_STAGES = (
     "pre_evidence",
-    "after_experiment_1",
     "after_experiment_2",
+    "after_experiment_4",
+    "after_experiment_6",
     "final",
 )
-FORMAL_CHECKPOINT_EXPERIMENTS = (0, 1, 2, 4)
+FORMAL_CHECKPOINT_EXPERIMENTS = (0, 2, 4, 6, 8)
+FORMAL_METHOD_CHECKPOINT_EXPERIMENTS = (2, 4, 6, 8)
+FORMAL_COMPLETE_EXPERIMENTS_PER_CELL = 8
+FORMAL_BELIEF_CHECKPOINTS_PER_CELL = len(FORMAL_SNAPSHOT_STAGES)
 FORMAL_RECEIPT_VERSION = "chemworld-work-ii-formal-cell-receipt-0.1"
 FORMAL_STORE_AUDIT_VERSION = "chemworld-work-ii-formal-store-audit-0.1"
 FORMAL_TERMINAL_STATES = frozenset({"completed", "right_censored", "failed"})
@@ -131,8 +135,12 @@ EXPECTED_METHOD_QUALIFICATION_CONTRACT: dict[str, Any] = {
         "misindexed_nominal",
     ],
     "qualification_cell_count": 3,
-    "complete_experiments_per_cell": 4,
-    "belief_checkpoints_per_cell": 4,
+    "complete_experiments_per_cell": FORMAL_COMPLETE_EXPERIMENTS_PER_CELL,
+    "belief_checkpoints_per_cell": FORMAL_BELIEF_CHECKPOINTS_PER_CELL,
+    "minimum_unique_recipes_per_cell": 6,
+    "maximum_participant_selected_exact_repeats_per_cell": 2,
+    "resource_calibration_required": True,
+    "resource_calibration_status": "pending_w2_26",
     "accepted_scientific_codex_processes_per_cell": 1,
     "accepted_participant_provider_sessions_per_cell": 1,
     "accepted_participant_model_calls_per_cell": 1,
@@ -865,7 +873,9 @@ def build_formal_preflight(
     expected_blind_contract = {
         "participant_final_recommendations_per_cell": 1,
         "recommendation_unit": "one_selected_completed_experiment_index",
-        "candidate_experiment_indices": [1, 2, 3, 4],
+        "candidate_experiment_indices": list(
+            range(1, FORMAL_COMPLETE_EXPERIMENTS_PER_CELL + 1)
+        ),
         "incumbent_definition": (
             "highest_participant_observed_leaderboard_score_tie_smallest_index"
         ),
@@ -952,8 +962,14 @@ def build_formal_preflight(
             != FORMAL_CHECKPOINT_EXPERIMENTS
         ):
             errors.append(f"{task_id}: checkpoint experiment schedule differs from formal design")
-        if int(_object(config["campaign"], "campaign")["complete_experiments"]) != 4:
-            errors.append(f"{task_id}: formal campaign must contain four experiments")
+        if (
+            int(_object(config["campaign"], "campaign")["complete_experiments"])
+            != FORMAL_COMPLETE_EXPERIMENTS_PER_CELL
+        ):
+            errors.append(
+                f"{task_id}: formal campaign must contain "
+                f"{FORMAL_COMPLETE_EXPERIMENTS_PER_CELL} experiments"
+            )
         campaign = _object(config["campaign"], f"{task_id}.campaign")
         method_resources = _object(config.get("method_resources"), f"{task_id}.method_resources")
         execution = _object(config.get("execution"), f"{task_id}.execution")
@@ -965,10 +981,23 @@ def build_formal_preflight(
             campaign.get("operation_attempt_limit", -2)
         ):
             errors.append(f"{task_id}: method and campaign operation limits differ")
-        if int(method_resources.get("complete_experiment_limit", -1)) != 4:
+        if (
+            int(method_resources.get("complete_experiment_limit", -1))
+            != FORMAL_COMPLETE_EXPERIMENTS_PER_CELL
+        ):
             errors.append(f"{task_id}: method complete-experiment limit differs")
-        if method_resources.get("checkpoint_complete_experiments") != [1, 2, 4]:
+        if tuple(method_resources.get("checkpoint_complete_experiments", ())) != (
+            FORMAL_METHOD_CHECKPOINT_EXPERIMENTS
+        ):
             errors.append(f"{task_id}: method checkpoint resource schedule differs")
+        qualification = _object(
+            config.get("qualification", {}), f"{task_id}.qualification"
+        )
+        if (
+            int(qualification.get("minimum_unique_recipes", -1)) != 6
+            or int(qualification.get("maximum_exact_repeats", -1)) != 2
+        ):
+            errors.append(f"{task_id}: formal recipe-diversity contract differs")
         if (
             int(execution.get("max_concurrency", -1)) != 3
             or int(execution.get("within_cell_concurrency", -1)) != 1
@@ -1057,8 +1086,8 @@ def build_formal_preflight(
                     "private_confirmation_contract_sha256": (
                         private_confirmation_contract_sha256
                     ),
-                    "complete_experiment_count": 4,
-                    "belief_checkpoint_count": 4,
+                    "complete_experiment_count": FORMAL_COMPLETE_EXPERIMENTS_PER_CELL,
+                    "belief_checkpoint_count": FORMAL_BELIEF_CHECKPOINTS_PER_CELL,
                     "held_out_query_count_per_snapshot": query_count,
                     "held_out_query_metric_count_per_snapshot": query_metric_count,
                     "provider_session_limit": 1,
@@ -1074,8 +1103,10 @@ def build_formal_preflight(
                 }
                 cell["cell_key_sha256"] = _cell_key_hash(cell)
                 cells.append(cell)
-                total_query_count += query_count * 4
-                total_query_metric_count += query_metric_count * 4
+                total_query_count += query_count * FORMAL_BELIEF_CHECKPOINTS_PER_CELL
+                total_query_metric_count += (
+                    query_metric_count * FORMAL_BELIEF_CHECKPOINTS_PER_CELL
+                )
 
     cell_ids = [str(cell["cell_id"]) for cell in cells]
     cell_keys = [str(cell["cell_key_sha256"]) for cell in cells]
@@ -1174,8 +1205,10 @@ def build_formal_preflight(
             "provider_attempts_hard_cap": len(cells)
             * int(attempt_contract["maximum_total_provider_attempts_per_cell"]),
             "provider_repeats_per_cell": 1,
-            "complete_experiments": len(cells) * 4,
-            "belief_checkpoints": len(cells) * 4,
+            "complete_experiments": (
+                len(cells) * FORMAL_COMPLETE_EXPERIMENTS_PER_CELL
+            ),
+            "belief_checkpoints": len(cells) * FORMAL_BELIEF_CHECKPOINTS_PER_CELL,
             "checkpoint_held_out_queries": total_query_count,
             "checkpoint_held_out_query_metrics": total_query_metric_count,
             "evaluator_truth_executions": evaluator_truth_execution_count,

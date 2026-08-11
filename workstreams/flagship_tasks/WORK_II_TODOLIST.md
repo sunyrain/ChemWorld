@@ -11,8 +11,13 @@ failures。结果显示 conflict detection、confidence revision、predictive co
 formation、action 和 safety 明显分离；world 4 的注册方向与 16-query empirical direction 冲突，因此 binary
 direction 不计分。新的 zero-provider readiness direction gate 已用 world 1/4 回归为 pass/fail，能够在
 provider 调用前拦截同类冲突。结果待用户审核；未经审核不进入 R5。
-当前 WellAU 三臂 method-qualification triplet 已完成零 provider readiness 重建，但仍被四项外部授权要求阻断，
-没有启动新的真实 provider call。
+当前 A-E formal design 已从四实验完整重构为八实验：75 个 public cells、600 个 public complete
+experiments、375 个 belief checkpoints，并为 private confirmation 保留相同的 600 个实验分母。每个 cell
+至少 6 个 unique recipes、最多 2 个 participant-chosen exact repeats；checkpoints 固定为 `0/2/4/6/8`。
+五个 task pattern 的 planning resource cards、formal manifest、analysis denominators、power/resource audit 和
+preregistration readiness 已同步重建。资源数值仍明确标为 W2-26 calibration 前的 planning envelope，formal
+execution 继续锁死。当前 WellAU 三臂 method-qualification readiness 还额外受 W2-26 未完成及四项外部授权要求
+阻断；没有启动新的真实 provider call。
 
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
@@ -362,8 +367,10 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 
 ### P1 — 重冻正式矩阵
 
-- [ ] **W2-25** 把 A-E formal design 从 4 改为 8 experiments/cell，更新 checkpoints、resource cards、analysis
-  denominators、manifest preflight 和 power/resource audit。
+- [x] **W2-25** A-E formal design 已从 4 改为 8 experiments/cell；checkpoints 为 `0/2/4/6/8`，每 cell
+  至少 6 个 unique recipes、最多 2 个 exact repeats。五个 planning resource cards、analysis denominators、
+  manifest preflight、power/resource audit、method-qualification readiness 与 preregistration readiness 已同步重建；
+  formal execution 仍被 W2-26/W2-27 和用户授权锁死。
 - [ ] **W2-26** 分别运行 8/10/12-experiment resource calibration triplet，冻结 task-pattern process time、
   repeat count、closeout reserve、token 和 currency ceilings。
 - [ ] **W2-27** 完成 current WellAU method qualification triplet，只按 harness/lifecycle/replay 资格，不按科学效果。
@@ -393,7 +400,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-22 | DONE | provider-free response-surface runner 与 readable summaries 已完成；reaction-safety absolute rejection 和两个 task 的 relative qualification 分层保留 |
 | W2-23 | DONE | reaction-safety 与 electrochemical matched-prior Q2 均以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
-| W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
+| W2-25 | DONE | 8-experiment A-E formal redesign；600 public experiments、375 checkpoints、6 unique + 2 repeats/cell；静态审计通过，资源上限待 W2-26 校准 |
 | W2-26 | NOT STARTED | 8/10/12 resource calibration |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
@@ -412,10 +419,10 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 
 ## 13. 当前证据入口
 
-- Formal design（待 W2-25 替换）：`configs/benchmark/work_ii_formal_design_v0.1.json`
-- Analysis plan（待 W2-25 替换）：`configs/benchmark/work_ii_analysis_plan_v0.1.json`
-- Power/resource audit（旧四轮）：`workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`
-- Formal preflight（旧四轮）：`workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`
+- Formal design（W2-25 八实验设计）：`configs/benchmark/work_ii_formal_design_v0.1.json`
+- Analysis plan（W2-25 八实验分母）：`configs/benchmark/work_ii_analysis_plan_v0.1.json`
+- Power/resource audit（W2-25 planning envelope）：`workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`
+- Formal preflight（600 public experiments；execution blocked）：`workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`
 - WellAU development timing：`workstreams/flagship_tasks/reports/work-ii-three-task-five-seed-campaign.md`
 - Electrochemical parametric reports：
   `workstreams/flagship_tasks/reports/work-ii-parametric-initial-model-diagnostic-seed1-v2-20260811.json`、

@@ -64,7 +64,7 @@ def _expected_closeout_policy(complete_experiments: int) -> dict[str, Any]:
         "discard_path_operations_per_batch": 1,
         "final_assay_path_total_operation_reserve": complete_experiments * 2,
         "discard_path_total_operation_reserve": complete_experiments,
-        "policy": "participant_controlled_advisory_no_hidden_allocation",
+        "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement",
         "automatic_action_repair": False,
         "automatic_closeout": False,
     }
@@ -178,7 +178,7 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
         if (
             int(resources["operation_limit"]) != operation_limit
             or int(resources["complete_experiment_limit"]) != complete_experiments
-            or resources["checkpoint_complete_experiments"] != [1, 2, 4]
+            or resources["checkpoint_complete_experiments"] != [2, 4, 6, 8]
         ):
             failures.append({"check": "method_campaign_resource_alignment", "task_id": task_id})
         if int(resources["model_call_limit"]) != 1:
@@ -190,6 +190,7 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
             for key in (
                 "required_stage_max_s",
                 "repeat_allowance_s",
+                "protected_reserve_s",
                 "quench_transfer_allowance_s",
             )
         )
@@ -277,7 +278,7 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
 
     maximum_attempts_per_cell = int(attempt_contract["maximum_total_provider_attempts_per_cell"])
     report = {
-        "schema_version": "chemworld-work-ii-analysis-power-audit-0.2",
+        "schema_version": "chemworld-work-ii-analysis-power-audit-0.3",
         "analysis_plan_path": str(plan_path.relative_to(ROOT)).replace("\\", "/"),
         "analysis_plan_sha256": canonical_json_sha256(plan),
         "design_sha256": design_hash,

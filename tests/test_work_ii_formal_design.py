@@ -45,8 +45,10 @@ def test_formal_design_freezes_five_tasks_three_arms_and_seventy_five_cells() ->
         "misindexed_nominal",
     ]
     assert design["world_cohort"]["public_formal"]["participant_cell_count"] == 75
-    assert design["campaign_contract"]["complete_experiments_per_cell"] == 4
-    assert design["campaign_contract"]["checkpoint_complete_experiments"] == [0, 1, 2, 4]
+    assert design["campaign_contract"]["complete_experiments_per_cell"] == 8
+    assert design["campaign_contract"]["checkpoint_complete_experiments"] == [0, 2, 4, 6, 8]
+    assert design["campaign_contract"]["minimum_unique_recipes_per_cell"] == 6
+    assert design["campaign_contract"]["maximum_participant_selected_exact_repeats_per_cell"] == 2
     assert design["campaign_contract"]["matched_evidence_probe_in_primary_matrix"] is False
     assert design["participant_execution_contract"] == EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
     assert design["method_qualification_contract"] == EXPECTED_METHOD_QUALIFICATION_CONTRACT

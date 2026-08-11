@@ -20,9 +20,9 @@ def test_analysis_audit_freezes_resource_cards_denominators_and_hard_bounds(
     assert report["w2_10_final_method_qualification_complete"] is False
     assert report["w2_07_complete"] is False
     assert len(report["resource_topology"]["task_rows"]) == 5
-    assert report["resource_topology"]["operation_attempt_limit"] == 3_420
-    assert report["resource_topology"]["vessel_start_limit"] == 300
-    assert report["resource_topology"]["final_assay_limit"] == 300
+    assert report["resource_topology"]["operation_attempt_limit"] == 6_840
+    assert report["resource_topology"]["vessel_start_limit"] == 600
+    assert report["resource_topology"]["final_assay_limit"] == 600
     assert report["resource_topology"]["accepted_cell_input_token_limit"] == 324_000_000
     assert report["resource_topology"]["provider_attempt_hard_input_token_limit"] == 648_000_000
     assert report["execution_budget_and_eta"]["initial_schedule_wall_limit_h"] == 47.5

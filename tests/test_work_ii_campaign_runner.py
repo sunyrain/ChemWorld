@@ -80,13 +80,13 @@ def test_nested_initial_model_arm_keeps_material_information_opaque() -> None:
     assert _arm_initial_world_model(config, "opaque") is None
 
 
-def test_electrochemical_process_time_policy_allows_one_repeat_only() -> None:
+def test_electrochemical_process_time_policy_allows_two_exact_repeat_stages() -> None:
     card = _campaign_card(_config())
-    assert card.process_time_limit_s == 72_000.0
-    assert card.operation_repeat_limits == {"electrolyze": 5}
+    assert card.process_time_limit_s == 132_480.0
+    assert card.operation_repeat_limits == {"electrolyze": 8}
     ledger = CampaignResourceLedger(card)
     action = {"operation": "electrolyze", "duration_s": 14_400.0}
-    for index in range(1, 6):
+    for index in range(1, 9):
         event_id = f"electrolyze-{index}"
         assert ledger.preflight(event_id, action).allowed is True
         ledger.record_outcome(
@@ -97,56 +97,55 @@ def test_electrochemical_process_time_policy_allows_one_repeat_only() -> None:
                 "campaign_resource_report_delta": {"process_time_s": 14_400.0},
             },
         )
-    assert ledger.snapshot()["state"]["report_only"]["process_time_s"] == 72_000.0
+    assert ledger.snapshot()["state"]["report_only"]["process_time_s"] == 115_200.0
     assert ledger.preview_rejection_reasons(action) == (
         "operation_repeat_limit:electrolyze",
-        "process_time_limit",
     )
 
 
 def test_crystallization_process_time_policy_reserves_implicit_stages() -> None:
     config = _task_config("work_ii_crystallization_campaign.json")
     card = _campaign_card(config)
-    assert card.process_time_limit_s == 146_400.0
+    assert card.process_time_limit_s == 270_336.0
     assert card.implicit_operation_time_s == {
         "filter_crystals": 480.0,
         "quench": 120.0,
     }
-    assert card.operation_repeat_limits["filter_crystals"] == 4
-    assert card.operation_repeat_limits["quench"] == 4
+    assert card.operation_repeat_limits["filter_crystals"] == 8
+    assert card.operation_repeat_limits["quench"] == 8
 
 
 def test_distillation_process_time_policy_includes_evaporation_and_quench() -> None:
     config = _task_config("work_ii_distillation_campaign.json")
     card = _campaign_card(config)
-    assert card.process_time_limit_s == 202_080.0
+    assert card.process_time_limit_s == 398_400.0
     assert card.implicit_operation_time_s == {"quench": 120.0}
-    assert card.operation_repeat_limits["evaporate"] == 4
-    assert card.operation_repeat_limits["quench"] == 4
+    assert card.operation_repeat_limits["evaporate"] == 8
+    assert card.operation_repeat_limits["quench"] == 8
 
 
-def test_partition_process_time_policy_covers_four_lifecycles_and_one_repeat() -> None:
+def test_partition_process_time_policy_covers_eight_lifecycles_and_two_repeats() -> None:
     config = _task_config("work_ii_partition_campaign.json")
     card = _campaign_card(config)
-    assert card.process_time_limit_s == 9_000.0
-    assert card.operation_attempt_limit == 48
-    assert card.vessel_start_limit == 4
-    assert card.final_assay_limit == 4
-    assert card.operation_repeat_limits == {"mix": 5, "settle": 5, "separate_phase": 4}
+    assert card.process_time_limit_s == 16_560.0
+    assert card.operation_attempt_limit == 96
+    assert card.vessel_start_limit == 8
+    assert card.final_assay_limit == 8
+    assert card.operation_repeat_limits == {"mix": 8, "settle": 8, "separate_phase": 8}
     assert card.stock_limits == {
-        "extractant_L": 0.12,
-        "phase_liquid_L": 0.096,
-        "solvent_L": 0.112,
+        "extractant_L": 0.276,
+        "phase_liquid_L": 0.2208,
+        "solvent_L": 0.2576,
     }
 
 
-def test_safety_process_time_policy_covers_four_lifecycles_and_one_repeat() -> None:
+def test_safety_process_time_policy_covers_eight_lifecycles_and_two_repeats() -> None:
     config = _task_config("work_ii_safety_campaign.json")
     card = _campaign_card(config)
-    assert card.process_time_limit_s == 36_480.0
+    assert card.process_time_limit_s == 67_344.0
     assert card.implicit_operation_time_s == {"quench": 120.0}
-    assert card.operation_attempt_limit == 40
-    assert card.operation_repeat_limits == {"heat": 5, "quench": 4}
+    assert card.operation_attempt_limit == 80
+    assert card.operation_repeat_limits == {"heat": 8, "quench": 8}
 
 
 def test_all_five_campaign_cards_freeze_participant_owned_closeout_margin() -> None:
@@ -158,12 +157,12 @@ def test_all_five_campaign_cards_freeze_participant_owned_closeout_margin() -> N
         "work_ii_safety_campaign.json",
     )
     expected = {
-        "planned_batches": 4,
+        "planned_batches": 8,
         "final_assay_path_operations_per_batch": 2,
         "discard_path_operations_per_batch": 1,
-        "final_assay_path_total_operation_reserve": 8,
-        "discard_path_total_operation_reserve": 4,
-        "policy": "participant_controlled_advisory_no_hidden_allocation",
+        "final_assay_path_total_operation_reserve": 16,
+        "discard_path_total_operation_reserve": 8,
+        "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement",
         "automatic_action_repair": False,
         "automatic_closeout": False,
     }
@@ -184,8 +183,9 @@ def test_all_five_task_checkpoint_contracts_match_across_informed_arms() -> None
         config = _task_config(config_name)
         assert _checkpoint_contract(config, "opaque")["snapshot_stages"] == [
             "pre_evidence",
-            "after_experiment_1",
             "after_experiment_2",
+            "after_experiment_4",
+            "after_experiment_6",
             "final",
         ]
         assert _checkpoint_contract(config, "aligned_nominal") == _checkpoint_contract(

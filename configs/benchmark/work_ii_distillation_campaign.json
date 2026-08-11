@@ -14,7 +14,7 @@
     "aligned_nominal": {"mode": "anonymous_nominal_properties"},
     "misindexed_nominal": {"mode": "anonymous_misindexed_properties", "target_field": "solvent", "descriptor_permutation": [0, 3, 2, 1]}
   },
-  "snapshot_stages": ["pre_evidence", "after_experiment_1", "after_experiment_2", "final"],
+  "snapshot_stages": ["pre_evidence", "after_experiment_2", "after_experiment_4", "after_experiment_6", "final"],
   "belief_checkpoint": {
     "allowed_feature_ids": ["catalyst", "solvent", "reagent_amount_mol", "reaction_temperature_K", "reaction_duration_s", "distillation_temperature_K", "distillation_duration_s", "reflux_ratio"],
     "allowed_metric_ids": ["distillate_purity", "distillate_recovery", "solvent_loss", "score"],
@@ -27,32 +27,32 @@
     ]
   },
   "campaign": {
-    "card_id": "work-ii-distillation-k4-one-repeat",
-    "complete_experiments": 4,
-    "operation_attempt_limit": 56,
-    "vessel_start_limit": 4,
-    "final_assay_limit": 4,
-    "nonfinal_instrument_use_limit": 8,
-    "stock_limits": {"reagent_mol": 0.08, "solvent_L": 0.16, "catalyst_mol": 0.008},
-    "process_time_limit_s": 202080.0,
+    "card_id": "work-ii-distillation-k8-six-unique-two-repeat-planning",
+    "complete_experiments": 8,
+    "operation_attempt_limit": 112,
+    "vessel_start_limit": 8,
+    "final_assay_limit": 8,
+    "nonfinal_instrument_use_limit": 16,
+    "stock_limits": {"reagent_mol": 0.184, "solvent_L": 0.368, "catalyst_mol": 0.0184},
+    "process_time_limit_s": 398400.0,
     "implicit_operation_time_s": {"quench": 120.0},
-    "operation_repeat_limits": {"heat": 5, "distill": 5, "evaporate": 4, "collect_fraction": 8, "quench": 4},
-    "process_time_policy": {"pattern_id": "distillation-k4-one-repeat-per-required-stage", "timed_stage_max_s": 172800.0, "required_stage_max_s": 172800.0, "repeat_allowance_s": 28800.0, "implicit_stage_reserve_s": 0.0, "quench_transfer_allowance_s": 480.0, "implicit_operation_time_s": {"quench": 120.0}, "formula": "4 x (heat 14400 s + evaporate 14400 s + distill 14400 s) + one extra heat and one extra distillation stage + up to four quench operations at 120 s each"},
+    "operation_repeat_limits": {"heat": 8, "distill": 8, "evaporate": 8, "collect_fraction": 16, "quench": 8},
+    "process_time_policy": {"pattern_id": "distillation-k8-six-unique-two-repeat-planning", "timed_stage_max_s": 259200.0, "required_stage_max_s": 259200.0, "repeat_allowance_s": 86400.0, "protected_reserve_s": 51840.0, "protected_reserve_fraction": 0.15, "implicit_stage_reserve_s": 0.0, "quench_transfer_allowance_s": 960.0, "implicit_operation_time_s": {"quench": 120.0}, "formula": "6 unique full stages + 2 exact-repeat full stages + 15% protected time reserve + up to eight quench operations at 120 s each"},
     "closeout_policy": {
-      "planned_batches": 4,
+      "planned_batches": 8,
       "final_assay_path_operations_per_batch": 2,
       "discard_path_operations_per_batch": 1,
-      "final_assay_path_total_operation_reserve": 8,
-      "discard_path_total_operation_reserve": 4,
-      "policy": "participant_controlled_advisory_no_hidden_allocation",
+      "final_assay_path_total_operation_reserve": 16,
+      "discard_path_total_operation_reserve": 8,
+      "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement",
       "automatic_action_repair": false,
       "automatic_closeout": false
     },
-    "checkpoint_complete_experiments": [0, 1, 2, 4]
+    "checkpoint_complete_experiments": [0, 2, 4, 6, 8]
   },
-  "qualification": {"required_operation_counts": {}},
+  "qualification": {"required_operation_counts": {}, "minimum_unique_recipes": 6, "maximum_exact_repeats": 2, "resource_calibration_status": "pending_w2_26"},
   "analysis": {"final_metric_ids": ["distillate_purity", "distillate_recovery", "solvent_loss", "score"]},
-  "method_resources": {"operation_limit": 56, "complete_experiment_limit": 4, "checkpoint_complete_experiments": [1, 2, 4], "wall_time_limit_s": 7200.0, "model_call_limit": 1, "input_token_limit": 4800000, "uncached_input_token_limit": 640000, "output_token_limit": 48000, "training_environment_step_limit": 0},
+  "method_resources": {"operation_limit": 112, "complete_experiment_limit": 8, "checkpoint_complete_experiments": [2, 4, 6, 8], "wall_time_limit_s": 7200.0, "model_call_limit": 1, "input_token_limit": 4800000, "uncached_input_token_limit": 640000, "output_token_limit": 48000, "training_environment_step_limit": 0},
   "execution": {"max_concurrency": 3, "parallelization_unit": "same_seed_prior_arm_triplet", "within_cell_concurrency": 1, "failure_semantics": "finish the in-flight seed triplet, then stop before the next world seed"},
   "provider": {"id": "wellau", "name": "WellAU", "base_url": "https://api.wellau.com/v1", "env_key": "WELLAU_API_KEY", "wire_api": "responses", "model": "gpt-5.6-sol", "reasoning_effort": "medium", "request_timeout_s": 1200.0, "finalization_timeout_s": 600.0}
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": "chemworld-work-ii-formal-design-0.1",
   "design_id": "work-ii-fixed-law-prior-formal-v0.1",
-  "status": "w2_04_w2_09_w2_06_w2_10_readiness_frozen_pending_provider_preregistration",
+  "status": "w2_25_eight_experiment_design_frozen_pending_w2_26_resource_calibration_and_w2_27_method_qualification",
   "formal_result": false,
   "formal_execution_allowed": false,
   "environment_binding": {
@@ -92,8 +92,13 @@
     }
   },
   "campaign_contract": {
-    "complete_experiments_per_cell": 4,
-    "checkpoint_complete_experiments": [0, 1, 2, 4],
+    "complete_experiments_per_cell": 8,
+    "checkpoint_complete_experiments": [0, 2, 4, 6, 8],
+    "minimum_unique_recipes_per_cell": 6,
+    "maximum_participant_selected_exact_repeats_per_cell": 2,
+    "recipe_identity": "canonical_committed_operation_sequence_through_final_assay",
+    "protected_time_and_stock_reserve_fraction": 0.15,
+    "resource_calibration_status": "pending_w2_26",
     "persistent_sessions_per_cell": 1,
     "provider_repeats": 1,
     "matched_evidence_probe_in_primary_matrix": false,
@@ -199,8 +204,12 @@
     "qualification_world_seed": 0,
     "qualified_prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
     "qualification_cell_count": 3,
-    "complete_experiments_per_cell": 4,
-    "belief_checkpoints_per_cell": 4,
+    "complete_experiments_per_cell": 8,
+    "belief_checkpoints_per_cell": 5,
+    "minimum_unique_recipes_per_cell": 6,
+    "maximum_participant_selected_exact_repeats_per_cell": 2,
+    "resource_calibration_required": true,
+    "resource_calibration_status": "pending_w2_26",
     "accepted_scientific_codex_processes_per_cell": 1,
     "accepted_participant_provider_sessions_per_cell": 1,
     "accepted_participant_model_calls_per_cell": 1,
@@ -232,7 +241,7 @@
   "blind_evaluator_contract": {
     "participant_final_recommendations_per_cell": 1,
     "recommendation_unit": "one_selected_completed_experiment_index",
-    "candidate_experiment_indices": [1, 2, 3, 4],
+    "candidate_experiment_indices": [1, 2, 3, 4, 5, 6, 7, 8],
     "incumbent_definition": "highest_participant_observed_leaderboard_score_tie_smallest_index",
     "blind_targets_per_cell": ["observed_incumbent", "participant_final_recommendation"],
     "blind_replicates_per_target": 3,

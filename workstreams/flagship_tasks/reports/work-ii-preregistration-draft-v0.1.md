@@ -1,6 +1,6 @@
 # Work II preregistration draft - final freeze blocked
 
-Manifest SHA-256: `ea2b7a527d26bc450db4e3a0ba411735a9104a75427217e38c2fe8f1b81c5526`
+Manifest SHA-256: `0bebe9c54382c8a88b43bf887dc489f5e40bff450a08f689e4612c7c0d09d5ef`
 Route-decision SHA-256: `d949816d791f6bafc4686b394faa4ecbcab3a0551fbafeb403d8054b11e8c56e`
 
 > This is an outcome-blind readiness draft, not a registered protocol and not an authorization to collect formal primary data.
@@ -19,8 +19,8 @@ Endpoint success alone is not law discovery; environment and method qualificatio
 
 ## Frozen formal population
 
-The public matrix contains 5 tasks, 25 independent task x world clusters, 75 participant cells across opaque, aligned_nominal, misindexed_nominal, and 300 planned complete experiments.
-It retains 300 typed belief checkpoints, 75 accepted provider sessions and a hard cap of 150 host provider-process attempts.
+The public matrix contains 5 tasks, 25 independent task x world clusters, 75 participant cells across opaque, aligned_nominal, misindexed_nominal, and 600 planned complete experiments.
+It retains 375 typed belief checkpoints, 75 accepted provider sessions and a hard cap of 150 host provider-process attempts.
 
 ## Outcome-neutral quality and failure rules
 
@@ -41,7 +41,6 @@ All existing Gate A, provider shakedown and development campaigns remain pilot, 
 - `current_method_real_provider_qualification_receipt`
 - `formal_currency_ceiling_and_provider_contract_approval`
 - `qualified_expected_eta_from_current_method`
-- `clean_wheel_independent_checkout_and_evidence_graph_receipt`
 - `execution_command_budget_and_escalation_user_signoff`
 
 ## Policy sources checked on 2026-08-10

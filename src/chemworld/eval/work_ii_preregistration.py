@@ -173,7 +173,7 @@ def build_preregistration_readiness(
         expected_counts.get("tasks") != 5
         or expected_counts.get("independent_task_world_clusters") != 25
         or expected_counts.get("participant_cells") != 75
-        or expected_counts.get("complete_experiments") != 300
+        or expected_counts.get("complete_experiments") != 600
     ):
         internal_errors.append("formal schedule denominators differ from the preregistration")
     world_split = committed_preflight.get("world_split_contract")
@@ -439,7 +439,7 @@ def validate_preregistration_readiness(report: Mapping[str, Any]) -> list[str]:
         or population.get("independent_task_world_clusters") != 25
         or population.get("prior_arms") != list(FORMAL_ARMS)
         or population.get("participant_cells") != 75
-        or population.get("complete_experiments") != 300
+        or population.get("complete_experiments") != 600
     ):
         errors.append("Work II preregistration population differs from the frozen matrix")
     private = report.get("private_confirmation")

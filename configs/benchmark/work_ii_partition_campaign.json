@@ -18,7 +18,7 @@
       "descriptor_permutation": [3, 1, 2, 0]
     }
   },
-  "snapshot_stages": ["pre_evidence", "after_experiment_1", "after_experiment_2", "final"],
+  "snapshot_stages": ["pre_evidence", "after_experiment_2", "after_experiment_4", "after_experiment_6", "final"],
   "belief_checkpoint": {
     "allowed_feature_ids": [
       "solvent",
@@ -55,40 +55,42 @@
     ]
   },
   "campaign": {
-    "card_id": "work-ii-partition-k4-one-repeat",
-    "complete_experiments": 4,
-    "operation_attempt_limit": 48,
-    "vessel_start_limit": 4,
-    "final_assay_limit": 4,
-    "nonfinal_instrument_use_limit": 8,
-    "stock_limits": {"solvent_L": 0.112, "phase_liquid_L": 0.096, "extractant_L": 0.12},
-    "process_time_limit_s": 9000.0,
-    "operation_repeat_limits": {"mix": 5, "settle": 5, "separate_phase": 4},
+    "card_id": "work-ii-partition-k8-six-unique-two-repeat-planning",
+    "complete_experiments": 8,
+    "operation_attempt_limit": 96,
+    "vessel_start_limit": 8,
+    "final_assay_limit": 8,
+    "nonfinal_instrument_use_limit": 16,
+    "stock_limits": {"solvent_L": 0.2576, "phase_liquid_L": 0.2208, "extractant_L": 0.276},
+    "process_time_limit_s": 16560.0,
+    "operation_repeat_limits": {"mix": 8, "settle": 8, "separate_phase": 8},
     "process_time_policy": {
-      "pattern_id": "partition-k4-one-repeat-per-timed-stage",
-      "required_stage_max_s": 7200.0,
-      "repeat_allowance_s": 1800.0,
+      "pattern_id": "partition-k8-six-unique-two-repeat-planning",
+      "required_stage_max_s": 10800.0,
+      "repeat_allowance_s": 3600.0,
+      "protected_reserve_s": 2160.0,
+      "protected_reserve_fraction": 0.15,
       "implicit_stage_reserve_s": 0.0,
-      "formula": "4 x (mix 600 s + settle 1200 s) + one extra mix and one extra settle stage"
+      "formula": "6 unique partition stages + 2 exact-repeat partition stages + 15% protected time reserve"
     },
     "closeout_policy": {
-      "planned_batches": 4,
+      "planned_batches": 8,
       "final_assay_path_operations_per_batch": 2,
       "discard_path_operations_per_batch": 1,
-      "final_assay_path_total_operation_reserve": 8,
-      "discard_path_total_operation_reserve": 4,
-      "policy": "participant_controlled_advisory_no_hidden_allocation",
+      "final_assay_path_total_operation_reserve": 16,
+      "discard_path_total_operation_reserve": 8,
+      "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement",
       "automatic_action_repair": false,
       "automatic_closeout": false
     },
-    "checkpoint_complete_experiments": [0, 1, 2, 4]
+    "checkpoint_complete_experiments": [0, 2, 4, 6, 8]
   },
-  "qualification": {"required_operation_counts": {}},
+  "qualification": {"required_operation_counts": {}, "minimum_unique_recipes": 6, "maximum_exact_repeats": 2, "resource_calibration_status": "pending_w2_26"},
   "analysis": {"final_metric_ids": ["phase_ratio", "product_in_organic", "product_in_aqueous", "score"]},
   "method_resources": {
-    "operation_limit": 48,
-    "complete_experiment_limit": 4,
-    "checkpoint_complete_experiments": [1, 2, 4],
+    "operation_limit": 96,
+    "complete_experiment_limit": 8,
+    "checkpoint_complete_experiments": [2, 4, 6, 8],
     "wall_time_limit_s": 7200.0,
     "model_call_limit": 1,
     "input_token_limit": 4800000,

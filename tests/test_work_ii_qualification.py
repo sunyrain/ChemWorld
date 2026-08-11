@@ -11,7 +11,12 @@ import pytest
 import scripts.run_work_ii_method_qualification_triplet as qualification_runner
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
-from chemworld.eval.work_ii_formal import FORMAL_ARMS, build_formal_preflight
+from chemworld.eval.work_ii_formal import (
+    FORMAL_ARMS,
+    FORMAL_COMPLETE_EXPERIMENTS_PER_CELL,
+    FORMAL_SNAPSHOT_STAGES,
+    build_formal_preflight,
+)
 from chemworld.eval.work_ii_qualification import (
     METHOD_QUALIFICATION_REPORT_VERSION,
     REQUIRED_CELL_QUALIFICATION_CHECKS,
@@ -126,22 +131,25 @@ def _qualification_report(
                 "completed": True,
                 "failure": None,
                 "analysis": {
-                    "complete_experiment_count": 4,
-                    "experiments": [{"experiment_index": index} for index in range(1, 5)],
+                    "complete_experiment_count": FORMAL_COMPLETE_EXPERIMENTS_PER_CELL,
+                    "experiments": [
+                        {"experiment_index": index}
+                        for index in range(1, FORMAL_COMPLETE_EXPERIMENTS_PER_CELL + 1)
+                    ],
+                    "unique_recipe_count": 6,
+                    "exact_repeat_count": 2,
                     "right_censored_open_experiment": False,
                     "belief_snapshots": [
                         {"stage": stage}
-                        for stage in (
-                            "pre_evidence",
-                            "after_experiment_1",
-                            "after_experiment_2",
-                            "final",
-                        )
+                        for stage in FORMAL_SNAPSHOT_STAGES
                     ],
                     "resource_rejection_count": 0,
                     "final_campaign_resources": {
                         "campaign_terminal": True,
-                        "state": {"closed_batches": 4, "final_assays": 4},
+                        "state": {
+                            "closed_batches": FORMAL_COMPLETE_EXPERIMENTS_PER_CELL,
+                            "final_assays": FORMAL_COMPLETE_EXPERIMENTS_PER_CELL,
+                        },
                     },
                     "final_recommendation": recommendation,
                     "final_recommendation_sha256": recommendation_hash,
@@ -458,7 +466,7 @@ def test_method_qualification_readiness_is_zero_call_and_execution_blocked() -> 
     assert first["status"] == "passed_provider_execution_blocked"
     assert first["provider_calls_executed"] == 0
     assert first["expected_counts"]["accepted_scientific_cells"] == 3
-    assert first["expected_counts"]["operation_attempts_hard_cap"] == 84
+    assert first["expected_counts"]["operation_attempts_hard_cap"] == 168
     assert all(
         item["eligible_for_current_method_receipt"] is False
         for item in first["historical_evidence_assessment"]

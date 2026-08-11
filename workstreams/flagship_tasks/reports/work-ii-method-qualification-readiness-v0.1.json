@@ -1,5 +1,6 @@
 {
   "blocking_requirements": [
+    "the eight-experiment pattern resource calibration block W2-26 has not been completed",
     "user must confirm the current provider contract or approve an explicit amendment",
     "user must confirm that the provider credential was rotated after exposure",
     "user must approve a qualification currency ceiling bound to the frozen gate contract",
@@ -11,10 +12,10 @@
     "accepted_provider_sessions": 3,
     "accepted_scientific_cells": 3,
     "accepted_scientific_codex_processes": 3,
-    "belief_checkpoints": 12,
-    "complete_experiments": 12,
+    "belief_checkpoints": 15,
+    "complete_experiments": 24,
     "input_tokens_accepted_cell_cap": 7200000,
-    "operation_attempts_hard_cap": 84,
+    "operation_attempts_hard_cap": 168,
     "output_tokens_accepted_cell_cap": 72000,
     "provider_process_attempts_hard_cap": 6,
     "provider_process_attempts_initial": 3,
@@ -22,7 +23,7 @@
   },
   "formal_execution_authorized": false,
   "formal_participant_outcomes_before_authorization": 0,
-  "formal_preflight_sha256": "aebe7d7426502d7f82876425646d7b4bab9e9fd7d79f3222b241518e9c1f054b",
+  "formal_preflight_sha256": "b5766648ffd27a5a6a0aa1d8b8102e4cae6767074028e3b048edbb08d326f4f1",
   "formal_result": false,
   "held_out_evaluator_contract_sha256": "d78c285f1c4cfac87129d7cf9a6c657c3aa8a8a23da18c8d40ecbbb81becf6b9",
   "historical_evidence_assessment": [
@@ -59,14 +60,16 @@
     "accepted_participant_provider_sessions_per_cell": 1,
     "accepted_scientific_codex_processes_per_cell": 1,
     "all_cells_must_pass": true,
-    "belief_checkpoints_per_cell": 4,
-    "complete_experiments_per_cell": 4,
+    "belief_checkpoints_per_cell": 5,
+    "complete_experiments_per_cell": 8,
     "currency_approval_required": true,
     "exact_replay_required": true,
     "execution_audit_required": true,
     "formal_participant_outcomes_before_authorization": 0,
     "maximum_infrastructure_resume_attempts_per_cell": 1,
+    "maximum_participant_selected_exact_repeats_per_cell": 2,
     "maximum_total_provider_attempts": 6,
+    "minimum_unique_recipes_per_cell": 6,
     "qualification_cell_count": 3,
     "qualification_outcome_use": "platform_and_method_acceptance_only",
     "qualification_task_id": "electrochemical-conversion",
@@ -79,11 +82,13 @@
       "misindexed_nominal"
     ],
     "real_provider_execution_required": true,
+    "resource_calibration_required": true,
+    "resource_calibration_status": "pending_w2_26",
     "same_provider_and_method_as_formal": true,
     "scientific_outcome_selection_forbidden": true,
     "triplet_failure_semantics": "finish_all_three_arms_then_fail_qualification"
   },
-  "method_qualification_contract_sha256": "2d409f34b9ddfa254012cc27fceb4481f086d7d0b217269fb9762989248259b6",
+  "method_qualification_contract_sha256": "95150d25c04b472d18810173747593003c341ed7bbf945c9b8649671d57768a3",
   "participant_execution_contract_sha256": "1f045d6489e8d7c2f77753881f615a9ba0e5fbc858a83fb815e85543c58f59d5",
   "provider_calls_executed": 0,
   "provider_contract": {
@@ -104,7 +109,7 @@
     "campaign_config": {
       "hash_kind": "file_sha256",
       "path": "configs/benchmark/work_ii_campaign_pilot.json",
-      "sha256": "3d5b22431fff3be0ff84b1097ca9c454f39cf50303b142f69dfdc612890ea30b"
+      "sha256": "447e0acf6e76cd3ef63064af8e004a9c546f365e7bb3fdaed184c2846c8ef1ed"
     },
     "missing_only_resume": true,
     "output_scope": "runs/development",
@@ -129,7 +134,7 @@
     "world_cohort": "development_and_qualification",
     "world_seed": 0
   },
-  "readiness_sha256": "7de77d0b8c1b9fdf3cbf58f085694aafc655767295e1a76a8ed04d2d666ea9d5",
+  "readiness_sha256": "211982a4104db842230086411c0fd891d9d7b1cbe9634bf04cbc379ea288b54a",
   "schema_version": "chemworld-work-ii-method-qualification-readiness-0.1",
   "status": "passed_provider_execution_blocked"
 }

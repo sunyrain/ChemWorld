@@ -21,40 +21,42 @@
       "descriptor_permutation": [0, 3, 2, 1]
     }
   },
-  "snapshot_stages": ["pre_evidence", "after_experiment_1", "after_experiment_2", "final"],
+  "snapshot_stages": ["pre_evidence", "after_experiment_2", "after_experiment_4", "after_experiment_6", "final"],
   "campaign": {
-    "card_id": "work-ii-electrochemical-k4-one-repeat",
-    "complete_experiments": 4,
-    "operation_attempt_limit": 28,
-    "vessel_start_limit": 4,
-    "final_assay_limit": 4,
+    "card_id": "work-ii-electrochemical-k8-six-unique-two-repeat-planning",
+    "complete_experiments": 8,
+    "operation_attempt_limit": 56,
+    "vessel_start_limit": 8,
+    "final_assay_limit": 8,
     "nonfinal_instrument_use_limit": 0,
-    "stock_limits": {"reagent_mol": 0.08, "solvent_L": 0.16},
-    "process_time_limit_s": 72000.0,
-    "operation_repeat_limits": {"electrolyze": 5},
+    "stock_limits": {"reagent_mol": 0.184, "solvent_L": 0.368},
+    "process_time_limit_s": 132480.0,
+    "operation_repeat_limits": {"electrolyze": 8},
     "process_time_policy": {
-      "pattern_id": "electrochemical-k4-one-repeat",
-      "required_stage_max_s": 57600.0,
-      "repeat_allowance_s": 14400.0,
+      "pattern_id": "electrochemical-k8-six-unique-two-repeat-planning",
+      "required_stage_max_s": 86400.0,
+      "repeat_allowance_s": 28800.0,
+      "protected_reserve_s": 17280.0,
+      "protected_reserve_fraction": 0.15,
       "implicit_stage_reserve_s": 0.0,
-      "formula": "4 required electrolyses x 14400 s + 1 allowed repeat x 14400 s"
+      "formula": "6 unique electrolyses x 14400 s + 2 exact-repeat electrolyses x 14400 s + 15% protected time reserve"
     },
     "closeout_policy": {
-      "planned_batches": 4,
+      "planned_batches": 8,
       "final_assay_path_operations_per_batch": 2,
       "discard_path_operations_per_batch": 1,
-      "final_assay_path_total_operation_reserve": 8,
-      "discard_path_total_operation_reserve": 4,
-      "policy": "participant_controlled_advisory_no_hidden_allocation",
+      "final_assay_path_total_operation_reserve": 16,
+      "discard_path_total_operation_reserve": 8,
+      "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement",
       "automatic_action_repair": false,
       "automatic_closeout": false
     },
-    "checkpoint_complete_experiments": [0, 1, 2, 4]
+    "checkpoint_complete_experiments": [0, 2, 4, 6, 8]
   },
   "method_resources": {
-    "operation_limit": 28,
-    "complete_experiment_limit": 4,
-    "checkpoint_complete_experiments": [1, 2, 4],
+    "operation_limit": 56,
+    "complete_experiment_limit": 8,
+    "checkpoint_complete_experiments": [2, 4, 6, 8],
     "wall_time_limit_s": 5400.0,
     "model_call_limit": 1,
     "input_token_limit": 2400000,
@@ -65,6 +67,11 @@
   "method_resource_semantics": {
     "input_token_semantics": "cumulative context across one MCP tool loop, including cache hits",
     "uncached_input_semantics": "new provider input after cache reuse; primary prompt-growth guard"
+  },
+  "qualification": {
+    "minimum_unique_recipes": 6,
+    "maximum_exact_repeats": 2,
+    "resource_calibration_status": "pending_w2_26"
   },
   "execution": {
     "max_concurrency": 3,

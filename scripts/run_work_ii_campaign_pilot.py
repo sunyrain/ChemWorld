@@ -269,19 +269,25 @@ def _analyze(
 ) -> dict[str, Any]:
     experiments: list[dict[str, Any]] = []
     actions: list[dict[str, Any]] = []
+    committed_actions: list[dict[str, Any]] = []
     for row in records:
         action = dict(row.get("action", {}))
         actions.append(action)
+        if row.get("transaction_status") == "committed":
+            committed_actions.append(action)
         is_final_assay = (
             row.get("transaction_status") == "committed"
             and row.get("operation_type") == "measure"
             and row.get("instrument") == "final_assay"
         )
         if is_final_assay:
+            recipe_sha256 = canonical_json_sha256(committed_actions)
             experiments.append(
                 {
                     "experiment_index": len(experiments) + 1,
                     "operations": actions,
+                    "committed_operations": committed_actions,
+                    "recipe_sha256": recipe_sha256,
                     "leaderboard_score": row.get("leaderboard_score"),
                     "final_metrics": {
                         key: row.get("observation", {}).get(key) for key in final_metric_ids
@@ -289,6 +295,7 @@ def _analyze(
                 }
             )
             actions = []
+            committed_actions = []
     snapshots = [item for receipt in receipts for item in receipt.get("belief_snapshots", [])]
     resource_rejection_count = sum(
         1 for row in records if row.get("transaction_status") == "campaign_resource_rejected"
@@ -318,11 +325,14 @@ def _analyze(
         if experiment_scores
         else None
     )
+    recipe_hashes = [str(item["recipe_sha256"]) for item in experiments]
     return {
         "operation_attempt_count": len(records),
         "complete_experiment_count": len(experiments),
         "right_censored_open_experiment": bool(actions),
         "experiments": experiments,
+        "unique_recipe_count": len(set(recipe_hashes)),
+        "exact_repeat_count": len(recipe_hashes) - len(set(recipe_hashes)),
         "belief_snapshots": snapshots,
         "resource_rejection_count": resource_rejection_count,
         "final_campaign_resources": final_campaign_resources,
@@ -350,6 +360,8 @@ def _qualification(
     required_snapshot_stages: list[str] | None = None,
     operational_limits: Mapping[str, Any] | None = None,
     max_resource_rejections: int = 0,
+    minimum_unique_recipes: int = 0,
+    maximum_exact_repeats: int | None = None,
 ) -> dict[str, Any]:
     """Apply the frozen per-cell qualification contract fail-closed."""
 
@@ -396,6 +408,11 @@ def _qualification(
         observed = int(operation_counts.get(operation, -1))
         required_operations_reconciled = required_operations_reconciled and low <= observed <= high
     target_experiments = int(method_resource_limits["complete_experiment_limit"])
+    exact_repeat_limit = (
+        target_experiments
+        if maximum_exact_repeats is None
+        else int(maximum_exact_repeats)
+    )
     host_commit_required = receipt.get("schema_version") == (
         "chemworld-interactive-codex-session-receipt-0.2"
     )
@@ -418,8 +435,21 @@ def _qualification(
         "planned_complete_experiments": analysis.get("complete_experiment_count")
         == target_experiments
         and analysis.get("right_censored_open_experiment") is False,
-        "four_typed_belief_checkpoints": len(snapshots) == len(expected_stages)
+        "typed_belief_checkpoints_complete": len(snapshots) == len(expected_stages)
         and stages == expected_stages,
+        "recipe_diversity_reconciled": (
+            True
+            if minimum_unique_recipes <= 0 and maximum_exact_repeats is None
+            else (
+                int(analysis.get("unique_recipe_count", 0))
+                >= int(minimum_unique_recipes)
+                and int(analysis.get("exact_repeat_count", target_experiments))
+                <= exact_repeat_limit
+                and int(analysis.get("unique_recipe_count", 0))
+                + int(analysis.get("exact_repeat_count", 0))
+                == target_experiments
+            )
+        ),
         "one_campaign_session": len(receipts) == 1
         and method_resources.get("provider_session_count") == 1
         and receipt.get("session_scope") == "campaign",
@@ -726,6 +756,15 @@ def _run_cell(
         operational_limits=provider,
         max_resource_rejections=int(
             config.get("qualification", {}).get("max_resource_rejections", 0)
+        ),
+        minimum_unique_recipes=int(
+            config.get("qualification", {}).get("minimum_unique_recipes", 0)
+        ),
+        maximum_exact_repeats=(
+            int(config["qualification"]["maximum_exact_repeats"])
+            if config.get("qualification", {}).get("maximum_exact_repeats")
+            is not None
+            else None
         ),
     )
     row = {

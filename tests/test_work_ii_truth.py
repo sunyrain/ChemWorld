@@ -97,6 +97,10 @@ def test_truth_plan_is_shared_across_arms_and_self_bound() -> None:
             "experiment-2-final-assay",
             "experiment-3-final-assay",
             "experiment-4-final-assay",
+            "experiment-5-final-assay",
+            "experiment-6-final-assay",
+            "experiment-7-final-assay",
+            "experiment-8-final-assay",
         ],
     }
 

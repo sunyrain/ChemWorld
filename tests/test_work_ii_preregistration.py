@@ -19,8 +19,8 @@ from chemworld.eval.work_ii_preregistration import (
     validate_preregistration_readiness,
     validate_submission_route_decision,
 )
-from chemworld.eval.work_ii_route_selection import select_submission_route_decision
 from chemworld.eval.work_ii_release import validate_clean_release_receipt
+from chemworld.eval.work_ii_route_selection import select_submission_route_decision
 
 ROOT = Path(__file__).resolve().parents[1]
 ROUTE = ROOT / "configs/benchmark/work_ii_submission_route_decision_v0.1.json"
@@ -198,8 +198,8 @@ def test_preregistration_readiness_is_deterministic_zero_call_and_blocked() -> N
         "independent_task_world_clusters": 25,
         "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
         "participant_cells": 75,
-        "complete_experiments": 300,
-        "belief_checkpoints": 300,
+        "complete_experiments": 600,
+        "belief_checkpoints": 375,
         "provider_sessions": 75,
         "provider_attempts_hard_cap": 150,
     }

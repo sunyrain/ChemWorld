@@ -1,6 +1,6 @@
 {
   "analysis_plan_path": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
-  "analysis_plan_sha256": "e4f8c4c0aaa8f707b6bf1f943d0fc23eacae9973a25b80cc9a8466a66245de05",
+  "analysis_plan_sha256": "38036b5709e8cbfc68b429ded80bae2f6a84dd393a9880036bbe2fb5c1cb51f6",
   "currency_budget": {
     "approved_currency_ceiling": null,
     "formal_currency_ceiling_approved": false,
@@ -20,10 +20,10 @@
     },
     "committed_operation": {
       "actual_source": "participant_trajectory_transaction_status",
-      "hard_cap": 3420
+      "hard_cap": 6840
     },
     "complete_experiment": {
-      "scheduled": 300
+      "scheduled": 600
     },
     "host_provider_process_attempt": {
       "hard_cap": 150,
@@ -35,7 +35,7 @@
       "note": "separate from physical operation attempts"
     },
     "operation_attempt": {
-      "hard_cap": 3420
+      "hard_cap": 6840
     },
     "participant_cell": {
       "scheduled": 75
@@ -53,7 +53,7 @@
     "scheduled_participant_cells": 75,
     "tasks": 5
   },
-  "design_sha256": "4ac41d20456b419917140a6ef9ac77e0a9b62547ab8cbf23f80edcb464060da7",
+  "design_sha256": "1aa8edb0f455dc35022e9aa811c825a9a49b47f34cd8b7eaece2ac479c9572bd",
   "execution_budget_and_eta": {
     "all_infrastructure_resumes_wall_hard_cap_h": 95.0,
     "all_infrastructure_resumes_wall_hard_cap_s": 342000.0,
@@ -133,12 +133,12 @@
     "accepted_cell_input_token_limit": 324000000,
     "accepted_cell_output_token_limit": 3240000,
     "accepted_cell_uncached_input_token_limit": 43200000,
-    "complete_experiments": 300,
-    "final_assay_limit": 300,
+    "complete_experiments": 600,
+    "final_assay_limit": 600,
     "maximum_provider_attempts_per_cell": 2,
-    "nonfinal_instrument_use_limit": 420,
-    "operation_attempt_limit": 3420,
-    "process_time_limit_s": 6989400.0,
+    "nonfinal_instrument_use_limit": 840,
+    "operation_attempt_limit": 6840,
+    "process_time_limit_s": 13276800.0,
     "provider_attempt_hard_input_token_limit": 648000000,
     "provider_attempt_hard_model_call_cap": 150,
     "provider_attempt_hard_output_token_limit": 6480000,
@@ -150,41 +150,43 @@
     "task_rows": [
       {
         "campaign_resource_card": {
-          "card_id": "work-ii-electrochemical-k4-one-repeat",
-          "card_sha256": "b29ac8b70d1abe9b65b0e38c076cd711fc0a7ebc2e35421dd69ead982bd5b59b",
+          "card_id": "work-ii-electrochemical-k8-six-unique-two-repeat-planning",
+          "card_sha256": "eece4378f83f9aaafd8a2aef5e57a8eec8cd4adc8271c4ff28a567eb89a5dbf7",
           "hard_limits": {
-            "final_assays": 4,
+            "final_assays": 8,
             "nonfinal_instrument_uses": 0,
-            "operation_attempts": 28,
+            "operation_attempts": 56,
             "operation_repeats": {
-              "electrolyze": 5
+              "electrolyze": 8
             },
             "per_instrument": {},
-            "process_time_s": 72000.0,
+            "process_time_s": 132480.0,
             "stocks": {
-              "reagent_mol": 0.08,
-              "solvent_L": 0.16
+              "reagent_mol": 0.184,
+              "solvent_L": 0.368
             },
-            "vessel_starts": 4
+            "vessel_starts": 8
           },
           "metadata": {
             "closeout_policy": {
               "automatic_action_repair": false,
               "automatic_closeout": false,
               "discard_path_operations_per_batch": 1,
-              "discard_path_total_operation_reserve": 4,
+              "discard_path_total_operation_reserve": 8,
               "final_assay_path_operations_per_batch": 2,
-              "final_assay_path_total_operation_reserve": 8,
-              "planned_batches": 4,
-              "policy": "participant_controlled_advisory_no_hidden_allocation"
+              "final_assay_path_total_operation_reserve": 16,
+              "planned_batches": 8,
+              "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement"
             },
             "pilot_id": "work-ii-electrochemical-prior-campaign",
             "process_time_policy": {
-              "formula": "4 required electrolyses x 14400 s + 1 allowed repeat x 14400 s",
+              "formula": "6 unique electrolyses x 14400 s + 2 exact-repeat electrolyses x 14400 s + 15% protected time reserve",
               "implicit_stage_reserve_s": 0.0,
-              "pattern_id": "electrochemical-k4-one-repeat",
-              "repeat_allowance_s": 14400.0,
-              "required_stage_max_s": 57600.0
+              "pattern_id": "electrochemical-k8-six-unique-two-repeat-planning",
+              "protected_reserve_fraction": 0.15,
+              "protected_reserve_s": 17280.0,
+              "repeat_allowance_s": 28800.0,
+              "required_stage_max_s": 86400.0
             },
             "scope": "one_task_prior_world_cell",
             "task_id": "electrochemical-conversion"
@@ -193,32 +195,33 @@
         },
         "cells": 15,
         "matrix_upper_bounds": {
-          "complete_experiments": 60,
-          "final_assays": 60,
+          "complete_experiments": 120,
+          "final_assays": 120,
           "input_tokens": 36000000,
           "model_calls": 15,
           "nonfinal_instrument_uses": 0,
-          "operation_attempts": 420,
+          "operation_attempts": 840,
           "output_tokens": 360000,
-          "process_time_s": 1080000.0,
+          "process_time_s": 1987200.0,
           "serial_seed_triplet_wall_time_s": 27000.0,
           "stock_limits": {
-            "reagent_mol": 1.2,
-            "solvent_L": 2.4
+            "reagent_mol": 2.76,
+            "solvent_L": 5.52
           },
           "uncached_input_tokens": 4800000,
-          "vessel_starts": 60
+          "vessel_starts": 120
         },
         "per_cell_method_limits": {
           "checkpoint_complete_experiments": [
-            1,
             2,
-            4
+            4,
+            6,
+            8
           ],
-          "complete_experiment_limit": 4,
+          "complete_experiment_limit": 8,
           "input_token_limit": 2400000,
           "model_call_limit": 1,
-          "operation_limit": 28,
+          "operation_limit": 56,
           "output_token_limit": 24000,
           "training_environment_step_limit": 0,
           "uncached_input_token_limit": 320000,
@@ -233,57 +236,59 @@
       },
       {
         "campaign_resource_card": {
-          "card_id": "work-ii-crystallization-k4-one-repeat",
-          "card_sha256": "ce29db6ee9b64164a10488061ca0dcc13469c3289e6f13b9ff2ddf52946f3da9",
+          "card_id": "work-ii-crystallization-k8-six-unique-two-repeat-planning",
+          "card_sha256": "e8263847c924f84a2b4fdebe1dfd2d1c20763449ae3c74be43204f8d8a460091",
           "hard_limits": {
-            "final_assays": 4,
+            "final_assays": 8,
             "implicit_operation_time_s": {
               "filter_crystals": 480.0,
               "quench": 120.0
             },
-            "nonfinal_instrument_uses": 8,
-            "operation_attempts": 56,
+            "nonfinal_instrument_uses": 16,
+            "operation_attempts": 112,
             "operation_repeats": {
-              "cool_crystallize": 5,
-              "filter_crystals": 4,
-              "heat": 5,
-              "quench": 4,
-              "seed_crystals": 4
+              "cool_crystallize": 8,
+              "filter_crystals": 8,
+              "heat": 8,
+              "quench": 8,
+              "seed_crystals": 8
             },
             "per_instrument": {},
-            "process_time_s": 146400.0,
+            "process_time_s": 270336.0,
             "stocks": {
-              "catalyst_mol": 0.008,
-              "reagent_mol": 0.08,
-              "seed_g": 0.2,
-              "solvent_L": 0.16
+              "catalyst_mol": 0.0184,
+              "reagent_mol": 0.184,
+              "seed_g": 0.46,
+              "solvent_L": 0.368
             },
-            "vessel_starts": 4
+            "vessel_starts": 8
           },
           "metadata": {
             "closeout_policy": {
               "automatic_action_repair": false,
               "automatic_closeout": false,
               "discard_path_operations_per_batch": 1,
-              "discard_path_total_operation_reserve": 4,
+              "discard_path_total_operation_reserve": 8,
               "final_assay_path_operations_per_batch": 2,
-              "final_assay_path_total_operation_reserve": 8,
-              "planned_batches": 4,
-              "policy": "participant_controlled_advisory_no_hidden_allocation"
+              "final_assay_path_total_operation_reserve": 16,
+              "planned_batches": 8,
+              "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement"
             },
             "pilot_id": "work-ii-reaction-crystallization-prior-campaign",
             "process_time_policy": {
-              "formula": "4 x (heat 14400 s + cool_crystallize 14400 s + filter_crystals 480 s) + one extra heat and one extra crystallization stage + up to four quench operations at 120 s each",
+              "formula": "6 unique full stages + 2 exact-repeat full stages + 15% protected time reserve + up to eight quench operations at 120 s each",
               "implicit_operation_time_s": {
                 "filter_crystals": 480.0,
                 "quench": 120.0
               },
-              "implicit_stage_reserve_s": 1920.0,
-              "pattern_id": "crystallization-k4-one-repeat-per-required-stage",
-              "quench_transfer_allowance_s": 480.0,
-              "repeat_allowance_s": 28800.0,
-              "required_stage_max_s": 117120.0,
-              "timed_stage_max_s": 115200.0
+              "implicit_stage_reserve_s": 2880.0,
+              "pattern_id": "crystallization-k8-six-unique-two-repeat-planning",
+              "protected_reserve_fraction": 0.15,
+              "protected_reserve_s": 35136.0,
+              "quench_transfer_allowance_s": 960.0,
+              "repeat_allowance_s": 58560.0,
+              "required_stage_max_s": 175680.0,
+              "timed_stage_max_s": 172800.0
             },
             "scope": "one_task_prior_world_cell",
             "task_id": "reaction-to-crystallization"
@@ -292,34 +297,35 @@
         },
         "cells": 15,
         "matrix_upper_bounds": {
-          "complete_experiments": 60,
-          "final_assays": 60,
+          "complete_experiments": 120,
+          "final_assays": 120,
           "input_tokens": 72000000,
           "model_calls": 15,
-          "nonfinal_instrument_uses": 120,
-          "operation_attempts": 840,
+          "nonfinal_instrument_uses": 240,
+          "operation_attempts": 1680,
           "output_tokens": 720000,
-          "process_time_s": 2196000.0,
+          "process_time_s": 4055040.0,
           "serial_seed_triplet_wall_time_s": 36000.0,
           "stock_limits": {
-            "catalyst_mol": 0.12,
-            "reagent_mol": 1.2,
-            "seed_g": 3.0,
-            "solvent_L": 2.4
+            "catalyst_mol": 0.276,
+            "reagent_mol": 2.76,
+            "seed_g": 6.9,
+            "solvent_L": 5.52
           },
           "uncached_input_tokens": 9600000,
-          "vessel_starts": 60
+          "vessel_starts": 120
         },
         "per_cell_method_limits": {
           "checkpoint_complete_experiments": [
-            1,
             2,
-            4
+            4,
+            6,
+            8
           ],
-          "complete_experiment_limit": 4,
+          "complete_experiment_limit": 8,
           "input_token_limit": 4800000,
           "model_call_limit": 1,
-          "operation_limit": 56,
+          "operation_limit": 112,
           "output_token_limit": 48000,
           "training_environment_step_limit": 0,
           "uncached_input_token_limit": 640000,
@@ -334,54 +340,56 @@
       },
       {
         "campaign_resource_card": {
-          "card_id": "work-ii-distillation-k4-one-repeat",
-          "card_sha256": "36e531e36c86c97bc01d9cfca8d049fc5d38e2afeb9b204fca4ebd5f522a9553",
+          "card_id": "work-ii-distillation-k8-six-unique-two-repeat-planning",
+          "card_sha256": "fafa45a0b65f2cd1beec60a04e431a568c3b35cd425e0dc8807a22dd396268fc",
           "hard_limits": {
-            "final_assays": 4,
+            "final_assays": 8,
             "implicit_operation_time_s": {
               "quench": 120.0
             },
-            "nonfinal_instrument_uses": 8,
-            "operation_attempts": 56,
+            "nonfinal_instrument_uses": 16,
+            "operation_attempts": 112,
             "operation_repeats": {
-              "collect_fraction": 8,
-              "distill": 5,
-              "evaporate": 4,
-              "heat": 5,
-              "quench": 4
+              "collect_fraction": 16,
+              "distill": 8,
+              "evaporate": 8,
+              "heat": 8,
+              "quench": 8
             },
             "per_instrument": {},
-            "process_time_s": 202080.0,
+            "process_time_s": 398400.0,
             "stocks": {
-              "catalyst_mol": 0.008,
-              "reagent_mol": 0.08,
-              "solvent_L": 0.16
+              "catalyst_mol": 0.0184,
+              "reagent_mol": 0.184,
+              "solvent_L": 0.368
             },
-            "vessel_starts": 4
+            "vessel_starts": 8
           },
           "metadata": {
             "closeout_policy": {
               "automatic_action_repair": false,
               "automatic_closeout": false,
               "discard_path_operations_per_batch": 1,
-              "discard_path_total_operation_reserve": 4,
+              "discard_path_total_operation_reserve": 8,
               "final_assay_path_operations_per_batch": 2,
-              "final_assay_path_total_operation_reserve": 8,
-              "planned_batches": 4,
-              "policy": "participant_controlled_advisory_no_hidden_allocation"
+              "final_assay_path_total_operation_reserve": 16,
+              "planned_batches": 8,
+              "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement"
             },
             "pilot_id": "work-ii-reaction-distillation-prior-campaign",
             "process_time_policy": {
-              "formula": "4 x (heat 14400 s + evaporate 14400 s + distill 14400 s) + one extra heat and one extra distillation stage + up to four quench operations at 120 s each",
+              "formula": "6 unique full stages + 2 exact-repeat full stages + 15% protected time reserve + up to eight quench operations at 120 s each",
               "implicit_operation_time_s": {
                 "quench": 120.0
               },
               "implicit_stage_reserve_s": 0.0,
-              "pattern_id": "distillation-k4-one-repeat-per-required-stage",
-              "quench_transfer_allowance_s": 480.0,
-              "repeat_allowance_s": 28800.0,
-              "required_stage_max_s": 172800.0,
-              "timed_stage_max_s": 172800.0
+              "pattern_id": "distillation-k8-six-unique-two-repeat-planning",
+              "protected_reserve_fraction": 0.15,
+              "protected_reserve_s": 51840.0,
+              "quench_transfer_allowance_s": 960.0,
+              "repeat_allowance_s": 86400.0,
+              "required_stage_max_s": 259200.0,
+              "timed_stage_max_s": 259200.0
             },
             "scope": "one_task_prior_world_cell",
             "task_id": "reaction-to-distillation"
@@ -390,33 +398,34 @@
         },
         "cells": 15,
         "matrix_upper_bounds": {
-          "complete_experiments": 60,
-          "final_assays": 60,
+          "complete_experiments": 120,
+          "final_assays": 120,
           "input_tokens": 72000000,
           "model_calls": 15,
-          "nonfinal_instrument_uses": 120,
-          "operation_attempts": 840,
+          "nonfinal_instrument_uses": 240,
+          "operation_attempts": 1680,
           "output_tokens": 720000,
-          "process_time_s": 3031200.0,
+          "process_time_s": 5976000.0,
           "serial_seed_triplet_wall_time_s": 36000.0,
           "stock_limits": {
-            "catalyst_mol": 0.12,
-            "reagent_mol": 1.2,
-            "solvent_L": 2.4
+            "catalyst_mol": 0.276,
+            "reagent_mol": 2.76,
+            "solvent_L": 5.52
           },
           "uncached_input_tokens": 9600000,
-          "vessel_starts": 60
+          "vessel_starts": 120
         },
         "per_cell_method_limits": {
           "checkpoint_complete_experiments": [
-            1,
             2,
-            4
+            4,
+            6,
+            8
           ],
-          "complete_experiment_limit": 4,
+          "complete_experiment_limit": 8,
           "input_token_limit": 4800000,
           "model_call_limit": 1,
-          "operation_limit": 56,
+          "operation_limit": 112,
           "output_token_limit": 48000,
           "training_environment_step_limit": 0,
           "uncached_input_token_limit": 640000,
@@ -431,44 +440,46 @@
       },
       {
         "campaign_resource_card": {
-          "card_id": "work-ii-partition-k4-one-repeat",
-          "card_sha256": "0bdb0d2b42e330892155f92585e526e17be5fee8f7f2f022c376ca7eb03c4bb5",
+          "card_id": "work-ii-partition-k8-six-unique-two-repeat-planning",
+          "card_sha256": "7bbe8a689223bcb5a8231167d61910f045023ef2dfb0f7821542f776de3a5ab9",
           "hard_limits": {
-            "final_assays": 4,
-            "nonfinal_instrument_uses": 8,
-            "operation_attempts": 48,
+            "final_assays": 8,
+            "nonfinal_instrument_uses": 16,
+            "operation_attempts": 96,
             "operation_repeats": {
-              "mix": 5,
-              "separate_phase": 4,
-              "settle": 5
+              "mix": 8,
+              "separate_phase": 8,
+              "settle": 8
             },
             "per_instrument": {},
-            "process_time_s": 9000.0,
+            "process_time_s": 16560.0,
             "stocks": {
-              "extractant_L": 0.12,
-              "phase_liquid_L": 0.096,
-              "solvent_L": 0.112
+              "extractant_L": 0.276,
+              "phase_liquid_L": 0.2208,
+              "solvent_L": 0.2576
             },
-            "vessel_starts": 4
+            "vessel_starts": 8
           },
           "metadata": {
             "closeout_policy": {
               "automatic_action_repair": false,
               "automatic_closeout": false,
               "discard_path_operations_per_batch": 1,
-              "discard_path_total_operation_reserve": 4,
+              "discard_path_total_operation_reserve": 8,
               "final_assay_path_operations_per_batch": 2,
-              "final_assay_path_total_operation_reserve": 8,
-              "planned_batches": 4,
-              "policy": "participant_controlled_advisory_no_hidden_allocation"
+              "final_assay_path_total_operation_reserve": 16,
+              "planned_batches": 8,
+              "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement"
             },
             "pilot_id": "work-ii-partition-prior-campaign",
             "process_time_policy": {
-              "formula": "4 x (mix 600 s + settle 1200 s) + one extra mix and one extra settle stage",
+              "formula": "6 unique partition stages + 2 exact-repeat partition stages + 15% protected time reserve",
               "implicit_stage_reserve_s": 0.0,
-              "pattern_id": "partition-k4-one-repeat-per-timed-stage",
-              "repeat_allowance_s": 1800.0,
-              "required_stage_max_s": 7200.0
+              "pattern_id": "partition-k8-six-unique-two-repeat-planning",
+              "protected_reserve_fraction": 0.15,
+              "protected_reserve_s": 2160.0,
+              "repeat_allowance_s": 3600.0,
+              "required_stage_max_s": 10800.0
             },
             "scope": "one_task_prior_world_cell",
             "task_id": "partition-discovery"
@@ -477,33 +488,34 @@
         },
         "cells": 15,
         "matrix_upper_bounds": {
-          "complete_experiments": 60,
-          "final_assays": 60,
+          "complete_experiments": 120,
+          "final_assays": 120,
           "input_tokens": 72000000,
           "model_calls": 15,
-          "nonfinal_instrument_uses": 120,
-          "operation_attempts": 720,
+          "nonfinal_instrument_uses": 240,
+          "operation_attempts": 1440,
           "output_tokens": 720000,
-          "process_time_s": 135000.0,
+          "process_time_s": 248400.0,
           "serial_seed_triplet_wall_time_s": 36000.0,
           "stock_limits": {
-            "extractant_L": 1.7999999999999998,
-            "phase_liquid_L": 1.44,
-            "solvent_L": 1.68
+            "extractant_L": 4.140000000000001,
+            "phase_liquid_L": 3.312,
+            "solvent_L": 3.864
           },
           "uncached_input_tokens": 9600000,
-          "vessel_starts": 60
+          "vessel_starts": 120
         },
         "per_cell_method_limits": {
           "checkpoint_complete_experiments": [
-            1,
             2,
-            4
+            4,
+            6,
+            8
           ],
-          "complete_experiment_limit": 4,
+          "complete_experiment_limit": 8,
           "input_token_limit": 4800000,
           "model_call_limit": 1,
-          "operation_limit": 48,
+          "operation_limit": 96,
           "output_token_limit": 48000,
           "training_environment_step_limit": 0,
           "uncached_input_token_limit": 640000,
@@ -518,46 +530,48 @@
       },
       {
         "campaign_resource_card": {
-          "card_id": "work-ii-reaction-safety-k4-one-repeat",
-          "card_sha256": "3b13e45f00a4367db825148c8288e3cef35df0e75a08f2027ecf7b322361c642",
+          "card_id": "work-ii-reaction-safety-k8-six-unique-two-repeat-planning",
+          "card_sha256": "039dd9c4423e4beb5637e139420c171f3fef356139d8bb6b9dbe6d1a76f44b62",
           "hard_limits": {
-            "final_assays": 4,
+            "final_assays": 8,
             "implicit_operation_time_s": {
               "quench": 120.0
             },
-            "nonfinal_instrument_uses": 4,
-            "operation_attempts": 40,
+            "nonfinal_instrument_uses": 8,
+            "operation_attempts": 80,
             "operation_repeats": {
-              "heat": 5,
-              "quench": 4
+              "heat": 8,
+              "quench": 8
             },
             "per_instrument": {},
-            "process_time_s": 36480.0,
+            "process_time_s": 67344.0,
             "stocks": {
-              "catalyst_mol": 0.0022,
-              "reagent_mol": 0.12,
-              "solvent_L": 0.1
+              "catalyst_mol": 0.00506,
+              "reagent_mol": 0.276,
+              "solvent_L": 0.23
             },
-            "vessel_starts": 4
+            "vessel_starts": 8
           },
           "metadata": {
             "closeout_policy": {
               "automatic_action_repair": false,
               "automatic_closeout": false,
               "discard_path_operations_per_batch": 1,
-              "discard_path_total_operation_reserve": 4,
+              "discard_path_total_operation_reserve": 8,
               "final_assay_path_operations_per_batch": 2,
-              "final_assay_path_total_operation_reserve": 8,
-              "planned_batches": 4,
-              "policy": "participant_controlled_advisory_no_hidden_allocation"
+              "final_assay_path_total_operation_reserve": 16,
+              "planned_batches": 8,
+              "policy": "protected_closeout_reserve_planning_pending_w2_26_enforcement"
             },
             "pilot_id": "work-ii-reaction-safety-prior-campaign",
             "process_time_policy": {
-              "formula": "4 x (heat 7200 s + quench 120 s) + one extra heat stage",
-              "implicit_stage_reserve_s": 480.0,
-              "pattern_id": "reaction-safety-k4-one-repeat",
-              "repeat_allowance_s": 7200.0,
-              "required_stage_max_s": 29280.0
+              "formula": "6 unique heat-plus-quench stages + 2 exact-repeat heat-plus-quench stages + 15% protected time reserve",
+              "implicit_stage_reserve_s": 720.0,
+              "pattern_id": "reaction-safety-k8-six-unique-two-repeat-planning",
+              "protected_reserve_fraction": 0.15,
+              "protected_reserve_s": 8784.0,
+              "repeat_allowance_s": 14640.0,
+              "required_stage_max_s": 43920.0
             },
             "scope": "one_task_prior_world_cell",
             "task_id": "reaction-safety-constrained"
@@ -566,33 +580,34 @@
         },
         "cells": 15,
         "matrix_upper_bounds": {
-          "complete_experiments": 60,
-          "final_assays": 60,
+          "complete_experiments": 120,
+          "final_assays": 120,
           "input_tokens": 72000000,
           "model_calls": 15,
-          "nonfinal_instrument_uses": 60,
-          "operation_attempts": 600,
+          "nonfinal_instrument_uses": 120,
+          "operation_attempts": 1200,
           "output_tokens": 720000,
-          "process_time_s": 547200.0,
+          "process_time_s": 1010160.0,
           "serial_seed_triplet_wall_time_s": 36000.0,
           "stock_limits": {
-            "catalyst_mol": 0.033,
-            "reagent_mol": 1.7999999999999998,
-            "solvent_L": 1.5
+            "catalyst_mol": 0.07590000000000001,
+            "reagent_mol": 4.140000000000001,
+            "solvent_L": 3.45
           },
           "uncached_input_tokens": 9600000,
-          "vessel_starts": 60
+          "vessel_starts": 120
         },
         "per_cell_method_limits": {
           "checkpoint_complete_experiments": [
-            1,
             2,
-            4
+            4,
+            6,
+            8
           ],
-          "complete_experiment_limit": 4,
+          "complete_experiment_limit": 8,
           "input_token_limit": 4800000,
           "model_call_limit": 1,
-          "operation_limit": 40,
+          "operation_limit": 80,
           "output_token_limit": 48000,
           "training_environment_step_limit": 0,
           "uncached_input_token_limit": 640000,
@@ -606,9 +621,9 @@
         "worlds": 5
       }
     ],
-    "vessel_start_limit": 300
+    "vessel_start_limit": 600
   },
-  "schema_version": "chemworld-work-ii-analysis-power-audit-0.2",
+  "schema_version": "chemworld-work-ii-analysis-power-audit-0.3",
   "status": "passed",
   "variance_component_contract": {
     "model_by_session_interaction": "not_identifiable_in_the_frozen_single_method_single_session_design",

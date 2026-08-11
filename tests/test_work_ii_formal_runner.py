@@ -120,7 +120,7 @@ class _FakeFormalCellProcess:
         output.mkdir(parents=True)
         arm = cell["prior_arm"]
         completed = arm == "opaque"
-        operation_attempt_count = 4 if completed else 2 if arm == "aligned_nominal" else 0
+        operation_attempt_count = 8 if completed else 2 if arm == "aligned_nominal" else 0
         summary = {
             "formal_result": True,
             "formal_cell": cell,
@@ -133,6 +133,19 @@ class _FakeFormalCellProcess:
         }
         if completed:
             plan = _fake_blind_plan(cell)
+            plan.update(
+                {
+                    "formal_result": True,
+                    "formal_preflight_sha256": manifest["preflight_sha256"],
+                    "participant_operational_qualification_passed": True,
+                    "development_terminal_trajectory_override": False,
+                    "participant_complete_experiment_count": 8,
+                    "candidate_experiment_indices": list(range(1, 9)),
+                }
+            )
+            plan["plan_sha256"] = canonical_json_sha256(
+                {key: value for key, value in plan.items() if key != "plan_sha256"}
+            )
             plan_path = output / "blind_evaluation_plan.json"
             plan_path.write_text(json.dumps(plan), encoding="utf-8")
             summary["blind_evaluation_plan"] = {
@@ -168,10 +181,10 @@ def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> Non
         "provider_attempts_initial_planned": 75,
         "provider_attempts_hard_cap": 150,
         "provider_repeats_per_cell": 1,
-        "complete_experiments": 300,
-        "belief_checkpoints": 300,
-        "checkpoint_held_out_queries": 1200,
-        "checkpoint_held_out_query_metrics": 4080,
+        "complete_experiments": 600,
+        "belief_checkpoints": 375,
+        "checkpoint_held_out_queries": 1500,
+        "checkpoint_held_out_query_metrics": 5100,
         "evaluator_truth_executions": 100,
         "evaluator_truth_query_metrics": 340,
         "participant_final_recommendations": 75,

@@ -42,7 +42,8 @@ QUALIFICATION_TERMINAL_RECEIPT_VERSION = (
 )
 REQUIRED_CELL_QUALIFICATION_CHECKS = (
     "planned_complete_experiments",
-    "four_typed_belief_checkpoints",
+    "typed_belief_checkpoints_complete",
+    "recipe_diversity_reconciled",
     "one_campaign_session",
     "provider_session_completed",
     "final_recommendation_committed",
@@ -1160,15 +1161,16 @@ def validate_method_qualification_report(
         recommendation = analysis.get("final_recommendation")
         recommendation = recommendation if isinstance(recommendation, Mapping) else {}
         recommendation_hash = canonical_json_sha256(recommendation) if recommendation else None
+        expected_experiments = int(contract["complete_experiments_per_cell"])
         if (
-            analysis.get("complete_experiment_count") != 4
+            analysis.get("complete_experiment_count") != expected_experiments
             or analysis.get("right_censored_open_experiment") is not False
-            or experiment_indices != [1, 2, 3, 4]
+            or experiment_indices != list(range(1, expected_experiments + 1))
             or snapshot_stages != list(FORMAL_SNAPSHOT_STAGES)
             or analysis.get("resource_rejection_count") != 0
             or resources.get("campaign_terminal") is not True
-            or state.get("closed_batches") != 4
-            or state.get("final_assays") != 4
+            or state.get("closed_batches") != expected_experiments
+            or state.get("final_assays") != expected_experiments
             or audit.get("passed") is not True
             or recommendation_hash != analysis.get("final_recommendation_sha256")
         ):
@@ -1345,6 +1347,7 @@ def build_method_qualification_readiness(
         "accepted_cell_wall_time_cap_s": cell_count * float(limits.get("wall_time_limit_s", 0.0)),
     }
     blockers = [
+        "the eight-experiment pattern resource calibration block W2-26 has not been completed",
         "user must confirm the current provider contract or approve an explicit amendment",
         "user must confirm that the provider credential was rotated after exposure",
         "user must approve a qualification currency ceiling bound to the frozen gate contract",
@@ -1454,8 +1457,8 @@ def validate_method_qualification_readiness(report: Mapping[str, Any]) -> list[s
     counts = counts if isinstance(counts, Mapping) else {}
     if (
         counts.get("accepted_scientific_cells") != 3
-        or counts.get("complete_experiments") != 12
-        or counts.get("belief_checkpoints") != 12
+        or counts.get("complete_experiments") != 24
+        or counts.get("belief_checkpoints") != 15
         or counts.get("provider_process_attempts_hard_cap") != 6
     ):
         errors.append("method qualification readiness denominators are invalid")
@@ -1470,7 +1473,7 @@ def validate_method_qualification_readiness(report: Mapping[str, Any]) -> list[s
     ):
         errors.append("method qualification readiness lacks its executable resume contract")
     blockers = report.get("blocking_requirements")
-    if not isinstance(blockers, list) or len(blockers) != 4:
+    if not isinstance(blockers, list) or len(blockers) != 5:
         errors.append("method qualification readiness lacks its external blockers")
     return errors
 

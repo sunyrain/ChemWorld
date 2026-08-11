@@ -298,17 +298,20 @@ def audit(
         ) == _checkpoint_contract(config, "misindexed_nominal")
         card = _campaign_card(config)
         card_valid = (
-            int(config["campaign"]["complete_experiments"]) == 4
-            and card.vessel_start_limit == 4
-            and card.final_assay_limit == 4
-            and tuple(config["campaign"]["checkpoint_complete_experiments"]) == (0, 1, 2, 4)
+            int(config["campaign"]["complete_experiments"]) == 8
+            and card.vessel_start_limit == 8
+            and card.final_assay_limit == 8
+            and tuple(config["campaign"]["checkpoint_complete_experiments"])
+            == (0, 2, 4, 6, 8)
+            and int(config.get("qualification", {}).get("minimum_unique_recipes", -1)) == 6
+            and int(config.get("qualification", {}).get("maximum_exact_repeats", -1)) == 2
         )
         for name, passed in (
             ("dossier_multiset_matched", multiset_matched),
             ("exact_two_row_transposition", exact_transposition),
             ("swapped_property_rows_distinct", swapped_rows_distinct),
             ("informed_checkpoint_contract_matched", checkpoint_matched),
-            ("four_lifecycle_resource_card", card_valid),
+            ("eight_lifecycle_resource_card", card_valid),
         ):
             if not passed:
                 failures.append({"check": name, "task_id": task_id})
@@ -369,7 +372,7 @@ def audit(
                 "dossier_multiset_matched": multiset_matched,
                 "exact_two_row_transposition": exact_transposition,
                 "informed_checkpoint_contract_matched": checkpoint_matched,
-                "four_lifecycle_resource_card": card_valid,
+                "eight_lifecycle_resource_card": card_valid,
                 "prior_identifiability": split_results,
             }
         )
