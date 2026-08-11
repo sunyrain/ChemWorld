@@ -183,10 +183,10 @@ def _supplied_model_distance(
 ) -> dict[str, float] | None:
     model = _mapping(initial_model.get("model"))
     claim = _mapping(model.get("claim"))
-    reference_region = _mapping(
-        _mapping(initial_model.get("context_contract")).get("approximate_reference_region")
-    )
-    if not controls or (not claim and not reference_region):
+    context_contract = _mapping(initial_model.get("context_contract"))
+    reference_region = _mapping(context_contract.get("approximate_reference_region"))
+    reference_context = _mapping(context_contract.get("reference_context"))
+    if not controls or (not claim and not reference_region and not reference_context):
         return None
     if "potential_window_V" in claim and "current_window_mA" in claim:
         if "potential_V" not in controls or "current_mA" not in controls:
@@ -238,6 +238,24 @@ def _supplied_model_distance(
                 )
                 - float(reference_region.get("duration_tolerance_s", 0.0)),
                 0.0,
+            ),
+        }
+    if (
+        "probe_potential_V" in reference_context
+        and "probe_current_mA" in reference_context
+        and "controlled_duration_s" in reference_context
+    ):
+        if not {"potential_V", "current_mA", "duration_s"} <= set(controls):
+            return None
+        return {
+            "controlled_potential_V": abs(
+                float(controls["potential_V"]) - float(reference_context["probe_potential_V"])
+            ),
+            "controlled_current_mA": abs(
+                float(controls["current_mA"]) - float(reference_context["probe_current_mA"])
+            ),
+            "controlled_duration_s": abs(
+                float(controls["duration_s"]) - float(reference_context["controlled_duration_s"])
             ),
         }
     raise ValueError("unsupported supplied parametric initial-model claim")

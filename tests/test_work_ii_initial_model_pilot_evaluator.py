@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from scripts.evaluate_work_ii_initial_model_pilot import (
     _blind_skip_reason,
     _descriptive_interpretation,
@@ -152,6 +153,27 @@ def test_reaction_safety_parametric_controls_and_model_distance() -> None:
         "reaction_temperature_K": 0.0,
         "reaction_duration_s": 1500.0,
     }
+
+    electrochemical_matched_prior = {
+        "model": {"claim": {"directional_axis": "controlled_potential_V"}},
+        "context_contract": {
+            "reference_context": {
+                "probe_potential_V": 1.18,
+                "probe_current_mA": 70.0,
+                "controlled_duration_s": 3540.0,
+            }
+        },
+    }
+    assert _supplied_model_distance(
+        {"potential_V": 1.05, "current_mA": 75.0, "duration_s": 3600.0},
+        electrochemical_matched_prior,
+    ) == pytest.approx(
+        {
+            "controlled_potential_V": 0.13,
+            "controlled_current_mA": 5.0,
+            "controlled_duration_s": 60.0,
+        }
+    )
 
 
 def test_rationale_score_match_detects_one_based_incumbent_reference() -> None:
