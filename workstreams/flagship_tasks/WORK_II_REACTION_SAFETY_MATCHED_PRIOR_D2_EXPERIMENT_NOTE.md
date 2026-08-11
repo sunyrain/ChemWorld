@@ -1,7 +1,7 @@
 # Work II reaction-safety matched-prior D2
 
 Date: 2026-08-11
-Status: world 1 completed and evaluated; world 4 pending execution
+Status: completed and evaluated; pending user review before any R5 decision
 
 ## Question and tested units
 
@@ -75,4 +75,21 @@ predictive direction, but its stated prior reliability increased from `0.70` to 
 registered the temperature field as challenged. This is evidence that predictive correction and
 explicit prior rejection can dissociate. The aligned arm alone produced four unsafe outcomes, so the
 D1 descriptive signal that supplied priors reduced unsafe exploration did not replicate in world 1.
-World 4 remains required to test the preregistered opposite-direction regime.
+World 4 was subsequently executed and evaluated from the frozen config.
+
+## Final result: world 4
+
+World 4 completed `3/3` qualified cells, `30/30` experiments, `210/210` committed operations and
+`15/15` checkpoints. Its evaluator completed `16/16` truth queries and `18/18` blind replays with
+exact replay, zero evaluator provider calls and zero participant reruns. Participant execution
+recorded zero unsafe outcomes, zero dynamic physical-constraint events, zero resource rejections and
+zero platform failures.
+
+Held-out prediction error changed by `0.1958 -> 0.0559`, `0.2288 -> 0.0486` and
+`0.1298 -> 0.0532` for opaque, aligned and misspecified, respectively. The misspecified arm reduced
+stated reliability from `0.70` to `0.35` and repeatedly challenged the temperature field. However,
+the registered lower-temperature direction and the 16-query empirical direction disagreed. The first
+evaluator report had incorrectly treated the query-subset direction as the registered truth direction;
+the provider-free evaluator was corrected and rerun from its first truth query. Participant data were
+not rerun. Binary direction recovery is therefore not scored for world 4, while pointwise prediction,
+law, endpoint, safety and blind-replay measurements remain valid.

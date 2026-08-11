@@ -2,11 +2,12 @@
 
 最后更新：2026-08-11
 
-当前状态：**正式/R5 participant outcomes 尚未执行；reaction-safety mechanism-oracle Q1 与 matched-prior
-Q2 已分别以 5/5 worlds 通过，world-0 D1 与 D2 world 1 均已完成并通过独立 provider-free evaluation。**
-D1 中错误先验被稳定降权但方向未恢复，aligned arm 发生 harmful update；D2 world 1 中三臂均恢复真实
-高温方向，错误先验 arm 的预测得到纠正，但可靠度反而由 `0.70` 升至 `0.85` 且未显式标记冲突。
-D2 world 4 仍按冻结顺序待执行；未经用户审核不进入 R5。
+当前状态：**正式/R5 participant outcomes 尚未执行；reaction-safety mechanism-oracle Q1、matched-prior
+Q2、world-0 D1 与预注册 D2 worlds 1/4 均已完成。** D1/D2 共 `9/9` cells、`90/90` experiments、
+`630/630` operations、`45/45` checkpoints、`48/48` truth 与 `54/54` blind exact replay，0 platform
+failures。结果显示 conflict detection、confidence revision、predictive correction、direction recovery、law
+formation、action 和 safety 明显分离；world 4 的注册方向与 16-query empirical direction 冲突，因此 binary
+direction 不计分。结果待用户审核；未经审核不进入 R5。
 
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
@@ -318,6 +319,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | reaction-safety matched-prior Q2, seeds 0–4 | `605/605` surface queries classified；`64` physical failures；0 platform failures；`150` safe fit、`391` safe held-out；5/5 worlds pass | 五个 world 均形成基线匹配但可反驳的温度方向 prior：baseline gap `0.00050–0.01608`、held-out disagreement `48.1–53.8%`、blind margin `0.267–0.284`；supplied priors 均为 149 words 且只改 directional claim。前两次科学结果相同但 D1 config 被旧 arm-ID/四-checkpoint 硬编码静态拒绝，未启动 provider；最终 pattern-owned harness 与 D1 config 已通过静态预检，授权 reaction-safety D1。 |
 | reaction-safety matched-prior WellAU D1, seed 0 | `3/3` qualified；`30/30` experiments；`210/210` committed operations；`15/15` checkpoints；`16/16` truth 与 `18/18` blind exact replay；0 platform failures | misspecified error `0.1785->0.1361`、reliability `0.70->0.20` 且持续定位 temperature，但方向未恢复；aligned `0.1052->0.1107` 并从正确方向更新到错误方向；三臂 endpoint 近似相同。推荐动作层因可见 0-based/commit 1-based 冲突而混淆，原提交保留，D2 起已统一 1-based。 |
 | reaction-safety matched-prior D2 world 1 | `3/3` qualified；`30/30` experiments；`210/210` committed operations；`15/15` checkpoints；`16/16` truth 与 `18/18` blind exact replay；4 unsafe、0 physical、0 platform failures | 三臂最终均恢复真实 higher-temperature 方向；misspecified error `0.1386->0.0344`，但 reliability `0.70->0.85` 且无 challenged field，显示预测纠正与显式先验拒绝分离；aligned 独有 4 个 unsafe outcomes，D1 的 supplied-prior safety 信号未复现。 |
+| reaction-safety matched-prior D2 world 4 | `3/3` qualified；`30/30` experiments；`210/210` committed operations；`15/15` checkpoints；`16/16` truth 与 `18/18` blind exact replay；0 unsafe、0 physical、0 platform failures | 三臂 prediction 均改善；nominal misspecified reliability `0.70->0.35` 且持续挑战 temperature，但两个 supplied-prior law errors 为 `0.3816/0.5054`。注册 lower-temperature 与 16-query empirical higher-temperature 冲突，修复 evaluator 后 binary direction 标为 not scored，participant 未重跑。 |
 | reaction-safety DeepSeek D1, seed 0 | 3/3 terminal、2/3 qualified；descriptive H3 `+0.1005` | retained operational failure；不重跑 |
 | 首批 crystallization/partition structural screens | module gap 分别 `0.0069301`、`0.0744505` | 拒绝；不能解释为 agent 推理失败 |
 
@@ -337,8 +339,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [x] **W2-23** 按预注册 lexicographic gates 选择 reference context，构造 matched aligned/misspecified laws，
   完成 blind leakage/identifiability audit；最终为 5/5 worlds、605/605 classified、0 platform failures，D1 config
   的 arm/checkpoint/MCP/resource 静态预检全部通过。
-- [ ] **W2-24** reaction-safety 三臂 D1 已完成并评价；预注册 heterogeneity trigger 命中，D2 world 1
-  已完成 participant 与 evaluator，world 4 待按冻结顺序执行。其他通过 Q2 的 task 仍须分别完成 D1。
+- [x] **W2-24** reaction-safety 三臂 D1 与预注册 D2 worlds 1/4 均已完成 participant、provider-free
+  evaluator 和综合分析。world 4 direction diagnostic 冲突已隔离；其他通过 Q2 的 task 仍须分别完成 D1。
 - [ ] 用户审核 D1/D2、轨迹样例、资源和 evaluator 结果；未经审核不进入 R5。
 - [ ] **W2-28** 冻结 A-S 的两个机制干预候选，并为 A-O 写独立的 identifiability/D1 决策卡；在用户审核前
   不把 observation-model 或 scope/compositionality 扩展加入正式 provider 分母。
@@ -378,7 +380,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-21 | DONE | five-world oracle qualification note 已冻结 |
 | W2-22 | DOING | reaction-safety Q1-v0.3 已完成并有效拒绝 absolute qualification；electrochemical Q1 pending |
 | W2-23 | DONE | reaction-safety matched-prior Q2 以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
-| W2-24 | DOING | reaction-safety world-0 D1 与 D2 world 1 participant/evaluator 已完成；world 4 readiness 已通过，待执行 |
+| W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
 | W2-26 | NOT STARTED | 8/10/12 resource calibration |
 | W2-27 | NOT STARTED | current WellAU method qualification |
