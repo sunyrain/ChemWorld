@@ -811,11 +811,13 @@ Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学�
   `workstreams/flagship_tasks/reports/work-ii-preregistration-draft-v0.1.md`。内部检查通过，冻结并复核了
   H3、5 tasks、25 independent clusters、75 cells、300 experiments、300 checkpoints、75 accepted
   sessions、150 provider-attempt hard cap、outcome-neutral gates、failure/censoring rules 和仅含 commitment
-  的 private boundary；formal outcomes 和本轮 provider calls 均为 0。2026-08-10 的当前 clean release
+  的 private boundary；formal outcomes 和本轮 provider calls 均为 0。2026-08-11 的当前 clean release
   receipt `workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json` 绑定提交
-  `88434d535659bcf7115d4854936b0f41bc658661`，独立 clone 中 9/9 stages 通过，包括 13-node/17-edge
-  evidence graph、4/4 frozen checks、15 个文件中的 103/103 Work II tests、clean wheel 和非 editable wheel-target
-  import/config smoke；checkout 前后均 clean，provider calls 为 0。readiness 现消费并验证该 receipt，
+  `5bdc46fa16935cab1b1682e73c9816e04c552346`，receipt SHA-256 为
+  `15ff3eab9dcabc55b5136a7d90a3d31386c4f730ee4e8d1249123e59ecf88e7a`。独立 clone 中 9/9 stages
+  通过，包括 13-node/17-edge evidence graph、4/4 frozen checks、16 个文件中的 108/108 Work II tests、
+  clean wheel 和非 editable wheel-target import/config smoke；checkout 前后均 clean，provider calls 为 0。
+  readiness 现消费并验证该 receipt，
   clean-release blocker 已完成。最终 freeze 现缺 5 项：用户路线选择、current-method 真实三臂资格收据、
   provider/正式货币上限、资格运行校准 ETA，以及执行命令/预算/故障升级的用户签字确认。
   当前 source digest 漂移已通过零 provider 调用的确定性重建修复：formal preflight、preregistration
