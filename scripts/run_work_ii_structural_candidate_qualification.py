@@ -154,8 +154,9 @@ def _final_metrics(
 
 
 class Progress:
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, status_path: Path) -> None:
         self.path = path
+        self.status_path = status_path
         self.started = perf_counter()
         self.last_emit = self.started
         self.completed = 0
@@ -196,6 +197,7 @@ class Progress:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as handle:
             handle.write(rendered + "\n")
+        write_json_atomic(self.status_path, payload)
         print(rendered, flush=True)
         self.last_emit = now
 
@@ -214,6 +216,7 @@ class Progress:
         rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True)
         with self.path.open("a", encoding="utf-8") as handle:
             handle.write(rendered + "\n")
+        write_json_atomic(self.status_path, payload)
         print(rendered, flush=True)
 
 
@@ -521,7 +524,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         for candidate_id, spec in specs.items()
     }
     args.output_root.mkdir(parents=True)
-    progress = Progress(args.progress_file)
+    progress = Progress(args.progress_file, args.status_file)
     started = perf_counter()
     reports = []
     for candidate_id in specs:
@@ -691,6 +694,7 @@ def main() -> int:
     parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
     parser.add_argument("--package", type=Path, default=DEFAULT_PACKAGE)
     parser.add_argument("--progress-file", type=Path, required=True)
+    parser.add_argument("--status-file", type=Path, required=True)
     args = parser.parse_args()
     summary = run(args)
     return 0 if summary["all_candidates_passed"] else 2
