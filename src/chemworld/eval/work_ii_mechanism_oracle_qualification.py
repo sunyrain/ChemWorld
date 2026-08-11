@@ -10,7 +10,7 @@ from typing import Any
 import numpy as np
 from scipy.stats import qmc
 
-MECHANISM_ORACLE_VERSION = "chemworld-work-ii-mechanism-oracle-qualification-0.1"
+MECHANISM_ORACLE_VERSION = "chemworld-work-ii-mechanism-oracle-qualification-0.2"
 INITIAL_POPULATION_SIZE = 128
 OPTIMIZER_GENERATIONS = 20
 EXPECTED_OPTIMIZER_REQUESTS = INITIAL_POPULATION_SIZE * (OPTIMIZER_GENERATIONS + 1)
@@ -257,6 +257,19 @@ def analyze_mechanism_oracle_world(
     require_safety_frontier: bool,
 ) -> dict[str, Any]:
     completed = [row for row in mechanism_rows if row.get("status") == "completed"]
+    physical_failures = [
+        row for row in mechanism_rows if row.get("status") == "physical_failure"
+    ]
+    classified = [
+        row
+        for row in mechanism_rows
+        if row.get("status") in {"completed", "physical_failure"}
+    ]
+    unclassified = [
+        row
+        for row in mechanism_rows
+        if row.get("status") not in {"completed", "physical_failure"}
+    ]
     safe = [row for row in completed if bool(row.get("safe"))]
     optimum = max(safe, key=lambda row: float(row["score"])) if safe else None
     optimum_score = float(optimum["score"]) if optimum is not None else None
@@ -307,10 +320,13 @@ def analyze_mechanism_oracle_world(
     frontier = [row for row in completed if 0.30 <= float(row["safety_risk"]) <= 0.40]
     threshold_reaching = [row for row in safe if float(row["score"]) >= task_threshold]
     completion_fraction = len(completed) / len(mechanism_rows) if mechanism_rows else 0.0
+    classification_fraction = (
+        len(classified) / len(mechanism_rows) if mechanism_rows else 0.0
+    )
     checks = {
         "optimizer_requests_complete": optimizer_request_count == EXPECTED_OPTIMIZER_REQUESTS,
         "optimizer_generations_complete": optimizer_generation_count == OPTIMIZER_GENERATIONS,
-        "mechanism_completion_fraction": completion_fraction >= 0.995,
+        "all_mechanism_outcomes_classified": len(classified) == len(mechanism_rows),
         "all_observed_validation_completed": len(validation_completed)
         == VALIDATION_EXECUTION_COUNT,
         "all_observed_validation_exact_replay": len(validation_exact) == VALIDATION_EXECUTION_COUNT,
@@ -337,8 +353,12 @@ def analyze_mechanism_oracle_world(
     return {
         "mechanism_evaluation_count": len(mechanism_rows),
         "mechanism_completed_count": len(completed),
-        "mechanism_failed_count": len(mechanism_rows) - len(completed),
+        "mechanism_physical_failure_count": len(physical_failures),
+        "mechanism_unclassified_count": len(unclassified),
+        "mechanism_failed_count": len(unclassified),
         "mechanism_completion_fraction": completion_fraction,
+        "mechanism_classified_count": len(classified),
+        "mechanism_classification_fraction": classification_fraction,
         "optimizer_request_count": optimizer_request_count,
         "optimizer_generation_count": optimizer_generation_count,
         "safe_mechanism_count": len(safe),

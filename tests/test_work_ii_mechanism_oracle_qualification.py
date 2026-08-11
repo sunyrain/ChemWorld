@@ -184,6 +184,75 @@ def test_relative_oracle_gate_rejects_nonreplayable_flat_surface() -> None:
     assert report["checks"]["safety_frontier_coverage"] is False
 
 
+def test_classified_physical_failures_do_not_count_as_platform_incompletion() -> None:
+    mechanism_rows = _synthetic_mechanism_rows()
+    mechanism_rows.extend(
+        {
+            "evaluation_id": f"p{index:03d}",
+            "status": "physical_failure",
+            "safe": False,
+            "score": None,
+            "safety_risk": None,
+            "vector": [0.9, index / 20.0],
+            "metrics": None,
+            "physical_failure": {
+                "rollback_reason": "constitution_failed",
+                "failed_checks": ["vessel_temperature_bound"],
+            },
+        }
+        for index in range(20)
+    )
+    report = analyze_mechanism_oracle_world(
+        mechanism_rows,
+        _synthetic_target_grid(),
+        _synthetic_validation_rows(),
+        optimizer_request_count=EXPECTED_OPTIMIZER_REQUESTS,
+        optimizer_generation_count=OPTIMIZER_GENERATIONS,
+        task_threshold=0.70,
+        safety_limit=0.35,
+        primary_metric="yield",
+        target_indices=(0, 1),
+        require_safety_frontier=True,
+    )
+    assert report["passed"] is True
+    assert report["mechanism_completion_fraction"] < 0.995
+    assert report["mechanism_classification_fraction"] == 1.0
+    assert report["mechanism_physical_failure_count"] == 20
+    assert report["mechanism_unclassified_count"] == 0
+    assert report["checks"]["all_mechanism_outcomes_classified"] is True
+
+
+def test_unclassified_mechanism_failure_rejects_v02_gate() -> None:
+    mechanism_rows = _synthetic_mechanism_rows()
+    mechanism_rows.append(
+        {
+            "evaluation_id": "failed",
+            "status": "failed",
+            "safe": False,
+            "score": None,
+            "safety_risk": None,
+            "vector": [0.5, 0.5],
+            "metrics": None,
+            "failure": {"type": "RuntimeError", "message": "platform failure"},
+        }
+    )
+    report = analyze_mechanism_oracle_world(
+        mechanism_rows,
+        _synthetic_target_grid(),
+        _synthetic_validation_rows(),
+        optimizer_request_count=EXPECTED_OPTIMIZER_REQUESTS,
+        optimizer_generation_count=OPTIMIZER_GENERATIONS,
+        task_threshold=0.70,
+        safety_limit=0.35,
+        primary_metric="yield",
+        target_indices=(0, 1),
+        require_safety_frontier=True,
+    )
+    assert report["passed"] is False
+    assert report["mechanism_unclassified_count"] == 1
+    assert report["checks"]["all_mechanism_outcomes_classified"] is False
+
+
 def test_optimizer_attempts_all_frozen_generations() -> None:
     class SyntheticEvaluator:
         def evaluate(

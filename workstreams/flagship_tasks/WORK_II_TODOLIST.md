@@ -373,7 +373,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
 | W2-26 | NOT STARTED | 8/10/12 resource calibration |
 | W2-27 | NOT STARTED | current WellAU method qualification |
-| W2-29 | DOING | reaction-safety mechanism-oracle v0.1 已完成并以 1/5 拒绝；已确认唯一阻断项是 physical-failure/completion 类别混淆，v0.2 classification-only 修订与全块重跑 pending |
+| W2-29 | DOING | reaction-safety mechanism-oracle v0.1 已完成并以 1/5 拒绝；v0.2 classification-only note 已冻结，runner/tests 与全块重跑 pending |
 
 ## 12. 不可违反的规则
 

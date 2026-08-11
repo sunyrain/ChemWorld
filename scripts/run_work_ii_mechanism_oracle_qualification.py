@@ -65,8 +65,8 @@ except ModuleNotFoundError:
     )
 
 ROOT = Path(__file__).resolve().parents[1]
-SUMMARY_VERSION = "chemworld-work-ii-mechanism-oracle-five-world-summary-0.1"
-WORLD_REPORT_VERSION = "chemworld-work-ii-mechanism-oracle-world-report-0.1"
+SUMMARY_VERSION = "chemworld-work-ii-mechanism-oracle-five-world-summary-0.2"
+WORLD_REPORT_VERSION = "chemworld-work-ii-mechanism-oracle-world-report-0.2"
 TOTAL_WORLD_REQUESTS = (
     EXPECTED_OPTIMIZER_REQUESTS
     + TARGET_GRID_SIDE**2
@@ -823,6 +823,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "completed_mechanism_evaluation_count": sum(
                 int(report["analysis"]["mechanism_completed_count"]) for report in world_reports
+            ),
+            "classified_mechanism_evaluation_count": sum(
+                int(report["analysis"]["mechanism_classified_count"])
+                for report in world_reports
+            ),
+            "unclassified_mechanism_evaluation_count": sum(
+                int(report["analysis"]["mechanism_unclassified_count"])
+                for report in world_reports
             ),
             "observed_validation_count": sum(
                 int(report["analysis"]["observed_validation_completed_count"])
