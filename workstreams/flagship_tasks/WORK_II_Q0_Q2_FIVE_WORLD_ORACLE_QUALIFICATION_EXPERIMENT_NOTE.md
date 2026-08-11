@@ -39,10 +39,21 @@ executions. Raw trajectories and per-recipe rows remain under ignored `runs/`; t
 contains exact denominators, every failure, aggregate response-surface statistics and raw-report
 bindings.
 
+For reaction safety, “full-space” means the dedicated Q1 recipe contract rather than the historical
+static-optimization pilot window. Its frozen eight coordinates are temperature `250–520 K`, duration
+`1–14,400 s`, reagent amount `0.003–0.030 mol`, stirring `100–1,200 rpm`, four unordered catalysts,
+catalyst amount `0.00008–0.00055 mol`, four unordered solvents and solvent volume `0.005–0.050 L`.
+The first attempted runner incorrectly inherited the old `333.15–423.15 K` and `900–7,200 s` task
+recipe bounds. It was stopped on August 11, 2026 after 831/2,560 provider-free executions, before a
+task summary was created. Those ignored trajectories are retained as an aborted platform-defect
+attempt and never enter a Q1 denominator. The corrected reaction-safety block restarts from recipe 1
+with the original Sobol namespace, adaptive algorithm and gates unchanged.
+
 ## Measurements and gates
 
-Q0 records that the target coordinates exist in the public recipe schema, compile into permitted
-operations, affect a measured endpoint, and have a finite task threshold and safety contract.
+Q0 records that the target and coverage coordinates exist in the dedicated Q1 recipe schema, their
+physical bounds match the frozen contract, they compile into permitted operations, affect a measured
+endpoint, and have a finite task threshold and safety contract.
 
 Q1 records score and primary-metric distributions, safety risk, floor/ceiling fractions, target and
 full-space coordinates, exact replay, threshold reachability, top-region boundary location, connected

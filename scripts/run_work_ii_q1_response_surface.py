@@ -45,8 +45,8 @@ from chemworld.eval.work_ii_truth import _FrozenTruthReplayAgent
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
-SUMMARY_VERSION = "chemworld-work-ii-q1-five-world-summary-0.1"
-WORLD_REPORT_VERSION = "chemworld-work-ii-q1-world-report-0.1"
+SUMMARY_VERSION = "chemworld-work-ii-q1-five-world-summary-0.2"
+WORLD_REPORT_VERSION = "chemworld-work-ii-q1-world-report-0.2"
 SCOPED_RUNTIME_PREFIXES = (
     "src/",
     "scripts/",
@@ -62,6 +62,17 @@ TASK_SPECS: dict[str, dict[str, Any]] = {
         "metrics": ("yield", "selectivity", "safety_risk", "score"),
         "require_safety_frontier": True,
         "target_operation_check": "heat",
+        "expected_target_bounds": ((250.0, 520.0), (1.0, 14_400.0)),
+        "required_coverage_control_ids": (
+            "reaction_temperature_K",
+            "reaction_duration_s",
+            "reagent_amount_mol",
+            "stirring_speed_rpm",
+            "catalyst",
+            "catalyst_amount_mol",
+            "solvent",
+            "solvent_volume_L",
+        ),
     },
     "electrochemical-conversion": {
         "config": "configs/benchmark/work_ii_electrochemical_parametric_initial_model_pilot.json",
@@ -83,6 +94,69 @@ TASK_SPECS: dict[str, dict[str, Any]] = {
         "target_operation_check": "set_potential",
     },
 }
+
+REACTION_SAFETY_Q1_SCHEMA: tuple[dict[str, Any], ...] = (
+    {
+        "coordinate": 0,
+        "control_id": "reaction_temperature_K",
+        "kind": "linear",
+        "physical_bounds": [250.0, 520.0],
+        "unit": "K",
+    },
+    {
+        "coordinate": 1,
+        "control_id": "reaction_duration_s",
+        "kind": "linear",
+        "physical_bounds": [1.0, 14_400.0],
+        "unit": "s",
+    },
+    {
+        "coordinate": 2,
+        "control_id": "reagent_amount_mol",
+        "kind": "linear",
+        "physical_bounds": [0.003, 0.030],
+        "unit": "mol",
+    },
+    {
+        "coordinate": 3,
+        "control_id": "stirring_speed_rpm",
+        "kind": "linear",
+        "physical_bounds": [100.0, 1200.0],
+        "unit": "rpm",
+    },
+    {
+        "coordinate": 4,
+        "control_id": "catalyst",
+        "kind": "categorical",
+        "category_count": 4,
+        "numeric_distance_has_scientific_meaning": False,
+        "numeric_order_has_scientific_meaning": False,
+        "selection_semantics": "independent_unordered_nominal_choice",
+    },
+    {
+        "coordinate": 5,
+        "control_id": "catalyst_amount_mol",
+        "kind": "linear",
+        "physical_bounds": [0.00008, 0.00055],
+        "unit": "mol",
+    },
+    {
+        "coordinate": 6,
+        "control_id": "solvent",
+        "kind": "categorical",
+        "category_count": 4,
+        "numeric_distance_has_scientific_meaning": False,
+        "numeric_order_has_scientific_meaning": False,
+        "selection_semantics": "independent_unordered_nominal_choice",
+    },
+    {
+        "coordinate": 7,
+        "control_id": "solvent_volume_L",
+        "kind": "linear",
+        "physical_bounds": [0.005, 0.050],
+        "unit": "L",
+    },
+)
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -133,11 +207,76 @@ def _observation_binding(task_id: str, world_seed: int, recipe_id: str) -> dict[
     }
 
 
+def _q1_coordinate_schema(task_id: str) -> list[dict[str, Any]]:
+    if task_id == "reaction-safety-constrained":
+        return [dict(item) for item in REACTION_SAFETY_Q1_SCHEMA]
+    return [dict(item) for item in task_recipe_coordinate_schema(get_task(task_id).to_dict())]
+
+
+def _scale_unit(value: float, low: float, high: float) -> float:
+    return low + float(value) * (high - low)
+
+
+def _nominal_choice(value: float, count: int) -> int:
+    return min(int(float(value) * count), count - 1)
+
+
+def _compile_reaction_safety_q1_actions(
+    vector: Sequence[float],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    if len(vector) != len(REACTION_SAFETY_Q1_SCHEMA):
+        raise ValueError("reaction-safety Q1 vector has the wrong dimension")
+    values = [float(value) for value in vector]
+    if any(not 0.0 <= value <= 1.0 for value in values):
+        raise ValueError("reaction-safety Q1 vector must stay in [0,1]")
+    physical = {
+        "reaction_temperature_K": _scale_unit(values[0], 250.0, 520.0),
+        "reaction_duration_s": _scale_unit(values[1], 1.0, 14_400.0),
+        "reagent_amount_mol": _scale_unit(values[2], 0.003, 0.030),
+        "stirring_speed_rpm": _scale_unit(values[3], 100.0, 1200.0),
+        "catalyst": _nominal_choice(values[4], 4),
+        "catalyst_amount_mol": _scale_unit(values[5], 0.00008, 0.00055),
+        "solvent": _nominal_choice(values[6], 4),
+        "solvent_volume_L": _scale_unit(values[7], 0.005, 0.050),
+    }
+    actions = [
+        {
+            "operation": "add_solvent",
+            "volume_L": physical["solvent_volume_L"],
+            "solvent": physical["solvent"],
+        },
+        {"operation": "add_reagent", "amount_mol": physical["reagent_amount_mol"]},
+        {
+            "operation": "add_catalyst",
+            "catalyst_amount_mol": physical["catalyst_amount_mol"],
+            "catalyst": physical["catalyst"],
+        },
+        {
+            "operation": "heat",
+            "target_temperature_K": physical["reaction_temperature_K"],
+            "duration_s": physical["reaction_duration_s"],
+            "stirring_speed_rpm": physical["stirring_speed_rpm"],
+        },
+        {"operation": "quench"},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"},
+    ]
+    metadata = {
+        "recipe_contract": "work-ii-reaction-safety-q1-full-public-control-envelope-0.1",
+        "search_vector": values,
+        "physical_controls": physical,
+        "coordinate_schema": _q1_coordinate_schema("reaction-safety-constrained"),
+    }
+    return actions, metadata
+
+
 def _compile_actions(
     task_id: str,
     config: Mapping[str, Any],
     vector: Sequence[float],
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    if task_id == "reaction-safety-constrained":
+        return _compile_reaction_safety_q1_actions(vector)
     task_info = get_task(task_id).to_dict()
     workflow_mode = str(config.get("electrochemical_workflow_mode", "static_single_stage"))
     validator = StaticOptimizationValidator(
@@ -168,19 +307,33 @@ def _compile_actions(
 
 def _q0_audit(task_id: str, config: Mapping[str, Any], spec: Mapping[str, Any]) -> dict[str, Any]:
     task = get_task(task_id)
-    schema = [dict(item) for item in task_recipe_coordinate_schema(task.to_dict())]
+    schema = _q1_coordinate_schema(task_id)
     controls = {str(item["control_id"]): int(item["coordinate"]) for item in schema}
     target_control_ids = tuple(str(item) for item in spec["target_control_ids"])
     midpoint = [0.5] * len(schema)
     actions, metadata = _compile_actions(task_id, config, midpoint)
     operations = [str(action.get("operation")) for action in actions]
     expected_operation = str(spec["target_operation_check"])
+    required_coverage_control_ids = tuple(
+        str(item) for item in spec.get("required_coverage_control_ids", target_control_ids)
+    )
+    expected_target_bounds = tuple(spec.get("expected_target_bounds", ()))
+    observed_target_bounds = tuple(
+        tuple(float(value) for value in schema[controls[control]]["physical_bounds"])
+        for control in target_control_ids
+        if control in controls and "physical_bounds" in schema[controls[control]]
+    )
     checks = {
         "target_controls_present": all(control in controls for control in target_control_ids),
+        "coverage_controls_present": all(
+            control in controls for control in required_coverage_control_ids
+        ),
         "target_indices_match_schema": tuple(
             controls.get(control) for control in target_control_ids
         )
         == tuple(spec["target_indices"]),
+        "target_physical_bounds_match": not expected_target_bounds
+        or observed_target_bounds == expected_target_bounds,
         "midpoint_compiles": bool(actions),
         "target_operation_reachable": expected_operation in operations,
         "terminal_final_assay_present": bool(actions)
@@ -198,6 +351,9 @@ def _q0_audit(task_id: str, config: Mapping[str, Any], spec: Mapping[str, Any]) 
         "schema": schema,
         "target_control_ids": list(target_control_ids),
         "target_indices": list(spec["target_indices"]),
+        "required_coverage_control_ids": list(required_coverage_control_ids),
+        "observed_target_bounds": [list(bounds) for bounds in observed_target_bounds],
+        "expected_target_bounds": [list(bounds) for bounds in expected_target_bounds],
         "midpoint_action_count": len(actions),
         "midpoint_operations": operations,
         "midpoint_recipe_metadata_sha256": canonical_json_sha256(metadata),
@@ -366,7 +522,7 @@ def _run_world(
     progress_path: Path,
 ) -> dict[str, Any]:
     world_root.mkdir(parents=True, exist_ok=False)
-    schema = [dict(item) for item in task_recipe_coordinate_schema(get_task(task_id).to_dict())]
+    schema = _q1_coordinate_schema(task_id)
     broad_vectors = broad_sobol_design(task_id, world_seed, len(schema))
     broad_rows: list[dict[str, Any]] = []
     adaptive_rows: list[dict[str, Any]] = []

@@ -11,7 +11,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 from scipy.stats import qmc
 
-WORK_II_Q1_RESPONSE_SURFACE_VERSION = "chemworld-work-ii-q1-response-surface-0.1"
+WORK_II_Q1_RESPONSE_SURFACE_VERSION = "chemworld-work-ii-q1-response-surface-0.2"
 BROAD_RECIPE_COUNT = 384
 LOCAL_ANCHOR_COUNT = 28
 LOCAL_RECIPES_PER_ANCHOR = 4

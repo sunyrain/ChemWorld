@@ -5,7 +5,14 @@ import math
 from typing import Any
 
 import pytest
-from scripts.run_work_ii_q1_response_surface import ROOT, TASK_SPECS, _load, _q0_audit
+from scripts.run_work_ii_q1_response_surface import (
+    ROOT,
+    TASK_SPECS,
+    _compile_actions,
+    _load,
+    _q0_audit,
+    _q1_coordinate_schema,
+)
 
 from chemworld.eval.work_ii_response_surface_qualification import (
     ADAPTIVE_RECIPE_COUNT,
@@ -26,6 +33,35 @@ def test_q0_audit_passes_and_is_json_serializable(task_id: str) -> None:
 
     assert audit["passed"] is True
     json.dumps(audit, ensure_ascii=False, allow_nan=False, sort_keys=True)
+
+
+def test_reaction_safety_q1_uses_full_frozen_control_envelope() -> None:
+    task_id = "reaction-safety-constrained"
+    spec = TASK_SPECS[task_id]
+    config = _load((ROOT / spec["config"]).resolve())
+    schema = _q1_coordinate_schema(task_id)
+    controls = {str(item["control_id"]): item for item in schema}
+
+    assert len(schema) == 8
+    assert controls["reaction_temperature_K"]["physical_bounds"] == [250.0, 520.0]
+    assert controls["reaction_duration_s"]["physical_bounds"] == [1.0, 14_400.0]
+    assert controls["stirring_speed_rpm"]["physical_bounds"] == [100.0, 1200.0]
+    assert controls["solvent_volume_L"]["physical_bounds"] == [0.005, 0.050]
+
+    low_actions, low_metadata = _compile_actions(task_id, config, [0.0] * 8)
+    high_actions, high_metadata = _compile_actions(task_id, config, [1.0] * 8)
+    low_heat = next(action for action in low_actions if action["operation"] == "heat")
+    high_heat = next(action for action in high_actions if action["operation"] == "heat")
+
+    assert low_heat["target_temperature_K"] == 250.0
+    assert low_heat["duration_s"] == 1.0
+    assert low_heat["stirring_speed_rpm"] == 100.0
+    assert high_heat["target_temperature_K"] == 520.0
+    assert high_heat["duration_s"] == 14_400.0
+    assert high_heat["stirring_speed_rpm"] == 1200.0
+    assert low_actions[0]["volume_L"] == 0.005
+    assert high_actions[0]["volume_L"] == 0.050
+    assert low_metadata["recipe_contract"] == high_metadata["recipe_contract"]
 
 
 def _synthetic_metrics(vector: list[float]) -> tuple[float, float]:
