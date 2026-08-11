@@ -70,3 +70,22 @@ The correction makes evaluator truth honor the config-owned electrochemical work
 regression that all 16 Q2 queries compile to the two-electrolysis, 11-action autonomous-open recipe.
 No world, query, prior, threshold, resource or provider setting changes. The readiness block must
 restart from historical trajectory 1 and truth query 1 on a new clean commit before any provider call.
+
+## D1 phase result — retained operational failure
+
+The frozen world-0 participant matrix reached terminal state in `682.1 s`. `aligned_nominal` and
+`opaque` each completed `10/10` experiments with exact physical/resource replay; `misindexed_nominal`
+was stopped before any physical operation after five consecutive belief-snapshot contract failures.
+The final denominators were `20/30` complete experiments, `180` committed operations, `8/15`
+checkpoints, `16/16` provider-free truth queries with exact replay, and `0/18` blind executions.
+All three cells failed operational qualification because final checkpoints/recommendations were absent
+and recovered MCP failures exceeded the frozen per-cell limit (`6`, `7`, and `5` respectively).
+
+There were zero public unsafe outcomes, dynamic physical failures, resource rejections, provider errors
+or platform execution failures. The completed trajectories therefore remain useful development evidence,
+but the block cannot support a final executable law, final action, blind recommendation gain, H3, D2 or
+R5. Intermediate held-out error improved from `0.290720` to `0.090182` in opaque and from `0.250258` to
+`0.142923` in aligned by experiment 7, while both final checkpoints were unavailable. The
+misspecified arm produced no physical trajectory, so no claim about correcting an incorrect prior is
+authorized. Full interpretation is recorded in
+`WORK_II_ELECTROCHEMICAL_MATCHED_PRIOR_D1_ANALYSIS_ZH.md` and the machine report.
