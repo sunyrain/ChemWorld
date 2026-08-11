@@ -329,6 +329,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [ ] 用户审核 D1/D2、轨迹样例、资源和 evaluator 结果；未经审核不进入 R5。
 - [ ] **W2-28** 冻结 A-S 的两个机制干预候选，并为 A-O 写独立的 identifiability/D1 决策卡；在用户审核前
   不把 observation-model 或 scope/compositionality 扩展加入正式 provider 分母。
+- [ ] **W2-29** 运行 mechanism-oracle relative qualification：先直接求 reaction-safety 的安全相对最优、
+  Pareto/局部规律和独立 noisy replay，再以同一原则审计 electrochemical。旧 Q1-v0.2 rejection 永久保留，
+  historical leaderboard threshold 只作诊断，不直接改值。
 
 ### P1 — 重冻正式矩阵
 
@@ -366,6 +369,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
 | W2-26 | NOT STARTED | 8/10/12 resource calibration |
 | W2-27 | NOT STARTED | current WellAU method qualification |
+| W2-29 | DOING | mechanism-oracle note frozen；runner pending |
 
 ## 12. 不可违反的规则
 
