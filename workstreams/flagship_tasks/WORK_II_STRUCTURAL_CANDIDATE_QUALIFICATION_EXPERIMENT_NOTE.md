@@ -64,10 +64,33 @@ A platform defect restarts the complete affected candidate from world 0 with the
 design. Passing Q0–Q2 authorizes only a 12-experiment D1 configuration; it does not support a
 participant capability claim.
 
+### Frozen executable design
+
+- Electrochemical fixed context: electrolyte profile `0`, solvent `0`, reagent `0.012 mol`, probe
+  potential `0.80 V`, probe current `90 mA`, probe duration `300 s`, controlled duration `1800 s`.
+  The registered grid is controlled potential `{0.75, 1.05, 1.35} V` × controlled current
+  `{15, 91, 190} mA`.
+- Crystallization fixed precursor context: catalyst `0`, solvent `0`, reagent `0.015 mol`, reaction
+  temperature `398.15 K`, reaction duration `7200 s`, stirring `675 rpm`, catalyst amount
+  `0.000315 mol`, crystallization duration `7200 s`. The registered grid is seed mass
+  `{0.001, 0.008, 0.015} g` × crystallization temperature `{310, 290, 270} K`; lower temperature is
+  the more severe cooling intervention.
+- For both candidates the separately keyed noisy validation groups are grid coordinates
+  `(low, low)`, `(middle, middle)` and `(high, high)`, with three replicates per group. Validation
+  noise is estimated within group and never by mixing different interventions.
+- The electrochemical axis effects are evaluated on selective-product yield and transport/Faradaic
+  efficiency. Its topology signature is the largest registered high-current transport/Faradaic
+  efficiency loss or diminishing high-current yield gain. The crystallization axis effects are
+  evaluated on crystal yield, CSD quality and fines fraction. Its topology signature is the largest
+  registered seed × cooling interaction or seed-driven CSD/fines contrast.
+- `physical_failure` is an outcome class, not a platform attribution. In this provider-free block it
+  is `protocol_owned_physical_boundary`; in a later participant campaign the same schema-valid
+  boundary event is `participant_induced_physical_boundary`. Only compiler/payload, observation,
+  ledger, replay or execution-contract defects are `platform_failure`.
+
 ## Expected outputs
 
 1. One machine-readable five-world Q0/Q1 summary per candidate with exact denominators.
 2. One Q2 matched-prior package and one 12-experiment D1 config for each passing candidate.
 3. One readable comparison explaining why the candidate measures causal structure rather than
    endpoint magnitude.
-
