@@ -1,0 +1,1945 @@
+{
+  "coverage": {
+    "adaptive_recipes_per_world": 128,
+    "broad_recipes_per_world": 384,
+    "planned_recipe_count": 2560,
+    "recipes_per_world": 512,
+    "world_count": 5
+  },
+  "decision": "reject_candidate_cohort_before_q2",
+  "denominators": {
+    "completed_recipe_count": 2557,
+    "exact_replay_count": 2557,
+    "failed_recipe_count": 3,
+    "passed_world_count": 0,
+    "planned_recipe_count": 2560,
+    "provider_call_count": 0,
+    "world_count": 5
+  },
+  "elapsed_s": 2593.617,
+  "failure_count": 3,
+  "failures": [
+    {
+      "message": "Q1 recipe contains a noncommitted operation: operation=heat, status=rolled_back, error=None",
+      "phase": "broad",
+      "recipe_id": "b0008",
+      "type": "ValueError",
+      "world_seed": 0
+    },
+    {
+      "message": "Q1 recipe contains a noncommitted operation: operation=heat, status=rolled_back, error=None",
+      "phase": "broad",
+      "recipe_id": "b0204",
+      "type": "ValueError",
+      "world_seed": 0
+    },
+    {
+      "message": "Q1 recipe contains a noncommitted operation: operation=heat, status=rolled_back, error=None",
+      "phase": "broad",
+      "recipe_id": "b0111",
+      "type": "ValueError",
+      "world_seed": 3
+    }
+  ],
+  "formal_result": false,
+  "interpretation": "Provider-free environment qualification only. A failed Q1 world is an intervention-design result, not an agent-capability result.",
+  "q0": {
+    "checks": {
+      "coverage_controls_present": true,
+      "finite_safety_limit": true,
+      "finite_task_threshold": true,
+      "midpoint_compiles": true,
+      "target_controls_present": true,
+      "target_indices_match_schema": true,
+      "target_operation_reachable": true,
+      "target_physical_bounds_match": true,
+      "terminal_final_assay_present": true
+    },
+    "expected_target_bounds": [
+      [
+        250.0,
+        470.0
+      ],
+      [
+        1.0,
+        14400.0
+      ]
+    ],
+    "midpoint_action_count": 7,
+    "midpoint_operations": [
+      "add_solvent",
+      "add_reagent",
+      "add_catalyst",
+      "heat",
+      "quench",
+      "terminate",
+      "measure"
+    ],
+    "midpoint_recipe_metadata_sha256": "9ded24e974acfb3f384b62dd3cda10bfef4cedb0fc31a23a91576f6dd2b0400e",
+    "observed_target_bounds": [
+      [
+        250.0,
+        470.0
+      ],
+      [
+        1.0,
+        14400.0
+      ]
+    ],
+    "passed": true,
+    "required_coverage_control_ids": [
+      "reaction_temperature_K",
+      "reaction_duration_s",
+      "reagent_amount_mol",
+      "stirring_speed_rpm",
+      "catalyst",
+      "catalyst_amount_mol",
+      "solvent",
+      "solvent_volume_L"
+    ],
+    "safety_limit": 0.35,
+    "schema": [
+      {
+        "control_id": "reaction_temperature_K",
+        "coordinate": 0,
+        "kind": "linear",
+        "physical_bounds": [
+          250.0,
+          470.0
+        ],
+        "unit": "K"
+      },
+      {
+        "control_id": "reaction_duration_s",
+        "coordinate": 1,
+        "kind": "linear",
+        "physical_bounds": [
+          1.0,
+          14400.0
+        ],
+        "unit": "s"
+      },
+      {
+        "control_id": "reagent_amount_mol",
+        "coordinate": 2,
+        "kind": "linear",
+        "physical_bounds": [
+          0.003,
+          0.03
+        ],
+        "unit": "mol"
+      },
+      {
+        "control_id": "stirring_speed_rpm",
+        "coordinate": 3,
+        "kind": "linear",
+        "physical_bounds": [
+          100.0,
+          1200.0
+        ],
+        "unit": "rpm"
+      },
+      {
+        "category_count": 4,
+        "control_id": "catalyst",
+        "coordinate": 4,
+        "kind": "categorical",
+        "numeric_distance_has_scientific_meaning": false,
+        "numeric_order_has_scientific_meaning": false,
+        "selection_semantics": "independent_unordered_nominal_choice"
+      },
+      {
+        "control_id": "catalyst_amount_mol",
+        "coordinate": 5,
+        "kind": "linear",
+        "physical_bounds": [
+          8e-05,
+          0.00055
+        ],
+        "unit": "mol"
+      },
+      {
+        "category_count": 4,
+        "control_id": "solvent",
+        "coordinate": 6,
+        "kind": "categorical",
+        "numeric_distance_has_scientific_meaning": false,
+        "numeric_order_has_scientific_meaning": false,
+        "selection_semantics": "independent_unordered_nominal_choice"
+      },
+      {
+        "control_id": "solvent_volume_L",
+        "coordinate": 7,
+        "kind": "linear",
+        "physical_bounds": [
+          0.005,
+          0.05
+        ],
+        "unit": "L"
+      }
+    ],
+    "target_control_ids": [
+      "reaction_temperature_K",
+      "reaction_duration_s"
+    ],
+    "target_indices": [
+      0,
+      1
+    ],
+    "task_contract_hash": "a7a705dc87bce6684aa8022439c4cb256486df875bbce9a624111e51047bd102",
+    "task_id": "reaction-safety-constrained",
+    "task_threshold": 0.7,
+    "world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "q1_passed": false,
+  "q2_authorized": false,
+  "qualification_schema_version": "chemworld-work-ii-q1-response-surface-0.3",
+  "raw_bindings": [
+    {
+      "passed": false,
+      "path": "runs/development/work-ii-q1-reaction-safety-five-world-executable-v0.3-20260811/world-0/world-report.json",
+      "sha256": "bc21d1560caf5121602354b871cddc4d02cb9824428b0e426aebe6c6f388c417",
+      "world_seed": 0
+    },
+    {
+      "passed": false,
+      "path": "runs/development/work-ii-q1-reaction-safety-five-world-executable-v0.3-20260811/world-1/world-report.json",
+      "sha256": "efb1baaf29715ec994074a74e5ba478f3bdb88602db7f979fb5c7138019689e9",
+      "world_seed": 1
+    },
+    {
+      "passed": false,
+      "path": "runs/development/work-ii-q1-reaction-safety-five-world-executable-v0.3-20260811/world-2/world-report.json",
+      "sha256": "b809b72c094893a935eb1a66ecdf797c69216980f92e2c184b64a3383e65c8a8",
+      "world_seed": 2
+    },
+    {
+      "passed": false,
+      "path": "runs/development/work-ii-q1-reaction-safety-five-world-executable-v0.3-20260811/world-3/world-report.json",
+      "sha256": "99f43ab2aaca86c96fa2a534e30a8dccf0db9b6f8fc9335253fefd14c7840d43",
+      "world_seed": 3
+    },
+    {
+      "passed": false,
+      "path": "runs/development/work-ii-q1-reaction-safety-five-world-executable-v0.3-20260811/world-4/world-report.json",
+      "sha256": "ceba8eda823d1178f4e0422d8b243c1984531d727948f674927de6739061274f",
+      "world_seed": 4
+    }
+  ],
+  "schema_version": "chemworld-work-ii-q1-five-world-summary-0.3",
+  "scoped_runtime_clean": true,
+  "source_commit": "ff6f1c5489616d98b634e317dea23a536df1b44d",
+  "summary_sha256": "697aef0132ed4ee09c4d78973a95052bd2c270d7740e4eb96fc3782a9e9a6dc7",
+  "task_id": "reaction-safety-constrained",
+  "unrelated_dirty_paths_excluded": [],
+  "world_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "worlds": [
+    {
+      "elapsed_s": 500.263,
+      "failure_count": 2,
+      "passed": false,
+      "q1": {
+        "ceiling_fraction": 0.0,
+        "checks": {
+          "absolute_reachability": false,
+          "all_512_completed": false,
+          "all_512_exact_replay": false,
+          "ceiling_not_saturated": true,
+          "dynamic_range": true,
+          "floor_not_saturated": false,
+          "local_parametric_structure": false,
+          "nonisolated_success_basin": false,
+          "primary_metric_effect": true,
+          "safety_frontier_coverage": true,
+          "top_region_has_target_interior": true
+        },
+        "completed_recipe_count": 510,
+        "dynamic_range_p90_p10": 0.19392838114581507,
+        "exact_replay_count": 510,
+        "failed_recipe_count": 2,
+        "feasible_recipe_count": 506,
+        "feasible_score_distribution": {
+          "count": 506,
+          "maximum": 0.3118542662425191,
+          "mean": 0.07187743818791603,
+          "median": 0.04419503098533759,
+          "minimum": 0.0,
+          "p10": 0.0,
+          "p90": 0.19392838114581507,
+          "sample_sd": 0.07842260240188026
+        },
+        "floor_fraction": 0.2725490196078431,
+        "gradient_sign_reversal": false,
+        "interaction_family_count": 0,
+        "largest_success_component": 0,
+        "local_effects": [
+          {
+            "anchor_id": "anchor-01",
+            "center_score": 0.29656702935361956,
+            "gradient_x_contrast": 0.030562375595212465,
+            "gradient_y_contrast": 0.015954950567006188,
+            "interaction_contrast": -0.010895736612182072,
+            "maximum_effect": 0.030562375595212465,
+            "source_recipe_id": "b0292"
+          },
+          {
+            "anchor_id": "anchor-02",
+            "center_score": 0.28929125719183624,
+            "gradient_x_contrast": 0.017788365166705067,
+            "gradient_y_contrast": -0.005187335141039584,
+            "interaction_contrast": -0.0016301266444873064,
+            "maximum_effect": 0.017788365166705067,
+            "source_recipe_id": "b0045"
+          },
+          {
+            "anchor_id": "anchor-03",
+            "center_score": 0.229757816987106,
+            "gradient_x_contrast": 0.020973647635444403,
+            "gradient_y_contrast": 0.031679859827113604,
+            "interaction_contrast": 0.00037547216465733113,
+            "maximum_effect": 0.031679859827113604,
+            "source_recipe_id": "b0032"
+          },
+          {
+            "anchor_id": "anchor-04",
+            "center_score": 0.21204368348994226,
+            "gradient_x_contrast": -0.0024871829676627877,
+            "gradient_y_contrast": -0.010695355978622006,
+            "interaction_contrast": -0.0035939496965757822,
+            "maximum_effect": 0.010695355978622006,
+            "source_recipe_id": "b0133"
+          },
+          {
+            "anchor_id": "anchor-05",
+            "center_score": 0.2041618144042641,
+            "gradient_x_contrast": -0.014218978589467163,
+            "gradient_y_contrast": -0.030872556179671162,
+            "interaction_contrast": -0.0008482921196746873,
+            "maximum_effect": 0.030872556179671162,
+            "source_recipe_id": "b0096"
+          },
+          {
+            "anchor_id": "anchor-06",
+            "center_score": 0.2029398936684586,
+            "gradient_x_contrast": 0.02352163509926536,
+            "gradient_y_contrast": -0.0016395428170861703,
+            "interaction_contrast": 0.0014802920287319554,
+            "maximum_effect": 0.02352163509926536,
+            "source_recipe_id": "b0343"
+          },
+          {
+            "anchor_id": "anchor-07",
+            "center_score": 0.20055163894378025,
+            "gradient_x_contrast": 0.013647237088014297,
+            "gradient_y_contrast": 0.006987971507091628,
+            "interaction_contrast": 0.004217298480742759,
+            "maximum_effect": 0.013647237088014297,
+            "source_recipe_id": "b0112"
+          },
+          {
+            "anchor_id": "anchor-08",
+            "center_score": 0.19893147406849032,
+            "gradient_x_contrast": -0.013857638110851611,
+            "gradient_y_contrast": -0.027763001343144467,
+            "interaction_contrast": -0.0011712048282203347,
+            "maximum_effect": 0.027763001343144467,
+            "source_recipe_id": "b0337"
+          },
+          {
+            "anchor_id": "anchor-09",
+            "center_score": 0.18675184489603822,
+            "gradient_x_contrast": -0.020244290479441235,
+            "gradient_y_contrast": -0.019940191248137118,
+            "interaction_contrast": 0.003674640495309689,
+            "maximum_effect": 0.020244290479441235,
+            "source_recipe_id": "b0245"
+          },
+          {
+            "anchor_id": "anchor-10",
+            "center_score": 0.17962499780670654,
+            "gradient_x_contrast": 0.01963636913855024,
+            "gradient_y_contrast": 0.003453572817957773,
+            "interaction_contrast": 0.007723853326924046,
+            "maximum_effect": 0.01963636913855024,
+            "source_recipe_id": "b0364"
+          },
+          {
+            "anchor_id": "anchor-11",
+            "center_score": 0.1772750099045788,
+            "gradient_x_contrast": 0.02012248290266916,
+            "gradient_y_contrast": 0.032166445490275974,
+            "interaction_contrast": -0.002171292585798401,
+            "maximum_effect": 0.032166445490275974,
+            "source_recipe_id": "b0352"
+          },
+          {
+            "anchor_id": "anchor-12",
+            "center_score": 0.17468960240068043,
+            "gradient_x_contrast": 0.008598494172863014,
+            "gradient_y_contrast": -0.014413826412371433,
+            "interaction_contrast": -0.003589914571039299,
+            "maximum_effect": 0.014413826412371433,
+            "source_recipe_id": "b0237"
+          },
+          {
+            "anchor_id": "anchor-13",
+            "center_score": 0.17425589733062585,
+            "gradient_x_contrast": 0.014935409726169968,
+            "gradient_y_contrast": -0.009933306296484645,
+            "interaction_contrast": 3.300052489468852e-06,
+            "maximum_effect": 0.014935409726169968,
+            "source_recipe_id": "b0084"
+          },
+          {
+            "anchor_id": "anchor-14",
+            "center_score": 0.16836565138259563,
+            "gradient_x_contrast": -5.523719691424844e-06,
+            "gradient_y_contrast": -0.0020732230839283217,
+            "interaction_contrast": -0.0031694093547250946,
+            "maximum_effect": 0.0031694093547250946,
+            "source_recipe_id": "b0177"
+          },
+          {
+            "anchor_id": "anchor-15",
+            "center_score": 0.042858552490141005,
+            "gradient_x_contrast": -0.02270300241601611,
+            "gradient_y_contrast": -0.026140988226995093,
+            "interaction_contrast": 0.0019355719959369133,
+            "maximum_effect": 0.026140988226995093,
+            "source_recipe_id": "b0097"
+          },
+          {
+            "anchor_id": "anchor-16",
+            "center_score": 0.0019900624203863515,
+            "gradient_x_contrast": -0.005994450321852654,
+            "gradient_y_contrast": -0.0029288785577309268,
+            "interaction_contrast": -0.0035681508290491687,
+            "maximum_effect": 0.005994450321852654,
+            "source_recipe_id": "b0053"
+          },
+          {
+            "anchor_id": "anchor-17",
+            "center_score": 0.13282987341007654,
+            "gradient_x_contrast": -0.023095626040754436,
+            "gradient_y_contrast": -0.018418614009121634,
+            "interaction_contrast": -0.002223615259541456,
+            "maximum_effect": 0.023095626040754436,
+            "source_recipe_id": "b0167"
+          },
+          {
+            "anchor_id": "anchor-18",
+            "center_score": 0.13335870272108938,
+            "gradient_x_contrast": 0.0074842207872211075,
+            "gradient_y_contrast": -0.01215867423132537,
+            "interaction_contrast": 0.0016521613184415085,
+            "maximum_effect": 0.01215867423132537,
+            "source_recipe_id": "b0349"
+          },
+          {
+            "anchor_id": "anchor-19",
+            "center_score": 0.16555099875177118,
+            "gradient_x_contrast": 0.0014889112427861062,
+            "gradient_y_contrast": -0.01325213928463942,
+            "interaction_contrast": -0.010283166540484223,
+            "maximum_effect": 0.01325213928463942,
+            "source_recipe_id": "b0140"
+          },
+          {
+            "anchor_id": "anchor-20",
+            "center_score": 0.08564222550110903,
+            "gradient_x_contrast": 0.010511708072622819,
+            "gradient_y_contrast": 0.008624777918059282,
+            "interaction_contrast": 0.00905493870269121,
+            "maximum_effect": 0.010511708072622819,
+            "source_recipe_id": "b0288"
+          },
+          {
+            "anchor_id": "anchor-21",
+            "center_score": 0.022799037128948513,
+            "gradient_x_contrast": -0.02068257716131365,
+            "gradient_y_contrast": -0.020071145487025058,
+            "interaction_contrast": 0.0066288856500728716,
+            "maximum_effect": 0.02068257716131365,
+            "source_recipe_id": "b0109"
+          },
+          {
+            "anchor_id": "anchor-22",
+            "center_score": 0.07452954961952814,
+            "gradient_x_contrast": 0.01815001234728634,
+            "gradient_y_contrast": 0.004023429158048902,
+            "interaction_contrast": 0.0002937564801696324,
+            "maximum_effect": 0.01815001234728634,
+            "source_recipe_id": "b0221"
+          },
+          {
+            "anchor_id": "anchor-23",
+            "center_score": 0.031446111097607754,
+            "gradient_x_contrast": 8.598365434013197e-05,
+            "gradient_y_contrast": 0.032808425391653025,
+            "interaction_contrast": 0.00656614910386585,
+            "maximum_effect": 0.032808425391653025,
+            "source_recipe_id": "b0240"
+          },
+          {
+            "anchor_id": "anchor-24",
+            "center_score": 0.026708990486406334,
+            "gradient_x_contrast": 0.021547360426980418,
+            "gradient_y_contrast": 0.007489591345165629,
+            "interaction_contrast": 0.002047376250850573,
+            "maximum_effect": 0.021547360426980418,
+            "source_recipe_id": "b0164"
+          },
+          {
+            "anchor_id": "anchor-25",
+            "center_score": 0.06793643621742254,
+            "gradient_x_contrast": 0.004009113528489067,
+            "gradient_y_contrast": -0.0006586160800460539,
+            "interaction_contrast": -0.006197934071996591,
+            "maximum_effect": 0.006197934071996591,
+            "source_recipe_id": "b0176"
+          },
+          {
+            "anchor_id": "anchor-26",
+            "center_score": 0.16411790520107744,
+            "gradient_x_contrast": 0.028081727381529337,
+            "gradient_y_contrast": -0.002629043498227346,
+            "interaction_contrast": -0.003166258212750739,
+            "maximum_effect": 0.028081727381529337,
+            "source_recipe_id": "b0063"
+          },
+          {
+            "anchor_id": "anchor-27",
+            "center_score": 0.015433002527470131,
+            "gradient_x_contrast": 0.031369861022824845,
+            "gradient_y_contrast": -0.0004688779732895422,
+            "interaction_contrast": -0.00023092186814850993,
+            "maximum_effect": 0.031369861022824845,
+            "source_recipe_id": "b0207"
+          },
+          {
+            "anchor_id": "anchor-28",
+            "center_score": 0.009130535173371396,
+            "gradient_x_contrast": 0.004465267253543653,
+            "gradient_y_contrast": 0.0014724634891035704,
+            "interaction_contrast": 0.0014724634891035704,
+            "maximum_effect": 0.004465267253543653,
+            "source_recipe_id": "b0087"
+          }
+        ],
+        "local_family_count": 28,
+        "passed": false,
+        "planned_recipe_count": 512,
+        "primary_metric": "yield",
+        "primary_metric_distribution": {
+          "count": 506,
+          "maximum": 0.5396303534507751,
+          "mean": 0.1683325240195369,
+          "median": 0.14013655483722687,
+          "minimum": 0.0,
+          "p10": 0.01714235171675682,
+          "p90": 0.3586437404155731,
+          "sample_sd": 0.132349407345334
+        },
+        "primary_metric_effect_gate": 0.1,
+        "primary_metric_noise": {
+          "complete_group_count": 8,
+          "metric": "yield",
+          "planned_group_count": 8,
+          "sigma": 0.005426034152835804
+        },
+        "primary_metric_range": 0.5396303534507751,
+        "qualifying_local_family_count": 0,
+        "safety_frontier_recipe_count": 74,
+        "score_distribution": {
+          "count": 510,
+          "maximum": 0.3118542662425191,
+          "mean": 0.07212057542519805,
+          "median": 0.04448039276234696,
+          "minimum": 0.0,
+          "p10": 0.0,
+          "p90": 0.194152678027535,
+          "sample_sd": 0.07845418978676993
+        },
+        "score_effect_gate": 0.1,
+        "score_noise": {
+          "complete_group_count": 8,
+          "metric": "score",
+          "planned_group_count": 8,
+          "sigma": 0.0035380116385737605
+        },
+        "successful_recipe_count": 0,
+        "top_five_percent_count": 26,
+        "top_region_has_target_interior": true
+      },
+      "world_seed": 0
+    },
+    {
+      "elapsed_s": 579.708,
+      "failure_count": 0,
+      "passed": false,
+      "q1": {
+        "ceiling_fraction": 0.0,
+        "checks": {
+          "absolute_reachability": false,
+          "all_512_completed": true,
+          "all_512_exact_replay": true,
+          "ceiling_not_saturated": true,
+          "dynamic_range": true,
+          "floor_not_saturated": false,
+          "local_parametric_structure": false,
+          "nonisolated_success_basin": false,
+          "primary_metric_effect": true,
+          "safety_frontier_coverage": true,
+          "top_region_has_target_interior": true
+        },
+        "completed_recipe_count": 512,
+        "dynamic_range_p90_p10": 0.16012836680729534,
+        "exact_replay_count": 512,
+        "failed_recipe_count": 0,
+        "feasible_recipe_count": 505,
+        "feasible_score_distribution": {
+          "count": 505,
+          "maximum": 0.2906421110509175,
+          "mean": 0.05525054224258551,
+          "median": 0.02276230284650485,
+          "minimum": 0.0,
+          "p10": 0.0,
+          "p90": 0.16012836680729534,
+          "sample_sd": 0.07154433315230385
+        },
+        "floor_fraction": 0.373046875,
+        "gradient_sign_reversal": false,
+        "interaction_family_count": 0,
+        "largest_success_component": 0,
+        "local_effects": [
+          {
+            "anchor_id": "anchor-01",
+            "center_score": 0.2618063572171319,
+            "gradient_x_contrast": 0.026646983967317378,
+            "gradient_y_contrast": 0.05759469189055827,
+            "interaction_contrast": -0.00309374921853256,
+            "maximum_effect": 0.05759469189055827,
+            "source_recipe_id": "b0255"
+          },
+          {
+            "anchor_id": "anchor-02",
+            "center_score": 0.2605913312690215,
+            "gradient_x_contrast": 0.004647976547791144,
+            "gradient_y_contrast": 5.54223779380969e-05,
+            "interaction_contrast": -0.00548021428528539,
+            "maximum_effect": 0.00548021428528539,
+            "source_recipe_id": "b0142"
+          },
+          {
+            "anchor_id": "anchor-03",
+            "center_score": 0.2452406434427218,
+            "gradient_x_contrast": -0.006909608718284471,
+            "gradient_y_contrast": -0.007287207623488529,
+            "interaction_contrast": -0.0017580497763766412,
+            "maximum_effect": 0.007287207623488529,
+            "source_recipe_id": "b0022"
+          },
+          {
+            "anchor_id": "anchor-04",
+            "center_score": 0.21995376842620853,
+            "gradient_x_contrast": 0.0008951617672001699,
+            "gradient_y_contrast": -0.0019459978613849405,
+            "interaction_contrast": -0.0035320728357620124,
+            "maximum_effect": 0.0035320728357620124,
+            "source_recipe_id": "b0107"
+          },
+          {
+            "anchor_id": "anchor-05",
+            "center_score": 0.20265894832092818,
+            "gradient_x_contrast": 0.015985639524704803,
+            "gradient_y_contrast": 0.004994936635478731,
+            "interaction_contrast": 0.0005874701123725345,
+            "maximum_effect": 0.015985639524704803,
+            "source_recipe_id": "b0091"
+          },
+          {
+            "anchor_id": "anchor-06",
+            "center_score": 0.19347534994833954,
+            "gradient_x_contrast": 0.006763703070575167,
+            "gradient_y_contrast": -0.010828539345272697,
+            "interaction_contrast": 0.0022917206143548974,
+            "maximum_effect": 0.010828539345272697,
+            "source_recipe_id": "b0370"
+          },
+          {
+            "anchor_id": "anchor-07",
+            "center_score": 0.16740477384520142,
+            "gradient_x_contrast": 0.013205873466036328,
+            "gradient_y_contrast": -0.008663044600997122,
+            "interaction_contrast": -0.0017740777122317586,
+            "maximum_effect": 0.013205873466036328,
+            "source_recipe_id": "b0283"
+          },
+          {
+            "anchor_id": "anchor-08",
+            "center_score": 0.1579876032039656,
+            "gradient_x_contrast": -0.004837090481741302,
+            "gradient_y_contrast": -0.007979273373743018,
+            "interaction_contrast": -0.009562472538069688,
+            "maximum_effect": 0.009562472538069688,
+            "source_recipe_id": "b0274"
+          },
+          {
+            "anchor_id": "anchor-09",
+            "center_score": 0.15394561698683693,
+            "gradient_x_contrast": -0.02363311472167534,
+            "gradient_y_contrast": -0.0288783006244569,
+            "interaction_contrast": -0.00070262436623586,
+            "maximum_effect": 0.0288783006244569,
+            "source_recipe_id": "b0194"
+          },
+          {
+            "anchor_id": "anchor-10",
+            "center_score": 0.15355806033967487,
+            "gradient_x_contrast": 0.008677119123727595,
+            "gradient_y_contrast": 0.001427220221196096,
+            "interaction_contrast": -0.0014634533711553877,
+            "maximum_effect": 0.008677119123727595,
+            "source_recipe_id": "b0191"
+          },
+          {
+            "anchor_id": "anchor-11",
+            "center_score": 0.15316238776463295,
+            "gradient_x_contrast": -0.00021281209749879348,
+            "gradient_y_contrast": -0.008968905833166896,
+            "interaction_contrast": -0.002104041000081408,
+            "maximum_effect": 0.008968905833166896,
+            "source_recipe_id": "b0358"
+          },
+          {
+            "anchor_id": "anchor-12",
+            "center_score": 0.15307336280578035,
+            "gradient_x_contrast": 0.020280053303899648,
+            "gradient_y_contrast": 0.00404434687393021,
+            "interaction_contrast": 0.003528920296492599,
+            "maximum_effect": 0.020280053303899648,
+            "source_recipe_id": "b0203"
+          },
+          {
+            "anchor_id": "anchor-13",
+            "center_score": 0.15025597240031316,
+            "gradient_x_contrast": 0.01096159525039328,
+            "gradient_y_contrast": 0.000351541969916519,
+            "interaction_contrast": -0.0009517943903776804,
+            "maximum_effect": 0.01096159525039328,
+            "source_recipe_id": "b0312"
+          },
+          {
+            "anchor_id": "anchor-14",
+            "center_score": 0.1473981422501668,
+            "gradient_x_contrast": 0.015850482793738796,
+            "gradient_y_contrast": -0.0001790620099645368,
+            "interaction_contrast": 0.0017962682147363573,
+            "maximum_effect": 0.015850482793738796,
+            "source_recipe_id": "b0286"
+          },
+          {
+            "anchor_id": "anchor-15",
+            "center_score": 0.023627684070394506,
+            "gradient_x_contrast": 0.021348855411619627,
+            "gradient_y_contrast": -0.0015199104813295727,
+            "interaction_contrast": 0.006519701199697581,
+            "maximum_effect": 0.021348855411619627,
+            "source_recipe_id": "b0179"
+          },
+          {
+            "anchor_id": "anchor-16",
+            "center_score": 0.006738530546489596,
+            "gradient_x_contrast": 0.017005147772348947,
+            "gradient_y_contrast": 0.0027485332793495826,
+            "interaction_contrast": 0.0027485332793495826,
+            "maximum_effect": 0.017005147772348947,
+            "source_recipe_id": "b0200"
+          },
+          {
+            "anchor_id": "anchor-17",
+            "center_score": 0.034039117056793966,
+            "gradient_x_contrast": -0.01564154602170352,
+            "gradient_y_contrast": -0.011370761574658397,
+            "interaction_contrast": -0.001878468061593211,
+            "maximum_effect": 0.01564154602170352,
+            "source_recipe_id": "b0318"
+          },
+          {
+            "anchor_id": "anchor-18",
+            "center_score": 0.017696224844156172,
+            "gradient_x_contrast": 0.009016939647329622,
+            "gradient_y_contrast": 0.039790932629970924,
+            "interaction_contrast": 0.009016939647329622,
+            "maximum_effect": 0.039790932629970924,
+            "source_recipe_id": "b0063"
+          },
+          {
+            "anchor_id": "anchor-19",
+            "center_score": 0.006954226489924359,
+            "gradient_x_contrast": 0.016197994605697305,
+            "gradient_y_contrast": 0.002060048193848349,
+            "interaction_contrast": 0.002060048193848349,
+            "maximum_effect": 0.016197994605697305,
+            "source_recipe_id": "b0014"
+          },
+          {
+            "anchor_id": "anchor-20",
+            "center_score": 0.03941062834810882,
+            "gradient_x_contrast": -0.0049822202553352485,
+            "gradient_y_contrast": -0.006559910199997757,
+            "interaction_contrast": 0.0015085279020635028,
+            "maximum_effect": 0.006559910199997757,
+            "source_recipe_id": "b0086"
+          },
+          {
+            "anchor_id": "anchor-21",
+            "center_score": 0.0,
+            "gradient_x_contrast": 0.0,
+            "gradient_y_contrast": 0.0,
+            "interaction_contrast": 0.0,
+            "maximum_effect": 0.0,
+            "source_recipe_id": "b0204"
+          },
+          {
+            "anchor_id": "anchor-22",
+            "center_score": 0.010655092060182447,
+            "gradient_x_contrast": 0.009857484722447865,
+            "gradient_y_contrast": 0.001442651431819278,
+            "interaction_contrast": 0.004368863058327649,
+            "maximum_effect": 0.009857484722447865,
+            "source_recipe_id": "b0126"
+          },
+          {
+            "anchor_id": "anchor-23",
+            "center_score": 0.0,
+            "gradient_x_contrast": 0.0,
+            "gradient_y_contrast": 0.0,
+            "interaction_contrast": 0.0,
+            "maximum_effect": 0.0,
+            "source_recipe_id": "b0079"
+          },
+          {
+            "anchor_id": "anchor-24",
+            "center_score": 0.11459368191236183,
+            "gradient_x_contrast": 0.016615121772076344,
+            "gradient_y_contrast": 0.017841014204176567,
+            "interaction_contrast": -0.0027837337214708657,
+            "maximum_effect": 0.017841014204176567,
+            "source_recipe_id": "b0015"
+          },
+          {
+            "anchor_id": "anchor-25",
+            "center_score": 0.10301964289536661,
+            "gradient_x_contrast": 0.015557428064229537,
+            "gradient_y_contrast": 0.0019082997173442418,
+            "interaction_contrast": 0.0013460276228182688,
+            "maximum_effect": 0.015557428064229537,
+            "source_recipe_id": "b0230"
+          },
+          {
+            "anchor_id": "anchor-26",
+            "center_score": 0.03040133811560997,
+            "gradient_x_contrast": 0.005045984742521915,
+            "gradient_y_contrast": 0.006918794775388558,
+            "interaction_contrast": 0.002103733649181861,
+            "maximum_effect": 0.006918794775388558,
+            "source_recipe_id": "b0059"
+          },
+          {
+            "anchor_id": "anchor-27",
+            "center_score": 0.0895847216610554,
+            "gradient_x_contrast": 0.014254385061206312,
+            "gradient_y_contrast": 0.0014341716996109644,
+            "interaction_contrast": 0.006835921979896423,
+            "maximum_effect": 0.014254385061206312,
+            "source_recipe_id": "b0155"
+          },
+          {
+            "anchor_id": "anchor-28",
+            "center_score": 0.02542047826876133,
+            "gradient_x_contrast": -0.0007646514072103955,
+            "gradient_y_contrast": 0.004837935380761785,
+            "interaction_contrast": -0.00018411922835266659,
+            "maximum_effect": 0.004837935380761785,
+            "source_recipe_id": "b0050"
+          }
+        ],
+        "local_family_count": 28,
+        "passed": false,
+        "planned_recipe_count": 512,
+        "primary_metric": "yield",
+        "primary_metric_distribution": {
+          "count": 505,
+          "maximum": 0.5447728633880615,
+          "mean": 0.14097538984675734,
+          "median": 0.10956785082817078,
+          "minimum": 0.0,
+          "p10": 0.01311435401439667,
+          "p90": 0.29905087351799015,
+          "sample_sd": 0.12386622851252668
+        },
+        "primary_metric_effect_gate": 0.1,
+        "primary_metric_noise": {
+          "complete_group_count": 8,
+          "metric": "yield",
+          "planned_group_count": 8,
+          "sigma": 0.004948659607552651
+        },
+        "primary_metric_range": 0.5447728633880615,
+        "qualifying_local_family_count": 0,
+        "safety_frontier_recipe_count": 45,
+        "score_distribution": {
+          "count": 512,
+          "maximum": 0.2906421110509175,
+          "mean": 0.054996461667425736,
+          "median": 0.022389082902759566,
+          "minimum": 0.0,
+          "p10": 0.0,
+          "p90": 0.1601679581993443,
+          "sample_sd": 0.07153906135712146
+        },
+        "score_effect_gate": 0.1,
+        "score_noise": {
+          "complete_group_count": 8,
+          "metric": "score",
+          "planned_group_count": 8,
+          "sigma": 0.0034346762162292322
+        },
+        "successful_recipe_count": 0,
+        "top_five_percent_count": 26,
+        "top_region_has_target_interior": true
+      },
+      "world_seed": 1
+    },
+    {
+      "elapsed_s": 508.52,
+      "failure_count": 0,
+      "passed": false,
+      "q1": {
+        "ceiling_fraction": 0.0,
+        "checks": {
+          "absolute_reachability": false,
+          "all_512_completed": true,
+          "all_512_exact_replay": true,
+          "ceiling_not_saturated": true,
+          "dynamic_range": true,
+          "floor_not_saturated": false,
+          "local_parametric_structure": false,
+          "nonisolated_success_basin": false,
+          "primary_metric_effect": true,
+          "safety_frontier_coverage": true,
+          "top_region_has_target_interior": true
+        },
+        "completed_recipe_count": 512,
+        "dynamic_range_p90_p10": 0.28144811921530244,
+        "exact_replay_count": 512,
+        "failed_recipe_count": 0,
+        "feasible_recipe_count": 499,
+        "feasible_score_distribution": {
+          "count": 499,
+          "maximum": 0.3740654285489314,
+          "mean": 0.10762656268120178,
+          "median": 0.07195653052919306,
+          "minimum": 0.0,
+          "p10": 0.0,
+          "p90": 0.28144811921530244,
+          "sample_sd": 0.10716464727459404
+        },
+        "floor_fraction": 0.232421875,
+        "gradient_sign_reversal": false,
+        "interaction_family_count": 0,
+        "largest_success_component": 0,
+        "local_effects": [
+          {
+            "anchor_id": "anchor-01",
+            "center_score": 0.368887656122679,
+            "gradient_x_contrast": 0.006850253830901876,
+            "gradient_y_contrast": 0.016655792895031718,
+            "interaction_contrast": -0.010567002961453742,
+            "maximum_effect": 0.016655792895031718,
+            "source_recipe_id": "b0017"
+          },
+          {
+            "anchor_id": "anchor-02",
+            "center_score": 0.3430419056024001,
+            "gradient_x_contrast": 0.0022534257043828054,
+            "gradient_y_contrast": -0.012438954576637351,
+            "interaction_contrast": -0.008287571947144967,
+            "maximum_effect": 0.012438954576637351,
+            "source_recipe_id": "b0157"
+          },
+          {
+            "anchor_id": "anchor-03",
+            "center_score": 0.3184907713880876,
+            "gradient_x_contrast": 0.026019604388352324,
+            "gradient_y_contrast": 0.005330746855675028,
+            "interaction_contrast": -0.002872264798929547,
+            "maximum_effect": 0.026019604388352324,
+            "source_recipe_id": "b0069"
+          },
+          {
+            "anchor_id": "anchor-04",
+            "center_score": 0.3151013188182854,
+            "gradient_x_contrast": -0.01387859896801158,
+            "gradient_y_contrast": -0.010623749668764115,
+            "interaction_contrast": 0.002106768332731379,
+            "maximum_effect": 0.01387859896801158,
+            "source_recipe_id": "b0316"
+          },
+          {
+            "anchor_id": "anchor-05",
+            "center_score": 0.3117087736347454,
+            "gradient_x_contrast": 0.006476122003284013,
+            "gradient_y_contrast": -0.01828498401155343,
+            "interaction_contrast": -0.013285508132612533,
+            "maximum_effect": 0.01828498401155343,
+            "source_recipe_id": "b0005"
+          },
+          {
+            "anchor_id": "anchor-06",
+            "center_score": 0.28905180088836446,
+            "gradient_x_contrast": 0.007098513973148535,
+            "gradient_y_contrast": 0.00666814127034232,
+            "interaction_contrast": -0.0009832851007326449,
+            "maximum_effect": 0.007098513973148535,
+            "source_recipe_id": "b0321"
+          },
+          {
+            "anchor_id": "anchor-07",
+            "center_score": 0.28716200117869667,
+            "gradient_x_contrast": 0.020352214190264117,
+            "gradient_y_contrast": 0.0032339053324981215,
+            "interaction_contrast": -0.0014689757705008688,
+            "maximum_effect": 0.020352214190264117,
+            "source_recipe_id": "b0252"
+          },
+          {
+            "anchor_id": "anchor-08",
+            "center_score": 0.28142605275585136,
+            "gradient_x_contrast": 0.017987073412925547,
+            "gradient_y_contrast": 0.02054786878780518,
+            "interaction_contrast": -0.00481347620354694,
+            "maximum_effect": 0.02054786878780518,
+            "source_recipe_id": "b0225"
+          },
+          {
+            "anchor_id": "anchor-09",
+            "center_score": 0.2667419746839883,
+            "gradient_x_contrast": 0.015882494498576538,
+            "gradient_y_contrast": 0.0004930690958860895,
+            "interaction_contrast": -0.0007219561883801684,
+            "maximum_effect": 0.015882494498576538,
+            "source_recipe_id": "b0213"
+          },
+          {
+            "anchor_id": "anchor-10",
+            "center_score": 0.2590768236993613,
+            "gradient_x_contrast": 0.010503362334002453,
+            "gradient_y_contrast": -0.004206431486169504,
+            "interaction_contrast": -0.0032869163462631024,
+            "maximum_effect": 0.010503362334002453,
+            "source_recipe_id": "b0340"
+          },
+          {
+            "anchor_id": "anchor-11",
+            "center_score": 0.24766103740100634,
+            "gradient_x_contrast": 0.017130037317184543,
+            "gradient_y_contrast": 0.002900004030321035,
+            "interaction_contrast": 0.0015763092996521066,
+            "maximum_effect": 0.017130037317184543,
+            "source_recipe_id": "b0037"
+          },
+          {
+            "anchor_id": "anchor-12",
+            "center_score": 0.24431354818989767,
+            "gradient_x_contrast": 0.009473140892180931,
+            "gradient_y_contrast": 0.0006102016177783609,
+            "interaction_contrast": -0.0010293102927264597,
+            "maximum_effect": 0.009473140892180931,
+            "source_recipe_id": "b0352"
+          },
+          {
+            "anchor_id": "anchor-13",
+            "center_score": 0.24290791123137717,
+            "gradient_x_contrast": -0.03060877623492314,
+            "gradient_y_contrast": -0.03246789242145029,
+            "interaction_contrast": -0.003233977660085957,
+            "maximum_effect": 0.03246789242145029,
+            "source_recipe_id": "b0332"
+          },
+          {
+            "anchor_id": "anchor-14",
+            "center_score": 0.23917767386641886,
+            "gradient_x_contrast": 0.05042834379771696,
+            "gradient_y_contrast": 0.014794256507124015,
+            "interaction_contrast": -3.063385112889172e-05,
+            "maximum_effect": 0.05042834379771696,
+            "source_recipe_id": "b0143"
+          },
+          {
+            "anchor_id": "anchor-15",
+            "center_score": 0.0651989437909285,
+            "gradient_x_contrast": -0.02871013671300207,
+            "gradient_y_contrast": -0.021796905415578882,
+            "interaction_contrast": 0.0037298472145037287,
+            "maximum_effect": 0.02871013671300207,
+            "source_recipe_id": "b0048"
+          },
+          {
+            "anchor_id": "anchor-16",
+            "center_score": 0.17248566500541868,
+            "gradient_x_contrast": -0.03797506825305563,
+            "gradient_y_contrast": -0.04031252485916573,
+            "interaction_contrast": 0.006434574383525349,
+            "maximum_effect": 0.04031252485916573,
+            "source_recipe_id": "b0145"
+          },
+          {
+            "anchor_id": "anchor-17",
+            "center_score": 0.045507837831826575,
+            "gradient_x_contrast": 0.02442050224719347,
+            "gradient_y_contrast": 0.0020245736315580576,
+            "interaction_contrast": -0.0031809014550203685,
+            "maximum_effect": 0.02442050224719347,
+            "source_recipe_id": "b0282"
+          },
+          {
+            "anchor_id": "anchor-18",
+            "center_score": 0.0,
+            "gradient_x_contrast": 0.0,
+            "gradient_y_contrast": 0.0,
+            "interaction_contrast": 0.0,
+            "maximum_effect": 0.0,
+            "source_recipe_id": "b0304"
+          },
+          {
+            "anchor_id": "anchor-19",
+            "center_score": 0.2216848153589131,
+            "gradient_x_contrast": -0.020259466039577345,
+            "gradient_y_contrast": -0.016759174768329055,
+            "interaction_contrast": -0.0044817480877618054,
+            "maximum_effect": 0.020259466039577345,
+            "source_recipe_id": "b0228"
+          },
+          {
+            "anchor_id": "anchor-20",
+            "center_score": 0.02040250529672208,
+            "gradient_x_contrast": 0.007206750296988695,
+            "gradient_y_contrast": 0.03821317813704553,
+            "interaction_contrast": 0.0048365566212509314,
+            "maximum_effect": 0.03821317813704553,
+            "source_recipe_id": "b0353"
+          },
+          {
+            "anchor_id": "anchor-21",
+            "center_score": 0.10387662910074202,
+            "gradient_x_contrast": -0.008639599573053075,
+            "gradient_y_contrast": -0.01779489391739858,
+            "interaction_contrast": 0.0003976939003922375,
+            "maximum_effect": 0.01779489391739858,
+            "source_recipe_id": "b0114"
+          },
+          {
+            "anchor_id": "anchor-22",
+            "center_score": 0.0,
+            "gradient_x_contrast": 0.0,
+            "gradient_y_contrast": 0.0,
+            "interaction_contrast": 0.0,
+            "maximum_effect": 0.0,
+            "source_recipe_id": "b0002"
+          },
+          {
+            "anchor_id": "anchor-23",
+            "center_score": 0.2061773077343067,
+            "gradient_x_contrast": 0.04501770979464059,
+            "gradient_y_contrast": 0.011747020254691681,
+            "interaction_contrast": -0.0008756401666971947,
+            "maximum_effect": 0.04501770979464059,
+            "source_recipe_id": "b0242"
+          },
+          {
+            "anchor_id": "anchor-24",
+            "center_score": 0.06320201166583564,
+            "gradient_x_contrast": 0.013731188334358768,
+            "gradient_y_contrast": -0.00013718651089522638,
+            "interaction_contrast": -0.006062003603015426,
+            "maximum_effect": 0.013731188334358768,
+            "source_recipe_id": "b0020"
+          },
+          {
+            "anchor_id": "anchor-25",
+            "center_score": 0.08484456311067036,
+            "gradient_x_contrast": 0.011509742368038867,
+            "gradient_y_contrast": 0.017854319602630203,
+            "interaction_contrast": -0.00038662629088262457,
+            "maximum_effect": 0.017854319602630203,
+            "source_recipe_id": "b0085"
+          },
+          {
+            "anchor_id": "anchor-26",
+            "center_score": 0.22041619807010682,
+            "gradient_x_contrast": 0.027700995116556992,
+            "gradient_y_contrast": 0.024450333161653404,
+            "interaction_contrast": -0.002686067072257381,
+            "maximum_effect": 0.027700995116556992,
+            "source_recipe_id": "b0165"
+          },
+          {
+            "anchor_id": "anchor-27",
+            "center_score": 0.0,
+            "gradient_x_contrast": 0.001841673992317057,
+            "gradient_y_contrast": 0.0005475697908027752,
+            "interaction_contrast": 0.0005475697908027752,
+            "maximum_effect": 0.001841673992317057,
+            "source_recipe_id": "b0074"
+          },
+          {
+            "anchor_id": "anchor-28",
+            "center_score": 0.10430436839551957,
+            "gradient_x_contrast": 0.030072147366614746,
+            "gradient_y_contrast": 0.00033693075356848456,
+            "interaction_contrast": 0.009016065439756735,
+            "maximum_effect": 0.030072147366614746,
+            "source_recipe_id": "b0186"
+          }
+        ],
+        "local_family_count": 28,
+        "passed": false,
+        "planned_recipe_count": 512,
+        "primary_metric": "yield",
+        "primary_metric_distribution": {
+          "count": 499,
+          "maximum": 0.6472495794296265,
+          "mean": 0.21058026220211348,
+          "median": 0.1701626181602478,
+          "minimum": 0.0,
+          "p10": 0.023240583762526513,
+          "p90": 0.4661715805530548,
+          "sample_sd": 0.16535599229023568
+        },
+        "primary_metric_effect_gate": 0.1,
+        "primary_metric_noise": {
+          "complete_group_count": 8,
+          "metric": "yield",
+          "planned_group_count": 8,
+          "sigma": 0.005903661636831935
+        },
+        "primary_metric_range": 0.6472495794296265,
+        "qualifying_local_family_count": 0,
+        "safety_frontier_recipe_count": 71,
+        "score_distribution": {
+          "count": 512,
+          "maximum": 0.3740654285489314,
+          "mean": 0.10763989974903673,
+          "median": 0.07240394585684579,
+          "minimum": 0.0,
+          "p10": 0.0,
+          "p90": 0.27649004090983104,
+          "sample_sd": 0.10667437481071329
+        },
+        "score_effect_gate": 0.1,
+        "score_noise": {
+          "complete_group_count": 8,
+          "metric": "score",
+          "planned_group_count": 8,
+          "sigma": 0.0037341055204172255
+        },
+        "successful_recipe_count": 0,
+        "top_five_percent_count": 26,
+        "top_region_has_target_interior": true
+      },
+      "world_seed": 2
+    },
+    {
+      "elapsed_s": 497.445,
+      "failure_count": 1,
+      "passed": false,
+      "q1": {
+        "ceiling_fraction": 0.0,
+        "checks": {
+          "absolute_reachability": false,
+          "all_512_completed": false,
+          "all_512_exact_replay": false,
+          "ceiling_not_saturated": true,
+          "dynamic_range": true,
+          "floor_not_saturated": false,
+          "local_parametric_structure": false,
+          "nonisolated_success_basin": false,
+          "primary_metric_effect": true,
+          "safety_frontier_coverage": true,
+          "top_region_has_target_interior": true
+        },
+        "completed_recipe_count": 511,
+        "dynamic_range_p90_p10": 0.22340581679731475,
+        "exact_replay_count": 511,
+        "failed_recipe_count": 1,
+        "feasible_recipe_count": 498,
+        "feasible_score_distribution": {
+          "count": 498,
+          "maximum": 0.3087734686772179,
+          "mean": 0.08567600653173758,
+          "median": 0.05751568577583384,
+          "minimum": 0.0,
+          "p10": 0.0,
+          "p90": 0.22340581679731475,
+          "sample_sd": 0.08848544280308471
+        },
+        "floor_fraction": 0.2583170254403131,
+        "gradient_sign_reversal": false,
+        "interaction_family_count": 0,
+        "largest_success_component": 0,
+        "local_effects": [
+          {
+            "anchor_id": "anchor-01",
+            "center_score": 0.2994196125406168,
+            "gradient_x_contrast": 0.016465720978322218,
+            "gradient_y_contrast": -0.0021285309885875625,
+            "interaction_contrast": -0.0008334844663161478,
+            "maximum_effect": 0.016465720978322218,
+            "source_recipe_id": "b0018"
+          },
+          {
+            "anchor_id": "anchor-02",
+            "center_score": 0.2919652487539941,
+            "gradient_x_contrast": 0.0049414382750030406,
+            "gradient_y_contrast": -0.011739033427587309,
+            "interaction_contrast": -0.008552794462543645,
+            "maximum_effect": 0.011739033427587309,
+            "source_recipe_id": "b0381"
+          },
+          {
+            "anchor_id": "anchor-03",
+            "center_score": 0.2815603314708757,
+            "gradient_x_contrast": -0.008111568894564547,
+            "gradient_y_contrast": -0.028400096813986697,
+            "interaction_contrast": 0.002001585532601158,
+            "maximum_effect": 0.028400096813986697,
+            "source_recipe_id": "b0229"
+          },
+          {
+            "anchor_id": "anchor-04",
+            "center_score": 0.26237332309631556,
+            "gradient_x_contrast": -0.017949071412160067,
+            "gradient_y_contrast": -0.00932075354440548,
+            "interaction_contrast": -0.0024752524264161635,
+            "maximum_effect": 0.017949071412160067,
+            "source_recipe_id": "b0161"
+          },
+          {
+            "anchor_id": "anchor-05",
+            "center_score": 0.2590536058870242,
+            "gradient_x_contrast": -0.005904241033420743,
+            "gradient_y_contrast": -0.016944095515656316,
+            "interaction_contrast": -0.001332701697447869,
+            "maximum_effect": 0.016944095515656316,
+            "source_recipe_id": "b0354"
+          },
+          {
+            "anchor_id": "anchor-06",
+            "center_score": 0.2474080652639669,
+            "gradient_x_contrast": -0.03376366294481098,
+            "gradient_y_contrast": -0.05027782892174998,
+            "interaction_contrast": 0.004417936250797394,
+            "maximum_effect": 0.05027782892174998,
+            "source_recipe_id": "b0233"
+          },
+          {
+            "anchor_id": "anchor-07",
+            "center_score": 0.23732896657663735,
+            "gradient_x_contrast": 0.013371365262438789,
+            "gradient_y_contrast": 0.0008998437717033514,
+            "interaction_contrast": -0.0005658651371014123,
+            "maximum_effect": 0.013371365262438789,
+            "source_recipe_id": "b0380"
+          },
+          {
+            "anchor_id": "anchor-08",
+            "center_score": 0.21928059196331756,
+            "gradient_x_contrast": 0.00928470904988149,
+            "gradient_y_contrast": -0.009630099615731191,
+            "interaction_contrast": -0.002072732955295503,
+            "maximum_effect": 0.009630099615731191,
+            "source_recipe_id": "b0044"
+          },
+          {
+            "anchor_id": "anchor-09",
+            "center_score": 0.21142040871473566,
+            "gradient_x_contrast": 0.0015240101129733452,
+            "gradient_y_contrast": -0.003179969197860205,
+            "interaction_contrast": -0.002168284709085394,
+            "maximum_effect": 0.003179969197860205,
+            "source_recipe_id": "b0232"
+          },
+          {
+            "anchor_id": "anchor-10",
+            "center_score": 0.21030586223227227,
+            "gradient_x_contrast": 0.021915953092637663,
+            "gradient_y_contrast": 0.006531706782460289,
+            "interaction_contrast": -0.0051970153657383,
+            "maximum_effect": 0.021915953092637663,
+            "source_recipe_id": "b0213"
+          },
+          {
+            "anchor_id": "anchor-11",
+            "center_score": 0.2096151173338761,
+            "gradient_x_contrast": 0.005098018485584499,
+            "gradient_y_contrast": -0.011775706772383987,
+            "interaction_contrast": -0.0030183816902327743,
+            "maximum_effect": 0.011775706772383987,
+            "source_recipe_id": "b0148"
+          },
+          {
+            "anchor_id": "anchor-12",
+            "center_score": 0.20862234040961894,
+            "gradient_x_contrast": 0.026808678545413744,
+            "gradient_y_contrast": 0.05597993994998174,
+            "interaction_contrast": -0.0010537745219069694,
+            "maximum_effect": 0.05597993994998174,
+            "source_recipe_id": "b0125"
+          },
+          {
+            "anchor_id": "anchor-13",
+            "center_score": 0.19177687316954972,
+            "gradient_x_contrast": 0.008579310814286728,
+            "gradient_y_contrast": -0.0024067780773090464,
+            "interaction_contrast": -0.005843079968931075,
+            "maximum_effect": 0.008579310814286728,
+            "source_recipe_id": "b0037"
+          },
+          {
+            "anchor_id": "anchor-14",
+            "center_score": 0.1873226640176868,
+            "gradient_x_contrast": 0.008464743035636213,
+            "gradient_y_contrast": 0.006874631682242283,
+            "interaction_contrast": -0.001637476703323315,
+            "maximum_effect": 0.008464743035636213,
+            "source_recipe_id": "b0345"
+          },
+          {
+            "anchor_id": "anchor-15",
+            "center_score": 0.07669179841665788,
+            "gradient_x_contrast": -0.023327231680959473,
+            "gradient_y_contrast": -0.03048873654365454,
+            "interaction_contrast": 0.0010784789424121838,
+            "maximum_effect": 0.03048873654365454,
+            "source_recipe_id": "b0041"
+          },
+          {
+            "anchor_id": "anchor-16",
+            "center_score": 0.029689158463552717,
+            "gradient_x_contrast": -0.026710662089369966,
+            "gradient_y_contrast": -0.022723311576922908,
+            "interaction_contrast": 0.0013138494319117205,
+            "maximum_effect": 0.026710662089369966,
+            "source_recipe_id": "b0156"
+          },
+          {
+            "anchor_id": "anchor-17",
+            "center_score": 0.03026378758419568,
+            "gradient_x_contrast": -0.025318721922864273,
+            "gradient_y_contrast": -0.015999031011737247,
+            "interaction_contrast": 0.0004277641569621349,
+            "maximum_effect": 0.025318721922864273,
+            "source_recipe_id": "b0348"
+          },
+          {
+            "anchor_id": "anchor-18",
+            "center_score": 0.059899290110550035,
+            "gradient_x_contrast": -0.0352756914678619,
+            "gradient_y_contrast": -0.024042914291031378,
+            "interaction_contrast": -0.0005583280322001977,
+            "maximum_effect": 0.0352756914678619,
+            "source_recipe_id": "b0088"
+          },
+          {
+            "anchor_id": "anchor-19",
+            "center_score": 0.10045096266439205,
+            "gradient_x_contrast": 0.014117734055798359,
+            "gradient_y_contrast": -0.006327231988746351,
+            "interaction_contrast": -0.0033165320429500156,
+            "maximum_effect": 0.014117734055798359,
+            "source_recipe_id": "b0196"
+          },
+          {
+            "anchor_id": "anchor-20",
+            "center_score": 0.0638373727592216,
+            "gradient_x_contrast": -0.00925076794668546,
+            "gradient_y_contrast": -0.012881098187327508,
+            "interaction_contrast": 0.0004057927787175647,
+            "maximum_effect": 0.012881098187327508,
+            "source_recipe_id": "b0361"
+          },
+          {
+            "anchor_id": "anchor-21",
+            "center_score": 0.024356873187813544,
+            "gradient_x_contrast": -0.021277803872492784,
+            "gradient_y_contrast": -0.015222598197983966,
+            "interaction_contrast": -0.001767890266779898,
+            "maximum_effect": 0.021277803872492784,
+            "source_recipe_id": "b0260"
+          },
+          {
+            "anchor_id": "anchor-22",
+            "center_score": 0.09349970959956927,
+            "gradient_x_contrast": 0.009827660857451292,
+            "gradient_y_contrast": 0.004488970943992143,
+            "interaction_contrast": -0.003654310803453853,
+            "maximum_effect": 0.009827660857451292,
+            "source_recipe_id": "b0185"
+          },
+          {
+            "anchor_id": "anchor-23",
+            "center_score": 0.054718295655864724,
+            "gradient_x_contrast": 0.01904535366439731,
+            "gradient_y_contrast": 0.009036172579496515,
+            "interaction_contrast": 0.0006133871527806145,
+            "maximum_effect": 0.01904535366439731,
+            "source_recipe_id": "b0226"
+          },
+          {
+            "anchor_id": "anchor-24",
+            "center_score": 0.056198187256549965,
+            "gradient_x_contrast": -0.012840978154498937,
+            "gradient_y_contrast": -0.006022490228043784,
+            "interaction_contrast": -0.005731699966624634,
+            "maximum_effect": 0.012840978154498937,
+            "source_recipe_id": "b0040"
+          },
+          {
+            "anchor_id": "anchor-25",
+            "center_score": 0.15769220730793443,
+            "gradient_x_contrast": -0.020290734742138383,
+            "gradient_y_contrast": -0.010148883141956472,
+            "interaction_contrast": 0.003513953084830407,
+            "maximum_effect": 0.020290734742138383,
+            "source_recipe_id": "b0216"
+          },
+          {
+            "anchor_id": "anchor-26",
+            "center_score": 0.15160172614508702,
+            "gradient_x_contrast": 0.013817503631684436,
+            "gradient_y_contrast": -0.00028380299981467516,
+            "interaction_contrast": -0.004461223354227994,
+            "maximum_effect": 0.013817503631684436,
+            "source_recipe_id": "b0117"
+          },
+          {
+            "anchor_id": "anchor-27",
+            "center_score": 0.05224853996235514,
+            "gradient_x_contrast": 0.0041958032240936305,
+            "gradient_y_contrast": 0.002395011765133029,
+            "interaction_contrast": -0.00818793995953343,
+            "maximum_effect": 0.00818793995953343,
+            "source_recipe_id": "b0133"
+          },
+          {
+            "anchor_id": "anchor-28",
+            "center_score": 0.0,
+            "gradient_x_contrast": 0.008359588294813869,
+            "gradient_y_contrast": 0.008359588294813869,
+            "interaction_contrast": 0.008359588294813869,
+            "maximum_effect": 0.008359588294813869,
+            "source_recipe_id": "b0141"
+          }
+        ],
+        "local_family_count": 28,
+        "passed": false,
+        "planned_recipe_count": 512,
+        "primary_metric": "yield",
+        "primary_metric_distribution": {
+          "count": 498,
+          "maximum": 0.6020296812057495,
+          "mean": 0.19020044756387025,
+          "median": 0.15389009565114975,
+          "minimum": 0.0,
+          "p10": 0.019025441259145737,
+          "p90": 0.42414042353630066,
+          "sample_sd": 0.15315897048063823
+        },
+        "primary_metric_effect_gate": 0.1,
+        "primary_metric_noise": {
+          "complete_group_count": 8,
+          "metric": "yield",
+          "planned_group_count": 8,
+          "sigma": 0.0054251839639818875
+        },
+        "primary_metric_range": 0.6020296812057495,
+        "qualifying_local_family_count": 0,
+        "safety_frontier_recipe_count": 81,
+        "score_distribution": {
+          "count": 511,
+          "maximum": 0.3087734686772179,
+          "mean": 0.0854521622203107,
+          "median": 0.05747148438737162,
+          "minimum": 0.0,
+          "p10": 0.0,
+          "p90": 0.22505632316614113,
+          "sample_sd": 0.0885023939822477
+        },
+        "score_effect_gate": 0.1,
+        "score_noise": {
+          "complete_group_count": 8,
+          "metric": "score",
+          "planned_group_count": 8,
+          "sigma": 0.0038786778781266457
+        },
+        "successful_recipe_count": 0,
+        "top_five_percent_count": 26,
+        "top_region_has_target_interior": true
+      },
+      "world_seed": 3
+    },
+    {
+      "elapsed_s": 507.535,
+      "failure_count": 0,
+      "passed": false,
+      "q1": {
+        "ceiling_fraction": 0.0,
+        "checks": {
+          "absolute_reachability": false,
+          "all_512_completed": true,
+          "all_512_exact_replay": true,
+          "ceiling_not_saturated": true,
+          "dynamic_range": true,
+          "floor_not_saturated": false,
+          "local_parametric_structure": false,
+          "nonisolated_success_basin": false,
+          "primary_metric_effect": true,
+          "safety_frontier_coverage": true,
+          "top_region_has_target_interior": true
+        },
+        "completed_recipe_count": 512,
+        "dynamic_range_p90_p10": 0.28271120091180474,
+        "exact_replay_count": 512,
+        "failed_recipe_count": 0,
+        "feasible_recipe_count": 504,
+        "feasible_score_distribution": {
+          "count": 504,
+          "maximum": 0.43289851943652696,
+          "mean": 0.11777640444695824,
+          "median": 0.09306486698578104,
+          "minimum": 0.0,
+          "p10": 0.0,
+          "p90": 0.28271120091180474,
+          "sample_sd": 0.11020136028136168
+        },
+        "floor_fraction": 0.201171875,
+        "gradient_sign_reversal": false,
+        "interaction_family_count": 0,
+        "largest_success_component": 0,
+        "local_effects": [
+          {
+            "anchor_id": "anchor-01",
+            "center_score": 0.431423569499037,
+            "gradient_x_contrast": 0.013436316389727976,
+            "gradient_y_contrast": 0.0015117262837025525,
+            "interaction_contrast": -0.0039206158478219955,
+            "maximum_effect": 0.013436316389727976,
+            "source_recipe_id": "b0184"
+          },
+          {
+            "anchor_id": "anchor-02",
+            "center_score": 0.3214941121813556,
+            "gradient_x_contrast": 0.015305537059929097,
+            "gradient_y_contrast": 0.0005093947656227282,
+            "interaction_contrast": -0.00530659929219901,
+            "maximum_effect": 0.015305537059929097,
+            "source_recipe_id": "b0112"
+          },
+          {
+            "anchor_id": "anchor-03",
+            "center_score": 0.3147153470175404,
+            "gradient_x_contrast": 0.019204408496713288,
+            "gradient_y_contrast": -0.0052042614860852154,
+            "interaction_contrast": -0.0029370894974963813,
+            "maximum_effect": 0.019204408496713288,
+            "source_recipe_id": "b0105"
+          },
+          {
+            "anchor_id": "anchor-04",
+            "center_score": 0.295117732297263,
+            "gradient_x_contrast": -0.006753144387907528,
+            "gradient_y_contrast": -0.008995415057182932,
+            "interaction_contrast": -0.005153830130728954,
+            "maximum_effect": 0.008995415057182932,
+            "source_recipe_id": "b0101"
+          },
+          {
+            "anchor_id": "anchor-05",
+            "center_score": 0.29407454669210953,
+            "gradient_x_contrast": -0.01183674640523158,
+            "gradient_y_contrast": -0.01679638883881296,
+            "interaction_contrast": -0.005848731515747829,
+            "maximum_effect": 0.01679638883881296,
+            "source_recipe_id": "b0201"
+          },
+          {
+            "anchor_id": "anchor-06",
+            "center_score": 0.29050986527085687,
+            "gradient_x_contrast": 0.03136944862078195,
+            "gradient_y_contrast": 0.024030874328408447,
+            "interaction_contrast": -0.0010910868444790056,
+            "maximum_effect": 0.03136944862078195,
+            "source_recipe_id": "b0288"
+          },
+          {
+            "anchor_id": "anchor-07",
+            "center_score": 0.28625722015081384,
+            "gradient_x_contrast": 0.004814652665881491,
+            "gradient_y_contrast": -0.008803057950379667,
+            "interaction_contrast": -0.0024971261279831958,
+            "maximum_effect": 0.008803057950379667,
+            "source_recipe_id": "b0364"
+          },
+          {
+            "anchor_id": "anchor-08",
+            "center_score": 0.2824965178183365,
+            "gradient_x_contrast": 0.0016539307263527814,
+            "gradient_y_contrast": -0.015312570985023088,
+            "interaction_contrast": -0.000538333797184487,
+            "maximum_effect": 0.015312570985023088,
+            "source_recipe_id": "b0081"
+          },
+          {
+            "anchor_id": "anchor-09",
+            "center_score": 0.27318688394594776,
+            "gradient_x_contrast": 0.02196570832361522,
+            "gradient_y_contrast": 0.006925539174838735,
+            "interaction_contrast": 0.006194075685711176,
+            "maximum_effect": 0.02196570832361522,
+            "source_recipe_id": "b0072"
+          },
+          {
+            "anchor_id": "anchor-10",
+            "center_score": 0.2620108641704475,
+            "gradient_x_contrast": 0.027715005878719612,
+            "gradient_y_contrast": 0.018492201852130657,
+            "interaction_contrast": -0.0011463786485046423,
+            "maximum_effect": 0.027715005878719612,
+            "source_recipe_id": "b0188"
+          },
+          {
+            "anchor_id": "anchor-11",
+            "center_score": 0.25946879644252124,
+            "gradient_x_contrast": 0.02209016024785898,
+            "gradient_y_contrast": -0.0003955559308800871,
+            "interaction_contrast": -0.001594190633328274,
+            "maximum_effect": 0.02209016024785898,
+            "source_recipe_id": "b0353"
+          },
+          {
+            "anchor_id": "anchor-12",
+            "center_score": 0.2565159327072708,
+            "gradient_x_contrast": 0.04853197233891199,
+            "gradient_y_contrast": 0.05356406233268651,
+            "interaction_contrast": 0.0034018495762246914,
+            "maximum_effect": 0.05356406233268651,
+            "source_recipe_id": "b0048"
+          },
+          {
+            "anchor_id": "anchor-13",
+            "center_score": 0.2550888010962775,
+            "gradient_x_contrast": 0.025537717097980084,
+            "gradient_y_contrast": 0.040480475083723266,
+            "interaction_contrast": -0.004872288708261424,
+            "maximum_effect": 0.040480475083723266,
+            "source_recipe_id": "b0248"
+          },
+          {
+            "anchor_id": "anchor-14",
+            "center_score": 0.24845422438925951,
+            "gradient_x_contrast": 0.010416094007077409,
+            "gradient_y_contrast": 0.04588382632524951,
+            "interaction_contrast": -0.003865472087090066,
+            "maximum_effect": 0.04588382632524951,
+            "source_recipe_id": "b0300"
+          },
+          {
+            "anchor_id": "anchor-15",
+            "center_score": 0.10396287120312869,
+            "gradient_x_contrast": 0.0034207258462084222,
+            "gradient_y_contrast": -0.008519797795395384,
+            "interaction_contrast": -0.0018231126171985024,
+            "maximum_effect": 0.008519797795395384,
+            "source_recipe_id": "b0377"
+          },
+          {
+            "anchor_id": "anchor-16",
+            "center_score": 0.0,
+            "gradient_x_contrast": -0.0006358583714590471,
+            "gradient_y_contrast": -0.0006358583714590471,
+            "interaction_contrast": 0.0006358583714590471,
+            "maximum_effect": 0.0006358583714590471,
+            "source_recipe_id": "b0373"
+          },
+          {
+            "anchor_id": "anchor-17",
+            "center_score": 0.0,
+            "gradient_x_contrast": 0.0,
+            "gradient_y_contrast": 0.0,
+            "interaction_contrast": 0.0,
+            "maximum_effect": 0.0,
+            "source_recipe_id": "b0069"
+          },
+          {
+            "anchor_id": "anchor-18",
+            "center_score": 0.17382766682809633,
+            "gradient_x_contrast": -0.024914764594881234,
+            "gradient_y_contrast": -0.027842892090286286,
+            "interaction_contrast": -0.004768926608077428,
+            "maximum_effect": 0.027842892090286286,
+            "source_recipe_id": "b0268"
+          },
+          {
+            "anchor_id": "anchor-19",
+            "center_score": 0.024299257491424586,
+            "gradient_x_contrast": 0.028169042859642127,
+            "gradient_y_contrast": 0.0027680749944651167,
+            "interaction_contrast": 0.0012632593740684456,
+            "maximum_effect": 0.028169042859642127,
+            "source_recipe_id": "b0219"
+          },
+          {
+            "anchor_id": "anchor-20",
+            "center_score": 0.07876431852216417,
+            "gradient_x_contrast": 0.03218599047840098,
+            "gradient_y_contrast": 0.003889391089286459,
+            "interaction_contrast": -0.009700738483691906,
+            "maximum_effect": 0.03218599047840098,
+            "source_recipe_id": "b0270"
+          },
+          {
+            "anchor_id": "anchor-21",
+            "center_score": 0.19285165330582776,
+            "gradient_x_contrast": -0.03303964967813977,
+            "gradient_y_contrast": -0.0356981338111767,
+            "interaction_contrast": -0.008791154938487589,
+            "maximum_effect": 0.0356981338111767,
+            "source_recipe_id": "b0124"
+          },
+          {
+            "anchor_id": "anchor-22",
+            "center_score": 0.005920952593774537,
+            "gradient_x_contrast": 0.0216780566592902,
+            "gradient_y_contrast": 0.005134758912269909,
+            "interaction_contrast": 0.005134758912269909,
+            "maximum_effect": 0.0216780566592902,
+            "source_recipe_id": "b0086"
+          },
+          {
+            "anchor_id": "anchor-23",
+            "center_score": 0.2476568867645768,
+            "gradient_x_contrast": 0.04026588914576534,
+            "gradient_y_contrast": 0.016278098479136832,
+            "interaction_contrast": -0.005957403226785757,
+            "maximum_effect": 0.04026588914576534,
+            "source_recipe_id": "b0166"
+          },
+          {
+            "anchor_id": "anchor-24",
+            "center_score": 0.20381888777376017,
+            "gradient_x_contrast": 0.041178063765809764,
+            "gradient_y_contrast": 0.01832269837372727,
+            "interaction_contrast": 0.003816217158675389,
+            "maximum_effect": 0.041178063765809764,
+            "source_recipe_id": "b0126"
+          },
+          {
+            "anchor_id": "anchor-25",
+            "center_score": 0.034343730084636315,
+            "gradient_x_contrast": 0.02576652742770505,
+            "gradient_y_contrast": 0.009025020971961242,
+            "interaction_contrast": 0.0032822181336731454,
+            "maximum_effect": 0.02576652742770505,
+            "source_recipe_id": "b0142"
+          },
+          {
+            "anchor_id": "anchor-26",
+            "center_score": 0.10314369777942436,
+            "gradient_x_contrast": 0.005953982636746319,
+            "gradient_y_contrast": 0.011348122697405372,
+            "interaction_contrast": 0.003503656305155256,
+            "maximum_effect": 0.011348122697405372,
+            "source_recipe_id": "b0076"
+          },
+          {
+            "anchor_id": "anchor-27",
+            "center_score": 0.008440555160806343,
+            "gradient_x_contrast": 0.023664933152489808,
+            "gradient_y_contrast": -0.0009671884715788358,
+            "interaction_contrast": 0.0015987089149119595,
+            "maximum_effect": 0.023664933152489808,
+            "source_recipe_id": "b0103"
+          },
+          {
+            "anchor_id": "anchor-28",
+            "center_score": 0.2019201484880168,
+            "gradient_x_contrast": 0.05937138381683088,
+            "gradient_y_contrast": 0.0006721517113144893,
+            "interaction_contrast": -0.0006922111985120938,
+            "maximum_effect": 0.05937138381683088,
+            "source_recipe_id": "b0151"
+          }
+        ],
+        "local_family_count": 28,
+        "passed": false,
+        "planned_recipe_count": 512,
+        "primary_metric": "yield",
+        "primary_metric_distribution": {
+          "count": 504,
+          "maximum": 0.6639646887779236,
+          "mean": 0.2231338163523654,
+          "median": 0.18883387744426727,
+          "minimum": 0.0,
+          "p10": 0.02632102202624083,
+          "p90": 0.4808177888393402,
+          "sample_sd": 0.17551673709529433
+        },
+        "primary_metric_effect_gate": 0.1,
+        "primary_metric_noise": {
+          "complete_group_count": 8,
+          "metric": "yield",
+          "planned_group_count": 8,
+          "sigma": 0.006729039902555343
+        },
+        "primary_metric_range": 0.6639646887779236,
+        "qualifying_local_family_count": 0,
+        "safety_frontier_recipe_count": 62,
+        "score_distribution": {
+          "count": 512,
+          "maximum": 0.43289851943652696,
+          "mean": 0.11756974749751838,
+          "median": 0.09306486698578104,
+          "minimum": 0.0,
+          "p10": 0.0,
+          "p90": 0.2824738716466606,
+          "sample_sd": 0.1096363858981995
+        },
+        "score_effect_gate": 0.1,
+        "score_noise": {
+          "complete_group_count": 8,
+          "metric": "score",
+          "planned_group_count": 8,
+          "sigma": 0.0031554228446603236
+        },
+        "successful_recipe_count": 0,
+        "top_five_percent_count": 26,
+        "top_region_has_target_interior": true
+      },
+      "world_seed": 4
+    }
+  ]
+}

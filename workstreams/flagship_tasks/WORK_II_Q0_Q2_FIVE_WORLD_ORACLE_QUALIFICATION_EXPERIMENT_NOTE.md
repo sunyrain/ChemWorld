@@ -1,7 +1,7 @@
 # Work II Q0–Q2 five-world oracle qualification
 
 Date: 2026-08-11
-Status: reaction-safety Q1-v0.2 invalidated by a platform defect; corrected Q1-v0.3 rerun pending
+Status: reaction-safety Q1-v0.2 invalidated; corrected Q1-v0.3 complete and rejected
 
 ## Question and units
 
@@ -100,12 +100,26 @@ Expected outputs are one raw five-world response-surface root, one readable trac
 task, a Q0/Q1 go/no-go decision, and—only after 5/5 Q1 pass—a separately frozen Q2 prior-pair artifact
 and D1 config. No provider call is authorized by this note.
 
-## Phase conclusion — reaction safety Q1-v0.2
+## Phase conclusion — reaction safety Q1-v0.2 and Q1-v0.3
 
 No scientific phase conclusion is authorized. Although Q1-v0.2 reported `2,560/2,560` final assays
 and exact replays, 403 recipes contained a rejected heat operation. That defect contaminated broad
 coverage, adaptive-anchor selection, floor fractions, local families and the `0/5` decision. The
 artifact remains immutable as a development audit, but none of those outcome statistics may support
-a task-design rejection. The corrected Q1-v0.3 block must rerun from world 0 before these gates can
-be interpreted. The separately frozen mechanism-oracle relative qualification does not overwrite or
-retroactively repair Q1-v0.2.
+a task-design rejection.
+
+The corrected Q1-v0.3 block restarted from world 0. It attempted all 2,560 recipes and produced
+2,557 recipes with every operation committed and exact-replayed. Three schema-valid heat operations
+reached a dynamic `vessel_temperature_bound` and were constitution-rolled back: world 0 recipes
+`b0008` and `b0204`, and world 3 recipe `b0111`. These are physical invalid outcomes rather than
+payload or runner defects, so the frozen all-commit gate fails scientifically rather than requiring
+another platform restart.
+
+All five worlds also failed absolute reachability, floor saturation, local parametric structure and
+the non-isolated success-basin gate. Worlds 1, 2 and 4 had 512/512 committed recipes, independently
+showing the same four failures. No recipe reached `0.70`; per-world maxima were `0.2906--0.4329`,
+floor fractions `0.2012--0.3730`, and safety-frontier counts `45--81`. Dynamic ranges
+`0.1601--0.2827` and primary-metric ranges `0.5396--0.6640` show measurable variation, but not an
+absolute-threshold success basin under this contract. Q1-v0.3 therefore validly rejects the absolute
+qualification before Q2. The separately frozen mechanism-oracle relative qualification remains a
+distinct question and does not overwrite Q1-v0.3.

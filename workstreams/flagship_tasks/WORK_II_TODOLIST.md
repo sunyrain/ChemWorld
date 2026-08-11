@@ -309,6 +309,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | electrochemical D1, DeepSeek seed 1 | 3/3 cells、12/12 experiments；descriptive H3 `-0.0025` | operational pass；未观察到科学修正 |
 | reaction-safety old screen, seed 0 | 16/16 exact replay；旧 gap `0.1043173` | 不满足新 absolute-quality、interior、non-saturation 与 safety-frontier gates |
 | reaction-safety Q1-v0.2, seeds 0–4 | 表面为 2,560/2,560 final assays 与 exact replay；事后逐 operation 审计发现 403/2,560 recipes 的 heat 因使用通用 `520 K` 而非任务可执行 `470 K` 上限被拒绝（357 broad、46 adaptive） | 平台缺陷导致该 block 无法作 scientific rejection；旧 artifact 永久保留为 defective development audit，但 `0/5`、floor saturation、local structure 与 adaptive 结论均不得继续作证据。修复后的 Q1-v0.3 与独立 mechanism-oracle block 均须从 world 0 开始。 |
+| reaction-safety Q1-v0.3, seeds 0–4 | 2,560 attempted；2,557 recipes 全 operation committed 且 exact replay；3 个 schema-valid heat 触发动态 `vessel_temperature_bound` rollback；0/5 worlds pass；max score `0.291–0.433`；45–81 safety-frontier recipes/world | 有效 absolute-Q1 scientific rejection：3 个 clean worlds 仍独立失败 absolute reachability、floor saturation、local structure 与 success basin；动态范围与 primary-metric range 成立。禁止据此进入原 Q2，但允许执行已独立冻结的 mechanism-oracle relative question。 |
 | reaction-safety DeepSeek D1, seed 0 | 3/3 terminal、2/3 qualified；descriptive H3 `+0.1005` | retained operational failure；不重跑 |
 | 首批 crystallization/partition structural screens | module gap 分别 `0.0069301`、`0.0744505` | 拒绝；不能解释为 agent 推理失败 |
 
@@ -322,9 +323,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [x] **W2-21** 写一个 concise experiment note，冻结 Q0–Q2 的 5-world coverage、512 recipes/world、指标、
   pass/failure rules 和输出文件。
 - [ ] **W2-22** 实现 provider-free oracle response-surface runner 与 readable machine summary；
-  reaction-safety Q1-v0.2 因 403 个未提交 heat operations 被判定为平台缺陷、结论失效；当前先从
-  world 0 重跑修复后的 Q1-v0.3，再执行独立的 reaction-safety mechanism-oracle block，随后决定是否
-  转入 electrochemical A-P。
+  reaction-safety Q1-v0.2 因 403 个未提交 heat operations 被判定为平台缺陷、结论失效；修复后的
+  Q1-v0.3 已从 world 0 完整重跑并作为 absolute qualification 被拒绝。当前执行独立冻结的
+  reaction-safety mechanism-oracle block，随后决定是否转入 electrochemical A-P。
 - [ ] **W2-23** 按预注册 lexicographic gates 选择 reference context，构造 matched aligned/misspecified laws，
   完成 blind leakage/identifiability audit。
 - [ ] **W2-24** 为通过 Q2 的 task 各运行一个三臂 D1；只有预注册条件触发时运行 D2。
@@ -365,7 +366,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-19 | CONDITIONAL | matched-evidence probe B |
 | W2-20 | CONDITIONAL | artifact-only transfer D |
 | W2-21 | DONE | five-world oracle qualification note 已冻结 |
-| W2-22 | DOING | runner 已修复逐 operation 完整性与 `470 K` executable envelope；reaction-safety Q1-v0.3 全块重跑 pending；electrochemical Q1 pending |
+| W2-22 | DOING | reaction-safety Q1-v0.3 已完成并有效拒绝 absolute qualification；electrochemical Q1 pending |
 | W2-23 | NOT STARTED | matched-prior constructor + blind audit |
 | W2-24 | NOT STARTED | new D1/D2 pilots |
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
