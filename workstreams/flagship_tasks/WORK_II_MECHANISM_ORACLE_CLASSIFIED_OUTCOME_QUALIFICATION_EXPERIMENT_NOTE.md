@@ -53,3 +53,22 @@ For every world:
 Expected outputs are an ignored raw root, a tracked machine summary with exact classified,
 physical-failure, platform-failure, validation and replay denominators, and a Q2 go/no-go decision.
 No provider, prior construction or D1 run is authorized unless all five worlds pass v0.2.
+
+## Phase conclusion — reaction-safety v0.2
+
+The complete rerun passed `5/5` worlds in `1,800.390 s`. All `14,121` unique mechanism outcomes were
+classified, comprising `13,878` committed physical endpoints and `243` dynamic constitution
+failures, with zero unclassified/platform failures. All `120/120` observed validations completed and
+exact-replayed. The frozen decision is `proceed_to_q2_matched_prior_construction`.
+
+Scientific values were exactly identical to v0.1 in every world: oracle scores `0.4008--0.4882`,
+oracle risks `0.1031--0.1504`, relative basins `38--64` points, safe dynamic ranges
+`0.3207--0.3727`, primary-metric ranges `0.6309--0.7944`, and safety-frontier counts `273--462`.
+Every local-law and observed-optimum-agreement gate passed; no mechanism evaluation reached the
+historical threshold `0.70`. Thus v0.2 changes no physical trajectory or scientific threshold. It
+only establishes that a classified physical failure is a safety-landscape outcome rather than an
+evaluator reliability failure.
+
+Q2 is now authorized for reaction safety. It may use compressed local-law summaries, relative basin
+geometry and disagreement regions, but must not expose exact oracle vectors, hidden mechanism
+parameters, private world labels or optimizer provenance to a participant.

@@ -311,6 +311,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | reaction-safety Q1-v0.2, seeds 0–4 | 表面为 2,560/2,560 final assays 与 exact replay；事后逐 operation 审计发现 403/2,560 recipes 的 heat 因使用通用 `520 K` 而非任务可执行 `470 K` 上限被拒绝（357 broad、46 adaptive） | 平台缺陷导致该 block 无法作 scientific rejection；旧 artifact 永久保留为 defective development audit，但 `0/5`、floor saturation、local structure 与 adaptive 结论均不得继续作证据。修复后的 Q1-v0.3 与独立 mechanism-oracle block 均须从 world 0 开始。 |
 | reaction-safety Q1-v0.3, seeds 0–4 | 2,560 attempted；2,557 recipes 全 operation committed 且 exact replay；3 个 schema-valid heat 触发动态 `vessel_temperature_bound` rollback；0/5 worlds pass；max score `0.291–0.433`；45–81 safety-frontier recipes/world | 有效 absolute-Q1 scientific rejection：3 个 clean worlds 仍独立失败 absolute reachability、floor saturation、local structure 与 success basin；动态范围与 primary-metric range 成立。禁止据此进入原 Q2，但允许执行已独立冻结的 mechanism-oracle relative question。 |
 | reaction-safety mechanism-oracle v0.1, seeds 0–4 | `14,121/14,121` unique requests classified；`13,878` committed endpoints；`243` dynamic constitution failures；`120/120` noisy validations exact replay；0 platform failures；1/5 worlds pass | 五个 world 的 oracle optimum、relative basin、dynamic/primary range、local law、frontier 与 observed agreement 全通过；4 个 world 仅因把 physical failure 计作 incomplete 而失败。v0.1 正式拒绝且不进入 Q2；冻结只修正分类语义的 v0.2 后从 world 0 重跑。 |
+| reaction-safety mechanism-oracle v0.2, seeds 0–4 | `14,121/14,121` outcomes classified；`13,878` committed endpoints；`243` physical failures；0 platform/unclassified；`120/120` validation replay；5/5 worlds pass | 与 v0.1 的全部科学数值逐 world 完全一致，唯一变化为 outcome classification gate；确认五个 world 均存在安全 relative basin、可识别 local law 与充分 frontier，授权进入 reaction-safety Q2 matched-prior construction。历史 `0.70` 仍无任何点达到。 |
 | reaction-safety DeepSeek D1, seed 0 | 3/3 terminal、2/3 qualified；descriptive H3 `+0.1005` | retained operational failure；不重跑 |
 | 首批 crystallization/partition structural screens | module gap 分别 `0.0069301`、`0.0744505` | 拒绝；不能解释为 agent 推理失败 |
 
@@ -373,7 +374,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
 | W2-26 | NOT STARTED | 8/10/12 resource calibration |
 | W2-27 | NOT STARTED | current WellAU method qualification |
-| W2-29 | DOING | reaction-safety mechanism-oracle v0.1 已完成并以 1/5 拒绝；v0.2 classification-only note 已冻结，runner/tests 与全块重跑 pending |
+| W2-29 | DOING | reaction-safety mechanism-oracle v0.2 已 5/5 通过并授权 Q2；electrochemical classified-outcome qualification pending |
 
 ## 12. 不可违反的规则
 
@@ -403,6 +404,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - Reaction-safety screen/evaluator：
   `workstreams/flagship_tasks/reports/work-ii-reaction-safety-parametric-screen-20260811.json`、
   `workstreams/flagship_tasks/reports/work-ii-deepseek-reaction-safety-parametric-pilot-evaluation-20260811.json`、
-  `workstreams/flagship_tasks/reports/work-ii-q1-reaction-safety-five-world-20260811.json`
+  `workstreams/flagship_tasks/reports/work-ii-q1-reaction-safety-five-world-20260811.json`、
+  `workstreams/flagship_tasks/reports/work-ii-q1-reaction-safety-five-world-v0.3-20260811.json`、
+  `workstreams/flagship_tasks/reports/work-ii-mechanism-oracle-reaction-safety-five-world-20260811.json`、
+  `workstreams/flagship_tasks/reports/work-ii-mechanism-oracle-reaction-safety-classified-v0.2-20260811.json`
 
 Git history 保存本文件过去的详细任务卡和运行日志；不恢复并行的旧主控入口。
