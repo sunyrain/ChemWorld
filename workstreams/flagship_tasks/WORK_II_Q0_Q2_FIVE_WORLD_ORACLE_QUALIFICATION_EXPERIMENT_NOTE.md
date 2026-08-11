@@ -1,7 +1,7 @@
 # Work II Q0–Q2 five-world oracle qualification
 
 Date: 2026-08-11
-Status: reaction-safety Q1 complete and rejected; electrochemical Q1 pending
+Status: reaction-safety Q1-v0.2 invalidated by a platform defect; corrected Q1-v0.3 rerun pending
 
 ## Question and units
 
@@ -39,8 +39,9 @@ executions. Raw trajectories and per-recipe rows remain under ignored `runs/`; t
 contains exact denominators, every failure, aggregate response-surface statistics and raw-report
 bindings.
 
-For reaction safety, “full-space” means the dedicated Q1 recipe contract rather than the historical
-static-optimization pilot window. Its frozen eight coordinates are temperature `250–520 K`, duration
+For reaction safety, “full-space” means the dedicated executable Q1 recipe contract rather than the
+historical static-optimization pilot window. Its corrected eight coordinates are temperature
+`250–470 K`, duration
 `1–14,400 s`, reagent amount `0.003–0.030 mol`, stirring `100–1,200 rpm`, four unordered catalysts,
 catalyst amount `0.00008–0.00055 mol`, four unordered solvents and solvent volume `0.005–0.050 L`.
 The first attempted runner incorrectly inherited the old `333.15–423.15 K` and `900–7,200 s` task
@@ -48,6 +49,14 @@ recipe bounds. It was stopped on August 11, 2026 after 831/2,560 provider-free e
 task summary was created. Those ignored trajectories are retained as an aborted platform-defect
 attempt and never enter a Q1 denominator. The corrected reaction-safety block restarts from recipe 1
 with the original Sobol namespace, adaptive algorithm and gates unchanged.
+
+A second Q1-v0.2 run then used the generic public field ceiling `520 K`, but the task's active vessel
+advertised and enforced a state-dependent `470 K` ceiling. A post-run operation audit found 403
+recipes with a rejected heat action: 357 broad and 46 adaptive, distributed as 79, 73, 81, 84 and 86
+across worlds 0--4. The executor had required a committed final assay but had not rejected an earlier
+noncommitted operation, so exact replay reproduced the invalid actions. Q1-v0.2 is retained only as a
+platform-defect audit. Q1-v0.3 restarts at world 0 with the corrected executable envelope and requires
+every operation in every completed recipe to commit.
 
 ## Measurements and gates
 
@@ -60,7 +69,8 @@ full-space coordinates, exact replay, threshold reachability, top-region boundar
 high-quality basin size, local target gradients/interactions, repeat-derived noise and cross-world
 heterogeneity. Frozen pass rules are:
 
-- 512/512 completed final assays and 512/512 exact replay in every world;
+- 512/512 recipes with every operation committed, 512/512 completed final assays and 512/512 exact
+  replay in every world;
 - safe score-threshold recipes are at least 1% of valid recipes and at least five in absolute count;
 - feasible `P90(score)-P10(score) >= 0.15`;
 - at least one primary-metric range is `>= max(0.10, 3 sigma_noise)`;
@@ -90,15 +100,12 @@ Expected outputs are one raw five-world response-surface root, one readable trac
 task, a Q0/Q1 go/no-go decision, and—only after 5/5 Q1 pass—a separately frozen Q2 prior-pair artifact
 and D1 config. No provider call is authorized by this note.
 
-## Phase conclusion — reaction safety
+## Phase conclusion — reaction safety Q1-v0.2
 
-The corrected full-envelope block completed `2,560/2,560` final assays and `2,560/2,560` exact
-replays with zero failed recipes and zero provider calls. All five worlds failed Q1 in the same four
-places: absolute threshold reachability, floor saturation, a non-isolated success basin and local
-parametric structure. No recipe reached the task threshold `0.70`; per-world maximum scores ranged
-from `0.2876904` to `0.4377345`, while floor fractions ranged from `0.3222656` to `0.4414062`.
-This was not a missing-risk problem: every world passed safety-frontier coverage with 54–64 recipes
-inside risk `[0.30,0.40]`, and every world passed the dynamic-range, primary-metric-effect and
-target-interior gates. The task cohort is therefore rejected before Q2. It is retained as evidence
-that the current reaction-safety scoring/threshold contract exposes risk variation but does not
-provide a reachable safe high-quality basin suitable for the registered A-P discovery question.
+No scientific phase conclusion is authorized. Although Q1-v0.2 reported `2,560/2,560` final assays
+and exact replays, 403 recipes contained a rejected heat operation. That defect contaminated broad
+coverage, adaptive-anchor selection, floor fractions, local families and the `0/5` decision. The
+artifact remains immutable as a development audit, but none of those outcome statistics may support
+a task-design rejection. The corrected Q1-v0.3 block must rerun from world 0 before these gates can
+be interpreted. The separately frozen mechanism-oracle relative qualification does not overwrite or
+retroactively repair Q1-v0.2.

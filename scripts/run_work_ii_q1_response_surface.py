@@ -45,8 +45,8 @@ from chemworld.eval.work_ii_truth import _FrozenTruthReplayAgent
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
-SUMMARY_VERSION = "chemworld-work-ii-q1-five-world-summary-0.2"
-WORLD_REPORT_VERSION = "chemworld-work-ii-q1-world-report-0.2"
+SUMMARY_VERSION = "chemworld-work-ii-q1-five-world-summary-0.3"
+WORLD_REPORT_VERSION = "chemworld-work-ii-q1-world-report-0.3"
 SCOPED_RUNTIME_PREFIXES = (
     "src/",
     "scripts/",
@@ -62,7 +62,7 @@ TASK_SPECS: dict[str, dict[str, Any]] = {
         "metrics": ("yield", "selectivity", "safety_risk", "score"),
         "require_safety_frontier": True,
         "target_operation_check": "heat",
-        "expected_target_bounds": ((250.0, 520.0), (1.0, 14_400.0)),
+        "expected_target_bounds": ((250.0, 470.0), (1.0, 14_400.0)),
         "required_coverage_control_ids": (
             "reaction_temperature_K",
             "reaction_duration_s",
@@ -100,7 +100,7 @@ REACTION_SAFETY_Q1_SCHEMA: tuple[dict[str, Any], ...] = (
         "coordinate": 0,
         "control_id": "reaction_temperature_K",
         "kind": "linear",
-        "physical_bounds": [250.0, 520.0],
+        "physical_bounds": [250.0, 470.0],
         "unit": "K",
     },
     {
@@ -230,7 +230,7 @@ def _compile_reaction_safety_q1_actions(
     if any(not 0.0 <= value <= 1.0 for value in values):
         raise ValueError("reaction-safety Q1 vector must stay in [0,1]")
     physical = {
-        "reaction_temperature_K": _scale_unit(values[0], 250.0, 520.0),
+        "reaction_temperature_K": _scale_unit(values[0], 250.0, 470.0),
         "reaction_duration_s": _scale_unit(values[1], 1.0, 14_400.0),
         "reagent_amount_mol": _scale_unit(values[2], 0.003, 0.030),
         "stirring_speed_rpm": _scale_unit(values[3], 100.0, 1200.0),
@@ -262,7 +262,7 @@ def _compile_reaction_safety_q1_actions(
         {"operation": "measure", "instrument": "final_assay"},
     ]
     metadata = {
-        "recipe_contract": "work-ii-reaction-safety-q1-full-public-control-envelope-0.1",
+        "recipe_contract": "work-ii-reaction-safety-q1-executable-control-envelope-0.2",
         "search_vector": values,
         "physical_controls": physical,
         "coordinate_schema": _q1_coordinate_schema("reaction-safety-constrained"),
@@ -450,6 +450,19 @@ def _execute_recipe(
         records = load_jsonl(trajectory_path)
         if [record.get("action") for record in records] != actions:
             raise ValueError("Q1 trajectory differs from its frozen action plan")
+        noncommitted = [
+            record
+            for record in records
+            if record.get("transaction_status") != "committed"
+        ]
+        if noncommitted:
+            first = noncommitted[0]
+            raise ValueError(
+                "Q1 recipe contains a noncommitted operation: "
+                f"operation={first.get('operation_type')}, "
+                f"status={first.get('transaction_status')}, "
+                f"error={first.get('error_message')}"
+            )
         metrics = _final_metrics(records, spec["metrics"])
         replay = verify_records(records, tolerance=0.0).to_dict()
         if replay.get("verified") is not True:

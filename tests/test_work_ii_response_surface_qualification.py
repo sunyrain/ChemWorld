@@ -35,7 +35,7 @@ def test_q0_audit_passes_and_is_json_serializable(task_id: str) -> None:
     json.dumps(audit, ensure_ascii=False, allow_nan=False, sort_keys=True)
 
 
-def test_reaction_safety_q1_uses_full_frozen_control_envelope() -> None:
+def test_reaction_safety_q1_uses_executable_frozen_control_envelope() -> None:
     task_id = "reaction-safety-constrained"
     spec = TASK_SPECS[task_id]
     config = _load((ROOT / spec["config"]).resolve())
@@ -43,7 +43,7 @@ def test_reaction_safety_q1_uses_full_frozen_control_envelope() -> None:
     controls = {str(item["control_id"]): item for item in schema}
 
     assert len(schema) == 8
-    assert controls["reaction_temperature_K"]["physical_bounds"] == [250.0, 520.0]
+    assert controls["reaction_temperature_K"]["physical_bounds"] == [250.0, 470.0]
     assert controls["reaction_duration_s"]["physical_bounds"] == [1.0, 14_400.0]
     assert controls["stirring_speed_rpm"]["physical_bounds"] == [100.0, 1200.0]
     assert controls["solvent_volume_L"]["physical_bounds"] == [0.005, 0.050]
@@ -56,7 +56,7 @@ def test_reaction_safety_q1_uses_full_frozen_control_envelope() -> None:
     assert low_heat["target_temperature_K"] == 250.0
     assert low_heat["duration_s"] == 1.0
     assert low_heat["stirring_speed_rpm"] == 100.0
-    assert high_heat["target_temperature_K"] == 520.0
+    assert high_heat["target_temperature_K"] == 470.0
     assert high_heat["duration_s"] == 14_400.0
     assert high_heat["stirring_speed_rpm"] == 1200.0
     assert low_actions[0]["volume_L"] == 0.005

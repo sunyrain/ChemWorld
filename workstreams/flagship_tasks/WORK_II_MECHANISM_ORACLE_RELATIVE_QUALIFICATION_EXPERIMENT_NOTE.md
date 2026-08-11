@@ -1,7 +1,7 @@
 # Work II mechanism-oracle relative qualification
 
 Date: 2026-08-11
-Status: frozen before execution
+Status: frozen after executable-envelope correction and before execution
 
 ## Question and units
 
@@ -13,8 +13,12 @@ threshold is not calibrated to the attainable score range?
 - Worlds: complete public-test cohort `world_seed=0,1,2,3,4`; no seed selection.
 - Independent qualification unit: one task × world.
 - Provider calls: zero. Participant outcomes and provider trajectories are not read.
-- The completed reaction-safety Q1-v0.2 rejection remains immutable. This is a new qualification
-  question and cannot overwrite or reinterpret that result.
+- The completed reaction-safety Q1-v0.2 artifact is retained, but a post-run audit found that
+  `403/2,560` recipes contained a rejected heat operation because the screen used the generic
+  `520 K` field ceiling instead of this task's executable `470 K` vessel ceiling. Exact replay had
+  reproduced those invalid actions rather than proving recipe validity. Q1-v0.2 is therefore an
+  inconclusive platform-defect audit, not a scientific task-design rejection. The present block
+  starts again from world 0 with every operation required to commit.
 
 ## Frozen mechanism-oracle search
 
@@ -37,7 +41,8 @@ For each world:
    keyed-noise final-assay replicates each, with exact replay. Optimizer truth never enters these
    observed validation scores.
 
-Reaction safety uses the already frozen eight-coordinate full-envelope contract. Electrochemistry
+Reaction safety uses the corrected eight-coordinate executable-envelope contract, including
+temperature `250--470 K` and duration `1--14,400 s`. Electrochemistry
 uses its current nine-coordinate autonomous-open recipe contract. Target coordinates remain
 temperature/duration and controlled potential/current respectively.
 
@@ -49,8 +54,9 @@ and relative high quality as safe score at least `S* - max(0.05, 6 sigma_obs)`.
 
 Every world must pass all of the following:
 
-- all 128 initial-population members and 20 optimizer generations are attempted; at least 99.5% of
-  unique mechanism evaluations and all 24 observed validation executions complete;
+- all 128 initial-population members and 20 optimizer generations are attempted; every operation in
+  a completed recipe must commit; at least 99.5% of unique mechanism evaluations and all 24
+  observed validation executions complete;
 - all 24 observed validation executions exact-replay, with at least 7/8 candidate recipes completing
   all three replicates;
 - a finite safe oracle optimum exists and the median observed score of its three replicates is within

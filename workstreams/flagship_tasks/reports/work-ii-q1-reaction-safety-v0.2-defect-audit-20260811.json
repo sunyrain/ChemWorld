@@ -1,0 +1,37 @@
+{
+  "affected_recipe_count": 403,
+  "affected_recipe_fraction": 0.157421875,
+  "affected_trajectory_count": 403,
+  "audit_date": "2026-08-11",
+  "conclusion": "The Q1-v0.2 artifact is an inconclusive platform-defect audit and cannot support a scientific task-design rejection.",
+  "failure_breakdown": {
+    "adaptive": 46,
+    "broad": 357,
+    "by_world": {
+      "0": {"adaptive": 8, "broad": 71, "total": 79},
+      "1": {"adaptive": 2, "broad": 71, "total": 73},
+      "2": {"adaptive": 10, "broad": 71, "total": 81},
+      "3": {"adaptive": 12, "broad": 72, "total": 84},
+      "4": {"adaptive": 14, "broad": 72, "total": 86}
+    },
+    "failed_operation": "heat",
+    "failed_precondition": "payload_bounds:target_temperature_K"
+  },
+  "formal_result": false,
+  "original_report": "workstreams/flagship_tasks/reports/work-ii-q1-reaction-safety-five-world-20260811.json",
+  "original_reported_denominator": 2560,
+  "platform_defect": {
+    "actual_task_vessel_temperature_ceiling_K": 470.0,
+    "configured_screen_temperature_ceiling_K": 520.0,
+    "exact_replay_interpretation": "Replay exactly reproduced invalid heat actions; it did not establish that every recipe operation committed.",
+    "runner_defect": "The recipe executor required one committed final assay but did not reject earlier noncommitted operations."
+  },
+  "required_remediation": [
+    "Use the executable 250--470 K reaction-safety temperature envelope.",
+    "Require every recipe operation to have transaction_status=committed.",
+    "Rerun corrected Q1-v0.3 from world 0 before using the original Q1 gates as evidence.",
+    "Run the separately frozen mechanism-oracle qualification as a distinct relative-quality question.",
+    "Do not use the prior 0/5 result, saturation statistics, adaptive families or local-law checks as scientific evidence."
+  ],
+  "schema_version": "chemworld-work-ii-q1-platform-defect-audit-0.1"
+}

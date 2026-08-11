@@ -71,7 +71,7 @@ Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为�
 Reaction-safety parametric development screen 只在固定材料背景上运行了 `4 × 4` 温度—时间网格：
 
 - 温度只有 340/360/390/420 K，时间只有 900/1800/3600/7200 s；
-- 实际公开可执行范围为 250–520 K、单次 heat 1–14,400 s、100–1200 rpm，另有 catalyst、solvent、
+- 当前 reaction-safety vessel 的实际公开可执行范围为 250–470 K、单次 heat 1–14,400 s、100–1200 rpm，另有 catalyst、solvent、
   loading 和 volume；
 - 网格内 best 为 420 K/7200 s，位于右上边界，不能证明已经找到内部最优或 turnover；
 - best score 仅 `0.1043173`，远低于任务成功阈值 `0.70`；worst 被 score floor 截为 `0`，因此旧 gap
@@ -308,7 +308,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | electrochemical D1, WellAU seed 1 | 3/3 cells、12/12 experiments；descriptive H3 `+0.0173` | development evidence；不自动扩展 |
 | electrochemical D1, DeepSeek seed 1 | 3/3 cells、12/12 experiments；descriptive H3 `-0.0025` | operational pass；未观察到科学修正 |
 | reaction-safety old screen, seed 0 | 16/16 exact replay；旧 gap `0.1043173` | 不满足新 absolute-quality、interior、non-saturation 与 safety-frontier gates |
-| reaction-safety full-envelope Q1, seeds 0–4 | 2,560/2,560 final assays 与 exact replay；0 failures；0/5 worlds pass；max score `0.288–0.438`；每 world 54–64 个 safety-frontier recipes | 有效 task-design rejection；风险与动态范围可见，但 success threshold、非饱和 success basin 和局部结构均不成立；禁止进入 Q2/provider，不重跑 |
+| reaction-safety Q1-v0.2, seeds 0–4 | 表面为 2,560/2,560 final assays 与 exact replay；事后逐 operation 审计发现 403/2,560 recipes 的 heat 因使用通用 `520 K` 而非任务可执行 `470 K` 上限被拒绝（357 broad、46 adaptive） | 平台缺陷导致该 block 无法作 scientific rejection；旧 artifact 永久保留为 defective development audit，但 `0/5`、floor saturation、local structure 与 adaptive 结论均不得继续作证据。修复后的 Q1-v0.3 与独立 mechanism-oracle block 均须从 world 0 开始。 |
 | reaction-safety DeepSeek D1, seed 0 | 3/3 terminal、2/3 qualified；descriptive H3 `+0.1005` | retained operational failure；不重跑 |
 | 首批 crystallization/partition structural screens | module gap 分别 `0.0069301`、`0.0744505` | 拒绝；不能解释为 agent 推理失败 |
 
@@ -322,7 +322,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [x] **W2-21** 写一个 concise experiment note，冻结 Q0–Q2 的 5-world coverage、512 recipes/world、指标、
   pass/failure rules 和输出文件。
 - [ ] **W2-22** 实现 provider-free oracle response-surface runner 与 readable machine summary；
-  reaction-safety A-P 已完成并在 Q1 以 0/5 worlds 被拒绝，当前转入 electrochemical A-P。
+  reaction-safety Q1-v0.2 因 403 个未提交 heat operations 被判定为平台缺陷、结论失效；当前先从
+  world 0 重跑修复后的 Q1-v0.3，再执行独立的 reaction-safety mechanism-oracle block，随后决定是否
+  转入 electrochemical A-P。
 - [ ] **W2-23** 按预注册 lexicographic gates 选择 reference context，构造 matched aligned/misspecified laws，
   完成 blind leakage/identifiability audit。
 - [ ] **W2-24** 为通过 Q2 的 task 各运行一个三臂 D1；只有预注册条件触发时运行 D2。
@@ -330,8 +332,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [ ] **W2-28** 冻结 A-S 的两个机制干预候选，并为 A-O 写独立的 identifiability/D1 决策卡；在用户审核前
   不把 observation-model 或 scope/compositionality 扩展加入正式 provider 分母。
 - [ ] **W2-29** 运行 mechanism-oracle relative qualification：先直接求 reaction-safety 的安全相对最优、
-  Pareto/局部规律和独立 noisy replay，再以同一原则审计 electrochemical。旧 Q1-v0.2 rejection 永久保留，
-  historical leaderboard threshold 只作诊断，不直接改值。
+  Pareto/局部规律和独立 noisy replay，再以同一原则审计 electrochemical。旧 Q1-v0.2 artifact 永久保留为
+  platform-defect audit，不再称为 scientific rejection；historical leaderboard threshold 只作诊断，不直接改值。
 
 ### P1 — 重冻正式矩阵
 
@@ -363,13 +365,13 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-19 | CONDITIONAL | matched-evidence probe B |
 | W2-20 | CONDITIONAL | artifact-only transfer D |
 | W2-21 | DONE | five-world oracle qualification note 已冻结 |
-| W2-22 | DOING | runner complete；reaction-safety Q1 rejected；electrochemical Q1 pending |
+| W2-22 | DOING | runner 已修复逐 operation 完整性与 `470 K` executable envelope；reaction-safety Q1-v0.3 全块重跑 pending；electrochemical Q1 pending |
 | W2-23 | NOT STARTED | matched-prior constructor + blind audit |
 | W2-24 | NOT STARTED | new D1/D2 pilots |
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
 | W2-26 | NOT STARTED | 8/10/12 resource calibration |
 | W2-27 | NOT STARTED | current WellAU method qualification |
-| W2-29 | DOING | mechanism-oracle note frozen；runner pending |
+| W2-29 | DOING | mechanism-oracle note 已按平台缺陷修正；runner 与聚焦测试完成，reaction-safety 5-world run pending |
 
 ## 12. 不可违反的规则
 
