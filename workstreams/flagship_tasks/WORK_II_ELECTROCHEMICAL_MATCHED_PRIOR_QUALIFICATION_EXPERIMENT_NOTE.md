@@ -1,7 +1,7 @@
 ﻿# Work II electrochemical matched-prior qualification
 
 Date: 2026-08-11  
-Status: v0.1/v0.2 development smokes rejected; v0.3 frozen before qualification execution
+Status: v0.1/v0.2 development smokes rejected; v0.3 qualification completed
 
 ## Question and units
 
@@ -82,4 +82,29 @@ The baseline-preserving potential reflection passed every gate: baseline gap `0`
 `73/85`, blind margin `0.094693`, low/high support `21/15`, representative distance `10`, and all
 prior matching/leakage checks. This verifies implementation viability only; the five-world
 qualification still starts from world 0 on a clean committed source.
+
+## Phase conclusion — v0.3
+
+The clean-source five-world qualification completed in `168.376 s` with zero provider calls. All
+`605/605` surface queries completed and were classified, comprising `180` safe fit and `425` safe
+held-out queries, with zero physical or platform failures. All five worlds passed every registered
+gate and the frozen decision is `proceed_to_electrochemical_d1_static_readiness`.
+
+All worlds selected the potential-axis prior and the lower-controlled-potential side. Aligned score
+normalized MAE was `0.121554--0.152401`; the misspecified-minus-aligned blind error margin was
+`0.094693--0.445492`. Each world had exactly `73/85` held-out disagreements (`85.88%`), zero baseline
+gap, low/high falsification support of at least `15` queries per side, and representative distance
+`9--10`. Both supplied priors were exactly `127` words and differed only in
+`model.claim.expected_relation`; all leakage checks passed.
+
+The generated D1 candidate uses world 0, the hardest qualifying world by blind margin, with ten
+experiments: eight unique recipes plus at most two exact repeats, `110` operation attempts,
+`45,000 s` process time (`36,000 s` required stages + `9,000 s` repeats + zero quench/transfer
+allowance), ten vessel/final-assay slots and thirty nonfinal instrument uses. Its Q2 binding is
+complete, but `execution_authorized=false` and `formal_r5_authorized=false`; a separate clean-commit
+zero-provider readiness receipt is required before any WellAU call.
+
+Because all five worlds selected the same axis and direction with substantial margins, no
+heterogeneity-triggered electrochemical D2 is scheduled. Q2 supports a D1 test of parametric-law
+correction, not a safety claim and not an R5/formal result.
 

@@ -3,8 +3,8 @@
 最后更新：2026-08-11
 
 当前状态：**正式/R5 participant outcomes 尚未执行；reaction-safety mechanism-oracle Q1、matched-prior
-Q2、world-0 D1 与预注册 D2 worlds 1/4 均已完成；electrochemical mechanism-oracle 已通过 5/5 worlds，
-当前进入 Q2 matched-prior construction。** Reaction-safety D1/D2 共 `9/9` cells、`90/90` experiments、
+Q2、world-0 D1 与预注册 D2 worlds 1/4 均已完成；electrochemical mechanism-oracle 与 matched-prior Q2
+均已通过 5/5 worlds，当前进入 D1 static readiness。** Reaction-safety D1/D2 共 `9/9` cells、`90/90` experiments、
 `630/630` operations、`45/45` checkpoints、`48/48` truth 与 `54/54` blind exact replay，0 platform
 failures。结果显示 conflict detection、confidence revision、predictive correction、direction recovery、law
 formation、action 和 safety 明显分离；world 4 的注册方向与 16-query empirical direction 冲突，因此 binary
@@ -314,6 +314,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | electrochemical D1, WellAU seed 1 | 3/3 cells、12/12 experiments；descriptive H3 `+0.0173` | development evidence；不自动扩展 |
 | electrochemical D1, DeepSeek seed 1 | 3/3 cells、12/12 experiments；descriptive H3 `-0.0025` | operational pass；未观察到科学修正 |
 | electrochemical mechanism-oracle v0.2, seeds 0–4 | `14,160/14,160` outcomes completed；`120/120` validation replay；0 physical/platform failures；5/5 worlds pass | Oracle score `0.770–0.849`、relative basin `36–68`、strong potential/current direction and curvature；历史 `0.58` threshold 每 world 有 `877–1,597` 个点达到。授权 Q2；因未激发安全边界，只用于参数规律结论。 |
+| electrochemical matched-prior Q2 v0.3, seeds 0–4 | `605/605` completed；`180` safe fit、`425` safe held-out；0 physical/platform；5/5 worlds pass | 五个 world 均选择 lower-controlled-potential law；aligned MAE `0.122–0.152`、blind margin `0.095–0.445`、disagreement `73/85`；supplied priors 均为 127 words 且只改 directional claim。授权 world-0 D1 static readiness，不授权 provider/R5；无 heterogeneity-triggered D2。 |
 | reaction-safety old screen, seed 0 | 16/16 exact replay；旧 gap `0.1043173` | 不满足新 absolute-quality、interior、non-saturation 与 safety-frontier gates |
 | reaction-safety Q1-v0.2, seeds 0–4 | 表面为 2,560/2,560 final assays 与 exact replay；事后逐 operation 审计发现 403/2,560 recipes 的 heat 因使用通用 `520 K` 而非任务可执行 `470 K` 上限被拒绝（357 broad、46 adaptive） | 平台缺陷导致该 block 无法作 scientific rejection；旧 artifact 永久保留为 defective development audit，但 `0/5`、floor saturation、local structure 与 adaptive 结论均不得继续作证据。修复后的 Q1-v0.3 与独立 mechanism-oracle block 均须从 world 0 开始。 |
 | reaction-safety Q1-v0.3, seeds 0–4 | 2,560 attempted；2,557 recipes 全 operation committed 且 exact replay；3 个 schema-valid heat 触发动态 `vessel_temperature_bound` rollback；0/5 worlds pass；max score `0.291–0.433`；45–81 safety-frontier recipes/world | 有效 absolute-Q1 scientific rejection：3 个 clean worlds 仍独立失败 absolute reachability、floor saturation、local structure 与 success basin；动态范围与 primary-metric range 成立。禁止据此进入原 Q2，但允许执行已独立冻结的 mechanism-oracle relative question。 |
@@ -341,8 +342,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   reaction-safety 与 electrochemical 当前 relative mechanism-oracle blocks 均已完整运行；absolute reaction-safety
   rejection 与 relative qualification 分开保留，不再要求 electrochemical 重复一条已由相对资格替代的旧 absolute route。
 - [x] **W2-23** 按预注册 lexicographic gates 选择 reference context，构造 matched aligned/misspecified laws，
-  完成 blind leakage/identifiability audit；最终为 5/5 worlds、605/605 classified、0 platform failures，D1 config
-  的 arm/checkpoint/MCP/resource 静态预检全部通过。
+  完成 blind leakage/identifiability audit；reaction-safety 与 electrochemical Q2 均为 5/5 worlds、605/605
+  classified、0 platform failures。Reaction-safety D1 静态预检已通过；electrochemical 当前待独立 readiness。
 - [x] **W2-24** reaction-safety 三臂 D1 与预注册 D2 worlds 1/4 均已完成 participant、provider-free
   evaluator 和综合分析。world 4 direction diagnostic 冲突已隔离；其他通过 Q2 的 task 仍须分别完成 D1。
 - [ ] 用户审核 D1/D2、轨迹样例、资源和 evaluator 结果；未经审核不进入 R5。
@@ -383,7 +384,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-20 | CONDITIONAL | artifact-only transfer D |
 | W2-21 | DONE | five-world oracle qualification note 已冻结 |
 | W2-22 | DONE | provider-free response-surface runner 与 readable summaries 已完成；reaction-safety absolute rejection 和两个 task 的 relative qualification 分层保留 |
-| W2-23 | DONE | reaction-safety matched-prior Q2 以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
+| W2-23 | DONE | reaction-safety 与 electrochemical matched-prior Q2 均以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
 | W2-26 | NOT STARTED | 8/10/12 resource calibration |
@@ -413,7 +414,11 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   `workstreams/flagship_tasks/reports/work-ii-parametric-initial-model-pilot-evaluation-20260811.json`、
   `workstreams/flagship_tasks/reports/work-ii-deepseek-parametric-initial-model-pilot-evaluation-20260811.json`、
   `workstreams/flagship_tasks/reports/work-ii-mechanism-oracle-electrochemical-classified-v0.2-20260811.json`、
-  `workstreams/flagship_tasks/WORK_II_ELECTROCHEMICAL_MECHANISM_ORACLE_ANALYSIS_ZH.md`
+  `workstreams/flagship_tasks/WORK_II_ELECTROCHEMICAL_MECHANISM_ORACLE_ANALYSIS_ZH.md`、
+  `workstreams/flagship_tasks/reports/work-ii-electrochemical-matched-prior-qualification-20260811.json`、
+  `configs/benchmark/work_ii_electrochemical_matched_prior_package.json`、
+  `configs/benchmark/work_ii_electrochemical_matched_prior_d1.json`、
+  `workstreams/flagship_tasks/WORK_II_ELECTROCHEMICAL_MATCHED_PRIOR_ANALYSIS_ZH.md`
 - Structural/non-entity screens：`workstreams/flagship_tasks/reports/work-ii-structural-initial-model-diagnostic-20260811.json`、
   `workstreams/flagship_tasks/reports/work-ii-crystallization-structural-screen-20260811.json`、
   `workstreams/flagship_tasks/reports/work-ii-partition-structural-screen-20260811.json`
