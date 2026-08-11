@@ -134,7 +134,7 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **READY / 待独立公开仓库首推**：`Claim: Codex /root — PUBLIC-REPOSITORY-RELEASE — READY`；第一篇冻结代码、
   协议、机器报告、图件和 arXiv 包已整理到本地独立仓库 `sunyrain/ChemWorld-Public`，后续 benchmark/Work II
   配置、实验专用模块、运行结果和 provider payload 均未纳入；正文 Data and Code Availability 已改指该仓库。
-  本地公开提交 `dc3dc30` 通过 87 项定向/集成测试、382 文件 release manifest、离线 denominator verifier
+  本地公开提交 `9df2783` 通过 87 项定向/集成测试、382 文件 release manifest、离线 denominator verifier
   与凭据扫描；arXiv PDF/source bundle 已同次重建。远端首推仍按约定等待用户明确确认。
 
 ## 1. 论文只讲什么
