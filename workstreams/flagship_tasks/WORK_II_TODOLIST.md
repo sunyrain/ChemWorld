@@ -295,7 +295,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 
 ### P0 — 先把环境和 prior 做对
 
-- [ ] **W2-21** 写一个 concise experiment note，冻结 Q0–Q2 的 5-world coverage、512 recipes/world、指标、
+- [x] **W2-21** 写一个 concise experiment note，冻结 Q0–Q2 的 5-world coverage、512 recipes/world、指标、
   pass/failure rules 和输出文件。
 - [ ] **W2-22** 实现 provider-free oracle response-surface runner 与 readable machine summary；先覆盖
   reaction-safety A-P，再复核 electrochemical A-P。
@@ -333,8 +333,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-17–18 | DOING | non-entity qualification；转由 W2-21–24 管理 |
 | W2-19 | CONDITIONAL | matched-evidence probe B |
 | W2-20 | CONDITIONAL | artifact-only transfer D |
-| W2-21 | NOT STARTED | five-world oracle qualification note |
-| W2-22 | NOT STARTED | response-surface runner + summary |
+| W2-21 | DONE | five-world oracle qualification note 已冻结 |
+| W2-22 | DOING | response-surface runner + summary |
 | W2-23 | NOT STARTED | matched-prior constructor + blind audit |
 | W2-24 | NOT STARTED | new D1/D2 pilots |
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
