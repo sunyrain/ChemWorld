@@ -26,3 +26,12 @@ Following the qualification restart rule, the complete five-world, 605-query blo
 0 on a clean commit. It must again report all physical failures, zero platform failures, 5/5 worlds
 passing, and a D1 config that passes checkpoint, initial-model and campaign-resource static preflight.
 Provider calls remain zero.
+
+## Phase conclusion
+
+The arm-compatible rerun again produced `605/605` classified queries, `64` physical failures, zero
+platform failures and `5/5` scientific passes. Internal arm compatibility was corrected, but the D1
+static preflight then rejected the five-stage `0/2/4/7/10` checkpoint schedule because the historical
+harness required exactly four stages. No provider process or participant trajectory started. The raw
+surface and generated outputs remain frozen under the ignored v0.2 development root; the subsequent
+pattern-owned checkpoint correction and full rerun are governed by the separate checkpoint note.

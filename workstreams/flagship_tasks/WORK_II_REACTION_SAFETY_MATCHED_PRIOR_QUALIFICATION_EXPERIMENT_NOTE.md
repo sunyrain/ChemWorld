@@ -64,3 +64,27 @@ Dynamic temperature-bound rollback is a physical/safety outcome and remains in t
 is not a platform failure. Expected outputs are an ignored raw surface root, a tracked machine
 summary with exact denominators and all failures, a five-world matched-prior package, and one frozen
 world-0 D1 config. D1 is not executed by this qualification block.
+
+## Phase conclusion — final checkpoint-compatible run
+
+The final clean-commit rerun passed `5/5` worlds in `83.706 s`. All `605/605` surface queries were
+classified, comprising `541` committed safe fitting/held-out endpoints used by the qualification and
+`64` retained dynamic physical failures, with zero platform failures. The tracked denominators are
+`150` safe fitting cells and `391` safe held-out cells; every world contributed 30 safe fitting cells
+and 77--80 safe held-out cells.
+
+All five worlds selected the first frozen candidate transform, temperature-axis reflection. Aligned
+score normalized MAE was `0.0369--0.0666` and safety-risk normalized MAE was `0.0289--0.0376`.
+Baseline predicted-score gaps were only `0.00050--0.01608`, while held-out disagreement covered
+`48.1--53.8%` of safe queries and blind identification margins were `0.267--0.284`. Both sides of the
+temperature reference axis contained at least 30 qualifying falsification queries, with retained
+representatives separated by 10--18 grid steps. Supplied priors had identical 149-word schemas,
+confidence and reference contexts, differing only in the directional claim, and the leakage audit
+found no participant-visible condition identity or oracle information.
+
+The decision is `proceed_to_reaction_safety_d1`. The generated world-0 D1 config passed static
+preflight for the three internal arm IDs, five checkpoints at `0/2/4/7/10`, 16 held-out queries,
+10-experiment campaign resources, participant initial-model isolation and an MCP final-selection
+range of 1--10. The two earlier Q2 executions remain frozen as integration-defect evidence: their
+scientific surfaces and analyses match the final run, but their generated D1 configs were rejected
+before provider launch by legacy arm-ID and four-checkpoint assumptions.

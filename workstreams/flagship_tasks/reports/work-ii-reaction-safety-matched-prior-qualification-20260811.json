@@ -1,0 +1,555 @@
+{
+  "coverage": {
+    "held_out_queries_per_world": 16,
+    "planned_surface_query_count": 605,
+    "surface_queries_per_world": 121,
+    "world_count": 5
+  },
+  "d1_authorized": true,
+  "decision": "proceed_to_reaction_safety_d1",
+  "denominators": {
+    "classified_surface_query_count": 605,
+    "passed_world_count": 5,
+    "physical_failure_count": 64,
+    "platform_failure_count": 0,
+    "safe_fit_count": 150,
+    "safe_held_out_count": 391,
+    "world_count": 5
+  },
+  "elapsed_s": 83.706,
+  "failure_count": 0,
+  "failures": [],
+  "formal_result": false,
+  "generated_d1_config": {
+    "path": "configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json",
+    "sha256": "b7ac57143849cab7e0ee6ce5ab851be24e48117409cc0ee1119d01c9c274977f"
+  },
+  "generated_package": {
+    "path": "configs/benchmark/work_ii_reaction_safety_matched_prior_package.json",
+    "sha256": "5aa8364aa96bd773a7c3f2b6164809bbb2f4abe8772cb13bd944f04abaae6e10"
+  },
+  "interpretation": "Provider-free Q2 qualification of matched local priors. Physical failures are retained as safety outcomes; only platform failures invalidate execution.",
+  "provider_call_count": 0,
+  "qualification_passed": true,
+  "qualification_schema_version": "chemworld-work-ii-matched-prior-qualification-0.3",
+  "raw_bindings": [
+    {
+      "passed": true,
+      "path": "runs/development/work-ii-reaction-safety-matched-prior-qualification-v0.3-20260811/world-0/world-report.json",
+      "sha256": "86ad2234454f528b9bc1f213d6bb0ba1591ab314cd8a36e16316eb372b196895",
+      "world_seed": 0
+    },
+    {
+      "passed": true,
+      "path": "runs/development/work-ii-reaction-safety-matched-prior-qualification-v0.3-20260811/world-1/world-report.json",
+      "sha256": "0ddc8e9df1b2611ba4e1a1eae994bec0ce4bacaf4df6b641e290ac281af397a7",
+      "world_seed": 1
+    },
+    {
+      "passed": true,
+      "path": "runs/development/work-ii-reaction-safety-matched-prior-qualification-v0.3-20260811/world-2/world-report.json",
+      "sha256": "b7de4c5dedae6dd4216f0f8991412057d0816e91f5b78289c1d78163514e55c4",
+      "world_seed": 2
+    },
+    {
+      "passed": true,
+      "path": "runs/development/work-ii-reaction-safety-matched-prior-qualification-v0.3-20260811/world-3/world-report.json",
+      "sha256": "f20512d0b7aeb424655ad2583bc59eb50aceb26dec5e9bb02708757afe1e15f4",
+      "world_seed": 3
+    },
+    {
+      "passed": true,
+      "path": "runs/development/work-ii-reaction-safety-matched-prior-qualification-v0.3-20260811/world-4/world-report.json",
+      "sha256": "fe3dd69c281a67220adfbb0dcb7839c96637a2e54c1a10d05f6f921306fed8f6",
+      "world_seed": 4
+    }
+  ],
+  "schema_version": "chemworld-work-ii-matched-prior-five-world-summary-0.3",
+  "source_commit": "e0bf8855a3a9e9750a1c0ad83efe32a56b33cc65",
+  "summary_sha256": "dc6d9390a7b9eeae7b81e3845193de81ddb62edd7c822944215f82a2c2a40404",
+  "task_id": "reaction-safety-constrained",
+  "world_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "worlds": [
+    {
+      "aligned_risk_normalized_mae": 0.03764694625243968,
+      "aligned_score_normalized_mae": 0.06657757172985905,
+      "elapsed_s": 17.488,
+      "leakage_audit": {
+        "failures": [],
+        "forbidden_pattern_hits": [],
+        "passed": true
+      },
+      "passed": true,
+      "physical_failure_count": 13,
+      "prior_matching": {
+        "checks": {
+          "confidence_equal": true,
+          "context_equal": true,
+          "only_directional_claim_differs": true,
+          "schema_shape_equal": true,
+          "word_count_equal": true
+        },
+        "difference_paths": [
+          "model.claim.expected_relation"
+        ],
+        "failures": [],
+        "left_word_count": 149,
+        "passed": true,
+        "right_word_count": 149
+      },
+      "reference_context": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.0005250000000000001,
+        "reagent_amount_mol": 0.003,
+        "solvent": 2,
+        "solvent_volume_L": 0.005,
+        "stirring_speed_rpm": 400.0
+      },
+      "reference_selection": {
+        "candidate_rank": 2,
+        "non_target_distance": 0.16062697806830356,
+        "score_gap": 0.002825136852562582,
+        "vector": [
+          0.811924907474,
+          0.110804504838,
+          0.001360999785,
+          0.291778294553,
+          0.375,
+          0.963286832757,
+          0.625,
+          0.010413209796
+        ]
+      },
+      "safe_fit_count": 30,
+      "safe_held_out_count": 78,
+      "selected_reflection": {
+        "aligned_joint_normalized_error": 0.052112258991149366,
+        "aligned_preferred_side": "lower_temperature",
+        "axis": "temperature",
+        "baseline_maximum_score_gap": 0.008975810689111574,
+        "blind_error_margin": 0.28171872628208966,
+        "checks": {
+          "baseline_utility_matched": true,
+          "blind_identification_margin": true,
+          "held_out_disagreement": true,
+          "high_side_falsification_region": true,
+          "low_side_falsification_region": true,
+          "representatives_separated": true
+        },
+        "disagreement_count": 42,
+        "disagreement_fraction": 0.5384615384615384,
+        "falsification_representatives": [
+          {
+            "duration_s": 5700.0,
+            "evidence_margin": 0.8039419067625764,
+            "grid_i": 0,
+            "grid_j": 9,
+            "query_id": "t370-d5700",
+            "temperature_K": 370.0
+          },
+          {
+            "duration_s": 5700.0,
+            "evidence_margin": 0.7651003543757241,
+            "grid_i": 10,
+            "grid_j": 9,
+            "query_id": "t470-d5700",
+            "temperature_K": 470.0
+          }
+        ],
+        "held_out_count": 78,
+        "high_side_support": 31,
+        "low_side_support": 34,
+        "misspecified_joint_normalized_error": 0.333830985273239,
+        "passed": true,
+        "representative_grid_distance": 10
+      },
+      "world_seed": 0
+    },
+    {
+      "aligned_risk_normalized_mae": 0.03597384148548912,
+      "aligned_score_normalized_mae": 0.036949173196298285,
+      "elapsed_s": 17.716,
+      "leakage_audit": {
+        "failures": [],
+        "forbidden_pattern_hits": [],
+        "passed": true
+      },
+      "passed": true,
+      "physical_failure_count": 13,
+      "prior_matching": {
+        "checks": {
+          "confidence_equal": true,
+          "context_equal": true,
+          "only_directional_claim_differs": true,
+          "schema_shape_equal": true,
+          "word_count_equal": true
+        },
+        "difference_paths": [
+          "model.claim.expected_relation"
+        ],
+        "failures": [],
+        "left_word_count": 149,
+        "passed": true,
+        "right_word_count": 149
+      },
+      "reference_context": {
+        "catalyst": 0,
+        "catalyst_amount_mol": 0.0005250000000000001,
+        "reagent_amount_mol": 0.003,
+        "solvent": 0,
+        "solvent_volume_L": 0.005,
+        "stirring_speed_rpm": 1100.0
+      },
+      "reference_selection": {
+        "candidate_rank": 2,
+        "non_target_distance": 0.17988582790001031,
+        "score_gap": 0.003512830134454137,
+        "vector": [
+          0.818803104758,
+          0.309628850235,
+          0.006593159462,
+          0.90059028072,
+          0.125,
+          0.946339078998,
+          0.125,
+          0.018251135725
+        ]
+      },
+      "safe_fit_count": 30,
+      "safe_held_out_count": 78,
+      "selected_reflection": {
+        "aligned_joint_normalized_error": 0.036461507340893706,
+        "aligned_preferred_side": "higher_temperature",
+        "axis": "temperature",
+        "baseline_maximum_score_gap": 0.016082911874091277,
+        "blind_error_margin": 0.2672440185528299,
+        "checks": {
+          "baseline_utility_matched": true,
+          "blind_identification_margin": true,
+          "held_out_disagreement": true,
+          "high_side_falsification_region": true,
+          "low_side_falsification_region": true,
+          "representatives_separated": true
+        },
+        "disagreement_count": 38,
+        "disagreement_fraction": 0.48717948717948717,
+        "falsification_representatives": [
+          {
+            "duration_s": 900.0,
+            "evidence_margin": 0.7040155708646588,
+            "grid_i": 0,
+            "grid_j": 1,
+            "query_id": "t370-d900",
+            "temperature_K": 370.0
+          },
+          {
+            "duration_s": 2100.0,
+            "evidence_margin": 0.7104210396610438,
+            "grid_i": 10,
+            "grid_j": 3,
+            "query_id": "t470-d2100",
+            "temperature_K": 470.0
+          }
+        ],
+        "held_out_count": 78,
+        "high_side_support": 32,
+        "low_side_support": 34,
+        "misspecified_joint_normalized_error": 0.3037055258937236,
+        "passed": true,
+        "representative_grid_distance": 12
+      },
+      "world_seed": 1
+    },
+    {
+      "aligned_risk_normalized_mae": 0.036293132120581405,
+      "aligned_score_normalized_mae": 0.06647157728117271,
+      "elapsed_s": 19.895,
+      "leakage_audit": {
+        "failures": [],
+        "forbidden_pattern_hits": [],
+        "passed": true
+      },
+      "passed": true,
+      "physical_failure_count": 13,
+      "prior_matching": {
+        "checks": {
+          "confidence_equal": true,
+          "context_equal": true,
+          "only_directional_claim_differs": true,
+          "schema_shape_equal": true,
+          "word_count_equal": true
+        },
+        "difference_paths": [
+          "model.claim.expected_relation"
+        ],
+        "failures": [],
+        "left_word_count": 149,
+        "passed": true,
+        "right_word_count": 149
+      },
+      "reference_context": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.000475,
+        "reagent_amount_mol": 0.003,
+        "solvent": 0,
+        "solvent_volume_L": 0.005,
+        "stirring_speed_rpm": 150.0
+      },
+      "reference_selection": {
+        "candidate_rank": 3,
+        "non_target_distance": 0.15433537115670484,
+        "score_gap": 0.006587644189281816,
+        "vector": [
+          0.845230443417,
+          0.161949549919,
+          0.009472917813,
+          0.060640969012,
+          0.375,
+          0.835422327861,
+          0.125,
+          0.005719939625
+        ]
+      },
+      "safe_fit_count": 30,
+      "safe_held_out_count": 78,
+      "selected_reflection": {
+        "aligned_joint_normalized_error": 0.051382354700877056,
+        "aligned_preferred_side": "lower_temperature",
+        "axis": "temperature",
+        "baseline_maximum_score_gap": 0.0017759367055749653,
+        "blind_error_margin": 0.2812043998254235,
+        "checks": {
+          "baseline_utility_matched": true,
+          "blind_identification_margin": true,
+          "held_out_disagreement": true,
+          "high_side_falsification_region": true,
+          "low_side_falsification_region": true,
+          "representatives_separated": true
+        },
+        "disagreement_count": 42,
+        "disagreement_fraction": 0.5384615384615384,
+        "falsification_representatives": [
+          {
+            "duration_s": 5700.0,
+            "evidence_margin": 0.7719053080812396,
+            "grid_i": 0,
+            "grid_j": 9,
+            "query_id": "t370-d5700",
+            "temperature_K": 370.0
+          },
+          {
+            "duration_s": 5700.0,
+            "evidence_margin": 0.7429359417310424,
+            "grid_i": 10,
+            "grid_j": 9,
+            "query_id": "t470-d5700",
+            "temperature_K": 470.0
+          }
+        ],
+        "held_out_count": 78,
+        "high_side_support": 31,
+        "low_side_support": 34,
+        "misspecified_joint_normalized_error": 0.33258675452630054,
+        "passed": true,
+        "representative_grid_distance": 10
+      },
+      "world_seed": 2
+    },
+    {
+      "aligned_risk_normalized_mae": 0.028947559147542285,
+      "aligned_score_normalized_mae": 0.05583893212952026,
+      "elapsed_s": 14.168,
+      "leakage_audit": {
+        "failures": [],
+        "forbidden_pattern_hits": [],
+        "passed": true
+      },
+      "passed": true,
+      "physical_failure_count": 14,
+      "prior_matching": {
+        "checks": {
+          "confidence_equal": true,
+          "context_equal": true,
+          "only_directional_claim_differs": true,
+          "schema_shape_equal": true,
+          "word_count_equal": true
+        },
+        "difference_paths": [
+          "model.claim.expected_relation"
+        ],
+        "failures": [],
+        "left_word_count": 149,
+        "passed": true,
+        "right_word_count": 149
+      },
+      "reference_context": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.0005250000000000001,
+        "reagent_amount_mol": 0.003,
+        "solvent": 0,
+        "solvent_volume_L": 0.005,
+        "stirring_speed_rpm": 350.0
+      },
+      "reference_selection": {
+        "candidate_rank": 4,
+        "non_target_distance": 0.18075113584976835,
+        "score_gap": 0.006439531641829421,
+        "vector": [
+          0.774565669777,
+          0.189717943002,
+          0.00220902488,
+          0.210856724442,
+          0.375,
+          0.930131369458,
+          0.125,
+          0.020010164081
+        ]
+      },
+      "safe_fit_count": 30,
+      "safe_held_out_count": 77,
+      "selected_reflection": {
+        "aligned_joint_normalized_error": 0.04239324563853127,
+        "aligned_preferred_side": "lower_temperature",
+        "axis": "temperature",
+        "baseline_maximum_score_gap": 0.0004985372378710773,
+        "blind_error_margin": 0.2838255295128971,
+        "checks": {
+          "baseline_utility_matched": true,
+          "blind_identification_margin": true,
+          "held_out_disagreement": true,
+          "high_side_falsification_region": true,
+          "low_side_falsification_region": true,
+          "representatives_separated": true
+        },
+        "disagreement_count": 37,
+        "disagreement_fraction": 0.4805194805194805,
+        "falsification_representatives": [
+          {
+            "duration_s": 5700.0,
+            "evidence_margin": 0.7421951611161167,
+            "grid_i": 0,
+            "grid_j": 9,
+            "query_id": "t370-d5700",
+            "temperature_K": 370.0
+          },
+          {
+            "duration_s": 5700.0,
+            "evidence_margin": 0.7231036529598389,
+            "grid_i": 10,
+            "grid_j": 9,
+            "query_id": "t470-d5700",
+            "temperature_K": 470.0
+          }
+        ],
+        "held_out_count": 77,
+        "high_side_support": 30,
+        "low_side_support": 34,
+        "misspecified_joint_normalized_error": 0.32621877515142833,
+        "passed": true,
+        "representative_grid_distance": 10
+      },
+      "world_seed": 3
+    },
+    {
+      "aligned_risk_normalized_mae": 0.036446827488679945,
+      "aligned_score_normalized_mae": 0.0645398138192945,
+      "elapsed_s": 14.242,
+      "leakage_audit": {
+        "failures": [],
+        "forbidden_pattern_hits": [],
+        "passed": true
+      },
+      "passed": true,
+      "physical_failure_count": 11,
+      "prior_matching": {
+        "checks": {
+          "confidence_equal": true,
+          "context_equal": true,
+          "only_directional_claim_differs": true,
+          "schema_shape_equal": true,
+          "word_count_equal": true
+        },
+        "difference_paths": [
+          "model.claim.expected_relation"
+        ],
+        "failures": [],
+        "left_word_count": 149,
+        "passed": true,
+        "right_word_count": 149
+      },
+      "reference_context": {
+        "catalyst": 3,
+        "catalyst_amount_mol": 0.0005250000000000001,
+        "reagent_amount_mol": 0.003,
+        "solvent": 0,
+        "solvent_volume_L": 0.0075,
+        "stirring_speed_rpm": 600.0
+      },
+      "reference_selection": {
+        "candidate_rank": 3,
+        "non_target_distance": 0.2733839570820024,
+        "score_gap": 0.003615549795104922,
+        "vector": [
+          0.823467414285,
+          0.187550927851,
+          0.005067062393,
+          0.436977797934,
+          0.875,
+          0.945087747147,
+          0.125,
+          0.029738956451
+        ]
+      },
+      "safe_fit_count": 30,
+      "safe_held_out_count": 80,
+      "selected_reflection": {
+        "aligned_joint_normalized_error": 0.05049332065398722,
+        "aligned_preferred_side": "lower_temperature",
+        "axis": "temperature",
+        "baseline_maximum_score_gap": 0.0011936045517081384,
+        "blind_error_margin": 0.2802520957882643,
+        "checks": {
+          "baseline_utility_matched": true,
+          "blind_identification_margin": true,
+          "held_out_disagreement": true,
+          "high_side_falsification_region": true,
+          "low_side_falsification_region": true,
+          "representatives_separated": true
+        },
+        "disagreement_count": 42,
+        "disagreement_fraction": 0.525,
+        "falsification_representatives": [
+          {
+            "duration_s": 900.0,
+            "evidence_margin": 0.7701551626276618,
+            "grid_i": 0,
+            "grid_j": 1,
+            "query_id": "t370-d900",
+            "temperature_K": 370.0
+          },
+          {
+            "duration_s": 5700.0,
+            "evidence_margin": 0.7100559224343952,
+            "grid_i": 10,
+            "grid_j": 9,
+            "query_id": "t470-d5700",
+            "temperature_K": 470.0
+          }
+        ],
+        "held_out_count": 80,
+        "high_side_support": 33,
+        "low_side_support": 33,
+        "misspecified_joint_normalized_error": 0.3307454164422515,
+        "passed": true,
+        "representative_grid_distance": 18
+      },
+      "world_seed": 4
+    }
+  ]
+}

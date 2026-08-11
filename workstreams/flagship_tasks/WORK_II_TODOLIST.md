@@ -2,9 +2,10 @@
 
 最后更新：2026-08-11
 
-当前状态：**正式 participant outcomes 尚未执行；旧的统一 4-experiment 设计和由此推导的规模、token 与 ETA
-估算已经撤回，等待按本文件重新冻结。** 现有 pilot 全部保留为 development evidence，不重跑、不替换，
-也不自动进入 5-seed block。
+当前状态：**正式 participant outcomes 尚未执行；reaction-safety mechanism-oracle Q1 与 matched-prior Q2
+已经分别以 5/5 worlds 通过，世界 0 的 10-experiment 三臂 D1 配置已通过静态预检。** 旧的统一
+4-experiment 设计和由此推导的规模、token 与 ETA 估算已经撤回。现有 pilot 全部保留为 development
+evidence，不重跑、不替换，也不自动进入 5-seed block。
 
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
@@ -312,6 +313,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | reaction-safety Q1-v0.3, seeds 0–4 | 2,560 attempted；2,557 recipes 全 operation committed 且 exact replay；3 个 schema-valid heat 触发动态 `vessel_temperature_bound` rollback；0/5 worlds pass；max score `0.291–0.433`；45–81 safety-frontier recipes/world | 有效 absolute-Q1 scientific rejection：3 个 clean worlds 仍独立失败 absolute reachability、floor saturation、local structure 与 success basin；动态范围与 primary-metric range 成立。禁止据此进入原 Q2，但允许执行已独立冻结的 mechanism-oracle relative question。 |
 | reaction-safety mechanism-oracle v0.1, seeds 0–4 | `14,121/14,121` unique requests classified；`13,878` committed endpoints；`243` dynamic constitution failures；`120/120` noisy validations exact replay；0 platform failures；1/5 worlds pass | 五个 world 的 oracle optimum、relative basin、dynamic/primary range、local law、frontier 与 observed agreement 全通过；4 个 world 仅因把 physical failure 计作 incomplete 而失败。v0.1 正式拒绝且不进入 Q2；冻结只修正分类语义的 v0.2 后从 world 0 重跑。 |
 | reaction-safety mechanism-oracle v0.2, seeds 0–4 | `14,121/14,121` outcomes classified；`13,878` committed endpoints；`243` physical failures；0 platform/unclassified；`120/120` validation replay；5/5 worlds pass | 与 v0.1 的全部科学数值逐 world 完全一致，唯一变化为 outcome classification gate；确认五个 world 均存在安全 relative basin、可识别 local law 与充分 frontier，授权进入 reaction-safety Q2 matched-prior construction。历史 `0.70` 仍无任何点达到。 |
+| reaction-safety matched-prior Q2, seeds 0–4 | `605/605` surface queries classified；`64` physical failures；0 platform failures；`150` safe fit、`391` safe held-out；5/5 worlds pass | 五个 world 均形成基线匹配但可反驳的温度方向 prior：baseline gap `0.00050–0.01608`、held-out disagreement `48.1–53.8%`、blind margin `0.267–0.284`；supplied priors 均为 149 words 且只改 directional claim。前两次科学结果相同但 D1 config 被旧 arm-ID/四-checkpoint 硬编码静态拒绝，未启动 provider；最终 pattern-owned harness 与 D1 config 已通过静态预检，授权 reaction-safety D1。 |
 | reaction-safety DeepSeek D1, seed 0 | 3/3 terminal、2/3 qualified；descriptive H3 `+0.1005` | retained operational failure；不重跑 |
 | 首批 crystallization/partition structural screens | module gap 分别 `0.0069301`、`0.0744505` | 拒绝；不能解释为 agent 推理失败 |
 
@@ -328,8 +330,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   reaction-safety Q1-v0.2 因 403 个未提交 heat operations 被判定为平台缺陷、结论失效；修复后的
   Q1-v0.3 已从 world 0 完整重跑并作为 absolute qualification 被拒绝。当前执行独立冻结的
   reaction-safety mechanism-oracle block，随后决定是否转入 electrochemical A-P。
-- [ ] **W2-23** 按预注册 lexicographic gates 选择 reference context，构造 matched aligned/misspecified laws，
-  完成 blind leakage/identifiability audit。
+- [x] **W2-23** 按预注册 lexicographic gates 选择 reference context，构造 matched aligned/misspecified laws，
+  完成 blind leakage/identifiability audit；最终为 5/5 worlds、605/605 classified、0 platform failures，D1 config
+  的 arm/checkpoint/MCP/resource 静态预检全部通过。
 - [ ] **W2-24** 为通过 Q2 的 task 各运行一个三臂 D1；只有预注册条件触发时运行 D2。
 - [ ] 用户审核 D1/D2、轨迹样例、资源和 evaluator 结果；未经审核不进入 R5。
 - [ ] **W2-28** 冻结 A-S 的两个机制干预候选，并为 A-O 写独立的 identifiability/D1 决策卡；在用户审核前
@@ -369,8 +372,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-20 | CONDITIONAL | artifact-only transfer D |
 | W2-21 | DONE | five-world oracle qualification note 已冻结 |
 | W2-22 | DOING | reaction-safety Q1-v0.3 已完成并有效拒绝 absolute qualification；electrochemical Q1 pending |
-| W2-23 | NOT STARTED | matched-prior constructor + blind audit |
-| W2-24 | NOT STARTED | new D1/D2 pilots |
+| W2-23 | DONE | reaction-safety matched-prior Q2 以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
+| W2-24 | READY | reaction-safety world-0 三臂 10-experiment D1 config 已生成并通过静态预检；尚未调用 provider |
 | W2-25 | NOT STARTED | 8-experiment A-E formal redesign |
 | W2-26 | NOT STARTED | 8/10/12 resource calibration |
 | W2-27 | NOT STARTED | current WellAU method qualification |
@@ -407,6 +410,10 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   `workstreams/flagship_tasks/reports/work-ii-q1-reaction-safety-five-world-20260811.json`、
   `workstreams/flagship_tasks/reports/work-ii-q1-reaction-safety-five-world-v0.3-20260811.json`、
   `workstreams/flagship_tasks/reports/work-ii-mechanism-oracle-reaction-safety-five-world-20260811.json`、
-  `workstreams/flagship_tasks/reports/work-ii-mechanism-oracle-reaction-safety-classified-v0.2-20260811.json`
+  `workstreams/flagship_tasks/reports/work-ii-mechanism-oracle-reaction-safety-classified-v0.2-20260811.json`、
+  `workstreams/flagship_tasks/reports/work-ii-reaction-safety-matched-prior-qualification-20260811.json`
+- Reaction-safety matched-prior package / D1 config：
+  `configs/benchmark/work_ii_reaction_safety_matched_prior_package.json`、
+  `configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json`
 
 Git history 保存本文件过去的详细任务卡和运行日志；不恢复并行的旧主控入口。

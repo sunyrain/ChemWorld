@@ -25,3 +25,12 @@ frozen under ignored development roots. Following the qualification restart rule
 five-world, 605-query block reruns once more from world 0 on the checkpoint-compatible clean commit.
 The final D1 config must pass checkpoint, initial-model, MCP-schema and campaign-resource static
 preflight. Provider calls remain zero.
+
+## Phase conclusion
+
+The final rerun reproduced the same scientific result: `605/605` queries classified, `64` dynamic
+physical failures, zero platform failures and `5/5` worlds passing. All tracked raw bindings and
+self-hashes validate. The generated D1 config passed checkpoint, participant-model, campaign-resource
+and MCP-schema preflight with five checkpoints and a final recommendation range of experiments 1--10.
+The correction therefore changed only harness compatibility; it did not change any surface value,
+world analysis, prior claim, threshold or Q2 decision.
