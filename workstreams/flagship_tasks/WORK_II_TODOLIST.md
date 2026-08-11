@@ -1,1454 +1,281 @@
-# Work II TODO — 初始世界模型、实验智能与可迁移规律
+# Work II TODO — Experimental Intelligence
 
 最后更新：2026-08-11
-工作边界：第二篇研究在固定世界规律下，agent-facing initial world model 的层级与正确性如何影响实验选择、证据获取、预测更新、错误模型排除、可执行规律、行动和迁移。当前 75-cell 核心只操纵 entity/ontology layer；structural/mechanistic、parametric 与 observation-model 干预必须独立冻结和验证。它不把“运行中规律变化”作为主要情境，也不重复第一篇的装置可观测性主张。
 
-当前执行冻结：
+当前状态：实验架构与 A-E 核心设计已经冻结；正式 participant outcomes 尚未执行。当前只允许设计、确定性
+诊断和已明确授权的资格实验，不得直接启动 public/private formal matrix。
 
-- 单 executor：`Codex /root`，在 `main` 工作；不建立 review queue、review status 或额外审核包；
-- task 认领后进入 `DOING`，满足验收标准即直接标记 `DONE`；
-- 当前唯一 participant backend 为 WellAU 提供的 `gpt-5.6-sol`，`reasoning_effort=medium`；
-- 当前 participant execution unit 冻结为：每个 `task × prior arm × world seed` cell 只允许一个
-  长驻 Codex process/session identity。它继承第一篇 complete-agent 的 operation-level 语义：
-  agent 在同一上下文内通过 host-owned `chemworld_lab` MCP 逐次提交 `step(action)`，读取每个公开
-  outcome 后再选择下一 operation；禁止把 experiment、snapshot 或 autonomous decision 拆成互不关联的
-  standalone API 问答或本地 history 重建；
-- 当前 primary participant method 不采用“模型一次生成 complete-experiment plan、deterministic executor
-  一次执行到底”的 Static S0 粒度。Static S0 可保留为 calibration/reference control，但不能替代
-  operation-level discovery、measurement、termination 和 resource-allocation 行为；
-- 每个 Work II cell 同时绑定一个 Codex session 和一个 ChemWorld discovery campaign。campaign 内可包含
-  多个 complete experiments/lifecycles；每个 experiment 从新 vessel/batch 开始，以 committed
-  `final_assay` 或允许的 discard 关闭。不同 experiments 共享同一 hidden law、agent context 和
-  `CampaignResourceLedger`，但 final assay 后下一 batch 的物理状态重新初始化；
-- discovery campaign 内所有 participant experiments 共享一张资源卡；operation attempts、vessel starts、
-  final assays、non-final instrument uses、stocks、process time、sample、cost 和 risk 均跨 experiment
-  累积，不得每个 experiment 重新发放。held-out/blind evaluator 使用独立 sealed campaign 和资源账本，
-  不消耗 participant 资源，也不进入 participant process-profile 分母；
-- 第一篇冻结的 19 个 process coordinates 作为 evaluator-side operation/campaign profile 复用，不是
-  agent belief state，也不要求模型报告。Work II 的 belief snapshot 只记录 prior reliability、预测、
-  uncertainty、evidence references、law summary 和 next intent，并在同一个 Codex process 内通过结构化
-  MCP checkpoint 提交，不启动额外 provider session；
-- 旧的 Direct Responses + 本地 history 重建实现及其报告已归档到
-  `workstreams/flagship_tasks/archive/work-ii/direct_responses_reconstructed_history/`，仅作为历史
-  transport/schema qualification，不再授权当前方法或科学结果；
-- 涉及多 seeds 的实验，默认完成上限为每个适用独立 cell **5 个 world seeds**；未得到用户明确审核扩展前，达到 5 seeds 即视为该实验完成；
-- 任何多 seed/provider 执行前必须先完成 mock/deterministic preflight 和更小的真实 provider pilot；
-- 初始参考任务范围固定为五项：`electrochemical-conversion`、`reaction-to-crystallization`、
-  `reaction-to-distillation`、`partition-discovery` 和 `reaction-safety-constrained`。代码审计确认
-  `flow-reaction-optimization` 当前的 catalyst/solvent 类别不产生可识别的类别特异反应规律，主要只进入
-  成本/稀释或共享催化剂物种，因此不适合本轮 ID↔property-bundle prior manipulation；它保留为后续
-  process-law 扩展候选。五任务是首轮最低广度而非最终上限；pilot 通过后可从 15-task registry 继续加入
-  prior-identifiable 任务，但不能把正式范围缩回两项。
+## 1. 研究目标与边界
 
-### Work II execution semantics and denominators
+中心问题：
 
-- **Provider attempt**：同一 session 内一次 provider 技术尝试；失败重试不产生新的科学样本。
-- **Session turn/tool loop**：同一 Codex process 内的 observation、reasoning 和 MCP tool interaction；
-  session/tool turns 不是独立实验或独立统计样本。
-- **Operation attempt**：一次进入 ChemWorld resource preflight 的 `step(action)`；即使 validation、resource
-  preflight 或 transaction 失败，也按冻结规则记录 attempt 和相应 reporting debit。
-- **Committed operation**：`transaction_status=committed` 的 operation；只有实际 committed outcome 扣除
-  对应物理 stock、sample、process time、cost 和 risk，resource-rejected candidate state 不进入物理状态。
-- **Complete experiment/lifecycle**：一个新 batch 从首个 vessel-starting operation 开始，经任意次
-  process/measurement decisions，到 committed `final_assay` 或允许的 discard 关闭。`terminate` 是 agent
-  可在中途选择的 process operation，通常使 final assay 可达；它本身不等同于 final assay。
-- **Discovery campaign**：同一 cell 内的多个 complete experiments，共享 fixed world、Codex context 和
-  campaign resource ledger。下一 batch 重置物理初态，但保留公开历史、信念、世界规律和剩余资源。
-- **Formal cell**：`task × prior arm × world seed × participant method/session`；每个 cell 产生一条纵向
-  discovery trajectory 和一个 campaign-level process profile。
-- **Independent analysis unit**：独立 world seed/world cluster。operations、experiments、snapshots、held-out
-  queries、blind replicates 和 provider repeats 均为 cell 内嵌套观测，不得冒充独立样本。
-- 第一篇 19-coordinate producer 的固定六-lifecycle aggregation 不能原样套用；Work II 必须用 discovery
-  campaign 实际冻结的 planned experiment count 重建 profile，并将 participant trajectory 与 evaluator
-  held-out/blind trajectory严格分离。
+> 在固定隐藏规律、公开契约和资源预算下，agent 能否通过自主实验修正其初始世界模型，并依次把证据转化为
+> 预测、可执行规律、行动和可迁移知识；若不能，能力链在哪一环断裂？
 
-## 0. Proposed manuscript architecture (planning draft)
-
-This is an architecture proposal, not a protocol freeze and not an authorization to start
-primary data collection. The formal gates below remain the source of truth once the scientific
-question, methods and preregistration are frozen.
-
-### Working title and one-sentence thesis
-
-Working title: **Experimental Intelligence in AI Scientists: From Initial World Models to
-Transferable Laws**.
-
-The paper should test one scientific dissociation rather than rank agents:
-
-> An agent may reach a useful endpoint without constructing a correct scientific model. Process-
-> complete experiments should intervene on the agent's initial world model, then locate whether the
-> conversion from evidence to prediction, executable law, action and transfer succeeds or breaks.
-
-### Claim hierarchy
-
-1. **Primary claim — endpoint success is not law discovery.** Under a fixed hidden law, endpoint
-   optimization, predictive law recovery and calibrated uncertainty are separate estimands.
-2. **Initial-model claim — model locus and quality change discovery strategy.** Opaque, aligned and
-   misspecified entity, structural, parametric or observation models may produce distinct evidence
-   acquisition, exploration and calibration profiles under the same public contract.
-3. **Bias-resistance claim — wrong priors can be rejected.** A scientifically adaptive agent must
-   reduce confidence in an incorrect prior when observations contradict it, rather than preserve
-   the prior through selective measurement or post-hoc explanation.
-4. **Summary-and-transfer claim — recovered laws are reusable objects.** A law summary must make
-   counterfactual predictions on held-out conditions and transfer across mechanism-held-out or
-   world-held-out instances; verbal self-report alone is insufficient.
-5. **Profile claim — method and resource dependence.** Backend, scaffold, evidence budget, calls,
-   tokens, time, invalid actions and safety behavior are reported as separate profiles, not as a
-   single intelligence score.
-
-### Evidence architecture
-
-The manuscript should maintain four visibly separate evidence layers:
-
-- **Environment qualification:** current Gate A proves that fixed hidden laws, public observations
-  and instrument mappings are internally coherent. It is not evidence that an agent discovered a
-  law.
-- **Matched initial-world-model conditions:** the same fixed world cohort is entered with an opaque,
-  aligned or intentionally misspecified agent-facing model at one frozen layer; public contract,
-  budget and safety surface stay matched.
-- **Process-level discovery:** each trajectory records experiment selection, evidence acquisition,
-  predictive revision, uncertainty/calibration, prior rejection, law summary and endpoint outcome.
-- **Summary and confirmation:** the law summary is evaluated on held-out conditions after public
-  execution; private sealed worlds test world-held-out transfer once within the registered task
-  families. Mechanism-family-held-out transfer requires a separately registered extension.
-
-### Manuscript chapter skeleton
-
-1. **Introduction — the prior problem.** Explain why a correct endpoint can arise from a wrong
-   scientific model, and state the distinction between discovery, confirmation and bias rejection.
-2. **Conceptual framework.** Define prior quality, fixed hidden law, evidence, belief/calibration,
-   experiment choice, law summary, counterfactual prediction and transfer.
-3. **Fixed-law world cohort.** Describe matched no-prior, correct-prior and wrong-prior conditions
-   across at least two mechanism families, with development/formal/private splits.
-4. **Participant methods and estimands.** Freeze backend × scaffold, context/tools, evidence and
-   resource budgets, provider accounting, analysis units and censoring rules.
-5. **Results I — discovery under prior conditions.** Compare experiment selection, information gain,
-   learning curves and endpoint outcomes for no, correct and wrong priors.
-6. **Results II — rejecting biased priors.** Test contradictory evidence, posterior/calibration
-   movement, counterfactual prediction and whether the agent stops defending the wrong prior.
-7. **Results III — law summaries and transfer.** Evaluate compressed law summaries on held-out
-   conditions and registered world-held-out instances with private sealed confirmation; reserve
-   mechanism-family-held-out transfer for a separately registered extension.
-8. **Results IV — resource and safety profile.** Report measurement cost, calls, tokens, wall time,
-   invalid actions, risk debits and stopping behavior as bounded operational consequences.
-9. **Discussion.** State when evidence supports law discovery, when it only supports local policy
-   repair, and when prior bias remains unresolved.
-10. **Methods, data and appendix.** Provide the frozen prior matrix, trajectory schema, statistical
-    models, robustness analyses, failure/censoring audit and reproducibility package.
-
-### Main display plan
-
-- **Figure 1 — From prior to law.** A causal diagram contrasting no-prior discovery, correct-prior
-  confirmation and wrong-prior rejection under one fixed public contract and hidden law.
-- **Figure 2 — Fixed-law cohort and prior matrix.** Mechanism families, matched world identities,
-  prior conditions, development/formal/private splits and the backend × scaffold matrix.
-- **Figure 3 — Experimental discovery process.** Chosen measurements, information gain, predictive
-  law recovery and calibration trajectories, with endpoint success shown as a separate channel.
-- **Figure 4 — Bias rejection and law transfer.** Wrong-prior confidence collapse, counterfactual
-  prediction improvement, law-summary quality and registered world-held-out transfer. Any
-  mechanism-family-held-out extension must remain visually and statistically separate.
-- **Figure 5 (optional or supplement) — Operational profile.** Resource, safety and stopping
-  consequences; include only if the denominator and interpretation are independently strong.
-
-Core tables should map claims to estimands, list the frozen cell matrix and report failure,
-right-censoring and resource denominators. Raw provider payloads and private identities remain
-outside the reader-facing package.
-
-### Execution phases and stop conditions
-
-- **P0 — Architecture and A-E claim freeze:** W2-01 through W2-05. The primary 75-cell entity matrix
-  remains unchanged by later cross-locus work.
-- **P1 — Participant and intervention qualification:** W2-06 through W2-10 plus W2-17. Candidate
-  interventions are admitted by environment/harness criteria only, never by agent effect direction.
-- **P2 — Preregistration freeze:** W2-08 and W2-11 freeze A-E; every A-S/A-P/B/D extension requires
-  its own additive manifest, analysis and budget freeze without reopening A-E.
-- **P3 — Public A-E formal matrix:** W2-12, with blind progress only and no live arm changes.
-- **P4 — Confirmation and registered extensions:** W2-13 executes one-shot A-E private replication;
-  W2-18 through W2-20 execute only if their independent qualification and signoff gates passed.
-- **P5 — Analysis and release:** W2-14 and W2-15. Stop at the highest fully supported claim package
-  C1--C4 and automatically narrow the title/abstract rather than filling missing blocks post hoc.
-
-The paper must not begin A-E formal data collection until its P0--P2 gates are complete. No extension
-inherits execution authorization from A-E or from another locus. Historical Gate A
-numbers remain pilot/environment context until W2-02 rebinds them to the current source. A law
-is fixed within each formal world; prior condition, not mid-run law drift, is the primary causal
-factor.
-
-### Reviewer-driven convergence: candidate confirmatory design
-
-This design is a candidate for preregistration, not yet a frozen matrix.
-
-**Primary causal manipulation.** Hold the executable world, recipe space, public task contract,
-noise identity, evidence schedule, measurement surface and reward fixed. Change only the mapping
-between anonymous material identities and an agent-facing nominal-property dossier:
-
-- `opaque`: anonymous identifiers with no task-specific dossier;
-- `aligned_nominal`: nominal property bundles are assigned to the material identities for which
-  they are directionally useful in the fixed world;
-- `misindexed_nominal`: the exact same property-bundle multiset is permuted across anonymous
-  identities while fields, values, token budget and wording are preserved.
-
-The dossier is explicitly described as incomplete nominal information, not ground truth;
-experimental evidence is authoritative. Prior strength, information volume and confidence wording
-must be matched between aligned and misindexed conditions. Because pretrained agents always have
-implicit priors, `opaque` means no additional task-specific explicit prior, not literally no prior.
-Recovering the anonymous-ID-to-dossier mapping alone is not sufficient for a law-discovery claim:
-formal success additionally requires an executable law summary, held-out predictions across
-unobserved conditions and transfer beyond the exact diagnostic points.
-
-**Primary free-discovery trajectory.** The primary experiment must not give the participant a
-protocol-owned discriminating experiment. Mechanism/prior identifiability is qualified before the
-participant run without disclosing the diagnostic condition. Each formal cell should use one
-operation-level Codex session across a resource-shared discovery campaign:
-
-1. a pre-evidence prediction, confidence and prior-reliability checkpoint committed inside the
-   active session;
-2. participant-owned operation-level exploration from the first physical action, including
-   experiment selection, measurement, continuation, termination and final assay;
-3. fixed checkpoint locations after preregistered complete-experiment counts, with all checkpoints
-   remaining inside the same Codex process rather than separate provider requests;
-4. a final executable law summary, held-out predictions and agent-committed recommendation;
-5. independent sealed held-out/blind execution with no feedback to the participant session.
-
-The primary estimand is the total effect of prior condition on evidence seeking, experiment choice,
-belief revision, law recovery and action. Failure to seek disconfirming evidence is therefore a
-scientific outcome, not a nuisance to be repaired by injecting the key experiment. The exact number
-of complete experiments and checkpoint positions remain provisional until resource and provider
-qualification; a planning horizon must not be frozen merely because it appeared in a review.
-
-**Optional matched-evidence mechanism probe.** A separate secondary cloned-world probe may present
-identical contradictory evidence to all three prior arms to distinguish “did not seek the evidence”
-from “saw the evidence but did not update.” It must use its own sessions and resources, remain outside
-the primary free-discovery trajectory, and never enter the participant process-profile or primary
-endpoint denominator. The smallest real provider pilot does not require this optional probe.
-
-**Scientific-decision interface.** The primary participant inherits the first paper's complete-agent
-interface: one long-lived Codex process uses the host-owned ChemWorld MCP to decide each operation
-after observing the previous public outcome. The deterministic host owns validation, transaction,
-resource and hidden-world semantics, but not participant operation selection. High-level
-complete-experiment planners remain calibration controls only.
-
-**Candidate chemical scope.** The initial cohort uses five heterogeneous reference tasks:
-electrochemical conversion, reaction-to-crystallization, reaction-to-distillation,
-partition discovery and safety-constrained reaction. Each must expose an identifiable matched
-opaque/aligned/misindexed prior contract. Formal inclusion depends on current Gate A
-requalification and prior-identifiability checks; tasks are not selected by participant
-performance, and any invalid task must be replaced from the remaining reference registry rather
-than shrinking the paper to two tasks. Continuous-flow optimization remains a later process-law
-candidate because its current categorical material IDs do not carry a distinct causal kinetic
-mapping suitable for this prior manipulation.
-
-**Calibration controls, not a leaderboard.** A bounded semantics-free block may include random or
-space-filling search, GP-BO with categorical IDs and GP-BO with the public property vector. The
-property-aware control is required if semantic dossiers are supplied to an LLM. These controls
-calibrate black-box search and informative-feature value; they do not define the paper's main
-competition.
-
-**Participant scope.** The only current participant backend is WellAU `gpt-5.6-sol` at medium
-reasoning. Direct and compact stateful-scientific scaffolds may form a matched secondary axis; the
-stateful memory is a small typed belief/evidence/next-intent object, not unconstrained free text.
-No second model or provider enters the current completion scope.
-
-### Experimental programme matrix — current source of truth
-
-“Prior” is treated as one layer of an **agent-facing initial world model**, not as a synonym for a
-material-property dossier. A causal comparison keeps the executable world, public task contract,
-noise identity, resource ledger, safety boundary and actual observation interface fixed, and changes
-only one declared initial-model locus. The programme is deliberately sparse: it is not a Cartesian
-product of every task, locus, arm, scaffold and evaluator.
-
-Status labels are binding:
-
-- **FROZEN**: exact units, denominators, estimand and failure rules are already machine-bound;
-- **QUALIFIED**: an outcome-blind environment or method gate passed, but formal execution is not yet
-  authorized;
-- **CANDIDATE**: scientifically motivated, but its intervention or denominator is not executable
-  until a concise experiment note and machine-readable freeze are complete;
-- **DEFERRED**: outside the minimum completion scope and unable to support a headline claim.
-
-#### Intervention loci and task coverage
-
-| Locus | Agent-facing intervention | Planned task coverage | Role and claim ceiling |
-|---|---|---|---|
-| Entity / ontology | anonymous entity ID, nominal class/property bundle and ID mapping | five frozen tasks: electrochemical conversion, crystallization, distillation, partition and reaction safety | confirmatory core; supports entity-level prior correction only |
-| Structural / mechanistic | causal topology, dominant bottleneck, active module or process-order hypothesis | two independently qualified tasks, provisionally crystallization and reaction safety; failed distillation candidate remains a screen failure | registered secondary cross-locus extension; one qualified task supports only task-specific inference |
-| Parametric | direction, ordering, threshold or plausible operating window | two independently qualified tasks, provisionally electrochemical conversion and flow-reaction optimization | registered secondary cross-locus extension; electrochemical candidate v2 is environment-qualified, not provider-qualified |
-| Observation model | instrument-to-state mapping, reliability, bias or noise assumption | no current formal block | deferred mechanism extension; not required if structural and parametric blocks both complete |
-| Contract / resource | budget, permissions, safety rules and the actual observation surface | never manipulated | authoritative boundary, not a prior condition |
-
-Every admitted locus uses matched `opaque / aligned / misspecified` conditions. Aligned and
-misspecified arms must match information volume, specificity, confidence wording and input budget.
-The locus must be identifiable in the executable world before a provider call; relabelling an entity
-misindexing result as a structural or parametric result is prohibited.
-
-#### Study matrix and exact counting units
-
-| Block | Scientific role and estimand | Independent units | Participant denominator | Nested observations and evaluators | Current status |
-|---|---|---:|---:|---|---|
-| **A-E public** | Primary free discovery under entity-level `opaque/aligned/misindexed`; H3 selective evidence-driven correction | 5 tasks × 5 public worlds = **25 clusters** | **75 sessions/cells**, 4 complete experiments per cell = **300 experiments** | 4 checkpoints per cell = 300; 4 held-out truth queries per cluster = 100 shared truth executions; at most 450 blind replays | **FROZEN**, execution blocked by W2-08/W2-10/W2-11 |
-| **A-E private** | One-shot within-family world-held-out confirmation of A-E; not compositional transfer | 5 tasks × 5 sealed worlds = **25 clusters** | **75 sessions/cells**, **300 experiments** | same checkpoint, truth, law and blind contracts as public; private identities remain sealed | **FROZEN**, only after public analysis is hash-bound |
-| **A-S** | Free-discovery generalization to structural/mechanistic initial models; secondary locus × arm contrasts | 2 tasks × 5 new worlds = **10 clusters** | **30 sessions/cells**, **120 experiments** | 120 checkpoints; task-specific held-out truth and blind action evaluation | **CANDIDATE**; both task interventions must independently pass admission gates |
-| **A-P** | Free-discovery generalization to parametric initial models; secondary locus × arm contrasts | 2 tasks × 5 new worlds = **10 clusters** | **30 sessions/cells**, **120 experiments** | 120 checkpoints; task-specific held-out truth and blind action evaluation | **CANDIDATE**; electrochemical environment gate passed, second task and provider method gate pending |
-| **B** | Matched-evidence falsification: distinguish failure to seek contradiction from failure to update after seeing it | 2 loci × 1 frozen task × 5 new worlds = **10 clusters** | **30 fresh sessions**, one per arm; never pooled with Study A | pre-evidence checkpoint, one identical evaluator-generated contradictory evidence packet, post-evidence checkpoint and one action/recommendation | **CANDIDATE secondary**; design must be frozen before A-E outcomes are inspected |
-| **C** | Locate `prediction → executable law → action` losses on Study A trajectories | no new independent units | **0 new participant sessions** | execute typed law summaries on held-out truth; score prediction-to-law loss, law-to-action consistency and blind recommendation gain with 0 provider calls | evaluator is implemented for A-E; extend task contracts only after A-S/A-P admission |
-| **D** | Context-reset, artifact-only compositional transfer | 2 source-pair→target composition families × 5 linked target worlds = **10 clusters** | 4 artifact arms × 10 clusters = **40 fresh target sessions**, provisionally 4 experiments each = **160 experiments** | arms: no artifact, token-budget-matched raw evidence, prose law, executable law; target receives no source context beyond the assigned artifact | **CANDIDATE extension**; source/target constructor, artifact budget and evaluator are not yet frozen |
-
-Operations, experiments, checkpoints, queries, blind replicates and provider retries are nested
-observations, never independent samples. Study C is an evaluator layer, not another agent experiment.
-Study B uses fresh cloned-world sessions and an independent resource/evidence contract. Study D uses a
-new context and target campaign; re-evaluating A-E on private worlds is replication, not transfer.
-
-#### Admission and stopping gates for every new locus
-
-1. **D0 — environment-only candidate screen:** before any provider call, freeze the candidate roster,
-   diagnostic recipes, metric, threshold and tie rule in one experiment note. Require the exact planned
-   denominator, exact replay and a prespecified task-scale discriminability margin. A failed candidate
-   is evidence about intervention identifiability, not agent capability.
-2. **D1 — one-world real-provider triplet:** after D0 passes, run exactly one development world with
-   three fresh persistent sessions. Admission depends only on lifecycle completion, checkpoint/law
-   schema validity, hidden-boundary integrity, resource accounting, exact replay and harness recovery;
-   agent score or prior-effect direction cannot be an admission criterion.
-3. **D2 — block freeze:** before multi-seed execution, bind task, locus, three arms, five non-development
-   world identities, four-experiment campaign, checkpoint schedule, truth queries, evaluator, missingness
-   rules, token/cost/time ceilings and one infrastructure-only resume allowance.
-4. **D3 — five-world terminal block:** execute exactly five independent worlds per admitted task. Stop
-   at five; expansion requires explicit user review. Scientific/method failures are retained without
-   replacement. Missing-only infrastructure resume never creates a new scientific identity.
-
-Fixing an implementation defect after D0 or D1 is allowed, but the affected qualification block must
-restart from its first unit under a new attempt identity. Coverage, thresholds or task selection cannot
-change in response to agent outcomes.
-
-#### Current intervention-screen ledger
-
-| Candidate | Frozen diagnostic | Result | Decision |
-|---|---:|---|---|
-| Parametric v1, electrochemical seed 0 | 20 recipes | repaired run: 20/20 complete and exact replay; aligned–mirror gap `0.0055333 < 0.10` | **not admitted**; the initial unsupported-noise failure and repaired rerun are both retained |
-| Structural v1, distillation seed 0 | 4 recipes | 4/4 complete and exact replay; influence gap `0.0303474 < 0.10` | **not admitted**; do not run a provider on this intervention |
-| Parametric v2, electrochemical seed 1 | 20 recipes | 20/20 complete, 0 failures, all exact replay; best–worst score gap `0.5849161 ≥ 0.10` | **environment-qualified**; generated config is eligible for D1, but no provider run is authorized by this result |
-
-The next environment-only work is therefore bounded: qualify one second parametric task and redesign
-two structural candidates from a task roster frozen before diagnostics. Observation-model manipulation
-remains deferred rather than becoming a fourth full matrix.
-
-#### Claim packages and automatic narrowing
-
-- **C1 — entity-prior correction:** requires A-E public, A-E private and C. Without later blocks, the
-  title/abstract must refer to explicit entity-level priors, not general initial world models.
-- **C2 — initial-world-model generalization:** additionally requires terminal A-S and A-P blocks with
-  two independently qualified tasks per locus. A single-task locus remains a task-specific case study.
-- **C3 — acquisition-versus-updating attribution:** additionally requires B. Without B, selective
-  evidence seeking and resistance after matched evidence must remain observationally conflated.
-- **C4 — transferable executable laws:** additionally requires D. Private A-E confirmation alone
-  cannot license “compositional transfer” or “transferable laws” in the title.
-
-The staged participant scale is therefore explicit rather than hidden inside one headline matrix:
-
-| Highest claim package | Incremental sessions | Cumulative sessions | Cumulative planned complete experiments |
-|---|---:|---:|---:|
-| C1: A-E public + private | 150 | 150 | 600 |
-| C2: add A-S + A-P | 60 | 210 | 840 |
-| C3: add matched-evidence B | 30 | 240 | 840; B is not a participant-owned free-discovery campaign |
-| C4: add artifact transfer D | 40 | 280 | 1,000 |
-
-These are scientific session counts, not provider-attempt hard caps. Infrastructure-only resume,
-token, currency, wall-time and evaluator execution ceilings must be calculated and approved per block;
-unused budget in one block cannot authorize another.
-
-The analysis reports a profile rather than a total score:
+能力链：
 
 `initial model → experiment selection → evidence → prediction/update → executable law → action → transfer`
 
-Primary transition losses are `L_prediction→law`, `L_law→action` and `L_action→transfer`, with
-resource, safety, invalid-action, token, time and recovery channels reported alongside rather than
-collapsed into the scientific score.
-
-### Claim ownership map
-
-- **Work I owns:** composable-world construction, task/instrument contract validity, transaction
-  semantics, public/private observation boundaries, resource ledgers, controlled world forks and
-  exact environment/action-trace replay.
-- **Work II owns:** initial-world-model manipulation, experiment selection, evidence interpretation,
-  selective rejection of wrong entity/structural/parametric/observation assumptions, typed law
-  summaries, knowledge-to-action translation and held-out transfer.
-- **Shared boundary:** Work II may reuse only currently bound Work I qualification evidence; agent
-  outcomes never qualify the environment, and Work I fork results never count as participant law
-  discovery.
-
-### Candidate hypothesis hierarchy
-
-- **H1 — Prior utility (secondary):** aligned nominal information improves early predictive
-  accuracy, evidence efficiency or blind-validated outcome relative to opaque identifiers.
-- **H2 — Prior vulnerability (secondary):** misindexed nominal information harms prediction,
-  experiment selection or blind-validated outcome relative to opaque identifiers.
-- **H3 — Selective evidence-driven correction (primary):** evidence acquired during free discovery
-  improves the misindexed condition and closes its predictive gap to the aligned condition without
-  producing a comparable loss in the aligned condition; failure to acquire relevant disconfirming
-  evidence remains a distinct observable failure mode.
-- **H4 — Knowledge-to-action translation (key secondary):** epistemic correction predicts the next
-  participant-owned operations, subsequent evidence-aligned experiments and blind-validated
-  performance.
-
-For a held-out prediction quality `Q_k` measured at snapshot `k`, define the aligned--misindexed
-gap `G_k = Q_aligned,k - Q_misindexed,k`. A candidate primary contrast is
-`C_prior = G_pre - G_post`, with guardrails requiring `Q_misindexed,post > Q_misindexed,pre`
-and no material aligned-condition degradation beyond a preregistered tolerance. Exact scoring,
-snapshot locations and tolerance remain unfrozen.
-
-Prior benefit `B`, prior harm `H` and correction/recovery `R` may be reported as a descriptive
-phenotype vector, but must not be collapsed into one ranking score. Epistemic, behavioral and
-outcome channels remain separate so that the analysis can distinguish:
-
-- understands and acts;
-- understands but cannot translate knowledge into action;
-- acts successfully without an accurate law model;
-- neither understands nor acts effectively.
-
-## 1. 旗舰科学问题
-
-候选中心问题：
-
-> **在固定的隐藏世界中，agent 能否通过实验修正其初始世界模型，并把证据依次转化为预测、可执行规律、行动与可迁移知识；若不能，能力链在哪一环断裂？**
-
-正式研究必须同时测量并区分：
-
-- initial-world-model locus（entity/ontology、structure/mechanism、parameter、observation model）与
-  quality（opaque、aligned、misspecified）；
-- experiment selection 与 information gain；
-- law discovery 与 predictive calibration；
-- wrong-prior rejection 与 bias resistance；
-- law summary / representation quality；
-- held-out transfer；
-- endpoint outcome、resource efficiency 和 safety behavior。
-
-当前 Gate A 已在 RC29 的 current source/protocol 上重新资格验证，公开决策为
-`gate_a_passed_remaining_gates_pending`，且 `gate_a_evidence_current=true`；participant-agent 正式
-Outcomes 尚未执行。不得把当前或历史 Gate A 写成 agent 规律学习结果。
-
-详细历史计划参见：[`RC28_PARTICIPANT_FORMAL_EXPERIMENT_PLAN_AND_TODO_ZH.md`](RC28_PARTICIPANT_FORMAL_EXPERIMENT_PLAN_AND_TODO_ZH.md)。本文件是面向第二篇论文的主控清单；若两者冲突，以后续冻结的 Work II preregistration 为准。
-
-## 2. 认领与状态规则
-
-- 每项任务只能勾选一个认领状态和一个执行状态。
-- 认领后填写负责人并进入 `DOING`；验收标准满足后直接进入 `DONE`，不设 review 阶段。
-- `阻塞` 必须记录阻塞证据、解除条件和下一次检查日期。
-- 开始正式 primary matrix 前，必须完成 Registered Report/常规投稿路线决策。
-- 正式协议冻结后，不得因模型表现、成本或结果方向更换 world、seed、agent、阈值或主终点。
-- provider repeats 是嵌套技术重复，不得冒充独立 world clusters。
-- 默认 seed completion contract 为每个适用独立 cell 5 个 world seeds；超过 5 必须取得用户明确审核授权。
-- provider/model 冻结为 WellAU `gpt-5.6-sol` medium；其他 backend、reasoning effort 或 provider 不在当前范围。
-
-### 工作流负责人
-
-- [x] 当前单一负责人：`Codex /root`
-- [x] 世界/先验设计、Agent/scaffold、统计/预注册、执行与论文发布均由同一负责人协调；无独立 reviewer 角色。
-
-## 3. 当前基线状态
-
-- [x] mechanism-family 与 material-law interventions 已实现；
-- [x] 当前 RC29 Gate A 环境实验已完成：A2 4,896 trials、A3 2,016 trials；
-- [x] 当前 design audit、semantics audit、release qualification、A1、A2 和 A3 均通过，公开决策与
-  `configs/current.json` 已绑定；
-- [x] 历史 A2 top-1 accuracy 为 0.9826；
-- [x] 历史 A3 detection sensitivity 为 0.9935、AUROC 为 0.9990、end-to-end success 为 0.9657；
-- [x] 历史 experiment-level adaptation、belief metrics、change detection、attribution 和 recovery 的代码骨架已存在；
-  它们需要重绑定为固定规律下的 prior/discovery/bias-rejection/law-summary protocol，不能直接当作当前结果；
-- [x] 当前 source/protocol binding 已重新资格验证，`gate_a_evidence_current=true`；
-- [x] participant execution contract 已冻结；current persistent-session 方法的最终资格验证仍归 W2-10；
-- [ ] participant formal Outcomes 尚未执行；
-- [ ] private sealed confirmation 尚未执行；
-- [ ] Work II publication claim 尚未形成。
-
-## 4. 硬门禁
-
-以下门禁必须顺序满足：
-
-1. `G0 — Current environment binding`：当前代码下重新确认环境可识别性；
-2. `G1 — Scientific question freeze`：冻结主假设、主终点和 claim boundary；
-3. `G2 — Participant method freeze`：冻结 backend、scaffold、context、tools、retry 和预算；
-4. `G3 — Power and preregistration`：冻结 world clusters、重复、分析和停止规则；
-5. `G4 — Public formal execution`：一次性执行公开正式矩阵；
-6. `G5 — Private sealed confirmation`：公开矩阵完成后执行一次 private replication；
-7. `G6 — Publication release`：证据、代码、数据、论文和主张完全绑定。
-
-任何后续 Gate 不得反向修改已完成 Gate 的世界、指标或阈值。
-
-## 5. 任务总览
-
-| ID | 优先级 | 任务 | 当前状态 | 关键依赖 |
-| --- | --- | --- | --- | --- |
-| W2-01 | P0 | 冻结 Work II 与 Work I 的边界 | DONE | Work I scope |
-| W2-02 | P0 | 重新建立当前 Gate A 证据绑定 | DONE | 干净提交 |
-| W2-03 | P0 | 冻结中心假设与 claim hierarchy | DONE | W2-01、W2-02 |
-| W2-04 | P0 | 冻结先验条件与固定规律 world cohort | DONE | W2-03 |
-| W2-05 | P0 | 冻结 estimands、指标和判定规则 | DONE | W2-03、W2-04 |
-| W2-06 | P0 | 冻结 participant backend × scaffold 矩阵 | DONE | W2-03 |
-| W2-07 | P0 | 功效、资源和成本审计 | DOING | W2-04、W2-05、W2-06 |
-| W2-08 | P0 | Registered Report/常规投稿路线决策 | DOING | W2-03–W2-07 |
-| W2-09 | P0 | 完成 manifest-driven formal runner | DONE | W2-04–W2-07 |
-| W2-10 | P0 | provider/scaffold shakedown 与方法资格验证 | DOING | W2-09 |
-| W2-11 | P0 | 冻结 preregistration 与不可变执行包 | DOING | W2-08、W2-10 |
-| W2-12 | P0 | 执行 A-E public entity-prior formal matrix | 未开始 | W2-11 |
-| W2-13 | P0 | 执行 A-E private sealed confirmation | 未开始 | W2-12 |
-| W2-14 | P0 | 分析、稳健性、替代解释排除 | 未开始 | W2-12、W2-13 |
-| W2-15 | P0 | 第二篇论文、数据与发布包 | DOING | W2-14 |
-| W2-16 | P1 | 物理或高保真桥接 | 未开始，可选增强 | W2-12 |
-| W2-17 | P0 | 非 entity 初始模型的候选筛选与方法资格 | DOING | W2-09、W2-10 |
-| W2-18 | P1 | 执行 A-S/A-P 跨 locus 注册扩展 | 未开始 | W2-17、W2-11 |
-| W2-19 | P1 | 执行 B matched-evidence mechanism probe | 未开始 | W2-09、W2-11 |
-| W2-20 | P1 | 执行 D context-reset artifact transfer | 未开始 | W2-17、W2-18 |
-
-## 6. 详细任务卡
-
-### W2-01 — 冻结 Work II 与 Work I 的边界
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [x] 完成
-- 优先级：P0
-- 验收标准：
-  - [x] Work I 只负责 apparatus、measurement validity 和 autonomous policy observability；
-  - [x] Work II 独占 prior sensitivity、law discovery、wrong-prior rejection、law summary 和 transfer；
-  - [x] Work I 的 world-fork certificate 不使用 participant adaptation 结果；
-  - [x] Work II 可以引用 Work I 装置，但不重复 G0/G2 作为中心发现；
-  - [x] 形成一页 claim ownership map。
-- 备注：`Claim: Codex /root — W2-01 — DONE`；claim ownership map 已写入本文件。
-
-### W2-02 — 重新建立当前 Gate A 证据绑定
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [x] 完成
-- 优先级：P0
-- 目标：把历史 Gate A 与当前 source/protocol binding 分开，并在当前代码上重新资格验证。
-- 验收标准：
-  - [x] current design audit、semantics audit、release qualification 全部通过；
-  - [x] A1 physical validity 在当前 source 上通过；
-  - [x] A2/A3 当前证书重新生成：A2 4,896/4,896，A3 2,016/2,016，均结构完整并通过；
-  - [x] `gate_a_evidence_current=true`；
-  - [x] 历史证书仍保留且不会被覆盖；
-  - [x] 环境资格验证与 participant performance 继续严格分离。
-- 备注：`Claim: Codex /root — W2-02 — DONE`。RC29 的协议、审计、A1/A2/A3 证书、公开决策和
-  evidence registry 已重新生成并通过一致性检查；科学指标保持冻结/盲化，未被用于参与者方法选择。
-
-### W2-03 — 冻结中心假设与 claim hierarchy
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [x] 完成
-- 优先级：P0
-- 冻结主问题：在 world、预算、公开契约和 fixed hidden law 匹配时，`misindexed_nominal` agent
-  能否仅凭其在 primary free-discovery campaign 中自主获得的证据，比 `aligned_nominal` agent
-  获得更大的 evaluator-held counterfactual prediction error 降低，同时 aligned 条件不发生超容差退化？
-- 唯一 primary hypothesis：H3 selective evidence-driven correction。令 `E_arm,k` 为 checkpoint `k`
-  上预注册 held-out queries 的连续归一化预测误差（越低越好），主对比固定为
-  `C_prior = (E_misindexed,pre - E_misindexed,final) -
-  (E_aligned,pre - E_aligned,final)`。H3 是单侧 world-level paired contrast；确切误差函数、容差、
-  缺失规则与检验在 W2-05 冻结，但不得再更换主 estimand。
-- 层级：H1 prior utility 与 H2 prior vulnerability 为 confirmatory secondary；H4
-  knowledge-to-action translation 为 key secondary。`opaque` 为解释性基准，endpoint、epistemic、
-  behavioral、law-summary 和 transfer channels 分立报告。
-- 主张边界：H3 通过只支持“错误先验发生证据驱动修正”。“从实验发现并迁移规律”还必须同时满足
-  misindexed held-out error 改善、aligned 非劣、typed law summary 可执行、未见连续条件预测有效及
-  预注册 transfer 验证；只取得高 endpoint score、只恢复 ID↔dossier 映射或只写出正确文字摘要均只
-  支持 endpoint heuristic/local repair。只在一个 backend 或一个 task family 成立时，结论分别限定为
-  agent-system-specific 或 world-family-specific。
-- 验收标准：
-  - [x] 唯一 primary scientific question 已写成可证伪形式；
-  - [x] 唯一主终点或严格层级化主终点确定；
-  - [x] H3 selective evidence-driven correction 作为唯一 primary hypothesis 被接受；
-  - [x] H1 prior utility、H2 prior vulnerability 和 H4 knowledge-to-action translation 的 confirmatory/exploratory 层级冻结；
-  - [x] prior condition、discovery、bias rejection、law summary、transfer 的主次层级冻结；
-  - [x] 明确何种结果支持“从实验发现并迁移规律”，何种结果只支持 endpoint heuristic；
-  - [x] 明确何种结果只支持 agent-specific 或 world-specific 结论；
-  - [x] 不把 LLM vs BO 排名设为主比赛。
-- 备注：`Claim: Codex /root — W2-03 — DONE`。BO/random/property-aware controls 只校准
-  semantics-free search 与信息价值，不构成主比赛，也不改变 H3 的 participant 对比。
-
-### W2-04 — 冻结先验条件与固定规律 world cohort
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [x] 完成
-- 优先级：P0
-- 最低设计要求：
-  - `opaque`：无额外 task-specific dossier；
-  - `aligned_nominal`：方向上有用但明确不等同于真值的 nominal dossier；
-  - `misindexed_nominal`：同一 property-bundle multiset 在匿名材料 ID 间置换；
-  - 固定世界规律，不在单次 run 中改变 hidden law；
-  - 至少两个 mechanism families；
-  - 随机选择且与开发 worlds 隔离的 formal world cohort。
-- 冻结设计：五任务均进入 formal cohort；每任务 5 个 SHA-256 预选 public-formal worlds，共 25 个
-  独立 `task × world` clusters 和 75 个三臂 participant cells。开发/qualification seeds `[0,1,2,3,4]`
-  不进入正式分母；private confirmation 另封存每任务 5 个 world identity，Git 中只保存 commitment。
-  每个 primary cell 固定 4 个 complete experiments，checkpoints 为 `[0,1,2,4]`；optional
-  matched-evidence probe 不进入 primary matrix。
-- 验收标准：
-  - [x] 每个固定规律具有明确状态转移、可观测后果和自洽性检查；
-  - [x] public prior、真实 hidden law 和 instrument mapping 分别控制；
-  - [x] 三种 prior condition 在 world、预算、契约和安全边界上匹配；
-  - [x] aligned/misindexed 的字段、数值集合、措辞、token 预算和 dossier 置信强度匹配；
-  - [x] evaluator-side prior-identifiability checks 的证据设计在 participant outcomes 前冻结，但不得把关键
-    discriminating experiment 直接注入 primary free-discovery trajectory；
-  - [x] matched-evidence mechanism probe 当前不进入 primary matrix；若以后按预注册增加，其 cloned world、
-    evidence packet、session、resource
-    card 和 secondary estimand 必须独立冻结，不得与 primary campaign 混账；
-  - [x] electrochemical 与 crystallization 及其余三任务均由 Gate A 和 prior-identifiability 决定，而非按 agent 结果挑选；
-  - [x] prior identity、world identity 和 split 均有不可变哈希；
-  - [x] qualification worlds、public formal worlds、private worlds 不重叠；
-  - [x] 不以开发结果选择正式 worlds。
-- 备注：`Claim: Codex /root — W2-04 — DONE`。冻结入口为
-  `configs/benchmark/work_ii_formal_design_v0.1.json`；确定性审计
-  `workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit.json` 为 `passed`，
-  5/5 tasks、50/50 target-field response checks、0 provider calls、0 failures。该 DONE 只覆盖 A-E
-  entity/ontology core；A-S/A-P/B/D 的新增 world cohorts 必须由 W2-17--W2-20 分别冻结，不能继承本收据。
-
-### W2-05 — 冻结 estimands、指标和判定规则
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [x] 完成
-- 优先级：P0
-- 必须分层报告：
-  - O1 discovery：learning curve、law-recovery error、information gain、counterfactual prediction；
-  - O2 prior calibration：prior-to-posterior movement、Brier、credible coverage 和 uncertainty；
-  - O3 bias rejection：错误先验置信度下降、选择性测量、错误归因和 prior persistence；
-  - O4 law summary：结构/参数摘要的可执行性、压缩稳定性和反事实预测一致性；
-  - O5 transfer：当前 primary private block 检验已注册任务家族内的 world-held-out 预测与控制；机制外
-    transfer 仅能由另行预注册的扩展检验；
-  - O6 autonomy/resource/safety：completion、invalid actions、measurements、risk、calls、tokens、cost、time。
-  - O7 blind outcome：最终推荐的独立 blind validation、validated learning-curve AUC、incumbent 与 recommendation gap。
-- 验收标准：
-  - [x] endpoint optimization 与 law discovery、prior rejection 和 transfer 指标代数独立或明确建模依赖；
-  - [x] continuous estimands 优先于阈值分类；
-  - [x] no-prior、correct-prior 和 wrong-prior 分母分离；
-  - [x] primary correction contrast 基于 participant 自主获得的证据和固定 checkpoints，同时要求 misindexed
-    改善和 aligned 不发生超容差退化；不得仅凭 gap closure 或被注入的 diagnostic evidence 判定成功；
-  - [x] 仅恢复材料 ID 与 dossier 的对应关系不得计为规律发现；必须通过连续条件反事实预测、typed law summary 和 transfer 验证；
-  - [x] prior benefit/harm/recovery 只作为分立 phenotype vector 报告，不合成排行榜分数；
-  - [x] epistemic、behavioral 和 outcome 三层的联合与解耦规则冻结；
-  - [x] right censoring、missingness、provider failure 和 multiplicity 规则冻结；
-  - [x] analysis unit 为独立 world/cell cluster，provider repeats 嵌套；
-  - [x] 明确“law summary 声明”、反事实预测与后续 operation-level 行为证据的联合成功规则；
-  - [x] 明确区分“未主动寻找反证”和“看到相同反证后仍不更新”，后者只有在可选 matched-evidence probe
-    中作为 secondary mechanism contrast 报告。
-- 备注：`Claim: Codex /root — W2-05 — DONE`。主误差固定为注册 query×metric 的未截断平均归一化绝对误差；
-  唯一 primary 为 world-level paired `C_prior`，并要求 misindexed 改善、aligned 非劣于 `-0.05` 的交并判定。
-  H1/H2/H4 组成 Holm secondary family；失败 cell 不替换，缺失 final 按零改善，provider repeat 仅作嵌套技术重复。
-  final typed law summary 现冻结为 evaluator-owned 可执行对象：在与 checkpoint 相同的 4 个注册 query 上逐
-  query×metric 执行，报告 truth-normalized MAE、pre-to-summary improvement、summary-minus-final-checkpoint
-  error 与 final explicit prediction consistency；public 阶段不事后设置二元 validity threshold。
-  “规律发现与迁移”仍必须同时通过 executable typed law summary、连续条件反事实预测与预注册 private transfer。
-  冻结合同和审计分别见 `configs/benchmark/work_ii_analysis_plan_v0.1.json` 与
-  `workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`。
-
-### W2-06 — 冻结 participant backend × session/scaffold 矩阵
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [x] 完成
-- 优先级：P0
-- 目标：先冻结一个可审计的持久 session execution unit，再决定是否引入第二 scaffold axis；避免把
-  model、session、scaffold 和 transport 完全捆绑。
-- 当前最低方法：WellAU `gpt-5.6-sol` medium；一个 cell 一个长驻 operation-level Codex process，
-  通过 host-owned ChemWorld MCP 控制同一 discovery campaign 的多个 complete experiments；同一 session
-  内维护 typed belief、evidence references、law summary 和 next intent；当前不加入第二 backend。
-- 验收标准：
-  - [x] session start、operation tool loop、checkpoint、interrupt/finalize 和 receipt 使用同一可审计 contract；
-  - [x] 每个 cell 恰有一个 session identity，所有 operations、complete experiments 和 belief checkpoints 均绑定该 identity；
-  - [x] agent 每次读取前一 public outcome 后选择一个 operation；host 只负责 validation、transaction、resource 和 hidden-world 执行；
-  - [x] `terminate`、`final_assay`、discard、budget exhaustion 和 right-censoring 的 lifecycle 语义与第一篇 complete-agent 路径一致；
-  - [x] 一个 cell 内多个 complete experiments 共享同一 campaign resource card/ledger，不允许逐 experiment 重置资源；
-  - [x] belief snapshot 通过同一 session 内的结构化 MCP checkpoint 提交，不产生额外 standalone provider session；
-  - [x] stateful memory 限定为 typed belief、diagnostic focus、evidence references 和 next intent，不使用巨型自由文本状态；
-  - [x] context、memory、retry、temperature/thinking、timeout 和 failure semantics 冻结；
-  - [x] provider attempt、MCP tool call、operation attempt、committed operation、complete experiment、cell 和 blind evaluator 分母分开报告；
-  - [x] classical/reference policies 只承担校准或机制对照角色；若 LLM 获得 property dossier，则至少包含 ID-only 与 property-aware 两类公平对照；
-  - [x] 不根据 pilot 胜负删除正式方法臂。
-- 备注：`Claim: Codex /root — W2-06 — DONE`。machine-readable design 现冻结一个 cell 一个
-  campaign-scoped Codex process/session/model call、同 session operation/checkpoint/final receipt、typed
-  checkpoint memory、无自动动作修复/closeout、固定 reasoning/timeout/retry/failure 语义和八类独立分母。
-  formal preflight 会逐任务拒绝 provider、timeout、model-call、checkpoint、concurrency 或 session contract
-  漂移。ID-only 与 public-property-vector 的 semantics-free reference pair 也已冻结为同 policy、同 world、同资源
-  的校准对照，位于 75 个 participant cells 之外且不能改变 primary H3。W2-06 只完成方法合同冻结；当前方法的
-  最终真实资格收据仍由 W2-10 管理，未完成前不得执行正式矩阵。
-
-### W2-07 — 功效、资源和成本审计
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [x] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P0
-- 验收标准：
-  - [x] 以独立 world clusters 进行功效分析；
-  - [x] formal power 使用 world-level paired contrasts；rounds、prediction snapshots 和多个 endpoints 不作为独立样本；
-  - [x] 对 world、mechanism、agent、session 和交互方差作预期分解；
-  - [x] 冻结 worlds、replicates、provider repeats 和最大 provider calls；
-  - [x] discovery campaign 的 complete-experiment 上限、checkpoint 位置和 optional matched-evidence probe 是否进入 secondary matrix 在 pilot 后、formal outcomes 前冻结；
-  - [x] 冻结一张跨 discovery experiments 共享的 task-pattern-specific CampaignResourceCard，包括 operation、vessel、assay、instrument、stock、process-time、quench/transfer 和 closeout 余量；
-  - [ ] 冻结 token、货币、wall time、并发和失败重试预算；
-  - [x] 明确早停仅针对基础设施/安全，不针对结果方向；
-  - [ ] 输出完整资源上界和预计运行 ETA。
-- 备注：`Claim: Codex /root — W2-07 — DOING`。25 个独立 task×world clusters、75 cells 的功效审计已通过：
-  规划标准化效应 `d=0.6` 时 power=`0.8946`，80% power 的 MDE=`0.5150`，因此只支持中到大效应设计。
-  当前 accepted-cell 上界为 75 provider sessions/model calls、300 complete experiments、3,420 operation attempts、
-  300 vessel starts、300 final assays、420 non-final instrument uses、3.24 亿 input tokens、4,320 万 uncached
-  input tokens、324 万 output tokens；25 个 seed-triplet 的初始串行 wall 上界为 47.5 h。若 75 个 cell 全部耗尽
-  唯一一次纯基础设施 resume，provider-attempt 硬上限为 150、token 硬上限相应为 6.48 亿/8,640 万/648 万，
-  串行 wall 硬上限为 95 h；已持久化 scientific trajectory 仍禁止 replacement。报告：
-  `workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`。provider process launch 固定为每 cell 初始
-  1 次、纯基础设施失败最多 resume 1 次，即全矩阵计划 75 次、硬上限 150 次；任何已持久化 trajectory 都禁止
-  replacement。blind evaluator 另排 75 个最终推荐、150 个 target 和 450 个无 provider 调用的成对噪声
-  replay。五张 task-pattern resource card 已冻结 operation、vessel、assay、instrument、stock、process-time、
-  quench/transfer 与 participant-owned closeout reserve，且已登记 world/mechanism/method/session/interaction 的
-  可估计性与混杂边界。qualification currency ceiling 与 75-cell formal currency ceiling 现已分离；最终 freeze
-  必须绑定 provider/model、价格来源与 cache-hit/cache-miss/output 单价，并按五个 task config 自动重建 75 次初始
-  和 150 次全基础设施 resume 的 token/cost hard cap。formal parent runner 在每次 provider process launch 前先
-  预留该 cell 的完整 token-envelope 成本，超过正式 ceiling 时在调用前拒绝，未知实际账单不会降低预留额。
-  qualification 现使用独立的三臂 parent runner，同样在每次 launch 前预留完整 token envelope；计划 3 次、
-  每臂最多 2 次、总硬上限 6 次，且资格预算和正式矩阵预算不得互相挪用。
-  仍需由用户批准可验证价格下的正式货币硬上限，并用最终合格的 current-method runner 校准 expected ETA，故
-  W2-07 保持 `DOING`。剩余选择、费用字段与严格执行顺序已汇总为
-  `workstreams/flagship_tasks/reports/work-ii-formal-launch-decision-brief.md`，其中不包含凭据。上述上界仅覆盖
-  A-E public 75-cell block；A-E private、A-S、A-P、B、D 必须分别重算并批准预算，禁止从 A-E ceiling 借用。
-
-### W2-08 — Registered Report/常规投稿路线决策
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [x] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P0
-- 硬约束：在路线决定前不得开始正式 primary data collection。
-- 验收标准：
-  - [ ] 决定是否申请 Nature Registered Report Stage 1；
-  - [ ] 若申请，确认已有数据只作为 pilot/environment qualification；
-  - [ ] 若不申请，冻结常规投稿目标和对应 evidence threshold；
-  - [ ] 记录决策日期、负责人和不可逆后果；
-  - [x] 投稿路线不根据 formal outcomes 事后改变主假设。
-- 备注：`Claim: Codex /root — W2-08 — DOING`。2026-08-10 已核对 Nature 官方 Registered
-  Reports 指南及其 2026-05-27 全领域扩展公告：当前必须先提交 presubmission enquiry，获邀后提交
-  Stage 1；若获得 IPA，approved protocol 需注册，正式 primary data 必须在 IPA 后采集，Stage 2 不得按
-  outcome 改写假设或核心方法。outcome-blind decision record 已冻结为
-  `configs/benchmark/work_ii_submission_route_decision_v0.1.json`，记录 formal participant outcomes 为 0、
-  历史证据仅作 pilot/environment/method qualification，以及两条路线的不可逆后果。当前推荐先提交 Nature
-  Registered Report presubmission enquiry；若未获邀，则按同一 H3/design/analysis/failure rules 转入常规
-  投稿。`selected_option` 仍为空，等待用户明确选择，故不得开始 formal primary data collection。
-  `scripts/select_work_ii_submission_route.py` 已提供显式、write-once 的用户选择入口：必须同时给出
-  route、selection timestamp 和 `--selected-by-user`；缺少任一输入不写文件，已选择记录拒绝改选，
-  formal outcome count 非零的源记录即使重算哈希也拒绝。聚焦测试覆盖两条路线、晚选择、缺参、
-  check 和重复选择，共 9/9 通过；当前 pending decision 未被改写。
-
-### W2-09 — 完成 manifest-driven formal runner
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [x] 完成
-- 优先级：P0
-- 代码交付物：
-  - [x] 基于第一篇 `InteractiveCodexExperimentAgent`/ChemWorld MCP 的 persistent operation-level participant runner；
-  - [x] immutable matrix/schedule manifest（五任务、三臂、session、operation、experiment、checkpoint、held-out/blind denominators）；
-  - [x] session-aware resume 与 right-censoring state machine；
-  - [x] provider/session/scaffold receipts；
-  - [x] typed prior/evidence/belief/law-summary schema 与可执行 law-summary validator；
-  - [x] 同一 session 内的 pre-evidence、preregistered experiment checkpoints 和 final snapshot MCP contract；
-  - [x] evaluator-only held-out truth compiler：每个 task×world cluster 的 4 个注册 query 各冻结为一个完整实验，三臂和四个 checkpoint 共享同一 truth，零 provider 调用且不反馈 participant；
-  - [x] checkpoint prediction-error scorer 与冻结缺失规则：right-censored cell carry-forward 最后有效 checkpoint，缺失 pre 或不可计分 prediction 的 primary improvement 固定为零；
-  - [x] 从首个 physical operation 开始的 free-discovery state machine；主实验不注入 protocol-owned discriminating experiment；
-  - [ ] optional matched-evidence mechanism probe 的独立 cloned-world/session/resource contract，默认不进入最小 pilot；
-  - [x] operation-level `step(action)`、public outcome、termination/final-assay 和 multi-experiment campaign 的统一接口；
-  - [x] discovery campaign 共享 resource card/ledger、跨 experiment resource snapshot 和 lifecycle reserve；
-  - [x] 第一篇 19-coordinate contract 的 Work II adapter，排除 evaluator-owned held-out/blind operations；
-  - [x] exact replay、resource replay 和 hidden-boundary audits；
-  - [x] public/private split enforcement；
-  - [x] formal report generator：校验并连接 75 个 terminal receipts、25 个 evaluator-truth packs、
-    completed cells 的 blind packs，保留 failed/right-censored cells，并生成 75 个 cell rows 与
-    25 个 H1/H2/H3 cluster contrasts；统计推断仍属于 W2-14。
-- 验收标准：
-  - [x] 不依赖 notebook 或人工逐单元操作；
-  - [x] 中断后不覆盖、不替换、不重复计数；
-  - [x] private identities 不进入 agent prompt；
-  - [x] 每个估计量可追溯到 immutable trajectory records；
-  - [x] fail-closed tests 覆盖 provider failure、partial action 和 ledger mismatch。
-- 备注：typed prior/evidence/belief/law-summary schema 与 held-out query validator 保留。旧
-  Direct Responses runner、配置、tests 和 mock/real/breadth 报告均已归档；其 15/15 breadth
-  只证明旧架构的 transport/schema/executor/recovery 可运行，不是当前 session method 的资格证据。
-  当前 operation-level runner 已替代关闭 MCP 的旧 `CodexSessionClient + complete-experiment plan` prototype。
-  75-cell outcome-blind preflight 已确定性生成并复核：5 tasks、25 public task×world clusters、3 arms、
-  75 persistent sessions、300 complete experiments、300 typed checkpoints、1,200 checkpoint queries 和
-  4,080 query×metric predictions；另冻结 100 个 evaluator truth executions 和 340 个唯一
-  task×world×query-metric truth，三臂和四个 checkpoint 不重复测量；private identities、world seed、arm label
-  与 evaluator truth 均不进入 participant prompt。
-  同时修复了 formal config 的中性 checkpoint IDs 与 typed MCP validator 仍只接受历史语义标签的契约错位，
-  历史标签仅保留 replay 兼容。报告：
-  `workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`。
-  write-once terminal store 已接入 manifest-driven subprocess executor，覆盖 completed/right-censored/failed、
-  append-only infrastructure attempts、缺失单元 resume、重复/篡改拒绝、30 秒 triplet heartbeat 和 75-cell
-  denominator audit。离线全矩阵模拟已验证 75 个单元只执行一次；首 triplet 单元级基础设施失败后为 2 个 terminal
-  加 73 个 missing，missing-only resume 后达到 75 个 terminal，已完成单元不重跑。preflight 当前按设计 fail-closed，
-  participant 最终输出新增结构化 final recommendation，必须在 4 个已完成实验中选择 1 个；每个 qualified
-  cell 随即生成自哈希、与 participant trajectory 绑定的 blind evaluator plan，固定对 observed incumbent 和
-  participant recommendation 各执行 3 个成对噪声 replay，不向 participant 回传结果，也不计入 participant
-  operation/provider 分母。formal CLI 对 qualification receipt 执行自哈希、preflight/provider/attempt/blind
-  contract、三臂 development 报告文件、零 formal outcome、150 次 provider-attempt 硬上限和 qualification/
-  formal 两个独立 currency approval 的逐项绑定校验；`--preregistration-freeze-receipt` 现也是不可省略的
-  execute 参数，并逐项验证
-  selected route、qualification、clean release、credential rotation、currency、qualified ETA、用户命令/预算/
-  故障升级签字，以及相应 Nature IPA+registration 或常规投稿 target+evidence threshold，不再接受仅声明
-  `status=passed` 的任意 JSON。通过全部收据后，runner 从保持 blocked 的 outcome-blind base preflight 派生
-  带 qualification/final-freeze/cost 三重哈希的 runtime-only authorized manifest；手工翻转
-  `formal_execution_allowed` 即使重算自哈希也被拒绝。每次 provider launch 另写 append-derived cost reservation
-  ledger，确保 75-cell/150-attempt formal ceiling 是运行时硬门而非仅一项签字字段。当前仍缺用户批准的
-  qualification 与 formal currency ceiling、
-  当前 persistent-session 方法 qualification receipt、W2-08 outcome-blind route selection 和 W2-11 final
-  freeze receipt；committed design/analysis/base preflight 继续显式禁止直接执行，只有完成上述收据验证的派生
-  runtime manifest 可启动正式矩阵。blind evaluator
-  的 development-only 零 provider shakedown 使用 synthetic incumbent
-  fixture（明确不是 participant recommendation），完成 2 targets × 3 paired replicates = 6/6 executions，
-  6/6 exact replay、0 failures、0 participant feedback、0 participant-operation denominator impact；报告：
-  `workstreams/flagship_tasks/reports/work-ii-blind-evaluator-development-shakedown-v0.2.json`。
-  held-out truth compiler 的五任务 seed-0 development shakedown 先因外层命令 timeout 在 task 1 后形成
-  immutable infrastructure-incomplete v0.1（4/20 queries 已完成并保留），随后仅修复 wrapper timeout、以新身份
-  从头执行 v0.2：20/20 queries、68/68 query-metric truths、200/200 operations、20/20 exact replay，
-  0 provider calls、0 participant feedback、0 participant-operation denominator impact。报告：
-  `workstreams/flagship_tasks/reports/work-ii-held-out-evaluator-development-shakedown-v0.2.json`。
-  formal analysis dataset generator 已完成 fail-closed artifact join：每个 cell row 绑定 terminal receipt、
-  participant trajectory、共享 evaluator-truth report 与 blind report，每个 cluster row 绑定三臂收据并计算
-  H1/H2/H3；其输出自哈希且不会把尚未完成的 W2-14 统计推断伪装为正式结论。participant process adapter
-  已按实际 planned experiment count 生成第一篇同名 19-coordinate profile；Work II 未注册的两个固定阈值坐标
-  保留为显式 null/inapplicable。每个坐标绑定 participant step 与 record hash，held-out/blind evaluator operations
-  被排除；physical exact replay、逐步 campaign resource-ledger replay 和 participant-visible hidden-boundary audit
-  被合并为 qualification 必需的 execution audit，并由 formal analysis cell row 继续绑定。public formal manifest
-  现逐 cell 冻结 `world_split=public_formal`，验证 25 个 public identities 与 development seeds 不重叠、与
-  private namespace 不相交，并仅携带 private identity commitment；即使重算 cell/manifest hashes，跨 split cell
-  仍被拒绝。`W2-09 — DONE`；optional matched-evidence probe 明确不属于最小正式矩阵，继续延后而不阻塞 runner。
-
-### W2-10 — provider/scaffold shakedown 与方法资格验证
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [x] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P0
-- 目标：只排除接口、资源和生命周期失败，不检验或筛选科学结果。
-- 验收标准：
-  - [ ] 当前 persistent-session 方法完成独立 qualification cells；
-  - [ ] schema-valid operation rate、committed-operation rate、lifecycle completion、receipts、cost/resource accounting 和 replay 达标；
-  - [ ] 同一 session 内多个 complete experiments、共享资源、prediction checkpoints、typed law summary 和 final recommendation 全部闭环；
-  - [ ] 中途 measurement、continue、`terminate`、final assay、资源拒绝和 right-censoring 均有 fail-closed qualification；
-  - [x] qualification worlds 不进入正式矩阵；
-  - [x] 失败修复只允许修改实现，不允许修改正式科学 estimands；
-  - [ ] 形成当前 session method 的冻结 hash 和资格验证报告。
-- 备注：旧 Direct Responses 方法及其 3/3、15/15 development qualification 已归档，不再视为
-  当前方法通过。当前待验证方法为 WellAU `gpt-5.6-sol` medium、one persistent Codex session
-  per cell、operation-level ChemWorld MCP、multi-experiment shared-resource discovery campaign、
-  sealed held-out/blind evaluator。WellAU pricing catalog仍不可验证，货币成本不得记为零。
-  零外部调用 readiness 已冻结为
-  `workstreams/flagship_tasks/reports/work-ii-method-qualification-readiness-v0.1.json`：当前合同要求
-  electrochemical development seed 0 的 opaque/aligned/misindexed 三臂全部保留，3 sessions、
-  12 complete experiments、12 checkpoints、84 operation-attempt hard cap；若每臂耗尽一次纯基础设施
-  resume，provider-process attempt hard cap 为 6。旧 WellAU 三臂报告因 arm identity 泄露而不合格，
-  DeepSeek qualification-v2 因只覆盖 opaque 单臂且 provider/sampling contract 不同而不合格。
-  readiness 内部校验已通过且执行 0 次 provider call。真实运行现必须先由
-  `scripts/authorize_work_ii_method_qualification.py` 生成 credential-free、用户确认 provider/凭据轮换/
-  USD 上限、定价来源/时间及 cache-hit/cache-miss/output 单价的 pre-call authorization；
-  `scripts/run_work_ii_method_qualification_triplet.py` 是唯一三臂执行入口，要求显式
-  `--execute --allow-provider-execution`，并在每个 provider process 前写入不可变的 attempt authorization 与
-  cost-ledger snapshot。父 runner 并行启动当前缺失的三臂，每臂最多一次纯基础设施 resume；一旦出现任何
-  trajectory evidence 即写成 completed/right-censored 终态，禁止 replacement。resume 会重验连续 attempt
-  journal、预算快照、终态回执和 report-to-terminal 绑定，只补未形成 trajectory 的缺失臂；三臂终态已写入但
-  report 尚未写入的中断可在不新增 provider call 的情况下恢复。父 runner 在聚合 report 前另生成自哈希的
-  execution journal，完整绑定 runner source、pre-call authorization、cost contract、final ledger、每次
-  attempt authorization/ledger snapshot、三臂 terminal receipt 和对应 scientific row；v0.4 report/receipt
-  不允许省略或重排该日志。普通 development runner 即使成功也不能进入资格收据。通过的三臂 report 使用
-  v0.4 schema，并由 `scripts/build_work_ii_method_qualification_receipt.py` 按 authorization 中冻结的定价重算
-  三臂 observed token cost，逐项复核 pricing source/timestamp、token totals、用户 ceiling、三臂
-  lifecycle/replay/audit/provider receipts 后生成 v0.4 receipt。三个生成器在缺少
-  用户输入、真实报告或价格证据时均已验证 fail-closed 且不会创建文件。真实三臂资格仍等待 provider 合同、
-  凭据轮换确认和 qualification currency ceiling，不能据此授权正式执行。该数据产生块的单一实验记录已写入
-  `workstreams/flagship_tasks/experiments/work-ii-current-method-qualification-triplet.md`；其覆盖、测量、通过/
-  失败规则和输出已固定，不会按运行结果改变。
-
-### W2-11 — 冻结 preregistration 与不可变执行包
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [x] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P0
-- 依赖：W2-08、W2-10
-- 验收标准：
-  - [ ] 协议、world cohort、methods、schedule、metrics、power、stopping 和 analysis 全部冻结；
-  - [x] preregistration 文档与 machine-readable manifest 一致；
-  - [x] 干净 wheel、独立 checkout 和预运行 evidence graph 通过；
-  - [x] private matrix 密封，只公开 commitment hash；
-  - [ ] 正式运行命令、预算和故障升级流程签字确认。
-- 备注：`Claim: Codex /root — W2-11 — DOING`。零 provider 调用 preregistration readiness
-  已生成：`workstreams/flagship_tasks/reports/work-ii-preregistration-readiness-v0.1.json` 与同哈希绑定的
-  `workstreams/flagship_tasks/reports/work-ii-preregistration-draft-v0.1.md`。内部检查通过，冻结并复核了
-  H3、5 tasks、25 independent clusters、75 cells、300 experiments、300 checkpoints、75 accepted
-  sessions、150 provider-attempt hard cap、outcome-neutral gates、failure/censoring rules 和仅含 commitment
-  的 private boundary；formal outcomes 和本轮 provider calls 均为 0。2026-08-11 的当前 clean release
-  receipt `workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json` 绑定提交
-  `5bdc46fa16935cab1b1682e73c9816e04c552346`，receipt SHA-256 为
-  `15ff3eab9dcabc55b5136a7d90a3d31386c4f730ee4e8d1249123e59ecf88e7a`。独立 clone 中 9/9 stages
-  通过，包括 13-node/17-edge evidence graph、4/4 frozen checks、16 个文件中的 108/108 Work II tests、
-  clean wheel 和非 editable wheel-target import/config smoke；checkout 前后均 clean，provider calls 为 0。
-  readiness 现消费并验证该 receipt，
-  clean-release blocker 已完成。最终 freeze 现缺 5 项：用户路线选择、current-method 真实三臂资格收据、
-  provider/正式货币上限、资格运行校准 ETA，以及执行命令/预算/故障升级的用户签字确认。
-  当前 source digest 漂移已通过零 provider 调用的确定性重建修复：formal preflight、preregistration
-  readiness/draft 与 13-node/17-edge pre-run evidence graph 已重新一致。审计进一步发现最终
-  `work_ii_confirmatory.py` 与 `scripts/analyze_work_ii_confirmatory.py` 原先未进入 formal source binding，
-  confirmatory tests 也未进入 clean-release 分母；现已补入源码冻结和独立审计，正/零效应、失败臂无界
-  worst-case、blind outcome 缺失和输入篡改共 5 类测试均已覆盖。进一步审计又发现 typed final law summary
-  原先只检查 schema present、未实际在 evaluator truth 上执行；现已新增独立 evaluator 与 4 类 fail-closed
-  测试，逐 query×metric 记录 normalized error、compression 和 prediction consistency，全部纳入 103/103
-  clean-release 分母。
-  2026-08-10 再次审计发现 method-qualification readiness 曾残留上一代 formal-preflight digest；已用当前
-  `work-ii-formal-matrix-runner-preflight-v0.1.json` 零 provider 调用重建 qualification readiness 与其下游
-  preregistration package。当前绑定一致，资格仍为 3 cells / 0 provider calls / 4 个用户授权 blocker，formal
-  execution 仍关闭；该修复不改变 worlds、estimands、阈值、预算或任何 participant outcome。
-  `scripts/build_work_ii_preregistration_freeze_receipt.py` 已把这些项编码为 route-specific、不可伪造的最终
-  receipt 生成门，并把 qualification 实际费用/上限与 formal 全矩阵价格表/上限分开；正式上限必须覆盖冻结的
-  150 次 provider-attempt 成本，随后由 parent runner 逐调用预留。Nature 路线额外要求 IPA 与 protocol
-  registration reference，常规路线要求冻结 target 与 evidence threshold。当前缺失输入下已验证拒绝生成，
-  不会提前授权 formal matrix。当前 W2-11 package 只冻结 A-E；任何 W2-18--W2-20 执行包均须 additive freeze，
-  且不得改变 A-E 的 hypotheses、worlds、estimands、thresholds 或 failure rules。
-
-### W2-12 — 执行 public formal matrix
-
-- 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
-- 状态：
-  - [x] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P0
-- 验收标准：
-  - [ ] 从冻结提交和不可变执行包启动；
-  - [ ] 全部 cell 按预注册状态机达到 completed/right-censored/failed 终态；
-  - [ ] 不根据 live outcomes 增删 cells 或更换模型；
-  - [ ] provider、token、cost、resource 和 wall-time 账本完整；
-  - [ ] 每个 completed trajectory exact replay；
-  - [ ] 运行期间只发布盲化进度，不发布 arm contrasts。
-- 备注：正式 outcome analysis 尚未开始。其零 outcome 实现已提前冻结：formal dataset 会保留全部 75 cells、
-  25 clusters、checkpoint errors、blind outcomes、process profiles 与逐 cell law-summary evaluator 记录；
-  confirmatory 层已实现 H3 intersection--union、Holm secondary、complete-case、unbounded failed-arm
-  worst-case、HC3、task-stratified bootstrap 和四类 phenotype。law-summary evaluator 真实执行 typed summary，
-  不再只检查 schema present；public 层仅报告 executability/error/compression/consistency，private transfer 前
-  `reusable_law_discovery` 固定为 false。上述实现通过合成正效应、零效应、失败、缺失与篡改测试，但不得写成
-  participant 结果。
-
-### W2-13 — 执行 private sealed confirmation
-
-- 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
-- 状态：
-  - [x] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P0
-- 依赖：W2-12
-- 验收标准：
-  - [ ] public methods 和 analysis code 已冻结；
-  - [ ] private world commitment 与预先公开哈希一致；
-  - [ ] 只执行一次，不因结果 rerun；
-  - [ ] public/private transfer 使用同一预注册指标；
-  - [ ] 完整记录任何基础设施删失和未启动单元。
-- 备注：零 provider 的 private-confirmation preflight 已实现并进入测试：外部 ignored seal 必须提供 5 tasks
-  × 5 worlds 的 25 个 split-disjoint identities，派生 75 个三臂 participant cells、300 experiments、
-  300 checkpoints、100 truth executions 和最多 450 blind executions；seal nonce 不进入 preflight，真实
-  identities 只能写入 ignored `runs/private/`，且写入为 create-once。unseal 前必须同时满足 public 75-cell
-  matrix 终态、public confirmatory analysis hash binding、runner/analysis source freeze、独立 private currency
-  ceiling 与用户 execution signoff、seal commitment 匹配。private preflight 自身固定为 execution-blocked，
-  0 provider calls；每 cell 最多一次纯基础设施 resume，任何 accepted/failed cell 均不得按结果替换。当前
-  合成测试只验证边界与分母，不生成真实 private identity、participant outcome 或 transfer 结果。
-
-### W2-14 — 分析、稳健性和替代解释排除
-
-- 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
-- 状态：
-  - [x] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P0
-- 验收标准：
-  - [ ] 主分析严格按 preregistration 执行；
-  - [ ] optimization 与 law learning 的解耦由联合结果而非单一分数判断；
-  - [ ] 报告 world/mechanism/agent/session 方差与交互；
-  - [ ] 检查先验坚持、证据修正、错误归因、规律总结和表面 endpoint 恢复等行为类型；
-  - [ ] 检查 process metrics 是否预测 law-summary quality 与 held-out transfer；
-  - [ ] 区分无先验学习、正确先验确认和错误先验排除，禁止把正确先验下的高分解释为发现能力；
-  - [ ] 检查错误先验是否通过选择性测量、解释重写或策略补丁被隐性保留；
-  - [ ] 分析 understands+acts、understands-but-cannot-act、acts-without-understanding 和 neither 四类 phenotype；
-  - [ ] black-box/random/BO 结果只校准 semantics-free search，不得改写成主 leaderboard；
-  - [ ] 分析 scaffold/model matched contrasts，避免 complete-system 差异冒充 model effect；
-  - [ ] threshold、missingness、censoring 和 multiplicity 敏感性完整；
-  - [ ] 所有探索性分析明确标记且不覆盖主结果。
-- 备注：`TBD`
-
-### W2-15 — 第二篇论文、数据与发布包
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [x] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P0
-- 验收标准：
-  - [x] 标题、摘要和第一张图直接呈现 initial world model → evidence → executable law → action → transfer 能力链；
-  - [x] 当前 entity/ontology 75-cell 核心与 structural/parametric/observation 扩展边界明确；
-  - [x] 环境 Gate A、agent Outcomes 和 private confirmation 严格分层；
-  - [x] 主图围绕 prior → experiment → evidence → law summary → transfer 的能力链；
-  - [x] 不将负结果改写为平台失败，也不扩大未被证据支持的主张；
-  - [x] 当前开发/设计图表与 PDF 草稿可独立重建；
-  - [ ] 证据图、clean wheel、independent checkout 和 final claim audit 通过；
-  - [x] 作者顺序、三位共同一作与通讯作者元数据写入主稿和 PDF 模板；
-  - [ ] 数据归档、完整 CRediT 作者贡献和投稿包完整。
-- 备注：`Claim: Codex /root — W2-15 — DOING`。已建立 venue-neutral 主稿
-  `paper/prior_discovery_manuscript.md` 与 display plan
-  `paper/prior_discovery_display_items.md`，并以 `paper/prior_discovery_evidence_map.md` 约束逐项 claim
-  ownership。2026-08-11 起主稿使用 **Experimental Intelligence in AI Scientists: From Initial
-  World Models to Transferable Laws** 定位；当前五任务 75-cell 矩阵被明确限定为 entity/ontology
-  confirmatory core，并新增 structural/mechanistic、parametric 与 observation-model 独立扩展边界，
-  matched-evidence、law/action 与 artifact-only compositional transfer 分别定义为 Study B--D，禁止把
-  private within-family replication 改写为 compositional transfer。主稿已完成标题、摘要、引言、相关工作、概念框架、五任务正式设计、
-  provider-separated 开发结果、预注册 estimand、讨论、方法和发布边界；development、public formal 与 private
-  confirmation 三层证据明确分离，未把 endpoint 或 verbal warning 写成规律发现。Figure 1–4、source data、
-  图源、QA 记录和 12 页开发/设计 PDF 草稿已生成。DeepSeek 五任务 development completion 已纳入摘要、Results、
-  证据图、display plan 和构建 manifest：75/75 terminal、69/75 completed/qualified、290/300 complete
-  experiments、75/75 exact replay；partition/safety 的 seed-0 失败与 seeds 1--4 continuation 均保留，
-  但其 task-pattern continuation 仍只作 operational/descriptive evidence，不与 Figure 3 的 common
-  three-task endpoint source 混合。主稿现另设 persistent-session accounting、harness-as-agent-system 与
-  Codex/MCP execution 段落，明确 267,929,149 input tokens 中 97.05% 为长 session 前缀缓存而非重复输出，
-  并将 validation、MCP recovery、resource rejection 与 provider transport 分母分开。新增五任务终态表及
-  第 7--9 页新增段落已完成 PDF 视觉检查。formal Methods 现进一步写明 final law summary 在 evaluator-held
-  query 上的真实执行、truth-normalized error、compression 与 final-prediction consistency，且 private
-  transfer 前不生成二元 reusable-law 结论；对应设计/方法页面已检查。当前构建为 0 overfull、2 个非阻断
-  underfull、0 未定义引用、
-  0 LaTeX 错误；入口为
-  作者顺序现为 Jiangjie Qiu、Yijun Li、Yaotian Yang（共同一作）、Honghao Chen、Wentao Li、
-  Xiaonan Wang（通讯作者，`wangxiaonan@tsinghua.edu.cn`）；PDF 模板已支持共同一作与通讯作者标记。
-  `paper/figures/prior-discovery/README.md`、`paper/figures/prior-discovery/QA.md` 和
-  `paper/exports/prior-discovery-draft/build-manifest.json`。正式结果、private transfer、最终统计表、
-  clean wheel、independent checkout、final claim audit、数据归档和投稿包必须等待 W2-12--W2-14 后补齐，
-  故 W2-15 保持 `DOING`。
-
-### W2-16 — 物理或高保真桥接（可选增强）
-
-- 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
-- 状态：
-  - [x] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P1
-- 目标：检验虚拟世界中的 process/discovery profile 是否预测受控现实或高保真系统中的行为。
-- 验收标准：
-  - [ ] 选择低风险、低成本、可重复的窄域体系；
-  - [ ] 优先评估真实历史实验数据的 sequential oracle，以相同 opaque/aligned/misindexed 条件复现 prior phenotype；
-  - [ ] wet-lab 仅在软件 phenotype、分析代码和安全边界冻结后作为可选窄域确认；
-  - [ ] 虚拟与物理接口共享 typed lifecycle semantics；
-  - [ ] 先 shadow mode，再进入经批准的有限闭环；
-  - [ ] 安全、审批、废物和设备边界明确；
-  - [ ] 迁移结果独立报告，不把小规模现实桥接泛化为全面现实有效性。
-- 备注：是否进入 Work II 主文须在 formal results 前冻结：`TBD`
-
-### W2-17 — 非 entity 初始模型的候选筛选与方法资格
-
-- 认领：
-  - [ ] 未认领
-  - [x] 已认领；负责人：`Codex /root`
-- 状态：
-  - [ ] 未开始
-  - [x] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P0
-- 目标：在不查看 agent 效果的前提下，为 A-S 和 A-P 各冻结两个可识别任务，并完成从
-  environment-only screen 到 one-world real-provider triplet 的资格链。
-- 验收标准：
-  - [ ] structural candidate roster 在下一次 diagnostic 前冻结，至少覆盖
-    `reaction-to-crystallization` 与 `reaction-safety-constrained` 两个机制家族；
-  - [x] distillation structural v1 的 4/4 exact-replay、gap=`0.0303474` 未通过结果保留，且未启动 provider；
-  - [x] electrochemical parametric v1 的 repaired 20/20 exact-replay、gap=`0.0055333` 未通过结果保留；
-  - [x] electrochemical parametric v2 在独立 seed 1 达到 20/20 complete、20/20 exact replay、
-    gap=`0.5849161 ≥ 0.10`，仅标记为 environment-qualified；
-  - [ ] 第二个 parametric task 在 diagnostic 前冻结；优先评估
-    `flow-reaction-optimization` 的温度/停留时间或流量 operating-window law；
-  - [ ] 每个候选先有一份简洁 experiment note，固定 recipes、metric、threshold、tie rule、失败规则和输出；
-  - [ ] 每个被 D0 接纳的 task 只运行一个三臂 real-provider development triplet；资格只依据 harness、
-    lifecycle、checkpoint、resource、hidden-boundary 和 replay，不依据科学结果方向；
-  - [ ] checkpoint schema 完成通用字段迁移：新轨迹写 `initial_model_available` 与
-    `challenged_model_fields`；历史 entity 轨迹中的 `nominal_information_available` 与
-    `suspected_misindexed_fields` 只读兼容，不原地改写；
-  - [ ] 为 A-S/A-P 输出独立、不可混用的 qualification receipt 和 go/no-go 决定。
-- 备注：当前只授权设计、确定性诊断和聚焦验证；本任务本身不授权新的真实 provider 调用。两次未通过
-  diagnostic 是 intervention screening 结果，不能写成模型缺乏 structural/parametric reasoning。
-
-### W2-18 — 执行 A-S/A-P 跨 locus 注册扩展
-
-- 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
-- 状态：
-  - [x] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P1；若论文保留 general initial-world-model claim，则升级为 P0。
-- 依赖：W2-17 完成；相应扩展 manifest、analysis plan、成本上限与用户 execution signoff 全部冻结。
-- 验收标准：
-  - [ ] A-S 为 2 tasks × 5 worlds × 3 arms = 10 clusters / 30 sessions / 120 experiments；
-  - [ ] A-P 为 2 tasks × 5 worlds × 3 arms = 10 clusters / 30 sessions / 120 experiments；
-  - [ ] 每个 task 使用五个未参与 development/qualification 的 deterministic world identities；
-  - [ ] 三臂只改变一个 initial-model locus，world、resource、noise、public contract 和 input budget 匹配；
-  - [ ] 每个 cell 一个 persistent Codex session、4 complete experiments、4 checkpoints；
-  - [ ] task-specific held-out truth、typed law execution 和 blind action evaluator 在 launch 前冻结；
-  - [ ] 每 task 到 5 seeds 即终止；任何扩展须重新取得用户审核；
-  - [ ] 失败/right-censored cells 全部保留，科学结果不触发 replacement 或新增 task。
-- Claim ceiling：两个 task 均达终态时才允许 locus-level secondary claim；一个 task 只允许 case-study
-  wording。A-S/A-P 不改变 A-E 的 H3、alpha 或正式分母。
-
-### W2-19 — 执行 B matched-evidence mechanism probe
-
-- 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
-- 状态：
-  - [x] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P1；若论文要区分 evidence acquisition failure 与 evidence interpretation failure，则必须完成。
-- 设计上界：2 loci × 1 prespecified task × 5 worlds = 10 independent clusters；三臂共 30 fresh sessions。
-- 验收标准：
-  - [ ] task/locus、world identities、contradictory evidence packet 和 informativeness gate 在 A-E outcomes
-    被查看前冻结；若未提前冻结，后续结果只能标记 exploratory；
-  - [ ] 每个 session 先提交 pre-evidence prediction/confidence，再读取同 world、同 arm-token-budget 的
-    identical evidence packet，随后提交 post-evidence prediction/confidence 与一个 action/recommendation；
-  - [ ] participant 不选择该 evidence packet，因此 B 不能进入 free-discovery、resource-efficiency 或
-    experiment-selection 分母；
-  - [ ] 主要机制估计量为 matched evidence 后的 prediction-error change、wrong-model confidence change 和
-    action alignment；不得把 B 的改善替代 A 的自主发现结果；
-  - [ ] B 使用独立 session/evidence/resource receipts，失败不替换。
-
-### W2-20 — 执行 D context-reset artifact-only compositional transfer
-
-- 认领：
-  - [x] 未认领
-  - [ ] 已认领；负责人：`TBD`
-- 状态：
-  - [x] 未开始
-  - [ ] 进行中
-  - [ ] 阻塞
-  - [ ] 完成
-- 优先级：P1；若标题或摘要保留“transferable laws”，则本任务是硬门禁。
-- 设计上界：2 source-pair→target composition families × 5 linked target worlds = 10 independent target
-  clusters；`none / token-matched raw evidence / prose law / executable law` 四臂共 40 fresh target sessions，
-  provisionally 4 complete experiments per session。
-- 验收标准：
-  - [ ] source mechanisms、target composition、linkage seed 和 target-held-out axes 在 source outcomes 前冻结；
-  - [ ] source artifacts 来自同一冻结 source evidence，四臂的信息预算、provenance 和可见字段可审计；
-  - [ ] target agent 以新 Codex process/context 启动，不可访问 source session、hidden state、raw workspace 或
-    未分配 artifact；
-  - [ ] primary transfer contrast、artifact-token efficiency、executable-law validity、target prediction 和
-    target action metrics 在 provider launch 前冻结；
-  - [ ] 先完成 provider-free composition/contamination/replay qualification，再做 one-world four-arm pilot，
-    最后才允许五-world block；
-  - [ ] A-E private world-held-out replication 与 D 的 compositional transfer 在图、表、分母和措辞中分开。
-- Claim ceiling：D 未完成时，论文只能讨论 law representation 与 within-family replication，不能声称
-  compositional transfer 或 transferable laws。
-
-## 2026-08-08 persistent-campaign pilot checkpoint
-
-- [x] `electrochemical-conversion × opaque/aligned_nominal/misindexed_nominal × world_seed=0`
-  使用 WellAU `gpt-5.6-sol` medium 完成真实 operation-level pilot。
-- [x] 每个 cell 恰有一个长驻 Codex process/session；4 个 complete experiments、24 个
-  participant-owned operations 和 4 个 typed belief checkpoints 均在该 session 内完成。
-- [x] 三臂共 12/12 experiments、72/72 committed operations、0 resource rejection、72/72 exact
-  replay；共享 campaign ledger 和 paired keyed-noise namespace 通过。运行后边界审计发现公开
-  resource card 的 `card_id/metadata` 泄漏 `prior_arm/world_seed`，因此 prior-arm blinding 未通过。
-- [x] 已将 cumulative input 与 uncached input 分开：总 input 4,457,978，其中 cache hit
-  4,004,864、uncached 453,114、output 23,781；高 cache 不等于重复输出。
-- [x] 单 world 数值轨迹已保留为 shakedown 观察，但不得用于 prior confirmation/rejection 或
-  arm-effect 解释；五 seed 中性 resource-card 重跑才是第一个可解释的 blinded contrast。
-- [ ] 本 pilot 尚未执行 evaluator-owned held-out queries 和 blind recommendation replicates，
-  因此不能把 checkpoint law summary 解释为已验证的 transfer。
-- [x] 多 seed 前已补齐：arm/seed-neutral public resource card、独立 heartbeat、task-pattern-specific
-  process-time hard cap、`electrolyze` repeat cap 和 fail-closed cell qualification。sealed evaluator
-  ledger 与 prediction/law scoring 在 participant trajectories 完成后独立执行，不反馈 participant。
-- 证据摘要：`workstreams/flagship_tasks/reports/work-ii-seed0-persistent-campaign-pilot.{json,md}`。
-
-五 seed 扩展（2026-08-08）：
-
-- [x] task-pattern-specific process-time hard cap、`electrolyze` repeat limit 和独立 heartbeat
-  已实现并通过 focused preflight；sealed evaluator ledger/prediction scoring 可在 participant
-  trajectories 完成后独立执行，不要求重跑 participant session。
-- [x] 已冻结 `world_seed=0..4 × 三 prior arms` 共 15 cells；每 cell 一个 session、4 experiments、
-  4 checkpoints，状态：`DOING`。
-- [x] 首次启动在第一个 operation 前发现连续 heartbeat 丢失当前 cell 坐标；该未开始区块已停止，
-  heartbeat 状态继承已修复并按协议从 seed 0 / first arm 重新启动。
-- [x] 第二次启动完成 `seed0/opaque` 的 24/24 operations、4/4 experiments、4/4 checkpoints 和
-  exact replay，但旧测试数据形状导致 `provider_usage_reconciled` 被误判；该运行不计入结果。资格判定
-  现直接核对真实 `agent.method_resource_usage()` 与冻结 method limits，并有真实形状回归测试。
-- [x] 重跑执行冻结为同一 world seed 的三 prior arms 使用三个 OS-isolated cell 并发；cell 内 operation、
-  experiment、checkpoint 和共享 ledger 仍严格串行。一个 seed triplet 全部到达终态后才进入下一 seed，
-  任一失败将阻止后续 seeds。
-- [x] 当前 MCP checkpoint 工具直接暴露完整 typed schema；每个 campaign `step` 必须提交 bounded public
-  decision audit。tool receipt 记录顺序、状态、开始时间、耗时、错误类型和参数/结果哈希，不保留 raw
-  chain-of-thought 或 provider payload。
-- [x] 15/15 cells 完成并形成五 world paired descriptive report：60/60 experiments、367/367
-  structured decision audits、15/15 exact replay、0 resource rejection、0 terminal cell failure；
-  matrix wall time 2,661.4 s。完整报告：
-  `workstreams/flagship_tasks/reports/work-ii-electrochemical-five-seed-campaign.md`。
-- [ ] participant block 内共有 4 次 recovered MCP tool failure（3 checkpoint validation、1 step
-  PermissionError）和 1 次 recovered provider error event。它们未形成科学 operation 且最终 session/
-  checkpoint/replay 均通过；formal 前仍需明确冻结 validator/tool retry cap，不能仅以最终成功隐去尝试分母。
-
-三任务 provider 扩展（2026-08-08）：
-
-- [x] DeepSeek 官方 Codex Responses 接口、`deepseek-v4-flash` 模型目录和隔离 bearer-token
-  启动边界已接通；独立 Codex turn 通过。
-- [x] 两个完整 campaign-cell 资格尝试均未产生物理 operation：首次偏离到 shell/file 探索，第二次
-  停留在 MCP resource discovery。两次失败及 usage 均保留为 provider qualification failure，不进入
-  科学分母；按预定 fallback 切回已验证 WellAU `gpt-5.6-sol` medium。
-- [x] DeepSeek 失败已定位到 Codex 0.145.0 的工具暴露组合：当前模型目录同时设置
-  `supports_search_tool=true` 与 direct `tool_mode=null`，而 ChemWorld MCP 只发布 tools、不发布
-  resources；领域工具因而进入 deferred/search 路径，模型只能看见 resource discovery 或通用工具。
-  endpoint、鉴权、Responses turn 与 MCP 启动本身均已验证正常，空 `base_instructions` 不是主因。
-- [x] 单变量 canary 仅关闭 `supports_search_tool` 后，DeepSeek 已直接调用领域 MCP 并完成 4/4
-  experiments、4/4 checkpoints、25/25 committed operations、0 resource rejection 和 exact replay；
-  由此确认 tool-routing 根因。诊断报告：
-  `workstreams/flagship_tasks/reports/work-ii-deepseek-codex-harness-diagnosis.md`。
-- [x] DeepSeek qualification-v2 本地修复已冻结：production catalog 使用
-  `supports_search_tool=false`；MCP 0.5 在 final checkpoint 返回严格 JSON-only contract；monitor 仅
-  额外归一化“整个消息恰为一个 JSON code fence”的等价包装并记录 encoding，嵌入 prose 的 JSON
-  仍失败。qualification-only envelope 为 input 2,750,000、uncached input 320,000、output 50,000，
-  finalization retry limit=0；29 个 focused tests 通过。
-- [x] 已按用户明确授权使用本地 ignored/untracked credential 执行唯一一次 seed-0 opaque
-  qualification-v2 live canary：4/4 experiments、4/4 checkpoints、26 attempts（25 committed、
-  1 validation failure、0 resource rejection）、26/26 exact replay、2,031,397 input（1,944,704
-  cached、86,693 uncached）、38,993 output；provider 0 errors，final payload 为有效 exact JSON，
-  所有 qualification checks 通过。该 run 仅证明当前 DeepSeek campaign harness/envelope 合格，
-  不进入科学分母。
-- [x] 2026-08-10 重新核对 DeepSeek 官方 current model/pricing/change-log：仓库已使用仍受支持且
-  Codex/Responses 原生适配的 `deepseek-v4-flash`，不存在 `deepseek-chat`/`deepseek-reasoner`
-  退役别名导致本次 harness 故障的问题；但该 slug 是 provider-managed moving alias，若改为正式 provider
-  必须额外冻结版本/调用时间 provenance。按当前三臂资格 token envelope 与 2026-08-10 V4 Flash 官方价格，
-  三个 accepted sessions 的 cache-accounted cap 为 USD 0.172032，含每臂一次 infrastructure resume 的六次
-  provider-process hard cap 为 USD 0.344064；USD 1.02816 是故意忽略 uncached-token cap 的 all-cache-miss
-  stress counterfactual，不是当前合同硬上限。若另行批准 DeepSeek formal amendment，则 75 次初始 schedule
-  cap 为 USD 7.74144，150 次全 resume hard cap 为 USD 15.48288；正式 ceiling 必须覆盖后者并逐调用预留。
-  这些数字不代表 WellAU 价格，也不授权 provider amendment 或调用。细节与官方链接已补入 DeepSeek 诊断报告。
-- [x] 当前完成范围收束为三个任务：`electrochemical-conversion`、
-  `reaction-to-crystallization`、`reaction-to-distillation`；每任务三先验臂 × 五 seeds，cell 内四轮
-  complete experiments。三个任务均已推进到冻结终态；该范围是 development qualification，不是
-  W2-12 public formal matrix。
-- [x] crystallization/distillation 的 task-specific belief contract、material-information public binding、
-  task-pattern process-time card、required-stage/repeat/quench allowance 和三臂并发配置已实现：
-  crystallization 为 146,400 s，distillation 为 202,080 s。
-- [x] crystallization seed-0 首次三臂暴露 implicit-duration reservation 缺陷：`filter_crystals`
-  实际推进 480 s、`quench` 为状态相关耗时，但 campaign preflight 原先预留 0 s。已将隐式操作时间
-  纳入一等资源卡字段，修正结晶过滤时间与蒸馏 `evaporate` 上限，并以环境级回归覆盖；失败区块保留，
-  按协议从 seed 0 整体重跑。
-- [x] crystallization seed-0 三臂真实 provider pilot 达到终态：3/3 cells、12/12 experiments、
-  132/132 committed operations、0 resource rejection、3/3 exact replay；matrix wall time 1,349.3 s。
-- [x] crystallization 首次五-seed block 在 seed 1 aligned cell 暴露 Windows IPC 原子替换缺陷：
-  运行保留为 5/15 completed cells、23/60 complete experiments、236 operation attempts、
-  225 committed operations、0 resource rejection、6/6 started-cell exact replay；失败 cell 在 3/4
-  experiments、step 39 后因 `active_session.json` 的瞬时 `PermissionError` 终止。已为 host IPC、
-  generated lab tool 和 MCP writer 加入 40 次 × 25 ms 的有界原子替换重试，耗尽仍 fail-closed；
-  修复通过 54 个 IPC/MCP/runner focused tests。受影响五-seed block 必须从 seed 0 整体重跑。
-- [x] crystallization replacement 五-seed block 从 seed 0 重跑并通过：15/15 cells、60/60
-  experiments、663 attempts、651 committed、12 validation failures、0 resource rejection、15/15
-  exact replay；matrix wall time 6,120.0 s。
-- [x] distillation seed-0 三臂真实 provider pilot 通过：3/3 cells、12/12 experiments、132/132
-  committed operations、0 resource rejection、3/3 exact replay；matrix wall time 1,509.7 s。
-- [x] distillation 五-seed block 达到冻结终态：14/15 cells、56/60 experiments、517 attempts、
-  506 committed、11 validation failures、0 resource rejection、14/15 exact replay。唯一失败为
-  seed-4 aligned nominal：provider turn 正常完成但未调用 MCP；按规则保留且不替换。
-- [x] 三任务综合报告已形成：合计 44/45 cells、176/180 experiments、1,547 attempts、1,524
-  committed、23 validation failures、0 resource rejection、44/45 exact replay。报告：
-  `workstreams/flagship_tasks/reports/work-ii-three-task-five-seed-campaign.md`。
-- [x] 2026-08-10 完成 DeepSeek crystallization seed-0 三臂资源保护 pilot：3/3 cells、12/12
-  experiments、132/132 committed operations、0 resource rejection、3/3 exact replay，matrix wall
-  462.8 s；opaque/aligned 各保留 1 次 recovered MCP checkpoint validation failure，provider error
-  为 0。已冻结 1,800 s session wall、每 cell 最多 1 次 recovered MCP failure、0 provider error 和
-  20% pilot expansion headroom；运行中字段缺失按失败处理，五-seed readiness 必须 hash-bind pilot
-  并以 current code 重放。报告：
-  `workstreams/flagship_tasks/reports/work-ii-deepseek-crystallization-seed0-safety-pilot.md`。
-- [x] DeepSeek crystallization guarded 五-seed launch 在 seed 1 misindexed 的第 2 次 recovered MCP
-  tool validation failure 处按门禁止损：首次失败为 `step` 缺少 `decision_audit`，第二次失败为已包含
-  `decision_audit` 的另一项 `step` 字段校验错误；5/15 cells、21/60 experiments、0 resource rejection、
-  0 provider error；同 seed 其余两臂完成后未启动 seeds 2--4，失败区块保留且不重跑。该任务按用户
-  fallback 规则使用已有 WellAU 15/15 matrix；electrochemical DeepSeek 的真实 resource rejection
-  同样不做有利替换，任务覆盖使用已有 WellAU 15/15 matrix。
-- [x] DeepSeek distillation seed-0 三臂 guarded pilot 达到冻结终态：2/3 qualified cells、9/12
-  experiments、98/98 committed operations、3/3 started-cell exact replay、0 resource rejection、
-  0 provider error。aligned cell 首次失败为 `step` 缺少 `decision_audit`，恢复后完成第一轮实验；
-  随后 typed belief snapshot 校验失败，使该 cell 的第 2 次 recovered MCP failure 越过上限。
-  因此不启动 DeepSeek 五 seeds，切换已有 WellAU distillation terminal matrix。
-- [x] 三任务 provider 路线已收口：DeepSeek 共 21 个 started terminal cells、18 个 qualified cells、
-  78 个 complete experiments；三项任务分别因真实 resource rejection 或 recovered-MCP gate 终止，
-  不再重跑。WellAU fallback 覆盖 45/45 scheduled terminal cells，其中 44/45 completed、176/180
-  experiments、44/45 exact replay、0 resource rejection；唯一 participant/harness failure 原样保留。
-  完成报告：`workstreams/flagship_tasks/reports/work-ii-provider-fallback-completion.md`。
-- [x] 现有结果的 provider-separated 基础分析与审计已完成：WellAU prior 对比只使用 15 个 task×seed
-  三臂配对簇，DeepSeek partial runs 只进入 harness audit；未混合 provider 分母，未执行 formal test。
-  结果显示 aligned prior 的 endpoint 收益集中于 electrochemical/crystallization，misindexed endpoint
-  并不稳定受损，而显式 misindex 报警存在较高 false positive。机器摘要与解释报告：
-  `workstreams/flagship_tasks/reports/work-ii-development-basic-analysis-v0.1.{json,md}`。
-- [x] 在新的真实 provider 数据产生前冻结 recovery amendment：每 cell MCP failure 总量 ≤3、连续失败
-  ≤1、provider error event ≤1、resource rejection ≤1 且作为 participant behavior 保留；物理资源、
-  safety、process-time、operation/repeat 和 exact replay 边界不变，旧运行不覆盖。
-- [x] harness 记录补齐 bounded validation error code/path/detail、连续/累计错误计数、强制终止时明确的
-  usage-unavailable 状态和 progress liveness；完成 focused regression 后再生成 clean-commit readiness。
-- [x] recovery-amended 最小真实 DeepSeek pilot 已在三个任务上分别完成 seed-0 三臂：合计 9/9
-  qualified cells、36/36 complete experiments、346/346 committed operations、8 次 recovered MCP
-  failures（单 cell 最大 2、最大连续 1）、0 provider errors、0 resource rejection、9/9 exact replay。
-  三个 task-level matrix wall time 分别为 375.3 s、404.4 s 和 683.0 s；全部落在冻结的 1,800 s
-  session wall 与 amended recovery envelope 内。electrochemical 首次启动时把输出目录误命名为
-  `matrix_report.json`，但其嵌套 matrix report、三臂 summary/trajectory 和 replay 均完整；该路径记账缺陷
-  不改变科学结果，后续完整矩阵必须使用全新 run root，不复用或覆盖 pilot。
-- [x] DeepSeek recovery-amended 完整开发块已从三个全新 run root 执行：三任务各
-  `world_seed=0..4 × 三 prior arms`，共 45/45 terminal cells、43/45 completed cells、174/180
-  complete experiments、1,616 attempts、1,614 committed operations、38 次 MCP tool failures、
-  0 provider errors、0 resource rejection、45/45 exact replay。两项 crystallization contract
-  failure 原样保留且未替换；WellAU、pre-amendment DeepSeek 与 recovery-amended DeepSeek 分层分析，
-  不构造跨 provider 科学能力排名。机器分析与解释报告：
-  `workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-analysis-v0.1.json` 和
-  `workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-results-v0.1.md`。
-- [x] DeepSeek 五任务开发系列已按 pilot-expansion 门控收口：保留上述三任务 45-cell
-  recovery-amended 终态，不重跑或替换；`partition-discovery` 与
-  `reaction-safety-constrained` 各完成 seed-0 三臂 terminal pilot。partition 为 3/3 terminal、
-  2/3 runner-qualified、12/12 experiments，misindexed 因 54,295 output tokens 越过 48,000 上限
-  失败；safety 为 3/3 terminal、2/3 qualified、10/12 experiments，aligned 因错误资源分配、
-  40-attempt 耗尽和 6 次 MCP failure 失败。两项均 0 provider error、3/3 exact replay，均未授权
-  seeds 1--4。合并观察为 51/51 terminal、47/51 runner-qualified、196 complete experiments、
-  1,822 attempts、1,784 committed、48 MCP failures、0 provider errors、2 resource rejections、
-  51/51 exact replay。实验 note 要求 pilot 零 resource rejection，而配置继承了每 cell 最多一次
-  的 recovery allowance；严格 note-level 口径因此为 46/51 protocol-qualified。该错位不改变两项
-  pilot 均失败和不扩展的决定，不改阈值、不重跑；生成器与两个 current task configs 已在终态后修正为
-  零 rejection，防止未来复发。机器摘要与报告：
-  `workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-closeout-v0.1.{json,md}`。
-- [x] 2026-08-10 用户进一步授权并完成 DeepSeek 五任务 development 观察矩阵。新 continuation
-  不撤销上述 pilot-expansion 决定，也不重跑或追认 partition/safety 的 seed-0 失败；它只执行两项任务
-  原先未启动的 seeds 1--4，共 24 个新 cell，并把旧 seed-0 三臂终态 hash-bind 到 readiness 与最终汇总。
-  数据生产说明已冻结在
-  `workstreams/flagship_tasks/experiments/work-ii-deepseek-terminal-matrix-continuation.md`。
-  partition 的物理时长仍为 9,000 s、48 attempts、`mix/settle/separate_phase = 5/5/4`，仅将 provider
-  output 长尾上限冻结为 66k；safety 的物理时长仍为 36,480 s（含 480 s quench 余量）、40 attempts、
-  `heat/quench = 5/4`，provider input/output 长尾上限冻结为 6.4M/80k。两项均保持零 resource
-  rejection、MCP 总失败 ≤3/连续 ≤1、单 session 与 exact replay，不因结果再次改阈值或替换失败。结果已
-  形成 75/75 terminal、69/75 completed/qualified、290/300 complete experiments、2,663/2,587
-  attempts/committed、0 provider errors、75/75 exact replay 的 provider-separated development
-  closeout：
-  `workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.{json,md}`。
-- [x] 2026-08-11 DeepSeek 五任务终态轨迹已补做零 provider evaluator confirmation，且未重跑或替换任何 participant
-  cell。首次 evaluator attempt 完成 100/100 truth queries，但因完整 `cell_id` 被拼入 Windows blind
-  目录名而在首个 blind trajectory 前触发路径长度缺陷；该 raw root、0/414 blind 分母与分析哈希保留。
-  修复后 filesystem 仅使用 deterministic short hash，完整 execution identity 仍保留在 receipt，并按协议
-  从第一个 truth cluster 重跑整个 evaluator block。接受块完成 25/25 clusters、75/75 retained cells、
-  100/100 truth queries exact replay、414/414 blind replays、0 provider calls；72/75 cells 的 final
-  checkpoint 可评分，71/75 final law summaries 可执行。development H3 均值为 -0.042、中位数 -0.039，
-  仅 7/25 clusters 为正；complete-case 19 clusters 均值 -0.039。law summary 相对 final explicit
-  predictions 在 opaque/aligned/misindexed 分别为 12/23、7/24、3/24 改善；69 个 blind-evaluated cells
-  中 0 个 recommendation 优于 observed incumbent、66 个等价、3 个更差。该结果为 provider-separated
-  development evidence，不执行 formal test、不支持 private transfer 或跨 provider 排名。participant 矩阵于
-  2026-08-10 完成，evaluator block 于 2026-08-11 执行；最终摘要通过已接受 raw receipt 零执行重建，未增加
-  truth、blind 或 provider 调用。机器与解释报告：
-  `workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-evaluation-20260811.{json,md}`。
-
-## 7. 完成定义
-
-Work II 以“达到最高被完整支持的 claim package”为完成原则，不要求为了维持大标题而补做未资格验证的
-矩阵。基础发布条件与条件性扩展如下：
-
-- [x] 当前 Gate A 证据绑定有效，且只作为 environment qualification；
-- [ ] A-E public 达到 25 clusters / 75 terminal cells / 300 planned experiments，全部失败和删失进入分母；
-- [ ] A-E private 达到独立 25 sealed clusters / 75 terminal cells，并完成 one-shot within-family confirmation；
-- [ ] Study C 在所有 A-E terminal cells 上完成 held-out prediction、typed executable law 和 blind action
-  evaluation，且 evaluator operations 不进入 participant 分母；
-- [ ] participant method、provider、harness、resource、token、time、recovery 和 censoring contract 全部冻结；
-  当前只研究一个完整 agent system，不把结果写成裸模型能力或跨模型排名；
-- [ ] optimization、discovery、prior rejection、law summary、action 和 replication 的预注册指标及联合/解耦
-  规则完整；
-- [ ] 若保留 general initial-world-model claim：A-S 与 A-P 各完成 2 tasks × 5 worlds × 3 arms；否则自动
-  收窄为 entity-level prior correction；
-- [ ] 若区分“未寻找反证”与“见到反证仍不更新”：Study B 的 10 clusters / 30 sessions 达到终态；否则
-  两种机制保持不可区分；
-- [ ] 若保留 compositional-transfer 或 transferable-laws claim：Study D 的 10 target clusters / 40
-  context-reset sessions 达到终态；否则只报告 law representation 与 within-family replication；
-- [ ] within-family private replication 与 context-reset artifact-only compositional transfer 在设计、分母、
-  图表和措辞上严格分离；
-- [ ] 能判断 agent 是依据证据形成可执行规律并据此行动，还是只取得 endpoint、维持先验偏差，或在
-  prediction→law→action 链条中断裂；
-- [ ] 所有结论与 world、task、locus、agent-system 和独立样本范围一致；
-- [ ] 第二篇不依赖第一篇的阈值敏感 supporting result；
-- [ ] 论文、代码、轨迹、数据和发布包可公开重建。
+- Work I 负责可组合世界、测量有效性、资源账本、事务语义和 exact replay。
+- Work II 负责初始世界模型干预、错误先验修正、规律总结、knowledge-to-action 和 transfer。
+- 规律在每个 world 内固定；不把运行中物理规律变化作为主问题。
+- 当前 participant method 只有 WellAU `gpt-5.6-sol`、medium reasoning、Codex harness + ChemWorld MCP。
+  结果只能表述为这个完整 agent system 的能力，不能外推为裸模型或跨模型排名。
+
+## 2. 冻结执行语义
+
+- 一个 formal cell 是 `task × world seed × initial-model arm × participant method`。
+- 每个 cell 只使用一个长驻 Codex process/session；模型读取上一公开 outcome 后逐 operation 决策。
+- 每个 free-discovery cell 包含 4 个 complete experiments，checkpoint 位于实验前、实验 1 后、实验 2 后和最终。
+- 4 个 experiments 共享同一 hidden law、session context 和 CampaignResourceLedger；新 batch 重置物理状态，
+  但资源、历史和剩余预算不重置。
+- complete experiment 从新 batch 的首个 vessel-starting operation 开始，以 committed `final_assay` 或
+  允许的 discard 关闭；`terminate` 本身不等于 final assay。
+- 独立统计单位是 `task × world seed` cluster。operations、experiments、checkpoints、queries、blind
+  replicates 和 provider retries 均为嵌套观测。
+- 三个 arm 为 `opaque / aligned / misspecified`。同一 cluster 内 world、noise、resource、safety、公开契约
+  和信息预算匹配，只改变一个 agent-facing initial-model locus。
+- 科学或方法失败保留且不替换；只有尚未形成 scientific trajectory 的纯基础设施缺失可 resume 一次。
+- 每个适用 task block 到 5 个 world seeds 即停止；超过 5 seeds 必须重新取得用户审核。
+- 长任务每 30 秒输出 liveness；用户可见进展至少包含当前 block、completed/total、throughput 和 ETA。
+
+## 3. 实验矩阵
+
+### 3.1 Study A — prior-conditioned free discovery
+
+| Block | 操纵层级与任务 | 独立 clusters | Participant sessions | Complete experiments | 状态 |
+|---|---|---:|---:|---:|---|
+| A-E public | entity/ontology；electrochemical、crystallization、distillation、partition、reaction safety | 25 | 75 | 300 | 设计已冻结，执行未授权 |
+| A-E private | 与 public 同任务的 sealed world-held-out replication | 25 | 75 | 300 | commitment 已冻结，public 分析后一次执行 |
+| A-S | structural/mechanistic；计划 2 tasks × 5 worlds | 10 | 30 | 120 | 候选阶段 |
+| A-P | parametric；计划 2 tasks × 5 worlds | 10 | 30 | 120 | electrochemical 环境门控通过，第二任务待筛选 |
+
+A-E 是唯一 primary confirmatory block。A-S/A-P 是 additive registered secondary blocks，不改变 A-E 的
+H3、alpha、worlds、failure rules 或正式分母。
+
+Primary H3：
+
+[
+C_{prior} =
+(E_{misspecified,pre}-E_{misspecified,final})
+-
+(E_{aligned,pre}-E_{aligned,final})
+]
+
+成功要求同时满足：
+
+- `C_prior > 0` 的预注册单侧检验；
+- misspecified arm 自身预测误差改善；
+- aligned arm 不劣于冻结容差 `-0.05`；
+- 失败、缺失和 right-censoring 按预注册规则进入分母。
+
+### 3.2 Study B — matched-evidence falsification
+
+- 目的：区分“没有主动寻找反证”和“看到同样反证后仍不更新”。
+- 规模：2 loci × 1 prespecified task × 5 worlds = 10 clusters；三臂共 30 fresh sessions。
+- 每个 session 提交 pre-evidence prediction/confidence，读取相同 contradictory evidence packet，再提交
+  post-evidence prediction/confidence 和一个 action/recommendation。
+- B 不属于 participant-owned free discovery，不进入 Study A 的 experiment-selection 或 resource-efficiency
+  分母。
+- 状态：candidate；若未在 A-E outcomes 被查看前冻结，只能作为 exploratory evidence。
+
+### 3.3 Study C — prediction → law → action evaluator
+
+- 不新增 participant session，不调用 provider。
+- 对 Study A terminal outputs 计算 held-out prediction error、typed executable-law error、
+  `L_prediction→law`、`L_law→action` 和 blind recommendation gain。
+- A-E public 每 cluster 4 个共享 truth queries，共 100 truth executions；completed cells 最多 450 blind replays。
+- private block使用同一 evaluator contract，但 evaluator trajectory 与 participant ledger 严格分离。
+
+### 3.4 Study D — context-reset artifact-only transfer
+
+- 目的：检验 agent 产生的规律能否作为独立知识对象进入新组合世界。
+- 规模：2 source-pair→target composition families × 5 linked targets = 10 clusters。
+- 四个 artifact arms：none、token-matched raw evidence、prose law、executable law。
+- 共 40 fresh target sessions，暂定 160 complete experiments。
+- target agent 使用全新 Codex process/context，只能读取被分配的 artifact。
+- A-E private 是 within-family replication，不得改称 compositional transfer。
+- 状态：candidate；constructor、artifact budget、contamination audit 和 evaluator 均未冻结。
+
+## 4. Claim ladder
+
+| Claim package | 必需证据 | 允许的最高表述 |
+|---|---|---|
+| C1 | A-E public + A-E private + C | entity-level explicit-prior correction |
+| C2 | C1 + terminal A-S + A-P，且每 locus 两个 task | general initial-world-model effects |
+| C3 | C2 + B | acquisition failure 与 updating failure 的机制区分 |
+| C4 | C3 + D | context-reset compositional transfer of executable laws |
+
+缺少后续 block 时自动收窄标题、摘要和结论，不为维持大标题而补做未资格验证的矩阵。
+
+## 5. 试验规模与 ETA
+
+### 5.1 实测基线
+
+当前最可靠的 WellAU 实测基线来自三个完整五-seed development blocks：
+
+- 45 scheduled cells、176/180 complete experiments；
+- task wall-time sum 为 11,850.3 s，即 3.29 h；
+- 15 个三臂 world triplets，平均 13.2 min/triplet；
+- electrochemical 8.9 min/triplet、crystallization 20.4 min/triplet、distillation 10.2 min/triplet；
+- 当前全局并发冻结为 3 cells，即同时执行同一个 world 的三臂；cell 内不并发。
+
+ETA 场景采用：
+
+- 理想：10 min/triplet，无 resume；
+- 正常：16 min/triplet，包含常规 evaluator、写盘和少量恢复余量；
+- 不乐观：30 min/triplet，包含慢任务和局部基础设施恢复；
+- hard cap：按 method resource contract 计算，不代表预期耗时。
+
+### 5.2 分 block provider 执行时间
+
+| Block | Sessions | Triplet-equivalent waves | 理想 | 正常 | 不乐观 | Hard cap |
+|---|---:|---:|---:|---:|---:|---:|
+| A-E public | 75 | 25 | 4.2 h | 6.7 h | 12.5 h | initial 47.5 h；全 resume 95 h |
+| A-E private | 75 | 25 | 4.2 h | 6.7 h | 12.5 h | 单独预算，不能借用 public ceiling |
+| A-S + A-P | 60 | 20 | 3.3 h | 5.3 h | 10.0 h | 待各 task qualification 后冻结 |
+| B | 30 | 10 short waves | 0.7 h | 1.5 h | 4.0 h | 待 evidence-session contract 冻结 |
+| D | 40 | 14 waves | 2.3 h | 3.7–5.0 h | 7–10 h | 待 composition runner 冻结 |
+| C evaluator | 0 | local execution | <0.5 h | 0.5–1 h | 1–2 h | 0 provider calls |
+
+这些是 provider execution wall time，不包含 intervention 设计、资格门控、public/private 中间分析冻结和论文整合。
+
+### 5.3 累计规模
+
+| 最高 claim | Sessions | Complete experiments | 理想执行时间 | 正常执行时间 | 不乐观执行时间 |
+|---|---:|---:|---:|---:|---:|
+| C1 | 150 | 600 | 8–9 h | 13–17 h | 25–36 h |
+| C2 | 210 | 840 | 12–13 h | 18–23 h | 35–50 h |
+| C3 | 240 | 840 | 13–14 h | 20–25 h | 38–55 h |
+| C4 | 280 | 1,000 | 15–17 h | 24–32 h | 45–65 h |
+
+按45-cell WellAU开发块的实测 token 均值线性估算：
+
+| Claim | Cumulative input | Uncached input | Output |
+|---|---:|---:|---:|
+| C1 | 约 198 M | 约 22 M | 约 1.36 M |
+| C2 | 约 277 M | 约 31 M | 约 1.90 M |
+| C3 | 不高于约 317 M；B 应明显更短 | 不高于约 35 M | 不高于约 2.17 M |
+| C4 | 约 370 M | 约 41 M | 约 2.53 M |
+
+A-E public 的现有 accepted-cell hard cap 为 324 M input、43.2 M uncached input 和 3.24 M output；
+若所有 cell 都耗尽唯一基础设施 resume，provider-attempt hard cap 翻倍。其他 blocks 必须独立冻结预算，不能用
+线性估算替代正式 ceiling。货币 ETA 暂不填写，直到 WellAU cache-hit/cache-miss/output 单价和用户批准的
+currency ceiling 可验证。
+
+### 5.4 Calendar ETA
+
+在用户及时完成 route、预算和执行授权，且不出现平台级缺陷时：
+
+| 目标 | 理想日历时间 | 正常日历时间 | 不乐观 |
+|---|---:|---:|---:|
+| C1 可分析结果 | 2–3 working days | 3–5 working days | 1–2 weeks |
+| C2 initial-world-model 结果 | 5–7 working days | 7–10 working days | 2–3 weeks |
+| C3 机制归因结果 | 7–9 working days | 9–12 working days | 3–4 weeks |
+| C4 完整 transfer 结果 | 9–12 working days | 12–18 working days | 3–5 weeks |
+
+C1 之后每一级都包含新增实现和独立资格，不应把纯 provider runtime 当作完整项目 ETA。
+
+## 6. 当前状态
+
+### 已完成
+
+- Work I / Work II claim boundary、current Gate A binding 和 five-task A-E world cohort；
+- A-E primary H3、analysis unit、failure/censoring 和 evaluator contracts；
+- persistent Codex session + operation-level MCP runner、shared campaign ledger、exact/resource replay；
+- A-E 75-cell manifest preflight、held-out truth compiler、blind evaluator 和 formal dataset builder；
+- agent-facing `initial_world_model` 输入与 hidden arm identity 防泄露；
+- parametric/structural environment diagnostic builders 和 machine-readable summaries。
+
+### Intervention screening
+
+| Candidate | Result | Decision |
+|---|---|---|
+| electrochemical parametric v1, seed 0 | repaired 20/20 exact replay；gap `0.0055333 < 0.10` | 不接纳 |
+| distillation structural v1, seed 0 | 4/4 exact replay；gap `0.0303474 < 0.10` | 不接纳，不调用 provider |
+| electrochemical parametric v2, seed 1 | 20/20、0 failures、exact replay；gap `0.5849161 ≥ 0.10` | environment-qualified，D1 尚未启动 |
+
+未通过的 diagnostic 只说明 intervention 不可识别，不能解释为 agent 缺乏相应推理能力。
+
+### 当前 blockers
+
+1. W2-17：冻结两个 structural candidates 和第二个 parametric task，并完成 environment-only screens。
+2. W2-10：当前 WellAU persistent-session method 的独立三臂真实资格收据尚未完成。
+3. W2-07：正式价格来源、currency ceiling 和 qualified expected ETA 尚未签字。
+4. W2-08：正式数据采集路线尚未由用户锁定。
+5. W2-11：以上输入完成后生成最终 preregistration freeze receipt。
+
+在这五项完成前，W2-12 public formal execution 保持关闭。
+
+## 7. 下一执行顺序
+
+### P0 — 先完成 C1 launch gates
+
+- [ ] 冻结并运行 current A-E method qualification triplet；只按 harness/lifecycle/replay 资格，不按科学效果。
+- [ ] 用户冻结 submission route、qualification/formal currency ceilings 和 failure-escalation signoff。
+- [ ] 生成 W2-11 final freeze receipt，确认 public 75 cells、150 provider-attempt hard cap 和执行命令。
+- [ ] 执行 A-E public：25 seed triplets；只报告 blinded progress。
+- [ ] 生成 public analysis 并冻结 hash。
+- [ ] 解封并一次性执行 A-E private；不得因结果方向重跑。
+- [ ] 完成 Study C evaluator 和 C1 分析。
+
+### P1 — 并行准备 C2，但不抢跑 provider
+
+- [ ] Structural roster：优先筛选 reaction-to-crystallization 与 reaction-safety-constrained。
+- [ ] Parametric roster：保留 qualified electrochemical candidate；筛选 flow-reaction temperature/residence-time
+  或 flow-rate operating-window law。
+- [ ] 新 checkpoint 写通用字段 `initial_model_available` 与 `challenged_model_fields`；历史 entity 轨迹只读兼容。
+- [ ] 每个通过环境门控的 task 先执行一个三臂 D1 pilot，再冻结 5-world block。
+
+### P2 — 条件性扩展
+
+- [ ] 只有要区分 evidence seeking 与 belief updating 时才执行 B。
+- [ ] 只有要保留 “transferable laws” 主张时才实现并执行 D。
+- [ ] Observation-model locus 当前 DEFERRED，不扩成第四个完整矩阵。
+
+## 8. Task tracker
+
+| Work package | 状态 | 说明 |
+|---|---|---|
+| W2-01–06 | DONE | scope、questions、A-E cohort、estimands、participant contract |
+| W2-07 | DOING | power/resource 已完成；价格、currency、qualified ETA 待定 |
+| W2-08 | DOING | route 等待用户锁定 |
+| W2-09 | DONE | manifest-driven runner 与 evaluators |
+| W2-10 | DOING | current-method real qualification 待完成 |
+| W2-11 | DOING | 等待 W2-07/08/10 后 final freeze |
+| W2-12 | NOT STARTED | A-E public 75-cell formal matrix |
+| W2-13 | NOT STARTED | A-E private 75-cell one-shot confirmation |
+| W2-14 | NOT STARTED | confirmatory analysis、robustness、failure audit |
+| W2-15 | DOING | manuscript skeleton/figures 已有；formal results 待补 |
+| W2-17 | DOING | non-entity intervention qualification |
+| W2-18 | CONDITIONAL | A-S/A-P registered extensions |
+| W2-19 | CONDITIONAL | matched-evidence probe |
+| W2-20 | CONDITIONAL | artifact-only compositional transfer |
+
+## 9. 不可违反的规则
+
+- 不根据 agent outcome 选择、删除或新增 task/world/arm。
+- qualification 修复平台缺陷后，受影响 qualification block 从第一单元重新开始；正式 scientific trajectory
+  一旦形成则永不替换。
+- provider retry 不产生新科学样本；失败、right-censored 和 unscorable cells 全部报告。
+- participant trajectory 与 evaluator truth/blind trajectory 分开，资源和分母不混用。
+- endpoint success 不等于 law discovery；文字总结不等于 executable law。
+- 一项 locus 只有一个 task 达到终态时，只能作为 task-specific case study。
+- private within-family replication 不能支持 compositional transfer。
+- C4 未完成时，标题和摘要不得声称 transferable laws。
+- raw provider payload、credentials、`runs/` 和 private world identities 不进入 Git。
+
+## 10. 当前证据入口
+
+- Formal design：`configs/benchmark/work_ii_formal_design_v0.1.json`
+- Analysis plan：`configs/benchmark/work_ii_analysis_plan_v0.1.json`
+- Power/resource audit：`workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`
+- Formal preflight：`workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`
+- Current-method readiness：`workstreams/flagship_tasks/reports/work-ii-method-qualification-readiness-v0.1.json`
+- WellAU development timing：`workstreams/flagship_tasks/reports/work-ii-three-task-five-seed-campaign.md`
+- Parametric v2 diagnostic：
+  `workstreams/flagship_tasks/reports/work-ii-parametric-initial-model-diagnostic-seed1-v2-20260811.json`
+- Structural v1 diagnostic：
+  `workstreams/flagship_tasks/reports/work-ii-structural-initial-model-diagnostic-20260811.json`
+
+Git history保存本文件过去的详细任务卡和运行日志；不再在当前主控页重复维护历史版本。
