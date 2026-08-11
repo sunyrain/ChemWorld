@@ -1,0 +1,737 @@
+{
+  "coverage": {
+    "full_perturbations_per_world": 64,
+    "observed_validations_per_world": 24,
+    "optimizer_requests_per_world": 2688,
+    "planned_request_count": 14285,
+    "target_grid_requests_per_world": 81,
+    "world_count": 5
+  },
+  "decision": "reject_candidate_cohort_before_q2",
+  "denominators": {
+    "completed_mechanism_evaluation_count": 13878,
+    "observed_validation_count": 120,
+    "observed_validation_exact_replay_count": 120,
+    "operational_failure_world_count": 0,
+    "passed_world_count": 1,
+    "physical_failure_count": 243,
+    "provider_call_count": 0,
+    "unique_mechanism_evaluation_count": 14121,
+    "world_count": 5
+  },
+  "elapsed_s": 1800.599,
+  "failure_count": 0,
+  "failures": [],
+  "formal_result": false,
+  "interpretation": "Provider-free evaluator qualification. Historical threshold reachability is diagnostic; the pass decision uses safe oracle-relative quality, local-law identifiability and independent observed replay.",
+  "q0": {
+    "checks": {
+      "coverage_controls_present": true,
+      "finite_safety_limit": true,
+      "finite_task_threshold": true,
+      "midpoint_compiles": true,
+      "target_controls_present": true,
+      "target_indices_match_schema": true,
+      "target_operation_reachable": true,
+      "target_physical_bounds_match": true,
+      "terminal_final_assay_present": true
+    },
+    "expected_target_bounds": [
+      [
+        250.0,
+        470.0
+      ],
+      [
+        1.0,
+        14400.0
+      ]
+    ],
+    "midpoint_action_count": 7,
+    "midpoint_operations": [
+      "add_solvent",
+      "add_reagent",
+      "add_catalyst",
+      "heat",
+      "quench",
+      "terminate",
+      "measure"
+    ],
+    "midpoint_recipe_metadata_sha256": "9ded24e974acfb3f384b62dd3cda10bfef4cedb0fc31a23a91576f6dd2b0400e",
+    "observed_target_bounds": [
+      [
+        250.0,
+        470.0
+      ],
+      [
+        1.0,
+        14400.0
+      ]
+    ],
+    "passed": true,
+    "required_coverage_control_ids": [
+      "reaction_temperature_K",
+      "reaction_duration_s",
+      "reagent_amount_mol",
+      "stirring_speed_rpm",
+      "catalyst",
+      "catalyst_amount_mol",
+      "solvent",
+      "solvent_volume_L"
+    ],
+    "safety_limit": 0.35,
+    "schema": [
+      {
+        "control_id": "reaction_temperature_K",
+        "coordinate": 0,
+        "kind": "linear",
+        "physical_bounds": [
+          250.0,
+          470.0
+        ],
+        "unit": "K"
+      },
+      {
+        "control_id": "reaction_duration_s",
+        "coordinate": 1,
+        "kind": "linear",
+        "physical_bounds": [
+          1.0,
+          14400.0
+        ],
+        "unit": "s"
+      },
+      {
+        "control_id": "reagent_amount_mol",
+        "coordinate": 2,
+        "kind": "linear",
+        "physical_bounds": [
+          0.003,
+          0.03
+        ],
+        "unit": "mol"
+      },
+      {
+        "control_id": "stirring_speed_rpm",
+        "coordinate": 3,
+        "kind": "linear",
+        "physical_bounds": [
+          100.0,
+          1200.0
+        ],
+        "unit": "rpm"
+      },
+      {
+        "category_count": 4,
+        "control_id": "catalyst",
+        "coordinate": 4,
+        "kind": "categorical",
+        "numeric_distance_has_scientific_meaning": false,
+        "numeric_order_has_scientific_meaning": false,
+        "selection_semantics": "independent_unordered_nominal_choice"
+      },
+      {
+        "control_id": "catalyst_amount_mol",
+        "coordinate": 5,
+        "kind": "linear",
+        "physical_bounds": [
+          8e-05,
+          0.00055
+        ],
+        "unit": "mol"
+      },
+      {
+        "category_count": 4,
+        "control_id": "solvent",
+        "coordinate": 6,
+        "kind": "categorical",
+        "numeric_distance_has_scientific_meaning": false,
+        "numeric_order_has_scientific_meaning": false,
+        "selection_semantics": "independent_unordered_nominal_choice"
+      },
+      {
+        "control_id": "solvent_volume_L",
+        "coordinate": 7,
+        "kind": "linear",
+        "physical_bounds": [
+          0.005,
+          0.05
+        ],
+        "unit": "L"
+      }
+    ],
+    "target_control_ids": [
+      "reaction_temperature_K",
+      "reaction_duration_s"
+    ],
+    "target_indices": [
+      0,
+      1
+    ],
+    "task_contract_hash": "a7a705dc87bce6684aa8022439c4cb256486df875bbce9a624111e51047bd102",
+    "task_id": "reaction-safety-constrained",
+    "task_threshold": 0.7,
+    "world_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "q2_authorized": false,
+  "qualification_passed": false,
+  "qualification_schema_version": "chemworld-work-ii-mechanism-oracle-qualification-0.1",
+  "raw_bindings": [
+    {
+      "operational_failure": false,
+      "passed": false,
+      "path": "runs/development/work-ii-mechanism-oracle-reaction-safety-20260811/world-0/world-report.json",
+      "sha256": "d491cb97b937bf9be6bbe464ae6e9adb3829fff4765ec96db8744febc6fbb67f",
+      "world_seed": 0
+    },
+    {
+      "operational_failure": false,
+      "passed": true,
+      "path": "runs/development/work-ii-mechanism-oracle-reaction-safety-20260811/world-1/world-report.json",
+      "sha256": "2448e70c36b672c4ee84bc7402c74fc25c6398d443a693d9180f8d47214eefb3",
+      "world_seed": 1
+    },
+    {
+      "operational_failure": false,
+      "passed": false,
+      "path": "runs/development/work-ii-mechanism-oracle-reaction-safety-20260811/world-2/world-report.json",
+      "sha256": "80922fe8076628ccb83b0610fb98b248151c172942039edd554ec0aae2357cbe",
+      "world_seed": 2
+    },
+    {
+      "operational_failure": false,
+      "passed": false,
+      "path": "runs/development/work-ii-mechanism-oracle-reaction-safety-20260811/world-3/world-report.json",
+      "sha256": "e5ee46fac87a81d97621be43da8cc77f0da24c8108843c344b4d5f5e864b754c",
+      "world_seed": 3
+    },
+    {
+      "operational_failure": false,
+      "passed": false,
+      "path": "runs/development/work-ii-mechanism-oracle-reaction-safety-20260811/world-4/world-report.json",
+      "sha256": "d7adf63465327181fb8772fe7e4b605964008d04370848fa1bf13b3d8b28c7aa",
+      "world_seed": 4
+    }
+  ],
+  "restart_required": false,
+  "schema_version": "chemworld-work-ii-mechanism-oracle-five-world-summary-0.1",
+  "scoped_runtime_clean": true,
+  "source_commit": "20c271dda9af74be2428882361a901b01a28ed29",
+  "summary_sha256": "dfbe670d36552ff847c8218d62861fa9e64ee396ff67b0eba16c0536fd3e2fcd",
+  "task_id": "reaction-safety-constrained",
+  "unrelated_dirty_paths_excluded": [],
+  "world_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "worlds": [
+    {
+      "analysis": {
+        "checks": {
+          "all_observed_validation_completed": true,
+          "all_observed_validation_exact_replay": true,
+          "local_law_identifiable": true,
+          "mechanism_completion_fraction": false,
+          "observed_optimum_agreement": true,
+          "optimizer_generations_complete": true,
+          "optimizer_requests_complete": true,
+          "primary_metric_range": true,
+          "relative_high_quality_basin": true,
+          "safe_dynamic_range": true,
+          "safe_oracle_optimum_exists": true,
+          "safety_frontier_coverage": true,
+          "validation_candidate_groups": true
+        },
+        "historical_task_threshold": 0.7,
+        "historical_threshold_reaching_count": 0,
+        "local_law_identifiable": true,
+        "mechanism_completed_count": 2733,
+        "mechanism_completion_fraction": 0.9684620836286322,
+        "mechanism_evaluation_count": 2822,
+        "mechanism_failed_count": 89,
+        "observed_validation_completed_count": 24,
+        "observed_validation_exact_replay_count": 24,
+        "optimizer_generation_count": 20,
+        "optimizer_request_count": 2688,
+        "optimum_observed_median_score": 0.4217861309226637,
+        "oracle_optimum": {
+          "evaluation_id": "m002602",
+          "metrics": {
+            "safety_risk": 0.1503693236706519,
+            "score": 0.4207357235065735,
+            "selectivity": 0.7433453712912554,
+            "yield": 0.6792390874103633
+          },
+          "safety_risk": 0.1503693236706519,
+          "score": 0.4207357235065735,
+          "vector": [
+            0.83953511712,
+            0.127643209786,
+            0.001258503264,
+            0.131518635515,
+            0.375,
+            0.952492420948,
+            0.625,
+            0.011569901864
+          ]
+        },
+        "passed": false,
+        "primary_metric": "yield",
+        "primary_metric_distribution": {
+          "count": 2599,
+          "maximum": 0.6999240392197287,
+          "mean": 0.34613122415355446,
+          "median": 0.34671440709713897,
+          "minimum": 4.298553629724521e-05,
+          "p10": 0.08480604979981483,
+          "p90": 0.6025322631903749,
+          "sample_sd": 0.1861243998213287
+        },
+        "primary_metric_range": 0.6998810536834315,
+        "relative_high_quality_tolerance": 0.05,
+        "safe_dynamic_range_p90_p10": 0.3288029923073941,
+        "safe_mechanism_count": 2599,
+        "safe_score_distribution": {
+          "count": 2599,
+          "maximum": 0.4207357235065735,
+          "mean": 0.19428064785745275,
+          "median": 0.19219097966869303,
+          "minimum": 0.0,
+          "p10": 0.028284855536676333,
+          "p90": 0.35708784784407044,
+          "sample_sd": 0.11491587419462437
+        },
+        "safety_frontier_count": 462,
+        "structure_effect_gate": 0.03,
+        "target_grid": {
+          "completed_count": 56,
+          "curvature_effect": 0.0038770676743739574,
+          "directional_slope_effect": 0.09253228445507228,
+          "interaction_effect": 0.0,
+          "relative_high_quality_count": 38,
+          "relative_high_quality_has_interior": true,
+          "safety_frontier_crossing": false,
+          "target_x_span": 0.30046488287999995,
+          "target_y_span": 0.2
+        },
+        "validation_noise": {
+          "complete_group_count": 8,
+          "planned_group_count": 8,
+          "sigma": 0.0037093776283464316
+        }
+      },
+      "elapsed_s": 366.104,
+      "operational_failure": false,
+      "passed": false,
+      "world_seed": 0
+    },
+    {
+      "analysis": {
+        "checks": {
+          "all_observed_validation_completed": true,
+          "all_observed_validation_exact_replay": true,
+          "local_law_identifiable": true,
+          "mechanism_completion_fraction": true,
+          "observed_optimum_agreement": true,
+          "optimizer_generations_complete": true,
+          "optimizer_requests_complete": true,
+          "primary_metric_range": true,
+          "relative_high_quality_basin": true,
+          "safe_dynamic_range": true,
+          "safe_oracle_optimum_exists": true,
+          "safety_frontier_coverage": true,
+          "validation_candidate_groups": true
+        },
+        "historical_task_threshold": 0.7,
+        "historical_threshold_reaching_count": 0,
+        "local_law_identifiable": true,
+        "mechanism_completed_count": 2818,
+        "mechanism_completion_fraction": 0.9954079830448604,
+        "mechanism_evaluation_count": 2831,
+        "mechanism_failed_count": 13,
+        "observed_validation_completed_count": 24,
+        "observed_validation_exact_replay_count": 24,
+        "optimizer_generation_count": 20,
+        "optimizer_request_count": 2688,
+        "optimum_observed_median_score": 0.40506432774021245,
+        "oracle_optimum": {
+          "evaluation_id": "m002598",
+          "metrics": {
+            "safety_risk": 0.12563976980220792,
+            "score": 0.40079885983327207,
+            "selectivity": 0.6560244888543407,
+            "yield": 0.603356487316627
+          },
+          "safety_risk": 0.12563976980220792,
+          "score": 0.40079885983327207,
+          "vector": [
+            0.848579306284,
+            0.265927598473,
+            0.007375035737,
+            0.723705758242,
+            0.125,
+            0.915892814838,
+            0.125,
+            0.0062849143
+          ]
+        },
+        "passed": true,
+        "primary_metric": "yield",
+        "primary_metric_distribution": {
+          "count": 2771,
+          "maximum": 0.6310722674216761,
+          "mean": 0.342260952912021,
+          "median": 0.35591376320660445,
+          "minimum": 0.00014220692806280721,
+          "p10": 0.09229630568608387,
+          "p90": 0.5655258559239535,
+          "sample_sd": 0.1759525911030055
+        },
+        "primary_metric_range": 0.6309300604936133,
+        "relative_high_quality_tolerance": 0.05,
+        "safe_dynamic_range_p90_p10": 0.3206505180063261,
+        "safe_mechanism_count": 2771,
+        "safe_score_distribution": {
+          "count": 2771,
+          "maximum": 0.40079885983327207,
+          "mean": 0.19899608621238052,
+          "median": 0.20357414613286987,
+          "minimum": 0.0,
+          "p10": 0.03406862896113415,
+          "p90": 0.35471914696746026,
+          "sample_sd": 0.1152105894426672
+        },
+        "safety_frontier_count": 294,
+        "structure_effect_gate": 0.03,
+        "target_grid": {
+          "completed_count": 81,
+          "curvature_effect": 0.009616189374618667,
+          "directional_slope_effect": 0.11179836523584319,
+          "interaction_effect": 0.06383623154033502,
+          "relative_high_quality_count": 64,
+          "relative_high_quality_has_interior": true,
+          "safety_frontier_crossing": false,
+          "target_x_span": 0.291420693716,
+          "target_y_span": 0.28
+        },
+        "validation_noise": {
+          "complete_group_count": 8,
+          "planned_group_count": 8,
+          "sigma": 0.0026933106151882367
+        }
+      },
+      "elapsed_s": 363.416,
+      "operational_failure": false,
+      "passed": true,
+      "world_seed": 1
+    },
+    {
+      "analysis": {
+        "checks": {
+          "all_observed_validation_completed": true,
+          "all_observed_validation_exact_replay": true,
+          "local_law_identifiable": true,
+          "mechanism_completion_fraction": false,
+          "observed_optimum_agreement": true,
+          "optimizer_generations_complete": true,
+          "optimizer_requests_complete": true,
+          "primary_metric_range": true,
+          "relative_high_quality_basin": true,
+          "safe_dynamic_range": true,
+          "safe_oracle_optimum_exists": true,
+          "safety_frontier_coverage": true,
+          "validation_candidate_groups": true
+        },
+        "historical_task_threshold": 0.7,
+        "historical_threshold_reaching_count": 0,
+        "local_law_identifiable": true,
+        "mechanism_completed_count": 2768,
+        "mechanism_completion_fraction": 0.9805171803046404,
+        "mechanism_evaluation_count": 2823,
+        "mechanism_failed_count": 55,
+        "observed_validation_completed_count": 24,
+        "observed_validation_exact_replay_count": 24,
+        "optimizer_generation_count": 20,
+        "optimizer_request_count": 2688,
+        "optimum_observed_median_score": 0.4831087456923587,
+        "oracle_optimum": {
+          "evaluation_id": "m002711",
+          "metrics": {
+            "safety_risk": 0.10309392698086164,
+            "score": 0.4790183312346233,
+            "selectivity": 0.7926330423781979,
+            "yield": 0.733805025681155
+          },
+          "safety_risk": 0.10309392698086164,
+          "score": 0.4790183312346233,
+          "vector": [
+            0.814937625266,
+            0.14657824075,
+            0.001398970998,
+            0.193437622354,
+            0.375,
+            0.912533819252,
+            0.125,
+            0.018876114203
+          ]
+        },
+        "passed": false,
+        "primary_metric": "yield",
+        "primary_metric_distribution": {
+          "count": 2633,
+          "maximum": 0.7603169491366274,
+          "mean": 0.4205761701143491,
+          "median": 0.43519833682009196,
+          "minimum": 0.0005894134016896043,
+          "p10": 0.10532742542927731,
+          "p90": 0.6974935477395057,
+          "sample_sd": 0.21414922123902297
+        },
+        "primary_metric_range": 0.7597275357349378,
+        "relative_high_quality_tolerance": 0.05,
+        "safe_dynamic_range_p90_p10": 0.3726916602150409,
+        "safe_mechanism_count": 2633,
+        "safe_score_distribution": {
+          "count": 2633,
+          "maximum": 0.4790183312346233,
+          "mean": 0.24538314932226934,
+          "median": 0.251138199132237,
+          "minimum": 0.0,
+          "p10": 0.050410908837678146,
+          "p90": 0.42310256905271904,
+          "sample_sd": 0.13147584050977595
+        },
+        "safety_frontier_count": 455,
+        "structure_effect_gate": 0.03,
+        "target_grid": {
+          "completed_count": 63,
+          "curvature_effect": 0.008938315359110383,
+          "directional_slope_effect": 0.08799099562461521,
+          "interaction_effect": 0.0,
+          "relative_high_quality_count": 42,
+          "relative_high_quality_has_interior": true,
+          "safety_frontier_crossing": false,
+          "target_x_span": 0.24506237473399994,
+          "target_y_span": 0.24
+        },
+        "validation_noise": {
+          "complete_group_count": 8,
+          "planned_group_count": 8,
+          "sigma": 0.0032989581809384477
+        }
+      },
+      "elapsed_s": 352.892,
+      "operational_failure": false,
+      "passed": false,
+      "world_seed": 2
+    },
+    {
+      "analysis": {
+        "checks": {
+          "all_observed_validation_completed": true,
+          "all_observed_validation_exact_replay": true,
+          "local_law_identifiable": true,
+          "mechanism_completion_fraction": false,
+          "observed_optimum_agreement": true,
+          "optimizer_generations_complete": true,
+          "optimizer_requests_complete": true,
+          "primary_metric_range": true,
+          "relative_high_quality_basin": true,
+          "safe_dynamic_range": true,
+          "safe_oracle_optimum_exists": true,
+          "safety_frontier_coverage": true,
+          "validation_candidate_groups": true
+        },
+        "historical_task_threshold": 0.7,
+        "historical_threshold_reaching_count": 0,
+        "local_law_identifiable": true,
+        "mechanism_completed_count": 2814,
+        "mechanism_completion_fraction": 0.9943462897526502,
+        "mechanism_evaluation_count": 2830,
+        "mechanism_failed_count": 16,
+        "observed_validation_completed_count": 24,
+        "observed_validation_exact_replay_count": 24,
+        "optimizer_generation_count": 20,
+        "optimizer_request_count": 2688,
+        "optimum_observed_median_score": 0.47071134740369347,
+        "oracle_optimum": {
+          "evaluation_id": "m002734",
+          "metrics": {
+            "safety_risk": 0.11066277769040635,
+            "score": 0.46902688843258433,
+            "selectivity": 0.7737311487343226,
+            "yield": 0.7311013859489067
+          },
+          "safety_risk": 0.11066277769040635,
+          "score": 0.46902688843258433,
+          "vector": [
+            0.788555651515,
+            0.184406700762,
+            1.2147224e-05,
+            0.384223341462,
+            0.375,
+            0.979798637848,
+            0.125,
+            0.008038305693
+          ]
+        },
+        "passed": false,
+        "primary_metric": "yield",
+        "primary_metric_distribution": {
+          "count": 2719,
+          "maximum": 0.755105173095509,
+          "mean": 0.4118143896999176,
+          "median": 0.42702754312383856,
+          "minimum": 3.8121798113381987e-05,
+          "p10": 0.1105095544840087,
+          "p90": 0.6783248276770663,
+          "sample_sd": 0.2064461410662178
+        },
+        "primary_metric_range": 0.7550670512973956,
+        "relative_high_quality_tolerance": 0.05,
+        "safe_dynamic_range_p90_p10": 0.3696246891032703,
+        "safe_mechanism_count": 2719,
+        "safe_score_distribution": {
+          "count": 2719,
+          "maximum": 0.46902688843258433,
+          "mean": 0.24378649063296165,
+          "median": 0.25272782360451296,
+          "minimum": 0.0,
+          "p10": 0.05302930915161196,
+          "p90": 0.42265399825488226,
+          "sample_sd": 0.1320690189962075
+        },
+        "safety_frontier_count": 308,
+        "structure_effect_gate": 0.03,
+        "target_grid": {
+          "completed_count": 81,
+          "curvature_effect": 0.021201253663755193,
+          "directional_slope_effect": 0.17717267925459895,
+          "interaction_effect": 0.1039356976217537,
+          "relative_high_quality_count": 55,
+          "relative_high_quality_has_interior": true,
+          "safety_frontier_crossing": false,
+          "target_x_span": 0.31999999999999995,
+          "target_y_span": 0.28
+        },
+        "validation_noise": {
+          "complete_group_count": 8,
+          "planned_group_count": 8,
+          "sigma": 0.003325197979746565
+        }
+      },
+      "elapsed_s": 359.396,
+      "operational_failure": false,
+      "passed": false,
+      "world_seed": 3
+    },
+    {
+      "analysis": {
+        "checks": {
+          "all_observed_validation_completed": true,
+          "all_observed_validation_exact_replay": true,
+          "local_law_identifiable": true,
+          "mechanism_completion_fraction": false,
+          "observed_optimum_agreement": true,
+          "optimizer_generations_complete": true,
+          "optimizer_requests_complete": true,
+          "primary_metric_range": true,
+          "relative_high_quality_basin": true,
+          "safe_dynamic_range": true,
+          "safe_oracle_optimum_exists": true,
+          "safety_frontier_coverage": true,
+          "validation_candidate_groups": true
+        },
+        "historical_task_threshold": 0.7,
+        "historical_threshold_reaching_count": 0,
+        "local_law_identifiable": true,
+        "mechanism_completed_count": 2745,
+        "mechanism_completion_fraction": 0.9751332149200711,
+        "mechanism_evaluation_count": 2815,
+        "mechanism_failed_count": 70,
+        "observed_validation_completed_count": 24,
+        "observed_validation_exact_replay_count": 24,
+        "optimizer_generation_count": 20,
+        "optimizer_request_count": 2688,
+        "optimum_observed_median_score": 0.48524038894888794,
+        "oracle_optimum": {
+          "evaluation_id": "m002709",
+          "metrics": {
+            "safety_risk": 0.1069483670526628,
+            "score": 0.48818539274378653,
+            "selectivity": 0.8105380501239179,
+            "yield": 0.7701130376408217
+          },
+          "safety_risk": 0.1069483670526628,
+          "score": 0.48818539274378653,
+          "vector": [
+            0.798784330726,
+            0.169792460965,
+            0.007614748363,
+            0.164517065436,
+            0.875,
+            0.962858506111,
+            0.125,
+            0.016261320957
+          ]
+        },
+        "passed": false,
+        "primary_metric": "yield",
+        "primary_metric_distribution": {
+          "count": 2697,
+          "maximum": 0.7946938649231947,
+          "mean": 0.4437500954667858,
+          "median": 0.4694097940059076,
+          "minimum": 0.0002473144950868775,
+          "p10": 0.14206674082073192,
+          "p90": 0.6982472852526502,
+          "sample_sd": 0.20183905021147422
+        },
+        "primary_metric_range": 0.7944465504281079,
+        "relative_high_quality_tolerance": 0.05,
+        "safe_dynamic_range_p90_p10": 0.33801867854776707,
+        "safe_mechanism_count": 2697,
+        "safe_score_distribution": {
+          "count": 2697,
+          "maximum": 0.48818539274378653,
+          "mean": 0.27343141328367376,
+          "median": 0.2857353747759232,
+          "minimum": 0.0,
+          "p10": 0.09174059450382678,
+          "p90": 0.42975927305159384,
+          "sample_sd": 0.12378598393821015
+        },
+        "safety_frontier_count": 273,
+        "structure_effect_gate": 0.03,
+        "target_grid": {
+          "completed_count": 56,
+          "curvature_effect": 0.005302194327743981,
+          "directional_slope_effect": 0.07880535803041017,
+          "interaction_effect": 0.0,
+          "relative_high_quality_count": 41,
+          "relative_high_quality_has_interior": true,
+          "safety_frontier_crossing": false,
+          "target_x_span": 0.261215669274,
+          "target_y_span": 0.2
+        },
+        "validation_noise": {
+          "complete_group_count": 8,
+          "planned_group_count": 8,
+          "sigma": 0.0038244829796729735
+        }
+      },
+      "elapsed_s": 358.273,
+      "operational_failure": false,
+      "passed": false,
+      "world_seed": 4
+    }
+  ]
+}

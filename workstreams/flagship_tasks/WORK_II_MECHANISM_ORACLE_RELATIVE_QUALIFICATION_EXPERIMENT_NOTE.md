@@ -88,3 +88,25 @@ A platform defect restarts the affected task from world 0 with the same search a
 failure is retained and rejects that task before Q2; gates are not changed from its outcome. Expected
 outputs are an ignored raw optimizer root, one tracked machine summary per task with exact evaluation
 and failure denominators, and a go/no-go decision. No provider or D1 execution is authorized.
+
+## Phase conclusion — reaction-safety v0.1
+
+The five-world block completed in `1,800.599 s` with zero provider calls, zero platform-failure
+worlds and `120/120` observed validations exact-replayed. It classified all `14,121` unique mechanism
+evaluations: `13,878` reached a committed physical endpoint and `243` reached a schema-valid dynamic
+constitution boundary. The frozen v0.1 decision is `1/5` worlds pass and therefore rejects Q2.
+
+The result isolates one gate-definition problem rather than an absent scientific surface. In every
+world, the safe oracle optimum, observed-optimum agreement, dynamic range, primary-metric range,
+relative basin, local-law and safety-frontier gates passed. Oracle scores were `0.4008--0.4882` at
+risks `0.1031--0.1504`; no point reached the historical `0.70` threshold. Relative basins contained
+`38--64` grid points, safe score ranges were `0.3207--0.3727`, primary-metric ranges were
+`0.6309--0.7944`, and safety-frontier counts were `273--462` per world.
+
+World 1 passed v0.1 because its 13 physical failures left a `99.541%` committed-endpoint fraction.
+Worlds 0, 2, 3 and 4 failed only `mechanism_completion_fraction`, with committed-endpoint fractions
+`96.846%`, `98.052%`, `99.435%` and `97.513%`. Because every request was successfully classified and
+the physical failures are part of the safety landscape, this gate conflates evaluator reliability
+with physical feasibility. v0.1 remains an immutable rejection. A separately frozen v0.2 must change
+only this classification gate, retain every scientific threshold, and rerun from world 0 before any
+Q2 authorization.
