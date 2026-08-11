@@ -22,6 +22,8 @@ from chemworld.eval.provenance import (
 from chemworld.eval.resource_accounting import MethodResourceLimits
 from chemworld.eval.verify import verify_records
 from chemworld.eval.work_ii_direction import (
+    controlled_potential_direction_diagnostic,
+    registered_control_direction,
     registered_temperature_direction,
     temperature_direction_contract,
     temperature_direction_diagnostic,
@@ -80,9 +82,7 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
     api_key_value = provider.get("api_key_file")
     api_key_path = (root / str(api_key_value)).resolve() if api_key_value else Path()
     env_key_value = provider.get("env_key")
-    env_credential_present = bool(
-        env_key_value is not None and os.environ.get(str(env_key_value))
-    )
+    env_credential_present = bool(env_key_value is not None and os.environ.get(str(env_key_value)))
     file_credential_present = api_key_path.is_file() and _git_ignored(root, api_key_path)
     prior_arms = tuple(config.get("prior_arms", {}))
     checkpoint_experiments = list(campaign.get("checkpoint_complete_experiments", []))
@@ -168,10 +168,7 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
             and models[0].get("supports_search_tool") is False
             and models[0].get("supported_in_api") is True
         )
-        or (
-            provider.get("id") == "wellau"
-            and not catalog_value
-        ),
+        or (provider.get("id") == "wellau" and not catalog_value),
         "credential_file_exists_and_is_git_ignored": (
             env_credential_present or file_credential_present
         ),
@@ -299,9 +296,7 @@ def audit_seed0_expansion_pilot(
         if summary.get("completed") is not True or qualification.get("passed") is not True:
             cell_failures.append("cell or qualification did not pass")
         if analysis.get("complete_experiment_count") != target_experiments:
-            cell_failures.append(
-                f"cell did not complete {target_experiments} experiments"
-            )
+            cell_failures.append(f"cell did not complete {target_experiments} experiments")
         max_resource_rejections = int(
             config.get("qualification", {}).get("max_resource_rejections", 0)
         )
@@ -518,22 +513,34 @@ def audit_direction_stability(
     *,
     progress: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
-    registered = registered_temperature_direction(config)
+    registered_temperature = registered_temperature_direction(config)
+    registered_control = registered_control_direction(config)
+    registered = (
+        registered_temperature
+        if registered_temperature.get("preferred_side") is not None
+        else registered_control
+    )
     if registered.get("preferred_side") is None:
         return {
             "applicable": False,
             "passed": True,
-            "registered_temperature_direction": registered,
+            "registered_temperature_direction": registered_temperature,
+            "registered_control_direction": registered_control,
             "worlds": [],
             "provider_call_count": 0,
-            "interpretation": "No frozen binary temperature-direction claim is present.",
+            "interpretation": "No frozen binary temperature/control-direction claim is present.",
         }
+    if registered_temperature.get("preferred_side") is None:
+        return _audit_control_direction_stability(
+            config,
+            seeds,
+            registered_control,
+            progress=progress,
+        )
     opaque = config.get("prior_arms", {}).get("opaque", {})
     initial_model = opaque.get("initial_world_model", {}) if isinstance(opaque, Mapping) else {}
     context_contract = (
-        initial_model.get("context_contract", {})
-        if isinstance(initial_model, Mapping)
-        else {}
+        initial_model.get("context_contract", {}) if isinstance(initial_model, Mapping) else {}
     )
     reference_region = (
         context_contract.get("approximate_reference_region", {})
@@ -584,9 +591,7 @@ def audit_direction_stability(
                 errors = validate_evaluator_truth_report(report, plan)
                 empirical = temperature_direction_diagnostic(
                     truth_prediction_rows(
-                        report.get("truth", {})
-                        if isinstance(report.get("truth"), Mapping)
-                        else {}
+                        report.get("truth", {}) if isinstance(report.get("truth"), Mapping) else {}
                     ),
                     truth_plan=plan,
                     reference_temperature_K=float(reference_temperature),
@@ -599,9 +604,7 @@ def audit_direction_stability(
                         "world_seed": int(seed),
                         "passed": passed,
                         "truth_query_count": report.get("truth_query_count"),
-                        "completed_truth_query_count": report.get(
-                            "completed_truth_query_count"
-                        ),
+                        "completed_truth_query_count": report.get("completed_truth_query_count"),
                         "truth_report_sha256": report.get("report_sha256"),
                         "validation_errors": errors,
                         "empirical_temperature_direction": empirical,
@@ -635,6 +638,108 @@ def audit_direction_stability(
         "interpretation": (
             "A directional-prior provider block is authorized only when the frozen registered "
             "direction agrees with exact provider-free truth on its evaluator query distribution."
+        ),
+    }
+
+
+def _audit_control_direction_stability(
+    config: Mapping[str, Any],
+    seeds: Sequence[int],
+    registered: Mapping[str, Any],
+    *,
+    progress: Callable[[dict[str, Any]], None] | None = None,
+) -> dict[str, Any]:
+    opaque = config.get("prior_arms", {}).get("opaque", {})
+    initial_model = opaque.get("initial_world_model", {}) if isinstance(opaque, Mapping) else {}
+    context_contract = (
+        initial_model.get("context_contract", {}) if isinstance(initial_model, Mapping) else {}
+    )
+    reference_context = (
+        context_contract.get("reference_context", {})
+        if isinstance(context_contract, Mapping)
+        else {}
+    )
+    task_id = str(config.get("task_id", ""))
+    rows: list[dict[str, Any]] = []
+    with TemporaryDirectory(prefix="chemworld-work-ii-control-direction-readiness-") as temporary:
+        temporary_root = Path(temporary)
+        for index, seed in enumerate(seeds, start=1):
+            if progress is not None:
+                progress(
+                    {
+                        "stage": "control_direction_stability_truth",
+                        "completed": index - 1,
+                        "total": len(seeds),
+                        "world_seed": int(seed),
+                    }
+                )
+            try:
+                plan = build_evaluator_truth_plan(
+                    {
+                        "world_cluster_id": (
+                            f"initial-model-parametric--{task_id}--seed-{int(seed)}"
+                        ),
+                        "task_id": task_id,
+                        "world_seed": int(seed),
+                    },
+                    config,
+                    formal_result=False,
+                    formal_preflight_sha256=None,
+                )
+                report = execute_evaluator_truth_plan(
+                    plan,
+                    config,
+                    temporary_root / f"seed-{int(seed)}",
+                )
+                errors = validate_evaluator_truth_report(report, plan)
+                empirical = controlled_potential_direction_diagnostic(
+                    truth_prediction_rows(
+                        report.get("truth", {}) if isinstance(report.get("truth"), Mapping) else {}
+                    ),
+                    truth_plan=plan,
+                    reference_context=reference_context,
+                )
+                contract = temperature_direction_contract(registered, empirical)
+                rows.append(
+                    {
+                        "world_seed": int(seed),
+                        "passed": not errors and contract["status"] == "stable",
+                        "truth_query_count": report.get("truth_query_count"),
+                        "completed_truth_query_count": report.get("completed_truth_query_count"),
+                        "truth_report_sha256": report.get("report_sha256"),
+                        "validation_errors": errors,
+                        "empirical_control_direction": empirical,
+                        "direction_contract": contract,
+                    }
+                )
+            except Exception as error:
+                rows.append(
+                    {
+                        "world_seed": int(seed),
+                        "passed": False,
+                        "error": f"{type(error).__name__}: {error}",
+                    }
+                )
+            if progress is not None:
+                progress(
+                    {
+                        "stage": "control_direction_stability_truth",
+                        "completed": index,
+                        "total": len(seeds),
+                        "world_seed": int(seed),
+                        "passed": rows[-1]["passed"],
+                    }
+                )
+    return {
+        "applicable": True,
+        "passed": bool(rows) and all(row["passed"] is True for row in rows),
+        "registered_temperature_direction": registered_temperature_direction(config),
+        "registered_control_direction": dict(registered),
+        "worlds": rows,
+        "provider_call_count": 0,
+        "interpretation": (
+            "A controlled-potential directional prior is authorized only when its exact "
+            "held-out evaluator query distribution agrees with the registered direction."
         ),
     }
 

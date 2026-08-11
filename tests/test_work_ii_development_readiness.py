@@ -9,6 +9,10 @@ from chemworld.eval.work_ii_development_readiness import (
     WORK_II_DEVELOPMENT_READINESS_VERSION,
     validate_development_readiness_receipt,
 )
+from chemworld.eval.work_ii_direction import (
+    controlled_potential_direction_diagnostic,
+    registered_control_direction,
+)
 
 
 def _write_receipt(
@@ -279,16 +283,14 @@ def test_readiness_accepts_pattern_owned_ten_experiment_schedule(
     monkeypatch.setattr(readiness, "git_worktree_dirty", lambda _root: False)
     config = tmp_path / "wellau-ten.json"
     payload = json.loads(
-        (Path(__file__).resolve().parents[1]
-         / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1_execution.json").read_text(
-            encoding="utf-8"
-        )
+        (
+            Path(__file__).resolve().parents[1]
+            / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1_execution.json"
+        ).read_text(encoding="utf-8")
     )
     payload["execution"].update(
         {
-            "failure_semantics": (
-                "retain cell failures and continue every scheduled seed triplet"
-            ),
+            "failure_semantics": ("retain cell failures and continue every scheduled seed triplet"),
             "systemic_failure_semantics": (
                 "stop only when all three arms fail before the first committed operation"
             ),
@@ -322,10 +324,10 @@ def test_readiness_rejects_unknown_method_resource_fields(
     monkeypatch.setattr(readiness, "git_worktree_dirty", lambda _root: False)
     config = tmp_path / "invalid-resource.json"
     payload = json.loads(
-        (Path(__file__).resolve().parents[1]
-         / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1_execution.json").read_text(
-            encoding="utf-8"
-        )
+        (
+            Path(__file__).resolve().parents[1]
+            / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1_execution.json"
+        ).read_text(encoding="utf-8")
     )
     payload["method_resources"]["unknown_metadata"] = "not-a-limit"
     config.write_text(json.dumps(payload), encoding="utf-8")
@@ -409,3 +411,85 @@ def test_direction_stability_audit_fails_closed_on_registered_query_conflict(
     assert captured["world_cluster_id"] == (
         "initial-model-parametric--reaction-safety-constrained--seed-4"
     )
+
+
+def test_controlled_potential_direction_readiness_uses_exact_held_out_queries(
+    monkeypatch,
+) -> None:
+    config = {
+        "task_id": "electrochemical-conversion",
+        "prior_arms": {
+            "opaque": {
+                "initial_world_model": {
+                    "context_contract": {
+                        "reference_context": {
+                            "probe_potential_V": 1.0,
+                            "probe_current_mA": 60.0,
+                        }
+                    }
+                }
+            },
+            "aligned_nominal": {
+                "initial_world_model": {
+                    "model": {
+                        "claim": {
+                            "expected_relation": (
+                                "Relative to the probe and stated reference context, the "
+                                "lower-controlled-potential side should retain balanced "
+                                "performance more reliably than the "
+                                "higher-controlled-potential side."
+                            )
+                        }
+                    }
+                }
+            },
+            "misindexed_nominal": {},
+        },
+    }
+    plan = {
+        "queries": [
+            {
+                "query_id": "low",
+                "feature_values": {
+                    "controlled_potential_V": 0.90,
+                    "controlled_current_mA": 60.0,
+                },
+            },
+            {
+                "query_id": "high",
+                "feature_values": {
+                    "controlled_potential_V": 1.10,
+                    "controlled_current_mA": 60.0,
+                },
+            },
+        ]
+    }
+    report = {
+        "truth_query_count": 2,
+        "completed_truth_query_count": 2,
+        "report_sha256": "truth",
+        "truth": {"low": {"score": 0.8}, "high": {"score": 0.2}},
+    }
+
+    registered = registered_control_direction(config)
+    assert registered["preferred_side"] == "lower_controlled_potential"
+    empirical = controlled_potential_direction_diagnostic(
+        [
+            {"query_id": "low", "metrics": [{"metric_id": "score", "mean": 0.8}]},
+            {"query_id": "high", "metrics": [{"metric_id": "score", "mean": 0.2}]},
+        ],
+        truth_plan=plan,
+        reference_context={"probe_potential_V": 1.0},
+    )
+    assert empirical["preferred_side"] == "lower_controlled_potential"
+
+    monkeypatch.setattr(readiness, "build_evaluator_truth_plan", lambda *_a, **_k: plan)
+    monkeypatch.setattr(readiness, "execute_evaluator_truth_plan", lambda *_a, **_k: report)
+    monkeypatch.setattr(readiness, "validate_evaluator_truth_report", lambda *_a, **_k: [])
+
+    audit = readiness.audit_direction_stability(config, [0])
+
+    assert audit["applicable"] is True
+    assert audit["passed"] is True
+    assert audit["registered_control_direction"]["preferred_side"] == ("lower_controlled_potential")
+    assert audit["worlds"][0]["direction_contract"]["status"] == "stable"

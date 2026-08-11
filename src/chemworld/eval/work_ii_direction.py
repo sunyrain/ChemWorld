@@ -86,6 +86,70 @@ def temperature_direction_diagnostic(
     }
 
 
+def controlled_potential_direction_diagnostic(
+    predictions: object,
+    *,
+    truth_plan: Mapping[str, Any],
+    reference_context: Mapping[str, Any],
+    tolerance_V: float = 0.02,
+) -> dict[str, Any]:
+    """Compare lower/higher controlled-potential sides at matched current values."""
+
+    by_query = _prediction_rows_by_query(predictions)
+    probe = reference_context.get("probe_potential_V")
+    if isinstance(probe, bool) or not isinstance(probe, int | float):
+        return {
+            "paired_current_count": 0,
+            "lower_minus_higher_mean_score_contrast": None,
+            "preferred_side": None,
+        }
+    grouped: dict[float, dict[str, list[float]]] = {}
+    for query in _sequence(truth_plan.get("queries")):
+        if not isinstance(query, Mapping):
+            continue
+        features = _mapping(query.get("feature_values"))
+        metrics = by_query.get(str(query.get("query_id", "")))
+        potential = features.get("controlled_potential_V")
+        current = features.get("controlled_current_mA")
+        if (
+            metrics is None
+            or "score" not in metrics
+            or isinstance(potential, bool)
+            or not isinstance(potential, int | float)
+            or isinstance(current, bool)
+            or not isinstance(current, int | float)
+        ):
+            continue
+        if float(potential) <= float(probe) - float(tolerance_V):
+            side = "lower_controlled_potential"
+        elif float(potential) >= float(probe) + float(tolerance_V):
+            side = "higher_controlled_potential"
+        else:
+            continue
+        grouped.setdefault(round(float(current), 8), {}).setdefault(side, []).append(
+            metrics["score"]
+        )
+    contrasts: list[float] = []
+    for sides in grouped.values():
+        lower = sides.get("lower_controlled_potential", [])
+        higher = sides.get("higher_controlled_potential", [])
+        if lower and higher:
+            contrasts.append(sum(lower) / len(lower) - sum(higher) / len(higher))
+    mean_contrast = sum(contrasts) / len(contrasts) if contrasts else None
+    preferred_side = (
+        None
+        if mean_contrast is None or mean_contrast == 0.0
+        else "lower_controlled_potential"
+        if mean_contrast > 0.0
+        else "higher_controlled_potential"
+    )
+    return {
+        "paired_current_count": len(contrasts),
+        "lower_minus_higher_mean_score_contrast": mean_contrast,
+        "preferred_side": preferred_side,
+    }
+
+
 def registered_temperature_direction(config: Mapping[str, Any]) -> dict[str, Any]:
     aligned = _mapping(_mapping(config.get("prior_arms")).get("aligned_nominal"))
     initial_model = _mapping(aligned.get("initial_world_model"))
@@ -104,6 +168,38 @@ def registered_temperature_direction(config: Mapping[str, Any]) -> dict[str, Any
         else "lower_temperature"
     )
     return {"preferred_side": preferred_side, "source": source, "claim": relation}
+
+
+def registered_control_direction(config: Mapping[str, Any]) -> dict[str, Any]:
+    """Read a controlled-potential/current directional claim from an initial model."""
+
+    aligned = _mapping(_mapping(config.get("prior_arms")).get("aligned_nominal"))
+    initial_model = _mapping(aligned.get("initial_world_model"))
+    claim = _mapping(_mapping(initial_model.get("model")).get("claim"))
+    relation = claim.get("expected_relation")
+    if not isinstance(relation, str):
+        return {"preferred_side": None, "source": None, "claim": None, "axis": None}
+    for axis in ("potential", "current"):
+        higher_label = f"higher-controlled-{axis} side"
+        lower_label = f"lower-controlled-{axis} side"
+        if higher_label in relation and lower_label in relation:
+            preferred_side = (
+                f"higher_controlled_{axis}"
+                if relation.index(higher_label) < relation.index(lower_label)
+                else f"lower_controlled_{axis}"
+            )
+            return {
+                "preferred_side": preferred_side,
+                "source": ("aligned_nominal.initial_world_model.model.claim.expected_relation"),
+                "claim": relation,
+                "axis": axis,
+            }
+    return {
+        "preferred_side": None,
+        "source": "aligned_nominal.initial_world_model.model.claim.expected_relation",
+        "claim": relation,
+        "axis": None,
+    }
 
 
 def temperature_direction_contract(
@@ -146,6 +242,8 @@ def truth_prediction_rows(evaluator_truth: Mapping[str, Any]) -> list[dict[str, 
 
 
 __all__ = [
+    "controlled_potential_direction_diagnostic",
+    "registered_control_direction",
     "registered_temperature_direction",
     "temperature_direction_contract",
     "temperature_direction_diagnostic",
