@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import json
 import math
 from typing import Any
 
+import pytest
+
+from scripts.run_work_ii_q1_response_surface import ROOT, TASK_SPECS, _load, _q0_audit
 from chemworld.eval.work_ii_response_surface_qualification import (
     ADAPTIVE_RECIPE_COUNT,
     BROAD_RECIPE_COUNT,
@@ -12,6 +16,16 @@ from chemworld.eval.work_ii_response_surface_qualification import (
     build_adaptive_design,
     select_adaptive_anchors,
 )
+
+
+@pytest.mark.parametrize("task_id", sorted(TASK_SPECS))
+def test_q0_audit_passes_and_is_json_serializable(task_id: str) -> None:
+    spec = TASK_SPECS[task_id]
+    config = _load((ROOT / spec["config"]).resolve())
+    audit = _q0_audit(task_id, config, spec)
+
+    assert audit["passed"] is True
+    json.dumps(audit, ensure_ascii=False, allow_nan=False, sort_keys=True)
 
 
 def _synthetic_metrics(vector: list[float]) -> tuple[float, float]:

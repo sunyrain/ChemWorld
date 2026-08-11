@@ -186,8 +186,8 @@ def _q0_audit(task_id: str, config: Mapping[str, Any], spec: Mapping[str, Any]) 
         "terminal_final_assay_present": bool(actions)
         and actions[-1].get("operation") == "measure"
         and actions[-1].get("instrument") == "final_assay",
-        "finite_task_threshold": np.isfinite(float(task.threshold)),
-        "finite_safety_limit": np.isfinite(float(task.safety_limit)),
+        "finite_task_threshold": bool(np.isfinite(float(task.threshold))),
+        "finite_safety_limit": bool(np.isfinite(float(task.safety_limit))),
     }
     return {
         "task_id": task_id,
