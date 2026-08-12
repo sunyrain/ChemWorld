@@ -13,15 +13,33 @@ from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
     git_source_commit,
+    git_worktree_dirty,
 )
 from chemworld.eval.work_ii_source_binding import work_ii_material_tree_sha256
 
 C2_ADMISSION_PLAN_VERSION = "chemworld-work-ii-c2-admission-plan-0.1"
 C2_ADMISSION_REPORT_VERSION = "chemworld-work-ii-c2-admission-report-0.1"
 C2_TASK_ADMISSION_RECEIPT_VERSION = "chemworld-work-ii-c2-task-admission-receipt-0.1"
+C2_OUTCOME_BLIND_SELECTION_VERSION = (
+    "chemworld-work-ii-c2-outcome-blind-selection-0.1"
+)
 C2_LOCI = ("A_P", "A_S")
 C2_REQUIRED_TASK_COUNTS = {"A_P": 2, "A_S": 2}
 C2_REQUIRED_ROUNDS = {"A_P": 10, "A_S": 12}
+C2_TASK_STAGE_ORDER = ("Q1", "Q2", "D1")
+C2_REQUIRED_CHECKPOINTS = {
+    "A_P": (0, 2, 4, 7, 10),
+    "A_S": (0, 3, 6, 9, 12),
+}
+C2_CAMPAIGN_LOCUS_NAMES = {
+    "A_P": {"A_P", "parametric", "parametric_dynamical"},
+    "A_S": {"A_S", "structural", "structural_mechanistic"},
+}
+C2_STAGE_SCHEMA_TOKENS = {
+    "Q1": ("qualification", "mechanism-oracle"),
+    "Q2": ("matched-prior",),
+    "D1": ("initial-model-pilot-evaluation",),
+}
 C2_PUBLIC_AE_CELL_COUNT = 75
 C2_MATERIAL_SOURCE_ROOTS = (
     "configs/benchmark",
@@ -30,9 +48,9 @@ C2_MATERIAL_SOURCE_ROOTS = (
     "configs/methods",
     "configs/scenarios",
     "pyproject.toml",
-    "scripts/run_work_ii_ae_prior_qualification.py",
-    "scripts/run_work_ii_resource_calibration.py",
+    "scripts",
     "src/chemworld",
+    "tests",
     "uv.lock",
 )
 C2_MATERIAL_SOURCE_EXCLUSIONS = (
@@ -59,6 +77,10 @@ def c2_admission_sha256(report: Mapping[str, Any]) -> str:
 
 def c2_task_admission_receipt_sha256(receipt: Mapping[str, Any]) -> str:
     return _self_hash(receipt, "receipt_sha256")
+
+
+def c2_outcome_blind_selection_sha256(record: Mapping[str, Any]) -> str:
+    return _self_hash(record, "selection_sha256")
 
 
 def _is_commit(value: object) -> bool:
@@ -131,6 +153,304 @@ def _binding(root: Path, path: Path, *, embedded_hash: str | None = None) -> dic
     if embedded_hash is not None:
         value["embedded_sha256"] = embedded_hash
     return value
+
+
+def _inside_root(root: Path, path: Path, *, label: str) -> Path:
+    resolved = path.resolve()
+    try:
+        resolved.relative_to(root.resolve())
+    except ValueError as error:
+        raise ValueError(f"{label} escapes repository") from error
+    return resolved
+
+
+def _embedded_hash_contract(report: Mapping[str, Any]) -> tuple[str | None, list[str]]:
+    fields = [field for field in ("summary_sha256", "report_sha256") if field in report]
+    if len(fields) != 1:
+        return None, ["stage report must contain exactly one supported self-hash field"]
+    field = fields[0]
+    observed = report.get(field)
+    expected = _self_hash(report, field)
+    if not isinstance(observed, str) or observed != expected:
+        return None, [f"stage report {field} mismatch"]
+    return observed, []
+
+
+def _stage_status_errors(
+    report: Mapping[str, Any],
+    *,
+    stage: str,
+    task_id: str,
+) -> list[str]:
+    errors: list[str] = []
+    if stage not in C2_TASK_STAGE_ORDER:
+        return [f"unsupported C2 task-admission stage: {stage}"]
+    schema = report.get("schema_version")
+    qualification_schema = report.get("qualification_schema_version")
+    if not isinstance(schema, str) or not any(
+        token in schema or (isinstance(qualification_schema, str) and token in qualification_schema)
+        for token in C2_STAGE_SCHEMA_TOKENS[stage]
+    ):
+        errors.append(f"{stage} report has an unsupported schema")
+    if report.get("task_id") != task_id:
+        errors.append(f"{stage} report task does not match campaign task")
+    if report.get("formal_result") is not False:
+        errors.append(f"{stage} report does not preserve the non-formal boundary")
+    if stage == "Q1":
+        q0 = report.get("q0")
+        if not isinstance(q0, Mapping) or q0.get("passed") is not True:
+            errors.append("Q1 report does not embed a passed Q0 reachability audit")
+        if report.get("qualification_passed") is not True:
+            errors.append("Q1 report did not pass")
+        worlds = report.get("worlds")
+        if (
+            report.get("world_seeds") != [0, 1, 2, 3, 4]
+            or not isinstance(worlds, list)
+            or len(worlds) != 5
+            or any(not _q1_world_passed(world, seed) for seed, world in enumerate(worlds))
+        ):
+            errors.append("Q1 report is not a five-world terminal pass")
+    elif stage == "Q2":
+        if report.get("qualification_passed") is not True:
+            errors.append("Q2 report did not pass")
+        worlds = report.get("worlds")
+        if (
+            report.get("world_seeds") != [0, 1, 2, 3, 4]
+            or not isinstance(worlds, list)
+            or len(worlds) != 5
+            or any(
+                not isinstance(world, Mapping)
+                or world.get("world_seed") != seed
+                or world.get("qualification_passed") is not True
+                for seed, world in enumerate(worlds)
+            )
+        ):
+            errors.append("Q2 report is not a five-world terminal pass")
+        if report.get("provider_call_count") != 0:
+            errors.append("Q2 report is not provider-free")
+    elif stage == "D1":
+        if report.get("status") != "passed":
+            errors.append("D1 report did not pass")
+        denominators = report.get("denominators")
+        denominators = denominators if isinstance(denominators, Mapping) else {}
+        if (
+            denominators.get("participant_cell_count") != 3
+            or denominators.get("participant_completed_cell_count") != 3
+            or denominators.get("participant_terminal_trajectory_count") != 3
+            or denominators.get("participant_platform_failure_count") != 0
+        ):
+            errors.append("D1 report is not a complete clean three-arm terminal pilot")
+    provider_calls = report.get("provider_call_count")
+    if stage in {"Q0", "Q1", "Q2"} and provider_calls not in {None, 0}:
+        errors.append(f"{stage} report is not provider-free")
+    return errors
+
+
+def _q1_world_passed(world: object, seed: int) -> bool:
+    if not isinstance(world, Mapping) or world.get("world_seed") != seed:
+        return False
+    analysis = world.get("analysis")
+    return isinstance(analysis, Mapping) and analysis.get("passed") is True
+
+
+def _stage_evidence_row(
+    root: Path,
+    *,
+    stage: str,
+    path: Path,
+    task_id: str,
+    source_binding: Mapping[str, Any],
+) -> tuple[dict[str, Any], list[str]]:
+    errors: list[str] = []
+    path = _inside_root(root, path, label=f"{stage} evidence")
+    report: dict[str, Any] = {}
+    embedded_hash: str | None = None
+    if not path.is_file():
+        errors.append(f"{stage} report is missing")
+    else:
+        report = _load_object(path)
+        embedded_hash, hash_errors = _embedded_hash_contract(report)
+        errors.extend(hash_errors)
+        errors.extend(_stage_status_errors(report, stage=stage, task_id=task_id))
+        tested_commit = source_binding.get("tested_commit")
+        stage_binding = report.get("c2_source_binding")
+        if isinstance(stage_binding, Mapping):
+            errors.extend(validate_c2_source_binding(root, stage_binding))
+            if stage_binding.get("tested_commit") != tested_commit:
+                errors.append(f"{stage} report does not share the receipt runtime commit")
+        elif report.get("source_commit") != tested_commit:
+            errors.append(f"{stage} report is not bound to the receipt runtime commit")
+        if stage == "D1" and report.get("participant_source_commit") != tested_commit:
+            errors.append("D1 participant trajectory is not bound to the receipt runtime commit")
+    row: dict[str, Any] = {
+        "stage": stage,
+        "report_binding": (
+            {
+                "path": path.relative_to(root).as_posix(),
+                "sha256": file_sha256(path),
+                "embedded_sha256": embedded_hash,
+            }
+            if path.is_file()
+            else {"path": path.relative_to(root).as_posix()}
+        ),
+        "passed": not errors,
+        "validation_errors": errors,
+    }
+    return row, errors
+
+
+def _campaign_errors(
+    config: Mapping[str, Any],
+    *,
+    locus: str,
+    task_id: str,
+) -> list[str]:
+    errors: list[str] = []
+    campaign = config.get("campaign")
+    campaign = campaign if isinstance(campaign, Mapping) else {}
+    intervention = config.get("intervention")
+    intervention = intervention if isinstance(intervention, Mapping) else {}
+    rounds = C2_REQUIRED_ROUNDS[locus]
+    if config.get("task_id") != task_id:
+        errors.append("campaign task does not match requested task")
+    if config.get("formal_result") is not False:
+        errors.append("campaign does not preserve the non-formal admission boundary")
+    if intervention.get("locus") not in C2_CAMPAIGN_LOCUS_NAMES[locus]:
+        errors.append("campaign locus does not match requested C2 locus")
+    if (
+        campaign.get("complete_experiments") != rounds
+        or campaign.get("checkpoint_complete_experiments")
+        != list(C2_REQUIRED_CHECKPOINTS[locus])
+    ):
+        errors.append("campaign rounds/checkpoints do not match the C2 locus")
+    qualification = config.get("qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    if qualification.get("q2_passed") is not True:
+        errors.append("campaign is not bound to a passed Q2 design")
+    return errors
+
+
+def _selection_errors(
+    record: Mapping[str, Any],
+    *,
+    root: Path,
+    locus: str,
+    task_id: str,
+    source_binding: Mapping[str, Any],
+) -> list[str]:
+    errors: list[str] = []
+    if record.get("schema_version") != C2_OUTCOME_BLIND_SELECTION_VERSION:
+        errors.append("unexpected outcome-blind selection schema")
+    if record.get("selection_sha256") != c2_outcome_blind_selection_sha256(record):
+        errors.append("outcome-blind selection self-hash mismatch")
+    if (
+        record.get("locus") != locus
+        or record.get("task_id") != task_id
+        or record.get("selected_before_formal_participant_outcomes") is not True
+        or record.get("formal_participant_outcomes_observed") != 0
+        or record.get("formal_participant_outcomes_used") is not False
+        or record.get("selection_rule_frozen_before_evidence_review") is not True
+    ):
+        errors.append("selection record does not prove outcome-blind task selection")
+    record_binding = record.get("source_binding")
+    if not isinstance(record_binding, Mapping):
+        errors.append("selection record lacks its C2 source binding")
+    else:
+        errors.extend(validate_c2_source_binding(root, record_binding))
+        if record_binding.get("tested_commit") != source_binding.get("tested_commit"):
+            errors.append("selection record does not share the receipt runtime commit")
+    return errors
+
+
+def build_c2_task_admission_receipt(
+    root: Path,
+    *,
+    locus: str,
+    task_id: str,
+    campaign_config_path: Path,
+    stage_report_paths: Mapping[str, Path],
+    selection_record_path: Path,
+    source_binding: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build a deterministic terminal-task receipt from independently validated evidence."""
+
+    root = root.resolve()
+    if locus not in C2_LOCI:
+        raise ValueError(f"unsupported C2 locus: {locus}")
+    if set(stage_report_paths) != set(C2_TASK_STAGE_ORDER):
+        raise ValueError("stage evidence roster must contain exactly Q1, Q2 and D1")
+    campaign_path = _inside_root(root, campaign_config_path, label="campaign config")
+    selection_path = _inside_root(root, selection_record_path, label="selection record")
+    errors: list[str] = []
+    binding = dict(source_binding) if source_binding is not None else build_c2_source_binding(root)
+    errors.extend(validate_c2_source_binding(root, binding))
+
+    campaign: dict[str, Any] = {}
+    if campaign_path.is_file():
+        campaign = _load_object(campaign_path)
+        errors.extend(_campaign_errors(campaign, locus=locus, task_id=task_id))
+    else:
+        errors.append("campaign config is missing")
+
+    selection: dict[str, Any] = {}
+    if selection_path.is_file():
+        selection = _load_object(selection_path)
+        errors.extend(
+            _selection_errors(
+                selection,
+                root=root,
+                locus=locus,
+                task_id=task_id,
+                source_binding=binding,
+            )
+        )
+    else:
+        errors.append("outcome-blind selection record is missing")
+
+    stages: list[dict[str, Any]] = []
+    for stage in C2_TASK_STAGE_ORDER:
+        row, stage_errors = _stage_evidence_row(
+            root,
+            stage=stage,
+            path=stage_report_paths[stage],
+            task_id=task_id,
+            source_binding=binding,
+        )
+        stages.append(row)
+        errors.extend(stage_errors)
+
+    passed = not errors
+    receipt: dict[str, Any] = {
+        "schema_version": C2_TASK_ADMISSION_RECEIPT_VERSION,
+        "status": (
+            "passed_terminal_task_admission" if passed else "not_ready_fail_closed"
+        ),
+        "formal_result": False,
+        "terminal_qualification_passed": passed,
+        "locus": locus,
+        "task_id": task_id,
+        "complete_experiments_per_cell": C2_REQUIRED_ROUNDS[locus],
+        "campaign_config_binding": (
+            _binding(root, campaign_path) if campaign_path.is_file() else None
+        ),
+        "stage_evidence_order": list(C2_TASK_STAGE_ORDER),
+        "stage_evidence": stages,
+        "outcome_blind_selection_binding": (
+            _binding(
+                root,
+                selection_path,
+                embedded_hash=str(selection.get("selection_sha256", "")),
+            )
+            if selection_path.is_file()
+            else None
+        ),
+        "participant_outcomes_used_for_selection": False,
+        "formal_participant_outcomes_observed": 0,
+        "source_binding": binding,
+        "validation_errors": errors,
+    }
+    receipt["receipt_sha256"] = c2_task_admission_receipt_sha256(receipt)
+    return receipt
 
 
 def _schedule_binding(cells: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
@@ -215,8 +535,81 @@ def _task_receipt_errors(
         or not task_id
     ):
         errors.append(f"{locus} task admission is not a terminal outcome-blind pass: {task_id}")
-    errors.extend(validate_c2_source_binding(root, receipt.get("source_binding")))
-    for label in ("campaign_config_binding", "qualification_report_binding"):
+    source_binding = receipt.get("source_binding")
+    source_binding = source_binding if isinstance(source_binding, Mapping) else {}
+    errors.extend(validate_c2_source_binding(root, source_binding))
+    stage_order = receipt.get("stage_evidence_order")
+    stages = receipt.get("stage_evidence")
+    stages = stages if isinstance(stages, list) else []
+    if stage_order != list(C2_TASK_STAGE_ORDER) or [
+        row.get("stage") for row in stages if isinstance(row, Mapping)
+    ] != list(C2_TASK_STAGE_ORDER):
+        errors.append(f"{locus} task admission stage roster is not frozen: {task_id}")
+    for row in stages:
+        if not isinstance(row, Mapping):
+            errors.append(f"{locus} task admission has malformed stage evidence: {task_id}")
+            continue
+        stage = str(row.get("stage"))
+        if stage not in C2_TASK_STAGE_ORDER:
+            errors.append(f"{locus} task admission has unsupported stage: {task_id}.{stage}")
+            continue
+        report_binding = row.get("report_binding")
+        report_binding = report_binding if isinstance(report_binding, Mapping) else {}
+        relative = report_binding.get("path")
+        if not isinstance(relative, str):
+            errors.append(f"{locus} task admission lacks {stage} evidence: {task_id}")
+            continue
+        path = (root / relative).resolve()
+        try:
+            path.relative_to(root)
+        except ValueError:
+            errors.append(f"{locus} task admission {stage} evidence escapes repository")
+            continue
+        rebuilt, stage_errors = _stage_evidence_row(
+            root,
+            stage=stage,
+            path=path,
+            task_id=str(task_id),
+            source_binding=source_binding,
+        )
+        if dict(row) != rebuilt:
+            errors.append(f"{locus} task admission {stage} evidence is stale: {task_id}")
+        errors.extend(f"{stage}: {error}" for error in stage_errors)
+    selection_binding = receipt.get("outcome_blind_selection_binding")
+    selection_binding = (
+        selection_binding if isinstance(selection_binding, Mapping) else {}
+    )
+    selection_relative = selection_binding.get("path")
+    if not isinstance(selection_relative, str):
+        errors.append(f"{locus} task admission lacks outcome-blind selection: {task_id}")
+    else:
+        selection_path = (root / selection_relative).resolve()
+        try:
+            selection_path.relative_to(root)
+        except ValueError:
+            errors.append(f"{locus} task selection binding escapes repository: {task_id}")
+        else:
+            if not selection_path.is_file():
+                errors.append(f"{locus} task selection record is missing: {task_id}")
+            else:
+                selection = _load_object(selection_path)
+                errors.extend(
+                    _selection_errors(
+                        selection,
+                        root=root,
+                        locus=locus,
+                        task_id=str(task_id),
+                        source_binding=source_binding,
+                    )
+                )
+                expected_selection = _binding(
+                    root,
+                    selection_path,
+                    embedded_hash=str(selection.get("selection_sha256", "")),
+                )
+                if dict(selection_binding) != expected_selection:
+                    errors.append(f"{locus} task selection binding is stale: {task_id}")
+    for label in ("campaign_config_binding",):
         binding = receipt.get(label)
         binding = binding if isinstance(binding, Mapping) else {}
         relative = binding.get("path")
@@ -232,6 +625,11 @@ def _task_receipt_errors(
             continue
         if not path.is_file() or file_sha256(path) != digest:
             errors.append(f"{locus} task admission binding is stale: {task_id}.{label}")
+            continue
+        config = _load_object(path)
+        errors.extend(_campaign_errors(config, locus=locus, task_id=str(task_id)))
+    if receipt.get("validation_errors") != []:
+        errors.append(f"{locus} task admission retains validation errors: {task_id}")
     return errors
 
 
@@ -310,6 +708,8 @@ def build_c2_admission_report(
     blockers: list[str] = []
     evidence_errors: list[str] = _plan_errors(plan)
     evidence_commits: list[str] = []
+    if git_worktree_dirty(root):
+        blockers.append("C2 admission requires a clean worktree")
 
     required = plan.get("required_blocks")
     required = required if isinstance(required, Mapping) else {}
@@ -520,10 +920,14 @@ __all__ = [
     "C2_ADMISSION_REPORT_VERSION",
     "C2_MATERIAL_SOURCE_EXCLUSIONS",
     "C2_MATERIAL_SOURCE_ROOTS",
+    "C2_OUTCOME_BLIND_SELECTION_VERSION",
     "C2_TASK_ADMISSION_RECEIPT_VERSION",
+    "C2_TASK_STAGE_ORDER",
     "build_c2_admission_report",
     "build_c2_source_binding",
+    "build_c2_task_admission_receipt",
     "c2_admission_sha256",
+    "c2_outcome_blind_selection_sha256",
     "c2_task_admission_receipt_sha256",
     "validate_c2_admission_report",
     "validate_c2_source_binding",

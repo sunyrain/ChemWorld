@@ -308,6 +308,7 @@ def execute_calibration(
             summary,
             manifest=manifest,
             expected_source_commit=str(authorization["source_commit"]),
+            root=ROOT,
         )
         if summary_errors:
             raise RuntimeError(
@@ -576,7 +577,11 @@ def execute_calibration(
         c2_source_binding=build_c2_source_binding(ROOT),
         observed_currency_usd_by_cell=currency_by_cell,
     )
-    summary_errors = validate_resource_calibration_summary(summary, manifest=manifest)
+    summary_errors = validate_resource_calibration_summary(
+        summary,
+        manifest=manifest,
+        root=ROOT,
+    )
     if summary_errors:
         raise RuntimeError("W2-26 summary failed: " + "; ".join(summary_errors))
     _write_once(summary_path, summary)

@@ -38,3 +38,9 @@ the scientific coverage, budgets, thresholds and stopping rules remain RC28-iden
 regenerated diagnostic graph contains three declared relations; sample-size, 25-check semantics and
 full design audits pass with zero failures. A2/A3 remain unstarted until the RC29 preregistration and
 release receipt bind a clean source commit.
+
+RC30 amendment (2026-08-12): subsequent Work II runtime-semantics and formal-gate repairs changed
+the executable source after RC29 certification. RC29 remains immutable historical evidence. RC30
+retains the same scientific coverage, budgets, thresholds, stopping rules and zero-provider Gate A
+question, but writes a fresh protocol composition, plan, audits, release qualification, A2/A3
+reports, structural receipts and public decision. No RC29 artifact may be overwritten or relabelled.

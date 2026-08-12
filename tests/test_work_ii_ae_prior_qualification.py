@@ -127,6 +127,14 @@ def test_plan_freezes_exact_five_task_cartesian_qualification() -> None:
     assert len(plan["source_binding"]["material_tree"]["sha256"]) == 64
 
 
+def test_evidence_registration_files_are_excluded_from_ae_material_tree() -> None:
+    assert "configs/current.json" in AE_MATERIAL_SOURCE_EXCLUSIONS
+    assert (
+        "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json"
+        in AE_MATERIAL_SOURCE_EXCLUSIONS
+    )
+
+
 def test_source_binding_accepts_ancestor_but_rejects_stale_material_tree(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

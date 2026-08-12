@@ -491,7 +491,7 @@ def build_resource_calibration_readiness(
                     validate_resource_calibration_summary(
                         summary,
                         manifest=manifest,
-                        expected_source_commit=source_commit,
+                        root=root,
                     )
                 )
                 summary_binding = {
@@ -792,6 +792,7 @@ def validate_resource_calibration_summary(
     *,
     manifest: Mapping[str, Any] | None = None,
     expected_source_commit: str | None = None,
+    root: Path | None = None,
 ) -> list[str]:
     errors: list[str] = []
     if summary.get("schema_version") != RESOURCE_CALIBRATION_SUMMARY_VERSION:
@@ -810,6 +811,16 @@ def validate_resource_calibration_summary(
         "source_commit"
     ) != expected_source_commit:
         errors.append("resource calibration summary source commit is stale")
+    if root is not None:
+        from chemworld.eval.work_ii_c2_admission import validate_c2_source_binding
+
+        c2_binding = summary.get("c2_source_binding")
+        c2_binding = c2_binding if isinstance(c2_binding, Mapping) else {}
+        if summary.get("source_commit") != c2_binding.get("tested_commit"):
+            errors.append(
+                "resource calibration summary source commit differs from its C2 binding"
+            )
+        errors.extend(validate_c2_source_binding(root.resolve(), c2_binding))
     if status == "not_executed":
         if (
             summary.get("provider_calls_executed") != 0

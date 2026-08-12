@@ -69,9 +69,11 @@ AE_MATERIAL_SOURCE_ROOTS = (
     "uv.lock",
 )
 AE_MATERIAL_SOURCE_EXCLUSIONS = (
-    # Evidence paths are populated here after qualification. Including this
-    # one coordination file would make that registration self-invalidating.
+    # Evidence paths are populated here after qualification. Including these
+    # coordination surfaces would make registration self-invalidating even
+    # though neither file changes the qualified runtime semantics.
     "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json",
+    "configs/current.json",
 )
 
 

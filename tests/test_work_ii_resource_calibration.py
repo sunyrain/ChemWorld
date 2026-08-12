@@ -13,6 +13,7 @@ import scripts.run_work_ii_resource_calibration as calibration_runner
 
 import chemworld.eval.work_ii_resource_calibration as calibration_module
 from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.eval.work_ii_c2_admission import build_c2_source_binding
 from chemworld.eval.work_ii_resource_calibration import (
     RESOURCE_CALIBRATION_ARMS,
     build_resource_calibration_authorization,
@@ -195,6 +196,7 @@ def _passed_summary(manifest: dict[str, object], source_commit: str) -> dict[str
         "provider_calls_executed": 9,
         "manifest_sha256": canonical_json_sha256(manifest),
         "source_commit": source_commit,
+        "c2_source_binding": build_c2_source_binding(ROOT),
         "expected_denominators": manifest["expected_denominators"],
         "observed_denominators": {
             "pattern_triplets_started": 3,
@@ -268,6 +270,49 @@ def test_future_passed_summary_is_the_only_unlock_path(
     assert validate_resource_calibration_readiness(after) == []
     assert after["status"] == "calibration_passed_method_qualification_eligible"
     assert after["method_qualification_may_be_authorized"] is True
+
+
+def test_readiness_accepts_report_only_commit_but_rejects_c2_material_drift(
+    repo_tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manifest_path, manifest = _future_manifest(repo_tmp_path)
+    tested_commit = "a" * 40
+    current_commit = "b" * 40
+    binding = build_c2_source_binding(ROOT)
+    binding["tested_commit"] = tested_commit
+    summary = _passed_summary(manifest, tested_commit)
+    summary["c2_source_binding"] = binding
+    summary["summary_sha256"] = resource_calibration_summary_sha256(summary)
+    summary_path = repo_tmp_path / "summary.json"
+    summary_path.write_text(json.dumps(summary), encoding="utf-8")
+    monkeypatch.setattr(calibration_module, "git_worktree_dirty", lambda _root: False)
+    monkeypatch.setattr(calibration_module, "git_source_commit", lambda _root: current_commit)
+    monkeypatch.setattr(
+        "chemworld.eval.work_ii_c2_admission.git_source_commit",
+        lambda _root: current_commit,
+    )
+    monkeypatch.setattr(
+        "chemworld.eval.work_ii_c2_admission.subprocess.run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(args[0], 0),
+    )
+
+    report_only = build_resource_calibration_readiness(
+        ROOT, manifest_path, summary_path=summary_path
+    )
+    assert report_only["calibration_summary_errors"] == []
+    assert report_only["method_qualification_may_be_authorized"] is True
+
+    summary["c2_source_binding"]["material_tree"]["sha256"] = "0" * 64
+    summary["summary_sha256"] = resource_calibration_summary_sha256(summary)
+    summary_path.write_text(json.dumps(summary), encoding="utf-8")
+    drifted = build_resource_calibration_readiness(
+        ROOT, manifest_path, summary_path=summary_path
+    )
+    assert any(
+        "protected material tree changed" in error
+        for error in drifted["calibration_summary_errors"]
+    )
+    assert drifted["method_qualification_may_be_authorized"] is False
 
 
 def test_passed_summary_rejects_failure_and_resource_card_tampering(
