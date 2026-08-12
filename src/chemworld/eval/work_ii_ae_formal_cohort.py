@@ -12,6 +12,7 @@ from typing import Any
 from chemworld.eval.provenance import canonical_json_sha256
 
 FORMAL_DESIGN_VERSION = "chemworld-work-ii-formal-design-0.2"
+LEGACY_FORMAL_DESIGN_VERSION = "chemworld-work-ii-formal-design-0.1"
 FORMAL_DESIGN_ID = "work-ii-fixed-law-prior-formal-v0.2"
 AE_CONTRACT_VERSION = "chemworld-work-ii-ae-prior-distinguishability-contract-0.2"
 AE_CONTRACT_PATH = "configs/benchmark/work_ii_ae_prior_distinguishability_v0.2.json"
@@ -172,10 +173,52 @@ def validate_ae_public_cells(
     return errors
 
 
+def validate_formal_ae_qualification(
+    root: Path, report_path: Path, design: Mapping[str, Any]
+) -> list[str]:
+    """Route formal A-E evidence to the validator matching the design version."""
+
+    if design.get("schema_version") == FORMAL_DESIGN_VERSION:
+        _, _, cohort_errors = load_ae_formal_cohort(root, design)
+        qualification = _mapping(
+            design.get("prior_distinguishability_qualification_contract")
+        )
+        binding = _mapping(qualification.get("contract_binding"))
+        contract_path = (root.resolve() / str(binding.get("path", ""))).resolve()
+        from chemworld.eval.work_ii_ae_prior_qualification_v02 import (
+            validate_formal_qualification_output,
+        )
+
+        return [
+            *cohort_errors,
+            *validate_formal_qualification_output(
+                root.resolve(), report_path.resolve(), contract_path
+            ),
+        ]
+
+    if design.get("schema_version") != LEGACY_FORMAL_DESIGN_VERSION:
+        return ["unsupported formal design version for A-E qualification"]
+    return [
+        "legacy formal design v0.1 is historical-only and cannot authorize new A-E admission"
+    ]
+
+
+def qualification_tested_commit(report: Mapping[str, Any]) -> object:
+    """Return the tested commit from either supported qualification schema."""
+
+    context = _mapping(report.get("execution_context"))
+    if context:
+        return context.get("tested_commit")
+    return _mapping(report.get("source_binding")).get("tested_commit")
+
+
 __all__ = [
     "AE_CONTRACT_PATH",
     "FORMAL_DESIGN_ID",
     "FORMAL_DESIGN_VERSION",
+    "LEGACY_FORMAL_DESIGN_VERSION",
     "load_ae_formal_cohort",
+    "qualification_tested_commit",
     "validate_ae_public_cells",
+    "validate_formal_ae_qualification",
 ]

@@ -98,6 +98,14 @@ mean support separation `<0.05`；distillation 的全部 held-out anchor 仅 `0.
 pair 不具备足够物理可识别性。v0.2 结果原样保留，不降阈值、不重用已暴露 worlds；若继续 A-E，
 必须把全部 v0.2 worlds 降为 exposed construction，先做 task/locus 的物理 oracle 资格，再冻结全新
 prospective held-out cohort 与 v0.3 问题。正式 A-E participant matrix 不得基于 v0.2 升级。
+进一步语义复核确认：v0.2 盲 policy 未读取 permutation 并完成全类覆盖，但 hidden analyzer
+事后读取真实 pair 只计算该 pair 的 contrast，未在 6 个 transposition hypotheses 中盲选。因此
+positive cells 只证明 analyzer-specified pairwise locus separability，不证明 blind pair identification；negative
+result 仍有效，因为它连盲识别的必要物理可分条件都未满足。v0.3 候选开发须冻结一个
+不读 permutation 的 classifier，枚举 H0 + 6 个 row-transposition hypotheses，仅依据 agent-visible
+dossier、事前 primary endpoints 和两 task-aware anchors 输出 pair 或 abstain，真实 pair 只供离线计分。
+候选 screen 可覆盖全五任务，但 Paper2 的正式 claim 应改为事前限定的 qualified-locus claim；若
+仍坚持五任务 universal claim，须先使五个 loci 在全新 prospective worlds 全部通过。
 
 严格 A-S 的旧 partition load-by-phase-volume Q0 保留科学拒绝。新的 nominal-pair partition Q0 已在执行前
 冻结为完整 `4 x 4` categorical solvent-by-extractant 表，并完成 `32/32` primary 与 `32/32` exact replay，

@@ -15,7 +15,10 @@ from chemworld.eval.provenance import (
     git_source_commit,
     git_worktree_dirty,
 )
-from chemworld.eval.work_ii_ae_formal_cohort import validate_ae_public_cells
+from chemworld.eval.work_ii_ae_formal_cohort import (
+    validate_ae_public_cells,
+    validate_formal_ae_qualification,
+)
 from chemworld.eval.work_ii_execution_mode import (
     ExecutionMode,
     validate_execution_envelope,
@@ -364,7 +367,7 @@ def validate_c2_source_binding(root: Path, binding: object) -> list[str]:
     if binding.get("schema_version") != "chemworld-work-ii-c2-source-binding-0.1":
         errors.append("unexpected C2 source-binding schema")
     tested_commit = binding.get("tested_commit")
-    if not _is_commit(tested_commit):
+    if not isinstance(tested_commit, str) or not _is_commit(tested_commit):
         errors.append("C2 source binding tested commit is invalid")
     else:
         completed = subprocess.run(
@@ -1151,18 +1154,7 @@ def _ae_qualification_errors(
     if not report_path.is_file():
         return None, ["A_E prior qualification report is missing"]
     report = _load_object(report_path)
-    # Local import avoids a module cycle: the qualification plan reuses the
-    # frozen A-E checkpoint builder from work_ii_formal.
-    from chemworld.eval.work_ii_ae_prior_qualification import (
-        validate_qualification_report,
-    )
-
-    errors = validate_qualification_report(
-        root,
-        report,
-        design,
-        report_path=report_path,
-    )
+    errors = validate_formal_ae_qualification(root, report_path, design)
     if report.get("status") != "passed":
         errors.append("A_E prior qualification did not pass")
     errors.extend(

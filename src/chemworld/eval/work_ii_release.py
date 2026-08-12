@@ -14,8 +14,9 @@ from chemworld.eval.provenance import (
     git_source_commit,
     git_worktree_dirty,
 )
-from chemworld.eval.work_ii_ae_prior_qualification import (
-    validate_qualification_report as validate_ae_prior_qualification_report,
+from chemworld.eval.work_ii_ae_formal_cohort import (
+    qualification_tested_commit,
+    validate_formal_ae_qualification,
 )
 from chemworld.eval.work_ii_cost import (
     build_formal_cost_contract,
@@ -36,6 +37,8 @@ PRERUN_EVIDENCE_GRAPH_VERSION = "chemworld-work-ii-prerun-evidence-graph-0.1"
 CLEAN_RELEASE_RECEIPT_VERSION = "chemworld-work-ii-clean-release-receipt-0.1"
 # Keep the clean-release receipt tied to one exact, reviewable Work II test roster.
 WORK_II_RELEASE_TEST_FILES = (
+    "tests/test_work_ii_ae_formal_cohort.py",
+    "tests/test_work_ii_ae_prior_qualification_v02.py",
     "tests/test_work_ii_analysis.py",
     "tests/test_work_ii_analysis_plan_audit.py",
     "tests/test_work_ii_blind_evaluator.py",
@@ -66,24 +69,25 @@ WORK_II_RELEASE_TEST_FILES = (
     "tests/test_work_ii_static_topology_q0.py",
     "tests/test_work_ii_truth.py",
 )
-EXPECTED_WORK_II_RELEASE_TEST_COUNT = 225
+EXPECTED_WORK_II_RELEASE_TEST_COUNT = 267
 PREREGISTRATION_FREEZE_RECEIPT_VERSION = (
     "chemworld-work-ii-preregistration-freeze-receipt-0.1"
 )
 
 _DEFAULT_PATHS = {
     "current_registry": "configs/current.json",
-    "formal_design": "configs/benchmark/work_ii_formal_design_v0.1.json",
-    "analysis_plan": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
+    "formal_design": "configs/benchmark/work_ii_formal_design_v0.2.json",
+    "analysis_plan": "configs/benchmark/work_ii_analysis_plan_v0.2.json",
     "formal_design_audit": (
-        "workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit.json"
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-formal-world-prior-design-audit-v0.2.json"
     ),
     "power_resource_audit": (
         "workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json"
     ),
     "formal_preflight": (
         "workstreams/flagship_tasks/reports/"
-        "work-ii-formal-matrix-runner-preflight-v0.1.json"
+        "work-ii-formal-matrix-runner-preflight-v0.2.json"
     ),
     "method_qualification_readiness": (
         "workstreams/flagship_tasks/reports/"
@@ -93,10 +97,10 @@ _DEFAULT_PATHS = {
         "configs/benchmark/work_ii_submission_route_decision_v0.1.json"
     ),
     "preregistration_readiness": (
-        "workstreams/flagship_tasks/reports/work-ii-preregistration-readiness-v0.1.json"
+        "workstreams/flagship_tasks/reports/work-ii-preregistration-readiness-v0.2.json"
     ),
     "preregistration_draft": (
-        "workstreams/flagship_tasks/reports/work-ii-preregistration-draft-v0.1.md"
+        "workstreams/flagship_tasks/reports/work-ii-preregistration-draft-v0.2.md"
     ),
     "blind_evaluator_shakedown": (
         "workstreams/flagship_tasks/reports/"
@@ -107,6 +111,56 @@ _DEFAULT_PATHS = {
         "work-ii-held-out-evaluator-development-shakedown-v0.2.json"
     ),
 }
+_LEGACY_V01_PATH_OVERRIDES = {
+    "formal_design": "configs/benchmark/work_ii_formal_design_v0.1.json",
+    "analysis_plan": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
+    "formal_design_audit": (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-formal-world-prior-design-audit.json"
+    ),
+    "formal_preflight": (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-formal-matrix-runner-preflight-v0.1.json"
+    ),
+    "preregistration_readiness": (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-preregistration-readiness-v0.1.json"
+    ),
+    "preregistration_draft": (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-preregistration-draft-v0.1.md"
+    ),
+}
+_READINESS_VERSION_BY_FORMAL_PATHS = {
+    (
+        "configs/benchmark/work_ii_formal_design_v0.1.json",
+        "configs/benchmark/work_ii_analysis_plan_v0.1.json",
+    ): "v0.1",
+    (
+        "configs/benchmark/work_ii_formal_design_v0.2.json",
+        "configs/benchmark/work_ii_analysis_plan_v0.2.json",
+    ): "v0.2",
+}
+
+
+def _readiness_version(manifest: Mapping[str, Any]) -> str:
+    design_binding = manifest.get("design_binding")
+    design_binding = design_binding if isinstance(design_binding, Mapping) else {}
+    analysis_binding = manifest.get("analysis_binding")
+    analysis_binding = (
+        analysis_binding if isinstance(analysis_binding, Mapping) else {}
+    )
+    formal_paths = (
+        str(design_binding.get("path")),
+        str(analysis_binding.get("path")),
+    )
+    try:
+        return _READINESS_VERSION_BY_FORMAL_PATHS[formal_paths]
+    except KeyError as error:
+        raise ValueError(
+            "unsupported formal design/analysis path pairing for "
+            "preregistration readiness"
+        ) from error
 
 _EDGE_SPECS = (
     ("current_registry", "gate_a_public_decision", "resolves_current_gate_a"),
@@ -206,11 +260,18 @@ def _text_node(
     }
 
 
-def build_prerun_evidence_graph(root: Path) -> dict[str, Any]:
+def build_prerun_evidence_graph(
+    root: Path, *, artifact_version: str = "v0.2"
+) -> dict[str, Any]:
     """Build the outcome-blind DAG used by the Work II preregistration release audit."""
 
     root = root.resolve()
-    paths = {key: root / value for key, value in _DEFAULT_PATHS.items()}
+    if artifact_version not in {"v0.1", "v0.2"}:
+        raise ValueError("Work II pre-run artifact version must be v0.1 or v0.2")
+    relative_paths = dict(_DEFAULT_PATHS)
+    if artifact_version == "v0.1":
+        relative_paths.update(_LEGACY_V01_PATH_OVERRIDES)
+    paths = {key: root / value for key, value in relative_paths.items()}
     current = _load_object(paths["current_registry"])
     mechanism = current.get("mechanism_adaptation")
     mechanism = mechanism if isinstance(mechanism, Mapping) else {}
@@ -321,11 +382,8 @@ def build_prerun_evidence_graph(root: Path) -> dict[str, Any]:
                 failures.append("bound A-E qualification evidence is missing")
             else:
                 qualification_report = _load_object(qualification_path)
-                qualification_errors = validate_ae_prior_qualification_report(
-                    root,
-                    qualification_report,
-                    design,
-                    report_path=qualification_path,
+                qualification_errors = validate_formal_ae_qualification(
+                    root, qualification_path, design
                 )
                 failures.extend(
                     "A-E qualification: " + error for error in qualification_errors
@@ -336,7 +394,7 @@ def build_prerun_evidence_graph(root: Path) -> dict[str, Any]:
                     or qualification_binding.get("report_sha256")
                     != qualification_report.get("report_sha256")
                     or qualification_binding.get("tested_commit")
-                    != qualification_report.get("source_binding", {}).get("tested_commit")
+                    != qualification_tested_commit(qualification_report)
                 ):
                     failures.append("formal-design audit A-E qualification binding is stale")
     if blind.get("failures") != [] or held_out.get("all_failures") != []:
@@ -764,10 +822,14 @@ def validate_preregistration_freeze_receipt(
     ):
         errors.append("preregistration freeze does not bind the selected submission route")
 
-    readiness_path = (
-        root
-        / "workstreams/flagship_tasks/reports/"
-        "work-ii-preregistration-readiness-v0.1.json"
+    try:
+        readiness_version = _readiness_version(manifest)
+    except ValueError as error:
+        errors.append(str(error))
+        readiness_version = "unsupported"
+    readiness_path = root / (
+        "workstreams/flagship_tasks/reports/"
+        f"work-ii-preregistration-readiness-{readiness_version}.json"
     )
     if not readiness_path.is_file():
         errors.append("preregistration readiness manifest is missing")
@@ -927,10 +989,10 @@ def build_preregistration_freeze_receipt(
     root = root.resolve()
     qualification_path = qualification_receipt_path.resolve()
     route_path = root / "configs/benchmark/work_ii_submission_route_decision_v0.1.json"
-    readiness_path = (
-        root
-        / "workstreams/flagship_tasks/reports/"
-        "work-ii-preregistration-readiness-v0.1.json"
+    readiness_version = _readiness_version(manifest)
+    readiness_path = root / (
+        "workstreams/flagship_tasks/reports/"
+        f"work-ii-preregistration-readiness-{readiness_version}.json"
     )
     clean_path = (
         root

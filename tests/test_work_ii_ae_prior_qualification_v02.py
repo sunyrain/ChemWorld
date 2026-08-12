@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
@@ -10,11 +11,22 @@ import pytest
 import chemworld.eval.work_ii_ae_prior_qualification_v02 as qualification_module
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
 from chemworld.eval.work_ii_ae_prior_qualification_v02 import (
+    LEGACY_DEVELOPMENT_PLAN_VERSION,
+    LEGACY_DEVELOPMENT_REPORT_VERSION,
     RECEIPT_VERSION,
+    RELEASE_CANONICAL_OUTPUT_PATH,
+    RELEASE_EXECUTION_PROTOCOL,
+    RELEASE_EXECUTION_REQUIRED_PATHS,
+    RELEASE_EXPERIMENT_ID,
+    AEPriorQualificationV02Error,
+    _release_surface_coverage_errors,
+    bind_release_attempt,
     build_blind_policy_schedule,
     build_partial_audit,
     build_qualification_plan,
     build_qualification_report,
+    execute_qualification,
+    runtime_environment_fingerprint,
     validate_contract,
     validate_qualification_output,
     validate_qualification_plan,
@@ -22,12 +34,8 @@ from chemworld.eval.work_ii_ae_prior_qualification_v02 import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTRACT_PATH = (
-    ROOT / "configs/benchmark/work_ii_ae_prior_distinguishability_v0.2.json"
-)
-SCHEMA_PATH = (
-    ROOT / "src/chemworld/schemas/work_ii_ae_prior_qualification_v02_schema.json"
-)
+CONTRACT_PATH = ROOT / "configs/benchmark/work_ii_ae_prior_distinguishability_v0.2.json"
+SCHEMA_PATH = ROOT / "src/chemworld/schemas/work_ii_ae_prior_qualification_v02_schema.json"
 
 
 def _contract() -> dict[str, object]:
@@ -52,9 +60,7 @@ def _synthetic_receipts(
     receipts: list[dict[str, object]] = []
     for row in plan["executions"]:
         failed = (
-            fail_construction
-            and row["phase"] == "construction"
-            and row["execution_index"] == 0
+            fail_construction and row["phase"] == "construction" and row["execution_index"] == 0
         ) or (
             fail_heldout_task is not None
             and row["phase"] == "heldout_qualification"
@@ -94,8 +100,7 @@ def _synthetic_receipts(
                         metric: metrics[metric] for metric in row["support_metric_ids"]
                     },
                     "negative_control_metrics": {
-                        metric: metrics[metric]
-                        for metric in row["negative_control_metric_ids"]
+                        metric: metrics[metric] for metric in row["negative_control_metric_ids"]
                     },
                     "exact_replay": {"verified": True},
                     "trajectory": {
@@ -116,10 +121,14 @@ def test_contract_and_plan_freeze_exact_denominators_and_heldout_namespace() -> 
     plan = _plan()
 
     assert validate_contract(ROOT, contract) == []
-    assert schema["properties"]["schema_version"]["const"] == contract[
-        "schema_version"
-    ]
+    assert schema["properties"]["schema_version"]["const"] == contract["schema_version"]
     assert validate_qualification_plan(ROOT, plan, contract) == []
+    assert contract["development_only"] is True
+    assert plan["execution_context"]["execution_mode"] == "development"
+    assert plan["development_only"] is True
+    assert "release_execution_protocol" not in plan
+    assert "release_manifest_binding" not in plan
+    assert "runtime_environment_fingerprint" not in plan
     assert plan["denominators"] == {
         "tasks": 5,
         "task_worlds_total": 50,
@@ -139,14 +148,291 @@ def test_contract_and_plan_freeze_exact_denominators_and_heldout_namespace() -> 
     ] == [934334899, 222130288, 187256385, 779398037, 533253734]
 
 
+def test_completed_pre_envelope_development_schema_remains_reproducible() -> None:
+    contract = _contract()
+    plan = deepcopy(_plan())
+    plan["schema_version"] = LEGACY_DEVELOPMENT_PLAN_VERSION
+    plan.pop("execution_context")
+    _rehash(plan, "plan_sha256")
+
+    assert validate_qualification_plan(ROOT, plan, contract) == []
+    receipts = _synthetic_receipts(plan)
+    report = build_qualification_report(plan, receipts, contract)
+
+    assert report["schema_version"] == LEGACY_DEVELOPMENT_REPORT_VERSION
+    assert report["development_only"] is True
+    assert "execution_context" not in report
+    assert "runtime_environment_fingerprint" not in report
+    assert validate_qualification_report(ROOT, report, plan, receipts, contract) == []
+
+
+def test_release_execution_requires_a_validated_manifest_before_output_creation(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "release-output"
+
+    with pytest.raises(ValueError, match="release mode requires a release manifest"):
+        execute_qualification(
+            ROOT,
+            CONTRACT_PATH,
+            output,
+            execution_mode="release",
+        )
+
+    assert not output.exists()
+
+
+def test_release_execution_rejects_noncanonical_output_before_creation(
+    tmp_path: Path,
+) -> None:
+    manifest_path = tmp_path / "release-manifest.json"
+    manifest_path.write_text(json.dumps({"freeze_id": "a" * 64}) + "\n", encoding="utf-8")
+    output = tmp_path / "alternate-output"
+
+    with pytest.raises(ValueError, match="canonical A-E attempt path"):
+        execute_qualification(
+            ROOT,
+            CONTRACT_PATH,
+            output,
+            execution_mode="release",
+            release_manifest=manifest_path,
+        )
+
+    assert not output.exists()
+    assert json.loads(manifest_path.read_text(encoding="utf-8")) == {"freeze_id": "a" * 64}
+
+
+def test_release_execution_rejects_already_used_canonical_attempt() -> None:
+    manifest = {"freeze_id": "a" * 64, "manifest_sha256": "b" * 64}
+    claimed = bind_release_attempt(manifest)
+    attempt = claimed["release_attempts"][RELEASE_EXPERIMENT_ID]
+    output = ROOT / attempt["canonical_output_path"]
+
+    with pytest.raises(ValueError, match="already claimed"):
+        bind_release_attempt(claimed)
+
+    assert not output.exists()
+
+
+def test_release_execution_rejects_an_underbound_surface() -> None:
+    underbound = {
+        "execution_surface": {
+            "relative_roots": ["configs/benchmark/work_ii_ae_prior_distinguishability_v0.2.json"]
+        }
+    }
+    errors = _release_surface_coverage_errors(ROOT, underbound)
+    assert any("src/chemworld" in error for error in errors)
+    assert any("run_work_ii_ae_prior_qualification_v02.py" in error for error in errors)
+    assert any("resource_limits.json" in error for error in errors)
+
+    assert RELEASE_EXECUTION_REQUIRED_PATHS == (
+        "configs/benchmark/work_ii_ae_prior_distinguishability_v0.2.json",
+        "configs/benchmark/work_ii_campaign_pilot.json",
+        "configs/benchmark/work_ii_crystallization_campaign.json",
+        "configs/benchmark/work_ii_distillation_campaign.json",
+        "configs/benchmark/work_ii_partition_campaign.json",
+        "configs/benchmark/work_ii_safety_campaign.json",
+        "configs/benchmark/resource_limits.json",
+        "configs/scenarios",
+        "configs/mechanisms",
+        "workstreams/flagship_tasks/WORK_II_AE_PRIOR_DISTINGUISHABILITY_V02_EXPERIMENT_NOTE.md",
+        "pyproject.toml",
+        "uv.lock",
+        "scripts/run_work_ii_ae_prior_qualification_v02.py",
+        "src/chemworld",
+    )
+
+    fully_bound = {"execution_surface": {"relative_roots": list(RELEASE_EXECUTION_REQUIRED_PATHS)}}
+    assert _release_surface_coverage_errors(ROOT, fully_bound) == []
+
+    missing_only_runtime_resource = {
+        "execution_surface": {
+            "relative_roots": [
+                path
+                for path in RELEASE_EXECUTION_REQUIRED_PATHS
+                if path != "configs/benchmark/resource_limits.json"
+            ]
+        }
+    }
+    assert _release_surface_coverage_errors(ROOT, missing_only_runtime_resource) == [
+        "A-E release execution surface does not cover required path: "
+        "configs/benchmark/resource_limits.json"
+    ]
+
+    overbroad = {
+        "execution_surface": {
+            "relative_roots": ["configs", "scripts", "src", "pyproject.toml", "uv.lock"]
+        }
+    }
+    assert _release_surface_coverage_errors(ROOT, overbroad)
+
+
+def test_release_attempt_is_canonical_and_can_be_claimed_only_once() -> None:
+    manifest = {"freeze_id": "a" * 64, "manifest_sha256": "b" * 64}
+    claimed = bind_release_attempt(manifest)
+
+    attempt = claimed["release_attempts"][RELEASE_EXPERIMENT_ID]
+    assert attempt["single_use"] is True
+    assert attempt["canonical_output_path"] == (
+        f"{RELEASE_CANONICAL_OUTPUT_PATH}/{attempt['attempt_id']}"
+    )
+    with pytest.raises(ValueError, match="already claimed"):
+        bind_release_attempt(claimed)
+
+
+def test_release_plan_rejects_noncanonical_output_or_duplicate_attempt(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    manifest = {"freeze_id": "a" * 64}
+    claimed = bind_release_attempt(manifest)
+    manifest_path = CONTRACT_PATH
+    manifest_holder = {"value": claimed}
+    envelope = {
+        "execution_mode": "release",
+        "evidence_status": "release_candidate",
+        "release_eligible": True,
+        "c2_admission_authorized": True,
+        "tested_commit": "b" * 40,
+        "freeze_id": "a" * 64,
+        "release_manifest_sha256": claimed["manifest_sha256"],
+        "execution_surface_sha256": "c" * 64,
+    }
+    monkeypatch.setattr(
+        qualification_module,
+        "prepare_execution_context",
+        lambda *args, **kwargs: SimpleNamespace(),
+    )
+    monkeypatch.setattr(
+        qualification_module,
+        "build_execution_envelope",
+        lambda context: deepcopy(envelope),
+    )
+    monkeypatch.setattr(
+        qualification_module,
+        "_release_surface_coverage_errors",
+        lambda *args, **kwargs: [],
+    )
+    monkeypatch.setattr(
+        qualification_module,
+        "_load_object",
+        lambda path: deepcopy(manifest_holder["value"]),
+    )
+
+    with pytest.raises(AEPriorQualificationV02Error, match="canonical A-E attempt path"):
+        qualification_module._release_manifest_binding(
+            ROOT,
+            envelope,
+            manifest_path,
+            tmp_path / "alternate-output",
+        )
+
+    duplicate = deepcopy(claimed)
+    duplicate["release_attempts"][RELEASE_EXPERIMENT_ID]["attempt_id"] = "d" * 64
+    manifest_holder["value"] = duplicate
+    with pytest.raises(AEPriorQualificationV02Error, match="write-once A-E attempt"):
+        qualification_module._release_manifest_binding(
+            ROOT,
+            envelope,
+            manifest_path,
+            ROOT / claimed["release_attempts"][RELEASE_EXPERIMENT_ID]["canonical_output_path"],
+        )
+
+
+def test_runtime_environment_fingerprint_is_self_verifying_and_release_only() -> None:
+    plan = _plan()
+    fingerprint = runtime_environment_fingerprint()
+
+    assert "runtime_environment_fingerprint" not in plan
+    assert "release_execution_protocol" not in plan
+    assert "release_manifest_binding" not in plan
+    assert fingerprint["dependencies"].keys() == {"numpy", "scipy"}
+    assert fingerprint["fingerprint_sha256"] == canonical_json_sha256(
+        {key: value for key, value in fingerprint.items() if key != "fingerprint_sha256"}
+    )
+
+    release_context = {
+        "execution_mode": "release",
+        "evidence_status": "release_candidate",
+        "release_eligible": True,
+        "c2_admission_authorized": True,
+        "tested_commit": "a" * 40,
+        "freeze_id": "b" * 64,
+        "release_manifest_sha256": "c" * 64,
+        "execution_surface_sha256": "d" * 64,
+    }
+    release_plan = qualification_module._build_plan_payload(
+        ROOT,
+        CONTRACT_PATH,
+        _contract(),
+        release_context,
+        {"attempt": {"attempt_id": "e" * 64}},
+    )
+    assert release_plan["runtime_environment_fingerprint"] == fingerprint
+    assert release_plan["release_execution_protocol"] == RELEASE_EXECUTION_PROTOCOL
+    assert release_plan["release_manifest_binding"] == {
+        "attempt": {"attempt_id": "e" * 64}
+    }
+
+
+def test_development_result_survives_release_protocol_and_runtime_upgrades(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    contract = _contract()
+    plan = _plan()
+    receipts = _synthetic_receipts(plan)
+    report = build_qualification_report(plan, receipts, contract)
+
+    monkeypatch.setattr(
+        qualification_module,
+        "RELEASE_EXECUTION_PROTOCOL",
+        {"schema_version": "future-release-protocol"},
+    )
+    monkeypatch.setattr(
+        qualification_module,
+        "runtime_environment_fingerprint",
+        lambda: {
+            "schema_version": "future-runtime",
+            "fingerprint_sha256": "f" * 64,
+        },
+    )
+
+    assert validate_qualification_plan(ROOT, plan, contract) == []
+    assert validate_qualification_report(ROOT, report, plan, receipts, contract) == []
+
+
+def test_formal_validator_returns_errors_for_corrupt_report_or_plan() -> None:
+    with tempfile.TemporaryDirectory(prefix=".pytest-ae-formal-", dir=ROOT) as temporary:
+        output = Path(temporary)
+        report_path = output / "report.json"
+        plan_path = output / "plan.json"
+        report_path.write_text("{not-json", encoding="utf-8")
+        plan_path.write_text("{}", encoding="utf-8")
+
+        report_errors = qualification_module.validate_formal_qualification_output(
+            ROOT, report_path, CONTRACT_PATH
+        )
+        assert report_errors
+        assert any("unreadable" in error for error in report_errors)
+
+        report_path.write_text("{}", encoding="utf-8")
+        plan_path.write_text("{not-json", encoding="utf-8")
+        plan_errors = qualification_module.validate_formal_qualification_output(
+            ROOT, report_path, CONTRACT_PATH
+        )
+        assert plan_errors
+        assert any(
+            "failed closed" in error or "canonical attempt path" in error
+            for error in plan_errors
+        )
+
+
 def test_noise_seed_and_namespace_are_distinct_for_hidden_pair_sides() -> None:
     contract = _contract()
     plan = _plan()
     task = contract["tasks"][0]
     moved = [
-        index
-        for index, source in enumerate(task["descriptor_permutation"])
-        if index != source
+        index for index, source in enumerate(task["descriptor_permutation"]) if index != source
     ]
     rows = [
         row
@@ -154,9 +440,7 @@ def test_noise_seed_and_namespace_are_distinct_for_hidden_pair_sides() -> None:
         if row["phase"] == "heldout_qualification"
         and row["task_id"] == task["task_id"]
         and row["world_seed"]
-        == contract["cohorts"]["heldout_qualification"]["task_world_seeds"][
-            task["task_id"]
-        ][0]
+        == contract["cohorts"]["heldout_qualification"]["task_world_seeds"][task["task_id"]][0]
         and row["policy_replicate"] == 0
         and row["nuisance_anchor"] == 0
         and row["target_category"] in moved
@@ -164,9 +448,7 @@ def test_noise_seed_and_namespace_are_distinct_for_hidden_pair_sides() -> None:
 
     assert len(rows) == 2
     assert rows[0]["observation_seed"] != rows[1]["observation_seed"]
-    assert rows[0]["observation_noise_namespace"] != rows[1][
-        "observation_noise_namespace"
-    ]
+    assert rows[0]["observation_noise_namespace"] != rows[1]["observation_noise_namespace"]
 
 
 def test_blind_policy_signature_and_output_do_not_depend_on_pair_or_outcomes() -> None:
@@ -185,9 +467,9 @@ def test_blind_policy_signature_and_output_do_not_depend_on_pair_or_outcomes() -
     )
     assert len(schedule) == 8
     assert len({row["recipe_id"] for row in schedule}) == 8
-    assert {
-        (row["nuisance_anchor"], row["target_category"]) for row in schedule
-    } == {(anchor, category) for anchor in range(2) for category in range(4)}
+    assert {(row["nuisance_anchor"], row["target_category"]) for row in schedule} == {
+        (anchor, category) for anchor in range(2) for category in range(4)
+    }
 
 
 def test_construction_failure_is_retained_but_does_not_fail_final_admission() -> None:
@@ -199,9 +481,7 @@ def test_construction_failure_is_retained_but_does_not_fail_final_admission() ->
 
     assert report["status"] == "passed"
     assert report["construction_can_change_v0_2_rules"] is False
-    assert any(
-        failure["phase"] == "construction" for failure in report["failures"]
-    )
+    assert any(failure["phase"] == "construction" for failure in report["failures"])
     assert all(row["admission_passed"] for row in report["task_results"])
     assert validate_qualification_report(ROOT, report, plan, receipts, contract) == []
 
@@ -213,17 +493,12 @@ def test_any_heldout_world_failure_fails_task_and_universal_matrix_gate() -> Non
     receipts = _synthetic_receipts(plan, fail_heldout_task=task_id)
 
     report = build_qualification_report(plan, receipts, contract)
-    task_result = next(
-        row for row in report["task_results"] if row["task_id"] == task_id
-    )
+    task_result = next(row for row in report["task_results"] if row["task_id"] == task_id)
 
     assert report["status"] == "failed"
     assert task_result["heldout_status"] == "failed"
     assert task_result["admission_passed"] is False
-    assert any(
-        failure["phase"] == "heldout_qualification"
-        for failure in report["failures"]
-    )
+    assert any(failure["phase"] == "heldout_qualification" for failure in report["failures"])
 
 
 def test_support_and_negative_control_metrics_are_both_reported() -> None:
@@ -235,8 +510,7 @@ def test_support_and_negative_control_metrics_are_both_reported() -> None:
     partition = next(
         row
         for row in report["anchor_results"]
-        if row["phase"] == "heldout_qualification"
-        and row["task_id"] == "partition-discovery"
+        if row["phase"] == "heldout_qualification" and row["task_id"] == "partition-discovery"
     )
 
     assert partition["support_metric_ids"] == ["product_in_organic"]
@@ -256,13 +530,11 @@ def test_contrast_uncertainty_uses_independent_left_and_right_replicates() -> No
     plan = _plan()
     receipts = _synthetic_receipts(plan)
     task = contract["tasks"][0]
-    world_seed = contract["cohorts"]["heldout_qualification"]["task_world_seeds"][
-        task["task_id"]
-    ][0]
+    world_seed = contract["cohorts"]["heldout_qualification"]["task_world_seeds"][task["task_id"]][
+        0
+    ]
     moved = [
-        index
-        for index, source in enumerate(task["descriptor_permutation"])
-        if index != source
+        index for index, source in enumerate(task["descriptor_permutation"]) if index != source
     ]
     offsets = (-0.01, 0.0, 0.01)
     for receipt in receipts:
@@ -285,11 +557,7 @@ def test_contrast_uncertainty_uses_independent_left_and_right_replicates() -> No
                 for metric in receipt["negative_control_metric_ids"]
             }
             receipt["receipt_sha256"] = canonical_json_sha256(
-                {
-                    key: value
-                    for key, value in receipt.items()
-                    if key != "receipt_sha256"
-                }
+                {key: value for key, value in receipt.items() if key != "receipt_sha256"}
             )
 
     report = build_qualification_report(plan, receipts, contract)
@@ -304,8 +572,7 @@ def test_contrast_uncertainty_uses_independent_left_and_right_replicates() -> No
 
     assert anchor["support_contrast_rms_standard_error"] > 0.0
     assert all(
-        row["welch_standard_error"] > 0.0
-        for row in anchor["support_metric_results"].values()
+        row["welch_standard_error"] > 0.0 for row in anchor["support_metric_results"].values()
     )
 
 
@@ -381,9 +648,7 @@ def _write_one_disk_receipt(
     trajectory_path = output / "executions/0/trajectory.jsonl"
     trajectory_path.parent.mkdir(parents=True)
     trajectory_path.write_text("synthetic trajectory\n", encoding="utf-8")
-    metrics = dict.fromkeys(
-        planned["allowed_metric_ids"], 0.1 + 0.1 * planned["target_category"]
-    )
+    metrics = dict.fromkeys(planned["allowed_metric_ids"], 0.1 + 0.1 * planned["target_category"])
     records = [
         {
             "action": deepcopy(action),
@@ -418,8 +683,7 @@ def _write_one_disk_receipt(
                 metric: metrics[metric] for metric in planned["support_metric_ids"]
             },
             "negative_control_metrics": {
-                metric: metrics[metric]
-                for metric in planned["negative_control_metric_ids"]
+                metric: metrics[metric] for metric in planned["negative_control_metric_ids"]
             },
             "exact_replay": {
                 "verified": True,
@@ -458,9 +722,7 @@ def test_partial_audit_replays_one_receipt_and_never_resumes(
 def test_partial_audit_rejects_trajectory_hash_path_and_immutable_receipt_tampering(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    plan, receipt, output, trajectory_path = _write_one_disk_receipt(
-        tmp_path, monkeypatch
-    )
+    plan, receipt, output, trajectory_path = _write_one_disk_receipt(tmp_path, monkeypatch)
     trajectory_path.write_text("tampered\n", encoding="utf-8")
     audit = build_partial_audit(ROOT, output, CONTRACT_PATH)
     assert any("trajectory SHA-256 mismatch" in error for error in audit["errors"])

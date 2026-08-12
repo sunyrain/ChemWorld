@@ -16,22 +16,22 @@ from chemworld.eval.work_ii_preregistration import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ROUTE = ROOT / "configs/benchmark/work_ii_submission_route_decision_v0.1.json"
-DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
-DEFAULT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
+DEFAULT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 DEFAULT_PREFLIGHT = (
-    ROOT / "workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json"
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.2.json"
 )
 DEFAULT_QUALIFICATION = (
     ROOT / "workstreams/flagship_tasks/reports/work-ii-method-qualification-readiness-v0.1.json"
 )
 DEFAULT_POWER_AUDIT = ROOT / "workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json"
 DEFAULT_DESIGN_AUDIT = (
-    ROOT / "workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit.json"
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit-v0.2.json"
 )
 DEFAULT_OUTPUT = (
-    ROOT / "workstreams/flagship_tasks/reports/work-ii-preregistration-readiness-v0.1.json"
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-preregistration-readiness-v0.2.json"
 )
-DEFAULT_DRAFT = ROOT / "workstreams/flagship_tasks/reports/work-ii-preregistration-draft-v0.1.md"
+DEFAULT_DRAFT = ROOT / "workstreams/flagship_tasks/reports/work-ii-preregistration-draft-v0.2.md"
 
 
 def main() -> int:

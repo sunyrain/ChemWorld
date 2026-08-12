@@ -1,4 +1,4 @@
-"""Development-only A-E prior-distinguishability qualification v0.2.
+"""Development/release A-E prior-distinguishability qualification v0.2.
 
 The blind policy is intentionally separate from the hidden-pair analyzer.  It receives
 neither descriptor permutations nor outcomes and makes no provider calls.
@@ -9,10 +9,14 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import platform
+import re
+import sys
 import time
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
+from importlib import metadata
 from pathlib import Path
 from statistics import fmean, variance
 from typing import Any
@@ -32,12 +36,21 @@ from chemworld.eval.provenance import (
 )
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    build_execution_envelope,
+    prepare_execution_context,
+    release_manifest_sha256,
+    validate_execution_envelope,
+)
 from chemworld.eval.work_ii_formal import build_checkpoint_contract
 from chemworld.tasks import get_task
 
 CONTRACT_VERSION = "chemworld-work-ii-ae-prior-distinguishability-contract-0.2"
-PLAN_VERSION = "chemworld-work-ii-ae-prior-distinguishability-plan-0.2"
-REPORT_VERSION = "chemworld-work-ii-ae-prior-distinguishability-report-0.2"
+LEGACY_DEVELOPMENT_PLAN_VERSION = "chemworld-work-ii-ae-prior-distinguishability-plan-0.2"
+PLAN_VERSION = "chemworld-work-ii-ae-prior-distinguishability-plan-0.3"
+LEGACY_DEVELOPMENT_REPORT_VERSION = "chemworld-work-ii-ae-prior-distinguishability-report-0.2"
+REPORT_VERSION = "chemworld-work-ii-ae-prior-distinguishability-report-0.3"
 RECEIPT_VERSION = "chemworld-work-ii-ae-prior-distinguishability-receipt-0.2"
 PARTIAL_AUDIT_VERSION = "chemworld-work-ii-ae-prior-partial-audit-0.2"
 EXPECTED_TASKS = (
@@ -49,10 +62,14 @@ EXPECTED_TASKS = (
 )
 EXPECTED_PHASES = ("construction", "heldout_qualification")
 EXPECTED_NOTE_PATH = (
-    "workstreams/flagship_tasks/"
-    "WORK_II_AE_PRIOR_DISTINGUISHABILITY_V02_EXPERIMENT_NOTE.md"
+    "workstreams/flagship_tasks/WORK_II_AE_PRIOR_DISTINGUISHABILITY_V02_EXPERIMENT_NOTE.md"
 )
 EXPECTED_NOTE_SHA256 = "e470fd2d3191d6d7ed2a44cc1573152c48429c90a958aea2317d18ac5222b98e"
+RELEASE_EXECUTION_PROTOCOL_VERSION = "chemworld-work-ii-ae-prior-release-execution-protocol-0.1"
+RUNTIME_ENVIRONMENT_FINGERPRINT_VERSION = "chemworld-work-ii-ae-runtime-environment-fingerprint-0.1"
+RELEASE_ATTEMPT_BINDING_VERSION = "chemworld-work-ii-release-attempt-binding-0.1"
+RELEASE_EXPERIMENT_ID = "work-ii-ae-prior-qualification-v0.2"
+RELEASE_CANONICAL_OUTPUT_PATH = "runs/work-ii-release/work-ii-ae-prior-qualification-v0.2"
 EXPECTED_POLICY = {
     "policy_id": "blind-two-anchor-four-category-sweep-v0.2",
     "inputs": ["task_id", "target_field"],
@@ -78,6 +95,7 @@ EXPECTED_POLICY = {
         "round_decimal_places": 9,
     },
 }
+
 EXPECTED_NOISE = {
     "mode": "keyed",
     "covariance_between_distinct_recipe_executions": 0.0,
@@ -190,9 +208,132 @@ EXPECTED_TASK_SPECS = (
     },
 )
 
+RELEASE_EXECUTION_REQUIRED_PATHS = (
+    "configs/benchmark/work_ii_ae_prior_distinguishability_v0.2.json",
+    *tuple(str(row["campaign_config"]) for row in EXPECTED_TASK_SPECS),
+    "configs/benchmark/resource_limits.json",
+    "configs/scenarios",
+    "configs/mechanisms",
+    EXPECTED_NOTE_PATH,
+    "pyproject.toml",
+    "uv.lock",
+    "scripts/run_work_ii_ae_prior_qualification_v02.py",
+    "src/chemworld",
+)
+RELEASE_EXECUTION_PROTOCOL = {
+    "schema_version": RELEASE_EXECUTION_PROTOCOL_VERSION,
+    "science_contract_version": CONTRACT_VERSION,
+    "science_contract_remains_development_only": True,
+    "release_mode_reexecutes_identical_scientific_contract": True,
+    "required_execution_surface_paths": list(RELEASE_EXECUTION_REQUIRED_PATHS),
+}
+
 
 class AEPriorQualificationV02Error(ValueError):
     """Raised when the v0.2 frozen design or evidence is malformed."""
+
+
+def runtime_environment_fingerprint() -> dict[str, Any]:
+    """Return the lightweight runtime identity that can affect numerical evidence."""
+
+    payload: dict[str, Any] = {
+        "schema_version": RUNTIME_ENVIRONMENT_FINGERPRINT_VERSION,
+        "python": {
+            "implementation": platform.python_implementation(),
+            "version": platform.python_version(),
+            "cache_tag": sys.implementation.cache_tag,
+        },
+        "platform": {
+            "system": platform.system(),
+            "release": platform.release(),
+            "machine": platform.machine(),
+        },
+        "dependencies": {package: metadata.version(package) for package in ("numpy", "scipy")},
+    }
+    payload["fingerprint_sha256"] = canonical_json_sha256(payload)
+    return payload
+
+
+def release_attempt_binding(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the one canonical A-E attempt bound to a release freeze."""
+
+    freeze_id = manifest.get("freeze_id")
+    if not isinstance(freeze_id, str) or re.fullmatch(r"[0-9a-f]{64}", freeze_id) is None:
+        raise AEPriorQualificationV02Error(
+            "release manifest lacks a valid freeze ID for its A-E attempt"
+        )
+    identity = {
+        "schema_version": RELEASE_ATTEMPT_BINDING_VERSION,
+        "experiment_id": RELEASE_EXPERIMENT_ID,
+        "freeze_id": freeze_id,
+        "canonical_output_root": RELEASE_CANONICAL_OUTPUT_PATH,
+        "single_use": True,
+    }
+    attempt_id = canonical_json_sha256(identity)
+    return {
+        **identity,
+        "attempt_id": attempt_id,
+        "canonical_output_path": f"{RELEASE_CANONICAL_OUTPUT_PATH}/{attempt_id}",
+    }
+
+
+def bind_release_attempt(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """Bind the canonical write-once A-E attempt into a release manifest."""
+
+    bound = deepcopy(dict(manifest))
+    attempts = bound.get("release_attempts")
+    if attempts is None:
+        attempts = {}
+    if not isinstance(attempts, Mapping):
+        raise AEPriorQualificationV02Error("release manifest attempts must be an object")
+    attempts = deepcopy(dict(attempts))
+    expected = release_attempt_binding(bound)
+    existing = attempts.get(RELEASE_EXPERIMENT_ID)
+    if existing is not None:
+        raise AEPriorQualificationV02Error("release manifest A-E attempt is already claimed")
+    attempts[RELEASE_EXPERIMENT_ID] = expected
+    bound["release_attempts"] = attempts
+    bound["manifest_sha256"] = release_manifest_sha256(bound)
+    return bound
+
+
+def _trajectory_release_errors(
+    records: Sequence[Mapping[str, Any]], execution_context: Mapping[str, Any]
+) -> list[str]:
+    if execution_context.get("execution_mode") != ExecutionMode.RELEASE.value:
+        return []
+    tested_commit = execution_context.get("tested_commit")
+    observed = {
+        metadata.get("git_commit")
+        for row in records
+        for metadata in (row.get("agent_metadata"),)
+        if isinstance(metadata, Mapping)
+    }
+    if observed != {tested_commit} or any(
+        not isinstance(row.get("agent_metadata"), Mapping)
+        or row["agent_metadata"].get("git_commit") != tested_commit
+        for row in records
+    ):
+        return ["trajectory commit does not match the v0.2 release execution commit"]
+    return []
+
+
+def _legacy_development_plan(plan: Mapping[str, Any]) -> bool:
+    """Recognize the completed pre-release-envelope development schema only."""
+
+    return (
+        plan.get("schema_version") == LEGACY_DEVELOPMENT_PLAN_VERSION
+        and plan.get("development_only") is True
+        and "execution_context" not in plan
+        and "release_execution_protocol" not in plan
+        and "release_manifest_binding" not in plan
+        and "runtime_environment_fingerprint" not in plan
+    )
+
+
+def _plan_execution_context(plan: Mapping[str, Any]) -> Mapping[str, Any]:
+    context = plan.get("execution_context")
+    return context if isinstance(context, Mapping) else {}
 
 
 class _FrozenRecipeAgent(BaseAgent):
@@ -231,9 +372,7 @@ def _load_object(path: Path) -> dict[str, Any]:
 
 
 def _self_hash(payload: Mapping[str, Any], field: str) -> str:
-    return canonical_json_sha256(
-        {key: value for key, value in payload.items() if key != field}
-    )
+    return canonical_json_sha256({key: value for key, value in payload.items() if key != field})
 
 
 def _contained_path(root: Path, relative: object, *, must_exist: bool = True) -> Path:
@@ -303,9 +442,7 @@ def _nuisance_vectors(
     digits = int(nuisance_design["round_decimal_places"])
     anchor = np.empty(dimension, dtype=float)
     for coordinate in range(dimension):
-        digest = hashlib.sha256(
-            f"{namespace}:{task_id}:coordinate-{coordinate}".encode()
-        ).digest()
+        digest = hashlib.sha256(f"{namespace}:{task_id}:coordinate-{coordinate}".encode()).digest()
         unit = int.from_bytes(digest[:8], "big") / float(2**64)
         anchor[coordinate] = round(lower + (upper - lower) * unit, digits)
     complement = np.asarray(
@@ -400,9 +537,7 @@ def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
         config = _load_object(config_path)
         if canonical_json_sha256(config) != row.get("campaign_config_sha256"):
             errors.append(f"campaign config hash mismatch: {row.get('task_id')}")
-        allowed = build_checkpoint_contract(
-            config, "aligned_nominal"
-        )["allowed_metric_ids"]
+        allowed = build_checkpoint_contract(config, "aligned_nominal")["allowed_metric_ids"]
         support = row.get("support_metric_ids")
         controls = row.get("negative_control_metric_ids")
         if (
@@ -440,9 +575,7 @@ def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
             "role": "only_scientific_admission_denominator",
             "scientific_admission_denominator": True,
             "selection_algorithm": "sha256_first8_modulo_namespace_v1",
-            "selection_namespace": (
-                "work-ii-ae-prior-v0.2-heldout-qualification-20260812"
-            ),
+            "selection_namespace": ("work-ii-ae-prior-v0.2-heldout-qualification-20260812"),
             "namespace_start": 100_000_000,
             "namespace_size": 900_000_000,
             "worlds_per_task": 5,
@@ -465,9 +598,7 @@ def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
                 continue
             flat.update(int(seed) for seed in seeds)
         seed_sets[phase] = flat
-    if seed_sets.get("construction", set()) & seed_sets.get(
-        "heldout_qualification", set()
-    ):
+    if seed_sets.get("construction", set()) & seed_sets.get("heldout_qualification", set()):
         errors.append("construction and held-out worlds overlap")
     heldout = cohorts.get("heldout_qualification")
     heldout = heldout if isinstance(heldout, Mapping) else {}
@@ -490,7 +621,13 @@ def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
 
 
 def _build_plan_payload(
-    root: Path, contract_path: Path, contract: Mapping[str, Any]
+    root: Path,
+    contract_path: Path,
+    contract: Mapping[str, Any],
+    execution_context: Mapping[str, Any],
+    release_manifest_binding: Mapping[str, Any] | None,
+    *,
+    legacy_development: bool = False,
 ) -> dict[str, Any]:
     policy = contract["policy"]
     noise_namespace = str(contract["noise"]["seed_namespace"])
@@ -501,9 +638,7 @@ def _build_plan_payload(
         task_row = tasks[task_id]
         config_path = _contained_path(root, task_row["campaign_config"])
         config = _load_object(config_path)
-        allowed = list(
-            build_checkpoint_contract(config, "aligned_nominal")["allowed_metric_ids"]
-        )
+        allowed = list(build_checkpoint_contract(config, "aligned_nominal")["allowed_metric_ids"])
         allowed_by_task[task_id] = allowed
         task_bindings.append(
             {
@@ -513,9 +648,7 @@ def _build_plan_payload(
                 "target_field": str(task_row["target_field"]),
                 "allowed_metric_ids": allowed,
                 "support_metric_ids": list(task_row["support_metric_ids"]),
-                "negative_control_metric_ids": list(
-                    task_row["negative_control_metric_ids"]
-                ),
+                "negative_control_metric_ids": list(task_row["negative_control_metric_ids"]),
             }
         )
 
@@ -544,34 +677,34 @@ def _build_plan_payload(
                         execution_id = f"v0.2:{coordinate_text}"
                         observation_namespace = f"{noise_namespace}:{coordinate_text}"
                         execution = {
-                                "execution_index": len(executions),
-                                "execution_id": execution_id,
-                                "phase": phase,
-                                "task_id": task_id,
-                                "world_seed": int(world_seed),
-                                "policy_replicate": policy_replicate,
-                                "round_index": int(item["round_index"]),
-                                "nuisance_anchor": int(item["nuisance_anchor"]),
-                                "target_category": int(item["target_category"]),
-                                "target_field": str(task_row["target_field"]),
-                                "target_coordinate": int(item["target_coordinate"]),
-                                "recipe_id": str(item["recipe_id"]),
-                                "allowed_metric_ids": allowed_by_task[task_id],
-                                "support_metric_ids": list(task_row["support_metric_ids"]),
-                                "negative_control_metric_ids": list(
-                                    task_row["negative_control_metric_ids"]
-                                ),
-                                "observation_seed": _stable_seed(
-                                    noise_namespace, *coordinate
-                                ),
-                                "observation_noise_namespace": observation_namespace,
-                                "recipe": item["recipe"],
-                                "recipe_sha256": canonical_json_sha256(item["recipe"]),
-                            }
+                            "execution_index": len(executions),
+                            "execution_id": execution_id,
+                            "phase": phase,
+                            "task_id": task_id,
+                            "world_seed": int(world_seed),
+                            "policy_replicate": policy_replicate,
+                            "round_index": int(item["round_index"]),
+                            "nuisance_anchor": int(item["nuisance_anchor"]),
+                            "target_category": int(item["target_category"]),
+                            "target_field": str(task_row["target_field"]),
+                            "target_coordinate": int(item["target_coordinate"]),
+                            "recipe_id": str(item["recipe_id"]),
+                            "allowed_metric_ids": allowed_by_task[task_id],
+                            "support_metric_ids": list(task_row["support_metric_ids"]),
+                            "negative_control_metric_ids": list(
+                                task_row["negative_control_metric_ids"]
+                            ),
+                            "observation_seed": _stable_seed(noise_namespace, *coordinate),
+                            "observation_noise_namespace": observation_namespace,
+                            "recipe": item["recipe"],
+                            "recipe_sha256": canonical_json_sha256(item["recipe"]),
+                        }
                         executions.append(execution)
     plan = {
-        "schema_version": PLAN_VERSION,
-        "development_only": True,
+        "schema_version": (LEGACY_DEVELOPMENT_PLAN_VERSION if legacy_development else PLAN_VERSION),
+        "development_only": (
+            True if legacy_development else execution_context.get("execution_mode") != "release"
+        ),
         "contract_binding": {
             "path": contract_path.relative_to(root).as_posix(),
             "canonical_sha256": canonical_json_sha256(contract),
@@ -586,18 +719,52 @@ def _build_plan_payload(
         "task_bindings": task_bindings,
         "executions": executions,
     }
+    if not legacy_development:
+        plan["execution_context"] = dict(execution_context)
+        if execution_context.get("execution_mode") == ExecutionMode.RELEASE.value:
+            plan.update(
+                {
+                    "release_execution_protocol": deepcopy(RELEASE_EXECUTION_PROTOCOL),
+                    "runtime_environment_fingerprint": runtime_environment_fingerprint(),
+                    "release_manifest_binding": (
+                        dict(release_manifest_binding)
+                        if release_manifest_binding is not None
+                        else None
+                    ),
+                }
+            )
     plan["plan_sha256"] = _self_hash(plan, "plan_sha256")
     return plan
 
 
-def build_qualification_plan(root: Path, contract_path: Path) -> dict[str, Any]:
+def build_qualification_plan(
+    root: Path,
+    contract_path: Path,
+    *,
+    execution_context: Mapping[str, Any] | None = None,
+    release_manifest_path: Path | None = None,
+    release_output_root: Path | None = None,
+) -> dict[str, Any]:
     root = root.resolve()
     contract_path = contract_path.resolve()
     contract = _load_object(contract_path)
     errors = validate_contract(root, contract)
     if errors:
         raise AEPriorQualificationV02Error("invalid v0.2 contract: " + "; ".join(errors))
-    plan = _build_plan_payload(root, contract_path, contract)
+    if execution_context is None:
+        execution_context = build_execution_envelope(
+            prepare_execution_context(root, mode=ExecutionMode.DEVELOPMENT)
+        )
+    release_manifest_binding = _release_manifest_binding(
+        root, execution_context, release_manifest_path, release_output_root
+    )
+    plan = _build_plan_payload(
+        root,
+        contract_path,
+        contract,
+        execution_context,
+        release_manifest_binding,
+    )
     errors = validate_qualification_plan(root, plan, contract)
     if errors:
         raise AEPriorQualificationV02Error("invalid generated plan: " + "; ".join(errors))
@@ -624,14 +791,40 @@ def validate_qualification_plan(
         errors.append("plan contract canonical hash mismatch")
     if plan.get("plan_sha256") != _self_hash(plan, "plan_sha256"):
         errors.append("plan self-hash mismatch")
-    if plan.get("schema_version") != PLAN_VERSION:
+    legacy_development = _legacy_development_plan(plan)
+    if plan.get("schema_version") not in {
+        PLAN_VERSION,
+        LEGACY_DEVELOPMENT_PLAN_VERSION,
+    }:
         errors.append("unexpected v0.2 plan schema")
-    if plan.get("development_only") is not True:
-        errors.append("plan is not development-only")
+    execution_context = _plan_execution_context(plan)
+    release_mode = False
+    if not legacy_development:
+        errors.extend(validate_execution_envelope(root, execution_context))
+        release_mode = execution_context.get("execution_mode") == "release"
+        if plan.get("development_only") is release_mode:
+            errors.append("plan development/release boundary is inconsistent")
+        if release_mode:
+            if plan.get("release_execution_protocol") != RELEASE_EXECUTION_PROTOCOL:
+                errors.append("v0.2 plan release execution protocol changed")
+        elif any(
+            field in plan
+            for field in (
+                "release_execution_protocol",
+                "runtime_environment_fingerprint",
+                "release_manifest_binding",
+            )
+        ):
+            errors.append("development plan contains release-only bindings")
     if plan.get("participant_provider_calls") != 0:
         errors.append("plan permits provider calls")
     if plan.get("participant_outcomes_read") is not False:
         errors.append("plan permits participant outcomes")
+    if (
+        release_mode
+        and plan.get("runtime_environment_fingerprint") != runtime_environment_fingerprint()
+    ):
+        errors.append("plan runtime environment fingerprint is stale")
     if plan.get("denominators") != contract.get("denominators"):
         errors.append("plan denominators differ from contract")
     note_binding = plan.get("experiment_note_binding")
@@ -640,7 +833,37 @@ def validate_qualification_plan(
         "sha256": contract.get("experiment_note_sha256"),
     }:
         errors.append("plan experiment-note binding mismatch")
-    expected = _build_plan_payload(root, contract_path, contract)
+    release_binding = plan.get("release_manifest_binding")
+    release_binding = release_binding if isinstance(release_binding, Mapping) else None
+    release_manifest_path: Path | None = None
+    if legacy_development:
+        release_binding = None
+    elif release_mode:
+        if release_binding is None:
+            errors.append("release plan lacks its release manifest binding")
+        else:
+            try:
+                release_manifest_path = _contained_path(root, release_binding.get("path"))
+                expected_release_binding = _release_manifest_binding(
+                    root,
+                    execution_context,
+                    release_manifest_path,
+                    None,
+                )
+                if dict(release_binding) != expected_release_binding:
+                    errors.append("release manifest binding is stale or malformed")
+            except (AEPriorQualificationV02Error, OSError, ValueError) as error:
+                errors.append(f"release manifest binding is invalid: {error}")
+    elif "release_manifest_binding" in plan:
+        errors.append("development plan unexpectedly binds a release manifest")
+    expected = _build_plan_payload(
+        root,
+        contract_path,
+        contract,
+        execution_context,
+        release_binding,
+        legacy_development=legacy_development,
+    )
     if dict(plan) != expected:
         errors.append("plan does not exactly reconstruct from frozen contract")
         return errors
@@ -674,9 +897,7 @@ def validate_qualification_plan(
             int(row.get("policy_replicate", -1)),
         )
         grouped[key].append(row)
-        if set(row.get("support_metric_ids", [])) & set(
-            row.get("negative_control_metric_ids", [])
-        ):
+        if set(row.get("support_metric_ids", [])) & set(row.get("negative_control_metric_ids", [])):
             errors.append(f"support/control overlap: {execution_id}")
         if set(row.get("support_metric_ids", [])) | set(
             row.get("negative_control_metric_ids", [])
@@ -693,30 +914,112 @@ def validate_qualification_plan(
             len(rows) != 8
             or {int(row["round_index"]) for row in rows} != set(range(8))
             or len({str(row["recipe_id"]) for row in rows}) != 8
-            or {
-                (int(row["nuisance_anchor"]), int(row["target_category"]))
-                for row in rows
-            }
+            or {(int(row["nuisance_anchor"]), int(row["target_category"])) for row in rows}
             != {(anchor, category) for anchor in range(2) for category in range(4)}
         ):
             errors.append(f"blind eight-round coverage mismatch: {key}")
     return errors
 
 
-def _config_for_task(
-    root: Path, plan: Mapping[str, Any], task_id: str
-) -> dict[str, Any]:
-    matches = [
-        row for row in plan["task_bindings"] if row.get("task_id") == task_id
-    ]
+def _release_manifest_binding(
+    root: Path,
+    execution_context: Mapping[str, Any],
+    release_manifest_path: Path | None,
+    release_output_root: Path | None,
+) -> dict[str, Any] | None:
+    release_mode = execution_context.get("execution_mode") == ExecutionMode.RELEASE.value
+    if not release_mode:
+        if release_manifest_path is not None:
+            raise AEPriorQualificationV02Error("development plan must not bind a release manifest")
+        return None
+    if release_manifest_path is None:
+        raise AEPriorQualificationV02Error(
+            "release plan requires its validated release manifest path"
+        )
+    path = release_manifest_path.resolve()
+    try:
+        relative = path.relative_to(root.resolve()).as_posix()
+    except ValueError as error:
+        raise AEPriorQualificationV02Error(
+            "release manifest path escapes the repository"
+        ) from error
+    manifest = _load_object(path)
+    context = prepare_execution_context(
+        root,
+        mode=ExecutionMode.RELEASE,
+        release_manifest=path,
+    )
+    if dict(execution_context) != build_execution_envelope(context):
+        raise AEPriorQualificationV02Error(
+            "release execution context differs from the bound release manifest"
+        )
+    coverage_errors = _release_surface_coverage_errors(root, manifest)
+    if coverage_errors:
+        raise AEPriorQualificationV02Error("; ".join(coverage_errors))
+    attempt = release_attempt_binding(manifest)
+    attempts = manifest.get("release_attempts")
+    attempts = attempts if isinstance(attempts, Mapping) else {}
+    if attempts.get(RELEASE_EXPERIMENT_ID) != attempt:
+        raise AEPriorQualificationV02Error(
+            "release manifest lacks the canonical write-once A-E attempt"
+        )
+    expected_output = _contained_path(
+        root,
+        attempt["canonical_output_path"],
+        must_exist=False,
+    )
+    if release_output_root is not None and release_output_root.resolve() != expected_output:
+        raise AEPriorQualificationV02Error(
+            "release output differs from the canonical A-E attempt path"
+        )
+    return {
+        "path": relative,
+        "file_sha256": file_sha256(path),
+        "manifest_sha256": manifest.get("manifest_sha256"),
+        "freeze_id": manifest.get("freeze_id"),
+        "tested_commit": manifest.get("tested_commit"),
+        "execution_protocol_sha256": canonical_json_sha256(RELEASE_EXECUTION_PROTOCOL),
+        "required_execution_surface_paths": list(RELEASE_EXECUTION_REQUIRED_PATHS),
+        "validated_execution_surface_roots": list(
+            manifest.get("execution_surface", {}).get("relative_roots", [])
+        ),
+        "attempt": attempt,
+    }
+
+
+def _release_surface_coverage_errors(root: Path, manifest: Mapping[str, Any]) -> list[str]:
+    """Require the release freeze to cover every A-E execution dependency."""
+
+    surface = manifest.get("execution_surface")
+    surface = surface if isinstance(surface, Mapping) else {}
+    raw_roots = surface.get("relative_roots")
+    if not isinstance(raw_roots, list) or not all(isinstance(item, str) for item in raw_roots):
+        return ["A-E release manifest lacks canonical execution-surface roots"]
+    repository = root.resolve()
+    covered_roots = {
+        (repository / item).resolve().relative_to(repository).as_posix() for item in raw_roots
+    }
+    required_roots = set(RELEASE_EXECUTION_REQUIRED_PATHS)
+    errors: list[str] = []
+    for relative in RELEASE_EXECUTION_REQUIRED_PATHS:
+        if relative not in covered_roots:
+            errors.append("A-E release execution surface does not cover required path: " + relative)
+    unexpected = sorted(covered_roots - required_roots)
+    if unexpected:
+        errors.append(
+            "A-E release execution surface contains non-required paths: " + ", ".join(unexpected)
+        )
+    return errors
+
+
+def _config_for_task(root: Path, plan: Mapping[str, Any], task_id: str) -> dict[str, Any]:
+    matches = [row for row in plan["task_bindings"] if row.get("task_id") == task_id]
     if len(matches) != 1:
         raise AEPriorQualificationV02Error(f"{task_id} lacks one task binding")
     config_path = _contained_path(root, matches[0]["campaign_config"])
     config = _load_object(config_path)
     if canonical_json_sha256(config) != matches[0].get("campaign_config_sha256"):
-        raise AEPriorQualificationV02Error(
-            f"{task_id} campaign config binding is stale"
-        )
+        raise AEPriorQualificationV02Error(f"{task_id} campaign config binding is stale")
     return config
 
 
@@ -755,12 +1058,8 @@ def execute_one(
             output_path=trajectory_path,
             budget_override=len(actions),
             episode_mode_override="single_experiment",
-            electrochemical_material_family_id=config.get(
-                "electrochemical_material_family_id"
-            ),
-            crystallization_material_family_id=config.get(
-                "crystallization_material_family_id"
-            ),
+            electrochemical_material_family_id=config.get("electrochemical_material_family_id"),
+            crystallization_material_family_id=config.get("crystallization_material_family_id"),
             electrochemical_workflow_mode=config.get("electrochemical_workflow_mode"),
             scoring_contract_id=config.get("scoring_contract_id"),
             observation_noise_mode="keyed",
@@ -768,12 +1067,13 @@ def execute_one(
             world_interventions=config.get("world_interventions", []),
         )
         records = load_jsonl(trajectory_path)
+        release_errors = _trajectory_release_errors(records, _plan_execution_context(plan))
+        if release_errors:
+            raise AEPriorQualificationV02Error("; ".join(release_errors))
         if [record.get("action") for record in records] != actions:
             raise AEPriorQualificationV02Error("trajectory differs from frozen recipe")
         if any(record.get("transaction_status") != "committed" for record in records):
-            raise AEPriorQualificationV02Error(
-                "physical execution contains a noncommitted action"
-            )
+            raise AEPriorQualificationV02Error("physical execution contains a noncommitted action")
         final_rows = [
             record
             for record in records
@@ -781,18 +1081,14 @@ def execute_one(
             and record.get("transaction_status") == "committed"
         ]
         if len(final_rows) != 1:
-            raise AEPriorQualificationV02Error(
-                "execution lacks exactly one committed final assay"
-            )
+            raise AEPriorQualificationV02Error("execution lacks exactly one committed final assay")
         observation = final_rows[0].get("observation")
         observation = observation if isinstance(observation, Mapping) else {}
         metrics: dict[str, float] = {}
         for metric_id in row["allowed_metric_ids"]:
             value = observation.get(metric_id)
             if isinstance(value, bool) or not isinstance(value, int | float):
-                raise AEPriorQualificationV02Error(
-                    f"missing allowed metric {metric_id}"
-                )
+                raise AEPriorQualificationV02Error(f"missing allowed metric {metric_id}")
             number = float(value)
             if not math.isfinite(number) or not 0.0 <= number <= 1.0:
                 raise AEPriorQualificationV02Error(
@@ -805,9 +1101,7 @@ def execute_one(
             world_interventions=config.get("world_interventions", []),
         ).to_dict()
         if replay.get("verified") is not True:
-            raise AEPriorQualificationV02Error(
-                "tolerance-zero exact replay did not verify"
-            )
+            raise AEPriorQualificationV02Error("tolerance-zero exact replay did not verify")
         receipt.update(
             {
                 "status": "completed",
@@ -816,8 +1110,7 @@ def execute_one(
                     metric: metrics[metric] for metric in row["support_metric_ids"]
                 },
                 "negative_control_metrics": {
-                    metric: metrics[metric]
-                    for metric in row["negative_control_metric_ids"]
+                    metric: metrics[metric] for metric in row["negative_control_metric_ids"]
                 },
                 "exact_replay": replay,
                 "trajectory": {
@@ -860,13 +1153,9 @@ def _contrast_summary(
 ) -> dict[str, Any]:
     metrics: dict[str, Any] = {}
     for metric_id in metric_ids:
-        left = [
-            float(row["allowed_metrics"][metric_id])
-            for row in rows_by_category[left_category]
-        ]
+        left = [float(row["allowed_metrics"][metric_id]) for row in rows_by_category[left_category]]
         right = [
-            float(row["allowed_metrics"][metric_id])
-            for row in rows_by_category[right_category]
+            float(row["allowed_metrics"][metric_id]) for row in rows_by_category[right_category]
         ]
         standard_error = math.sqrt(variance(left) / 3.0 + variance(right) / 3.0)
         contrast = fmean(right) - fmean(left)
@@ -927,13 +1216,9 @@ def build_qualification_report(
             and row.get("provider_call_count") == 0
             and row.get("status") == "completed"
             and metrics_valid
-            and support
-            == {metric: allowed[metric] for metric in planned["support_metric_ids"]}
+            and support == {metric: allowed[metric] for metric in planned["support_metric_ids"]}
             and controls
-            == {
-                metric: allowed[metric]
-                for metric in planned["negative_control_metric_ids"]
-            }
+            == {metric: allowed[metric] for metric in planned["negative_control_metric_ids"]}
             and replay_ok
         )
         if valid:
@@ -955,9 +1240,7 @@ def build_qualification_report(
     for phase in EXPECTED_PHASES:
         for task_id in EXPECTED_TASKS:
             task_row = task_contract[task_id]
-            left_category, right_category = _moved_pair(
-                task_row["descriptor_permutation"]
-            )
+            left_category, right_category = _moved_pair(task_row["descriptor_permutation"])
             seeds = contract["cohorts"][phase]["task_world_seeds"][task_id]
             for world_seed in seeds:
                 world_plan = [
@@ -975,9 +1258,7 @@ def build_qualification_report(
                 reach_rows: list[dict[str, Any]] = []
                 for policy_replicate in range(3):
                     replicate_rows = [
-                        row
-                        for row in world_receipts
-                        if row["policy_replicate"] == policy_replicate
+                        row for row in world_receipts if row["policy_replicate"] == policy_replicate
                     ]
                     visited = {
                         (int(row["nuisance_anchor"]), int(row["target_category"]))
@@ -1025,16 +1306,13 @@ def build_qualification_report(
                 world_anchor_rows: list[dict[str, Any]] = []
                 for anchor in range(2):
                     anchor_receipts = [
-                        row
-                        for row in world_receipts
-                        if row["nuisance_anchor"] == anchor
+                        row for row in world_receipts if row["nuisance_anchor"] == anchor
                     ]
                     by_category: dict[int, list[Mapping[str, Any]]] = defaultdict(list)
                     for row in anchor_receipts:
                         by_category[int(row["target_category"])].append(row)
-                    complete = (
-                        len(anchor_receipts) == 12
-                        and all(len(by_category[category]) == 3 for category in range(4))
+                    complete = len(anchor_receipts) == 12 and all(
+                        len(by_category[category]) == 3 for category in range(4)
                     )
                     support_metrics: dict[str, Any] = {}
                     control_metrics: dict[str, Any] = {}
@@ -1052,12 +1330,10 @@ def build_qualification_report(
                             task_row["negative_control_metric_ids"],
                         )
                     separations = [
-                        float(row["absolute_contrast"])
-                        for row in support_metrics.values()
+                        float(row["absolute_contrast"]) for row in support_metrics.values()
                     ]
                     standard_errors = [
-                        float(row["welch_standard_error"])
-                        for row in support_metrics.values()
+                        float(row["welch_standard_error"]) for row in support_metrics.values()
                     ]
                     mean_support = fmean(separations) if separations else 0.0
                     max_support = max(separations, default=0.0)
@@ -1073,16 +1349,10 @@ def build_qualification_report(
                     )
                     passed = (
                         complete
-                        and mean_support
-                        >= float(thresholds["minimum_mean_support_separation"])
+                        and mean_support >= float(thresholds["minimum_mean_support_separation"])
                         and max_support
-                        >= float(
-                            thresholds["minimum_single_support_metric_separation"]
-                        )
-                        and snr
-                        >= float(
-                            thresholds["minimum_support_signal_to_noise_ratio"]
-                        )
+                        >= float(thresholds["minimum_single_support_metric_separation"])
+                        and snr >= float(thresholds["minimum_support_signal_to_noise_ratio"])
                     )
                     anchor_result = {
                         "phase": phase,
@@ -1121,12 +1391,8 @@ def build_qualification_report(
                     "phase": phase,
                     "task_id": task_id,
                     "world_seed": world_seed,
-                    "passed_policy_replicates": sum(
-                        int(row["passed"]) for row in reach_rows
-                    ),
-                    "passed_nuisance_anchors": sum(
-                        int(row["passed"]) for row in world_anchor_rows
-                    ),
+                    "passed_policy_replicates": sum(int(row["passed"]) for row in reach_rows),
+                    "passed_nuisance_anchors": sum(int(row["passed"]) for row in world_anchor_rows),
                     "passed": world_passed,
                 }
                 world_results.append(world_result)
@@ -1150,8 +1416,7 @@ def build_qualification_report(
         heldout_worlds = [
             row
             for row in world_results
-            if row["phase"] == "heldout_qualification"
-            and row["task_id"] == task_id
+            if row["phase"] == "heldout_qualification" and row["task_id"] == task_id
         ]
         task_results.append(
             {
@@ -1162,9 +1427,7 @@ def build_qualification_report(
                 "construction_status": (
                     "passed" if all(row["passed"] for row in construction_worlds) else "failed"
                 ),
-                "heldout_passed_worlds": sum(
-                    int(row["passed"]) for row in heldout_worlds
-                ),
+                "heldout_passed_worlds": sum(int(row["passed"]) for row in heldout_worlds),
                 "heldout_status": (
                     "passed" if all(row["passed"] for row in heldout_worlds) else "failed"
                 ),
@@ -1172,9 +1435,12 @@ def build_qualification_report(
             }
         )
     heldout_passed = all(row["admission_passed"] for row in task_results)
+    legacy_development = _legacy_development_plan(plan)
     report = {
-        "schema_version": REPORT_VERSION,
-        "development_only": True,
+        "schema_version": (
+            LEGACY_DEVELOPMENT_REPORT_VERSION if legacy_development else REPORT_VERSION
+        ),
+        "development_only": bool(plan["development_only"]),
         "status": "passed" if heldout_passed else "failed",
         "admission_basis": "heldout_qualification_only",
         "construction_can_change_v0_2_rules": False,
@@ -1207,6 +1473,12 @@ def build_qualification_report(
             for row in sorted(receipts, key=lambda item: int(item["execution_index"]))
         ],
     }
+    if not legacy_development:
+        report["execution_context"] = deepcopy(_plan_execution_context(plan))
+    if _plan_execution_context(plan).get("execution_mode") == ExecutionMode.RELEASE.value:
+        report["runtime_environment_fingerprint"] = deepcopy(
+            plan["runtime_environment_fingerprint"]
+        )
     report["report_sha256"] = _self_hash(report, "report_sha256")
     return report
 
@@ -1219,7 +1491,10 @@ def validate_qualification_report(
     contract: Mapping[str, Any],
 ) -> list[str]:
     errors = validate_qualification_plan(root, plan, contract)
-    if report.get("schema_version") != REPORT_VERSION:
+    expected_report_version = (
+        LEGACY_DEVELOPMENT_REPORT_VERSION if _legacy_development_plan(plan) else REPORT_VERSION
+    )
+    if report.get("schema_version") != expected_report_version:
         errors.append("unexpected v0.2 report schema")
     if report.get("report_sha256") != _self_hash(report, "report_sha256"):
         errors.append("v0.2 report self-hash mismatch")
@@ -1230,6 +1505,11 @@ def validate_qualification_report(
         errors.append("report admission basis is not held-out only")
     if report.get("construction_can_change_v0_2_rules") is not False:
         errors.append("report permits construction-driven rule changes")
+    if (
+        _plan_execution_context(plan).get("execution_mode") == ExecutionMode.RELEASE.value
+        and report.get("runtime_environment_fingerprint") != runtime_environment_fingerprint()
+    ):
+        errors.append("report runtime environment fingerprint is stale")
     return errors
 
 
@@ -1239,13 +1519,10 @@ def _metrics_from_records(
     final_rows = [
         row
         for row in records
-        if row.get("instrument") == "final_assay"
-        and row.get("transaction_status") == "committed"
+        if row.get("instrument") == "final_assay" and row.get("transaction_status") == "committed"
     ]
     if len(final_rows) != 1:
-        raise AEPriorQualificationV02Error(
-            "trajectory lacks exactly one committed final assay"
-        )
+        raise AEPriorQualificationV02Error("trajectory lacks exactly one committed final assay")
     observation = final_rows[0].get("observation")
     if not isinstance(observation, Mapping):
         raise AEPriorQualificationV02Error("final assay observation is missing")
@@ -1253,9 +1530,7 @@ def _metrics_from_records(
     for metric_id in metric_ids:
         value = observation.get(metric_id)
         if isinstance(value, bool) or not isinstance(value, int | float):
-            raise AEPriorQualificationV02Error(
-                f"trajectory is missing allowed metric {metric_id}"
-            )
+            raise AEPriorQualificationV02Error(f"trajectory is missing allowed metric {metric_id}")
         number = float(value)
         if not math.isfinite(number) or not 0.0 <= number <= 1.0:
             raise AEPriorQualificationV02Error(
@@ -1305,6 +1580,7 @@ def _audit_disk_receipt(
             errors.append("trajectory SHA-256 mismatch")
             return receipt, errors
         records = load_jsonl(trajectory_path)
+        errors.extend(_trajectory_release_errors(records, _plan_execution_context(plan)))
         if [row.get("action") for row in records] != planned["recipe"]["steps"]:
             errors.append("trajectory actions differ from frozen recipe")
         if any(row.get("transaction_status") != "committed" for row in records):
@@ -1318,13 +1594,8 @@ def _audit_disk_receipt(
         if replay.get("verified") is not True:
             errors.append("fresh tolerance-zero exact replay failed")
         metrics = _metrics_from_records(records, planned["allowed_metric_ids"])
-        support = {
-            metric: metrics[metric] for metric in planned["support_metric_ids"]
-        }
-        controls = {
-            metric: metrics[metric]
-            for metric in planned["negative_control_metric_ids"]
-        }
+        support = {metric: metrics[metric] for metric in planned["support_metric_ids"]}
+        controls = {metric: metrics[metric] for metric in planned["negative_control_metric_ids"]}
         if receipt.get("allowed_metrics") != metrics:
             errors.append("receipt allowed metrics differ from trajectory")
         if receipt.get("support_metrics") != support:
@@ -1338,9 +1609,7 @@ def _audit_disk_receipt(
     return receipt, errors
 
 
-def validate_qualification_output(
-    root: Path, output_root: Path, contract_path: Path
-) -> list[str]:
+def validate_qualification_output(root: Path, output_root: Path, contract_path: Path) -> list[str]:
     """Reopen and independently validate a complete output directory."""
 
     root = root.resolve()
@@ -1365,9 +1634,7 @@ def validate_qualification_output(
         receipt, receipt_errors = _audit_disk_receipt(
             root, output_root, disk_plan, planned, receipt_path
         )
-        errors.extend(
-            f"execution {index}: {error}" for error in receipt_errors
-        )
+        errors.extend(f"execution {index}: {error}" for error in receipt_errors)
         if receipt is not None:
             receipts.append(receipt)
     receipt_files = sorted((output_root / "receipts").glob("*.json"))
@@ -1378,16 +1645,83 @@ def validate_qualification_output(
         if disk_report != expected_report:
             errors.append("disk report differs from fresh trajectory-derived report")
         errors.extend(
-            validate_qualification_report(
-                root, disk_report, disk_plan, receipts, contract
-            )
+            validate_qualification_report(root, disk_report, disk_plan, receipts, contract)
         )
     return errors
 
 
-def build_partial_audit(
-    root: Path, output_root: Path, contract_path: Path
-) -> dict[str, Any]:
+def validate_formal_qualification_output(
+    root: Path, report_path: Path, contract_path: Path
+) -> list[str]:
+    """Validate a complete on-disk v0.2 report and require release eligibility."""
+
+    root = root.resolve()
+    report_path = report_path.resolve()
+    try:
+        report_path.relative_to(root)
+    except ValueError:
+        return ["A-E v0.2 report path escapes the repository"]
+    if report_path.name != "report.json":
+        return ["A-E v0.2 formal validator requires the canonical report.json"]
+    output_root = report_path.parent
+    errors: list[str] = []
+    try:
+        errors.extend(
+            validate_qualification_output(root, output_root, contract_path.resolve())
+        )
+    except Exception as error:  # fail closed on arbitrarily damaged disk evidence
+        errors.append(
+            "A-E v0.2 formal output validation failed closed: "
+            f"{type(error).__name__}: {error}"
+        )
+    if not report_path.is_file():
+        return [*errors, "A-E v0.2 formal report is missing"]
+    try:
+        report = _load_object(report_path)
+    except (AEPriorQualificationV02Error, OSError, TypeError, ValueError) as error:
+        errors.append(
+            "A-E v0.2 formal report is unreadable: "
+            f"{type(error).__name__}: {error}"
+        )
+        return sorted(set(errors))
+    context = report.get("execution_context")
+    context = context if isinstance(context, Mapping) else {}
+    errors.extend(validate_execution_envelope(root, context))
+    if report.get("runtime_environment_fingerprint") != runtime_environment_fingerprint():
+        errors.append("A-E v0.2 formal runtime environment fingerprint changed")
+    try:
+        plan = _load_object(output_root / "plan.json")
+        release_binding = plan.get("release_manifest_binding")
+        release_binding = release_binding if isinstance(release_binding, Mapping) else {}
+        attempt = release_binding.get("attempt")
+        attempt = attempt if isinstance(attempt, Mapping) else {}
+        expected_output = _contained_path(
+            root,
+            attempt.get("canonical_output_path"),
+            must_exist=False,
+        )
+        if output_root != expected_output:
+            errors.append("A-E v0.2 formal report is not at its canonical attempt path")
+    except (AEPriorQualificationV02Error, OSError, TypeError, ValueError):
+        errors.append("A-E v0.2 formal report lacks its canonical attempt path")
+    if (
+        report.get("development_only") is not False
+        or context.get("execution_mode") != ExecutionMode.RELEASE.value
+        or context.get("release_eligible") is not True
+        or context.get("c2_admission_authorized") is not True
+    ):
+        errors.append("A-E v0.2 qualification is not release-authorized")
+    failures = report.get("failures")
+    failures = failures if isinstance(failures, list) else [None]
+    if report.get("status") != "passed" or any(
+        not isinstance(failure, Mapping) or failure.get("phase") != "construction"
+        for failure in failures
+    ):
+        errors.append("A-E v0.2 held-out qualification did not pass cleanly")
+    return sorted(set(errors))
+
+
+def build_partial_audit(root: Path, output_root: Path, contract_path: Path) -> dict[str, Any]:
     """Return a readable fail-closed audit of an interrupted run; never resumes it."""
 
     root = root.resolve()
@@ -1414,9 +1748,7 @@ def build_partial_audit(
             continue
         seen_indexes.add(index)
         planned = plan["executions"][index]
-        receipt, errors = _audit_disk_receipt(
-            root, output_root, plan, planned, receipt_path
-        )
+        receipt, errors = _audit_disk_receipt(root, output_root, plan, planned, receipt_path)
         audit_errors.extend(f"execution {index}: {error}" for error in errors)
         if receipt is not None:
             completed += int(receipt.get("status") == "completed")
@@ -1440,10 +1772,15 @@ def build_partial_audit(
 
 
 def markdown_summary(report: Mapping[str, Any]) -> str:
+    execution_context = report.get("execution_context")
+    execution_context = execution_context if isinstance(execution_context, Mapping) else {}
     lines = [
         "# Work II A-E prior distinguishability v0.2",
         "",
-        f"Status: **{report['status']}** (development only)",
+        (
+            f"Status: **{report['status']}** "
+            f"({execution_context.get('execution_mode', 'development')} mode)"
+        ),
         "",
         "The admission decision uses held-out qualification worlds only; construction "
         "failures are retained below and cannot change v0.2 rules.",
@@ -1472,16 +1809,53 @@ def markdown_summary(report: Mapping[str, Any]) -> str:
 
 
 def execute_qualification(
-    root: Path, contract_path: Path, output_root: Path
+    root: Path,
+    contract_path: Path,
+    output_root: Path,
+    *,
+    execution_mode: ExecutionMode | str = ExecutionMode.DEVELOPMENT,
+    release_manifest: Path | None = None,
 ) -> dict[str, Any]:
-    """Execute the fixed provider-free development block without release semantics."""
+    """Execute one fixed provider-free block in development or release mode."""
 
     root = root.resolve()
     output_root = output_root.resolve()
     if output_root.exists():
         raise FileExistsError(f"refusing to overwrite v0.2 output: {output_root}")
+    resolved_mode = ExecutionMode(execution_mode)
+    release_manifest_path = release_manifest.resolve() if release_manifest is not None else None
+    if resolved_mode is ExecutionMode.DEVELOPMENT and release_manifest_path is not None:
+        raise ValueError("development mode must not bind a release manifest")
     contract = _load_object(contract_path.resolve())
-    plan = build_qualification_plan(root, contract_path.resolve())
+    contract_errors = validate_contract(root, contract)
+    if contract_errors:
+        raise AEPriorQualificationV02Error("invalid v0.2 contract: " + "; ".join(contract_errors))
+    if resolved_mode is ExecutionMode.RELEASE:
+        if release_manifest_path is None:
+            raise ValueError("release mode requires a release manifest")
+        manifest = _load_object(release_manifest_path)
+        attempt = release_attempt_binding(manifest)
+        expected_output = _contained_path(
+            root,
+            attempt["canonical_output_path"],
+            must_exist=False,
+        )
+        if output_root != expected_output:
+            raise AEPriorQualificationV02Error(
+                "release output differs from the canonical A-E attempt path"
+            )
+    context = prepare_execution_context(
+        root,
+        mode=resolved_mode,
+        release_manifest=release_manifest_path,
+    )
+    plan = build_qualification_plan(
+        root,
+        contract_path.resolve(),
+        execution_context=build_execution_envelope(context),
+        release_manifest_path=release_manifest_path,
+        release_output_root=(output_root if resolved_mode is ExecutionMode.RELEASE else None),
+    )
     output_root.mkdir(parents=True)
     write_json_atomic(output_root / "plan.json", plan)
     receipts: list[dict[str, Any]] = []
@@ -1489,9 +1863,7 @@ def execute_qualification(
     for row in plan["executions"]:
         receipt = execute_one(root, plan, row, output_root)
         receipts.append(receipt)
-        write_json_atomic(
-            output_root / "receipts" / f"{row['execution_index']:04d}.json", receipt
-        )
+        write_json_atomic(output_root / "receipts" / f"{row['execution_index']:04d}.json", receipt)
         completed = len(receipts)
         elapsed = time.perf_counter() - started
         throughput = completed / elapsed if elapsed else 0.0
@@ -1512,13 +1884,9 @@ def execute_qualification(
     report = build_qualification_report(plan, receipts, contract)
     errors = validate_qualification_report(root, report, plan, receipts, contract)
     if errors:
-        raise AEPriorQualificationV02Error(
-            "v0.2 report validation failed: " + "; ".join(errors)
-        )
+        raise AEPriorQualificationV02Error("v0.2 report validation failed: " + "; ".join(errors))
     write_json_atomic(output_root / "report.json", report)
-    (output_root / "summary.md").write_text(
-        markdown_summary(report), encoding="utf-8"
-    )
+    (output_root / "summary.md").write_text(markdown_summary(report), encoding="utf-8")
     disk_errors = validate_qualification_output(root, output_root, contract_path)
     if disk_errors:
         raise AEPriorQualificationV02Error(
@@ -1529,11 +1897,21 @@ def execute_qualification(
 
 __all__ = [
     "CONTRACT_VERSION",
+    "LEGACY_DEVELOPMENT_PLAN_VERSION",
+    "LEGACY_DEVELOPMENT_REPORT_VERSION",
     "PARTIAL_AUDIT_VERSION",
     "PLAN_VERSION",
     "RECEIPT_VERSION",
+    "RELEASE_ATTEMPT_BINDING_VERSION",
+    "RELEASE_CANONICAL_OUTPUT_PATH",
+    "RELEASE_EXECUTION_PROTOCOL",
+    "RELEASE_EXECUTION_PROTOCOL_VERSION",
+    "RELEASE_EXECUTION_REQUIRED_PATHS",
+    "RELEASE_EXPERIMENT_ID",
     "REPORT_VERSION",
+    "RUNTIME_ENVIRONMENT_FINGERPRINT_VERSION",
     "AEPriorQualificationV02Error",
+    "bind_release_attempt",
     "build_blind_policy_schedule",
     "build_partial_audit",
     "build_qualification_plan",
@@ -1541,7 +1919,10 @@ __all__ = [
     "execute_one",
     "execute_qualification",
     "markdown_summary",
+    "release_attempt_binding",
+    "runtime_environment_fingerprint",
     "validate_contract",
+    "validate_formal_qualification_output",
     "validate_qualification_output",
     "validate_qualification_plan",
     "validate_qualification_report",

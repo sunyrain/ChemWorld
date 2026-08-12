@@ -35,12 +35,12 @@ from chemworld.eval.work_ii_release import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
-DEFAULT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
+DEFAULT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 DEFAULT_PREFLIGHT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "work-ii-formal-matrix-runner-preflight-v0.1.json"
+    "work-ii-formal-matrix-runner-preflight-v0.2.json"
 )
 CELL_RUNNER = ROOT / "scripts/run_work_ii_campaign_pilot.py"
 

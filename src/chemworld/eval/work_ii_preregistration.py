@@ -8,8 +8,9 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
-from chemworld.eval.work_ii_ae_prior_qualification import (
-    validate_qualification_report as validate_ae_prior_qualification_report,
+from chemworld.eval.work_ii_ae_formal_cohort import (
+    qualification_tested_commit,
+    validate_formal_ae_qualification,
 )
 from chemworld.eval.work_ii_formal import (
     FORMAL_ARMS,
@@ -212,11 +213,8 @@ def build_preregistration_readiness(
                 internal_errors.append("bound A-E qualification evidence is missing")
             else:
                 qualification_report = _load_object(qualification_path)
-                qualification_errors = validate_ae_prior_qualification_report(
-                    root,
-                    qualification_report,
-                    design,
-                    report_path=qualification_path,
+                qualification_errors = validate_formal_ae_qualification(
+                    root, qualification_path, design
                 )
                 if qualification_errors:
                     internal_errors.extend(
@@ -228,7 +226,7 @@ def build_preregistration_readiness(
                     or qualification_binding.get("report_sha256")
                     != qualification_report.get("report_sha256")
                     or qualification_binding.get("tested_commit")
-                    != qualification_report.get("source_binding", {}).get("tested_commit")
+                    != qualification_tested_commit(qualification_report)
                 ):
                     internal_errors.append("formal-design audit A-E qualification binding is stale")
     if design.get("formal_execution_allowed") is not False:

@@ -4,6 +4,8 @@ import json
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
+
 import chemworld.eval.work_ii_release as release
 from chemworld.eval.work_ii_release import (
     EXPECTED_WORK_II_RELEASE_TEST_COUNT,
@@ -30,8 +32,8 @@ def _clean_release_is_current() -> bool:
 
 
 def test_prerun_evidence_graph_is_deterministic_current_and_acyclic() -> None:
-    first = build_prerun_evidence_graph(ROOT)
-    second = build_prerun_evidence_graph(ROOT)
+    first = build_prerun_evidence_graph(ROOT, artifact_version="v0.1")
+    second = build_prerun_evidence_graph(ROOT, artifact_version="v0.1")
     assert first == second
     assert validate_prerun_evidence_graph(ROOT, first) == []
     assert first["status"] == "passed_final_freeze_blocked"
@@ -48,12 +50,12 @@ def test_prerun_evidence_graph_is_deterministic_current_and_acyclic() -> None:
 
 def test_committed_prerun_evidence_graph_matches_current_artifacts() -> None:
     committed = json.loads(GRAPH.read_text(encoding="utf-8"))
-    assert committed == build_prerun_evidence_graph(ROOT)
+    assert committed == build_prerun_evidence_graph(ROOT, artifact_version="v0.1")
     assert validate_prerun_evidence_graph(ROOT, committed) == []
 
 
 def test_prerun_evidence_graph_rejects_cycle_even_with_refreshed_hash() -> None:
-    graph = build_prerun_evidence_graph(ROOT)
+    graph = build_prerun_evidence_graph(ROOT, artifact_version="v0.1")
     tampered = deepcopy(graph)
     tampered["edges"].append(
         {
@@ -74,9 +76,11 @@ def test_clean_release_receipt_validator_rejects_shallow_pass() -> None:
 
 
 def test_clean_release_roster_freezes_new_execution_and_q0_tests() -> None:
-    assert len(WORK_II_RELEASE_TEST_FILES) == 29
-    assert EXPECTED_WORK_II_RELEASE_TEST_COUNT == 225
+    assert len(WORK_II_RELEASE_TEST_FILES) == 31
+    assert EXPECTED_WORK_II_RELEASE_TEST_COUNT == 267
     assert {
+        "tests/test_work_ii_ae_formal_cohort.py",
+        "tests/test_work_ii_ae_prior_qualification_v02.py",
         "tests/test_work_ii_formal_evaluators.py",
         "tests/test_work_ii_private_execution.py",
         "tests/test_work_ii_public_c2.py",
@@ -152,6 +156,35 @@ def test_preregistration_freeze_receipt_validator_rejects_shallow_pass(
         currency_ceiling_usd=1.0,
     )
     assert errors
+
+
+def test_preregistration_readiness_version_requires_exact_formal_path_pair() -> None:
+    assert (
+        release._readiness_version(
+            {
+                "design_binding": {
+                    "path": "configs/benchmark/work_ii_formal_design_v0.2.json"
+                },
+                "analysis_binding": {
+                    "path": "configs/benchmark/work_ii_analysis_plan_v0.2.json"
+                },
+            }
+        )
+        == "v0.2"
+    )
+    with pytest.raises(
+        ValueError, match="unsupported formal design/analysis path pairing"
+    ):
+        release._readiness_version(
+            {
+                "design_binding": {
+                    "path": "configs/benchmark/work_ii_formal_design_v0.2.json"
+                },
+                "analysis_binding": {
+                    "path": "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+                },
+            }
+        )
 
 
 def test_preregistration_freeze_forbids_prior_formal_outcomes_even_if_rehashed(

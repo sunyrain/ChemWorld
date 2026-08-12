@@ -16,13 +16,13 @@ from chemworld.eval.work_ii_release import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
-ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
-ROUTE = ROOT / "configs/benchmark/work_ii_submission_route_decision_v0.1.json"
+DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
+DEFAULT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
+DEFAULT_ROUTE = ROOT / "configs/benchmark/work_ii_submission_route_decision_v0.1.json"
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "work-ii-preregistration-freeze-receipt-v0.1.json"
+    "work-ii-preregistration-freeze-receipt-v0.2.json"
 )
 
 
@@ -63,6 +63,9 @@ def _route_compliance(args: argparse.Namespace, selected: object) -> dict[str, o
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--design", type=Path, default=DEFAULT_DESIGN)
+    parser.add_argument("--analysis", type=Path, default=DEFAULT_ANALYSIS)
+    parser.add_argument("--route", type=Path, default=DEFAULT_ROUTE)
     parser.add_argument("--qualification-receipt", type=Path)
     parser.add_argument("--formal-currency-ceiling-usd", type=float)
     parser.add_argument("--pricing-source")
@@ -85,7 +88,9 @@ def main() -> int:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = build_formal_preflight(
+        ROOT, args.design.resolve(), args.analysis.resolve()
+    )
     binding_errors = validate_formal_bindings(ROOT, manifest)
     if binding_errors:
         raise RuntimeError("formal binding validation failed: " + "; ".join(binding_errors))
@@ -174,7 +179,7 @@ def main() -> int:
                 missing.append(flag)
         if missing:
             raise RuntimeError("final freeze user inputs are missing: " + ", ".join(missing))
-        selected_route = _load(ROUTE).get("selected_option")
+        selected_route = _load(args.route.resolve()).get("selected_option")
         compliance = _route_compliance(args, selected_route)
         receipt = build_preregistration_freeze_receipt(
             ROOT,

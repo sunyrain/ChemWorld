@@ -15,17 +15,22 @@ from chemworld.eval.work_ii_release import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = (
-    ROOT / "workstreams/flagship_tasks/reports/work-ii-prerun-evidence-graph-v0.1.json"
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-prerun-evidence-graph-v0.2.json"
 )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--artifact-version", choices=("v0.1", "v0.2"), default="v0.2"
+    )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
-    graph = build_prerun_evidence_graph(ROOT)
+    graph = build_prerun_evidence_graph(
+        ROOT, artifact_version=args.artifact_version
+    )
     errors = validate_prerun_evidence_graph(ROOT, graph)
     if errors:
         raise RuntimeError("Work II pre-run evidence graph failed: " + "; ".join(errors))

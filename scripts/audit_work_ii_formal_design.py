@@ -21,8 +21,12 @@ from chemworld.agents.task_recipes import (
     task_recipe_from_unit_vector,
 )
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
-from chemworld.eval.work_ii_ae_prior_qualification import (
-    validate_qualification_report,
+from chemworld.eval.work_ii_ae_formal_cohort import (
+    FORMAL_DESIGN_VERSION,
+    LEGACY_FORMAL_DESIGN_VERSION,
+    load_ae_formal_cohort,
+    qualification_tested_commit,
+    validate_formal_ae_qualification,
 )
 from chemworld.materials import static_material_information_dossier
 from chemworld.tasks import get_task
@@ -33,9 +37,11 @@ except ModuleNotFoundError:  # direct ``python scripts/...`` execution
     from run_work_ii_campaign_pilot import _campaign_card, _checkpoint_contract
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
+DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
 DEFAULT_OUTPUT = (
-    ROOT / "workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit.json"
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "work-ii-formal-world-prior-design-audit-v0.2.json"
 )
 EXPECTED_TASKS = (
     "electrochemical-conversion",
@@ -196,6 +202,12 @@ def audit(
 ) -> dict[str, Any]:
     design = _load(design_path)
     failures: list[dict[str, Any]] = []
+    design_version = design.get("schema_version")
+    if design_version not in {
+        FORMAL_DESIGN_VERSION,
+        LEGACY_FORMAL_DESIGN_VERSION,
+    }:
+        raise ValueError(f"unsupported formal design version: {design_version}")
     task_rows = design.get("tasks")
     if not isinstance(task_rows, list):
         raise ValueError("design.tasks must be a list")
@@ -204,32 +216,57 @@ def audit(
         failures.append({"check": "exact_task_roster", "observed": list(task_ids)})
     if tuple(design.get("prior_arms", ())) != EXPECTED_ARMS:
         failures.append({"check": "exact_prior_arm_roster"})
+    is_v02 = design_version == FORMAL_DESIGN_VERSION
+    is_v01 = design_version == LEGACY_FORMAL_DESIGN_VERSION
     qualification = design.get("prior_distinguishability_qualification_contract")
     if not isinstance(qualification, Mapping):
         failures.append({"check": "prior_distinguishability_qualification_contract"})
         qualification = {}
-    if qualification.get("schema_version") != EXPECTED_PRIOR_QUALIFICATION_VERSION:
-        failures.append({"check": "prior_distinguishability_qualification_version"})
-    region_contracts = qualification.get("frozen_counterevidence_regions")
-    if not isinstance(region_contracts, list) or len(region_contracts) < 2:
-        failures.append({"check": "two_frozen_counterevidence_regions"})
-    region_rules = qualification.get("region_pass_rules")
-    world_rules = qualification.get("world_pass_rules")
-    if (
-        not isinstance(region_rules, Mapping)
-        or float(region_rules.get("minimum_mean_normalized_L1_metric_vector_separation", 0.0))
-        <= 0.0
-        or float(region_rules.get("minimum_single_metric_absolute_separation", 0.0)) <= 0.0
-        or float(region_rules.get("minimum_paired_noise_signal_to_noise_ratio", 0.0)) <= 0.0
-    ):
-        failures.append({"check": "frozen_metric_vector_and_noise_thresholds"})
-    if (
-        not isinstance(world_rules, Mapping)
-        or int(world_rules.get("minimum_independent_counterevidence_regions_passed", 0)) < 2
-        or int(world_rules.get("participant_complete_experiment_budget", -1)) != 8
-        or world_rules.get("eight_round_falsifiability_required") is not True
-    ):
-        failures.append({"check": "eight_round_two_region_falsifiability_contract"})
+    construction_worlds: dict[str, list[int]] = {}
+    if is_v02:
+        _, construction_worlds, cohort_errors = load_ae_formal_cohort(ROOT, design)
+        failures.extend(
+            {"check": "v0.2_formal_cohort_contract", "error": error}
+            for error in cohort_errors
+        )
+    elif is_v01:
+        if qualification.get("schema_version") != EXPECTED_PRIOR_QUALIFICATION_VERSION:
+            failures.append({"check": "prior_distinguishability_qualification_version"})
+        region_contracts = qualification.get("frozen_counterevidence_regions")
+        if not isinstance(region_contracts, list) or len(region_contracts) < 2:
+            failures.append({"check": "two_frozen_counterevidence_regions"})
+        region_rules = qualification.get("region_pass_rules")
+        world_rules = qualification.get("world_pass_rules")
+        if (
+            not isinstance(region_rules, Mapping)
+            or float(
+                region_rules.get(
+                    "minimum_mean_normalized_L1_metric_vector_separation", 0.0
+                )
+            )
+            <= 0.0
+            or float(
+                region_rules.get("minimum_single_metric_absolute_separation", 0.0)
+            )
+            <= 0.0
+            or float(
+                region_rules.get("minimum_paired_noise_signal_to_noise_ratio", 0.0)
+            )
+            <= 0.0
+        ):
+            failures.append({"check": "frozen_metric_vector_and_noise_thresholds"})
+        if (
+            not isinstance(world_rules, Mapping)
+            or int(
+                world_rules.get(
+                    "minimum_independent_counterevidence_regions_passed", 0
+                )
+            )
+            < 2
+            or int(world_rules.get("participant_complete_experiment_budget", -1)) != 8
+            or world_rules.get("eight_round_falsifiability_required") is not True
+        ):
+            failures.append({"check": "eight_round_two_region_falsifiability_contract"})
 
     # This script validates the static contract and legacy scalar reachability only.
     # The strengthened qualification requires a separate immutable report containing
@@ -244,6 +281,7 @@ def audit(
             "two_frozen_counterevidence_regions",
             "frozen_metric_vector_and_noise_thresholds",
             "eight_round_two_region_falsifiability_contract",
+            "v0.2_formal_cohort_contract",
         }
         for item in failures
     )
@@ -259,16 +297,23 @@ def audit(
             qualification_report: dict[str, Any] = {}
         else:
             qualification_report = _load(prior_qualification_report_path)
-            qualification_errors = validate_qualification_report(
-                ROOT,
-                qualification_report,
-                design,
-                report_path=prior_qualification_report_path,
+            qualification_errors = validate_formal_ae_qualification(
+                ROOT, prior_qualification_report_path, design
             )
         if qualification_report.get("status") != "passed":
             qualification_errors.append("A-E prior-qualification report did not pass")
-        if qualification_report.get("failures") != []:
-            qualification_errors.append("A-E prior-qualification report retains failures")
+        retained_failures = qualification_report.get("failures")
+        retained_failures = (
+            retained_failures if isinstance(retained_failures, list) else [None]
+        )
+        if any(
+            not isinstance(failure, Mapping)
+            or failure.get("phase") != "construction"
+            for failure in retained_failures
+        ):
+            qualification_errors.append(
+                "A-E prior-qualification report retains non-construction failures"
+            )
         qualification_errors = sorted(set(qualification_errors))
         qualification_result = {
             "provided": True,
@@ -284,9 +329,7 @@ def audit(
                 "passed" if not qualification_errors else "failed_validation"
             ),
             "report_sha256": qualification_report.get("report_sha256"),
-            "tested_commit": qualification_report.get("source_binding", {}).get(
-                "tested_commit"
-            ),
+            "tested_commit": qualification_tested_commit(qualification_report),
             "validation_errors": qualification_errors,
             "denominators": qualification_report.get("denominators"),
         }
@@ -303,13 +346,16 @@ def audit(
     cohort = design["world_cohort"]
     development = [int(item) for item in cohort["development_and_qualification"]["world_seeds"]]
     public = cohort["public_formal"]
-    expected_public = _public_selection(
-        task_ids=task_ids,
-        key=str(public["selection_key"]),
-        namespace_start=int(public["namespace_start"]),
-        namespace_size=int(public["namespace_size"]),
-        worlds_per_task=int(public["worlds_per_task"]),
-    )
+    if is_v02:
+        expected_public, construction_worlds, _ = load_ae_formal_cohort(ROOT, design)
+    elif is_v01:
+        expected_public = _public_selection(
+            task_ids=task_ids,
+            key=str(public["selection_key"]),
+            namespace_start=int(public["namespace_start"]),
+            namespace_size=int(public["namespace_size"]),
+            worlds_per_task=int(public["worlds_per_task"]),
+        )
     observed_public = {
         str(task_id): [int(seed) for seed in seeds]
         for task_id, seeds in public["task_world_seeds"].items()
@@ -317,7 +363,14 @@ def audit(
     if observed_public != expected_public:
         failures.append({"check": "public_world_selection_reproducible"})
     public_flat = [seed for seeds in observed_public.values() for seed in seeds]
-    if len(public_flat) != len(set(public_flat)) or set(public_flat) & set(development):
+    construction_flat = [
+        seed for seeds in construction_worlds.values() for seed in seeds
+    ]
+    if (
+        len(public_flat) != len(set(public_flat))
+        or set(public_flat) & set(development)
+        or set(public_flat) & set(construction_flat)
+    ):
         failures.append({"check": "public_worlds_unique_and_development_disjoint"})
 
     private = cohort["private_confirmation"]
@@ -339,7 +392,7 @@ def audit(
                 namespace_start=int(private["namespace_start"]),
                 namespace_size=int(private["namespace_size"]),
                 worlds_per_task=int(private["worlds_per_task"]),
-                forbidden=set(development) | set(public_flat),
+                forbidden=set(development) | set(public_flat) | set(construction_flat),
             )
         else:
             seal = _load(private_seal_path)
@@ -356,7 +409,8 @@ def audit(
             "commitment_matches": private_hash
             == private["sealed_identity_commitment_sha256"],
             "disjoint": not (
-                set(private_flat) & (set(development) | set(public_flat))
+                set(private_flat)
+                & (set(development) | set(public_flat) | set(construction_flat))
             )
             and len(private_flat) == len(set(private_flat)),
         }
@@ -509,13 +563,23 @@ def audit(
             "status": qualification_status,
             "static_contract_ready": qualification_ready,
             "formal_execution_gate_satisfied": qualification_status == "passed",
-            "required_result_axes": [
-                "registered_metric_vector_separation",
-                "paired_noise_signal_to_noise",
-                "two_independent_counterevidence_regions",
-                "eight_round_falsifiability",
-                "all_executions_exact_replayable",
-            ],
+            "required_result_axes": (
+                [
+                    "independent_left_right_Welch_support_metric_contrasts",
+                    "negative_controls_reported_separately",
+                    "two_nuisance_anchors_and_three_policy_replicates",
+                    "heldout_universal_task_world_policy_gate",
+                    "all_executions_exact_replayable",
+                ]
+                if is_v02
+                else [
+                    "registered_metric_vector_separation",
+                    "paired_noise_signal_to_noise",
+                    "two_independent_counterevidence_regions",
+                    "eight_round_falsifiability",
+                    "all_executions_exact_replayable",
+                ]
+            ),
             "participant_provider_calls": 0,
             "participant_outcomes_used": False,
             "qualification_report": qualification_result,
@@ -524,6 +588,20 @@ def audit(
         "task_results": task_results,
         "failures": failures,
         "claim_boundary": (
+            (
+                "This audit validates the v0.2 formal cohort and contract binding, "
+                "matched-prior/world/resource contract, legacy scalar reachability, "
+                "and the supplied release-bound, trajectory-revalidated held-out "
+                "qualification. "
+            )
+            if is_v02 and qualification_status == "passed"
+            else (
+                "This audit validates the v0.2 formal cohort and contract binding, "
+                "matched-prior/world/resource contract and legacy scalar reachability. "
+                "It does not satisfy the release-bound held-out v0.2 qualification. "
+            )
+            if is_v02
+            else
             (
                 "This audit validates the static matched-prior/world/resource contract, "
                 "legacy scalar reachability, and the supplied frozen metric-vector, "

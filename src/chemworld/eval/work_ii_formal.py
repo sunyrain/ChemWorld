@@ -16,6 +16,8 @@ from chemworld.eval.mechanism_gate_decision import gate_a_execution_contract_bin
 from chemworld.eval.mechanism_release import STRUCTURAL_RECEIPT_VERSION
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_ae_formal_cohort import (
+    FORMAL_DESIGN_VERSION,
+    LEGACY_FORMAL_DESIGN_VERSION,
     load_ae_formal_cohort,
     validate_ae_public_cells,
 )
@@ -34,6 +36,10 @@ from chemworld.eval.work_ii_c2_admission import (
 )
 
 FORMAL_PREFLIGHT_VERSION = "chemworld-work-ii-formal-matrix-preflight-0.1"
+SUPPORTED_FORMAL_ANALYSIS_VERSIONS = {
+    LEGACY_FORMAL_DESIGN_VERSION: "chemworld-work-ii-analysis-plan-0.3",
+    FORMAL_DESIGN_VERSION: "chemworld-work-ii-analysis-plan-0.3",
+}
 FORMAL_CELL_VERSION = "chemworld-work-ii-formal-cell-0.1"
 FORMAL_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 FORMAL_SNAPSHOT_STAGES = (
@@ -1100,6 +1106,7 @@ class WorkIIFormalCellStore:
         if (
             payload.get("schema_version") != FORMAL_RECEIPT_VERSION
             or key not in self.cells
+            or not isinstance(cell, Mapping)
             or cell != self.cells.get(key)
             or _cell_key_hash(cell) != key
             or state not in FORMAL_TERMINAL_STATES
@@ -1139,6 +1146,16 @@ def build_formal_preflight(
     analysis = _load_object(analysis_path)
     prerequisite_errors = _validate_environment_binding(root, design)
     errors: list[str] = []
+    design_version = design.get("schema_version")
+    expected_analysis_version = SUPPORTED_FORMAL_ANALYSIS_VERSIONS.get(
+        design_version
+    )
+    if expected_analysis_version is None:
+        raise ValueError(f"unsupported formal design version: {design_version}")
+    if analysis.get("schema_version") != expected_analysis_version:
+        raise ValueError(
+            "analysis schema is unsupported for the formal design version"
+        )
 
     design_digest = canonical_json_sha256(design)
     analysis_digest = canonical_json_sha256(analysis)
@@ -1188,12 +1205,12 @@ def build_formal_preflight(
         "world_cohort.private_confirmation",
     )
     task_world_seeds = _object(public.get("task_world_seeds"), "task_world_seeds")
-    if design.get("schema_version") == "chemworld-work-ii-formal-design-0.2":
+    if design_version == FORMAL_DESIGN_VERSION:
         expected_ae_public, expected_ae_construction, cohort_errors = (
             load_ae_formal_cohort(root, design)
         )
         errors.extend(cohort_errors)
-    else:
+    elif design_version == LEGACY_FORMAL_DESIGN_VERSION:
         expected_ae_public = {
             str(task_id): [int(seed) for seed in seeds]
             for task_id, seeds in task_world_seeds.items()
@@ -1540,7 +1557,7 @@ def build_formal_preflight(
         )
 
     ae_cells = [cell for cell in cells if cell.get("c2_locus") == "A_E"]
-    if design.get("schema_version") == "chemworld-work-ii-formal-design-0.2":
+    if design_version == FORMAL_DESIGN_VERSION:
         errors.extend(validate_ae_public_cells(root, design, ae_cells))
     c2_admission = build_c2_admission_report(
         root,
@@ -1848,7 +1865,7 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
     if len(binding_by_key) != expected_task_count:
         errors.append("formal preflight task binding denominator is invalid")
     locus_cell_counts = dict.fromkeys(FORMAL_C2_LOCI, 0)
-    locus_task_keys = {locus: set() for locus in FORMAL_C2_LOCI}
+    locus_task_keys: dict[str, set[str]] = {locus: set() for locus in FORMAL_C2_LOCI}
     dynamic_counts = {
         "tasks": len(binding_by_key),
         "independent_task_world_clusters": len(
@@ -1954,6 +1971,7 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
             continue
         task_key = formal_task_binding_key(str(locus), task_id)
         binding = binding_by_key.get(task_key)
+        binding_record: Mapping[str, Any] = binding if binding is not None else {}
         contract = FORMAL_C2_LOCUS_CONTRACT[str(locus)]
         locus_cell_counts[str(locus)] += 1
         locus_task_keys[str(locus)].add(task_key)
@@ -1961,9 +1979,9 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
             cell.get("task_binding_key") != task_key
             or binding is None
             or cell.get("campaign_config_path")
-            != binding.get("campaign_config", {}).get("path")
+            != binding_record.get("campaign_config", {}).get("path")
             or cell.get("campaign_config_sha256")
-            != binding.get("campaign_config", {}).get("sha256")
+            != binding_record.get("campaign_config", {}).get("sha256")
             or cell.get("complete_experiment_count")
             != contract["complete_experiments_per_cell"]
             or cell.get("belief_checkpoint_count") != 5
@@ -1977,9 +1995,9 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
             errors.append(f"formal cell denominator or task binding drifted: {cell.get('cell_id')}")
         if locus in C2_LOCI and (
             cell.get("task_admission_receipt_binding")
-            != binding.get("task_admission_receipt")
+            != binding_record.get("task_admission_receipt")
             or cell.get("outcome_blind_selection_binding")
-            != binding.get("outcome_blind_selection")
+            != binding_record.get("outcome_blind_selection")
         ):
             errors.append(f"formal C2 cell lacks exact admission bindings: {cell.get('cell_id')}")
     expected_locus_cells = {
@@ -2021,20 +2039,41 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
             public_size = public.get("namespace_size")
             private_start = private.get("namespace_start")
             private_size = private.get("namespace_size")
-            ranges_valid = (
-                all(
-                    isinstance(value, int) and not isinstance(value, bool)
-                    for value in (public_start, public_size, private_start, private_size)
-                )
-                and public_size > 0
-                and private_size > 0
+            public_start_int = (
+                public_start
+                if isinstance(public_start, int) and not isinstance(public_start, bool)
+                else None
             )
-            if not ranges_valid:
+            public_size_int = (
+                public_size
+                if isinstance(public_size, int) and not isinstance(public_size, bool)
+                else None
+            )
+            private_start_int = (
+                private_start
+                if isinstance(private_start, int) and not isinstance(private_start, bool)
+                else None
+            )
+            private_size_int = (
+                private_size
+                if isinstance(private_size, int) and not isinstance(private_size, bool)
+                else None
+            )
+            if (
+                public_start_int is None
+                or public_size_int is None
+                or private_start_int is None
+                or private_size_int is None
+                or public_size_int <= 0
+                or private_size_int <= 0
+            ):
                 errors.append("formal preflight world namespaces are invalid")
             else:
-                public_end = public_start + public_size
-                private_end = private_start + private_size
-                if not (public_end <= private_start or private_end <= public_start):
+                public_end = public_start_int + public_size_int
+                private_end = private_start_int + private_size_int
+                if not (
+                    public_end <= private_start_int or private_end <= public_start_int
+                ):
                     errors.append("formal preflight public/private namespaces overlap")
                 raw_cell_seeds = [
                     cell.get("world_seed") for cell in cells if isinstance(cell, Mapping)
@@ -2057,8 +2096,8 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
                 if any(
                     not isinstance(seed, int)
                     or isinstance(seed, bool)
-                    or not public_start <= seed < public_end
-                    or private_start <= seed < private_end
+                    or not public_start_int <= seed < public_end
+                    or private_start_int <= seed < private_end
                     or seed in development_seeds
                     for seed in raw_cell_seeds
                 ):
