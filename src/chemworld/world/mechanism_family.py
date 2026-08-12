@@ -28,8 +28,14 @@ RateLawTransformId = Literal[
     "arrhenius_form_and_scale_stress_v1",
     "catalytic_activity_order_pivot_stress_v1",
 ]
-TopologyReactionRole = Literal["primary_target_pathway"]
-TopologyTransformId = Literal["reversible_target_pathway_stress_v1"]
+TopologyReactionRole = Literal[
+    "primary_target_pathway",
+    "catalyst_deactivation_pathway",
+]
+TopologyTransformId = Literal[
+    "reversible_target_pathway_stress_v1",
+    "stable_catalyst_topology_v1",
+]
 ConstitutiveTransformId = Literal[
     "partition_power_response_stress_v1",
     "electrochemical_response_stress_v1",
@@ -40,6 +46,7 @@ CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS: RateLawTransformId = (
     "catalytic_activity_order_pivot_stress_v1"
 )
 REVERSIBLE_TARGET_PATHWAY_STRESS: TopologyTransformId = "reversible_target_pathway_stress_v1"
+STABLE_CATALYST_TOPOLOGY: TopologyTransformId = "stable_catalyst_topology_v1"
 PARTITION_POWER_RESPONSE_STRESS: ConstitutiveTransformId = "partition_power_response_stress_v1"
 ELECTROCHEMICAL_RESPONSE_STRESS: ConstitutiveTransformId = "electrochemical_response_stress_v1"
 EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS: ConstitutiveTransformId = (
@@ -84,6 +91,7 @@ REACTION_MECHANISM_TASKS = (
     "reaction-to-distillation",
     "flow-reaction-optimization",
 )
+CATALYST_DEACTIVATION_MECHANISM_TASKS = ("reaction-safety",)
 PARTITION_MECHANISM_TASKS = ("partition-discovery",)
 ELECTROCHEMICAL_MECHANISM_TASKS = ("electrochemical-conversion",)
 EQUILIBRIUM_MECHANISM_TASKS = ("equilibrium-characterization",)
@@ -95,12 +103,18 @@ CONSTITUTIVE_MECHANISM_TASKS = (
 MECHANISM_REACHABLE_TASKS = (
     *PARTITION_MECHANISM_TASKS,
     *REACTION_MECHANISM_TASKS,
+    *CATALYST_DEACTIVATION_MECHANISM_TASKS,
     *ELECTROCHEMICAL_MECHANISM_TASKS,
     *EQUILIBRIUM_MECHANISM_TASKS,
 )
 MECHANISM_TASK_MODES: dict[str, tuple[MechanismFamilyMode, ...]] = {
     **dict.fromkeys(CONSTITUTIVE_MECHANISM_TASKS, ("constitutive_law_family",)),
     **dict.fromkeys(REACTION_MECHANISM_TASKS, ("rate_law_family", "topology_family")),
+    **dict.fromkeys(CATALYST_DEACTIVATION_MECHANISM_TASKS, ("topology_family",)),
+}
+TOPOLOGY_TASK_TRANSFORMS: dict[str, frozenset[TopologyTransformId]] = {
+    **dict.fromkeys(REACTION_MECHANISM_TASKS, frozenset({REVERSIBLE_TARGET_PATHWAY_STRESS})),
+    **dict.fromkeys(CATALYST_DEACTIVATION_MECHANISM_TASKS, frozenset({STABLE_CATALYST_TOPOLOGY})),
 }
 
 
@@ -268,51 +282,68 @@ class TopologyFamilyChange:
 
     reaction_role: TopologyReactionRole = "primary_target_pathway"
     transform_id: TopologyTransformId = REVERSIBLE_TARGET_PATHWAY_STRESS
-    reverse_rate_constant_s_inv_at_full_severity: float = 0.000625
+    reverse_rate_constant_s_inv_at_full_severity: float | None = 0.000625
 
     def __post_init__(self) -> None:
-        if self.reaction_role != "primary_target_pathway":
-            raise ValueError(f"unsupported topology reaction role: {self.reaction_role}")
-        if self.transform_id != REVERSIBLE_TARGET_PATHWAY_STRESS:
-            raise ValueError(f"unsupported topology transform: {self.transform_id}")
-        rate_constant = self.reverse_rate_constant_s_inv_at_full_severity
-        if not np.isfinite(rate_constant) or rate_constant <= 0.0:
-            raise ValueError("topology reverse rate constant must be finite and positive")
-        object.__setattr__(
-            self,
-            "reverse_rate_constant_s_inv_at_full_severity",
-            float(rate_constant),
-        )
+        if self.transform_id == REVERSIBLE_TARGET_PATHWAY_STRESS:
+            if self.reaction_role != "primary_target_pathway":
+                raise ValueError(
+                    "reversible target topology requires the primary_target_pathway role"
+                )
+            rate_constant = self.reverse_rate_constant_s_inv_at_full_severity
+            if rate_constant is None or not np.isfinite(rate_constant) or rate_constant <= 0.0:
+                raise ValueError("topology reverse rate constant must be finite and positive")
+            object.__setattr__(
+                self,
+                "reverse_rate_constant_s_inv_at_full_severity",
+                float(rate_constant),
+            )
+            return
+        if self.transform_id == STABLE_CATALYST_TOPOLOGY:
+            if self.reaction_role != "catalyst_deactivation_pathway":
+                raise ValueError(
+                    "stable-catalyst topology requires the catalyst_deactivation_pathway role"
+                )
+            if self.reverse_rate_constant_s_inv_at_full_severity is not None:
+                raise ValueError("stable-catalyst topology does not accept a reverse rate constant")
+            return
+        raise ValueError(f"unsupported topology transform: {self.transform_id}")
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> TopologyFamilyChange:
-        allowed = {
-            "reaction_role",
-            "transform_id",
-            "reverse_rate_constant_s_inv_at_full_severity",
-        }
+        transform_id = str(payload.get("transform_id", ""))
+        allowed = {"reaction_role", "transform_id"}
+        if transform_id == REVERSIBLE_TARGET_PATHWAY_STRESS:
+            allowed.add("reverse_rate_constant_s_inv_at_full_severity")
         unknown = sorted(set(payload) - allowed)
         if unknown:
             raise ValueError(f"unknown topology change fields: {unknown}")
-        required = allowed - set(payload)
+        required = {"reaction_role", "transform_id"} - set(payload)
+        if transform_id == REVERSIBLE_TARGET_PATHWAY_STRESS:
+            required.add("reverse_rate_constant_s_inv_at_full_severity")
+            required -= set(payload)
         if required:
             raise ValueError(f"missing topology change fields: {sorted(required)}")
         return cls(
             reaction_role=cast(TopologyReactionRole, str(payload["reaction_role"])),
-            transform_id=cast(TopologyTransformId, str(payload["transform_id"])),
-            reverse_rate_constant_s_inv_at_full_severity=float(
-                payload["reverse_rate_constant_s_inv_at_full_severity"]
+            transform_id=cast(TopologyTransformId, transform_id),
+            reverse_rate_constant_s_inv_at_full_severity=(
+                float(payload["reverse_rate_constant_s_inv_at_full_severity"])
+                if "reverse_rate_constant_s_inv_at_full_severity" in payload
+                else None
             ),
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "reaction_role": self.reaction_role,
             "transform_id": self.transform_id,
-            "reverse_rate_constant_s_inv_at_full_severity": (
-                self.reverse_rate_constant_s_inv_at_full_severity
-            ),
         }
+        if self.transform_id == REVERSIBLE_TARGET_PATHWAY_STRESS:
+            payload["reverse_rate_constant_s_inv_at_full_severity"] = (
+                self.reverse_rate_constant_s_inv_at_full_severity
+            )
+        return payload
 
 
 @dataclass(frozen=True)
@@ -513,6 +544,12 @@ def apply_mechanism_family_intervention(
         raise ValueError(
             f"mode {intervention.mode!r} is not causally reachable for task {task_id!r}"
         )
+    if intervention.mode == "topology_family":
+        transform_id = intervention.resolved_topology_change.transform_id
+        if transform_id not in TOPOLOGY_TASK_TRANSFORMS[task_id]:
+            raise ValueError(
+                f"task {task_id!r} does not expose topology transform {transform_id!r}"
+            )
     base_hash = str(
         instance.compiled_mechanism.network.metadata.get(
             "base_mechanism_hash",
@@ -834,6 +871,8 @@ def _topology_variant(
     severity: float,
     change: TopologyFamilyChange,
 ) -> ReactionNetworkSpec:
+    if change.transform_id == STABLE_CATALYST_TOPOLOGY:
+        return _stable_catalyst_variant(base, severity, change)
     network = base.network
     limiting = base.score_spec.initial_limiting_species
     targets = set(base.score_spec.target_species)
@@ -849,7 +888,10 @@ def _topology_variant(
             f"{[reaction.reaction_id for reaction in candidates]}"
         )
     forward = candidates[0]
-    reverse_rate_constant = change.reverse_rate_constant_s_inv_at_full_severity * severity
+    full_reverse_rate = change.reverse_rate_constant_s_inv_at_full_severity
+    if full_reverse_rate is None:  # guarded by TopologyFamilyChange
+        raise RuntimeError("reversible topology calibration was not resolved")
+    reverse_rate_constant = full_reverse_rate * severity
     reverse = ReactionSpec(
         reaction_id="family_reverse_channel",
         equation=f"reverse({forward.equation})",
@@ -882,14 +924,53 @@ def _topology_variant(
             "derived_family_target_reaction_role": change.reaction_role,
             "derived_family_reverse_rate_constant_s_inv": reverse_rate_constant,
             "derived_family_reverse_rate_constant_s_inv_at_full_severity": (
-                change.reverse_rate_constant_s_inv_at_full_severity
+                full_reverse_rate
             ),
+        },
+    )
+
+
+def _stable_catalyst_variant(
+    base: CompiledMechanism,
+    severity: float,
+    change: TopologyFamilyChange,
+) -> ReactionNetworkSpec:
+    if severity != 1.0:
+        raise ValueError("stable-catalyst topology is discrete and requires severity=1.0")
+    candidates = [
+        reaction
+        for reaction in base.network.reactions
+        if reaction.rate_law.equation_id == "catalyst_deactivation"
+    ]
+    if len(candidates) != 1:
+        raise ValueError(
+            f"mechanism {base.network.network_id!r} requires exactly one catalyst-deactivation "
+            f"topology target; found {[reaction.reaction_id for reaction in candidates]}"
+        )
+    removed = candidates[0]
+    retained = tuple(
+        reaction
+        for reaction in base.network.reactions
+        if reaction.reaction_id != removed.reaction_id
+    )
+    return replace(
+        base.network,
+        network_id=f"{base.network.network_id}-family",
+        reactions=retained,
+        metadata={
+            **base.network.metadata,
+            "derived_family": True,
+            "derived_family_transform_id": change.transform_id,
+            "derived_family_target_reaction_id": removed.reaction_id,
+            "derived_family_target_reaction_role": change.reaction_role,
+            "derived_family_removed_reaction_count": 1,
         },
     )
 
 
 __all__ = [
     "ARRHENIUS_FORM_AND_SCALE_STRESS",
+    "CATALYST_DEACTIVATION_MECHANISM_TASKS",
     "CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS",
     "CONSTITUTIVE_MECHANISM_TASKS",
     "CONSTITUTIVE_TASK_TRANSFORMS",
@@ -906,6 +987,8 @@ __all__ = [
     "RATE_LAW_TRANSFORM_CALIBRATION_FIELDS",
     "REACTION_MECHANISM_TASKS",
     "REVERSIBLE_TARGET_PATHWAY_STRESS",
+    "STABLE_CATALYST_TOPOLOGY",
+    "TOPOLOGY_TASK_TRANSFORMS",
     "ConstitutiveLawFamilyChange",
     "MechanismFamilyIntervention",
     "RateLawFamilyChange",

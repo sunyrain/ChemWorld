@@ -435,6 +435,81 @@ def test_topology_change_contract_round_trips() -> None:
     assert MechanismFamilyIntervention.from_dict(payload).to_dict() == payload
 
 
+def test_stable_catalyst_topology_removes_only_deactivation_channel() -> None:
+    intervention = MechanismFamilyIntervention(
+        "topology_family",
+        1.0,
+        topology_change=TopologyFamilyChange(
+            reaction_role="catalyst_deactivation_pathway",
+            transform_id="stable_catalyst_topology_v1",
+            reverse_rate_constant_s_inv_at_full_severity=None,
+        ),
+    )
+    generator = DefaultScenarioGenerator()
+    scenario = get_scenario("reaction-safety")
+    baseline = generator.generate(scenario, 0)
+    stable = generator.generate(scenario, 0, (intervention.to_dict(),))
+    repeated = generator.generate(scenario, 0, (intervention.to_dict(),))
+
+    baseline_ids = {
+        reaction.reaction_id for reaction in baseline.compiled_mechanism.network.reactions
+    }
+    stable_ids = {reaction.reaction_id for reaction in stable.compiled_mechanism.network.reactions}
+    assert baseline_ids - stable_ids == {"catalyst_deactivation"}
+    assert stable_ids == baseline_ids - {"catalyst_deactivation"}
+    assert stable.compiled_mechanism.mechanism_hash != baseline.compiled_mechanism.mechanism_hash
+    assert stable.compiled_mechanism.mechanism_hash == repeated.compiled_mechanism.mechanism_hash
+    metadata = stable.compiled_mechanism.network.metadata
+    assert metadata["derived_family_target_reaction_id"] == "catalyst_deactivation"
+    assert metadata["derived_family_target_reaction_role"] == "catalyst_deactivation_pathway"
+    assert metadata["derived_family_transform_id"] == "stable_catalyst_topology_v1"
+    assert metadata["derived_family_removed_reaction_count"] == 1
+
+
+def test_stable_catalyst_topology_contract_round_trips_and_requires_full_severity() -> None:
+    payload = {
+        "kind": "mechanism_family",
+        "mode": "topology_family",
+        "severity": 1.0,
+        "topology_change": {
+            "reaction_role": "catalyst_deactivation_pathway",
+            "transform_id": "stable_catalyst_topology_v1",
+        },
+    }
+    assert MechanismFamilyIntervention.from_dict(payload).to_dict() == payload
+    partial = {**payload, "severity": 0.8}
+    with pytest.raises(ValueError, match=r"discrete and requires severity=1\.0"):
+        DefaultScenarioGenerator().generate(
+            get_scenario("reaction-safety"),
+            0,
+            (partial,),
+        )
+
+
+def test_topology_transforms_are_task_specific() -> None:
+    stable_payload = {
+        "kind": "mechanism_family",
+        "mode": "topology_family",
+        "severity": 1.0,
+        "topology_change": {
+            "reaction_role": "catalyst_deactivation_pathway",
+            "transform_id": "stable_catalyst_topology_v1",
+        },
+    }
+    with pytest.raises(ValueError, match="does not expose topology transform"):
+        DefaultScenarioGenerator().generate(
+            get_scenario("reaction-to-crystallization"),
+            0,
+            (stable_payload,),
+        )
+    with pytest.raises(ValueError, match="does not expose topology transform"):
+        DefaultScenarioGenerator().generate(
+            get_scenario("reaction-safety"),
+            0,
+            (_intervention("topology_family"),),
+        )
+
+
 def test_rate_law_role_resolution_is_independent_of_reaction_declaration_order() -> None:
     compiled = DefaultScenarioGenerator().generate(
         get_scenario("reaction-to-crystallization"),
