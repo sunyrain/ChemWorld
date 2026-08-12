@@ -1,55 +1,61 @@
-# Work II catalyst-deactivation real-provider probe
+# Work II catalyst-deactivation paired real-provider campaigns
 
 Date: 2026-08-12
 
 Status: frozen before provider execution
 
-## Question and tested unit
+## Question and tested units
 
-Can one real WellAU `gpt-5.6-sol` medium Codex session use two autonomous complete experiments in
-reaction-safety world seed 0 to distinguish the hidden deactivating-catalyst baseline from an
-otherwise identical stable-catalyst hypothesis? The participant receives the two candidate
-structures with equal status but not the hidden answer. The hidden world is fixed for the full
-session; both fresh batches share the same campaign ledger and observation-noise namespace.
+Can two matched real WellAU `gpt-5.6-sol` medium Codex campaigns produce a participant-relevant
+effect above the frozen W2-33 topology gates when one fixed reaction-safety world contains catalyst
+deactivation and the other removes that unique pathway? World seed is 0 in both campaigns.
 
-This is a one-cell development case study requested after the provider-free W2-33 qualification.
-It neither replaces the frozen `54/54` result nor authorizes a multi-seed participant block.
+There are exactly two participant cells: `deactivating_baseline` and `stable_catalyst`. Each cell is
+one independent persistent Codex process that controls eight fresh batches and completes eight
+autonomous experiments. Provider, model, reasoning, public task, opaque material information,
+resource ledger, checkpoint contract, agent seed and keyed observation-noise namespace are matched.
+The physical law is host-owned and is the only intended difference; it is not named in the public
+prompt. The stable cell removes `Cat_active -> Cat_dead` from world construction.
+
+The previously completed one-session/two-experiment pilot resulted from a scope misunderstanding.
+It is retained under source commit `5d6da7f5` as a development pilot but is not part of this block,
+does not enter its denominator and will not be used as a replacement result.
 
 ## Measurements and limits
 
-- one persistent Codex process, WellAU `gpt-5.6-sol`, medium reasoning, ChemWorld MCP only;
-- exactly two participant-controlled complete experiments, each closed by committed final assay;
-- at most 24 operation attempts, two heat stages, two quenches, two nonfinal measurements and two
-  final assays;
-- process-time ceiling `29,040 s = 2 x 14,400 s heat + 2 x 120 s quench`;
-- one pre-evidence, one after-first-experiment and one final typed belief checkpoint;
+- two persistent Codex processes, one per fixed law, WellAU `gpt-5.6-sol`, medium reasoning and
+  ChemWorld MCP only;
+- exactly eight participant-controlled complete experiments per process, each closed by final assay
+  or retained as an operational failure if the frozen campaign cannot complete;
+- per campaign: at most 80 operation attempts, eight heat stages, eight quenches, eight nonfinal
+  measurements and eight final assays;
+- per-campaign process-time ceiling `116,160 s = 8 x 14,400 s heat + 8 x 120 s quench`;
+- checkpoints at `0/2/4/6/8` completed experiments;
 - record operations, complete experiments, MCP calls and failures, exact replay, provider attempts,
   input/cached/uncached/output tokens and elapsed time.
 
-The participant is instructed to put one of the exact labels `catalyst_deactivation_present`,
-`stable_catalyst`, or `indeterminate` in its final public selection rationale, with confidence and
-experiment-indexed evidence. This is a reporting contract, not a hint about the hidden answer.
-
 ## Frozen completion and interpretation rules
 
-Operational completion requires one terminal provider session, two closed final-assay experiments,
-all three checkpoints, one committed final recommendation, exact replay, no platform failure and
-complete provider usage accounting within the frozen limits. Participant-selected unsafe or
+Operational completion is assessed separately for both cells and requires one terminal provider
+session, eight closed experiments, all five checkpoints, one committed final recommendation, exact
+replay, no platform failure and complete provider usage accounting. Participant-selected unsafe or
 physically poor conditions remain participant outcomes rather than platform failures.
 
-The scientific probe is classified as:
+Two frozen scientific views are reported. First, the total agent-system contrast compares the two
+autonomous campaigns' best, mean and eight-round trajectories; this includes policy adaptation and
+therefore is not a pure physics effect. Second, all 16 provider-selected recipes are replayed by the
+evaluator under both laws with paired action/noise bindings (`16 x 2 = 32` provider-free executions).
+For each recipe, report stable-minus-deactivating yield, conversion and selectivity. The reference
+gates remain exactly `0.050/0.050/0.054`; report per-metric maxima, gate ratios, the count exceeding
+each gate and whether at least two metrics exceed their gates. No gate may be lowered after outcome.
 
-- `correct` only for `catalyst_deactivation_present`;
-- `incorrect` only for `stable_catalyst`;
-- `indeterminate` when that label is submitted or no unique label can be extracted;
-- `operational_failure` if the two-experiment/session contract does not complete.
-
-No result from this single seed may lower the W2-33 noise/effect gates. A correct judgment is a
-participant case study; an incorrect or indeterminate judgment is evidence that two autonomous
-experiments did not resolve the small public effect under this harness.
+The block passes the requested empirical claim only if both provider campaigns are operationally
+complete, all 32 counterfactual executions are exact-replay complete without platform failure, and
+the frozen paired analysis observes above-gate separation. Failure is retained; no session or recipe
+is replaced. This seed-0 development result cannot replace W2-33 or authorize a multi-seed claim.
 
 ## Outputs
 
 Raw trajectories and provider receipts remain under ignored `runs/`. Tracked outputs are one
-machine-readable summary with exact denominators and failures, one concise Chinese analysis and an
-updated Work II TODO entry.
+machine-readable paired summary with exact denominators and all failures, one concise Chinese
+analysis and an updated Work II TODO entry.

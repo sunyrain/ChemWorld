@@ -1,0 +1,192 @@
+{
+  "schema_version": "chemworld-work-ii-catalyst-deactivation-real-provider-campaign-0.1",
+  "pilot_id": "work-ii-catalyst-deactivation-paired-real-provider-seed0",
+  "formal_result": false,
+  "task_id": "reaction-safety-constrained",
+  "world_split": "public-test",
+  "world_seed": 0,
+  "world_law_id": "stable_catalyst",
+  "world_interventions": [
+    {
+      "kind": "mechanism_family",
+      "mode": "topology_family",
+      "severity": 1.0,
+      "topology_change": {
+        "reaction_role": "catalyst_deactivation_pathway",
+        "transform_id": "stable_catalyst_topology_v1"
+      }
+    }
+  ],
+  "objective": "safe",
+  "episode_mode": "campaign",
+  "observation_noise_mode": "keyed",
+  "observation_noise_namespace": "work-ii-catalyst-deactivation-paired-real-provider-seed0",
+  "prior_arms": {
+    "opaque": {
+      "material_information": {
+        "mode": "opaque_codes"
+      }
+    }
+  },
+  "snapshot_stages": [
+    "pre_evidence",
+    "after_experiment_2",
+    "after_experiment_4",
+    "after_experiment_6",
+    "final"
+  ],
+  "belief_checkpoint": {
+    "allowed_feature_ids": [
+      "catalyst",
+      "solvent",
+      "reagent_amount_mol",
+      "catalyst_amount_mol",
+      "stirring_speed_rpm",
+      "solvent_volume_L",
+      "reaction_temperature_K",
+      "reaction_duration_s"
+    ],
+    "allowed_metric_ids": [
+      "yield",
+      "selectivity",
+      "safety_risk",
+      "score"
+    ],
+    "allowed_prior_fields": [
+      "catalyst",
+      "solvent"
+    ],
+    "held_out_queries": [
+      {
+        "query_id": "q-short-moderate",
+        "feature_values": {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.000315,
+          "reaction_duration_s": 1800.0,
+          "reaction_temperature_K": 410.0,
+          "reagent_amount_mol": 0.015,
+          "solvent": 2,
+          "solvent_volume_L": 0.025,
+          "stirring_speed_rpm": 675.0
+        },
+        "metric_ids": ["yield", "selectivity", "safety_risk", "score"]
+      },
+      {
+        "query_id": "q-long-moderate",
+        "feature_values": {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.000315,
+          "reaction_duration_s": 14400.0,
+          "reaction_temperature_K": 410.0,
+          "reagent_amount_mol": 0.015,
+          "solvent": 2,
+          "solvent_volume_L": 0.025,
+          "stirring_speed_rpm": 675.0
+        },
+        "metric_ids": ["yield", "selectivity", "safety_risk", "score"]
+      },
+      {
+        "query_id": "q-long-hot",
+        "feature_values": {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.000520,
+          "reaction_duration_s": 14400.0,
+          "reaction_temperature_K": 465.0,
+          "reagent_amount_mol": 0.015,
+          "solvent": 2,
+          "solvent_volume_L": 0.025,
+          "stirring_speed_rpm": 675.0
+        },
+        "metric_ids": ["yield", "selectivity", "safety_risk", "score"]
+      }
+    ]
+  },
+  "campaign": {
+    "card_id": "work-ii-catalyst-deactivation-paired-real-provider-k8",
+    "complete_experiments": 8,
+    "operation_attempt_limit": 80,
+    "vessel_start_limit": 8,
+    "final_assay_limit": 8,
+    "nonfinal_instrument_use_limit": 8,
+    "stock_limits": {
+      "reagent_mol": 0.276,
+      "solvent_L": 0.23,
+      "catalyst_mol": 0.00506
+    },
+    "process_time_limit_s": 116160.0,
+    "implicit_operation_time_s": {
+      "quench": 120.0
+    },
+    "operation_repeat_limits": {
+      "heat": 8,
+      "quench": 8
+    },
+    "process_time_policy": {
+      "pattern_id": "reaction-safety-catalyst-structure-k8",
+      "required_stage_max_s": 115200.0,
+      "repeat_allowance_s": 0.0,
+      "implicit_stage_reserve_s": 960.0,
+      "formula": "eight participant-selected heat stages at the public maximum plus eight quench allowances"
+    },
+    "closeout_policy": {
+      "planned_batches": 8,
+      "final_assay_path_operations_per_batch": 2,
+      "discard_path_operations_per_batch": 1,
+      "final_assay_path_total_operation_reserve": 16,
+      "discard_path_total_operation_reserve": 8,
+      "policy": "participant_controlled_eight_experiment_campaign",
+      "automatic_action_repair": false,
+      "automatic_closeout": false
+    },
+    "checkpoint_complete_experiments": [0, 2, 4, 6, 8]
+  },
+  "qualification": {
+    "required_operation_counts": {},
+    "minimum_unique_recipes": 6,
+    "maximum_exact_repeats": 2,
+    "max_resource_rejections": 0
+  },
+  "analysis": {
+    "final_metric_ids": [
+      "yield",
+      "conversion",
+      "selectivity",
+      "safety_risk",
+      "constraint_violations",
+      "score"
+    ]
+  },
+  "method_resources": {
+    "operation_limit": 80,
+    "complete_experiment_limit": 8,
+    "checkpoint_complete_experiments": [2, 4, 6, 8],
+    "wall_time_limit_s": 7200.0,
+    "model_call_limit": 1,
+    "input_token_limit": 8000000,
+    "uncached_input_token_limit": 800000,
+    "output_token_limit": 64000,
+    "training_environment_step_limit": 0
+  },
+  "execution": {
+    "max_concurrency": 1,
+    "parallelization_unit": "single_law_single_session",
+    "within_cell_concurrency": 1,
+    "failure_semantics": "retain the complete law-specific campaign without replacement"
+  },
+  "provider": {
+    "id": "wellau",
+    "name": "WellAU",
+    "base_url": "https://api.wellau.com/v1",
+    "env_key": "WELLAU_API_KEY",
+    "wire_api": "responses",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "medium",
+    "request_timeout_s": 1200.0,
+    "finalization_timeout_s": 600.0,
+    "session_wall_time_limit_s": 6600.0,
+    "max_recovered_mcp_tool_failures": 3,
+    "max_consecutive_mcp_tool_failures": 1,
+    "max_provider_error_events": 1,
+    "progress_interval_s": 30.0
+  }
+}

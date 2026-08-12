@@ -8,12 +8,17 @@ from pathlib import Path
 import pytest
 import scripts.run_work_ii_campaign_pilot as campaign_runner
 import scripts.run_work_ii_five_seed_campaign as five_seed_runner
+from scripts.evaluate_work_ii_catalyst_deactivation_paired_provider_campaigns import (
+    _paired_analysis,
+    _validate_configs,
+)
 from scripts.run_work_ii_campaign_pilot import (
     _arm_initial_world_model,
     _arm_material_information,
     _campaign_card,
     _checkpoint_contract,
     _qualification,
+    _world_interventions,
 )
 from scripts.run_work_ii_five_seed_campaign import (
     _execution_scope,
@@ -78,6 +83,79 @@ def test_nested_initial_model_arm_keeps_material_information_opaque() -> None:
         "availability": "supplied_incomplete_model",
     }
     assert _arm_initial_world_model(config, "opaque") is None
+
+
+def test_campaign_runner_keeps_world_interventions_host_owned() -> None:
+    config = _config()
+    assert _world_interventions(config) == []
+    intervention = {
+        "kind": "mechanism_family",
+        "mode": "topology_family",
+        "severity": 1.0,
+        "topology_change": {
+            "reaction_role": "catalyst_deactivation_pathway",
+            "transform_id": "stable_catalyst_topology_v1",
+        },
+    }
+    config["world_interventions"] = [intervention]
+    assert _world_interventions(config) == [intervention]
+    serialized_card = json.dumps(_campaign_card(config).to_dict(), sort_keys=True)
+    assert "stable_catalyst" not in serialized_card
+    assert "catalyst_deactivation_pathway" not in serialized_card
+
+
+def test_catalyst_provider_configs_differ_only_by_hidden_law() -> None:
+    deactivating = _task_config(
+        "work_ii_catalyst_deactivation_real_provider_deactivating_campaign_seed0.json"
+    )
+    stable = _task_config(
+        "work_ii_catalyst_deactivation_real_provider_stable_campaign_seed0.json"
+    )
+    audit = _validate_configs(
+        {"deactivating_baseline": deactivating, "stable_catalyst": stable}
+    )
+    assert audit["matched_outside_hidden_law"] is True
+    assert audit["participant_campaign_count"] == 2
+    assert audit["complete_experiments_per_campaign"] == 8
+
+
+def test_paired_catalyst_analysis_applies_frozen_gates_per_recipe() -> None:
+    rows = []
+    for source_law, experiment_index, gaps in (
+        ("deactivating_baseline", 1, {"yield": 0.051, "conversion": 0.052, "selectivity": 0.01}),
+        ("stable_catalyst", 1, {"yield": 0.01, "conversion": 0.01, "selectivity": 0.055}),
+    ):
+        baseline = {
+            "yield": 0.20,
+            "conversion": 0.40,
+            "selectivity": 0.50,
+            "safety_risk": 0.10,
+            "score": 0.20,
+        }
+        stable_metrics = {
+            metric: baseline[metric] + gaps.get(metric, 0.0) for metric in baseline
+        }
+        for target_law, metrics, mechanism_hash in (
+            ("deactivating_baseline", baseline, "baseline"),
+            ("stable_catalyst", stable_metrics, "stable"),
+        ):
+            rows.append(
+                {
+                    "source_law_id": source_law,
+                    "experiment_index": experiment_index,
+                    "target_law_id": target_law,
+                    "action_plan_sha256": f"recipe-{source_law}-{experiment_index}",
+                    "observation_seed": experiment_index,
+                    "mechanism_hash": mechanism_hash,
+                    "metrics": metrics,
+                    "safe": True,
+                }
+            )
+    report = _paired_analysis(rows)
+    assert report["paired_recipe_count"] == 2
+    assert report["any_primary_metric_exceeds_gate"] is True
+    assert report["any_recipe_has_two_metrics_above_gate"] is True
+    assert report["metric_reports"]["selectivity"]["absolute_gate_exceedance_count"] == 1
 
 
 def test_electrochemical_process_time_policy_allows_two_exact_repeat_stages() -> None:

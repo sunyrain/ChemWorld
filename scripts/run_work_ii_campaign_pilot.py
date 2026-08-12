@@ -116,6 +116,18 @@ def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
     )
 
 
+def _world_interventions(config: Mapping[str, Any]) -> list[dict[str, Any]]:
+    value = config.get("world_interventions", [])
+    if not isinstance(value, list):
+        raise ValueError("world_interventions must be a list")
+    interventions = []
+    for index, item in enumerate(value):
+        if not isinstance(item, Mapping):
+            raise ValueError(f"world_interventions[{index}] must be an object")
+        interventions.append(dict(item))
+    return interventions
+
+
 def _formal_cell_context(
     args: argparse.Namespace,
     *,
@@ -552,6 +564,7 @@ def _run_cell(
     )
     cell_root.mkdir(parents=True, exist_ok=False)
     card = _campaign_card(config)
+    world_interventions = _world_interventions(config)
     provider = config["provider"]
     completed = 0
     target_experiments = int(config["campaign"]["complete_experiments"])
@@ -691,6 +704,7 @@ def _run_cell(
                 observation_noise_namespace=(
                     f"{config['observation_noise_namespace']}--seed{world_seed}"
                 ),
+                world_interventions=world_interventions,
             )
             del history
         except Exception as error:  # preserve the failed cell and stop the next seed block
@@ -716,7 +730,11 @@ def _run_cell(
         ],
     )
     replay = (
-        verify_records(records, tolerance=0.0).to_dict()
+        verify_records(
+            records,
+            tolerance=0.0,
+            world_interventions=world_interventions,
+        ).to_dict()
         if records
         else {"verified": False, "checked_steps": 0, "max_abs_error": None, "mismatches": []}
     )
@@ -769,6 +787,7 @@ def _run_cell(
     )
     row = {
         "arm": arm,
+        "world_law_id": config.get("world_law_id"),
         "completed": failure is None and qualification["passed"],
         "failure": failure,
         "analysis": analysis,
