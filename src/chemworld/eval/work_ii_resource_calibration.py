@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -1194,45 +1194,62 @@ def build_resource_calibration_readiness(
     manifest = _load_object(manifest_path)
     internal_errors = validate_resource_calibration_manifest(root, manifest)
     patterns = manifest.get("patterns")
-    patterns = patterns if isinstance(patterns, list) else []
-    pattern_rows: list[dict[str, Any]] = []
-    for row in patterns:
-        if not isinstance(row, Mapping):
-            continue
-        selected = (
-            isinstance(row.get("task_id"), str)
-            and isinstance(row.get("campaign_config_binding"), Mapping)
-            and row.get("task_specific_resource_formula_frozen") is True
-        )
-        pattern_rows.append(
-            {
-                "rounds": row.get("rounds"),
-                "locus": row.get("locus"),
-                "representative_task_status": row.get("representative_task_status"),
-                "representative_task_selected_and_frozen": selected,
-                "task_id": row.get("task_id"),
-                "world_seed": row.get("world_seed"),
-                "campaign_config_binding": row.get("campaign_config_binding"),
-                "ready": selected,
-            }
-        )
+    effective_patterns = patterns if isinstance(patterns, list) else []
+
+    def project_pattern_readiness(
+        rows: Sequence[Mapping[str, Any] | object],
+    ) -> list[dict[str, Any]]:
+        projected: list[dict[str, Any]] = []
+        for row in rows:
+            if not isinstance(row, Mapping):
+                continue
+            selected = (
+                isinstance(row.get("task_id"), str)
+                and isinstance(row.get("campaign_config_binding"), Mapping)
+                and row.get("task_specific_resource_formula_frozen") is True
+            )
+            projected.append(
+                {
+                    "rounds": row.get("rounds"),
+                    "locus": row.get("locus"),
+                    "representative_task_status": row.get(
+                        "representative_task_status"
+                    ),
+                    "representative_task_selected_and_frozen": selected,
+                    "task_id": row.get("task_id"),
+                    "world_seed": row.get("world_seed"),
+                    "campaign_config_binding": row.get("campaign_config_binding"),
+                    "ready": selected,
+                }
+            )
+        return projected
+
+    pattern_rows = project_pattern_readiness(effective_patterns)
     missing_rounds = [row["rounds"] for row in pattern_rows if not row["ready"]]
     representative_resolution: dict[str, Any] | None = None
     representative_blockers: list[str] = []
     if missing_rounds:
         try:
-            _, representative_resolution = resolve_resource_calibration_representatives(
-                root,
-                manifest,
-                formal_design_path=root / DEFAULT_RESOURCE_CALIBRATION_FORMAL_DESIGN,
-                selection_protocol_paths={
-                    locus: root / path
-                    for locus, path in DEFAULT_RESOURCE_CALIBRATION_SELECTION_PROTOCOLS.items()
-                },
-                q2_generation_record_paths={
-                    locus: root / path
-                    for locus, path in DEFAULT_RESOURCE_CALIBRATION_Q2_GENERATION_RECORDS.items()
-                },
+            effective_patterns, representative_resolution = (
+                resolve_resource_calibration_representatives(
+                    root,
+                    manifest,
+                    formal_design_path=(
+                        root / DEFAULT_RESOURCE_CALIBRATION_FORMAL_DESIGN
+                    ),
+                    selection_protocol_paths={
+                        locus: root / path
+                        for locus, path in (
+                            DEFAULT_RESOURCE_CALIBRATION_SELECTION_PROTOCOLS.items()
+                        )
+                    },
+                    q2_generation_record_paths={
+                        locus: root / path
+                        for locus, path in (
+                            DEFAULT_RESOURCE_CALIBRATION_Q2_GENERATION_RECORDS.items()
+                        )
+                    },
+                )
             )
         except (OSError, TypeError, ValueError) as error:
             representative_blockers.append(
@@ -1245,6 +1262,14 @@ def build_resource_calibration_readiness(
                     "blocking_requirements", []
                 )
             )
+            # The checked-in protocol is intentionally a pre-evidence template. Its
+            # pending labels must not hide representatives that the protected,
+            # outcome-blind selection and Q2 contracts already resolve. Readiness is
+            # therefore projected from the deterministic resolution result.
+            pattern_rows = project_pattern_readiness(effective_patterns)
+            missing_rounds = [
+                row["rounds"] for row in pattern_rows if not row["ready"]
+            ]
     source_commit = git_source_commit(root)
     summary: dict[str, Any] | None = None
     summary_errors: list[str] = []
@@ -1390,6 +1415,15 @@ def validate_resource_calibration_readiness(report: Mapping[str, Any]) -> list[s
     ):
         errors.append("resource calibration readiness has invalid missing pattern rounds")
     else:
+        projected_missing = [
+            row.get("rounds")
+            for row in patterns
+            if isinstance(row, Mapping) and row.get("ready") is not True
+        ]
+        if missing != projected_missing:
+            errors.append(
+                "resource calibration missing rounds differ from pattern readiness"
+            )
         summary_present = report.get("calibration_summary_present") is True
         summary_passed = report.get("calibration_summary_passed") is True
         summary_errors = report.get("calibration_summary_errors")

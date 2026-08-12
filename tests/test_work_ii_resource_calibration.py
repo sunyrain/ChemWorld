@@ -25,6 +25,7 @@ from chemworld.eval.work_ii_resource_calibration import (
     build_resource_calibration_summary,
     empty_resource_calibration_summary,
     resolve_resource_calibration_representatives,
+    resource_calibration_readiness_sha256,
     resource_calibration_summary_sha256,
     validate_resource_calibration_authorization,
     validate_resource_calibration_manifest,
@@ -454,7 +455,12 @@ def test_calibration_readiness_is_deterministic_zero_call_and_not_ready() -> Non
     assert first["provider_execution_allowed"] is False
     assert first["provider_calls_executed"] == 0
     assert first["method_qualification_may_be_authorized"] is False
-    assert first["missing_pattern_rounds"] == [10, 12]
+    assert first["missing_pattern_rounds"] == [12]
+    ten = next(row for row in first["pattern_readiness"] if row["rounds"] == 10)
+    assert ten["representative_task_status"] == "q2_generated_static_config_frozen"
+    assert ten["representative_task_selected_and_frozen"] is True
+    assert ten["task_id"] == "reaction-safety-constrained"
+    assert ten["ready"] is True
     assert first["representative_resolution"]["selected_representatives"]["10"] == {
         "locus": "A_P",
         "task_id": "reaction-safety-constrained",
@@ -464,6 +470,16 @@ def test_calibration_readiness_is_deterministic_zero_call_and_not_ready() -> Non
         "12-round A_S Q2 generation record is unavailable"
         in blocker
         for blocker in first["blocking_requirements"]
+    )
+
+    inconsistent = deepcopy(first)
+    inconsistent["missing_pattern_rounds"] = [10, 12]
+    inconsistent["readiness_sha256"] = resource_calibration_readiness_sha256(
+        inconsistent
+    )
+    assert (
+        "resource calibration missing rounds differ from pattern readiness"
+        in validate_resource_calibration_readiness(inconsistent)
     )
 
 
@@ -510,12 +526,13 @@ def test_execution_manifest_cannot_run_before_rank_one_as_q2_generation(
         "chemworld.eval.work_ii_c2_admission.c2_material_dirty_paths",
         lambda _root: [],
     )
-    with pytest.raises(ValueError, match="A_S Q2 generation record"):
+    with pytest.raises(ValueError, match="A_S Q2 generation record") as captured:
         build_resource_calibration_execution_manifest(
             ROOT,
             MANIFEST,
             formal_design_path=ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json",
         )
+    assert "A_P" not in str(captured.value)
 
 
 def test_q2_generation_resolution_reads_the_selected_configs_exactly(
@@ -977,7 +994,8 @@ def test_runner_rejects_provider_execution_before_creating_output(tmp_path: Path
         check=False,
     )
     assert result.returncode != 0
-    assert "unresolved pattern rounds: 10,12" in result.stderr
+    assert "unresolved pattern rounds: 12" in result.stderr
+    assert "10,12" not in result.stderr
     assert not output.exists()
 
 
