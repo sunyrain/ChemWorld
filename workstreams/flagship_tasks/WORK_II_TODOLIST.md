@@ -32,9 +32,10 @@ W2-31 observation/measurement seed-0 screen 已完成 `24/24` provider-free exec
 failures。Reaction-to-crystallization 通过全部 topology gates；flow 的 mechanism binding 正确，但最大公开效应
 `0.024–0.054` 低于 UV/Vis gates `0.120–0.135`，因此整体科学拒绝、不扩展五 worlds。该结果明确研究固定世界
 中的初始结构认识，不恢复旧“运行中物理变化”故事。
-W2-33 已冻结 reaction-safety 的第二个 static A-S seed-0 Q0：比较完整保留 catalyst-deactivation channel 的
-基线与从世界构造起就移除该唯一通道的 stable-catalyst 世界。覆盖为 3 temperatures × 3 durations × 3 catalyst
-doses × 2 laws，共 `54` provider-free executions；正式运行只能从 clean commit 启动。
+W2-33 reaction-safety catalyst-deactivation static A-S seed-0 Q0 已完成 `54/54` executions 与 exact replay，
+0 physical/platform/unsafe。Stable catalyst 在全部 27 cells 的 direct metrics 上方向一致，但最大 yield/
+conversion/selectivity gaps 仅 `0.00615/0.00563/0.00532`，远低于 `0.050/0.050/0.054` gates；duration
+accumulation 也低于门槛。该候选为任务—机制可辨识性科学拒绝，不扩展五 worlds。
 
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
@@ -361,6 +362,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | W2-31 observation/measurement Q0 | 五类 spectral instruments、pH、三种 disclosure conditions 与 request-only archive 的 `12/12` controls 通过；0 provider | 观测层同时保留可识别、不可识别和低信号退化区域，允许进入两个 task family 的 seed-0 provider-free screen；不授权 participant/D1。详见 `WORK_II_OBSERVATION_MODEL_Q0_ANALYSIS_ZH.md` |
 | W2-31 observation/measurement seed-0 screen | `18/18` noisy + `6/6` truth，`24/24` exact replay；0 physical/platform/unsafe；electrochemical pass、crystallization reject | Electrochemical transport/Faradaic/energy effects 明显超过噪声门；crystallization seed-mass 的最大 CSD effect `0.0390 < 0.0950`，yield `0.0143 < 0.0303`。保留科学拒绝，不扩展五 worlds，不生成 D1。详见 `WORK_II_OBSERVATION_SCREEN_ANALYSIS_ZH.md` |
 | static reversible-path A-S seed-0 Q0 | `36/36` paired executions/exact replay；0 physical/platform/unsafe；crystallization pass、flow reject | 两任务均正确增加固定 reverse target channel，且 action/noise 完全配对。Crystallization yield/conversion/selectivity effects 为 `0.1757/0.0730/0.1703`，yield accumulation `0.1176`；flow 最大效应仅 `0.0245/0.0269/0.0538`，低于 UV/Vis gates。保留科学拒绝，不扩展。详见 `WORK_II_STATIC_TOPOLOGY_Q0_ANALYSIS_ZH.md` |
+| reaction-safety catalyst-deactivation A-S seed-0 Q0 | `54/54` completed/exact replay；0 physical/platform/unsafe；stable law 在 27/27 cells 方向一致 | 最大 yield/conversion/selectivity gaps `0.00615/0.00563/0.00532`，仅为 gates 的约 `0.10–0.12×`；机制真实激发但下游公开效应不足。科学拒绝，不扩展。详见 `WORK_II_CATALYST_DEACTIVATION_Q0_ANALYSIS_ZH.md` |
 
 正式 A-E 尚未执行，因此可以在不污染 participant outcomes 的情况下把 4 轮改为 8 轮；但已有 formal design、
 analysis plan、manifest preflight 和 power/resource 文件在重新生成前只视为历史 planning artifacts，不能作为执行授权。
@@ -402,10 +404,10 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   Crystallization 通过全部 topology/accumulation gates；flow 因公开效应低于 UV/Vis 噪声门科学拒绝。
   按冻结规则不扩展五 worlds；若继续 A-S，需把保留的 crystallization 与一个新的独立 task 候选重新组对，
   不得放大当前 intervention、降低门槛或删除 flow 结果。
-- [ ] **W2-33** reaction-safety catalyst-deactivation static A-S seed-0 Q0 已冻结。新增离散
-  `stable_catalyst_topology_v1` 只允许 reaction-safety 使用并要求 severity `1.0`；focused tests、旧 topology
-  replay compatibility 与一对真实环境 smoke 已通过。待从 clean commit 执行 `54` 次 paired provider-free
-  trajectories；pass 后只保留为与 crystallization 重新组对的第二候选，不直接授权 D1/provider。
+- [x] **W2-33** reaction-safety catalyst-deactivation static A-S seed-0 Q0 已完成：`54/54`
+  completed/exact replay、0 physical/platform/unsafe。Stable catalyst 的结构绑定、动作/噪声配对和 effect 方向均
+  正确，但最大 direct gap 只有 `0.0053–0.0062`，未达到 `0.050–0.054` gates，duration accumulation 也失败。
+  保留任务—机制可辨识性科学拒绝，不扩展、不生成 D1/provider；下一候选不得通过调大该机制继续试探。
 
 ### P1 — 重冻正式矩阵
 
@@ -450,7 +452,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
 | W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |
 | W2-32 | DONE | static reversible-path seed-0 Q0 `36/36` completed/exact replay；crystallization pass、flow scientific reject；固定世界语义通过，整体不扩展 |
-| W2-33 | FROZEN/READY | reaction-safety deactivating-vs-stable catalyst static A-S seed-0 Q0；27 paired cells、54 executions；等待 clean-commit 正式运行 |
+| W2-33 | DONE | reaction-safety deactivating-vs-stable catalyst static A-S seed-0 Q0；`54/54` completed/exact replay，结构真实但公开效应不足，科学拒绝 |
 
 ## 12. 不可违反的规则
 
