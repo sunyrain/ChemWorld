@@ -82,6 +82,11 @@ v0.2 已冻结为 construction/held-out 各 600 primary、合计 `1,200` primary
 左右噪声、事前 support/control 指标分离和真实八轮盲诊断策略。首次 development 启动在 `167/1,200` 后因
 contract/plan/receipt/trajectory 最小直接绑定与篡改校验不完整而主动停止；167 条完成记录原样保留但不构成科学
 结果。该缺陷不改变 v0.2 科学问题、coverage 或阈值；修复资格 validator 后必须从 execution 0 全块重跑。
+停止过程另有 2 条在途执行完成，最终落盘为 `169` completed receipts、0 failed、无 report；该 partial 仍整体
+视为 defective development audit。新 deterministic held-out 25 worlds 已在任何 v0.2 科学结果产生前冻结为
+未来 prospective formal public participant cohort；旧 public 25 worlds 降为 exposed construction-only，永不
+进入 participant denominator。Formal design、C2、preregistration 与 release 入口须在重跑前同步这一 cohort
+语义；旧 audit/preflight 标 stale，留到最终 release freeze 一次重建。
 
 严格 A-S 的旧 partition load-by-phase-volume Q0 保留科学拒绝。新的 nominal-pair partition Q0 已在执行前
 冻结为完整 `4 x 4` categorical solvent-by-extractant 表，并完成 `32/32` primary 与 `32/32` exact replay，
