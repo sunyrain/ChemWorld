@@ -1,51 +1,19 @@
-# Work II A-E v0.3 candidate-development screen and confirmation
+# Work II A-E v0.3 locus qualification (development only)
 
-Status: candidate-development design written before any v0.3 execution. This is not
-formal or publication evidence. The v0.1/v0.2 contracts, worlds, thresholds, reports,
-and unfavorable results remain unchanged historical evidence.
+Status: written before any v0.3 data. This block cannot become formal evidence and makes no provider calls.
 
 ## Question and coverage
 
-Can each of the five A-E tasks support at least one physically identifiable four-level
-entity locus under a genuinely blind seven-hypothesis classifier? The screen tests two
-predeclared task-specific loci, five new worlds, two task-aware nuisance anchors, four
-categories, and three independent observation replicates: 1,200 primary executions and
-1,200 tolerance-zero exact replays. A predeclared scientific priority followed by the
-candidate ID is the only candidate ordering; effect magnitude never ranks candidates.
-The first eligible candidate in that fixed order is frozen for confirmation. Confirmation
-uses five other new worlds with identical 2 x 4 x 3 coverage: 600 primary executions and
-600 exact replays. Screen and confirmation seeds must be mutually disjoint and must not
-occur in any v0.1/v0.2 cohort.
+Can each A-E task expose at least one physically separable entity locus whose anonymous four-category mapping is identified by a genuinely blind H0-plus-six-transposition classifier? Two neutral loci are fixed for each of five tasks. Classifier fitting and untouched validation each use 60 new world clusters per locus, two frozen nuisance anchors, four physical categories, and three independent replicates: each phase has 14,400 primary executions plus 14,400 full-trajectory tolerance-zero replays. Validation is opened only after the fit model and thresholds are frozen. A passed validation unlocks a five-new-world prospective screen (1,200 plus replay). One eligible locus per task is selected by frozen scientific priority, then confirmed on five more new worlds: `120 x selected_task_count` primary executions plus replay, including the valid zero-task/zero-execution case. All cohorts and future-formal seeds are mutually disjoint and exclude v0.1/v0.2.
 
-## Measurements and blind classifier
+## Measurements and model
 
-Primary endpoints are fixed separately for every task/locus. All other allowed metrics
-are secondary descriptive measurements and cannot enter eligibility. The classifier may
-read only the agent-visible nominal dossier, task and target-field identifiers, anchor
-IDs, primary-endpoint observations, and their replicate-estimated observation sigma. It flattens
-the target-field dossier's finite nominal properties in sorted key order and standardizes
-each descriptor across the four anonymous categories. For each of H0 (identity) and all
-six category transpositions it compares all six pairwise descriptor distances with the
-corresponding replicate-weighted primary-endpoint distances, fits one nonnegative scale
-per anchor, and computes the same Gaussian NLL.
-It returns the uniquely best transposition only when it beats the runner-up by at least
-2.0 NLL; otherwise it abstains. Descriptor permutations, true pairs, hidden world
-parameters, and hidden outcomes are forbidden classifier inputs. The true pair is read
-only after classification for scoring.
+Each locus has one gating endpoint at one event-defined measurement stage. Electrochemical loci and crystallization solvent use the unique terminal final assay. Crystallization catalyst, both distillation loci, and both safety loci use the unique committed HPLC after quench and before their task-specific downstream boundary. Partition loci use the unique committed HPLC after settle and before phase separation. Missing, duplicate, reordered, failed, unobserved, non-finite, or out-of-range measurements are platform defects.
 
-## Pass, selection, and failure rules
+Before data, each locus's scoring pair is the maximum Euclidean separation over its z-scored, whitelisted aligned descriptors, with pair-lexicographic ties. Outcomes never select the pair or rank loci. Fit uses orthonormal signed Helmert contrasts and anchor-specific ridge response fingerprints. Descriptor preprocessing, ridge alpha, predictive diagonal shrinkage covariance, and three-state decision thresholds are fit-only and world-blocked; the target may fit no slope, scale, covariance, endpoint, or threshold. The score is a calibrated weighted residual score, not a Gaussian likelihood or transferable descriptor law. The classifier receives only redacted dossier, neutral task/locus/field, anchor identities/recipes, registered observations, and the frozen model. It enumerates H0 and all six swaps and emits H0, swap, or abstain. Predictions are recorded before private truth scoring. Seven dossier variants reuse one physical world and remain one statistical cluster.
 
-For each world-anchor, every primary endpoint must have absolute moved-pair separation
-at least 0.05 and signal-to-noise ratio at least 2.0, and the blind classifier must name
-the true pair. A candidate is eligible only at 5/5 screen worlds. The first eligible
-candidate under the frozen scientific-priority/candidate-ID ordering is selected; if no
-candidate is eligible the task stops without confirmation. The selected locus passes
-only at 5/5 confirmation worlds. There is no task deletion, threshold relaxation,
-result-directed retry, seed replacement, candidate reordering, or v0.2 recalculation.
+## Pass, failure, and outputs
 
-All attempts, failures, exact denominators, classifier NLLs/abstentions, primary endpoint
-results, secondary metrics, and exact replay outcomes must be retained in one readable
-machine summary. A platform defect requires the affected phase to restart at its first
-unit. No participant or provider call is permitted. Expected outputs are a frozen plan,
-screen receipts/report/selection receipt, confirmation receipts/report, and summary in a
-new development-only v0.3 output directory.
+Per locus, untouched validation requires zero of 60 worlds with any definite wrong answer (one-sided CP95 upper <= 0.0487029133101), at least 56/60 correct for every class (Bonferroni CP lower > 0.80), and at least 54/60 worlds with all seven correct (CP95 lower > 0.80). Failures remain in the denominator. Prospective screen and confirmation each require 5/5 worlds with all seven classifications correct and 5/5 physical worlds where both anchors meet absolute gate separation 0.05 and SNR 2.0. Scientific failure completes the fixed denominator; the first platform failure is written and immediately stops the phase, which must restart from execution zero after repair. A qualified-locus claim reports only confirmed tasks; a universal claim requires all five.
+
+Outputs are immutable plans, every receipt and trajectory binding, fit model/crossfit diagnostics, validation confusion/CI report, prospective selection, confirmation report, and one cross-phase machine summary with exact denominators and every failure. No audit package or release hash inventory is created.

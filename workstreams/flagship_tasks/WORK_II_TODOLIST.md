@@ -107,6 +107,14 @@ dossier、事前 primary endpoints 和两 task-aware anchors 输出 pair 或 abs
 候选 screen 可覆盖全五任务，但 Paper2 的正式 claim 应改为事前限定的 qualified-locus claim；若
 仍坚持五任务 universal claim，须先使五个 loci 在全新 prospective worlds 全部通过。
 
+2026-08-13 A-E v0.3 development qualification 的完整四阶段设计与执行入口已通过独立数学和科学复核，
+当前状态为 **DESIGN READY / NOT YET EXECUTED**。固定分母为 classifier fit `14,400` primary +
+`14,400` exact replay、untouched validation `14,400 + 14,400`、prospective screen `1,200 + 1,200`，
+以及 confirmation `120 x selected_task_count` primary + replay。后续阶段必须由上一阶段的 deterministic
+plan、完整 raw receipts 和重建 report 直接解锁；仅自哈希 summary/report 不能解锁。41 项聚焦测试、Ruff、
+plan-only `14,400/14,400` 与单 execution final-assay/replay smoke 均通过；smoke 不进入任何科学分母。
+此 development block 不生成 audit package 或 release hash inventory，正式证据仍等待最终 release-freeze。
+
 严格 A-S 的旧 partition load-by-phase-volume Q0 保留科学拒绝。新的 nominal-pair partition Q0 已在执行前
 冻结为完整 `4 x 4` categorical solvent-by-extractant 表，并完成 `32/32` primary 与 `32/32` exact replay，
 0 physical/platform/unsafe failures。Final-assay 与 HPLC 的公开 allocation log-ratio slopes 分别为 `1.5224`
