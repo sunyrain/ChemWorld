@@ -149,7 +149,7 @@ def test_scientific_rejection_is_integrated_without_manifest(
     assert status["w2_26_manifest_generated"] is False
 
 
-def test_validation_failure_fails_closed_and_removes_dynamic_manifest(
+def test_downstream_failure_preserves_integration_and_removes_dynamic_manifest(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     source, destination, external = _roots(tmp_path)
@@ -206,12 +206,119 @@ def test_validation_failure_fails_closed_and_removes_dynamic_manifest(
     assert status["status"] == "fail_closed"
     assert "invalid preflight" in status["error"]
     assert not (destination / supervisor.DEFAULT_DYNAMIC_MANIFEST).exists()
-    assert not (destination / "runs/development/as-run").exists()
-    assert not (destination / "reports/as-summary.json").exists()
-    assert not (destination / "configs/as-package.json").exists()
-    assert not (destination / "configs/as-d1.json").exists()
+    assert (destination / "runs/development/as-run").exists()
+    assert (destination / "reports/as-summary.json").exists()
+    assert (destination / "configs/as-package.json").exists()
+    assert (destination / "configs/as-d1.json").exists()
     persisted = json.loads((external / "status.json").read_text(encoding="utf-8"))
     assert persisted["status"] == "fail_closed"
+
+
+def test_retry_resumes_from_valid_canonical_without_reintegrating(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source, destination, external = _roots(tmp_path)
+    canonical_relative = Path("reports/as-summary.json")
+    monkeypatch.setattr(supervisor, "CANONICAL_SUMMARY", canonical_relative)
+    canonical = destination / canonical_relative
+    canonical.parent.mkdir(parents=True)
+    canonical.write_text(
+        json.dumps(
+            {
+                "all_candidates_passed": True,
+                "provider_execution_authorized": False,
+                "formal_r5_authorized": False,
+                "generated_package": {"path": "configs/as-package.json"},
+                "participant_d1_configs_generated": {
+                    "candidate": {"path": "configs/as-d1.json"}
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(supervisor, "validate_summary", lambda *a, **k: [])
+    monkeypatch.setattr(
+        supervisor,
+        "integrate_development_result",
+        lambda **kwargs: pytest.fail("retry must not reintegrate canonical A-S"),
+    )
+    monkeypatch.setattr(
+        supervisor,
+        "build_resource_calibration_execution_manifest",
+        lambda *a, **k: {"status": "ready_authorization_blocked"},
+    )
+    monkeypatch.setattr(supervisor, "validate_resource_calibration_manifest", lambda *a: [])
+    monkeypatch.setattr(
+        supervisor,
+        "build_resource_calibration_readiness",
+        lambda *a: {
+            "status": "ready_authorization_blocked",
+            "missing_pattern_rounds": [],
+            "provider_execution_allowed": False,
+            "provider_calls_executed": 0,
+        },
+    )
+    monkeypatch.setattr(supervisor, "validate_resource_calibration_readiness", lambda *a: [])
+
+    status, code = supervisor.supervise_and_record(
+        source_root=source,
+        source_summary=Path("runs/development/as-run/summary.json"),
+        destination_root=destination,
+        status_output=external / "status.json",
+        event_log=external / "events.jsonl",
+        execute=True,
+    )
+
+    assert code == 0
+    assert status["status"] == "integrated_w2_26_preflight_ready"
+    assert status["integration"]["resumed_from_canonical"] is True
+
+
+def test_retry_resumes_canonical_scientific_rejection_without_w2_26(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source, destination, external = _roots(tmp_path)
+    canonical_relative = Path("reports/as-summary.json")
+    monkeypatch.setattr(supervisor, "CANONICAL_SUMMARY", canonical_relative)
+    canonical = destination / canonical_relative
+    canonical.parent.mkdir(parents=True)
+    canonical.write_text(
+        json.dumps(
+            {
+                "all_candidates_passed": False,
+                "provider_execution_authorized": False,
+                "formal_r5_authorized": False,
+                "generated_package": {"path": "configs/as-package.json"},
+                "participant_d1_configs_generated": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(supervisor, "validate_summary", lambda *a, **k: [])
+    monkeypatch.setattr(
+        supervisor,
+        "integrate_development_result",
+        lambda **kwargs: pytest.fail("retry must not reintegrate canonical A-S"),
+    )
+    monkeypatch.setattr(
+        supervisor,
+        "build_resource_calibration_execution_manifest",
+        lambda *a, **k: pytest.fail("scientific rejection must not build W2-26"),
+    )
+
+    status, code = supervisor.supervise_and_record(
+        source_root=source,
+        source_summary=Path("runs/development/as-run/summary.json"),
+        destination_root=destination,
+        status_output=external / "status.json",
+        event_log=external / "events.jsonl",
+        execute=True,
+    )
+
+    assert code == 0
+    assert status["status"] == "scientific_rejection_integrated"
+    assert status["integration"]["resumed_from_canonical"] is True
+    assert status["w2_26_manifest_generated"] is False
 
 
 def test_logs_and_status_must_remain_external(tmp_path: Path) -> None:

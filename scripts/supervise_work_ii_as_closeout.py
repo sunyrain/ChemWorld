@@ -5,13 +5,15 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from chemworld.eval.provenance import write_json_atomic
+from chemworld.eval.work_ii_constitutive_structural_qualification import (
+    validate_summary,
+)
 from chemworld.eval.work_ii_resource_calibration import (
     build_resource_calibration_execution_manifest,
     build_resource_calibration_readiness,
@@ -21,10 +23,14 @@ from chemworld.eval.work_ii_resource_calibration import (
 
 if __package__:
     from scripts.integrate_work_ii_as_development_result import (
+        CANONICAL_SUMMARY,
         integrate_development_result,
     )
 else:
-    from integrate_work_ii_as_development_result import integrate_development_result
+    from integrate_work_ii_as_development_result import (
+        CANONICAL_SUMMARY,
+        integrate_development_result,
+    )
 
 DEFAULT_PROTOCOL_MANIFEST = Path(
     "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
@@ -68,31 +74,62 @@ def _append_event(event_log: Path, event: Mapping[str, Any]) -> None:
         handle.write(json.dumps(dict(event), ensure_ascii=False, sort_keys=True) + "\n")
 
 
-def _rollback_passing_integration(
-    *,
-    source_root: Path,
-    destination_root: Path,
-    integration: Mapping[str, Any],
-) -> None:
-    """Remove only paths published by this passing integration attempt."""
+def _load_object(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} must contain a JSON object")
+    return value
 
-    relative_paths: list[str] = []
-    if source_root != destination_root and isinstance(integration.get("raw_run"), str):
-        relative_paths.append(str(integration["raw_run"]))
-    for key in ("canonical_summary", "canonical_package"):
-        if isinstance(integration.get(key), str):
-            relative_paths.append(str(integration[key]))
-    d1 = integration.get("canonical_d1_configs")
-    if isinstance(d1, Mapping):
-        relative_paths.extend(str(path) for path in d1.values() if isinstance(path, str))
-    for relative in reversed(relative_paths):
-        path = (destination_root / relative).resolve()
-        if path == destination_root or not _inside(destination_root, path):
-            raise RuntimeError("refusing unsafe A-S closeout rollback path")
-        if path.is_dir():
-            shutil.rmtree(path)
-        elif path.exists():
-            path.unlink()
+
+def _load_canonical_integration(destination_root: Path) -> dict[str, Any] | None:
+    """Validate and project an already-published A-S integration result."""
+
+    canonical_path = destination_root / CANONICAL_SUMMARY
+    if not canonical_path.is_file():
+        return None
+    summary = _load_object(canonical_path)
+    errors = validate_summary(
+        destination_root,
+        summary,
+        deep_validate_world_reports=False,
+    )
+    if errors:
+        raise ValueError(
+            "canonical A-S qualification failed validation: " + "; ".join(errors)
+        )
+    if (
+        summary.get("provider_execution_authorized") is not False
+        or summary.get("formal_r5_authorized") is not False
+    ):
+        raise RuntimeError("canonical A-S result crossed its provider-free boundary")
+    passed = summary.get("all_candidates_passed") is True
+    generated_package = summary.get("generated_package")
+    generated_d1 = summary.get("participant_d1_configs_generated")
+    return {
+        "status": (
+            "integrated_w2_26_input_ready"
+            if passed
+            else "integrated_scientific_rejection_w2_26_blocked"
+        ),
+        "all_candidates_passed": passed,
+        "resource_calibration_candidate_ready": passed,
+        "provider_execution_authorized": False,
+        "formal_r5_authorized": False,
+        "resumed_from_canonical": True,
+        "canonical_summary": CANONICAL_SUMMARY.as_posix(),
+        "canonical_package": (
+            generated_package.get("path")
+            if isinstance(generated_package, Mapping)
+            else None
+        ),
+        "canonical_d1_configs": {
+            candidate_id: binding.get("path")
+            for candidate_id, binding in (
+                generated_d1.items() if isinstance(generated_d1, Mapping) else []
+            )
+            if isinstance(binding, Mapping)
+        },
+    }
 
 
 def supervise_once(
@@ -110,14 +147,28 @@ def supervise_once(
     summary_path = _source_summary_path(source_root, source_summary)
     if not source_root.is_dir() or not destination_root.is_dir():
         raise FileNotFoundError("source and destination repository roots must exist")
-    if not summary_path.is_file():
+    canonical_integration = _load_canonical_integration(destination_root)
+    if canonical_integration is not None and not execute:
+        return {
+            "status": "canonical_integration_available",
+            "execute_requested": False,
+            "provider_calls_executed": 0,
+            "integration": canonical_integration,
+        }
+    if canonical_integration is not None:
+        integration = canonical_integration
+        if emit is not None:
+            emit({"event": "as_integration_resumed", **integration})
+    else:
+        integration = None
+    if integration is None and not summary_path.is_file():
         return {
             "status": "waiting_for_source_summary",
             "execute_requested": execute,
             "provider_calls_executed": 0,
             "source_summary": str(summary_path),
         }
-    if not execute:
+    if integration is None and not execute:
         return {
             "status": "ready_for_execute",
             "execute_requested": False,
@@ -136,12 +187,13 @@ def supervise_once(
                 }
             )
 
-    integration = integrate_development_result(
-        source_root=source_root,
-        source_summary=summary_path,
-        destination_root=destination_root,
-        evidence_progress=evidence_progress,
-    )
+    if integration is None:
+        integration = integrate_development_result(
+            source_root=source_root,
+            source_summary=summary_path,
+            destination_root=destination_root,
+            evidence_progress=evidence_progress,
+        )
     if integration.get("provider_execution_authorized") is not False:
         raise RuntimeError("A-S integration crossed its provider-free boundary")
     if emit is not None:
@@ -166,13 +218,12 @@ def supervise_once(
     manifest_written = False
     try:
         if dynamic_path.exists():
-            raise FileExistsError(
-                f"refusing to overwrite W2-26 dynamic manifest: {dynamic_path}"
+            manifest = _load_object(dynamic_path)
+        else:
+            manifest = build_resource_calibration_execution_manifest(
+                destination_root,
+                protocol_path,
             )
-        manifest = build_resource_calibration_execution_manifest(
-            destination_root,
-            protocol_path,
-        )
         manifest_errors = validate_resource_calibration_manifest(
             destination_root, manifest
         )
@@ -181,8 +232,9 @@ def supervise_once(
                 "W2-26 dynamic manifest validation failed: "
                 + "; ".join(manifest_errors)
             )
-        write_json_atomic(dynamic_path, manifest)
-        manifest_written = True
+        if not dynamic_path.exists():
+            write_json_atomic(dynamic_path, manifest)
+            manifest_written = True
         preflight = build_resource_calibration_readiness(
             destination_root, dynamic_path
         )
@@ -201,11 +253,6 @@ def supervise_once(
     except Exception:
         if manifest_written and dynamic_path.exists():
             dynamic_path.unlink()
-        _rollback_passing_integration(
-            source_root=source_root,
-            destination_root=destination_root,
-            integration=integration,
-        )
         raise
 
     if emit is not None:
