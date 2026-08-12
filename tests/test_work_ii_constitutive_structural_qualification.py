@@ -32,6 +32,7 @@ from chemworld.eval.work_ii_constitutive_structural_qualification import (
     analyze_candidate_world,
     build_prior_arms,
     candidate_specs,
+    package_sha256,
     registered_coordinates,
     selected_q2_queries,
 )
@@ -95,9 +96,7 @@ def _rows(candidate_id: str, world_seed: int = 0) -> list[dict[str, Any]]:
                     "law_id": law_id,
                     "status": "completed",
                     "safe": True,
-                    "metrics": _metrics(
-                        candidate_id, int(coordinate["coordinate_index"]), altered
-                    ),
+                    "metrics": _metrics(candidate_id, int(coordinate["coordinate_index"]), altered),
                     "action_plan_sha256": coordinate["coordinate_sha256"],
                     "observation_coordinate_sha256": coordinate["coordinate_sha256"],
                     "mechanism_hash": (
@@ -128,14 +127,20 @@ def test_frozen_roster_has_exact_paired_law_denominators(candidate_id: str) -> N
     assert sum(row["phase"] == "q2_heldout" for row in rows) == 128
     for family in candidate_specs()[candidate_id]["intervention_families"]:
         assert sum(row["intervention_family"] == family for row in rows) == 256
-        assert sum(
-            row["phase"] == "q1_coverage" and row["intervention_family"] == family
-            for row in rows
-        ) == 192
-        assert sum(
-            row["phase"] == "q2_heldout" and row["intervention_family"] == family
-            for row in rows
-        ) == 64
+        assert (
+            sum(
+                row["phase"] == "q1_coverage" and row["intervention_family"] == family
+                for row in rows
+            )
+            == 192
+        )
+        assert (
+            sum(
+                row["phase"] == "q2_heldout" and row["intervention_family"] == family
+                for row in rows
+            )
+            == 64
+        )
     assert PRIMARY_EXECUTIONS_PER_CANDIDATE_WORLD == 1024
     assert PRIMARY_EXECUTIONS_TOTAL == EXACT_REPLAYS_TOTAL == 10_240
 
@@ -178,87 +183,113 @@ def test_analysis_accepts_only_complete_paired_actual_laws(candidate_id: str) ->
     assert result["q1"]["family_coordinate_counts"]
     assert result["q2"]["query_count"] == 16
     assert result["q2"]["selection_reads_outcomes"] is False
-    assert {
-        value["prediction_source"] for value in result["q2"]["candidate_laws"].values()
-    } == {"direct_provider_free_execution"}
+    assert {value["prediction_source"] for value in result["q2"]["candidate_laws"].values()} == {
+        "direct_provider_free_execution"
+    }
     assert result["q2"]["blind_identified_truth_law"] == "blind_law_b"
 
 
 def test_partition_law_binding_requires_same_compiled_mechanism_and_exponent_only() -> None:
     rows = _rows(PARTITION_CANDIDATE_ID)
     audit = _audit(PARTITION_CANDIDATE_ID, 0)
-    assert analyze_candidate_world(PARTITION_CANDIDATE_ID, 0, rows, audit)[
-        "checks"
-    ]["executable_law_binding"] is True
+    assert (
+        analyze_candidate_world(PARTITION_CANDIDATE_ID, 0, rows, audit)["checks"][
+            "executable_law_binding"
+        ]
+        is True
+    )
 
     changed_hash_audit = dict(audit)
-    changed_hash_audit.update(
-        {"mechanism_hash_changed": True, "altered_mechanism_hash": "a" * 64}
+    changed_hash_audit.update({"mechanism_hash_changed": True, "altered_mechanism_hash": "a" * 64})
+    assert (
+        analyze_candidate_world(PARTITION_CANDIDATE_ID, 0, rows, changed_hash_audit)["checks"][
+            "executable_law_binding"
+        ]
+        is False
     )
-    assert analyze_candidate_world(
-        PARTITION_CANDIDATE_ID, 0, rows, changed_hash_audit
-    )["checks"]["executable_law_binding"] is False
 
     changed_row = [dict(row) for row in rows]
-    next(
-        row for row in changed_row if row["law_id"] == "power_response"
-    )["mechanism_hash"] = "a" * 64
-    assert analyze_candidate_world(PARTITION_CANDIDATE_ID, 0, changed_row, audit)[
-        "checks"
-    ]["executable_law_binding"] is False
+    next(row for row in changed_row if row["law_id"] == "power_response")["mechanism_hash"] = (
+        "a" * 64
+    )
+    assert (
+        analyze_candidate_world(PARTITION_CANDIDATE_ID, 0, changed_row, audit)["checks"][
+            "executable_law_binding"
+        ]
+        is False
+    )
 
     extra_parameter_audit = dict(audit)
     extra_parameter_audit["changed_domain_parameter_keys"] = [
         "partition_coefficient_exponent",
         "partition_phase_volume_multiplier",
     ]
-    assert analyze_candidate_world(
-        PARTITION_CANDIDATE_ID, 0, rows, extra_parameter_audit
-    )["checks"]["executable_law_binding"] is False
+    assert (
+        analyze_candidate_world(PARTITION_CANDIDATE_ID, 0, rows, extra_parameter_audit)["checks"][
+            "executable_law_binding"
+        ]
+        is False
+    )
 
     bad_intervention_rows = [dict(row) for row in rows]
-    next(
-        row for row in bad_intervention_rows if row["law_id"] == "power_response"
-    )["intervention_hash"] = "wrong"
-    assert analyze_candidate_world(
-        PARTITION_CANDIDATE_ID, 0, bad_intervention_rows, audit
-    )["checks"]["executable_law_binding"] is False
+    next(row for row in bad_intervention_rows if row["law_id"] == "power_response")[
+        "intervention_hash"
+    ] = "wrong"
+    assert (
+        analyze_candidate_world(PARTITION_CANDIDATE_ID, 0, bad_intervention_rows, audit)["checks"][
+            "executable_law_binding"
+        ]
+        is False
+    )
 
     missing_intervention_audit = dict(audit)
     missing_intervention_audit["altered_intervention_hash"] = None
-    assert analyze_candidate_world(
-        PARTITION_CANDIDATE_ID, 0, rows, missing_intervention_audit
-    )["checks"]["executable_law_binding"] is False
+    assert (
+        analyze_candidate_world(PARTITION_CANDIDATE_ID, 0, rows, missing_intervention_audit)[
+            "checks"
+        ]["executable_law_binding"]
+        is False
+    )
 
 
 def test_crystallization_law_binding_requires_changed_topology_and_added_reaction() -> None:
     rows = _rows(CRYSTALLIZATION_CANDIDATE_ID)
     audit = _audit(CRYSTALLIZATION_CANDIDATE_ID, 0)
-    assert analyze_candidate_world(CRYSTALLIZATION_CANDIDATE_ID, 0, rows, audit)[
-        "checks"
-    ]["executable_law_binding"] is True
+    assert (
+        analyze_candidate_world(CRYSTALLIZATION_CANDIDATE_ID, 0, rows, audit)["checks"][
+            "executable_law_binding"
+        ]
+        is True
+    )
 
     unchanged_audit = dict(audit)
-    unchanged_audit.update(
-        {"mechanism_hash_changed": False, "altered_mechanism_hash": "b" * 64}
+    unchanged_audit.update({"mechanism_hash_changed": False, "altered_mechanism_hash": "b" * 64})
+    assert (
+        analyze_candidate_world(CRYSTALLIZATION_CANDIDATE_ID, 0, rows, unchanged_audit)["checks"][
+            "executable_law_binding"
+        ]
+        is False
     )
-    assert analyze_candidate_world(
-        CRYSTALLIZATION_CANDIDATE_ID, 0, rows, unchanged_audit
-    )["checks"]["executable_law_binding"] is False
 
     no_added_reaction_audit = dict(audit)
     no_added_reaction_audit["added_reaction_count"] = 0
-    assert analyze_candidate_world(
-        CRYSTALLIZATION_CANDIDATE_ID, 0, rows, no_added_reaction_audit
-    )["checks"]["executable_law_binding"] is False
+    assert (
+        analyze_candidate_world(CRYSTALLIZATION_CANDIDATE_ID, 0, rows, no_added_reaction_audit)[
+            "checks"
+        ]["executable_law_binding"]
+        is False
+    )
 
     changed_baseline_rows = [dict(row) for row in rows]
-    next(
-        row for row in changed_baseline_rows if row["law_id"] == "baseline"
-    )["mechanism_hash"] = "a" * 64
-    assert analyze_candidate_world(
-        CRYSTALLIZATION_CANDIDATE_ID, 0, changed_baseline_rows, audit
-    )["checks"]["executable_law_binding"] is False
+    next(row for row in changed_baseline_rows if row["law_id"] == "baseline")["mechanism_hash"] = (
+        "a" * 64
+    )
+    assert (
+        analyze_candidate_world(CRYSTALLIZATION_CANDIDATE_ID, 0, changed_baseline_rows, audit)[
+            "checks"
+        ]["executable_law_binding"]
+        is False
+    )
 
 
 def test_unpaired_or_leaking_result_is_rejected() -> None:
@@ -285,9 +316,10 @@ def test_prior_arms_bind_real_registered_laws_without_generic_surrogate() -> Non
         assert set(priors) == {"opaque", "aligned_nominal", "misindexed_nominal"}
         assert priors["aligned_nominal"]["confidence"] == 0.70
         assert priors["misindexed_nominal"]["confidence"] == 0.70
-        assert priors["aligned_nominal"]["executable_law"]["law_id"] == candidate_specs()[
-            candidate_id
-        ]["altered_law_id"]
+        assert (
+            priors["aligned_nominal"]["executable_law"]["law_id"]
+            == candidate_specs()[candidate_id]["altered_law_id"]
+        )
         rendered = str(priors).lower()
         assert "quadratic" not in rendered
         assert "equilibrium" not in rendered
@@ -300,8 +332,7 @@ def test_actions_vary_the_registered_intervention_families(candidate_id: str) ->
     first = [row for row in coordinates if row["intervention_family"] == first_family]
     second = [row for row in coordinates if row["intervention_family"] == second_family]
     first_actions = {
-        _action_signature(_compile_actions(candidate_id, row["feature_values"]))
-        for row in first
+        _action_signature(_compile_actions(candidate_id, row["feature_values"])) for row in first
     }
     second_actions = {
         _action_signature(_compile_actions(candidate_id, row["feature_values"])) for row in second
@@ -328,9 +359,7 @@ def test_partition_identity_roster_is_explicitly_stratified_over_all_pairs() -> 
     ]
     q1 = [row for row in identity if row["phase"] == "q1_coverage"]
     heldout = [row for row in identity if row["phase"] == "q2_heldout"]
-    assert _partition_pair_counts(q1) == Counter(
-        dict.fromkeys(PARTITION_NOMINAL_PAIR_STRATA, 12)
-    )
+    assert _partition_pair_counts(q1) == Counter(dict.fromkeys(PARTITION_NOMINAL_PAIR_STRATA, 12))
     assert _partition_pair_counts(heldout) == Counter(
         dict.fromkeys(PARTITION_NOMINAL_PAIR_STRATA, 4)
     )
@@ -380,9 +409,10 @@ def test_generated_d1_config_is_runnable_but_not_authorized(candidate_id: str) -
     assert config["qualification"]["formal_r5_authorized"] is False
     assert config["execution_context"]["evidence_status"] == "development_only"
     assert config["execution_context"]["c2_admission_authorized"] is False
-    assert config["intervention"]["registered_truth_law_id"] == candidate_specs()[candidate_id][
-        "altered_law_id"
-    ]
+    assert (
+        config["intervention"]["registered_truth_law_id"]
+        == candidate_specs()[candidate_id]["altered_law_id"]
+    )
     for arm in config["prior_arms"]:
         contract = build_checkpoint_contract(config, arm)
         assert len(contract["held_out_queries"]) == 16
@@ -397,6 +427,49 @@ def test_no_equilibrium_candidate_and_all_five_worlds_are_frozen() -> None:
     }
     assert WORLD_SEEDS == (0, 1, 2, 3, 4)
     assert all("equilibrium" not in candidate for candidate in CANDIDATE_IDS)
+
+
+def test_package_self_hash_excludes_its_own_field() -> None:
+    package = {"schema_version": "test", "candidate_laws": {}}
+    package["package_sha256"] = package_sha256(package)
+    assert package["package_sha256"] == package_sha256(package)
+
+
+def test_rehashed_row_tamper_cannot_pass_without_bound_receipt(tmp_path: Path) -> None:
+    from chemworld.eval.work_ii_constitutive_structural_qualification import (
+        WORLD_REPORT_VERSION,
+        report_sha256,
+        validate_world_report,
+    )
+
+    context = prepare_execution_context(Path.cwd(), mode="development")
+    report = {
+        "schema_version": WORLD_REPORT_VERSION,
+        "qualification_schema_version": ("chemworld-work-ii-constitutive-structural-q1-q2-0.1"),
+        "formal_result": False,
+        "provider_call_count": 0,
+        "participant_session_count": 0,
+        "execution_context": {
+            "execution_mode": "development",
+            "evidence_status": "development_only",
+            "release_eligible": False,
+            "c2_admission_authorized": False,
+            "tested_commit": None,
+            "freeze_id": None,
+            "release_manifest_sha256": None,
+            "execution_surface_sha256": None,
+        },
+        "plan_binding": {},
+        "candidate_id": PARTITION_CANDIDATE_ID,
+        "task_id": candidate_specs()[PARTITION_CANDIDATE_ID]["task_id"],
+        "world_seed": 0,
+        "law_audit": _audit(PARTITION_CANDIDATE_ID, 0),
+        "rows": [{**_rows(PARTITION_CANDIDATE_ID)[0], "receipt": {}}],
+        "analysis": {},
+    }
+    report["report_sha256"] = report_sha256(report)
+    errors = validate_world_report(report, root=tmp_path, expected_execution_context=context)
+    assert any("receipt" in error or "plan binding" in error for error in errors)
 
 
 def test_cli_defaults_keep_all_development_artifacts_under_runs(
@@ -439,9 +512,7 @@ def test_cli_defaults_keep_all_development_artifacts_under_runs(
     assert args.summary == output_root.resolve() / "summary.json"
     assert args.package == output_root.resolve() / "q2-package.json"
     assert args.partition_q0_summary == DEFAULT_DEVELOPMENT_PARTITION_Q0.resolve()
-    assert args.crystallization_q0_summary == (
-        DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0.resolve()
-    )
+    assert args.crystallization_q0_summary == (DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0.resolve())
     assert "partition-nominal-pair-q0" in args.partition_q0_summary.as_posix()
 
 
@@ -489,8 +560,7 @@ def test_q0_binding_accepts_new_nominal_pair_and_rejects_old_summary(
     monkeypatch.setattr(runner, "file_sha256", lambda path: "f" * 64)
     bindings = _validate_q0_inputs(args, context)
     assert bindings[PARTITION_CANDIDATE_ID]["path"] == (
-        "runs/development/"
-        "work-ii-partition-nominal-pair-q0-seed0-20260812/summary.json"
+        "runs/development/work-ii-partition-nominal-pair-q0-seed0-20260812/summary.json"
     )
 
     old_path = Path.cwd() / "old-nine-cell-summary.json"

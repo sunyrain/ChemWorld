@@ -19,17 +19,32 @@ from typing import Any
 import numpy as np
 from scipy.stats import qmc
 
+from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.verify import verify_records
+from chemworld.eval.work_ii_crystallization_reversible_q0 import (
+    validate_summary as validate_crystallization_q0,
+)
 from chemworld.eval.work_ii_execution_mode import (
     ExecutionMode,
     WorkIIExecutionContext,
     validate_execution_envelope,
 )
+from chemworld.eval.work_ii_formal import build_checkpoint_contract
+from chemworld.eval.work_ii_partition_constitutive_q0 import (
+    validate_nominal_pair_summary as validate_partition_q0,
+)
+from chemworld.tasks import get_task
 
 QUALIFICATION_VERSION = "chemworld-work-ii-constitutive-structural-q1-q2-0.1"
+PLAN_VERSION = "chemworld-work-ii-constitutive-structural-plan-0.1"
+RECEIPT_VERSION = "chemworld-work-ii-constitutive-structural-receipt-0.1"
 WORLD_REPORT_VERSION = "chemworld-work-ii-constitutive-structural-world-report-0.1"
 PACKAGE_VERSION = "chemworld-work-ii-constitutive-structural-q2-package-0.1"
 SUMMARY_VERSION = "chemworld-work-ii-constitutive-structural-five-world-summary-0.1"
+EXPERIMENT_NOTE_PATH = (
+    "workstreams/flagship_tasks/WORK_II_CONSTITUTIVE_STRUCTURAL_Q1_Q2_EXPERIMENT_NOTE.md"
+)
 WORLD_SEEDS = (0, 1, 2, 3, 4)
 COORDINATES_PER_CANDIDATE_WORLD = 512
 LAWS_PER_COORDINATE = 2
@@ -273,9 +288,7 @@ def selected_q2_queries(candidate_id: str) -> list[dict[str, Any]]:
     return [dict(row) for row in selected]
 
 
-def observation_binding(
-    candidate_id: str, world_seed: int, coordinate_id: str
-) -> tuple[int, str]:
+def observation_binding(candidate_id: str, world_seed: int, coordinate_id: str) -> tuple[int, str]:
     digest = sha256(
         f"{QUALIFICATION_VERSION}:{candidate_id}:{world_seed}:{coordinate_id}".encode()
     ).hexdigest()
@@ -354,15 +367,228 @@ def effect_gate(candidate_id: str, metric: str) -> float:
     )
 
 
-def _pairs(
-    candidate_id: str, rows: Sequence[Mapping[str, Any]]
-) -> list[dict[str, Any]]:
+def _self_hash(payload: Mapping[str, Any], field: str) -> str:
+    return canonical_json_sha256({key: value for key, value in payload.items() if key != field})
+
+
+def plan_sha256(plan: Mapping[str, Any]) -> str:
+    return _self_hash(plan, "plan_sha256")
+
+
+def receipt_sha256(receipt: Mapping[str, Any]) -> str:
+    return _self_hash(receipt, "receipt_sha256")
+
+
+def package_sha256(package: Mapping[str, Any]) -> str:
+    return _self_hash(package, "package_sha256")
+
+
+def build_q2_package(
+    reports: Sequence[Mapping[str, Any]],
+    *,
+    q0_bindings: Mapping[str, Any],
+    execution_context: Mapping[str, Any],
+    plan_binding: Mapping[str, Any],
+) -> dict[str, Any]:
+    all_passed = len(reports) == len(CANDIDATE_IDS) * len(WORLD_SEEDS) and all(
+        report.get("analysis", {}).get("passed") is True for report in reports
+    )
+    package: dict[str, Any] = {
+        "schema_version": PACKAGE_VERSION,
+        "qualification_schema_version": QUALIFICATION_VERSION,
+        "formal_result": False,
+        "provider_call_count": 0,
+        "execution_context": dict(execution_context),
+        "plan_binding": dict(plan_binding),
+        "q0_bindings": dict(q0_bindings),
+        "candidate_laws": {
+            candidate_id: {
+                "task_id": candidate_specs()[candidate_id]["task_id"],
+                "law_ids": list(candidate_specs()[candidate_id]["law_ids"]),
+                "registered_truth_law_id": candidate_specs()[candidate_id]["altered_law_id"],
+                "world_intervention": candidate_specs()[candidate_id]["world_intervention"],
+                "prior_arms": build_prior_arms(candidate_id),
+                "outcome_blind_q2_queries": selected_q2_queries(candidate_id),
+                "world_evidence": [
+                    {
+                        "world_seed": report["world_seed"],
+                        "passed": report["analysis"]["passed"],
+                        "q2": report["analysis"]["q2"],
+                    }
+                    for report in reports
+                    if report.get("candidate_id") == candidate_id
+                ],
+            }
+            for candidate_id in CANDIDATE_IDS
+        },
+        "all_five_world_cohorts_passed": all_passed,
+    }
+    package["package_sha256"] = package_sha256(package)
+    return package
+
+
+def build_qualification_plan(
+    root: Path,
+    *,
+    q0_bindings: Mapping[str, Any],
+    execution_context: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Bind the frozen A-S question without hashing unrelated repository files."""
+
+    note_path = (root / EXPERIMENT_NOTE_PATH).resolve()
+    note_path.relative_to(root.resolve())
+    candidates = {}
+    for candidate_id in CANDIDATE_IDS:
+        spec = candidate_specs()[candidate_id]
+        roster = registered_coordinates(candidate_id)
+        candidates[candidate_id] = {
+            "spec": spec,
+            "effect_gates": {
+                metric: effect_gate(candidate_id, metric) for metric in spec["metric_ids"]
+            },
+            "coordinate_roster_sha256": canonical_json_sha256(roster),
+            "q2_query_roster_sha256": canonical_json_sha256(selected_q2_queries(candidate_id)),
+        }
+    plan: dict[str, Any] = {
+        "schema_version": PLAN_VERSION,
+        "qualification_schema_version": QUALIFICATION_VERSION,
+        "formal_result": False,
+        "provider_call_count": 0,
+        "execution_context": dict(execution_context),
+        "experiment_note_binding": {
+            "path": EXPERIMENT_NOTE_PATH,
+            "sha256": file_sha256(note_path),
+        },
+        "q0_bindings": dict(q0_bindings),
+        "world_seeds": list(WORLD_SEEDS),
+        "coverage": {
+            "coordinates_per_candidate_world": COORDINATES_PER_CANDIDATE_WORLD,
+            "laws_per_coordinate": LAWS_PER_COORDINATE,
+            "primary_executions_per_candidate_world": PRIMARY_EXECUTIONS_PER_CANDIDATE_WORLD,
+            "primary_execution_count": PRIMARY_EXECUTIONS_TOTAL,
+            "exact_replay_count": EXACT_REPLAYS_TOTAL,
+            "q1_coordinates_per_family": Q1_COORDINATES_PER_FAMILY,
+            "q2_coordinates_per_family": Q2_COORDINATES_PER_FAMILY,
+            "q2_queries_per_family": Q2_QUERY_COUNT_PER_FAMILY,
+        },
+        "pass_rules": {
+            "minimum_support_per_q2_family": MINIMUM_SUPPORT_PER_Q2_FAMILY,
+            "minimum_resolved_metrics_per_world": MINIMUM_RESOLVED_METRICS_PER_WORLD,
+            "all_candidate_worlds_must_pass": True,
+            "tolerance_zero_exact_replay_required": True,
+        },
+        "candidates": candidates,
+    }
+    plan["plan_sha256"] = plan_sha256(plan)
+    return plan
+
+
+def _validated_q0_bindings(
+    root: Path,
+    bindings: Mapping[str, Any],
+    *,
+    expected_execution_context: WorkIIExecutionContext | None,
+) -> list[str]:
+    errors: list[str] = []
+    if set(bindings) != set(CANDIDATE_IDS):
+        return ["A-S plan Q0 binding roster mismatch"]
+    for candidate_id in CANDIDATE_IDS:
+        binding = bindings.get(candidate_id)
+        if not isinstance(binding, Mapping):
+            errors.append(f"A-S plan Q0 binding is malformed: {candidate_id}")
+            continue
+        try:
+            path = (root / str(binding["path"])).resolve()
+            path.relative_to(root.resolve())
+            if not path.is_file():
+                raise ValueError("summary is missing")
+            if binding.get("sha256") != file_sha256(path):
+                errors.append(f"A-S plan Q0 file hash mismatch: {candidate_id}")
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(payload, dict):
+                raise ValueError("summary is not an object")
+            q0_errors = (
+                validate_partition_q0(
+                    payload,
+                    root=root,
+                    expected_execution_context=expected_execution_context,
+                )
+                if candidate_id == PARTITION_CANDIDATE_ID
+                else validate_crystallization_q0(
+                    root,
+                    payload,
+                    expected_execution_context=expected_execution_context,
+                )
+            )
+            errors.extend(f"A-S {candidate_id} Q0: {error}" for error in q0_errors)
+            if payload.get("analysis", {}).get("passed") is not True:
+                errors.append(f"A-S Q0 did not pass: {candidate_id}")
+            if binding.get("summary_sha256") != payload.get("summary_sha256"):
+                errors.append(f"A-S plan Q0 summary hash mismatch: {candidate_id}")
+        except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+            errors.append(f"A-S plan Q0 cannot be read: {candidate_id}: {error}")
+    return errors
+
+
+def validate_qualification_plan(
+    root: Path,
+    plan: Mapping[str, Any],
+    *,
+    expected_execution_context: WorkIIExecutionContext | None = None,
+) -> list[str]:
+    errors: list[str] = []
+    if plan.get("schema_version") != PLAN_VERSION:
+        errors.append("unexpected A-S qualification-plan schema")
+    if plan.get("qualification_schema_version") != QUALIFICATION_VERSION:
+        errors.append("A-S qualification-plan version mismatch")
+    if plan.get("plan_sha256") != plan_sha256(plan):
+        errors.append("A-S qualification-plan self-hash mismatch")
+    if plan.get("formal_result") is not False or plan.get("provider_call_count") != 0:
+        errors.append("A-S qualification plan crossed its provider-free boundary")
+    envelope = plan.get("execution_context")
+    if not isinstance(envelope, Mapping):
+        errors.append("A-S qualification plan lacks an execution context")
+    else:
+        errors.extend(
+            validate_execution_envelope(root, envelope, expected_context=expected_execution_context)
+        )
+    note = plan.get("experiment_note_binding")
+    if not isinstance(note, Mapping) or note.get("path") != EXPERIMENT_NOTE_PATH:
+        errors.append("A-S qualification plan lacks its experiment-note binding")
+    else:
+        try:
+            note_path = (root / str(note["path"])).resolve()
+            note_path.relative_to(root.resolve())
+            if not note_path.is_file() or note.get("sha256") != file_sha256(note_path):
+                errors.append("A-S qualification experiment-note binding is stale")
+        except (KeyError, OSError, TypeError, ValueError):
+            errors.append("A-S qualification experiment-note binding is invalid")
+    q0_bindings = plan.get("q0_bindings")
+    if not isinstance(q0_bindings, Mapping):
+        errors.append("A-S qualification plan lacks Q0 bindings")
+    else:
+        errors.extend(
+            _validated_q0_bindings(
+                root,
+                q0_bindings,
+                expected_execution_context=expected_execution_context,
+            )
+        )
+    expected = build_qualification_plan(
+        root,
+        q0_bindings=q0_bindings if isinstance(q0_bindings, Mapping) else {},
+        execution_context=envelope if isinstance(envelope, Mapping) else {},
+    )
+    if plan != expected:
+        errors.append("A-S qualification plan differs from the frozen spec or roster")
+    return errors
+
+
+def _pairs(candidate_id: str, rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
     spec = candidate_specs()[candidate_id]
     pairs = []
     for coordinate in registered_coordinates(candidate_id):
-        selected = [
-            row for row in rows if row.get("coordinate_id") == coordinate["coordinate_id"]
-        ]
+        selected = [row for row in rows if row.get("coordinate_id") == coordinate["coordinate_id"]]
         laws = {str(row.get("law_id")): row for row in selected}
         if len(selected) != LAWS_PER_COORDINATE or set(laws) != set(spec["law_ids"]):
             raise ValueError(
@@ -389,9 +615,7 @@ def denominators(rows: Sequence[Mapping[str, Any]]) -> dict[str, int]:
 def _registered_bindings(
     candidate_id: str, world_seed: int, rows: Sequence[Mapping[str, Any]]
 ) -> bool:
-    coordinates = {
-        row["coordinate_id"]: row for row in registered_coordinates(candidate_id)
-    }
+    coordinates = {row["coordinate_id"]: row for row in registered_coordinates(candidate_id)}
     try:
         return all(
             row.get("candidate_id") == candidate_id
@@ -416,10 +640,8 @@ def _paired_binding_checks(pairs: Sequence[Mapping[str, Any]]) -> dict[str, bool
             for pair in pairs
         ),
         "paired_observation_noise": all(
-            len({law.get("observation_coordinate_sha256") for law in pair["laws"].values()})
-            == 1
-            and next(iter(pair["laws"].values())).get("observation_coordinate_sha256")
-            is not None
+            len({law.get("observation_coordinate_sha256") for law in pair["laws"].values()}) == 1
+            and next(iter(pair["laws"].values())).get("observation_coordinate_sha256") is not None
             for pair in pairs
         ),
         "all_trajectories_hash_bound": all(
@@ -460,19 +682,16 @@ def _law_binding_check(
             and isinstance(altered_intervention_hash, str)
             and law_audit.get("altered_mechanism_hash") == baseline_mechanism_hash
             and law_audit.get("only_registered_constitutive_parameter_changed") is True
-            and law_audit.get("changed_domain_parameter_keys")
-            == ["partition_coefficient_exponent"]
+            and law_audit.get("changed_domain_parameter_keys") == ["partition_coefficient_exponent"]
             and {row.get("intervention_hash") for row in baseline_rows} == {None}
             and {row.get("intervention_hash") for row in altered_rows}
             == {altered_intervention_hash}
-            and {row.get("mechanism_hash") for row in rows}
-            == {baseline_mechanism_hash}
+            and {row.get("mechanism_hash") for row in rows} == {baseline_mechanism_hash}
         )
     return (
         common
         and law_audit.get("mechanism_hash_changed") is True
-        and law_audit.get("baseline_mechanism_hash")
-        != law_audit.get("altered_mechanism_hash")
+        and law_audit.get("baseline_mechanism_hash") != law_audit.get("altered_mechanism_hash")
         and law_audit.get("transform_id") == "reversible_target_pathway_stress_v1"
         and {row.get("mechanism_hash") for row in baseline_rows}
         == {law_audit.get("baseline_mechanism_hash")}
@@ -538,10 +757,7 @@ def analyze_candidate_world(
         for family in spec["intervention_families"]
     }
     finite = all(
-        all(
-            math.isfinite(float(law["metrics"][metric]))
-            for metric in spec["metric_ids"]
-        )
+        all(math.isfinite(float(law["metrics"][metric])) for metric in spec["metric_ids"])
         for pair in pairs
         for law in pair["laws"].values()
     )
@@ -576,9 +792,7 @@ def analyze_candidate_world(
                         "blind_law_a": dict(pair["laws"][baseline_law]["metrics"]),
                         "blind_law_b": dict(pair["laws"][altered_law]["metrics"]),
                     },
-                    "altered_world_observation": dict(
-                        pair["laws"][altered_law]["metrics"]
-                    ),
+                    "altered_world_observation": dict(pair["laws"][altered_law]["metrics"]),
                 }
             )
         family_reports[family] = {
@@ -649,6 +863,243 @@ def analyze_candidate_world(
     }
 
 
+def _trajectory_metrics(
+    candidate_id: str, records: Sequence[Mapping[str, Any]]
+) -> dict[str, float]:
+    spec = candidate_specs()[candidate_id]
+    if candidate_id == PARTITION_CANDIDATE_ID:
+        measurements = [
+            row
+            for row in records
+            if row.get("transaction_status") == "committed"
+            and row.get("operation_type") == "measure"
+            and row.get("instrument") == "final_assay"
+        ]
+        if len(measurements) != 1:
+            raise ValueError("partition evidence lacks one committed final assay")
+    else:
+        measurements = [
+            row
+            for row in records
+            if row.get("transaction_status") == "committed"
+            and row.get("operation_type") == "measure"
+            and row.get("instrument") == "hplc"
+        ]
+        if len(measurements) != 2:
+            raise ValueError("crystallization evidence lacks two committed HPLC assays")
+    payload = measurements[0].get("processed_estimate")
+    if not isinstance(payload, Mapping):
+        raise ValueError("registered measurement lacks processed estimates")
+    metrics: dict[str, float] = {}
+    for metric in spec["metric_ids"]:
+        value = payload.get(metric)
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            raise ValueError(f"registered measurement lacks numeric {metric}")
+        number = float(value)
+        if not math.isfinite(number):
+            raise ValueError(f"registered measurement {metric} is not finite")
+        metrics[str(metric)] = number
+    return metrics
+
+
+def _trajectory_leakage(records: Sequence[Mapping[str, Any]]) -> list[str]:
+    tokens = (
+        "mechanism_family",
+        "world_intervention",
+        "private_seed",
+        "hidden_state",
+        "evaluator_truth",
+    )
+    matches = set()
+    for row in records:
+        public = {
+            key: row.get(key)
+            for key in (
+                "observation",
+                "observed_mask",
+                "processed_estimate",
+                "raw_signal",
+                "agent_visible_observation",
+                "agent_view",
+            )
+        }
+        rendered = json.dumps(public, ensure_ascii=False, sort_keys=True)
+        matches.update(token for token in tokens if token in rendered)
+    return sorted(matches)
+
+
+def validate_execution_receipt(
+    root: Path,
+    receipt: Mapping[str, Any],
+    *,
+    candidate_id: str,
+    world_seed: int,
+) -> list[str]:
+    """Reopen one trajectory and prove the cached receipt from its bytes."""
+
+    errors: list[str] = []
+    if receipt.get("schema_version") != RECEIPT_VERSION:
+        errors.append("A-S execution receipt schema mismatch")
+    if receipt.get("receipt_sha256") != receipt_sha256(receipt):
+        errors.append("A-S execution receipt self-hash mismatch")
+    coordinate_id = str(receipt.get("coordinate_id", ""))
+    registered = {row["coordinate_id"]: row for row in registered_coordinates(candidate_id)}
+    coordinate = registered.get(coordinate_id)
+    spec = candidate_specs()[candidate_id]
+    law_id = receipt.get("law_id")
+    if (
+        coordinate is None
+        or law_id not in spec["law_ids"]
+        or receipt.get("candidate_id") != candidate_id
+        or receipt.get("task_id") != spec["task_id"]
+        or receipt.get("world_seed") != world_seed
+        or any(receipt.get(key) != value for key, value in coordinate.items())
+    ):
+        errors.append("A-S execution receipt differs from the frozen coordinate roster")
+        return errors
+    trajectory = receipt.get("trajectory")
+    if not isinstance(trajectory, Mapping):
+        errors.append("A-S execution receipt lacks a trajectory binding")
+        return errors
+    try:
+        trajectory_path = (root / str(trajectory["path"])).resolve()
+        trajectory_path.relative_to(root.resolve())
+        if not trajectory_path.is_file():
+            raise ValueError("trajectory is missing")
+        if trajectory.get("sha256") != file_sha256(trajectory_path):
+            errors.append("A-S execution trajectory file hash mismatch")
+        records = load_jsonl(trajectory_path)
+        expected_actions = _expected_actions(candidate_id, coordinate["feature_values"])
+        if [row.get("action") for row in records] != expected_actions:
+            errors.append("A-S execution trajectory differs from the frozen action plan")
+        expected_action_hash = canonical_json_sha256({"actions": expected_actions})
+        if receipt.get("action_plan_sha256") != expected_action_hash:
+            errors.append("A-S execution receipt action hash mismatch")
+        observation_seed, namespace = observation_binding(candidate_id, world_seed, coordinate_id)
+        if any(
+            row.get("observation_seed") != observation_seed
+            or row.get("observation_noise_mode") != "keyed"
+            or row.get("observation_noise_namespace") != namespace
+            for row in records
+        ):
+            errors.append("A-S trajectory observation coordinate mismatch")
+        if receipt.get("observation_coordinate_sha256") != canonical_json_sha256(
+            {
+                "observation_seed": observation_seed,
+                "observation_noise_namespace": namespace,
+            }
+        ):
+            errors.append("A-S execution receipt observation hash mismatch")
+        interventions = [] if law_id == spec["law_ids"][0] else [spec["world_intervention"]]
+        replay = verify_records(records, tolerance=0.0, world_interventions=interventions).to_dict()
+        if replay.get("verified") is not True:
+            errors.append("A-S execution trajectory failed tolerance-zero replay")
+        if receipt.get("replay") != replay or receipt.get("exact_replay") is not True:
+            errors.append("A-S execution replay receipt mismatch")
+        if any(row.get("transaction_status") != "committed" for row in records):
+            errors.append("A-S qualifying trajectory contains a noncommitted action")
+        metrics = _trajectory_metrics(candidate_id, records)
+        finals = [
+            row
+            for row in records
+            if row.get("transaction_status") == "committed"
+            and row.get("operation_type") == "measure"
+            and row.get("instrument") == "final_assay"
+        ]
+        risk = finals[0].get("observation", {}).get("safety_risk") if len(finals) == 1 else None
+        if isinstance(risk, bool) or not isinstance(risk, int | float):
+            raise ValueError("trajectory lacks one finite final safety assay")
+        safe = float(risk) < float(get_task(str(spec["task_id"])).safety_limit)
+        mechanism_hashes = {
+            row.get("mechanism_hash")
+            for row in records
+            if isinstance(row.get("mechanism_hash"), str)
+        }
+        intervention_hashes = {
+            row.get("mechanism_family_intervention_hash")
+            for row in records
+            if isinstance(row.get("mechanism_family_intervention_hash"), str)
+        }
+        expected_intervention = (
+            next(iter(intervention_hashes)) if len(intervention_hashes) == 1 else None
+        )
+        if law_id == spec["law_ids"][0] and intervention_hashes:
+            errors.append("A-S baseline trajectory carries an intervention hash")
+        if law_id != spec["law_ids"][0] and len(intervention_hashes) != 1:
+            errors.append("A-S altered trajectory lacks one intervention hash")
+        if (
+            receipt.get("status") != "completed"
+            or receipt.get("physical_failure") is not None
+            or receipt.get("platform_failure") is not None
+            or receipt.get("metrics") != metrics
+            or receipt.get("safe") is not safe
+            or receipt.get("participant_visible_leakage_matches") != _trajectory_leakage(records)
+            or len(mechanism_hashes) != 1
+            or receipt.get("mechanism_hash") != next(iter(mechanism_hashes), None)
+            or receipt.get("intervention_hash") != expected_intervention
+        ):
+            errors.append("A-S execution receipt differs from trajectory evidence")
+    except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+        errors.append(f"A-S execution trajectory validation failed: {error}")
+    return errors
+
+
+def _expected_actions(candidate_id: str, features: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Pure copy of the frozen protocol compiler, kept with evidence validation."""
+
+    if candidate_id == PARTITION_CANDIDATE_ID:
+        return [
+            {"operation": "add_solvent", "volume_L": 0.020, "solvent": int(features["solvent"])},
+            {
+                "operation": "add_phase",
+                "phase": "aqueous",
+                "volume_L": float(features["aqueous_phase_volume_L"]),
+            },
+            {
+                "operation": "add_extractant",
+                "extractant": int(features["extractant"]),
+                "volume_L": float(features["extractant_volume_L"]),
+            },
+            {
+                "operation": "mix",
+                "duration_s": float(features["mix_duration_s"]),
+                "stirring_speed_rpm": float(features["stirring_speed_rpm"]),
+            },
+            {"operation": "settle", "duration_s": float(features["settle_duration_s"])},
+            {"operation": "measure", "instrument": "hplc"},
+            {"operation": "separate_phase", "target_phase": "organic"},
+            {"operation": "measure", "instrument": "hplc"},
+            {"operation": "terminate"},
+            {"operation": "measure", "instrument": "final_assay"},
+        ]
+    return [
+        {"operation": "add_solvent", "volume_L": 0.025, "solvent": int(features["solvent"])},
+        {"operation": "add_reagent", "amount_mol": float(features["reagent_amount_mol"])},
+        {
+            "operation": "add_catalyst",
+            "catalyst_amount_mol": float(features["catalyst_amount_mol"]),
+            "catalyst": int(features["catalyst"]),
+        },
+        {
+            "operation": "heat",
+            "target_temperature_K": float(features["reaction_temperature_K"]),
+            "duration_s": float(features["reaction_duration_s"]),
+            "stirring_speed_rpm": float(features["stirring_speed_rpm"]),
+        },
+        {"operation": "measure", "instrument": "hplc"},
+        {"operation": "seed_crystals", "seed_mass_g": float(features["seed_mass_g"])},
+        {
+            "operation": "cool_crystallize",
+            "target_temperature_K": float(features["crystallization_temperature_K"]),
+            "duration_s": float(features["crystallization_duration_s"]),
+        },
+        {"operation": "measure", "instrument": "hplc"},
+        {"operation": "filter_crystals"},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"},
+    ]
+
+
 def report_sha256(report: Mapping[str, Any]) -> str:
     return canonical_json_sha256(
         {key: value for key, value in report.items() if key != "report_sha256"}
@@ -692,6 +1143,29 @@ def validate_world_report(
         errors.append("A-S qualification must remain provider-free")
     if report.get("report_sha256") != report_sha256(report):
         errors.append("A-S world-report self-hash mismatch")
+    plan_binding = report.get("plan_binding")
+    if not isinstance(plan_binding, Mapping) or root is None:
+        errors.append("A-S world report lacks its qualification-plan binding")
+    else:
+        try:
+            plan_path = (root / str(plan_binding["path"])).resolve()
+            plan_path.relative_to(root.resolve())
+            if not plan_path.is_file() or plan_binding.get("sha256") != file_sha256(plan_path):
+                raise ValueError("plan file binding is stale")
+            plan = json.loads(plan_path.read_text(encoding="utf-8"))
+            if not isinstance(plan, dict):
+                raise TypeError("plan is not an object")
+            if plan_binding.get("plan_sha256") != plan.get("plan_sha256"):
+                raise ValueError("embedded plan hash mismatch")
+            errors.extend(
+                validate_qualification_plan(
+                    root,
+                    plan,
+                    expected_execution_context=expected_execution_context,
+                )
+            )
+        except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+            errors.append(f"A-S world report plan binding cannot be read: {error}")
     candidate_id = report.get("candidate_id")
     world_seed = report.get("world_seed")
     rows = report.get("rows")
@@ -705,7 +1179,41 @@ def validate_world_report(
         errors.append("A-S world report lacks a registered candidate/world/rows/audit")
     else:
         try:
-            rebuilt = analyze_candidate_world(str(candidate_id), int(world_seed), rows, audit)
+            validated_rows: list[dict[str, Any]] = []
+            for embedded in rows:
+                if not isinstance(embedded, Mapping):
+                    raise TypeError("embedded row is not an object")
+                receipt_binding = embedded.get("receipt")
+                if not isinstance(receipt_binding, Mapping):
+                    raise ValueError("embedded row lacks its receipt binding")
+                receipt_path = (root / str(receipt_binding["path"])).resolve() if root else None
+                if receipt_path is None:
+                    raise ValueError("evidence root is required")
+                receipt_path.relative_to(root.resolve())
+                if not receipt_path.is_file():
+                    raise ValueError("execution receipt is missing")
+                receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+                if not isinstance(receipt, dict):
+                    raise TypeError("execution receipt is not an object")
+                if receipt_binding.get("sha256") != file_sha256(
+                    receipt_path
+                ) or receipt_binding.get("receipt_sha256") != receipt.get("receipt_sha256"):
+                    raise ValueError("execution receipt binding is stale")
+                receipt_errors = validate_execution_receipt(
+                    root,
+                    receipt,
+                    candidate_id=str(candidate_id),
+                    world_seed=int(world_seed),
+                )
+                if receipt_errors:
+                    raise ValueError("; ".join(receipt_errors))
+                cached = {key: value for key, value in embedded.items() if key != "receipt"}
+                if cached != receipt:
+                    raise ValueError("embedded row differs from bound execution receipt")
+                validated_rows.append(receipt)
+            rebuilt = analyze_candidate_world(
+                str(candidate_id), int(world_seed), validated_rows, audit
+            )
         except (KeyError, TypeError, ValueError) as error:
             errors.append(f"A-S world analysis cannot be rebuilt: {error}")
         else:
@@ -726,9 +1234,7 @@ def validate_summary(
         errors.append("A-S five-world summary lacks an execution context")
     else:
         errors.extend(
-            validate_execution_envelope(
-                root, envelope, expected_context=expected_execution_context
-            )
+            validate_execution_envelope(root, envelope, expected_context=expected_execution_context)
         )
     if summary.get("schema_version") != SUMMARY_VERSION:
         errors.append("unexpected A-S five-world summary schema")
@@ -766,20 +1272,18 @@ def validate_summary(
             package = json.loads(package_path.read_text(encoding="utf-8"))
             if not isinstance(package, dict):
                 raise ValueError("Q2 package is not an object")
-            if package.get("package_sha256") != report_sha256(package):
+            if package.get("package_sha256") != package_sha256(package):
                 errors.append("A-S generated Q2 package self-hash mismatch")
             if generated_package.get("package_sha256") != package.get("package_sha256"):
                 errors.append("A-S embedded Q2 package hash mismatch")
             if package.get("execution_context") != summary.get("execution_context"):
                 errors.append("A-S Q2 package/execution context mismatch")
-            if (
-                package.get("formal_result") is not False
-                or package.get("provider_call_count") != 0
-            ):
+            if package.get("formal_result") is not False or package.get("provider_call_count") != 0:
                 errors.append("A-S Q2 package crossed its provider-free boundary")
         except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as error:
             errors.append(f"A-S generated Q2 package cannot be read: {error}")
     raw_bindings = summary.get("raw_bindings")
+    validated_reports: list[dict[str, Any]] = []
     if not isinstance(raw_bindings, list) or len(raw_bindings) != 10:
         errors.append("A-S summary must bind all ten candidate-world reports")
     else:
@@ -802,6 +1306,7 @@ def validate_summary(
                         expected_execution_context=expected_execution_context,
                     )
                 )
+                validated_reports.append(payload)
                 if payload.get("execution_context") != summary.get("execution_context"):
                     errors.append("A-S raw/execution context mismatch")
                 if binding.get("report_sha256") != payload.get("report_sha256"):
@@ -812,6 +1317,54 @@ def validate_summary(
         expected = {(candidate, world) for candidate in CANDIDATE_IDS for world in WORLD_SEEDS}
         if seen != expected:
             errors.append("A-S raw report roster mismatch")
+    if validated_reports:
+        plan_bindings = {
+            canonical_json_sha256(report.get("plan_binding")) for report in validated_reports
+        }
+        if len(plan_bindings) != 1:
+            errors.append("A-S world reports do not share one qualification plan")
+        expected_denominators = {
+            "planned_primary_executions": PRIMARY_EXECUTIONS_TOTAL,
+            "attempted_primary_executions": sum(
+                len(report["rows"]) for report in validated_reports
+            ),
+            "completed_primary_executions": sum(
+                report["analysis"]["denominators"]["completed_primary_executions"]
+                for report in validated_reports
+            ),
+            "planned_exact_replays": EXACT_REPLAYS_TOTAL,
+            "completed_exact_replays": sum(
+                report["analysis"]["denominators"]["exact_replays"] for report in validated_reports
+            ),
+            "physical_failures": sum(
+                report["analysis"]["denominators"]["physical_failures"]
+                for report in validated_reports
+            ),
+            "platform_failures": sum(
+                report["analysis"]["denominators"]["platform_failures"]
+                for report in validated_reports
+            ),
+            "unsafe_completed": sum(
+                report["analysis"]["denominators"]["unsafe_completed"]
+                for report in validated_reports
+            ),
+        }
+        if summary.get("denominators") != expected_denominators:
+            errors.append("A-S summary denominators differ from validated world reports")
+        expected_passed = len(validated_reports) == 10 and all(
+            report["analysis"]["passed"] is True for report in validated_reports
+        )
+        if summary.get("all_candidates_passed") is not expected_passed:
+            errors.append("A-S summary pass decision differs from validated world reports")
+        if isinstance(generated_package, Mapping):
+            expected_package = build_q2_package(
+                validated_reports,
+                q0_bindings=summary.get("q0_bindings", {}),
+                execution_context=summary.get("execution_context", {}),
+                plan_binding=validated_reports[0].get("plan_binding", {}),
+            )
+            if package != expected_package:
+                errors.append("A-S Q2 package differs from validated world reports")
     denominators_value = summary.get("denominators")
     if not isinstance(denominators_value, Mapping):
         errors.append("A-S summary lacks denominators")
@@ -825,8 +1378,7 @@ def validate_summary(
     if generated_d1 not in ({}, None) and not passed:
         errors.append("A-S summary generated D1 configs without complete qualification")
     if passed and (
-        not isinstance(generated_d1, Mapping)
-        or set(generated_d1) != set(CANDIDATE_IDS)
+        not isinstance(generated_d1, Mapping) or set(generated_d1) != set(CANDIDATE_IDS)
     ):
         errors.append("A-S complete qualification lacks both D1 configurations")
     elif isinstance(generated_d1, Mapping):
@@ -847,13 +1399,46 @@ def validate_summary(
                 if d1.get("execution_context") != summary.get("execution_context"):
                     errors.append(f"A-S D1/execution context mismatch: {candidate_id}")
                 qualification = d1.get("qualification")
+                intervention = d1.get("intervention")
                 if (
                     not isinstance(qualification, Mapping)
+                    or not isinstance(intervention, Mapping)
                     or qualification.get("execution_authorized") is not False
                     or qualification.get("formal_r5_authorized") is not False
                     or binding.get("execution_authorized") is not False
+                    or qualification.get("q2_package_sha256")
+                    != package.get("package_sha256")
+                    or qualification.get("plan_sha256")
+                    != package.get("plan_binding", {}).get("plan_sha256")
+                    or intervention.get("q2_package_sha256")
+                    != package.get("package_sha256")
+                    or intervention.get("candidate_id") != candidate_id
+                    or intervention.get("registered_truth_law_id")
+                    != candidate_specs()[candidate_id]["altered_law_id"]
                 ):
                     errors.append(f"A-S D1 was prematurely authorized: {candidate_id}")
+                else:
+                    expected_queries = [
+                        {
+                            "query_id": row["coordinate_id"],
+                            "feature_values": row["feature_values"],
+                            "metric_ids": list(candidate_specs()[candidate_id]["metric_ids"]),
+                            "intervention_family": row["intervention_family"],
+                            "q2_coordinate_sha256": row["coordinate_sha256"],
+                        }
+                        for row in selected_q2_queries(candidate_id)
+                    ]
+                    checkpoint = d1.get("belief_checkpoint")
+                    if (
+                        not isinstance(checkpoint, Mapping)
+                        or checkpoint.get("held_out_queries") != expected_queries
+                    ):
+                        errors.append(f"A-S D1 Q2 query binding mismatch: {candidate_id}")
+                    try:
+                        for arm in ("opaque", "aligned_nominal", "misindexed_nominal"):
+                            build_checkpoint_contract(d1, arm)
+                    except (KeyError, TypeError, ValueError) as error:
+                        errors.append(f"A-S D1 contract is not runnable: {candidate_id}: {error}")
             except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as error:
                 errors.append(f"A-S generated D1 cannot be read: {candidate_id}: {error}")
     if summary.get("provider_execution_authorized") is not False:

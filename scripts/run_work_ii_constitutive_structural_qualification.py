@@ -26,22 +26,27 @@ from chemworld.eval.work_ii_constitutive_structural_qualification import (
     COORDINATES_PER_CANDIDATE_WORLD,
     CRYSTALLIZATION_CANDIDATE_ID,
     EXACT_REPLAYS_TOTAL,
-    PACKAGE_VERSION,
     PARTITION_CANDIDATE_ID,
     PRIMARY_EXECUTIONS_PER_CANDIDATE_WORLD,
     PRIMARY_EXECUTIONS_TOTAL,
     QUALIFICATION_VERSION,
+    RECEIPT_VERSION,
     SUMMARY_VERSION,
     WORLD_REPORT_VERSION,
     WORLD_SEEDS,
+    _expected_actions,
     analyze_candidate_world,
     build_prior_arms,
+    build_q2_package,
+    build_qualification_plan,
     candidate_specs,
     observation_binding,
+    receipt_sha256,
     registered_coordinates,
     report_sha256,
     selected_q2_queries,
     summary_sha256,
+    validate_qualification_plan,
     validate_summary,
     validate_world_report,
 )
@@ -67,28 +72,22 @@ from chemworld.world.scoring import PARTITION_S0_EXTRACTION_EFFICIENCY_V3
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = ROOT / "runs/development/work-ii-as-paired-law-q1-q2-20260812"
 DEFAULT_SUMMARY = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
-    "work-ii-as-paired-law-q1-q2-five-world-20260812.json"
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-as-paired-law-q1-q2-five-world-20260812.json"
 )
 DEFAULT_PACKAGE = ROOT / "configs/benchmark/work_ii_as_paired_law_q2_package_v0.1.json"
 DEFAULT_PARTITION_Q0 = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
+    ROOT / "workstreams/flagship_tasks/reports/"
     "work-ii-partition-nominal-pair-q0-seed0-20260812.json"
 )
 DEFAULT_CRYSTALLIZATION_Q0 = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
+    ROOT / "workstreams/flagship_tasks/reports/"
     "work-ii-crystallization-reversible-topology-q0-seed0-20260812.json"
 )
 DEFAULT_DEVELOPMENT_PARTITION_Q0 = (
-    ROOT
-    / "runs/development/work-ii-partition-nominal-pair-q0-seed0-20260812/summary.json"
+    ROOT / "runs/development/work-ii-partition-nominal-pair-q0-seed0-20260812/summary.json"
 )
 DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0 = (
-    ROOT
-    / "runs/development/work-ii-crystallization-reversible-q0-seed0-20260812/summary.json"
+    ROOT / "runs/development/work-ii-crystallization-reversible-q0-seed0-20260812/summary.json"
 )
 D1_PATHS = {
     PARTITION_CANDIDATE_ID: ROOT / "configs/benchmark/work_ii_as_partition_d1_v0.1.json",
@@ -112,65 +111,7 @@ def _load(path: Path) -> dict[str, Any]:
 
 
 def _compile_actions(candidate_id: str, features: Mapping[str, Any]) -> list[dict[str, Any]]:
-    if candidate_id == PARTITION_CANDIDATE_ID:
-        return [
-            {
-                "operation": "add_solvent",
-                "volume_L": 0.020,
-                "solvent": int(features["solvent"]),
-            },
-            {
-                "operation": "add_phase",
-                "phase": "aqueous",
-                "volume_L": float(features["aqueous_phase_volume_L"]),
-            },
-            {
-                "operation": "add_extractant",
-                "extractant": int(features["extractant"]),
-                "volume_L": float(features["extractant_volume_L"]),
-            },
-            {
-                "operation": "mix",
-                "duration_s": float(features["mix_duration_s"]),
-                "stirring_speed_rpm": float(features["stirring_speed_rpm"]),
-            },
-            {"operation": "settle", "duration_s": float(features["settle_duration_s"])},
-            {"operation": "measure", "instrument": "hplc"},
-            {"operation": "separate_phase", "target_phase": "organic"},
-            {"operation": "measure", "instrument": "hplc"},
-            {"operation": "terminate"},
-            {"operation": "measure", "instrument": "final_assay"},
-        ]
-    return [
-        {
-            "operation": "add_solvent",
-            "volume_L": 0.025,
-            "solvent": int(features["solvent"]),
-        },
-        {"operation": "add_reagent", "amount_mol": float(features["reagent_amount_mol"])},
-        {
-            "operation": "add_catalyst",
-            "catalyst_amount_mol": float(features["catalyst_amount_mol"]),
-            "catalyst": int(features["catalyst"]),
-        },
-        {
-            "operation": "heat",
-            "target_temperature_K": float(features["reaction_temperature_K"]),
-            "duration_s": float(features["reaction_duration_s"]),
-            "stirring_speed_rpm": float(features["stirring_speed_rpm"]),
-        },
-        {"operation": "measure", "instrument": "hplc"},
-        {"operation": "seed_crystals", "seed_mass_g": float(features["seed_mass_g"])},
-        {
-            "operation": "cool_crystallize",
-            "target_temperature_K": float(features["crystallization_temperature_K"]),
-            "duration_s": float(features["crystallization_duration_s"]),
-        },
-        {"operation": "measure", "instrument": "hplc"},
-        {"operation": "filter_crystals"},
-        {"operation": "terminate"},
-        {"operation": "measure", "instrument": "final_assay"},
-    ]
+    return _expected_actions(candidate_id, features)
 
 
 def _visible_leakage_matches(records: Sequence[Mapping[str, Any]]) -> list[str]:
@@ -199,9 +140,7 @@ def _visible_leakage_matches(records: Sequence[Mapping[str, Any]]) -> list[str]:
     return sorted(matches)
 
 
-def _finite_metrics(
-    candidate_id: str, records: Sequence[Mapping[str, Any]]
-) -> dict[str, float]:
+def _finite_metrics(candidate_id: str, records: Sequence[Mapping[str, Any]]) -> dict[str, float]:
     spec = candidate_specs()[candidate_id]
     if candidate_id == PARTITION_CANDIDATE_ID:
         candidates = [
@@ -257,12 +196,10 @@ def _law_audit(candidate_id: str, world_seed: int) -> dict[str, Any]:
         "baseline_mechanism_hash": baseline.compiled_mechanism.mechanism_hash,
         "altered_mechanism_hash": altered.compiled_mechanism.mechanism_hash,
         "altered_hash_deterministic": (
-            altered.compiled_mechanism.mechanism_hash
-            == repeated.compiled_mechanism.mechanism_hash
+            altered.compiled_mechanism.mechanism_hash == repeated.compiled_mechanism.mechanism_hash
         ),
         "mechanism_hash_changed": (
-            baseline.compiled_mechanism.mechanism_hash
-            != altered.compiled_mechanism.mechanism_hash
+            baseline.compiled_mechanism.mechanism_hash != altered.compiled_mechanism.mechanism_hash
         ),
         "altered_intervention_hash": altered.initial_state.metadata.get(
             "mechanism_family_intervention_hash"
@@ -371,9 +308,7 @@ def _execute(
             if all(row.get("rollback_reason") == "constitution_failed" for row in noncommitted):
                 physical_failure = {
                     "rollback_count": len(noncommitted),
-                    "operations": sorted(
-                        {str(row.get("operation_type")) for row in noncommitted}
-                    ),
+                    "operations": sorted({str(row.get("operation_type")) for row in noncommitted}),
                     "attribution": "protocol_owned_physical_boundary",
                 }
             else:
@@ -382,9 +317,7 @@ def _execute(
                     "paired-law execution contains a non-constitution rollback: "
                     f"{first.get('operation_type')}/{first.get('rollback_reason')}"
                 )
-        replay = verify_records(
-            records, tolerance=0.0, world_interventions=interventions
-        ).to_dict()
+        replay = verify_records(records, tolerance=0.0, world_interventions=interventions).to_dict()
         if replay.get("verified") is not True:
             raise ValueError("paired-law trajectory failed exact replay")
         leakage = _visible_leakage_matches(records)
@@ -417,9 +350,7 @@ def _execute(
         else "completed"
     )
     mechanism_hashes = {
-        str(row["mechanism_hash"])
-        for row in records
-        if isinstance(row.get("mechanism_hash"), str)
+        str(row["mechanism_hash"]) for row in records if isinstance(row.get("mechanism_hash"), str)
     }
     intervention_hashes = {
         str(row["mechanism_family_intervention_hash"])
@@ -427,6 +358,7 @@ def _execute(
         if isinstance(row.get("mechanism_family_intervention_hash"), str)
     }
     row = {
+        "schema_version": RECEIPT_VERSION,
         **dict(coordinate),
         "candidate_id": candidate_id,
         "task_id": task_id,
@@ -468,6 +400,7 @@ def _execute(
         ),
         "elapsed_s": round(perf_counter() - started, 6),
     }
+    row["receipt_sha256"] = receipt_sha256(row)
     write_json_atomic(law_root / "receipt.json", row)
     return row
 
@@ -743,6 +676,18 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise FileExistsError("refusing to overwrite A-S qualification artifacts")
     q0_bindings = _validate_q0_inputs(args, execution_context)
     args.output_root.mkdir(parents=True)
+    plan = build_qualification_plan(
+        ROOT,
+        q0_bindings=q0_bindings,
+        execution_context=build_execution_envelope(execution_context),
+    )
+    plan_path = args.output_root / "plan.json"
+    write_json_atomic(plan_path, plan)
+    plan_errors = validate_qualification_plan(
+        ROOT, plan, expected_execution_context=execution_context
+    )
+    if plan_errors:
+        raise RuntimeError("invalid A-S qualification plan: " + "; ".join(plan_errors))
     progress = Progress(args.progress_file, args.status_file)
     started = perf_counter()
     reports: list[dict[str, Any]] = []
@@ -767,6 +712,26 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                             "platform and rerun all 10,240 primary executions from the start"
                         )
             analysis = analyze_candidate_world(candidate_id, world_seed, rows, audit)
+            report_rows = []
+            for row in rows:
+                receipt_path = (
+                    args.output_root
+                    / candidate_id
+                    / f"world-{world_seed}"
+                    / str(row["coordinate_id"])
+                    / str(row["law_id"])
+                    / "receipt.json"
+                )
+                report_rows.append(
+                    {
+                        **row,
+                        "receipt": {
+                            "path": receipt_path.relative_to(ROOT).as_posix(),
+                            "sha256": file_sha256(receipt_path),
+                            "receipt_sha256": row["receipt_sha256"],
+                        },
+                    }
+                )
             report: dict[str, Any] = {
                 "schema_version": WORLD_REPORT_VERSION,
                 "qualification_schema_version": QUALIFICATION_VERSION,
@@ -774,11 +739,16 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "provider_call_count": 0,
                 "participant_session_count": 0,
                 "execution_context": build_execution_envelope(execution_context),
+                "plan_binding": {
+                    "path": plan_path.relative_to(ROOT).as_posix(),
+                    "sha256": file_sha256(plan_path),
+                    "plan_sha256": plan["plan_sha256"],
+                },
                 "candidate_id": candidate_id,
                 "task_id": candidate_specs()[candidate_id]["task_id"],
                 "world_seed": world_seed,
                 "law_audit": audit,
-                "rows": rows,
+                "rows": report_rows,
                 "analysis": analysis,
             }
             report["report_sha256"] = report_sha256(report)
@@ -794,36 +764,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             reports.append(report)
 
     all_passed = all(report["analysis"]["passed"] for report in reports)
-    package: dict[str, Any] = {
-        "schema_version": PACKAGE_VERSION,
-        "qualification_schema_version": QUALIFICATION_VERSION,
-        "formal_result": False,
-        "provider_call_count": 0,
-        "execution_context": build_execution_envelope(execution_context),
-        "q0_bindings": q0_bindings,
-        "candidate_laws": {
-            candidate_id: {
-                "task_id": candidate_specs()[candidate_id]["task_id"],
-                "law_ids": list(candidate_specs()[candidate_id]["law_ids"]),
-                "registered_truth_law_id": candidate_specs()[candidate_id]["altered_law_id"],
-                "world_intervention": candidate_specs()[candidate_id]["world_intervention"],
-                "prior_arms": build_prior_arms(candidate_id),
-                "outcome_blind_q2_queries": selected_q2_queries(candidate_id),
-                "world_evidence": [
-                    {
-                        "world_seed": report["world_seed"],
-                        "passed": report["analysis"]["passed"],
-                        "q2": report["analysis"]["q2"],
-                    }
-                    for report in reports
-                    if report["candidate_id"] == candidate_id
-                ],
-            }
-            for candidate_id in CANDIDATE_IDS
-        },
-        "all_five_world_cohorts_passed": all_passed,
+    plan_binding = {
+        "path": plan_path.relative_to(ROOT).as_posix(),
+        "sha256": file_sha256(plan_path),
+        "plan_sha256": plan["plan_sha256"],
     }
-    package["package_sha256"] = report_sha256(package)
+    package = build_q2_package(
+        reports,
+        q0_bindings=q0_bindings,
+        execution_context=build_execution_envelope(execution_context),
+        plan_binding=plan_binding,
+    )
     write_json_atomic(args.package, package)
 
     generated_d1: dict[str, Any] = {}
@@ -836,6 +787,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 package_sha256=package["package_sha256"],
                 execution_context=execution_context,
             )
+            config["qualification"]["q2_package_sha256"] = package["package_sha256"]
+            config["qualification"]["plan_sha256"] = plan["plan_sha256"]
             path = d1_paths[candidate_id]
             write_json_atomic(path, config)
             generated_d1[candidate_id] = {
@@ -963,9 +916,7 @@ def main() -> int:
     parser.add_argument("--summary", type=Path)
     parser.add_argument("--package", type=Path)
     parser.add_argument("--partition-q0-summary", type=Path)
-    parser.add_argument(
-        "--crystallization-q0-summary", type=Path
-    )
+    parser.add_argument("--crystallization-q0-summary", type=Path)
     parser.add_argument("--progress-file", type=Path, required=True)
     parser.add_argument("--status-file", type=Path, required=True)
     parser.add_argument(
@@ -984,9 +935,7 @@ def main() -> int:
             DEFAULT_DEVELOPMENT_PARTITION_Q0 if development else DEFAULT_PARTITION_Q0
         ),
         "crystallization_q0_summary": (
-            DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0
-            if development
-            else DEFAULT_CRYSTALLIZATION_Q0
+            DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0 if development else DEFAULT_CRYSTALLIZATION_Q0
         ),
     }
     for field, default in defaults.items():
