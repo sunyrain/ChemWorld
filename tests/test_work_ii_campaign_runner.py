@@ -9,6 +9,7 @@ import pytest
 import scripts.run_work_ii_campaign_pilot as campaign_runner
 import scripts.run_work_ii_five_seed_campaign as five_seed_runner
 from scripts.evaluate_work_ii_catalyst_deactivation_paired_provider_campaigns import (
+    _agent_system_contrast,
     _paired_analysis,
     _validate_configs,
 )
@@ -156,6 +157,33 @@ def test_paired_catalyst_analysis_applies_frozen_gates_per_recipe() -> None:
     assert report["any_primary_metric_exceeds_gate"] is True
     assert report["any_recipe_has_two_metrics_above_gate"] is True
     assert report["metric_reports"]["selectivity"]["absolute_gate_exceedance_count"] == 1
+
+
+def test_agent_system_catalyst_contrast_is_separate_from_physics_effect() -> None:
+    campaigns = {}
+    for law_id, offset in (("deactivating_baseline", 0.0), ("stable_catalyst", 0.1)):
+        campaigns[law_id] = {
+            "recipes": [
+                {
+                    "experiment_index": index,
+                    "recipe_sha256": f"{law_id}-{index}",
+                    "provider_leaderboard_score": 0.1 + offset,
+                    "provider_final_metrics": {
+                        "yield": 0.2 + offset,
+                        "conversion": 0.4 + offset,
+                        "selectivity": 0.5 + offset,
+                        "safety_risk": 0.1,
+                        "score": 0.1 + offset,
+                    },
+                }
+                for index in range(1, 9)
+            ]
+        }
+    report = _agent_system_contrast(campaigns)
+    assert report["closed_loop_above_reference_gate_observed"] is True
+    assert report["rounds_with_two_primary_metrics_above_reference_gate"] == 8
+    assert report["all_round_recipes_identical"] is False
+    assert report["causal_physics_effect"] is False
 
 
 def test_electrochemical_process_time_policy_allows_two_exact_repeat_stages() -> None:

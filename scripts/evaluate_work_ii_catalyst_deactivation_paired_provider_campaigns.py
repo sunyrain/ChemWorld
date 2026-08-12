@@ -418,6 +418,109 @@ def _paired_analysis(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _agent_system_contrast(campaigns: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+    baseline = campaigns["deactivating_baseline"]
+    stable = campaigns["stable_catalyst"]
+    baseline_recipes = baseline.get("recipes", [])
+    stable_recipes = stable.get("recipes", [])
+    if not isinstance(baseline_recipes, list) or not isinstance(stable_recipes, list):
+        raise ValueError("participant campaign recipes must be lists")
+    if len(baseline_recipes) != 8 or len(stable_recipes) != 8:
+        raise ValueError("agent-system contrast requires eight rounds per law")
+    round_rows = []
+    for baseline_recipe, stable_recipe in zip(
+        baseline_recipes,
+        stable_recipes,
+        strict=True,
+    ):
+        baseline_metrics = baseline_recipe["provider_final_metrics"]
+        stable_metrics = stable_recipe["provider_final_metrics"]
+        gaps = {
+            metric: float(stable_metrics[metric]) - float(baseline_metrics[metric])
+            for metric in (*PRIMARY_GATES, "safety_risk", "score")
+        }
+        absolute_metrics = [
+            metric for metric, gate in PRIMARY_GATES.items() if abs(gaps[metric]) >= gate
+        ]
+        positive_metrics = [
+            metric for metric, gate in PRIMARY_GATES.items() if gaps[metric] >= gate
+        ]
+        round_rows.append(
+            {
+                "round": int(baseline_recipe["experiment_index"]),
+                "stable_minus_deactivating": gaps,
+                "metrics_exceeding_absolute_reference_gate": absolute_metrics,
+                "metrics_exceeding_positive_reference_gate": positive_metrics,
+                "at_least_two_metrics_exceed_absolute_reference_gate": (
+                    len(absolute_metrics) >= 2
+                ),
+                "recipes_identical": (
+                    baseline_recipe.get("recipe_sha256")
+                    == stable_recipe.get("recipe_sha256")
+                ),
+            }
+        )
+    metric_reports = {}
+    for metric, gate in PRIMARY_GATES.items():
+        values = [float(row["stable_minus_deactivating"][metric]) for row in round_rows]
+        maximum_index = max(range(len(values)), key=lambda index: abs(values[index]))
+        metric_reports[metric] = {
+            "reference_gate": gate,
+            "mean_signed_gap": sum(values) / len(values),
+            "maximum_absolute_gap": abs(values[maximum_index]),
+            "signed_gap_at_maximum": values[maximum_index],
+            "maximum_absolute_gap_round": maximum_index + 1,
+            "absolute_gate_round_count": sum(abs(value) >= gate for value in values),
+            "positive_gate_round_count": sum(value >= gate for value in values),
+            "negative_gate_round_count": sum(value <= -gate for value in values),
+        }
+    baseline_scores = [
+        float(recipe["provider_leaderboard_score"]) for recipe in baseline_recipes
+    ]
+    stable_scores = [float(recipe["provider_leaderboard_score"]) for recipe in stable_recipes]
+    return {
+        "estimand": "independent_closed_loop_agent_system_trajectory_contrast",
+        "causal_physics_effect": False,
+        "reason_not_pure_physics": (
+            "The two independent Codex sessions selected different recipes from round 1, "
+            "before either session observed a physical outcome."
+        ),
+        "round_count": len(round_rows),
+        "rounds_with_any_primary_metric_above_reference_gate": sum(
+            bool(row["metrics_exceeding_absolute_reference_gate"]) for row in round_rows
+        ),
+        "rounds_with_two_primary_metrics_above_reference_gate": sum(
+            row["at_least_two_metrics_exceed_absolute_reference_gate"]
+            for row in round_rows
+        ),
+        "all_round_recipes_identical": all(
+            row["recipes_identical"] for row in round_rows
+        ),
+        "closed_loop_above_reference_gate_observed": any(
+            row["metrics_exceeding_absolute_reference_gate"] for row in round_rows
+        ),
+        "metric_reports": metric_reports,
+        "score_summary": {
+            "deactivating_mean": sum(baseline_scores) / len(baseline_scores),
+            "stable_mean": sum(stable_scores) / len(stable_scores),
+            "stable_minus_deactivating_mean": (
+                sum(stable_scores) / len(stable_scores)
+                - sum(baseline_scores) / len(baseline_scores)
+            ),
+            "deactivating_best": max(baseline_scores),
+            "stable_best": max(stable_scores),
+            "stable_minus_deactivating_best": max(stable_scores) - max(baseline_scores),
+            "first_four_mean_gap": (
+                sum(stable_scores[:4]) / 4.0 - sum(baseline_scores[:4]) / 4.0
+            ),
+            "last_four_mean_gap": (
+                sum(stable_scores[4:]) / 4.0 - sum(baseline_scores[4:]) / 4.0
+            ),
+        },
+        "rounds": round_rows,
+    }
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
     if git_worktree_dirty(ROOT):
         raise RuntimeError("paired evaluation requires a clean committed worktree")
@@ -512,6 +615,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         and paired is not None
         and paired["any_recipe_has_two_metrics_above_gate"]
     )
+    agent_system = _agent_system_contrast(campaigns)
     summary = {
         "schema_version": SUMMARY_VERSION,
         "source_commit": git_source_commit(ROOT),
@@ -527,6 +631,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             for law_id, path in config_paths.items()
         },
         "participant_campaigns": campaigns,
+        "agent_system_closed_loop_contrast": agent_system,
         "participant_denominators": {
             "campaigns_expected": 2,
             "campaigns_operationally_complete": sum(
@@ -571,11 +676,20 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "counterfactual_failures": failures,
         "checks": {
             "both_provider_campaigns_operationally_complete": campaign_complete,
+            "closed_loop_agent_system_difference_exceeds_reference_gate": agent_system[
+                "closed_loop_above_reference_gate_observed"
+            ],
             "all_32_counterfactual_executions_complete": counterfactual_complete,
             "at_least_one_primary_metric_exceeds_frozen_gate": requested_claim,
             "w2_33_two_metrics_same_recipe_effect_gate": w2_33_cell_gate,
         },
         "requested_claim_supported": requested_claim,
+        "closed_loop_agent_system_difference_over_gate_observed": agent_system[
+            "closed_loop_above_reference_gate_observed"
+        ],
+        "fixed_recipe_physics_difference_over_gate_observed": bool(
+            paired is not None and paired["any_primary_metric_exceeds_gate"]
+        ),
         "w2_33_same_cell_effect_gate_supported": w2_33_cell_gate,
         "full_w2_33_qualification_retested": False,
         "interpretation_boundary": (
@@ -587,6 +701,40 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     }
     summary["summary_sha256"] = canonical_json_sha256(summary)
     write_json_atomic(args.summary, summary)
+    return summary
+
+
+def augment_existing_summary(path: Path) -> dict[str, Any]:
+    """Add the frozen closed-loop view without rerunning provider or physics executions."""
+
+    summary = _load_object(path)
+    campaigns = summary.get("participant_campaigns")
+    if not isinstance(campaigns, Mapping):
+        raise ValueError("existing paired summary lacks participant campaigns")
+    counterfactual = summary.get("counterfactual")
+    if not isinstance(counterfactual, Mapping):
+        raise ValueError("existing paired summary lacks its counterfactual analysis")
+    if int(counterfactual.get("counterfactual_execution_count", -1)) != 32:
+        raise ValueError("existing paired summary does not contain 32 executions")
+    if summary.get("counterfactual_failures") != []:
+        raise ValueError("existing paired summary contains counterfactual failures")
+    agent_system = _agent_system_contrast(campaigns)
+    summary["agent_system_closed_loop_contrast"] = agent_system
+    checks = summary.get("checks")
+    if not isinstance(checks, dict):
+        raise ValueError("existing paired summary lacks checks")
+    checks["closed_loop_agent_system_difference_exceeds_reference_gate"] = agent_system[
+        "closed_loop_above_reference_gate_observed"
+    ]
+    summary["closed_loop_agent_system_difference_over_gate_observed"] = agent_system[
+        "closed_loop_above_reference_gate_observed"
+    ]
+    summary["fixed_recipe_physics_difference_over_gate_observed"] = bool(
+        counterfactual.get("any_primary_metric_exceeds_gate")
+    )
+    summary.pop("summary_sha256", None)
+    summary["summary_sha256"] = canonical_json_sha256(summary)
+    write_json_atomic(path, summary)
     return summary
 
 
@@ -610,8 +758,13 @@ def main() -> int:
     )
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
+    parser.add_argument("--augment-existing-summary", action="store_true")
     args = parser.parse_args()
-    summary = run(args)
+    summary = (
+        augment_existing_summary(args.summary.resolve())
+        if args.augment_existing_summary
+        else run(args)
+    )
     print(
         json.dumps(
             {

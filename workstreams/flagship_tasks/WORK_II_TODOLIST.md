@@ -23,7 +23,8 @@ experiments、375 个 belief checkpoints，并为 private confirmation 保留相
 五个 task pattern 的 planning resource cards、formal manifest、analysis denominators、power/resource audit 和
 preregistration readiness 已同步重建。资源数值仍明确标为 W2-26 calibration 前的 planning envelope，formal
 execution 继续锁死。当前 WellAU 三臂 method-qualification readiness 还额外受 W2-26 未完成及四项外部授权要求
-阻断；没有启动新的真实 provider call。
+阻断；formal/R5 尚未启动。用户授权的 W2-34 development block 已独立完成 2 个真实 provider sessions，
+不进入 formal denominator。
 W2-31 observation/measurement seed-0 screen 已完成 `24/24` provider-free executions 与 exact replay，
 0 physical/platform failures。Electrochemical 通过，而 crystallization 仅因 seed-mass effect 未超过冻结噪声门
 被科学拒绝；因此不扩展至五 worlds、不生成 A-O participant D1。若保留 A-O participant claim，需独立重建
@@ -36,6 +37,14 @@ W2-33 reaction-safety catalyst-deactivation static A-S seed-0 Q0 已完成 `54/5
 0 physical/platform/unsafe。Stable catalyst 在全部 27 cells 的 direct metrics 上方向一致，但最大 yield/
 conversion/selectivity gaps 仅 `0.00615/0.00563/0.00532`，远低于 `0.050/0.050/0.054` gates；duration
 accumulation 也低于门槛。该候选为任务—机制可辨识性科学拒绝，不扩展五 worlds。
+W2-34 双真实-provider campaign 已按澄清后的定义完成：失活/稳定世界各 1 个 WellAU
+`gpt-5.6-sol` medium 持久 Codex session，每个 `8/8` experiments，共 `16/16` experiments、`112/112`
+operations、`2/2` session exact replay，0 provider/platform failures。两个自主 session 的同轮闭环终点在
+`5/8` 轮至少一项、`4/8` 轮至少两项超过 W2-33 reference gate，但两边从第一轮即选择不同 recipe，不能作
+物理因果归因。全部 16 个 provider-selected recipes 的双定律 `32/32` paired replay 显示最大 yield/
+conversion/selectivity 纯物理 gaps 仅 `0.01026/0.01226/0.00899`，分别为 gate 的
+`0.205x/0.245x/0.167x`，0/16 超门。因此保留“闭环轨迹可显著分岔”的观察，但不声称真实 provider 已使
+固定配方机制差超过 gate，不推翻 W2-33 科学拒绝。
 
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
@@ -408,11 +417,13 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   completed/exact replay、0 physical/platform/unsafe。Stable catalyst 的结构绑定、动作/噪声配对和 effect 方向均
   正确，但最大 direct gap 只有 `0.0053–0.0062`，未达到 `0.050–0.054` gates，duration accumulation 也失败。
   保留任务—机制可辨识性科学拒绝，不扩展、不生成 D1/provider；下一候选不得通过调大该机制继续试探。
-- [ ] **W2-34** 按用户澄清后的定义执行两个真实 provider campaign：reaction-safety seed 0，失活与稳定
+- [x] **W2-34** 按用户澄清后的定义执行两个真实 provider campaign：reaction-safety seed 0，失活与稳定
   世界各一个 WellAU `gpt-5.6-sol` medium 持久 Codex session，每个自主完成 8 次实验。两边公共合同完全
   匹配；随后将 16 个 provider-selected recipes 在两种定律下做 `32` 次 provider-free paired replay，直接
   检验 yield/conversion/selectivity 是否超过 W2-33 的 `0.050/0.050/0.054` gates。此前 1 session × 2
-  experiments 是范围误解下的 development pilot，永久保留但不进入 W2-34 分母。
+  experiments 是范围误解下的 development pilot，永久保留但不进入 W2-34 分母。正式 W2-34 为
+  `2/2` sessions、`16/16` experiments、`112/112` operations、`32/32` paired replay；闭环描述性差异
+  可超过 gate，但同配方纯物理最大 gap 仅 `0.00899–0.01226`，所以 requested fixed-action claim 未通过。
 
 ### P1 — 重冻正式矩阵
 
@@ -458,7 +469,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |
 | W2-32 | DONE | static reversible-path seed-0 Q0 `36/36` completed/exact replay；crystallization pass、flow scientific reject；固定世界语义通过，整体不扩展 |
 | W2-33 | DONE | reaction-safety deactivating-vs-stable catalyst static A-S seed-0 Q0；`54/54` completed/exact replay，结构真实但公开效应不足，科学拒绝 |
-| W2-34 | READY | 失活/稳定两个独立 8-experiment WellAU campaigns 及 32-execution paired replay 已冻结并通过零 provider 预检 |
+| W2-34 | DONE | `2 x 8` real-provider campaigns + `32/32` paired replay；闭环轨迹明显分岔，但固定配方纯物理效应 0/16 超 gate，严格 claim 不通过 |
 
 ## 12. 不可违反的规则
 
@@ -504,5 +515,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   `configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json`、
   `workstreams/flagship_tasks/reports/work-ii-reaction-safety-matched-prior-d1-evaluation-20260811.json`、
   `workstreams/flagship_tasks/WORK_II_REACTION_SAFETY_MATCHED_PRIOR_D1_ANALYSIS_ZH.md`
+- Catalyst-deactivation real-provider paired campaigns：
+  `workstreams/flagship_tasks/reports/work-ii-catalyst-deactivation-paired-provider-seed0-20260812.json`、
+  `workstreams/flagship_tasks/WORK_II_CATALYST_DEACTIVATION_PAIRED_PROVIDER_ANALYSIS_ZH.md`
 
 Git history 保存本文件过去的详细任务卡和运行日志；不恢复并行的旧主控入口。
