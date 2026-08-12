@@ -1,0 +1,130 @@
+{
+  "schema_version": "chemworld-work-ii-ae-prior-distinguishability-contract-0.2",
+  "contract_id": "work-ii-ae-prior-distinguishability-v0.2",
+  "status": "design_frozen_before_execution",
+  "development_only": true,
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_AE_PRIOR_DISTINGUISHABILITY_V02_EXPERIMENT_NOTE.md",
+  "participant_provider_calls": 0,
+  "participant_outcomes_read": false,
+  "policy": {
+    "policy_id": "blind-two-anchor-four-category-sweep-v0.2",
+    "inputs": ["task_id", "target_field"],
+    "forbidden_inputs": ["target_pair", "descriptor_permutation", "observations", "outcomes", "metric_values", "favorable_region"],
+    "policy_replicates_per_world": 3,
+    "rounds_per_policy_replicate": 8,
+    "minimum_unique_recipes_per_policy_replicate": 6,
+    "planned_unique_recipes_per_policy_replicate": 8,
+    "category_order_by_anchor": [[0, 1, 2, 3], [0, 1, 2, 3]],
+    "nuisance_design": {
+      "algorithm": "sha256_hash_uniform_complement_v1",
+      "namespace": "work-ii-ae-prior-v0.2-nuisance-coverage-20260812",
+      "lower_bound": 0.15,
+      "upper_bound": 0.85,
+      "anchor_count": 2,
+      "round_decimal_places": 9
+    }
+  },
+  "noise": {
+    "mode": "keyed",
+    "covariance_between_distinct_recipe_executions": 0.0,
+    "seed_namespace": "work-ii-ae-prior-v0.2-independent-observation-20260812",
+    "seed_coordinate_fields": ["phase", "task_id", "world_seed", "policy_replicate", "nuisance_anchor", "target_category"],
+    "left_right_seed_and_namespace_must_differ": true,
+    "replicates_per_anchor_category": 3,
+    "contrast_standard_error": "sqrt(sample_variance_ddof1_left/3 + sample_variance_ddof1_right/3)"
+  },
+  "thresholds": {
+    "minimum_mean_support_separation": 0.05,
+    "minimum_single_support_metric_separation": 0.03,
+    "minimum_support_signal_to_noise_ratio": 2.0,
+    "all_allowed_metrics_finite_in_unit_interval": true,
+    "all_primary_executions_completed": true,
+    "all_tolerance_zero_exact_replays_verified": true,
+    "both_nuisance_anchors_must_pass": true,
+    "all_five_heldout_worlds_per_task_must_pass": true,
+    "all_five_tasks_must_pass": true
+  },
+  "cohorts": {
+    "construction": {
+      "role": "frozen_descriptive_construction_only",
+      "scientific_admission_denominator": false,
+      "results_may_change_v0_2_rules": false,
+      "task_world_seeds": {
+        "electrochemical-conversion": [672326802, 263752154, 254732618, 553482792, 789741083],
+        "reaction-to-crystallization": [128467214, 876914043, 166055883, 964375871, 218451485],
+        "reaction-to-distillation": [897463930, 294959649, 617827675, 102623012, 705786312],
+        "partition-discovery": [958536734, 274543076, 887544358, 579145448, 328656968],
+        "reaction-safety-constrained": [709004002, 312314252, 762339748, 247136763, 930008953]
+      }
+    },
+    "heldout_qualification": {
+      "role": "only_scientific_admission_denominator",
+      "scientific_admission_denominator": true,
+      "selection_algorithm": "sha256_first8_modulo_namespace_v1",
+      "selection_namespace": "work-ii-ae-prior-v0.2-heldout-qualification-20260812",
+      "namespace_start": 100000000,
+      "namespace_size": 900000000,
+      "worlds_per_task": 5,
+      "task_world_seeds": {
+        "electrochemical-conversion": [934334899, 222130288, 187256385, 779398037, 533253734],
+        "reaction-to-crystallization": [981471142, 371545319, 680821974, 854364962, 297088702],
+        "reaction-to-distillation": [439344905, 353545270, 305419816, 301573033, 510396964],
+        "partition-discovery": [595257646, 913561854, 392161417, 114255949, 308641243],
+        "reaction-safety-constrained": [581283898, 413319517, 311564803, 267586659, 854968543]
+      }
+    }
+  },
+  "denominators": {
+    "tasks": 5,
+    "task_worlds_total": 50,
+    "construction_task_worlds": 25,
+    "heldout_qualification_task_worlds": 25,
+    "policy_replicates_total": 150,
+    "primary_executions_total": 1200,
+    "construction_primary_executions": 600,
+    "heldout_qualification_primary_executions": 600,
+    "tolerance_zero_exact_replay_checks": 1200
+  },
+  "tasks": [
+    {
+      "task_id": "electrochemical-conversion",
+      "campaign_config": "configs/benchmark/work_ii_campaign_pilot.json",
+      "target_field": "solvent",
+      "descriptor_permutation": [0, 3, 2, 1],
+      "support_metric_ids": ["selective_product_yield", "energy_efficiency"],
+      "negative_control_metric_ids": ["safety_risk"]
+    },
+    {
+      "task_id": "reaction-to-crystallization",
+      "campaign_config": "configs/benchmark/work_ii_crystallization_campaign.json",
+      "target_field": "solvent",
+      "descriptor_permutation": [0, 3, 2, 1],
+      "support_metric_ids": ["crystal_yield", "crystal_csd_quality"],
+      "negative_control_metric_ids": ["crystal_purity"]
+    },
+    {
+      "task_id": "reaction-to-distillation",
+      "campaign_config": "configs/benchmark/work_ii_distillation_campaign.json",
+      "target_field": "solvent",
+      "descriptor_permutation": [0, 3, 2, 1],
+      "support_metric_ids": ["distillate_purity", "distillate_recovery"],
+      "negative_control_metric_ids": ["solvent_loss", "score"]
+    },
+    {
+      "task_id": "partition-discovery",
+      "campaign_config": "configs/benchmark/work_ii_partition_campaign.json",
+      "target_field": "extractant",
+      "descriptor_permutation": [3, 1, 2, 0],
+      "support_metric_ids": ["product_in_organic"],
+      "negative_control_metric_ids": ["phase_ratio", "product_in_aqueous"]
+    },
+    {
+      "task_id": "reaction-safety-constrained",
+      "campaign_config": "configs/benchmark/work_ii_safety_campaign.json",
+      "target_field": "catalyst",
+      "descriptor_permutation": [0, 2, 1, 3],
+      "support_metric_ids": ["yield", "selectivity", "safety_risk"],
+      "negative_control_metric_ids": ["score"]
+    }
+  ]
+}
