@@ -1683,6 +1683,10 @@ def build_formal_preflight(
             "development_public_identity_disjoint": not bool(
                 set(development_seeds) & set(public_world_seeds)
             ),
+            "construction_public_identity_disjoint": not bool(
+                set(construction_world_seeds) & set(public_world_seeds)
+            ),
+            "construction_participant_cell_count": 0,
             "public_private_namespace_disjoint": namespace_disjoint,
         },
         "expected_counts": {
