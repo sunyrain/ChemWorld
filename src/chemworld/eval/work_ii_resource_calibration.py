@@ -23,8 +23,29 @@ RESOURCE_CALIBRATION_READINESS_VERSION = (
 RESOURCE_CALIBRATION_SUMMARY_VERSION = (
     "chemworld-work-ii-resource-calibration-summary-0.1"
 )
+RESOURCE_CALIBRATION_Q2_GENERATION_VERSION = (
+    "chemworld-work-ii-resource-calibration-q2-generation-0.1"
+)
 RESOURCE_CALIBRATION_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 RESOURCE_CALIBRATION_ROUNDS = (8, 10, 12)
+RESOURCE_CALIBRATION_LOCI = {8: "A_E", 10: "A_P", 12: "A_S"}
+DEFAULT_RESOURCE_CALIBRATION_FORMAL_DESIGN = Path(
+    "configs/benchmark/work_ii_formal_design_v0.2.json"
+)
+DEFAULT_RESOURCE_CALIBRATION_SELECTION_PROTOCOLS = {
+    "A_P": Path("configs/benchmark/work_ii_c2_ap_selection_protocol_v0.1.json"),
+    "A_S": Path("configs/benchmark/work_ii_c2_as_selection_protocol_v0.1.json"),
+}
+DEFAULT_RESOURCE_CALIBRATION_Q2_GENERATION_RECORDS = {
+    "A_P": Path(
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-reaction-safety-matched-prior-qualification-20260811.json"
+    ),
+    "A_S": Path(
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-as-paired-law-q1-q2-five-world-20260812.json"
+    ),
+}
 RESOURCE_CALIBRATION_CHECKPOINTS = {
     8: (0, 2, 4, 6, 8),
     10: (0, 2, 4, 7, 10),
@@ -76,22 +97,72 @@ def build_resource_calibration_execution_manifest(
     root: Path,
     protocol_manifest_path: Path,
     *,
-    campaign_config_paths: Mapping[int, Path],
+    formal_design_path: Path | None = None,
+    selection_protocol_paths: Mapping[str, Path] | None = None,
+    q2_generation_record_paths: Mapping[str, Path] | None = None,
 ) -> dict[str, Any]:
-    """Materialize the final 8/10/12 manifest outside the protected source tree."""
+    """Materialize 8/10/12 from final A-E/A-P/A-S selection evidence only."""
 
     root = root.resolve()
     protocol_manifest_path = protocol_manifest_path.resolve()
+    formal_design_path = (
+        root / DEFAULT_RESOURCE_CALIBRATION_FORMAL_DESIGN
+        if formal_design_path is None
+        else formal_design_path
+    ).resolve()
+    selection_protocol_paths = {
+        locus: (root / path).resolve()
+        for locus, path in (
+            DEFAULT_RESOURCE_CALIBRATION_SELECTION_PROTOCOLS.items()
+            if selection_protocol_paths is None
+            else selection_protocol_paths.items()
+        )
+    }
+    q2_generation_record_paths = {
+        locus: (root / path).resolve()
+        for locus, path in (
+            DEFAULT_RESOURCE_CALIBRATION_Q2_GENERATION_RECORDS.items()
+            if q2_generation_record_paths is None
+            else q2_generation_record_paths.items()
+        )
+    }
+    expected_design = (root / DEFAULT_RESOURCE_CALIBRATION_FORMAL_DESIGN).resolve()
+    expected_protocols = {
+        locus: (root / path).resolve()
+        for locus, path in DEFAULT_RESOURCE_CALIBRATION_SELECTION_PROTOCOLS.items()
+    }
+    expected_q2 = {
+        locus: (root / path).resolve()
+        for locus, path in DEFAULT_RESOURCE_CALIBRATION_Q2_GENERATION_RECORDS.items()
+    }
+    if formal_design_path != expected_design:
+        raise ValueError("resource calibration requires the canonical formal design v0.2 path")
+    if selection_protocol_paths != expected_protocols:
+        raise ValueError(
+            "resource calibration requires the canonical protected selection protocols"
+        )
+    if q2_generation_record_paths != expected_q2:
+        raise ValueError("resource calibration requires the canonical Q2 generation records")
     protocol = _load_object(protocol_manifest_path)
     if validate_resource_calibration_manifest(root, protocol):
         raise ValueError("resource calibration protocol manifest is invalid")
-    if set(campaign_config_paths) != set(RESOURCE_CALIBRATION_ROUNDS):
-        raise ValueError("execution manifest requires exactly the 8/10/12 configs")
     from chemworld.eval.work_ii_c2_admission import (
         build_c2_source_binding,
         c2_material_dirty_paths,
     )
 
+    patterns, resolution = resolve_resource_calibration_representatives(
+        root,
+        protocol,
+        formal_design_path=formal_design_path,
+        selection_protocol_paths=selection_protocol_paths,
+        q2_generation_record_paths=q2_generation_record_paths,
+    )
+    if resolution["blocking_requirements"]:
+        raise ValueError(
+            "resource calibration representatives are not ready: "
+            + "; ".join(resolution["blocking_requirements"])
+        )
     dirty = c2_material_dirty_paths(root)
     if dirty:
         raise ValueError(
@@ -99,28 +170,9 @@ def build_resource_calibration_execution_manifest(
             + ", ".join(dirty)
         )
     manifest = json.loads(json.dumps(protocol))
-    for pattern in manifest["patterns"]:
-        rounds = int(pattern["rounds"])
-        config_path = campaign_config_paths[rounds].resolve()
-        try:
-            relative = config_path.relative_to(root).as_posix()
-        except ValueError as error:
-            raise ValueError("resource calibration config escapes repository") from error
-        config = _load_object(config_path)
-        pattern.update(
-            {
-                "representative_task_status": "frozen",
-                "task_id": config.get("task_id"),
-                "world_seed": config.get("world_seed"),
-                "campaign_config_binding": {
-                    "path": relative,
-                    "sha256": canonical_json_sha256(config),
-                    "hash_kind": "canonical_json_sha256",
-                },
-                "task_specific_resource_formula_frozen": True,
-            }
-        )
+    manifest["patterns"] = patterns
     manifest["status"] = "ready_authorization_blocked"
+    manifest["representative_resolution"] = resolution
     manifest["protocol_manifest_binding"] = {
         "path": protocol_manifest_path.relative_to(root).as_posix(),
         "sha256": file_sha256(protocol_manifest_path),
@@ -131,6 +183,473 @@ def build_resource_calibration_execution_manifest(
     if errors:
         raise ValueError("execution manifest failed: " + "; ".join(errors))
     return manifest
+
+
+def _repository_binding(root: Path, path: Path) -> dict[str, str]:
+    resolved = path.resolve()
+    try:
+        relative = resolved.relative_to(root.resolve()).as_posix()
+    except ValueError as error:
+        raise ValueError("resource calibration dependency escapes repository") from error
+    if not resolved.is_file():
+        raise ValueError(f"resource calibration dependency is missing: {relative}")
+    return {
+        "path": relative,
+        "sha256": file_sha256(resolved),
+        "hash_kind": "file_sha256",
+    }
+
+
+def _representative_config_errors(
+    config: Mapping[str, Any],
+    *,
+    rounds: int,
+    locus: str,
+    task_id: str,
+) -> list[str]:
+    campaign = config.get("campaign")
+    campaign = campaign if isinstance(campaign, Mapping) else {}
+    resources = config.get("method_resources")
+    resources = resources if isinstance(resources, Mapping) else {}
+    errors: list[str] = []
+    if config.get("task_id") != task_id:
+        errors.append(f"{rounds}-round {locus} config task_id differs from selection")
+    if isinstance(config.get("world_seed"), bool) or not isinstance(
+        config.get("world_seed"), int
+    ):
+        errors.append(f"{rounds}-round {locus} config lacks an exact integer world_seed")
+    prior_arms = config.get("prior_arms")
+    if not isinstance(prior_arms, Mapping) or set(prior_arms) != set(
+        RESOURCE_CALIBRATION_ARMS
+    ):
+        errors.append(f"{rounds}-round {locus} config lacks the exact arm triplet")
+    if (
+        campaign.get("complete_experiments") != rounds
+        or tuple(campaign.get("checkpoint_complete_experiments", []))
+        != RESOURCE_CALIBRATION_CHECKPOINTS[rounds]
+        or resources.get("complete_experiment_limit") != rounds
+    ):
+        errors.append(f"{rounds}-round {locus} config differs from its frozen pattern")
+    return errors
+
+
+def _validate_ap_q2_record(
+    root: Path, record: Mapping[str, Any], *, task_id: str
+) -> tuple[list[str], object]:
+    """Validate the complete frozen matched-prior Q2 summary contract for A-P."""
+
+    errors: list[str] = []
+    expected_coverage = {
+        "world_count": 5,
+        "surface_queries_per_world": 121,
+        "planned_surface_query_count": 605,
+        "held_out_queries_per_world": 16,
+    }
+    expected_denominators = {
+        "world_count": 5,
+        "passed_world_count": 5,
+        "classified_surface_query_count": 605,
+        "physical_failure_count": 64,
+        "platform_failure_count": 0,
+        "safe_fit_count": 150,
+        "safe_held_out_count": 391,
+    }
+    digest = record.get("summary_sha256")
+    if (
+        record.get("schema_version")
+        != "chemworld-work-ii-matched-prior-five-world-summary-0.3"
+        or record.get("qualification_schema_version")
+        != "chemworld-work-ii-matched-prior-qualification-0.3"
+        or record.get("task_id") != task_id
+        or record.get("qualification_passed") is not True
+        or record.get("coverage") != expected_coverage
+        or record.get("denominators") != expected_denominators
+        or record.get("failure_count") != 0
+        or record.get("failures") != []
+        or record.get("d1_authorized") is not True
+        or record.get("decision") != "proceed_to_reaction_safety_d1"
+        or record.get("world_seeds") != [0, 1, 2, 3, 4]
+        or not isinstance(digest, str)
+        or digest != _self_hash(record, "summary_sha256")
+    ):
+        errors.append("10-round A_P rank-1 task lacks a valid frozen Q2 summary")
+    worlds = record.get("worlds")
+    worlds = worlds if isinstance(worlds, list) else []
+    if len(worlds) != 5:
+        errors.append("10-round A_P Q2 summary lacks all five world results")
+    else:
+        totals = {
+            "passed_world_count": 0,
+            "physical_failure_count": 0,
+            "safe_fit_count": 0,
+            "safe_held_out_count": 0,
+        }
+        for seed, world in enumerate(worlds):
+            world = world if isinstance(world, Mapping) else {}
+            leakage = world.get("leakage_audit")
+            leakage = leakage if isinstance(leakage, Mapping) else {}
+            matching = world.get("prior_matching")
+            matching = matching if isinstance(matching, Mapping) else {}
+            reflection = world.get("selected_reflection")
+            reflection = reflection if isinstance(reflection, Mapping) else {}
+            if (
+                world.get("world_seed") != seed
+                or world.get("passed") is not True
+                or leakage.get("passed") is not True
+                or leakage.get("failures") != []
+                or leakage.get("forbidden_pattern_hits") != []
+                or matching.get("passed") is not True
+                or matching.get("failures") != []
+                or reflection.get("passed") is not True
+            ):
+                errors.append(f"10-round A_P Q2 world {seed} is not fully passed")
+            totals["passed_world_count"] += int(world.get("passed") is True)
+            for field in (
+                "physical_failure_count",
+                "safe_fit_count",
+                "safe_held_out_count",
+            ):
+                value = world.get(field)
+                if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                    errors.append(f"10-round A_P Q2 world {seed} lacks valid {field}")
+                else:
+                    totals[field] += value
+        denominators = record.get("denominators")
+        denominators = denominators if isinstance(denominators, Mapping) else {}
+        if any(denominators.get(field) != value for field, value in totals.items()):
+            errors.append("10-round A_P Q2 world totals differ from denominators")
+    raw_bindings = record.get("raw_bindings")
+    raw_bindings = raw_bindings if isinstance(raw_bindings, list) else []
+    if len(raw_bindings) != 5 or any(
+        not isinstance(binding, Mapping)
+        or binding.get("world_seed") != seed
+        or binding.get("passed") is not True
+        or not isinstance(binding.get("path"), str)
+        or not isinstance(binding.get("sha256"), str)
+        or len(str(binding.get("sha256"))) != 64
+        for seed, binding in enumerate(raw_bindings)
+    ):
+        errors.append("10-round A_P Q2 raw world bindings are incomplete")
+    generated_package = record.get("generated_package")
+    package_errors = _validate_binding(
+        root,
+        {
+            **(dict(generated_package) if isinstance(generated_package, Mapping) else {}),
+            "hash_kind": "file_sha256",
+        },
+        "10-round A_P generated package",
+    )
+    errors.extend(package_errors)
+    return errors, record.get("generated_d1_config")
+
+
+def _validate_as_q2_record(
+    root: Path, record: Mapping[str, Any], *, task_id: str
+) -> tuple[list[str], object]:
+    from chemworld.eval.work_ii_constitutive_structural_qualification import (
+        CANDIDATE_IDS,
+        candidate_specs,
+        validate_summary,
+    )
+
+    errors = [f"12-round A_S Q2: {error}" for error in validate_summary(root, record)]
+    candidates = record.get("candidates")
+    candidates = candidates if isinstance(candidates, Mapping) else {}
+    candidate_ids = [
+        candidate_id
+        for candidate_id in CANDIDATE_IDS
+        if candidate_specs()[candidate_id].get("task_id") == task_id
+    ]
+    candidate_id = candidate_ids[0] if len(candidate_ids) == 1 else None
+    candidate = candidates.get(candidate_id) if candidate_id is not None else None
+    candidate = candidate if isinstance(candidate, Mapping) else {}
+    if (
+        candidate_id is None
+        or candidate.get("qualification_passed") is not True
+        or candidate.get("passed_world_count") != 5
+    ):
+        errors.append("12-round A_S rank-1 task lacks a passed Q2 record")
+    generated_map = record.get("participant_d1_configs_generated")
+    generated_map = generated_map if isinstance(generated_map, Mapping) else {}
+    return errors, generated_map.get(candidate_id)
+
+
+def _selection_protocol_rank_one(
+    root: Path, path: Path, *, locus: str
+) -> tuple[list[str], dict[str, str] | None, str | None]:
+    from chemworld.eval.work_ii_c2_admission import (
+        C2_SELECTION_PROTOCOL_VERSION,
+        build_c2_selection_protocol,
+    )
+
+    errors: list[str] = []
+    try:
+        binding = _repository_binding(root, path)
+        protocol = _load_object(path)
+    except (OSError, ValueError) as error:
+        return [f"{locus} selection protocol is unavailable: {error}"], None, None
+    roster = protocol.get("candidate_roster")
+    roster = roster if isinstance(roster, list) else []
+    try:
+        rebuilt = build_c2_selection_protocol(
+            locus=locus,
+            candidate_roster=[
+                dict(row) if isinstance(row, Mapping) else {} for row in roster
+            ],
+        )
+    except (TypeError, ValueError) as error:
+        errors.append(f"{locus} selection protocol cannot be rebuilt: {error}")
+    else:
+        if (
+            protocol.get("schema_version") != C2_SELECTION_PROTOCOL_VERSION
+            or protocol != rebuilt
+        ):
+            errors.append(f"{locus} selection protocol is stale or not pre-evidence frozen")
+    rank_one = [
+        row
+        for row in roster
+        if isinstance(row, Mapping) and row.get("frozen_rank") == 1
+    ]
+    task_id = rank_one[0].get("task_id") if len(rank_one) == 1 else None
+    if not isinstance(task_id, str) or not task_id:
+        errors.append(f"{locus} selection protocol lacks one canonical rank-1 task")
+        task_id = None
+    return errors, binding, task_id
+
+
+def _q2_generation_contract(
+    root: Path,
+    path: Path,
+    *,
+    locus: str,
+    rounds: int,
+    task_id: str,
+) -> tuple[list[str], dict[str, str] | None, Path | None, dict[str, Any] | None]:
+    errors: list[str] = []
+    try:
+        record_binding = _repository_binding(root, path)
+        record = _load_object(path)
+    except (OSError, ValueError) as error:
+        return (
+            [f"{rounds}-round {locus} Q2 generation record is unavailable: {error}"],
+            None,
+            None,
+            None,
+        )
+    if (
+        record.get("formal_result") is not False
+        or record.get("provider_call_count") != 0
+        or record.get("participant_session_count") not in {None, 0}
+    ):
+        errors.append(
+            f"{rounds}-round {locus} Q2 generation record is not provider/participant-free"
+        )
+
+    generated: object = None
+    try:
+        if record.get("schema_version") == RESOURCE_CALIBRATION_Q2_GENERATION_VERSION:
+            errors.append(
+                f"{rounds}-round {locus} self-declared Q2 generation records "
+                "cannot unlock execution"
+            )
+            generated = record.get("generated_d1_config")
+        elif locus == "A_P":
+            locus_errors, generated = _validate_ap_q2_record(
+                root, record, task_id=task_id
+            )
+            errors.extend(locus_errors)
+        else:
+            locus_errors, generated = _validate_as_q2_record(
+                root, record, task_id=task_id
+            )
+            errors.extend(locus_errors)
+    except (OSError, TypeError, ValueError) as error:
+        errors.append(f"{rounds}-round {locus} Q2 record cannot be validated: {error}")
+
+    generated = generated if isinstance(generated, Mapping) else {}
+    relative = generated.get("path")
+    digest = generated.get("sha256")
+    if not isinstance(relative, str) or not isinstance(digest, str):
+        errors.append(f"{rounds}-round {locus} Q2 record lacks its generated static D1 config")
+        return errors, record_binding, None, None
+    config_path = (root / relative).resolve()
+    try:
+        config_path.relative_to(root)
+    except ValueError:
+        errors.append(f"{rounds}-round {locus} generated static D1 config escapes repository")
+        return errors, record_binding, None, None
+    if not config_path.is_file() or file_sha256(config_path) != digest:
+        errors.append(f"{rounds}-round {locus} generated static D1 config binding is stale")
+        return errors, record_binding, config_path, None
+    config = _load_object(config_path)
+    errors.extend(
+        _representative_config_errors(
+            config, rounds=rounds, locus=locus, task_id=task_id
+        )
+    )
+    if config.get("formal_result") is not False:
+        errors.append(f"{rounds}-round {locus} generated static D1 config is not non-formal")
+    qualification = config.get("qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    if qualification.get("q2_passed") is not True:
+        errors.append(f"{rounds}-round {locus} generated static D1 config is not Q2-bound")
+    return errors, record_binding, config_path, config
+
+
+def resolve_resource_calibration_representatives(
+    root: Path,
+    protocol: Mapping[str, Any],
+    *,
+    formal_design_path: Path,
+    selection_protocol_paths: Mapping[str, Path],
+    q2_generation_record_paths: Mapping[str, Path],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Resolve representatives from formal v0.2 and provider-free Q2 generation.
+
+    For A-P/A-S, the protected pre-evidence protocol owns the rank-1 identity and
+    the passed provider-free Q2 generation record owns the exact static D1 config.
+    Terminal D1 receipts are deliberately downstream and are not accepted here.
+    """
+
+    root = root.resolve()
+    formal_design_path = formal_design_path.resolve()
+    selection_protocol_paths = {
+        locus: path.resolve() for locus, path in selection_protocol_paths.items()
+    }
+    q2_generation_record_paths = {
+        locus: path.resolve() for locus, path in q2_generation_record_paths.items()
+    }
+    blockers: list[str] = []
+    resolved_patterns = json.loads(json.dumps(protocol.get("patterns", [])))
+    selected: dict[str, Any] = {}
+
+    try:
+        design = _load_object(formal_design_path)
+        design_binding = _repository_binding(root, formal_design_path)
+    except (OSError, ValueError) as error:
+        design = {}
+        design_binding = None
+        blockers.append(f"formal v0.2 design is unavailable: {error}")
+    if design and design.get("schema_version") != "chemworld-work-ii-formal-design-0.2":
+        blockers.append("resource calibration requires formal design schema v0.2")
+
+    patterns_by_round = {
+        int(row.get("rounds")): row
+        for row in resolved_patterns
+        if isinstance(row, dict) and isinstance(row.get("rounds"), int)
+    }
+    if set(patterns_by_round) != set(RESOURCE_CALIBRATION_ROUNDS):
+        blockers.append("resource calibration protocol does not contain exact 8/10/12 patterns")
+    else:
+        ae_pattern = patterns_by_round[8]
+        ae_task_id = ae_pattern.get("task_id")
+        design_tasks = design.get("tasks")
+        design_tasks = design_tasks if isinstance(design_tasks, list) else []
+        matching_tasks = [
+            row
+            for row in design_tasks
+            if isinstance(row, Mapping) and row.get("task_id") == ae_task_id
+        ]
+        if len(matching_tasks) != 1 or not isinstance(ae_task_id, str):
+            blockers.append(
+                "8-round A_E representative is not an exact formal v0.2 task selection"
+            )
+        else:
+            relative = matching_tasks[0].get("campaign_config")
+            try:
+                config_path = (root / str(relative)).resolve()
+                config_binding = _repository_binding(root, config_path)
+                config = _load_object(config_path)
+            except (OSError, ValueError) as error:
+                blockers.append(f"8-round A_E representative config is unavailable: {error}")
+            else:
+                ae_errors = _representative_config_errors(
+                    config, rounds=8, locus="A_E", task_id=ae_task_id
+                )
+                blockers.extend(ae_errors)
+                if not ae_errors:
+                    ae_pattern.update(
+                        {
+                            "representative_task_status": "frozen",
+                            "world_seed": config.get("world_seed"),
+                            "campaign_config_binding": config_binding,
+                            "task_specific_resource_formula_frozen": True,
+                            "representative_selection_source": "formal_design_v0.2_task",
+                            "representative_selection_binding": design_binding,
+                        }
+                    )
+                    selected["8"] = {
+                        "locus": "A_E",
+                        "task_id": ae_task_id,
+                        "selection_rule": "protocol_frozen_task_id_in_formal_design_v0.2",
+                    }
+
+        for rounds in (10, 12):
+            locus = RESOURCE_CALIBRATION_LOCI[rounds]
+            if set(selection_protocol_paths) != {"A_P", "A_S"} or set(
+                q2_generation_record_paths
+            ) != {"A_P", "A_S"}:
+                blockers.append("resource calibration requires exact A_P/A_S Q2 inputs")
+                break
+            protocol_errors, protocol_binding, task_id = _selection_protocol_rank_one(
+                root, selection_protocol_paths[locus], locus=locus
+            )
+            blockers.extend(protocol_errors)
+            if task_id is None:
+                continue
+            q2_errors, q2_binding, config_path, config = _q2_generation_contract(
+                root,
+                q2_generation_record_paths[locus],
+                locus=locus,
+                rounds=rounds,
+                task_id=task_id,
+            )
+            blockers.extend(q2_errors)
+            if protocol_errors or q2_errors or config_path is None or config is None:
+                continue
+            patterns_by_round[rounds].update(
+                {
+                    "representative_task_status": "q2_generated_static_config_frozen",
+                    "task_id": task_id,
+                    "world_seed": config["world_seed"],
+                    "campaign_config_binding": _repository_binding(root, config_path),
+                    "task_specific_resource_formula_frozen": True,
+                    "representative_selection_source": (
+                        "protected_selection_protocol_rank_1"
+                    ),
+                    "representative_selection_binding": protocol_binding,
+                    "q2_generation_record_binding": q2_binding,
+                }
+            )
+            selected[str(rounds)] = {
+                "locus": locus,
+                "task_id": task_id,
+                "selection_rule": (
+                    "rank_1_in_protected_pre_evidence_selection_protocol"
+                ),
+            }
+
+    resolution: dict[str, Any] = {
+        "status": "resolved" if not blockers else "not_ready_fail_closed",
+        "formal_design_binding": design_binding,
+        "selection_protocol_bindings": {
+            locus: (
+                _repository_binding(root, path) if path.is_file() else None
+            )
+            for locus, path in selection_protocol_paths.items()
+        },
+        "q2_generation_record_bindings": {
+            locus: (
+                _repository_binding(root, path) if path.is_file() else None
+            )
+            for locus, path in q2_generation_record_paths.items()
+        },
+        "arbitrary_config_override_allowed": False,
+        "proxy_substitution_allowed": False,
+        "selected_representatives": selected,
+        "blocking_requirements": blockers,
+    }
+    return resolved_patterns, resolution
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -404,6 +923,152 @@ def _validate_binding(root: Path, binding: object, label: str) -> list[str]:
     return [] if actual == digest else [f"resource calibration {label} binding is stale"]
 
 
+def _validate_ready_representative_provenance(
+    root: Path,
+    manifest: Mapping[str, Any],
+    patterns: list[object],
+) -> list[str]:
+    errors: list[str] = []
+    resolution = manifest.get("representative_resolution")
+    resolution = resolution if isinstance(resolution, Mapping) else {}
+    if (
+        resolution.get("status") != "resolved"
+        or resolution.get("arbitrary_config_override_allowed") is not False
+        or resolution.get("proxy_substitution_allowed") is not False
+        or resolution.get("blocking_requirements") != []
+    ):
+        errors.append(
+            "ready resource calibration lacks a fail-closed representative resolution"
+        )
+    design_binding = resolution.get("formal_design_binding")
+    protocol_bindings = resolution.get("selection_protocol_bindings")
+    protocol_bindings = protocol_bindings if isinstance(protocol_bindings, Mapping) else {}
+    q2_bindings = resolution.get("q2_generation_record_bindings")
+    q2_bindings = q2_bindings if isinstance(q2_bindings, Mapping) else {}
+    errors.extend(_validate_binding(root, design_binding, "formal v0.2 design"))
+    expected_design_path = DEFAULT_RESOURCE_CALIBRATION_FORMAL_DESIGN.as_posix()
+    if (
+        not isinstance(design_binding, Mapping)
+        or design_binding.get("path") != expected_design_path
+    ):
+        errors.append("ready resource calibration does not bind the canonical formal design")
+    design: dict[str, Any] = {}
+    if isinstance(design_binding, Mapping) and isinstance(design_binding.get("path"), str):
+        path = (root / str(design_binding["path"])).resolve()
+        if path.is_file():
+            design = _load_object(path)
+    if design.get("schema_version") != "chemworld-work-ii-formal-design-0.2":
+        errors.append("ready resource calibration is not bound to formal design v0.2")
+    selected = resolution.get("selected_representatives")
+    selected = selected if isinstance(selected, Mapping) else {}
+    design_tasks = design.get("tasks")
+    design_tasks = design_tasks if isinstance(design_tasks, list) else []
+
+    for rounds, raw in zip(RESOURCE_CALIBRATION_ROUNDS, patterns, strict=True):
+        if not isinstance(raw, Mapping):
+            continue
+        locus = RESOURCE_CALIBRATION_LOCI[rounds]
+        task_id = raw.get("task_id")
+        if raw.get("locus") != locus:
+            errors.append(f"{rounds}-round calibration representative must be {locus} owned")
+        selected_row = selected.get(str(rounds))
+        selected_row = selected_row if isinstance(selected_row, Mapping) else {}
+        if selected_row.get("locus") != locus or selected_row.get("task_id") != task_id:
+            errors.append(f"{rounds}-round representative resolution differs from pattern")
+        selection_binding = raw.get("representative_selection_binding")
+        errors.extend(
+            _validate_binding(
+                root,
+                selection_binding,
+                f"{rounds}-round representative selection",
+            )
+        )
+        campaign_binding = raw.get("campaign_config_binding")
+        campaign_binding = (
+            campaign_binding if isinstance(campaign_binding, Mapping) else {}
+        )
+        if rounds == 8:
+            if (
+                raw.get("representative_selection_source")
+                != "formal_design_v0.2_task"
+                or selection_binding != design_binding
+                or selected_row.get("selection_rule")
+                != "protocol_frozen_task_id_in_formal_design_v0.2"
+            ):
+                errors.append("8-round representative is not selected by formal design v0.2")
+            task_rows = [
+                row
+                for row in design_tasks
+                if isinstance(row, Mapping) and row.get("task_id") == task_id
+            ]
+            if (
+                len(task_rows) != 1
+                or task_rows[0].get("campaign_config") != campaign_binding.get("path")
+            ):
+                errors.append("8-round representative config differs from formal design v0.2")
+            continue
+
+        protocol_binding = protocol_bindings.get(locus)
+        q2_binding = q2_bindings.get(locus)
+        errors.extend(_validate_binding(root, protocol_binding, f"{locus} selection protocol"))
+        errors.extend(_validate_binding(root, q2_binding, f"{locus} Q2 generation record"))
+        expected_protocol_path = DEFAULT_RESOURCE_CALIBRATION_SELECTION_PROTOCOLS[
+            locus
+        ].as_posix()
+        expected_q2_path = DEFAULT_RESOURCE_CALIBRATION_Q2_GENERATION_RECORDS[
+            locus
+        ].as_posix()
+        if (
+            not isinstance(protocol_binding, Mapping)
+            or protocol_binding.get("path") != expected_protocol_path
+            or not isinstance(q2_binding, Mapping)
+            or q2_binding.get("path") != expected_q2_path
+        ):
+            errors.append(
+                f"{rounds}-round {locus} representative uses noncanonical evidence paths"
+            )
+        if (
+            raw.get("representative_selection_source")
+            != "protected_selection_protocol_rank_1"
+            or selected_row.get("selection_rule")
+            != "rank_1_in_protected_pre_evidence_selection_protocol"
+            or selection_binding != protocol_binding
+            or raw.get("q2_generation_record_binding") != q2_binding
+        ):
+            errors.append(
+                f"{rounds}-round {locus} representative is not bound to rank-1 "
+                "protected selection and provider-free Q2 generation"
+            )
+            continue
+        if not isinstance(protocol_binding, Mapping) or not isinstance(q2_binding, Mapping):
+            continue
+        protocol_path = (root / str(protocol_binding.get("path"))).resolve()
+        q2_path = (root / str(q2_binding.get("path"))).resolve()
+        protocol_errors, _, selected_task = _selection_protocol_rank_one(
+            root, protocol_path, locus=locus
+        )
+        q2_errors, _, config_path, _ = _q2_generation_contract(
+            root,
+            q2_path,
+            locus=locus,
+            rounds=rounds,
+            task_id=str(selected_task or ""),
+        )
+        errors.extend(protocol_errors)
+        errors.extend(q2_errors)
+        if (
+            selected_task != task_id
+            or config_path is None
+            or campaign_binding.get("path")
+            != config_path.relative_to(root).as_posix()
+            or campaign_binding.get("sha256") != file_sha256(config_path)
+        ):
+            errors.append(
+                f"{rounds}-round {locus} representative config differs from Q2 generation"
+            )
+    return errors
+
+
 def validate_resource_calibration_manifest(
     root: Path,
     manifest: Mapping[str, Any],
@@ -478,7 +1143,8 @@ def validate_resource_calibration_manifest(
                 if (
                     config.get("task_id") != row.get("task_id")
                     or config.get("world_seed") != row.get("world_seed")
-                    or tuple(config.get("prior_arms", {})) != RESOURCE_CALIBRATION_ARMS
+                    or not isinstance(config.get("prior_arms"), Mapping)
+                    or set(config.get("prior_arms", {})) != set(RESOURCE_CALIBRATION_ARMS)
                     or campaign.get("complete_experiments") != expected_rounds
                     or tuple(campaign.get("checkpoint_complete_experiments", []))
                     != RESOURCE_CALIBRATION_CHECKPOINTS[expected_rounds]
@@ -496,6 +1162,9 @@ def validate_resource_calibration_manifest(
     if manifest.get("status") != expected_status:
         errors.append("resource calibration manifest status differs from task selection state")
     if ready:
+        errors.extend(
+            _validate_ready_representative_provenance(root, manifest, patterns)
+        )
         errors.extend(
             _validate_binding(
                 root,
@@ -562,6 +1231,34 @@ def build_resource_calibration_readiness(
             }
         )
     missing_rounds = [row["rounds"] for row in pattern_rows if not row["ready"]]
+    representative_resolution: dict[str, Any] | None = None
+    representative_blockers: list[str] = []
+    if missing_rounds:
+        try:
+            _, representative_resolution = resolve_resource_calibration_representatives(
+                root,
+                manifest,
+                formal_design_path=root / DEFAULT_RESOURCE_CALIBRATION_FORMAL_DESIGN,
+                selection_protocol_paths={
+                    locus: root / path
+                    for locus, path in DEFAULT_RESOURCE_CALIBRATION_SELECTION_PROTOCOLS.items()
+                },
+                q2_generation_record_paths={
+                    locus: root / path
+                    for locus, path in DEFAULT_RESOURCE_CALIBRATION_Q2_GENERATION_RECORDS.items()
+                },
+            )
+        except (OSError, TypeError, ValueError) as error:
+            representative_blockers.append(
+                f"final representative resolution failed closed: {error}"
+            )
+        else:
+            representative_blockers.extend(
+                str(item)
+                for item in representative_resolution.get(
+                    "blocking_requirements", []
+                )
+            )
     dirty_paths = _calibration_material_dirty_paths(root)
     dirty = bool(dirty_paths)
     source_commit = git_source_commit(root)
@@ -594,7 +1291,7 @@ def build_resource_calibration_readiness(
                 }
     summary_present = summary is not None
     summary_passed = (
-        summary_present
+        summary is not None
         and not summary_errors
         and summary.get("status") == "passed"
         and summary.get("calibration_passed") is True
@@ -611,10 +1308,15 @@ def build_resource_calibration_readiness(
     else:
         status = "calibration_failed_fail_closed"
     blockers = [
-        *[
-            f"{rounds}-round representative task/config is not terminal-selected and frozen"
-            for rounds in missing_rounds
-        ],
+        *internal_errors,
+        *(
+            representative_blockers
+            or [
+                f"{rounds}-round representative task/config is not "
+                "terminal-selected and frozen"
+                for rounds in missing_rounds
+            ]
+        ),
         *(["current source tree must be clean and immutable"] if dirty else []),
         *(
             ["user must confirm the provider contract and credential rotation"]
@@ -648,6 +1350,7 @@ def build_resource_calibration_readiness(
         "source_commit": source_commit,
         "source_tree_clean": not dirty,
         "pattern_readiness": pattern_rows,
+        "representative_resolution": representative_resolution,
         "expected_denominators": manifest.get("expected_denominators"),
         "missing_pattern_rounds": missing_rounds,
         "calibration_summary_present": summary_present,
@@ -1075,8 +1778,12 @@ def validate_resource_calibration_summary(
                 cap = caps.get(cap_field)
                 maximum = observed.get(observed_field)
                 if (
-                    not _is_nonnegative_number(maximum)
-                    or not _is_nonnegative_number(cap)
+                    isinstance(maximum, bool)
+                    or not isinstance(maximum, (int, float))
+                    or maximum < 0
+                    or isinstance(cap, bool)
+                    or not isinstance(cap, (int, float))
+                    or cap < 0
                     or cap < maximum
                 ):
                     errors.append(
@@ -1487,6 +2194,7 @@ __all__ = [
     "build_resource_calibration_readiness",
     "build_resource_calibration_summary",
     "empty_resource_calibration_summary",
+    "resolve_resource_calibration_representatives",
     "resource_calibration_authorization_sha256",
     "resource_calibration_readiness_sha256",
     "resource_calibration_summary_sha256",

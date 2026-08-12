@@ -488,8 +488,11 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [ ] **W2-26** 当前为 **NOT READY / FAIL-CLOSED**。实验 note 已写入
   `WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md`；8/10/12 manifest、write-once 授权、费用预留、
   triplet orchestration、30 s heartbeat、整 triplet infrastructure-only resume、严格 summary/resource-card
-  validator 与门禁测试已经实现。A-P 10-round 与 A-S 12-round 代表 task/config 仍未终选并 hash 冻结，
-  因此不得请求 provider/credential/pricing/currency 授权；A-S 不得用 proxy 代替，也不得把本项误记为 READY。
+  validator 与门禁测试已经实现。代表选择不依赖下游 D1 terminal receipt：8-round 绑定 formal v0.2；
+  10/12-round 分别绑定受保护 A-P/A-S selection protocol 的 rank-1 task 及 provider-free Q2 直接生成的
+  静态 D1 config。A-P protocol 的 `reaction-safety` 已仅作 canonical identifier correction 为
+  `reaction-safety-constrained`，roster/order/rule/outcome boundary 不变。A-P 现可解析；A-S full Q2 与静态 config
+  尚未生成，因此不得请求 provider/credential/pricing/currency 授权，不得用 proxy 代替，也不得误记为 READY。
 - [ ] **W2-27** 完成 current WellAU method qualification triplet，只按 harness/lifecycle/replay 资格，不按科学效果。
 - [ ] 用户冻结 submission route、currency ceilings、failure-escalation 和 public/private 执行授权。
 - [ ] 生成 final freeze receipt；此后不再改变 coverage、worlds、arms、轮次或 failure rules。
@@ -522,7 +525,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-23 | DONE | reaction-safety 与 electrochemical matched-prior Q2 均以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
 | W2-25 | REOPENED | 8-experiment A-E topology 已冻结；新版 metric-vector/SNR/two-region/8-round qualification 尚未执行，legacy scalar audit 不再构成 formal admission |
-| W2-26 | NOT READY/BLOCKED | 8/10/12 calibration harness 已实现；A-P/A-S 代表配置尚未终选并 hash 冻结，在此之前不得请求执行授权 |
+| W2-26 | NOT READY/BLOCKED | 8-round formal v0.2 与 A-P rank-1 Q2/static config 已直接绑定；A-S rank-1 full Q2/static config 尚缺，在此之前不得请求执行授权 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
 | W2-37 | IN PROGRESS / RESTART REQUIRED | 两项 seed-0 Q0 均已通过。首次 five-world development 启动在 `1,121/10,240` primary 后因 validator 错把 partition domain-parameter intervention 要求为 compiled-mechanism hash 变化而停止；world-0 report 与 world-1 partial 原样保留，不构成科学结果。修复 candidate-specific binding 后须从 execution 0 全块重跑；未生成 D1、未启动 provider。 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |

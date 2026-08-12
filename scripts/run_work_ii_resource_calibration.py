@@ -37,6 +37,21 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = (
     ROOT / "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
 )
+DEFAULT_FORMAL_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
+DEFAULT_AP_SELECTION_PROTOCOL = (
+    ROOT / "configs/benchmark/work_ii_c2_ap_selection_protocol_v0.1.json"
+)
+DEFAULT_AS_SELECTION_PROTOCOL = (
+    ROOT / "configs/benchmark/work_ii_c2_as_selection_protocol_v0.1.json"
+)
+DEFAULT_AP_Q2_GENERATION = (
+    ROOT / "workstreams/flagship_tasks/reports/"
+    "work-ii-reaction-safety-matched-prior-qualification-20260811.json"
+)
+DEFAULT_AS_Q2_GENERATION = (
+    ROOT / "workstreams/flagship_tasks/reports/"
+    "work-ii-as-paired-law-q1-q2-five-world-20260812.json"
+)
 CELL_RUNNER = ROOT / "scripts/run_work_ii_campaign_pilot.py"
 
 
@@ -59,9 +74,11 @@ def _parse_args() -> argparse.Namespace:
     mode.add_argument("--authorize", action="store_true")
     mode.add_argument("--execute", action="store_true")
     mode.add_argument("--build-execution-manifest", action="store_true")
-    parser.add_argument("--rounds-8-config", type=Path)
-    parser.add_argument("--rounds-10-config", type=Path)
-    parser.add_argument("--rounds-12-config", type=Path)
+    parser.add_argument("--formal-design", type=Path, default=DEFAULT_FORMAL_DESIGN)
+    parser.add_argument("--ap-selection-protocol", type=Path, default=DEFAULT_AP_SELECTION_PROTOCOL)
+    parser.add_argument("--as-selection-protocol", type=Path, default=DEFAULT_AS_SELECTION_PROTOCOL)
+    parser.add_argument("--ap-q2-generation", type=Path, default=DEFAULT_AP_Q2_GENERATION)
+    parser.add_argument("--as-q2-generation", type=Path, default=DEFAULT_AS_Q2_GENERATION)
     parser.add_argument("--authorization", type=Path)
     parser.add_argument("--allow-provider-execution", action="store_true")
     parser.add_argument("--resume", action="store_true")
@@ -267,6 +284,10 @@ def _validate_cell_execution_binding(
         or pattern_binding.get("task_id") != pattern.get("task_id")
         or pattern_binding.get("world_seed") != pattern.get("world_seed")
         or pattern_binding.get("prior_arm") != arm
+        or pattern_binding.get("campaign_config_sha256")
+        != pattern.get("campaign_config_binding", {}).get("sha256")
+        or pattern_binding.get("campaign_config_hash_kind")
+        != pattern.get("campaign_config_binding", {}).get("hash_kind")
     ):
         raise RuntimeError("W2-26 child result is detached from its execution authorization")
 
@@ -603,20 +624,6 @@ def main() -> int:
     if args.build_execution_manifest:
         if args.output is None:
             raise RuntimeError("--output is required for --build-execution-manifest")
-        config_paths = {
-            8: args.rounds_8_config,
-            10: args.rounds_10_config,
-            12: args.rounds_12_config,
-        }
-        missing = [
-            f"--rounds-{rounds}-config"
-            for rounds, path in config_paths.items()
-            if path is None
-        ]
-        if missing:
-            raise RuntimeError(
-                "execution manifest requires final selected configs: " + ", ".join(missing)
-            )
         output = _inside_root(args.output, label="W2-26 execution manifest")
         dynamic_root = (ROOT / "workstreams/flagship_tasks/reports").resolve()
         if not output.is_relative_to(dynamic_root):
@@ -624,10 +631,14 @@ def main() -> int:
         payload = build_resource_calibration_execution_manifest(
             ROOT,
             manifest_path,
-            campaign_config_paths={
-                rounds: Path(path).resolve()
-                for rounds, path in config_paths.items()
-                if path is not None
+            formal_design_path=args.formal_design,
+            selection_protocol_paths={
+                "A_P": args.ap_selection_protocol,
+                "A_S": args.as_selection_protocol,
+            },
+            q2_generation_record_paths={
+                "A_P": args.ap_q2_generation,
+                "A_S": args.as_q2_generation,
             },
         )
         _write_once(output, payload)
@@ -725,8 +736,14 @@ def main() -> int:
     if args.execute:
         if readiness["status"] != "ready_authorization_blocked":
             missing = ",".join(str(item) for item in readiness["missing_pattern_rounds"])
+            blockers = "; ".join(
+                str(item) for item in readiness["blocking_requirements"]
+            )
             raise RuntimeError(
-                "W2-26 provider execution is not ready; unresolved pattern rounds: " + missing
+                "W2-26 provider execution is not ready; unresolved pattern rounds: "
+                + missing
+                + "; blockers: "
+                + blockers
             )
         if args.authorization is None or not args.allow_provider_execution:
             raise RuntimeError(

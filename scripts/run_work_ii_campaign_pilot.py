@@ -323,10 +323,17 @@ def _resource_calibration_execution_context(
         == config_path.relative_to(ROOT).as_posix()
     ]
     reservation = _load(reservation_path)
+    config_binding = matches[0].get("campaign_config_binding", {}) if len(matches) == 1 else {}
+    config_digest = (
+        file_sha256(config_path)
+        if config_binding.get("hash_kind") == "file_sha256"
+        else canonical_json_sha256(_load(config_path))
+        if config_binding.get("hash_kind") == "canonical_json_sha256"
+        else None
+    )
     if (
         len(matches) != 1
-        or canonical_json_sha256(_load(config_path))
-        != matches[0]["campaign_config_binding"].get("sha256")
+        or config_digest != config_binding.get("sha256")
         or reservation.get("rounds") != matches[0].get("rounds")
         or reservation.get("authorization_sha256")
         != authorization.get("authorization_sha256")
@@ -358,9 +365,8 @@ def _resource_calibration_execution_context(
             "task_id": matches[0]["task_id"],
             "world_seed": matches[0]["world_seed"],
             "prior_arm": arms[0],
-            "campaign_config_canonical_json_sha256": matches[0][
-                "campaign_config_binding"
-            ]["sha256"],
+            "campaign_config_sha256": config_binding["sha256"],
+            "campaign_config_hash_kind": config_binding["hash_kind"],
         },
     }
 
