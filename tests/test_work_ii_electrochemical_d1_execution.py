@@ -18,6 +18,7 @@ from chemworld.eval.work_ii_execution_mode import (
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "configs/benchmark/work_ii_electrochemical_matched_prior_d1.json"
+REACTION_SOURCE = ROOT / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json"
 
 
 def _release_source(
@@ -94,8 +95,17 @@ def test_reaction_d1_execution_builder_uses_the_same_release_gate(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    source, manifest = _release_source(monkeypatch, tmp_path)
-    source["task_id"] = "reaction-safety-constrained"
+    electro_source, manifest = _release_source(monkeypatch, tmp_path)
+    source = json.loads(REACTION_SOURCE.read_text(encoding="utf-8"))
+    source["execution_context"] = electro_source["execution_context"]
+    source["legacy_source_evidence"] = False
+    source["qualification"].update(
+        {
+            "q2_passed": True,
+            "execution_authorized": False,
+            "formal_r5_authorized": False,
+        }
+    )
     source_path = tmp_path / "reaction-d1.json"
     source_path.write_text(json.dumps(source), encoding="utf-8")
     monkeypatch.setattr(reaction_builder, "ROOT", tmp_path)
