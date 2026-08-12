@@ -46,6 +46,14 @@ conversion/selectivity 纯物理 gaps 仅 `0.01026/0.01226/0.00899`，分别为 
 `0.205x/0.245x/0.167x`，0/16 超门。因此保留“闭环轨迹可显著分岔”的观察，但不声称真实 provider 已使
 固定配方机制差超过 gate，不推翻 W2-33 科学拒绝。
 
+2026-08-12 平台/设计收束快照：当前正式预检继续诚实锁定为 `75` cells、`25` clusters、`600`
+experiments，`formal_execution_allowed=false`，并显式保留 `11` 个未满足门禁。C2 的 outcome-blind task
+selection 已改为受保护的事前协议，分别冻结 A-P 的 reaction-safety/electrochemical 与 A-S 的 partition/
+reaction-to-crystallization 候选及排序；动态结果只能填写终态资格 disposition，不能自行宣称候选表或规则已预冻结。
+D1 admission 现在还要求 action layer 可解释且未替换 participant recommendation，因而历史 reaction-safety
+confounded D1 与 electrochemical incomplete D1 均不能误入正式矩阵。严格 A-S five-world runner、validator、
+12-experiment D1 生成器与实验 note 已完成但尚未执行；发布测试 roster 现为 `29` files / `225` tests。
+
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
 `wangxiaonan@tsinghua.edu.cn`。稿件 front matter 是作者信息的唯一当前入口，后续构建不得改变顺序、共同一作
@@ -477,7 +485,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-25 | REOPENED | 8-experiment A-E topology 已冻结；新版 metric-vector/SNR/two-region/8-round qualification 尚未执行，legacy scalar audit 不再构成 formal admission |
 | W2-26 | NOT READY/BLOCKED | 8/10/12 calibration harness 已实现；A-P/A-S 代表配置尚未终选并 hash 冻结，在此之前不得请求执行授权 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
-| W2-37 | DOING/BLOCKED | 严格 A-S 已否决旧 equilibrium 双轴方案；当前冻结候选为 partition constitutive power 与 reaction-to-crystallization reversible topology。两个 seed-0 Q0 runner/validator 已实现但尚未在最终干净提交上执行；five-world 成对基线/改律 Q1/Q2（每 task-world 512 paired coordinates）仍须四文件一致重建，旧半成品未纳入发布。 |
+| W2-37 | READY TO EXECUTE/BLOCKED | 严格 A-S 已否决旧 equilibrium 双轴方案；当前冻结候选为 partition constitutive power 与 reaction-to-crystallization reversible topology。两个 seed-0 Q0 runner/validator 与 five-world 成对基线/改律 Q1/Q2 四件套均已实现并通过定向测试；每 task-world 固定 512 paired coordinates、两条真实可执行律，完整分母为 10,240 primary + 10,240 exact replay。尚须在最终干净提交上先跑两个 Q0，再执行完整 qualification；未生成 D1、未启动 provider。 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
 | W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |
@@ -494,9 +502,11 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   `18/18` exact replay、0 physical/platform/unsafe；原生可逆反应保留且仅新增一条 `0.0005 s^-1` rollback
   path。最大 yield/conversion gap 为 `0.02324 < 0.05`，最长减最短时长的平均 accumulation gap 为
   `0.01505 < 0.03`，科学拒绝且不扩展。
-- [ ] **W2-37** 先在最终干净源码提交上分别运行 partition 与 crystallization seed-0 Q0；仅当两者按冻结门槛
-  通过，才实现并冻结严格 five-world A-S paired-law qualification。不得恢复 equilibrium load/volume 共线设计，
-  不得使用 generic quadratic surrogate 代替已注册可执行 laws，也不得把 Q0 当作正式 admission。
+- [ ] **W2-37** 在最终干净源码提交上分别运行 partition 与 crystallization seed-0 Q0；仅当两者按冻结门槛
+  通过，才执行已经实现并冻结的严格 five-world A-S paired-law qualification。该 block 固定为 2 candidates ×
+  5 worlds × 512 coordinates × 2 laws = `10,240` primary，并逐条做 `10,240` exact replay；Q2 每 task-world
+  以 coordinate-only 规则盲选 16 个 held-out queries，直接比较注册可执行律。不得恢复 equilibrium load/volume
+  共线设计，不得使用 generic quadratic surrogate，也不得把 Q0 当作正式 admission。
 
 ## 12. 不可违反的规则
 

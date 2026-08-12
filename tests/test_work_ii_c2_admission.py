@@ -97,18 +97,37 @@ def test_admission_rejects_two_independently_forged_selection_rosters(
                     for index in (1, 2)
                 ]
             selection = {
+                "schema_version": "chemworld-work-ii-c2-outcome-blind-selection-0.2",
                 "locus": locus,
                 "task_id": task_id,
                 "selection_slot": slot,
                 "selection_rule": {
-                    "method": "eligible_then_ascending_frozen_rank",
+                    "method": "terminally_eligible_then_ascending_frozen_rank",
                     "formal_participant_outcomes_permitted": False,
-                    "selection_slot": slot,
                     "required_selected_task_count": 2,
+                    "all_candidates_require_terminal_eligibility_disposition": True,
                 },
                 "candidate_roster": sorted(
-                    roster, key=lambda row: int(row["frozen_rank"])
+                    [
+                        {
+                            "task_id": row["task_id"],
+                            "frozen_rank": row["frozen_rank"],
+                            "terminal_qualification_passed": True,
+                            "disposition": "eligible",
+                        }
+                        for row in roster
+                    ],
+                    key=lambda row: int(row["frozen_rank"]),
                 ),
+                "selection_protocol_binding": {
+                    "path": (
+                        f"configs/benchmark/{locus.lower()}-shared-protocol.json"
+                        if locus == "A_P"
+                        else f"configs/benchmark/{locus.lower()}-{slot}-forged-protocol.json"
+                    ),
+                    "sha256": ("d" if locus == "A_P" else str(slot)) * 64,
+                    "protocol_sha256": ("e" if locus == "A_P" else str(slot + 2)) * 64,
+                },
                 "selection_sha256": canonical_json_sha256([locus, slot]),
             }
             selection_path = tmp_path / f"{locus.lower()}-{slot}-selection.json"

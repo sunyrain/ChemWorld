@@ -44,6 +44,7 @@ WORK_II_RELEASE_TEST_FILES = (
     "tests/test_work_ii_c2_admission.py",
     "tests/test_work_ii_c2_task_admission.py",
     "tests/test_work_ii_confirmatory.py",
+    "tests/test_work_ii_constitutive_structural_qualification.py",
     "tests/test_work_ii_cost.py",
     "tests/test_work_ii_development_confirmation.py",
     "tests/test_work_ii_distillation_additional_rollback_q0.py",
@@ -65,7 +66,7 @@ WORK_II_RELEASE_TEST_FILES = (
     "tests/test_work_ii_static_topology_q0.py",
     "tests/test_work_ii_truth.py",
 )
-EXPECTED_WORK_II_RELEASE_TEST_COUNT = 210
+EXPECTED_WORK_II_RELEASE_TEST_COUNT = 225
 PREREGISTRATION_FREEZE_RECEIPT_VERSION = (
     "chemworld-work-ii-preregistration-freeze-receipt-0.1"
 )
@@ -260,13 +261,32 @@ def build_prerun_evidence_graph(root: Path) -> dict[str, Any]:
     ):
         failures.append("current Gate A decision is invalid or registry-stale")
     for label, report in (
-        ("formal-design audit", design_audit),
         ("power/resource audit", power_audit),
         ("blind evaluator shakedown", blind),
         ("held-out evaluator shakedown", held_out),
     ):
         if report.get("status") != "passed" or report.get("formal_result") is not False:
             failures.append(f"{label} has not passed its non-formal boundary")
+    qualification_container = design_audit.get("prior_distinguishability_qualification")
+    qualification_container = (
+        qualification_container if isinstance(qualification_container, Mapping) else {}
+    )
+    design_audit_legal = (
+        design_audit.get("failures") == []
+        and (
+            design_audit.get("status") == "passed"
+            or (
+                design_audit.get("status")
+                == "pending_provider_free_prior_distinguishability_qualification"
+                and qualification_container.get("status")
+                == "pending_provider_free_qualification_execution"
+                and qualification_container.get("formal_execution_gate_satisfied") is False
+                and qualification_container.get("static_contract_ready") is True
+            )
+        )
+    )
+    if not design_audit_legal or design_audit.get("formal_result") is not False:
+        failures.append("formal-design audit is not a legal passed-or-pending state")
     if design_audit.get("failures") != [] or power_audit.get("failures") != []:
         failures.append("a prerequisite audit contains failures")
     if design_audit.get("design_sha256") != canonical_json_sha256(design):
@@ -275,17 +295,21 @@ def build_prerun_evidence_graph(root: Path) -> dict[str, Any]:
         design_audit, "audit_sha256"
     ):
         failures.append("formal-design audit self-hash mismatch")
-    qualification_container = design_audit.get("prior_distinguishability_qualification")
-    qualification_container = (
-        qualification_container if isinstance(qualification_container, Mapping) else {}
-    )
     qualification_binding = qualification_container.get("qualification_report")
     qualification_binding = (
         qualification_binding if isinstance(qualification_binding, Mapping) else {}
     )
     qualification_relative = qualification_binding.get("path")
+    qualification_pending = (
+        qualification_container.get("status")
+        == "pending_provider_free_qualification_execution"
+        and qualification_container.get("formal_execution_gate_satisfied") is False
+    )
     if not isinstance(qualification_relative, str) or not qualification_relative:
-        failures.append("formal-design audit lacks its A-E qualification evidence binding")
+        if not qualification_pending:
+            failures.append(
+                "formal-design audit lacks its required A-E qualification evidence binding"
+            )
     else:
         qualification_path = (root / qualification_relative).resolve()
         try:

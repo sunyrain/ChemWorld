@@ -27,10 +27,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--locus", required=True, choices=("A_P", "A_S"))
     parser.add_argument("--task-id", required=True)
-    parser.add_argument("--selection-spec", required=True, type=Path)
+    parser.add_argument("--selection-protocol", required=True, type=Path)
+    parser.add_argument("--terminal-eligibility", required=True, type=Path)
+    parser.add_argument("--selection-slot", required=True, type=int, choices=(1, 2))
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
-    spec = _load(args.selection_spec.resolve())
+    eligibility = _load(args.terminal_eligibility.resolve())
     output = args.output.resolve()
     try:
         output.relative_to(ROOT.resolve())
@@ -43,16 +45,19 @@ def main() -> int:
         raise ValueError(
             f"C2 selection output must remain under {C2_DYNAMIC_EVIDENCE_ROOT}"
         ) from error
-    roster = spec.get("candidate_roster")
-    rule = spec.get("selection_rule")
-    if not isinstance(roster, list) or not isinstance(rule, dict):
-        raise ValueError("selection specification lacks candidate_roster or selection_rule")
+    dispositions = eligibility.get("terminal_eligibility")
+    if not isinstance(dispositions, dict):
+        raise ValueError("terminal eligibility file lacks terminal_eligibility")
     record = build_c2_outcome_blind_selection_record(
         ROOT,
         locus=args.locus,
         task_id=args.task_id,
-        candidate_roster=[dict(row) if isinstance(row, dict) else {} for row in roster],
-        selection_rule=rule,
+        selection_protocol_path=args.selection_protocol.resolve(),
+        terminal_eligibility={
+            str(task_id): dict(row) if isinstance(row, dict) else {}
+            for task_id, row in dispositions.items()
+        },
+        selection_slot=args.selection_slot,
     )
     write_json_atomic(output, record)
     print(

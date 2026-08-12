@@ -64,6 +64,27 @@ def preregistration_readiness_sha256(report: Mapping[str, Any]) -> str:
     return _self_hash(report, "readiness_sha256")
 
 
+def _legal_design_audit_state(audit: Mapping[str, Any]) -> bool:
+    """Return whether the design audit is internally sound, even if qualification is pending."""
+
+    status = audit.get("status")
+    qualification = audit.get("prior_distinguishability_qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    return (
+        audit.get("failures") == []
+        and (
+            status == "passed"
+            or (
+                status == "pending_provider_free_prior_distinguishability_qualification"
+                and qualification.get("status")
+                == "pending_provider_free_qualification_execution"
+                and qualification.get("formal_execution_gate_satisfied") is False
+                and qualification.get("static_contract_ready") is True
+            )
+        )
+    )
+
+
 def validate_submission_route_decision(decision: Mapping[str, Any]) -> list[str]:
     """Validate the outcome-blind route choice or its explicit pending state."""
 
@@ -153,8 +174,8 @@ def build_preregistration_readiness(
         internal_errors.append("committed formal preflight differs from deterministic rebuild")
     if power_audit.get("status") != "passed" or power_audit.get("failures") != []:
         internal_errors.append("Work II power/resource audit has not passed")
-    if design_audit.get("status") != "passed" or design_audit.get("failures") != []:
-        internal_errors.append("Work II formal-design audit has not passed")
+    if not _legal_design_audit_state(design_audit):
+        internal_errors.append("Work II formal-design audit is internally invalid")
     expected_design_sha256 = canonical_json_sha256(design)
     if design_audit.get("design_sha256") != expected_design_sha256:
         internal_errors.append("Work II formal-design audit does not bind the current design")
@@ -170,8 +191,16 @@ def build_preregistration_readiness(
         qualification_binding if isinstance(qualification_binding, Mapping) else {}
     )
     qualification_relative = qualification_binding.get("path")
+    qualification_pending = (
+        qualification_container.get("status")
+        == "pending_provider_free_qualification_execution"
+        and qualification_container.get("formal_execution_gate_satisfied") is False
+    )
     if not isinstance(qualification_relative, str) or not qualification_relative:
-        internal_errors.append("formal-design audit lacks its A-E qualification evidence binding")
+        if not qualification_pending:
+            internal_errors.append(
+                "formal-design audit lacks its required A-E qualification evidence binding"
+            )
     else:
         qualification_path = (root / qualification_relative).resolve()
         try:
@@ -219,12 +248,13 @@ def build_preregistration_readiness(
 
     expected_counts = committed_preflight.get("expected_counts")
     expected_counts = expected_counts if isinstance(expected_counts, Mapping) else {}
-    if (
-        expected_counts.get("tasks") != 5
-        or expected_counts.get("independent_task_world_clusters") != 25
-        or expected_counts.get("participant_cells") != 75
-        or expected_counts.get("complete_experiments") != 600
-    ):
+    denominator_tuple = (
+        expected_counts.get("tasks"),
+        expected_counts.get("independent_task_world_clusters"),
+        expected_counts.get("participant_cells"),
+        expected_counts.get("complete_experiments"),
+    )
+    if denominator_tuple not in {(5, 25, 75, 600), (9, 45, 135, 1260)}:
         internal_errors.append("formal schedule denominators differ from the preregistration")
     world_split = committed_preflight.get("world_split_contract")
     world_split = world_split if isinstance(world_split, Mapping) else {}
@@ -276,7 +306,53 @@ def build_preregistration_readiness(
                 "validation_errors": clean_errors,
             }
         )
+    c2_admission = committed_preflight.get("c2_admission")
+    c2_admission = c2_admission if isinstance(c2_admission, Mapping) else {}
+    c2_blocks = c2_admission.get("blocks")
+    c2_blocks = c2_blocks if isinstance(c2_blocks, Mapping) else {}
+    ae_block = c2_blocks.get("A_E")
+    ae_block = ae_block if isinstance(ae_block, Mapping) else {}
+    ap_block = c2_blocks.get("A_P")
+    ap_block = ap_block if isinstance(ap_block, Mapping) else {}
+    as_block = c2_blocks.get("A_S")
+    as_block = as_block if isinstance(as_block, Mapping) else {}
+    calibration = c2_admission.get("resource_calibration")
+    calibration = calibration if isinstance(calibration, Mapping) else {}
+    current_gate_a = not any(
+        "Gate A" in item
+        for item in committed_preflight.get("prerequisite_errors", [])
+        if isinstance(item, str)
+    )
+    c2_ready = (
+        c2_admission.get("status") == "ready_for_formal_authorization"
+        and c2_admission.get("formal_execution_allowed") is True
+    )
     blockers = [
+        {
+            "id": "current_gate_a_runtime_binding",
+            "owner": "w2_gate_a",
+            "satisfied": current_gate_a,
+        },
+        {
+            "id": "c2_a_e_prior_distinguishability_qualification",
+            "owner": "w2_25q",
+            "satisfied": ae_block.get("passed") is True,
+        },
+        {
+            "id": "c2_two_a_p_terminal_admissions",
+            "owner": "w2_c2",
+            "satisfied": ap_block.get("passed") is True,
+        },
+        {
+            "id": "c2_two_a_s_terminal_admissions",
+            "owner": "w2_37",
+            "satisfied": as_block.get("passed") is True,
+        },
+        {
+            "id": "w2_26_resource_calibration",
+            "owner": "w2_26",
+            "satisfied": calibration.get("passed") is True,
+        },
         {
             "id": "submission_route_user_selection",
             "owner": "user",
@@ -374,6 +450,16 @@ def build_preregistration_readiness(
             "provider_sessions": expected_counts.get("provider_sessions"),
             "provider_attempts_hard_cap": expected_counts.get("provider_attempts_hard_cap"),
         },
+        "formal_admission_readiness": {
+            "current_gate_a_runtime_binding": current_gate_a,
+            "a_e_prior_qualification": ae_block.get("passed") is True,
+            "two_a_p_terminal_admissions": ap_block.get("passed") is True,
+            "two_a_s_terminal_admissions": as_block.get("passed") is True,
+            "w2_26_resource_calibration": calibration.get("passed") is True,
+            "complete_c2_admission": c2_ready,
+            "c2_admission_sha256": c2_admission.get("admission_sha256"),
+            "preflight_status": committed_preflight.get("status"),
+        },
         "method_and_evaluator_contracts": {
             "provider_contract": committed_preflight.get("provider_contract"),
             "participant_execution_contract_sha256": committed_preflight.get(
@@ -391,7 +477,10 @@ def build_preregistration_readiness(
         },
         "outcome_neutral_quality_gates": {
             "gate_a_current_and_passed": True,
-            "formal_design_audit_passed": design_audit.get("status") == "passed",
+            "formal_design_audit_internally_valid": _legal_design_audit_state(
+                design_audit
+            ),
+            "a_e_prior_qualification_passed": ae_block.get("passed") is True,
             "power_resource_audit_passed": power_audit.get("status") == "passed",
             "method_qualification_required_before_formal": True,
             "exact_replay_required": True,
@@ -484,12 +573,19 @@ def validate_preregistration_readiness(report: Mapping[str, Any]) -> list[str]:
         errors.append("Work II preregistration readiness crossed the execution boundary")
     population = report.get("formal_population")
     population = population if isinstance(population, Mapping) else {}
+    denominator_tuple = (
+        population.get("tasks"),
+        population.get("independent_task_world_clusters"),
+        population.get("participant_cells"),
+        population.get("complete_experiments"),
+    )
+    admission = report.get("formal_admission_readiness")
+    admission = admission if isinstance(admission, Mapping) else {}
+    c2_ready = admission.get("complete_c2_admission") is True
     if (
-        population.get("tasks") != 5
-        or population.get("independent_task_world_clusters") != 25
-        or population.get("prior_arms") != list(FORMAL_ARMS)
-        or population.get("participant_cells") != 75
-        or population.get("complete_experiments") != 600
+        population.get("prior_arms") != list(FORMAL_ARMS)
+        or denominator_tuple
+        != ((9, 45, 135, 1260) if c2_ready else (5, 25, 75, 600))
     ):
         errors.append("Work II preregistration population differs from the frozen matrix")
     private = report.get("private_confirmation")
@@ -513,14 +609,23 @@ def validate_preregistration_readiness(report: Mapping[str, Any]) -> list[str]:
     else:
         errors.append("preregistration readiness contains an invalid route status")
     unresolved = report.get("unresolved_requirement_ids")
+    blocker_rows = report.get("blocking_requirements")
+    blocker_rows = blocker_rows if isinstance(blocker_rows, list) else []
+    expected_unresolved = [
+        row.get("id")
+        for row in blocker_rows
+        if isinstance(row, Mapping) and row.get("satisfied") is False
+    ]
     frozen_components = report.get("frozen_component_readiness")
     frozen_components = frozen_components if isinstance(frozen_components, Mapping) else {}
     clean_release_satisfied = frozen_components.get("clean_release_receipt") is True
-    expected_blocker_count = (5 if clean_release_satisfied else 6) - (
-        0 if selected_route is None else 1
-    )
-    if not isinstance(unresolved, list) or len(unresolved) != expected_blocker_count:
+    if not isinstance(unresolved, list) or unresolved != expected_unresolved:
         errors.append("Work II preregistration readiness has an invalid blocker set")
+    if clean_release_satisfied != (
+        "clean_wheel_independent_checkout_and_evidence_graph_receipt"
+        not in expected_unresolved
+    ):
+        errors.append("Work II preregistration clean-release blocker is inconsistent")
     return errors
 
 

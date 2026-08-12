@@ -466,14 +466,26 @@ def build_formal_analysis_dataset(
     blind_completed = sum(
         int(row["blind_outcome"]["completed_execution_count"]) for row in cell_rows
     )
+    manifest_counts = manifest.get("expected_counts")
+    manifest_counts = manifest_counts if isinstance(manifest_counts, Mapping) else {}
+    expected_cell_count = int(manifest_counts.get("participant_cells", len(cell_rows)))
+    expected_cluster_count = int(
+        manifest_counts.get("independent_task_world_clusters", len(cluster_rows))
+    )
+    blind_scheduled = int(
+        manifest_counts.get(
+            "blind_validation_executions",
+            expected_cell_count * 6,
+        )
+    )
     report: dict[str, Any] = {
         "schema_version": WORK_II_FORMAL_ANALYSIS_DATASET_VERSION,
         "formal_result": True,
         "status": "passed" if not errors else "failed",
         "formal_preflight_sha256": manifest["preflight_sha256"],
-        "expected_cell_count": 75,
+        "expected_cell_count": expected_cell_count,
         "retained_cell_count": len(cell_rows),
-        "expected_cluster_count": 25,
+        "expected_cluster_count": expected_cluster_count,
         "cluster_contrast_count": len(cluster_rows),
         "state_counts": state_counts,
         "evaluator_truth_execution_count": sum(
@@ -486,9 +498,9 @@ def build_formal_analysis_dataset(
             for pack in truth_packs.values()
             if isinstance(pack, Mapping) and isinstance(pack.get("report"), Mapping)
         ),
-        "blind_scheduled_execution_count": 450,
+        "blind_scheduled_execution_count": blind_scheduled,
         "blind_completed_execution_count": blind_completed,
-        "blind_failed_or_unstarted_execution_count": 450 - blind_completed,
+        "blind_failed_or_unstarted_execution_count": blind_scheduled - blind_completed,
         "primary_estimand": (
             "(E_misindexed_pre-E_misindexed_final)-(E_aligned_pre-E_aligned_final)"
         ),

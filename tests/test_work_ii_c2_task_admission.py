@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from pathlib import Path
 
@@ -8,8 +9,10 @@ import pytest
 from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
 from chemworld.eval.work_ii_c2_admission import (
     C2_TASK_STAGE_ORDER,
+    _stage_status_errors,
     _task_receipt_errors,
     build_c2_outcome_blind_selection_record,
+    build_c2_selection_protocol,
     build_c2_task_admission_receipt,
     c2_task_admission_receipt_sha256,
     validate_c2_outcome_blind_selection_pair,
@@ -33,6 +36,40 @@ def _source_binding() -> dict[str, object]:
             "excluded_relative_paths": [],
             "sha256": "tree",
         },
+    }
+
+
+def _protocol(
+    tmp_path: Path, locus: str, roster: list[dict[str, object]], name: str = "protocol"
+) -> Path:
+    path = tmp_path / f"configs/benchmark/{name}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write_json_atomic(
+        path,
+        build_c2_selection_protocol(
+            locus=locus,
+            candidate_roster=[
+                {"task_id": row["task_id"], "frozen_rank": row["frozen_rank"]}
+                for row in roster
+            ],
+        ),
+    )
+    return path
+
+
+def _eligibility(roster: list[dict[str, object]]) -> dict[str, dict[str, object]]:
+    return {
+        str(row["task_id"]): {
+            "terminal_qualification_passed": row.get(
+                "eligible_before_formal_outcomes", True
+            ),
+            "disposition": (
+                "eligible"
+                if row.get("eligible_before_formal_outcomes", True)
+                else "ineligible_retained"
+            ),
+        }
+        for row in roster
     }
 
 
@@ -75,6 +112,10 @@ def _stage(stage: str, task_id: str) -> dict[str, object]:
                 "participant_terminal_trajectory_count": 3,
                 "participant_platform_failure_count": 0,
             },
+            action_layer={
+                "status": "participant_interpretable",
+                "submitted_recommendations_replaced": False,
+            },
         )
     return _self_hashed(common, "report_sha256")
 
@@ -105,30 +146,32 @@ def _fixtures(tmp_path: Path, locus: str = "A_P") -> tuple[Path, dict[str, Path]
         path = reports / f"{stage.lower()}.json"
         write_json_atomic(path, _stage(stage, task_id))
         stages[stage] = path
+    protocol = build_c2_selection_protocol(
+        locus=locus,
+        candidate_roster=[
+            {"task_id": task_id, "frozen_rank": 1},
+            {"task_id": "second-terminal-candidate", "frozen_rank": 2},
+        ],
+    )
+    protocol_path = tmp_path / "configs/benchmark/selection-protocol.json"
+    protocol_path.parent.mkdir(parents=True, exist_ok=True)
+    write_json_atomic(protocol_path, protocol)
     selection = build_c2_outcome_blind_selection_record(
         tmp_path,
         locus=locus,
         task_id=task_id,
-        candidate_roster=[
-            {
-                "task_id": task_id,
-                "frozen_rank": 1,
-                "eligible_before_formal_outcomes": True,
-                "eligibility_basis": "terminal Q1/Q2/D1 required",
+        selection_protocol_path=protocol_path,
+        terminal_eligibility={
+            task_id: {
+                "terminal_qualification_passed": True,
+                "disposition": "eligible",
             },
-            {
-                "task_id": "second-terminal-candidate",
-                "frozen_rank": 2,
-                "eligible_before_formal_outcomes": True,
-                "eligibility_basis": "terminal Q1/Q2/D1 required",
+            "second-terminal-candidate": {
+                "terminal_qualification_passed": True,
+                "disposition": "eligible",
             },
-        ],
-        selection_rule={
-            "method": "eligible_then_ascending_frozen_rank",
-            "formal_participant_outcomes_permitted": False,
-            "selection_slot": 1,
-            "required_selected_task_count": 2,
         },
+        selection_slot=1,
         source_binding=_source_binding(),
     )
     selection_path = reports / "selection.json"
@@ -194,7 +237,25 @@ def test_current_reaction_safety_evidence_cannot_generate_terminal_pass(
 
     assert receipt["status"] == "not_ready_fail_closed"
     assert receipt["terminal_qualification_passed"] is False
-    assert any("runtime commit" in error for error in receipt["validation_errors"])
+    assert any("action layer" in error for error in receipt["validation_errors"])
+
+
+def test_current_electrochemical_d1_cannot_generate_terminal_pass(
+    binding_stubs: None,
+) -> None:
+    report = json.loads(
+        (
+            REPORTS
+            / "work-ii-electrochemical-matched-prior-d1-evaluation-20260811.json"
+        ).read_text(encoding="utf-8")
+    )
+    errors = _stage_status_errors(
+        report,
+        stage="D1",
+        task_id="electrochemical-conversion",
+    )
+    assert "D1 report did not pass" in errors
+    assert any("action layer" in error for error in errors)
 
 
 def test_validator_rebuilds_stage_evidence_instead_of_trusting_boolean(
@@ -257,17 +318,14 @@ def test_outcome_blind_selection_builder_rejects_cherry_picking(
         },
     ]
     with pytest.raises(ValueError, match="eligible frozen slot"):
+        protocol = _protocol(tmp_path, "A_S", roster)
         build_c2_outcome_blind_selection_record(
             tmp_path,
             locus="A_S",
             task_id="second-eligible",
-            candidate_roster=roster,
-            selection_rule={
-                "method": "eligible_then_ascending_frozen_rank",
-                "formal_participant_outcomes_permitted": False,
-                "selection_slot": 1,
-                "required_selected_task_count": 2,
-            },
+            selection_protocol_path=protocol,
+            terminal_eligibility=_eligibility(roster),
+            selection_slot=1,
             source_binding=_source_binding(),
         )
 
@@ -324,26 +382,25 @@ def _selection_pair(
         },
     ]
     records = []
+    protocol = _protocol(tmp_path, "A_S", roster)
     for slot, task_id in ((1, "first-eligible"), (2, "second-eligible")):
-        rule = {
-            "method": (
-                "eligible_then_ascending_frozen_rank"
-                if slot == 1
-                else second_method
-            ),
-            "formal_participant_outcomes_permitted": False,
-            "selection_slot": slot,
-            "required_selected_task_count": 2,
-        }
+        if second_method != "eligible_then_ascending_frozen_rank" and slot == 2:
+            protocol = _protocol(tmp_path, "A_S", roster, "protocol-second")
+            value = json.loads(protocol.read_text(encoding="utf-8"))
+            value["selection_rule"]["method"] = second_method
+            value["protocol_sha256"] = canonical_json_sha256(
+                {key: item for key, item in value.items() if key != "protocol_sha256"}
+            )
+            write_json_atomic(protocol, value)
+        active_roster = roster if slot == 1 or second_roster is None else second_roster
         records.append(
             build_c2_outcome_blind_selection_record(
                 tmp_path,
                 locus="A_S",
                 task_id=task_id,
-                candidate_roster=(
-                    roster if slot == 1 or second_roster is None else second_roster
-                ),
-                selection_rule=rule,
+                selection_protocol_path=protocol,
+                terminal_eligibility=_eligibility(active_roster),
+                selection_slot=slot,
                 source_binding=_source_binding(),
             )
         )
@@ -386,56 +443,32 @@ def test_selection_pair_requires_shared_roster_rule_and_exact_slots(
 def test_selection_pair_rejects_independently_forged_rejected_task_rosters(
     tmp_path: Path, binding_stubs: None
 ) -> None:
+    first_roster = [
+        {"task_id": "retained-crystallization", "frozen_rank": 1},
+        {"task_id": "placeholder", "frozen_rank": 2},
+    ]
+    first_protocol = _protocol(tmp_path, "A_S", first_roster, "first")
     first = build_c2_outcome_blind_selection_record(
         tmp_path,
         locus="A_S",
         task_id="retained-crystallization",
-        candidate_roster=[
-            {
-                "task_id": "retained-crystallization",
-                "frozen_rank": 1,
-                "eligible_before_formal_outcomes": True,
-                "eligibility_basis": "independent receipt claim",
-            },
-            {
-                "task_id": "placeholder",
-                "frozen_rank": 2,
-                "eligible_before_formal_outcomes": True,
-                "eligibility_basis": "independent receipt claim",
-            },
-        ],
-        selection_rule={
-            "method": "eligible_then_ascending_frozen_rank",
-            "formal_participant_outcomes_permitted": False,
-            "selection_slot": 1,
-            "required_selected_task_count": 2,
-        },
+        selection_protocol_path=first_protocol,
+        terminal_eligibility=_eligibility(first_roster),
+        selection_slot=1,
         source_binding=_source_binding(),
     )
+    second_roster = [
+        {"task_id": "placeholder", "frozen_rank": 1},
+        {"task_id": "rejected-flow", "frozen_rank": 2},
+    ]
+    second_protocol = _protocol(tmp_path, "A_S", second_roster, "second")
     second = build_c2_outcome_blind_selection_record(
         tmp_path,
         locus="A_S",
         task_id="rejected-flow",
-        candidate_roster=[
-            {
-                "task_id": "placeholder",
-                "frozen_rank": 1,
-                "eligible_before_formal_outcomes": True,
-                "eligibility_basis": "independent receipt claim",
-            },
-            {
-                "task_id": "rejected-flow",
-                "frozen_rank": 2,
-                "eligible_before_formal_outcomes": True,
-                "eligibility_basis": "independent receipt claim",
-            },
-        ],
-        selection_rule={
-            "method": "eligible_then_ascending_frozen_rank",
-            "formal_participant_outcomes_permitted": False,
-            "selection_slot": 2,
-            "required_selected_task_count": 2,
-        },
+        selection_protocol_path=second_protocol,
+        terminal_eligibility=_eligibility(second_roster),
+        selection_slot=2,
         source_binding=_source_binding(),
     )
 

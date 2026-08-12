@@ -40,7 +40,7 @@ def test_prerun_evidence_graph_is_deterministic_current_and_acyclic() -> None:
         "edge_count": 17,
         "passed_node_count": 13,
         "failed_node_count": 0,
-        "preregistration_blocker_count": 5 if _clean_release_is_current() else 6,
+        "preregistration_blocker_count": 10 if _clean_release_is_current() else 11,
     }
     assert first["provider_calls_executed"] == 0
     assert first["formal_participant_outcome_count"] == 0
@@ -74,8 +74,8 @@ def test_clean_release_receipt_validator_rejects_shallow_pass() -> None:
 
 
 def test_clean_release_roster_freezes_new_execution_and_q0_tests() -> None:
-    assert len(WORK_II_RELEASE_TEST_FILES) == 28
-    assert EXPECTED_WORK_II_RELEASE_TEST_COUNT == 210
+    assert len(WORK_II_RELEASE_TEST_FILES) == 29
+    assert EXPECTED_WORK_II_RELEASE_TEST_COUNT == 225
     assert {
         "tests/test_work_ii_formal_evaluators.py",
         "tests/test_work_ii_private_execution.py",
@@ -83,6 +83,7 @@ def test_clean_release_roster_freezes_new_execution_and_q0_tests() -> None:
         "tests/test_work_ii_catalyst_deactivation_q0.py",
         "tests/test_work_ii_c2_admission.py",
         "tests/test_work_ii_c2_task_admission.py",
+        "tests/test_work_ii_constitutive_structural_qualification.py",
         "tests/test_work_ii_crystallization_reversible_q0.py",
         "tests/test_work_ii_distillation_additional_rollback_q0.py",
         "tests/test_work_ii_partition_constitutive_q0.py",

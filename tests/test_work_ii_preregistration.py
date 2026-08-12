@@ -206,8 +206,20 @@ def test_preregistration_readiness_is_deterministic_zero_call_and_blocked() -> N
     assert first["private_confirmation"]["private_identities_present"] is False
     clean_release_is_current = _clean_release_is_current()
     assert len(first["unresolved_requirement_ids"]) == (
-        5 if clean_release_is_current else 6
+        10 if clean_release_is_current else 11
     )
+    assert first["formal_admission_readiness"] == {
+        "current_gate_a_runtime_binding": False,
+        "a_e_prior_qualification": False,
+        "two_a_p_terminal_admissions": False,
+        "two_a_s_terminal_admissions": False,
+        "w2_26_resource_calibration": False,
+        "complete_c2_admission": False,
+        "c2_admission_sha256": first["formal_admission_readiness"][
+            "c2_admission_sha256"
+        ],
+        "preflight_status": "failed_execution_blocked",
+    }
     assert (
         first["frozen_component_readiness"]["clean_release_receipt"]
         is clean_release_is_current
@@ -267,6 +279,11 @@ def test_selected_route_is_accepted_and_removes_only_the_route_blocker(
     assert validate_preregistration_readiness(report) == []
     assert report["route_decision"]["selected_option"] == "nature_registered_report_stage_1"
     expected_blockers = [
+        "current_gate_a_runtime_binding",
+        "c2_a_e_prior_distinguishability_qualification",
+        "c2_two_a_p_terminal_admissions",
+        "c2_two_a_s_terminal_admissions",
+        "w2_26_resource_calibration",
         "current_method_real_provider_qualification_receipt",
         "formal_currency_ceiling_and_provider_contract_approval",
         "qualified_expected_eta_from_current_method",

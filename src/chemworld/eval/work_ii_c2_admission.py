@@ -21,8 +21,9 @@ C2_ADMISSION_PLAN_VERSION = "chemworld-work-ii-c2-admission-plan-0.1"
 C2_ADMISSION_REPORT_VERSION = "chemworld-work-ii-c2-admission-report-0.1"
 C2_TASK_ADMISSION_RECEIPT_VERSION = "chemworld-work-ii-c2-task-admission-receipt-0.1"
 C2_OUTCOME_BLIND_SELECTION_VERSION = (
-    "chemworld-work-ii-c2-outcome-blind-selection-0.1"
+    "chemworld-work-ii-c2-outcome-blind-selection-0.2"
 )
+C2_SELECTION_PROTOCOL_VERSION = "chemworld-work-ii-c2-selection-protocol-0.1"
 C2_LOCI = ("A_P", "A_S")
 C2_REQUIRED_TASK_COUNTS = {"A_P": 2, "A_S": 2}
 C2_REQUIRED_ROUNDS = {"A_P": 10, "A_S": 12}
@@ -55,6 +56,9 @@ C2_MATERIAL_SOURCE_ROOTS = (
 )
 C2_MATERIAL_SOURCE_EXCLUSIONS = (
     "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json",
+    "configs/benchmark/work_ii_as_paired_law_q2_package_v0.1.json",
+    "configs/benchmark/work_ii_as_partition_d1_v0.1.json",
+    "configs/benchmark/work_ii_as_crystallization_d1_v0.1.json",
 )
 C2_DYNAMIC_EVIDENCE_ROOT = "workstreams/flagship_tasks/reports"
 
@@ -84,20 +88,111 @@ def c2_outcome_blind_selection_sha256(record: Mapping[str, Any]) -> str:
     return _self_hash(record, "selection_sha256")
 
 
+def c2_selection_protocol_sha256(protocol: Mapping[str, Any]) -> str:
+    return _self_hash(protocol, "protocol_sha256")
+
+
+def build_c2_selection_protocol(
+    *, locus: str, candidate_roster: Sequence[Mapping[str, Any]]
+) -> dict[str, Any]:
+    """Build the protected, evidence-independent candidate ranking protocol.
+
+    Eligibility is deliberately absent: it is derived later from terminal
+    qualification state.  Writing this object under ``configs/benchmark`` and
+    committing it before qualification evidence is collected is what freezes the
+    roster and rule; a dynamic selection record cannot create that assertion.
+    """
+
+    if locus not in C2_LOCI:
+        raise ValueError(f"unsupported C2 locus: {locus}")
+    rows: list[dict[str, Any]] = []
+    identities: set[str] = set()
+    ranks: set[int] = set()
+    for raw in candidate_roster:
+        task_id = raw.get("task_id")
+        rank = raw.get("frozen_rank")
+        if (
+            not isinstance(task_id, str)
+            or not task_id
+            or task_id in identities
+            or isinstance(rank, bool)
+            or not isinstance(rank, int)
+            or rank < 1
+            or rank in ranks
+        ):
+            raise ValueError("C2 selection protocol roster is malformed or not uniquely ranked")
+        identities.add(task_id)
+        ranks.add(rank)
+        rows.append({"task_id": task_id, "frozen_rank": rank})
+    if len(rows) < C2_REQUIRED_TASK_COUNTS[locus]:
+        raise ValueError("C2 selection protocol has too few candidates")
+    if sorted(ranks) != list(range(1, len(rows) + 1)):
+        raise ValueError("C2 selection protocol ranks must be contiguous from one")
+    protocol: dict[str, Any] = {
+        "schema_version": C2_SELECTION_PROTOCOL_VERSION,
+        "locus": locus,
+        "status": "frozen_before_eligible_terminal_receipts",
+        "formal_participant_outcomes_observed_at_freeze": 0,
+        "eligible_terminal_task_receipts_observed_at_freeze": 0,
+        "candidate_roster": sorted(rows, key=lambda row: int(row["frozen_rank"])),
+        "selection_rule": {
+            "method": "terminally_eligible_then_ascending_frozen_rank",
+            "required_selected_task_count": C2_REQUIRED_TASK_COUNTS[locus],
+            "all_candidates_require_terminal_eligibility_disposition": True,
+            "formal_participant_outcomes_permitted": False,
+        },
+    }
+    protocol["protocol_sha256"] = c2_selection_protocol_sha256(protocol)
+    return protocol
+
+
+def _selection_protocol_errors(protocol: Mapping[str, Any], *, locus: str) -> list[str]:
+    errors: list[str] = []
+    if protocol.get("schema_version") != C2_SELECTION_PROTOCOL_VERSION:
+        errors.append("unexpected C2 selection-protocol schema")
+    if protocol.get("protocol_sha256") != c2_selection_protocol_sha256(protocol):
+        errors.append("C2 selection protocol self-hash mismatch")
+    if (
+        protocol.get("locus") != locus
+        or protocol.get("status") != "frozen_before_eligible_terminal_receipts"
+        or protocol.get("formal_participant_outcomes_observed_at_freeze") != 0
+        or protocol.get("eligible_terminal_task_receipts_observed_at_freeze") != 0
+    ):
+        errors.append("C2 selection protocol does not prove a pre-evidence freeze")
+    roster = protocol.get("candidate_roster")
+    if not isinstance(roster, list):
+        errors.append("C2 selection protocol lacks its candidate roster")
+        return errors
+    try:
+        rebuilt = build_c2_selection_protocol(
+            locus=locus,
+            candidate_roster=[
+                dict(row) if isinstance(row, Mapping) else {} for row in roster
+            ],
+        )
+    except (TypeError, ValueError) as error:
+        errors.append(f"C2 selection protocol cannot be rebuilt: {error}")
+    else:
+        if dict(protocol) != rebuilt:
+            errors.append("C2 selection protocol differs from deterministic rebuild")
+    return errors
+
+
 def build_c2_outcome_blind_selection_record(
     root: Path,
     *,
     locus: str,
     task_id: str,
-    candidate_roster: Sequence[Mapping[str, Any]],
-    selection_rule: Mapping[str, Any],
+    selection_protocol_path: Path,
+    terminal_eligibility: Mapping[str, Mapping[str, Any]],
+    selection_slot: int,
     source_binding: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Freeze one task choice without using formal participant outcomes.
 
-    The caller supplies the complete pre-outcome candidate roster and a declarative
-    selection rule.  The selected task must occupy the declared slot among eligible
-    rows ordered by frozen rank.  This builder does not inspect participant artifacts.
+    The protected protocol owns candidate identities, ranks and the rule.  The
+    dynamic input may only add terminal eligibility dispositions.  This builder
+    never asserts that a caller-supplied roster or rule was pre-frozen.
     """
 
     if locus not in C2_LOCI:
@@ -108,11 +203,15 @@ def build_c2_outcome_blind_selection_record(
     binding_errors = validate_c2_source_binding(root, binding)
     if binding_errors:
         raise ValueError("invalid C2 source binding: " + "; ".join(binding_errors))
-    if selection_rule.get("method") != "eligible_then_ascending_frozen_rank":
-        raise ValueError("unsupported C2 outcome-blind selection rule")
-    if selection_rule.get("formal_participant_outcomes_permitted") is not False:
-        raise ValueError("C2 selection rule must forbid formal participant outcomes")
-    selection_slot = selection_rule.get("selection_slot")
+    protocol_path = _inside_root(root, selection_protocol_path, label="selection protocol")
+    protected_root = (root.resolve() / "configs/benchmark").resolve()
+    if not protocol_path.is_file() or not protocol_path.is_relative_to(protected_root):
+        raise ValueError("C2 selection protocol must be a protected configs/benchmark file")
+    protocol = _load_object(protocol_path)
+    protocol_errors = _selection_protocol_errors(protocol, locus=locus)
+    if protocol_errors:
+        raise ValueError("invalid C2 selection protocol: " + "; ".join(protocol_errors))
+    selection_rule = protocol["selection_rule"]
     selected_count = selection_rule.get("required_selected_task_count")
     if (
         isinstance(selection_slot, bool)
@@ -126,10 +225,16 @@ def build_c2_outcome_blind_selection_record(
     rows: list[dict[str, Any]] = []
     identities: set[str] = set()
     ranks: set[int] = set()
-    for raw in candidate_roster:
+    protocol_roster = protocol["candidate_roster"]
+    if set(terminal_eligibility) != {
+        str(row["task_id"]) for row in protocol_roster
+    }:
+        raise ValueError("terminal eligibility must dispose every frozen candidate exactly once")
+    for raw in protocol_roster:
         row = dict(raw)
         candidate_task = row.get("task_id")
         rank = row.get("frozen_rank")
+        disposition = terminal_eligibility.get(str(candidate_task), {})
         if (
             not isinstance(candidate_task, str)
             or not candidate_task
@@ -138,9 +243,11 @@ def build_c2_outcome_blind_selection_record(
             or not isinstance(rank, int)
             or rank < 1
             or rank in ranks
-            or not isinstance(row.get("eligible_before_formal_outcomes"), bool)
-            or not isinstance(row.get("eligibility_basis"), str)
-            or not row["eligibility_basis"]
+            or not isinstance(disposition.get("terminal_qualification_passed"), bool)
+            or not isinstance(disposition.get("disposition"), str)
+            or disposition.get("disposition") not in {"eligible", "ineligible_retained"}
+            or (disposition.get("terminal_qualification_passed") is True)
+            != (disposition.get("disposition") == "eligible")
         ):
             raise ValueError("C2 candidate roster is malformed or not uniquely ranked")
         identities.add(candidate_task)
@@ -149,12 +256,14 @@ def build_c2_outcome_blind_selection_record(
             {
                 "task_id": candidate_task,
                 "frozen_rank": rank,
-                "eligible_before_formal_outcomes": row["eligible_before_formal_outcomes"],
-                "eligibility_basis": row["eligibility_basis"],
+                "terminal_qualification_passed": disposition[
+                    "terminal_qualification_passed"
+                ],
+                "disposition": disposition["disposition"],
             }
         )
     eligible = sorted(
-        (row for row in rows if row["eligible_before_formal_outcomes"]),
+        (row for row in rows if row["terminal_qualification_passed"]),
         key=lambda row: int(row["frozen_rank"]),
     )
     if (
@@ -169,12 +278,16 @@ def build_c2_outcome_blind_selection_record(
         "selected_before_formal_participant_outcomes": True,
         "formal_participant_outcomes_observed": 0,
         "formal_participant_outcomes_used": False,
-        "selection_rule_frozen_before_evidence_review": True,
         "selection_rule": dict(selection_rule),
         "candidate_roster": sorted(rows, key=lambda row: int(row["frozen_rank"])),
         "selection_slot": selection_slot,
         "required_selected_task_count": selected_count,
         "selected_frozen_rank": eligible[selection_slot - 1]["frozen_rank"],
+        "selection_protocol_binding": {
+            "path": protocol_path.relative_to(root.resolve()).as_posix(),
+            "sha256": file_sha256(protocol_path),
+            "protocol_sha256": protocol["protocol_sha256"],
+        },
         "source_binding": binding,
     }
     record["selection_sha256"] = c2_outcome_blind_selection_sha256(record)
@@ -394,6 +507,15 @@ def _stage_status_errors(
             or denominators.get("participant_platform_failure_count") != 0
         ):
             errors.append("D1 report is not a complete clean three-arm terminal pilot")
+        action_layer = report.get("action_layer")
+        action_layer = action_layer if isinstance(action_layer, Mapping) else {}
+        if action_layer.get("status") != "participant_interpretable":
+            errors.append(
+                "D1 action layer is not participant-interpretable and cannot support "
+                "terminal admission"
+            )
+        if action_layer.get("submitted_recommendations_replaced") is not False:
+            errors.append("D1 action layer replaced submitted recommendations")
     provider_calls = report.get("provider_call_count")
     if stage in {"Q0", "Q1", "Q2"} and provider_calls not in {None, 0}:
         errors.append(f"{stage} report is not provider-free")
@@ -503,26 +625,52 @@ def _selection_errors(
         or record.get("selected_before_formal_participant_outcomes") is not True
         or record.get("formal_participant_outcomes_observed") != 0
         or record.get("formal_participant_outcomes_used") is not False
-        or record.get("selection_rule_frozen_before_evidence_review") is not True
     ):
         errors.append("selection record does not prove outcome-blind task selection")
     selection_rule = record.get("selection_rule")
     roster = record.get("candidate_roster")
-    if not isinstance(selection_rule, Mapping) or not isinstance(roster, list):
-        errors.append("selection record lacks its frozen rule or candidate roster")
+    protocol_binding = record.get("selection_protocol_binding")
+    if (
+        not isinstance(selection_rule, Mapping)
+        or not isinstance(roster, list)
+        or not isinstance(protocol_binding, Mapping)
+    ):
+        errors.append("selection record lacks its protected protocol binding or dispositions")
     else:
+        relative = protocol_binding.get("path")
         try:
+            protocol_path = _inside_root(
+                root, root / str(relative), label="selection protocol"
+            )
+            protocol = _load_object(protocol_path)
+            if (
+                not protocol_path.is_relative_to((root / "configs/benchmark").resolve())
+                or protocol_binding.get("sha256") != file_sha256(protocol_path)
+                or protocol_binding.get("protocol_sha256")
+                != protocol.get("protocol_sha256")
+            ):
+                errors.append("selection record protected protocol binding is stale")
+            errors.extend(_selection_protocol_errors(protocol, locus=locus))
+            terminal_eligibility = {
+                str(row.get("task_id")): {
+                    "terminal_qualification_passed": row.get(
+                        "terminal_qualification_passed"
+                    ),
+                    "disposition": row.get("disposition"),
+                }
+                for row in roster
+                if isinstance(row, Mapping)
+            }
             rebuilt = build_c2_outcome_blind_selection_record(
                 root,
                 locus=locus,
                 task_id=task_id,
-                candidate_roster=[
-                    dict(row) if isinstance(row, Mapping) else {} for row in roster
-                ],
-                selection_rule=selection_rule,
+                selection_protocol_path=protocol_path,
+                terminal_eligibility=terminal_eligibility,
+                selection_slot=int(record.get("selection_slot", 0)),
                 source_binding=source_binding,
             )
-        except (TypeError, ValueError) as error:
+        except (OSError, TypeError, ValueError) as error:
             errors.append(f"selection record cannot be deterministically rebuilt: {error}")
         else:
             if dict(record) != rebuilt:
@@ -551,20 +699,15 @@ def validate_c2_outcome_blind_selection_pair(
     slots: list[object] = []
     task_ids: list[object] = []
     rosters: list[object] = []
-    slot_neutral_rules: list[object] = []
+    rules: list[object] = []
+    protocol_bindings: list[object] = []
     for record in records:
         slots.append(record.get("selection_slot"))
         task_ids.append(record.get("task_id"))
         rosters.append(record.get("candidate_roster"))
         rule = record.get("selection_rule")
-        if not isinstance(rule, Mapping):
-            slot_neutral_rules.append(None)
-        else:
-            slot_neutral_rules.append(
-                {key: value for key, value in rule.items() if key != "selection_slot"}
-            )
-            if rule.get("selection_slot") != record.get("selection_slot"):
-                errors.append(f"{locus} selection slot differs from its frozen rule")
+        rules.append(dict(rule) if isinstance(rule, Mapping) else None)
+        protocol_bindings.append(record.get("selection_protocol_binding"))
     if set(slots) != {1, 2} or len(slots) != len(set(slots)):
         errors.append(f"{locus} outcome-blind selection slots must be exactly {{1,2}}")
     if (
@@ -581,13 +724,15 @@ def validate_c2_outcome_blind_selection_pair(
             f"{locus} selection records do not share the exact candidate roster"
         )
     if (
-        slot_neutral_rules[0] is None
-        or slot_neutral_rules[1] is None
-        or slot_neutral_rules[0] != slot_neutral_rules[1]
+        rules[0] is None or rules[1] is None or rules[0] != rules[1]
     ):
-        errors.append(
-            f"{locus} selection records do not share one rule apart from selection_slot"
-        )
+        errors.append(f"{locus} selection records do not share one protected rule")
+    if (
+        not isinstance(protocol_bindings[0], Mapping)
+        or not isinstance(protocol_bindings[1], Mapping)
+        or protocol_bindings[0] != protocol_bindings[1]
+    ):
+        errors.append(f"{locus} selection records do not bind one protected protocol")
     return errors
 
 
@@ -602,11 +747,7 @@ def _selection_pair_summary(
         else None
     )
     rules = [
-        (
-            {key: value for key, value in rule.items() if key != "selection_slot"}
-            if isinstance(rule, Mapping)
-            else None
-        )
+        (dict(rule) if isinstance(rule, Mapping) else None)
         for record in records
         for rule in (record.get("selection_rule"),)
     ]
@@ -624,6 +765,13 @@ def _selection_pair_summary(
         ),
         "shared_selection_rule_without_slot_sha256": (
             canonical_json_sha256(common_rule) if common_rule is not None else None
+        ),
+        "shared_selection_protocol_binding": (
+            records[0].get("selection_protocol_binding")
+            if len(records) == 2
+            and records[0].get("selection_protocol_binding")
+            == records[1].get("selection_protocol_binding")
+            else None
         ),
         "selection_record_sha256": [
             record.get("selection_sha256") for record in records
@@ -1259,15 +1407,18 @@ __all__ = [
     "C2_MATERIAL_SOURCE_EXCLUSIONS",
     "C2_MATERIAL_SOURCE_ROOTS",
     "C2_OUTCOME_BLIND_SELECTION_VERSION",
+    "C2_SELECTION_PROTOCOL_VERSION",
     "C2_TASK_ADMISSION_RECEIPT_VERSION",
     "C2_TASK_STAGE_ORDER",
     "build_c2_admission_report",
     "build_c2_outcome_blind_selection_record",
+    "build_c2_selection_protocol",
     "build_c2_source_binding",
     "build_c2_task_admission_receipt",
     "c2_admission_sha256",
     "c2_material_dirty_paths",
     "c2_outcome_blind_selection_sha256",
+    "c2_selection_protocol_sha256",
     "c2_task_admission_receipt_sha256",
     "validate_c2_admission_report",
     "validate_c2_outcome_blind_selection_pair",

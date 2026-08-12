@@ -14,6 +14,7 @@ import chemworld.eval.work_ii_formal as work_ii_formal
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_blind import BLIND_EVALUATOR_VERSION
 from chemworld.eval.work_ii_c2_admission import (
+    C2_OUTCOME_BLIND_SELECTION_VERSION,
     c2_outcome_blind_selection_sha256,
     c2_task_admission_receipt_sha256,
 )
@@ -79,6 +80,12 @@ def _isolate_runner_contract_from_current_gate_a_recertification(
         for task_id, config_path in tasks:
             selection_path = config_path.with_name(f"{config_path.stem}_selection.json")
             selection = json.loads(selection_path.read_text(encoding="utf-8"))
+            # The current C2 contract requires proof that both the protected
+            # protocol and its action-layer selection rule were frozen before
+            # evidence review.  These virtual fixtures exercise downstream
+            # formal scheduling, so materialize that current receipt field.
+            selection["selection_rule_frozen_before_evidence_review"] = True
+            selection["schema_version"] = C2_OUTCOME_BLIND_SELECTION_VERSION
             selection["selection_sha256"] = c2_outcome_blind_selection_sha256(selection)
             virtual_payloads[selection_path.resolve()] = selection
             selection_binding = {

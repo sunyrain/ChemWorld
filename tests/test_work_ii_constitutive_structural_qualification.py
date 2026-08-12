@@ -1,0 +1,259 @@
+from __future__ import annotations
+
+from typing import Any
+
+import pytest
+from scripts.run_work_ii_campaign_pilot import _campaign_card
+from scripts.run_work_ii_constitutive_structural_qualification import (
+    BASE_CONFIGS,
+    _compile_actions,
+    _d1_config,
+    _load,
+)
+
+from chemworld.eval.work_ii_c2_admission import C2_MATERIAL_SOURCE_EXCLUSIONS
+from chemworld.eval.work_ii_constitutive_structural_qualification import (
+    CANDIDATE_IDS,
+    COORDINATES_PER_CANDIDATE_WORLD,
+    CRYSTALLIZATION_CANDIDATE_ID,
+    EXACT_REPLAYS_TOTAL,
+    PARTITION_CANDIDATE_ID,
+    PRIMARY_EXECUTIONS_PER_CANDIDATE_WORLD,
+    PRIMARY_EXECUTIONS_TOTAL,
+    WORLD_SEEDS,
+    analyze_candidate_world,
+    build_prior_arms,
+    candidate_specs,
+    registered_coordinates,
+    selected_q2_queries,
+)
+from chemworld.eval.work_ii_formal import build_checkpoint_contract
+
+
+def _audit(candidate_id: str, world_seed: int) -> dict[str, Any]:
+    spec = candidate_specs()[candidate_id]
+    common: dict[str, Any] = {
+        "candidate_id": candidate_id,
+        "world_seed": world_seed,
+        "registered_law_ids": list(spec["law_ids"]),
+        "world_intervention": spec["world_intervention"],
+        "baseline_mechanism_hash": "b" * 64,
+        "altered_mechanism_hash": "a" * 64,
+        "altered_hash_deterministic": True,
+        "mechanism_hash_changed": True,
+        "altered_intervention_hash": "i" * 64,
+    }
+    if candidate_id == PARTITION_CANDIDATE_ID:
+        common.update(
+            {
+                "changed_domain_parameter_keys": ["partition_coefficient_exponent"],
+                "only_registered_constitutive_parameter_changed": True,
+            }
+        )
+    else:
+        common.update(
+            {
+                "added_reaction_count": 1,
+                "transform_id": "reversible_target_pathway_stress_v1",
+            }
+        )
+    return common
+
+
+def _metrics(candidate_id: str, coordinate_index: int, altered: bool) -> dict[str, float]:
+    spec = candidate_specs()[candidate_id]
+    base = 0.40 + 0.0001 * coordinate_index
+    return {
+        metric: base + 0.20 * altered + 0.01 * metric_index
+        for metric_index, metric in enumerate(spec["metric_ids"])
+    }
+
+
+def _rows(candidate_id: str, world_seed: int = 0) -> list[dict[str, Any]]:
+    spec = candidate_specs()[candidate_id]
+    rows: list[dict[str, Any]] = []
+    for coordinate in registered_coordinates(candidate_id):
+        for law_id in spec["law_ids"]:
+            altered = law_id == spec["altered_law_id"]
+            rows.append(
+                {
+                    **coordinate,
+                    "candidate_id": candidate_id,
+                    "task_id": spec["task_id"],
+                    "world_seed": world_seed,
+                    "law_id": law_id,
+                    "status": "completed",
+                    "safe": True,
+                    "metrics": _metrics(
+                        candidate_id, int(coordinate["coordinate_index"]), altered
+                    ),
+                    "action_plan_sha256": coordinate["coordinate_sha256"],
+                    "observation_coordinate_sha256": coordinate["coordinate_sha256"],
+                    "mechanism_hash": "a" * 64 if altered else "b" * 64,
+                    "intervention_hash": "i" * 64 if altered else None,
+                    "exact_replay": True,
+                    "participant_visible_leakage_matches": [],
+                    "trajectory": {
+                        "path": (
+                            f"runs/{candidate_id}/{world_seed}/"
+                            f"{coordinate['coordinate_id']}/{law_id}.jsonl"
+                        ),
+                        "sha256": "t" * 64,
+                    },
+                }
+            )
+    return rows
+
+
+@pytest.mark.parametrize("candidate_id", CANDIDATE_IDS)
+def test_frozen_roster_has_exact_paired_law_denominators(candidate_id: str) -> None:
+    rows = registered_coordinates(candidate_id)
+    assert len(rows) == COORDINATES_PER_CANDIDATE_WORLD == 512
+    assert sum(row["phase"] == "q1_coverage" for row in rows) == 384
+    assert sum(row["phase"] == "q2_heldout" for row in rows) == 128
+    for family in candidate_specs()[candidate_id]["intervention_families"]:
+        assert sum(row["intervention_family"] == family for row in rows) == 256
+        assert sum(
+            row["phase"] == "q1_coverage" and row["intervention_family"] == family
+            for row in rows
+        ) == 192
+        assert sum(
+            row["phase"] == "q2_heldout" and row["intervention_family"] == family
+            for row in rows
+        ) == 64
+    assert PRIMARY_EXECUTIONS_PER_CANDIDATE_WORLD == 1024
+    assert PRIMARY_EXECUTIONS_TOTAL == EXACT_REPLAYS_TOTAL == 10_240
+
+
+def test_generated_a_s_evidence_is_outside_the_protected_source_tree() -> None:
+    assert {
+        "configs/benchmark/work_ii_as_paired_law_q2_package_v0.1.json",
+        "configs/benchmark/work_ii_as_partition_d1_v0.1.json",
+        "configs/benchmark/work_ii_as_crystallization_d1_v0.1.json",
+    }.issubset(C2_MATERIAL_SOURCE_EXCLUSIONS)
+
+
+@pytest.mark.parametrize("candidate_id", CANDIDATE_IDS)
+def test_q2_selection_is_fixed_balanced_and_outcome_independent(candidate_id: str) -> None:
+    first = selected_q2_queries(candidate_id)
+    second = selected_q2_queries(candidate_id)
+    assert first == second
+    assert len(first) == 16
+    assert all(row["phase"] == "q2_heldout" for row in first)
+    assert {
+        family: sum(row["intervention_family"] == family for row in first)
+        for family in candidate_specs()[candidate_id]["intervention_families"]
+    } == dict.fromkeys(candidate_specs()[candidate_id]["intervention_families"], 8)
+    assert all("metrics" not in row and "outcome" not in row for row in first)
+
+
+@pytest.mark.parametrize("candidate_id", CANDIDATE_IDS)
+def test_analysis_accepts_only_complete_paired_actual_laws(candidate_id: str) -> None:
+    result = analyze_candidate_world(candidate_id, 0, _rows(candidate_id), _audit(candidate_id, 0))
+    assert result["passed"] is True
+    assert result["denominators"] == {
+        "planned_primary_executions": 1024,
+        "attempted_primary_executions": 1024,
+        "completed_primary_executions": 1024,
+        "physical_failures": 0,
+        "platform_failures": 0,
+        "unsafe_completed": 0,
+        "exact_replays": 1024,
+    }
+    assert result["q1"]["family_coordinate_counts"]
+    assert result["q2"]["query_count"] == 16
+    assert result["q2"]["selection_reads_outcomes"] is False
+    assert {
+        value["prediction_source"] for value in result["q2"]["candidate_laws"].values()
+    } == {"direct_provider_free_execution"}
+    assert result["q2"]["blind_identified_truth_law"] == "blind_law_b"
+
+
+def test_unpaired_or_leaking_result_is_rejected() -> None:
+    rows = _rows(PARTITION_CANDIDATE_ID)
+    rows.pop()
+    result = analyze_candidate_world(
+        PARTITION_CANDIDATE_ID, 0, rows, _audit(PARTITION_CANDIDATE_ID, 0)
+    )
+    assert result["passed"] is False
+    assert "fixed_primary_denominator" in result["failures"]
+    assert "complete_paired_law_roster" in result["failures"]
+
+    rows = _rows(PARTITION_CANDIDATE_ID)
+    rows[0]["participant_visible_leakage_matches"] = ["world_intervention"]
+    result = analyze_candidate_world(
+        PARTITION_CANDIDATE_ID, 0, rows, _audit(PARTITION_CANDIDATE_ID, 0)
+    )
+    assert "participant_visible_leakage_free" in result["failures"]
+
+
+def test_prior_arms_bind_real_registered_laws_without_generic_surrogate() -> None:
+    for candidate_id in CANDIDATE_IDS:
+        priors = build_prior_arms(candidate_id)
+        assert set(priors) == {"opaque", "aligned_nominal", "misindexed_nominal"}
+        assert priors["aligned_nominal"]["confidence"] == 0.70
+        assert priors["misindexed_nominal"]["confidence"] == 0.70
+        assert priors["aligned_nominal"]["executable_law"]["law_id"] == candidate_specs()[
+            candidate_id
+        ]["altered_law_id"]
+        rendered = str(priors).lower()
+        assert "quadratic" not in rendered
+        assert "equilibrium" not in rendered
+
+
+@pytest.mark.parametrize("candidate_id", CANDIDATE_IDS)
+def test_actions_vary_the_registered_intervention_families(candidate_id: str) -> None:
+    coordinates = registered_coordinates(candidate_id)
+    first_family, second_family = candidate_specs()[candidate_id]["intervention_families"]
+    first = [row for row in coordinates if row["intervention_family"] == first_family]
+    second = [row for row in coordinates if row["intervention_family"] == second_family]
+    first_actions = {
+        _action_signature(_compile_actions(candidate_id, row["feature_values"]))
+        for row in first
+    }
+    second_actions = {
+        _action_signature(_compile_actions(candidate_id, row["feature_values"])) for row in second
+    }
+    assert len(first_actions) > 1
+    assert len(second_actions) > 1
+
+
+def _action_signature(actions: list[dict[str, Any]]) -> str:
+    return repr(actions)
+
+
+@pytest.mark.parametrize("candidate_id", CANDIDATE_IDS)
+def test_generated_d1_config_is_runnable_but_not_authorized(candidate_id: str) -> None:
+    source_binding = {
+        "schema_version": "chemworld-work-ii-c2-source-binding-0.1",
+        "tested_commit": "0" * 40,
+        "material_tree": {},
+    }
+    config = _d1_config(
+        candidate_id,
+        _load(BASE_CONFIGS[candidate_id]),
+        package_sha256="p" * 64,
+        source_binding=source_binding,
+    )
+    assert config["world_seed"] == WORLD_SEEDS[0]
+    assert config["campaign"]["complete_experiments"] == 12
+    assert config["campaign"]["checkpoint_complete_experiments"] == [0, 3, 6, 9, 12]
+    assert config["qualification"]["execution_authorized"] is False
+    assert config["qualification"]["formal_r5_authorized"] is False
+    assert config["intervention"]["registered_truth_law_id"] == candidate_specs()[candidate_id][
+        "altered_law_id"
+    ]
+    for arm in config["prior_arms"]:
+        contract = build_checkpoint_contract(config, arm)
+        assert len(contract["held_out_queries"]) == 16
+    card = _campaign_card(config)
+    assert card.operation_attempt_limit == config["campaign"]["operation_attempt_limit"]
+
+
+def test_no_equilibrium_candidate_and_all_five_worlds_are_frozen() -> None:
+    assert set(CANDIDATE_IDS) == {
+        PARTITION_CANDIDATE_ID,
+        CRYSTALLIZATION_CANDIDATE_ID,
+    }
+    assert WORLD_SEEDS == (0, 1, 2, 3, 4)
+    assert all("equilibrium" not in candidate for candidate in CANDIDATE_IDS)
