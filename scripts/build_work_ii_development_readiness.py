@@ -23,6 +23,7 @@ def main() -> int:
     parser.add_argument("--pilot-run", type=Path)
     parser.add_argument("--continuation-seed0-run", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
 
     def progress(payload: dict[str, object]) -> None:
@@ -33,6 +34,9 @@ def main() -> int:
         args.config,
         args.world_seed,
         args.historical_run,
+        release_manifest=(
+            args.release_manifest.resolve() if args.release_manifest is not None else None
+        ),
         pilot_run=args.pilot_run,
         continuation_seed0_run=args.continuation_seed0_run,
         progress=progress,

@@ -13,6 +13,7 @@ from chemworld.eval.work_ii_execution_mode import (
     prepare_execution_context,
     release_manifest_sha256,
     validate_execution_envelope,
+    validate_release_d1_config,
     validate_release_manifest,
 )
 
@@ -158,3 +159,77 @@ def test_release_prepare_allows_new_non_surface_artifacts_but_rejects_surface_dr
     (tmp_path / "runtime.py").write_text("VALUE = 2\n", encoding="utf-8")
     with pytest.raises(ValueError, match="execution surface changed"):
         prepare_execution_context(tmp_path, mode="release", release_manifest=manifest)
+
+
+def test_release_d1_config_requires_same_freeze_nonlegacy_q2_authorization(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manifest = _release_manifest(monkeypatch, tmp_path)
+    context = prepare_execution_context(
+        tmp_path, mode="release", release_manifest=manifest
+    )
+    config = {
+        "execution_context": build_execution_envelope(context),
+        "legacy_source_evidence": False,
+        "qualification": {
+            "q2_passed": True,
+            "execution_authorized": False,
+            "formal_r5_authorized": False,
+        },
+    }
+    assert validate_release_d1_config(
+        tmp_path,
+        config,
+        manifest,
+        require_provider_authorized=False,
+    ) == []
+    assert "Work II release D1 is not provider-authorized" in validate_release_d1_config(
+        tmp_path,
+        config,
+        manifest,
+        require_provider_authorized=True,
+    )
+
+    authorized = deepcopy(config)
+    authorized["qualification"]["execution_authorized"] = True
+    assert validate_release_d1_config(
+        tmp_path,
+        authorized,
+        manifest,
+        require_provider_authorized=True,
+    ) == []
+
+    development = deepcopy(config)
+    development["execution_context"] = build_execution_envelope(
+        prepare_execution_context(tmp_path, mode="development")
+    )
+    assert any(
+        "execution context" in error
+        for error in validate_release_d1_config(
+            tmp_path,
+            development,
+            manifest,
+            require_provider_authorized=False,
+        )
+    )
+
+    legacy = deepcopy(config)
+    legacy["legacy_source_evidence"] = True
+    assert "Work II release D1 uses legacy source evidence" in validate_release_d1_config(
+        tmp_path,
+        legacy,
+        manifest,
+        require_provider_authorized=False,
+    )
+
+    cross_freeze = deepcopy(config)
+    cross_freeze["execution_context"]["freeze_id"] = "f" * 64
+    assert any(
+        "execution context" in error
+        for error in validate_release_d1_config(
+            tmp_path,
+            cross_freeze,
+            manifest,
+            require_provider_authorized=False,
+        )
+    )

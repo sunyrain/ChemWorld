@@ -29,6 +29,10 @@ from chemworld.eval.work_ii_direction import (
     temperature_direction_diagnostic,
     truth_prediction_rows,
 )
+from chemworld.eval.work_ii_execution_mode import (
+    release_manifest_sha256,
+    validate_release_d1_config,
+)
 from chemworld.eval.work_ii_process_profile import build_work_ii_execution_artifacts
 from chemworld.eval.work_ii_truth import (
     build_evaluator_truth_plan,
@@ -36,7 +40,7 @@ from chemworld.eval.work_ii_truth import (
     validate_evaluator_truth_report,
 )
 
-WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.5"
+WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.6"
 _PRIOR_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 
 
@@ -62,8 +66,24 @@ def _resolved_config_path(root: Path, config_path: Path) -> Path:
     return resolved
 
 
-def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[str, bool]:
+def _config_checks(
+    root: Path,
+    config_path: Path,
+    seeds: Sequence[int],
+    *,
+    release_manifest: Path | Mapping[str, Any] | None = None,
+) -> dict[str, bool]:
     config = json.loads(config_path.read_text(encoding="utf-8"))
+    release_d1_errors = (
+        validate_release_d1_config(
+            root,
+            config,
+            release_manifest,
+            require_provider_authorized=True,
+        )
+        if release_manifest is not None
+        else ["provider readiness lacks a release manifest"]
+    )
     provider = config.get("provider", {})
     execution = config.get("execution", {})
     campaign = config.get("campaign", {})
@@ -107,6 +127,7 @@ def _config_checks(root: Path, config_path: Path, seeds: Sequence[int]) -> dict[
     except (TypeError, ValueError):
         method_resource_schema_valid = False
     return {
+        "release_d1_same_freeze_provider_authorized": not release_d1_errors,
         "clean_committed_worktree": not git_worktree_dirty(root),
         "seed_schedule_is_pilot_full_or_terminal_continuation": (
             (len(seeds) in {1, 5} and len(set(seeds)) == len(seeds)) or list(seeds) == [1, 2, 3, 4]
@@ -750,13 +771,26 @@ def build_development_readiness_receipt(
     seeds: Sequence[int],
     historical_roots: Sequence[Path],
     *,
+    release_manifest: Path | Mapping[str, Any] | None = None,
     pilot_run: Path | None = None,
     continuation_seed0_run: Path | None = None,
     progress: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     resolved_config = _resolved_config_path(root, config_path)
     config = json.loads(resolved_config.read_text(encoding="utf-8"))
-    checks = _config_checks(root, resolved_config, seeds)
+    checks = _config_checks(
+        root,
+        resolved_config,
+        seeds,
+        release_manifest=release_manifest,
+    )
+    manifest = (
+        json.loads(release_manifest.read_text(encoding="utf-8"))
+        if isinstance(release_manifest, Path)
+        else dict(release_manifest)
+        if release_manifest is not None
+        else None
+    )
     historical = audit_historical_trajectories(historical_roots, progress=progress)
     direction_stability = audit_direction_stability(config, seeds, progress=progress)
     pilot = audit_seed0_expansion_pilot(config, pilot_run)
@@ -777,6 +811,16 @@ def build_development_readiness_receipt(
         "schema_version": WORK_II_DEVELOPMENT_READINESS_VERSION,
         "generated_at": datetime.now(UTC).isoformat(),
         "source_commit": git_source_commit(root),
+        "release_execution": (
+            {
+                "tested_commit": manifest["tested_commit"],
+                "freeze_id": manifest["freeze_id"],
+                "release_manifest_sha256": release_manifest_sha256(manifest),
+                "execution_surface_sha256": manifest["execution_surface"]["sha256"],
+            }
+            if manifest is not None
+            else None
+        ),
         "config": {
             "path": resolved_config.relative_to(root.resolve()).as_posix(),
             "sha256": file_sha256(resolved_config),
@@ -807,6 +851,10 @@ def build_development_readiness_receipt(
         "seed0_expansion_pilot": pilot,
         "seed0_terminal_continuation": continuation,
         "provider_call_count": 0,
+        "provider_execution_authorized": (
+            manifest is not None
+            and checks["release_d1_same_freeze_provider_authorized"] is True
+        ),
         "ready": all(checks.values()) and historical["provider_call_count"] == 0,
     }
     receipt["readiness_sha256"] = _self_hash(receipt)
@@ -818,6 +866,8 @@ def validate_development_readiness_receipt(
     receipt_path: Path,
     config_path: Path,
     seeds: Sequence[int],
+    *,
+    release_manifest: Path | Mapping[str, Any] | None = None,
 ) -> list[str]:
     errors: list[str] = []
     try:
@@ -844,6 +894,36 @@ def validate_development_readiness_receipt(
     if receipt.get("source_commit") != git_source_commit(root):
         errors.append("readiness receipt source commit is stale")
     resolved_config = _resolved_config_path(root, config_path)
+    if release_manifest is not None:
+        release_errors = validate_release_d1_config(
+            root,
+            json.loads(resolved_config.read_text(encoding="utf-8")),
+            release_manifest,
+            require_provider_authorized=True,
+        )
+        errors.extend(
+            f"readiness release D1 validation failed: {error}"
+            for error in release_errors
+        )
+        manifest = (
+            json.loads(release_manifest.read_text(encoding="utf-8"))
+            if isinstance(release_manifest, Path)
+            else dict(release_manifest)
+        )
+        expected_release = {
+            "tested_commit": manifest.get("tested_commit"),
+            "freeze_id": manifest.get("freeze_id"),
+            "release_manifest_sha256": release_manifest_sha256(manifest),
+            "execution_surface_sha256": (
+                manifest.get("execution_surface", {}).get("sha256")
+                if isinstance(manifest.get("execution_surface"), Mapping)
+                else None
+            ),
+        }
+        if receipt.get("release_execution") != expected_release:
+            errors.append("readiness receipt release freeze binding mismatch")
+        if receipt.get("provider_execution_authorized") is not True:
+            errors.append("readiness receipt does not authorize provider execution")
     config_binding = receipt.get("config", {})
     if not isinstance(config_binding, Mapping):
         errors.append("readiness receipt lacks config binding")

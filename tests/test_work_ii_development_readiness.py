@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import chemworld.eval.work_ii_development_readiness as readiness
+import chemworld.eval.work_ii_execution_mode as execution_mode
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_development_readiness import (
     WORK_II_DEVELOPMENT_READINESS_VERSION,
@@ -12,6 +13,11 @@ from chemworld.eval.work_ii_development_readiness import (
 from chemworld.eval.work_ii_direction import (
     controlled_potential_direction_diagnostic,
     registered_control_direction,
+)
+from chemworld.eval.work_ii_execution_mode import (
+    build_execution_envelope,
+    build_release_manifest,
+    prepare_execution_context,
 )
 
 
@@ -272,7 +278,12 @@ def test_wellau_sol_medium_is_an_authorized_responses_harness(
     assert checks["responses_codex_harness_contract"] is True
     assert checks["domain_mcp_routing_catalog_frozen"] is True
     assert checks["credential_file_exists_and_is_git_ignored"] is True
-    assert all(checks.values())
+    assert checks["release_d1_same_freeze_provider_authorized"] is False
+    assert all(
+        value
+        for name, value in checks.items()
+        if name != "release_d1_same_freeze_provider_authorized"
+    )
 
 
 def test_readiness_accepts_pattern_owned_ten_experiment_schedule(
@@ -313,7 +324,12 @@ def test_readiness_accepts_pattern_owned_ten_experiment_schedule(
 
     assert checks["pattern_owned_shared_resource_experiments"] is True
     assert checks["pattern_owned_in_session_checkpoints"] is True
-    assert all(checks.values())
+    assert checks["release_d1_same_freeze_provider_authorized"] is False
+    assert all(
+        value
+        for name, value in checks.items()
+        if name != "release_d1_same_freeze_provider_authorized"
+    )
 
 
 def test_readiness_rejects_unknown_method_resource_fields(
@@ -335,6 +351,139 @@ def test_readiness_rejects_unknown_method_resource_fields(
     checks = readiness._config_checks(tmp_path, config, [0])
 
     assert checks["method_resource_payload_constructs"] is False
+
+
+def test_readiness_requires_same_release_freeze_for_provider_authorization(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("WELLAU_API_KEY", "test-only")
+    monkeypatch.setattr(readiness, "git_worktree_dirty", lambda _root: False)
+    monkeypatch.setattr(readiness, "git_source_commit", lambda _root: "a" * 40)
+    monkeypatch.setattr(execution_mode, "git_worktree_dirty", lambda _root: False)
+    monkeypatch.setattr(execution_mode, "git_source_commit", lambda _root: "a" * 40)
+    runtime = tmp_path / "runtime.py"
+    runtime.write_text("VALUE = 1\n", encoding="utf-8")
+    manifest = build_release_manifest(tmp_path, execution_surface=["runtime.py"])
+    context = prepare_execution_context(tmp_path, mode="release", release_manifest=manifest)
+    config = tmp_path / "release-d1.json"
+    payload = json.loads(
+        (
+            Path(__file__).resolve().parents[1]
+            / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1_execution.json"
+        ).read_text(encoding="utf-8")
+    )
+    payload["execution_context"] = build_execution_envelope(context)
+    payload["legacy_source_evidence"] = False
+    payload["qualification"].update(
+        {"q2_passed": True, "execution_authorized": True, "formal_r5_authorized": False}
+    )
+    config.write_text(json.dumps(payload), encoding="utf-8")
+
+    checks = readiness._config_checks(
+        tmp_path,
+        config,
+        [0],
+        release_manifest=manifest,
+    )
+    assert checks["release_d1_same_freeze_provider_authorized"] is True
+
+    development = json.loads(json.dumps(payload))
+    development["execution_context"] = build_execution_envelope(
+        prepare_execution_context(tmp_path, mode="development")
+    )
+    config.write_text(json.dumps(development), encoding="utf-8")
+    checks = readiness._config_checks(
+        tmp_path,
+        config,
+        [0],
+        release_manifest=manifest,
+    )
+    assert checks["release_d1_same_freeze_provider_authorized"] is False
+
+    cross_freeze = json.loads(json.dumps(payload))
+    cross_freeze["execution_context"]["freeze_id"] = "f" * 64
+    config.write_text(json.dumps(cross_freeze), encoding="utf-8")
+    checks = readiness._config_checks(
+        tmp_path,
+        config,
+        [0],
+        release_manifest=manifest,
+    )
+    assert checks["release_d1_same_freeze_provider_authorized"] is False
+
+    config.write_text(json.dumps(payload), encoding="utf-8")
+    checks = readiness._config_checks(tmp_path, config, [0], release_manifest=None)
+    assert checks["release_d1_same_freeze_provider_authorized"] is False
+
+
+def test_readiness_receipt_rejects_cross_freeze_release_binding(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    runtime_a = tmp_path / "runtime-a.py"
+    runtime_b = tmp_path / "runtime-b.py"
+    runtime_a.write_text("VALUE = 1\n", encoding="utf-8")
+    runtime_b.write_text("VALUE = 2\n", encoding="utf-8")
+    monkeypatch.setattr(execution_mode, "git_worktree_dirty", lambda _root: False)
+    monkeypatch.setattr(execution_mode, "git_source_commit", lambda _root: "a" * 40)
+    monkeypatch.setattr(readiness, "git_source_commit", lambda _root: "test-commit")
+    manifest_a = build_release_manifest(tmp_path, execution_surface=["runtime-a.py"])
+    manifest_b = build_release_manifest(tmp_path, execution_surface=["runtime-b.py"])
+    context = prepare_execution_context(
+        tmp_path,
+        mode="release",
+        release_manifest=manifest_a,
+    )
+    config = tmp_path / "release-d1.json"
+    config.write_text(
+        json.dumps(
+            {
+                "execution_context": build_execution_envelope(context),
+                "legacy_source_evidence": False,
+                "qualification": {
+                    "q2_passed": True,
+                    "execution_authorized": True,
+                    "formal_r5_authorized": False,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    trajectory = tmp_path / "trajectory.jsonl"
+    trajectory.write_text('{"step":1}\n', encoding="utf-8")
+    receipt_path = tmp_path / "readiness.json"
+    _write_receipt(tmp_path, config, trajectory, receipt_path)
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    receipt["checks"]["release_d1_same_freeze_provider_authorized"] = True
+    receipt["release_execution"] = {
+        "tested_commit": manifest_a["tested_commit"],
+        "freeze_id": manifest_a["freeze_id"],
+        "release_manifest_sha256": manifest_a["manifest_sha256"],
+        "execution_surface_sha256": manifest_a["execution_surface"]["sha256"],
+    }
+    receipt["provider_execution_authorized"] = True
+    receipt["readiness_sha256"] = canonical_json_sha256(
+        {key: value for key, value in receipt.items() if key != "readiness_sha256"}
+    )
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+
+    assert validate_development_readiness_receipt(
+        tmp_path,
+        receipt_path,
+        config,
+        [0],
+        release_manifest=manifest_a,
+    ) == []
+    errors = validate_development_readiness_receipt(
+        tmp_path,
+        receipt_path,
+        config,
+        [0],
+        release_manifest=manifest_b,
+    )
+    assert any("execution context" in error for error in errors)
+    assert "readiness receipt release freeze binding mismatch" in errors
 
 
 def test_direction_stability_audit_fails_closed_on_registered_query_conflict(

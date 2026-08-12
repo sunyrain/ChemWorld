@@ -27,6 +27,7 @@ from chemworld.eval.work_ii_blind import (
     validate_blind_evaluation_plan,
 )
 from chemworld.eval.work_ii_cost import validate_qualification_cost_ledger
+from chemworld.eval.work_ii_execution_mode import validate_release_d1_config
 from chemworld.eval.work_ii_formal import (
     build_checkpoint_contract as _checkpoint_contract,
 )
@@ -361,6 +362,43 @@ def _resource_calibration_execution_context(
             ]["sha256"],
         },
     }
+
+
+def _release_d1_execution_context(
+    args: argparse.Namespace,
+    *,
+    config: Mapping[str, Any],
+) -> Path | None:
+    """Fail closed for Q2-derived D1 while leaving separately authorized runners intact."""
+
+    qualification = config.get("qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    is_q2_d1 = (
+        "execution_context" in config
+        or "legacy_source_evidence" in config
+        or qualification.get("q2_passed") is True
+    )
+    manifest_value = getattr(args, "release_manifest", None)
+    if not is_q2_d1:
+        if manifest_value is not None:
+            raise RuntimeError("release manifest is only valid for a Q2-derived D1 config")
+        return None
+    if manifest_value is None:
+        raise RuntimeError("provider D1 execution requires a release manifest")
+    manifest_path = Path(manifest_value).resolve()
+    try:
+        manifest_path.relative_to(ROOT.resolve())
+    except ValueError as error:
+        raise RuntimeError("provider D1 release manifest must be inside the repository") from error
+    errors = validate_release_d1_config(
+        ROOT,
+        config,
+        manifest_path,
+        require_provider_authorized=True,
+    )
+    if errors:
+        raise RuntimeError("provider release D1 validation failed: " + "; ".join(errors))
+    return manifest_path
 
 
 def _progress(path: Path, payload: Mapping[str, Any]) -> None:
@@ -958,6 +996,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     )
     if qualification_context is not None and calibration_context is not None:
         raise RuntimeError("one child cannot be both qualification and resource calibration")
+    release_manifest_path = None
+    if (
+        formal_context is None
+        and qualification_context is None
+        and calibration_context is None
+    ):
+        release_manifest_path = _release_d1_execution_context(args, config=config)
     if args.prior_arm is not None:
         output.parent.mkdir(parents=True, exist_ok=True)
     else:
@@ -1036,6 +1081,25 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             formal_cell["cell_key_sha256"] if formal_cell is not None else None
         ),
         "formal_result": formal_cell is not None,
+        "execution_context": (
+            dict(config["execution_context"])
+            if release_manifest_path is not None
+            else None
+        ),
+        "legacy_source_evidence": (
+            config.get("legacy_source_evidence")
+            if release_manifest_path is not None
+            else None
+        ),
+        "provider_execution_authorized": release_manifest_path is not None,
+        "release_manifest": (
+            {
+                "path": release_manifest_path.relative_to(ROOT.resolve()).as_posix(),
+                "sha256": file_sha256(release_manifest_path),
+            }
+            if release_manifest_path is not None
+            else None
+        ),
         "qualification_execution_authorized": qualification_context is not None,
         "qualification_execution_authorization_binding": (
             qualification_context[1] if qualification_context is not None else None
@@ -1066,6 +1130,7 @@ def main() -> int:
     parser.add_argument("--progress-file", type=Path, required=True)
     parser.add_argument("--world-seed", type=int)
     parser.add_argument("--prior-arm")
+    parser.add_argument("--release-manifest", type=Path)
     parser.add_argument("--formal-manifest", type=Path)
     parser.add_argument("--formal-cell-key")
     parser.add_argument("--allow-formal-execution", action="store_true")

@@ -19,6 +19,7 @@ from chemworld.eval.provenance import git_source_commit, git_worktree_dirty, wri
 from chemworld.eval.work_ii_development_readiness import (
     validate_development_readiness_receipt,
 )
+from chemworld.eval.work_ii_execution_mode import validate_release_d1_config
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "configs/benchmark/work_ii_campaign_pilot.json"
@@ -130,12 +131,27 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise RuntimeError("provider execution requires a clean committed worktree")
     if args.readiness_receipt is None:
         raise RuntimeError("provider execution requires a zero-provider readiness receipt")
+    if getattr(args, "release_manifest", None) is None:
+        raise RuntimeError("provider execution requires a release manifest")
     seeds = [int(seed) for seed in args.world_seed]
+    config_path = args.config.resolve()
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    if not isinstance(config, dict):
+        raise ValueError("campaign config must contain an object")
+    release_errors = validate_release_d1_config(
+        ROOT,
+        config,
+        args.release_manifest.resolve(),
+        require_provider_authorized=True,
+    )
+    if release_errors:
+        raise RuntimeError("provider release D1 validation failed: " + "; ".join(release_errors))
     readiness_errors = validate_development_readiness_receipt(
         ROOT,
         args.readiness_receipt.resolve(),
-        args.config.resolve(),
+        config_path,
         seeds,
+        release_manifest=args.release_manifest.resolve(),
     )
     if readiness_errors:
         raise RuntimeError("provider readiness failed: " + "; ".join(readiness_errors))
@@ -144,7 +160,6 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     if output.exists():
         raise FileExistsError(f"refusing to overwrite provider output: {output}")
     output.mkdir(parents=True)
-    config = json.loads(args.config.resolve().read_text(encoding="utf-8"))
     if not isinstance(config, dict) or not isinstance(config.get("prior_arms"), dict):
         raise ValueError("campaign config must define prior_arms")
     provider = config.get("provider")
@@ -214,6 +229,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     str(seed),
                     "--prior-arm",
                     arm,
+                    "--release-manifest",
+                    str(args.release_manifest.resolve()),
                 ]
                 kwargs: dict[str, Any] = {}
                 if os.name == "nt":
@@ -373,6 +390,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     report = {
         "schema_version": "chemworld-work-ii-five-seed-campaign-report-0.1",
         "source_commit": git_source_commit(ROOT),
+        "execution_context": dict(config["execution_context"]),
+        "legacy_source_evidence": config.get("legacy_source_evidence"),
+        "provider_execution_authorized": True,
         "task_id": config.get("task_id"),
         "provider_id": provider.get("id"),
         "model": provider.get("model"),
@@ -429,6 +449,7 @@ def main() -> int:
     parser.add_argument("--heartbeat-interval-s", type=float, default=30.0)
     parser.add_argument("--max-concurrency", type=int, default=3)
     parser.add_argument("--readiness-receipt", type=Path, required=True)
+    parser.add_argument("--release-manifest", type=Path, required=True)
     args = parser.parse_args()
     report = run(args)
     return 0 if report["all_cells_terminal"] else 1

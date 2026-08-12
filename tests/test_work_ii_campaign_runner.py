@@ -962,6 +962,7 @@ parser.add_argument("--output", type=Path, required=True)
 parser.add_argument("--progress-file")
 parser.add_argument("--world-seed", type=int, required=True)
 parser.add_argument("--prior-arm", required=True)
+parser.add_argument("--release-manifest")
 args = parser.parse_args()
 args.output.mkdir(parents=True)
 started = {"stage": "cell_started", "world_seed": args.world_seed, "arm": args.prior_arm}
@@ -991,18 +992,33 @@ print(json.dumps(completed), flush=True)
         "validate_development_readiness_receipt",
         lambda *_args, **_kwargs: [],
     )
+    monkeypatch.setattr(
+        five_seed_runner,
+        "validate_release_d1_config",
+        lambda *_args, **_kwargs: [],
+    )
     monkeypatch.setenv("WELLAU_API_KEY", "test-key")
     output = tmp_path / "output"
     progress = tmp_path / "progress.jsonl"
+    config_path = tmp_path / "release-d1.json"
+    release_config = json.loads(
+        (ROOT / "configs/benchmark/work_ii_campaign_pilot.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    release_config["execution_context"] = {"execution_mode": "release"}
+    release_config["legacy_source_evidence"] = False
+    config_path.write_text(json.dumps(release_config), encoding="utf-8")
     report = five_seed_runner.run(
         argparse.Namespace(
-            config=ROOT / "configs/benchmark/work_ii_campaign_pilot.json",
+            config=config_path,
             output=output,
             progress_file=progress,
             world_seed=[0, 1, 2, 3, 4],
             heartbeat_interval_s=0.05,
             max_concurrency=3,
             readiness_receipt=tmp_path / "readiness.json",
+            release_manifest=tmp_path / "release.json",
         )
     )
     assert report["all_cells_completed"] is True
@@ -1033,6 +1049,69 @@ def test_five_seed_runner_requires_readiness_before_creating_output(
     )
     with pytest.raises(RuntimeError, match="zero-provider readiness receipt"):
         five_seed_runner.run(args)
+    assert not output.exists()
+
+
+def test_provider_runner_requires_release_manifest_before_creating_output(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(five_seed_runner, "git_worktree_dirty", lambda _root: False)
+    output = tmp_path / "must-not-exist"
+    args = argparse.Namespace(
+        config=ROOT / "configs/benchmark/work_ii_campaign_pilot.json",
+        output=output,
+        progress_file=tmp_path / "progress.jsonl",
+        world_seed=[0],
+        heartbeat_interval_s=0.05,
+        max_concurrency=3,
+        readiness_receipt=tmp_path / "readiness.json",
+        release_manifest=None,
+    )
+    with pytest.raises(RuntimeError, match="release manifest"):
+        five_seed_runner.run(args)
+    assert not output.exists()
+
+
+def test_direct_d1_runner_rejects_development_context_before_output(
+    tmp_path: Path,
+) -> None:
+    source = json.loads(
+        (
+            ROOT / "configs/benchmark/work_ii_electrochemical_matched_prior_d1.json"
+        ).read_text(encoding="utf-8")
+    )
+    source["execution_context"] = {
+        "execution_mode": "development",
+        "evidence_status": "development_only",
+        "release_eligible": False,
+        "c2_admission_authorized": False,
+        "tested_commit": None,
+        "freeze_id": None,
+        "release_manifest_sha256": None,
+        "execution_surface_sha256": None,
+    }
+    source["legacy_source_evidence"] = False
+    source["qualification"]["q2_passed"] = True
+    config = tmp_path / "development-d1.json"
+    config.write_text(json.dumps(source), encoding="utf-8")
+    output = tmp_path / "must-not-exist"
+    with pytest.raises(RuntimeError, match="requires a release manifest"):
+        campaign_runner.run(
+            argparse.Namespace(
+                config=config,
+                output=output,
+                progress_file=tmp_path / "progress.jsonl",
+                world_seed=0,
+                prior_arm="opaque",
+                formal_manifest=None,
+                formal_cell_key=None,
+                allow_formal_execution=False,
+                qualification_execution=False,
+                resource_calibration_execution=False,
+                release_manifest=None,
+            )
+        )
     assert not output.exists()
 
 

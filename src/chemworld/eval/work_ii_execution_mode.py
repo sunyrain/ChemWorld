@@ -313,6 +313,50 @@ def validate_execution_envelope(
     return errors
 
 
+def validate_release_d1_config(
+    root: Path,
+    config: Mapping[str, Any],
+    release_manifest: Path | Mapping[str, Any],
+    *,
+    require_provider_authorized: bool,
+) -> list[str]:
+    """Validate that one D1 config descends from the exact active release freeze."""
+
+    errors: list[str] = []
+    try:
+        context = prepare_execution_context(
+            root,
+            mode=ExecutionMode.RELEASE,
+            release_manifest=release_manifest,
+        )
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+        return [f"Work II release manifest validation failed: {error}"]
+
+    execution_context = config.get("execution_context")
+    if not isinstance(execution_context, Mapping):
+        errors.append("Work II release D1 lacks its execution context")
+    else:
+        context_errors = validate_execution_envelope(root, execution_context, context)
+        errors.extend(
+            f"Work II release D1 execution context is invalid: {error}"
+            for error in context_errors
+        )
+    if config.get("legacy_source_evidence") is not False:
+        errors.append("Work II release D1 uses legacy source evidence")
+    qualification = config.get("qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    if qualification.get("q2_passed") is not True:
+        errors.append("Work II release D1 lacks a passing same-freeze Q2")
+    if qualification.get("formal_r5_authorized") is not False:
+        errors.append("Work II release D1 crossed the R5 authorization boundary")
+    execution_authorized = qualification.get("execution_authorized")
+    if not isinstance(execution_authorized, bool):
+        errors.append("Work II release D1 execution authorization is malformed")
+    elif require_provider_authorized and execution_authorized is not True:
+        errors.append("Work II release D1 is not provider-authorized")
+    return errors
+
+
 __all__ = [
     "DEVELOPMENT_EVIDENCE_STATUS",
     "RELEASE_EVIDENCE_STATUS",
@@ -324,5 +368,6 @@ __all__ = [
     "prepare_execution_context",
     "release_manifest_sha256",
     "validate_execution_envelope",
+    "validate_release_d1_config",
     "validate_release_manifest",
 ]

@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 from chemworld.eval.provenance import file_sha256, write_json_atomic
+from chemworld.eval.work_ii_execution_mode import validate_release_d1_config
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_ROOT = ROOT / "workstreams/flagship_tasks/reports"
@@ -18,7 +19,22 @@ DEFAULT_OUTPUT = (
 )
 
 
-def build(source: dict, *, source_path: Path) -> dict:
+def build(
+    source: dict,
+    *,
+    source_path: Path,
+    release_manifest: Path | dict,
+) -> dict:
+    source_errors = validate_release_d1_config(
+        ROOT,
+        source,
+        release_manifest,
+        require_provider_authorized=False,
+    )
+    if source_errors:
+        raise ValueError(
+            "release D1 source validation failed: " + "; ".join(source_errors)
+        )
     config = copy.deepcopy(source)
     config["pilot_id"] = "work-ii-reaction-safety-matched-prior-d1-execution"
     config["observation_noise_namespace"] = (
@@ -89,6 +105,16 @@ def build(source: dict, *, source_path: Path) -> dict:
         ),
         "formal_cap_status": "not_frozen_until_this_triplet_is_audited",
     }
+    execution_errors = validate_release_d1_config(
+        ROOT,
+        config,
+        release_manifest,
+        require_provider_authorized=True,
+    )
+    if execution_errors:
+        raise ValueError(
+            "release D1 execution validation failed: " + "; ".join(execution_errors)
+        )
     return config
 
 
@@ -96,6 +122,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--release-manifest", type=Path, required=True)
     args = parser.parse_args()
     source_path = args.input.resolve()
     output_path = args.output.resolve()
@@ -106,7 +133,11 @@ def main() -> int:
     source = json.loads(source_path.read_text(encoding="utf-8"))
     if not isinstance(source, dict):
         raise ValueError("D1 source config must contain an object")
-    generated = build(source, source_path=source_path)
+    generated = build(
+        source,
+        source_path=source_path,
+        release_manifest=args.release_manifest.resolve(),
+    )
     if output_path.exists():
         existing = json.loads(output_path.read_text(encoding="utf-8"))
         if existing != generated:
