@@ -1,6 +1,9 @@
 # Work II partition constitutive-law functional-form A-S Q0 — experiment note
 
 状态：**provider-free seed-0 Q0 design freeze；尚未执行**  
+执行边界：开发模式可在非 clean 工作树上运行，不生成旧式 source/C2 binding，结果一律标为
+`development_only` 且不得进入 C2。问题、覆盖、分母、测量和门槛在开发/发布模式间完全相同；
+只有功能与设计稳定后，才用一次最小执行面 release manifest 重跑发布证据。
 适用阶段：A-S candidate qualification；通过只允许进入不变的 five-world Q1/Q2，不授权 participant/provider。
 
 ## Question

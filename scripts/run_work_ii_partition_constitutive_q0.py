@@ -12,17 +12,14 @@ from time import perf_counter
 from typing import Any
 
 from chemworld.data.logging import load_jsonl
-from chemworld.eval.provenance import (
-    canonical_json_sha256,
-    file_sha256,
-    git_source_commit,
-    write_json_atomic,
-)
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
-from chemworld.eval.work_ii_c2_admission import (
-    build_c2_source_binding,
-    c2_material_dirty_paths,
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    WorkIIExecutionContext,
+    build_execution_envelope,
+    prepare_execution_context,
 )
 from chemworld.eval.work_ii_partition_constitutive_q0 import (
     BASELINE_EXPONENT,
@@ -340,7 +337,7 @@ def _write_outputs(
     output_root: Path,
     summary_path: Path,
     started: float,
-    source_binding: Mapping[str, Any],
+    execution_context: WorkIIExecutionContext,
 ) -> dict[str, Any]:
     baseline_hashes = {
         row["constitutive_intervention_hash"]
@@ -372,7 +369,7 @@ def _write_outputs(
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
-        "c2_source_binding": dict(source_binding),
+        "execution_context": build_execution_envelope(execution_context),
         "task_id": TASK_ID,
         "world_seed": WORLD_SEED,
         "frozen_exponents": {
@@ -386,7 +383,11 @@ def _write_outputs(
     task_report["report_sha256"] = task_report_sha256(task_report)
     report_path = output_root / "task-report.json"
     write_json_atomic(report_path, task_report)
-    report_errors = validate_task_report(task_report)
+    report_errors = validate_task_report(
+        task_report,
+        root=ROOT,
+        expected_execution_context=execution_context,
+    )
     if report_errors:
         raise RuntimeError(
             "invalid partition constitutive Q0 task report: "
@@ -398,8 +399,7 @@ def _write_outputs(
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
-        "source_commit": git_source_commit(ROOT),
-        "c2_source_binding": dict(source_binding),
+        "execution_context": build_execution_envelope(execution_context),
         "task_id": TASK_ID,
         "world_seed": WORLD_SEED,
         "coverage": {
@@ -428,7 +428,9 @@ def _write_outputs(
     }
     summary["summary_sha256"] = summary_sha256(summary)
     write_json_atomic(summary_path, summary)
-    summary_errors = validate_summary(summary, root=ROOT)
+    summary_errors = validate_summary(
+        summary, root=ROOT, expected_execution_context=execution_context
+    )
     if summary_errors:
         raise RuntimeError(
             "invalid partition constitutive Q0 summary: " + "; ".join(summary_errors)
@@ -437,14 +439,13 @@ def _write_outputs(
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    dirty = c2_material_dirty_paths(ROOT)
-    if dirty:
-        raise RuntimeError(
-            "partition constitutive Q0 requires clean scoped sources: " + ", ".join(dirty)
-        )
+    execution_context = prepare_execution_context(
+        ROOT,
+        mode=args.execution_mode,
+        release_manifest=args.release_manifest,
+    )
     if args.output_root.exists() or args.summary.exists():
         raise FileExistsError("refusing to overwrite partition constitutive Q0 outputs")
-    source_binding = build_c2_source_binding(ROOT)
     args.output_root.mkdir(parents=True)
     started = perf_counter()
     audit = constitutive_audit()
@@ -481,7 +482,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     output_root=args.output_root,
                     summary_path=args.summary,
                     started=started,
-                    source_binding=source_binding,
+                    execution_context=execution_context,
                 )
     return _write_outputs(
         rows=rows,
@@ -489,17 +490,33 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         output_root=args.output_root,
         summary_path=args.summary,
         started=started,
-        source_binding=source_binding,
+        execution_context=execution_context,
     )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
-    parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
+    parser.add_argument("--summary", type=Path)
+    parser.add_argument(
+        "--execution-mode",
+        choices=[mode.value for mode in ExecutionMode],
+        default=ExecutionMode.DEVELOPMENT.value,
+    )
+    parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
     args.output_root = args.output_root.resolve()
-    args.summary = args.summary.resolve()
+    args.summary = (
+        args.summary.resolve()
+        if args.summary is not None
+        else (
+            DEFAULT_SUMMARY
+            if args.execution_mode == ExecutionMode.RELEASE.value
+            else args.output_root / "summary.json"
+        ).resolve()
+    )
+    if args.release_manifest is not None:
+        args.release_manifest = args.release_manifest.resolve()
     summary = run(args)
     print(
         json.dumps(

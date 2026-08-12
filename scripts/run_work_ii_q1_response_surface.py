@@ -25,14 +25,15 @@ from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
-    git_source_commit,
     write_json_atomic,
 )
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
-from chemworld.eval.work_ii_c2_admission import (
-    build_c2_source_binding,
-    c2_material_dirty_paths,
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    WorkIIExecutionContext,
+    build_execution_envelope,
+    prepare_execution_context,
 )
 from chemworld.eval.work_ii_response_surface_qualification import (
     ADAPTIVE_RECIPE_COUNT,
@@ -50,12 +51,6 @@ from chemworld.tasks import get_task
 ROOT = Path(__file__).resolve().parents[1]
 SUMMARY_VERSION = "chemworld-work-ii-q1-five-world-summary-0.3"
 WORLD_REPORT_VERSION = "chemworld-work-ii-q1-world-report-0.3"
-SCOPED_RUNTIME_PREFIXES = (
-    "src/",
-    "scripts/",
-    "configs/benchmark/",
-    "workstreams/flagship_tasks/",
-)
 TASK_SPECS: dict[str, dict[str, Any]] = {
     "reaction-safety-constrained": {
         "config": "configs/benchmark/work_ii_reaction_safety_parametric_initial_model_pilot.json",
@@ -169,8 +164,15 @@ def _load(path: Path) -> dict[str, Any]:
     return value
 
 
-def _scoped_dirty_paths() -> list[str]:
-    return c2_material_dirty_paths(ROOT)
+def _prepare_execution(
+    args: argparse.Namespace,
+) -> tuple[WorkIIExecutionContext, dict[str, object]]:
+    context = prepare_execution_context(
+        ROOT,
+        mode=getattr(args, "execution_mode", ExecutionMode.DEVELOPMENT.value),
+        release_manifest=getattr(args, "release_manifest", None),
+    )
+    return context, build_execution_envelope(context)
 
 
 def _emit(path: Path, payload: Mapping[str, Any]) -> None:
@@ -520,6 +522,7 @@ def _run_world(
     world_seed: int,
     world_root: Path,
     progress_path: Path,
+    execution_context: Mapping[str, object],
 ) -> dict[str, Any]:
     world_root.mkdir(parents=True, exist_ok=False)
     schema = _q1_coordinate_schema(task_id)
@@ -672,6 +675,7 @@ def _run_world(
         "schema_version": WORLD_REPORT_VERSION,
         "qualification_schema_version": WORK_II_Q1_RESPONSE_SURFACE_VERSION,
         "formal_result": False,
+        "execution_context": dict(execution_context),
         "task_id": task_id,
         "world_seed": world_seed,
         "coverage": {
@@ -696,12 +700,7 @@ def _run_world(
 def run(args: argparse.Namespace) -> dict[str, Any]:
     task_id = str(args.task_id)
     spec = TASK_SPECS[task_id]
-    scoped_dirty = _scoped_dirty_paths()
-    if scoped_dirty:
-        raise RuntimeError(
-            "Q1 qualification requires clean Work II/runtime sources: "
-            + ", ".join(scoped_dirty)
-        )
+    _, execution_context = _prepare_execution(args)
     output_root = args.output_root.resolve()
     summary_path = args.summary.resolve()
     progress_path = args.progress_file.resolve()
@@ -744,6 +743,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             world_seed=int(world_seed),
             world_root=output_root / f"world-{world_seed}",
             progress_path=progress_path,
+            execution_context=execution_context,
         )
         world_reports.append(report)
         _emit(
@@ -781,10 +781,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "schema_version": SUMMARY_VERSION,
         "qualification_schema_version": WORK_II_Q1_RESPONSE_SURFACE_VERSION,
         "formal_result": False,
-        "source_commit": git_source_commit(ROOT),
-        "c2_source_binding": build_c2_source_binding(ROOT),
-        "scoped_runtime_clean": True,
-        "dynamic_evidence_excluded_from_material_cleanliness": True,
+        "execution_context": execution_context,
         "task_id": task_id,
         "world_seeds": list(get_task(task_id).seeds),
         "q0": q0,
@@ -863,6 +860,12 @@ def main() -> int:
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--summary", type=Path, required=True)
     parser.add_argument("--progress-file", type=Path, required=True)
+    parser.add_argument(
+        "--execution-mode",
+        choices=[mode.value for mode in ExecutionMode],
+        default=ExecutionMode.DEVELOPMENT.value,
+    )
+    parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
     summary = run(args)
     return 0 if summary["q1_passed"] else 2

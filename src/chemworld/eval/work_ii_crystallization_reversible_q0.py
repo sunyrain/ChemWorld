@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
-from chemworld.eval.work_ii_c2_admission import validate_c2_source_binding
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    WorkIIExecutionContext,
+    validate_execution_envelope,
+)
 from chemworld.eval.work_ii_static_topology_q0 import (
     LAW_IDS,
     WORLD_SEED,
@@ -31,8 +35,43 @@ def self_hash(payload: Mapping[str, Any], field: str) -> str:
     )
 
 
-def validate_task_report(report: Mapping[str, Any]) -> list[str]:
+def _execution_errors(
+    root: Path,
+    payload: Mapping[str, Any],
+    expected_execution_context: WorkIIExecutionContext | None = None,
+) -> tuple[list[str], str | None]:
+    envelope = payload.get("execution_context")
+    if not isinstance(envelope, Mapping):
+        return ["crystallization reversible Q0 lacks an execution context"], None
+    return (
+        validate_execution_envelope(
+            root, envelope, expected_context=expected_execution_context
+        ),
+        str(envelope.get("execution_mode")),
+    )
+
+
+def validate_task_report(
+    report: Mapping[str, Any],
+    *,
+    root: Path | None = None,
+    expected_execution_context: WorkIIExecutionContext | None = None,
+) -> list[str]:
     errors: list[str] = []
+    if root is not None:
+        execution_errors, mode = _execution_errors(
+            root, report, expected_execution_context
+        )
+        errors.extend(execution_errors)
+    else:
+        envelope = report.get("execution_context")
+        mode = (
+            str(envelope.get("execution_mode"))
+            if isinstance(envelope, Mapping)
+            else None
+        )
+        if mode not in {item.value for item in ExecutionMode}:
+            errors.append("crystallization reversible Q0 lacks a valid execution context")
     if report.get("schema_version") != TASK_REPORT_VERSION:
         errors.append("unexpected crystallization reversible Q0 task-report schema")
     if report.get("qualification_schema_version") != QUALIFICATION_VERSION:
@@ -64,9 +103,13 @@ def validate_summary(
     root: Path,
     summary: Mapping[str, Any],
     *,
-    expected_source_binding: Mapping[str, Any] | None = None,
+    expected_execution_context: WorkIIExecutionContext | None = None,
 ) -> list[str]:
     errors: list[str] = []
+    execution_errors, _mode = _execution_errors(
+        root, summary, expected_execution_context
+    )
+    errors.extend(execution_errors)
     if summary.get("schema_version") != SUMMARY_VERSION:
         errors.append("unexpected crystallization reversible Q0 summary schema")
     if summary.get("qualification_schema_version") != QUALIFICATION_VERSION:
@@ -99,10 +142,6 @@ def validate_summary(
         errors.append("crystallization reversible Q0 must not authorize D1")
     if summary.get("provider_execution_authorized") is not False:
         errors.append("crystallization reversible Q0 must not authorize provider execution")
-    binding = summary.get("c2_source_binding")
-    errors.extend(validate_c2_source_binding(root, binding))
-    if expected_source_binding is not None and binding != expected_source_binding:
-        errors.append("crystallization reversible Q0 C2 source binding differs from cohort")
     raw = summary.get("raw_binding")
     if not isinstance(raw, Mapping):
         errors.append("crystallization reversible Q0 raw binding is missing")
@@ -117,11 +156,17 @@ def validate_summary(
             payload = json.loads(path.read_text(encoding="utf-8"))
             if not isinstance(payload, dict):
                 raise ValueError("raw task report is not an object")
-            errors.extend(validate_task_report(payload))
+            errors.extend(
+                validate_task_report(
+                    payload,
+                    root=root,
+                    expected_execution_context=expected_execution_context,
+                )
+            )
+            if payload.get("execution_context") != summary.get("execution_context"):
+                errors.append("crystallization Q0 raw/execution context mismatch")
             if raw.get("report_sha256") != payload.get("report_sha256"):
                 errors.append("crystallization reversible Q0 embedded report hash mismatch")
-            if payload.get("c2_source_binding") != binding:
-                errors.append("crystallization reversible Q0 raw/source binding mismatch")
             if payload.get("analysis") != analysis:
                 errors.append("crystallization reversible Q0 raw/summary analysis mismatch")
         except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as error:

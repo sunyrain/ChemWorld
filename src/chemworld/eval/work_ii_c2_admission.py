@@ -15,6 +15,10 @@ from chemworld.eval.provenance import (
     git_source_commit,
     git_worktree_dirty,
 )
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    validate_execution_envelope,
+)
 from chemworld.eval.work_ii_source_binding import work_ii_material_tree_sha256
 
 C2_ADMISSION_PLAN_VERSION = "chemworld-work-ii-c2-admission-plan-0.1"
@@ -187,6 +191,7 @@ def build_c2_outcome_blind_selection_record(
     terminal_eligibility: Mapping[str, Mapping[str, Any]],
     selection_slot: int,
     source_binding: Mapping[str, Any] | None = None,
+    validate_source_binding_contract: bool = True,
 ) -> dict[str, Any]:
     """Freeze one task choice without using formal participant outcomes.
 
@@ -200,7 +205,11 @@ def build_c2_outcome_blind_selection_record(
     if not isinstance(task_id, str) or not task_id:
         raise ValueError("C2 selection task_id must be non-empty")
     binding = dict(source_binding) if source_binding is not None else build_c2_source_binding(root)
-    binding_errors = validate_c2_source_binding(root, binding)
+    binding_errors = (
+        validate_c2_source_binding(root, binding)
+        if validate_source_binding_contract
+        else []
+    )
     if binding_errors:
         raise ValueError("invalid C2 source binding: " + "; ".join(binding_errors))
     protocol_path = _inside_root(root, selection_protocol_path, label="selection protocol")
@@ -296,6 +305,39 @@ def build_c2_outcome_blind_selection_record(
 
 def _is_commit(value: object) -> bool:
     return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40}", value) is not None
+
+
+def _release_execution_context_errors(
+    root: Path,
+    execution_context: object,
+    *,
+    label: str,
+) -> list[str]:
+    """Require one release-authorized envelope without rehashing the source tree."""
+
+    if not isinstance(execution_context, Mapping):
+        return [f"{label} execution context is missing"]
+    errors = [
+        f"{label}: {error}"
+        for error in validate_execution_envelope(root, execution_context)
+    ]
+    if (
+        execution_context.get("execution_mode") != ExecutionMode.RELEASE.value
+        or execution_context.get("release_eligible") is not True
+        or execution_context.get("c2_admission_authorized") is not True
+    ):
+        errors.append(f"{label} is not release-authorized for C2 admission")
+    return errors
+
+
+def _execution_cohort_key(execution_context: object) -> tuple[str, str] | None:
+    if not isinstance(execution_context, Mapping):
+        return None
+    freeze_id = execution_context.get("freeze_id")
+    tested_commit = execution_context.get("tested_commit")
+    if not isinstance(freeze_id, str) or not _is_commit(tested_commit):
+        return None
+    return freeze_id, str(tested_commit)
 
 
 def build_c2_source_binding(root: Path) -> dict[str, Any]:
@@ -536,6 +578,7 @@ def _stage_evidence_row(
     path: Path,
     task_id: str,
     source_binding: Mapping[str, Any],
+    require_release_context: bool = False,
 ) -> tuple[dict[str, Any], list[str]]:
     path = _inside_root(root, path, label=f"{stage} evidence")
     errors = _dynamic_evidence_path_errors(root, path, label=f"{stage} evidence")
@@ -548,18 +591,22 @@ def _stage_evidence_row(
         embedded_hash, hash_errors = _embedded_hash_contract(report)
         errors.extend(hash_errors)
         errors.extend(_stage_status_errors(report, stage=stage, task_id=task_id))
-        tested_commit = source_binding.get("tested_commit")
-        stage_binding = report.get("c2_source_binding")
-        if isinstance(stage_binding, Mapping):
-            errors.extend(validate_c2_source_binding(root, stage_binding))
-            if stage_binding.get("tested_commit") != tested_commit:
-                errors.append(f"{stage} report does not share the receipt runtime commit")
-        elif report.get("source_commit") != tested_commit:
-            errors.append(f"{stage} report is not bound to the receipt runtime commit")
-        if stage == "D1" and report.get("participant_source_commit") != tested_commit:
-            errors.append("D1 participant trajectory is not bound to the receipt runtime commit")
+        execution_context = report.get("execution_context")
+        if require_release_context or execution_context is not None:
+            errors.extend(
+                _release_execution_context_errors(
+                    root,
+                    execution_context,
+                    label=f"{stage} report",
+                )
+            )
     row: dict[str, Any] = {
         "stage": stage,
+        "execution_context": (
+            dict(report["execution_context"])
+            if isinstance(report.get("execution_context"), Mapping)
+            else None
+        ),
         "report_binding": (
             {
                 "path": path.relative_to(root).as_posix(),
@@ -613,6 +660,7 @@ def _selection_errors(
     locus: str,
     task_id: str,
     source_binding: Mapping[str, Any],
+    require_legacy_source_binding: bool = True,
 ) -> list[str]:
     errors: list[str] = []
     if record.get("schema_version") != C2_OUTCOME_BLIND_SELECTION_VERSION:
@@ -661,6 +709,14 @@ def _selection_errors(
                 for row in roster
                 if isinstance(row, Mapping)
             }
+            rebuild_binding = (
+                source_binding
+                if require_legacy_source_binding
+                else record.get("source_binding")
+            )
+            rebuild_binding = (
+                rebuild_binding if isinstance(rebuild_binding, Mapping) else {}
+            )
             rebuilt = build_c2_outcome_blind_selection_record(
                 root,
                 locus=locus,
@@ -668,20 +724,22 @@ def _selection_errors(
                 selection_protocol_path=protocol_path,
                 terminal_eligibility=terminal_eligibility,
                 selection_slot=int(record.get("selection_slot", 0)),
-                source_binding=source_binding,
+                source_binding=rebuild_binding,
+                validate_source_binding_contract=require_legacy_source_binding,
             )
         except (OSError, TypeError, ValueError) as error:
             errors.append(f"selection record cannot be deterministically rebuilt: {error}")
         else:
             if dict(record) != rebuilt:
                 errors.append("selection record differs from deterministic outcome-blind rebuild")
-    record_binding = record.get("source_binding")
-    if not isinstance(record_binding, Mapping):
-        errors.append("selection record lacks its C2 source binding")
-    else:
-        errors.extend(validate_c2_source_binding(root, record_binding))
-        if record_binding.get("tested_commit") != source_binding.get("tested_commit"):
-            errors.append("selection record does not share the receipt runtime commit")
+    if require_legacy_source_binding:
+        record_binding = record.get("source_binding")
+        if not isinstance(record_binding, Mapping):
+            errors.append("selection record lacks its C2 source binding")
+        else:
+            errors.extend(validate_c2_source_binding(root, record_binding))
+            if record_binding.get("tested_commit") != source_binding.get("tested_commit"):
+                errors.append("selection record does not share the receipt runtime commit")
     return errors
 
 
@@ -943,6 +1001,7 @@ def _task_receipt_errors(
     receipt: Mapping[str, Any],
     *,
     locus: str,
+    require_release_context: bool = False,
 ) -> list[str]:
     errors: list[str] = []
     task_id = receipt.get("task_id")
@@ -964,10 +1023,12 @@ def _task_receipt_errors(
         errors.append(f"{locus} task admission is not a terminal outcome-blind pass: {task_id}")
     source_binding = receipt.get("source_binding")
     source_binding = source_binding if isinstance(source_binding, Mapping) else {}
-    errors.extend(validate_c2_source_binding(root, source_binding))
+    if not require_release_context:
+        errors.extend(validate_c2_source_binding(root, source_binding))
     stage_order = receipt.get("stage_evidence_order")
     stages = receipt.get("stage_evidence")
     stages = stages if isinstance(stages, list) else []
+    stage_cohorts: list[tuple[str, str]] = []
     if stage_order != list(C2_TASK_STAGE_ORDER) or [
         row.get("stage") for row in stages if isinstance(row, Mapping)
     ] != list(C2_TASK_STAGE_ORDER):
@@ -998,10 +1059,22 @@ def _task_receipt_errors(
             path=path,
             task_id=str(task_id),
             source_binding=source_binding,
+            require_release_context=require_release_context,
         )
         if dict(row) != rebuilt:
             errors.append(f"{locus} task admission {stage} evidence is stale: {task_id}")
         errors.extend(f"{stage}: {error}" for error in stage_errors)
+        cohort = _execution_cohort_key(rebuilt.get("execution_context"))
+        if cohort is not None:
+            stage_cohorts.append(cohort)
+    if require_release_context and (
+        len(stage_cohorts) != len(C2_TASK_STAGE_ORDER)
+        or len(set(stage_cohorts)) != 1
+    ):
+        errors.append(
+            f"{locus} task admission stages do not share one release freeze and commit: "
+            f"{task_id}"
+        )
     selection_binding = receipt.get("outcome_blind_selection_binding")
     selection_binding = (
         selection_binding if isinstance(selection_binding, Mapping) else {}
@@ -1032,6 +1105,7 @@ def _task_receipt_errors(
                         locus=locus,
                         task_id=str(task_id),
                         source_binding=source_binding,
+                        require_legacy_source_binding=not require_release_context,
                     )
                 )
                 expected_selection = _binding(
@@ -1090,7 +1164,13 @@ def _ae_qualification_errors(
     )
     if report.get("status") != "passed":
         errors.append("A_E prior qualification did not pass")
-    errors.extend(validate_c2_source_binding(root, report.get("c2_source_binding")))
+    errors.extend(
+        _release_execution_context_errors(
+            root,
+            report.get("execution_context"),
+            label="A_E prior qualification",
+        )
+    )
     return report, errors
 
 
@@ -1142,13 +1222,7 @@ def build_c2_admission_report(
     design = _load_object(design_path)
     blockers: list[str] = []
     evidence_errors: list[str] = _plan_errors(plan)
-    evidence_commits: list[str] = []
-    dirty_material = c2_material_dirty_paths(root)
-    if dirty_material:
-        blockers.append(
-            "C2 admission requires a clean protected material tree: "
-            + ", ".join(dirty_material)
-        )
+    evidence_cohorts: list[tuple[str, str]] = []
 
     required = plan.get("required_blocks")
     required = required if isinstance(required, Mapping) else {}
@@ -1190,11 +1264,19 @@ def build_c2_admission_report(
                 root,
                 receipt,
                 locus=locus,
+                require_release_context=True,
             )
-            source = receipt.get("source_binding")
-            source = source if isinstance(source, Mapping) else {}
-            if _is_commit(source.get("tested_commit")):
-                evidence_commits.append(str(source["tested_commit"]))
+            stages = receipt.get("stage_evidence")
+            stages = stages if isinstance(stages, list) else []
+            stage_cohorts = {
+                cohort
+                for row in stages
+                if isinstance(row, Mapping)
+                for cohort in (_execution_cohort_key(row.get("execution_context")),)
+                if cohort is not None
+            }
+            if len(stage_cohorts) == 1:
+                evidence_cohorts.append(next(iter(stage_cohorts)))
             evidence_errors.extend(receipt_errors)
             selection_binding = receipt.get("outcome_blind_selection_binding")
             selection_binding = (
@@ -1245,10 +1327,10 @@ def build_c2_admission_report(
             design,
         )
         evidence_errors.extend(ae_errors)
-        ae_source = ae_report.get("c2_source_binding") if ae_report else None
-        ae_source = ae_source if isinstance(ae_source, Mapping) else {}
-        if _is_commit(ae_source.get("tested_commit")):
-            evidence_commits.append(str(ae_source["tested_commit"]))
+        ae_context = ae_report.get("execution_context") if ae_report else None
+        ae_cohort = _execution_cohort_key(ae_context)
+        if ae_cohort is not None:
+            evidence_cohorts.append(ae_cohort)
 
     calibration = plan.get("resource_calibration")
     calibration = calibration if isinstance(calibration, Mapping) else {}
@@ -1281,24 +1363,18 @@ def build_c2_admission_report(
             (root / summary_value).resolve(),
         )
         evidence_errors.extend(calibration_errors)
-        calibration_source = (
-            calibration_summary.get("c2_source_binding")
-            if calibration_summary
-            else None
-        )
-        calibration_source = (
-            calibration_source if isinstance(calibration_source, Mapping) else {}
-        )
-        if _is_commit(calibration_source.get("tested_commit")):
-            evidence_commits.append(str(calibration_source["tested_commit"]))
-
-    expected_evidence_commits = 6
-    shared_commits = set(evidence_commits)
-    if len(evidence_commits) != expected_evidence_commits or len(shared_commits) != 1:
+    expected_release_contexts = 5
+    shared_cohorts = set(evidence_cohorts)
+    if (
+        len(evidence_cohorts) != expected_release_contexts
+        or len(shared_cohorts) != 1
+    ):
         blockers.append(
-            "A_E, two A_P, two A_S and W2-26 do not prove one shared runtime commit"
+            "A_E, two A_P and two A_S do not prove one shared release freeze and commit"
         )
-    runtime_commit = next(iter(shared_commits)) if len(shared_commits) == 1 else None
+    release_cohort = next(iter(shared_cohorts)) if len(shared_cohorts) == 1 else None
+    release_freeze_id = release_cohort[0] if release_cohort is not None else None
+    runtime_commit = release_cohort[1] if release_cohort is not None else None
 
     schedule = _schedule_binding(ae_public_cells)
     if (
@@ -1320,6 +1396,7 @@ def build_c2_admission_report(
             "path": design_path.relative_to(root).as_posix(),
             "sha256": canonical_json_sha256(design),
         },
+        "shared_release_freeze_id": release_freeze_id,
         "shared_runtime_commit": runtime_commit,
         "blocks": {
             "A_E": {

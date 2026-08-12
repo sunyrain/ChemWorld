@@ -13,14 +13,7 @@ from typing import Any
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
-    git_source_commit,
     write_json_atomic,
-)
-from chemworld.eval.work_ii_c2_admission import (
-    C2_DYNAMIC_EVIDENCE_ROOT,
-    build_c2_source_binding,
-    c2_material_dirty_paths,
-    validate_c2_source_binding,
 )
 from chemworld.eval.work_ii_electrochemical_matched_prior_qualification import (
     MATCHED_PRIOR_VERSION,
@@ -29,6 +22,13 @@ from chemworld.eval.work_ii_electrochemical_matched_prior_qualification import (
     rounded_reference_context,
     select_reference_candidate,
     surface_design,
+)
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    WorkIIExecutionContext,
+    build_execution_envelope,
+    prepare_execution_context,
+    validate_execution_envelope,
 )
 from chemworld.tasks import get_task
 
@@ -63,10 +63,14 @@ DEFAULT_SUMMARY = (
     "work-ii-electrochemical-matched-prior-qualification-20260811.json"
 )
 DEFAULT_PACKAGE = (
-    ROOT / C2_DYNAMIC_EVIDENCE_ROOT / "work-ii-electrochemical-matched-prior-package.json"
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "work-ii-electrochemical-matched-prior-package.json"
 )
 DEFAULT_D1_CONFIG = (
-    ROOT / C2_DYNAMIC_EVIDENCE_ROOT / "work-ii-electrochemical-matched-prior-d1.json"
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "work-ii-electrochemical-matched-prior-d1.json"
 )
 SUMMARY_VERSION = "chemworld-work-ii-electrochemical-matched-prior-five-world-summary-0.3"
 WORLD_REPORT_VERSION = "chemworld-work-ii-electrochemical-matched-prior-world-report-0.3"
@@ -114,30 +118,125 @@ class Progress:
         self.last_emit = now
 
 
-def _source_reports(source_summary: Mapping[str, Any]) -> list[dict[str, Any]]:
+def _prepare_execution(
+    args: argparse.Namespace,
+) -> tuple[WorkIIExecutionContext, dict[str, object]]:
+    context = prepare_execution_context(
+        ROOT,
+        mode=getattr(args, "execution_mode", ExecutionMode.DEVELOPMENT.value),
+        release_manifest=getattr(args, "release_manifest", None),
+    )
+    return context, build_execution_envelope(context)
+
+
+def _resolve_output_paths(
+    args: argparse.Namespace, context: WorkIIExecutionContext
+) -> tuple[Path, Path, Path, Path]:
+    output_root = args.output_root.resolve()
+    summary_path = (
+        args.summary.resolve()
+        if args.summary is not None
+        else (
+            DEFAULT_SUMMARY
+            if context.mode is ExecutionMode.RELEASE
+            else output_root / "summary.json"
+        )
+    )
+    package_path = (
+        args.package.resolve()
+        if args.package is not None
+        else (
+            DEFAULT_PACKAGE
+            if context.mode is ExecutionMode.RELEASE
+            else output_root / "package.json"
+        )
+    )
+    d1_config_path = (
+        args.d1_config.resolve()
+        if args.d1_config is not None
+        else (
+            DEFAULT_D1_CONFIG
+            if context.mode is ExecutionMode.RELEASE
+            else output_root / "d1.json"
+        )
+    )
+    return output_root, summary_path, package_path, d1_config_path
+
+
+def _validate_source_execution_context(
+    source_summary: Mapping[str, Any],
+    execution_context: WorkIIExecutionContext,
+) -> tuple[Mapping[str, Any] | None, bool]:
+    source_context = source_summary.get("execution_context")
+    if not isinstance(source_context, Mapping):
+        if execution_context.mode is ExecutionMode.RELEASE:
+            raise ValueError("release Q2 source lacks its execution context")
+        return None, True
+    if execution_context.mode is ExecutionMode.RELEASE:
+        context_errors = validate_execution_envelope(ROOT, source_context, execution_context)
+        if context_errors:
+            raise ValueError(
+                "release Q2 source must use the same release freeze: "
+                + "; ".join(context_errors)
+            )
+    elif source_context.get("execution_mode") not in {
+        ExecutionMode.DEVELOPMENT.value,
+        ExecutionMode.RELEASE.value,
+    }:
+        raise ValueError("development Q2 source has an unsupported execution mode")
+    return source_context, False
+
+
+def _source_reports(
+    source_summary: Mapping[str, Any],
+    *,
+    execution_context: WorkIIExecutionContext,
+) -> tuple[list[dict[str, Any]], bool]:
     if (
         source_summary.get("q2_authorized") is not True
         or source_summary.get("decision") != "proceed_to_q2_matched_prior_construction"
     ):
         raise ValueError("electrochemical mechanism-oracle source does not authorize Q2")
+    if source_summary.get("summary_sha256") != canonical_json_sha256(
+        {
+            key: value
+            for key, value in source_summary.items()
+            if key != "summary_sha256"
+        }
+    ):
+        raise ValueError("electrochemical mechanism-oracle source summary self-hash mismatch")
     bindings = source_summary.get("raw_bindings")
     if not isinstance(bindings, list) or len(bindings) != 5:
         raise ValueError("electrochemical mechanism-oracle source must bind five raw reports")
+    source_execution_context, legacy_source_evidence = _validate_source_execution_context(
+        source_summary, execution_context
+    )
     reports = []
-    if source_summary.get("source_commit") != build_c2_source_binding(ROOT)["tested_commit"]:
-        raise ValueError("electrochemical mechanism-oracle source commit drifted")
     for binding in sorted(bindings, key=lambda item: int(item["world_seed"])):
         path = (ROOT / str(binding["path"])).resolve()
-        if not path.is_file() or file_sha256(path) != str(binding["sha256"]):
+        if (
+            not path.is_relative_to(ROOT)
+            or not path.is_file()
+            or file_sha256(path) != str(binding["sha256"])
+        ):
             raise ValueError(f"electrochemical mechanism-oracle raw binding mismatch: {path}")
         report = _load(path)
+        if report.get("report_sha256") != canonical_json_sha256(
+            {key: value for key, value in report.items() if key != "report_sha256"}
+        ):
+            raise ValueError("electrochemical mechanism-oracle raw source self-hash mismatch")
         if (
             int(report["world_seed"]) != int(binding["world_seed"])
             or report.get("analysis", {}).get("passed") is not True
         ):
             raise ValueError("electrochemical mechanism-oracle source world drifted")
+        if (
+            not legacy_source_evidence
+            and report.get("execution_context") != source_execution_context
+        ):
+            raise ValueError("electrochemical mechanism-oracle raw execution context drifted")
         reports.append(report)
-    return reports
+    return reports, legacy_source_evidence
 
 
 def _run_world(
@@ -147,6 +246,8 @@ def _run_world(
     spec: Mapping[str, Any],
     output_root: Path,
     progress: Progress,
+    execution_context: Mapping[str, object],
+    legacy_source_evidence: bool,
 ) -> dict[str, Any]:
     world_seed = int(source_report["world_seed"])
     selected = select_reference_candidate(source_report)
@@ -202,6 +303,8 @@ def _run_world(
         "schema_version": WORLD_REPORT_VERSION,
         "qualification_schema_version": MATCHED_PRIOR_VERSION,
         "formal_result": False,
+        "execution_context": dict(execution_context),
+        "legacy_source_evidence": legacy_source_evidence,
         "task_id": TASK_ID,
         "world_seed": world_seed,
         "source_mechanism_oracle_report_sha256": str(source_report["report_sha256"]),
@@ -220,13 +323,26 @@ def _run_world(
     return report
 
 
-def _d1_config(base: Mapping[str, Any], world_package: Mapping[str, Any]) -> dict[str, Any]:
+def _d1_config(
+    base: Mapping[str, Any],
+    world_package: Mapping[str, Any],
+    *,
+    execution_context: Mapping[str, object] | None = None,
+    legacy_source_evidence: bool = False,
+) -> dict[str, Any]:
     config = copy.deepcopy(dict(base))
     config.update(
         {
             "schema_version": "chemworld-work-ii-campaign-pilot-0.4",
             "pilot_id": "work-ii-electrochemical-matched-prior-d1",
             "formal_result": False,
+            "execution_context": dict(
+                execution_context
+                or build_execution_envelope(
+                    prepare_execution_context(ROOT, mode=ExecutionMode.DEVELOPMENT)
+                )
+            ),
+            "legacy_source_evidence": legacy_source_evidence,
             "world_seed": int(world_package["world_seed"]),
             "observation_noise_namespace": "work-ii-electrochemical-matched-prior-d1",
             "prior_arms": copy.deepcopy(world_package["prior_arms"]),
@@ -327,31 +443,30 @@ def _d1_config(base: Mapping[str, Any], world_package: Mapping[str, Any]) -> dic
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    dirty = c2_material_dirty_paths(ROOT)
-    if dirty:
-        raise RuntimeError(
-            "electrochemical matched-prior qualification requires clean scoped sources: "
-            + ", ".join(dirty)
-        )
+    context, execution_context = _prepare_execution(args)
     source_summary_path = args.source_summary.resolve()
-    paths = [args.output_root, args.summary, args.package, args.d1_config]
-    dynamic_root = (ROOT / C2_DYNAMIC_EVIDENCE_ROOT).resolve()
-    for path in (args.summary, args.package, args.d1_config):
-        if not path.resolve().is_relative_to(dynamic_root):
-            raise ValueError("matched-prior tracked outputs must use the dynamic evidence root")
+    output_root, summary_path, package_path, d1_config_path = _resolve_output_paths(
+        args, context
+    )
+    paths = [output_root, summary_path, package_path, d1_config_path]
+    dynamic_root = (ROOT / "workstreams/flagship_tasks/reports").resolve()
+    if context.mode is ExecutionMode.RELEASE:
+        for path in (summary_path, package_path, d1_config_path):
+            if not path.resolve().is_relative_to(dynamic_root):
+                raise ValueError(
+                    "matched-prior tracked outputs must use the dynamic evidence root"
+                )
     if any(path.exists() for path in paths):
         raise FileExistsError(
             "refusing to overwrite electrochemical matched-prior qualification outputs"
         )
     source_summary = _load(source_summary_path)
-    source_reports = _source_reports(source_summary)
-    c2_source_binding = build_c2_source_binding(ROOT)
-    binding_errors = validate_c2_source_binding(ROOT, c2_source_binding)
-    if binding_errors:
-        raise RuntimeError("invalid C2 source binding: " + "; ".join(binding_errors))
+    source_reports, legacy_source_evidence = _source_reports(
+        source_summary, execution_context=context
+    )
     spec = TASK_SPECS[TASK_ID]
     base_config = _load((ROOT / str(spec["config"])).resolve())
-    args.output_root.mkdir(parents=True)
+    output_root.mkdir(parents=True)
     progress = Progress(args.progress_file)
     started = perf_counter()
     world_reports = [
@@ -359,8 +474,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             source_report=source_report,
             config=base_config,
             spec=spec,
-            output_root=args.output_root,
+            output_root=output_root,
             progress=progress,
+            execution_context=execution_context,
+            legacy_source_evidence=legacy_source_evidence,
         )
         for source_report in source_reports
     ]
@@ -368,7 +485,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     raw_bindings = []
     for report in world_reports:
         world_seed = int(report["world_seed"])
-        raw_path = args.output_root / f"world-{world_seed}" / "world-report.json"
+        raw_path = output_root / f"world-{world_seed}" / "world-report.json"
         world_package: dict[str, Any] = {
             "task_id": TASK_ID,
             "world_seed": world_seed,
@@ -393,6 +510,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "schema_version": PACKAGE_VERSION,
         "qualification_schema_version": MATCHED_PRIOR_VERSION,
         "formal_result": False,
+        "execution_context": execution_context,
+        "legacy_source_evidence": legacy_source_evidence,
         "task_id": TASK_ID,
         "source_summary": {
             "path": source_summary_path.relative_to(ROOT).as_posix(),
@@ -407,10 +526,19 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "worlds": package_worlds,
     }
     package["package_sha256"] = canonical_json_sha256(package)
-    write_json_atomic(args.package, package)
-    d1_config = _d1_config(base_config, package_worlds[0]) if qualification_passed else None
+    write_json_atomic(package_path, package)
+    d1_config = (
+        _d1_config(
+            base_config,
+            package_worlds[0],
+            execution_context=execution_context,
+            legacy_source_evidence=legacy_source_evidence,
+        )
+        if qualification_passed
+        else None
+    )
     if d1_config is not None:
-        write_json_atomic(args.d1_config, d1_config)
+        write_json_atomic(d1_config_path, d1_config)
     failures = [
         {"world_seed": report["world_seed"], "failure": failure}
         for report in world_reports
@@ -420,8 +548,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "schema_version": SUMMARY_VERSION,
         "qualification_schema_version": MATCHED_PRIOR_VERSION,
         "formal_result": False,
-        "source_commit": git_source_commit(ROOT),
-        "c2_source_binding": c2_source_binding,
+        "execution_context": execution_context,
+        "legacy_source_evidence": legacy_source_evidence,
         "task_id": TASK_ID,
         "world_seeds": list(get_task(TASK_ID).seeds),
         "provider_call_count": 0,
@@ -479,13 +607,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         if qualification_passed
         else "reject_electrochemical_matched_prior_before_d1",
         "generated_package": {
-            "path": args.package.relative_to(ROOT).as_posix(),
-            "sha256": file_sha256(args.package),
+            "path": package_path.relative_to(ROOT).as_posix(),
+            "sha256": file_sha256(package_path),
         },
         "generated_d1_config": (
             {
-                "path": args.d1_config.relative_to(ROOT).as_posix(),
-                "sha256": file_sha256(args.d1_config),
+                "path": d1_config_path.relative_to(ROOT).as_posix(),
+                "sha256": file_sha256(d1_config_path),
             }
             if d1_config is not None
             else None
@@ -498,7 +626,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         ),
     }
     summary["summary_sha256"] = canonical_json_sha256(summary)
-    write_json_atomic(args.summary, summary)
+    write_json_atomic(summary_path, summary)
     _emit(
         args.progress_file,
         {
@@ -519,10 +647,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--source-summary", type=Path, default=SOURCE_SUMMARY)
-    parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
-    parser.add_argument("--package", type=Path, default=DEFAULT_PACKAGE)
-    parser.add_argument("--d1-config", type=Path, default=DEFAULT_D1_CONFIG)
+    parser.add_argument("--summary", type=Path)
+    parser.add_argument("--package", type=Path)
+    parser.add_argument("--d1-config", type=Path)
     parser.add_argument("--progress-file", type=Path, required=True)
+    parser.add_argument(
+        "--execution-mode",
+        choices=[mode.value for mode in ExecutionMode],
+        default=ExecutionMode.DEVELOPMENT.value,
+    )
+    parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
     summary = run(args)
     return 0 if summary["qualification_passed"] else 2

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
 from typing import Any
 
 import pytest
+import scripts.run_work_ii_constitutive_structural_qualification as runner
 from scripts.run_work_ii_campaign_pilot import _campaign_card
 from scripts.run_work_ii_constitutive_structural_qualification import (
     BASE_CONFIGS,
@@ -27,6 +30,7 @@ from chemworld.eval.work_ii_constitutive_structural_qualification import (
     registered_coordinates,
     selected_q2_queries,
 )
+from chemworld.eval.work_ii_execution_mode import prepare_execution_context
 from chemworld.eval.work_ii_formal import build_checkpoint_contract
 
 
@@ -224,22 +228,20 @@ def _action_signature(actions: list[dict[str, Any]]) -> str:
 
 @pytest.mark.parametrize("candidate_id", CANDIDATE_IDS)
 def test_generated_d1_config_is_runnable_but_not_authorized(candidate_id: str) -> None:
-    source_binding = {
-        "schema_version": "chemworld-work-ii-c2-source-binding-0.1",
-        "tested_commit": "0" * 40,
-        "material_tree": {},
-    }
+    context = prepare_execution_context(Path.cwd(), mode="development")
     config = _d1_config(
         candidate_id,
         _load(BASE_CONFIGS[candidate_id]),
         package_sha256="p" * 64,
-        source_binding=source_binding,
+        execution_context=context,
     )
     assert config["world_seed"] == WORLD_SEEDS[0]
     assert config["campaign"]["complete_experiments"] == 12
     assert config["campaign"]["checkpoint_complete_experiments"] == [0, 3, 6, 9, 12]
     assert config["qualification"]["execution_authorized"] is False
     assert config["qualification"]["formal_r5_authorized"] is False
+    assert config["execution_context"]["evidence_status"] == "development_only"
+    assert config["execution_context"]["c2_admission_authorized"] is False
     assert config["intervention"]["registered_truth_law_id"] == candidate_specs()[candidate_id][
         "altered_law_id"
     ]
@@ -257,3 +259,46 @@ def test_no_equilibrium_candidate_and_all_five_worlds_are_frozen() -> None:
     }
     assert WORLD_SEEDS == (0, 1, 2, 3, 4)
     assert all("equilibrium" not in candidate for candidate in CANDIDATE_IDS)
+
+
+def test_cli_defaults_keep_all_development_artifacts_under_runs(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    output_root = tmp_path / "strict-as-dev"
+    progress = tmp_path / "progress.jsonl"
+    status = tmp_path / "status.json"
+    captured: dict[str, Any] = {}
+
+    def fake_run(args: Any) -> dict[str, Any]:
+        captured["args"] = args
+        return {
+            "denominators": {
+                "completed_primary_executions": PRIMARY_EXECUTIONS_TOTAL,
+                "completed_exact_replays": EXACT_REPLAYS_TOTAL,
+            },
+            "decision": "development-test",
+            "elapsed_s": 0.0,
+            "all_candidates_passed": True,
+        }
+
+    monkeypatch.setattr(runner, "run", fake_run)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "strict-as",
+            "--output-root",
+            str(output_root),
+            "--progress-file",
+            str(progress),
+            "--status-file",
+            str(status),
+        ],
+    )
+    assert runner.main() == 0
+    args = captured["args"]
+    assert args.execution_mode == "development"
+    assert args.summary == output_root.resolve() / "summary.json"
+    assert args.package == output_root.resolve() / "q2-package.json"
+    assert "runs/development" in args.partition_q0_summary.as_posix()
+    assert "runs/development" in args.crystallization_q0_summary.as_posix()

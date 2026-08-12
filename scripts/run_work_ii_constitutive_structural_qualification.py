@@ -18,13 +18,9 @@ except ModuleNotFoundError:
     from run_work_ii_campaign_pilot import _campaign_card  # type: ignore[no-redef]
 
 from chemworld.data.logging import load_jsonl
-from chemworld.eval.provenance import file_sha256, git_source_commit, write_json_atomic
+from chemworld.eval.provenance import file_sha256, write_json_atomic
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
-from chemworld.eval.work_ii_c2_admission import (
-    build_c2_source_binding,
-    c2_material_dirty_paths,
-)
 from chemworld.eval.work_ii_constitutive_structural_qualification import (
     CANDIDATE_IDS,
     COORDINATES_PER_CANDIDATE_WORLD,
@@ -51,6 +47,12 @@ from chemworld.eval.work_ii_constitutive_structural_qualification import (
 )
 from chemworld.eval.work_ii_crystallization_reversible_q0 import (
     validate_summary as validate_crystallization_q0,
+)
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    WorkIIExecutionContext,
+    build_execution_envelope,
+    prepare_execution_context,
 )
 from chemworld.eval.work_ii_formal import build_checkpoint_contract
 from chemworld.eval.work_ii_partition_constitutive_q0 import (
@@ -79,6 +81,13 @@ DEFAULT_CRYSTALLIZATION_Q0 = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
     "work-ii-crystallization-reversible-topology-q0-seed0-20260812.json"
+)
+DEFAULT_DEVELOPMENT_PARTITION_Q0 = (
+    ROOT / "runs/development/work-ii-partition-constitutive-q0-seed0-20260812/summary.json"
+)
+DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0 = (
+    ROOT
+    / "runs/development/work-ii-crystallization-reversible-q0-seed0-20260812/summary.json"
 )
 D1_PATHS = {
     PARTITION_CANDIDATE_ID: ROOT / "configs/benchmark/work_ii_as_partition_d1_v0.1.json",
@@ -506,7 +515,7 @@ def _d1_config(
     base: Mapping[str, Any],
     *,
     package_sha256: str,
-    source_binding: Mapping[str, Any],
+    execution_context: WorkIIExecutionContext,
 ) -> dict[str, Any]:
     spec = candidate_specs()[candidate_id]
     task_id = str(spec["task_id"])
@@ -516,6 +525,7 @@ def _d1_config(
             "schema_version": "chemworld-work-ii-campaign-pilot-0.5",
             "pilot_id": f"work-ii-as-{candidate_id}-d1",
             "formal_result": False,
+            "execution_context": build_execution_envelope(execution_context),
             "task_id": task_id,
             "world_seed": 0,
             "world_interventions": [spec["world_intervention"]],
@@ -543,7 +553,6 @@ def _d1_config(
                 "intervention_families": list(spec["intervention_families"]),
                 "world_and_resource_contract_matched": True,
                 "q2_package_sha256": package_sha256,
-                "c2_source_binding": dict(source_binding),
             },
         }
     )
@@ -677,16 +686,21 @@ def _d1_config(
 
 
 def _validate_q0_inputs(
-    args: argparse.Namespace, source_binding: Mapping[str, Any]
+    args: argparse.Namespace,
+    execution_context: WorkIIExecutionContext,
 ) -> dict[str, Any]:
     partition = _load(args.partition_q0_summary)
     crystallization = _load(args.crystallization_q0_summary)
     errors = validate_partition_q0(
-        partition, root=ROOT, expected_source_binding=source_binding
+        partition,
+        root=ROOT,
+        expected_execution_context=execution_context,
     )
     errors.extend(
         validate_crystallization_q0(
-            ROOT, crystallization, expected_source_binding=source_binding
+            ROOT,
+            crystallization,
+            expected_execution_context=execution_context,
         )
     )
     if partition.get("analysis", {}).get("passed") is not True:
@@ -710,14 +724,23 @@ def _validate_q0_inputs(
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    dirty = c2_material_dirty_paths(ROOT)
-    if dirty:
-        raise RuntimeError("A-S qualification requires clean C2 material: " + ", ".join(dirty))
-    protected = [args.output_root, args.summary, args.package, *D1_PATHS.values()]
+    execution_context = prepare_execution_context(
+        ROOT,
+        mode=args.execution_mode,
+        release_manifest=args.release_manifest,
+    )
+    d1_paths = (
+        D1_PATHS
+        if execution_context.mode is ExecutionMode.RELEASE
+        else {
+            PARTITION_CANDIDATE_ID: args.output_root / "partition-d1.json",
+            CRYSTALLIZATION_CANDIDATE_ID: args.output_root / "crystallization-d1.json",
+        }
+    )
+    protected = [args.output_root, args.summary, args.package, *d1_paths.values()]
     if any(path.exists() for path in protected):
         raise FileExistsError("refusing to overwrite A-S qualification artifacts")
-    source_binding = build_c2_source_binding(ROOT)
-    q0_bindings = _validate_q0_inputs(args, source_binding)
+    q0_bindings = _validate_q0_inputs(args, execution_context)
     args.output_root.mkdir(parents=True)
     progress = Progress(args.progress_file, args.status_file)
     started = perf_counter()
@@ -749,7 +772,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "formal_result": False,
                 "provider_call_count": 0,
                 "participant_session_count": 0,
-                "c2_source_binding": dict(source_binding),
+                "execution_context": build_execution_envelope(execution_context),
                 "candidate_id": candidate_id,
                 "task_id": candidate_specs()[candidate_id]["task_id"],
                 "world_seed": world_seed,
@@ -762,7 +785,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 args.output_root / candidate_id / f"world-{world_seed}" / "world-report.json"
             )
             write_json_atomic(report_path, report)
-            errors = validate_world_report(report)
+            errors = validate_world_report(
+                report, root=ROOT, expected_execution_context=execution_context
+            )
             if errors:
                 raise RuntimeError("invalid A-S world report: " + "; ".join(errors))
             reports.append(report)
@@ -773,7 +798,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "qualification_schema_version": QUALIFICATION_VERSION,
         "formal_result": False,
         "provider_call_count": 0,
-        "c2_source_binding": dict(source_binding),
+        "execution_context": build_execution_envelope(execution_context),
         "q0_bindings": q0_bindings,
         "candidate_laws": {
             candidate_id: {
@@ -808,9 +833,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 candidate_id,
                 bases[candidate_id],
                 package_sha256=package["package_sha256"],
-                source_binding=source_binding,
+                execution_context=execution_context,
             )
-            path = D1_PATHS[candidate_id]
+            path = d1_paths[candidate_id]
             write_json_atomic(path, config)
             generated_d1[candidate_id] = {
                 "path": path.relative_to(ROOT).as_posix(),
@@ -842,8 +867,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
-        "source_commit": git_source_commit(ROOT),
-        "c2_source_binding": dict(source_binding),
+        "execution_context": build_execution_envelope(execution_context),
         "q0_bindings": q0_bindings,
         "coverage": {
             "candidate_count": 2,
@@ -922,7 +946,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     }
     summary["summary_sha256"] = summary_sha256(summary)
     write_json_atomic(args.summary, summary)
-    errors = validate_summary(ROOT, summary, expected_source_binding=source_binding)
+    errors = validate_summary(
+        ROOT,
+        summary,
+        expected_execution_context=execution_context,
+    )
     if errors:
         raise RuntimeError("invalid A-S summary: " + "; ".join(errors))
     return summary
@@ -931,25 +959,42 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
-    parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
-    parser.add_argument("--package", type=Path, default=DEFAULT_PACKAGE)
-    parser.add_argument("--partition-q0-summary", type=Path, default=DEFAULT_PARTITION_Q0)
+    parser.add_argument("--summary", type=Path)
+    parser.add_argument("--package", type=Path)
+    parser.add_argument("--partition-q0-summary", type=Path)
     parser.add_argument(
-        "--crystallization-q0-summary", type=Path, default=DEFAULT_CRYSTALLIZATION_Q0
+        "--crystallization-q0-summary", type=Path
     )
     parser.add_argument("--progress-file", type=Path, required=True)
     parser.add_argument("--status-file", type=Path, required=True)
+    parser.add_argument(
+        "--execution-mode",
+        choices=[mode.value for mode in ExecutionMode],
+        default=ExecutionMode.DEVELOPMENT.value,
+    )
+    parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
-    for field in (
-        "output_root",
-        "summary",
-        "package",
-        "partition_q0_summary",
-        "crystallization_q0_summary",
-        "progress_file",
-        "status_file",
-    ):
-        setattr(args, field, getattr(args, field).resolve())
+    args.output_root = args.output_root.resolve()
+    development = args.execution_mode == ExecutionMode.DEVELOPMENT.value
+    defaults = {
+        "summary": args.output_root / "summary.json" if development else DEFAULT_SUMMARY,
+        "package": args.output_root / "q2-package.json" if development else DEFAULT_PACKAGE,
+        "partition_q0_summary": (
+            DEFAULT_DEVELOPMENT_PARTITION_Q0 if development else DEFAULT_PARTITION_Q0
+        ),
+        "crystallization_q0_summary": (
+            DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0
+            if development
+            else DEFAULT_CRYSTALLIZATION_Q0
+        ),
+    }
+    for field, default in defaults.items():
+        value = getattr(args, field)
+        setattr(args, field, (value if value is not None else default).resolve())
+    args.progress_file = args.progress_file.resolve()
+    args.status_file = args.status_file.resolve()
+    if args.release_manifest is not None:
+        args.release_manifest = args.release_manifest.resolve()
     result = run(args)
     print(
         json.dumps(

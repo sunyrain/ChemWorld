@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import copy
 import json
-import subprocess
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from time import perf_counter
@@ -19,10 +18,14 @@ from scipy.optimize import differential_evolution
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
-    git_source_commit,
     write_json_atomic,
 )
-from chemworld.eval.work_ii_c2_admission import build_c2_source_binding
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    WorkIIExecutionContext,
+    build_execution_envelope,
+    prepare_execution_context,
+)
 from chemworld.eval.work_ii_mechanism_oracle_qualification import (
     EXPECTED_OPTIMIZER_REQUESTS,
     FULL_PERTURBATION_COUNT,
@@ -51,7 +54,6 @@ try:
         _load,
         _q0_audit,
         _q1_coordinate_schema,
-        _scoped_dirty_paths,
     )
 except ModuleNotFoundError:
     from run_work_ii_q1_response_surface import (  # type: ignore[no-redef]
@@ -62,7 +64,6 @@ except ModuleNotFoundError:
         _load,
         _q0_audit,
         _q1_coordinate_schema,
-        _scoped_dirty_paths,
     )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,6 +75,17 @@ TOTAL_WORLD_REQUESTS = (
     + FULL_PERTURBATION_COUNT
     + VALIDATION_EXECUTION_COUNT
 )
+
+
+def _prepare_execution(
+    args: argparse.Namespace,
+) -> tuple[WorkIIExecutionContext, dict[str, object]]:
+    context = prepare_execution_context(
+        ROOT,
+        mode=getattr(args, "execution_mode", ExecutionMode.DEVELOPMENT.value),
+        release_manifest=getattr(args, "release_manifest", None),
+    )
+    return context, build_execution_envelope(context)
 
 
 def _canonical_vector(
@@ -492,6 +504,7 @@ def _run_world(
     world_seed: int,
     world_root: Path,
     progress_path: Path,
+    execution_context: Mapping[str, object],
 ) -> dict[str, Any]:
     world_root.mkdir(parents=True, exist_ok=False)
     schema = _q1_coordinate_schema(task_id)
@@ -647,6 +660,7 @@ def _run_world(
         "schema_version": WORLD_REPORT_VERSION,
         "qualification_schema_version": MECHANISM_ORACLE_VERSION,
         "formal_result": False,
+        "execution_context": dict(execution_context),
         "task_id": task_id,
         "world_seed": world_seed,
         "coverage": {
@@ -689,12 +703,7 @@ def _decision(world_reports: Sequence[Mapping[str, Any]]) -> str:
 def run(args: argparse.Namespace) -> dict[str, Any]:
     task_id = str(args.task_id)
     spec = TASK_SPECS[task_id]
-    scoped_dirty = _scoped_dirty_paths()
-    if scoped_dirty:
-        raise RuntimeError(
-            "mechanism-oracle qualification requires clean Work II/runtime sources: "
-            + ", ".join(scoped_dirty)
-        )
+    _, execution_context = _prepare_execution(args)
     output_root = args.output_root.resolve()
     summary_path = args.summary.resolve()
     progress_path = args.progress_file.resolve()
@@ -738,6 +747,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             world_seed=int(world_seed),
             world_root=output_root / f"world-{world_seed}",
             progress_path=progress_path,
+            execution_context=execution_context,
         )
         world_reports.append(report)
         _emit(
@@ -782,25 +792,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "schema_version": SUMMARY_VERSION,
         "qualification_schema_version": MECHANISM_ORACLE_VERSION,
         "formal_result": False,
-        "source_commit": git_source_commit(ROOT),
-        "c2_source_binding": build_c2_source_binding(ROOT),
-        "scoped_runtime_clean": True,
-        "unrelated_dirty_paths_excluded": [
-            line[3:].strip().replace("\\", "/")
-            for line in subprocess.run(
-                ["git", "status", "--porcelain"],
-                cwd=ROOT,
-                check=True,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-            ).stdout.splitlines()
-            if not line[3:]
-            .strip()
-            .replace("\\", "/")
-            .startswith(("src/", "scripts/", "configs/benchmark/", "workstreams/flagship_tasks/"))
-        ],
+        "execution_context": execution_context,
         "task_id": task_id,
         "world_seeds": list(get_task(task_id).seeds),
         "q0": q0,
@@ -950,6 +942,12 @@ def main() -> int:
     parser.add_argument("--progress-file", type=Path)
     parser.add_argument("--benchmark-count", type=int, default=0)
     parser.add_argument("--world-seed", type=int, default=0)
+    parser.add_argument(
+        "--execution-mode",
+        choices=[mode.value for mode in ExecutionMode],
+        default=ExecutionMode.DEVELOPMENT.value,
+    )
+    parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
     if args.benchmark_count:
         if args.benchmark_count < 1:

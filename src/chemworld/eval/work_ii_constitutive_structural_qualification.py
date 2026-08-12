@@ -20,7 +20,11 @@ import numpy as np
 from scipy.stats import qmc
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
-from chemworld.eval.work_ii_c2_admission import validate_c2_source_binding
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    WorkIIExecutionContext,
+    validate_execution_envelope,
+)
 
 QUALIFICATION_VERSION = "chemworld-work-ii-constitutive-structural-q1-q2-0.1"
 WORLD_REPORT_VERSION = "chemworld-work-ii-constitutive-structural-world-report-0.1"
@@ -637,8 +641,27 @@ def summary_sha256(summary: Mapping[str, Any]) -> str:
     )
 
 
-def validate_world_report(report: Mapping[str, Any]) -> list[str]:
+def validate_world_report(
+    report: Mapping[str, Any],
+    *,
+    root: Path | None = None,
+    expected_execution_context: WorkIIExecutionContext | None = None,
+) -> list[str]:
     errors: list[str] = []
+    envelope = report.get("execution_context")
+    if not isinstance(envelope, Mapping):
+        errors.append("A-S world report lacks an execution context")
+        mode = None
+    else:
+        mode = envelope.get("execution_mode")
+        if root is not None:
+            errors.extend(
+                validate_execution_envelope(
+                    root, envelope, expected_context=expected_execution_context
+                )
+            )
+        elif mode not in {item.value for item in ExecutionMode}:
+            errors.append("A-S world report has an invalid execution context")
     if report.get("schema_version") != WORLD_REPORT_VERSION:
         errors.append("unexpected A-S world-report schema")
     if report.get("qualification_schema_version") != QUALIFICATION_VERSION:
@@ -675,9 +698,18 @@ def validate_summary(
     root: Path,
     summary: Mapping[str, Any],
     *,
-    expected_source_binding: Mapping[str, Any] | None = None,
+    expected_execution_context: WorkIIExecutionContext | None = None,
 ) -> list[str]:
     errors: list[str] = []
+    envelope = summary.get("execution_context")
+    if not isinstance(envelope, Mapping):
+        errors.append("A-S five-world summary lacks an execution context")
+    else:
+        errors.extend(
+            validate_execution_envelope(
+                root, envelope, expected_context=expected_execution_context
+            )
+        )
     if summary.get("schema_version") != SUMMARY_VERSION:
         errors.append("unexpected A-S five-world summary schema")
     if summary.get("qualification_schema_version") != QUALIFICATION_VERSION:
@@ -700,10 +732,33 @@ def validate_summary(
     }
     if summary.get("coverage") != expected_coverage:
         errors.append("A-S five-world coverage mismatch")
-    source_binding = summary.get("c2_source_binding")
-    errors.extend(validate_c2_source_binding(root, source_binding))
-    if expected_source_binding is not None and source_binding != expected_source_binding:
-        errors.append("A-S C2 source binding differs from the required cohort")
+    generated_package = summary.get("generated_package")
+    if not isinstance(generated_package, Mapping):
+        errors.append("A-S summary lacks its generated Q2 package binding")
+    else:
+        try:
+            package_path = (root / str(generated_package["path"])).resolve()
+            package_path.relative_to(root.resolve())
+            if not package_path.is_file():
+                raise ValueError("Q2 package is missing")
+            if generated_package.get("sha256") != file_sha256(package_path):
+                errors.append("A-S generated Q2 package file hash mismatch")
+            package = json.loads(package_path.read_text(encoding="utf-8"))
+            if not isinstance(package, dict):
+                raise ValueError("Q2 package is not an object")
+            if package.get("package_sha256") != report_sha256(package):
+                errors.append("A-S generated Q2 package self-hash mismatch")
+            if generated_package.get("package_sha256") != package.get("package_sha256"):
+                errors.append("A-S embedded Q2 package hash mismatch")
+            if package.get("execution_context") != summary.get("execution_context"):
+                errors.append("A-S Q2 package/execution context mismatch")
+            if (
+                package.get("formal_result") is not False
+                or package.get("provider_call_count") != 0
+            ):
+                errors.append("A-S Q2 package crossed its provider-free boundary")
+        except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+            errors.append(f"A-S generated Q2 package cannot be read: {error}")
     raw_bindings = summary.get("raw_bindings")
     if not isinstance(raw_bindings, list) or len(raw_bindings) != 10:
         errors.append("A-S summary must bind all ten candidate-world reports")
@@ -720,11 +775,17 @@ def validate_summary(
                 payload = json.loads(path.read_text(encoding="utf-8"))
                 if not isinstance(payload, dict):
                     raise ValueError("world report is not an object")
-                errors.extend(validate_world_report(payload))
+                errors.extend(
+                    validate_world_report(
+                        payload,
+                        root=root,
+                        expected_execution_context=expected_execution_context,
+                    )
+                )
+                if payload.get("execution_context") != summary.get("execution_context"):
+                    errors.append("A-S raw/execution context mismatch")
                 if binding.get("report_sha256") != payload.get("report_sha256"):
                     errors.append("A-S raw embedded world-report hash mismatch")
-                if payload.get("c2_source_binding") != source_binding:
-                    errors.append("A-S raw/source binding mismatch")
                 seen.add((str(payload["candidate_id"]), int(payload["world_seed"])))
             except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as error:
                 errors.append(f"A-S raw binding cannot be read: {error}")
@@ -740,8 +801,41 @@ def validate_summary(
         if denominators_value.get("planned_exact_replays") != EXACT_REPLAYS_TOTAL:
             errors.append("A-S replay denominator mismatch")
     passed = summary.get("all_candidates_passed") is True
-    if summary.get("participant_d1_configs_generated") not in ({}, None) and not passed:
+    generated_d1 = summary.get("participant_d1_configs_generated")
+    if generated_d1 not in ({}, None) and not passed:
         errors.append("A-S summary generated D1 configs without complete qualification")
+    if passed and (
+        not isinstance(generated_d1, Mapping)
+        or set(generated_d1) != set(CANDIDATE_IDS)
+    ):
+        errors.append("A-S complete qualification lacks both D1 configurations")
+    elif isinstance(generated_d1, Mapping):
+        for candidate_id, binding in generated_d1.items():
+            if candidate_id not in CANDIDATE_IDS or not isinstance(binding, Mapping):
+                errors.append("A-S generated D1 roster is malformed")
+                continue
+            try:
+                d1_path = (root / str(binding["path"])).resolve()
+                d1_path.relative_to(root.resolve())
+                if not d1_path.is_file():
+                    raise ValueError("D1 configuration is missing")
+                if binding.get("sha256") != file_sha256(d1_path):
+                    errors.append(f"A-S generated D1 file hash mismatch: {candidate_id}")
+                d1 = json.loads(d1_path.read_text(encoding="utf-8"))
+                if not isinstance(d1, dict):
+                    raise ValueError("D1 configuration is not an object")
+                if d1.get("execution_context") != summary.get("execution_context"):
+                    errors.append(f"A-S D1/execution context mismatch: {candidate_id}")
+                qualification = d1.get("qualification")
+                if (
+                    not isinstance(qualification, Mapping)
+                    or qualification.get("execution_authorized") is not False
+                    or qualification.get("formal_r5_authorized") is not False
+                    or binding.get("execution_authorized") is not False
+                ):
+                    errors.append(f"A-S D1 was prematurely authorized: {candidate_id}")
+            except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+                errors.append(f"A-S generated D1 cannot be read: {candidate_id}: {error}")
     if summary.get("provider_execution_authorized") is not False:
         errors.append("A-S qualification cannot authorize provider execution")
     if summary.get("formal_r5_authorized") is not False:

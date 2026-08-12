@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 import json
+from argparse import Namespace
 from pathlib import Path
 
 import pytest
-from scripts.run_work_ii_electrochemical_matched_prior_qualification import _d1_config
+from scripts.run_work_ii_electrochemical_matched_prior_qualification import (
+    _d1_config,
+    _prepare_execution,
+    _resolve_output_paths,
+    _validate_source_execution_context,
+)
 
 from chemworld.eval.work_ii_electrochemical_matched_prior_qualification import (
     GRID_COORDINATES,
@@ -124,3 +130,64 @@ def test_generated_d1_config_uses_electrochemical_k10_pattern() -> None:
     assert campaign["process_time_policy"]["quench_transfer_allowance_s"] == pytest.approx(0.0)
     assert config["qualification"]["execution_authorized"] is False
     assert config["qualification"]["formal_r5_authorized"] is False
+    assert config["execution_context"]["execution_mode"] == "development"
+
+
+def test_electrochemical_q2_rejects_cross_freeze_release_upstream(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import scripts.run_work_ii_electrochemical_matched_prior_qualification as runner
+
+    context, envelope = _prepare_execution(Namespace())
+    release_context = context.__class__(
+        mode=context.mode.RELEASE,
+        evidence_status="release_candidate",
+        release_eligible=True,
+        c2_admission_authorized=True,
+        tested_commit="a" * 40,
+        freeze_id="b" * 64,
+        release_manifest_sha256="c" * 64,
+        execution_surface_sha256="d" * 64,
+    )
+    monkeypatch.setattr(runner, "validate_execution_envelope", lambda *_args: ["mismatch"])
+    with pytest.raises(ValueError, match="same release freeze"):
+        _validate_source_execution_context(
+            {"execution_context": envelope}, release_context
+        )
+
+
+def test_electrochemical_development_q2_marks_legacy_upstream() -> None:
+    context, _ = _prepare_execution(Namespace())
+    assert _validate_source_execution_context({}, context) == (None, True)
+
+
+def test_electrochemical_runner_development_preparation_avoids_git(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import chemworld.eval.work_ii_execution_mode as execution_mode
+
+    def unexpected(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("development electrochemical Q2 used release provenance")
+
+    monkeypatch.setattr(execution_mode, "git_worktree_dirty", unexpected)
+    monkeypatch.setattr(execution_mode, "git_source_commit", unexpected)
+    monkeypatch.setattr(execution_mode, "work_ii_material_tree_sha256", unexpected)
+    _, envelope = _prepare_execution(Namespace())
+    assert envelope["execution_mode"] == "development"
+    assert envelope["freeze_id"] is None
+
+
+def test_electrochemical_q2_development_defaults_outputs_under_run_root(
+    tmp_path: Path,
+) -> None:
+    context, _ = _prepare_execution(Namespace())
+    root, summary, package, d1 = _resolve_output_paths(
+        Namespace(output_root=tmp_path, summary=None, package=None, d1_config=None),
+        context,
+    )
+    assert root == tmp_path
+    assert {summary, package, d1} == {
+        tmp_path / "summary.json",
+        tmp_path / "package.json",
+        tmp_path / "d1.json",
+    }

@@ -1,8 +1,11 @@
 # Work II crystallization reversible-topology A-S Q0 experiment note
 
-Date frozen: 2026-08-12. This note authorizes one provider-free seed-0 qualification only after
-the complete protected material source tree is committed and clean. It does not authorize a
-participant session, provider call, D1, or formal execution.
+Date frozen: 2026-08-12. This note authorizes one provider-free seed-0 qualification in the
+repository's development execution mode. Development execution does not require a clean worktree
+or a release source binding and its result is not release eligible. It does not authorize a
+participant session, provider call, D1, C2 admission, or formal execution. The scientific question,
+coverage, measurements, denominators, and pass/failure rules below remain frozen across execution
+modes; a later release rerun requires the one-time minimal execution-surface manifest.
 
 ## Question and tested units
 
@@ -32,5 +35,5 @@ repair. A scientific failure is retained without changing the grid, law, seed, o
 ## Expected outputs
 
 One self-hashed raw task report, one self-hashed readable summary, exact failure denominators, raw
-file hashes, and one C2 source binding shared with the later five-world A-S qualification. A pass
-authorizes only the unchanged provider-free five-world qualification.
+file hashes, and one uniform execution-context envelope. A development pass authorizes only the
+unchanged provider-free five-world development qualification; it cannot authorize C2 admission.

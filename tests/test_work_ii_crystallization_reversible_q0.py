@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import copy
 import json
+import sys
 from pathlib import Path
 from typing import Any
+
+import scripts.run_work_ii_crystallization_reversible_q0 as runner
 
 from chemworld.eval.provenance import file_sha256
 from chemworld.eval.work_ii_crystallization_reversible_q0 import (
@@ -15,6 +18,10 @@ from chemworld.eval.work_ii_crystallization_reversible_q0 import (
     self_hash,
     validate_summary,
     validate_task_report,
+)
+from chemworld.eval.work_ii_execution_mode import (
+    build_execution_envelope,
+    prepare_execution_context,
 )
 from chemworld.eval.work_ii_static_topology_q0 import LAW_IDS, analyze_task, registered_cells
 
@@ -52,16 +59,10 @@ def _audit() -> dict[str, Any]:
     }
 
 
-def _source_binding() -> dict[str, Any]:
-    return {
-        "schema_version": "chemworld-work-ii-c2-source-binding-0.1",
-        "tested_commit": "a" * 40,
-        "material_tree": {
-            "relative_roots": [],
-            "excluded_relative_paths": [],
-            "sha256": "b" * 64,
-        },
-    }
+def _development_context() -> dict[str, object]:
+    return build_execution_envelope(
+        prepare_execution_context(Path.cwd(), mode="development")
+    )
 
 
 def test_task_report_is_rebuilt_and_tamper_evident() -> None:
@@ -72,9 +73,9 @@ def test_task_report_is_rebuilt_and_tamper_evident() -> None:
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
+        "execution_context": _development_context(),
         "task_id": TASK_ID,
         "world_seed": 0,
-        "c2_source_binding": _source_binding(),
         "mechanism_audit": _audit(),
         "rows": rows,
         "analysis": analyze_task(TASK_ID, rows, _audit()),
@@ -88,7 +89,6 @@ def test_task_report_is_rebuilt_and_tamper_evident() -> None:
 
 def test_summary_binds_raw_report_and_source(monkeypatch: Any, tmp_path: Path) -> None:
     rows = _rows()
-    binding = _source_binding()
     analysis = analyze_task(TASK_ID, rows, _audit())
     report = {
         "schema_version": TASK_REPORT_VERSION,
@@ -96,9 +96,9 @@ def test_summary_binds_raw_report_and_source(monkeypatch: Any, tmp_path: Path) -
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
+        "execution_context": _development_context(),
         "task_id": TASK_ID,
         "world_seed": 0,
-        "c2_source_binding": binding,
         "mechanism_audit": _audit(),
         "rows": rows,
         "analysis": analysis,
@@ -112,9 +112,9 @@ def test_summary_binds_raw_report_and_source(monkeypatch: Any, tmp_path: Path) -
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
+        "execution_context": _development_context(),
         "task_id": TASK_ID,
         "world_seed": 0,
-        "c2_source_binding": binding,
         "coverage": {
             "law_ids": list(LAW_IDS),
             "grid_cell_count": len(registered_cells(TASK_ID)),
@@ -132,12 +132,31 @@ def test_summary_binds_raw_report_and_source(monkeypatch: Any, tmp_path: Path) -
         },
     }
     summary["summary_sha256"] = self_hash(summary, "summary_sha256")
-    monkeypatch.setattr(
-        "chemworld.eval.work_ii_crystallization_reversible_q0.validate_c2_source_binding",
-        lambda _root, observed: [] if observed == binding else ["wrong binding"],
-    )
-    assert validate_summary(tmp_path, summary, expected_source_binding=binding) == []
+    assert validate_summary(tmp_path, summary) == []
     changed = copy.deepcopy(summary)
-    changed["c2_source_binding"]["tested_commit"] = "c" * 40
+    changed["execution_context"]["release_eligible"] = True
     changed["summary_sha256"] = self_hash(changed, "summary_sha256")
-    assert validate_summary(tmp_path, changed, expected_source_binding=binding)
+    assert validate_summary(tmp_path, changed)
+
+
+def test_cli_defaults_keep_development_summary_inside_ignored_output(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    output_root = tmp_path / "crystallization-dev"
+    captured: dict[str, Any] = {}
+
+    def fake_run(args: Any) -> dict[str, Any]:
+        captured["args"] = args
+        return {"analysis": {"passed": True}}
+
+    monkeypatch.setattr(runner, "run", fake_run)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["crystallization-q0", "--output-root", str(output_root)],
+    )
+    assert runner.main() == 0
+    args = captured["args"]
+    assert args.execution_mode == "development"
+    assert args.summary == output_root.resolve() / "summary.json"
+    assert args.release_manifest is None

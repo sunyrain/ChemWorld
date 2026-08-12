@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from copy import deepcopy
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -12,15 +13,12 @@ from chemworld.eval.provenance import (
     git_source_commit,
 )
 from chemworld.eval.work_ii_ae_prior_qualification import (
-    AE_MATERIAL_SOURCE_EXCLUSIONS,
-    AE_MATERIAL_SOURCE_ROOTS,
-    AE_SOURCE_BINDING_VERSION,
     build_qualification_plan,
     build_qualification_report,
     validate_qualification_plan,
     validate_qualification_report,
 )
-from chemworld.eval.work_ii_source_binding import work_ii_material_tree_sha256
+from chemworld.eval.work_ii_execution_mode import ExecutionMode
 
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN_PATH = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
@@ -35,28 +33,53 @@ def _rehash(payload: dict[str, object], field: str) -> None:
     payload[field] = canonical_json_sha256(payload)
 
 
-def _clean_source_binding() -> dict[str, object]:
-    return {
-        "schema_version": AE_SOURCE_BINDING_VERSION,
-        "tested_commit": git_source_commit(ROOT),
-        "worktree_clean_before_execution": True,
-        "material_tree": {
-            "relative_roots": list(AE_MATERIAL_SOURCE_ROOTS),
-            "excluded_relative_paths": list(AE_MATERIAL_SOURCE_EXCLUSIONS),
-            "sha256": work_ii_material_tree_sha256(
-                ROOT,
-                relative_roots=AE_MATERIAL_SOURCE_ROOTS,
-                excluded_relative_paths=AE_MATERIAL_SOURCE_EXCLUSIONS,
-            ),
-        },
-    }
-
-
 def _plan() -> dict[str, object]:
     return build_qualification_plan(
         ROOT,
         DESIGN_PATH,
-        source_binding=_clean_source_binding(),
+        execution_context=_release_execution_envelope(),
+    )
+
+
+def _development_execution_envelope() -> dict[str, object]:
+    return {
+        "execution_mode": "development",
+        "evidence_status": "development_only",
+        "release_eligible": False,
+        "c2_admission_authorized": False,
+        "tested_commit": None,
+        "freeze_id": None,
+        "release_manifest_sha256": None,
+        "execution_surface_sha256": None,
+    }
+
+
+def _release_execution_envelope() -> dict[str, object]:
+    return {
+        "execution_mode": "release",
+        "evidence_status": "release_candidate",
+        "release_eligible": True,
+        "c2_admission_authorized": True,
+        "tested_commit": git_source_commit(ROOT),
+        "freeze_id": "3" * 64,
+        "release_manifest_sha256": "1" * 64,
+        "execution_surface_sha256": "2" * 64,
+    }
+
+
+def _mock_execution_context(
+    monkeypatch: pytest.MonkeyPatch, envelope: dict[str, object]
+) -> None:
+    mode = ExecutionMode(str(envelope["execution_mode"]))
+    monkeypatch.setattr(
+        qualification_module,
+        "prepare_execution_context",
+        lambda *args, **kwargs: SimpleNamespace(mode=mode),
+    )
+    monkeypatch.setattr(
+        qualification_module,
+        "build_execution_envelope",
+        lambda context: deepcopy(envelope),
     )
 
 
@@ -122,42 +145,50 @@ def test_plan_freezes_exact_five_task_cartesian_qualification() -> None:
     }
     assert plan["participant_provider_calls"] == 0
     assert plan["participant_outcomes_read"] is False
-    assert plan["source_binding"]["tested_commit"]
-    assert plan["source_binding"]["worktree_clean_before_execution"] is True
-    assert len(plan["source_binding"]["material_tree"]["sha256"]) == 64
+    assert plan["execution_context"]["tested_commit"]
+    assert plan["execution_context"]["c2_admission_authorized"] is True
+    assert "source_binding" not in plan
+    assert "c2_source_binding" not in plan
 
 
-def test_evidence_registration_files_are_excluded_from_ae_material_tree() -> None:
-    assert "configs/current.json" in AE_MATERIAL_SOURCE_EXCLUSIONS
-    assert (
-        "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json"
-        in AE_MATERIAL_SOURCE_EXCLUSIONS
-    )
-
-
-def test_source_binding_accepts_ancestor_but_rejects_stale_material_tree(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_development_plan_preserves_science_but_cannot_be_admitted() -> None:
     design = _design()
-    plan = _plan()
-    ancestor = "a" * 40
-    descendant = "b" * 40
-    plan["source_binding"]["tested_commit"] = ancestor
-    _rehash(plan, "plan_sha256")
-    monkeypatch.setattr(qualification_module, "git_source_commit", lambda root: descendant)
-    monkeypatch.setattr(
-        qualification_module,
-        "_commit_is_ancestor",
-        lambda root, tested, current: (tested == ancestor and current == descendant, None),
+    plan = build_qualification_plan(
+        ROOT,
+        DESIGN_PATH,
+        execution_context=_development_execution_envelope(),
     )
 
     assert validate_qualification_plan(ROOT, plan, design) == []
+    assert plan["development_only"] is True
+    assert plan["denominators"]["evaluator_executions"] == 300
+    assert "source_binding" not in plan
+    assert "c2_source_binding" not in plan
+    assert plan["execution_context"]["c2_admission_authorized"] is False
 
-    plan["source_binding"]["material_tree"]["sha256"] = "0" * 64
+
+def test_development_plan_rejects_release_eligibility_tampering() -> None:
+    plan = build_qualification_plan(
+        ROOT,
+        DESIGN_PATH,
+        execution_context=_development_execution_envelope(),
+    )
+    plan["execution_context"]["release_eligible"] = True
     _rehash(plan, "plan_sha256")
+
     assert any(
-        "material-source tree is stale" in error
-        for error in validate_qualification_plan(ROOT, plan, design)
+        "development envelope has release bindings or admission" in error
+        for error in validate_qualification_plan(ROOT, plan, _design())
+    )
+
+
+def test_release_plan_rejects_legacy_source_bindings() -> None:
+    plan = _plan()
+    plan["source_binding"] = {"tested_commit": "a" * 40}
+    _rehash(plan, "plan_sha256")
+
+    assert "A-E qualification plan contains legacy source bindings" in (
+        validate_qualification_plan(ROOT, plan, _design())
     )
 
 
@@ -168,7 +199,7 @@ def test_trajectory_commit_must_match_bound_runtime() -> None:
     ) == []
     assert qualification_module._validate_trajectory_commit(
         [{"agent_metadata": {"git_commit": "b" * 40}}], binding
-    ) == ["trajectory commit does not match the A-E qualification tested commit"]
+    ) == ["trajectory commit does not match the A-E release execution commit"]
 
 
 def test_plan_validator_rejects_rehashed_config_and_recipe_tampering() -> None:
@@ -239,14 +270,18 @@ def test_scientifically_failed_but_consistent_report_is_structurally_valid() -> 
 def test_execute_qualification_validates_the_written_report_evidence_path(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    source_binding = {"tested_commit": "a" * 40}
+    development = _development_execution_envelope()
+    _mock_execution_context(monkeypatch, development)
     plan = {
         "executions": [],
         "plan_sha256": "a" * 64,
-        "source_binding": source_binding,
+        "execution_context": development,
+        "development_only": True,
     }
     report = {
         "status": "failed",
+        "execution_context": development,
+        "development_only": True,
         "failures": [{"check": "scientific_threshold"}],
         "denominators": {
             "tasks": 5,
@@ -285,14 +320,6 @@ def test_execute_qualification_validates_the_written_report_evidence_path(
 
     monkeypatch.setattr(qualification_module, "validate_qualification_report", _validate)
     monkeypatch.setattr(qualification_module, "validate_qualification_plan", lambda *args: [])
-    monkeypatch.setattr(qualification_module, "_require_clean_launch", lambda root: None)
-    monkeypatch.setattr(
-        qualification_module, "_source_binding", lambda root: source_binding
-    )
-    monkeypatch.setattr(
-        qualification_module, "git_source_commit", lambda root: "a" * 40
-    )
-    monkeypatch.setattr(qualification_module, "git_worktree_dirty", lambda root: False)
     output_root = tmp_path / "qualification"
     result = qualification_module.execute_qualification(
         ROOT,
@@ -305,17 +332,29 @@ def test_execute_qualification_validates_the_written_report_evidence_path(
     assert (output_root / "summary.md").is_file()
 
 
-def test_execute_qualification_rejects_dirty_launch_without_creating_output(
+def test_execute_qualification_rejects_invalid_release_context_without_output(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(qualification_module, "git_worktree_dirty", lambda root: True)
+    monkeypatch.setattr(
+        qualification_module,
+        "prepare_execution_context",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            ValueError("release mode requires a clean worktree")
+        ),
+    )
     output_root = tmp_path / "qualification"
 
     with pytest.raises(
         qualification_module.AEPriorQualificationError,
         match="requires a clean worktree",
     ):
-        qualification_module.execute_qualification(ROOT, DESIGN_PATH, output_root)
+        qualification_module.execute_qualification(
+            ROOT,
+            DESIGN_PATH,
+            output_root,
+            execution_mode=ExecutionMode.RELEASE,
+            release_manifest=tmp_path / "release.json",
+        )
 
     assert not output_root.exists()
 
@@ -323,14 +362,7 @@ def test_execute_qualification_rejects_dirty_launch_without_creating_output(
 def test_execute_qualification_validates_plan_before_creating_output(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    source_binding = {"tested_commit": "a" * 40}
-    monkeypatch.setattr(qualification_module, "_require_clean_launch", lambda root: None)
-    monkeypatch.setattr(
-        qualification_module, "_source_binding", lambda root: source_binding
-    )
-    monkeypatch.setattr(
-        qualification_module, "git_source_commit", lambda root: "a" * 40
-    )
+    _mock_execution_context(monkeypatch, _development_execution_envelope())
 
     def _fail_plan(*args: object, **kwargs: object) -> dict[str, object]:
         raise qualification_module.AEPriorQualificationError("invalid frozen plan")
@@ -352,14 +384,18 @@ def test_execution_progress_reports_elapsed_throughput_and_eta(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    source_binding = {"tested_commit": "a" * 40}
+    development = _development_execution_envelope()
+    _mock_execution_context(monkeypatch, development)
     plan = {
         "executions": [{"task_id": "task", "world_seed": 7}],
         "plan_sha256": "b" * 64,
-        "source_binding": source_binding,
+        "execution_context": development,
+        "development_only": True,
     }
     report = {
         "status": "failed",
+        "execution_context": development,
+        "development_only": True,
         "failures": [{"check": "scientific_threshold"}],
         "denominators": {
             "tasks": 5,
@@ -372,14 +408,6 @@ def test_execution_progress_reports_elapsed_throughput_and_eta(
             "passed_regions": 0,
         },
     }
-    monkeypatch.setattr(qualification_module, "_require_clean_launch", lambda root: None)
-    monkeypatch.setattr(
-        qualification_module, "_source_binding", lambda root: source_binding
-    )
-    monkeypatch.setattr(
-        qualification_module, "git_source_commit", lambda root: "a" * 40
-    )
-    monkeypatch.setattr(qualification_module, "git_worktree_dirty", lambda root: False)
     monkeypatch.setattr(
         qualification_module,
         "build_qualification_plan",

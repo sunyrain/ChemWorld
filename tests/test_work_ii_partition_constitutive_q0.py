@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import sys
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+import scripts.run_work_ii_partition_constitutive_q0 as runner
 from scripts.run_work_ii_partition_constitutive_q0 import (
     _measurement,
     compile_actions,
@@ -12,6 +14,10 @@ from scripts.run_work_ii_partition_constitutive_q0 import (
 )
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.work_ii_execution_mode import (
+    build_execution_envelope,
+    prepare_execution_context,
+)
 from chemworld.eval.work_ii_partition_constitutive_q0 import (
     BASELINE_EXPONENT,
     DECLARED_SIGMA,
@@ -42,16 +48,10 @@ def _audit() -> dict[str, object]:
     return audit
 
 
-def _source_binding() -> dict[str, object]:
-    return {
-        "schema_version": "chemworld-work-ii-c2-source-binding-0.1",
-        "tested_commit": "a" * 40,
-        "material_tree": {
-            "relative_roots": [],
-            "excluded_relative_paths": [],
-            "sha256": "b" * 64,
-        },
-    }
+def _development_context() -> dict[str, object]:
+    return build_execution_envelope(
+        prepare_execution_context(Path.cwd(), mode="development")
+    )
 
 
 def _rows() -> list[dict[str, object]]:
@@ -124,7 +124,7 @@ def _task_report() -> dict[str, object]:
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
-        "c2_source_binding": _source_binding(),
+        "execution_context": _development_context(),
         "task_id": TASK_ID,
         "world_seed": 0,
         "frozen_exponents": {
@@ -148,7 +148,7 @@ def _summary(report_path: Path, report: dict[str, object], root: Path) -> dict[s
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
-        "c2_source_binding": _source_binding(),
+        "execution_context": _development_context(),
         "task_id": TASK_ID,
         "world_seed": 0,
         "coverage": {
@@ -290,10 +290,6 @@ def test_analysis_rejects_exponent_drift_and_incomplete_execution() -> None:
 def test_task_report_and_summary_validators_bind_raw_evidence(
     tmp_path: Path, monkeypatch: Any
 ) -> None:
-    monkeypatch.setattr(
-        "chemworld.eval.work_ii_partition_constitutive_q0.validate_c2_source_binding",
-        lambda _root, binding: [] if binding == _source_binding() else ["wrong binding"],
-    )
     report = _task_report()
     report_path = tmp_path / "raw" / "task-report.json"
     report_path.parent.mkdir()
@@ -312,3 +308,31 @@ def test_task_report_and_summary_validators_bind_raw_evidence(
     errors = validate_summary(summary, root=tmp_path)
     assert "partition constitutive Q0 raw file hash mismatch" in errors
     assert "partition constitutive Q0 task-report self-hash mismatch" in errors
+
+
+def test_cli_defaults_keep_development_summary_inside_ignored_output(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    output_root = tmp_path / "partition-dev"
+    captured: dict[str, Any] = {}
+
+    def fake_run(args: Any) -> dict[str, Any]:
+        captured["args"] = args
+        return {
+            "denominators": {"attempted": 18, "planned": 18},
+            "decision": "development-test",
+            "elapsed_s": 0.0,
+            "analysis": {"passed": True},
+        }
+
+    monkeypatch.setattr(runner, "run", fake_run)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["partition-q0", "--output-root", str(output_root)],
+    )
+    assert runner.main() == 0
+    args = captured["args"]
+    assert args.execution_mode == "development"
+    assert args.summary == output_root.resolve() / "summary.json"
+    assert args.release_manifest is None

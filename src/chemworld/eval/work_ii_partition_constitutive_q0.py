@@ -11,7 +11,11 @@ from typing import Any
 
 from chemworld.envs.observation_noise import ObservationNoiseCoordinate
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
-from chemworld.eval.work_ii_c2_admission import validate_c2_source_binding
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    WorkIIExecutionContext,
+    validate_execution_envelope,
+)
 
 QUALIFICATION_VERSION = "chemworld-work-ii-partition-constitutive-q0-0.1"
 TASK_REPORT_VERSION = "chemworld-work-ii-partition-constitutive-q0-task-report-0.1"
@@ -498,8 +502,41 @@ def summary_sha256(summary: Mapping[str, Any]) -> str:
     )
 
 
-def validate_task_report(report: Mapping[str, Any]) -> list[str]:
+def _execution_errors(
+    payload: Mapping[str, Any],
+    *,
+    root: Path | None,
+    expected_execution_context: WorkIIExecutionContext | None,
+) -> tuple[list[str], str | None]:
+    envelope = payload.get("execution_context")
+    if not isinstance(envelope, Mapping):
+        return ["partition constitutive Q0 lacks an execution context"], None
+    if root is None:
+        mode = envelope.get("execution_mode")
+        if mode not in {item.value for item in ExecutionMode}:
+            return ["partition constitutive Q0 has an invalid execution mode"], None
+        return [], str(mode)
+    return (
+        validate_execution_envelope(
+            root, envelope, expected_context=expected_execution_context
+        ),
+        str(envelope.get("execution_mode")),
+    )
+
+
+def validate_task_report(
+    report: Mapping[str, Any],
+    *,
+    root: Path | None = None,
+    expected_execution_context: WorkIIExecutionContext | None = None,
+) -> list[str]:
     errors: list[str] = []
+    execution_errors, _mode = _execution_errors(
+        report,
+        root=root,
+        expected_execution_context=expected_execution_context,
+    )
+    errors.extend(execution_errors)
     if report.get("schema_version") != TASK_REPORT_VERSION:
         errors.append("unexpected partition constitutive Q0 task-report schema")
     if report.get("qualification_schema_version") != QUALIFICATION_VERSION:
@@ -536,9 +573,15 @@ def validate_summary(
     summary: Mapping[str, Any],
     *,
     root: Path | None = None,
-    expected_source_binding: Mapping[str, Any] | None = None,
+    expected_execution_context: WorkIIExecutionContext | None = None,
 ) -> list[str]:
     errors: list[str] = []
+    execution_errors, _mode = _execution_errors(
+        summary,
+        root=root,
+        expected_execution_context=expected_execution_context,
+    )
+    errors.extend(execution_errors)
     if summary.get("schema_version") != SUMMARY_VERSION:
         errors.append("unexpected partition constitutive Q0 summary schema")
     if summary.get("qualification_schema_version") != QUALIFICATION_VERSION:
@@ -551,11 +594,6 @@ def validate_summary(
         errors.append("partition constitutive Q0 summary task/world binding mismatch")
     if summary.get("provider_call_count") != 0 or summary.get("participant_session_count") != 0:
         errors.append("partition constitutive Q0 summary must be provider-free")
-    source_binding = summary.get("c2_source_binding")
-    if root is not None:
-        errors.extend(validate_c2_source_binding(root, source_binding))
-    if expected_source_binding is not None and source_binding != expected_source_binding:
-        errors.append("partition constitutive Q0 C2 source binding differs from cohort")
     analysis = summary.get("analysis")
     if not isinstance(analysis, Mapping):
         errors.append("partition constitutive Q0 summary lacks analysis")
@@ -609,11 +647,17 @@ def validate_summary(
                 payload = json.loads(path.read_text(encoding="utf-8"))
                 if not isinstance(payload, dict):
                     raise ValueError("raw task report is not an object")
-                errors.extend(validate_task_report(payload))
+                errors.extend(
+                    validate_task_report(
+                        payload,
+                        root=root,
+                        expected_execution_context=expected_execution_context,
+                    )
+                )
+                if payload.get("execution_context") != summary.get("execution_context"):
+                    errors.append("partition constitutive Q0 raw/execution context mismatch")
                 if binding.get("report_sha256") != payload.get("report_sha256"):
                     errors.append("partition constitutive Q0 embedded report hash mismatch")
-                if payload.get("c2_source_binding") != source_binding:
-                    errors.append("partition constitutive Q0 raw/source binding mismatch")
                 if summary.get("analysis") != payload.get("analysis"):
                     errors.append("partition constitutive Q0 summary/raw analysis mismatch")
             except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:

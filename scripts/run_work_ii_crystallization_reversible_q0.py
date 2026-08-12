@@ -9,13 +9,15 @@ from pathlib import Path
 from time import perf_counter
 from typing import Any
 
-from scripts.run_work_ii_static_topology_q0 import _execute, _mechanism_audit
+try:
+    from scripts.run_work_ii_static_topology_q0 import _execute, _mechanism_audit
+except ModuleNotFoundError:
+    from run_work_ii_static_topology_q0 import (  # type: ignore[no-redef]
+        _execute,
+        _mechanism_audit,
+    )
 
 from chemworld.eval.provenance import file_sha256, write_json_atomic
-from chemworld.eval.work_ii_c2_admission import (
-    build_c2_source_binding,
-    c2_material_dirty_paths,
-)
 from chemworld.eval.work_ii_crystallization_reversible_q0 import (
     PLANNED_EXECUTIONS,
     QUALIFICATION_VERSION,
@@ -25,6 +27,11 @@ from chemworld.eval.work_ii_crystallization_reversible_q0 import (
     self_hash,
     validate_summary,
     validate_task_report,
+)
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    build_execution_envelope,
+    prepare_execution_context,
 )
 from chemworld.eval.work_ii_static_topology_q0 import (
     LAW_IDS,
@@ -66,15 +73,13 @@ def _emit(*, completed: int, started: float, row: dict[str, Any]) -> None:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    dirty = c2_material_dirty_paths(ROOT)
-    if dirty:
-        raise RuntimeError(
-            "crystallization reversible Q0 requires clean protected material: "
-            + ", ".join(dirty)
-        )
+    execution_context = prepare_execution_context(
+        ROOT,
+        mode=args.execution_mode,
+        release_manifest=args.release_manifest,
+    )
     if args.output_root.exists() or args.summary.exists():
         raise FileExistsError("refusing to overwrite crystallization reversible Q0 outputs")
-    source_binding = build_c2_source_binding(ROOT)
     args.output_root.mkdir(parents=True)
     started = perf_counter()
     mechanism = _mechanism_audit(TASK_ID)
@@ -113,9 +118,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
+        "execution_context": build_execution_envelope(execution_context),
         "task_id": TASK_ID,
         "world_seed": WORLD_SEED,
-        "c2_source_binding": source_binding,
         "mechanism_audit": mechanism,
         "rows": rows,
         "analysis": analysis,
@@ -123,7 +128,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     report["report_sha256"] = self_hash(report, "report_sha256")
     report_path = args.output_root / "task-report.json"
     write_json_atomic(report_path, report)
-    report_errors = validate_task_report(report)
+    report_errors = validate_task_report(
+        report,
+        root=ROOT,
+        expected_execution_context=execution_context,
+    )
     if report_errors:
         raise RuntimeError(
             "invalid crystallization reversible Q0 report: "
@@ -136,9 +145,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
+        "execution_context": build_execution_envelope(execution_context),
         "task_id": TASK_ID,
         "world_seed": WORLD_SEED,
-        "c2_source_binding": source_binding,
         "coverage": {
             "law_ids": list(LAW_IDS),
             "grid_cell_count": len(registered_cells(TASK_ID)),
@@ -166,7 +175,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     }
     summary["summary_sha256"] = self_hash(summary, "summary_sha256")
     write_json_atomic(args.summary, summary)
-    errors = validate_summary(ROOT, summary, expected_source_binding=source_binding)
+    errors = validate_summary(
+        ROOT,
+        summary,
+        expected_execution_context=execution_context,
+    )
     if errors:
         raise RuntimeError("invalid crystallization reversible Q0 summary: " + "; ".join(errors))
     return summary
@@ -175,10 +188,26 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
-    parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
+    parser.add_argument("--summary", type=Path)
+    parser.add_argument(
+        "--execution-mode",
+        choices=[mode.value for mode in ExecutionMode],
+        default=ExecutionMode.DEVELOPMENT.value,
+    )
+    parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
     args.output_root = args.output_root.resolve()
-    args.summary = args.summary.resolve()
+    args.summary = (
+        args.summary.resolve()
+        if args.summary is not None
+        else (
+            DEFAULT_SUMMARY
+            if args.execution_mode == ExecutionMode.RELEASE.value
+            else args.output_root / "summary.json"
+        ).resolve()
+    )
+    if args.release_manifest is not None:
+        args.release_manifest = args.release_manifest.resolve()
     result = run(args)
     return 0 if result["analysis"]["passed"] else 2
 

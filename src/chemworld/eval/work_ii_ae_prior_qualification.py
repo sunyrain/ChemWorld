@@ -9,8 +9,6 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import re
-import subprocess
 import time
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
@@ -29,14 +27,17 @@ from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
-    git_source_commit,
-    git_worktree_dirty,
     write_json_atomic,
 )
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    build_execution_envelope,
+    prepare_execution_context,
+    validate_execution_envelope,
+)
 from chemworld.eval.work_ii_formal import build_checkpoint_contract
-from chemworld.eval.work_ii_source_binding import work_ii_material_tree_sha256
 from chemworld.tasks import get_task
 
 AE_PRIOR_QUALIFICATION_PLAN_VERSION = (
@@ -59,26 +60,23 @@ EXPECTED_PAIR_COUNT = 150
 EXPECTED_EXECUTION_COUNT = 300
 EXPECTED_REGISTERED_METRIC_VALUE_COUNT = 1020
 EXPECTED_PAIRED_METRIC_DIFFERENCE_COUNT = 510
-AE_SOURCE_BINDING_VERSION = "chemworld-work-ii-ae-source-binding-0.1"
-AE_MATERIAL_SOURCE_ROOTS = (
-    "configs",
-    "pyproject.toml",
-    "scripts",
-    "src/chemworld",
-    "tests",
-    "uv.lock",
-)
-AE_MATERIAL_SOURCE_EXCLUSIONS = (
-    # Evidence paths are populated here after qualification. Including these
-    # coordination surfaces would make registration self-invalidating even
-    # though neither file changes the qualified runtime semantics.
-    "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json",
-    "configs/current.json",
-)
-
-
 class AEPriorQualificationError(ValueError):
     """Raised when a frozen A-E qualification artifact violates its contract."""
+
+
+def _execution_context_errors(root: Path, envelope: object) -> list[str]:
+    """Validate the shared release boundary carried by an A-E artifact."""
+
+    if not isinstance(envelope, Mapping):
+        return ["A-E qualification execution context is missing"]
+    return validate_execution_envelope(root, envelope)
+
+
+def _is_release_envelope(envelope: object) -> bool:
+    return (
+        isinstance(envelope, Mapping)
+        and envelope.get("execution_mode") == ExecutionMode.RELEASE.value
+    )
 
 
 class _FrozenRecipeAgent(BaseAgent):
@@ -130,142 +128,24 @@ def _stable_seed(*parts: object) -> int:
     return int.from_bytes(digest[:8], "big") % 2_147_483_647
 
 
-def _source_binding(root: Path) -> dict[str, Any]:
-    """Bind the qualification to the exact committed runtime material."""
-
-    try:
-        tested_commit = git_source_commit(root)
-        worktree_clean = not git_worktree_dirty(root)
-        material_sha256 = work_ii_material_tree_sha256(
-            root,
-            relative_roots=AE_MATERIAL_SOURCE_ROOTS,
-            excluded_relative_paths=AE_MATERIAL_SOURCE_EXCLUSIONS,
-        )
-    except (OSError, subprocess.SubprocessError, ValueError) as error:
-        raise AEPriorQualificationError(
-            f"cannot bind A-E qualification source: {type(error).__name__}: {error}"
-        ) from error
-    return {
-        "schema_version": AE_SOURCE_BINDING_VERSION,
-        "tested_commit": tested_commit,
-        "worktree_clean_before_execution": worktree_clean,
-        "material_tree": {
-            "relative_roots": list(AE_MATERIAL_SOURCE_ROOTS),
-            "excluded_relative_paths": list(AE_MATERIAL_SOURCE_EXCLUSIONS),
-            "sha256": material_sha256,
-        },
-    }
-
-
-def _commit_is_ancestor(root: Path, ancestor: str, descendant: str) -> tuple[bool, str | None]:
-    try:
-        completed = subprocess.run(
-            ["git", "merge-base", "--is-ancestor", ancestor, descendant],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-    except OSError as error:
-        return False, f"{type(error).__name__}: {error}"
-    if completed.returncode == 0:
-        return True, None
-    if completed.returncode == 1:
-        return False, None
-    detail = (completed.stderr or completed.stdout).strip()
-    return False, detail or f"git merge-base exited {completed.returncode}"
-
-
-def _validate_source_binding(root: Path, binding: object) -> list[str]:
-    errors: list[str] = []
-    if not isinstance(binding, Mapping):
-        return ["A-E qualification source binding is missing"]
-    if binding.get("schema_version") != AE_SOURCE_BINDING_VERSION:
-        errors.append("unexpected A-E qualification source-binding schema")
-    tested_commit = binding.get("tested_commit")
-    if not isinstance(tested_commit, str) or re.fullmatch(r"[0-9a-f]{40}", tested_commit) is None:
-        errors.append("A-E qualification tested commit is invalid")
-        tested_commit = None
-    if binding.get("worktree_clean_before_execution") is not True:
-        errors.append("A-E qualification lacks a clean-launch attestation")
-    material = binding.get("material_tree")
-    material = material if isinstance(material, Mapping) else {}
-    if (
-        material.get("relative_roots") != list(AE_MATERIAL_SOURCE_ROOTS)
-        or material.get("excluded_relative_paths")
-        != list(AE_MATERIAL_SOURCE_EXCLUSIONS)
-    ):
-        errors.append("A-E qualification material-source roster mismatch")
-    try:
-        observed_tree_sha256 = work_ii_material_tree_sha256(
-            root,
-            relative_roots=AE_MATERIAL_SOURCE_ROOTS,
-            excluded_relative_paths=AE_MATERIAL_SOURCE_EXCLUSIONS,
-        )
-    except (OSError, subprocess.SubprocessError, ValueError) as error:
-        errors.append(
-            "A-E qualification material-source tree cannot be rebuilt: "
-            f"{type(error).__name__}"
-        )
-    else:
-        if material.get("sha256") != observed_tree_sha256:
-            errors.append("A-E qualification material-source tree is stale")
-    try:
-        current_commit = git_source_commit(root)
-    except (OSError, subprocess.SubprocessError) as error:
-        errors.append(
-            f"A-E qualification current commit cannot be resolved: {type(error).__name__}"
-        )
-    else:
-        if tested_commit is not None:
-            is_ancestor, diagnostic = _commit_is_ancestor(
-                root,
-                tested_commit,
-                current_commit,
-            )
-            if diagnostic is not None:
-                errors.append(
-                    "A-E qualification tested-commit ancestry cannot be checked: "
-                    + diagnostic
-                )
-            elif not is_ancestor:
-                errors.append(
-                    "A-E qualification tested commit is not an ancestor of current HEAD"
-                )
-    return errors
-
-
 def _validate_trajectory_commit(
-    records: Sequence[Mapping[str, Any]], source_binding: Mapping[str, Any]
+    records: Sequence[Mapping[str, Any]], execution_context: Mapping[str, Any]
 ) -> list[str]:
-    tested_commit = source_binding.get("tested_commit")
+    tested_commit = execution_context.get("tested_commit")
     observed = {
         (row.get("agent_metadata") or {}).get("git_commit")
         for row in records
         if isinstance(row.get("agent_metadata"), Mapping)
     }
     if len(observed) != 1 or tested_commit not in observed:
-        return ["trajectory commit does not match the A-E qualification tested commit"]
+        return ["trajectory commit does not match the A-E release execution commit"]
     if any(
         not isinstance(row.get("agent_metadata"), Mapping)
         or row["agent_metadata"].get("git_commit") != tested_commit
         for row in records
     ):
-        return ["trajectory commit does not match the A-E qualification tested commit"]
+        return ["trajectory commit does not match the A-E release execution commit"]
     return []
-
-
-def _require_clean_launch(root: Path) -> None:
-    try:
-        dirty = git_worktree_dirty(root)
-    except (OSError, subprocess.SubprocessError) as error:
-        raise AEPriorQualificationError(
-            f"cannot verify clean A-E qualification launch: {type(error).__name__}: {error}"
-        ) from error
-    if dirty:
-        raise AEPriorQualificationError(
-            "A-E qualification requires a clean worktree before execution"
-        )
 
 
 def _target_coordinate(task_id: str, target_field: str) -> int:
@@ -303,7 +183,7 @@ def build_qualification_plan(
     root: Path,
     design_path: Path,
     *,
-    source_binding: Mapping[str, Any] | None = None,
+    execution_context: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Build the exact 300-execution plan without executing the environment."""
 
@@ -409,8 +289,6 @@ def build_qualification_plan(
     paired_metric_differences = sum(
         metric_count_by_task[task_id] * 5 * 2 * 3 for task_id in EXPECTED_TASKS
     )
-    from chemworld.eval.work_ii_c2_admission import build_c2_source_binding
-
     plan: dict[str, Any] = {
         "schema_version": AE_PRIOR_QUALIFICATION_PLAN_VERSION,
         "design_binding": {
@@ -422,8 +300,8 @@ def build_qualification_plan(
             "path": note_path.relative_to(root).as_posix(),
             "sha256": file_sha256(note_path),
         },
-        "source_binding": dict(source_binding or _source_binding(root)),
-        "c2_source_binding": build_c2_source_binding(root),
+        "execution_context": dict(execution_context),
+        "development_only": not _is_release_envelope(execution_context),
         "campaign_config_bindings": config_bindings,
         "participant_provider_calls": 0,
         "participant_outcomes_read": False,
@@ -459,10 +337,13 @@ def validate_qualification_plan(
         errors.append("A-E qualification plan permits provider calls")
     if plan.get("participant_outcomes_read") is not False:
         errors.append("A-E qualification plan does not forbid participant outcomes")
-    errors.extend(_validate_source_binding(root, plan.get("source_binding")))
-    from chemworld.eval.work_ii_c2_admission import validate_c2_source_binding
-
-    errors.extend(validate_c2_source_binding(root, plan.get("c2_source_binding")))
+    execution_context = plan.get("execution_context")
+    errors.extend(_execution_context_errors(root, execution_context))
+    release_mode = _is_release_envelope(execution_context)
+    if plan.get("development_only") is release_mode:
+        errors.append("A-E qualification plan development-only marker mismatch")
+    if "source_binding" in plan or "c2_source_binding" in plan:
+        errors.append("A-E qualification plan contains legacy source bindings")
     binding = plan.get("design_binding")
     binding = binding if isinstance(binding, Mapping) else {}
     if binding.get("sha256") != canonical_json_sha256(design):
@@ -705,9 +586,12 @@ def execute_one(
             world_interventions=config.get("world_interventions", []),
         )
         records = load_jsonl(trajectory_path)
-        commit_errors = _validate_trajectory_commit(records, plan["source_binding"])
-        if commit_errors:
-            raise AEPriorQualificationError("; ".join(commit_errors))
+        if _is_release_envelope(plan.get("execution_context")):
+            commit_errors = _validate_trajectory_commit(
+                records, plan["execution_context"]
+            )
+            if commit_errors:
+                raise AEPriorQualificationError("; ".join(commit_errors))
         if [record.get("action") for record in records] != actions:
             raise AEPriorQualificationError("trajectory differs from frozen recipe")
         if any(record.get("transaction_status") != "committed" for record in records):
@@ -1075,6 +959,8 @@ def build_qualification_report(
         "schema_version": AE_PRIOR_QUALIFICATION_REPORT_VERSION,
         "status": "passed" if not failures else "failed",
         "formal_result": False,
+        "execution_context": dict(plan["execution_context"]),
+        "development_only": bool(plan["development_only"]),
         "participant_provider_calls": 0,
         "participant_outcomes_read": False,
         "plan_sha256": plan["plan_sha256"],
@@ -1082,8 +968,6 @@ def build_qualification_report(
         "design_binding": dict(plan["design_binding"]),
         "contract_sha256": plan["contract_sha256"],
         "experiment_note_binding": dict(plan["experiment_note_binding"]),
-        "source_binding": dict(plan["source_binding"]),
-        "c2_source_binding": dict(plan["c2_source_binding"]),
         "campaign_config_bindings": list(plan["campaign_config_bindings"]),
         "execution_receipt_bindings": [
             {
@@ -1134,10 +1018,13 @@ def validate_qualification_report(
         errors.append("A-E prior-qualification report contains provider calls")
     if report.get("participant_outcomes_read") is not False:
         errors.append("A-E prior-qualification report used participant outcomes")
-    errors.extend(_validate_source_binding(root, report.get("source_binding")))
-    from chemworld.eval.work_ii_c2_admission import validate_c2_source_binding
-
-    errors.extend(validate_c2_source_binding(root, report.get("c2_source_binding")))
+    execution_context = report.get("execution_context")
+    errors.extend(_execution_context_errors(root, execution_context))
+    release_mode = _is_release_envelope(execution_context)
+    if report.get("development_only") is release_mode:
+        errors.append("A-E prior-qualification development-only marker mismatch")
+    if "source_binding" in report or "c2_source_binding" in report:
+        errors.append("A-E prior-qualification report contains legacy source bindings")
     plan_binding = report.get("plan_binding")
     plan_binding = plan_binding if isinstance(plan_binding, Mapping) else {}
     if (
@@ -1322,14 +1209,15 @@ def validate_qualification_report(
                 continue
             try:
                 records = load_jsonl(trajectory_path)
-                commit_errors = _validate_trajectory_commit(
+                if release_mode:
+                    commit_errors = _validate_trajectory_commit(
                     records,
-                    report.get("source_binding", {}),
-                )
-                errors.extend(
-                    "A-E prior-qualification " + error + ": " + execution_id
-                    for error in commit_errors
-                )
+                    execution_context,
+                    )
+                    errors.extend(
+                        "A-E prior-qualification " + error + ": " + execution_id
+                        for error in commit_errors
+                    )
                 replay = verify_records(
                     records,
                     tolerance=0.0,
@@ -1616,6 +1504,15 @@ def markdown_summary(report: Mapping[str, Any]) -> str:
         f"Status: **{report['status']}**",
         "",
         (
+            f"Evidence mode: **{report['execution_context']['evidence_status']}**. "
+            + (
+                "This output is not eligible for C2 admission."
+                if report["development_only"]
+                else "This output was executed against a release manifest."
+            )
+        ),
+        "",
+        (
             f"Coverage: {denominators['tasks']} tasks, {denominators['task_worlds']} "
             f"task-worlds, {denominators['regions']} regions, "
             f"{denominators['paired_noise_replicates']} paired replicates and "
@@ -1645,32 +1542,45 @@ def markdown_summary(report: Mapping[str, Any]) -> str:
 
 
 def execute_qualification(
-    root: Path, design_path: Path, output_root: Path
+    root: Path,
+    design_path: Path,
+    output_root: Path,
+    *,
+    execution_mode: ExecutionMode | str = ExecutionMode.DEVELOPMENT,
+    release_manifest: Path | None = None,
 ) -> dict[str, Any]:
     root = root.resolve()
     output_root = output_root.resolve()
     if output_root.exists():
         raise FileExistsError(f"refusing to overwrite qualification output: {output_root}")
-    _require_clean_launch(root)
-    design = _load_object(design_path.resolve())
-    source_binding = _source_binding(root)
-    if source_binding["tested_commit"] != git_source_commit(root):
-        raise AEPriorQualificationError(
-            "A-E qualification source commit changed during launch preflight"
+    try:
+        context = prepare_execution_context(
+            root,
+            mode=execution_mode,
+            release_manifest=(
+                release_manifest.resolve() if release_manifest is not None else None
+            ),
         )
+    except (OSError, ValueError) as error:
+        raise AEPriorQualificationError(
+            f"cannot prepare A-E execution context: {error}"
+        ) from error
+    execution_envelope = build_execution_envelope(context)
+    context_errors = _execution_context_errors(root, execution_envelope)
+    if context_errors:
+        raise AEPriorQualificationError(
+            "invalid A-E execution context: " + "; ".join(context_errors)
+        )
+    design = _load_object(design_path.resolve())
     plan = build_qualification_plan(
         root,
         design_path.resolve(),
-        source_binding=source_binding,
+        execution_context=execution_envelope,
     )
     plan_errors = validate_qualification_plan(root, plan, design)
     if plan_errors:
         raise AEPriorQualificationError(
             "qualification plan validation failed: " + "; ".join(plan_errors)
-        )
-    if git_worktree_dirty(root) or git_source_commit(root) != source_binding["tested_commit"]:
-        raise AEPriorQualificationError(
-            "A-E qualification source changed during launch preflight"
         )
     output_root.mkdir(parents=True)
     write_json_atomic(output_root / "plan.json", plan)
@@ -1722,11 +1632,8 @@ def execute_qualification(
 
 
 __all__ = [
-    "AE_MATERIAL_SOURCE_EXCLUSIONS",
-    "AE_MATERIAL_SOURCE_ROOTS",
     "AE_PRIOR_QUALIFICATION_PLAN_VERSION",
     "AE_PRIOR_QUALIFICATION_REPORT_VERSION",
-    "AE_SOURCE_BINDING_VERSION",
     "AEPriorQualificationError",
     "build_qualification_plan",
     "build_qualification_report",

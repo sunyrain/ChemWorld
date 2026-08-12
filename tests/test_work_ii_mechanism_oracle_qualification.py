@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from argparse import Namespace
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,7 @@ from scripts.run_work_ii_mechanism_oracle_qualification import (
     ROOT,
     InMemoryMechanismEvaluator,
     _load,
+    _prepare_execution,
     _q1_coordinate_schema,
     _run_optimizer,
 )
@@ -30,6 +32,22 @@ from chemworld.eval.work_ii_mechanism_oracle_qualification import (
 )
 
 TASK_ID = "reaction-safety-constrained"
+
+
+def test_mechanism_oracle_defaults_to_development_without_git_provenance(
+    monkeypatch,
+) -> None:
+    def unexpected(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("development mechanism oracle used release provenance")
+
+    import chemworld.eval.work_ii_execution_mode as execution_mode
+
+    monkeypatch.setattr(execution_mode, "git_worktree_dirty", unexpected)
+    monkeypatch.setattr(execution_mode, "git_source_commit", unexpected)
+    monkeypatch.setattr(execution_mode, "work_ii_material_tree_sha256", unexpected)
+    _, envelope = _prepare_execution(Namespace())
+    assert envelope["evidence_status"] == "development_only"
+    assert envelope["release_manifest_sha256"] is None
 
 
 def test_balanced_population_and_local_design_cover_frozen_contract() -> None:

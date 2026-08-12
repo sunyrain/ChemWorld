@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+from argparse import Namespace
 from typing import Any
 
 import pytest
@@ -10,6 +11,7 @@ from scripts.run_work_ii_q1_response_surface import (
     TASK_SPECS,
     _compile_actions,
     _load,
+    _prepare_execution,
     _q0_audit,
     _q1_coordinate_schema,
 )
@@ -23,6 +25,27 @@ from chemworld.eval.work_ii_response_surface_qualification import (
     build_adaptive_design,
     select_adaptive_anchors,
 )
+
+
+def test_q1_defaults_to_development_without_git_provenance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def unexpected(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("development Q1 attempted a release provenance check")
+
+    import chemworld.eval.work_ii_execution_mode as execution_mode
+
+    monkeypatch.setattr(execution_mode, "git_worktree_dirty", unexpected)
+    monkeypatch.setattr(execution_mode, "git_source_commit", unexpected)
+    monkeypatch.setattr(execution_mode, "work_ii_material_tree_sha256", unexpected)
+    _, envelope = _prepare_execution(Namespace())
+    assert envelope["execution_mode"] == "development"
+    assert envelope["tested_commit"] is None
+
+
+def test_q1_release_requires_manifest() -> None:
+    with pytest.raises(ValueError, match="requires a release manifest"):
+        _prepare_execution(Namespace(execution_mode="release", release_manifest=None))
 
 
 @pytest.mark.parametrize("task_id", sorted(TASK_SPECS))
