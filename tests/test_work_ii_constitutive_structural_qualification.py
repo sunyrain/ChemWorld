@@ -412,6 +412,7 @@ def test_generated_d1_config_is_runnable_but_not_authorized(candidate_id: str) -
     assert config["world_seed"] == WORLD_SEEDS[0]
     assert config["campaign"]["complete_experiments"] == 12
     assert config["campaign"]["checkpoint_complete_experiments"] == [0, 3, 6, 9, 12]
+    assert config["qualification"]["q2_passed"] is True
     assert config["qualification"]["execution_authorized"] is False
     assert config["qualification"]["formal_r5_authorized"] is False
     assert config["execution_context"]["evidence_status"] == "development_only"

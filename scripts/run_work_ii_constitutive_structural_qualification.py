@@ -605,6 +605,7 @@ def _d1_config(
     }
     config["qualification"] = {
         "q0_q1_q2_passed": True,
+        "q2_passed": True,
         "minimum_unique_recipes": 10,
         "maximum_exact_repeats": 2,
         "execution_authorized": False,
