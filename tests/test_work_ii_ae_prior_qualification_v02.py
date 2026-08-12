@@ -3,12 +3,20 @@ from __future__ import annotations
 import json
 from copy import deepcopy
 from pathlib import Path
+from types import SimpleNamespace
 
+import pytest
+
+import chemworld.eval.work_ii_ae_prior_qualification_v02 as qualification_module
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
 from chemworld.eval.work_ii_ae_prior_qualification_v02 import (
+    RECEIPT_VERSION,
     build_blind_policy_schedule,
+    build_partial_audit,
     build_qualification_plan,
     build_qualification_report,
     validate_contract,
+    validate_qualification_output,
     validate_qualification_plan,
     validate_qualification_report,
 )
@@ -30,6 +38,11 @@ def _plan() -> dict[str, object]:
     return build_qualification_plan(ROOT, CONTRACT_PATH)
 
 
+def _rehash(payload: dict[str, object], field: str) -> None:
+    payload.pop(field, None)
+    payload[field] = canonical_json_sha256(payload)
+
+
 def _synthetic_receipts(
     plan: dict[str, object],
     *,
@@ -48,28 +61,13 @@ def _synthetic_receipts(
             and row["task_id"] == fail_heldout_task
             and row["execution_index"] == 600
         )
-        receipt = {
-            key: deepcopy(row[key])
-            for key in (
-                "execution_index",
-                "execution_id",
-                "phase",
-                "task_id",
-                "world_seed",
-                "policy_replicate",
-                "round_index",
-                "nuisance_anchor",
-                "target_category",
-                "target_field",
-                "target_coordinate",
-                "recipe_id",
-                "allowed_metric_ids",
-                "support_metric_ids",
-                "negative_control_metric_ids",
-                "observation_seed",
-                "observation_noise_namespace",
-            )
-        }
+        receipt = deepcopy(row)
+        receipt.update(
+            {
+                "schema_version": RECEIPT_VERSION,
+                "plan_sha256": plan["plan_sha256"],
+            }
+        )
         if failed:
             receipt.update(
                 {
@@ -79,7 +77,7 @@ def _synthetic_receipts(
                     "support_metrics": None,
                     "negative_control_metrics": None,
                     "exact_replay": None,
-                    "trajectory_path": None,
+                    "trajectory": None,
                     "failure": {"type": "SyntheticFailure", "message": "test"},
                 }
             )
@@ -100,10 +98,14 @@ def _synthetic_receipts(
                         for metric in row["negative_control_metric_ids"]
                     },
                     "exact_replay": {"verified": True},
-                    "trajectory_path": f"executions/{row['execution_index']}/trajectory.jsonl",
+                    "trajectory": {
+                        "path": f"executions/{row['execution_index']}/trajectory.jsonl",
+                        "sha256": "a" * 64,
+                    },
                     "failure": None,
                 }
             )
+        receipt["receipt_sha256"] = canonical_json_sha256(receipt)
         receipts.append(receipt)
     return receipts
 
@@ -274,6 +276,21 @@ def test_contrast_uncertainty_uses_independent_left_and_right_replicates() -> No
             offset = offsets[receipt["policy_replicate"]]
             for metric_id in receipt["allowed_metrics"]:
                 receipt["allowed_metrics"][metric_id] += offset
+            receipt["support_metrics"] = {
+                metric: receipt["allowed_metrics"][metric]
+                for metric in receipt["support_metric_ids"]
+            }
+            receipt["negative_control_metrics"] = {
+                metric: receipt["allowed_metrics"][metric]
+                for metric in receipt["negative_control_metric_ids"]
+            }
+            receipt["receipt_sha256"] = canonical_json_sha256(
+                {
+                    key: value
+                    for key, value in receipt.items()
+                    if key != "receipt_sha256"
+                }
+            )
 
     report = build_qualification_report(plan, receipts, contract)
     anchor = next(
@@ -289,4 +306,201 @@ def test_contrast_uncertainty_uses_independent_left_and_right_replicates() -> No
     assert all(
         row["welch_standard_error"] > 0.0
         for row in anchor["support_metric_results"].values()
+    )
+
+
+@pytest.mark.parametrize(
+    ("section", "field", "replacement"),
+    [
+        ("policy", "rounds_per_policy_replicate", 7),
+        ("noise", "seed_namespace", "tampered"),
+        ("thresholds", "minimum_mean_support_separation", 0.049),
+    ],
+)
+def test_semantic_contract_rejects_scientific_rule_tampering(
+    section: str, field: str, replacement: object
+) -> None:
+    contract = _contract()
+    contract[section][field] = replacement
+
+    assert any("semantic contract changed" in error for error in validate_contract(ROOT, contract))
+
+
+def test_semantic_contract_rejects_task_seed_support_and_direct_input_tampering() -> None:
+    cases = []
+    changed_seed = _contract()
+    changed_seed["cohorts"]["heldout_qualification"]["task_world_seeds"][
+        "electrochemical-conversion"
+    ][0] += 1
+    cases.append(changed_seed)
+    changed_support = _contract()
+    changed_support["tasks"][0]["support_metric_ids"] = ["safety_risk"]
+    cases.append(changed_support)
+    changed_note = _contract()
+    changed_note["experiment_note_sha256"] = "0" * 64
+    cases.append(changed_note)
+    changed_config = _contract()
+    changed_config["tasks"][0]["campaign_config_sha256"] = "0" * 64
+    cases.append(changed_config)
+
+    for contract in cases:
+        assert validate_contract(ROOT, contract)
+
+
+def test_plan_rebuild_rejects_rehashed_execution_recipe_and_binding_tampering() -> None:
+    contract = _contract()
+    plan = _plan()
+
+    changed_recipe = deepcopy(plan)
+    changed_recipe["executions"][0]["recipe"]["steps"][0]["amount_mol"] = 0.123
+    changed_recipe["executions"][0]["recipe_sha256"] = canonical_json_sha256(
+        changed_recipe["executions"][0]["recipe"]
+    )
+    _rehash(changed_recipe, "plan_sha256")
+    assert any(
+        "does not exactly reconstruct" in error
+        for error in validate_qualification_plan(ROOT, changed_recipe, contract)
+    )
+
+    changed_binding = deepcopy(plan)
+    changed_binding["task_bindings"][0]["campaign_config_sha256"] = "0" * 64
+    _rehash(changed_binding, "plan_sha256")
+    assert any(
+        "does not exactly reconstruct" in error
+        for error in validate_qualification_plan(ROOT, changed_binding, contract)
+    )
+
+
+def _write_one_disk_receipt(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> tuple[dict[str, object], dict[str, object], Path, Path]:
+    plan = _plan()
+    planned = plan["executions"][0]
+    output = tmp_path / "output"
+    trajectory_path = output / "executions/0/trajectory.jsonl"
+    trajectory_path.parent.mkdir(parents=True)
+    trajectory_path.write_text("synthetic trajectory\n", encoding="utf-8")
+    metrics = dict.fromkeys(
+        planned["allowed_metric_ids"], 0.1 + 0.1 * planned["target_category"]
+    )
+    records = [
+        {
+            "action": deepcopy(action),
+            "transaction_status": "committed",
+            "instrument": "final_assay" if index == len(planned["recipe"]["steps"]) - 1 else None,
+            "observation": metrics if index == len(planned["recipe"]["steps"]) - 1 else {},
+        }
+        for index, action in enumerate(planned["recipe"]["steps"])
+    ]
+    monkeypatch.setattr(qualification_module, "load_jsonl", lambda path: records)
+    monkeypatch.setattr(
+        qualification_module,
+        "verify_records",
+        lambda *args, **kwargs: SimpleNamespace(
+            to_dict=lambda: {
+                "verified": True,
+                "checked_steps": len(records),
+                "max_abs_error": 0.0,
+                "mismatches": [],
+            }
+        ),
+    )
+    receipt = deepcopy(planned)
+    receipt.update(
+        {
+            "schema_version": RECEIPT_VERSION,
+            "plan_sha256": plan["plan_sha256"],
+            "provider_call_count": 0,
+            "status": "completed",
+            "allowed_metrics": metrics,
+            "support_metrics": {
+                metric: metrics[metric] for metric in planned["support_metric_ids"]
+            },
+            "negative_control_metrics": {
+                metric: metrics[metric]
+                for metric in planned["negative_control_metric_ids"]
+            },
+            "exact_replay": {
+                "verified": True,
+                "checked_steps": len(records),
+                "max_abs_error": 0.0,
+                "mismatches": [],
+            },
+            "trajectory": {
+                "path": "executions/0/trajectory.jsonl",
+                "sha256": file_sha256(trajectory_path),
+            },
+            "failure": None,
+        }
+    )
+    _rehash(receipt, "receipt_sha256")
+    write_json_atomic(output / "plan.json", plan)
+    write_json_atomic(output / "receipts/0000.json", receipt)
+    return plan, receipt, output, trajectory_path
+
+
+def test_partial_audit_replays_one_receipt_and_never_resumes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, _, output, _ = _write_one_disk_receipt(tmp_path, monkeypatch)
+
+    audit = build_partial_audit(ROOT, output, CONTRACT_PATH)
+
+    assert audit["status"] == "interrupted"
+    assert audit["resume_allowed"] is False
+    assert audit["materialized_receipts"] == 1
+    assert audit["independently_valid_receipts"] == 1
+    assert audit["missing_receipts"] == 1199
+    assert audit["errors"] == []
+
+
+def test_partial_audit_rejects_trajectory_hash_path_and_immutable_receipt_tampering(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    plan, receipt, output, trajectory_path = _write_one_disk_receipt(
+        tmp_path, monkeypatch
+    )
+    trajectory_path.write_text("tampered\n", encoding="utf-8")
+    audit = build_partial_audit(ROOT, output, CONTRACT_PATH)
+    assert any("trajectory SHA-256 mismatch" in error for error in audit["errors"])
+
+    receipt["trajectory"] = {"path": "../escape.jsonl", "sha256": "0" * 64}
+    receipt["world_seed"] = plan["executions"][0]["world_seed"] + 1
+    _rehash(receipt, "receipt_sha256")
+    write_json_atomic(output / "receipts/0000.json", receipt)
+    audit = build_partial_audit(ROOT, output, CONTRACT_PATH)
+    assert any("immutable plan field mismatch" in error for error in audit["errors"])
+    assert any("escapes its evidence root" in error for error in audit["errors"])
+
+
+def test_complete_disk_validator_requires_all_1200_and_recomputed_report(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    contract = _contract()
+    plan = _plan()
+    receipts = _synthetic_receipts(plan)
+    report = build_qualification_report(plan, receipts, contract)
+    output = tmp_path / "complete"
+    write_json_atomic(output / "plan.json", plan)
+    write_json_atomic(output / "report.json", report)
+    for index in range(1200):
+        write_json_atomic(output / "receipts" / f"{index:04d}.json", {})
+    monkeypatch.setattr(
+        qualification_module,
+        "_audit_disk_receipt",
+        lambda root, output_root, disk_plan, planned, receipt_path: (
+            receipts[int(planned["execution_index"])],
+            [],
+        ),
+    )
+
+    assert validate_qualification_output(ROOT, output, CONTRACT_PATH) == []
+
+    report["status"] = "failed"
+    _rehash(report, "report_sha256")
+    write_json_atomic(output / "report.json", report)
+    assert any(
+        "fresh trajectory-derived report" in error
+        for error in validate_qualification_output(ROOT, output, CONTRACT_PATH)
     )

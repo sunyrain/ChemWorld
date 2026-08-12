@@ -25,7 +25,11 @@ from chemworld.agents.task_recipes import (
     task_recipe_from_unit_vector,
 )
 from chemworld.data.logging import load_jsonl
-from chemworld.eval.provenance import write_json_atomic
+from chemworld.eval.provenance import (
+    canonical_json_sha256,
+    file_sha256,
+    write_json_atomic,
+)
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
 from chemworld.eval.work_ii_formal import build_checkpoint_contract
@@ -34,6 +38,8 @@ from chemworld.tasks import get_task
 CONTRACT_VERSION = "chemworld-work-ii-ae-prior-distinguishability-contract-0.2"
 PLAN_VERSION = "chemworld-work-ii-ae-prior-distinguishability-plan-0.2"
 REPORT_VERSION = "chemworld-work-ii-ae-prior-distinguishability-report-0.2"
+RECEIPT_VERSION = "chemworld-work-ii-ae-prior-distinguishability-receipt-0.2"
+PARTIAL_AUDIT_VERSION = "chemworld-work-ii-ae-prior-partial-audit-0.2"
 EXPECTED_TASKS = (
     "electrochemical-conversion",
     "reaction-to-crystallization",
@@ -42,6 +48,147 @@ EXPECTED_TASKS = (
     "reaction-safety-constrained",
 )
 EXPECTED_PHASES = ("construction", "heldout_qualification")
+EXPECTED_NOTE_PATH = (
+    "workstreams/flagship_tasks/"
+    "WORK_II_AE_PRIOR_DISTINGUISHABILITY_V02_EXPERIMENT_NOTE.md"
+)
+EXPECTED_NOTE_SHA256 = "e470fd2d3191d6d7ed2a44cc1573152c48429c90a958aea2317d18ac5222b98e"
+EXPECTED_POLICY = {
+    "policy_id": "blind-two-anchor-four-category-sweep-v0.2",
+    "inputs": ["task_id", "target_field"],
+    "forbidden_inputs": [
+        "target_pair",
+        "descriptor_permutation",
+        "observations",
+        "outcomes",
+        "metric_values",
+        "favorable_region",
+    ],
+    "policy_replicates_per_world": 3,
+    "rounds_per_policy_replicate": 8,
+    "minimum_unique_recipes_per_policy_replicate": 6,
+    "planned_unique_recipes_per_policy_replicate": 8,
+    "category_order_by_anchor": [[0, 1, 2, 3], [0, 1, 2, 3]],
+    "nuisance_design": {
+        "algorithm": "sha256_hash_uniform_complement_v1",
+        "namespace": "work-ii-ae-prior-v0.2-nuisance-coverage-20260812",
+        "lower_bound": 0.15,
+        "upper_bound": 0.85,
+        "anchor_count": 2,
+        "round_decimal_places": 9,
+    },
+}
+EXPECTED_NOISE = {
+    "mode": "keyed",
+    "covariance_between_distinct_recipe_executions": 0.0,
+    "seed_namespace": "work-ii-ae-prior-v0.2-independent-observation-20260812",
+    "seed_coordinate_fields": [
+        "phase",
+        "task_id",
+        "world_seed",
+        "policy_replicate",
+        "nuisance_anchor",
+        "target_category",
+    ],
+    "left_right_seed_and_namespace_must_differ": True,
+    "replicates_per_anchor_category": 3,
+    "contrast_standard_error": (
+        "sqrt(sample_variance_ddof1_left/3 + sample_variance_ddof1_right/3)"
+    ),
+}
+EXPECTED_THRESHOLDS = {
+    "minimum_mean_support_separation": 0.05,
+    "minimum_single_support_metric_separation": 0.03,
+    "minimum_support_signal_to_noise_ratio": 2.0,
+    "all_allowed_metrics_finite_in_unit_interval": True,
+    "all_primary_executions_completed": True,
+    "all_tolerance_zero_exact_replays_verified": True,
+    "both_nuisance_anchors_must_pass": True,
+    "all_five_heldout_worlds_per_task_must_pass": True,
+    "all_five_tasks_must_pass": True,
+}
+EXPECTED_DENOMINATORS = {
+    "tasks": 5,
+    "task_worlds_total": 50,
+    "construction_task_worlds": 25,
+    "heldout_qualification_task_worlds": 25,
+    "policy_replicates_total": 150,
+    "primary_executions_total": 1200,
+    "construction_primary_executions": 600,
+    "heldout_qualification_primary_executions": 600,
+    "tolerance_zero_exact_replay_checks": 1200,
+}
+EXPECTED_CONSTRUCTION_SEEDS = {
+    "electrochemical-conversion": [672326802, 263752154, 254732618, 553482792, 789741083],
+    "reaction-to-crystallization": [128467214, 876914043, 166055883, 964375871, 218451485],
+    "reaction-to-distillation": [897463930, 294959649, 617827675, 102623012, 705786312],
+    "partition-discovery": [958536734, 274543076, 887544358, 579145448, 328656968],
+    "reaction-safety-constrained": [709004002, 312314252, 762339748, 247136763, 930008953],
+}
+EXPECTED_HELDOUT_SEEDS = {
+    "electrochemical-conversion": [934334899, 222130288, 187256385, 779398037, 533253734],
+    "reaction-to-crystallization": [981471142, 371545319, 680821974, 854364962, 297088702],
+    "reaction-to-distillation": [439344905, 353545270, 305419816, 301573033, 510396964],
+    "partition-discovery": [595257646, 913561854, 392161417, 114255949, 308641243],
+    "reaction-safety-constrained": [581283898, 413319517, 311564803, 267586659, 854968543],
+}
+EXPECTED_TASK_SPECS = (
+    {
+        "task_id": "electrochemical-conversion",
+        "campaign_config": "configs/benchmark/work_ii_campaign_pilot.json",
+        "campaign_config_sha256": (
+            "5b3dd3d6c6e9933b6dc1974ad32076508ca06ba020277607e783a820aaf0fd24"
+        ),
+        "target_field": "solvent",
+        "descriptor_permutation": [0, 3, 2, 1],
+        "support_metric_ids": ["selective_product_yield", "energy_efficiency"],
+        "negative_control_metric_ids": ["safety_risk"],
+    },
+    {
+        "task_id": "reaction-to-crystallization",
+        "campaign_config": "configs/benchmark/work_ii_crystallization_campaign.json",
+        "campaign_config_sha256": (
+            "571035bc2acef138a76ed220f05a9759697eb31d0e3fc4132aee04a6bbebe5d5"
+        ),
+        "target_field": "solvent",
+        "descriptor_permutation": [0, 3, 2, 1],
+        "support_metric_ids": ["crystal_yield", "crystal_csd_quality"],
+        "negative_control_metric_ids": ["crystal_purity"],
+    },
+    {
+        "task_id": "reaction-to-distillation",
+        "campaign_config": "configs/benchmark/work_ii_distillation_campaign.json",
+        "campaign_config_sha256": (
+            "8faebc2f892f8da2ee764ef6ec12d889aa96d9d440ea4ab5eaa1df007fbb7bf2"
+        ),
+        "target_field": "solvent",
+        "descriptor_permutation": [0, 3, 2, 1],
+        "support_metric_ids": ["distillate_purity", "distillate_recovery"],
+        "negative_control_metric_ids": ["solvent_loss", "score"],
+    },
+    {
+        "task_id": "partition-discovery",
+        "campaign_config": "configs/benchmark/work_ii_partition_campaign.json",
+        "campaign_config_sha256": (
+            "0acea167934582b40b274b1b9c156e0f3b94188bde657c0d8500c2914ae6831b"
+        ),
+        "target_field": "extractant",
+        "descriptor_permutation": [3, 1, 2, 0],
+        "support_metric_ids": ["product_in_organic"],
+        "negative_control_metric_ids": ["phase_ratio", "product_in_aqueous"],
+    },
+    {
+        "task_id": "reaction-safety-constrained",
+        "campaign_config": "configs/benchmark/work_ii_safety_campaign.json",
+        "campaign_config_sha256": (
+            "e45a048388496c95b1fc66574a802a0ca4d6e86a04f6dca455a82d18668772b2"
+        ),
+        "target_field": "catalyst",
+        "descriptor_permutation": [0, 2, 1, 3],
+        "support_metric_ids": ["yield", "selectivity", "safety_risk"],
+        "negative_control_metric_ids": ["score"],
+    },
+)
 
 
 class AEPriorQualificationV02Error(ValueError):
@@ -83,6 +230,24 @@ def _load_object(path: Path) -> dict[str, Any]:
     return value
 
 
+def _self_hash(payload: Mapping[str, Any], field: str) -> str:
+    return canonical_json_sha256(
+        {key: value for key, value in payload.items() if key != field}
+    )
+
+
+def _contained_path(root: Path, relative: object, *, must_exist: bool = True) -> Path:
+    if not isinstance(relative, str) or not relative or Path(relative).is_absolute():
+        raise AEPriorQualificationV02Error("artifact path must be nonempty and relative")
+    resolved_root = root.resolve()
+    resolved = (resolved_root / relative).resolve()
+    if not resolved.is_relative_to(resolved_root):
+        raise AEPriorQualificationV02Error("artifact path escapes its evidence root")
+    if must_exist and not resolved.is_file():
+        raise AEPriorQualificationV02Error(f"artifact file is missing: {relative}")
+    return resolved
+
+
 def _stable_seed(*parts: object) -> int:
     digest = hashlib.sha256(":".join(str(part) for part in parts).encode()).digest()
     return int.from_bytes(digest[:8], "big") % 2_147_483_647
@@ -109,7 +274,7 @@ def _target_coordinate(task_id: str, target_field: str) -> int:
         ) from error
 
 
-def _moved_pair(permutation: Sequence[object]) -> tuple[int, int]:
+def _moved_pair(permutation: Sequence[Any]) -> tuple[int, int]:
     values = [int(value) for value in permutation]
     moved = [index for index, source in enumerate(values) if index != source]
     if (
@@ -192,63 +357,51 @@ def build_blind_policy_schedule(
 
 def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
     errors: list[str] = []
-    if contract.get("schema_version") != CONTRACT_VERSION:
-        errors.append("unexpected v0.2 contract schema")
-    if contract.get("development_only") is not True:
-        errors.append("v0.2 runner must remain development-only")
-    if contract.get("participant_provider_calls") != 0:
-        errors.append("provider calls must be zero")
-    if contract.get("participant_outcomes_read") is not False:
-        errors.append("participant outcomes must not be read")
-    note_path = root / str(contract.get("experiment_note", ""))
-    if not note_path.is_file():
-        errors.append("v0.2 experiment note is missing")
-
+    expected_scalar = {
+        "schema_version": CONTRACT_VERSION,
+        "contract_id": "work-ii-ae-prior-distinguishability-v0.2",
+        "status": "design_frozen_before_execution",
+        "development_only": True,
+        "experiment_note": EXPECTED_NOTE_PATH,
+        "experiment_note_sha256": EXPECTED_NOTE_SHA256,
+        "participant_provider_calls": 0,
+        "participant_outcomes_read": False,
+    }
+    for key, expected in expected_scalar.items():
+        if contract.get(key) != expected:
+            errors.append(f"semantic contract field changed: {key}")
+    try:
+        note_path = _contained_path(root, contract.get("experiment_note"))
+        if file_sha256(note_path) != contract.get("experiment_note_sha256"):
+            errors.append("v0.2 experiment note hash mismatch")
+    except AEPriorQualificationV02Error as error:
+        errors.append(str(error))
+    if contract.get("policy") != EXPECTED_POLICY:
+        errors.append("blind policy semantic contract changed")
     policy = contract.get("policy")
     policy = policy if isinstance(policy, Mapping) else {}
-    if policy.get("inputs") != ["task_id", "target_field"]:
-        errors.append("blind policy inputs are not frozen")
-    forbidden = set(policy.get("forbidden_inputs", []))
-    required_forbidden = {
-        "target_pair",
-        "descriptor_permutation",
-        "observations",
-        "outcomes",
-        "metric_values",
-        "favorable_region",
-    }
-    if not required_forbidden <= forbidden:
-        errors.append("blind policy forbidden inputs are incomplete")
-    if (
-        policy.get("policy_replicates_per_world") != 3
-        or policy.get("rounds_per_policy_replicate") != 8
-        or policy.get("planned_unique_recipes_per_policy_replicate") != 8
-        or policy.get("minimum_unique_recipes_per_policy_replicate") != 6
-        or policy.get("category_order_by_anchor") != [[0, 1, 2, 3], [0, 1, 2, 3]]
-    ):
-        errors.append("blind eight-round policy schedule is not frozen")
-    noise = contract.get("noise")
-    noise = noise if isinstance(noise, Mapping) else {}
-    if (
-        noise.get("covariance_between_distinct_recipe_executions") != 0.0
-        or noise.get("left_right_seed_and_namespace_must_differ") is not True
-        or noise.get("replicates_per_anchor_category") != 3
-    ):
-        errors.append("independent noise contract is not frozen")
+    if contract.get("noise") != EXPECTED_NOISE:
+        errors.append("independent noise semantic contract changed")
+    if contract.get("thresholds") != EXPECTED_THRESHOLDS:
+        errors.append("scientific threshold semantic contract changed")
+    if contract.get("denominators") != EXPECTED_DENOMINATORS:
+        errors.append("v0.2 denominators are not exactly frozen")
 
     tasks = contract.get("tasks")
-    if not isinstance(tasks, list) or tuple(
-        str(row.get("task_id")) for row in tasks if isinstance(row, Mapping)
-    ) != EXPECTED_TASKS:
-        errors.append("v0.2 requires the exact five-task roster")
+    if not isinstance(tasks, list) or tasks != list(EXPECTED_TASK_SPECS):
+        errors.append("v0.2 task/support/control semantic contract changed")
         tasks = []
     for row in tasks:
-        config_path = root / str(row.get("campaign_config", ""))
-        if not config_path.is_file():
-            errors.append(f"campaign config missing: {row.get('task_id')}")
+        try:
+            config_path = _contained_path(root, row.get("campaign_config"))
+        except AEPriorQualificationV02Error as error:
+            errors.append(str(error))
             continue
+        config = _load_object(config_path)
+        if canonical_json_sha256(config) != row.get("campaign_config_sha256"):
+            errors.append(f"campaign config hash mismatch: {row.get('task_id')}")
         allowed = build_checkpoint_contract(
-            _load_object(config_path), "aligned_nominal"
+            config, "aligned_nominal"
         )["allowed_metric_ids"]
         support = row.get("support_metric_ids")
         controls = row.get("negative_control_metric_ids")
@@ -276,6 +429,28 @@ def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
 
     cohorts = contract.get("cohorts")
     cohorts = cohorts if isinstance(cohorts, Mapping) else {}
+    expected_cohorts = {
+        "construction": {
+            "role": "frozen_descriptive_construction_only",
+            "scientific_admission_denominator": False,
+            "results_may_change_v0_2_rules": False,
+            "task_world_seeds": EXPECTED_CONSTRUCTION_SEEDS,
+        },
+        "heldout_qualification": {
+            "role": "only_scientific_admission_denominator",
+            "scientific_admission_denominator": True,
+            "selection_algorithm": "sha256_first8_modulo_namespace_v1",
+            "selection_namespace": (
+                "work-ii-ae-prior-v0.2-heldout-qualification-20260812"
+            ),
+            "namespace_start": 100_000_000,
+            "namespace_size": 900_000_000,
+            "worlds_per_task": 5,
+            "task_world_seeds": EXPECTED_HELDOUT_SEEDS,
+        },
+    }
+    if cohorts != expected_cohorts:
+        errors.append("construction/held-out cohort semantic contract changed")
     seed_sets: dict[str, set[int]] = {}
     for phase in EXPECTED_PHASES:
         cohort = cohorts.get(phase)
@@ -311,29 +486,12 @@ def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
         errors.append("construction is incorrectly an admission denominator")
     if heldout.get("scientific_admission_denominator") is not True:
         errors.append("held-out is not the only admission denominator")
-    if contract.get("denominators") != {
-        "tasks": 5,
-        "task_worlds_total": 50,
-        "construction_task_worlds": 25,
-        "heldout_qualification_task_worlds": 25,
-        "policy_replicates_total": 150,
-        "primary_executions_total": 1200,
-        "construction_primary_executions": 600,
-        "heldout_qualification_primary_executions": 600,
-        "tolerance_zero_exact_replay_checks": 1200,
-    }:
-        errors.append("v0.2 denominators are not exactly frozen")
     return errors
 
 
-def build_qualification_plan(root: Path, contract_path: Path) -> dict[str, Any]:
-    root = root.resolve()
-    contract_path = contract_path.resolve()
-    contract = _load_object(contract_path)
-    errors = validate_contract(root, contract)
-    if errors:
-        raise AEPriorQualificationV02Error("invalid v0.2 contract: " + "; ".join(errors))
-
+def _build_plan_payload(
+    root: Path, contract_path: Path, contract: Mapping[str, Any]
+) -> dict[str, Any]:
     policy = contract["policy"]
     noise_namespace = str(contract["noise"]["seed_namespace"])
     tasks = {str(row["task_id"]): row for row in contract["tasks"]}
@@ -341,17 +499,17 @@ def build_qualification_plan(root: Path, contract_path: Path) -> dict[str, Any]:
     allowed_by_task: dict[str, list[str]] = {}
     for task_id in EXPECTED_TASKS:
         task_row = tasks[task_id]
-        config_path = root / str(task_row["campaign_config"])
+        config_path = _contained_path(root, task_row["campaign_config"])
+        config = _load_object(config_path)
         allowed = list(
-            build_checkpoint_contract(_load_object(config_path), "aligned_nominal")[
-                "allowed_metric_ids"
-            ]
+            build_checkpoint_contract(config, "aligned_nominal")["allowed_metric_ids"]
         )
         allowed_by_task[task_id] = allowed
         task_bindings.append(
             {
                 "task_id": task_id,
                 "campaign_config": str(task_row["campaign_config"]),
+                "campaign_config_sha256": canonical_json_sha256(config),
                 "target_field": str(task_row["target_field"]),
                 "allowed_metric_ids": allowed,
                 "support_metric_ids": list(task_row["support_metric_ids"]),
@@ -385,8 +543,7 @@ def build_qualification_plan(root: Path, contract_path: Path) -> dict[str, Any]:
                         coordinate_text = ":".join(str(value) for value in coordinate)
                         execution_id = f"v0.2:{coordinate_text}"
                         observation_namespace = f"{noise_namespace}:{coordinate_text}"
-                        executions.append(
-                            {
+                        execution = {
                                 "execution_index": len(executions),
                                 "execution_id": execution_id,
                                 "phase": phase,
@@ -409,18 +566,38 @@ def build_qualification_plan(root: Path, contract_path: Path) -> dict[str, Any]:
                                 ),
                                 "observation_noise_namespace": observation_namespace,
                                 "recipe": item["recipe"],
+                                "recipe_sha256": canonical_json_sha256(item["recipe"]),
                             }
-                        )
+                        executions.append(execution)
     plan = {
         "schema_version": PLAN_VERSION,
         "development_only": True,
-        "contract_path": contract_path.relative_to(root).as_posix(),
+        "contract_binding": {
+            "path": contract_path.relative_to(root).as_posix(),
+            "canonical_sha256": canonical_json_sha256(contract),
+        },
+        "experiment_note_binding": {
+            "path": str(contract["experiment_note"]),
+            "sha256": str(contract["experiment_note_sha256"]),
+        },
         "participant_provider_calls": 0,
         "participant_outcomes_read": False,
         "denominators": deepcopy(contract["denominators"]),
         "task_bindings": task_bindings,
         "executions": executions,
     }
+    plan["plan_sha256"] = _self_hash(plan, "plan_sha256")
+    return plan
+
+
+def build_qualification_plan(root: Path, contract_path: Path) -> dict[str, Any]:
+    root = root.resolve()
+    contract_path = contract_path.resolve()
+    contract = _load_object(contract_path)
+    errors = validate_contract(root, contract)
+    if errors:
+        raise AEPriorQualificationV02Error("invalid v0.2 contract: " + "; ".join(errors))
+    plan = _build_plan_payload(root, contract_path, contract)
     errors = validate_qualification_plan(root, plan, contract)
     if errors:
         raise AEPriorQualificationV02Error("invalid generated plan: " + "; ".join(errors))
@@ -431,6 +608,22 @@ def validate_qualification_plan(
     root: Path, plan: Mapping[str, Any], contract: Mapping[str, Any]
 ) -> list[str]:
     errors = validate_contract(root, contract)
+    if errors:
+        return errors
+    binding = plan.get("contract_binding")
+    binding = binding if isinstance(binding, Mapping) else {}
+    try:
+        contract_path = _contained_path(root, binding.get("path"))
+    except AEPriorQualificationV02Error as error:
+        errors.append(str(error))
+        return errors
+    disk_contract = _load_object(contract_path)
+    if disk_contract != dict(contract):
+        errors.append("plan contract binding does not match supplied contract")
+    if binding.get("canonical_sha256") != canonical_json_sha256(contract):
+        errors.append("plan contract canonical hash mismatch")
+    if plan.get("plan_sha256") != _self_hash(plan, "plan_sha256"):
+        errors.append("plan self-hash mismatch")
     if plan.get("schema_version") != PLAN_VERSION:
         errors.append("unexpected v0.2 plan schema")
     if plan.get("development_only") is not True:
@@ -441,6 +634,16 @@ def validate_qualification_plan(
         errors.append("plan permits participant outcomes")
     if plan.get("denominators") != contract.get("denominators"):
         errors.append("plan denominators differ from contract")
+    note_binding = plan.get("experiment_note_binding")
+    if note_binding != {
+        "path": contract.get("experiment_note"),
+        "sha256": contract.get("experiment_note_sha256"),
+    }:
+        errors.append("plan experiment-note binding mismatch")
+    expected = _build_plan_payload(root, contract_path, contract)
+    if dict(plan) != expected:
+        errors.append("plan does not exactly reconstruct from frozen contract")
+        return errors
     executions = plan.get("executions")
     if not isinstance(executions, list) or len(executions) != 1200:
         errors.append("plan must contain exactly 1200 primary executions")
@@ -479,6 +682,8 @@ def validate_qualification_plan(
             row.get("negative_control_metric_ids", [])
         ) != set(row.get("allowed_metric_ids", [])):
             errors.append(f"support/control coverage mismatch: {execution_id}")
+        if row.get("recipe_sha256") != canonical_json_sha256(row.get("recipe")):
+            errors.append(f"recipe hash mismatch: {execution_id}")
     if dict(phase_counts) != {"construction": 600, "heldout_qualification": 600}:
         errors.append("plan cohort execution counts are not 600/600")
     if len(grouped) != 150:
@@ -506,7 +711,13 @@ def _config_for_task(
     ]
     if len(matches) != 1:
         raise AEPriorQualificationV02Error(f"{task_id} lacks one task binding")
-    return _load_object(root / str(matches[0]["campaign_config"]))
+    config_path = _contained_path(root, matches[0]["campaign_config"])
+    config = _load_object(config_path)
+    if canonical_json_sha256(config) != matches[0].get("campaign_config_sha256"):
+        raise AEPriorQualificationV02Error(
+            f"{task_id} campaign config binding is stale"
+        )
+    return config
 
 
 def execute_one(
@@ -523,27 +734,14 @@ def execute_one(
     execution_root.mkdir(parents=True, exist_ok=False)
     trajectory_path = execution_root / "trajectory.jsonl"
     actions = row["recipe"]["steps"]
-    copied_fields = (
-        "execution_index",
-        "execution_id",
-        "phase",
-        "task_id",
-        "world_seed",
-        "policy_replicate",
-        "round_index",
-        "nuisance_anchor",
-        "target_category",
-        "target_field",
-        "target_coordinate",
-        "recipe_id",
-        "allowed_metric_ids",
-        "support_metric_ids",
-        "negative_control_metric_ids",
-        "observation_seed",
-        "observation_noise_namespace",
+    receipt = deepcopy(dict(row))
+    receipt.update(
+        {
+            "schema_version": RECEIPT_VERSION,
+            "plan_sha256": plan["plan_sha256"],
+            "provider_call_count": 0,
+        }
     )
-    receipt = {key: deepcopy(row[key]) for key in copied_fields}
-    receipt["provider_call_count"] = 0
     try:
         run_agent(
             env_id=get_task(task_id).env_id,
@@ -622,7 +820,10 @@ def execute_one(
                     for metric in row["negative_control_metric_ids"]
                 },
                 "exact_replay": replay,
-                "trajectory_path": trajectory_path.relative_to(output_root).as_posix(),
+                "trajectory": {
+                    "path": trajectory_path.relative_to(output_root).as_posix(),
+                    "sha256": file_sha256(trajectory_path),
+                },
                 "failure": None,
             }
         )
@@ -634,7 +835,7 @@ def execute_one(
                 "support_metrics": None,
                 "negative_control_metrics": None,
                 "exact_replay": None,
-                "trajectory_path": (
+                "trajectory": (
                     trajectory_path.relative_to(output_root).as_posix()
                     if trajectory_path.is_file()
                     else None
@@ -642,6 +843,12 @@ def execute_one(
                 "failure": {"type": type(error).__name__, "message": str(error)},
             }
         )
+        if trajectory_path.is_file():
+            receipt["trajectory"] = {
+                "path": trajectory_path.relative_to(output_root).as_posix(),
+                "sha256": file_sha256(trajectory_path),
+            }
+    receipt["receipt_sha256"] = _self_hash(receipt, "receipt_sha256")
     return receipt
 
 
@@ -693,22 +900,9 @@ def build_qualification_report(
 
     execution_failures: list[dict[str, Any]] = []
     valid_receipts: dict[str, Mapping[str, Any]] = {}
-    copied_fields = (
-        "phase",
-        "task_id",
-        "world_seed",
-        "policy_replicate",
-        "round_index",
-        "nuisance_anchor",
-        "target_category",
-        "observation_seed",
-        "observation_noise_namespace",
-        "support_metric_ids",
-        "negative_control_metric_ids",
-    )
     for execution_id, row in receipt_by_id.items():
         planned = plan_by_id[execution_id]
-        metadata_matches = all(row.get(key) == planned.get(key) for key in copied_fields)
+        metadata_matches = all(row.get(key) == value for key, value in planned.items())
         allowed = row.get("allowed_metrics")
         metrics_valid = (
             isinstance(allowed, Mapping)
@@ -723,11 +917,23 @@ def build_qualification_report(
         )
         replay = row.get("exact_replay")
         replay_ok = isinstance(replay, Mapping) and replay.get("verified") is True
+        support = row.get("support_metrics")
+        controls = row.get("negative_control_metrics")
         valid = (
             metadata_matches
+            and row.get("schema_version") == RECEIPT_VERSION
+            and row.get("plan_sha256") == plan.get("plan_sha256")
+            and row.get("receipt_sha256") == _self_hash(row, "receipt_sha256")
             and row.get("provider_call_count") == 0
             and row.get("status") == "completed"
             and metrics_valid
+            and support
+            == {metric: allowed[metric] for metric in planned["support_metric_ids"]}
+            and controls
+            == {
+                metric: allowed[metric]
+                for metric in planned["negative_control_metric_ids"]
+            }
             and replay_ok
         )
         if valid:
@@ -972,6 +1178,7 @@ def build_qualification_report(
         "status": "passed" if heldout_passed else "failed",
         "admission_basis": "heldout_qualification_only",
         "construction_can_change_v0_2_rules": False,
+        "plan_sha256": plan["plan_sha256"],
         "denominators": deepcopy(plan["denominators"]),
         "completed_primary_executions": len(valid_receipts),
         "verified_tolerance_zero_exact_replays": sum(
@@ -986,7 +1193,21 @@ def build_qualification_report(
         "world_results": world_results,
         "task_results": task_results,
         "failures": all_failures,
+        "receipt_bindings": [
+            {
+                "execution_index": int(row["execution_index"]),
+                "execution_id": str(row["execution_id"]),
+                "receipt_sha256": str(row.get("receipt_sha256", "")),
+                "trajectory_sha256": (
+                    str(row["trajectory"].get("sha256", ""))
+                    if isinstance(row.get("trajectory"), Mapping)
+                    else None
+                ),
+            }
+            for row in sorted(receipts, key=lambda item: int(item["execution_index"]))
+        ],
     }
+    report["report_sha256"] = _self_hash(report, "report_sha256")
     return report
 
 
@@ -1000,6 +1221,8 @@ def validate_qualification_report(
     errors = validate_qualification_plan(root, plan, contract)
     if report.get("schema_version") != REPORT_VERSION:
         errors.append("unexpected v0.2 report schema")
+    if report.get("report_sha256") != _self_hash(report, "report_sha256"):
+        errors.append("v0.2 report self-hash mismatch")
     expected = build_qualification_report(plan, receipts, contract)
     if dict(report) != expected:
         errors.append("v0.2 report does not reproduce from plan and receipts")
@@ -1008,6 +1231,212 @@ def validate_qualification_report(
     if report.get("construction_can_change_v0_2_rules") is not False:
         errors.append("report permits construction-driven rule changes")
     return errors
+
+
+def _metrics_from_records(
+    records: Sequence[Mapping[str, Any]], metric_ids: Sequence[str]
+) -> dict[str, float]:
+    final_rows = [
+        row
+        for row in records
+        if row.get("instrument") == "final_assay"
+        and row.get("transaction_status") == "committed"
+    ]
+    if len(final_rows) != 1:
+        raise AEPriorQualificationV02Error(
+            "trajectory lacks exactly one committed final assay"
+        )
+    observation = final_rows[0].get("observation")
+    if not isinstance(observation, Mapping):
+        raise AEPriorQualificationV02Error("final assay observation is missing")
+    metrics: dict[str, float] = {}
+    for metric_id in metric_ids:
+        value = observation.get(metric_id)
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            raise AEPriorQualificationV02Error(
+                f"trajectory is missing allowed metric {metric_id}"
+            )
+        number = float(value)
+        if not math.isfinite(number) or not 0.0 <= number <= 1.0:
+            raise AEPriorQualificationV02Error(
+                f"trajectory metric {metric_id} is outside finite [0,1]"
+            )
+        metrics[metric_id] = number
+    return metrics
+
+
+def _audit_disk_receipt(
+    root: Path,
+    output_root: Path,
+    plan: Mapping[str, Any],
+    planned: Mapping[str, Any],
+    receipt_path: Path,
+) -> tuple[dict[str, Any] | None, list[str]]:
+    errors: list[str] = []
+    try:
+        receipt_path = receipt_path.resolve()
+        if not receipt_path.is_relative_to(output_root.resolve()):
+            raise AEPriorQualificationV02Error("receipt path escapes output root")
+        receipt = _load_object(receipt_path)
+        if receipt.get("receipt_sha256") != _self_hash(receipt, "receipt_sha256"):
+            errors.append("receipt self-hash mismatch")
+        if receipt.get("schema_version") != RECEIPT_VERSION:
+            errors.append("receipt schema mismatch")
+        if receipt.get("plan_sha256") != plan.get("plan_sha256"):
+            errors.append("receipt plan binding mismatch")
+        for key, value in planned.items():
+            if receipt.get(key) != value:
+                errors.append(f"receipt immutable plan field mismatch: {key}")
+        if receipt.get("provider_call_count") != 0:
+            errors.append("receipt provider call count is nonzero")
+        if receipt.get("status") != "completed":
+            errors.append("receipt is not completed")
+            return receipt, errors
+        trajectory = receipt.get("trajectory")
+        if not isinstance(trajectory, Mapping):
+            errors.append("completed receipt lacks trajectory binding")
+            return receipt, errors
+        try:
+            trajectory_path = _contained_path(output_root, trajectory.get("path"))
+        except AEPriorQualificationV02Error as error:
+            errors.append(str(error))
+            return receipt, errors
+        if file_sha256(trajectory_path) != trajectory.get("sha256"):
+            errors.append("trajectory SHA-256 mismatch")
+            return receipt, errors
+        records = load_jsonl(trajectory_path)
+        if [row.get("action") for row in records] != planned["recipe"]["steps"]:
+            errors.append("trajectory actions differ from frozen recipe")
+        if any(row.get("transaction_status") != "committed" for row in records):
+            errors.append("trajectory contains a noncommitted action")
+        config = _config_for_task(root, plan, str(planned["task_id"]))
+        replay = verify_records(
+            records,
+            tolerance=0.0,
+            world_interventions=config.get("world_interventions", []),
+        ).to_dict()
+        if replay.get("verified") is not True:
+            errors.append("fresh tolerance-zero exact replay failed")
+        metrics = _metrics_from_records(records, planned["allowed_metric_ids"])
+        support = {
+            metric: metrics[metric] for metric in planned["support_metric_ids"]
+        }
+        controls = {
+            metric: metrics[metric]
+            for metric in planned["negative_control_metric_ids"]
+        }
+        if receipt.get("allowed_metrics") != metrics:
+            errors.append("receipt allowed metrics differ from trajectory")
+        if receipt.get("support_metrics") != support:
+            errors.append("receipt support metrics differ from trajectory")
+        if receipt.get("negative_control_metrics") != controls:
+            errors.append("receipt control metrics differ from trajectory")
+        if receipt.get("exact_replay") != replay:
+            errors.append("receipt replay summary differs from fresh replay")
+    except (AEPriorQualificationV02Error, OSError, ValueError) as error:
+        return None, [str(error)]
+    return receipt, errors
+
+
+def validate_qualification_output(
+    root: Path, output_root: Path, contract_path: Path
+) -> list[str]:
+    """Reopen and independently validate a complete output directory."""
+
+    root = root.resolve()
+    output_root = output_root.resolve()
+    errors: list[str] = []
+    try:
+        contract = _load_object(contract_path.resolve())
+        plan_path = _contained_path(output_root, "plan.json")
+        report_path = _contained_path(output_root, "report.json")
+        disk_plan = _load_object(plan_path)
+        disk_report = _load_object(report_path)
+    except (AEPriorQualificationV02Error, OSError, ValueError) as error:
+        return [str(error)]
+    errors.extend(validate_qualification_plan(root, disk_plan, contract))
+    planned_rows = disk_plan.get("executions")
+    if not isinstance(planned_rows, list) or len(planned_rows) != 1200:
+        return [*errors, "disk plan does not contain 1200 executions"]
+    receipts: list[dict[str, Any]] = []
+    for planned in planned_rows:
+        index = int(planned["execution_index"])
+        receipt_path = output_root / "receipts" / f"{index:04d}.json"
+        receipt, receipt_errors = _audit_disk_receipt(
+            root, output_root, disk_plan, planned, receipt_path
+        )
+        errors.extend(
+            f"execution {index}: {error}" for error in receipt_errors
+        )
+        if receipt is not None:
+            receipts.append(receipt)
+    receipt_files = sorted((output_root / "receipts").glob("*.json"))
+    if len(receipt_files) != 1200:
+        errors.append("disk receipt denominator is not exactly 1200")
+    if len(receipts) == 1200 and not errors:
+        expected_report = build_qualification_report(disk_plan, receipts, contract)
+        if disk_report != expected_report:
+            errors.append("disk report differs from fresh trajectory-derived report")
+        errors.extend(
+            validate_qualification_report(
+                root, disk_report, disk_plan, receipts, contract
+            )
+        )
+    return errors
+
+
+def build_partial_audit(
+    root: Path, output_root: Path, contract_path: Path
+) -> dict[str, Any]:
+    """Return a readable fail-closed audit of an interrupted run; never resumes it."""
+
+    root = root.resolve()
+    output_root = output_root.resolve()
+    contract = _load_object(contract_path.resolve())
+    plan_path = _contained_path(output_root, "plan.json")
+    plan = _load_object(plan_path)
+    plan_errors = validate_qualification_plan(root, plan, contract)
+    receipt_dir = output_root / "receipts"
+    receipt_files = sorted(receipt_dir.glob("*.json")) if receipt_dir.is_dir() else []
+    valid = 0
+    completed = 0
+    failed = 0
+    audit_errors = list(plan_errors)
+    seen_indexes: set[int] = set()
+    for receipt_path in receipt_files:
+        try:
+            index = int(receipt_path.stem)
+        except ValueError:
+            audit_errors.append(f"unexpected receipt filename: {receipt_path.name}")
+            continue
+        if index not in range(1200) or index in seen_indexes:
+            audit_errors.append(f"invalid or duplicate receipt index: {index}")
+            continue
+        seen_indexes.add(index)
+        planned = plan["executions"][index]
+        receipt, errors = _audit_disk_receipt(
+            root, output_root, plan, planned, receipt_path
+        )
+        audit_errors.extend(f"execution {index}: {error}" for error in errors)
+        if receipt is not None:
+            completed += int(receipt.get("status") == "completed")
+            failed += int(receipt.get("status") == "failed")
+            valid += int(not errors)
+    payload = {
+        "schema_version": PARTIAL_AUDIT_VERSION,
+        "status": "complete" if len(receipt_files) == 1200 else "interrupted",
+        "resume_allowed": False,
+        "planned_primary_executions": 1200,
+        "materialized_receipts": len(receipt_files),
+        "completed_receipts": completed,
+        "failed_receipts": failed,
+        "independently_valid_receipts": valid,
+        "missing_receipts": 1200 - len(seen_indexes),
+        "plan_valid": not plan_errors,
+        "errors": audit_errors,
+    }
+    payload["partial_audit_sha256"] = _self_hash(payload, "partial_audit_sha256")
+    return payload
 
 
 def markdown_summary(report: Mapping[str, Any]) -> str:
@@ -1090,21 +1519,30 @@ def execute_qualification(
     (output_root / "summary.md").write_text(
         markdown_summary(report), encoding="utf-8"
     )
+    disk_errors = validate_qualification_output(root, output_root, contract_path)
+    if disk_errors:
+        raise AEPriorQualificationV02Error(
+            "v0.2 disk evidence validation failed: " + "; ".join(disk_errors)
+        )
     return report
 
 
 __all__ = [
     "CONTRACT_VERSION",
+    "PARTIAL_AUDIT_VERSION",
     "PLAN_VERSION",
+    "RECEIPT_VERSION",
     "REPORT_VERSION",
     "AEPriorQualificationV02Error",
     "build_blind_policy_schedule",
+    "build_partial_audit",
     "build_qualification_plan",
     "build_qualification_report",
     "execute_one",
     "execute_qualification",
     "markdown_summary",
     "validate_contract",
+    "validate_qualification_output",
     "validate_qualification_plan",
     "validate_qualification_report",
 ]

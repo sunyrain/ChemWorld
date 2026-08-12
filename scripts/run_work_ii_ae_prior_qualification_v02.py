@@ -7,7 +7,10 @@ import argparse
 import json
 from pathlib import Path
 
-from chemworld.eval.work_ii_ae_prior_qualification_v02 import execute_qualification
+from chemworld.eval.work_ii_ae_prior_qualification_v02 import (
+    build_partial_audit,
+    execute_qualification,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACT = (
@@ -19,7 +22,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--partial-audit",
+        action="store_true",
+        help="read and validate an interrupted output without resuming or changing it",
+    )
     args = parser.parse_args()
+    if args.partial_audit:
+        audit = build_partial_audit(
+            ROOT, args.output.resolve(), args.contract.resolve()
+        )
+        print(json.dumps(audit, sort_keys=True), flush=True)
+        return 0 if not audit["errors"] else 1
     report = execute_qualification(
         ROOT, args.contract.resolve(), args.output.resolve()
     )
