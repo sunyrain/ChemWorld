@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import tempfile
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
@@ -155,61 +156,98 @@ def integrate_development_result(
             + ", ".join(str(path) for path in existing)
         )
 
-    if source_root != destination_root:
-        destination_run.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(source_run, destination_run)
+    # Materialize the complete destination view first, then publish and validate it
+    # inside one rollback scope. Otherwise a destination-side contract error would
+    # strand a partial raw run/package and make a corrected retry impossible.
+    destination_root.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix=".work-ii-as-integration-", dir=destination_root.parent
+    ) as staging_directory:
+        staging_root = Path(staging_directory).resolve()
+        staged_run = staging_root / source_run_relative
+        shutil.copytree(source_run, staged_run)
+        staged_package = staging_root / CANONICAL_PACKAGE
+        staged_package.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_package, staged_package)
+        staged_d1: dict[str, Path] = {}
+        for candidate_id, source_path in source_d1.items():
+            target = staging_root / CANONICAL_D1[candidate_id]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            config = _load_object(source_path)
+            qualification = config.get("qualification")
+            if not isinstance(qualification, dict) or qualification.get(
+                "q0_q1_q2_passed"
+            ) is not True:
+                raise ValueError(
+                    f"A-S source D1 {candidate_id} lacks its complete Q0-Q2 gate"
+                )
+            if qualification.get("q2_passed") not in {None, True}:
+                raise ValueError(f"A-S source D1 {candidate_id} contradicts its Q2 pass")
+            # The long run may predate the unified downstream field name.  This is a
+            # deterministic interface materialization from the stronger existing gate,
+            # not a change to the qualification outcome or experiment design.
+            qualification["q2_passed"] = True
+            write_json_atomic(target, config)
+            staged_d1[candidate_id] = target
 
-    canonical_package.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(source_package, canonical_package)
-    for candidate_id, source_path in source_d1.items():
-        target = canonical_d1[candidate_id]
-        target.parent.mkdir(parents=True, exist_ok=True)
-        config = _load_object(source_path)
-        qualification = config.get("qualification")
-        if not isinstance(qualification, dict) or qualification.get(
-            "q0_q1_q2_passed"
-        ) is not True:
-            raise ValueError(f"A-S source D1 {candidate_id} lacks its complete Q0-Q2 gate")
-        if qualification.get("q2_passed") not in {None, True}:
-            raise ValueError(f"A-S source D1 {candidate_id} contradicts its Q2 pass")
-        # The long run may predate the unified downstream field name.  This is a
-        # deterministic interface materialization from the stronger existing gate,
-        # not a change to the qualification outcome or experiment design.
-        qualification["q2_passed"] = True
-        write_json_atomic(target, config)
-
-    integrated = json.loads(json.dumps(summary))
-    integrated["generated_package"] = {
-        "path": CANONICAL_PACKAGE.as_posix(),
-        "sha256": file_sha256(canonical_package),
-        "package_sha256": generated_package["package_sha256"],
-    }
-    integrated["participant_d1_configs_generated"] = {
-        candidate_id: {
-            "path": CANONICAL_D1[candidate_id].as_posix(),
-            "sha256": file_sha256(canonical_d1[candidate_id]),
-            "execution_authorized": False,
+        integrated = json.loads(json.dumps(summary))
+        integrated["generated_package"] = {
+            "path": CANONICAL_PACKAGE.as_posix(),
+            "sha256": file_sha256(staged_package),
+            "package_sha256": generated_package["package_sha256"],
         }
-        for candidate_id in source_d1
-    }
-    integrated["summary_sha256"] = summary_sha256(integrated)
+        integrated["participant_d1_configs_generated"] = {
+            candidate_id: {
+                "path": CANONICAL_D1[candidate_id].as_posix(),
+                "sha256": file_sha256(staged_d1[candidate_id]),
+                "execution_authorized": False,
+            }
+            for candidate_id in source_d1
+        }
+        integrated["summary_sha256"] = summary_sha256(integrated)
 
-    destination_errors = validate_summary(
-        destination_root,
-        integrated,
-        evidence_progress=evidence_progress,
-        # Receipt/trajectory replay was already rebuilt against the source root above.
-        # This second pass verifies the rewritten canonical bindings without repeating
-        # all 10,240 receipt replays during one integration operation.
-        deep_validate_world_reports=False,
-    )
-    if destination_errors:
-        raise ValueError(
-            "integrated A-S qualification failed deep validation: "
-            + "; ".join(destination_errors)
-        )
-    canonical_summary.parent.mkdir(parents=True, exist_ok=True)
-    write_json_atomic(canonical_summary, integrated)
+        staged_summary = staging_root / CANONICAL_SUMMARY
+        staged_summary.parent.mkdir(parents=True, exist_ok=True)
+        write_json_atomic(staged_summary, integrated)
+
+        published: list[Path] = []
+        try:
+            if source_root != destination_root:
+                destination_run.parent.mkdir(parents=True, exist_ok=True)
+                staged_run.replace(destination_run)
+                published.append(destination_run)
+            canonical_package.parent.mkdir(parents=True, exist_ok=True)
+            staged_package.replace(canonical_package)
+            published.append(canonical_package)
+            for candidate_id, source_path in staged_d1.items():
+                target = canonical_d1[candidate_id]
+                target.parent.mkdir(parents=True, exist_ok=True)
+                source_path.replace(target)
+                published.append(target)
+            canonical_summary.parent.mkdir(parents=True, exist_ok=True)
+            staged_summary.replace(canonical_summary)
+            published.append(canonical_summary)
+            destination_errors = validate_summary(
+                destination_root,
+                integrated,
+                evidence_progress=evidence_progress,
+                # Receipt/trajectory replay was already rebuilt against the source
+                # root. This pass verifies the rewritten canonical bindings against
+                # the complete destination repository, including plan and Q0 inputs.
+                deep_validate_world_reports=False,
+            )
+            if destination_errors:
+                raise ValueError(
+                    "integrated A-S qualification failed deep validation: "
+                    + "; ".join(destination_errors)
+                )
+        except Exception:
+            for path in reversed(published):
+                if path.is_dir():
+                    shutil.rmtree(path)
+                elif path.exists():
+                    path.unlink()
+            raise
 
     return {
         "status": (

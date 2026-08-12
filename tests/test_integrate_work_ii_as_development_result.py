@@ -97,7 +97,9 @@ def test_integrates_passed_development_run_without_authorizing_execution(
     assert result["status"] == "integrated_w2_26_input_ready"
     assert result["provider_execution_authorized"] is False
     assert result["formal_r5_authorized"] is False
-    assert calls == [(source_root.resolve(), True), (destination.resolve(), False)]
+    assert calls[0] == (source_root.resolve(), True)
+    assert calls[1][1] is False
+    assert calls[1][0] == destination.resolve()
     published = json.loads(
         (destination / integration.CANONICAL_SUMMARY).read_text(encoding="utf-8")
     )
@@ -147,7 +149,37 @@ def test_source_validation_failure_writes_nothing(
             source_summary=source_summary,
             destination_root=destination,
         )
-    assert not destination.exists()
+    assert not (destination / "runs/development/a-s-complete").exists()
+    assert not (destination / integration.CANONICAL_SUMMARY).exists()
+    assert not (destination / integration.CANONICAL_PACKAGE).exists()
+    assert not any((destination / path).exists() for path in integration.CANONICAL_D1.values())
+
+
+def test_destination_validation_failure_writes_no_partial_canonical_artifacts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root, source_summary, _ = _source(tmp_path, passed=True)
+    destination = tmp_path / "destination"
+    _patch_paths(monkeypatch)
+    calls = 0
+
+    def validate(*args: Any, **kwargs: Any) -> list[str]:
+        nonlocal calls
+        calls += 1
+        return [] if calls == 1 else ["rewritten binding mismatch"]
+
+    monkeypatch.setattr(integration, "validate_summary", validate)
+    with pytest.raises(ValueError, match="rewritten binding mismatch"):
+        integration.integrate_development_result(
+            source_root=source_root,
+            source_summary=source_summary,
+            destination_root=destination,
+        )
+
+    assert not (destination / "runs/development/a-s-complete").exists()
+    assert not (destination / integration.CANONICAL_SUMMARY).exists()
+    assert not (destination / integration.CANONICAL_PACKAGE).exists()
+    assert not any((destination / path).exists() for path in integration.CANONICAL_D1.values())
 
 
 def test_integration_is_write_once(
