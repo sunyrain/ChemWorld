@@ -204,6 +204,39 @@ def test_completed_fit_plans_validation_but_default_dry_run_does_not_launch(
     assert event["execute"] is False
 
 
+def test_existing_nonterminal_validation_waits_without_revalidating_fit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _script_module()
+    fit = tmp_path / "fit"
+    fit.mkdir()
+    (fit / "report.json").write_text("{}", encoding="utf-8")
+    pipeline = tmp_path / "pipeline"
+    validation = pipeline / "classifier-validation"
+    validation.mkdir(parents=True)
+    calls = []
+    monkeypatch.setattr(
+        module, "validate_external_root", lambda _root, candidate: candidate.resolve()
+    )
+    monkeypatch.setattr(
+        module,
+        "validate_terminal_output",
+        lambda **kwargs: calls.append(kwargs) or pytest.fail("must not deep-validate"),
+    )
+    status, command = module.inspect_once(
+        Namespace(
+            pipeline_root=pipeline,
+            log_root=tmp_path / "logs",
+            fit_output=fit,
+            contract=CONTRACT,
+            execute=False,
+        )
+    )
+    assert status == "waiting"
+    assert command == ()
+    assert calls == []
+
+
 def test_validation_scientific_rejection_is_normal_terminal_stop(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -48,55 +48,28 @@ def inspect_once(args: argparse.Namespace) -> tuple[str, tuple[str, ...]]:
     log_root = validate_external_root(ROOT, args.log_root)
     fit_output = validate_external_root(ROOT, args.fit_output)
     paths = _phase_paths(base, fit_output)
-    upstream = {}
+    next_phase = None
     for phase in PHASE_ORDER:
         output = paths[phase]
-        report = output / "report.json"
-        failure = output / "platform-failure.json"
-        if failure.exists():
+        if (output / "platform-failure.json").exists():
             raise AEV03SupervisorError(f"{phase} stopped with platform failure")
-        if not report.exists():
-            if phase == "classifier_fit" or output.exists():
-                return "waiting", ()
-            command = next_phase_command(
-                python=sys.executable,
-                runner=RUNNER,
-                contract_path=args.contract.resolve(),
-                phase=phase,
-                output=output,
-                upstream=upstream,
-            )
-            _emit(
-                log_root / "supervisor.jsonl",
-                {
-                    "event": "phase_ready",
-                    "phase": phase,
-                    "output": str(output),
-                    "execute": bool(args.execute),
-                    "command": list(command),
-                },
-            )
-            if not args.execute:
-                return "ready", command
-            output.parent.mkdir(parents=True, exist_ok=True)
-            phase_log = log_root / f"{phase}.log"
-            with phase_log.open("a", encoding="utf-8", newline="\n") as handle:
-                process = subprocess.Popen(
-                    command,
-                    cwd=ROOT,
-                    stdout=handle,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                )
-            _emit(
-                log_root / "supervisor.jsonl",
-                {"event": "phase_started", "phase": phase, "pid": process.pid},
-            )
-            return "started", command
-        if phase == "prospective_screen" and not (output / "selection.json").is_file():
+        terminal = (output / "report.json").is_file()
+        if phase == "prospective_screen":
+            terminal = terminal and (output / "selection.json").is_file()
+        elif phase == "confirmation":
+            terminal = terminal and (output / "summary.json").is_file()
+        if terminal:
+            continue
+        if phase == "classifier_fit" or output.exists():
             return "waiting", ()
-        if phase == "confirmation" and not (output / "summary.json").is_file():
-            return "waiting", ()
+        next_phase = phase
+        break
+
+    upstream = {}
+    for phase in PHASE_ORDER:
+        if phase == next_phase:
+            break
+        output = paths[phase]
         evidence = validate_terminal_output(
             root=ROOT,
             contract_path=args.contract.resolve(),
@@ -114,7 +87,44 @@ def inspect_once(args: argparse.Namespace) -> tuple[str, tuple[str, ...]]:
             return "scientifically_rejected", ()
         if phase == "confirmation":
             return "completed", ()
-    raise AEV03SupervisorError("supervisor state machine exhausted unexpectedly")
+    if next_phase is None:
+        raise AEV03SupervisorError("supervisor state machine exhausted unexpectedly")
+    output = paths[next_phase]
+    command = next_phase_command(
+        python=sys.executable,
+        runner=RUNNER,
+        contract_path=args.contract.resolve(),
+        phase=next_phase,
+        output=output,
+        upstream=upstream,
+    )
+    _emit(
+        log_root / "supervisor.jsonl",
+        {
+            "event": "phase_ready",
+            "phase": next_phase,
+            "output": str(output),
+            "execute": bool(args.execute),
+            "command": list(command),
+        },
+    )
+    if not args.execute:
+        return "ready", command
+    output.parent.mkdir(parents=True, exist_ok=True)
+    phase_log = log_root / f"{next_phase}.log"
+    with phase_log.open("a", encoding="utf-8", newline="\n") as handle:
+        process = subprocess.Popen(
+            command,
+            cwd=ROOT,
+            stdout=handle,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+    _emit(
+        log_root / "supervisor.jsonl",
+        {"event": "phase_started", "phase": next_phase, "pid": process.pid},
+    )
+    return "started", command
 
 
 def main() -> int:
