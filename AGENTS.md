@@ -35,6 +35,41 @@ Work II remains separate and is governed by `workstreams/flagship_tasks/WORK_II_
 - Internal hashes, manifests, run identifiers, and repository filenames belong in evidence records
   and release metadata, not in reader-facing manuscript prose or figures.
 
+## Development-first, freeze-once workflow
+
+This is the default workflow for every ChemWorld workstream, including Work II.  Treat it as a
+project invariant, not as an optional optimization.
+
+- **Development mode is the default.** While platform functions, experiment runners, candidate
+  mechanisms, measurements, or the experiment matrix are still changing, optimize for correct
+  behavior and scientific validity.  Do not require a globally clean worktree, a repository-wide
+  source-tree hash, a current release certificate, or regenerated preregistration/readiness/audit
+  artifacts merely to implement, test, benchmark, or run a clearly labelled development experiment.
+- **Do not let historical evidence govern new design.** A stale hash, old audit, superseded
+  certificate, or previous freeze may describe historical evidence, but it must not block a
+  scientifically justified platform or design change.  Mark the old artifact stale/historical and
+  rebuild it at the next release freeze; do not repeatedly repair the old evidence chain during
+  feature development.
+- **Preserve the scientific invariants during development.** Every data-producing block still needs
+  its concise experiment note before execution.  Once that block starts, its question, tested units,
+  coverage, measurements, denominators, pass/failure rules, and stop rules are fixed.  Keep all
+  failures, exact replay, resource accounting, and readable machine summaries.  Never overwrite an
+  unfavorable result or change a running block in response to its outcomes.
+- **Development evidence is labelled, not discarded.** Development runs may guide debugging and
+  design, but they do not automatically become formal or publication evidence.  A platform fix
+  requires the affected formal qualification block to rerun from its first unit.  Raw provider data,
+  credentials, and ignored run directories remain outside Git.
+- **Freeze once, late.** Enter `release-freeze` mode only after the relevant functions and experiment
+  matrix are stable and the user has authorized formal evidence production or release.  At that
+  point create one clean source commit, bind the smallest execution-relevant surface, generate the
+  required preregistration/release checks once, and execute the formal block without changing its
+  design.  Tests, prose, unrelated configs, and historical reports should not be included in a
+  runtime source hash unless they can actually change the execution or evaluator semantics.
+- **No audit treadmill.** Do not regenerate global preflight, readiness, evidence-graph, SHA inventory,
+  or release audit after each development edit.  Run focused functional/scientific tests while
+  developing, one integrated acceptance pass before freeze, and the release audit once after the
+  final execution surface is committed.
+
 ## Isolation and integration
 
 - Keep implementation, generated results and manuscript integration distinguishable in commits when

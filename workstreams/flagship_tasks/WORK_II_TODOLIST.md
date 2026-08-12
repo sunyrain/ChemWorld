@@ -2,6 +2,23 @@
 
 最后更新：2026-08-12
 
+## 0. 已冻结的执行理念：开发优先、最后一次冻结
+
+Work II 默认处于 **development mode**，直到功能、候选机制、测量契约和完整实验矩阵均稳定，且用户明确授权
+正式证据生产。开发期间优先推进平台功能与科学设计；全树 SHA、clean-worktree、preregistration readiness、
+evidence graph、release qualification 和旧 Gate A 证书均不是新增功能、定向测试或明确标注的 development
+experiment 的前置条件。旧审计或哈希因合理的新功能失效时，将其标为 stale/historical，留到最终 release freeze
+统一重建，不在每次改动后循环修复。
+
+开发态仍不可放松的部分是实验本身：数据产生前必须有简洁 experiment note；一旦 block 启动，不得按结果修改
+问题、coverage、分母、测量、阈值、失败/停止规则；必须保留全部失败、exact replay、资源账本和机器可读 summary，
+不得用更有利的重跑覆盖旧结果。Development evidence 可以用于调试和设计，但不会自动升级为 formal evidence。
+
+只有进入 **release-freeze mode** 后，才一次性完成：冻结最终执行面、建立最小必要 source binding、生成 prereg/
+release audit、运行正式 qualification，并在同一冻结 cohort 上进入 participant/formal/private execution。绑定范围
+必须限于真正影响 runtime/evaluator 的代码与配置；测试、论文、无关配置和历史报告不得仅因目录便利被纳入全树
+hash。此理念优先于本文件中历史遗留的“每次开发改动后重建审计/SHA”表述。
+
 当前状态：**正式/R5 participant outcomes 尚未执行；reaction-safety mechanism-oracle Q1、matched-prior
 Q2、world-0 D1 与预注册 D2 worlds 1/4 均已完成；electrochemical mechanism-oracle 与 matched-prior Q2
 均已通过 5/5 worlds；electrochemical world-0 D1 已完成但为 retained operational failure，当前不进入 D2/R5。**
