@@ -17,6 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = (
     ROOT / "configs/benchmark/work_ii_ae_prior_distinguishability_v0.2.json"
 )
+SCHEMA_PATH = (
+    ROOT / "src/chemworld/schemas/work_ii_ae_prior_qualification_v02_schema.json"
+)
 
 
 def _contract() -> dict[str, object]:
@@ -107,9 +110,13 @@ def _synthetic_receipts(
 
 def test_contract_and_plan_freeze_exact_denominators_and_heldout_namespace() -> None:
     contract = _contract()
+    schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
     plan = _plan()
 
     assert validate_contract(ROOT, contract) == []
+    assert schema["properties"]["schema_version"]["const"] == contract[
+        "schema_version"
+    ]
     assert validate_qualification_plan(ROOT, plan, contract) == []
     assert plan["denominators"] == {
         "tasks": 5,
