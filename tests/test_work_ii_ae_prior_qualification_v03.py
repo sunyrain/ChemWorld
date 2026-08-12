@@ -9,7 +9,7 @@ import jsonschema
 import numpy as np
 import pytest
 
-from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_ae_prior_qualification_v03 import (
     HYPOTHESES,
     AEPriorQualificationV03Error,
@@ -24,10 +24,12 @@ from chemworld.eval.work_ii_ae_prior_qualification_v03 import (
     dossier_variant,
     extract_registered_measurement,
     hypothesis_permutation,
+    load_resume_prefix,
     score_all_hypotheses,
     select_descriptor_pair,
     select_screen_loci,
     validate_contract,
+    validate_next_receipt,
     validate_plan,
 )
 
@@ -674,3 +676,123 @@ def test_permutation_convention_is_self_inverse() -> None:
     for hypothesis in HYPOTHESES:
         permutation = hypothesis_permutation(hypothesis)
         assert tuple(permutation[index] for index in permutation) == (0, 1, 2, 3)
+
+
+def _completed_receipt(
+    plan: dict[str, object], index: int, output: Path, *, resumed: bool = False
+) -> dict[str, object]:
+    row = plan["executions"][index]  # type: ignore[index]
+    relative = (
+        Path("resume-executions") / "1" / str(index) / "trajectory.jsonl"
+        if resumed
+        else Path("executions") / str(index) / "trajectory.jsonl"
+    )
+    trajectory = output / relative
+    trajectory.parent.mkdir(parents=True, exist_ok=True)
+    trajectory.write_text('{"step": 1}\n', encoding="utf-8")
+    receipt = {
+        key: deepcopy(row[key])
+        for key in (
+            "execution_index",
+            "execution_id",
+            "phase",
+            "task_id",
+            "locus_id",
+            "world_index",
+            "world_seed",
+            "anchor_id",
+            "target_category",
+            "replicate",
+            "anchor_recipe",
+            "measurement_stage_id",
+        )
+    }
+    receipt.update(
+        {
+            "schema_version": "chemworld-work-ii-ae-locus-receipt-0.3",
+            "plan_sha256": plan["plan_sha256"],
+            "provider_call_count": 0,
+            "status": "completed",
+            "failure": None,
+            "measurement": {
+                "measurement_stage_id": row["measurement_stage_id"],
+                "metrics": dict.fromkeys(row["measured_metric_ids"], 0.5),
+            },
+            "classification_metrics": dict.fromkeys(
+                row["classification_metric_ids"], 0.5
+            ),
+            "non_gating_secondary_metrics": dict.fromkeys(
+                row["non_gating_secondary_metric_ids"], 0.5
+            ),
+            "exact_replay": {"verified": True},
+            "trajectory": {
+                "path": relative.as_posix(),
+                "sha256": file_sha256(trajectory),
+            },
+        }
+    )
+    return _self_hash(receipt, "receipt_sha256")
+
+
+def _resume_fixture(tmp_path: Path) -> tuple[Path, dict[str, object], dict[str, object]]:
+    contract = _load(CONTRACT_PATH)
+    plan = _build_plan(ROOT, CONTRACT_PATH, contract, "classifier_fit")
+    output = tmp_path / "run"
+    (output / "receipts").mkdir(parents=True)
+    (output / "plan.json").write_text(json.dumps(plan), encoding="utf-8")
+    receipt = _completed_receipt(plan, 0, output)
+    (output / "receipts" / "0.json").write_text(
+        json.dumps(receipt), encoding="utf-8"
+    )
+    return output, plan, receipt
+
+
+def test_resume_accepts_validated_prefix_and_one_orphan_next_execution(
+    tmp_path: Path,
+) -> None:
+    output, plan, receipt = _resume_fixture(tmp_path)
+    orphan = output / "executions" / "1" / "trajectory.jsonl"
+    orphan.parent.mkdir(parents=True)
+    orphan.write_text('{"partial": true}\n', encoding="utf-8")
+    assert load_resume_prefix(output, plan, minimum_quiescent_seconds=0) == [receipt]
+    assert validate_next_receipt(plan, 1, _completed_receipt(plan, 1, output, resumed=True)) == []
+
+
+@pytest.mark.parametrize("attack", ["plan", "gap", "trajectory", "platform", "orphan"])
+def test_resume_rejects_mutation_and_non_prefix_state(
+    tmp_path: Path, attack: str
+) -> None:
+    output, plan, receipt = _resume_fixture(tmp_path)
+    if attack == "plan":
+        stored = json.loads((output / "plan.json").read_text(encoding="utf-8"))
+        stored["participant_provider_calls"] = 1
+        (output / "plan.json").write_text(json.dumps(stored), encoding="utf-8")
+    elif attack == "gap":
+        (output / "receipts" / "0.json").rename(output / "receipts" / "1.json")
+    elif attack == "trajectory":
+        (output / receipt["trajectory"]["path"]).write_text(  # type: ignore[index]
+            "tampered\n", encoding="utf-8"
+        )
+    elif attack == "platform":
+        receipt["status"] = "platform_failure"
+        receipt["failure"] = {"type": "Error", "message": "boom"}
+        receipt["measurement"] = None
+        receipt["classification_metrics"] = None
+        receipt["non_gating_secondary_metrics"] = None
+        receipt["exact_replay"] = None
+        _self_hash(receipt, "receipt_sha256")
+        (output / "receipts" / "0.json").write_text(
+            json.dumps(receipt), encoding="utf-8"
+        )
+    else:
+        orphan = output / "executions" / "2" / "trajectory.jsonl"
+        orphan.parent.mkdir(parents=True)
+        orphan.write_text('{"partial": true}\n', encoding="utf-8")
+    with pytest.raises(AEPriorQualificationV03Error):
+        load_resume_prefix(output, plan, minimum_quiescent_seconds=0)
+
+
+def test_resume_rejects_non_quiescent_active_output(tmp_path: Path) -> None:
+    output, plan, _ = _resume_fixture(tmp_path)
+    with pytest.raises(AEPriorQualificationV03Error, match="not quiescent"):
+        load_resume_prefix(output, plan, minimum_quiescent_seconds=60)

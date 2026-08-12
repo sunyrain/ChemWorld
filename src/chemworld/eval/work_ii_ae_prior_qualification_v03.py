@@ -10,10 +10,11 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import time
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from statistics import fmean, variance
 from typing import Any
 
@@ -2468,13 +2469,23 @@ def extract_registered_measurement(
 
 
 def execute_one(
-    root: Path, plan: Mapping[str, Any], row: Mapping[str, Any], output_root: Path
+    root: Path,
+    plan: Mapping[str, Any],
+    row: Mapping[str, Any],
+    output_root: Path,
+    *,
+    execution_root: Path | None = None,
 ) -> dict[str, Any]:
     binding = next(
         item for item in plan["task_locus_bindings"] if item["locus_id"] == row["locus_id"]
     )
     config = _load_object(root / binding["campaign_config"])
-    execution_root = output_root / "executions" / str(row["execution_index"])
+    execution_root = execution_root or (
+        output_root / "executions" / str(row["execution_index"])
+    )
+    execution_root = execution_root.resolve()
+    if not execution_root.is_relative_to(output_root.resolve()):
+        raise AEPriorQualificationV03Error("execution directory escapes output root")
     execution_root.mkdir(parents=True, exist_ok=False)
     trajectory = execution_root / "trajectory.jsonl"
     receipt = {
@@ -2735,6 +2746,151 @@ def validate_phase_progress(
     return errors
 
 
+def validate_next_receipt(
+    plan: Mapping[str, Any], completed_count: int, receipt: Mapping[str, Any]
+) -> list[str]:
+    """Validate one append without rescanning an already validated receipt prefix."""
+
+    executions = plan.get("executions")
+    if not isinstance(executions, list) or not 0 <= completed_count < len(executions):
+        return ["next receipt is outside the immutable plan"]
+    planned = executions[completed_count]
+    if receipt.get("execution_id") != planned.get("execution_id"):
+        return ["next receipt is not the immutable plan continuation"]
+    return _receipt_errors(
+        planned, receipt, completed=receipt.get("status") == "completed"
+    )
+
+
+def load_resume_prefix(
+    output_root: Path,
+    expected_plan: Mapping[str, Any],
+    *,
+    minimum_quiescent_seconds: float = 60.0,
+) -> list[dict[str, Any]]:
+    """Load a fail-closed, missing-only phase prefix from an interrupted output."""
+
+    output_root = output_root.resolve()
+    if not output_root.is_dir():
+        raise AEPriorQualificationV03Error("resume output root does not exist")
+    allowed_root_members = {
+        "plan.json",
+        "receipts",
+        "executions",
+        "resume-executions",
+        ".runner.lock",
+    }
+    unexpected = sorted(
+        path.name for path in output_root.iterdir() if path.name not in allowed_root_members
+    )
+    if unexpected:
+        raise AEPriorQualificationV03Error(
+            "resume output contains terminal or unexpected members: "
+            + ", ".join(unexpected)
+        )
+    materialized = [
+        path
+        for path in output_root.rglob("*")
+        if path.is_file() and path.name != ".runner.lock"
+    ]
+    if materialized and time.time() - max(path.stat().st_mtime for path in materialized) < float(
+        minimum_quiescent_seconds
+    ):
+        raise AEPriorQualificationV03Error(
+            "resume output is not quiescent; the original runner may still be active"
+        )
+    stored_plan = _load_object(output_root / "plan.json")
+    if stored_plan != expected_plan:
+        raise AEPriorQualificationV03Error(
+            "resume plan differs from deterministic reconstruction"
+        )
+    receipt_root = output_root / "receipts"
+    if receipt_root.exists() and not receipt_root.is_dir():
+        raise AEPriorQualificationV03Error("resume receipt root is not a directory")
+    receipt_files = list(receipt_root.iterdir()) if receipt_root.is_dir() else []
+    if any(not path.is_file() or path.suffix != ".json" for path in receipt_files):
+        raise AEPriorQualificationV03Error("resume receipts contain unexpected members")
+    try:
+        receipt_files.sort(key=lambda path: int(path.stem))
+    except ValueError as error:
+        raise AEPriorQualificationV03Error(
+            "resume receipt filenames must be numeric execution indexes"
+        ) from error
+    if [int(path.stem) for path in receipt_files] != list(range(len(receipt_files))):
+        raise AEPriorQualificationV03Error(
+            "resume receipt indexes must be a complete prefix from zero"
+        )
+    receipts = [_load_object(path) for path in receipt_files]
+    progress_errors = validate_phase_progress(expected_plan, receipts)
+    if progress_errors:
+        raise AEPriorQualificationV03Error(
+            "invalid resume receipt prefix: " + "; ".join(progress_errors)
+        )
+    if any(receipt.get("status") == "platform_failure" for receipt in receipts):
+        raise AEPriorQualificationV03Error(
+            "a platform-defective phase must restart from execution zero"
+        )
+    total = len(expected_plan["executions"])
+    prefix_length = len(receipts)
+    for receipt in receipts:
+        trajectory_binding = receipt.get("trajectory")
+        if not isinstance(trajectory_binding, Mapping):
+            raise AEPriorQualificationV03Error("resume receipt lacks trajectory binding")
+        relative = PurePosixPath(str(trajectory_binding.get("path", "")))
+        index = int(receipt["execution_index"])
+        canonical = relative.parts == ("executions", str(index), "trajectory.jsonl")
+        resumed = (
+            len(relative.parts) == 4
+            and relative.parts[0] == "resume-executions"
+            and relative.parts[1].isdigit()
+            and relative.parts[2] == str(index)
+            and relative.parts[3] == "trajectory.jsonl"
+        )
+        if not canonical and not resumed:
+            raise AEPriorQualificationV03Error("resume trajectory path is not registered")
+        trajectory = (output_root / Path(*relative.parts)).resolve()
+        if (
+            not trajectory.is_relative_to(output_root)
+            or not trajectory.is_file()
+            or file_sha256(trajectory) != trajectory_binding.get("sha256")
+        ):
+            raise AEPriorQualificationV03Error("resume trajectory binding is invalid")
+
+    def validate_execution_tree(root: Path, *, nested: bool) -> None:
+        if not root.exists():
+            return
+        if not root.is_dir():
+            raise AEPriorQualificationV03Error("resume execution root is not a directory")
+        parents = list(root.iterdir())
+        if nested:
+            if any(not path.is_dir() or not path.name.isdigit() for path in parents):
+                raise AEPriorQualificationV03Error(
+                    "resume attempt directories are malformed"
+                )
+            execution_roots = [child for parent in parents for child in parent.iterdir()]
+        else:
+            execution_roots = parents
+        for execution_root in execution_roots:
+            if not execution_root.is_dir() or not execution_root.name.isdigit():
+                raise AEPriorQualificationV03Error(
+                    "resume execution directories are malformed"
+                )
+            index = int(execution_root.name)
+            if index < 0 or index > prefix_length or index >= total:
+                raise AEPriorQualificationV03Error(
+                    "resume found an execution outside the completed/next prefix"
+                )
+            members = list(execution_root.iterdir())
+            if any(path.name != "trajectory.jsonl" or not path.is_file() for path in members):
+                raise AEPriorQualificationV03Error(
+                    "resume execution directory contains unexpected members"
+                )
+
+    validate_execution_tree(output_root / "executions", nested=False)
+    validate_execution_tree(output_root / "resume-executions", nested=True)
+    return receipts
+
+
 def validate_receipt_denominator(
     plan: Mapping[str, Any], receipts: Sequence[Mapping[str, Any]]
 ) -> list[str]:
@@ -2783,10 +2939,12 @@ __all__ = [
     "extract_registered_measurement",
     "fit_calibration_model",
     "hypothesis_permutation",
+    "load_resume_prefix",
     "score_all_hypotheses",
     "select_descriptor_pair",
     "select_screen_loci",
     "validate_contract",
+    "validate_next_receipt",
     "validate_phase_progress",
     "validate_plan",
     "validate_receipt_denominator",
