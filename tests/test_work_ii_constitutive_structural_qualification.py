@@ -47,14 +47,14 @@ def _audit(candidate_id: str, world_seed: int) -> dict[str, Any]:
         "registered_law_ids": list(spec["law_ids"]),
         "world_intervention": spec["world_intervention"],
         "baseline_mechanism_hash": "b" * 64,
-        "altered_mechanism_hash": "a" * 64,
         "altered_hash_deterministic": True,
-        "mechanism_hash_changed": True,
         "altered_intervention_hash": "i" * 64,
     }
     if candidate_id == PARTITION_CANDIDATE_ID:
         common.update(
             {
+                "altered_mechanism_hash": "b" * 64,
+                "mechanism_hash_changed": False,
                 "changed_domain_parameter_keys": ["partition_coefficient_exponent"],
                 "only_registered_constitutive_parameter_changed": True,
             }
@@ -62,6 +62,8 @@ def _audit(candidate_id: str, world_seed: int) -> dict[str, Any]:
     else:
         common.update(
             {
+                "altered_mechanism_hash": "a" * 64,
+                "mechanism_hash_changed": True,
                 "added_reaction_count": 1,
                 "transform_id": "reversible_target_pathway_stress_v1",
             }
@@ -98,7 +100,11 @@ def _rows(candidate_id: str, world_seed: int = 0) -> list[dict[str, Any]]:
                     ),
                     "action_plan_sha256": coordinate["coordinate_sha256"],
                     "observation_coordinate_sha256": coordinate["coordinate_sha256"],
-                    "mechanism_hash": "a" * 64 if altered else "b" * 64,
+                    "mechanism_hash": (
+                        "a" * 64
+                        if altered and candidate_id == CRYSTALLIZATION_CANDIDATE_ID
+                        else "b" * 64
+                    ),
                     "intervention_hash": "i" * 64 if altered else None,
                     "exact_replay": True,
                     "participant_visible_leakage_matches": [],
@@ -176,6 +182,83 @@ def test_analysis_accepts_only_complete_paired_actual_laws(candidate_id: str) ->
         value["prediction_source"] for value in result["q2"]["candidate_laws"].values()
     } == {"direct_provider_free_execution"}
     assert result["q2"]["blind_identified_truth_law"] == "blind_law_b"
+
+
+def test_partition_law_binding_requires_same_compiled_mechanism_and_exponent_only() -> None:
+    rows = _rows(PARTITION_CANDIDATE_ID)
+    audit = _audit(PARTITION_CANDIDATE_ID, 0)
+    assert analyze_candidate_world(PARTITION_CANDIDATE_ID, 0, rows, audit)[
+        "checks"
+    ]["executable_law_binding"] is True
+
+    changed_hash_audit = dict(audit)
+    changed_hash_audit.update(
+        {"mechanism_hash_changed": True, "altered_mechanism_hash": "a" * 64}
+    )
+    assert analyze_candidate_world(
+        PARTITION_CANDIDATE_ID, 0, rows, changed_hash_audit
+    )["checks"]["executable_law_binding"] is False
+
+    changed_row = [dict(row) for row in rows]
+    next(
+        row for row in changed_row if row["law_id"] == "power_response"
+    )["mechanism_hash"] = "a" * 64
+    assert analyze_candidate_world(PARTITION_CANDIDATE_ID, 0, changed_row, audit)[
+        "checks"
+    ]["executable_law_binding"] is False
+
+    extra_parameter_audit = dict(audit)
+    extra_parameter_audit["changed_domain_parameter_keys"] = [
+        "partition_coefficient_exponent",
+        "partition_phase_volume_multiplier",
+    ]
+    assert analyze_candidate_world(
+        PARTITION_CANDIDATE_ID, 0, rows, extra_parameter_audit
+    )["checks"]["executable_law_binding"] is False
+
+    bad_intervention_rows = [dict(row) for row in rows]
+    next(
+        row for row in bad_intervention_rows if row["law_id"] == "power_response"
+    )["intervention_hash"] = "wrong"
+    assert analyze_candidate_world(
+        PARTITION_CANDIDATE_ID, 0, bad_intervention_rows, audit
+    )["checks"]["executable_law_binding"] is False
+
+    missing_intervention_audit = dict(audit)
+    missing_intervention_audit["altered_intervention_hash"] = None
+    assert analyze_candidate_world(
+        PARTITION_CANDIDATE_ID, 0, rows, missing_intervention_audit
+    )["checks"]["executable_law_binding"] is False
+
+
+def test_crystallization_law_binding_requires_changed_topology_and_added_reaction() -> None:
+    rows = _rows(CRYSTALLIZATION_CANDIDATE_ID)
+    audit = _audit(CRYSTALLIZATION_CANDIDATE_ID, 0)
+    assert analyze_candidate_world(CRYSTALLIZATION_CANDIDATE_ID, 0, rows, audit)[
+        "checks"
+    ]["executable_law_binding"] is True
+
+    unchanged_audit = dict(audit)
+    unchanged_audit.update(
+        {"mechanism_hash_changed": False, "altered_mechanism_hash": "b" * 64}
+    )
+    assert analyze_candidate_world(
+        CRYSTALLIZATION_CANDIDATE_ID, 0, rows, unchanged_audit
+    )["checks"]["executable_law_binding"] is False
+
+    no_added_reaction_audit = dict(audit)
+    no_added_reaction_audit["added_reaction_count"] = 0
+    assert analyze_candidate_world(
+        CRYSTALLIZATION_CANDIDATE_ID, 0, rows, no_added_reaction_audit
+    )["checks"]["executable_law_binding"] is False
+
+    changed_baseline_rows = [dict(row) for row in rows]
+    next(
+        row for row in changed_baseline_rows if row["law_id"] == "baseline"
+    )["mechanism_hash"] = "a" * 64
+    assert analyze_candidate_world(
+        CRYSTALLIZATION_CANDIDATE_ID, 0, changed_baseline_rows, audit
+    )["checks"]["executable_law_binding"] is False
 
 
 def test_unpaired_or_leaking_result_is_rejected() -> None:

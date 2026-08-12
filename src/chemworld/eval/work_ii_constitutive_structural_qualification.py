@@ -447,28 +447,32 @@ def _law_binding_check(
     altered_rows = [row for row in rows if row.get("law_id") == altered]
     common = (
         law_audit.get("altered_hash_deterministic") is True
-        and law_audit.get("mechanism_hash_changed") is True
         and law_audit.get("world_intervention") == spec["world_intervention"]
         and law_audit.get("registered_law_ids") == list(spec["law_ids"])
     )
     if candidate_id == PARTITION_CANDIDATE_ID:
+        baseline_mechanism_hash = law_audit.get("baseline_mechanism_hash")
+        altered_intervention_hash = law_audit.get("altered_intervention_hash")
         return (
             common
+            and law_audit.get("mechanism_hash_changed") is False
+            and isinstance(baseline_mechanism_hash, str)
+            and isinstance(altered_intervention_hash, str)
+            and law_audit.get("altered_mechanism_hash") == baseline_mechanism_hash
             and law_audit.get("only_registered_constitutive_parameter_changed") is True
             and law_audit.get("changed_domain_parameter_keys")
             == ["partition_coefficient_exponent"]
-            and
-            {row.get("intervention_hash") for row in baseline_rows} == {None}
+            and {row.get("intervention_hash") for row in baseline_rows} == {None}
             and {row.get("intervention_hash") for row in altered_rows}
-            == {law_audit.get("altered_intervention_hash")}
+            == {altered_intervention_hash}
             and {row.get("mechanism_hash") for row in rows}
-            == {
-                law_audit.get("baseline_mechanism_hash"),
-                law_audit.get("altered_mechanism_hash"),
-            }
+            == {baseline_mechanism_hash}
         )
     return (
         common
+        and law_audit.get("mechanism_hash_changed") is True
+        and law_audit.get("baseline_mechanism_hash")
+        != law_audit.get("altered_mechanism_hash")
         and law_audit.get("transform_id") == "reversible_target_pathway_stress_v1"
         and {row.get("mechanism_hash") for row in baseline_rows}
         == {law_audit.get("baseline_mechanism_hash")}

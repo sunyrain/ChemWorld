@@ -78,6 +78,10 @@ qualification 已完成 `300/300` executions 与 exact replay，0 physical/platf
 `5/25` task-worlds、`0/5` tasks 通过，因此原 A-E block 科学拒绝。诊断同时发现现有三指标平均会稀释仅由一个
 注册指标承载的强可观测反差、paired-noise 坐标会使左右 recipe 的噪声近乎完全抵消、8-round reachability
 只证明 oracle recipe 数量可容纳而未证明盲策略可达；该结果保留，不原样重跑、不放宽阈值，另写 v0.2 新问题。
+v0.2 已冻结为 construction/held-out 各 600 primary、合计 `1,200` primary + `1,200` exact replay，采用独立
+左右噪声、事前 support/control 指标分离和真实八轮盲诊断策略。首次 development 启动在 `167/1,200` 后因
+contract/plan/receipt/trajectory 最小直接绑定与篡改校验不完整而主动停止；167 条完成记录原样保留但不构成科学
+结果。该缺陷不改变 v0.2 科学问题、coverage 或阈值；修复资格 validator 后必须从 execution 0 全块重跑。
 
 严格 A-S 的旧 partition load-by-phase-volume Q0 保留科学拒绝。新的 nominal-pair partition Q0 已在执行前
 冻结为完整 `4 x 4` categorical solvent-by-extractant 表，并完成 `32/32` primary 与 `32/32` exact replay，
@@ -466,12 +470,11 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 
 ### P1 — 重冻正式矩阵
 
-- [ ] **W2-25Q** 在任何 participant outcome 前完成新版 outcome-blind A-E prior-distinguishability qualification：
-  对五个冻结 public worlds × 五个 A-E tasks 检查注册 metric-vector 分离、paired-noise SNR、至少两个独立
-  counterevidence regions、8-round 可证伪性和 exact replay。旧的 `delta > 1e-8` scalar reachability 只保留为
-  legacy diagnostic，不能授权 formal execution；任一 task-world 失败必须整体重设计并重冻 A-E，不能结果后删 task
-  或降低阈值。300-execution outcome-blind runner、机器报告、证据链 validator 与篡改测试已实现；正式 qualification
-  尚未执行，现有 audit 继续保持 pending。
+- [ ] **W2-25Q** v0.1 的 `300/300` development qualification 已科学拒绝并暴露配对噪声、指标稀释和
+  oracle-only reachability 缺陷；旧结果永久保留。v0.2 新问题已冻结为五任务、construction/held-out 各五 worlds、
+  三次盲 policy replicate、每次八轮，共 `1,200` primary + `1,200` exact replay。首次 v0.2 启动因资格证据直接
+  绑定 validator 不完整在 `167/1,200` 主动停止，不产生科学判定。修复最小 contract/plan/receipt/trajectory
+  绑定与 tamper tests 后从头重跑；不得更改 v0.2 的 task、world、support metrics、noise、阈值或盲策略。
 - [x] **W2-25** A-E formal design 已从 4 改为 8 experiments/cell；checkpoints 为 `0/2/4/6/8`，每 cell
   至少 6 个 unique recipes、最多 2 个 exact repeats。五个 planning resource cards、analysis denominators、
   135-cell C2 manifest/preflight、task-aware analysis 与 private/public evaluator 均已实现；派生的
@@ -516,7 +519,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-25 | REOPENED | 8-experiment A-E topology 已冻结；新版 metric-vector/SNR/two-region/8-round qualification 尚未执行，legacy scalar audit 不再构成 formal admission |
 | W2-26 | NOT READY/BLOCKED | 8/10/12 calibration harness 已实现；A-P/A-S 代表配置尚未终选并 hash 冻结，在此之前不得请求执行授权 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
-| W2-37 | IN PROGRESS | crystallization reversible-topology 与新 nominal-pair partition constitutive-power seed-0 Q0 均已通过；旧 equilibrium load/volume partition Q0 保留科学拒绝。Five-world 成对基线/改律 Q1/Q2 runner 与 validator 已实现；正在核对新 categorical partition Q0 与冻结的 `10,240` primary + `10,240` exact replay 完整 qualification 语义后启动。未生成 D1、未启动 provider。 |
+| W2-37 | IN PROGRESS / RESTART REQUIRED | 两项 seed-0 Q0 均已通过。首次 five-world development 启动在 `1,121/10,240` primary 后因 validator 错把 partition domain-parameter intervention 要求为 compiled-mechanism hash 变化而停止；world-0 report 与 world-1 partial 原样保留，不构成科学结果。修复 candidate-specific binding 后须从 execution 0 全块重跑；未生成 D1、未启动 provider。 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
 | W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |
@@ -535,7 +538,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   `0.01505 < 0.03`，科学拒绝且不扩展。
 - [ ] **W2-37** crystallization reversible-topology 与新 nominal-pair partition constitutive-power seed-0 Q0
   均已按各自事前冻结门槛通过；旧 load/volume partition Q0 的科学拒绝保持不变。完成 categorical partition
-  与 strict runner 的语义一致性复核后，执行已经实现的 five-world A-S paired-law qualification。该 block 固定为 2 candidates ×
+  与 strict runner 的语义一致性复核后首次启动，但 validator 将 partition 的 domain-only exponent intervention
+  错判为必须改变 compiled mechanism hash，在 `1,121/10,240` primary 后停止。partial 原样保留且不作科学
+  判定；修复后必须从 execution 0 重跑。该 block 继续固定为 2 candidates ×
   5 worlds × 512 coordinates × 2 laws = `10,240` primary，并逐条做 `10,240` exact replay；Q2 每 task-world
   以 coordinate-only 规则盲选 16 个 held-out queries，直接比较注册可执行律。不得恢复 equilibrium load/volume
   共线设计，不得使用 generic quadratic surrogate，也不得把 Q0 当作正式 admission。

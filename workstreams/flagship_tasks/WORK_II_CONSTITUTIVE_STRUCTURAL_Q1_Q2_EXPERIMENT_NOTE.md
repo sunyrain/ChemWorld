@@ -1,6 +1,12 @@
 # Work II strict A-S five-world paired-law Q1/Q2
 
-Status: frozen implementation; not yet executed. This note must not be edited in response to outcomes. A platform defect requires the entire 10,240-primary block to restart after the fix.
+Status: frozen implementation; first development launch stopped on a validator defect at
+`1,121/10,240` primary executions. The partial world-0 report and world-1 trajectories are retained
+at the original output root and are not a scientific result. No runtime physical or platform failure
+occurred. The validator incorrectly required a compiled-mechanism hash change for the partition
+domain-parameter intervention; after repairing this platform contract, the entire 10,240-primary
+block must restart from execution 0. Coverage, scientific thresholds, and selection rules are
+unchanged.
 
 ## Question
 
@@ -35,6 +41,10 @@ Every candidate-world must satisfy all of the following:
 - exactly 1,024 classified and completed primary executions and 1,024 exact replays;
 - complete paired-law roster with identical action-plan and observation-coordinate hashes;
 - deterministic mechanism/intervention binding and trajectory-file hash binding;
+- candidate-specific mechanism semantics: the partition exponent intervention must leave the
+  compiled reaction-mechanism hash unchanged while changing only the registered domain parameter;
+  the crystallization topology intervention must change the compiled mechanism and add exactly one
+  reaction;
 - zero physical failures, platform failures, unsafe completions, or participant-visible hidden-law leakage;
 - 384 Q1 coverage coordinates split 192/192 across the two intervention families;
 - exactly 16 frozen Q2 queries split 8/8 across families;
