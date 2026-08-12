@@ -483,6 +483,12 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-33 | DONE | reaction-safety deactivating-vs-stable catalyst static A-S seed-0 Q0；`54/54` completed/exact replay，结构真实但公开效应不足，科学拒绝 |
 | W2-34 | DONE | `2 x 8` real-provider campaigns + `32/32` paired replay；闭环轨迹明显分岔，但固定配方纯物理效应 0/16 超 gate，严格 claim 不通过 |
 
+- [x] **W2-35** catalyst-effect chain 诊断已完成：`63/63` 主执行、`63/63` 官方 exact replay、0 failures，
+  destructive sampling、catalyst inventory、fresh-batch reset 与 topology checks 全通过。催化剂相对无催化剂的
+  最大真实 yield 效应为 `0.36470`，但 stable-vs-deactivating 最大 yield gap 仅 `0.00620`，9 个高温比较均未达到
+  冻结 tradeoff gate；归因为 fresh-batch 设计遮蔽、endpoint compression、机制可辨识性与参数校准不足，继续拒绝
+  该 A-S 候选且不降低阈值。
+
 ## 12. 不可违反的规则
 
 - 不根据 participant outcome 选择、删除或新增 task/world/arm。
