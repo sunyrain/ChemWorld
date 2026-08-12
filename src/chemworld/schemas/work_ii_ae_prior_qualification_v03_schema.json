@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chemworld-work-ii-ae-prior-distinguishability-candidate-contract-0.3",
+  "title": "Work II A-E v0.3 candidate-development contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "contract_id", "status", "development_only",
+    "experiment_note", "participant_provider_calls", "participant_outcomes_read",
+    "classifier", "coverage", "thresholds", "selection_rule", "noise",
+    "cohorts", "denominators", "tasks"
+  ],
+  "properties": {
+    "schema_version": {"const": "chemworld-work-ii-ae-prior-distinguishability-candidate-contract-0.3"},
+    "contract_id": {"const": "work-ii-ae-prior-distinguishability-v0.3-candidate-development"},
+    "status": {"const": "candidate_development_not_executed"},
+    "development_only": {"const": true},
+    "experiment_note": {"type": "string", "minLength": 1},
+    "participant_provider_calls": {"const": 0},
+    "participant_outcomes_read": {"const": false},
+    "classifier": {
+      "type": "object",
+      "required": ["classifier_id", "allowed_inputs", "forbidden_inputs", "hypotheses", "model", "minimum_nll_margin", "null_or_insufficient_margin_result"]
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["anchors_per_candidate_world", "categories_per_anchor", "independent_replicates_per_anchor_category", "screen_worlds_per_task", "confirmation_worlds_per_task", "candidates_per_task", "anchor_algorithm", "anchor_namespace", "anchor_lower_bound", "anchor_upper_bound"]
+    },
+    "thresholds": {"type": "object"},
+    "selection_rule": {"type": "object"},
+    "noise": {"type": "object"},
+    "cohorts": {
+      "type": "object",
+      "required": ["candidate_screen", "confirmation"]
+    },
+    "denominators": {"type": "object"},
+    "tasks": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["task_id", "campaign_config", "primary_endpoint_ids", "secondary_metric_ids", "candidates"],
+        "properties": {
+          "candidates": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "required": ["candidate_id", "scientific_priority", "target_field", "descriptor_permutation"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "schema_version": "chemworld-work-ii-ae-prior-distinguishability-candidate-contract-0.3",
+  "contract_id": "work-ii-ae-prior-distinguishability-v0.3-candidate-development",
+  "status": "candidate_development_not_executed",
+  "development_only": true,
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_AE_PRIOR_DISTINGUISHABILITY_V03_CANDIDATE_EXPERIMENT_NOTE.md",
+  "participant_provider_calls": 0,
+  "participant_outcomes_read": false,
+  "classifier": {
+    "classifier_id": "blind-dossier-weighted-linear-nll-v0.1",
+    "allowed_inputs": ["dossier", "task_id", "target_field", "anchor_ids", "support_observations", "observation_sigma"],
+    "forbidden_inputs": ["descriptor_permutation", "target_pair", "true_pair", "world_parameters", "hidden_outcomes"],
+    "hypotheses": ["H0", "swap-0-1", "swap-0-2", "swap-0-3", "swap-1-2", "swap-1-3", "swap-2-3"],
+    "model": "anchor-stratified weighted Gaussian NLL over all six pairwise endpoint and dossier distances with one nonnegative scale",
+    "minimum_nll_margin": 2.0,
+    "null_or_insufficient_margin_result": "abstain"
+  },
+  "coverage": {
+    "anchors_per_candidate_world": 2,
+    "categories_per_anchor": 4,
+    "independent_replicates_per_anchor_category": 3,
+    "screen_worlds_per_task": 5,
+    "confirmation_worlds_per_task": 5,
+    "candidates_per_task": 2,
+    "anchor_algorithm": "task-and-candidate-aware-sha256-complement-v1",
+    "anchor_namespace": "work-ii-ae-v0.3-task-aware-anchors-20260813",
+    "anchor_lower_bound": 0.15,
+    "anchor_upper_bound": 0.85
+  },
+  "thresholds": {
+    "minimum_absolute_primary_endpoint_separation": 0.05,
+    "minimum_primary_endpoint_signal_to_noise_ratio": 2.0,
+    "minimum_classifier_nll_margin": 2.0,
+    "all_five_screen_worlds_must_pass": true,
+    "all_five_confirmation_worlds_must_pass": true,
+    "all_primary_executions_completed": true,
+    "all_tolerance_zero_exact_replays_verified": true
+  },
+  "selection_rule": {
+    "eligibility": "candidate passes all five screen worlds",
+    "ordering": ["scientific_priority_ascending", "candidate_id_lexicographic"],
+    "effect_size_used_for_ranking": false,
+    "selected_per_task": 1,
+    "no_eligible_candidate": "task_scientifically_rejected_and_confirmation_not_started"
+  },
+  "noise": {
+    "mode": "keyed",
+    "seed_namespace": "work-ii-ae-v0.3-independent-observation-20260813",
+    "distinct_execution_coordinates_have_independent_streams": true,
+    "classifier_sigma": "per-anchor-category empirical standard deviation across three independent replicates",
+    "sigma_floor": 0.000001
+  },
+  "cohorts": {
+    "candidate_screen": {
+      "selection_namespace": "work-ii-ae-v0.3-candidate-screen-20260813",
+      "task_world_seeds": {
+        "electrochemical-conversion": [1858490470, 1039177667, 1821937293, 1292474374, 1596991132],
+        "reaction-to-crystallization": [1442987167, 1831868222, 1563766980, 1289899395, 1202925000],
+        "reaction-to-distillation": [1176194762, 1675660372, 1537685251, 1190624167, 1416124322],
+        "partition-discovery": [1317607630, 1112122833, 1888978677, 1014435019, 1238691826],
+        "reaction-safety-constrained": [1291137907, 1579200660, 1446334402, 1130956560, 1583055029]
+      }
+    },
+    "confirmation": {
+      "selection_namespace": "work-ii-ae-v0.3-confirmation-20260813",
+      "task_world_seeds": {
+        "electrochemical-conversion": [1876038078, 1168513611, 1478984065, 1206838455, 1222737022],
+        "reaction-to-crystallization": [1857177948, 1542932684, 1675176755, 1847107723, 1394769551],
+        "reaction-to-distillation": [1665826430, 1112042259, 1085929819, 1294087918, 1788332906],
+        "partition-discovery": [1250080863, 1585563441, 1697341790, 1419126428, 1217233862],
+        "reaction-safety-constrained": [1020472423, 1558570551, 1665666497, 1169982478, 1040759316]
+      }
+    }
+  },
+  "denominators": {
+    "tasks": 5,
+    "screen_candidates": 10,
+    "screen_task_candidate_worlds": 50,
+    "screen_primary_executions": 1200,
+    "screen_exact_replays": 1200,
+    "confirmation_selected_loci": 5,
+    "confirmation_task_locus_worlds": 25,
+    "confirmation_primary_executions": 600,
+    "confirmation_exact_replays": 600
+  },
+  "tasks": [
+    {
+      "task_id": "electrochemical-conversion",
+      "campaign_config": "configs/benchmark/work_ii_campaign_pilot.json",
+      "primary_endpoint_ids": ["selective_product_yield", "energy_efficiency"],
+      "secondary_metric_ids": ["safety_risk"],
+      "candidates": [
+        {"candidate_id": "electrolyte-profile-swap-0-3", "scientific_priority": 1, "target_field": "electrolyte_profile", "descriptor_permutation": [3, 1, 2, 0]},
+        {"candidate_id": "solvent-swap-0-3", "scientific_priority": 2, "target_field": "solvent", "descriptor_permutation": [3, 1, 2, 0]}
+      ]
+    },
+    {
+      "task_id": "reaction-to-crystallization",
+      "campaign_config": "configs/benchmark/work_ii_crystallization_campaign.json",
+      "primary_endpoint_ids": ["crystal_yield", "crystal_csd_quality"],
+      "secondary_metric_ids": ["crystal_purity"],
+      "candidates": [
+        {"candidate_id": "catalyst-swap-0-3", "scientific_priority": 1, "target_field": "catalyst", "descriptor_permutation": [3, 1, 2, 0]},
+        {"candidate_id": "solvent-swap-0-3", "scientific_priority": 2, "target_field": "solvent", "descriptor_permutation": [3, 1, 2, 0]}
+      ]
+    },
+    {
+      "task_id": "reaction-to-distillation",
+      "campaign_config": "configs/benchmark/work_ii_distillation_campaign.json",
+      "primary_endpoint_ids": ["distillate_purity", "distillate_recovery"],
+      "secondary_metric_ids": ["solvent_loss", "score"],
+      "candidates": [
+        {"candidate_id": "catalyst-swap-0-3", "scientific_priority": 1, "target_field": "catalyst", "descriptor_permutation": [3, 1, 2, 0]},
+        {"candidate_id": "solvent-swap-0-3", "scientific_priority": 2, "target_field": "solvent", "descriptor_permutation": [3, 1, 2, 0]}
+      ]
+    },
+    {
+      "task_id": "partition-discovery",
+      "campaign_config": "configs/benchmark/work_ii_partition_campaign.json",
+      "primary_endpoint_ids": ["product_in_organic"],
+      "secondary_metric_ids": ["phase_ratio", "product_in_aqueous"],
+      "candidates": [
+        {"candidate_id": "extractant-swap-0-3", "scientific_priority": 1, "target_field": "extractant", "descriptor_permutation": [3, 1, 2, 0]},
+        {"candidate_id": "solvent-swap-0-3", "scientific_priority": 2, "target_field": "solvent", "descriptor_permutation": [3, 1, 2, 0]}
+      ]
+    },
+    {
+      "task_id": "reaction-safety-constrained",
+      "campaign_config": "configs/benchmark/work_ii_safety_campaign.json",
+      "primary_endpoint_ids": ["yield", "selectivity", "safety_risk"],
+      "secondary_metric_ids": ["score"],
+      "candidates": [
+        {"candidate_id": "catalyst-swap-0-3", "scientific_priority": 1, "target_field": "catalyst", "descriptor_permutation": [3, 1, 2, 0]},
+        {"candidate_id": "solvent-swap-0-3", "scientific_priority": 2, "target_field": "solvent", "descriptor_permutation": [3, 1, 2, 0]}
+      ]
+    }
+  ]
+}
