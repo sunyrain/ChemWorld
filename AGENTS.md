@@ -15,6 +15,9 @@ Work II remains separate and is governed by `workstreams/flagship_tasks/WORK_II_
 
 ## Lightweight execution
 
+- Run Python, pytest, Ruff, and experiment entry points through the repository's locked environment:
+  `uv run --no-sync ...`. Do not invoke the system Python directly or use its dependency state as
+  diagnostic evidence for this repository.
 - New work is tracked directly in `FIRST_PAPER_TODOLIST.md`; do not create new claim files, leases,
   review queues or per-task worktrees for the first paper.
 - Before a new data-producing experiment, write one concise experiment note for the whole experiment
