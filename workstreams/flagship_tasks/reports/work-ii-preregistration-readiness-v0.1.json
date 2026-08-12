@@ -1,6 +1,31 @@
 {
   "blocking_requirements": [
     {
+      "id": "current_gate_a_runtime_binding",
+      "owner": "w2_gate_a",
+      "satisfied": false
+    },
+    {
+      "id": "c2_a_e_prior_distinguishability_qualification",
+      "owner": "w2_25q",
+      "satisfied": false
+    },
+    {
+      "id": "c2_two_a_p_terminal_admissions",
+      "owner": "w2_c2",
+      "satisfied": false
+    },
+    {
+      "id": "c2_two_a_s_terminal_admissions",
+      "owner": "w2_37",
+      "satisfied": false
+    },
+    {
+      "id": "w2_26_resource_calibration",
+      "owner": "w2_26",
+      "satisfied": false
+    },
+    {
       "id": "submission_route_user_selection",
       "owner": "user",
       "satisfied": false
@@ -23,7 +48,7 @@
     {
       "id": "clean_wheel_independent_checkout_and_evidence_graph_receipt",
       "owner": "w2_11",
-      "satisfied": true
+      "satisfied": false
     },
     {
       "id": "execution_command_budget_and_escalation_user_signoff",
@@ -44,7 +69,11 @@
     "present": true,
     "receipt_sha256": "d21f0f35d82770bfa6f3c40ae2188349b1f34535a8cec6b7a51d13c5a97ea4a1",
     "tested_commit": "aa615d0a5a489bd95f69599cea1b1bedf70562b8",
-    "validation_errors": []
+    "validation_errors": [
+      "current Work II release worktree is dirty",
+      "current Work II implementation differs from the clean-release tested commit",
+      "Work II clean-release receipt lacks the exact release test result"
+    ]
   },
   "conditional_route_requirements": {
     "nature_registered_report_stage_1": [
@@ -73,6 +102,16 @@
     "runner": "scripts/run_work_ii_formal_matrix.py"
   },
   "final_preregistration_freeze_allowed": false,
+  "formal_admission_readiness": {
+    "a_e_prior_qualification": false,
+    "c2_admission_sha256": "66cee70a882f8350f2d960e89f70fbf629634174a8dc83ad54f5e747ab8d36d1",
+    "complete_c2_admission": false,
+    "current_gate_a_runtime_binding": false,
+    "preflight_status": "failed_execution_blocked",
+    "two_a_p_terminal_admissions": false,
+    "two_a_s_terminal_admissions": false,
+    "w2_26_resource_calibration": false
+  },
   "formal_execution_allowed": false,
   "formal_participant_outcome_count": 0,
   "formal_population": {
@@ -92,7 +131,7 @@
   "formal_result": false,
   "frozen_component_readiness": {
     "analysis_plan": true,
-    "clean_release_receipt": true,
+    "clean_release_receipt": false,
     "currency_budget_and_expected_eta": false,
     "current_method_real_provider_qualification": false,
     "metrics_and_estimands": true,
@@ -124,9 +163,10 @@
     }
   },
   "outcome_neutral_quality_gates": {
+    "a_e_prior_qualification_passed": false,
     "exact_replay_required": true,
     "execution_audit_required": true,
-    "formal_design_audit_passed": true,
+    "formal_design_audit_internally_valid": true,
     "gate_a_current_and_passed": true,
     "method_qualification_required_before_formal": true,
     "power_resource_audit_passed": true,
@@ -137,18 +177,19 @@
     "aligned_noninferiority_tolerance_E_units": 0.05,
     "alpha": 0.05,
     "alternative": "grand_mean_C_prior_greater_than_zero",
+    "confirmatory_adverse_bound": "C_prior_lower=Delta_misindexed_lower-Delta_aligned_upper",
     "id": "H3_selective_evidence_driven_correction",
     "misindexed_improvement": "Delta_misindexed=E_misindexed_pre-E_misindexed_final",
     "no_multiplicity_adjustment_for_required_intersection_union_components": true,
     "primary_contrast": "C_prior=Delta_misindexed-Delta_aligned",
     "required_conditions": [
-      "one_sided_95pct_lower_bound_C_prior_greater_than_0",
-      "one_sided_95pct_lower_bound_Delta_misindexed_greater_than_0",
-      "one_sided_95pct_lower_bound_Delta_aligned_greater_than_-0.05"
+      "one_sided_95pct_lower_bound_C_prior_lower_greater_than_0",
+      "one_sided_95pct_lower_bound_Delta_misindexed_lower_greater_than_0",
+      "one_sided_95pct_lower_bound_Delta_aligned_lower_greater_than_-0.05"
     ],
     "sidedness": "one_sided",
     "success_is_intersection_union": true,
-    "test_model": "C_prior ~ 1 + sum_coded_task_fixed_effects"
+    "test_model": "C_prior_lower ~ 1 + sum_coded_task_fixed_effects"
   },
   "private_confirmation": {
     "one_execution_after_public_analysis_freeze": true,
@@ -159,34 +200,34 @@
     "analysis_plan": {
       "hash_kind": "canonical_json_sha256",
       "path": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
-      "sha256": "38036b5709e8cbfc68b429ded80bae2f6a84dd393a9880036bbe2fb5c1cb51f6"
+      "sha256": "2a7c091ea1c9c097e9026b50dbc84b9abd0a6e56664acd03778649a16cc84da7"
     },
     "formal_design": {
       "hash_kind": "canonical_json_sha256",
       "path": "configs/benchmark/work_ii_formal_design_v0.1.json",
-      "sha256": "1aa8edb0f455dc35022e9aa811c825a9a49b47f34cd8b7eaece2ac479c9572bd"
+      "sha256": "4458ffdba10e8512003ee8682612bb743c4996dfabd97f3a8c870e1885c1443e"
     },
     "formal_design_audit": {
-      "file_sha256": "63799a4c1adb1b216da73b75b7e3977a4935b695c0456cc40b4dec8601b818e5",
+      "file_sha256": "08fb27530d995eb9f6a728cceb3078f50c4ebf3c61e7178b9eb9be9a804ccfa3",
       "path": "workstreams/flagship_tasks/reports/work-ii-formal-world-prior-design-audit.json"
     },
     "formal_preflight": {
-      "file_sha256": "4e485c2cf0c0cb43d203144cb2eb35662fe65bdb86a6cdce9069875ea725147b",
+      "file_sha256": "40fe09bb97e5dab1c2efbd8ec90d58bca9a4cf52650890d4ed3225352f159670",
       "path": "workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json",
-      "preflight_sha256": "b5766648ffd27a5a6a0aa1d8b8102e4cae6767074028e3b048edbb08d326f4f1"
+      "preflight_sha256": "1561c79cc9fdfb7a6764fa865c13b3a711bf73cbfcf96ec0986edf5ca52b7cc3"
     },
     "method_qualification_readiness": {
-      "file_sha256": "b876e958ffd32e8c1a8d15d11e1f9e1bc789e2d73f70117ec9eaeab55d2df2fc",
+      "file_sha256": "9449cf57f90321ac1c3035c7d4cf539be6c5d283c4284f1f033ef1c951274ff9",
       "path": "workstreams/flagship_tasks/reports/work-ii-method-qualification-readiness-v0.1.json",
-      "readiness_sha256": "211982a4104db842230086411c0fd891d9d7b1cbe9634bf04cbc379ea288b54a"
+      "readiness_sha256": "534bd911dc6a20bb37201cf5fb05a29b092efe36037e0dcaf92d2aac2dff1148"
     },
     "power_resource_audit": {
-      "file_sha256": "38585209c20a722813047c5370afcb0a65ad72cde9963d4b0e88f3697bae94d5",
+      "file_sha256": "b06128367941a643e21895fd0cd77d9011e9a5b7d886ac47fe7e1de935cbc1c6",
       "path": "workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json"
     }
   },
   "provider_calls_executed": 0,
-  "readiness_sha256": "0bebe9c54382c8a88b43bf887dc489f5e40bff450a08f689e4612c7c0d09d5ef",
+  "readiness_sha256": "8761dab8d0e0e4b21f75f16df542c025ab4d6cb50f5161dec059bf5723b17f2e",
   "research_question": "Can a persistent scientific agent use controlled experimental evidence to selectively revise a misindexed prior without degrading an aligned prior, and does that revision support executable law recovery and held-out transfer?",
   "route_decision": {
     "binding": {
@@ -239,10 +280,16 @@
     "result_direction_early_stopping_forbidden": true
   },
   "unresolved_requirement_ids": [
+    "current_gate_a_runtime_binding",
+    "c2_a_e_prior_distinguishability_qualification",
+    "c2_two_a_p_terminal_admissions",
+    "c2_two_a_s_terminal_admissions",
+    "w2_26_resource_calibration",
     "submission_route_user_selection",
     "current_method_real_provider_qualification_receipt",
     "formal_currency_ceiling_and_provider_contract_approval",
     "qualified_expected_eta_from_current_method",
+    "clean_wheel_independent_checkout_and_evidence_graph_receipt",
     "execution_command_budget_and_escalation_user_signoff"
   ]
 }

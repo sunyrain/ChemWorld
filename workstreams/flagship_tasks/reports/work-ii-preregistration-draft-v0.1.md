@@ -1,6 +1,6 @@
 # Work II preregistration draft - final freeze blocked
 
-Manifest SHA-256: `0bebe9c54382c8a88b43bf887dc489f5e40bff450a08f689e4612c7c0d09d5ef`
+Manifest SHA-256: `8761dab8d0e0e4b21f75f16df542c025ab4d6cb50f5161dec059bf5723b17f2e`
 Route-decision SHA-256: `d949816d791f6bafc4686b394faa4ecbcab3a0551fbafeb403d8054b11e8c56e`
 
 > This is an outcome-blind readiness draft, not a registered protocol and not an authorization to collect formal primary data.
@@ -37,10 +37,16 @@ All existing Gate A, provider shakedown and development campaigns remain pilot, 
 
 ## Current blockers
 
+- `current_gate_a_runtime_binding`
+- `c2_a_e_prior_distinguishability_qualification`
+- `c2_two_a_p_terminal_admissions`
+- `c2_two_a_s_terminal_admissions`
+- `w2_26_resource_calibration`
 - `submission_route_user_selection`
 - `current_method_real_provider_qualification_receipt`
 - `formal_currency_ceiling_and_provider_contract_approval`
 - `qualified_expected_eta_from_current_method`
+- `clean_wheel_independent_checkout_and_evidence_graph_receipt`
 - `execution_command_budget_and_escalation_user_signoff`
 
 ## Policy sources checked on 2026-08-10
