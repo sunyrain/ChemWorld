@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import math
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
@@ -996,9 +996,21 @@ def validate_execution_receipt(
             errors.append("A-S execution trajectory failed tolerance-zero replay")
         if receipt.get("replay") != replay or receipt.get("exact_replay") is not True:
             errors.append("A-S execution replay receipt mismatch")
-        if any(row.get("transaction_status") != "committed" for row in records):
-            errors.append("A-S qualifying trajectory contains a noncommitted action")
-        metrics = _trajectory_metrics(candidate_id, records)
+        noncommitted = [row for row in records if row.get("transaction_status") != "committed"]
+        if noncommitted and not all(
+            row.get("rollback_reason") == "constitution_failed" for row in noncommitted
+        ):
+            errors.append("A-S trajectory contains a non-constitution rollback")
+        expected_physical_failure = (
+            {
+                "rollback_count": len(noncommitted),
+                "operations": sorted({str(row.get("operation_type")) for row in noncommitted}),
+                "attribution": "protocol_owned_physical_boundary",
+            }
+            if noncommitted
+            else None
+        )
+        metrics = None if noncommitted else _trajectory_metrics(candidate_id, records)
         finals = [
             row
             for row in records
@@ -1006,10 +1018,13 @@ def validate_execution_receipt(
             and row.get("operation_type") == "measure"
             and row.get("instrument") == "final_assay"
         ]
-        risk = finals[0].get("observation", {}).get("safety_risk") if len(finals) == 1 else None
-        if isinstance(risk, bool) or not isinstance(risk, int | float):
-            raise ValueError("trajectory lacks one finite final safety assay")
-        safe = float(risk) < float(get_task(str(spec["task_id"])).safety_limit)
+        if noncommitted:
+            safe = None
+        else:
+            risk = finals[0].get("observation", {}).get("safety_risk") if len(finals) == 1 else None
+            if isinstance(risk, bool) or not isinstance(risk, int | float):
+                raise ValueError("trajectory lacks one finite final safety assay")
+            safe = float(risk) < float(get_task(str(spec["task_id"])).safety_limit)
         mechanism_hashes = {
             row.get("mechanism_hash")
             for row in records
@@ -1028,8 +1043,8 @@ def validate_execution_receipt(
         if law_id != spec["law_ids"][0] and len(intervention_hashes) != 1:
             errors.append("A-S altered trajectory lacks one intervention hash")
         if (
-            receipt.get("status") != "completed"
-            or receipt.get("physical_failure") is not None
+            receipt.get("status") != ("physical_failure" if noncommitted else "completed")
+            or receipt.get("physical_failure") != expected_physical_failure
             or receipt.get("platform_failure") is not None
             or receipt.get("metrics") != metrics
             or receipt.get("safe") is not safe
@@ -1117,6 +1132,7 @@ def validate_world_report(
     *,
     root: Path | None = None,
     expected_execution_context: WorkIIExecutionContext | None = None,
+    evidence_progress: Callable[[int, int], None] | None = None,
 ) -> list[str]:
     errors: list[str] = []
     envelope = report.get("execution_context")
@@ -1180,7 +1196,7 @@ def validate_world_report(
     else:
         try:
             validated_rows: list[dict[str, Any]] = []
-            for embedded in rows:
+            for receipt_index, embedded in enumerate(rows, start=1):
                 if not isinstance(embedded, Mapping):
                     raise TypeError("embedded row is not an object")
                 receipt_binding = embedded.get("receipt")
@@ -1211,6 +1227,10 @@ def validate_world_report(
                 if cached != receipt:
                     raise ValueError("embedded row differs from bound execution receipt")
                 validated_rows.append(receipt)
+                if evidence_progress is not None and (
+                    receipt_index == 1 or receipt_index % 32 == 0 or receipt_index == len(rows)
+                ):
+                    evidence_progress(receipt_index, len(rows))
             rebuilt = analyze_candidate_world(
                 str(candidate_id), int(world_seed), validated_rows, audit
             )
@@ -1227,6 +1247,8 @@ def validate_summary(
     summary: Mapping[str, Any],
     *,
     expected_execution_context: WorkIIExecutionContext | None = None,
+    evidence_progress: Callable[[str, int, int], None] | None = None,
+    deep_validate_world_reports: bool = True,
 ) -> list[str]:
     errors: list[str] = []
     envelope = summary.get("execution_context")
@@ -1259,6 +1281,7 @@ def validate_summary(
     if summary.get("coverage") != expected_coverage:
         errors.append("A-S five-world coverage mismatch")
     generated_package = summary.get("generated_package")
+    package: dict[str, Any] | None = None
     if not isinstance(generated_package, Mapping):
         errors.append("A-S summary lacks its generated Q2 package binding")
     else:
@@ -1269,9 +1292,10 @@ def validate_summary(
                 raise ValueError("Q2 package is missing")
             if generated_package.get("sha256") != file_sha256(package_path):
                 errors.append("A-S generated Q2 package file hash mismatch")
-            package = json.loads(package_path.read_text(encoding="utf-8"))
-            if not isinstance(package, dict):
+            loaded_package = json.loads(package_path.read_text(encoding="utf-8"))
+            if not isinstance(loaded_package, dict):
                 raise ValueError("Q2 package is not an object")
+            package = loaded_package
             if package.get("package_sha256") != package_sha256(package):
                 errors.append("A-S generated Q2 package self-hash mismatch")
             if generated_package.get("package_sha256") != package.get("package_sha256"):
@@ -1299,13 +1323,24 @@ def validate_summary(
                 payload = json.loads(path.read_text(encoding="utf-8"))
                 if not isinstance(payload, dict):
                     raise ValueError("world report is not an object")
-                errors.extend(
-                    validate_world_report(
-                        payload,
-                        root=root,
-                        expected_execution_context=expected_execution_context,
+                label = f"{payload.get('candidate_id')}:world-{payload.get('world_seed')}"
+                if deep_validate_world_reports:
+                    errors.extend(
+                        validate_world_report(
+                            payload,
+                            root=root,
+                            expected_execution_context=expected_execution_context,
+                            evidence_progress=(
+                                (
+                                    lambda completed, total, label=label: evidence_progress(
+                                        label, completed, total
+                                    )
+                                )
+                                if evidence_progress is not None
+                                else None
+                            ),
+                        )
                     )
-                )
                 validated_reports.append(payload)
                 if payload.get("execution_context") != summary.get("execution_context"):
                     errors.append("A-S raw/execution context mismatch")
@@ -1356,7 +1391,7 @@ def validate_summary(
         )
         if summary.get("all_candidates_passed") is not expected_passed:
             errors.append("A-S summary pass decision differs from validated world reports")
-        if isinstance(generated_package, Mapping):
+        if isinstance(generated_package, Mapping) and package is not None:
             expected_package = build_q2_package(
                 validated_reports,
                 q0_bindings=summary.get("q0_bindings", {}),
@@ -1365,6 +1400,54 @@ def validate_summary(
             )
             if package != expected_package:
                 errors.append("A-S Q2 package differs from validated world reports")
+        plan_binding = validated_reports[0].get("plan_binding")
+        if isinstance(plan_binding, Mapping):
+            try:
+                plan_path = (root / str(plan_binding["path"])).resolve()
+                plan_path.relative_to(root.resolve())
+                bound_plan = json.loads(plan_path.read_text(encoding="utf-8"))
+                if not isinstance(bound_plan, Mapping) or summary.get(
+                    "q0_bindings"
+                ) != bound_plan.get("q0_bindings"):
+                    errors.append("A-S summary Q0 bindings differ from qualification plan")
+            except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+                errors.append(f"A-S summary plan cannot be read: {error}")
+        expected_candidates = {
+            candidate_id: {
+                "task_id": candidate_specs()[candidate_id]["task_id"],
+                "passed_world_count": sum(
+                    report["analysis"]["passed"]
+                    for report in validated_reports
+                    if report["candidate_id"] == candidate_id
+                ),
+                "qualification_passed": all(
+                    report["analysis"]["passed"]
+                    for report in validated_reports
+                    if report["candidate_id"] == candidate_id
+                ),
+                "worlds": [
+                    {
+                        "world_seed": report["world_seed"],
+                        "passed": report["analysis"]["passed"],
+                        "failures": report["analysis"]["failures"],
+                        "q1": report["analysis"]["q1"],
+                        "q2": report["analysis"]["q2"],
+                    }
+                    for report in validated_reports
+                    if report["candidate_id"] == candidate_id
+                ],
+            }
+            for candidate_id in CANDIDATE_IDS
+        }
+        if summary.get("candidates") != expected_candidates:
+            errors.append("A-S summary candidates differ from validated world reports")
+        expected_decision = (
+            "generate_locked_d1_readiness_for_both_candidates"
+            if expected_passed
+            else "retain_full_five_world_qualification_and_do_not_generate_d1"
+        )
+        if summary.get("decision") != expected_decision:
+            errors.append("A-S summary decision differs from validated world reports")
     denominators_value = summary.get("denominators")
     if not isinstance(denominators_value, Mapping):
         errors.append("A-S summary lacks denominators")
@@ -1406,12 +1489,11 @@ def validate_summary(
                     or qualification.get("execution_authorized") is not False
                     or qualification.get("formal_r5_authorized") is not False
                     or binding.get("execution_authorized") is not False
-                    or qualification.get("q2_package_sha256")
-                    != package.get("package_sha256")
+                    or package is None
+                    or qualification.get("q2_package_sha256") != package.get("package_sha256")
                     or qualification.get("plan_sha256")
                     != package.get("plan_binding", {}).get("plan_sha256")
-                    or intervention.get("q2_package_sha256")
-                    != package.get("package_sha256")
+                    or intervention.get("q2_package_sha256") != package.get("package_sha256")
                     or intervention.get("candidate_id") != candidate_id
                     or intervention.get("registered_truth_law_id")
                     != candidate_specs()[candidate_id]["altered_law_id"]

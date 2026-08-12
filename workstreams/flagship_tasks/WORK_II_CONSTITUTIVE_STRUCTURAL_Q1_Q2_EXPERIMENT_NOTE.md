@@ -8,6 +8,15 @@ domain-parameter intervention; after repairing this platform contract, the entir
 block must restart from execution 0. Coverage, scientific thresholds, and selection rules are
 unchanged.
 
+Before the mandatory restart, the evidence validator was hardened without changing any scientific
+coverage or gate. A compact self-hashed plan now binds this note, the two validated Q0 summaries,
+candidate specifications, exact coordinate and Q2 rosters, and pass rules. Every world report must
+reopen each self-hashed execution receipt and its contained trajectory, verify file containment and
+hashes, reconstruct the frozen action/noise coordinate, derive metrics, safety and mechanism binding
+from trajectory records, and rerun tolerance-zero exact replay. Package, summary and D1 semantics are
+then rebuilt from those validated world reports; no whole-repository hash or duplicate manifest is
+introduced.
+
 ## Question
 
 Can two registered structural/mechanistic law contrasts be distinguished from public measurements under matched action plans and keyed observation noise, in every one of five worlds, before any participant session is authorized?

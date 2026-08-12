@@ -31,12 +31,18 @@ from chemworld.eval.work_ii_constitutive_structural_qualification import (
     WORLD_SEEDS,
     analyze_candidate_world,
     build_prior_arms,
+    build_qualification_plan,
     candidate_specs,
     package_sha256,
+    plan_sha256,
     registered_coordinates,
     selected_q2_queries,
+    validate_qualification_plan,
 )
-from chemworld.eval.work_ii_execution_mode import prepare_execution_context
+from chemworld.eval.work_ii_execution_mode import (
+    build_execution_envelope,
+    prepare_execution_context,
+)
 from chemworld.eval.work_ii_formal import build_checkpoint_contract
 
 
@@ -433,6 +439,38 @@ def test_package_self_hash_excludes_its_own_field() -> None:
     package = {"schema_version": "test", "candidate_laws": {}}
     package["package_sha256"] = package_sha256(package)
     assert package["package_sha256"] == package_sha256(package)
+
+
+@pytest.mark.skipif(
+    not (
+        DEFAULT_DEVELOPMENT_PARTITION_Q0.is_file()
+        and DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0.is_file()
+    ),
+    reason="local ignored development Q0 summaries are unavailable",
+)
+def test_real_development_q0_bindings_build_a_valid_frozen_plan() -> None:
+    context = prepare_execution_context(Path.cwd(), mode="development")
+    args = type(
+        "Args",
+        (),
+        {
+            "partition_q0_summary": DEFAULT_DEVELOPMENT_PARTITION_Q0,
+            "crystallization_q0_summary": DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0,
+        },
+    )()
+    q0_bindings = _validate_q0_inputs(args, context)
+    plan = build_qualification_plan(
+        Path.cwd(),
+        q0_bindings=q0_bindings,
+        execution_context=build_execution_envelope(context),
+    )
+    assert validate_qualification_plan(Path.cwd(), plan, expected_execution_context=context) == []
+
+    changed = {**plan, "world_seeds": [0, 1, 2, 3]}
+    changed["plan_sha256"] = plan_sha256(changed)
+    assert "A-S qualification plan differs from the frozen spec or roster" in (
+        validate_qualification_plan(Path.cwd(), changed, expected_execution_context=context)
+    )
 
 
 def test_rehashed_row_tamper_cannot_pass_without_bound_receipt(tmp_path: Path) -> None:

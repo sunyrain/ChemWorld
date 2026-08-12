@@ -443,6 +443,20 @@ class Progress:
         write_json_atomic(self.status_file, payload)
         print(rendered, flush=True)
 
+    def evidence_update(self, label: str, completed: int, total: int) -> None:
+        payload = {
+            "event": "work_ii_as_evidence_validation_progress",
+            "stage": "reopen_receipts_and_tolerance_zero_replay",
+            "candidate_world": label,
+            "completed_receipts": completed,
+            "total_receipts": total,
+        }
+        rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+        with self.progress_file.open("a", encoding="utf-8") as handle:
+            handle.write(rendered + "\n")
+        write_json_atomic(self.status_file, payload)
+        print(rendered, flush=True)
+
 
 def _d1_config(
     candidate_id: str,
@@ -757,7 +771,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             )
             write_json_atomic(report_path, report)
             errors = validate_world_report(
-                report, root=ROOT, expected_execution_context=execution_context
+                report,
+                root=ROOT,
+                expected_execution_context=execution_context,
+                evidence_progress=(
+                    lambda completed,
+                    total,
+                    candidate_id=candidate_id,
+                    world_seed=world_seed: progress.evidence_update(
+                        f"{candidate_id}:world-{world_seed}", completed, total
+                    )
+                ),
             )
             if errors:
                 raise RuntimeError("invalid A-S world report: " + "; ".join(errors))
@@ -900,10 +924,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     }
     summary["summary_sha256"] = summary_sha256(summary)
     write_json_atomic(args.summary, summary)
+
     errors = validate_summary(
         ROOT,
         summary,
         expected_execution_context=execution_context,
+        deep_validate_world_reports=False,
     )
     if errors:
         raise RuntimeError("invalid A-S summary: " + "; ".join(errors))
