@@ -88,6 +88,17 @@ contract/plan/receipt/trajectory 最小直接绑定与篡改校验不完整而�
 进入 participant denominator。Formal design、C2、preregistration 与 release 入口须在重跑前同步这一 cohort
 语义；旧 audit/preflight 标 stale，留到最终 release freeze 一次重建。
 
+2026-08-13 v0.2 从 execution 0 完整重跑并通过运行时对应版本的独立落盘复核：`1,200/1,200`
+primary、`1,200/1,200` tolerance-zero exact replay、0 physical/platform failures、validator `0` errors。该块是
+有效的 scientific rejection，不是缺失分母或平台中断：held-out 中 crystallization 与 partition 均
+`5/5` worlds 通过，electrochemical `1/5`、distillation `0/5`、safety `3/5`，整体 `2/5` tasks
+通过而拒绝五任务普适 A-E claim。`150/150` policy replicates 均完成 8 rounds、8 unique recipes、
+两 anchor 的全部四类覆盖，因此不是 reachability 失败。所有 held-out 失败 anchor 均首先因
+mean support separation `<0.05`；distillation 的全部 held-out anchor 仅 `0.00487–0.01932`，原 solvent
+pair 不具备足够物理可识别性。v0.2 结果原样保留，不降阈值、不重用已暴露 worlds；若继续 A-E，
+必须把全部 v0.2 worlds 降为 exposed construction，先做 task/locus 的物理 oracle 资格，再冻结全新
+prospective held-out cohort 与 v0.3 问题。正式 A-E participant matrix 不得基于 v0.2 升级。
+
 严格 A-S 的旧 partition load-by-phase-volume Q0 保留科学拒绝。新的 nominal-pair partition Q0 已在执行前
 冻结为完整 `4 x 4` categorical solvent-by-extractant 表，并完成 `32/32` primary 与 `32/32` exact replay，
 0 physical/platform/unsafe failures。Final-assay 与 HPLC 的公开 allocation log-ratio slopes 分别为 `1.5224`
@@ -475,11 +486,13 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 
 ### P1 — 重冻正式矩阵
 
-- [ ] **W2-25Q** v0.1 的 `300/300` development qualification 已科学拒绝并暴露配对噪声、指标稀释和
-  oracle-only reachability 缺陷；旧结果永久保留。v0.2 新问题已冻结为五任务、construction/held-out 各五 worlds、
-  三次盲 policy replicate、每次八轮，共 `1,200` primary + `1,200` exact replay。首次 v0.2 启动因资格证据直接
-  绑定 validator 不完整在 `167/1,200` 主动停止，不产生科学判定。修复最小 contract/plan/receipt/trajectory
-  绑定与 tamper tests 后从头重跑；不得更改 v0.2 的 task、world、support metrics、noise、阈值或盲策略。
+- [x] **W2-25Q** v0.1 的 `300/300` development qualification 已科学拒绝并暴露配对噪声、指标稀释和
+  oracle-only reachability 缺陷；旧结果永久保留。v0.2 在首次 defective partial 后已从 execution 0
+  完整重跑，`1,200/1,200` primary 与 `1,200/1,200` exact replay 全部落盘、0 physical/platform
+  failures、独立复核 `0` errors。held-out 仅 crystallization/partition 各 `5/5` 通过；
+  electrochemical `1/5`、distillation `0/5`、safety `3/5`，因此五任务 universal A-E claim 被科学拒绝。
+  不得降低 v0.2 阈值、筛掉失败任务或重用已暴露 worlds；若提出 v0.3，须先重建失败 task/locus
+  的物理可识别性，并使用全新 prospective held-out cohort。
 - [x] **W2-25** A-E formal design 已从 4 改为 8 experiments/cell；checkpoints 为 `0/2/4/6/8`，每 cell
   至少 6 个 unique recipes、最多 2 个 exact repeats。五个 planning resource cards、analysis denominators、
   135-cell C2 manifest/preflight、task-aware analysis 与 private/public evaluator 均已实现；派生的
@@ -524,7 +537,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-22 | DONE | provider-free response-surface runner 与 readable summaries 已完成；reaction-safety absolute rejection 和两个 task 的 relative qualification 分层保留 |
 | W2-23 | DONE | reaction-safety 与 electrochemical matched-prior Q2 均以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
-| W2-25 | REOPENED | 8-experiment A-E topology 已冻结；新版 metric-vector/SNR/two-region/8-round qualification 尚未执行，legacy scalar audit 不再构成 formal admission |
+| W2-25 | SCIENTIFICALLY REJECTED | v0.2 已完成 1,200 primary + 1,200 exact replay、0 platform failures；held-out 仅 2/5 tasks 通过，五任务 A-E universal claim 不得进入 formal participant matrix |
 | W2-26 | NOT READY/BLOCKED | 8-round formal v0.2 与 A-P rank-1 Q2/static config 已直接绑定；A-S rank-1 full Q2/static config 尚缺，在此之前不得请求执行授权 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
 | W2-37 | IN PROGRESS / RESTART REQUIRED | 两项 seed-0 Q0 均已通过。首次 five-world development 启动在 `1,121/10,240` primary 后因 validator 错把 partition domain-parameter intervention 要求为 compiled-mechanism hash 变化而停止；world-0 report 与 world-1 partial 原样保留，不构成科学结果。修复 candidate-specific binding 后须从 execution 0 全块重跑；未生成 D1、未启动 provider。 |
